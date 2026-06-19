@@ -118,7 +118,15 @@ GHashTable *Cm_ParseManifest(const char *data, size_t len) {
 		return manifest;
 	}
 
-	gchar **lines = g_strsplit((const char *) data, "\n", -1);
+	// `data` is not guaranteed to be null-terminated (e.g. buffers returned by
+	// Net_HttpGet are exactly `len` bytes), so copy into a null-terminated buffer
+	// before splitting. Passing the raw buffer to g_strsplit() reads past its end
+	// into adjacent heap memory, yielding bogus trailing entries.
+	char *buffer = Mem_Malloc(len + 1);
+	memcpy(buffer, data, len);
+	buffer[len] = '\0';
+
+	gchar **lines = g_strsplit(buffer, "\n", -1);
 
 	for (gchar **line = lines; *line; line++) {
 		g_strstrip(*line);
@@ -150,6 +158,7 @@ GHashTable *Cm_ParseManifest(const char *data, size_t len) {
 	}
 
 	g_strfreev(lines);
+	Mem_Free(buffer);
 
 	return manifest;
 }
