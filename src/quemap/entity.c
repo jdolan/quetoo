@@ -28,7 +28,7 @@ void SetValueForKey(entity_t *ent, const char *key, const char *value) {
 
   for (entity_key_value_t *e = ent->values; e; e = e->next) {
     if (!strcmp(e->key, key)) {
-      SDL_strlcpy(e->value, value, sizeof(e->value));
+      q_strlcpy(e->value, value, sizeof(e->value));
       return;
     }
   }
@@ -37,8 +37,8 @@ void SetValueForKey(entity_t *ent, const char *key, const char *value) {
   e->next = ent->values;
   ent->values = e;
 
-  SDL_strlcpy(e->key, key, sizeof(e->key));
-  SDL_strlcpy(e->value, value, sizeof(e->value));
+  q_strlcpy(e->key, key, sizeof(e->key));
+  q_strlcpy(e->value, value, sizeof(e->value));
 }
 
 /**

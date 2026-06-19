@@ -77,7 +77,7 @@ patch_t *ParsePatch(parser_t *parser, int32_t entity_num) {
   if (strlen(token) > sizeof(patch->texture) - 1) {
     Com_Error(ERROR_FATAL, "Patch texture name \"%s\" is too long.\n", token);
   }
-  SDL_strlcpy(patch->texture, token, sizeof(patch->texture));
+  q_strlcpy(patch->texture, token, sizeof(patch->texture));
 
   // read "( rows cols 0 0 0 )" — rows = outer dimension, cols = inner dimension
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
@@ -247,7 +247,7 @@ static void EmitPatchCollisionBrush(entity_t *entity,
   side->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
   side->surface = SURF_NO_DRAW;
   side->material = caulk_material;
-  SDL_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
+  q_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
   side->scale = Vec2(1.f, 1.f);
   num_sides++;
 
@@ -258,7 +258,7 @@ static void EmitPatchCollisionBrush(entity_t *entity,
   side->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
   side->surface = SURF_NO_DRAW;
   side->material = caulk_material;
-  SDL_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
+  q_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
   side->scale = Vec2(1.f, 1.f);
   num_sides++;
 
@@ -278,7 +278,7 @@ static void EmitPatchCollisionBrush(entity_t *entity,
     side->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
     side->surface = SURF_NO_DRAW;
     side->material = caulk_material;
-    SDL_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
+    q_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
     side->scale = Vec2(1.f, 1.f);
     num_sides++;
   }

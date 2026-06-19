@@ -333,7 +333,7 @@ size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t s
       s = EmojiEsc(s, name, sizeof(name));
 
       char path[MAX_QPATH];
-      SDL_snprintf(path, sizeof(path), "pics/emoji/%s", name);
+      q_snprintf(path, sizeof(path), "pics/emoji/%s", name);
 
       const r_image_t *emoji = R_LoadImage(path, IMG_PIC) ?: r_draw_2d.null_texture;
 
@@ -672,7 +672,7 @@ static void R_InitFont(char *name) {
 
   r_font_t *font = &r_draw_2d.fonts[r_draw_2d.num_fonts++];
 
-  SDL_strlcpy(font->name, name, sizeof(font->name));
+  q_strlcpy(font->name, name, sizeof(font->name));
 
   font->image = R_LoadImage(va("ui/fonts/%s", name), IMG_FONT);
   assert(font->image);

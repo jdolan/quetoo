@@ -106,7 +106,7 @@ static void Cg_LoadClientSkin(cg_client_info_t *ci, char *line) {
 
     const r_mesh_face_t *face = meshes[m].model->mesh->faces;
     for (int32_t i = 0; i < meshes[m].model->mesh->num_faces; i++, face++) {
-      if (!SDL_strcasecmp(face_name, face->name)) {
+      if (!q_strcasecmp(face_name, face->name)) {
         meshes[m].skins[i] = cgi.LoadMaterial(skin_name, ASSET_CONTEXT_PLAYERS);
         return;
       }
@@ -123,7 +123,7 @@ static bool Cg_LoadClientSkins(cg_client_info_t *ci, const char *skin) {
   char *buffer;
   int64_t len;
 
-  SDL_snprintf(path, sizeof(path), "players/%s/%s.skin", ci->model, skin);
+  q_snprintf(path, sizeof(path), "players/%s/%s.skin", ci->model, skin);
 
   if ((len = cgi.LoadFile(path, (void *) &buffer)) == -1) {
     Cg_Debug("%s not found\n", path);
@@ -195,18 +195,18 @@ static bool Cg_ValidateSkin(cg_client_info_t *ci) {
  */
 static bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const char *skin) {
 
-  SDL_strlcpy(ci->model, model, sizeof(ci->model));
-  SDL_strlcpy(ci->skin, skin, sizeof(ci->skin));
+  q_strlcpy(ci->model, model, sizeof(ci->model));
+  q_strlcpy(ci->skin, skin, sizeof(ci->skin));
 
   char path[MAX_QPATH];
 
-  SDL_snprintf(path, sizeof(path), "players/%s/head", ci->model);
+  q_snprintf(path, sizeof(path), "players/%s/head", ci->model);
   ci->head = cgi.LoadModel(path);
 
-  SDL_snprintf(path, sizeof(path), "players/%s/upper", ci->model);
+  q_snprintf(path, sizeof(path), "players/%s/upper", ci->model);
   ci->torso = cgi.LoadModel(path);
 
-  SDL_snprintf(path, sizeof(path), "players/%s/lower", ci->model);
+  q_snprintf(path, sizeof(path), "players/%s/lower", ci->model);
   ci->legs = cgi.LoadModel(path);
 
   if (!ci->head || !ci->torso || !ci->legs) {
@@ -219,7 +219,7 @@ static bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const ch
     return false;
   }
 
-  SDL_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
+  q_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
   ci->icon = cgi.LoadImage(path, IMG_PIC);
 
   if (!ci->icon) {
@@ -242,7 +242,7 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
   Cg_Debug("%s\n", s);
 
   // copy the entire string
-  SDL_strlcpy(ci->info, s, sizeof(ci->info));
+  q_strlcpy(ci->info, s, sizeof(ci->info));
 
   i = 0;
   t = s;
@@ -262,7 +262,7 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
   // split info into tokens
   char info_string[sizeof(ci->info)];
   char *info[MAX_CLIENT_INFO_ENTRIES];
-  SDL_strlcpy(info_string, s, sizeof(info_string));
+  q_strlcpy(info_string, s, sizeof(info_string));
 
   if (Cg_SplitClientInfo(info_string, info, lengthof(info)) != MAX_CLIENT_INFO_ENTRIES) { // invalid info
     Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
@@ -277,7 +277,7 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
     }
 
     // copy in the name
-    SDL_strlcpy(ci->name, info[1], sizeof(ci->name));
+    q_strlcpy(ci->name, info[1], sizeof(ci->name));
 
     // check for valid skin
     if ((v = strchr(info[2], '/'))) { // it's well-formed

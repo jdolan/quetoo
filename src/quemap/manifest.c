@@ -92,7 +92,7 @@ static bool Add(const char *name) {
 
 	if (Fs_Exists(name)) {
 		if ($(paths, get, (void *) name) == NULL) {
-			$(paths, set, SDL_strdup(name), SDL_strdup(name));
+			$(paths, set, q_strdup(name), q_strdup(name));
 		}
 		return true;
 	} else {
@@ -227,7 +227,7 @@ static void AddEntities(void) {
 	List *entities = Cm_LoadEntities(bsp_file.entity_string);
 
 	for (const ListNode *node = entities->head; node; node = node->next) {
-		const cm_entity_t *e = node->data;
+		const cm_entity_t *e = node->element;
 		while (e) {
 
 			if (!strcmp(e->key, "sound")) {
@@ -295,8 +295,8 @@ int32_t WriteManifest(void) {
 	Com_Print("\nWriting manifest for %s\n\n", bsp_name);
 
 	paths = $(alloc(HashTable), init, HashTableHashStr, HashTableEqualStr);
-	paths->destroyKey = (HashTableDestroyFunc) SDL_free;
-	paths->destroyValue = (HashTableDestroyFunc) SDL_free;
+	paths->destroyKey = (HashTableDestroyFunc) free;
+	paths->destroyValue = (HashTableDestroyFunc) free;
 
 	LoadBSPFile(bsp_name, (1 << BSP_LUMP_MATERIALS) | (1 << BSP_LUMP_ENTITIES));
 
@@ -313,7 +313,7 @@ int32_t WriteManifest(void) {
 
 	// sort the asset paths
 	Vector *asset_paths = $(alloc(Vector), initWithSize, sizeof(char *));
-	$(paths, enumerateEntries, CollectAssetPath, asset_paths);
+	$(paths, enumerate, CollectAssetPath, asset_paths);
 	$(asset_paths, sort, AssetPathCompare);
 
 	// build the manifest entries with checksums
@@ -341,7 +341,7 @@ int32_t WriteManifest(void) {
 
 	// write the manifest
 	char mf_path[MAX_OS_PATH];
-	SDL_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
+	q_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
 
 	const int32_t count = Cm_WriteManifest(mf_path, manifest);
 	if (count < 0) {

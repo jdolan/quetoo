@@ -44,8 +44,8 @@ static void didEndEditing(TextView *textView) {
   const char *key = self->key->attributedText->chars;
   const char *value = self->value->attributedText->chars;
 
-  SDL_strlcpy(e->key, key ?: "", sizeof(e->key));
-  SDL_strlcpy(e->string, value ?: "", sizeof(e->string));
+  q_strlcpy(e->key, key ?: "", sizeof(e->key));
+  q_strlcpy(e->string, value ?: "", sizeof(e->string));
 
   cgi.ParseEntity(e);
 

@@ -47,13 +47,13 @@ static void G_Give_f(g_client_t *cl) {
     quantity = 9999;
   }
 
-  if (SDL_strcasecmp(name, "all") == 0) {
+  if (q_strcasecmp(name, "all") == 0) {
     give_all = true;
   } else {
     give_all = false;
   }
 
-  if (give_all || SDL_strcasecmp(gi.Argv(1), "health") == 0) {
+  if (give_all || q_strcasecmp(gi.Argv(1), "health") == 0) {
     if (gi.Argc() == 3) {
       cl->entity->health = quantity;
     } else {
@@ -64,7 +64,7 @@ static void G_Give_f(g_client_t *cl) {
     }
   }
 
-  if (give_all || SDL_strcasecmp(name, "armor") == 0) {
+  if (give_all || q_strcasecmp(name, "armor") == 0) {
     for (g_item_tag_t t = ARMOR_FIRST; t < ARMOR_LAST; t++) {
       it = &g_items[t];
       if (!it->Pickup) {
@@ -80,7 +80,7 @@ static void G_Give_f(g_client_t *cl) {
     }
   }
 
-  if (give_all || SDL_strcasecmp(name, "weapons") == 0) {
+  if (give_all || q_strcasecmp(name, "weapons") == 0) {
     for (g_item_tag_t t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
       it = &g_items[t];
       if (!it->Pickup) {
@@ -96,7 +96,7 @@ static void G_Give_f(g_client_t *cl) {
     }
   }
 
-  if (give_all || SDL_strcasecmp(name, "ammo") == 0) {
+  if (give_all || q_strcasecmp(name, "ammo") == 0) {
     for (g_item_tag_t t = AMMO_FIRST; t < AMMO_LAST; t++) {
       it = &g_items[t];
       if (!it->Pickup) {
@@ -470,7 +470,7 @@ static char *G_ExpandVariables(g_client_t *cl, const char *text) {
   for (i = j = 0; i < len && j < sizeof(expanded); i++) {
     if (text[i] == '%' && i < len - 1) { // expand %variables
       const char *c = G_ExpandVariable(cl, text[i + 1]);
-      SDL_strlcat(expanded, c, sizeof(expanded));
+      q_strlcat(expanded, c, sizeof(expanded));
       j += strlen(c);
       i++;
     } else { // or just append normal chars
@@ -541,7 +541,7 @@ static void G_Say_f(g_client_t *cl) {
   }
 
   const int32_t color = team ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
-  SDL_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->persistent.net_name, color, s);
+  q_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->persistent.net_name, color, s);
 
   G_ForEachClient(other, {
     if (team) {
@@ -570,7 +570,7 @@ static void G_PlayerList_f(g_client_t *cl) {
     const int32_t seconds = (g_level.frame_num - c->persistent.first_frame) / QUETOO_TICK_RATE;
 
     char st[80];
-    SDL_snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s\n", (seconds / 60), (seconds % 60),
+    q_snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s\n", (seconds / 60), (seconds % 60),
                c->ping,
                c->persistent.score,
                c->persistent.net_name,
@@ -613,7 +613,7 @@ bool G_AddClientToTeam(g_client_t *cl, const char *team_name) {
   cl->persistent.team = team;
   cl->persistent.spectator = false;
 
-  char *user_info = SDL_strdup(cl->persistent.user_info);
+  char *user_info = q_strdup(cl->persistent.user_info);
   G_ClientUserInfoChanged(cl, user_info);
   free(user_info);
 

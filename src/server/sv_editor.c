@@ -134,7 +134,7 @@ void Sv_FreeEditorEntity(int32_t number) {
 void Sv_LoadEditorMap(void) {
   char path[MAX_QPATH];
   StripExtension(Cm_Bsp()->name, path);
-  SDL_strlcat(path, ".map", sizeof(path));
+  q_strlcat(path, ".map", sizeof(path));
 
   void *buffer;
   if (Fs_Load(path, &buffer) == -1) {
@@ -165,7 +165,7 @@ void Sv_SaveEditorMap_f(void) {
 
   char path[MAX_QPATH];
   StripExtension(Cm_Bsp()->name, path);
-  SDL_strlcat(path, ".map", sizeof(path));
+  q_strlcat(path, ".map", sizeof(path));
 
   file_t *file = Fs_OpenWrite(path);
   if (!file) {

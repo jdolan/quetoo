@@ -149,22 +149,22 @@ static void R_SaveMeshConfig(const r_mesh_config_t *cfg, const char *path) {
   size_t len;
 
   if (!Vec3_Equal(cfg->translate, Vec3_Zero())) {
-    len = (size_t) SDL_snprintf(line, sizeof(line), "translate %g %g %g\n", cfg->translate.x, cfg->translate.y, cfg->translate.z);
+    len = (size_t) q_snprintf(line, sizeof(line), "translate %g %g %g\n", cfg->translate.x, cfg->translate.y, cfg->translate.z);
     Fs_Write(file, line, 1, len);
   }
 
   if (!Vec3_Equal(cfg->rotate, Vec3_Zero())) {
-    len = (size_t) SDL_snprintf(line, sizeof(line), "rotate %g %g %g\n", cfg->rotate.x, cfg->rotate.y, cfg->rotate.z);
+    len = (size_t) q_snprintf(line, sizeof(line), "rotate %g %g %g\n", cfg->rotate.x, cfg->rotate.y, cfg->rotate.z);
     Fs_Write(file, line, 1, len);
   }
 
   if (cfg->scale != 1.f) {
-    len = (size_t) SDL_snprintf(line, sizeof(line), "scale %g\n", cfg->scale);
+    len = (size_t) q_snprintf(line, sizeof(line), "scale %g\n", cfg->scale);
     Fs_Write(file, line, 1, len);
   }
 
   if (!Vec3_Equal(cfg->muzzle, Vec3_Zero())) {
-    len = (size_t) SDL_snprintf(line, sizeof(line), "muzzle %g %g %g\n", cfg->muzzle.x, cfg->muzzle.y, cfg->muzzle.z);
+    len = (size_t) q_snprintf(line, sizeof(line), "muzzle %g %g %g\n", cfg->muzzle.x, cfg->muzzle.y, cfg->muzzle.z);
     Fs_Write(file, line, 1, len);
   }
 

@@ -57,11 +57,11 @@ cvar_t *Cvar_Get(const char *name) {
     const List *list = $(cvar_vars, get, (void *) name);
     if (list) {
       if (list->count == 1) { // only 1 entry, return it
-        return list->head->data;
+        return list->head->element;
       } else {
         // only return the exact match
         for (const ListNode *node = list->head; node; node = node->next) {
-          cvar_t *cvar = node->data;
+          cvar_t *cvar = node->element;
           if (!strcmp(cvar->name, name)) {
             return cvar;
           }
@@ -142,32 +142,32 @@ static const char *Cvar_Stringify(const cvar_t *var) {
   }
 
   static char str[MAX_STRING_CHARS];
-  SDL_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
+  q_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
 
   if (strcmp(var->string, var->default_string)) {
-    SDL_strlcat(str, va(" [\"^3%s^7\"]", var->default_string), sizeof(str));
+    q_strlcat(str, va(" [\"^3%s^7\"]", var->default_string), sizeof(str));
   }
 
   if (mod_count) {
-    SDL_strlcat(str, " (", sizeof(str));
+    q_strlcat(str, " (", sizeof(str));
     for (size_t i = 0; i < mod_count; i++) {
       if (i) {
-        SDL_strlcat(str, ", ", sizeof(str));
+        q_strlcat(str, ", ", sizeof(str));
       }
-      SDL_strlcat(str, modifiers[i], sizeof(str));
+      q_strlcat(str, modifiers[i], sizeof(str));
     }
-    SDL_strlcat(str, ")", sizeof(str));
+    q_strlcat(str, ")", sizeof(str));
   }
 
   if (var->description) {
-    SDL_strlcat(str, va("\n  ^2%s^7", var->description), sizeof(str));
+    q_strlcat(str, va("\n  ^2%s^7", var->description), sizeof(str));
   }
 
   return str;
 }
 
 static Order Cvar_Enumerate_comparator(const ident a, const ident b) {
-  const int32_t cmp = SDL_strcasecmp((*(const cvar_t *const *) a)->name, (*(const cvar_t *const *) b)->name);
+  const int32_t cmp = q_strcasecmp((*(const cvar_t *const *) a)->name, (*(const cvar_t *const *) b)->name);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -179,7 +179,7 @@ static void Cvar_Enumerate_collect(const HashTable *table, ident key, ident valu
   Cvar_Enumerate_ctx_t *ctx = data;
   const List *list = value;
   for (const ListNode *node = list->head; node; node = node->next) {
-    cvar_t *var = node->data;
+    cvar_t *var = node->element;
     $(ctx->vars, addElement, &var);
   }
 }
@@ -192,7 +192,7 @@ void Cvar_Enumerate(Cvar_Enumerator func, void *data) {
     .vars = $(alloc(Vector), initWithSize, sizeof(cvar_t *)),
   };
 
-  $(cvar_vars, enumerateEntries, Cvar_Enumerate_collect, &ctx);
+  $(cvar_vars, enumerate, Cvar_Enumerate_collect, &ctx);
   $(ctx.vars, sort, Cvar_Enumerate_comparator);
 
   for (size_t i = 0; i < ctx.vars->count; i++) {
@@ -220,7 +220,7 @@ static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
  * @brief Console completion for console variables.
  */
 void Cvar_CompleteVar(const char *pattern, List *matches) {
-  SDL_strlcpy(cvar_complete_pattern, pattern, sizeof(cvar_complete_pattern));
+  q_strlcpy(cvar_complete_pattern, pattern, sizeof(cvar_complete_pattern));
   Cvar_Enumerate(Cvar_CompleteVar_enumerate, matches);
 }
 
@@ -290,7 +290,7 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
     $(cvar_vars, set, key, list);
   }
 
-  $(list, prepend, var);
+  $(list, prependElement, var);
   return var;
 }
 
@@ -646,7 +646,7 @@ typedef struct {
 
 static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
   Cvar_List_ctx_t *ctx = data;
-  char *str = SDL_strdup(Cvar_Stringify(var));
+  char *str = q_strdup(Cvar_Stringify(var));
   $(ctx->strs, addElement, &str);
 }
 
@@ -757,7 +757,7 @@ static void Cvar_FreeAll(void) {
     .lists = $(alloc(Vector), initWithSize, sizeof(ident)),
   };
 
-  $(cvar_vars, enumerateEntries, Cvar_Shutdown_collect, ctx.lists);
+  $(cvar_vars, enumerate, Cvar_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
     List *list = *VectorElement(ctx.lists, List *, i);

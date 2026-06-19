@@ -150,7 +150,7 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
     cl->datagram.messages = $(alloc(List), init);
     cl->datagram.messages->destroy = (ListDestroyFunc) Mem_Free;
   }
-  $(cl->datagram.messages, append, msg);
+  $(cl->datagram.messages, appendElement, msg);
 
   Mem_WriteBuffer(&cl->datagram.buffer, data, len);
 
@@ -277,7 +277,7 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
   // but we can packetize the remaining datagram messages, which are parsed individually
   if (cl->datagram.messages) {
     for (const ListNode *node = cl->datagram.messages->head; node; node = node->next) {
-      const sv_client_message_t *msg = (const sv_client_message_t *) node->data;
+      const sv_client_message_t *msg = (const sv_client_message_t *) node->element;
 
       // if we would overflow the packet, flush it first
       if (buf.size + msg->len > (MAX_MSG_SIZE - 16)) {

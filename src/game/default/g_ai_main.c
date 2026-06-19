@@ -177,7 +177,7 @@ static Order G_Ai_CompareItemsOrder(const ident a, const ident b) {
 }
 
 static inline int64_t G_Ai_Microseconds(void) {
-  return (int64_t) SDL_GetTicks() * 1000;
+  return (int64_t) g_level.time * 1000;
 }
 
 #define AI_ITEM_UNREACHABLE -1.0

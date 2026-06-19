@@ -59,10 +59,10 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
   }
 
   char path[MAX_QPATH * 3];
-  SDL_snprintf(path, sizeof(path), "%s/%s/%s", Sys_UserDir(), game, log_name);
+  q_snprintf(path, sizeof(path), "%s/%s/%s", Sys_UserDir(), game, log_name);
 
   char dir[MAX_QPATH * 2];
-  SDL_strlcpy(dir, path, sizeof(dir));
+  q_strlcpy(dir, path, sizeof(dir));
   char *sep = strrchr(dir, '/');
   if (!sep) { sep = strrchr(dir, '\\'); }
   if (sep) { *sep = '\0'; }
@@ -121,14 +121,14 @@ const char *Com_GetDebug(void) {
   for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
     if (quetoo.debug_mask & (1 << i)) {
       if (strlen(debug)) {
-        SDL_strlcat(debug, " ", sizeof(debug));
+        q_strlcat(debug, " ", sizeof(debug));
       }
-      SDL_strlcat(debug, DEBUG_CATEGORIES[i], sizeof(debug));
+      q_strlcat(debug, DEBUG_CATEGORIES[i], sizeof(debug));
     }
   }
 
   if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
-    SDL_strlcat(debug, " breakpoint", sizeof(debug));
+    q_strlcat(debug, " breakpoint", sizeof(debug));
   }
 
   return debug;
@@ -187,7 +187,7 @@ static int32_t Com_Sprintfv(char *str, size_t size, const char *func, const char
     if (fmt[0] == '!') { // skip it
       fmt++;
     } else {
-      SDL_snprintf(str, (size_t) size, "%s: ", func);
+      q_snprintf(str, (size_t) size, "%s: ", func);
       len = strlen(str);
     }
   }

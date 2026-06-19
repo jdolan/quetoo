@@ -41,7 +41,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
   str->level = level;
   str->chars = calloc(string_len, 1);
 
-  SDL_strlcpy(str->chars, string, string_len); // copy in input
+  q_strlcpy(str->chars, string, string_len); // copy in input
 
   // remove trailing newline/carriage return
   size_t chars_len = strlen(str->chars);
@@ -50,10 +50,10 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
   }
 
   if (chars_len < 2 || str->chars[chars_len - 2] != '^' || str->chars[chars_len - 1] != '7') { // append ^7 if we need it
-    SDL_strlcat(str->chars, "^7", string_len);
+    q_strlcat(str->chars, "^7", string_len);
   }
 
-  if (SDL_strlcat(str->chars, "\n", string_len) >= string_len) {
+  if (q_strlcat(str->chars, "\n", string_len) >= string_len) {
     raise(SIGABRT);
     return NULL;
   }
@@ -119,7 +119,7 @@ static void Con_Dump_f(void) {
 
     const ListNode *list = console_state.strings->head;
     while (list) {
-      const char *c = ((console_string_t *) list->data)->chars;
+      const char *c = ((console_string_t *) list->element)->chars;
       while (*c) {
         if (StrIsColor(c)) {
           c++;
@@ -164,12 +164,12 @@ void Con_Append(int32_t level, const char *string) {
 
   SDL_LockMutex(console_state.lock);
 
-  $(console_state.strings, append, str);
+  $(console_state.strings, appendElement, str);
   console_state.size += str->size;
 
   while (console_state.size > CON_MAX_SIZE) {
     ListNode *first = console_state.strings->head;
-    console_string_t *old = first->data;
+    console_string_t *old = first->element;
 
     console_state.size -= old->size;
     $(console_state.strings, removeNode, first);
@@ -182,7 +182,7 @@ void Con_Append(int32_t level, const char *string) {
     // iterate the configured consoles and append the new string
 
     for (ListNode *node = console_state.consoles->head; node; node = node->next) {
-      const console_t *console = node->data;
+      const console_t *console = node->element;
 
       if (console->Append) {
         if (Con_Filter(console, str)) {
@@ -289,7 +289,7 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
   ListNode *start = NULL;
   ListNode *list = console_state.strings->tail;
   while (list) {
-    const console_string_t *str = list->data;
+    const console_string_t *str = list->element;
 
     if (str->timestamp < console->whence) {
       break;
@@ -314,7 +314,7 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
   size_t count = 0;
 
   while (start) {
-    const console_string_t *str = start->data;
+    const console_string_t *str = start->element;
 
     if (Con_Filter(console, str)) {
       count += Con_Wrap(str->chars, console->width, lines + count, max_lines - count);
@@ -348,7 +348,7 @@ void Con_NavigateHistory(console_t *console, console_history_nav_t nav) {
   if (strlen(hist->strings[p])) {
     console_input_t *in = &console->input;
 
-    SDL_strlcpy(in->buffer, hist->strings[p], sizeof(in->buffer));
+    q_strlcpy(in->buffer, hist->strings[p], sizeof(in->buffer));
     in->pos = strlen(in->buffer);
 
     hist->pos = p;
@@ -367,7 +367,7 @@ void Con_ReadHistory(console_t *console, file_t *file) {
   console_history_t *hist = &console->history;
 
   while (Fs_ReadLine(file, str, sizeof(str))) {
-    SDL_strlcpy(hist->strings[hist->index++ % CON_HISTORY_SIZE], str, sizeof(str));
+    q_strlcpy(hist->strings[hist->index++ % CON_HISTORY_SIZE], str, sizeof(str));
   }
 
   hist->pos = hist->index;
@@ -399,7 +399,7 @@ static int32_t Con_AutocompleteMatchCompare(const void *a, const void *b) {
   const con_autocomplete_match_t *ma = (const con_autocomplete_match_t *) a;
   const con_autocomplete_match_t *mb = (const con_autocomplete_match_t *) b;
 
-  return SDL_strcasecmp(ma->description ?: ma->name, mb->description ?: mb->name);
+  return q_strcasecmp(ma->description ?: ma->name, mb->description ?: mb->name);
 }
 
 /**
@@ -419,7 +419,7 @@ void Con_AutocompleteMatch(List *matches, const char *name, const char *descript
 
   ListNode *insert_after = NULL;
   for (ListNode *node = matches->head; node; node = node->next) {
-    const con_autocomplete_match_t *m = node->data;
+    const con_autocomplete_match_t *m = node->element;
     const int32_t cmp = Con_AutocompleteMatchCompare(m, match);
     if (cmp == 0) {
       Mem_Free(match);
@@ -432,7 +432,7 @@ void Con_AutocompleteMatch(List *matches, const char *name, const char *descript
     }
   }
 
-  $(matches, insertAfter, insert_after, match);
+  $(matches, insertElementAfter, insert_after, match);
 }
 
 /**
@@ -442,7 +442,7 @@ void Con_AutocompleteInput_f(const uint32_t argi, List *matches) {
   const char *partial = Cmd_Argv(argi);
   char pattern[strlen(partial) + 3];
 
-  SDL_snprintf(pattern, sizeof(pattern), "%s*", partial);
+  q_snprintf(pattern, sizeof(pattern), "%s*", partial);
 
   Cmd_CompleteCommand(pattern, matches);
   Cvar_CompleteVar(pattern, matches);
@@ -466,7 +466,7 @@ static void Con_PrintMatches(const console_t *console, List *matches) {
 
   // calculate width per column
   for (const ListNode *m = matches->head; m; m = m->next) {
-    const con_autocomplete_match_t *match = m->data;
+    const con_autocomplete_match_t *match = m->element;
     const char *str = (match->description ?: match->name);
     const size_t str_len = strlen(str);
 
@@ -492,7 +492,7 @@ static void Con_PrintMatches(const console_t *console, List *matches) {
   if (per_row == 1 || (!all_simple && num_rows == 1)) {
     
     for (const ListNode *m = matches->head; m; m = m->next) {
-      const con_autocomplete_match_t *match = m->data;
+      const con_autocomplete_match_t *match = m->element;
       const char *str = (match->description ?: match->name);
 
       Con_Append(PRINT_ECHO, va("%s\n", str));
@@ -508,19 +508,19 @@ static void Con_PrintMatches(const console_t *console, List *matches) {
     line[0] = '\0';
 
     for (size_t i = 0; m && i < per_row; i++, m = m->next) {
-      const con_autocomplete_match_t *match = m->data;
+      const con_autocomplete_match_t *match = m->element;
       const char *str = (match->description ?: match->name);
       const size_t str_len = strlen(str);
 
-      SDL_strlcat(line, str, sizeof(line));
+      q_strlcat(line, str, sizeof(line));
 
       for (size_t x = 0; x < widest - str_len; x++) {
-        SDL_strlcat(line, " ", sizeof(line));
+        q_strlcat(line, " ", sizeof(line));
       }
     }
 
     if (line[0]) {
-      SDL_strlcat(line, "\n", sizeof(line));
+      q_strlcat(line, "\n", sizeof(line));
       Con_Append(PRINT_ECHO, line);
     }
   }
@@ -540,13 +540,13 @@ static char *Con_CommonPrefix(List *matches) {
 
   for (size_t i = 0; i < sizeof(common_prefix) - 1; i++) {
     ListNode *e = matches->head;
-    const con_autocomplete_match_t *m = e->data;
+    const con_autocomplete_match_t *m = e->element;
     const char c = m->name[i];
 
     e = e->next;
 
     while (e) {
-      m = e->data;
+      m = e->element;
       const char *w = m->name;
 
       if (!c || tolower(w[i]) != tolower(c)) { // prefix no longer common
@@ -631,7 +631,7 @@ bool Con_CompleteInput(console_t *console) {
   bool output_quotes = false;
 
   if (matches->count == 1) {
-    match = ((const con_autocomplete_match_t *) matches->head->data)->name;
+    match = ((const con_autocomplete_match_t *) matches->head->element)->name;
 
     if (strchr(match, ' ') != NULL) {
       match = va("\"%s\" ", match);
@@ -651,7 +651,7 @@ bool Con_CompleteInput(console_t *console) {
   }
 
   if (new_argument) {
-    SDL_strlcat(partial, match, max_len);
+    q_strlcat(partial, match, max_len);
   } else {
     size_t arg_pos = 0;
     bool input_quotes = false;
@@ -678,7 +678,7 @@ bool Con_CompleteInput(console_t *console) {
       }
     }
 
-    SDL_snprintf(partial + arg_pos, (size_t) (max_len - arg_pos), "%s", match);
+    q_snprintf(partial + arg_pos, (size_t) (max_len - arg_pos), "%s", match);
   }
 
   console->input.pos = strlen(console->input.buffer);
@@ -702,13 +702,13 @@ void Con_SubmitInput(console_t *console) {
   if (*console->input.buffer) {
 
     const size_t h = console->history.index++ % CON_HISTORY_SIZE;
-    SDL_strlcpy(console->history.strings[h], console->input.buffer, MAX_PRINT_MSG);
+    q_strlcpy(console->history.strings[h], console->input.buffer, MAX_PRINT_MSG);
 
     console->history.pos = console->history.index;
 
     const size_t buf_len = strlen(console->input.buffer);
     if (!buf_len || console->input.buffer[buf_len - 1] != '\n') {
-      SDL_strlcat(console->input.buffer, "\n", sizeof(console->input.buffer));
+      q_strlcat(console->input.buffer, "\n", sizeof(console->input.buffer));
     }
 
     const char *cmd = console->input.buffer;
@@ -733,7 +733,7 @@ void Con_AddConsole(const console_t *console) {
 
   SDL_LockMutex(console_state.lock);
 
-  $(console_state.consoles, append, (void *) console);
+  $(console_state.consoles, appendElement, (void *) console);
 
   SDL_UnlockMutex(console_state.lock);
 }
@@ -745,7 +745,7 @@ void Con_RemoveConsole(const console_t *console) {
 
   SDL_LockMutex(console_state.lock);
 
-  ListNode *node = $(console_state.consoles, findNode, (void *) console);
+  ListNode *node = $(console_state.consoles, nodeForElement, (void *) console);
   if (node) {
     $(console_state.consoles, removeNode, node);
   }

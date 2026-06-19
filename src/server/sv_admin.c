@@ -242,7 +242,7 @@ static void Sv_Status_f(void) {
     const uint32_t ping = Mini(cl->ping, 9999);
 
     char status[MAX_STRING_CHARS];
-    SDL_snprintf(status, sizeof(status), "%3d %4d %16s %7d %22s %3d",
+    q_snprintf(status, sizeof(status), "%3d %4d %16s %7d %22s %3d",
                i,
                ping,
                cl->name,
@@ -292,7 +292,7 @@ static void Sv_Say_f(void) {
     return;
   }
 
-  SDL_strlcpy(text, Cmd_Args(), sizeof(text));
+  q_strlcpy(text, Cmd_Args(), sizeof(text));
   char *s = text;
 
   if (s[0] == '"' && s[strlen(s) - 1] == '"') {
@@ -334,7 +334,7 @@ static void Sv_Tell_f(void) {
     return;
   }
 
-  SDL_strlcpy(text, msg, sizeof(text));
+  q_strlcpy(text, msg, sizeof(text));
   char *s = text;
 
   if (s[0] == '"' && s[strlen(s) - 1] == '"') {
@@ -409,8 +409,8 @@ static void Sv_Stuff_f(void) {
 
   strcpy(text, Cmd_Argv(2));
   for (i = 3; i <= Cmd_Argc(); i++) {
-    SDL_strlcat(text, " ", sizeof(text));
-    SDL_strlcat(text, Cmd_Argv(i), sizeof(text));
+    q_strlcat(text, " ", sizeof(text));
+    q_strlcat(text, Cmd_Argv(i), sizeof(text));
   }
 
   Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);

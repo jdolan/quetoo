@@ -28,7 +28,7 @@ static SDL_Surface *Img_LoadSurface_(const char *name, const char *type) {
   SDL_Surface *surf = NULL;
 
   char path[MAX_QPATH];
-  SDL_snprintf(path, sizeof(path), "%s.%s", name, type);
+  q_snprintf(path, sizeof(path), "%s.%s", name, type);
 
   void *buf;
   int64_t len;
@@ -404,10 +404,10 @@ bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height,
   char header[256];
 
   if (bpp == 4) {
-    SDL_snprintf(header, sizeof(header), "PF\n%u %u\n%f\n", width, height, -1.0f);
+    q_snprintf(header, sizeof(header), "PF\n%u %u\n%f\n", width, height, -1.0f);
   }
   else {
-    SDL_snprintf(header, sizeof(header), "P6\n%u %u\n%d\n", width, height, bpp == 2 ? 65535 : 255);
+    q_snprintf(header, sizeof(header), "P6\n%u %u\n%d\n", width, height, bpp == 2 ? 65535 : 255);
   }
 
   // write PBM header

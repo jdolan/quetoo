@@ -36,8 +36,6 @@
 #include <string.h>
 #include <time.h>
 
-#include <SDL3/SDL.h>
-
 #if HAVE_UNISTD_H
   #include <unistd.h>
 #endif

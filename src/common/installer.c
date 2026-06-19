@@ -105,7 +105,7 @@ static void Installer_PruneStaleEntry(const HashTable *table, ident key, ident v
   const cm_manifest_entry_t *entry = value;
   if (entry->status == ENTRY_STALE) {
     char full_path[MAX_OS_PATH];
-    SDL_snprintf(full_path, sizeof(full_path), "%s/%s/%s", Fs_DataDir(), game->string, entry->path);
+    q_snprintf(full_path, sizeof(full_path), "%s/%s/%s", Fs_DataDir(), game->string, entry->path);
     if (SDL_RemovePath(full_path)) {
       Com_Debug(DEBUG_COMMON, "Pruned stale file: %s\n", entry->path);
     } else {
@@ -147,14 +147,14 @@ static void Installer_CompareEntry(const HashTable *table, ident key, ident valu
 static void Installer_Commit(void) {
 
   if (installer.local_manifest) {
-    $(installer.local_manifest, enumerateEntries, Installer_PruneStaleEntry, NULL);
+    $(installer.local_manifest, enumerate, Installer_PruneStaleEntry, NULL);
     Cm_FreeManifest(installer.local_manifest);
     installer.local_manifest = NULL;
   }
 
   if (installer.remote_manifest) {
     char mf_path[MAX_OS_PATH];
-    SDL_snprintf(mf_path, sizeof(mf_path), "%s/%s/manifest.mf", Fs_DataDir(), game->string);
+    q_snprintf(mf_path, sizeof(mf_path), "%s/%s/manifest.mf", Fs_DataDir(), game->string);
     Cm_WriteManifest(mf_path, installer.remote_manifest);
     Cm_FreeManifest(installer.remote_manifest);
     installer.remote_manifest = NULL;
@@ -175,14 +175,14 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
     if (isalnum((unsigned char)*src) || *src == '-' || *src == '_' || *src == '.' || *src == '~' || *src == '/') {
       *dst++ = *src;
     } else {
-      dst += SDL_snprintf(dst, 4, "%%%02X", (unsigned char)*src);
+      dst += q_snprintf(dst, 4, "%%%02X", (unsigned char)*src);
     }
     src++;
   }
   *dst = '\0';
 
   char url[MAX_OS_PATH * 2];
-  SDL_snprintf(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s/%s", game->string, encoded);
+  q_snprintf(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s/%s", game->string, encoded);
 
   Data *data = NULL;
 
@@ -194,11 +194,11 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
   }
 
   char path[MAX_OS_PATH];
-  SDL_snprintf(path, sizeof(path), "%s/%s/%s", Fs_DataDir(), game->string, entry->path);
+  q_snprintf(path, sizeof(path), "%s/%s/%s", Fs_DataDir(), game->string, entry->path);
 
   {
     char dir[MAX_OS_PATH];
-    SDL_strlcpy(dir, path, sizeof(dir));
+    q_strlcpy(dir, path, sizeof(dir));
     char *slash = strrchr(dir, '/');
     if (slash) { *slash = '\0'; }
     if (!SDL_CreateDirectory(dir)) {
@@ -248,9 +248,9 @@ static int Installer_DownloadThread(void *unused) {
     const cm_manifest_entry_t *entry = NULL;
     {
       cm_manifest_entry_t *found = NULL;
-      $(installer.remote_manifest, enumerateEntries, Installer_FindPending, &found);
+      $(installer.remote_manifest, enumerate, Installer_FindPending, &found);
       if (found) {
-        SDL_strlcpy(in->current_file, found->path, sizeof(in->current_file));
+        q_strlcpy(in->current_file, found->path, sizeof(in->current_file));
         entry = found;
       }
     }
@@ -271,7 +271,7 @@ static int Installer_DownloadThread(void *unused) {
       ((cm_manifest_entry_t *) entry)->status = ENTRY_CURRENT;
     } else if (in->state == INSTALLER_DOWNLOADING) {
       in->state = INSTALLER_ERROR;
-      SDL_snprintf(in->error, sizeof(in->error), "Download failed: %s", entry->path);
+      q_snprintf(in->error, sizeof(in->error), "Download failed: %s", entry->path);
     }
 
     SDL_UnlockMutex(installer.mutex);
@@ -297,7 +297,7 @@ static int Installer_Thread(void *unused) {
         SDL_LockMutex(installer.mutex);
         if (v < 0) {
           in->state = INSTALLER_ERROR;
-          SDL_snprintf(in->error, sizeof(in->error), "Failed to fetch %s", QUETOO_VERSION_URL);
+          q_snprintf(in->error, sizeof(in->error), "Failed to fetch %s", QUETOO_VERSION_URL);
         } else {
           in->bin_version = v;
           in->state = in->bin_version > version->integer ? INSTALLER_UPDATE_AVAILABLE : INSTALLER_COMPARING;
@@ -309,12 +309,12 @@ static int Installer_Thread(void *unused) {
       case INSTALLER_COMPARING: {
         Data *data = NULL;
         char manifest_url[MAX_OS_PATH];
-        SDL_snprintf(manifest_url, sizeof(manifest_url), QUETOO_DATA_BASE_URL "/%s/manifest.mf", game->string);
+        q_snprintf(manifest_url, sizeof(manifest_url), QUETOO_DATA_BASE_URL "/%s/manifest.mf", game->string);
         const int32_t http_status = $($$(RESTClient, sharedInstance), get, manifest_url, &data);
         if (http_status != 200 || !data) {
           SDL_LockMutex(installer.mutex);
           in->state = INSTALLER_ERROR;
-          SDL_snprintf(in->error, sizeof(in->error), "Failed to fetch manifest: HTTP %d", http_status);
+          q_snprintf(in->error, sizeof(in->error), "Failed to fetch manifest: HTTP %d", http_status);
           SDL_UnlockMutex(installer.mutex);
           release(data);
           break;
@@ -323,15 +323,15 @@ static int Installer_Thread(void *unused) {
         HashTable *remote = Cm_ParseManifest((const char *) data->bytes, data->length);
         release(data);
 
-        $(remote, enumerateEntries, Installer_MarkPending, NULL);
+        $(remote, enumerate, Installer_MarkPending, NULL);
 
         HashTable *local = Cm_ReadManifest("manifest.mf");
         if (local) {
-          $(local, enumerateEntries, Installer_MarkStale, NULL);
+          $(local, enumerate, Installer_MarkStale, NULL);
         }
 
         installer_compare_t ctx = { .local = local };
-        $(remote, enumerateEntries, Installer_CompareEntry, &ctx);
+        $(remote, enumerate, Installer_CompareEntry, &ctx);
         const int32_t files_total = ctx.files_total;
         const int32_t kbytes_total = ctx.kbytes_total;
 

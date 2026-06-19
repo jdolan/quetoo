@@ -69,14 +69,14 @@ static void fetchHeroImages(void *data) {
 		*s = '\0';
 
 		char url[MAX_STRING_CHARS];
-		const int url_len = SDL_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
+		const int url_len = q_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
 		if (url_len < 0 || (size_t) url_len >= sizeof(url)) {
 			Cg_Warn("Failed to build hero image URL: %s", p);
 			p = s + strlen(suffix);
 			continue;
 		}
 
-		char *dup = SDL_strdup(url);
+		char *dup = q_strdup(url);
 		$(urls, addElement, &dup);
 		p = s + strlen(suffix);
 	}
@@ -120,7 +120,7 @@ static void fetchHeroImages(void *data) {
 	}
 
 	for (uint32_t i = 0; i < urls->count; i++) {
-		SDL_free(*VectorElement(urls, char *, i));
+		free(*VectorElement(urls, char *, i));
 	}
 	release(urls);
 }

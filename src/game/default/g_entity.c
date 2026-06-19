@@ -679,7 +679,7 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
 
   memset(&g_level, 0, sizeof(g_level));
 
-  SDL_strlcpy(g_level.name, name, sizeof(g_level.name));
+  q_strlcpy(g_level.name, name, sizeof(g_level.name));
 
   g_level.frags    = $(alloc(Vector), initWithSize, sizeof(g_frag_t));
   g_level.captures = $(alloc(Vector), initWithSize, sizeof(g_capture_t));
@@ -759,7 +759,7 @@ static void G_worldspawn_Music(void) {
     gi.EnumerateFiles("music/*.ogg", G_worldspawn_EnumerateMusic, tracks);
     $(tracks, sort, G_worldspawn_MusicShuffle);
 
-    for (int32_t i = 0; i < (int32_t) SDL_min(MAX_MUSICS, (int32_t) tracks->count); i++) {
+    for (int32_t i = 0; i < (int32_t) Mini(MAX_MUSICS, (int32_t) tracks->count); i++) {
       gi.SetConfigString(CS_MUSICS + i, (char *) tracks->elements + (size_t) i * MAX_QPATH);
     }
 
@@ -768,7 +768,7 @@ static void G_worldspawn_Music(void) {
   }
 
   char buf[MAX_STRING_CHARS];
-  SDL_strlcpy(buf, g_level.music, sizeof(buf));
+  q_strlcpy(buf, g_level.music, sizeof(buf));
 
   int32_t i = 0;
   char *t = strtok(buf, ",");
@@ -830,9 +830,9 @@ static void G_worldspawn(g_entity_t *ent) {
   ent->s.bounds = ent->bounds;
 
   if (ent->message && *ent->message) {
-    SDL_strlcpy(g_level.message, ent->message, sizeof(g_level.message));
+    q_strlcpy(g_level.message, ent->message, sizeof(g_level.message));
   } else {
-    SDL_strlcpy(g_level.message, g_level.name, sizeof(g_level.message));
+    q_strlcpy(g_level.message, g_level.name, sizeof(g_level.message));
   }
 
   gi.SetConfigString(CS_MESSAGE, g_level.message);
@@ -873,7 +873,7 @@ static void G_worldspawn(g_entity_t *ent) {
   gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
   const cm_entity_t *items = gi.EntityValue(ent->def, "items");
-  if (SDL_strcasecmp(items->string, "quake") == 0) {
+  if (q_strcasecmp(items->string, "quake") == 0) {
     g_level.items = ITEMS_QUAKE;
   } else {
     g_level.items = ITEMS_DEFAULT;
@@ -993,11 +993,11 @@ static void G_worldspawn(g_entity_t *ent) {
 
   const cm_entity_t *give_map = G_MapValue("give");
   if (give_map && *give_map->string) { // prefer map metadata give
-    SDL_strlcpy(g_level.give, give_map->string, sizeof(g_level.give));
+    q_strlcpy(g_level.give, give_map->string, sizeof(g_level.give));
   } else { // or fall back on worldspawn
     const cm_entity_t *give = gi.EntityValue(ent->def, "give");
     if (*give->string) {
-      SDL_strlcpy(g_level.give, give->string, sizeof(g_level.give));
+      q_strlcpy(g_level.give, give->string, sizeof(g_level.give));
     } else {
       g_level.give[0] = '\0';
     }
@@ -1005,11 +1005,11 @@ static void G_worldspawn(g_entity_t *ent) {
 
   const cm_entity_t *music_map = G_MapValue("music");
   if (music_map && *music_map->string) { // prefer map metadata music
-    SDL_strlcpy(g_level.music, music_map->string, sizeof(g_level.music));
+    q_strlcpy(g_level.music, music_map->string, sizeof(g_level.music));
   } else { // or fall back on worldspawn
     const cm_entity_t *music = gi.EntityValue(ent->def, "music");
     if (*music->string) {
-      SDL_strlcpy(g_level.music, music->string, sizeof(g_level.music));
+      q_strlcpy(g_level.music, music->string, sizeof(g_level.music));
     } else {
       g_level.music[0] = '\0';
     }

@@ -147,7 +147,7 @@ void Cbuf_Execute(void) {
     if (i >= sizeof(line)) {
       Com_Warn("Command exceeded %" PRIuPTR " chars, discarded\n", sizeof(line));
     } else {
-      SDL_strlcpy(line, text, i + 1);
+      q_strlcpy(line, text, i + 1);
     }
 
     // delete the text from the command buffer and move remaining commands down
@@ -228,7 +228,7 @@ void Cmd_TokenizeString(const char *text) {
 
     // set cmd_state.args to everything after the command name
     if (cmd_state.args.argc == 1) {
-      SDL_strlcpy(cmd_state.args.args, parser.position.ptr + 1, MAX_STRING_CHARS);
+      q_strlcpy(cmd_state.args.args, parser.position.ptr + 1, MAX_STRING_CHARS);
 
       // strip off any trailing whitespace
       size_t l = strlen(cmd_state.args.args);
@@ -248,7 +248,7 @@ void Cmd_TokenizeString(const char *text) {
     // expand console variables
     if (*cmd_state.args.argv[cmd_state.args.argc] == '$' && strcmp(cmd_state.args.argv[0], "alias")) {
       const char *c = Cvar_GetString(cmd_state.args.argv[cmd_state.args.argc] + 1);
-      SDL_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
+      q_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
     }
 
     cmd_state.args.argc++;
@@ -265,7 +265,7 @@ static cmd_t *Cmd_Get_(const char *name, const bool case_sensitive) {
 
     if (list) {
       if (list->count == 1) { // only 1 entry, return it
-        cmd_t *cmd = list->head->data;
+        cmd_t *cmd = list->head->element;
 
         if (!case_sensitive || strcmp(cmd->name, name) == 0) {
           return cmd;
@@ -273,7 +273,7 @@ static cmd_t *Cmd_Get_(const char *name, const bool case_sensitive) {
       } else {
         // only return the exact match
         for (const ListNode *node = list->head; node; node = node->next) {
-          cmd_t *cmd = node->data;
+          cmd_t *cmd = node->element;
 
           if (!strcmp(cmd->name, name)) {
             return cmd;
@@ -294,7 +294,7 @@ cmd_t *Cmd_Get(const char *name) {
 }
 
 static Order Cmd_Enumerate_comparator(const ident a, const ident b) {
-  const int32_t cmp = SDL_strcasecmp((*(const cmd_t *const *) a)->name, (*(const cmd_t *const *) b)->name);
+  const int32_t cmp = q_strcasecmp((*(const cmd_t *const *) a)->name, (*(const cmd_t *const *) b)->name);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -306,7 +306,7 @@ static void Cmd_Enumerate_collect(const HashTable *table, ident key, ident value
   Cmd_Enumerate_ctx_t *ctx = data;
   const List *list = value;
   for (const ListNode *node = list->head; node; node = node->next) {
-    cmd_t *cmd = node->data;
+    cmd_t *cmd = node->element;
     $(ctx->cmds, addElement, &cmd);
   }
 }
@@ -319,7 +319,7 @@ void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
     .cmds = $(alloc(Vector), initWithSize, sizeof(cmd_t *)),
   };
 
-  $(cmd_state.commands, enumerateEntries, Cmd_Enumerate_collect, &ctx);
+  $(cmd_state.commands, enumerate, Cmd_Enumerate_collect, &ctx);
   $(ctx.cmds, sort, Cmd_Enumerate_comparator);
 
   for (size_t i = 0; i < ctx.cmds->count; i++) {
@@ -366,7 +366,7 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
     $(cmd_state.commands, set, key, list);
   }
 
-  $(list, prepend, cmd);
+  $(list, prependElement, cmd);
   return cmd;
 }
 
@@ -407,7 +407,7 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
     $(cmd_state.commands, set, key, list);
   }
 
-  $(list, prepend, cmd);
+  $(list, prependElement, cmd);
   return cmd;
 }
 
@@ -418,7 +418,7 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
 static List *Cmd_RemovePtr_(cmd_t *cmd) {
   List *list = $(cmd_state.commands, get, (void *) cmd->name);
 
-  ListNode *node = $(list, findNode, cmd);
+  ListNode *node = $(list, nodeForElement, cmd);
   if (!node) {
     Com_Error(ERROR_FATAL, "Missing command: %s\n", cmd->name);
     return list;
@@ -460,9 +460,9 @@ static void Cmd_RemoveAll_collect(const HashTable *table, ident key, ident value
   Cmd_RemoveAll_ctx_t *ctx = data;
   const List *list = value;
   for (const ListNode *node = list->head; node; node = node->next) {
-    cmd_t *cmd = node->data;
+    cmd_t *cmd = node->element;
     if (cmd->flags & ctx->flags) {
-      $(ctx->cmds, append, cmd);
+      $(ctx->cmds, appendElement, cmd);
     }
   }
 }
@@ -476,10 +476,10 @@ void Cmd_RemoveAll(uint32_t flags) {
     .cmds = $(alloc(List), init),
   };
 
-  $(cmd_state.commands, enumerateEntries, Cmd_RemoveAll_collect, &ctx);
+  $(cmd_state.commands, enumerate, Cmd_RemoveAll_collect, &ctx);
 
   for (const ListNode *node = ctx.cmds->head; node; node = node->next) {
-    cmd_t *cmd = node->data;
+    cmd_t *cmd = node->element;
     List *list = Cmd_RemovePtr_(cmd);
 
     if (!list->count) {
@@ -501,15 +501,15 @@ static const char *Cmd_Stringify(const cmd_t *cmd) {
   buffer[0] = '\0';
 
   if (cmd->Execute) {
-    SDL_strlcat(buffer, va("^1%s^7", cmd->name), sizeof(buffer));
+    q_strlcat(buffer, va("^1%s^7", cmd->name), sizeof(buffer));
 
     if (cmd->description) {
-      SDL_strlcat(buffer, va("\n\t%s", cmd->description), sizeof(buffer));
+      q_strlcat(buffer, va("\n\t%s", cmd->description), sizeof(buffer));
     }
   } else if (cmd->commands) {
-    SDL_strlcat(buffer, va("^3%s^7\n\t%s", cmd->name, cmd->commands), sizeof(buffer));
+    q_strlcat(buffer, va("^3%s^7\n\t%s", cmd->name, cmd->commands), sizeof(buffer));
   } else {
-    SDL_strlcat(buffer, va("^3%s^7", cmd->name), sizeof(buffer));
+    q_strlcat(buffer, va("^3%s^7", cmd->name), sizeof(buffer));
   }
 
   return buffer;
@@ -532,7 +532,7 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
  * @brief Console completion for commands and aliases.
  */
 void Cmd_CompleteCommand(const char *pattern, List *matches) {
-  SDL_strlcpy(cmd_complete_pattern, pattern, sizeof(cmd_complete_pattern));
+  q_strlcpy(cmd_complete_pattern, pattern, sizeof(cmd_complete_pattern));
   Cmd_Enumerate(Cmd_CompleteCommand_enumerate, matches);
 }
 
@@ -613,12 +613,12 @@ static void Cmd_Alias_f(void) {
 
   cmd[0] = '\0';
   for (int32_t i = 2; i < Cmd_Argc(); i++) {
-    SDL_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
+    q_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
     if (i != (Cmd_Argc() - 1)) {
-      SDL_strlcat(cmd, " ", sizeof(cmd));
+      q_strlcat(cmd, " ", sizeof(cmd));
     }
   }
-  SDL_strlcat(cmd, "\n", sizeof(cmd));
+  q_strlcat(cmd, "\n", sizeof(cmd));
 
   Cmd_Alias(Cmd_Argv(1), cmd);
 }
@@ -629,7 +629,7 @@ typedef struct {
 
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
   Cmd_List_ctx_t *ctx = data;
-  char *str = SDL_strdup(Cmd_Stringify(cmd));
+  char *str = q_strdup(Cmd_Stringify(cmd));
   $(ctx->strs, addElement, &str);
 }
 
@@ -678,10 +678,10 @@ static void Cmd_Exec_f(void) {
     return;
   }
 
-  SDL_strlcpy(path, Cmd_Argv(1), sizeof(path));
+  q_strlcpy(path, Cmd_Argv(1), sizeof(path));
   const size_t plen = strlen(path);
   if (plen < 4 || strcmp(path + plen - 4, ".cfg") != 0) {
-    SDL_strlcat(path, ".cfg", sizeof(path));
+    q_strlcat(path, ".cfg", sizeof(path));
   }
 
   if (Fs_Load(path, &buffer) == -1) {
@@ -776,7 +776,7 @@ void Cmd_Shutdown(void) {
     .lists = $(alloc(Vector), initWithSize, sizeof(ident)),
   };
 
-  $(cmd_state.commands, enumerateEntries, Cmd_Shutdown_collect, ctx.lists);
+  $(cmd_state.commands, enumerate, Cmd_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
     List *list = *VectorElement(ctx.lists, List *, i);

@@ -130,7 +130,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
   // write to a temp file, then rename
   char tempname[MAX_OS_PATH];
   StripExtension(filename, tempname);
-  SDL_strlcat(tempname, ".tmp", sizeof(tempname));
+  q_strlcat(tempname, ".tmp", sizeof(tempname));
 
   file_t *file = Fs_OpenWrite(tempname);
   if (!file) {
@@ -230,7 +230,7 @@ int32_t Cl_ParseConfigString(void) {
     Com_Error(ERROR_DROP, "Invalid index %i\n", i);
   }
 
-  SDL_strlcpy(cl.config_strings[i], Net_ReadString(&net_message), MAX_STRING_CHARS);
+  q_strlcpy(cl.config_strings[i], Net_ReadString(&net_message), MAX_STRING_CHARS);
 
   const char *s = cl.config_strings[i];
 

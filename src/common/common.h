@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <SDL3/SDL.h>
+
 #include "shared/shared.h"
 
 #include "atlas.h"

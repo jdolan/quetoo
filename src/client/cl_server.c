@@ -34,9 +34,9 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
   s = (cl_server_info_t *) Mem_TagMalloc(sizeof(*s), MEM_TAG_CLIENT);
 
   s->addr = *addr;
-  SDL_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
+  q_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
 
-  if (!cls.servers) { cls.servers = $(alloc(List), init); cls.servers->destroy = (ListDestroyFunc) Mem_Free; } $(cls.servers, prepend, s);
+  if (!cls.servers) { cls.servers = $(alloc(List), init); cls.servers->destroy = (ListDestroyFunc) Mem_Free; } $(cls.servers, prependElement, s);
 
   return s;
 }
@@ -48,7 +48,7 @@ static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
   const ListNode *e = cls.servers ? cls.servers->head : NULL;
 
   while (e) {
-    cl_server_info_t *s = (cl_server_info_t *) e->data;
+    cl_server_info_t *s = (cl_server_info_t *) e->element;
 
     if (Net_CompareNetaddr(addr, &s->addr)) {
       return s;
@@ -85,7 +85,7 @@ void Cl_ParseServerInfo(void) {
     server->ping_time = cls.broadcast_time;
   }
 
-  SDL_strlcpy(string, Net_ReadString(&net_message), sizeof(string));
+  q_strlcpy(string, Net_ReadString(&net_message), sizeof(string));
 
   // First line is the server infostring; subsequent lines are player entries.
   char *player_start = strchr(string, '\n');
@@ -97,15 +97,15 @@ void Cl_ParseServerInfo(void) {
   char name[sizeof(server->name)];
   char gameplay[sizeof(server->gameplay)];
 
-  SDL_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
-  SDL_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
-  SDL_strlcpy(gameplay, InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
+  q_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
+  q_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
+  q_strlcpy(gameplay, InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
   const int32_t max_clients = atoi(InfoString_Get(string, "sv_max_clients"));
 
   if (hostname[0] && name[0]) {
-    SDL_strlcpy(server->hostname, hostname, sizeof(server->hostname));
-    SDL_strlcpy(server->name, name, sizeof(server->name));
-    SDL_strlcpy(server->gameplay, gameplay, sizeof(server->gameplay));
+    q_strlcpy(server->hostname, hostname, sizeof(server->hostname));
+    q_strlcpy(server->name, name, sizeof(server->name));
+    q_strlcpy(server->gameplay, gameplay, sizeof(server->gameplay));
     server->max_clients = max_clients;
 
     server->clients = 0;
@@ -117,7 +117,7 @@ void Cl_ParseServerInfo(void) {
 
       char player[MAX_TOKEN_CHARS];
       const size_t len = end ? (size_t)(end - line) : strlen(line);
-      SDL_strlcpy(player, line, Mini(len + 1, sizeof(player)));
+      q_strlcpy(player, line, Mini(len + 1, sizeof(player)));
 
       if (player[0]) {
         server->clients++;
@@ -141,7 +141,7 @@ void Cl_ParseServerInfo(void) {
     server->max_clients = 0;
     server->bots = 0;
 
-    SDL_snprintf(server->error, sizeof(server->error), "Invalid response from %s\n", Net_NetaddrToString(&server->addr));
+    q_snprintf(server->error, sizeof(server->error), "Invalid response from %s\n", Net_NetaddrToString(&server->addr));
   }
 
   SDL_PushEvent(&(SDL_Event) {
@@ -197,7 +197,7 @@ static void Cl_SendBroadcast(void) {
 
 
   while (e) { // update old ping times
-    cl_server_info_t *s = (cl_server_info_t *) e->data;
+    cl_server_info_t *s = (cl_server_info_t *) e->element;
 
     if (s->source == SERVER_SOURCE_BCAST) {
       s->ping_time = quetoo.ticks;
@@ -266,7 +266,7 @@ void Cl_ParseServers(void) {
     port += *buffptr++;
 
     char s[32];
-    SDL_snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
+    q_snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
 
     Com_Debug(DEBUG_CLIENT, "Parsed %s\n", s);
 
@@ -295,7 +295,7 @@ void Cl_ParseServers(void) {
   const ListNode *e = cls.servers ? cls.servers->head : NULL;
 
   while (e) {
-    server = (cl_server_info_t *) e->data;
+    server = (cl_server_info_t *) e->element;
 
     if (server->source == SERVER_SOURCE_INTERNET) {
       server->ping_time = quetoo.ticks;
@@ -324,9 +324,9 @@ void Cl_Servers_List_f(void) {
   const ListNode *e = cls.servers ? cls.servers->head : NULL;
 
   while (e) {
-    const cl_server_info_t *s = (const cl_server_info_t *) e->data;
+    const cl_server_info_t *s = (const cl_server_info_t *) e->element;
 
-    SDL_snprintf(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
+    q_snprintf(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
                s->hostname, Net_NetaddrToString(&s->addr), s->name, s->gameplay, s->clients,
                s->max_clients, s->ping);
     Com_Print("%s\n", string);

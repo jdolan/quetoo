@@ -38,7 +38,7 @@ static bool HasSuffix(const char *str, const char *suffix) {
 static void CollectManifestAsset(const HashTable *table, ident key, ident value, ident data) {
   List *assets = data;
   const cm_manifest_entry_t *entry = value;
-  $(assets, append, SDL_strdup(entry->path));
+  $(assets, appendElement, q_strdup(entry->path));
 }
 
 /**
@@ -55,7 +55,7 @@ int32_t ZIP_Main(void) {
 
   // read the manifest
   char mf_path[MAX_OS_PATH];
-  SDL_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
+  q_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
 
   HashTable *manifest = Cm_ReadManifest(mf_path);
   if (!manifest) {
@@ -64,11 +64,11 @@ int32_t ZIP_Main(void) {
 
   // the manifest includes the bsp and all referenced assets
   List *assets = $(alloc(List), init);
-  assets->destroy = (ListDestroyFunc) SDL_free;
+  assets->destroy = (ListDestroyFunc) free;
 
   // include the manifest itself so the pk3 is self-contained
-  $(assets, append, SDL_strdup(mf_path));
-  $(manifest, enumerateEntries, CollectManifestAsset, assets);
+  $(assets, appendElement, q_strdup(mf_path));
+  $(manifest, enumerate, CollectManifestAsset, assets);
 
   Cm_FreeManifest(manifest);
 
@@ -76,13 +76,13 @@ int32_t ZIP_Main(void) {
   memset(&zip, 0, sizeof(zip));
 
   // write to a "temporary" archive name
-  SDL_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), map_base, getpid());
+  q_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), map_base, getpid());
 
   if (mz_zip_writer_init_file(&zip, path, 0)) {
     Com_Print("Compressing %zu resources to %s...\n", assets->count, path);
 
     for (const ListNode *node = assets->head; node; node = node->next) {
-      const char *filename = node->data;
+      const char *filename = node->element;
 
       if (!Fs_Exists(filename)) {
         Com_Warn("Missing %s\n", filename);
@@ -152,7 +152,7 @@ int32_t ZIP_Main(void) {
 
       if (dir) {
         char to_update[MAX_OS_PATH];
-        SDL_snprintf(to_update, sizeof(to_update), "%s/%s", dir, existing);
+        q_snprintf(to_update, sizeof(to_update), "%s/%s", dir, existing);
 
         rename(path, to_update);
         Com_Print("Renamed %s to %s\n", path, to_update);

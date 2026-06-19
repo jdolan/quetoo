@@ -94,7 +94,7 @@ static void Cl_AttemptConnect(void) {
       Cl_Disconnect();
     }
 
-    SDL_strlcpy(cls.server_name, "localhost", sizeof(cls.server_name));
+    q_strlcpy(cls.server_name, "localhost", sizeof(cls.server_name));
 
     cls.state = CL_CONNECTING;
     cls.connect_time = 0;
@@ -145,7 +145,7 @@ void Cl_Connect(const net_addr_t *addr) {
 
   Cl_Disconnect();
 
-  SDL_strlcpy(cls.server_name, Net_NetaddrToString(addr), sizeof(cls.server_name));
+  q_strlcpy(cls.server_name, Net_NetaddrToString(addr), sizeof(cls.server_name));
 
   cls.state = CL_CONNECTING;
   cls.connect_time = 0;
@@ -721,7 +721,7 @@ static void Cl_InitGuid(void) {
     const uint32_t b = (uint32_t) SDL_rand(INT32_MAX);
     const uint32_t c = (uint32_t) SDL_rand(INT32_MAX);
     const uint32_t d = (uint32_t) SDL_rand(INT32_MAX);
-    SDL_snprintf(uuid, sizeof(uuid),
+    q_snprintf(uuid, sizeof(uuid),
       "%08x-%04x-%04x-%04x-%04x%08x",
       a,
       b & 0xffff,
@@ -735,7 +735,7 @@ static void Cl_InitGuid(void) {
   Cvar_Add("guid_hash", "", CVAR_NO_SET, NULL);
 
   char url[256];
-  SDL_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
+  q_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
 
   Data *data;
   const int32_t status = $($$(RESTClient, sharedInstance), get, url, &data);

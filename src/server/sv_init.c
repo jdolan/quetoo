@@ -47,7 +47,7 @@ static int32_t Sv_FindIndex(const char *name, int32_t start, int32_t max, bool c
     return 0;
   }
 
-  SDL_strlcpy(sv.config_strings[start + i], name, sizeof(sv.config_strings[i]));
+  q_strlcpy(sv.config_strings[start + i], name, sizeof(sv.config_strings[i]));
 
   if (svs.state != SV_LOADING) { // send the update to everyone
     Mem_ClearBuffer(&sv.multicast);
@@ -279,19 +279,19 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
   } else { // loading a map
     Cvar_ForceSetString(sv_map->name, sv.name);
 
-    SDL_snprintf(sv.config_strings[CS_BSP], MAX_STRING_CHARS, "maps/%s.bsp", sv.name);
+    q_snprintf(sv.config_strings[CS_BSP], MAX_STRING_CHARS, "maps/%s.bsp", sv.name);
 
     sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_BSP], &bsp_size);
 
     const char *dir = Fs_RealDir(sv.config_strings[CS_BSP]);
     const size_t dir_len = strlen(dir);
     if (dir_len >= 4 && !strcmp(dir + dir_len - 4, ".pk3")) {
-      SDL_strlcpy(sv.config_strings[CS_PK3], Basename(dir), MAX_STRING_CHARS);
+      q_strlcpy(sv.config_strings[CS_PK3], Basename(dir), MAX_STRING_CHARS);
     } else {
       sv.config_strings[CS_PK3][0] = '\0';
     }
 
-    SDL_snprintf(sv.config_strings[CS_MANIFEST], MAX_STRING_CHARS, "maps/%s.mf", sv.name);
+    q_snprintf(sv.config_strings[CS_MANIFEST], MAX_STRING_CHARS, "maps/%s.mf", sv.name);
 
     for (int32_t i = 0; i < Cm_NumModels(); i++) {
 
@@ -300,7 +300,7 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
       }
 
       char *s = sv.config_strings[CS_MODELS + i];
-      SDL_snprintf(s, MAX_STRING_CHARS, "*%d", i);
+      q_snprintf(s, MAX_STRING_CHARS, "*%d", i);
 
       sv.cm_models[i] = Cm_Model(s);
     }
@@ -314,7 +314,7 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
     Com_Print("  Loaded map %s, %d entities.\n", sv.name, num_entities);
   }
 
-  SDL_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_STRING_CHARS, "%" PRId64, bsp_size);
+  q_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_STRING_CHARS, "%" PRId64, bsp_size);
 }
 
 /**

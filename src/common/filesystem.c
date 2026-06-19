@@ -347,7 +347,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
           Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
         }
 
-        $(list, append, chunk);
+        $(list, appendElement, chunk);
         len += chunk->len;
       }
 
@@ -357,7 +357,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 
           const ListNode *e = list->head;
           while (e) {
-            fs_chunk_t *b = e->data;
+            fs_chunk_t *b = e->element;
 
             memcpy(buf, b->data, b->len);
             buf += (ptrdiff_t) b->len;
@@ -455,7 +455,7 @@ static int32_t Fs_Enumerate_(void *data, const char *dir, const char *filename) 
   const fs_enumerate_t *enumerator = data;
 
   char path[MAX_QPATH];
-  SDL_snprintf(path, sizeof(path), "%s%s", dir, filename);
+  q_snprintf(path, sizeof(path), "%s%s", dir, filename);
 
   if (GlobMatch(enumerator->pattern, path, GLOB_FLAGS_NONE)) {
     enumerator->function(path, enumerator->data);
@@ -478,7 +478,7 @@ void Fs_Enumerate(const char *pattern, Fs_Enumerator func, void *data) {
   if (strchr(pattern, '/')) {
     Dirname(pattern, enumerator.dir);
   } else {
-    SDL_strlcpy(enumerator.dir, "/", sizeof(enumerator.dir));
+    q_strlcpy(enumerator.dir, "/", sizeof(enumerator.dir));
   }
 
   PHYSFS_enumerate(enumerator.dir, Fs_Enumerate_, &enumerator);
@@ -537,11 +537,11 @@ void Fs_AddToSearchPathv(const char *dir, ...) {
   va_start(args, dir);
 
   while (dir) {
-    SDL_strlcat(path, dir, sizeof(path));
+    q_strlcat(path, dir, sizeof(path));
 
     dir = va_arg(args, const char *);
     if (dir) {
-      SDL_strlcat(path, "/", sizeof(path));
+      q_strlcat(path, "/", sizeof(path));
     }
   }
 
@@ -571,7 +571,7 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
 static void Fs_AddUserSearchPath(const char *dir) {
 
   char path[MAX_OS_PATH];
-  SDL_snprintf(path, sizeof(path), "%s/%s", Sys_UserDir(), dir);
+  q_snprintf(path, sizeof(path), "%s/%s", Sys_UserDir(), dir);
 
   if (!SDL_CreateDirectory(path)) {
     Com_Warn("Failed to create %s\n", path);
@@ -672,7 +672,7 @@ const char *Fs_RealDir(const char *filename) {
 const char *Fs_RealPath(const char *path) {
   static char real_path[MAX_OS_PATH];
 
-  SDL_snprintf(real_path, sizeof(real_path), "%s/", Fs_WriteDir());
+  q_snprintf(real_path, sizeof(real_path), "%s/", Fs_WriteDir());
 
   const char *in = path;
   char *out = real_path + strlen(real_path);
@@ -712,9 +712,9 @@ void Fs_Init(const uint32_t flags) {
 
   PHYSFS_permitSymbolicLinks(true);
 
-  SDL_strlcpy(fs_state.bin_dir, BINDIR, MAX_OS_PATH);
-  SDL_strlcpy(fs_state.lib_dir, PKGLIBDIR, MAX_OS_PATH);
-  SDL_strlcpy(fs_state.data_dir, PKGDATADIR, MAX_OS_PATH);
+  q_strlcpy(fs_state.bin_dir, BINDIR, MAX_OS_PATH);
+  q_strlcpy(fs_state.lib_dir, PKGLIBDIR, MAX_OS_PATH);
+  q_strlcpy(fs_state.data_dir, PKGDATADIR, MAX_OS_PATH);
 
   const char *path = Sys_ExecutablePath();
   if (path) {
@@ -725,7 +725,7 @@ void Fs_Init(const uint32_t flags) {
 #if defined(__APPLE__)
     if ((c = strstr(path, "Quetoo.app"))) {
       *(c + strlen("Quetoo.app")) = '\0';
-      SDL_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
+      q_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
       if (strstr(fs_state.base_dir, "AppTranslocation")) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
@@ -750,44 +750,44 @@ void Fs_Init(const uint32_t flags) {
        * game to fall back on the read-only copy of quetoo-data that it originally came with.
        */
 
-      SDL_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/Contents/MacOS", fs_state.base_dir);
-      SDL_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/Contents/MacOS/lib/quetoo", fs_state.base_dir);
-      SDL_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share", Sys_UserDir());
+      q_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/Contents/MacOS", fs_state.base_dir);
+      q_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/Contents/MacOS/lib/quetoo", fs_state.base_dir);
+      q_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share", Sys_UserDir());
 
       // Ensure data_dir/default exists so PhysFS will mount it. On first launch
       // this directory tree doesn't exist yet, and Fs_AddToSearchPath silently
       // skips non-existent paths, leaving the installer with nowhere to write.
       char data_default[MAX_OS_PATH];
-      SDL_snprintf(data_default, MAX_OS_PATH, "%s/%s", fs_state.data_dir, DEFAULT_GAME);
+      q_snprintf(data_default, MAX_OS_PATH, "%s/%s", fs_state.data_dir, DEFAULT_GAME);
       SDL_CreateDirectory(data_default);
 
       char resources[MAX_OS_PATH];
-      SDL_snprintf(resources, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
+      q_snprintf(resources, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
       Fs_AddToSearchPathv(resources, NULL);
       Fs_AddToSearchPathv(resources, DEFAULT_GAME, NULL);
     }
 #elif defined(__linux__)
     if ((c = strstr(path, "/bin/"))) {
       *c = '\0';
-      SDL_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
+      q_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
       char bin_dir[MAX_OS_PATH];
-      SDL_snprintf(bin_dir, MAX_OS_PATH, "%s/bin", fs_state.base_dir);
+      q_snprintf(bin_dir, MAX_OS_PATH, "%s/bin", fs_state.base_dir);
 
       if (strcmp(bin_dir, fs_state.bin_dir) != 0) {
-        SDL_strlcpy(fs_state.bin_dir, bin_dir, MAX_OS_PATH);
-        SDL_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/lib/quetoo", fs_state.base_dir);
-        SDL_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share/quetoo", fs_state.base_dir);
+        q_strlcpy(fs_state.bin_dir, bin_dir, MAX_OS_PATH);
+        q_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/lib/quetoo", fs_state.base_dir);
+        q_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share/quetoo", fs_state.base_dir);
       }
     }
 #elif defined(_WIN32)
     if ((c = strstr(path, "\\bin\\"))) {
       *c = '\0';
-      SDL_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
+      q_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-      SDL_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s\\bin", fs_state.base_dir);
-      SDL_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s\\lib", fs_state.base_dir);
-      SDL_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s\\share", fs_state.base_dir);
+      q_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s\\bin", fs_state.base_dir);
+      q_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s\\lib", fs_state.base_dir);
+      q_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s\\share", fs_state.base_dir);
     }
 #endif
   }
@@ -839,7 +839,7 @@ void Fs_Shutdown(void) {
     return;
   }
 
-  $(fs_state.loaded_files, enumerateEntries, Fs_LoadedFiles_, NULL);
+  $(fs_state.loaded_files, enumerate, Fs_LoadedFiles_, NULL);
   release(fs_state.loaded_files);
 
   PHYSFS_freeList(fs_state.base_search_paths);

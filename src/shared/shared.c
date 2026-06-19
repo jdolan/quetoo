@@ -393,7 +393,7 @@ int32_t StrStripCmp(const char *s1, const char *s2) {
   StrStrip(s1, string1);
   StrStrip(s2, string2);
 
-  return SDL_strcasecmp(string1, string2);
+  return q_strcasecmp(string1, string2);
 }
 
 /**
@@ -458,7 +458,7 @@ char *vtos(const vec3_t v) {
   static char str[8][MAX_QPATH];
 
   char *s = str[index++ % 8];
-  SDL_snprintf(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v.x, v.y, v.z);
+  q_snprintf(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v.x, v.y, v.z);
 
   return s;
 }
@@ -542,7 +542,7 @@ const char *InfoString_Next(const char *s, char *key, char *value) {
     s++;
   }
 
-  SDL_strlcpy(key, src, s - src + 1);
+  q_strlcpy(key, src, s - src + 1);
 
   if (*s == '\\') {
     s++;
@@ -553,7 +553,7 @@ const char *InfoString_Next(const char *s, char *key, char *value) {
     s++;
   }
 
-  SDL_strlcpy(value, src, s - src + 1);
+  q_strlcpy(value, src, s - src + 1);
 
   if (*s == '\\') {
     s++;
@@ -658,9 +658,9 @@ bool InfoString_Set(char *s, const char *key, const char *value) {
   InfoString_Delete(s, key);
 
   if (strlen(s)) {
-    SDL_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value ?: "");
+    q_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value ?: "");
   } else {
-    SDL_snprintf(newi, sizeof(newi), "%s\\%s", key, value ?: "");
+    q_snprintf(newi, sizeof(newi), "%s\\%s", key, value ?: "");
   }
 
   if (strlen(newi) + strlen(s) > MAX_INFO_STRING_STRING) {

@@ -530,7 +530,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
       Com_Error(ERROR_FATAL, "Texture name \"%s\" is too long.\n", token);
     }
 
-    SDL_strlcpy(side->texture, token, sizeof(side->texture));
+    q_strlcpy(side->texture, token, sizeof(side->texture));
 
     // detect Valve-220 vs standard Q1/Q3 format by peeking for '['
     Parse_PeekToken(parser, PARSE_NO_WRAP, token, sizeof(token));

@@ -61,14 +61,14 @@ static const cm_entity_t *Cg_FindEntity(const cm_entity_t *from, const Cg_Entity
  * @brief Predicate function testing whether an entity's targetname matches the given string.
  */
 static bool Cg_EntityTarget_Predicate(const cm_entity_t *e, void *data) {
-  return !strcmp(cgi.EntityValue(e, "targetname")->nullable_string, data);
+  return !q_strcmp(cgi.EntityValue(e, "targetname")->nullable_string, data);
 }
 
 /**
  * @brief Predicate function testing whether an entity's team key matches the given string.
  */
 static bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
-  return !strcmp(cgi.EntityValue(e, "team")->nullable_string, data);
+  return !q_strcmp(cgi.EntityValue(e, "team")->nullable_string, data);
 }
 
 /**

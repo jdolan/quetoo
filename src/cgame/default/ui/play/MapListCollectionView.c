@@ -85,7 +85,7 @@ static Order sortMaps(const ident a, const ident b) {
   const char *e = !strncmp(c->message, "The ", 4) ? c->message + 4 : c->message;
   const char *f = !strncmp(d->message, "The ", 4) ? d->message + 4 : d->message;
 
-  return SDL_strcasecmp(e, f) < 0 ? OrderAscending : OrderDescending;
+  return q_strcasecmp(e, f) < 0 ? OrderAscending : OrderDescending;
 }
 
 /**
@@ -124,8 +124,8 @@ static void enumerateMaps(const char *path, void *data) {
 
       MapListItemInfo *info = calloc(1, sizeof(*info));
 
-      SDL_strlcpy(info->mapname, path, sizeof(info->mapname));
-      SDL_strlcpy(info->message, path, sizeof(info->message));
+      q_strlcpy(info->mapname, path, sizeof(info->mapname));
+      q_strlcpy(info->message, path, sizeof(info->message));
 
       char *entities = malloc(header.lumps[BSP_LUMP_ENTITIES].file_len);
 
@@ -180,7 +180,7 @@ static void enumerateMaps(const char *path, void *data) {
           node = node->next;
         }
 
-        const char *mapshot = node ? node->data : NULL;
+        const char *mapshot = node ? node->element : NULL;
 
         SDL_Surface *surf = mapshot ? cgi.LoadSurface(mapshot) : NULL;
         if (surf) {
@@ -192,7 +192,7 @@ static void enumerateMaps(const char *path, void *data) {
       }
 
       if (mapshots) {
-        mapshots->destroy = (ListDestroyFunc) SDL_free;
+        mapshots->destroy = (ListDestroyFunc) free;
         $(mapshots, removeAll);
         release(mapshots);
       }

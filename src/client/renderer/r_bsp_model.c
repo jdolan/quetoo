@@ -387,7 +387,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
     out->radius = in->radius;
     out->intensity = in->intensity;
     out->bounds = in->bounds;
-    SDL_strlcpy(out->style, in->style, sizeof(out->style));
+    q_strlcpy(out->style, in->style, sizeof(out->style));
     out->drift = in->drift;
     out->depth_pass_elements = (GLvoid *) (in->first_depth_pass_element * sizeof(GLuint));
     out->num_depth_pass_elements = in->num_depth_pass_elements;
@@ -603,7 +603,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
   for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
 
     char name[MAX_QPATH];
-    SDL_snprintf(name, sizeof(name), "%s#%d", mod->media.name, i);
+    q_snprintf(name, sizeof(name), "%s#%d", mod->media.name, i);
 
     r_model_t *out = (r_model_t *) R_AllocMedia(name, sizeof(r_model_t), R_MEDIA_MODEL);
 

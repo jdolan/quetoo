@@ -139,7 +139,7 @@ static void fetchStats(StatsViewController *this) {
   }
 
   char url[MAX_STRING_CHARS];
-  SDL_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hash);
+  q_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hash);
 
   $(cgi.restClient, getAsync, url, fetchStatsComplete, NULL);
 }

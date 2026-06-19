@@ -35,7 +35,7 @@ static void Cm_LoadBspEntities(cm_bsp_t *bsp) {
 
   cm_entity_t **out = bsp->entities;
   for (const ListNode *node = entities->head; node; node = node->next, out++) {
-    *out = node->data;
+    *out = node->element;
   }
 
   release(entities);
@@ -325,7 +325,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
     cm_bsp.mod_time = Fs_LastModTime(name);
   }
 
-  SDL_strlcpy(cm_bsp.name, name, sizeof(cm_bsp.name));
+  q_strlcpy(cm_bsp.name, name, sizeof(cm_bsp.name));
 
   Fs_Free(header);
 

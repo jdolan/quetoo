@@ -40,7 +40,7 @@ void S_LoadClientModelSamples(const char *model) {
   Vector *sounds = $(alloc(Vector), initWithSize, sizeof(s_media_t *));
 
   for (const ListNode *node = s_media_state.keys ? s_media_state.keys->head : NULL; node; node = node->next) {
-    s_media_t *media = $(s_media_state.media, get, node->data);
+    s_media_t *media = $(s_media_state.media, get, node->element);
 
     if (media && media->name[0] == '*') {
       $(sounds, addElement, &media);
@@ -63,7 +63,7 @@ void S_ListMedia_f(void) {
   Com_Print("Loaded media:\n");
 
   for (const ListNode *node = s_media_state.keys ? s_media_state.keys->head : NULL; node; node = node->next) {
-    s_media_t *media = $(s_media_state.media, get, node->data);
+    s_media_t *media = $(s_media_state.media, get, node->element);
 
     if (media) {
       Com_Print("%s\n", media->name);
@@ -82,7 +82,7 @@ void S_RegisterDependency(s_media_t *dependent, s_media_t *dependency) {
       bool found = false;
       if (dependent->dependencies) {
         for (const ListNode *n = dependent->dependencies->head; n; n = n->next) {
-          if (n->data == dependency) { found = true; break; }
+          if (n->element == dependency) { found = true; break; }
         }
       }
       if (!found) {
@@ -90,7 +90,7 @@ void S_RegisterDependency(s_media_t *dependent, s_media_t *dependency) {
         if (!dependent->dependencies) {
           dependent->dependencies = $(alloc(List), init);
         }
-        $(dependent->dependencies, append, dependency);
+        $(dependent->dependencies, appendElement, dependency);
 
         S_RegisterMedia(dependency);
       }
@@ -116,12 +116,12 @@ static void S_RegisterMedia_InsertSortedKey(const char *name) {
 
   // find insertion point (insert before first node where name <= existing)
   for (ListNode *n = s_media_state.keys->head; n; n = n->next) {
-    if (strcmp(name, (const char *) n->data) <= 0) {
-      $(s_media_state.keys, insertAfter, n->prev, (void *) name);
+    if (strcmp(name, (const char *) n->element) <= 0) {
+      $(s_media_state.keys, insertElementAfter, n->prev, (void *) name);
       return;
     }
   }
-  $(s_media_state.keys, append, (void *) name);
+  $(s_media_state.keys, appendElement, (void *) name);
 }
 
 /**
@@ -154,7 +154,7 @@ void S_RegisterMedia(s_media_t *media) {
 
   // finally re-register all dependencies
   for (const ListNode *d = media->dependencies ? media->dependencies->head : NULL; d; d = d->next) {
-    S_RegisterMedia((s_media_t *) d->data);
+    S_RegisterMedia((s_media_t *) d->element);
   }
 }
 
@@ -169,7 +169,7 @@ s_media_t *S_FindMedia(const char *name, s_media_type_t type) {
     .type = type
   };
 
-  SDL_strlcpy(lookup.name, name, sizeof(lookup.name));
+  q_strlcpy(lookup.name, name, sizeof(lookup.name));
 
   s_media_t *media = $(s_media_state.media, get, &lookup);
   if (media) {
@@ -193,7 +193,7 @@ s_media_t *S_AllocMedia(const char *name, size_t size, s_media_type_t type) {
 
   s_media_t *media = Mem_TagMalloc(size, MEM_TAG_SOUND);
 
-  SDL_strlcpy(media->name, name, sizeof(media->name));
+  q_strlcpy(media->name, name, sizeof(media->name));
   media->type = type;
 
   return media;
@@ -228,7 +228,7 @@ static bool S_FreeMedia_(const char *key, s_media_t *media, bool force) {
   // remove key from sorted keys list
   if (s_media_state.keys) {
     for (ListNode *n = s_media_state.keys->head; n; n = n->next) {
-      if (n->data == media->name) {
+      if (n->element == media->name) {
         $(s_media_state.keys, removeNode, n);
         break;
       }
@@ -258,7 +258,7 @@ void S_EndLoading(void) {
   // Collect keys to remove (can't modify table during enumeration)
   Vector *to_free = $(alloc(Vector), initWithSize, sizeof(s_media_t *));
 
-  $(s_media_state.media, enumerateEntries, S_EndLoading_Collect, to_free);
+  $(s_media_state.media, enumerate, S_EndLoading_Collect, to_free);
 
   for (size_t i = 0; i < to_free->count; i++) {
     s_media_t *media = *VectorElement(to_free, s_media_t *, i);
@@ -339,7 +339,7 @@ static void S_ShutdownMedia_Collect(const HashTable *table, ident k, ident v, id
 void S_ShutdownMedia(void) {
 
   Vector *to_free = $(alloc(Vector), initWithSize, sizeof(s_media_t *));
-  $(s_media_state.media, enumerateEntries, S_ShutdownMedia_Collect, to_free);
+  $(s_media_state.media, enumerate, S_ShutdownMedia_Collect, to_free);
 
   for (size_t i = 0; i < to_free->count; i++) {
     s_media_t *media = *VectorElement(to_free, s_media_t *, i);

@@ -475,7 +475,7 @@ int32_t main(int32_t argc, char *argv[]) {
     if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo\\shell\\open\\command", 0, NULL,
                        REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &cmd_key, NULL) == ERROR_SUCCESS) {
       char cmd[MAX_PATH + 8];
-      SDL_snprintf(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exe_path);
+      q_snprintf(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exe_path);
       RegSetValueEx(cmd_key, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) strlen(cmd) + 1);
       RegCloseKey(cmd_key);
     }

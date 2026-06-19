@@ -34,7 +34,7 @@ r_model_t *R_LoadModel(const char *name) {
   }
 
   if (*name == '*') {
-    SDL_snprintf(key, sizeof(key), "%s#%s", r_models.world->media.name, name + 1);
+    q_snprintf(key, sizeof(key), "%s#%s", r_models.world->media.name, name + 1);
   } else {
     StripExtension(name, key);
   }
@@ -54,7 +54,7 @@ r_model_t *R_LoadModel(const char *name) {
     size_t i;
     for (i = 0; i < lengthof(formats); i++, format++) {
 
-      SDL_snprintf(path, sizeof(path), "%s.%s", key, format->extension);
+      q_snprintf(path, sizeof(path), "%s.%s", key, format->extension);
 
       if (Fs_Exists(path)) {
         break;
@@ -65,10 +65,10 @@ r_model_t *R_LoadModel(const char *name) {
       static HashTable *warned;
       if (!warned) {
         warned = $(alloc(HashTable), init, HashTableHashStr, HashTableEqualStr);
-        warned->destroyKey = (HashTableDestroyFunc) SDL_free;
+        warned->destroyKey = (HashTableDestroyFunc) free;
       }
       if ($(warned, get, (void *) key) == NULL) {
-        char *warned_key = SDL_strdup(key);
+        char *warned_key = q_strdup(key);
         $(warned, set, warned_key, warned_key);
         if (strstr(name, "players/")) {
           Com_Debug(DEBUG_RENDERER, "Failed to load player %s\n", name);

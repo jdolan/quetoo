@@ -54,8 +54,8 @@ cm_entity_t *Cm_CopyEntity(const cm_entity_t *entity) {
 
     cm_entity_t *out = Cm_AllocEntity();
 
-    SDL_strlcpy(out->key, in->key, sizeof(out->key));
-    SDL_strlcpy(out->string, in->string, sizeof(out->string));
+    q_strlcpy(out->key, in->key, sizeof(out->key));
+    q_strlcpy(out->string, in->string, sizeof(out->string));
 
     Cm_ParseEntity(out);
 
@@ -92,8 +92,8 @@ cm_entity_t *Cm_EntityAssign(const cm_entity_t *dst, const cm_entity_t *src) {
 
     cm_entity_t *pair = Cm_AllocEntity();
 
-    SDL_strlcpy(pair->key, s->key, sizeof(pair->key));
-    SDL_strlcpy(pair->string, s->string, sizeof(pair->string));
+    q_strlcpy(pair->key, s->key, sizeof(pair->key));
+    q_strlcpy(pair->string, s->string, sizeof(pair->string));
 
     Cm_ParseEntity(pair);
 
@@ -268,7 +268,7 @@ List *Cm_LoadEntities(const char *entity_string) {
 
       assert(entity);
 
-      $(entities, append, entity);
+      $(entities, appendElement, entity);
     }
   }
 
@@ -334,31 +334,31 @@ cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entit
     }
   }
 
-  SDL_strlcpy(target->key, key, sizeof(target->key));
+  q_strlcpy(target->key, key, sizeof(target->key));
 
   switch (field) {
     case ENTITY_STRING:
-      SDL_strlcpy(target->string, (const char *) value, sizeof(entity->string));
+      q_strlcpy(target->string, (const char *) value, sizeof(entity->string));
       break;
     case ENTITY_INTEGER:
-      SDL_snprintf(target->string, sizeof(entity->string), "%d", *(int32_t *) value);
+      q_snprintf(target->string, sizeof(entity->string), "%d", *(int32_t *) value);
       break;
     case ENTITY_FLOAT:
-      SDL_snprintf(target->string, sizeof(entity->string), "%g", *(float *) value);
+      q_snprintf(target->string, sizeof(entity->string), "%g", *(float *) value);
       break;
     case ENTITY_VEC2: {
       const vec2_t v = *(vec2_t *) value;
-      SDL_snprintf(target->string, sizeof(entity->string), "%g %g", v.x, v.y);
+      q_snprintf(target->string, sizeof(entity->string), "%g %g", v.x, v.y);
       break;
     }
     case ENTITY_VEC3: {
       const vec3_t v = *(vec3_t *) value;
-      SDL_snprintf(target->string, sizeof(entity->string), "%g %g %g", v.x, v.y, v.z);
+      q_snprintf(target->string, sizeof(entity->string), "%g %g %g", v.x, v.y, v.z);
       break;
     }
     case ENTITY_VEC4: {
       const vec4_t v = *(vec4_t *) value;
-      SDL_snprintf(target->string, sizeof(entity->string), "%g %g %g %g", v.x, v.y, v.z, v.w);
+      q_snprintf(target->string, sizeof(entity->string), "%g %g %g %g", v.x, v.y, v.z, v.w);
       break;
     }
   }

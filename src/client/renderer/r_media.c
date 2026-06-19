@@ -51,7 +51,7 @@ void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data) {
     .media = $(alloc(Vector), initWithSize, sizeof(r_media_t *)),
   };
 
-  $(r_media_state.media, enumerateEntries, R_EnumerateMedia_collect, &ctx);
+  $(r_media_state.media, enumerate, R_EnumerateMedia_collect, &ctx);
   $(ctx.media, sort, R_EnumerateMedia_comparator);
 
   for (size_t i = 0; i < ctx.media->count; i++) {
@@ -91,8 +91,8 @@ r_media_t *R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
     dependent->dependencies = $(alloc(List), init);
   }
 
-  if ($(dependent->dependencies, findNode, dependency) == NULL) {
-    $(dependent->dependencies, prepend, dependency);
+  if ($(dependent->dependencies, nodeForElement, dependency) == NULL) {
+    $(dependent->dependencies, prependElement, dependency);
   }
 
   return R_RegisterMedia(dependency);
@@ -126,7 +126,7 @@ r_media_t *R_RegisterMedia(r_media_t *media) {
   }
 
   for (const ListNode *node = media->dependencies ? media->dependencies->head : NULL; node; node = node->next) {
-    R_RegisterMedia((r_media_t *) node->data);
+    R_RegisterMedia((r_media_t *) node->element);
   }
 
   return media;
@@ -141,7 +141,7 @@ r_media_t *R_FindMedia(const char *name, r_media_type_t type) {
     .type = type
   };
   
-  SDL_strlcpy(lookup.name, name, sizeof(lookup.name));
+  q_strlcpy(lookup.name, name, sizeof(lookup.name));
 
   r_media_t *media = $(r_media_state.media, get, &lookup);
   if (media) {
@@ -164,7 +164,7 @@ r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
 
   r_media_t *media = Mem_TagMalloc(size, MEM_TAG_RENDERER);
 
-  SDL_strlcpy(media->name, name, sizeof(media->name));
+  q_strlcpy(media->name, name, sizeof(media->name));
   media->type = type;
 
   return media;
@@ -219,7 +219,7 @@ static void R_FreeMediaEntries(void *data) {
     .data = data,
   };
 
-  $(r_media_state.media, enumerateEntries, R_FreeMedia_collect, &ctx);
+  $(r_media_state.media, enumerate, R_FreeMedia_collect, &ctx);
 
   for (size_t i = 0; i < ctx.media->count; i++) {
     r_media_t *media = *VectorElement(ctx.media, r_media_t *, i);

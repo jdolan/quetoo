@@ -216,12 +216,12 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 
     case SDLK_V:
       if ((SDL_GetModState() & SDL_KMOD_CLIPBOARD) && SDL_HasClipboardText()) {
-        char *tail = SDL_strdup(in->buffer + in->pos);
+        char *tail = q_strdup(in->buffer + in->pos);
         in->buffer[in->pos] = '\0';
 
         char *text = SDL_GetClipboardText();
-        SDL_strlcat(in->buffer, text, sizeof(in->buffer));
-        SDL_strlcat(in->buffer, tail, sizeof(in->buffer));
+        q_strlcat(in->buffer, text, sizeof(in->buffer));
+        q_strlcat(in->buffer, tail, sizeof(in->buffer));
         free(tail);
 
         in->pos = Minf(in->pos + strlen(text), sizeof(in->buffer) - 1);
@@ -252,18 +252,18 @@ static void Cl_KeyGame(const SDL_Event *event) {
   if (bind[0] == '+') { // button commands add key and time as a param
     if (event->type == SDL_EVENT_KEY_DOWN) {
       if (cls.key_state.down[key] == false) {
-        SDL_snprintf(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cl.unclamped_time);
+        q_snprintf(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cl.unclamped_time);
         cls.key_state.latched[key] = true;
       }
     } else {
       if (cls.key_state.down[key] == true && cls.key_state.latched[key] == true) {
-        SDL_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cl.unclamped_time);
+        q_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cl.unclamped_time);
         cls.key_state.latched[key] = false;
       }
     }
   } else {
     if (event->type == SDL_EVENT_KEY_DOWN) {
-      SDL_snprintf(cmd, sizeof(cmd), "%s\n", bind);
+      q_snprintf(cmd, sizeof(cmd), "%s\n", bind);
     }
   }
 
@@ -297,7 +297,7 @@ static void Cl_KeyChat(const SDL_Event *event) {
       } else {
         out = va("say %s^7", in->buffer);
       }
-      SDL_strlcpy(in->buffer, out, sizeof(in->buffer));
+      q_strlcpy(in->buffer, out, sizeof(in->buffer));
       Con_SubmitInput(&cl_chat_console);
 
       Cl_SetKeyDest(KEY_GAME);
@@ -353,7 +353,7 @@ SDL_Scancode Cl_KeyForName(const char *name) {
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
     if (cl_key_names[k]) {
-      if (!SDL_strcasecmp(name, cl_key_names[k])) {
+      if (!q_strcasecmp(name, cl_key_names[k])) {
         return k;
       }
     }

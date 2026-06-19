@@ -66,7 +66,7 @@ static r_occlusion_query_t *R_PopOcclusionQuery(List *queries) {
   }
 
   ListNode *node = queries->head;
-  r_occlusion_query_t *query = node->data;
+  r_occlusion_query_t *query = node->element;
 
   $(queries, removeNode, node);
 
@@ -147,7 +147,7 @@ r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
 
   r_occlusion_queries.dirty = true;
 
-  $(r_occlusion_queries.allocated, prepend, query);
+  $(r_occlusion_queries.allocated, prependElement, query);
   return query;
 }
 
@@ -160,11 +160,11 @@ void R_FreeOcclusionQuery(r_occlusion_query_t *query) {
     return;
   }
 
-  ListNode *node = $(r_occlusion_queries.allocated, findNode, query);
+  ListNode *node = $(r_occlusion_queries.allocated, nodeForElement, query);
   if (node) {
     $(r_occlusion_queries.allocated, removeNode, node);
   }
-  $(r_occlusion_queries.free, prepend, query);
+  $(r_occlusion_queries.free, prependElement, query);
 
   r_occlusion_queries.dirty = true;
 }
@@ -231,7 +231,7 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 
   GLint base_vertex = 0;
   for (const ListNode *node = r_occlusion_queries.allocated->head; node; node = node->next) {
-    r_occlusion_query_t *query = node->data;
+    r_occlusion_query_t *query = node->element;
 
     query->base_vertex = base_vertex;
     Box3_ToPoints(query->bounds, vertexes + base_vertex);
@@ -263,7 +263,7 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
   glDepthMask(GL_FALSE);
 
   for (const ListNode *node = r_occlusion_queries.allocated->head; node; node = node->next) {
-    r_occlusion_query_t *query = node->data;
+    r_occlusion_query_t *query = node->element;
 
     if (R_DrawOcclusionQuery(view, query)) {
       r_stats.queries_occluded++;
@@ -275,7 +275,7 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
   if (r_draw_occlusion_queries->value) {
 
     for (const ListNode *node = r_occlusion_queries.allocated->head; node; node = node->next) {
-      r_occlusion_query_t *query = node->data;
+      r_occlusion_query_t *query = node->element;
       const float dist = Vec3_Distance(Box3_Center(query->bounds), view->origin);
       const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
       if (query->result == 0) {

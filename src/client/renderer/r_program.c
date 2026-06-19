@@ -104,10 +104,10 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
         if (!filename) {
           break;
         } else if (source_list[0] != 0) {
-          SDL_strlcat(source_list, ", ", sizeof(source_list));
+          q_strlcat(source_list, ", ", sizeof(source_list));
         }
         
-        SDL_strlcat(source_list, filename, sizeof(source_list));
+        q_strlcat(source_list, filename, sizeof(source_list));
       }
 
       GLint src_length;

@@ -85,7 +85,7 @@ static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, file
   *snd = NULL;
 
   StripExtension(name, path);
-  SDL_snprintf(path, sizeof(path), "music/%s.ogg", name);
+  q_snprintf(path, sizeof(path), "music/%s.ogg", name);
 
   if ((*file = Fs_OpenRead(path)) != NULL) {
   
@@ -133,7 +133,7 @@ s_music_t *S_CurrentMusic(void) {
 bool S_PlaylistContains(const s_music_t *music) {
   if (!s_music_state.playlist) { return false; }
   for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
-    if (n->data == music) { return true; }
+    if (n->element == music) { return true; }
   }
   return false;
 }
@@ -176,7 +176,7 @@ s_music_t *S_LoadMusic(const char *name) {
     if (!s_music_state.playlist) {
       s_music_state.playlist = $(alloc(List), init);
     }
-    $(s_music_state.playlist, append, music);
+    $(s_music_state.playlist, appendElement, music);
   }
 
   return music;
@@ -308,15 +308,15 @@ static s_music_t *S_PrevMusic(void) {
   if (s_music_state.playlist && s_music_state.playlist->count) {
 
     for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
-      if (n->data == s_music_state.current_music) {
+      if (n->element == s_music_state.current_music) {
         if (n->prev) {
-          return (s_music_t *) n->prev->data;
+          return (s_music_t *) n->prev->element;
         }
         break;
       }
     }
 
-    return (s_music_t *) s_music_state.playlist->tail->data;
+    return (s_music_t *) s_music_state.playlist->tail->element;
   }
 
   return s_music_state.default_music;
@@ -330,15 +330,15 @@ static s_music_t *S_NextMusic(void) {
   if (s_music_state.playlist && s_music_state.playlist->count) {
 
     for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
-      if (n->data == s_music_state.current_music) {
+      if (n->element == s_music_state.current_music) {
         if (n->next) {
-          return (s_music_t *) n->next->data;
+          return (s_music_t *) n->next->element;
         }
         break;
       }
     }
 
-    return (s_music_t *) s_music_state.playlist->head->data;
+    return (s_music_t *) s_music_state.playlist->head->element;
   }
 
   return s_music_state.default_music;

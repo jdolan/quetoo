@@ -81,7 +81,7 @@ static char *Cm_UnparseContents(int32_t contents) {
 
   for (cm_dictionary_t *dict = cm_contents_dict; dict < cm_contents_dict + lengthof(cm_contents_dict); dict++) {
     if (contents & dict->flag) {
-      SDL_strlcat(s, va("%s ", dict->keyword), sizeof(s));
+      q_strlcat(s, va("%s ", dict->keyword), sizeof(s));
     }
   }
 
@@ -131,7 +131,7 @@ static char *Cm_UnparseSurface(int32_t surface) {
 
   for (cm_dictionary_t *list = cm_surfaceList; list < cm_surfaceList + lengthof(cm_surfaceList); list++) {
     if (surface & list->flag) {
-      SDL_strlcat(s, va("%s ", list->keyword), sizeof(s));
+      q_strlcat(s, va("%s ", list->keyword), sizeof(s));
     }
   }
 
@@ -621,7 +621,7 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
 void Cm_MaterialBasename(const char *in, char *out, size_t len) {
 
   if (out != in) {
-    SDL_strlcpy(out, in, len);
+    q_strlcpy(out, in, len);
   }
 
   if (strlen(out) >= 2 && !strcmp(out + strlen(out) - 2, "_d")) {
@@ -674,7 +674,7 @@ static cm_material_t *Cm_AllocMaterial(const char *name, cm_asset_context_t cont
   char stripped[MAX_QPATH];
   StripExtension(name, stripped);
 
-  SDL_strlcpy(mat->name, stripped, sizeof(mat->name));
+  q_strlcpy(mat->name, stripped, sizeof(mat->name));
 
   Cm_MaterialBasename(mat->name, mat->basename, sizeof(mat->basename));
   Cm_MaterialPath(mat->basename, mat->path, sizeof(mat->path), context);
@@ -890,27 +890,27 @@ static void Cm_AssetPath(const char *name, char *out, size_t len, cm_asset_conte
       break;
     case ASSET_CONTEXT_TEXTURES:
       if (!!strncmp(name, "textures/", sizeof("textures/") - 1)) {
-        SDL_strlcat(out, "textures/", len);
+        q_strlcat(out, "textures/", len);
       }
       break;
     case ASSET_CONTEXT_MODELS:
       if (!!strncmp(name, "models/", sizeof("models/") - 1)) {
-        SDL_strlcat(out, "models/", len);
+        q_strlcat(out, "models/", len);
       }
       break;
     case ASSET_CONTEXT_PLAYERS:
       if (!!strncmp(name, "players/", sizeof("players/") - 1)) {
-        SDL_strlcat(out, "players/", len);
+        q_strlcat(out, "players/", len);
       }
       break;
     case ASSET_CONTEXT_SPRITES:
       if (!!strncmp(name, "sprites/", sizeof("sprites/") - 1)) {
-        SDL_strlcat(out, "sprites/", len);
+        q_strlcat(out, "sprites/", len);
       }
       break;
   }
 
-  SDL_strlcat(out, name, len);
+  q_strlcat(out, name, len);
 }
 
 /**
@@ -920,7 +920,7 @@ void Cm_MaterialPath(const char *name, char *path, size_t len, cm_asset_context_
 
   Cm_AssetPath(name, path, len, context);
 
-  SDL_strlcat(path, ".mat", len);
+  q_strlcat(path, ".mat", len);
 }
 
 /**
@@ -933,7 +933,7 @@ static bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
   Cm_AssetPath(asset->name, name, sizeof(name), context);
 
   for (size_t i = 0; i < lengthof(extensions); i++) {
-    SDL_snprintf(asset->path, sizeof(asset->path), "%s.%s", name, extensions[i]);
+    q_snprintf(asset->path, sizeof(asset->path), "%s.%s", name, extensions[i]);
 
     StrLower(asset->path, asset->path);
 
@@ -960,7 +960,7 @@ static bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t conte
   stage->animation.frames = Mem_LinkMalloc(size, stage);
 
   char base[MAX_QPATH];
-  SDL_strlcpy(base, stage->asset.name, sizeof(base));
+  q_strlcpy(base, stage->asset.name, sizeof(base));
 
   char *c = base + strlen(base) - 1;
   while (isdigit(*c)) {
@@ -975,7 +975,7 @@ static bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t conte
   for (int32_t i = 0; i < stage->animation.num_frames; i++) {
 
     cm_asset_t *frame = &stage->animation.frames[i];
-    SDL_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
+    q_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
 
     if (!Cm_ResolveAsset(frame, context)) {
       Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->asset.name);
@@ -1026,20 +1026,20 @@ static bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset, 
 
   if (*asset->name) {
     char name[MAX_QPATH];
-    SDL_strlcpy(name, asset->name, sizeof(name));
+    q_strlcpy(name, asset->name, sizeof(name));
     for (const char **s = suffix; *s; s++) {
-      SDL_snprintf(asset->name, sizeof(asset->name), "%s%s", name, *s);
+      q_snprintf(asset->name, sizeof(asset->name), "%s%s", name, *s);
       if (Cm_ResolveAsset(asset, material->context)) {
         Com_Debug(DEBUG_COLLISION, "Resolved %s for %s\n", asset->path, material->name);
         return true;
       }
     }
-    SDL_strlcpy(asset->name, name, sizeof(asset->name));
+    q_strlcpy(asset->name, name, sizeof(asset->name));
     return Cm_ResolveAsset(asset, material->context);
   }
 
   for (const char **s = suffix; *s; s++) {
-    SDL_snprintf(asset->name, sizeof(asset->name), "%s%s", material->basename, *s);
+    q_snprintf(asset->name, sizeof(asset->name), "%s%s", material->basename, *s);
     if (Cm_ResolveAsset(asset, material->context)) {
       Com_Debug(DEBUG_COLLISION, "Resolved %s for %s\n", asset->path, material->name);
       break;
@@ -1068,8 +1068,8 @@ static void Cm_ResolveFootsteps_Enumerate(const char *file, void *data) {
   cm_asset_t *out = footsteps->samples + footsteps->num_samples;
 
   out->name[0] = '#';
-  SDL_strlcat(out->name, file, sizeof(out->name));
-  SDL_strlcpy(out->path, file, sizeof(out->path));
+  q_strlcat(out->name, file, sizeof(out->name));
+  q_strlcpy(out->path, file, sizeof(out->path));
 
   footsteps->num_samples++;
 }
@@ -1091,7 +1091,7 @@ static int32_t Cm_ResolveFootsteps_Compare(const void *a, const void *b) {
 static void Cm_ResolveFootsteps(cm_footsteps_t *footsteps) {
 
   if (!strlen(footsteps->name)) {
-    SDL_strlcpy(footsteps->name, "default", sizeof(footsteps->name));
+    q_strlcpy(footsteps->name, "default", sizeof(footsteps->name));
   }
 
   const char *pattern = va("players/common/step_%s_*", footsteps->name);

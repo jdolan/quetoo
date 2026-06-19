@@ -24,7 +24,7 @@
 #include "cl_local.h"
 
 /**
- * @brief HashTable enumerateEntries callback for manifest entry validation/download.
+ * @brief HashTable enumerate callback for manifest entry validation/download.
  */
 static void Cl_CheckManifestEntry_(const HashTable *table, ident key, ident val, ident data) {
   (void) table;
@@ -71,7 +71,7 @@ void Cl_RequestNextDownload(void) {
         Com_Error(ERROR_DROP, "Failed to read %s\n", cl.config_strings[CS_MANIFEST]);
       }
 
-      $(manifest, enumerateEntries, Cl_CheckManifestEntry_, NULL);
+      $(manifest, enumerate, Cl_CheckManifestEntry_, NULL);
 
       Cm_FreeManifest(manifest);
     }
@@ -97,7 +97,7 @@ static void Cl_Mapshots_enumerate(const char *path, void *data) {
   const size_t len = strlen(path);
   if ((len >= 4 && !strcmp(path + len - 4, ".jpg")) ||
       (len >= 4 && !strcmp(path + len - 4, ".png"))) {
-    $(list, append, SDL_strdup(path));
+    $(list, appendElement, q_strdup(path));
   }
 }
 
@@ -110,7 +110,7 @@ List *Cl_Mapshots(const char *mapname) {
   StripExtension(mapname, map);
 
   List *list = $(alloc(List), init);
-  list->destroy = (ListDestroyFunc) SDL_free;
+  list->destroy = (ListDestroyFunc) free;
   Fs_Enumerate(va("mapshots/%s/*", Basename(map)), Cl_Mapshots_enumerate, (void *) list);
 
   return list;
@@ -282,7 +282,7 @@ void Cl_LoadMedia(void) {
     for (size_t i = 0; i < pick; i++) {
       node = node->next;
     }
-    strcpy(cls.loading.mapshot, (const char *) node->data);
+    strcpy(cls.loading.mapshot, (const char *) node->element);
   } else {
     cls.loading.mapshot[0] = '\0';
   }

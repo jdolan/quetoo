@@ -81,7 +81,7 @@ static const char *ms_discord_webhook;
  */
 static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t buf_size) {
   char search[256];
-  SDL_snprintf(search, sizeof(search), "\\%s\\", key);
+  q_snprintf(search, sizeof(search), "\\%s\\", key);
 
   const char *p = strstr(info, search);
   if (!p) {
@@ -139,7 +139,7 @@ static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name)
   const int32_t port = ntohs(server->addr.sin_port);
 
   char json[1024];
-  SDL_snprintf(json, sizeof(json),
+  q_snprintf(json, sizeof(json),
     "{\"embeds\":[{\"description\":\"\xF0\x9F\x8E\xAE **%s** joined **%s** on **%s** \xC2\xB7 %d/%d players \xC2\xB7 [Join](https://quetoo.org/join/?%s:%d)\",\"color\":3066993}]}",
     escaped_player, escaped_host, escaped_map,
     server->num_clients, server->max_clients,
@@ -173,7 +173,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
   }
 
   if (Ms_InfoValue(status, "sv_map", val, sizeof(val))) {
-    SDL_strlcpy(server->map, val, sizeof(server->map));
+    q_strlcpy(server->map, val, sizeof(server->map));
   }
 
   char new_players[MAX_CLIENTS][64];
@@ -191,9 +191,9 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     const char *line_end = strchr(line, '\n');
     char cur_line[256];
     if (line_end) {
-      SDL_strlcpy(cur_line, line, (size_t) (line_end - line) + 1 < sizeof(cur_line) ? (size_t)(line_end - line) + 1 : sizeof(cur_line));
+      q_strlcpy(cur_line, line, (size_t) (line_end - line) + 1 < sizeof(cur_line) ? (size_t)(line_end - line) + 1 : sizeof(cur_line));
     } else {
-      SDL_strlcpy(cur_line, line, sizeof(cur_line));
+      q_strlcpy(cur_line, line, sizeof(cur_line));
     }
 
     char name[64] = { 0 };
@@ -204,7 +204,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
       Ms_InfoValue(cur_line, "ai", ai_val, sizeof(ai_val));
       Com_Verbose("Player: %s ai=%s\n", stripped, ai_val[0] ? ai_val : "(none)");
       if (!atoi(ai_val) && strncmp(stripped, "[BOT]", 5)) {
-        SDL_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
+        q_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
         new_count++;
       }
     }
@@ -232,7 +232,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
 
   server->num_clients = new_count;
   for (int32_t i = 0; i < new_count; i++) {
-    SDL_strlcpy(server->players[i], new_players[i], sizeof(server->players[i]));
+    q_strlcpy(server->players[i], new_players[i], sizeof(server->players[i]));
   }
 }
 
@@ -251,7 +251,7 @@ static const char *atos(const struct sockaddr_in *addr) {
 static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
 
   for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
-    ms_server_t *server = (ms_server_t *) s->data;
+    ms_server_t *server = (ms_server_t *) s->element;
 
     const struct sockaddr_in *addr = &server->addr;
     if (addr->sin_addr.s_addr == from->sin_addr.s_addr && addr->sin_port == from->sin_port) {
@@ -269,7 +269,7 @@ static void Ms_DropServer(ms_server_t *server) {
 
   if (ms_servers) {
     for (const ListNode *s = ms_servers->head; s; s = s->next) {
-      if (s->data == server) {
+      if (s->element == server) {
         $(ms_servers, removeNode, (ListNode *) s);
         break;
       }
@@ -351,7 +351,7 @@ static void Ms_AddServer(struct sockaddr_in *from) {
   if (!ms_servers) {
     ms_servers = $(alloc(List), init);
   }
-  $(ms_servers, append, server);
+  $(ms_servers, appendElement, server);
   Com_Print("Server %s registered\n", stos(server));
 
   // send an acknowledgment
@@ -381,7 +381,7 @@ static void Ms_Frame(void) {
 
   for (ListNode *s = ms_servers ? ms_servers->head : NULL; s; ) {
     ListNode *next = s->next;
-    ms_server_t *server = (ms_server_t *) s->data;
+    ms_server_t *server = (ms_server_t *) s->element;
     if (now - server->last_heartbeat > 30) {
 
       if (server->queued_pings > 6) {
@@ -430,7 +430,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
 
   uint32_t i = 0;
   for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
-    const ms_server_t *server = (ms_server_t *) s->data;
+    const ms_server_t *server = (ms_server_t *) s->element;
     if (server->validated && server->protocol == protocol) {
       Mem_WriteBuffer(&buf, &server->addr.sin_addr, sizeof(server->addr.sin_addr));
       Mem_WriteBuffer(&buf, &server->addr.sin_port, sizeof(server->addr.sin_port));
@@ -498,15 +498,15 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
   *(line++) = '\0';
   cmd += 4;
 
-  if (!SDL_strncasecmp(cmd, "ping", 4)) {
+  if (!q_strncasecmp(cmd, "ping", 4)) {
     Ms_AddServer(from);
-  } else if (!SDL_strncasecmp(cmd, "heartbeat", 9) || !SDL_strncasecmp(cmd, "print", 5)) {
+  } else if (!q_strncasecmp(cmd, "heartbeat", 9) || !q_strncasecmp(cmd, "print", 5)) {
     Ms_Heartbeat(from, line);
-  } else if (!SDL_strncasecmp(cmd, "ack", 3)) {
+  } else if (!q_strncasecmp(cmd, "ack", 3)) {
     Ms_Ack(from);
-  } else if (!SDL_strncasecmp(cmd, "shutdown", 8)) {
+  } else if (!q_strncasecmp(cmd, "shutdown", 8)) {
     Ms_RemoveServer(from);
-  } else if (!SDL_strncasecmp(cmd, "getservers", 10) || !SDL_strncasecmp(cmd, "y", 1)) {
+  } else if (!q_strncasecmp(cmd, "getservers", 10) || !q_strncasecmp(cmd, "y", 1)) {
     Ms_GetServers(from, cmd);
   } else {
     Com_Warn("Unknown command from %s: '%s'\n", atos(from), cmd);
@@ -554,7 +554,7 @@ static void Shutdown(const char *msg) {
 
   if (ms_servers) {
     for (const ListNode *s = ms_servers->head; s; s = s->next) {
-      Mem_Free(s->data);
+      Mem_Free(s->element);
     }
     release(ms_servers);
   }

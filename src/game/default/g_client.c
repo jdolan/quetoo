@@ -133,11 +133,11 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
-    SDL_snprintf(buffer, sizeof(buffer), msg, cl->persistent.net_name, attacker->client->persistent.net_name);
+    q_snprintf(buffer, sizeof(buffer), msg, cl->persistent.net_name, attacker->client->persistent.net_name);
 #pragma clang diagnostic pop
 
     if (friendly_fire) {
-      SDL_strlcat(buffer, " (^1TEAMKILL^7)", sizeof(buffer));
+      q_strlcat(buffer, " (^1TEAMKILL^7)", sizeof(buffer));
     }
 
   } else { // killed by self or world
@@ -221,7 +221,7 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
-    SDL_snprintf(buffer, sizeof(buffer), msg, cl->persistent.net_name);
+    q_snprintf(buffer, sizeof(buffer), msg, cl->persistent.net_name);
 #pragma clang diagnostic pop
   }
 
@@ -632,7 +632,7 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
  */
 static void G_Give(g_client_t *cl, char *it, int16_t quantity) {
 
-  if (!SDL_strcasecmp(it, "Health")) {
+  if (!q_strcasecmp(it, "Health")) {
     cl->entity->health = quantity;
     return;
   }
@@ -678,7 +678,7 @@ static bool G_GiveLevelLocals(g_client_t *cl) {
     return false;
   }
 
-  SDL_strlcpy(buf, g_level.give, sizeof(buf));
+  q_strlcpy(buf, g_level.give, sizeof(buf));
 
   it = strtok(buf, ",");
 
@@ -1215,11 +1215,11 @@ void G_ClientBegin(g_client_t *cl) {
   if (g_level.intermission_time) {
     G_ClientToIntermission(cl);
   } else {
-    SDL_snprintf(welcome, sizeof(welcome), "^2Welcome to ^7%s", sv_hostname->string);
+    q_snprintf(welcome, sizeof(welcome), "^2Welcome to ^7%s", sv_hostname->string);
 
     if (*g_motd->string) {
       char motd[MAX_QPATH];
-      SDL_snprintf(motd, sizeof(motd), "\n%s^7", g_motd->string);
+      q_snprintf(motd, sizeof(motd), "\n%s^7", g_motd->string);
 
       strncat(welcome, motd, sizeof(welcome) - strlen(welcome) - 1);
     }
@@ -1290,7 +1290,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   // set name, use a temp buffer to compute length and crutch up bad names
   const char *s = InfoString_Get(user_info, "name");
 
-  SDL_strlcpy(name, s, sizeof(name));
+  q_strlcpy(name, s, sizeof(name));
 
   bool color = false;
   char *c = name;
@@ -1319,7 +1319,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   }
 
   if (color) { // reset to white
-    SDL_strlcat(name, "^7", sizeof(name));
+    q_strlcat(name, "^7", sizeof(name));
   }
 
   if (strncmp(cl->persistent.net_name, name, sizeof(cl->persistent.net_name))) {
@@ -1328,7 +1328,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
       gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->persistent.net_name, name);
     }
 
-    SDL_strlcpy(cl->persistent.net_name, name, sizeof(cl->persistent.net_name));
+    q_strlcpy(cl->persistent.net_name, name, sizeof(cl->persistent.net_name));
   }
 
   const g_team_t *team = cl->persistent.team;
@@ -1349,9 +1349,9 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   }
 
   if (strlen(s) && !strstr(s, "..")) { // something valid-ish was provided
-    SDL_strlcpy(cl->persistent.skin, s, sizeof(cl->persistent.skin));
+    q_strlcpy(cl->persistent.skin, s, sizeof(cl->persistent.skin));
   } else {
-    SDL_strlcpy(cl->persistent.skin, DEFAULT_USER_MODEL "/" DEFAULT_USER_SKIN, sizeof(cl->persistent.skin));
+    q_strlcpy(cl->persistent.skin, DEFAULT_USER_MODEL "/" DEFAULT_USER_SKIN, sizeof(cl->persistent.skin));
   }
 
   // set effect color
@@ -1403,25 +1403,25 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   char client_info[MAX_INFO_STRING_STRING] = { '\0' };
 
   // build the client info string
-  SDL_strlcat(client_info, va("%d", team ? team->id : TEAM_NONE), sizeof(client_info));
+  q_strlcat(client_info, va("%d", team ? team->id : TEAM_NONE), sizeof(client_info));
 
-  SDL_strlcat(client_info, "\\", sizeof(client_info));
-  SDL_strlcat(client_info, cl->persistent.net_name, sizeof(client_info));
+  q_strlcat(client_info, "\\", sizeof(client_info));
+  q_strlcat(client_info, cl->persistent.net_name, sizeof(client_info));
 
-  SDL_strlcat(client_info, "\\", sizeof(client_info));
-  SDL_strlcat(client_info, cl->persistent.skin, sizeof(client_info));
+  q_strlcat(client_info, "\\", sizeof(client_info));
+  q_strlcat(client_info, cl->persistent.skin, sizeof(client_info));
 
-  SDL_strlcat(client_info, "\\", sizeof(client_info));
-  SDL_strlcat(client_info, Color_Unparse(cl->persistent.shirt), sizeof(client_info));
+  q_strlcat(client_info, "\\", sizeof(client_info));
+  q_strlcat(client_info, Color_Unparse(cl->persistent.shirt), sizeof(client_info));
 
-  SDL_strlcat(client_info, "\\", sizeof(client_info));
-  SDL_strlcat(client_info, Color_Unparse(cl->persistent.pants), sizeof(client_info));
+  q_strlcat(client_info, "\\", sizeof(client_info));
+  q_strlcat(client_info, Color_Unparse(cl->persistent.pants), sizeof(client_info));
 
-  SDL_strlcat(client_info, "\\", sizeof(client_info));
-  SDL_strlcat(client_info, Color_Unparse(cl->persistent.helmet), sizeof(client_info));
+  q_strlcat(client_info, "\\", sizeof(client_info));
+  q_strlcat(client_info, Color_Unparse(cl->persistent.helmet), sizeof(client_info));
 
-  SDL_strlcat(client_info, "\\", sizeof(client_info));
-  SDL_strlcat(client_info, va("%i", cl->persistent.color), sizeof(client_info));
+  q_strlcat(client_info, "\\", sizeof(client_info));
+  q_strlcat(client_info, va("%i", cl->persistent.color), sizeof(client_info));
 
   // send it to clients
   gi.SetConfigString(CS_CLIENTS + cl->ps.client, client_info);
@@ -1446,7 +1446,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   G_SetClientHookStyle(cl);
 
   // stats guid
-  SDL_strlcpy(cl->persistent.guid, InfoString_Get(user_info, "guid"), sizeof(cl->persistent.guid));
+  q_strlcpy(cl->persistent.guid, InfoString_Get(user_info, "guid"), sizeof(cl->persistent.guid));
 }
 
 /**

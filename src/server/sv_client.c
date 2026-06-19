@@ -310,7 +310,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
     switch (c) {
 
       case CL_CMD_USER_INFO:
-        SDL_strlcpy(cl->user_info, Net_ReadString(&net_message), sizeof(cl->user_info));
+        q_strlcpy(cl->user_info, Net_ReadString(&net_message), sizeof(cl->user_info));
         Sv_UserInfoChanged(cl);
         break;
 

@@ -47,7 +47,7 @@ const cm_entity_t *Sv_NextMap(void) {
   for (int32_t i = 0; i < svs.maps.index && node; i++) {
     node = node->next;
   }
-  return node ? (const cm_entity_t *) node->data : NULL;
+  return node ? (const cm_entity_t *) node->element : NULL;
 }
 
 /**
@@ -67,7 +67,7 @@ void Sv_InitMapList(void) {
     return;
   }
 
-  SDL_strlcpy(svs.maps.filename, sv_map_list->string, sizeof(svs.maps.filename));
+  q_strlcpy(svs.maps.filename, sv_map_list->string, sizeof(svs.maps.filename));
 
   svs.maps.list = Cm_LoadEntities(buffer);
 
@@ -75,14 +75,14 @@ void Sv_InitMapList(void) {
 
   int32_t i = 0;
   for (const ListNode *node = svs.maps.list->head; node; node = node->next, i++) {
-    cm_entity_t *props = (cm_entity_t *) node->data;
+    cm_entity_t *props = (cm_entity_t *) node->element;
 
     const cm_entity_t *name = Cm_EntityValue(props, "name");
     if (strlen(name->string) == 0) {
       Com_Warn("Map list element %d in %s is missing \"name\"\n", i, sv_map_list->string);
       Cm_FreeEntity(props);
     } else {
-      $(valid, append, props);
+      $(valid, appendElement, props);
     }
   }
 

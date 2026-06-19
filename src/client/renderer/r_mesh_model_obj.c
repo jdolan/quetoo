@@ -127,7 +127,7 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
       } else {
         release(group.f);
       }
-      SDL_strlcpy(group.name, line + strlen("usemtl "), sizeof(group.name));
+      q_strlcpy(group.name, line + strlen("usemtl "), sizeof(group.name));
       group.f = $(alloc(Vector), initWithSize, sizeof(r_obj_face_t));
     } else if (strncmp("g ", line, strlen("g ")) == 0) {
       if (group.f->count) {
@@ -135,7 +135,7 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
       } else {
         release(group.f);
       }
-      SDL_strlcpy(group.name, line + strlen("g "), sizeof(group.name));
+      q_strlcpy(group.name, line + strlen("g "), sizeof(group.name));
       group.f = $(alloc(Vector), initWithSize, sizeof(r_obj_face_t));
     } else if (strncmp("f ", line, strlen("f ")) == 0) {
 
@@ -182,7 +182,7 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
     const r_obj_group_t *group = VectorElement(obj.g, r_obj_group_t, i);
     r_mesh_face_t *face = out->faces + i;
 
-    SDL_strlcpy(face->name, group->name, sizeof(face->name));
+    q_strlcpy(face->name, group->name, sizeof(face->name));
     face->material = R_LoadMaterial(face->name, ASSET_CONTEXT_MODELS);
     R_RegisterDependency((r_media_t *) mod, (r_media_t *) face->material);
 

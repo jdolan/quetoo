@@ -272,16 +272,16 @@ void G_SetTeamNames(void) {
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
 
     if (i != TEAM_RED) {
-      SDL_strlcat(team_info, "\\", sizeof(team_info));
+      q_strlcat(team_info, "\\", sizeof(team_info));
     }
 
-    SDL_strlcat(team_info, va("%d", g_team_list[i].id), sizeof(team_info));
-    SDL_strlcat(team_info, "\\", sizeof(team_info));
-    SDL_strlcat(team_info, g_team_list[i].name, sizeof(team_info));
-    SDL_strlcat(team_info, "\\", sizeof(team_info));
-    SDL_strlcat(team_info, va("%d", g_team_list[i].color), sizeof(team_info));
-    SDL_strlcat(team_info, "\\", sizeof(team_info));
-    SDL_strlcat(team_info, Color_Unparse(g_team_list[i].shirt), sizeof(team_info));
+    q_strlcat(team_info, va("%d", g_team_list[i].id), sizeof(team_info));
+    q_strlcat(team_info, "\\", sizeof(team_info));
+    q_strlcat(team_info, g_team_list[i].name, sizeof(team_info));
+    q_strlcat(team_info, "\\", sizeof(team_info));
+    q_strlcat(team_info, va("%d", g_team_list[i].color), sizeof(team_info));
+    q_strlcat(team_info, "\\", sizeof(team_info));
+    q_strlcat(team_info, Color_Unparse(g_team_list[i].shirt), sizeof(team_info));
   }
 
   gi.SetConfigString(CS_TEAM_INFO, team_info);
@@ -566,7 +566,7 @@ static char *G_FormatTime(uint32_t time) {
     c = "^7";
   }
 
-  SDL_snprintf(formatted_time, sizeof(formatted_time), "%s%2u:%02u", c, m, s);
+  q_snprintf(formatted_time, sizeof(formatted_time), "%s%2u:%02u", c, m, s);
 
   last_time = time;
 
@@ -915,13 +915,13 @@ static const char *G_GameName(void) {
   static char name[64];
   const size_t size = sizeof(name);
 
-  SDL_strlcpy(name, G_GameplayName(g_level.gameplay), size);
+  q_strlcpy(name, G_GameplayName(g_level.gameplay), size);
 
   // teams are implied for capture the flag
   if (g_level.ctf) {
-    SDL_strlcat(name, " CTF", size);
+    q_strlcat(name, " CTF", size);
   } else if (g_level.teams) {
-    SDL_strlcpy(name, va("Team %s", name), size);
+    q_strlcpy(name, va("Team %s", name), size);
   }
 
   return name;

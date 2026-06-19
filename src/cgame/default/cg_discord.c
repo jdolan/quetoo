@@ -190,16 +190,16 @@ void Cg_UpdateDiscord(void) {
         presence.largeImageKey = "default";
         presence.state = "Playing";
 
-        SDL_snprintf(details, sizeof(details), "%s - %s", Cg_GetGameMode(), cgi.ConfigString(CS_MESSAGE));
+        q_snprintf(details, sizeof(details), "%s - %s", Cg_GetGameMode(), cgi.ConfigString(CS_MESSAGE));
         presence.details = details;
 
         if (strcmp(cgi.server_name, "localhost")) {
           presence.partyId = cgi.server_name;
 
-          SDL_snprintf(joinSecret, sizeof(joinSecret), "JOIN_%s", presence.partyId);
+          q_snprintf(joinSecret, sizeof(joinSecret), "JOIN_%s", presence.partyId);
           presence.joinSecret = joinSecret;
 
-          SDL_snprintf(spectateSecret, sizeof(spectateSecret), "SPCT_%s", presence.partyId);
+          q_snprintf(spectateSecret, sizeof(spectateSecret), "SPCT_%s", presence.partyId);
           presence.spectateSecret = spectateSecret;
         }
 
@@ -229,14 +229,14 @@ void Cg_UpdateDiscord(void) {
 
 static void Cg_DiscordJoinGame(const char *secret) {
 
-  if (SDL_strncasecmp(secret, "JOIN_", 5)) {
+  if (q_strncasecmp(secret, "JOIN_", 5)) {
     Cg_Warn("Invalid invitation\n");
     return;
   }
 
   // Sanitize the address to prevent command injection via newlines or semicolons
   char addr[MAX_STRING_CHARS];
-  SDL_strlcpy(addr, secret + 5, sizeof(addr));
+  q_strlcpy(addr, secret + 5, sizeof(addr));
   for (char *c = addr; *c; c++) {
     if (*c == '\n' || *c == ';' || *c == '"') {
       *c = '\0';

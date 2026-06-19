@@ -35,7 +35,7 @@ static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hex_size) 
 	md5_finalize(&ctx, digest);
 
 	for (int i = 0; i < 16 && (size_t)(i * 2 + 3) <= hex_size; i++) {
-		SDL_snprintf(hex + i * 2, 3, "%02x", digest[i]);
+		q_snprintf(hex + i * 2, 3, "%02x", digest[i]);
 	}
 }
 
@@ -59,7 +59,7 @@ void Cm_AddManifestEntry(HashTable *manifest, const char *path, const void *data
 	assert(len > 0);
 
 	cm_manifest_entry_t *entry = Mem_Malloc(sizeof(*entry));
-	SDL_strlcpy(entry->path, path, sizeof(entry->path));
+	q_strlcpy(entry->path, path, sizeof(entry->path));
 	entry->size = (int64_t) len;
 	Cm_Md5Hex(data, len, entry->hash, sizeof(entry->hash));
 
@@ -124,7 +124,7 @@ int32_t Cm_WriteManifest(const char *path, HashTable *manifest) {
 	const char **keys = Mem_Malloc(count * sizeof(char *));
 	cm_manifest_keys_t collector = { .keys = keys };
 
-	$(manifest, enumerateEntries, Cm_CollectKey, &collector);
+	$(manifest, enumerate, Cm_CollectKey, &collector);
 	qsort(keys, count, sizeof(char *), Cm_ManifestKeyCmp);
 
 	for (size_t k = 0; k < count; k++) {
@@ -188,9 +188,9 @@ HashTable *Cm_ParseManifest(const char *data, size_t len) {
 		*space2 = '\0';
 
 		cm_manifest_entry_t *entry = Mem_Malloc(sizeof(*entry));
-		SDL_strlcpy(entry->hash, line, sizeof(entry->hash));
+		q_strlcpy(entry->hash, line, sizeof(entry->hash));
 		entry->size = (int64_t) strtoll(space1 + 1, NULL, 10);
-		SDL_strlcpy(entry->path, space2 + 1, sizeof(entry->path));
+		q_strlcpy(entry->path, space2 + 1, sizeof(entry->path));
 
 		$(manifest, set, entry->path, entry);
 

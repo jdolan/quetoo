@@ -55,7 +55,7 @@ const g_item_t *G_FindItem(const char *name) {
   for (g_item_tag_t t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
     const g_item_t *it = &g_items[t];
 
-    if (!SDL_strcasecmp(it->def.name, name)) {
+    if (!q_strcasecmp(it->def.name, name)) {
       if (G_ItemAvailable(it)) {
         return it;
       }
@@ -742,10 +742,10 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
             .player_ai = player_ai,
             .time = (uint32_t) time(NULL),
           };
-          SDL_strlcpy(capture.level,       g_level.name,              sizeof(capture.level));
-          SDL_strlcpy(capture.player,      cl->persistent.net_name,   sizeof(capture.player));
-          SDL_strlcpy(capture.player_guid, cl->persistent.guid,       sizeof(capture.player_guid));
-          SDL_strlcpy(capture.team,        other_team->name,          sizeof(capture.team));
+          q_strlcpy(capture.level,       g_level.name,              sizeof(capture.level));
+          q_strlcpy(capture.player,      cl->persistent.net_name,   sizeof(capture.player));
+          q_strlcpy(capture.player_guid, cl->persistent.guid,       sizeof(capture.player_guid));
+          q_strlcpy(capture.team,        other_team->name,          sizeof(capture.team));
 
           if (capture.player_guid[0]) {
             $(g_level.captures, addElement, &capture);

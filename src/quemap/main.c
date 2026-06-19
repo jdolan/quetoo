@@ -349,17 +349,17 @@ int32_t main(int32_t argc, char **argv) {
   StripExtension(Basename(filename), map_base);
 
   StripExtension(filename, map_name);
-  SDL_strlcat(map_name, ".map", sizeof(map_name));
+  q_strlcat(map_name, ".map", sizeof(map_name));
 
   if (!Fs_Exists(map_name)) {
-    SDL_snprintf(map_name, sizeof(map_name), "maps/%s.map", map_base);
+    q_snprintf(map_name, sizeof(map_name), "maps/%s.map", map_base);
   }
 
   StripExtension(filename, bsp_name);
-  SDL_strlcat(bsp_name, ".bsp", sizeof(bsp_name));
+  q_strlcat(bsp_name, ".bsp", sizeof(bsp_name));
 
   if (!Fs_Exists(bsp_name)) {
-    SDL_snprintf(bsp_name, sizeof(bsp_name), "maps/%s.bsp", map_base);
+    q_snprintf(bsp_name, sizeof(bsp_name), "maps/%s.bsp", map_base);
   }
 
   // start timer

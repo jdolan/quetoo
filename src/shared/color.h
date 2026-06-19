@@ -21,8 +21,9 @@
 
 #pragma once
 
-#include "vector.h"
+#include "qstring.h"
 #include "swap.h"
+#include "vector.h"
 
 /**
  * @brief Color constants.
@@ -394,10 +395,10 @@ static inline bool __attribute__ ((warn_unused_result)) Color_Parse(const char *
   }
 
   char buffer[9];
-  SDL_strlcpy(buffer, s, sizeof(buffer));
+  q_strlcpy(buffer, s, sizeof(buffer));
 
   if (length == 6) {
-    SDL_strlcat(buffer, "ff", sizeof(buffer));
+    q_strlcat(buffer, "ff", sizeof(buffer));
   }
 
   uint32_t rgba;
@@ -494,7 +495,7 @@ static inline const char * __attribute__ ((warn_unused_result)) Color_Unparse(co
   const color32_t c = Color_Color32(color);
 
   static char buffer[12];
-  SDL_snprintf(buffer, sizeof(buffer), "%02x%02x%02x%02x", c.r, c.g, c.b, c.a);
+  q_snprintf(buffer, sizeof(buffer), "%02x%02x%02x%02x", c.r, c.g, c.b, c.a);
 
   return buffer;
 }

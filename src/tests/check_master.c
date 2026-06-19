@@ -58,7 +58,7 @@ START_TEST(check_Ms_AddServer) {
   Ms_AddServer(&addr);
   ck_assert_int_eq((int) ms_servers->count, 1);
 
-  ms_server_t *server = (ms_server_t *) ms_servers->head->data;
+  ms_server_t *server = (ms_server_t *) ms_servers->head->element;
   ck_assert_msg(server->addr.sin_addr.s_addr == addr.sin_addr.s_addr, "Corrupt server address");
 
   Ms_AddServer(&addr);

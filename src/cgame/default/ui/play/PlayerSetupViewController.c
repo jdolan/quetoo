@@ -56,7 +56,7 @@ static void enumerateSkins(const char *path, void *data) {
     const Range *skin = &matches[2];
 
     char title[MAX_QPATH];
-    SDL_snprintf(title, sizeof(title), "%.*s/%.*s",
+    q_snprintf(title, sizeof(title), "%.*s/%.*s",
            (int) model->length, path + model->location,
            (int) skin->length, path + skin->location);
 

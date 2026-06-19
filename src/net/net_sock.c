@@ -102,7 +102,7 @@ bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b) {
 const char *Net_NetaddrToString(const net_addr_t *a) {
   static char s[64];
 
-  SDL_snprintf(s, sizeof(s), "%s:%i", inet_ntoa(*(const struct in_addr *) &a->addr), ntohs(a->port));
+  q_snprintf(s, sizeof(s), "%s:%i", inet_ntoa(*(const struct in_addr *) &a->addr), ntohs(a->port));
 
   return s;
 }
@@ -114,7 +114,7 @@ const char *Net_NetaddrToString(const net_addr_t *a) {
 const char *Net_NetaddrToIpString(const net_addr_t *a) {
   static char s[INET_ADDRSTRLEN];
 
-  SDL_strlcpy(s, inet_ntoa(*(const struct in_addr *) &a->addr), sizeof(s));
+  q_strlcpy(s, inet_ntoa(*(const struct in_addr *) &a->addr), sizeof(s));
 
   return s;
 }
@@ -132,7 +132,7 @@ bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr) {
 
   memset(saddr, 0, sizeof(*saddr));
 
-  char *node = SDL_strdup(s);
+  char *node = q_strdup(s);
 
   char *service = strchr(node, ':');
   if (service) {

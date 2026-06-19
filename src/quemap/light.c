@@ -81,7 +81,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
     light->radius = Cm_EntityValue(entity, "radius")->value;
     light->color = Cm_EntityValue(entity, "color")->vec3;
     light->intensity = Cm_EntityValue(entity, "intensity")->value;
-    SDL_strlcpy(light->style, Cm_EntityValue(entity, "style")->string, sizeof(light->style));
+    q_strlcpy(light->style, Cm_EntityValue(entity, "style")->string, sizeof(light->style));
 
     const float drift = Cm_EntityValue(entity, "drift")->value;
 
@@ -96,7 +96,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
       light->intensity = light->intensity ?: Cm_EntityValue(master, "intensity")->value;
 
       if (!*light->style) {
-        SDL_strlcpy(light->style, Cm_EntityValue(master, "style")->string, sizeof(light->style));
+        q_strlcpy(light->style, Cm_EntityValue(master, "style")->string, sizeof(light->style));
       }
 
       if (!light->drift) {
@@ -132,7 +132,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
       const cm_bsp_t *bsp = Cm_Bsp();
       for (int32_t i = 0; i < bsp->num_entities; i++) {
         const char *targetname = Cm_EntityValue(bsp->entities[i], "targetname")->nullable_string;
-        if (!strcmp(targetname, target)) {
+        if (!q_strcmp(targetname, target)) {
           light->target_entity = i;
           break;
         }
@@ -233,7 +233,7 @@ void EmitLights(void) {
     out->intensity = light->intensity;
     out->bounds = light->visible_bounds;
     out->target_entity = light->target_entity;
-    SDL_strlcpy(out->style, light->style, sizeof(out->style));
+    q_strlcpy(out->style, light->style, sizeof(out->style));
     out->drift = light->drift;
 
     if (light->target_entity == -1) {

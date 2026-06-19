@@ -141,10 +141,10 @@ static void Sv_HandleEvents(void) {
         if (isascii(key) && isprint(key)) {
           if (strlen(in->buffer) < sizeof(in->buffer) - 1) {
             char tmp[MAX_STRING_CHARS];
-            SDL_strlcpy(tmp, in->buffer + in->pos, sizeof(tmp));
+            q_strlcpy(tmp, in->buffer + in->pos, sizeof(tmp));
             in->buffer[in->pos++] = key;
             in->buffer[in->pos] = '\0';
-            SDL_strlcat(in->buffer, tmp, sizeof(in->buffer));
+            q_strlcat(in->buffer, tmp, sizeof(in->buffer));
           }
         }
         break;
@@ -214,7 +214,7 @@ static void Sv_DrawConsole_Buffer(void) {
       s++;
     }
 
-    free(line);
+    Mem_Free(line);
     row--;
   }
 

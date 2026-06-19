@@ -44,7 +44,7 @@ static cg_light_t *Cg_PopLight(List *lights) {
   }
 
   ListNode *node = lights->head;
-  cg_light_t *light = node->data;
+  cg_light_t *light = node->element;
 
   $(lights, removeNode, node);
 
@@ -67,7 +67,7 @@ static cg_light_t *Cg_AllocLight(const cg_light_t *in) {
 
   light->time = cgi.client->unclamped_time;
 
-  $(cg_lights.allocated, prepend, light);
+  $(cg_lights.allocated, prependElement, light);
   return light;
 }
 
@@ -76,11 +76,11 @@ static cg_light_t *Cg_AllocLight(const cg_light_t *in) {
  */
 static void Cg_FreeLight(cg_light_t *light) {
 
-  ListNode *node = $(cg_lights.allocated, findNode, light);
+  ListNode *node = $(cg_lights.allocated, nodeForElement, light);
   assert(node);
 
   $(cg_lights.allocated, removeNode, node);
-  $(cg_lights.free, prepend, light);
+  $(cg_lights.free, prependElement, light);
 }
 
 /**
@@ -202,7 +202,7 @@ void Cg_AddLights(void) {
   for (ListNode *node = cg_lights.allocated->head; node; ) {
     ListNode *next = node->next;
 
-    cg_light_t *light = node->data;
+    cg_light_t *light = node->element;
 
     const uint32_t age = cgi.client->unclamped_time - light->time;
     float intensity = light->intensity;

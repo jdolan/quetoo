@@ -124,9 +124,9 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
   const char *dir  = (column && column->order == OrderAscending) ? "asc" : "desc";
 
   char url[512];
-  int n = SDL_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0", LEADERBOARD_MAX_ENTRIES);
+  int n = q_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0", LEADERBOARD_MAX_ENTRIES);
   if (sort) {
-    n += SDL_snprintf(url + n, sizeof(url) - n, "&sort=%s&dir=%s", sort, dir);
+    n += q_snprintf(url + n, sizeof(url) - n, "&sort=%s&dir=%s", sort, dir);
   }
 
   $(cgi.restClient, getAsync, url, fetchLeaderboardComplete, NULL);

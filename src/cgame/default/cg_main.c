@@ -212,17 +212,17 @@ static void Cg_ParseTeamInfo(const char *s) {
   Vector *info = $(alloc(Vector), initWithSize, sizeof(char *));
 
   char buf[MAX_STRING_CHARS];
-  SDL_strlcpy(buf, s, sizeof(buf));
+  q_strlcpy(buf, s, sizeof(buf));
   char *save = NULL;
-  for (char *tok = SDL_strtok_r(buf, "\\", &save); tok; tok = SDL_strtok_r(NULL, "\\", &save)) {
-    char *dup = SDL_strdup(tok);
+  for (char *tok = q_strtok_r(buf, "\\", &save); tok; tok = q_strtok_r(NULL, "\\", &save)) {
+    char *dup = q_strdup(tok);
     $(info, addElement, &dup);
   }
 
   const size_t count = info->count;
 
   if (count != lengthof(cg_state.teams) * 4) {
-    for (size_t i = 0; i < count; i++) { SDL_free(*VectorElement(info, char *, i)); }
+    for (size_t i = 0; i < count; i++) { free(*VectorElement(info, char *, i)); }
     release(info);
     Cg_Error("Invalid team data: %s\n", s);
   }
@@ -232,7 +232,7 @@ static void Cg_ParseTeamInfo(const char *s) {
 
     team->id = atoi(*VectorElement(info, char *, i + 0));
 
-    SDL_strlcpy(team->name, *VectorElement(info, char *, i + 1), sizeof(team->name));
+    q_strlcpy(team->name, *VectorElement(info, char *, i + 1), sizeof(team->name));
 
     team->hue = atoi(*VectorElement(info, char *, i + 2));
 
@@ -241,7 +241,7 @@ static void Cg_ParseTeamInfo(const char *s) {
     }
   }
 
-  for (size_t i = 0; i < count; i++) { SDL_free(*VectorElement(info, char *, i)); }
+  for (size_t i = 0; i < count; i++) { free(*VectorElement(info, char *, i)); }
   release(info);
 }
 

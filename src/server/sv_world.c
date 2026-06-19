@@ -150,7 +150,7 @@ void Sv_UnlinkEntity(g_entity_t *ent) {
     sv_sector_t *sector = (sv_sector_t *) sent->sector;
     if (sector->entities) {
       for (ListNode *node = sector->entities->head; node; node = node->next) {
-        if (node->data == ent) {
+        if (node->element == ent) {
           $(sector->entities, removeNode, node);
           break;
         }
@@ -228,7 +228,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
   if (!sector->entities) {
     sector->entities = $(alloc(List), init);
   }
-  $(sector->entities, prepend, ent);
+  $(sector->entities, prependElement, ent);
 }
 
 /**
@@ -267,7 +267,7 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
 
   if (sector->entities) {
     for (const ListNode *node = sector->entities->head; node; node = node->next) {
-      g_entity_t *ent = (g_entity_t *) node->data;
+      g_entity_t *ent = (g_entity_t *) node->element;
 
       if (Sv_BoxEntities_Filter(ent)) {
 

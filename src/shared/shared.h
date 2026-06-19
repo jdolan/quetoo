@@ -25,6 +25,7 @@
 #include "color.h"
 #include "matrix.h"
 #include "parse.h"
+#include "qstring.h"
 #include "swap.h"
 #include "vector.h"
 

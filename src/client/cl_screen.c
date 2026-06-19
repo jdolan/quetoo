@@ -200,10 +200,10 @@ static void Cl_DrawRendererStats(void) {
     if (quetoo.ticks - sprite_time > 100) {
       sprite_time = quetoo.ticks;
 
-      SDL_snprintf(sprites, sizeof(sprites),      " %d sprites", cl_view.num_sprites);
-      SDL_snprintf(beams, sizeof(beams),          " %d beams", cl_view.num_beams);
-      SDL_snprintf(instances, sizeof(instances),  " %d instances", cl_view.num_sprite_instances);
-      SDL_snprintf(draw_elements, sizeof(draw_elements), " %d draw elements", r_stats.sprite_draw_elements);
+      q_snprintf(sprites, sizeof(sprites),      " %d sprites", cl_view.num_sprites);
+      q_snprintf(beams, sizeof(beams),          " %d beams", cl_view.num_beams);
+      q_snprintf(instances, sizeof(instances),  " %d instances", cl_view.num_sprite_instances);
+      q_snprintf(draw_elements, sizeof(draw_elements), " %d draw elements", r_stats.sprite_draw_elements);
     }
 
     R_Draw2DString(x, y, sprites, color_yellow);
@@ -221,8 +221,8 @@ static void Cl_DrawRendererStats(void) {
     if (quetoo.ticks - decal_time > 100) {
       decal_time = quetoo.ticks;
 
-      SDL_snprintf(decals, sizeof(decals), " %d decals", r_stats.decals);
-      SDL_snprintf(decal_draw_elements, sizeof(decal_draw_elements), " %d draw elements", r_stats.decal_draw_elements);
+      q_snprintf(decals, sizeof(decals), " %d decals", r_stats.decals);
+      q_snprintf(decal_draw_elements, sizeof(decal_draw_elements), " %d draw elements", r_stats.decal_draw_elements);
     }
 
     R_Draw2DString(x, y, decals, color_yellow);
@@ -341,7 +341,7 @@ static void Cl_DrawSampleCounter(char *buffer, size_t buffer_length, const char 
     }
   }
 
-  SDL_snprintf(buffer, buffer_length, "%3u%s (^1%3u ^2%3u^7)", samples[cl.sample_index], title, min, max);
+  q_snprintf(buffer, buffer_length, "%3u%s (^1%3u ^2%3u^7)", samples[cl.sample_index], title, min, max);
 }
 
 /**
@@ -369,7 +369,7 @@ static void Cl_DrawFrameTimeSampleCounter(char *buffer, size_t buffer_length, co
     }
   }
 
-  SDL_snprintf(buffer, buffer_length, "%3u%s (^1%3u ^2%3u^7)", samples[cl.frametime_index], title, min, max);
+  q_snprintf(buffer, buffer_length, "%3u%s (^1%3u ^2%3u^7)", samples[cl.frametime_index], title, min, max);
 }
 
 /**
@@ -401,7 +401,7 @@ static void Cl_DrawCounters(void) {
     velocity = cl.frame.ps.pm_state.velocity;
     velocity.z = 0.0;
 
-    SDL_snprintf(spd, sizeof(spd), "%4.0fspd", Vec3_Length(velocity));
+    q_snprintf(spd, sizeof(spd), "%4.0fspd", Vec3_Length(velocity));
 
     last_speed_time = quetoo.ticks;
   }

@@ -630,7 +630,7 @@ void EmitVoxels(void) {
           .indices = out_light_indices
         };
 
-        $(voxel->lights, enumerateEntries, Voxel_CollectLightIndex, &collector);
+        $(voxel->lights, enumerate, Voxel_CollectLightIndex, &collector);
         out_light_indices += collector.count;
 
         const int32_t count = (int32_t) (out_light_indices - indices);

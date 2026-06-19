@@ -328,7 +328,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
         const d_md3_tag_t tag = R_SwapMd3Tag(in);
 
-        SDL_strlcpy(out->name, tag.name, MD3_MAX_PATH);
+        q_strlcpy(out->name, tag.name, MD3_MAX_PATH);
         out->matrix = Mat4_FromVectors(tag.axis[0], tag.axis[1], tag.axis[2], tag.origin);
       }
     }
@@ -361,7 +361,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
         Com_Error(ERROR_DROP, "%s: %s: MD3_MAX_VERTEXES %d\n", mod->media.name, surface.name, surface.num_vertexes);
       }
 
-      SDL_strlcpy(out->name, surface.name, MD3_MAX_PATH);
+      q_strlcpy(out->name, surface.name, MD3_MAX_PATH);
 
       const byte *surface_base = (byte *) in;
 

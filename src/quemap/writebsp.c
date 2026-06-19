@@ -63,7 +63,7 @@ void EmitMaterials(void) {
     if (!strncmp(name, "textures/", 9)) {
       name += strlen("textures/");
     }
-    SDL_strlcpy(out->name, name, sizeof(out->name));
+    q_strlcpy(out->name, name, sizeof(out->name));
 
     bsp_file.num_materials++;
 
@@ -371,12 +371,12 @@ void EmitEntities(void) {
   for (int32_t i = 0; i < num_entities; i++) {
     const entity_key_value_t *e = entities[i].values;
     if (e) {
-      SDL_strlcat(out, "{\n", MAX_BSP_ENTITIES_SIZE);
+      q_strlcat(out, "{\n", MAX_BSP_ENTITIES_SIZE);
       while (e) {
-        SDL_strlcat(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENTITIES_SIZE);
+        q_strlcat(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENTITIES_SIZE);
         e = e->next;
       }
-      SDL_strlcat(out, "}\n", MAX_BSP_ENTITIES_SIZE);
+      q_strlcat(out, "}\n", MAX_BSP_ENTITIES_SIZE);
     }
 
     Progress("Emitting entities", 100.f * i / num_entities);

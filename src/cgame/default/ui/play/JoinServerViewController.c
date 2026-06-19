@@ -48,7 +48,7 @@ static const cl_server_info_t *serverAtIndex(const List *servers, size_t index) 
     node = node->next;
   }
 
-  return node ? node->data : NULL;
+  return node ? node->element : NULL;
 }
 
 #pragma mark - Delegates
@@ -96,7 +96,7 @@ static void didClickQuickJoin(Button *button) {
   const ListNode *node = this->servers ? this->servers->head : NULL;
 
   while (node != NULL) {
-    const cl_server_info_t *server = node->data;
+    const cl_server_info_t *server = node->element;
 
     int32_t weight = 1;
 
@@ -127,7 +127,7 @@ static void didClickQuickJoin(Button *button) {
   uint32_t current_weight = 0;
 
   while (node != NULL) {
-    const cl_server_info_t *server = node->data;
+    const cl_server_info_t *server = node->element;
 
     int32_t weight = 1;
 
@@ -467,14 +467,14 @@ static void reloadServers(JoinServerViewController *self) {
 
   const List *servers = cgi.Servers();
   for (const ListNode *node = servers ? servers->head : NULL; node; node = node->next) {
-    cl_server_info_t *server = node->data;
-    $(self->servers, append, server);
+    cl_server_info_t *server = node->element;
+    $(self->servers, appendElement, server);
   }
 
   for (ListNode *node = self->servers->head; node; ) {
     ListNode *next = node->next;
 
-    cl_server_info_t *server = node->data;
+    cl_server_info_t *server = node->element;
 
     const int32_t clients = cg_join_server_hide_bots->value ? server->clients - server->bots : server->clients;
 

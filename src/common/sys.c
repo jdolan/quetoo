@@ -127,7 +127,7 @@ const char *Sys_UserDir(void) {
       }
     }
 
-    SDL_strlcpy(user_dir, pref, sizeof(user_dir));
+    q_strlcpy(user_dir, pref, sizeof(user_dir));
     SDL_free(pref);
   }
 
@@ -149,7 +149,7 @@ void *Sys_OpenLibrary(const char *name, bool global) {
   if (Fs_Exists(so_name)) {
     char path[MAX_OS_PATH];
 
-    SDL_snprintf(path, sizeof(path), "%s/%s", Fs_RealDir(so_name), so_name);
+    q_snprintf(path, sizeof(path), "%s/%s", Fs_RealDir(so_name), so_name);
     Com_Print("  Loading %s...\n", path);
 
     void *handle = dlopen(path, RTLD_LAZY | (global ? RTLD_GLOBAL : RTLD_LOCAL));
@@ -210,7 +210,7 @@ void Sys_InstallDesktopEntry(void) {
 
   // Derive install prefix by stripping /bin/<name>.
   char prefix[MAX_OS_PATH];
-  SDL_strlcpy(prefix, exe, sizeof(prefix));
+  q_strlcpy(prefix, exe, sizeof(prefix));
   char *bin = strstr(prefix, "/bin/");
   if (!bin) {
     return;
@@ -218,7 +218,7 @@ void Sys_InstallDesktopEntry(void) {
   *bin = '\0';
 
   char icon_path[MAX_OS_PATH];
-  SDL_snprintf(icon_path, sizeof(icon_path),
+  q_snprintf(icon_path, sizeof(icon_path),
     "%s/share/icons/hicolor/256x256/apps/quetoo.png", prefix);
 
   // Destination: ~/.local/share/applications/quetoo.desktop
@@ -227,16 +227,16 @@ void Sys_InstallDesktopEntry(void) {
     const char *xdg = getenv("XDG_DATA_HOME");
     char data_home[MAX_OS_PATH];
     if (xdg && *xdg) {
-      SDL_strlcpy(data_home, xdg, sizeof(data_home));
+      q_strlcpy(data_home, xdg, sizeof(data_home));
     } else {
-      SDL_snprintf(data_home, sizeof(data_home), "%s/.local/share", getenv("HOME") ? getenv("HOME") : "");
+      q_snprintf(data_home, sizeof(data_home), "%s/.local/share", getenv("HOME") ? getenv("HOME") : "");
     }
-    SDL_snprintf(desktop_dest, sizeof(desktop_dest), "%s/applications/quetoo.desktop", data_home);
+    q_snprintf(desktop_dest, sizeof(desktop_dest), "%s/applications/quetoo.desktop", data_home);
   }
 
   // Skip writing if Exec= already points at this binary (no change needed).
   char expected_exec[MAX_OS_PATH];
-  SDL_snprintf(expected_exec, sizeof(expected_exec), "Exec=%s", exe);
+  q_snprintf(expected_exec, sizeof(expected_exec), "Exec=%s", exe);
   if (SDL_GetPathInfo(desktop_dest, NULL)) {
     FILE *f = fopen(desktop_dest, "r");
     if (f) {
@@ -252,7 +252,7 @@ void Sys_InstallDesktopEntry(void) {
 
   {
     char dir[MAX_OS_PATH];
-    SDL_strlcpy(dir, desktop_dest, sizeof(dir));
+    q_strlcpy(dir, desktop_dest, sizeof(dir));
     char *slash = strrchr(dir, '/');
     if (slash) { *slash = '\0'; }
     SDL_CreateDirectory(dir);
@@ -301,7 +301,7 @@ void Sys_InstallLocalBin(void) {
   }
 
   char prefix[MAX_OS_PATH];
-  SDL_strlcpy(prefix, exe, sizeof(prefix));
+  q_strlcpy(prefix, exe, sizeof(prefix));
   char *bin = strstr(prefix, "/bin/");
   if (!bin) {
     return;
@@ -311,20 +311,20 @@ void Sys_InstallLocalBin(void) {
   char local_bin[MAX_OS_PATH];
   {
     const char *home = getenv("HOME");
-    SDL_snprintf(local_bin, sizeof(local_bin), "%s/.local/bin", home ? home : "");
+    q_snprintf(local_bin, sizeof(local_bin), "%s/.local/bin", home ? home : "");
   }
   SDL_CreateDirectory(local_bin);
 
   for (const char * const *name = names; *name; name++) {
     char src[MAX_OS_PATH];
-    SDL_snprintf(src, sizeof(src), "%s/bin/%s", prefix, *name);
+    q_snprintf(src, sizeof(src), "%s/bin/%s", prefix, *name);
 
     if (!SDL_GetPathInfo(src, NULL)) {
       continue;
     }
 
     char dest[MAX_OS_PATH];
-    SDL_snprintf(dest, sizeof(dest), "%s/%s", local_bin, *name);
+    q_snprintf(dest, sizeof(dest), "%s/%s", local_bin, *name);
 
     char current[MAX_OS_PATH] = { 0 };
     const ssize_t rlen = readlink(dest, current, sizeof(current) - 1);
@@ -359,8 +359,8 @@ char *Sys_Backtrace(uint32_t start, uint32_t max_count) {
   char **strings = backtrace_symbols(symbols, symbol_count);
 
   for (uint32_t i = start, s = 0; s < max_count && i < (uint32_t) symbol_count; i++, s++) {
-    SDL_strlcat(buf, strings[i], sizeof(buf));
-    SDL_strlcat(buf, "\n", sizeof(buf));
+    q_strlcat(buf, strings[i], sizeof(buf));
+    q_strlcat(buf, "\n", sizeof(buf));
   }
 
   free(strings);
@@ -391,7 +391,7 @@ char *Sys_Backtrace(uint32_t start, uint32_t max_count) {
     BOOL result = SymFromAddr(process, (DWORD64) symbols[i], 0, symbol);
 
     if (!result) {
-      SDL_strlcat(buf, "> ???\n", sizeof(buf));
+      q_strlcat(buf, "> ???\n", sizeof(buf));
       continue;
     }
 
@@ -413,19 +413,19 @@ char *Sys_Backtrace(uint32_t start, uint32_t max_count) {
         last_slash++;
 
       char frame[512];
-      SDL_snprintf(frame, sizeof(frame), "> %s (%s:%i)\n", symbol->Name, last_slash, line.LineNumber);
-      SDL_strlcat(buf, frame, sizeof(buf));
+      q_snprintf(frame, sizeof(frame), "> %s (%s:%i)\n", symbol->Name, last_slash, line.LineNumber);
+      q_strlcat(buf, frame, sizeof(buf));
     }
     else {
       char frame[512];
-      SDL_snprintf(frame, sizeof(frame), "> %s (unknown:unknown)\n", symbol->Name);
-      SDL_strlcat(buf, frame, sizeof(buf));
+      q_snprintf(frame, sizeof(frame), "> %s (unknown:unknown)\n", symbol->Name);
+      q_strlcat(buf, frame, sizeof(buf));
     }
   }
 
   free(symbol);
 #else
-  SDL_strlcat(buf, "Backtrace not supported.\n", sizeof(buf));
+  q_strlcat(buf, "Backtrace not supported.\n", sizeof(buf));
 #endif
 
   // cut off the last \n
@@ -436,7 +436,7 @@ char *Sys_Backtrace(uint32_t start, uint32_t max_count) {
     }
   }
 
-  return SDL_strdup(buf);
+  return q_strdup(buf);
 }
 
 /**
@@ -461,7 +461,7 @@ static void Sys_EnsureCrashLogPath(void) {
   char *dir = NULL;
   SDL_asprintf(&dir, "%s/default", Sys_UserDir());
   SDL_CreateDirectory(dir);
-  SDL_snprintf(sys_crash_log_path, sizeof(sys_crash_log_path), "%s/crash.log", dir);
+  q_snprintf(sys_crash_log_path, sizeof(sys_crash_log_path), "%s/crash.log", dir);
   free(dir);
 
 #if !defined(_WIN32)
@@ -502,7 +502,7 @@ static char *Sys_UrlEncode(const char *str) {
     if (isalnum((unsigned char) *s) || *s == '-' || *s == '_' || *s == '.' || *s == '~') {
       *p++ = *s;
     } else {
-      p += SDL_snprintf(p, out + max - p, "%%%02X", (unsigned char) *s);
+      p += q_snprintf(p, out + max - p, "%%%02X", (unsigned char) *s);
     }
   }
   *p = '\0';
