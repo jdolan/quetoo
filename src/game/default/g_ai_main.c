@@ -1847,7 +1847,7 @@ void G_Ai_Frame(void) {
     G_ForEachClient(cl, {
       if (cl->ai) {
         ai_clients++;
-      } else {
+      } else if (!cl->persistent.spectator) {
         human_clients++;
       }
     });
