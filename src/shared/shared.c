@@ -458,7 +458,7 @@ char *vtos(const vec3_t v) {
   static char str[8][MAX_QPATH];
 
   char *s = str[index++ % 8];
-  g_snprintf(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v.x, v.y, v.z);
+  SDL_snprintf(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v.x, v.y, v.z);
 
   return s;
 }
@@ -507,7 +507,7 @@ char *InfoString_Get(const char *s, const char *key) {
     }
     *o = '\0';
 
-    if (!g_strcmp0(key, pkey)) {
+    if (!strcmp(key, pkey)) {
       return value[value_index];
     }
 
@@ -542,7 +542,7 @@ const char *InfoString_Next(const char *s, char *key, char *value) {
     s++;
   }
 
-  g_strlcpy(key, src, s - src + 1);
+  SDL_strlcpy(key, src, s - src + 1);
 
   if (*s == '\\') {
     s++;
@@ -553,7 +553,7 @@ const char *InfoString_Next(const char *s, char *key, char *value) {
     s++;
   }
 
-  g_strlcpy(value, src, s - src + 1);
+  SDL_strlcpy(value, src, s - src + 1);
 
   if (*s == '\\') {
     s++;
@@ -604,7 +604,7 @@ bool InfoString_Delete(char *s, const char *key) {
     }
     *o = '\0';
 
-    if (!g_strcmp0(key, pkey)) {
+    if (!strcmp(key, pkey)) {
       memmove(start, s, strlen(s) + 1);
       return true;
     }
@@ -658,9 +658,9 @@ bool InfoString_Set(char *s, const char *key, const char *value) {
   InfoString_Delete(s, key);
 
   if (strlen(s)) {
-    g_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value ?: "");
+    SDL_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value ?: "");
   } else {
-    g_snprintf(newi, sizeof(newi), "%s\\%s", key, value ?: "");
+    SDL_snprintf(newi, sizeof(newi), "%s\\%s", key, value ?: "");
   }
 
   if (strlen(newi) + strlen(s) > MAX_INFO_STRING_STRING) {
@@ -680,24 +680,4 @@ bool InfoString_Set(char *s, const char *key, const char *value) {
   *s = '\0';
 
   return true;
-}
-
-/**
- * @brief Case-insensitive version of `g_str_equal`
- */
-gboolean g_stri_equal(gconstpointer v1, gconstpointer v2) {
-  return g_ascii_strcasecmp((const gchar *) v1, (const gchar *) v2) == 0;
-}
-
-/**
- * @brief Case-insensitive version of `g_str_hash`
- */
-guint g_stri_hash(gconstpointer v) {
-  guint32 h = 5381;
-
-  for (const char *p = (const char *) v; *p; p++) {
-    h = (h << 5) + h + tolower(*p);
-  }
-
-  return h;
 }

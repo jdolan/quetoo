@@ -22,7 +22,6 @@
 #include <SDL3/SDL_misc.h>
 #include <SDL3/SDL_mutex.h>
 
-#include <glib/gstdio.h>
 
 #include "collision/cm_manifest.h"
 #include "console.h"
@@ -96,13 +95,13 @@ static void Installer_Commit(void) {
 
   if (installer.local_manifest) {
     GHashTableIter iter;
-    gpointer key, val;
+    void * key, val;
     g_hash_table_iter_init(&iter, installer.local_manifest);
     while (g_hash_table_iter_next(&iter, &key, &val)) {
       const cm_manifest_entry_t *entry = val;
       if (entry->status == ENTRY_STALE) {
         char full_path[MAX_OS_PATH];
-        g_snprintf(full_path, sizeof(full_path), "%s%c%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, game->string, G_DIR_SEPARATOR, entry->path);
+        SDL_snprintf(full_path, sizeof(full_path), "%s%c%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, game->string, G_DIR_SEPARATOR, entry->path);
         if (g_remove(full_path) != 0) {
           Com_Warn("Failed to remove stale file: %s\n", full_path);
         } else {
@@ -116,7 +115,7 @@ static void Installer_Commit(void) {
 
   if (installer.remote_manifest) {
     char mf_path[MAX_OS_PATH];
-    g_snprintf(mf_path, sizeof(mf_path), "%s%c%s%cmanifest.mf", Fs_DataDir(), G_DIR_SEPARATOR, game->string, G_DIR_SEPARATOR);
+    SDL_snprintf(mf_path, sizeof(mf_path), "%s%c%s%cmanifest.mf", Fs_DataDir(), G_DIR_SEPARATOR, game->string, G_DIR_SEPARATOR);
 
     FILE *f = g_fopen(mf_path, "wb");
     if (f) {
@@ -124,7 +123,7 @@ static void Installer_Commit(void) {
       keys = g_list_sort(keys, (GCompareFunc) g_strcmp0);
       for (GList *k = keys; k; k = k->next) {
         const cm_manifest_entry_t *entry = g_hash_table_lookup(installer.remote_manifest, k->data);
-        fprintf(f, "%s %" G_GINT64_FORMAT " %s\n", entry->hash, entry->size, entry->path);
+        fprintf(f, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
       }
       g_list_free(keys);
       fclose(f);
@@ -143,10 +142,10 @@ static void Installer_Commit(void) {
  */
 static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
 
-  gchar *encoded = g_uri_escape_string(entry->path, "/", FALSE);
+  char *encoded = g_uri_escape_string(entry->path, "/", FALSE);
   char url[MAX_OS_PATH * 2];
-  g_snprintf(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s/%s", game->string, encoded);
-  g_free(encoded);
+  SDL_snprintf(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s/%s", game->string, encoded);
+  free(encoded);
 
   Data *data = NULL;
 
@@ -158,11 +157,11 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
   }
 
   char path[MAX_OS_PATH];
-  g_snprintf(path, sizeof(path), "%s%c%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, game->string, G_DIR_SEPARATOR, entry->path);
+  SDL_snprintf(path, sizeof(path), "%s%c%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, game->string, G_DIR_SEPARATOR, entry->path);
 
-  gchar *dir = g_path_get_dirname(path);
+  char *dir = g_path_get_dirname(path);
   const int mkdir_result = g_mkdir_with_parents(dir, 0755);
-  g_free(dir);
+  free(dir);
   if (mkdir_result != 0) {
     Com_Warn("Failed to create directory for: %s\n", path);
     release(data);
@@ -208,13 +207,13 @@ static int Installer_DownloadThread(void *unused) {
 
     const cm_manifest_entry_t *entry = NULL;
     GHashTableIter iter;
-    gpointer key, val;
+    void * key, val;
     g_hash_table_iter_init(&iter, installer.remote_manifest);
     while (g_hash_table_iter_next(&iter, &key, &val)) {
       cm_manifest_entry_t *e = val;
       if (e->status == ENTRY_PENDING) {
         e->status = ENTRY_DOWNLOADING;
-        g_strlcpy(in->current_file, e->path, sizeof(in->current_file));
+        SDL_strlcpy(in->current_file, e->path, sizeof(in->current_file));
         entry = e;
         break;
       }
@@ -236,7 +235,7 @@ static int Installer_DownloadThread(void *unused) {
       ((cm_manifest_entry_t *) entry)->status = ENTRY_CURRENT;
     } else if (in->state == INSTALLER_DOWNLOADING) {
       in->state = INSTALLER_ERROR;
-      g_snprintf(in->error, sizeof(in->error), "Download failed: %s", entry->path);
+      SDL_snprintf(in->error, sizeof(in->error), "Download failed: %s", entry->path);
     }
 
     SDL_UnlockMutex(installer.mutex);
@@ -262,7 +261,7 @@ static int Installer_Thread(void *unused) {
         SDL_LockMutex(installer.mutex);
         if (v < 0) {
           in->state = INSTALLER_ERROR;
-          g_snprintf(in->error, sizeof(in->error), "Failed to fetch %s", QUETOO_VERSION_URL);
+          SDL_snprintf(in->error, sizeof(in->error), "Failed to fetch %s", QUETOO_VERSION_URL);
         } else {
           in->bin_version = v;
           in->state = in->bin_version > version->integer ? INSTALLER_UPDATE_AVAILABLE : INSTALLER_COMPARING;
@@ -274,12 +273,12 @@ static int Installer_Thread(void *unused) {
       case INSTALLER_COMPARING: {
         Data *data = NULL;
         char manifest_url[MAX_OS_PATH];
-        g_snprintf(manifest_url, sizeof(manifest_url), QUETOO_DATA_BASE_URL "/%s/manifest.mf", game->string);
+        SDL_snprintf(manifest_url, sizeof(manifest_url), QUETOO_DATA_BASE_URL "/%s/manifest.mf", game->string);
         const int32_t http_status = $($$(RESTClient, sharedInstance), get, manifest_url, &data);
         if (http_status != 200 || !data) {
           SDL_LockMutex(installer.mutex);
           in->state = INSTALLER_ERROR;
-          g_snprintf(in->error, sizeof(in->error), "Failed to fetch manifest: HTTP %d", http_status);
+          SDL_snprintf(in->error, sizeof(in->error), "Failed to fetch manifest: HTTP %d", http_status);
           SDL_UnlockMutex(installer.mutex);
           release(data);
           break;
@@ -290,7 +289,7 @@ static int Installer_Thread(void *unused) {
 
         {
           GHashTableIter iter;
-          gpointer key, val;
+          void * key, val;
           g_hash_table_iter_init(&iter, remote);
           while (g_hash_table_iter_next(&iter, &key, &val)) {
             ((cm_manifest_entry_t *) val)->status = ENTRY_PENDING;
@@ -301,7 +300,7 @@ static int Installer_Thread(void *unused) {
 
         if (local) {
           GHashTableIter iter;
-          gpointer key, val;
+          void * key, val;
           g_hash_table_iter_init(&iter, local);
           while (g_hash_table_iter_next(&iter, &key, &val)) {
             ((cm_manifest_entry_t *) val)->status = ENTRY_STALE;
@@ -312,14 +311,14 @@ static int Installer_Thread(void *unused) {
         int32_t kbytes_total = 0;
         {
           GHashTableIter iter;
-          gpointer key, val;
+          void * key, val;
           g_hash_table_iter_init(&iter, remote);
           while (g_hash_table_iter_next(&iter, &key, &val)) {
             cm_manifest_entry_t *re = val;
             const cm_manifest_entry_t *le = local ? g_hash_table_lookup(local, re->path) : NULL;
             if (le) {
               ((cm_manifest_entry_t *) le)->status = ENTRY_CURRENT;
-              if (g_strcmp0(le->hash, re->hash) == 0) {
+              if (strcmp(le->hash, re->hash) == 0) {
                 re->status = ENTRY_CURRENT;
               }
             }
@@ -393,7 +392,7 @@ void Installer_Init(Installer_FrameFunction frame) {
   }
 
 #if defined(__linux__)
-  if (g_strcmp0(Fs_BinDir(), "/usr/lib/quetoo/bin") == 0) {
+  if (strcmp(Fs_BinDir(), "/usr/lib/quetoo/bin") == 0) {
     Com_Print("Package-managed installation; auto-updates disabled.\n");
     return;
   }

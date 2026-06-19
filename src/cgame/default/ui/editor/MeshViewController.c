@@ -33,7 +33,7 @@
 static char *vs(const vec3_t v) {
   static char buf[MAX_TOKEN_CHARS];
 
-  g_snprintf(buf, sizeof(buf), "%g %g %g", v.x, v.y, v.z);
+  SDL_snprintf(buf, sizeof(buf), "%g %g %g", v.x, v.y, v.z);
   return buf;
 }
 

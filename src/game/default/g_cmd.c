@@ -296,10 +296,10 @@ static void G_Drop_f(g_client_t *cl) {
   const char *s = gi.Args();
   it = NULL;
 
-  if (!g_strcmp0(s, "flag")) {
+  if (!strcmp(s, "flag")) {
     G_TossFlag(cl);
     return;
-  } else if (!g_strcmp0(s, "tech")) {
+  } else if (!strcmp(s, "tech")) {
     G_TossTech(cl);
     return;
   } else { // or just look up the item
@@ -470,7 +470,7 @@ static char *G_ExpandVariables(g_client_t *cl, const char *text) {
   for (i = j = 0; i < len && j < sizeof(expanded); i++) {
     if (text[i] == '%' && i < len - 1) { // expand %variables
       const char *c = G_ExpandVariable(cl, text[i + 1]);
-      g_strlcat(expanded, c, sizeof(expanded));
+      SDL_strlcat(expanded, c, sizeof(expanded));
       j += strlen(c);
       i++;
     } else { // or just append normal chars
@@ -498,10 +498,10 @@ static void G_Say_f(g_client_t *cl) {
   bool team = false; // whether or not we're dealing with team chat
   bool arg0 = true; // whether or not we need to print arg0
 
-  if (!g_strcmp0(gi.Argv(0), "say") || !g_strcmp0(gi.Argv(0), "say_team")) {
+  if (!strcmp(gi.Argv(0), "say") || !strcmp(gi.Argv(0), "say_team")) {
     arg0 = false;
 
-    if (!g_strcmp0(gi.Argv(0), "say_team") && (g_level.teams || g_level.ctf)) {
+    if (!strcmp(gi.Argv(0), "say_team") && (g_level.teams || g_level.ctf)) {
       team = true;
     }
   }
@@ -541,7 +541,7 @@ static void G_Say_f(g_client_t *cl) {
   }
 
   const int32_t color = team ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
-  g_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->persistent.net_name, color, s);
+  SDL_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->persistent.net_name, color, s);
 
   G_ForEachClient(other, {
     if (team) {
@@ -570,7 +570,7 @@ static void G_PlayerList_f(g_client_t *cl) {
     const int32_t seconds = (g_level.frame_num - c->persistent.first_frame) / QUETOO_TICK_RATE;
 
     char st[80];
-    g_snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s\n", (seconds / 60), (seconds % 60),
+    SDL_snprintf(st, sizeof(st), "%02d:%02d %4d %3d %-16s %s\n", (seconds / 60), (seconds % 60),
                c->ping,
                c->persistent.score,
                c->persistent.net_name,
@@ -613,9 +613,9 @@ bool G_AddClientToTeam(g_client_t *cl, const char *team_name) {
   cl->persistent.team = team;
   cl->persistent.spectator = false;
 
-  char *user_info = g_strdup(cl->persistent.user_info);
+  char *user_info = SDL_strdup(cl->persistent.user_info);
   G_ClientUserInfoChanged(cl, user_info);
-  g_free(user_info);
+  free(user_info);
 
   return true;
 }
@@ -652,7 +652,7 @@ static void G_Spectate_f(g_client_t *cl) {
     return;
   }
 
-  if (!g_strcmp0(gi.Argv(0), "spectate")) {
+  if (!strcmp(gi.Argv(0), "spectate")) {
 
     if (cl->persistent.spectator) {
       gi.ClientPrint(cl, PRINT_HIGH, "You are already spectating\n");
@@ -669,7 +669,7 @@ static void G_Spectate_f(g_client_t *cl) {
     gi.WriteByte(MZ_LOGOUT);
     gi.Multicast(cl->entity->s.origin, MULTICAST_PHS);
 
-  } else if (!g_strcmp0(gi.Argv(0), "join")) {
+  } else if (!strcmp(gi.Argv(0), "join")) {
 
     if (!cl->persistent.spectator) {
       gi.ClientPrint(cl, PRINT_HIGH, "You have already joined\n");
@@ -711,7 +711,7 @@ static void G_Admin_f(g_client_t *cl) {
   }
 
   if (!cl->persistent.admin) { // not yet an admin, assuming auth
-    if (g_strcmp0(gi.Argv(1), g_admin_password->string) == 0) {
+    if (strcmp(gi.Argv(1), g_admin_password->string) == 0) {
       cl->persistent.admin = true;
       gi.BroadcastPrint(PRINT_HIGH, "%s became an admin\n", cl->persistent.net_name);
     } else {
@@ -721,7 +721,7 @@ static void G_Admin_f(g_client_t *cl) {
   }
 
   if (gi.Argc() > 2) {
-    if (g_strcmp0(gi.Argv(2), "mute") == 0) {
+    if (strcmp(gi.Argv(2), "mute") == 0) {
       G_MuteClient(va("%s", gi.Argv(3)), true);
     }
   }
@@ -739,11 +739,11 @@ void G_ClientCommand(g_client_t *cl) {
 
   const char *cmd = gi.Argv(0);
 
-  if (g_strcmp0(cmd, "say") == 0) {
+  if (strcmp(cmd, "say") == 0) {
     G_Say_f(cl);
     return;
   }
-  if (g_strcmp0(cmd, "say_team") == 0) {
+  if (strcmp(cmd, "say_team") == 0) {
     G_Say_f(cl);
     return;
   }
@@ -754,43 +754,43 @@ void G_ClientCommand(g_client_t *cl) {
   }
 
   // these commands are allowed in a timeout
-  if (g_strcmp0(cmd, "admin") == 0) {
+  if (strcmp(cmd, "admin") == 0) {
     G_Admin_f(cl);
     return;
   }
 
   // these commands are not allowed during intermission or timeout
-  if (g_strcmp0(cmd, "spectate") == 0 || g_strcmp0(cmd, "join") == 0) {
+  if (strcmp(cmd, "spectate") == 0 || strcmp(cmd, "join") == 0) {
     G_Spectate_f(cl);
-  } else if (g_strcmp0(cmd, "team") == 0) {
+  } else if (strcmp(cmd, "team") == 0) {
     G_Team_f(cl);
-  } else if (g_strcmp0(cmd, "use") == 0) {
+  } else if (strcmp(cmd, "use") == 0) {
     G_Use_f(cl);
-  } else if (g_strcmp0(cmd, "drop") == 0) {
+  } else if (strcmp(cmd, "drop") == 0) {
     G_Drop_f(cl);
-  } else if (g_strcmp0(cmd, "give") == 0) {
+  } else if (strcmp(cmd, "give") == 0) {
     G_Give_f(cl);
-  } else if (g_strcmp0(cmd, "god") == 0) {
+  } else if (strcmp(cmd, "god") == 0) {
     G_God_f(cl);
-  } else if (g_strcmp0(cmd, "no_clip") == 0) {
+  } else if (strcmp(cmd, "no_clip") == 0) {
     G_NoClip_f(cl);
-  } else if (g_strcmp0(cmd, "wave") == 0) {
+  } else if (strcmp(cmd, "wave") == 0) {
     G_Wave_f(cl);
-  } else if (g_strcmp0(cmd, "weapon_last") == 0) {
+  } else if (strcmp(cmd, "weapon_last") == 0) {
     G_WeaponLast_f(cl);
-  } else if (g_strcmp0(cmd, "kill") == 0) {
+  } else if (strcmp(cmd, "kill") == 0) {
     G_Kill_f(cl);
-  } else if (g_strcmp0(cmd, "player_list") == 0) {
+  } else if (strcmp(cmd, "player_list") == 0) {
     G_PlayerList_f(cl);
-  } else if (g_strcmp0(cmd, "chase_previous") == 0) {
+  } else if (strcmp(cmd, "chase_previous") == 0) {
     G_ClientChasePrevious(cl);
-  } else if (g_strcmp0(cmd, "chase_next") == 0) {
+  } else if (strcmp(cmd, "chase_next") == 0) {
     G_ClientChaseNext(cl);
   }
 #if defined(_DEBUG)
-  else if (g_strcmp0(cmd, "pmove_record") == 0) {
+  else if (strcmp(cmd, "pmove_record") == 0) {
     G_RecordPmove();
-  } else if (g_strcmp0(cmd, "pmove_play") == 0) {
+  } else if (strcmp(cmd, "pmove_play") == 0) {
     G_PlayPmove();
   }
 #endif

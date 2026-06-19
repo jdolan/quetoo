@@ -150,7 +150,7 @@ void Mem_Free(void *p) {
     if (b->parent) {
       b->parent->children = g_slist_remove(b->parent->children, b);
     } else {
-      g_hash_table_remove(mem_state.blocks, (gconstpointer) b);
+      g_hash_table_remove(mem_state.blocks, (const void *) b);
     }
 
     Mem_Free_(b);
@@ -164,7 +164,7 @@ void Mem_Free(void *p) {
  */
 void Mem_FreeTag(mem_tag_t tag) {
   GHashTableIter it;
-  gpointer key, value;
+  void * key, value;
 
   SDL_LockSpinlock(&mem_state.lock);
 
@@ -403,8 +403,8 @@ char *Mem_CopyString(const char *in) {
 /**
  * @brief Comparison function for sorting `mem_stat_t` entries by descending allocated size.
  */
-static gint Mem_Stats_Sort(gconstpointer a, gconstpointer b) {
-  return (gint) (((const mem_stat_t *) b)->size - ((const mem_stat_t *) a)->size);
+static int32_t Mem_Stats_Sort(const void * a, const void * b) {
+  return (int32_t) (((const mem_stat_t *) b)->size - ((const mem_stat_t *) a)->size);
 }
 
 /**
@@ -427,7 +427,7 @@ static size_t Mem_CalculateBlockSize(const mem_block_t *b) {
 GArray *Mem_Stats(void) {
 
   GHashTableIter it;
-  gpointer key, value;
+  void * key, value;
 
   SDL_LockSpinlock(&mem_state.lock);
 

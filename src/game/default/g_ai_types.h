@@ -165,7 +165,7 @@ typedef struct {
       /**
        * @brief Index of the current node being navigated toward.
        */
-      guint path_index;
+      uint32_t path_index;
 
       /**
        * @brief World positions of current and next node.

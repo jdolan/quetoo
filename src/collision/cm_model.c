@@ -325,7 +325,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
     cm_bsp.mod_time = Fs_LastModTime(name);
   }
 
-  g_strlcpy(cm_bsp.name, name, sizeof(cm_bsp.name));
+  SDL_strlcpy(cm_bsp.name, name, sizeof(cm_bsp.name));
 
   Fs_Free(header);
 

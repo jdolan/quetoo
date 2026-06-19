@@ -47,7 +47,7 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
   Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
   ent->s.origin = Vec3_Fmaf(ent->s.origin, fwd, forward);
   
-  if (!g_strcmp0(ent->classname, "info_player_intermission")) {
+  if (!strcmp(ent->classname, "info_player_intermission")) {
     G_Ai_DropItemLikeNode(ent);
   }
 }
@@ -450,7 +450,7 @@ g_gameplay_t G_GameplayByName(const char *c) {
     gameplay = GAME_ARENA;
   }
 
-  g_free(lower);
+  free(lower);
   return gameplay;
 }
 
@@ -489,7 +489,7 @@ g_team_t *G_TeamForFlag(const g_entity_t *ent) {
 
   for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-    if (!g_strcmp0(ent->classname, g_team_list[i].flag)) {
+    if (!strcmp(ent->classname, g_team_list[i].flag)) {
       return &g_team_list[i];
     }
   }
@@ -588,7 +588,7 @@ g_client_t *G_ClientByName(char *name) {
   int32_t match = INT32_MAX;
 
   G_ForEachClient(cl, {
-    const int32_t m = g_strcmp0(name, cl->persistent.net_name);
+    const int32_t m = strcmp(name, cl->persistent.net_name);
     if (m < match) {
       client = cl;
       match = m;
@@ -603,9 +603,9 @@ g_client_t *G_ClientByName(char *name) {
  */
 g_hook_style_t G_HookStyleByName(const char *s) {
   
-  if (!g_strcmp0(s, "swing_manual")) {
+  if (!strcmp(s, "swing_manual")) {
     return HOOK_SWING_MANUAL;
-  } else if (!g_strcmp0(s, "swing_auto")) {
+  } else if (!strcmp(s, "swing_auto")) {
     return HOOK_SWING_AUTO;
   }
 

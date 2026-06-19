@@ -348,9 +348,9 @@ void S_Init(void) {
     }
   }
 
-  gchar **strings = g_strsplit(alGetString(AL_EXTENSIONS), " ", 0);
+  char **strings = g_strsplit(alGetString(AL_EXTENSIONS), " ", 0);
 
-  for (guint i = 0; i < g_strv_length(strings); i++) {
+  for (uint32_t i = 0; i < g_strv_length(strings); i++) {
     const char *c = (const char *) strings[i];
 
     if (i == 0) {
@@ -364,7 +364,7 @@ void S_Init(void) {
 
   strings = g_strsplit(alcGetString(s_context.device, ALC_EXTENSIONS), " ", 0);
 
-  for (guint i = 0; i < g_strv_length(strings); i++) {
+  for (uint32_t i = 0; i < g_strv_length(strings); i++) {
     const char *c = (const char *) strings[i];
     Com_Verbose("              ^2%s^7\n", c);
   }

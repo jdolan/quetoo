@@ -25,7 +25,6 @@
 
 #include <assert.h>
 #include <ctype.h>
-#include <glib.h>
 #include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>

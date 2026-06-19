@@ -69,27 +69,27 @@ static void fetchHeroImages(void *data) {
 		*s = '\0';
 
 		char url[MAX_STRING_CHARS];
-		const int url_len = g_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
+		const int url_len = SDL_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
 		if (url_len < 0 || (size_t) url_len >= sizeof(url)) {
 			Cg_Warn("Failed to build hero image URL: %s", p);
 			p = s + strlen(suffix);
 			continue;
 		}
 
-		g_ptr_array_add(urls, g_strdup(url));
+		g_ptr_array_add(urls, SDL_strdup(url));
 		p = s + strlen(suffix);
 	}
 
 	release(list_data);
 
-	for (guint i = urls->len - 1; i > 0; i--) {
-		const guint j = (guint) rand() % (i + 1);
-		gpointer tmp = urls->pdata[i];
+	for (uint32_t i = urls->len - 1; i > 0; i--) {
+		const uint32_t j = (uint32_t) rand() % (i + 1);
+		void * tmp = urls->pdata[i];
 		urls->pdata[i] = urls->pdata[j];
 		urls->pdata[j] = tmp;
 	}
 
-	for (guint i = 0; i < urls->len; i++) {
+	for (uint32_t i = 0; i < urls->len; i++) {
 		image_data = NULL;
 		if ($(cgi.restClient, get, urls->pdata[i], &image_data) == 200 && image_data) {
 			Image *image = NULL;

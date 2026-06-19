@@ -147,14 +147,14 @@ static void S_LoadSampleBuffer(s_sample_t *sample) {
 
   char name[MAX_QPATH];
   if (sample->media.name[0] == '#') {
-    g_strlcpy(name, (sample->media.name + 1), sizeof(name));
+    SDL_strlcpy(name, (sample->media.name + 1), sizeof(name));
   } else {
-    g_snprintf(name, sizeof(name), "sounds/%s", sample->media.name);
+    SDL_snprintf(name, sizeof(name), "sounds/%s", sample->media.name);
   }
 
   char path[MAX_QPATH];
   for (const char **fmt = snd_formats; *fmt; fmt++) {
-    g_snprintf(path, sizeof(path), "%s.%s", name, *fmt);
+    SDL_snprintf(path, sizeof(path), "%s.%s", name, *fmt);
     if (S_LoadSampleBuffer_(sample, path)) {
       break;
     }
@@ -237,7 +237,7 @@ s_sample_t *S_LoadClientModelSample(const char *model, const char *name) {
   }
 
   char key[MAX_QPATH];
-  g_snprintf(key, sizeof(key), "#players/%s/%s", model, name + 1);
+  SDL_snprintf(key, sizeof(key), "#players/%s/%s", model, name + 1);
 
   s_sample_t *sample = (s_sample_t *) S_FindMedia(key, S_MEDIA_SAMPLE);
   if (sample == NULL) {
@@ -247,7 +247,7 @@ s_sample_t *S_LoadClientModelSample(const char *model, const char *name) {
       Com_Debug(DEBUG_SOUND, "Loaded %s\n", key);
     } else {
       char alias[MAX_QPATH];
-      g_snprintf(alias, sizeof(alias), "#players/common/%s", name + 1);
+      SDL_snprintf(alias, sizeof(alias), "#players/common/%s", name + 1);
 
       s_sample_t *aliased = S_LoadSample(alias);
       if (aliased->buffer) {

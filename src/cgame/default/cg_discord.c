@@ -188,16 +188,16 @@ void Cg_UpdateDiscord(void) {
         presence.largeImageKey = "default";
         presence.state = "Playing";
 
-        g_snprintf(details, sizeof(details), "%s - %s", Cg_GetGameMode(), cgi.ConfigString(CS_MESSAGE));
+        SDL_snprintf(details, sizeof(details), "%s - %s", Cg_GetGameMode(), cgi.ConfigString(CS_MESSAGE));
         presence.details = details;
 
-        if (g_strcmp0(cgi.server_name, "localhost")) {
+        if (strcmp(cgi.server_name, "localhost")) {
           presence.partyId = cgi.server_name;
 
-          g_snprintf(joinSecret, sizeof(joinSecret), "JOIN_%s", presence.partyId);
+          SDL_snprintf(joinSecret, sizeof(joinSecret), "JOIN_%s", presence.partyId);
           presence.joinSecret = joinSecret;
 
-          g_snprintf(spectateSecret, sizeof(spectateSecret), "SPCT_%s", presence.partyId);
+          SDL_snprintf(spectateSecret, sizeof(spectateSecret), "SPCT_%s", presence.partyId);
           presence.spectateSecret = spectateSecret;
         }
 
@@ -234,7 +234,7 @@ static void Cg_DiscordJoinGame(const char *secret) {
 
   // Sanitize the address to prevent command injection via newlines or semicolons
   char addr[MAX_STRING_CHARS];
-  g_strlcpy(addr, secret + 5, sizeof(addr));
+  SDL_strlcpy(addr, secret + 5, sizeof(addr));
   for (char *c = addr; *c; c++) {
     if (*c == '\n' || *c == ';' || *c == '"') {
       *c = '\0';

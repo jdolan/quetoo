@@ -98,17 +98,17 @@ static void R_Screenshot_encode(void *data) {
   strftime(date, sizeof(date), "%Y-%m-%d-%H-%M-%S", tm);
   const int32_t millis = (int32_t) (quetoo.ticks % 1000);
 
-  g_snprintf(path, sizeof(path), "screenshots/%s.%03d", date, millis);
+  SDL_snprintf(path, sizeof(path), "screenshots/%s.%03d", date, millis);
 
   bool res;
-  if (!g_strcmp0(r_screenshot_format->string, "tga")) {
-    g_strlcat(path, ".tga", sizeof(path));
+  if (!strcmp(r_screenshot_format->string, "tga")) {
+    SDL_strlcat(path, ".tga", sizeof(path));
     res = Img_WriteTGA(path, surface->pixels, surface->w, surface->h);
-  } else if (!g_strcmp0(r_screenshot_format->string, "jpg")) {
-    g_strlcat(path, ".jpg", sizeof(path));
+  } else if (!strcmp(r_screenshot_format->string, "jpg")) {
+    SDL_strlcat(path, ".jpg", sizeof(path));
     res = Img_WriteJPG(path, surface->pixels, surface->w, surface->h, 95);
   } else {
-    g_strlcat(path, ".png", sizeof(path));
+    SDL_strlcat(path, ".png", sizeof(path));
     res = Img_WritePNG(path, surface->pixels, surface->w, surface->h);
   }
 
@@ -153,7 +153,7 @@ void R_Screenshot(r_view_t *view) {
 */
 void R_Screenshot_f(void) {
 
-  if (!g_strcmp0(Cmd_Argv(1), "view")) {
+  if (!strcmp(Cmd_Argv(1), "view")) {
     r_image_state.screenshot = SCREENSHOT_VIEW;
   } else {
     r_image_state.screenshot = SCREENSHOT_DEFAULT;
@@ -478,16 +478,16 @@ static void R_DumpImage(const r_image_t *image, const char *output, bool mipmap,
 
     for (int32_t d = 0; d < depth; d++) {
 
-      g_strlcpy(path_name, output, sizeof(path_name));
+      SDL_strlcpy(path_name, output, sizeof(path_name));
 
-      g_strlcat(path_name, va("_%ix%i", width, height), sizeof(path_name));
+      SDL_strlcat(path_name, va("_%ix%i", width, height), sizeof(path_name));
         
       if (depth > 1) {
-        g_strlcat(path_name, va("x%i", d), sizeof(path_name));
+        SDL_strlcat(path_name, va("x%i", d), sizeof(path_name));
       }
 
       if (mips > 0) {
-        g_strlcat(path_name, va("_%i", level), sizeof(path_name));
+        SDL_strlcat(path_name, va("_%i", level), sizeof(path_name));
       }
         
       if (raw) {
@@ -502,7 +502,7 @@ static void R_DumpImage(const r_image_t *image, const char *output, bool mipmap,
 
         Fs_Close(f);
       } else {
-        g_strlcat(path_name, ".png", sizeof(path_name));
+        SDL_strlcat(path_name, ".png", sizeof(path_name));
     
         const char *real_path = Fs_RealPath(path_name);
 
@@ -540,7 +540,7 @@ static void R_DumpImages_enumerator(const r_media_t *media, void *data) {
     const r_image_t *image = (const r_image_t *) media;
     char path[MAX_OS_PATH];
 
-    g_snprintf(path, sizeof(path), "imgdmp/%i", image->texnum);
+    SDL_snprintf(path, sizeof(path), "imgdmp/%i", image->texnum);
 
     R_DumpImage(image, path, true, false);
   }

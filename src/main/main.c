@@ -308,7 +308,7 @@ static void Init(void) {
   editor = Cvar_Add("editor", "0", CVAR_LATCH | CVAR_SERVER_INFO, "Enables the in-game editor.");
 
   game = Cvar_Add("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
-  game->modified = g_strcmp0(game->string, DEFAULT_GAME);
+  game->modified = strcmp(game->string, DEFAULT_GAME);
 
   rcon_address = Cvar_Add("rcon_address", "", 0, "The remote console server address (defaults to current server)");
   rcon_password = Cvar_Add("rcon_password", "", CVAR_ARCHIVE, "The remote console password. "
@@ -475,7 +475,7 @@ int32_t main(int32_t argc, char *argv[]) {
     if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo\\shell\\open\\command", 0, NULL,
                        REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &cmd_key, NULL) == ERROR_SUCCESS) {
       char cmd[MAX_PATH + 8];
-      g_snprintf(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exe_path);
+      SDL_snprintf(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exe_path);
       RegSetValueEx(cmd_key, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) strlen(cmd) + 1);
       RegCloseKey(cmd_key);
     }

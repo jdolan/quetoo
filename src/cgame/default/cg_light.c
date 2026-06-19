@@ -114,7 +114,7 @@ float Cg_AnimateLight(float intensity, const char *style, float drift) {
 static int32_t Cg_ResolveModel1(const char *model) {
 
   for (int32_t i = 1; i < MAX_MODELS; i++) {
-    if (!g_strcmp0(cgi.client->config_strings[CS_MODELS + i], model)) {
+    if (!strcmp(cgi.client->config_strings[CS_MODELS + i], model)) {
       return i;
     }
   }

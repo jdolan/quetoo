@@ -49,7 +49,7 @@ static Order sortAlphabetical(const ident a, const ident b) {
   const char *c = ((const Option *) a)->title->text;
   const char *d = ((const Option *) b)->title->text;
 
-  return g_strcmp0(c, d) < 0 ? OrderAscending : OrderDescending;
+  return strcmp(c, d) < 0 ? OrderAscending : OrderDescending;
 }
 
 /**

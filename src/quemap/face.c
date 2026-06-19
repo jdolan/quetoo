@@ -105,7 +105,7 @@ static vec3i_t GetWeldingPoint(const vec3_t p) {
 /**
  * @brief Hash function for integer grid-cell keys used by the welding spatial hash.
  */
-static guint WeldingSpatialHashFunc(const vec3i_t* ptr) {
+static uint32_t WeldingSpatialHashFunc(const vec3i_t* ptr) {
   const uint32_t x = (uint32_t) roundf((MAX_WORLD_COORD + ptr->x) * .5f);
   const uint32_t y = (uint32_t) roundf((MAX_WORLD_COORD + ptr->y) * .5f);
   const uint32_t z = (uint32_t) roundf((MAX_WORLD_COORD + ptr->z) * .25f);
@@ -116,7 +116,7 @@ static guint WeldingSpatialHashFunc(const vec3i_t* ptr) {
 /**
  * @brief Equality function for integer grid-cell keys used by the welding spatial hash.
  */
-static gboolean WeldingSpatialHashEqualFunc(const vec3i_t* a, const vec3i_t* b) {
+static bool WeldingSpatialHashEqualFunc(const vec3i_t* a, const vec3i_t* b) {
   return a->x == b->x && a->y == b->y && a->z == b->z;
 }
 
@@ -141,7 +141,7 @@ void ClearWeldingSpatialHash(void) {
 /**
  * @brief GEqualFunc comparing two vertex indices by their BSP vertex positions for use within a hash bucket.
  */
-static gboolean WeldingHashKeyEquals(gconstpointer a, gconstpointer b) {
+static bool WeldingHashKeyEquals(const void * a, const void * b) {
   const int32_t key_a = GPOINTER_TO_INT(a);
   const int32_t key_b = GPOINTER_TO_INT(b);
 
@@ -155,7 +155,7 @@ static gboolean WeldingHashKeyEquals(gconstpointer a, gconstpointer b) {
 /**
  * @brief GHashFunc hashing a vertex index by its quantized BSP vertex position.
  */
-static guint WeldingHashKeyHash(gconstpointer a) {
+static uint32_t WeldingHashKeyHash(const void * a) {
   const int32_t key_a = GPOINTER_TO_INT(a);
   const vec3_t *v = &bsp_file.vertexes[key_a].position;
 
@@ -176,7 +176,7 @@ static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
   if (!array) {
     array = g_hash_table_new(WeldingHashKeyHash, WeldingHashKeyEquals);
 
-    gpointer key_copy = Mem_Malloc(sizeof(spatial));
+    void * key_copy = Mem_Malloc(sizeof(spatial));
     memcpy(key_copy, &spatial, sizeof(spatial));
 
     welding_hash_keys = g_slist_prepend(welding_hash_keys, key_copy);
@@ -210,7 +210,7 @@ static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
         }
 
         GHashTableIter iter;
-        gpointer iter_key;
+        void * iter_key;
         g_hash_table_iter_init(&iter, array);
 
         while (g_hash_table_iter_next(&iter, &iter_key, NULL)) {
@@ -421,7 +421,7 @@ static void BuildPhongMaps(const bsp_model_t *mod) {
         *key_copy = key;
         g_hash_table_insert(phong_vertex_faces, key_copy, arr);
       }
-      g_ptr_array_add(arr, (gpointer) f);
+      g_ptr_array_add(arr, (void *) f);
     }
   }
 
@@ -429,7 +429,7 @@ static void BuildPhongMaps(const bsp_model_t *mod) {
   const brush_side_t *map_side = brush_sides;
   for (int32_t j = 0; j < num_brush_sides; j++, map_side++) {
     if (map_side->out && map_side->winding) {
-      g_hash_table_insert(phong_brush_side_windings, (gpointer) map_side->out, map_side->winding);
+      g_hash_table_insert(phong_brush_side_windings, (void *) map_side->out, map_side->winding);
     }
   }
 }
@@ -454,7 +454,7 @@ static size_t FacesForVertex(const bsp_face_t *face, const bsp_vertex_t *vertex,
   }
 
   size_t count = 0;
-  for (guint i = 0; i < arr->len; i++) {
+  for (uint32_t i = 0; i < arr->len; i++) {
     faces[count++] = arr->pdata[i];
     if (count == MAX_VERTEX_FACES) {
       Com_Warn("Vertex @ %s is shared by too many faces.\n", vtos(vertex->position));

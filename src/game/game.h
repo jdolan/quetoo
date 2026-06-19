@@ -24,7 +24,7 @@
 #include "shared/shared.h"
 #include "collision/cm_types.h"
 
-#define GAME_API_VERSION 29
+#define GAME_API_VERSION 30
 
 /**
  * @brief Server flags for `g_entity_t`.

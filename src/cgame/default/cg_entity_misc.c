@@ -163,15 +163,15 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   const char *type = cgi.EntityValue(self->def, "type")->nullable_string;
 
   const char *preset_str = cg_dust_preset_default;
-  if (!g_strcmp0(type, "embers")) {
+  if (!strcmp(type, "embers")) {
     preset_str = cg_dust_preset_embers;
-  } else if (!g_strcmp0(type, "bubbles")) {
+  } else if (!strcmp(type, "bubbles")) {
     preset_str = cg_dust_preset_bubbles;
-  } else if (!g_strcmp0(type, "fizz")) {
+  } else if (!strcmp(type, "fizz")) {
     preset_str = cg_dust_preset_fizz;
-  } else if (!g_strcmp0(type, "flame")) {
+  } else if (!strcmp(type, "flame")) {
     preset_str = cg_dust_preset_flame;
-  } else if (!g_strcmp0(type, "steam")) {
+  } else if (!strcmp(type, "steam")) {
     preset_str = cg_dust_preset_steam;
   }
 
@@ -179,11 +179,11 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   cm_entity_t *def = cgi.EntityAssign(self->def, preset);
   cgi.FreeEntity(preset);
 
-  if (!g_strcmp0(type, "fizz")) {
+  if (!strcmp(type, "fizz")) {
     dust->sprite.animation = cg_sprite_fizz_01;
-  } else if (!g_strcmp0(type, "flame")) {
+  } else if (!strcmp(type, "flame")) {
     dust->sprite.atlas_image = cg_sprite_flame;
-  } else if (!g_strcmp0(type, "steam")) {
+  } else if (!strcmp(type, "steam")) {
     dust->sprite.atlas_image = cg_sprite_steam;
   } else {
     const char *name = cgi.EntityValue(def, "sprite")->nullable_string ?: "particle";
@@ -227,7 +227,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
   const cm_entity_t *brush_def = self->id < bsp->num_entities ? bsp->entities[self->id] : self->def;
   GPtrArray *brushes = cgi.EntityBrushes(brush_def);
-  for (guint i = 0; i < brushes->len; i++) {
+  for (uint32_t i = 0; i < brushes->len; i++) {
 
     const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, i);
     self->bounds = Box3_Union(self->bounds, brush->bounds);
@@ -411,7 +411,7 @@ static void Cg_misc_flame_Init(cg_entity_t *self) {
 
   const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
   if (sound) {
-    if (g_strcmp0(sound, "none")) {
+    if (strcmp(sound, "none")) {
       flame->sample = cgi.LoadSample(sound);
     }
   } else {
@@ -764,7 +764,7 @@ static void Cg_misc_sprite_Think(cg_entity_t *self) {
 
   const cg_entity_t *teammate = Cg_EntityForDefinition(self->team);
   if (teammate) {
-    if (!g_strcmp0(self->clazz->classname, teammate->clazz->classname)) {
+    if (!strcmp(self->clazz->classname, teammate->clazz->classname)) {
       that = teammate->data;
     } else {
       Cg_Warn("Teammate is not %s\n", self->clazz->classname);
@@ -848,7 +848,7 @@ static void Cg_misc_steam_Init(cg_entity_t *self) {
 
   const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
   if (sound) {
-    if (g_strcmp0(sound, "none")) {
+    if (strcmp(sound, "none")) {
       steam->sample = cgi.LoadSample(sound);
     }
   } else {
@@ -975,7 +975,7 @@ static void Cg_misc_weather_Init(cg_entity_t *self) {
 
   const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
   if (sound) {
-    if (g_strcmp0(sound, "none")) {
+    if (strcmp(sound, "none")) {
       weather->sample = cgi.LoadSample(sound);
     }
   } else {
@@ -1001,7 +1001,7 @@ static void Cg_misc_weather_Init(cg_entity_t *self) {
   const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
   const cm_entity_t *brush_def = self->id < bsp->num_entities ? bsp->entities[self->id] : self->def;
   GPtrArray *brushes = cgi.EntityBrushes(brush_def);
-  for (guint i = 0; i < brushes->len; i++) {
+  for (uint32_t i = 0; i < brushes->len; i++) {
 
     const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, i);
     self->bounds = Box3_Union(self->bounds, brush->bounds);

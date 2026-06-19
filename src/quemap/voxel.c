@@ -266,7 +266,7 @@ void LightVoxel(int32_t voxel_num) {
   points[0] = voxel->origin;
   Box3_ToPoints(voxel->bounds, &points[1]);
 
-  for (guint i = 0; i < lights->len; i++) {
+  for (uint32_t i = 0; i < lights->len; i++) {
 
     light_t *light = g_ptr_array_index(lights, i);
     if (light->target_entity != -1) {
@@ -295,7 +295,7 @@ void FloodLights(void) {
 
   voxel_t *v = voxels.voxels;
 
-  for (guint i = 0; i < lights->len; i++) {
+  for (uint32_t i = 0; i < lights->len; i++) {
     light_t *l = g_ptr_array_index(lights, i);
 
     l->visible_bounds = Box3_Null();
@@ -617,7 +617,7 @@ void EmitVoxels(void) {
         int32_t *indices = out_light_indices;
 
         g_hash_table_iter_init(&iter, voxel->lights);
-        while (g_hash_table_iter_next(&iter, (gpointer *) &light, NULL)) {
+        while (g_hash_table_iter_next(&iter, (void * *) &light, NULL)) {
           if (!light->out) {
             continue;
           }

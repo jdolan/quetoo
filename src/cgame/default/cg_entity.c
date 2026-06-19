@@ -61,14 +61,14 @@ static const cm_entity_t *Cg_FindEntity(const cm_entity_t *from, const Cg_Entity
  * @brief Predicate function testing whether an entity's targetname matches the given string.
  */
 static bool Cg_EntityTarget_Predicate(const cm_entity_t *e, void *data) {
-  return !g_strcmp0(cgi.EntityValue(e, "targetname")->nullable_string, data);
+  return !strcmp(cgi.EntityValue(e, "targetname")->nullable_string, data);
 }
 
 /**
  * @brief Predicate function testing whether an entity's team key matches the given string.
  */
 static bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
-  return !g_strcmp0(cgi.EntityValue(e, "team")->nullable_string, data);
+  return !strcmp(cgi.EntityValue(e, "team")->nullable_string, data);
 }
 
 /**
@@ -77,7 +77,7 @@ static bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
 cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e) {
 
   if (e) {
-    for (guint i = 0; i < cg_entities->len; i++) {
+    for (uint32_t i = 0; i < cg_entities->len; i++) {
       cg_entity_t *ent = &g_array_index(cg_entities, cg_entity_t, i);
       if (ent->def == e) {
         return ent;
@@ -120,7 +120,7 @@ void Cg_LoadEntities(void) {
     const cg_entity_class_t **clazz = cg_entity_classes;
     for (size_t j = 0; j < cg_num_entity_classes; j++, clazz++) {
 
-      if (!g_strcmp0(classname, (*clazz)->classname)) {
+      if (!strcmp(classname, (*clazz)->classname)) {
 
         cg_entity_t e = {
           .id = MAX_ENTITIES + cg_entities->len,
@@ -333,7 +333,7 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 
   // and client side entities too
   cg_entity_t *e = (cg_entity_t *) cg_entities->data;
-  for (guint i = 0; i < cg_entities->len; i++, e++) {
+  for (uint32_t i = 0; i < cg_entities->len; i++, e++) {
 
     if (e->next_think > cgi.client->unclamped_time) {
       continue;

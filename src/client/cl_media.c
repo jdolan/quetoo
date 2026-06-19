@@ -55,7 +55,7 @@ void Cl_RequestNextDownload(void) {
       }
 
       GHashTableIter iter;
-      gpointer key, val;
+      void * key, val;
       g_hash_table_iter_init(&iter, manifest);
       while (g_hash_table_iter_next(&iter, &key, &val)) {
         const cm_manifest_entry_t *entry = val;
@@ -91,7 +91,7 @@ static void Cl_Mapshots_enumerate(const char *path, void *data) {
   GList **list = (GList **) data;
 
   if (g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".png")) {
-    *list = g_list_append(*list, g_strdup(path));
+    *list = g_list_append(*list, SDL_strdup(path));
   }
 }
 

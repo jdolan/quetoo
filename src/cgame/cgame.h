@@ -34,7 +34,7 @@
 #include "common/installer.h"
 #include <Objectively/RESTClient.h>
 
-#define CGAME_API_VERSION 31
+#define CGAME_API_VERSION 32
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -404,7 +404,7 @@ typedef struct cg_import_s {
   /**
    * @return The list of known servers (`cl_server_info_t`).
    */
-  GList *(*Servers)(void);
+  List *(*Servers)(void);
 
   /**
    * @brief Refreshes the list of known servers from the master and LAN.
@@ -420,7 +420,7 @@ typedef struct cg_import_s {
   /**
    * @return The list of mapshots (char *) for the given map.
    */
-  GList *(*Mapshots)(const char *map);
+  List *(*Mapshots)(const char *map);
 
   /**
    * @return The configuration string at `index`.

@@ -123,7 +123,7 @@ r_media_t *R_FindMedia(const char *name, r_media_type_t type) {
     .type = type
   };
   
-  g_strlcpy(lookup.name, name, sizeof(lookup.name));
+  SDL_strlcpy(lookup.name, name, sizeof(lookup.name));
 
   r_media_t *media = g_hash_table_lookup(r_media_state.media, &lookup);
   if (media) {
@@ -146,7 +146,7 @@ r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
 
   r_media_t *media = Mem_TagMalloc(size, MEM_TAG_RENDERER);
 
-  g_strlcpy(media->name, name, sizeof(media->name));
+  SDL_strlcpy(media->name, name, sizeof(media->name));
   media->type = type;
 
   return media;
@@ -157,7 +157,7 @@ r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
  * always freed. Otherwise, only media with stale seed values and no explicit
  * retainment are freed.
  */
-static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data) {
+static bool R_FreeMedia_(void * key, void * value, void * data) {
   r_media_t *media = (r_media_t *) value;
 
   if (!data) {
@@ -212,7 +212,7 @@ void R_EndLoading(void) {
 /**
  * @brief Computes the hash value for a media entry by name and type.
  */
-static guint R_MediaHash(gconstpointer key) {
+static uint32_t R_MediaHash(const void * key) {
   const r_media_t *media = key;
 
   return g_str_hash(media->name) + media->type;
@@ -221,7 +221,7 @@ static guint R_MediaHash(gconstpointer key) {
 /**
  * @brief Tests whether two media entries are equal by type and name.
  */
-static gboolean R_MediaEqual(gconstpointer a, gconstpointer b) {
+static bool R_MediaEqual(const void * a, const void * b) {
   const r_media_t *_a = a, *_b = b;
 
   if (_a->type == _b->type) {

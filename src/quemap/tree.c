@@ -225,7 +225,7 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
       assert(side->winding);
 
       const int32_t plane = side->plane ^ 1;
-      if (g_ptr_array_find(cache, (gconstpointer) (intptr_t) plane, NULL)) {
+      if (g_ptr_array_find(cache, (const void *) (intptr_t) plane, NULL)) {
         continue;
       }
 
@@ -248,7 +248,7 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
         best_value = value;
       }
 
-      g_ptr_array_add(cache, (gpointer) (intptr_t) plane);
+      g_ptr_array_add(cache, (void *) (intptr_t) plane);
     }
   }
 

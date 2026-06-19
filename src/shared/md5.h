@@ -21,25 +21,17 @@
 
 #pragma once
 
-#include <signal.h>
+#include "shared.h"
 
-#include "quetoo.h"
+/**
+ * @brief The md5 context type.
+ */
+typedef struct {
+  uint64_t size;        // Size of input in bytes
+  uint32_t buffer[4];   // Current accumulation of hash
+  uint8_t input[64];    // Input buffer for remaining bytes
+} md5_ctx;
 
-const char *Sys_ExecutablePath(void);
-const char *Sys_Username(void);
-const char *Sys_UserDir(void);
-
-void *Sys_OpenLibrary(const char *name, bool global);
-void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params);
-void Sys_CloseLibrary(void *handle);
-
-#if defined(__linux__)
-void Sys_InstallDesktopEntry(void);
-void Sys_InstallLocalBin(void);
-#endif
-
-char *Sys_Backtrace(uint32_t start, uint32_t max_count);
-void Sys_Raise(const char *msg);
-void Sys_Signal(int32_t s);
-void Sys_InitCrashSignals(void);
-extern volatile sig_atomic_t sys_signal_received;
+void md5_init(md5_ctx *ctx);
+void md5_update(md5_ctx *ctx, const void *data, size_t size);
+void md5_finalize(md5_ctx *ctx, uint8_t result[16]);

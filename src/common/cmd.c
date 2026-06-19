@@ -144,7 +144,7 @@ void Cbuf_Execute(void) {
     if (i >= sizeof(line)) {
       Com_Warn("Command exceeded %" PRIuPTR " chars, discarded\n", sizeof(line));
     } else {
-      g_strlcpy(line, text, i + 1);
+      SDL_strlcpy(line, text, i + 1);
     }
 
     // delete the text from the command buffer and move remaining commands down
@@ -225,7 +225,7 @@ void Cmd_TokenizeString(const char *text) {
 
     // set cmd_state.args to everything after the command name
     if (cmd_state.args.argc == 1) {
-      g_strlcpy(cmd_state.args.args, parser.position.ptr + 1, MAX_STRING_CHARS);
+      SDL_strlcpy(cmd_state.args.args, parser.position.ptr + 1, MAX_STRING_CHARS);
 
       // strip off any trailing whitespace
       size_t l = strlen(cmd_state.args.args);
@@ -243,9 +243,9 @@ void Cmd_TokenizeString(const char *text) {
     }
 
     // expand console variables
-    if (*cmd_state.args.argv[cmd_state.args.argc] == '$' && g_strcmp0(cmd_state.args.argv[0], "alias")) {
+    if (*cmd_state.args.argv[cmd_state.args.argc] == '$' && strcmp(cmd_state.args.argv[0], "alias")) {
       const char *c = Cvar_GetString(cmd_state.args.argv[cmd_state.args.argc] + 1);
-      g_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
+      SDL_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
     }
 
     cmd_state.args.argc++;
@@ -264,7 +264,7 @@ static cmd_t *Cmd_Get_(const char *name, const bool case_sensitive) {
       if (queue->length == 1) { // only 1 entry, return it
         cmd_t *cmd = (cmd_t *) queue->head->data;
 
-        if (!case_sensitive || g_strcmp0(cmd->name, name) == 0) {
+        if (!case_sensitive || strcmp(cmd->name, name) == 0) {
           return cmd;
         }
       } else {
@@ -272,7 +272,7 @@ static cmd_t *Cmd_Get_(const char *name, const bool case_sensitive) {
         for (const GList *list = queue->head; list; list = list->next) {
           cmd_t *cmd = (cmd_t *) list->data;
 
-          if (!g_strcmp0(cmd->name, name)) {
+          if (!strcmp(cmd->name, name)) {
             return cmd;
           }
         }
@@ -293,7 +293,7 @@ cmd_t *Cmd_Get(const char *name) {
 /**
  * @brief GCompareFunc for `Cmd_Enumerate`.
  */
-static gint Cmd_Enumerate_comparator(gconstpointer a, const gconstpointer b) {
+static int32_t Cmd_Enumerate_comparator(const void * a, const const void * b) {
   return g_ascii_strcasecmp(((const cmd_t *) a)->name, ((const cmd_t *) b)->name);
 }
 
@@ -304,7 +304,7 @@ void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
   GList *sorted = NULL;
 
   GHashTableIter iter;
-  gpointer key, value;
+  void * key, value;
   g_hash_table_iter_init(&iter, cmd_state.commands);
 
   while (g_hash_table_iter_next(&iter, &key, &value)) {
@@ -349,7 +349,7 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
     cmd->description = Mem_Link(Mem_TagCopyString(description, MEM_TAG_CMD), cmd);
   }
 
-  gpointer key = (gpointer) name;
+  void * key = (void *) name;
   GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, key);
 
   if (!queue) {
@@ -389,7 +389,7 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
   cmd->name = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CMD), cmd);
   cmd->commands = Mem_Link(Mem_TagCopyString(commands, MEM_TAG_CMD), cmd);
 
-  gpointer key = (gpointer) cmd->name;
+  void * key = (void *) cmd->name;
 
   GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, key);
 
@@ -436,7 +436,7 @@ void Cmd_Remove(const char *name) {
  */
 void Cmd_RemoveAll(uint32_t flags) {
   GHashTableIter iter;
-  gpointer key, value;
+  void * key, value;
   g_hash_table_iter_init(&iter, cmd_state.commands);
 
   while (g_hash_table_iter_next (&iter, &key, &value)) {
@@ -466,15 +466,15 @@ static const char *Cmd_Stringify(const cmd_t *cmd) {
   buffer[0] = '\0';
 
   if (cmd->Execute) {
-    g_strlcat(buffer, va("^1%s^7", cmd->name), sizeof(buffer));
+    SDL_strlcat(buffer, va("^1%s^7", cmd->name), sizeof(buffer));
 
     if (cmd->description) {
-      g_strlcat(buffer, va("\n\t%s", cmd->description), sizeof(buffer));
+      SDL_strlcat(buffer, va("\n\t%s", cmd->description), sizeof(buffer));
     }
   } else if (cmd->commands) {
-    g_strlcat(buffer, va("^3%s^7\n\t%s", cmd->name, cmd->commands), sizeof(buffer));
+    SDL_strlcat(buffer, va("^3%s^7\n\t%s", cmd->name, cmd->commands), sizeof(buffer));
   } else {
-    g_strlcat(buffer, va("^3%s^7", cmd->name), sizeof(buffer));
+    SDL_strlcat(buffer, va("^3%s^7", cmd->name), sizeof(buffer));
   }
 
   return buffer;
@@ -497,7 +497,7 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
  * @brief Console completion for commands and aliases.
  */
 void Cmd_CompleteCommand(const char *pattern, GList **matches) {
-  g_strlcpy(cmd_complete_pattern, pattern, sizeof(cmd_complete_pattern));
+  SDL_strlcpy(cmd_complete_pattern, pattern, sizeof(cmd_complete_pattern));
   Cmd_Enumerate(Cmd_CompleteCommand_enumerate, (void *) matches);
 }
 
@@ -578,12 +578,12 @@ static void Cmd_Alias_f(void) {
 
   cmd[0] = '\0';
   for (int32_t i = 2; i < Cmd_Argc(); i++) {
-    g_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
+    SDL_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
     if (i != (Cmd_Argc() - 1)) {
-      g_strlcat(cmd, " ", sizeof(cmd));
+      SDL_strlcat(cmd, " ", sizeof(cmd));
     }
   }
-  g_strlcat(cmd, "\n", sizeof(cmd));
+  SDL_strlcat(cmd, "\n", sizeof(cmd));
 
   Cmd_Alias(Cmd_Argv(1), cmd);
 }
@@ -593,9 +593,9 @@ static void Cmd_Alias_f(void) {
  */
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
   GSList **list = (GSList **) data;
-  gchar *str = g_strdup(Cmd_Stringify(cmd));
+  char *str = SDL_strdup(Cmd_Stringify(cmd));
 
-  *list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) StrStripCmp);
+  *list = g_slist_insert_sorted(*list, (void *) str, (GCompareFunc) StrStripCmp);
 }
 
 /**
@@ -607,7 +607,7 @@ static void Cmd_List_f(void) {
   Cmd_Enumerate(Cmd_List_f_enumerate, &list);
   
   for (GSList *entry = list; entry; entry = entry->next) {
-    Com_Print("%s\n", (const gchar *) entry->data);
+    Com_Print("%s\n", (const char *) entry->data);
   }
 
   g_slist_free_full(list, g_free);
@@ -633,9 +633,9 @@ static void Cmd_Exec_f(void) {
     return;
   }
 
-  g_strlcpy(path, Cmd_Argv(1), sizeof(path));
+  SDL_strlcpy(path, Cmd_Argv(1), sizeof(path));
   if (!g_str_has_suffix(path, ".cfg")) {
-    g_strlcat(path, ".cfg", sizeof(path));
+    SDL_strlcat(path, ".cfg", sizeof(path));
   }
 
   if (Fs_Load(path, &buffer) == -1) {
@@ -671,7 +671,7 @@ static void Cmd_Wait_f(void) {
 /**
  * @brief Frees a GQueue value stored in the command hash table.
  */
-static void Cmd_HashTable_Free(gpointer list) {
+static void Cmd_HashTable_Free(void * list) {
 
   g_queue_free_full((GQueue *) list, Mem_Free);
 }

@@ -256,7 +256,7 @@ static void Sv_UserStringCommand(const char *s) {
 
   for (c = sv_user_string_cmds; c->name; c++) {
 
-    if (!g_strcmp0(Cmd_Argv(0), c->name)) {
+    if (!strcmp(Cmd_Argv(0), c->name)) {
       c->func();
       break;
     }
@@ -310,7 +310,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
     switch (c) {
 
       case CL_CMD_USER_INFO:
-        g_strlcpy(cl->user_info, Net_ReadString(&net_message), sizeof(cl->user_info));
+        SDL_strlcpy(cl->user_info, Net_ReadString(&net_message), sizeof(cl->user_info));
         Sv_UserInfoChanged(cl);
         break;
 

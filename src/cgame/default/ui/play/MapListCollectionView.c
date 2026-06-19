@@ -101,7 +101,7 @@ static void enumerateMaps(const char *path, void *data) {
     const Value *value = $(maps, objectAtIndex, i);
     const MapListItemInfo *info = value->value;
 
-    if (g_strcmp0(info->mapname, path) == 0) {
+    if (strcmp(info->mapname, path) == 0) {
       return;
     }
   }
@@ -124,10 +124,10 @@ static void enumerateMaps(const char *path, void *data) {
 
       MapListItemInfo *info = g_new0(MapListItemInfo, 1);
 
-      g_strlcpy(info->mapname, path, sizeof(info->mapname));
-      g_strlcpy(info->message, path, sizeof(info->message));
+      SDL_strlcpy(info->mapname, path, sizeof(info->mapname));
+      SDL_strlcpy(info->message, path, sizeof(info->message));
 
-      gchar *entities = g_malloc(header.lumps[BSP_LUMP_ENTITIES].file_len);
+      char *entities = g_malloc(header.lumps[BSP_LUMP_ENTITIES].file_len);
 
       cgi.SeekFile(file, header.lumps[BSP_LUMP_ENTITIES].file_ofs);
       cgi.ReadFile(file, entities, 1, header.lumps[BSP_LUMP_ENTITIES].file_len);
@@ -141,7 +141,7 @@ static void enumerateMaps(const char *path, void *data) {
           break;
         }
 
-        if (g_strcmp0(token, "message") == 0) {
+        if (strcmp(token, "message") == 0) {
           
           if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
             break;
@@ -168,11 +168,11 @@ static void enumerateMaps(const char *path, void *data) {
         }
       }
 
-      g_free(entities);
+      free(entities);
 
       GList *mapshots = cgi.Mapshots(path);
 
-      const guint len = g_list_length(mapshots);
+      const uint32_t len = g_list_length(mapshots);
       if (len) {
         const char *mapshot = g_list_nth_data(mapshots, RandomRangeu(0, len));
 

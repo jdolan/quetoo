@@ -34,7 +34,7 @@ const g_item_t *G_FindItemByClassName(const char *classname) {
   for (g_item_tag_t t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
     const g_item_t *it = &g_items[t];
 
-    if (!g_strcmp0(it->def.classname, classname)) {
+    if (!strcmp(it->def.classname, classname)) {
       return it;
     }
   }
@@ -742,10 +742,10 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
             .player_ai = player_ai,
             .time = (uint32_t) time(NULL),
           };
-          g_strlcpy(capture.level,       g_level.name,              sizeof(capture.level));
-          g_strlcpy(capture.player,      cl->persistent.net_name,   sizeof(capture.player));
-          g_strlcpy(capture.player_guid, cl->persistent.guid,       sizeof(capture.player_guid));
-          g_strlcpy(capture.team,        other_team->name,          sizeof(capture.team));
+          SDL_strlcpy(capture.level,       g_level.name,              sizeof(capture.level));
+          SDL_strlcpy(capture.player,      cl->persistent.net_name,   sizeof(capture.player));
+          SDL_strlcpy(capture.player_guid, cl->persistent.guid,       sizeof(capture.player_guid));
+          SDL_strlcpy(capture.team,        other_team->name,          sizeof(capture.team));
 
           if (capture.player_guid[0]) {
             g_array_append_val(g_level.captures, capture);
@@ -1466,48 +1466,48 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
       it->Use = G_UseWeapon;
       it->Drop = G_DropWeapon;
 
-      if (!g_strcmp0(it->def.classname, "weapon_blaster") ||
-          !g_strcmp0(it->def.classname, "weapon_handgrenades")) {
+      if (!strcmp(it->def.classname, "weapon_blaster") ||
+          !strcmp(it->def.classname, "weapon_handgrenades")) {
         it->Drop = NULL;
-      } else if (!g_strcmp0(it->def.classname, "weapon_grenadelauncher")) {
+      } else if (!strcmp(it->def.classname, "weapon_grenadelauncher")) {
         it->Pickup = G_PickupGrenadeLauncher;
       }
 
-      if (!g_strcmp0(it->def.classname, "weapon_blaster")) {
+      if (!strcmp(it->def.classname, "weapon_blaster")) {
         it->Think = G_FireBlaster;
-      } else if (!g_strcmp0(it->def.classname, "weapon_shotgun")) {
+      } else if (!strcmp(it->def.classname, "weapon_shotgun")) {
         it->Think = G_FireShotgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_supershotgun")) {
+      } else if (!strcmp(it->def.classname, "weapon_supershotgun")) {
         it->Think = G_FireSuperShotgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_machinegun")) {
+      } else if (!strcmp(it->def.classname, "weapon_machinegun")) {
         it->Think = G_FireMachinegun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_handgrenades")) {
+      } else if (!strcmp(it->def.classname, "weapon_handgrenades")) {
         it->Think = G_FireHandGrenade;
-      } else if (!g_strcmp0(it->def.classname, "weapon_grenadelauncher")) {
+      } else if (!strcmp(it->def.classname, "weapon_grenadelauncher")) {
         it->Think = G_FireGrenadeLauncher;
-      } else if (!g_strcmp0(it->def.classname, "weapon_rocketlauncher")) {
+      } else if (!strcmp(it->def.classname, "weapon_rocketlauncher")) {
         it->Think = G_FireRocketLauncher;
-      } else if (!g_strcmp0(it->def.classname, "weapon_hyperblaster")) {
+      } else if (!strcmp(it->def.classname, "weapon_hyperblaster")) {
         it->Think = G_FireHyperblaster;
-      } else if (!g_strcmp0(it->def.classname, "weapon_lightning")) {
+      } else if (!strcmp(it->def.classname, "weapon_lightning")) {
         it->Think = G_FireLightning;
-      } else if (!g_strcmp0(it->def.classname, "weapon_railgun")) {
+      } else if (!strcmp(it->def.classname, "weapon_railgun")) {
         it->Think = G_FireRailgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_bfg")) {
+      } else if (!strcmp(it->def.classname, "weapon_bfg")) {
         it->Think = G_FireBfg;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_shotgun")) {
+      } else if (!strcmp(it->def.classname, "weapon_quake_shotgun")) {
         it->Think = G_FireQuakeShotgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_supershotgun")) {
+      } else if (!strcmp(it->def.classname, "weapon_quake_supershotgun")) {
         it->Think = G_FireQuakeSuperShotgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_nailgun")) {
+      } else if (!strcmp(it->def.classname, "weapon_quake_nailgun")) {
         it->Think = G_FireQuakeNailgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_supernailgun")) {
+      } else if (!strcmp(it->def.classname, "weapon_quake_supernailgun")) {
         it->Think = G_FireQuakeSuperNailgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_grenadelauncher")) {
+      } else if (!strcmp(it->def.classname, "weapon_quake_grenadelauncher")) {
         it->Think = G_FireQuakeGrenadeLauncher;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_rocketlauncher")) {
+      } else if (!strcmp(it->def.classname, "weapon_quake_rocketlauncher")) {
         it->Think = G_FireQuakeRocketLauncher;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_thunderbolt")) {
+      } else if (!strcmp(it->def.classname, "weapon_quake_thunderbolt")) {
         it->Think = G_FireQuakeThunderbolt;
       }
       break;
@@ -1515,7 +1515,7 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
     case ITEM_AMMO:
       it->Pickup = G_PickupAmmo;
       it->Drop = G_DropItem;
-      if (!g_strcmp0(it->def.classname, "ammo_grenades")) {
+      if (!strcmp(it->def.classname, "ammo_grenades")) {
         it->Pickup = G_PickupGrenades;
         it->Use = G_UseGrenades;
       }
@@ -1531,13 +1531,13 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
       break;
 
     case ITEM_POWERUP:
-      if (!g_strcmp0(it->def.classname, "item_adrenaline")) {
+      if (!strcmp(it->def.classname, "item_adrenaline")) {
         it->Pickup = G_PickupAdrenaline;
-      } else if (!g_strcmp0(it->def.classname, "item_quad")) {
+      } else if (!strcmp(it->def.classname, "item_quad")) {
         it->Pickup = G_PickupQuadDamage;
-      } else if (!g_strcmp0(it->def.classname, "item_invisibility")) {
+      } else if (!strcmp(it->def.classname, "item_invisibility")) {
         it->Pickup = G_PickupInvisibility;
-      } else if (!g_strcmp0(it->def.classname, "item_invulnerability")) {
+      } else if (!strcmp(it->def.classname, "item_invulnerability")) {
         it->Pickup = G_PickupInvulnerability;
       }
       break;

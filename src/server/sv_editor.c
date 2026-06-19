@@ -68,7 +68,7 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
     GPtrArray *brushes = Cm_EntityBrushes(bsp_def);
     if (brushes->len) {
       ent->bounds = Box3_Null();
-      for (guint j = 0; j < brushes->len; j++) {
+      for (uint32_t j = 0; j < brushes->len; j++) {
         const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, j);
         ent->bounds = Box3_Union(ent->bounds, brush->bounds);
       }
@@ -134,7 +134,7 @@ void Sv_FreeEditorEntity(int32_t number) {
 void Sv_LoadEditorMap(void) {
   char path[MAX_QPATH];
   StripExtension(Cm_Bsp()->name, path);
-  g_strlcat(path, ".map", sizeof(path));
+  SDL_strlcat(path, ".map", sizeof(path));
 
   void *buffer;
   if (Fs_Load(path, &buffer) == -1) {
@@ -165,7 +165,7 @@ void Sv_SaveEditorMap_f(void) {
 
   char path[MAX_QPATH];
   StripExtension(Cm_Bsp()->name, path);
-  g_strlcat(path, ".map", sizeof(path));
+  SDL_strlcat(path, ".map", sizeof(path));
 
   file_t *file = Fs_OpenWrite(path);
   if (!file) {

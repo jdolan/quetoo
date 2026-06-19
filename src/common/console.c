@@ -41,14 +41,14 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
   str->level = level;
   str->chars = g_new0(char, string_len);
 
-  g_strlcpy(str->chars, string, string_len); // copy in input
+  SDL_strlcpy(str->chars, string, string_len); // copy in input
   g_strchomp(str->chars); // remove \n if it's there
 
   if (!g_str_has_suffix(str->chars, "^7")) { // append ^7 if we need it
-    g_strlcat(str->chars, "^7", string_len);
+    SDL_strlcat(str->chars, "^7", string_len);
   }
 
-  if (g_strlcat(str->chars, "\n", string_len) >= string_len) {
+  if (SDL_strlcat(str->chars, "\n", string_len) >= string_len) {
     raise(SIGABRT);
     return NULL;
   }
@@ -72,22 +72,22 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 static void Con_FreeString(console_string_t *str) {
 
   if (str) {
-    g_free(str->chars);
-    g_free(str);
+    free(str->chars);
+    free(str);
   }
 }
 
 /**
  * @brief GFunc flavor of `Con_FreeString`.
  */
-static void Con_FreeString_GFunc(gpointer data, gpointer user_data) {
+static void Con_FreeString_GFunc(void * data, void * user_data) {
   Con_FreeString(data);
 }
 
 /**
  * @brief GDestroyNotify flavor of `Con_FreeString`.
  */
-static void Con_FreeString_GDestroyNotify(gpointer data) {
+static void Con_FreeString_GDestroyNotify(void * data) {
   Con_FreeString(data);
 }
 
@@ -360,7 +360,7 @@ void Con_NavigateHistory(console_t *console, console_history_nav_t nav) {
   if (strlen(hist->strings[p])) {
     console_input_t *in = &console->input;
 
-    g_strlcpy(in->buffer, hist->strings[p], sizeof(in->buffer));
+    SDL_strlcpy(in->buffer, hist->strings[p], sizeof(in->buffer));
     in->pos = strlen(in->buffer);
 
     hist->pos = p;
@@ -379,7 +379,7 @@ void Con_ReadHistory(console_t *console, file_t *file) {
   console_history_t *hist = &console->history;
 
   while (Fs_ReadLine(file, str, sizeof(str))) {
-    g_strlcpy(hist->strings[hist->index++ % CON_HISTORY_SIZE], str, sizeof(str));
+    SDL_strlcpy(hist->strings[hist->index++ % CON_HISTORY_SIZE], str, sizeof(str));
   }
 
   hist->pos = hist->index;
@@ -443,7 +443,7 @@ void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
   const char *partial = Cmd_Argv(argi);
   char pattern[strlen(partial) + 3];
 
-  g_snprintf(pattern, (gulong) sizeof(pattern), "%s*", partial);
+  SDL_snprintf(pattern, (gulong) sizeof(pattern), "%s*", partial);
 
   Cmd_CompleteCommand(pattern, matches);
   Cvar_CompleteVar(pattern, matches);
@@ -453,7 +453,7 @@ void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
  * @brief Prints the list of autocomplete matches to the console, formatted in columns.
  */
 static void Con_PrintMatches(const console_t *console, GList *matches) {
-  const guint num_matches = g_list_length(matches);
+  const uint32_t num_matches = g_list_length(matches);
 
   if (!num_matches) {
     return;
@@ -513,15 +513,15 @@ static void Con_PrintMatches(const console_t *console, GList *matches) {
       const char *str = (match->description ?: match->name);
       const size_t str_len = strlen(str);
 
-      g_strlcat(line, str, sizeof(line));
+      SDL_strlcat(line, str, sizeof(line));
 
       for (size_t x = 0; x < widest - str_len; x++) {
-        g_strlcat(line, " ", sizeof(line));
+        SDL_strlcat(line, " ", sizeof(line));
       }
     }
 
     if (line[0]) {
-      g_strlcat(line, "\n", sizeof(line));
+      SDL_strlcat(line, "\n", sizeof(line));
       Con_Append(PRINT_ECHO, line);
     }
   }
@@ -649,7 +649,7 @@ bool Con_CompleteInput(console_t *console) {
   }
 
   if (new_argument) {
-    g_strlcat(partial, match, max_len);
+    SDL_strlcat(partial, match, max_len);
   } else {
     size_t arg_pos = 0;
     bool input_quotes = false;
@@ -676,7 +676,7 @@ bool Con_CompleteInput(console_t *console) {
       }
     }
 
-    g_snprintf(partial + arg_pos, (gulong) (max_len - arg_pos), "%s", match);
+    SDL_snprintf(partial + arg_pos, (gulong) (max_len - arg_pos), "%s", match);
   }
 
   console->input.pos = strlen(console->input.buffer);
@@ -699,12 +699,12 @@ void Con_SubmitInput(console_t *console) {
   if (*console->input.buffer) {
 
     const size_t h = console->history.index++ % CON_HISTORY_SIZE;
-    g_strlcpy(console->history.strings[h], console->input.buffer, MAX_PRINT_MSG);
+    SDL_strlcpy(console->history.strings[h], console->input.buffer, MAX_PRINT_MSG);
 
     console->history.pos = console->history.index;
 
     if (!g_str_has_suffix(console->input.buffer, "\n")) {
-      g_strlcat(console->input.buffer, "\n", sizeof(console->input.buffer));
+      SDL_strlcat(console->input.buffer, "\n", sizeof(console->input.buffer));
     }
 
     const char *cmd = console->input.buffer;
@@ -729,7 +729,7 @@ void Con_AddConsole(const console_t *console) {
 
   SDL_LockMutex(console_state.lock);
 
-  console_state.consoles = g_list_append(console_state.consoles, (gpointer) console);
+  console_state.consoles = g_list_append(console_state.consoles, (void *) console);
 
   SDL_UnlockMutex(console_state.lock);
 }
@@ -741,7 +741,7 @@ void Con_RemoveConsole(const console_t *console) {
 
   SDL_LockMutex(console_state.lock);
 
-  console_state.consoles = g_list_remove(console_state.consoles, (gpointer) console);
+  console_state.consoles = g_list_remove(console_state.consoles, (void *) console);
 
   SDL_UnlockMutex(console_state.lock);
 }

@@ -41,7 +41,7 @@ int32_t ZIP_Main(void) {
 
   // read the manifest
   char mf_path[MAX_OS_PATH];
-  g_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
+  SDL_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
 
   GHashTable *manifest = Cm_ReadManifest(mf_path);
   if (!manifest) {
@@ -52,14 +52,14 @@ int32_t ZIP_Main(void) {
   GList *assets = NULL;
 
   // include the manifest itself so the pk3 is self-contained
-  assets = g_list_append(assets, g_strdup(mf_path));
+  assets = g_list_append(assets, SDL_strdup(mf_path));
 
   GHashTableIter iter;
-  gpointer key, val;
+  void * key, val;
   g_hash_table_iter_init(&iter, manifest);
   while (g_hash_table_iter_next(&iter, &key, &val)) {
     const cm_manifest_entry_t *entry = val;
-    assets = g_list_append(assets, g_strdup(entry->path));
+    assets = g_list_append(assets, SDL_strdup(entry->path));
   }
 
   Cm_FreeManifest(manifest);
@@ -68,7 +68,7 @@ int32_t ZIP_Main(void) {
   memset(&zip, 0, sizeof(zip));
 
   // write to a "temporary" archive name
-  g_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), map_base, getpid());
+  SDL_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), map_base, getpid());
 
   if (mz_zip_writer_init_file(&zip, path, 0)) {
     Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), path);
@@ -147,12 +147,12 @@ int32_t ZIP_Main(void) {
       const char *dir = Fs_RealDir(existing);
 
       if (dir) {
-        gchar *to_update = g_build_filename(dir, existing, NULL);
+        char *to_update = g_build_filename(dir, existing, NULL);
 
         rename(path, to_update);
         Com_Print("Renamed %s to %s\n", path, to_update);
 
-        g_free(to_update);
+        free(to_update);
       } else {
         Com_Warn("Can't update %s: Failed to resolve real path\n", existing);
       }

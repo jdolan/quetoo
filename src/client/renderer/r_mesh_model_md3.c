@@ -48,19 +48,19 @@ static void R_LoadMd3Animations(r_model_t *mod) {
       break;
     }
 
-    if (!g_strcmp0(token, "footsteps")) {
+    if (!strcmp(token, "footsteps")) {
       Parse_SkipToken(&parser, PARSE_DEFAULT);
       Parse_SkipToken(&parser, PARSE_DEFAULT | PARSE_NO_WRAP);
       continue;
     }
 
-    if (!g_strcmp0(token, "headoffset")) {
+    if (!strcmp(token, "headoffset")) {
       Parse_SkipToken(&parser, PARSE_DEFAULT);
       Parse_SkipPrimitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_FLOAT, 3);
       continue;
     }
 
-    if (!g_strcmp0(token, "sex")) {
+    if (!strcmp(token, "sex")) {
       Parse_SkipToken(&parser, PARSE_DEFAULT);
       Parse_SkipToken(&parser, PARSE_DEFAULT | PARSE_NO_WRAP);
       continue;
@@ -328,7 +328,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
         const d_md3_tag_t tag = R_SwapMd3Tag(in);
 
-        g_strlcpy(out->name, tag.name, MD3_MAX_PATH);
+        SDL_strlcpy(out->name, tag.name, MD3_MAX_PATH);
         out->matrix = Mat4_FromVectors(tag.axis[0], tag.axis[1], tag.axis[2], tag.origin);
       }
     }
@@ -361,7 +361,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
         Com_Error(ERROR_DROP, "%s: %s: MD3_MAX_VERTEXES %d\n", mod->media.name, surface.name, surface.num_vertexes);
       }
 
-      g_strlcpy(out->name, surface.name, MD3_MAX_PATH);
+      SDL_strlcpy(out->name, surface.name, MD3_MAX_PATH);
 
       const byte *surface_base = (byte *) in;
 

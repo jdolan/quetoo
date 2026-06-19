@@ -162,13 +162,13 @@ static r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, c
   assert(last_frame > first_frame);
 
   char format_path[MAX_QPATH];
-  g_snprintf(format_path, sizeof(format_path), "%s%s", base_path, seq_num_fmt);
+  SDL_snprintf(format_path, sizeof(format_path), "%s%s", base_path, seq_num_fmt);
 
   char name[MAX_QPATH];
   const uint32_t length = (last_frame - first_frame) + 1;
   const r_image_t *images[length];
   for (uint32_t i = 0; i < length; i++) {
-    g_snprintf(name, MAX_QPATH, format_path, i + first_frame);
+    SDL_snprintf(name, MAX_QPATH, format_path, i + first_frame);
     images[i] = (r_image_t *) cgi.LoadAtlasImage(atlas, name, IMG_SPRITE);
   }
 
@@ -223,17 +223,17 @@ void Cg_LoadMedia(void) {
   cg_sample_gib = cgi.LoadSample("gibs/common/gib");
 
   for (uint32_t i = 0; i < lengthof(cg_sample_hits); i++) {
-    g_snprintf(name, sizeof(name), "misc/hit_%" PRIu32, i + 1);
+    SDL_snprintf(name, sizeof(name), "misc/hit_%" PRIu32, i + 1);
     cg_sample_hits[i] = cgi.LoadSample(name);
   }
 
   for (uint32_t i = 0; i < lengthof(cg_sample_machinegun_fire); i++) {
-    g_snprintf(name, sizeof(name), "weapons/machinegun/fire_%" PRIu32, i + 1);
+    SDL_snprintf(name, sizeof(name), "weapons/machinegun/fire_%" PRIu32, i + 1);
     cg_sample_machinegun_fire[i] = cgi.LoadSample(name);
   }
 
   for (uint32_t i = 0; i < lengthof(cg_sample_machinegun_hit); i++) {
-    g_snprintf(name, sizeof(name), "weapons/machinegun/hit_%" PRIu32, i + 1);
+    SDL_snprintf(name, sizeof(name), "weapons/machinegun/hit_%" PRIu32, i + 1);
     cg_sample_machinegun_hit[i] = cgi.LoadSample(name);
   }
 
@@ -312,22 +312,22 @@ void Cg_LoadMedia(void) {
   cg_decal_atlas = cgi.LoadAtlas("cg_decal_atlas");
 
   for (size_t i = 0; i < lengthof(cg_decal_bullet); i++) {
-    g_snprintf(name, sizeof(name), "decals/bullet_%zd", i);
+    SDL_snprintf(name, sizeof(name), "decals/bullet_%zd", i);
     cg_decal_bullet[i] = cgi.LoadAtlasImage(cg_decal_atlas, name, IMG_SPRITE);
   }
 
   for (size_t i = 0; i < lengthof(cg_decal_blood); i++) {
-    g_snprintf(name, sizeof(name), "decals/blood_%zd", i);
+    SDL_snprintf(name, sizeof(name), "decals/blood_%zd", i);
     cg_decal_blood[i] = cgi.LoadAtlasImage(cg_decal_atlas, name, IMG_SPRITE);
   }
 
   for (size_t i = 0; i < lengthof(cg_decal_burn); i++) {
-    g_snprintf(name, sizeof(name), "decals/burn_%zd", i);
+    SDL_snprintf(name, sizeof(name), "decals/burn_%zd", i);
     cg_decal_burn[i] = cgi.LoadAtlasImage(cg_decal_atlas, name, IMG_SPRITE);
   }
 
   for (size_t i = 0; i < lengthof(cg_decal_slug); i++) {
-      g_snprintf(name, sizeof(name), "decals/slug_%zd", i);
+      SDL_snprintf(name, sizeof(name), "decals/slug_%zd", i);
       cg_decal_slug[i] = cgi.LoadAtlasImage(cg_decal_atlas, name, IMG_SPRITE);
   }
 

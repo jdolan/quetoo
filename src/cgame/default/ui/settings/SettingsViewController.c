@@ -242,7 +242,7 @@ static void loadView(ViewController *self) {
       last_h = h;
 
       char label[MAX_QPATH];
-      g_snprintf(label, sizeof(label), "%dx%d", w, h);
+      SDL_snprintf(label, sizeof(label), "%dx%d", w, h);
       $(resolution, addOption, label, (ident) (intptr_t) ((w << 16) | h));
     }
     SDL_free(modes);

@@ -57,11 +57,11 @@ static const JSONProperties leaderboard_entry_properties = {
  * @brief Maps a column identifier to its API sort parameter.
  */
 static const char *sortParamForColumn(const char *identifier) {
-  if (g_strcmp0(identifier, _player) == 0) return "name";
-  if (g_strcmp0(identifier, _frags) == 0) return "frags";
-  if (g_strcmp0(identifier, _deaths) == 0) return "deaths";
-  if (g_strcmp0(identifier, _kd) == 0) return "kd";
-  if (g_strcmp0(identifier, _time_played) == 0) return "time_played";
+  if (strcmp(identifier, _player) == 0) return "name";
+  if (strcmp(identifier, _frags) == 0) return "frags";
+  if (strcmp(identifier, _deaths) == 0) return "deaths";
+  if (strcmp(identifier, _kd) == 0) return "kd";
+  if (strcmp(identifier, _time_played) == 0) return "time_played";
   return NULL;
 }
 
@@ -124,9 +124,9 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
   const char *dir  = (column && column->order == OrderAscending) ? "asc" : "desc";
 
   char url[512];
-  int n = g_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0", LEADERBOARD_MAX_ENTRIES);
+  int n = SDL_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0", LEADERBOARD_MAX_ENTRIES);
   if (sort) {
-    n += g_snprintf(url + n, sizeof(url) - n, "&sort=%s&dir=%s", sort, dir);
+    n += SDL_snprintf(url + n, sizeof(url) - n, "&sort=%s&dir=%s", sort, dir);
   }
 
   $(cgi.restClient, getAsync, url, fetchLeaderboardComplete, NULL);
@@ -143,7 +143,7 @@ static void selectOwnRow(LeaderboardViewController *this) {
   }
 
   for (size_t i = 0; i < this->leaderboardResponse.num_entries; i++) {
-    if (g_strcmp0(this->leaderboardResponse.entries[i].guid, guid_hash) == 0) {
+    if (strcmp(this->leaderboardResponse.entries[i].guid, guid_hash) == 0) {
       $(this->leaderboard, selectRowAtIndex, i);
       return;
     }
@@ -184,23 +184,23 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
   }
 
   const char *guid_hash = cgi.GetCvarString("guid_hash");
-  if (g_strcmp0(entry->guid, guid_hash) == 0) {
+  if (strcmp(entry->guid, guid_hash) == 0) {
     $((View *) cell, addClassName, "me");
   }
 
-  if (g_strcmp0(column->identifier, _rank) == 0) {
+  if (strcmp(column->identifier, _rank) == 0) {
     $(cell->text, setText, va("%d", entry->rank));
-  } else if (g_strcmp0(column->identifier, _player) == 0) {
+  } else if (strcmp(column->identifier, _player) == 0) {
     $(cell->text, setText, entry->name);
     cell->text->colorEscapes = true;
-  } else if (g_strcmp0(column->identifier, _frags) == 0) {
+  } else if (strcmp(column->identifier, _frags) == 0) {
     $(cell->text, setText, va("%d", entry->frags));
-  } else if (g_strcmp0(column->identifier, _deaths) == 0) {
+  } else if (strcmp(column->identifier, _deaths) == 0) {
     $(cell->text, setText, va("%d", entry->deaths));
-  } else if (g_strcmp0(column->identifier, _kd) == 0) {
+  } else if (strcmp(column->identifier, _kd) == 0) {
     const float kd = entry->deaths > 0 ? (float) entry->frags / entry->deaths : (float) entry->frags;
     $(cell->text, setText, va("%.2f", kd));
-  } else if (g_strcmp0(column->identifier, _time_played) == 0) {
+  } else if (strcmp(column->identifier, _time_played) == 0) {
     $(cell->text, setText, formatTime(entry->time_played));
   }
 

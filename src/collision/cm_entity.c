@@ -54,8 +54,8 @@ cm_entity_t *Cm_CopyEntity(const cm_entity_t *entity) {
 
     cm_entity_t *out = Cm_AllocEntity();
 
-    g_strlcpy(out->key, in->key, sizeof(out->key));
-    g_strlcpy(out->string, in->string, sizeof(out->string));
+    SDL_strlcpy(out->key, in->key, sizeof(out->key));
+    SDL_strlcpy(out->string, in->string, sizeof(out->string));
 
     Cm_ParseEntity(out);
 
@@ -92,8 +92,8 @@ cm_entity_t *Cm_EntityAssign(const cm_entity_t *dst, const cm_entity_t *src) {
 
     cm_entity_t *pair = Cm_AllocEntity();
 
-    g_strlcpy(pair->key, s->key, sizeof(pair->key));
-    g_strlcpy(pair->string, s->string, sizeof(pair->string));
+    SDL_strlcpy(pair->key, s->key, sizeof(pair->key));
+    SDL_strlcpy(pair->string, s->string, sizeof(pair->string));
 
     Cm_ParseEntity(pair);
 
@@ -158,20 +158,20 @@ void Cm_ParseEntity(cm_entity_t *pair) {
  * @brief GCompareFunc for entity sorting.
  * @details Classname comes first, followed by the rest in lexigraphical order.
  */
-static gint Cm_SortEntity_cmp(gconstpointer a, gconstpointer b) {
+static int32_t Cm_SortEntity_cmp(const void * a, const void * b) {
 
   const cm_entity_t *m = a;
   const cm_entity_t *n = b;
 
-  if (!g_strcmp0(m->key, "classname")) {
+  if (!strcmp(m->key, "classname")) {
     return INT_MIN;
   }
 
-  if (!g_strcmp0(n->key, "classname")) {
+  if (!strcmp(n->key, "classname")) {
     return INT_MAX;
   }
 
-  return g_strcmp0(m->key, n->key);
+  return strcmp(m->key, n->key);
 }
 
 /**
@@ -194,7 +194,7 @@ cm_entity_t *Cm_SortEntity(cm_entity_t *entity) {
 
   // now rebuild the linked list
 
-  for (guint i = 0; i < pairs->len; i++) {
+  for (uint32_t i = 0; i < pairs->len; i++) {
 
     cm_entity_t *e = g_ptr_array_index(pairs, i);
 
@@ -234,7 +234,7 @@ GList *Cm_LoadEntities(const char *entity_string) {
       break;
     }
 
-    if (!g_strcmp0("{", token)) {
+    if (!strcmp("{", token)) {
 
       cm_entity_t *entity = NULL;
 
@@ -258,7 +258,7 @@ GList *Cm_LoadEntities(const char *entity_string) {
 
         Parse_PeekToken(&parser, PARSE_DEFAULT, token, sizeof(token));
 
-        if (!g_strcmp0("}", token)) {
+        if (!strcmp("}", token)) {
           break;
         }
       }
@@ -294,7 +294,7 @@ int32_t Cm_EntityNumber(const cm_entity_t *entity) {
 const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
 
   for (const cm_entity_t *e = entity; e; e = e->next) {
-    if (!g_strcmp0(e->key, key)) {
+    if (!strcmp(e->key, key)) {
       return e;
     }
   }
@@ -318,7 +318,7 @@ cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entit
   cm_entity_t *e;
   cm_entity_t *target = NULL;
   for (e = entity; e; e = e->next) {
-    if (!g_strcmp0(e->key, key)) {
+    if (!strcmp(e->key, key)) {
       target = e;
       break;
     }
@@ -333,31 +333,31 @@ cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entit
     }
   }
 
-  g_strlcpy(target->key, key, sizeof(target->key));
+  SDL_strlcpy(target->key, key, sizeof(target->key));
 
   switch (field) {
     case ENTITY_STRING:
-      g_strlcpy(target->string, (const char *) value, sizeof(entity->string));
+      SDL_strlcpy(target->string, (const char *) value, sizeof(entity->string));
       break;
     case ENTITY_INTEGER:
-      g_snprintf(target->string, sizeof(entity->string), "%d", *(int32_t *) value);
+      SDL_snprintf(target->string, sizeof(entity->string), "%d", *(int32_t *) value);
       break;
     case ENTITY_FLOAT:
-      g_snprintf(target->string, sizeof(entity->string), "%g", *(float *) value);
+      SDL_snprintf(target->string, sizeof(entity->string), "%g", *(float *) value);
       break;
     case ENTITY_VEC2: {
       const vec2_t v = *(vec2_t *) value;
-      g_snprintf(target->string, sizeof(entity->string), "%g %g", v.x, v.y);
+      SDL_snprintf(target->string, sizeof(entity->string), "%g %g", v.x, v.y);
       break;
     }
     case ENTITY_VEC3: {
       const vec3_t v = *(vec3_t *) value;
-      g_snprintf(target->string, sizeof(entity->string), "%g %g %g", v.x, v.y, v.z);
+      SDL_snprintf(target->string, sizeof(entity->string), "%g %g %g", v.x, v.y, v.z);
       break;
     }
     case ENTITY_VEC4: {
       const vec4_t v = *(vec4_t *) value;
-      g_snprintf(target->string, sizeof(entity->string), "%g %g %g %g", v.x, v.y, v.z, v.w);
+      SDL_snprintf(target->string, sizeof(entity->string), "%g %g %g %g", v.x, v.y, v.z, v.w);
       break;
     }
   }
@@ -449,7 +449,7 @@ void Cm_ParseMapBrushes(const char *map_text, cm_entity_t **entities, int32_t nu
 
     while (Parse_Token(&parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
 
-      if (!g_strcmp0(token, "{")) {
+      if (!strcmp(token, "{")) {
         if (!in_entity) {
           in_entity = true;
         } else {
@@ -460,7 +460,7 @@ void Cm_ParseMapBrushes(const char *map_text, cm_entity_t **entities, int32_t nu
         }
       }
 
-      if (!g_strcmp0(token, "}")) {
+      if (!strcmp(token, "}")) {
         if (brush_depth > 0) {
           brush_depth--;
         } else if (in_entity) {

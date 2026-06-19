@@ -335,7 +335,7 @@ START_TEST(check_Net_Http_roundtrip) {
 
 	// Client: download via RESTClient (Objectively URLSession / libcurl)
 	char url[128];
-	g_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.txt", port);
+	SDL_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.txt", port);
 
 	Data *data = NULL;
 	const int32_t status = $($$(RESTClient, sharedInstance), get, url, &data);

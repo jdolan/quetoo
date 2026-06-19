@@ -35,7 +35,7 @@ int32_t LoadMaterial(const char *name) {
 
   material_t *m = materials;
   for (int32_t i = 0; i < num_materials; i++, m++) {
-    if (!g_strcmp0(name, m->cm->name)) {
+    if (!strcmp(name, m->cm->name)) {
       return i;
     }
   }

@@ -69,7 +69,7 @@ static bool Add(const char *name) {
 
 	if (Fs_Exists(name)) {
 		if (!g_hash_table_contains(paths, name)) {
-			g_hash_table_insert(paths, g_strdup(name), g_strdup(name));
+			g_hash_table_insert(paths, SDL_strdup(name), SDL_strdup(name));
 		}
 		return true;
 	} else {
@@ -207,11 +207,11 @@ static void AddEntities(void) {
 		const cm_entity_t *e = entity->data;
 		while (e) {
 
-			if (!g_strcmp0(e->key, "sound")) {
+			if (!strcmp(e->key, "sound")) {
 				AddSound(e->string);
-			} else if (!g_strcmp0(e->key, "model")) {
+			} else if (!strcmp(e->key, "model")) {
 				AddModel(e->string);
-			} else if (!g_strcmp0(e->key, "sky")) {
+			} else if (!strcmp(e->key, "sky")) {
 				AddSky(e->string);
 			}
 
@@ -313,7 +313,7 @@ int32_t WriteManifest(void) {
 
 	// write the manifest
 	char mf_path[MAX_OS_PATH];
-	g_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
+	SDL_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
 
 	const int32_t count = Cm_WriteManifest(mf_path, manifest);
 	if (count < 0) {

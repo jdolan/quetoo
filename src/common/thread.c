@@ -167,7 +167,7 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread
           t->status = THREAD_RUNNING;
           t->options = options;
 
-          g_strlcpy(t->name, name, sizeof(t->name));
+          SDL_strlcpy(t->name, name, sizeof(t->name));
 
           t->Run = run;
           t->data = data;

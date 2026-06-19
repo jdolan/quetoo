@@ -470,6 +470,8 @@
 		CE82F2962D0F9FBE004EE5DF /* libc++.1.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */; };
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
+		CE89C2BA2FE56432000B6244 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = CE89C2B92FE5642D000B6244 /* md5.c */; };
+		CE89C2BC2FE56440000B6244 /* md5.h in Headers */ = {isa = PBXBuildFile; fileRef = CE89C2BB2FE5643E000B6244 /* md5.h */; };
 		CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EA23D3E034002FD074 /* r_program.h */; };
 		CE8FD2ED23D3E034002FD074 /* r_program.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8FD2EB23D3E034002FD074 /* r_program.c */; };
 		CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */; };
@@ -1728,6 +1730,8 @@
 		CE8819581F882D9F000D5AB7 /* DialogViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogViewController.c; sourceTree = "<group>"; };
 		CE8819591F882D9F000D5AB7 /* DialogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogViewController.h; sourceTree = "<group>"; };
 		CE89268723EE0F7300CF3D33 /* color.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = color.h; sourceTree = "<group>"; };
+		CE89C2B92FE5642D000B6244 /* md5.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = md5.c; sourceTree = "<group>"; };
+		CE89C2BB2FE5643E000B6244 /* md5.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = md5.h; sourceTree = "<group>"; };
 		CE8FD2EA23D3E034002FD074 /* r_program.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_program.h; sourceTree = "<group>"; };
 		CE8FD2EB23D3E034002FD074 /* r_program.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_program.c; sourceTree = "<group>"; };
 		CE8FD2F923D70A11002FD074 /* sky_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sky_vs.glsl; sourceTree = "<group>"; };
@@ -2315,6 +2319,8 @@
 				CE0C0751260CC75700FFE27B /* box.h */,
 				CE89268723EE0F7300CF3D33 /* color.h */,
 				CE12D6881C5C58C300CD0B13 /* matrix.h */,
+				CE89C2BB2FE5643E000B6244 /* md5.h */,
+				CE89C2B92FE5642D000B6244 /* md5.c */,
 				CE55309A1E5A93C60009A127 /* parse.c */,
 				CE55309B1E5A93C60009A127 /* parse.h */,
 				CE12D6B71C5C58C300CD0B13 /* shared-anorms.c */,
@@ -3613,6 +3619,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE89C2BC2FE56440000B6244 /* md5.h in Headers */,
 				CEE7508B2D6A3267004CDBCA /* rgb9e5.h in Headers */,
 				CE0C0752260CC75700FFE27B /* box.h in Headers */,
 				CE04F3D825CADFCA00C31433 /* color.h in Headers */,
@@ -4850,6 +4857,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE89C2BA2FE56432000B6244 /* md5.c in Sources */,
 				CE04F48C25CADFEE00C31433 /* parse.c in Sources */,
 				CE80FDB61C5E3D4E00A21A51 /* shared-anorms.c in Sources */,
 				CE80FDB71C5E3D4E00A21A51 /* shared.c in Sources */,

@@ -34,7 +34,7 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
   s = (cl_server_info_t *) Mem_TagMalloc(sizeof(*s), MEM_TAG_CLIENT);
 
   s->addr = *addr;
-  g_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
+  SDL_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
 
   cls.servers = g_list_prepend(cls.servers, s);
 
@@ -85,7 +85,7 @@ void Cl_ParseServerInfo(void) {
     server->ping_time = cls.broadcast_time;
   }
 
-  g_strlcpy(string, Net_ReadString(&net_message), sizeof(string));
+  SDL_strlcpy(string, Net_ReadString(&net_message), sizeof(string));
 
   // First line is the server infostring; subsequent lines are player entries.
   char *player_start = strchr(string, '\n');
@@ -97,15 +97,15 @@ void Cl_ParseServerInfo(void) {
   char name[sizeof(server->name)];
   char gameplay[sizeof(server->gameplay)];
 
-  g_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
-  g_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
-  g_strlcpy(gameplay, InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
+  SDL_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
+  SDL_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
+  SDL_strlcpy(gameplay, InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
   const int32_t max_clients = atoi(InfoString_Get(string, "sv_max_clients"));
 
   if (hostname[0] && name[0]) {
-    g_strlcpy(server->hostname, hostname, sizeof(server->hostname));
-    g_strlcpy(server->name, name, sizeof(server->name));
-    g_strlcpy(server->gameplay, gameplay, sizeof(server->gameplay));
+    SDL_strlcpy(server->hostname, hostname, sizeof(server->hostname));
+    SDL_strlcpy(server->name, name, sizeof(server->name));
+    SDL_strlcpy(server->gameplay, gameplay, sizeof(server->gameplay));
     server->max_clients = max_clients;
 
     server->clients = 0;
@@ -117,7 +117,7 @@ void Cl_ParseServerInfo(void) {
 
       char player[MAX_TOKEN_CHARS];
       const size_t len = end ? (size_t)(end - line) : strlen(line);
-      g_strlcpy(player, line, MIN(len + 1, sizeof(player)));
+      SDL_strlcpy(player, line, MIN(len + 1, sizeof(player)));
 
       if (player[0]) {
         server->clients++;
@@ -141,7 +141,7 @@ void Cl_ParseServerInfo(void) {
     server->max_clients = 0;
     server->bots = 0;
 
-    g_snprintf(server->error, sizeof(server->error), "Invalid response from %s\n", Net_NetaddrToString(&server->addr));
+    SDL_snprintf(server->error, sizeof(server->error), "Invalid response from %s\n", Net_NetaddrToString(&server->addr));
   }
 
   SDL_PushEvent(&(SDL_Event) {
@@ -266,7 +266,7 @@ void Cl_ParseServers(void) {
     port += *buffptr++;
 
     char s[32];
-    g_snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
+    SDL_snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
 
     Com_Debug(DEBUG_CLIENT, "Parsed %s\n", s);
 
@@ -326,7 +326,7 @@ void Cl_Servers_List_f(void) {
   while (e) {
     const cl_server_info_t *s = (cl_server_info_t *) e->data;
 
-    g_snprintf(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
+    SDL_snprintf(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
                s->hostname, Net_NetaddrToString(&s->addr), s->name, s->gameplay, s->clients,
                s->max_clients, s->ping);
     Com_Print("%s\n", string);

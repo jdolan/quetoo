@@ -65,7 +65,7 @@ void Cg_AddFlares(void) {
     return;
   }
 
-  for (guint i = 0; i < cg_flares->len; i++) {
+  for (uint32_t i = 0; i < cg_flares->len; i++) {
     cg_flare_t *flare = g_ptr_array_index(cg_flares, i);
 
     mat4_t matrix = Mat4_Identity();
@@ -179,10 +179,10 @@ static _Bool Cg_FacesShareVertex(const r_bsp_face_t *a, const r_bsp_face_t *b) {
  */
 static void Cg_MergeFlares(void) {
 
-  for (guint i = 0; i < cg_flares->len; i++) {
+  for (uint32_t i = 0; i < cg_flares->len; i++) {
     cg_flare_t *a = g_ptr_array_index(cg_flares, i);
 
-    for (guint j = i + 1; j < cg_flares->len; j++) {
+    for (uint32_t j = i + 1; j < cg_flares->len; j++) {
       cg_flare_t *b = g_ptr_array_index(cg_flares, j);
 
       if (a->face->brush_side == b->face->brush_side &&

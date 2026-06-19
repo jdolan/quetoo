@@ -71,7 +71,7 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
       return;
     }
 
-    if (isBrushEntity(this->entity) && !g_strcmp0(def->key, "origin")) {
+    if (isBrushEntity(this->entity) && !strcmp(def->key, "origin")) {
       Cg_Warn("Skipping origin on %s\n", cgi.EntityValue(this->entity->def, "classname")->string);
     } else {
       cgi.SetEntityKeyValue(this->entity->def, def->key, ENTITY_STRING, def->string);
@@ -305,7 +305,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         } else if (this->teamEntity && number == this->teamEntity->number) {
           // Preserve the selected light while refreshing team-level fields.
           $(this, setEntity, this->entity);
-        } else if (!g_strcmp0(this->created, info)) {
+        } else if (!strcmp(this->created, info)) {
           $(this, setEntity, entity);
         }
       }
@@ -402,7 +402,7 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
         continue;
       }
 
-      if (isBrushEntity(self->entity) && !g_strcmp0(e->key, "origin")) {
+      if (isBrushEntity(self->entity) && !strcmp(e->key, "origin")) {
         continue;
       }
 
@@ -417,7 +417,7 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
     }
 
     const char *classname = cgi.EntityValue(self->entity->def, "classname")->string;
-    if (!g_strcmp0(classname, "light")) {
+    if (!strcmp(classname, "light")) {
 
       const char *team = cgi.EntityValue(self->entity->def, "team")->nullable_string;
       const int32_t teamMaster = Cg_FindTeamMaster(classname, team);
@@ -428,10 +428,10 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
         for (cm_entity_t *e = self->teamEntity->def; e; e = e->next) {
 
           if (g_str_has_prefix(e->key, "_tb_")
-              || !g_strcmp0(e->key, "classname")
-              || !g_strcmp0(e->key, "origin")
-              || !g_strcmp0(e->key, "team")
-              || !g_strcmp0(e->key, "team_master")) {
+              || !strcmp(e->key, "classname")
+              || !strcmp(e->key, "origin")
+              || !strcmp(e->key, "team")
+              || !strcmp(e->key, "team_master")) {
             continue;
           }
 

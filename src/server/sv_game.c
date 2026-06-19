@@ -94,12 +94,12 @@ void Sv_SetConfigString(const int32_t index, const char *val) {
   }
 
   // make sure it's actually changed
-  if (!g_strcmp0(sv.config_strings[index], val)) {
+  if (!strcmp(sv.config_strings[index], val)) {
     return;
   }
 
   // change the string in sv.config_strings
-  g_strlcpy(sv.config_strings[index], val, sizeof(sv.config_strings[0]));
+  SDL_strlcpy(sv.config_strings[index], val, sizeof(sv.config_strings[0]));
 
   if (svs.state >= SV_ACTIVE_GAME) { // send the update to everyone
     Mem_ClearBuffer(&sv.multicast);
@@ -243,7 +243,7 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
     );
 
     static char frags_url[MAX_STRING_CHARS];
-    g_snprintf(frags_url, sizeof(frags_url), "%s/api/frags", sv_stats_url->string);
+    SDL_snprintf(frags_url, sizeof(frags_url), "%s/api/frags", sv_stats_url->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
     Data *data = $(ctx, dataFromStructs, &sv_frag_properties, (ident) frags, frags_len);
@@ -268,7 +268,7 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
     );
 
     static char captures_url[MAX_STRING_CHARS];
-    g_snprintf(captures_url, sizeof(captures_url), "%s/api/captures", sv_stats_url->string);
+    SDL_snprintf(captures_url, sizeof(captures_url), "%s/api/captures", sv_stats_url->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
     Data *data = $(ctx, dataFromStructs, &sv_capture_properties, (ident) captures, captures_len);

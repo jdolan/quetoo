@@ -272,16 +272,16 @@ void G_SetTeamNames(void) {
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
 
     if (i != TEAM_RED) {
-      g_strlcat(team_info, "\\", sizeof(team_info));
+      SDL_strlcat(team_info, "\\", sizeof(team_info));
     }
 
-    g_strlcat(team_info, va("%d", g_team_list[i].id), sizeof(team_info));
-    g_strlcat(team_info, "\\", sizeof(team_info));
-    g_strlcat(team_info, g_team_list[i].name, sizeof(team_info));
-    g_strlcat(team_info, "\\", sizeof(team_info));
-    g_strlcat(team_info, va("%d", g_team_list[i].color), sizeof(team_info));
-    g_strlcat(team_info, "\\", sizeof(team_info));
-    g_strlcat(team_info, Color_Unparse(g_team_list[i].shirt), sizeof(team_info));
+    SDL_strlcat(team_info, va("%d", g_team_list[i].id), sizeof(team_info));
+    SDL_strlcat(team_info, "\\", sizeof(team_info));
+    SDL_strlcat(team_info, g_team_list[i].name, sizeof(team_info));
+    SDL_strlcat(team_info, "\\", sizeof(team_info));
+    SDL_strlcat(team_info, va("%d", g_team_list[i].color), sizeof(team_info));
+    SDL_strlcat(team_info, "\\", sizeof(team_info));
+    SDL_strlcat(team_info, Color_Unparse(g_team_list[i].shirt), sizeof(team_info));
   }
 
   gi.SetConfigString(CS_TEAM_INFO, team_info);
@@ -319,7 +319,7 @@ void G_ResetItems(void) {
  */
 void G_CheckHook(void) {
 
-  if (g_strcmp0(g_hook->string, "default")) { // check cvar first
+  if (strcmp(g_hook->string, "default")) { // check cvar first
     g_level.hook = !!g_hook->integer;
   } else if (g_level.hook_map != -1) { // check maps.lst
     g_level.hook = (g_level.hook_map == -1) ? g_level.ctf : !!g_level.hook_map;
@@ -343,7 +343,7 @@ void G_CheckHook(void) {
  */
 void G_CheckTechs(void) {
 
-  if (g_strcmp0(g_techs->string, "default")) { // check cvar first
+  if (strcmp(g_techs->string, "default")) { // check cvar first
     g_level.techs = !!g_techs->integer;
   } else if (g_level.techs_map != -1) { // check maps.lst
     g_level.techs = (g_level.techs_map == -1) ? g_level.ctf : !!g_level.techs_map;
@@ -566,7 +566,7 @@ static char *G_FormatTime(uint32_t time) {
     c = "^7";
   }
 
-  g_snprintf(formatted_time, sizeof(formatted_time), "%s%2u:%02u", c, m, s);
+  SDL_snprintf(formatted_time, sizeof(formatted_time), "%s%2u:%02u", c, m, s);
 
   last_time = time;
 
@@ -743,7 +743,7 @@ static void G_CheckRules(void) {
 
     int32_t num_teams;
 
-    if (!g_strcmp0(g_num_teams->string, "default")) {
+    if (!strcmp(g_num_teams->string, "default")) {
       num_teams = -1; // G_InitNumTeams will pick this up
     } else {
       num_teams = Clampf(g_num_teams->integer, 2, MAX_TEAMS);
@@ -915,13 +915,13 @@ static const char *G_GameName(void) {
   static char name[64];
   const size_t size = sizeof(name);
 
-  g_strlcpy(name, G_GameplayName(g_level.gameplay), size);
+  SDL_strlcpy(name, G_GameplayName(g_level.gameplay), size);
 
   // teams are implied for capture the flag
   if (g_level.ctf) {
-    g_strlcat(name, " CTF", size);
+    SDL_strlcat(name, " CTF", size);
   } else if (g_level.teams) {
-    g_strlcpy(name, va("Team %s", name), size);
+    SDL_strlcpy(name, va("Team %s", name), size);
   }
 
   return name;

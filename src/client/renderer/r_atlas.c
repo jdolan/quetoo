@@ -27,7 +27,7 @@
 static void R_FreeAtlas(r_media_t *media) {
   r_atlas_t *atlas = (r_atlas_t *) media;
 
-  for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
+  for (uint32_t i = 0; i < atlas->atlas->nodes->len; i++) {
     atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
 
     for (int32_t layer = 0; layer < atlas->atlas->layers; layer++) {
@@ -71,7 +71,7 @@ r_atlas_t *R_LoadAtlas(const char *name) {
  */
 r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_type_t type) {
 
-  for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
+  for (uint32_t i = 0; i < atlas->atlas->nodes->len; i++) {
     atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
 
     r_atlas_image_t *atlas_image = node->data;
@@ -112,7 +112,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 /**
  * @brief GFunc for atlas node compilation.
  */
-static void R_CompileAtlas_Node(gpointer data, gpointer user_data) {
+static void R_CompileAtlas_Node(void * data, void * user_data) {
 
   const atlas_node_t *node = data;
   const r_atlas_t *atlas = user_data;
@@ -144,7 +144,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
   atlas->image->target = GL_TEXTURE_2D;
   atlas->image->levels = INT32_MAX;
 
-  for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
+  for (uint32_t i = 0; i < atlas->atlas->nodes->len; i++) {
     const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
     atlas->image->levels = Mini(atlas->image->levels, floorf(log2f(Maxi(node->w, node->h)) + 1));
   }

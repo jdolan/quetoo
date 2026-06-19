@@ -139,7 +139,7 @@ static void fetchStats(StatsViewController *this) {
   }
 
   char url[MAX_STRING_CHARS];
-  g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hash);
+  SDL_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hash);
 
   $(cgi.restClient, getAsync, url, fetchStatsComplete, NULL);
 }
@@ -177,9 +177,9 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
-  if (g_strcmp0(column->identifier, _weapon) == 0) {
+  if (strcmp(column->identifier, _weapon) == 0) {
     $(cell->text, setText, w->weapon);
-  } else if (g_strcmp0(column->identifier, _frags) == 0) {
+  } else if (strcmp(column->identifier, _frags) == 0) {
     $(cell->text, setText, va("%d", w->frags));
   }
 

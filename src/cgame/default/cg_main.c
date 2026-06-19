@@ -209,7 +209,7 @@ static void Cg_Shutdown(void) {
  */
 static void Cg_ParseTeamInfo(const char *s) {
 
-  gchar **info = g_strsplit(s, "\\", 0);
+  char **info = g_strsplit(s, "\\", 0);
   const size_t count = g_strv_length(info);
 
   if (count != lengthof(cg_state.teams) * 4) {
@@ -222,7 +222,7 @@ static void Cg_ParseTeamInfo(const char *s) {
 
     team->id = atoi(info[i + 0]);
 
-    g_strlcpy(team->name, info[i + 1], sizeof(team->name));
+    SDL_strlcpy(team->name, info[i + 1], sizeof(team->name));
 
     team->hue = atoi(info[i + 2]);
 

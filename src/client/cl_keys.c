@@ -216,13 +216,13 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 
     case SDLK_V:
       if ((SDL_GetModState() & SDL_KMOD_CLIPBOARD) && SDL_HasClipboardText()) {
-        char *tail = g_strdup(in->buffer + in->pos);
+        char *tail = SDL_strdup(in->buffer + in->pos);
         in->buffer[in->pos] = '\0';
 
         char *text = SDL_GetClipboardText();
-        g_strlcat(in->buffer, text, sizeof(in->buffer));
-        g_strlcat(in->buffer, tail, sizeof(in->buffer));
-        g_free(tail);
+        SDL_strlcat(in->buffer, text, sizeof(in->buffer));
+        SDL_strlcat(in->buffer, tail, sizeof(in->buffer));
+        free(tail);
 
         in->pos = Minf(in->pos + strlen(text), sizeof(in->buffer) - 1);
         SDL_free(text);
@@ -252,18 +252,18 @@ static void Cl_KeyGame(const SDL_Event *event) {
   if (bind[0] == '+') { // button commands add key and time as a param
     if (event->type == SDL_EVENT_KEY_DOWN) {
       if (cls.key_state.down[key] == false) {
-        g_snprintf(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cl.unclamped_time);
+        SDL_snprintf(cmd, sizeof(cmd), "%s %i %i\n", bind, key, cl.unclamped_time);
         cls.key_state.latched[key] = true;
       }
     } else {
       if (cls.key_state.down[key] == true && cls.key_state.latched[key] == true) {
-        g_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cl.unclamped_time);
+        SDL_snprintf(cmd, sizeof(cmd), "-%s %i %i\n", bind + 1, key, cl.unclamped_time);
         cls.key_state.latched[key] = false;
       }
     }
   } else {
     if (event->type == SDL_EVENT_KEY_DOWN) {
-      g_snprintf(cmd, sizeof(cmd), "%s\n", bind);
+      SDL_snprintf(cmd, sizeof(cmd), "%s\n", bind);
     }
   }
 
@@ -297,7 +297,7 @@ static void Cl_KeyChat(const SDL_Event *event) {
       } else {
         out = va("say %s^7", in->buffer);
       }
-      g_strlcpy(in->buffer, out, sizeof(in->buffer));
+      SDL_strlcpy(in->buffer, out, sizeof(in->buffer));
       Con_SubmitInput(&cl_chat_console);
 
       Cl_SetKeyDest(KEY_GAME);
@@ -368,7 +368,7 @@ SDL_Scancode Cl_KeyForName(const char *name) {
 SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
 
   for (SDL_Scancode k = from + 1; k < SDL_SCANCODE_COUNT; k++) {
-    if (g_strcmp0(binding, cls.key_state.binds[k]) == 0) {
+    if (strcmp(binding, cls.key_state.binds[k]) == 0) {
       return k;
     }
   }

@@ -61,7 +61,7 @@ void EmitMaterials(void) {
     if (g_str_has_prefix(name, "textures/")) {
       name += strlen("textures/");
     }
-    g_strlcpy(out->name, name, sizeof(out->name));
+    SDL_strlcpy(out->name, name, sizeof(out->name));
 
     bsp_file.num_materials++;
 
@@ -369,12 +369,12 @@ void EmitEntities(void) {
   for (int32_t i = 0; i < num_entities; i++) {
     const entity_key_value_t *e = entities[i].values;
     if (e) {
-      g_strlcat(out, "{\n", MAX_BSP_ENTITIES_SIZE);
+      SDL_strlcat(out, "{\n", MAX_BSP_ENTITIES_SIZE);
       while (e) {
-        g_strlcat(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENTITIES_SIZE);
+        SDL_strlcat(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENTITIES_SIZE);
         e = e->next;
       }
-      g_strlcat(out, "}\n", MAX_BSP_ENTITIES_SIZE);
+      SDL_strlcat(out, "}\n", MAX_BSP_ENTITIES_SIZE);
     }
 
     Progress("Emitting entities", 100.f * i / num_entities);
@@ -513,7 +513,7 @@ static void EmitDepthPassElements(bsp_model_t *mod) {
  * @details Opaque and blended faces are equal if they share material and contents.
  * @details Material faces equal if they share blend equality and brush side.
  */
-static gint FaceCmp(gconstpointer a, gconstpointer b) {
+static int32_t FaceCmp(const void * a, const void * b) {
 
   const bsp_face_t *a_face = a;
   const bsp_face_t *b_face = b;
@@ -521,7 +521,7 @@ static gint FaceCmp(gconstpointer a, gconstpointer b) {
   const int32_t a_material = FaceMaterial(a_face);
   const int32_t b_material = FaceMaterial(b_face);
 
-  gint order = a_material - b_material;
+  int32_t order = a_material - b_material;
   if (order == 0) {
 
     const int32_t a_surface = FaceSurface(a_face) & SURF_MASK_DRAW_ELEMENTS_CMP;
@@ -553,7 +553,7 @@ static int32_t EmitDrawElements(GPtrArray *faces) {
 
   g_ptr_array_sort_values(faces, FaceCmp);
 
-  for (guint i = 0; i < faces->len; i++) {
+  for (uint32_t i = 0; i < faces->len; i++) {
 
     if (bsp_file.num_draw_elements == MAX_BSP_DRAW_ELEMENTS) {
       Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
@@ -576,7 +576,7 @@ static int32_t EmitDrawElements(GPtrArray *faces) {
 
     out->first_element = bsp_file.num_elements;
 
-    for (guint j = i; j < faces->len; j++) {
+    for (uint32_t j = i; j < faces->len; j++) {
 
       const bsp_face_t *b = g_ptr_array_index(faces, j);
 
@@ -640,7 +640,7 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
     out->node = (int32_t) (ptrdiff_t) (node - bsp_file.nodes);
 
     out->visible_bounds = Box3_Null();
-    for (guint i = 0; i < faces->len; i++) {
+    for (uint32_t i = 0; i < faces->len; i++) {
 
       bsp_face_t *face = g_ptr_array_index(faces, i);
       face->block = (int32_t) (ptrdiff_t) (out - bsp_file.blocks);

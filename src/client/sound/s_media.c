@@ -100,11 +100,11 @@ void S_RegisterDependency(s_media_t *dependent, s_media_t *dependency) {
 /**
  * @brief GCompareFunc for `S_RegisterMedia`. Sorts media by name.
  */
-static int32_t S_RegisterMedia_Compare(gconstpointer name1, gconstpointer name2) {
-  return g_strcmp0((const char *) name1, (const char *) name2);
+static int32_t S_RegisterMedia_Compare(const void * name1, const void * name2) {
+  return strcmp((const char *) name1, (const char *) name2);
 }
 
-static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data);
+static bool S_FreeMedia_(void * key, void * value, void * data);
 
 /**
  * @brief Inserts the specified media into the shared table.
@@ -154,7 +154,7 @@ s_media_t *S_FindMedia(const char *name, s_media_type_t type) {
     .type = type
   };
 
-  g_strlcpy(lookup.name, name, sizeof(lookup.name));
+  SDL_strlcpy(lookup.name, name, sizeof(lookup.name));
 
   s_media_t *media = g_hash_table_lookup(s_media_state.media, &lookup);
   if (media) {
@@ -178,7 +178,7 @@ s_media_t *S_AllocMedia(const char *name, size_t size, s_media_type_t type) {
 
   s_media_t *media = Mem_TagMalloc(size, MEM_TAG_SOUND);
 
-  g_strlcpy(media->name, name, sizeof(media->name));
+  SDL_strlcpy(media->name, name, sizeof(media->name));
   media->type = type;
 
   return media;
@@ -189,7 +189,7 @@ s_media_t *S_AllocMedia(const char *name, size_t size, s_media_type_t type) {
  * always freed. Otherwise, only media with stale seed values and no explicit
  * retainment are released.
  */
-static gboolean S_FreeMedia_(gpointer key, gpointer value, gpointer data) {
+static bool S_FreeMedia_(void * key, void * value, void * data) {
   s_media_t *media = (s_media_t *) value;
 
   if (!data) { // see if the media should be freed
@@ -234,7 +234,7 @@ void S_BeginLoading(void) {
 /**
  * @brief Hash function for sound media entries keyed by name and type.
  */
-static guint S_MediaHash(gconstpointer key) {
+static uint32_t S_MediaHash(const void * key) {
   const s_media_t *media = key;
 
   return g_str_hash(media->name) + media->type;
@@ -243,7 +243,7 @@ static guint S_MediaHash(gconstpointer key) {
 /**
  * @brief Equality function for sound media entries keyed by name and type.
  */
-static gboolean S_MediaEqual(gconstpointer a, gconstpointer b) {
+static bool S_MediaEqual(const void * a, const void * b) {
   const s_media_t *_a = a, *_b = b;
 
   if (_a->type == _b->type) {

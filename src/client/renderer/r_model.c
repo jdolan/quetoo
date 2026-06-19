@@ -34,7 +34,7 @@ r_model_t *R_LoadModel(const char *name) {
   }
 
   if (*name == '*') {
-    g_snprintf(key, sizeof(key), "%s#%s", r_models.world->media.name, name + 1);
+    SDL_snprintf(key, sizeof(key), "%s#%s", r_models.world->media.name, name + 1);
   } else {
     StripExtension(name, key);
   }
@@ -54,7 +54,7 @@ r_model_t *R_LoadModel(const char *name) {
     size_t i;
     for (i = 0; i < lengthof(formats); i++, format++) {
 
-      g_snprintf(path, sizeof(path), "%s.%s", key, format->extension);
+      SDL_snprintf(path, sizeof(path), "%s.%s", key, format->extension);
 
       if (Fs_Exists(path)) {
         break;
@@ -67,7 +67,7 @@ r_model_t *R_LoadModel(const char *name) {
         warned = g_hash_table_new(g_str_hash, g_str_equal);
       }
       if (!g_hash_table_contains(warned, key)) {
-        g_hash_table_add(warned, g_strdup(key));
+        g_hash_table_add(warned, SDL_strdup(key));
         if (strstr(name, "players/")) {
           Com_Debug(DEBUG_RENDERER, "Failed to load player %s\n", name);
         } else {

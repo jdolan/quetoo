@@ -324,7 +324,7 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
       g_array_sort(items_visible, G_Ai_CompareItems);
     }
 
-    for (guint i = 0; i < items_visible->len; i++) {
+    for (uint32_t i = 0; i < items_visible->len; i++) {
       const ai_item_pick_t pick = g_array_index(items_visible, ai_item_pick_t, 0);
       const bool found = pick.weight > cl->ai->move_target.priority;
 
@@ -1007,7 +1007,7 @@ static bool G_Ai_GoalDistress(g_client_t *cl, ai_goal_t *goal, const vec3_t dest
 /**
  * @brief Returns true if consecutive nodes at path indices a and b are linked.
  */
-static inline bool G_Ai_Path_IsLinked(const GArray *path, const guint a, const guint b) {
+static inline bool G_Ai_Path_IsLinked(const GArray *path, const uint32_t a, const uint32_t b) {
 
   return G_Ai_Node_IsLinked(g_array_index(path, ai_node_id_t, a), g_array_index(path, ai_node_id_t, b));
 }
@@ -1633,7 +1633,7 @@ static uint32_t G_Ai_LongRange(g_client_t *cl, pm_cmd_t *cmd) {
   }
 
   // go down the list, high priority wins but might not be pickable
-  for (guint i = 0; i < goal_possibilities->len; i++) {
+  for (uint32_t i = 0; i < goal_possibilities->len; i++) {
 
     const ai_item_pick_t *pick = &g_array_index(goal_possibilities, ai_item_pick_t, i);
     const ai_node_id_t closest_to_item = G_Ai_Node_FindClosest(pick->entity->s.origin, 256.f, true, true);
@@ -1696,9 +1696,9 @@ void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd) {
   for (int32_t i = 0; i < AI_FUNC_GOAL_TOTAL; i++) {
 
     if (cl->ai->func_goal_next_thinks[i] <= g_level.time) {
-      const gint64 func_start = g_get_monotonic_time();
+      const int64_t func_start = g_get_monotonic_time();
       const uint32_t next = g_ai_goalfuncs[i](cl, cmd);
-      const gint64 func_us = g_get_monotonic_time() - func_start;
+      const int64_t func_us = g_get_monotonic_time() - func_start;
 
       cl->ai->func_goal_next_thinks[i] = g_level.time + next;
 
@@ -1779,9 +1779,9 @@ static void G_Ai_ClientThink(g_entity_t *ent) {
 
     cmd.msec = (i == num_runs - 1) ? msec_left : ceilf(1000.f / QUETOO_TICK_RATE / num_runs);
 
-    const gint64 think_start = g_get_monotonic_time();
+    const int64_t think_start = g_get_monotonic_time();
     G_Ai_Think(ent->client, &cmd);
-    const gint64 think_us = g_get_monotonic_time() - think_start;
+    const int64_t think_us = g_get_monotonic_time() - think_start;
 
     if (think_us > 100000) { // > 100ms for one think pass is pathological
       if (ent->client) {

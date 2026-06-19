@@ -89,7 +89,7 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
   pm.debug_mask = DEBUG_PMOVE_CLIENT;
 
   // run the commands
-  for (guint i = 0; i < cmds->len; i++) {
+  for (uint32_t i = 0; i < cmds->len; i++) {
     cl_cmd_t *cmd = g_ptr_array_index(cmds, i);
 
     if (cmd->cmd.msec) { // if the command has time, run it

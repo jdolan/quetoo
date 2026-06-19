@@ -26,7 +26,7 @@
  */
 const cm_entity_t *Sv_NextMap(void) {
 
-  if (g_strcmp0(svs.maps.filename, sv_map_list->string)) {
+  if (strcmp(svs.maps.filename, sv_map_list->string)) {
     Sv_InitMapList();
   }
 
@@ -63,7 +63,7 @@ void Sv_InitMapList(void) {
     return;
   }
 
-  g_strlcpy(svs.maps.filename, sv_map_list->string, sizeof(svs.maps.filename));
+  SDL_strlcpy(svs.maps.filename, sv_map_list->string, sizeof(svs.maps.filename));
 
   svs.maps.list = Cm_LoadEntities(buffer);
 

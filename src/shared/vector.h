@@ -430,7 +430,7 @@ static inline GRand *InitRandom(void) {
   static _Thread_local GRand *rand;
 
   if (rand == NULL) {
-    rand = g_rand_new_with_seed((guint32) time(NULL));
+    rand = g_rand_new_with_seed((uint32_t) time(NULL));
   }
 
   return rand;

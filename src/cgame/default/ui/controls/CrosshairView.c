@@ -90,7 +90,7 @@ static void updateBindings(View *self) {
       SDL_DestroySurface(surface);
 
       SDL_Color color = Colors.White;
-      if (g_strcmp0(cg_draw_crosshair_color->string, "default")) {
+      if (strcmp(cg_draw_crosshair_color->string, "default")) {
         color = MVC_HexToRGBA(cg_draw_crosshair_color->string);
         if (color.r == 0 && color.g == 0 && color.b == 0) {
           color = Colors.White;

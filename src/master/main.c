@@ -80,7 +80,7 @@ static const char *ms_discord_webhook;
  */
 static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t buf_size) {
   char search[256];
-  g_snprintf(search, sizeof(search), "\\%s\\", key);
+  SDL_snprintf(search, sizeof(search), "\\%s\\", key);
 
   const char *p = strstr(info, search);
   if (!p) {
@@ -138,7 +138,7 @@ static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name)
   const int32_t port = ntohs(server->addr.sin_port);
 
   char json[1024];
-  g_snprintf(json, sizeof(json),
+  SDL_snprintf(json, sizeof(json),
     "{\"embeds\":[{\"description\":\"\xF0\x9F\x8E\xAE **%s** joined **%s** on **%s** \xC2\xB7 %d/%d players \xC2\xB7 [Join](https://quetoo.org/join/?%s:%d)\",\"color\":3066993}]}",
     escaped_player, escaped_host, escaped_map,
     server->num_clients, server->max_clients,
@@ -172,7 +172,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
   }
 
   if (Ms_InfoValue(status, "sv_map", val, sizeof(val))) {
-    g_strlcpy(server->map, val, sizeof(server->map));
+    SDL_strlcpy(server->map, val, sizeof(server->map));
   }
 
   char new_players[MAX_CLIENTS][64];
@@ -190,9 +190,9 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     const char *line_end = strchr(line, '\n');
     char cur_line[256];
     if (line_end) {
-      g_strlcpy(cur_line, line, MIN((size_t) (line_end - line) + 1, sizeof(cur_line)));
+      SDL_strlcpy(cur_line, line, MIN((size_t) (line_end - line) + 1, sizeof(cur_line)));
     } else {
-      g_strlcpy(cur_line, line, sizeof(cur_line));
+      SDL_strlcpy(cur_line, line, sizeof(cur_line));
     }
 
     char name[64] = { 0 };
@@ -203,7 +203,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
       Ms_InfoValue(cur_line, "ai", ai_val, sizeof(ai_val));
       Com_Verbose("Player: %s ai=%s\n", stripped, ai_val[0] ? ai_val : "(none)");
       if (!atoi(ai_val) && !g_str_has_prefix(stripped, "[BOT]")) {
-        g_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
+        SDL_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
         new_count++;
       }
     }
@@ -217,7 +217,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     for (int32_t i = 0; i < new_count; i++) {
       bool found = false;
       for (int32_t j = 0; j < server->num_clients; j++) {
-        if (!g_strcmp0(new_players[i], server->players[j])) {
+        if (!strcmp(new_players[i], server->players[j])) {
           found = true;
           break;
         }
@@ -231,7 +231,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
 
   server->num_clients = new_count;
   for (int32_t i = 0; i < new_count; i++) {
-    g_strlcpy(server->players[i], new_players[i], sizeof(server->players[i]));
+    SDL_strlcpy(server->players[i], new_players[i], sizeof(server->players[i]));
   }
 }
 
@@ -580,12 +580,12 @@ int32_t quetoo_main(int32_t argc, char **argv) {
   int32_t i;
   for (i = 0; i < Com_Argc(); i++) {
 
-    if (!g_strcmp0(Com_Argv(i), "-v") || !g_strcmp0(Com_Argv(i), "-verbose")) {
+    if (!strcmp(Com_Argv(i), "-v") || !strcmp(Com_Argv(i), "-verbose")) {
       verbose = true;
       continue;
     }
 
-    if (!g_strcmp0(Com_Argv(i), "-d") || !g_strcmp0(Com_Argv(i), "-debug")) {
+    if (!strcmp(Com_Argv(i), "-d") || !strcmp(Com_Argv(i), "-debug")) {
       debug = true;
       continue;
     }

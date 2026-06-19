@@ -254,12 +254,12 @@ static size_t Cl_TextEvent_Insert(char *dest, const char *src, const size_t ofs,
 
   const size_t l = strlen(dest);
 
-  g_strlcpy(tmp, dest + ofs, sizeof(tmp));
+  SDL_strlcpy(tmp, dest + ofs, sizeof(tmp));
   dest[ofs] = '\0';
 
-  const size_t i = g_strlcat(dest, src, len);
+  const size_t i = SDL_strlcat(dest, src, len);
   if (i < len) {
-    g_strlcat(dest, tmp, len);
+    SDL_strlcat(dest, tmp, len);
   }
 
   return strlen(dest) - l;

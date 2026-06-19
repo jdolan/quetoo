@@ -27,7 +27,7 @@
  */
 int32_t Net_HttpUrl(const net_addr_t *addr, const char *path, char *buf, size_t buf_size) {
 
-  return g_snprintf(buf, buf_size, "http://%s:%d/%s",
+  return SDL_snprintf(buf, buf_size, "http://%s:%d/%s",
                     Net_NetaddrToIpString(addr),
                     ntohs(addr->port),
                     path);
@@ -82,7 +82,7 @@ int32_t Net_HttpFormatResponse(int32_t status, const char *reason,
                                char *buf, size_t buf_size) {
 
   if (content_type) {
-    return g_snprintf(buf, buf_size,
+    return SDL_snprintf(buf, buf_size,
       "HTTP/1.0 %d %s\r\n"
       "Connection: close\r\n"
       "Content-Length: %" PRId64 "\r\n"
@@ -90,7 +90,7 @@ int32_t Net_HttpFormatResponse(int32_t status, const char *reason,
       "\r\n",
       status, reason, content_length, content_type);
   } else {
-    return g_snprintf(buf, buf_size,
+    return SDL_snprintf(buf, buf_size,
       "HTTP/1.0 %d %s\r\n"
       "Connection: close\r\n"
       "Content-Length: %" PRId64 "\r\n"

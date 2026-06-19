@@ -53,9 +53,9 @@ static const cm_entity_t *FindTeamMaster(const char *team) {
   cm_entity_t **e = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
     const char *classname = Cm_EntityValue(*e, "classname")->string;
-    if (!g_strcmp0(classname, "light")) {
+    if (!strcmp(classname, "light")) {
       const char *ent_team = Cm_EntityValue(*e, "team")->nullable_string;
-      if (ent_team && !g_strcmp0(ent_team, team)) {
+      if (ent_team && !strcmp(ent_team, team)) {
         if (Cm_EntityValue(*e, "team_master")->parsed) {
           return *e;
         }
@@ -72,7 +72,7 @@ static const cm_entity_t *FindTeamMaster(const char *team) {
 static light_t *LightForEntity(const cm_entity_t *entity) {
 
   const char *classname = Cm_EntityValue(entity, "classname")->string;
-  if (!g_strcmp0(classname, "light")) {
+  if (!strcmp(classname, "light")) {
 
     light_t *light = AllocLight();
 
@@ -81,7 +81,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
     light->radius = Cm_EntityValue(entity, "radius")->value;
     light->color = Cm_EntityValue(entity, "color")->vec3;
     light->intensity = Cm_EntityValue(entity, "intensity")->value;
-    g_strlcpy(light->style, Cm_EntityValue(entity, "style")->string, sizeof(light->style));
+    SDL_strlcpy(light->style, Cm_EntityValue(entity, "style")->string, sizeof(light->style));
 
     const float drift = Cm_EntityValue(entity, "drift")->value;
 
@@ -96,7 +96,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
       light->intensity = light->intensity ?: Cm_EntityValue(master, "intensity")->value;
 
       if (!*light->style) {
-        g_strlcpy(light->style, Cm_EntityValue(master, "style")->string, sizeof(light->style));
+        SDL_strlcpy(light->style, Cm_EntityValue(master, "style")->string, sizeof(light->style));
       }
 
       if (!light->drift) {
@@ -132,7 +132,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
       const cm_bsp_t *bsp = Cm_Bsp();
       for (int32_t i = 0; i < bsp->num_entities; i++) {
         const char *targetname = Cm_EntityValue(bsp->entities[i], "targetname")->nullable_string;
-        if (!g_strcmp0(targetname, target)) {
+        if (!strcmp(targetname, target)) {
           light->target_entity = i;
           break;
         }
@@ -206,7 +206,7 @@ void EmitLights(void) {
   Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, lights->len);
 
   bsp_light_t *out = bsp_file.lights;
-  for (guint i = 0; i < lights->len; i++) {
+  for (uint32_t i = 0; i < lights->len; i++) {
 
     light_t *light = g_ptr_array_index(lights, i);
 
@@ -229,7 +229,7 @@ void EmitLights(void) {
     out->intensity = light->intensity;
     out->bounds = light->visible_bounds;
     out->target_entity = light->target_entity;
-    g_strlcpy(out->style, light->style, sizeof(out->style));
+    SDL_strlcpy(out->style, light->style, sizeof(out->style));
     out->drift = light->drift;
 
     if (light->target_entity == -1) {

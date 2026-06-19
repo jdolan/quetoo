@@ -85,7 +85,7 @@ static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, file
   *snd = NULL;
 
   StripExtension(name, path);
-  g_snprintf(path, sizeof(path), "music/%s.ogg", name);
+  SDL_snprintf(path, sizeof(path), "music/%s.ogg", name);
 
   if ((*file = Fs_OpenRead(path)) != NULL) {
   
@@ -130,7 +130,7 @@ s_music_t *S_CurrentMusic(void) {
  * @brief Returns true if @p music is in the current playlist.
  */
 bool S_PlaylistContains(const s_music_t *music) {
-  return g_list_find(s_music_state.playlist, (gconstpointer) music) != NULL;
+  return g_list_find(s_music_state.playlist, (const void *) music) != NULL;
 }
 
 /**

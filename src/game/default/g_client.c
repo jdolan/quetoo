@@ -133,11 +133,11 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
-    g_snprintf(buffer, sizeof(buffer), msg, cl->persistent.net_name, attacker->client->persistent.net_name);
+    SDL_snprintf(buffer, sizeof(buffer), msg, cl->persistent.net_name, attacker->client->persistent.net_name);
 #pragma clang diagnostic pop
 
     if (friendly_fire) {
-      g_strlcat(buffer, " (^1TEAMKILL^7)", sizeof(buffer));
+      SDL_strlcat(buffer, " (^1TEAMKILL^7)", sizeof(buffer));
     }
 
   } else { // killed by self or world
@@ -221,7 +221,7 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
-    g_snprintf(buffer, sizeof(buffer), msg, cl->persistent.net_name);
+    SDL_snprintf(buffer, sizeof(buffer), msg, cl->persistent.net_name);
 #pragma clang diagnostic pop
   }
 
@@ -678,7 +678,7 @@ static bool G_GiveLevelLocals(g_client_t *cl) {
     return false;
   }
 
-  g_strlcpy(buf, g_level.give, sizeof(buf));
+  SDL_strlcpy(buf, g_level.give, sizeof(buf));
 
   it = strtok(buf, ",");
 
@@ -1214,11 +1214,11 @@ void G_ClientBegin(g_client_t *cl) {
   if (g_level.intermission_time) {
     G_ClientToIntermission(cl);
   } else {
-    g_snprintf(welcome, sizeof(welcome), "^2Welcome to ^7%s", sv_hostname->string);
+    SDL_snprintf(welcome, sizeof(welcome), "^2Welcome to ^7%s", sv_hostname->string);
 
     if (*g_motd->string) {
       char motd[MAX_QPATH];
-      g_snprintf(motd, sizeof(motd), "\n%s^7", g_motd->string);
+      SDL_snprintf(motd, sizeof(motd), "\n%s^7", g_motd->string);
 
       strncat(welcome, motd, sizeof(welcome) - strlen(welcome) - 1);
     }
@@ -1258,7 +1258,7 @@ void G_SetClientHookStyle(g_client_t *cl) {
   g_hook_style_t hook_style;
 
   // respect user_info on default
-  if (!g_strcmp0(g_hook_style->string, "default")) {
+  if (!strcmp(g_hook_style->string, "default")) {
     hook_style = G_HookStyleByName(InfoString_Get(cl->persistent.user_info, "hook_style"));
   } else {
     hook_style = G_HookStyleByName(g_hook_style->string);
@@ -1289,7 +1289,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   // set name, use a temp buffer to compute length and crutch up bad names
   const char *s = InfoString_Get(user_info, "name");
 
-  g_strlcpy(name, s, sizeof(name));
+  SDL_strlcpy(name, s, sizeof(name));
 
   bool color = false;
   char *c = name;
@@ -1318,7 +1318,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   }
 
   if (color) { // reset to white
-    g_strlcat(name, "^7", sizeof(name));
+    SDL_strlcat(name, "^7", sizeof(name));
   }
 
   if (strncmp(cl->persistent.net_name, name, sizeof(cl->persistent.net_name))) {
@@ -1327,7 +1327,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
       gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->persistent.net_name, name);
     }
 
-    g_strlcpy(cl->persistent.net_name, name, sizeof(cl->persistent.net_name));
+    SDL_strlcpy(cl->persistent.net_name, name, sizeof(cl->persistent.net_name));
   }
 
   const g_team_t *team = cl->persistent.team;
@@ -1348,9 +1348,9 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   }
 
   if (strlen(s) && !strstr(s, "..")) { // something valid-ish was provided
-    g_strlcpy(cl->persistent.skin, s, sizeof(cl->persistent.skin));
+    SDL_strlcpy(cl->persistent.skin, s, sizeof(cl->persistent.skin));
   } else {
-    g_strlcpy(cl->persistent.skin, DEFAULT_USER_MODEL "/" DEFAULT_USER_SKIN, sizeof(cl->persistent.skin));
+    SDL_strlcpy(cl->persistent.skin, DEFAULT_USER_MODEL "/" DEFAULT_USER_SKIN, sizeof(cl->persistent.skin));
   }
 
   // set effect color
@@ -1399,28 +1399,28 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
     }
   }
 
-  gchar client_info[MAX_INFO_STRING_STRING] = { '\0' };
+  char client_info[MAX_INFO_STRING_STRING] = { '\0' };
 
   // build the client info string
-  g_strlcat(client_info, va("%d", team ? team->id : TEAM_NONE), sizeof(client_info));
+  SDL_strlcat(client_info, va("%d", team ? team->id : TEAM_NONE), sizeof(client_info));
 
-  g_strlcat(client_info, "\\", sizeof(client_info));
-  g_strlcat(client_info, cl->persistent.net_name, sizeof(client_info));
+  SDL_strlcat(client_info, "\\", sizeof(client_info));
+  SDL_strlcat(client_info, cl->persistent.net_name, sizeof(client_info));
 
-  g_strlcat(client_info, "\\", sizeof(client_info));
-  g_strlcat(client_info, cl->persistent.skin, sizeof(client_info));
+  SDL_strlcat(client_info, "\\", sizeof(client_info));
+  SDL_strlcat(client_info, cl->persistent.skin, sizeof(client_info));
 
-  g_strlcat(client_info, "\\", sizeof(client_info));
-  g_strlcat(client_info, Color_Unparse(cl->persistent.shirt), sizeof(client_info));
+  SDL_strlcat(client_info, "\\", sizeof(client_info));
+  SDL_strlcat(client_info, Color_Unparse(cl->persistent.shirt), sizeof(client_info));
 
-  g_strlcat(client_info, "\\", sizeof(client_info));
-  g_strlcat(client_info, Color_Unparse(cl->persistent.pants), sizeof(client_info));
+  SDL_strlcat(client_info, "\\", sizeof(client_info));
+  SDL_strlcat(client_info, Color_Unparse(cl->persistent.pants), sizeof(client_info));
 
-  g_strlcat(client_info, "\\", sizeof(client_info));
-  g_strlcat(client_info, Color_Unparse(cl->persistent.helmet), sizeof(client_info));
+  SDL_strlcat(client_info, "\\", sizeof(client_info));
+  SDL_strlcat(client_info, Color_Unparse(cl->persistent.helmet), sizeof(client_info));
 
-  g_strlcat(client_info, "\\", sizeof(client_info));
-  g_strlcat(client_info, va("%i", cl->persistent.color), sizeof(client_info));
+  SDL_strlcat(client_info, "\\", sizeof(client_info));
+  SDL_strlcat(client_info, va("%i", cl->persistent.color), sizeof(client_info));
 
   // send it to clients
   gi.SetConfigString(CS_CLIENTS + cl->ps.client, client_info);
@@ -1430,7 +1430,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 
   if (cl->entity) {
     s = InfoString_Get(user_info, "active");
-    if (g_strcmp0(s, "0") == 0) {
+    if (strcmp(s, "0") == 0) {
       cl->entity->s.effects |= EF_INACTIVE;
     } else {
       cl->entity->s.effects &= ~(EF_INACTIVE);
@@ -1445,7 +1445,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   G_SetClientHookStyle(cl);
 
   // stats guid
-  g_strlcpy(cl->persistent.guid, InfoString_Get(user_info, "guid"), sizeof(cl->persistent.guid));
+  SDL_strlcpy(cl->persistent.guid, InfoString_Get(user_info, "guid"), sizeof(cl->persistent.guid));
 }
 
 /**
@@ -1459,7 +1459,7 @@ bool G_ClientConnect(g_client_t *cl, char *user_info) {
 
   // check password
   if (strlen(g_password->string) && !cl->ai) {
-    if (g_strcmp0(g_password->string, InfoString_Get(user_info, "password"))) {
+    if (strcmp(g_password->string, InfoString_Get(user_info, "password"))) {
       InfoString_Set(user_info, "rejmsg", "Password required or incorrect.");
       return false;
     }

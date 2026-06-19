@@ -2,6 +2,7 @@ noinst_HEADERS = \
 	box.h \
 	color.h \
 	matrix.h \
+	md5.h \
 	parse.h \
 	shared.h \
 	swap.h \
@@ -11,6 +12,7 @@ noinst_LTLIBRARIES = \
 	libshared.la
 
 libshared_la_SOURCES = \
+	md5.c \
 	parse.c \
 	shared.c \
 	shared-anorms.c \

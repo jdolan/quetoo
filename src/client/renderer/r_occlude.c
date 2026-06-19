@@ -213,7 +213,7 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
   vec3_t *vertexes = malloc(num_queries * sizeof(vec3_t) * 8);
 
   GLint base_vertex = 0;
-  for (guint i = 0; i < num_queries; i++) {
+  for (uint32_t i = 0; i < num_queries; i++) {
     r_occlusion_query_t *query = g_queue_peek_nth(r_occlusion_queries.allocated, i);
 
     query->base_vertex = base_vertex;
@@ -245,7 +245,7 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
   glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
   glDepthMask(GL_FALSE);
 
-  for (guint i = 0; i < r_occlusion_queries.allocated->length; i++) {
+  for (uint32_t i = 0; i < r_occlusion_queries.allocated->length; i++) {
     r_occlusion_query_t *query = g_queue_peek_nth(r_occlusion_queries.allocated, i);
 
     if (R_DrawOcclusionQuery(view, query)) {
@@ -257,7 +257,7 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
 
   if (r_draw_occlusion_queries->value) {
 
-    for (guint i = 0; i < r_occlusion_queries.allocated->length; i++) {
+    for (uint32_t i = 0; i < r_occlusion_queries.allocated->length; i++) {
       r_occlusion_query_t *query = g_queue_peek_nth(r_occlusion_queries.allocated, i);
       const float dist = Vec3_Distance(Box3_Center(query->bounds), view->origin);
       const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
@@ -344,7 +344,7 @@ void R_InitOcclusionQueries(void) {
 /**
  * @brief GDestroyNotify for deleting occlusion queries.
  */
-static void R_ShutdownOcclusionQuery(gpointer data) {
+static void R_ShutdownOcclusionQuery(void * data) {
 
   r_occlusion_query_t *query = data;
 

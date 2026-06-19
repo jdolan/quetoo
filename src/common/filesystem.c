@@ -317,7 +317,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
           }
 
           g_hash_table_insert(fs_state.loaded_files, *buffer,
-                    (gpointer) Mem_CopyString(filename));
+                    (void *) Mem_CopyString(filename));
         } else {
           *buffer = NULL;
         }
@@ -361,7 +361,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
           }
 
           g_hash_table_insert(fs_state.loaded_files, *buffer,
-                    (gpointer) Mem_CopyString(filename));
+                    (void *) Mem_CopyString(filename));
         } else {
 
           *buffer = NULL;
@@ -424,7 +424,7 @@ int64_t Fs_LastModTime(const char *filename) {
  */
 bool Fs_Unlink(const char *filename) {
 
-  if (!g_strcmp0(Fs_WriteDir(), Fs_RealDir(filename))) {
+  if (!strcmp(Fs_WriteDir(), Fs_RealDir(filename))) {
     return unlink(filename) == 0;
   }
 
@@ -448,7 +448,7 @@ static int32_t Fs_Enumerate_(void *data, const char *dir, const char *filename) 
   const fs_enumerate_t *enumerator = data;
 
   char path[MAX_QPATH];
-  g_snprintf(path, sizeof(path), "%s%s", dir, filename);
+  SDL_snprintf(path, sizeof(path), "%s%s", dir, filename);
 
   if (GlobMatch(enumerator->pattern, path, GLOB_FLAGS_NONE)) {
     enumerator->function(path, enumerator->data);
@@ -471,7 +471,7 @@ void Fs_Enumerate(const char *pattern, Fs_Enumerator func, void *data) {
   if (strchr(pattern, '/')) {
     Dirname(pattern, enumerator.dir);
   } else {
-    g_strlcpy(enumerator.dir, "/", sizeof(enumerator.dir));
+    SDL_strlcpy(enumerator.dir, "/", sizeof(enumerator.dir));
   }
 
   PHYSFS_enumerate(enumerator.dir, Fs_Enumerate_, &enumerator);
@@ -532,11 +532,11 @@ void Fs_AddToSearchPathv(const char *dir, ...) {
   va_start(args, dir);
 
   while (dir) {
-    g_strlcat(path, dir, sizeof(path));
+    SDL_strlcat(path, dir, sizeof(path));
 
     dir = va_arg(args, const char *);
     if (dir) {
-      g_strlcat(path, G_DIR_SEPARATOR_S, sizeof(path));
+      SDL_strlcat(path, G_DIR_SEPARATOR_S, sizeof(path));
     }
   }
 
@@ -554,7 +554,7 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
   const char *real_dir = Fs_RealDir(path);
   const char *enum_dir = data;
 
-  if (!g_strcmp0(real_dir, enum_dir)) {
+  if (!strcmp(real_dir, enum_dir)) {
     Fs_AddToSearchPathv(real_dir, path + 1, NULL);
   }
 }
@@ -565,7 +565,7 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
  */
 static void Fs_AddUserSearchPath(const char *dir) {
 
-  gchar *path = g_build_path(G_DIR_SEPARATOR_S, Sys_UserDir(), dir, NULL);
+  char *path = g_build_path(G_DIR_SEPARATOR_S, Sys_UserDir(), dir, NULL);
 
   if (g_mkdir_with_parents(path, 0755)) {
     Com_Warn("Failed to create %s\n", path);
@@ -575,7 +575,7 @@ static void Fs_AddUserSearchPath(const char *dir) {
   Fs_AddToSearchPath(path);
   Fs_SetWriteDir(path);
 
-  g_free(path);
+  free(path);
 }
 
 /**
@@ -601,7 +601,7 @@ void Fs_SetGame(const char *dir) {
   while (*path != NULL) {
     char **p = fs_state.base_search_paths;
     while (*p != NULL) {
-      if (!g_strcmp0(*path, *p)) {
+      if (!strcmp(*path, *p)) {
         break;
       }
       p++;
@@ -667,7 +667,7 @@ const char *Fs_RealDir(const char *filename) {
 const char *Fs_RealPath(const char *path) {
   static char real_path[MAX_OS_PATH];
 
-  g_snprintf(real_path, sizeof(real_path), "%s%s", Fs_WriteDir(), G_DIR_SEPARATOR_S);
+  SDL_snprintf(real_path, sizeof(real_path), "%s%s", Fs_WriteDir(), G_DIR_SEPARATOR_S);
 
   const char *in = path;
   char *out = real_path + strlen(real_path);
@@ -707,9 +707,9 @@ void Fs_Init(const uint32_t flags) {
 
   PHYSFS_permitSymbolicLinks(true);
 
-  g_strlcpy(fs_state.bin_dir, BINDIR, MAX_OS_PATH);
-  g_strlcpy(fs_state.lib_dir, PKGLIBDIR, MAX_OS_PATH);
-  g_strlcpy(fs_state.data_dir, PKGDATADIR, MAX_OS_PATH);
+  SDL_strlcpy(fs_state.bin_dir, BINDIR, MAX_OS_PATH);
+  SDL_strlcpy(fs_state.lib_dir, PKGLIBDIR, MAX_OS_PATH);
+  SDL_strlcpy(fs_state.data_dir, PKGDATADIR, MAX_OS_PATH);
 
   const char *path = Sys_ExecutablePath();
   if (path) {
@@ -720,7 +720,7 @@ void Fs_Init(const uint32_t flags) {
 #if defined(__APPLE__)
     if ((c = strstr(path, "Quetoo.app"))) {
       *(c + strlen("Quetoo.app")) = '\0';
-      g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
+      SDL_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
       if (strstr(fs_state.base_dir, "AppTranslocation")) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
@@ -745,44 +745,44 @@ void Fs_Init(const uint32_t flags) {
        * game to fall back on the read-only copy of quetoo-data that it originally came with.
        */
 
-      g_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/Contents/MacOS", fs_state.base_dir);
-      g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/Contents/MacOS/lib/quetoo", fs_state.base_dir);
-      g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share", Sys_UserDir());
+      SDL_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/Contents/MacOS", fs_state.base_dir);
+      SDL_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/Contents/MacOS/lib/quetoo", fs_state.base_dir);
+      SDL_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share", Sys_UserDir());
 
       // Ensure data_dir/default exists so PhysFS will mount it. On first launch
       // this directory tree doesn't exist yet, and Fs_AddToSearchPath silently
       // skips non-existent paths, leaving the installer with nowhere to write.
       char data_default[MAX_OS_PATH];
-      g_snprintf(data_default, MAX_OS_PATH, "%s/%s", fs_state.data_dir, DEFAULT_GAME);
+      SDL_snprintf(data_default, MAX_OS_PATH, "%s/%s", fs_state.data_dir, DEFAULT_GAME);
       g_mkdir_with_parents(data_default, 0755);
 
       char resources[MAX_OS_PATH];
-      g_snprintf(resources, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
+      SDL_snprintf(resources, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
       Fs_AddToSearchPathv(resources, NULL);
       Fs_AddToSearchPathv(resources, DEFAULT_GAME, NULL);
     }
 #elif defined(__linux__)
     if ((c = strstr(path, "/bin/"))) {
       *c = '\0';
-      g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
+      SDL_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
       char bin_dir[MAX_OS_PATH];
-      g_snprintf(bin_dir, MAX_OS_PATH, "%s/bin", fs_state.base_dir);
+      SDL_snprintf(bin_dir, MAX_OS_PATH, "%s/bin", fs_state.base_dir);
 
-      if (g_strcmp0(bin_dir, fs_state.bin_dir) != 0) {
-        g_strlcpy(fs_state.bin_dir, bin_dir, MAX_OS_PATH);
-        g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/lib/quetoo", fs_state.base_dir);
-        g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share/quetoo", fs_state.base_dir);
+      if (strcmp(bin_dir, fs_state.bin_dir) != 0) {
+        SDL_strlcpy(fs_state.bin_dir, bin_dir, MAX_OS_PATH);
+        SDL_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/lib/quetoo", fs_state.base_dir);
+        SDL_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share/quetoo", fs_state.base_dir);
       }
     }
 #elif defined(_WIN32)
     if ((c = strstr(path, "\\bin\\"))) {
       *c = '\0';
-      g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
+      SDL_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-      g_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s\\bin", fs_state.base_dir);
-      g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s\\lib", fs_state.base_dir);
-      g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s\\share", fs_state.base_dir);
+      SDL_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s\\bin", fs_state.base_dir);
+      SDL_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s\\lib", fs_state.base_dir);
+      SDL_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s\\share", fs_state.base_dir);
     }
 #endif
   }
@@ -799,12 +799,12 @@ void Fs_Init(const uint32_t flags) {
   int32_t i;
   for (i = 1; i < Com_Argc(); i++) {
 
-    if (!g_strcmp0(Com_Argv(i), "-p") || !g_strcmp0(Com_Argv(i), "-path")) {
+    if (!strcmp(Com_Argv(i), "-p") || !strcmp(Com_Argv(i), "-path")) {
       Fs_AddToSearchPath(Com_Argv(i + 1));
       continue;
     }
 
-    if (!g_strcmp0(Com_Argv(i), "-w") || !g_strcmp0(Com_Argv(i), "-wpath")) {
+    if (!strcmp(Com_Argv(i), "-w") || !strcmp(Com_Argv(i), "-wpath")) {
       Fs_AddToSearchPath(Com_Argv(i + 1));
       Fs_SetWriteDir(Com_Argv(i + 1));
       continue;
@@ -820,7 +820,7 @@ void Fs_Init(const uint32_t flags) {
 /**
  * @brief Prints the names of loaded (i.e. yet-to-be-freed) files.
  */
-static void Fs_LoadedFiles_(gpointer key, gpointer value, gpointer data) {
+static void Fs_LoadedFiles_(void * key, void * value, void * data) {
   Com_Print("Fs_PrintLoadedFiles: %s @ %p\n", (char *) value, key);
 }
 

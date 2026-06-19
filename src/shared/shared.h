@@ -412,7 +412,8 @@ typedef struct {
  * @param argi The index of the argument being autocompleted.
  * @param matches The list of matches you need to write to.
  */
-typedef void (*AutocompleteFunc)(const uint32_t argi, GList **matches);
+typedef struct List List;
+typedef void (*AutocompleteFunc)(const uint32_t argi, List *matches);
 
 /**
  * @brief Console variables hold mutable scalars and strings.
@@ -567,9 +568,6 @@ char *InfoString_Get(const char *s, const char *key);
 bool InfoString_Delete(char *s, const char *key);
 bool InfoString_Set(char *s, const char *key, const char *value);
 bool InfoString_Validate(const char *s);
-
-gboolean g_stri_equal(gconstpointer v1, gconstpointer v2);
-guint g_stri_hash(gconstpointer v);
 
 /**
  * @brief The type of an AI node.

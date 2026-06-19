@@ -93,7 +93,7 @@ static void Cl_DrawConsole_Buffer(void) {
   for (size_t i = 0; i < count; i++) {
     R_Draw2DString(0, y, lines[i], color);
     color = ColorEsc(StrrColor(lines[i]));
-    g_free(lines[i]);
+    free(lines[i]);
     y += ch;
   }
 }
@@ -184,7 +184,7 @@ void Cl_DrawNotify(void) {
   for (size_t i = 0; i < count; i++) {
     R_Draw2DString(0, y, lines[i], color);
     color = ColorEsc(StrrColor(lines[i]));
-    g_free(lines[i]);
+    free(lines[i]);
     y += ch;
   }
 
@@ -219,7 +219,7 @@ void Cl_DrawChat(void) {
     for (size_t i = 0; i < count; i++) {
       R_Draw2DString(0, y, lines[i], color);
       color = ColorEsc(StrrColor(lines[i]));
-      g_free(lines[i]);
+      free(lines[i]);
       y += ch;
     }
   }
