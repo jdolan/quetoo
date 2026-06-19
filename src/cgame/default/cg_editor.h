@@ -53,7 +53,7 @@ typedef struct {
   /**
    * @brief The brushes pointer array for BSP model entities, or `NULL`.
    */
-  GPtrArray *brushes;
+  Vector *brushes;
 
   /**
    * @brief Persistent shadow cache flag for shadowmap optimization (light entities only).

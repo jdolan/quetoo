@@ -163,7 +163,7 @@ static void S_LoadSampleBuffer(s_sample_t *sample) {
   if (sample->buffer) {
     Com_Debug(DEBUG_SOUND, "Loaded %s for %s\n", path, sample->media.name);
   } else {
-    if (g_str_has_prefix(sample->media.name, "#players")) {
+    if (!strncmp(sample->media.name, "#players", 8)) {
       Com_Debug(DEBUG_SOUND, "Failed to load player sample %s\n", sample->media.name);
     } else {
       Com_Warn("Failed to load %s\n", sample->media.name);

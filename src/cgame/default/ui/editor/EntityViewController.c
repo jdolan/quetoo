@@ -398,7 +398,7 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
 
     for (cm_entity_t *e = self->entity->def; e; e = e->next) {
 
-      if (g_str_has_prefix(e->key, "_tb_")) {
+      if (!strncmp(e->key, "_tb_", 4)) {
         continue;
       }
 
@@ -427,7 +427,7 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
 
         for (cm_entity_t *e = self->teamEntity->def; e; e = e->next) {
 
-          if (g_str_has_prefix(e->key, "_tb_")
+          if (!strncmp(e->key, "_tb_", 4)
               || !strcmp(e->key, "classname")
               || !strcmp(e->key, "origin")
               || !strcmp(e->key, "team")

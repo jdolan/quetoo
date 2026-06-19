@@ -60,21 +60,21 @@ void G_Ai_SetEntityGoal(const g_client_t *cl, ai_goal_t *goal, float priority, c
 /**
  * @brief Setup entity goal for the specified target.
  */
-void G_Ai_SetPathGoal(const g_client_t *cl, ai_goal_t *goal, float priority, GArray *path, const g_entity_t *path_target) {
+void G_Ai_SetPathGoal(const g_client_t *cl, ai_goal_t *goal, float priority, Vector *path, const g_entity_t *path_target) {
 
   G_Ai_InitGoal(cl, goal, AI_GOAL_PATH, priority);
   
-  goal->path.path = g_array_ref(path);
+  goal->path.path = retain(path);
   goal->path.path_index = 0;
-  goal->path.path_position = G_Ai_Node_GetPosition(g_array_index(path, ai_node_id_t, goal->path.path_index));
-  goal->path.next_path_position = G_Ai_Node_GetPosition(g_array_index(path, ai_node_id_t, Mini(path->len - 1, goal->path.path_index + 1)));
+  goal->path.path_position = G_Ai_Node_GetPosition(*VectorElement(path, ai_node_id_t, goal->path.path_index));
+  goal->path.next_path_position = G_Ai_Node_GetPosition(*VectorElement(path, ai_node_id_t, Mini(path->count - 1, goal->path.path_index + 1)));
   goal->path.path_target = path_target;
 
   if (path_target) {
     goal->path.path_target_spawn_id = path_target->s.spawn_id;
   }
 
-  G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", g_array_index(path, ai_node_id_t, 0), g_array_index(path, ai_node_id_t, path->len - 1), priority, etos(path_target));
+  G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", *VectorElement(path, ai_node_id_t, 0), *VectorElement(path, ai_node_id_t, path->count - 1), priority, etos(path_target));
 }
 
 /**
@@ -113,7 +113,7 @@ void G_Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
       to->entity.flank_angle = from->entity.flank_angle;
       break;
     case AI_GOAL_PATH:
-      to->path.path = g_array_ref(from->path.path);
+      to->path.path = retain(from->path.path);
       to->path.path_index = from->path.path_index;
       to->path.path_position = from->path.path_position;
       to->path.next_path_position = from->path.next_path_position;
@@ -131,7 +131,7 @@ void G_Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
 void G_Ai_ClearGoal(ai_goal_t *goal) {
   
   if (goal->type == AI_GOAL_PATH) {
-    g_array_unref(goal->path.path);
+    release(goal->path.path);
   }
 
   memset(goal, 0, sizeof(ai_goal_t));

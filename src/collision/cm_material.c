@@ -85,7 +85,7 @@ static char *Cm_UnparseContents(int32_t contents) {
     }
   }
 
-  return g_strchomp(s);
+  {size_t _l = strlen(s); while (_l > 0 && isspace((unsigned char) s[_l-1])) s[--_l] = 0; return s;}
 }
 
 /**
@@ -135,7 +135,7 @@ static char *Cm_UnparseSurface(int32_t surface) {
     }
   }
 
-  return g_strchomp(s);
+  {size_t _l = strlen(s); while (_l > 0 && isspace((unsigned char) s[_l-1])) s[--_l] = 0; return s;}
 }
 
 /**
@@ -624,7 +624,7 @@ void Cm_MaterialBasename(const char *in, char *out, size_t len) {
     SDL_strlcpy(out, in, len);
   }
 
-  if (g_str_has_suffix(out, "_d")) {
+  if (strlen(out) >= 2 && !strcmp(out + strlen(out) - 2, "_d")) {
     out[strlen(out) - 2] = '\0';
   }
 }
@@ -889,22 +889,22 @@ static void Cm_AssetPath(const char *name, char *out, size_t len, cm_asset_conte
     case ASSET_CONTEXT_NONE:
       break;
     case ASSET_CONTEXT_TEXTURES:
-      if (!g_str_has_prefix(name, "textures/")) {
+      if (!!strncmp(name, "textures/", sizeof("textures/") - 1)) {
         SDL_strlcat(out, "textures/", len);
       }
       break;
     case ASSET_CONTEXT_MODELS:
-      if (!g_str_has_prefix(name, "models/")) {
+      if (!!strncmp(name, "models/", sizeof("models/") - 1)) {
         SDL_strlcat(out, "models/", len);
       }
       break;
     case ASSET_CONTEXT_PLAYERS:
-      if (!g_str_has_prefix(name, "players/")) {
+      if (!!strncmp(name, "players/", sizeof("players/") - 1)) {
         SDL_strlcat(out, "players/", len);
       }
       break;
     case ASSET_CONTEXT_SPRITES:
-      if (!g_str_has_prefix(name, "sprites/")) {
+      if (!!strncmp(name, "sprites/", sizeof("sprites/") - 1)) {
         SDL_strlcat(out, "sprites/", len);
       }
       break;
@@ -1246,13 +1246,13 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 
   Fs_Print(file, "\tdiffusemap %s\n", material->name);
 
-  if (*material->normalmap.name && !g_str_has_prefix(material->normalmap.name, material->basename)) {
+  if (*material->normalmap.name && strncmp(material->normalmap.name, material->basename, strlen(material->basename))) {
     Fs_Print(file, "\tnormalmap %s\n", material->normalmap.name);
   }
-  if (*material->specularmap.name && !g_str_has_prefix(material->specularmap.name, material->basename)) {
+  if (*material->specularmap.name && strncmp(material->specularmap.name, material->basename, strlen(material->basename))) {
     Fs_Print(file, "\tspecularmap %s\n", material->specularmap.name);
   }
-  if (*material->tintmap.name && !g_str_has_prefix(material->tintmap.name, material->basename)) {
+  if (*material->tintmap.name && strncmp(material->tintmap.name, material->basename, strlen(material->basename))) {
     Fs_Print(file, "\ttintmap %s\n", material->tintmap.name);
   }
 

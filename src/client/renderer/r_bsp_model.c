@@ -300,7 +300,7 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 
     r_bsp_block_decals_t *decals = &out->decals;
 
-    decals->triangles = g_array_sized_new(true, true, sizeof(r_decal_triangle_t), MAX_BSP_BLOCK_DECALS);
+    decals->triangles = $(alloc(Vector), initWithSize, sizeof(r_decal_triangle_t));
 
     glGenVertexArrays(1, &decals->vertex_array);
     glBindVertexArray(decals->vertex_array);
@@ -746,7 +746,7 @@ static void R_FreeBspModel(r_media_t *self) {
   for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
 
     if (block->decals.triangles) {
-      g_array_free(block->decals.triangles, true);
+      release(block->decals.triangles);
     }
 
     glDeleteBuffers(1, &block->decals.vertex_buffer);

@@ -174,10 +174,10 @@ static void Cl_KeyConsole(const SDL_Event *event) {
       break;
 
     case SDLK_PAGEUP:
-      if (cl_console.scroll + cl_console.height < console_state.strings.length) {
+      if (cl_console.scroll + cl_console.height < (int64_t) console_state.strings->count) {
         cl_console.scroll += cl_console.height;
       } else {
-        cl_console.scroll = console_state.strings.length;
+        cl_console.scroll = (int64_t) console_state.strings->count;
       }
       break;
 
@@ -353,7 +353,7 @@ SDL_Scancode Cl_KeyForName(const char *name) {
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
     if (cl_key_names[k]) {
-      if (!g_ascii_strcasecmp(name, cl_key_names[k])) {
+      if (!SDL_strcasecmp(name, cl_key_names[k])) {
         return k;
       }
     }
@@ -436,7 +436,7 @@ static void Cl_UnbindAll_f(void) {
 /**
  * @brief Bind command autocomplete
  */
-static void Cl_Bind_Autocomplete_f(const uint32_t argi, GList **matches) {
+static void Cl_Bind_Autocomplete_f(const uint32_t argi, List *matches) {
 
   if (argi != 1) {
     return;

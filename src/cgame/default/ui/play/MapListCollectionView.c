@@ -82,10 +82,10 @@ static Order sortMaps(const ident a, const ident b) {
   const MapListItemInfo *c = ((const Value *) a)->value;
   const MapListItemInfo *d = ((const Value *) b)->value;
 
-  const char *e = g_str_has_prefix(c->message, "The ") ? c->message + 4 : c->message;
-  const char *f = g_str_has_prefix(d->message, "The ") ? d->message + 4 : d->message;
+  const char *e = !strncmp(c->message, "The ", 4) ? c->message + 4 : c->message;
+  const char *f = !strncmp(d->message, "The ", 4) ? d->message + 4 : d->message;
 
-  return g_ascii_strcasecmp(e, f) < 0 ? OrderAscending : OrderDescending;
+  return SDL_strcasecmp(e, f) < 0 ? OrderAscending : OrderDescending;
 }
 
 /**
@@ -122,12 +122,12 @@ static void enumerateMaps(const char *path, void *data) {
         return;
       }
 
-      MapListItemInfo *info = g_new0(MapListItemInfo, 1);
+      MapListItemInfo *info = calloc(1, sizeof(*info));
 
       SDL_strlcpy(info->mapname, path, sizeof(info->mapname));
       SDL_strlcpy(info->message, path, sizeof(info->message));
 
-      char *entities = g_malloc(header.lumps[BSP_LUMP_ENTITIES].file_len);
+      char *entities = malloc(header.lumps[BSP_LUMP_ENTITIES].file_len);
 
       cgi.SeekFile(file, header.lumps[BSP_LUMP_ENTITIES].file_ofs);
       cgi.ReadFile(file, entities, 1, header.lumps[BSP_LUMP_ENTITIES].file_len);
@@ -170,13 +170,19 @@ static void enumerateMaps(const char *path, void *data) {
 
       free(entities);
 
-      GList *mapshots = cgi.Mapshots(path);
+      List *mapshots = cgi.Mapshots(path);
 
-      const uint32_t len = g_list_length(mapshots);
+      const uint32_t len = mapshots ? (uint32_t) mapshots->count : 0;
       if (len) {
-        const char *mapshot = g_list_nth_data(mapshots, RandomRangeu(0, len));
+        const size_t index = RandomRangeu(0, len);
+        const ListNode *node = mapshots->head;
+        for (size_t i = 0; node && i < index; i++) {
+          node = node->next;
+        }
 
-        SDL_Surface *surf = cgi.LoadSurface(mapshot);
+        const char *mapshot = node ? node->data : NULL;
+
+        SDL_Surface *surf = mapshot ? cgi.LoadSurface(mapshot) : NULL;
         if (surf) {
           info->mapshot = SDL_CreateSurface(this->collectionView.itemSize.w, this->collectionView.itemSize.h, SDL_PIXELFORMAT_RGB24);
           SDL_BlitSurfaceScaled(surf, NULL, info->mapshot, NULL, SDL_SCALEMODE_LINEAR);
@@ -185,7 +191,11 @@ static void enumerateMaps(const char *path, void *data) {
         }
       }
 
-      g_list_free_full(mapshots, g_free);
+      if (mapshots) {
+        mapshots->destroy = (ListDestroyFunc) SDL_free;
+        $(mapshots, removeAll);
+        release(mapshots);
+      }
 
       Value *value = $(alloc(Value), initWithValue, info);
 

@@ -476,13 +476,13 @@ void G_MuteClient(char *name, bool mute) {
  */
 static void G_PostStats(void) {
 
-  gi.PostStats((g_frag_t *) g_level.frags->data, g_level.frags->len,
-               (g_capture_t *) g_level.captures->data, g_level.captures->len);
+  gi.PostStats((g_frag_t *) g_level.frags->elements, (int32_t) g_level.frags->count,
+               (g_capture_t *) g_level.captures->elements, (int32_t) g_level.captures->count);
 
-  g_array_free(g_level.frags, true);
+  release(g_level.frags);
   g_level.frags = NULL;
 
-  g_array_free(g_level.captures, true);
+  release(g_level.captures);
   g_level.captures = NULL;
 }
 

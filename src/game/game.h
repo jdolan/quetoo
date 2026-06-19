@@ -23,6 +23,7 @@
 
 #include "shared/shared.h"
 #include "collision/cm_types.h"
+#include <Objectively/Vector.h>
 
 #define GAME_API_VERSION 30
 
@@ -535,7 +536,7 @@ typedef struct g_import_s {
    * in the source .map file. Even `func_group` and other entities which have their
    * contents merged into `worldspawn` during the compilation step are fully supported.
    */
-  GPtrArray *(*EntityBrushes)(const cm_entity_t *entity);
+  Vector *(*EntityBrushes)(const cm_entity_t *entity);
 
   /**
    * @return The contents mask at the specific point. The point is tested

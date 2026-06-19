@@ -129,7 +129,7 @@ static bool Sv_SetPlayer(void) {
 /**
  * @brief Demo command autocompletion.
  */
-static void Sv_Demo_Autocomplete_f(const uint32_t argi, GList **matches) {
+static void Sv_Demo_Autocomplete_f(const uint32_t argi, List *matches) {
   const char *pattern = va("demos/%s*.demo", Cmd_Argv(argi));
   Fs_CompleteFile(pattern, matches);
 }
@@ -156,7 +156,7 @@ static void Sv_Demo_f(void) {
 /**
  * @brief Map command autocompletion.
  */
-static void Sv_Map_Autocomplete_f(const uint32_t argi, GList **matches) {
+static void Sv_Map_Autocomplete_f(const uint32_t argi, List *matches) {
   const char *pattern = va("maps/%s*.bsp", Cmd_Argv(argi));
   Fs_CompleteFile(pattern, matches);
 }

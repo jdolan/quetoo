@@ -62,12 +62,14 @@ r_model_t *R_LoadModel(const char *name) {
     }
 
     if (i == lengthof(formats)) {
-      static GHashTable *warned;
+      static HashTable *warned;
       if (!warned) {
-        warned = g_hash_table_new(g_str_hash, g_str_equal);
+        warned = $(alloc(HashTable), init, HashTableHashStr, HashTableEqualStr);
+        warned->destroyKey = (HashTableDestroyFunc) SDL_free;
       }
-      if (!g_hash_table_contains(warned, key)) {
-        g_hash_table_add(warned, SDL_strdup(key));
+      if ($(warned, get, (void *) key) == NULL) {
+        char *warned_key = SDL_strdup(key);
+        $(warned, set, warned_key, warned_key);
         if (strstr(name, "players/")) {
           Com_Debug(DEBUG_RENDERER, "Failed to load player %s\n", name);
         } else {

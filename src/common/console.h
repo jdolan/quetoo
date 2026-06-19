@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <Objectively/List.h>
 #include <SDL3/SDL_mutex.h>
 
 #include "cmd.h"
@@ -73,7 +74,7 @@ typedef struct {
   /**
    * @brief The console strings.
    */
-  GQueue strings;
+  List *strings;
 
   /**
    * @brief The length of the console strings in characters.
@@ -83,7 +84,7 @@ typedef struct {
   /**
    * @brief The configured consoles.
    */
-  GList *consoles;
+  List *consoles;
 
   /**
    * @brief A lock for coordinating thread access to the console.

@@ -454,7 +454,7 @@ void G_Damage(const g_damage_t *dmg) {
           SDL_strlcpy(frag.weapon, G_WeaponNameForMod(mod), sizeof(frag.weapon));
 
           if (frag.attacker_guid[0] && frag.target_guid[0]) {
-            g_array_append_val(g_level.frags, frag);
+            $(g_level.frags, addElement, &frag);
           }
         }
       }

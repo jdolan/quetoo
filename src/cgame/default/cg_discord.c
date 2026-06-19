@@ -25,6 +25,8 @@
 #include "deps/discord-rpc/include/discord_rpc.h"
 
 #define DISCORD_APP_ID        378347526203637760
+#define STRINGIFY_(x) #x
+#define STRINGIFY(x) STRINGIFY_(x)
 
 enum EDiscordResult {
   DiscordResult_Ok,
@@ -227,7 +229,7 @@ void Cg_UpdateDiscord(void) {
 
 static void Cg_DiscordJoinGame(const char *secret) {
 
-  if (g_ascii_strncasecmp(secret, "JOIN_", 5)) {
+  if (SDL_strncasecmp(secret, "JOIN_", 5)) {
     Cg_Warn("Invalid invitation\n");
     return;
   }
@@ -264,13 +266,13 @@ void Cg_InitDiscord(void) {
 
 #if defined(_WIN32)
   __try {
-    Discord_Initialize(G_STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
+    Discord_Initialize(STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
   } __except(EXCEPTION_EXECUTE_HANDLER) {
     cgi.Warn(__func__, "Discord RPC initialization crashed, Rich Presence disabled\n");
     cg_discord_state.failed = true;
   }
 #else
-  Discord_Initialize(G_STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
+  Discord_Initialize(STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
 #endif
 }
 

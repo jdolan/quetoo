@@ -19,11 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <Objectively/HashTable.h>
+#include <Objectively/Vector.h>
+
 #include "s_local.h"
 
 typedef struct {
-  GHashTable *media;
-  GList *keys;
+  HashTable *media;
+  List *keys;
   int32_t seed; // for freeing stale assets
 } s_media_state_t;
 
@@ -34,26 +37,22 @@ static s_media_state_t s_media_state;
  */
 void S_LoadClientModelSamples(const char *model) {
 
-  GSList *sounds = NULL;
+  Vector *sounds = $(alloc(Vector), initWithSize, sizeof(s_media_t *));
 
-  const GList *key = s_media_state.keys;
-  while (key) {
-    s_media_t *media = g_hash_table_lookup(s_media_state.media, key->data);
-    
+  for (const ListNode *node = s_media_state.keys ? s_media_state.keys->head : NULL; node; node = node->next) {
+    s_media_t *media = $(s_media_state.media, get, node->data);
+
     if (media && media->name[0] == '*') {
-      sounds = g_slist_prepend(sounds, media);
+      $(sounds, addElement, &media);
     }
-
-    key = key->next;
   }
 
-  for (GSList *sound = sounds; sound; sound = sound->next) {
-    const s_media_t *media = (const s_media_t *) sound->data;
-
+  for (size_t i = 0; i < sounds->count; i++) {
+    const s_media_t *media = *VectorElement(sounds, s_media_t *, i);
     S_LoadClientModelSample(model, media->name);
   }
 
-  g_slist_free(sounds);
+  release(sounds);
 }
 
 /**
@@ -63,15 +62,12 @@ void S_ListMedia_f(void) {
 
   Com_Print("Loaded media:\n");
 
-  GList *key = s_media_state.keys;
-  while (key) {
-    s_media_t *media = g_hash_table_lookup(s_media_state.media, key->data);
+  for (const ListNode *node = s_media_state.keys ? s_media_state.keys->head : NULL; node; node = node->next) {
+    s_media_t *media = $(s_media_state.media, get, node->data);
 
     if (media) {
       Com_Print("%s\n", media->name);
     }
-
-    key = key->next;
   }
 }
 
@@ -83,9 +79,18 @@ void S_RegisterDependency(s_media_t *dependent, s_media_t *dependency) {
 
   if (dependent) {
     if (dependency) {
-      if (!g_list_find(dependent->dependencies, dependency)) {
+      bool found = false;
+      if (dependent->dependencies) {
+        for (const ListNode *n = dependent->dependencies->head; n; n = n->next) {
+          if (n->data == dependency) { found = true; break; }
+        }
+      }
+      if (!found) {
         Com_Debug(DEBUG_SOUND, "%s -> %s\n", dependent->name, dependency->name);
-        dependent->dependencies = g_list_prepend(dependent->dependencies, dependency);
+        if (!dependent->dependencies) {
+          dependent->dependencies = $(alloc(List), init);
+        }
+        $(dependent->dependencies, append, dependency);
 
         S_RegisterMedia(dependency);
       }
@@ -97,14 +102,27 @@ void S_RegisterDependency(s_media_t *dependent, s_media_t *dependency) {
   }
 }
 
-/**
- * @brief GCompareFunc for `S_RegisterMedia`. Sorts media by name.
- */
-static int32_t S_RegisterMedia_Compare(const void * name1, const void * name2) {
-  return strcmp((const char *) name1, (const char *) name2);
-}
 
-static bool S_FreeMedia_(void * key, void * value, void * data);
+static bool S_FreeMedia_(const char *key, s_media_t *media, bool force);
+
+/**
+ * @brief Inserts @p name into @p keys in sorted order.
+ */
+static void S_RegisterMedia_InsertSortedKey(const char *name) {
+
+  if (!s_media_state.keys) {
+    s_media_state.keys = $(alloc(List), init);
+  }
+
+  // find insertion point (insert before first node where name <= existing)
+  for (ListNode *n = s_media_state.keys->head; n; n = n->next) {
+    if (strcmp(name, (const char *) n->data) <= 0) {
+      $(s_media_state.keys, insertAfter, n->prev, (void *) name);
+      return;
+    }
+  }
+  $(s_media_state.keys, append, (void *) name);
+}
 
 /**
  * @brief Inserts the specified media into the shared table.
@@ -115,20 +133,19 @@ void S_RegisterMedia(s_media_t *media) {
   if (media->seed != s_media_state.seed) {
     s_media_t *m;
 
-    if ((m = g_hash_table_lookup(s_media_state.media, media->name))) {
+    if ((m = $(s_media_state.media, get, media->name))) {
       if (m != media) {
         Com_Debug(DEBUG_SOUND, "Replacing %s\n", media->name);
-        S_FreeMedia_(NULL, m, m);
-        g_hash_table_replace(s_media_state.media, media->name, media);
+        S_FreeMedia_(NULL, m, true);
+        $(s_media_state.media, set, media->name, media);
       } else {
         Com_Debug(DEBUG_SOUND, "Retaining %s\n", media->name);
       }
     } else {
       Com_Debug(DEBUG_SOUND, "Inserting %s\n", media->name);
-      g_hash_table_insert(s_media_state.media, media->name, media);
+      $(s_media_state.media, set, media->name, media);
 
-      s_media_state.keys = g_list_insert_sorted(s_media_state.keys, media->name,
-                           S_RegisterMedia_Compare);
+      S_RegisterMedia_InsertSortedKey(media->name);
     }
 
     // re-seed the media to retain it
@@ -136,10 +153,8 @@ void S_RegisterMedia(s_media_t *media) {
   }
 
   // finally re-register all dependencies
-  GList *d = media->dependencies;
-  while (d) {
+  for (const ListNode *d = media->dependencies ? media->dependencies->head : NULL; d; d = d->next) {
     S_RegisterMedia((s_media_t *) d->data);
-    d = d->next;
   }
 }
 
@@ -156,7 +171,7 @@ s_media_t *S_FindMedia(const char *name, s_media_type_t type) {
 
   SDL_strlcpy(lookup.name, name, sizeof(lookup.name));
 
-  s_media_t *media = g_hash_table_lookup(s_media_state.media, &lookup);
+  s_media_t *media = $(s_media_state.media, get, &lookup);
   if (media) {
     S_RegisterMedia(media);
   }
@@ -185,14 +200,14 @@ s_media_t *S_AllocMedia(const char *name, size_t size, s_media_type_t type) {
 }
 
 /**
- * @brief GHRFunc for freeing media. If data is non-`NULL`, then the media is
- * always freed. Otherwise, only media with stale seed values and no explicit
- * retainment are released.
+ * @brief Frees the specified media entry. If @p force is true, always freed;
+ * otherwise only media with stale seed values and no explicit retainment are freed.
+ * Returns true if the media was freed.
  */
-static bool S_FreeMedia_(void * key, void * value, void * data) {
-  s_media_t *media = (s_media_t *) value;
+static bool S_FreeMedia_(const char *key, s_media_t *media, bool force) {
+  (void) key;
 
-  if (!data) { // see if the media should be freed
+  if (!force) { // see if the media should be freed
     if (media->seed == s_media_state.seed || (media->Retain && media->Retain(media))) {
       return false;
     }
@@ -205,17 +220,54 @@ static bool S_FreeMedia_(void * key, void * value, void * data) {
     media->Free(media);
   }
 
-  g_list_free(media->dependencies);
-  s_media_state.keys = g_list_remove(s_media_state.keys, key);
+  if (media->dependencies) {
+    release(media->dependencies);
+    media->dependencies = NULL;
+  }
+
+  // remove key from sorted keys list
+  if (s_media_state.keys) {
+    for (ListNode *n = s_media_state.keys->head; n; n = n->next) {
+      if (n->data == media->name) {
+        $(s_media_state.keys, removeNode, n);
+        break;
+      }
+    }
+  }
 
   return true;
+}
+
+/**
+ * @brief Collects stale media entries into a Vector for deferred removal.
+ */
+static void S_EndLoading_Collect(const HashTable *table, ident k, ident v, ident data) {
+  (void) table; (void) k;
+  s_media_t *media = (s_media_t *) v;
+  Vector *vec = (Vector *) data;
+  if (!(media->seed == s_media_state.seed || (media->Retain && media->Retain(media)))) {
+    $(vec, addElement, &media);
+  }
 }
 
 /**
  * @brief Frees any media that has a stale seed and is not explicitly retained.
  */
 void S_EndLoading(void) {
-  g_hash_table_foreach_remove(s_media_state.media, S_FreeMedia_, NULL);
+
+  // Collect keys to remove (can't modify table during enumeration)
+  Vector *to_free = $(alloc(Vector), initWithSize, sizeof(s_media_t *));
+
+  $(s_media_state.media, enumerateEntries, S_EndLoading_Collect, to_free);
+
+  for (size_t i = 0; i < to_free->count; i++) {
+    s_media_t *media = *VectorElement(to_free, s_media_t *, i);
+    $(s_media_state.media, remove, media->name);
+    S_FreeMedia_(NULL, media, true);
+    Mem_Free(media);
+  }
+
+  release(to_free);
 }
 
 /**
@@ -237,7 +289,11 @@ void S_BeginLoading(void) {
 static uint32_t S_MediaHash(const void * key) {
   const s_media_t *media = key;
 
-  return g_str_hash(media->name) + media->type;
+  uint32_t hash = 5381;
+  for (const char *p = media->name; *p; p++) {
+    hash = hash * 33 ^ (unsigned char) *p;
+  }
+  return hash + media->type;
 }
 
 /**
@@ -247,7 +303,7 @@ static bool S_MediaEqual(const void * a, const void * b) {
   const s_media_t *_a = a, *_b = b;
 
   if (_a->type == _b->type) {
-    return g_str_equal(_a->name, _b->name);
+    return !strcmp(_a->name, _b->name);
   }
 
   return false;
@@ -260,9 +316,21 @@ void S_InitMedia(void) {
 
   memset(&s_media_state, 0, sizeof(s_media_state));
 
-  s_media_state.media = g_hash_table_new_full(S_MediaHash, S_MediaEqual, NULL, Mem_Free);
+  s_media_state.media = $(alloc(HashTable), init,
+                          (HashTableHashFunc) S_MediaHash,
+                          (HashTableEqualFunc) S_MediaEqual);
 
   S_BeginLoading();
+}
+
+/**
+ * @brief Collects all media entries into a Vector for forced removal.
+ */
+static void S_ShutdownMedia_Collect(const HashTable *table, ident k, ident v, ident data) {
+  (void) table; (void) k;
+  Vector *vec = (Vector *) data;
+  s_media_t *media = (s_media_t *) v;
+  $(vec, addElement, &media);
 }
 
 /**
@@ -270,9 +338,21 @@ void S_InitMedia(void) {
  */
 void S_ShutdownMedia(void) {
 
-  g_hash_table_foreach_remove(s_media_state.media, S_FreeMedia_, (void *) true);
+  Vector *to_free = $(alloc(Vector), initWithSize, sizeof(s_media_t *));
+  $(s_media_state.media, enumerateEntries, S_ShutdownMedia_Collect, to_free);
 
-  g_hash_table_destroy(s_media_state.media);
-  g_list_free(s_media_state.keys);
+  for (size_t i = 0; i < to_free->count; i++) {
+    s_media_t *media = *VectorElement(to_free, s_media_t *, i);
+    $(s_media_state.media, remove, media->name);
+    S_FreeMedia_(NULL, media, true);
+    Mem_Free(media);
+  }
+
+  release(to_free);
+  release(s_media_state.media);
+
+  if (s_media_state.keys) {
+    release(s_media_state.keys);
+  }
 }
 

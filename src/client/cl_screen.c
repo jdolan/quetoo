@@ -319,7 +319,7 @@ static void Cl_DrawSoundStats(void) {
 /**
  * @brief Formats a stat counter string showing the current value and min/max over the sample window.
  */
-static void Cl_DrawSampleCounter(char *buffer, gulong buffer_length, const char *title, uint16_t *samples) {
+static void Cl_DrawSampleCounter(char *buffer, size_t buffer_length, const char *title, uint16_t *samples) {
   uint16_t min, max;
 
   if (!cl.sample_count) {
@@ -347,7 +347,7 @@ static void Cl_DrawSampleCounter(char *buffer, gulong buffer_length, const char 
 /**
  * @brief Formats a frame time counter string showing the current value and min/max over the sample window.
  */
-static void Cl_DrawFrameTimeSampleCounter(char *buffer, gulong buffer_length, const char *title, uint8_t *samples) {
+static void Cl_DrawFrameTimeSampleCounter(char *buffer, size_t buffer_length, const char *title, uint8_t *samples) {
   uint16_t min, max;
 
   if (!cl.sample_count) {

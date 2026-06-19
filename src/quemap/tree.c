@@ -20,6 +20,7 @@
  */
 
 #include <SDL3/SDL_timer.h>
+#include <Objectively/Vector.h>
 
 #include "tree.h"
 #include "portal.h"
@@ -192,7 +193,7 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
   const brush_side_t *best_side = NULL;
   int32_t best_value = INT32_MIN;
 
-  GPtrArray *cache = g_ptr_array_new();
+  Vector *cache = $(alloc(Vector), initWithSize, sizeof(intptr_t));
 
   bool have_structural = false;
   for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
@@ -225,7 +226,15 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
       assert(side->winding);
 
       const int32_t plane = side->plane ^ 1;
-      if (g_ptr_array_find(cache, (const void *) (intptr_t) plane, NULL)) {
+      bool cached = false;
+      for (size_t j = 0; j < cache->count; j++) {
+        if (*VectorElement(cache, intptr_t, j) == plane) {
+          cached = true;
+          break;
+        }
+      }
+
+      if (cached) {
         continue;
       }
 
@@ -248,11 +257,12 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
         best_value = value;
       }
 
-      g_ptr_array_add(cache, (void *) (intptr_t) plane);
+      intptr_t cached_plane = plane;
+      $(cache, addElement, &cached_plane);
     }
   }
 
-  g_ptr_array_free(cache, true);
+  release(cache);
 
   return best_side;
 }

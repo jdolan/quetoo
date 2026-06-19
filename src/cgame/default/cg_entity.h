@@ -127,7 +127,7 @@ struct cg_entity_s {
 extern const cg_entity_class_t *cg_entity_classes[];
 extern const size_t cg_num_entity_classes;
 
-extern GArray *cg_entities;
+extern Vector *cg_entities;
 
 cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e);
 void Cg_LoadEntities(void);

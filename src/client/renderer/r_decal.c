@@ -59,6 +59,22 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
   *out = *decal;
 }
 
+static void R_RemoveDecalTriangleAtIndexFast(Vector *triangles, size_t index) {
+
+  assert(triangles);
+  assert(index < triangles->count);
+
+  if (index < triangles->count - 1) {
+    memcpy(
+      VectorElement(triangles, r_decal_triangle_t, index),
+      VectorElement(triangles, r_decal_triangle_t, triangles->count - 1),
+      sizeof(r_decal_triangle_t)
+    );
+  }
+
+  triangles->count--;
+}
+
 /**
  * @brief Clips a decal to a face and adds the resulting triangles to the face's block.
  */
@@ -140,13 +156,16 @@ static void R_ClipDecalToFace(const r_view_t *view,
   const vec2_t atlas_size = Vec2_Subtract(atlas_max, atlas_min);
 
   const int32_t num_triangles = w->num_points - 2;
-  const int32_t overflow = decals->triangles->len + num_triangles - MAX_BSP_BLOCK_DECALS;
+  const int32_t overflow = (int32_t) decals->triangles->count + num_triangles - MAX_BSP_BLOCK_DECALS;
   if (overflow > 0) {
-    g_array_remove_range(decals->triangles, 0, Mini(overflow, (int32_t) decals->triangles->len));
+    const int32_t remove_count = Mini(overflow, (int32_t) decals->triangles->count);
+    for (int32_t i = 0; i < remove_count; i++) {
+      $(decals->triangles, removeElementAtIndex, 0);
+    }
   }
   
   for (int32_t i = 0; i < num_triangles; i++) {
-    if (decals->triangles->len == MAX_BSP_BLOCK_DECALS) {
+    if (decals->triangles->count == MAX_BSP_BLOCK_DECALS) {
       break;
     }
 
@@ -170,7 +189,7 @@ static void R_ClipDecalToFace(const r_view_t *view,
     }
     
     decals->image = (r_image_t *) decal->image;
-    decals->triangles = g_array_append_val(decals->triangles, triangle);
+    $(decals->triangles, addElement, &triangle);
   }
 
   decals->dirty = true;
@@ -342,11 +361,11 @@ void R_UpdateDecals(const r_view_t *view) {
     for (int32_t j = 0; j < in->num_blocks; j++, block++) {
       r_bsp_block_decals_t *decals = &block->decals;
 
-      for (uint32_t k = decals->triangles->len; k > 0; ) {
-        const r_decal_triangle_t *v = &g_array_index(decals->triangles, r_decal_triangle_t, --k);
+      for (size_t k = decals->triangles->count; k > 0; ) {
+        const r_decal_triangle_t *v = VectorElement(decals->triangles, r_decal_triangle_t, --k);
 
         if (view->ticks - v->vertexes->time >= v->vertexes->lifetime) {
-          g_array_remove_index_fast(decals->triangles, k);
+          R_RemoveDecalTriangleAtIndexFast(decals->triangles, k);
           decals->dirty = true;
         }
       }
@@ -395,16 +414,16 @@ void R_DrawDecals(const r_view_t *view) {
 
       r_bsp_block_decals_t *d = &block->decals;
 
-      if (d->triangles->len == 0) {
+      if (d->triangles->count == 0) {
         continue;
       }
 
       if (d->dirty) {
         const GLsizeiptr capacity = MAX_BSP_BLOCK_DECALS * sizeof(r_decal_triangle_t);
-        const GLsizeiptr size = d->triangles->len * sizeof(r_decal_triangle_t);
+        const GLsizeiptr size = d->triangles->count * sizeof(r_decal_triangle_t);
         glBindBuffer(GL_ARRAY_BUFFER, d->vertex_buffer);
         glBufferData(GL_ARRAY_BUFFER, capacity, NULL, GL_DYNAMIC_DRAW);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, size, d->triangles->data);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, size, d->triangles->elements);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         d->dirty = false;
       }
@@ -414,9 +433,9 @@ void R_DrawDecals(const r_view_t *view) {
       assert(d->image->texnum);
       glBindTexture(GL_TEXTURE_2D, d->image->texnum);
 
-      glDrawArrays(GL_TRIANGLES, 0, d->triangles->len * 3);
+      glDrawArrays(GL_TRIANGLES, 0, d->triangles->count * 3);
 
-      r_stats.decals += d->triangles->len;
+      r_stats.decals += d->triangles->count;
       r_stats.decal_draw_elements++;
     }
   }

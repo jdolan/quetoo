@@ -348,28 +348,30 @@ void S_Init(void) {
     }
   }
 
-  char **strings = g_strsplit(alGetString(AL_EXTENSIONS), " ", 0);
-
-  for (uint32_t i = 0; i < g_strv_length(strings); i++) {
-    const char *c = (const char *) strings[i];
-
-    if (i == 0) {
-      Com_Verbose("  Extensions: ^2%s^7\n", c);
-    } else {
-      Com_Verbose("              ^2%s^7\n", c);
+  {
+    char ext_buf[4096];
+    SDL_strlcpy(ext_buf, alGetString(AL_EXTENSIONS) ? alGetString(AL_EXTENSIONS) : "", sizeof(ext_buf));
+    char *save = NULL;
+    bool first = true;
+    for (char *tok = SDL_strtok_r(ext_buf, " ", &save); tok; tok = SDL_strtok_r(NULL, " ", &save)) {
+      if (first) {
+        Com_Verbose("  Extensions: ^2%s^7\n", tok);
+        first = false;
+      } else {
+        Com_Verbose("              ^2%s^7\n", tok);
+      }
     }
   }
 
-  g_strfreev(strings);
-
-  strings = g_strsplit(alcGetString(s_context.device, ALC_EXTENSIONS), " ", 0);
-
-  for (uint32_t i = 0; i < g_strv_length(strings); i++) {
-    const char *c = (const char *) strings[i];
-    Com_Verbose("              ^2%s^7\n", c);
+  {
+    const char *alc_ext = alcGetString(s_context.device, ALC_EXTENSIONS);
+    char ext_buf[4096];
+    SDL_strlcpy(ext_buf, alc_ext ? alc_ext : "", sizeof(ext_buf));
+    char *save = NULL;
+    for (char *tok = SDL_strtok_r(ext_buf, " ", &save); tok; tok = SDL_strtok_r(NULL, " ", &save)) {
+      Com_Verbose("              ^2%s^7\n", tok);
+    }
   }
-
-  g_strfreev(strings);
 
   if (s_effects->integer) {
     if (!efx_supported) {

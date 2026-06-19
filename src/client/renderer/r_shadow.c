@@ -480,14 +480,14 @@ static void R_InitShadowTextures(void) {
   GLint max_texture_size;
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
 
-  r_shadow_atlas.tile_size = MAX(r_shadow_tile_size->integer, 128);
+  r_shadow_atlas.tile_size = Maxi(r_shadow_tile_size->integer, 128);
 
   // Clamp the atlas layer dimension to what the GPU actually supports.
   // GL 4.1 requires at least 16384 for GL_MAX_TEXTURE_SIZE, but some
   // drivers (e.g. Intel HD 4000 on Windows) report lower values.
   // Square constraint: lights_per_col = lights_per_row * 3/2
   // (so lights_per_row must be even). Layer dim = lights_per_row*3*tile.
-  const GLint layer_dim = MIN(8192, max_texture_size);
+  const GLint layer_dim = Mini(8192, max_texture_size);
 
   r_shadow_atlas.lights_per_row = layer_dim / (3 * r_shadow_atlas.tile_size);
   if (r_shadow_atlas.lights_per_row < 2) {
@@ -633,4 +633,3 @@ void R_ShutdownShadows(void) {
 
   R_ShutdownShadowFramebuffer();
 }
-

@@ -128,7 +128,7 @@ int32_t Cm_WriteManifest(const char *path, HashTable *manifest) {
 	qsort(keys, count, sizeof(char *), Cm_ManifestKeyCmp);
 
 	for (size_t k = 0; k < count; k++) {
-		const cm_manifest_entry_t *entry = $(manifest, get, keys[k]);
+		const cm_manifest_entry_t *entry = $(manifest, get, (void *) keys[k]);
 		Fs_Print(file, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
 	}
 

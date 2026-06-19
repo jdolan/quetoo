@@ -58,7 +58,7 @@ static void fetchHeroImages(void *data) {
 	static const char prefix[] = "<Key>hero-images/";
 	static const char suffix[] = "</Key>";
 
-	GPtrArray *urls = g_ptr_array_new_with_free_func(g_free);
+	Vector *urls = $(alloc(Vector), initWithSize, sizeof(char *));
 
 	char *p = (char *) list_data->bytes;
 	while ((p = strstr(p, prefix)) != NULL) {
@@ -76,22 +76,24 @@ static void fetchHeroImages(void *data) {
 			continue;
 		}
 
-		g_ptr_array_add(urls, SDL_strdup(url));
+		char *dup = SDL_strdup(url);
+		$(urls, addElement, &dup);
 		p = s + strlen(suffix);
 	}
 
 	release(list_data);
 
-	for (uint32_t i = urls->len - 1; i > 0; i--) {
+	for (uint32_t i = (uint32_t) urls->count - 1; i > 0; i--) {
 		const uint32_t j = (uint32_t) rand() % (i + 1);
-		void * tmp = urls->pdata[i];
-		urls->pdata[i] = urls->pdata[j];
-		urls->pdata[j] = tmp;
+		char *tmp = *VectorElement(urls, char *, i);
+		*VectorElement(urls, char *, i) = *VectorElement(urls, char *, j);
+		*VectorElement(urls, char *, j) = tmp;
 	}
 
-	for (uint32_t i = 0; i < urls->len; i++) {
+	for (uint32_t i = 0; i < urls->count; i++) {
 		image_data = NULL;
-		if ($(cgi.restClient, get, urls->pdata[i], &image_data) == 200 && image_data) {
+		char *url_str = *VectorElement(urls, char *, i);
+		if ($(cgi.restClient, get, url_str, &image_data) == 200 && image_data) {
 			Image *image = NULL;
 
       SDL_Surface *surf = cgi.LoadSurfaceFromData(image_data->bytes, image_data->length);
@@ -112,12 +114,15 @@ static void fetchHeroImages(void *data) {
 			}
 			release(image);
 		} else {
-			Cg_Warn("Failed to fetch hero image: %s", (char *) urls->pdata[i]);
+			Cg_Warn("Failed to fetch hero image: %s", url_str);
 		}
 		release(image_data);
 	}
 
-	g_ptr_array_free(urls, true);
+	for (uint32_t i = 0; i < urls->count; i++) {
+		SDL_free(*VectorElement(urls, char *, i));
+	}
+	release(urls);
 }
 
 #pragma mark - Object

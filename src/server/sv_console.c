@@ -114,10 +114,10 @@ static void Sv_HandleEvents(void) {
         break;
 
       case KEY_PPAGE:
-        if (sv_console.scroll < console_state.strings.length) {
+        if (sv_console.scroll < console_state.strings->count) {
           sv_console.scroll++;
         } else {
-          sv_console.scroll = console_state.strings.length;
+          sv_console.scroll = console_state.strings->count;
         }
         break;
 

@@ -58,12 +58,17 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
     }
   }
 
-  char *path = g_build_filename(Sys_UserDir(), game, log_name, NULL);
-  char *dir = g_path_get_dirname(path);
-  g_mkdir_with_parents(dir, 0700);
-  free(dir);
+  char path[MAX_QPATH * 3];
+  SDL_snprintf(path, sizeof(path), "%s/%s/%s", Sys_UserDir(), game, log_name);
+
+  char dir[MAX_QPATH * 2];
+  SDL_strlcpy(dir, path, sizeof(dir));
+  char *sep = strrchr(dir, '/');
+  if (!sep) { sep = strrchr(dir, '\\'); }
+  if (sep) { *sep = '\0'; }
+  SDL_CreateDirectory(dir);
+
   quetoo.log_file = fopen(path, "w");
-  free(path);
 
   Com_LogString(va("Quetoo %s %s\n", VERSION, BUILD));
 
@@ -182,7 +187,7 @@ static int32_t Com_Sprintfv(char *str, size_t size, const char *func, const char
     if (fmt[0] == '!') { // skip it
       fmt++;
     } else {
-      SDL_snprintf(str, (gulong) size, "%s: ", func);
+      SDL_snprintf(str, (size_t) size, "%s: ", func);
       len = strlen(str);
     }
   }

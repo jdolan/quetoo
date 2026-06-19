@@ -247,15 +247,15 @@ static const char *mem_tag_names[MEM_TAG_TOTAL] = {
  */
 static void MemStats_f(void) {
 
-  GArray *stats = Mem_Stats();
+  Vector *stats = Mem_Stats();
 
   Com_Print("Memory stats:\n");
 
   size_t sum = 0, reported_total = 0;
 
-  for (size_t i = 0; i < stats->len; i++) {
+  for (size_t i = 0; i < stats->count; i++) {
 
-    mem_stat_t *stat_i = &g_array_index(stats, mem_stat_t, i);
+    mem_stat_t *stat_i = VectorElement(stats, mem_stat_t, i);
     const char *tag_name;
 
     if (stat_i->tag == -1) {
@@ -276,9 +276,9 @@ static void MemStats_f(void) {
     Com_Print("WARNING: %" PRIuPTR " bytes summed vs %" PRIuPTR " bytes reported!\n", sum, reported_total);
   }
 
-  Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %" PRIu32 " blocks\n", console_state.size, console_state.strings.length);
+  Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %" PRIu32 " blocks\n", console_state.size, console_state.strings->count);
 
-  g_array_free(stats, true);
+  release(stats);
 }
 
 /**
@@ -484,7 +484,7 @@ int32_t main(int32_t argc, char *argv[]) {
 
   // Handle quetoo:// URI scheme launch (Linux / Windows pass the URL as argv).
   for (int32_t i = 1; i < argc; i++) {
-    if (g_str_has_prefix(argv[i], "quetoo://")) {
+    if (!strncmp(argv[i], "quetoo://", 9)) {
       Cbuf_AddText(va("connect %s\n", argv[i] + strlen("quetoo://")));
       break;
     }

@@ -36,7 +36,7 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
   s->addr = *addr;
   SDL_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
 
-  cls.servers = g_list_prepend(cls.servers, s);
+  if (!cls.servers) { cls.servers = $(alloc(List), init); cls.servers->destroy = (ListDestroyFunc) Mem_Free; } $(cls.servers, prepend, s);
 
   return s;
 }
@@ -45,7 +45,7 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
  * @brief Finds the server info entry matching the given network address.
  */
 static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
-  const GList *e = cls.servers;
+  const ListNode *e = cls.servers ? cls.servers->head : NULL;
 
   while (e) {
     cl_server_info_t *s = (cl_server_info_t *) e->data;
@@ -65,7 +65,7 @@ static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
  */
 void Cl_FreeServers(void) {
 
-  g_list_free_full(cls.servers, Mem_Free);
+  if (cls.servers) { $(cls.servers, removeAll); release(cls.servers); }
 
   cls.servers = NULL;
 }
@@ -117,7 +117,7 @@ void Cl_ParseServerInfo(void) {
 
       char player[MAX_TOKEN_CHARS];
       const size_t len = end ? (size_t)(end - line) : strlen(line);
-      SDL_strlcpy(player, line, MIN(len + 1, sizeof(player)));
+      SDL_strlcpy(player, line, Mini(len + 1, sizeof(player)));
 
       if (player[0]) {
         server->clients++;
@@ -193,7 +193,7 @@ void Cl_Ping_f(void) {
  * @brief Sends a LAN broadcast and resets ping times for all broadcast servers.
  */
 static void Cl_SendBroadcast(void) {
-  const GList *e = cls.servers;
+  const ListNode *e = cls.servers ? cls.servers->head : NULL;
 
 
   while (e) { // update old ping times
@@ -292,7 +292,7 @@ void Cl_ParseServers(void) {
 
   // then ping them
 
-  GList *e = cls.servers;
+  const ListNode *e = cls.servers ? cls.servers->head : NULL;
 
   while (e) {
     server = (cl_server_info_t *) e->data;
@@ -321,10 +321,10 @@ void Cl_ParseServers(void) {
 void Cl_Servers_List_f(void) {
   char string[256];
 
-  GList *e = cls.servers;
+  const ListNode *e = cls.servers ? cls.servers->head : NULL;
 
   while (e) {
-    const cl_server_info_t *s = (cl_server_info_t *) e->data;
+    const cl_server_info_t *s = (const cl_server_info_t *) e->data;
 
     SDL_snprintf(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
                s->hostname, Net_NetaddrToString(&s->addr), s->name, s->gameplay, s->clients,

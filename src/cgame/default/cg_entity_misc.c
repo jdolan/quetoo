@@ -226,10 +226,10 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 
   const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
   const cm_entity_t *brush_def = self->id < bsp->num_entities ? bsp->entities[self->id] : self->def;
-  GPtrArray *brushes = cgi.EntityBrushes(brush_def);
-  for (uint32_t i = 0; i < brushes->len; i++) {
+  Vector *brushes = cgi.EntityBrushes(brush_def);
+  for (size_t i = 0; i < brushes->count; i++) {
 
-    const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, i);
+    const cm_bsp_brush_t *brush = *VectorElement(brushes, cm_bsp_brush_t *, i);
     self->bounds = Box3_Union(self->bounds, brush->bounds);
 
     const vec3_t brush_size = Box3_Size(brush->bounds);
@@ -253,6 +253,8 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 
     dust->num_origins += brush_origins;
   }
+
+  release(brushes);
 }
 
 /**
@@ -1000,10 +1002,10 @@ static void Cg_misc_weather_Init(cg_entity_t *self) {
 
   const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
   const cm_entity_t *brush_def = self->id < bsp->num_entities ? bsp->entities[self->id] : self->def;
-  GPtrArray *brushes = cgi.EntityBrushes(brush_def);
-  for (uint32_t i = 0; i < brushes->len; i++) {
+  Vector *brushes = cgi.EntityBrushes(brush_def);
+  for (size_t i = 0; i < brushes->count; i++) {
 
-    const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, i);
+    const cm_bsp_brush_t *brush = *VectorElement(brushes, cm_bsp_brush_t *, i);
     self->bounds = Box3_Union(self->bounds, brush->bounds);
 
     const vec3_t brush_size = Box3_Size(brush->bounds);
@@ -1036,6 +1038,8 @@ static void Cg_misc_weather_Init(cg_entity_t *self) {
       }
     }
   }
+
+  release(brushes);
 }
 
 /**

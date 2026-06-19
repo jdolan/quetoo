@@ -33,8 +33,23 @@ static const char *_ping = "Ping";
 
 static cvar_t *cg_join_server_hide_empty;
 static cvar_t *cg_join_server_hide_bots;
+static JoinServerViewController *sortingJoinServerViewController;
 
 #define _Class _JoinServerViewController
+
+static const cl_server_info_t *serverAtIndex(const List *servers, size_t index) {
+
+  if (servers == NULL) {
+    return NULL;
+  }
+
+  const ListNode *node = servers->head;
+  while (node && index--) {
+    node = node->next;
+  }
+
+  return node ? node->data : NULL;
+}
 
 #pragma mark - Delegates
 
@@ -78,10 +93,10 @@ static void didClickQuickJoin(Button *button) {
 
   uint32_t total_weight = 0;
 
-  const GList *list = this->servers;
+  const ListNode *node = this->servers ? this->servers->head : NULL;
 
-  while (list != NULL) {
-    const cl_server_info_t *server = list->data;
+  while (node != NULL) {
+    const cl_server_info_t *server = node->data;
 
     int32_t weight = 1;
 
@@ -99,20 +114,20 @@ static void didClickQuickJoin(Button *button) {
 
     total_weight += max(weight, 1);
 
-    list = list->next;
+    node = node->next;
   }
 
   if (total_weight == 0) {
     return;
   }
 
-  list = this->servers;
+  node = this->servers ? this->servers->head : NULL;
 
   const uint32_t random_weight = RandomRangeu(0, total_weight);
   uint32_t current_weight = 0;
 
-  while (list != NULL) {
-    const cl_server_info_t *server = list->data;
+  while (node != NULL) {
+    const cl_server_info_t *server = node->data;
 
     int32_t weight = 1;
 
@@ -136,7 +151,7 @@ static void didClickQuickJoin(Button *button) {
       break;
     }
 
-    list = list->next;
+    node = node->next;
   }
 }
 
@@ -158,7 +173,7 @@ static void didClickConnect(Button *button) {
   if (selectedRowIndexes->count) {
 
     const uint32_t index = (uint32_t) selectedRowIndexes->indexes[0];
-    const cl_server_info_t *server = g_list_nth_data(this->servers, index);
+    const cl_server_info_t *server = serverAtIndex(this->servers, index);
 
     if (server) {
       cgi.Connect(&server->addr);
@@ -177,7 +192,7 @@ static size_t numberOfRows(const TableView *tableView) {
 
   JoinServerViewController *this = tableView->dataSource.self;
 
-  return g_list_length(this->servers);
+  return this->servers ? this->servers->count : 0;
 }
 
 /**
@@ -187,7 +202,7 @@ static ident valueForColumnAndRow(const TableView *tableView, const TableColumn 
 
   JoinServerViewController *this = tableView->dataSource.self;
 
-  cl_server_info_t *server = g_list_nth_data(this->servers, (uint32_t) row);
+  cl_server_info_t *server = (cl_server_info_t *) serverAtIndex(this->servers, row);
   assert(server);
 
   if (strcmp(column->identifier, _hostname) == 0) {
@@ -216,7 +231,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   JoinServerViewController *this = tableView->dataSource.self;
 
-  cl_server_info_t *server = g_list_nth_data(this->servers, (uint32_t) row);
+  cl_server_info_t *server = (cl_server_info_t *) serverAtIndex(this->servers, row);
   assert(server);
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
@@ -282,7 +297,7 @@ static void didSelectRowsAtIndexes(TableView *tableView, const IndexSet *indexes
   if (event && event->button.clicks == 2) {
 
     const uint32_t index = (uint32_t) indexes->indexes[0];
-    const cl_server_info_t *server = g_list_nth_data(this->servers, index);
+    const cl_server_info_t *server = serverAtIndex(this->servers, index);
 
     if (server) {
       cgi.Connect(&server->addr);
@@ -299,7 +314,7 @@ static void dealloc(Object *self) {
 
   JoinServerViewController *this = (JoinServerViewController *) self;
 
-  g_list_free(this->servers);
+  release(this->servers);
 
   super(Object, self, dealloc);
 }
@@ -398,9 +413,9 @@ static void viewWillAppear(ViewController *self) {
 /**
  * @brief GCompareDataFunc for server sorting.
  */
-static int32_t comparator(const void * a, const void * b, void * data) {
+static Order comparator(const ident a, const ident b) {
 
-  JoinServerViewController *this = (JoinServerViewController *) data;
+  JoinServerViewController *this = sortingJoinServerViewController;
 
   if (this->serversTableView->sortColumn) {
     const cl_server_info_t *s0, *s1;
@@ -413,27 +428,31 @@ static int32_t comparator(const void * a, const void * b, void * data) {
         s0 = b; s1 = a;
         break;
       default:
-        return 0;
+        return OrderSame;
     }
+
+    int32_t cmp = 0;
 
     if (strcmp(this->serversTableView->sortColumn->identifier, _hostname) == 0) {
-      return strcmp(s0->hostname, s1->hostname);
+      cmp = strcmp(s0->hostname, s1->hostname);
     } else if (strcmp(this->serversTableView->sortColumn->identifier, _source) == 0) {
-      return s0->source - s1->source;
+      cmp = s0->source - s1->source;
     } else if (strcmp(this->serversTableView->sortColumn->identifier, _name) == 0) {
-      return strcmp(s0->name, s1->name);
+      cmp = strcmp(s0->name, s1->name);
     } else if (strcmp(this->serversTableView->sortColumn->identifier, _gameplay) == 0) {
-      return strcmp(s0->gameplay, s1->gameplay);
+      cmp = strcmp(s0->gameplay, s1->gameplay);
     } else if (strcmp(this->serversTableView->sortColumn->identifier, _players) == 0) {
-      return s0->clients - s1->clients;
+      cmp = s0->clients - s1->clients;
     } else if (strcmp(this->serversTableView->sortColumn->identifier, _ping) == 0) {
-      return s0->ping - s1->ping;
+      cmp = s0->ping - s1->ping;
+    } else {
+      assert(false);
     }
 
-    assert(false);
+    return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
   }
 
-  return 0;
+  return OrderSame;
 }
 
 /**
@@ -442,26 +461,33 @@ static int32_t comparator(const void * a, const void * b, void * data) {
  */
 static void reloadServers(JoinServerViewController *self) {
 
-  g_list_free(self->servers);
+  release(self->servers);
 
-  self->servers = g_list_copy(cgi.Servers());
+  self->servers = $(alloc(List), init);
 
-  GList *list = self->servers;
-  while (list) {
-    GList *next = list->next;
+  const List *servers = cgi.Servers();
+  for (const ListNode *node = servers ? servers->head : NULL; node; node = node->next) {
+    cl_server_info_t *server = node->data;
+    $(self->servers, append, server);
+  }
 
-    cl_server_info_t *server = list->data;
+  for (ListNode *node = self->servers->head; node; ) {
+    ListNode *next = node->next;
+
+    cl_server_info_t *server = node->data;
 
     const int32_t clients = cg_join_server_hide_bots->value ? server->clients - server->bots : server->clients;
 
     if (clients == 0 && (cg_join_server_hide_empty->value || cg_join_server_hide_bots->value)) {
-      self->servers = g_list_remove_link(self->servers, list);
+      $(self->servers, removeNode, node);
     }
 
-    list = next;
+    node = next;
   }
 
-  self->servers = g_list_sort_with_data(self->servers, comparator, self);
+  sortingJoinServerViewController = self;
+  $(self->servers, sort, comparator);
+  sortingJoinServerViewController = NULL;
 
   $(self->serversTableView, reloadData);
 }

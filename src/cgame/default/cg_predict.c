@@ -65,10 +65,10 @@ static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end,
  * @brief Run recent movement commands through the player movement code locally, storing the
  * resulting state so that it may be interpolated to and reconciled later.
  */
-void Cg_PredictMovement(const GPtrArray *cmds) {
+void Cg_PredictMovement(const Vector *cmds) {
 
   assert(cmds);
-  assert(cmds->len);
+  assert(cmds->count);
 
   cl_predicted_state_t *pr = &cgi.client->predicted_state;
 
@@ -89,8 +89,8 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
   pm.debug_mask = DEBUG_PMOVE_CLIENT;
 
   // run the commands
-  for (uint32_t i = 0; i < cmds->len; i++) {
-    cl_cmd_t *cmd = g_ptr_array_index(cmds, i);
+  for (uint32_t i = 0; i < cmds->count; i++) {
+    cl_cmd_t *cmd = *VectorElement(cmds, cl_cmd_t *, i);
 
     if (cmd->cmd.msec) { // if the command has time, run it
 

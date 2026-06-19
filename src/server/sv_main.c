@@ -72,7 +72,9 @@ void Sv_DropClient(sv_client_t *client) {
   Mem_ClearBuffer(&client->datagram.buffer);
 
   if (client->datagram.messages) {
-    g_list_free_full(client->datagram.messages, g_free);
+    $(client->datagram.messages, removeAll);
+    release(client->datagram.messages);
+    client->datagram.messages = NULL;
   }
 
   g_client_t *gclient = client->gclient;

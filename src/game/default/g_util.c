@@ -126,7 +126,7 @@ g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match) {
     if (!s) {
       continue;
     }
-    if (!g_ascii_strcasecmp(s, match)) {
+    if (!SDL_strcasecmp(s, match)) {
       return ent;
     }
   }
@@ -442,15 +442,17 @@ g_gameplay_t G_GameplayByName(const char *c) {
     return gameplay;
   }
 
-  char *lower = g_strchug(g_ascii_strdown(c, -1));
-
-  if (g_str_has_prefix(lower, "insta")) {
-    gameplay = GAME_INSTAGIB;
-  } else if (g_str_has_prefix(lower, "arena")) {
-    gameplay = GAME_ARENA;
+  char lower[64];
+  SDL_strlcpy(lower, c, sizeof(lower));
+  for (char *p = lower; *p; p++) {
+    *p = (char) SDL_tolower((unsigned char) *p);
   }
 
-  free(lower);
+  if (!strncmp(lower, "insta", 5)) {
+    gameplay = GAME_INSTAGIB;
+  } else if (!strncmp(lower, "arena", 5)) {
+    gameplay = GAME_ARENA;
+  }
   return gameplay;
 }
 

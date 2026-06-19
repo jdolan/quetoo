@@ -168,13 +168,13 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
       });
 
       if (is_selected) {
-        for (uint32_t j = 0; j < edit->brushes->len; j++) {
-          const cm_bsp_brush_t *brush = g_ptr_array_index(edit->brushes, j);
+        for (uint32_t j = 0; j < edit->brushes->count; j++) {
+          const cm_bsp_brush_t *brush = *VectorElement(edit->brushes, cm_bsp_brush_t *, j);
           cgi.Draw3DBox(brush->bounds, color_red, true);
         }
       } else if (strcmp(classname, "worldspawn")) {
-        for (uint32_t j = 0; j < edit->brushes->len; j++) {
-          const cm_bsp_brush_t *brush = g_ptr_array_index(edit->brushes, j);
+        for (uint32_t j = 0; j < edit->brushes->count; j++) {
+          const cm_bsp_brush_t *brush = *VectorElement(edit->brushes, cm_bsp_brush_t *, j);
           cgi.Draw3DBox(brush->bounds, Color4fv(debug_color), true);
         }
       }
@@ -260,8 +260,8 @@ static void Cg_InitEditorEntity(int16_t number) {
 
   if (number < cgi.Bsp()->num_entities) {
     edit->brushes = cgi.EntityBrushes(cgi.Bsp()->entities[number]);
-    if (!edit->brushes->len) {
-      g_ptr_array_free(edit->brushes, true);
+    if (!edit->brushes->count) {
+      release(edit->brushes);
       edit->brushes = NULL;
     }
   }
@@ -307,7 +307,7 @@ static void Cg_FreeEditorEntity(int16_t number) {
   cgi.FreeEntity(edit->def);
 
   if (edit->brushes) {
-    g_ptr_array_free(edit->brushes, true);
+    release(edit->brushes);
   }
 
   if (edit->misc.clazz && edit->misc.data) {
@@ -405,8 +405,8 @@ cg_editor_trace_t Cg_EntitySelectionTrace(const vec3_t start, const vec3_t end) 
     }
 
     if (edit->brushes) {
-      for (uint32_t j = 0; j < edit->brushes->len; j++) {
-        const cm_bsp_brush_t *brush = g_ptr_array_index(edit->brushes, j);
+      for (uint32_t j = 0; j < edit->brushes->count; j++) {
+        const cm_bsp_brush_t *brush = *VectorElement(edit->brushes, cm_bsp_brush_t *, j);
 
         const cm_trace_t tr = cgi.TraceToBrush(start, end, brush);
 
@@ -458,8 +458,8 @@ cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end
     }
 
     if (edit->brushes) {
-      for (uint32_t j = 0; j < edit->brushes->len; j++) {
-        const cm_bsp_brush_t *brush = g_ptr_array_index(edit->brushes, j);
+      for (uint32_t j = 0; j < edit->brushes->count; j++) {
+        const cm_bsp_brush_t *brush = *VectorElement(edit->brushes, cm_bsp_brush_t *, j);
 
         const cm_trace_t tr = cgi.TraceToBrush(start, end, brush);
 

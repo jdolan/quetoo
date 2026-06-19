@@ -158,20 +158,21 @@ void Cm_ParseEntity(cm_entity_t *pair) {
  * @brief GCompareFunc for entity sorting.
  * @details Classname comes first, followed by the rest in lexigraphical order.
  */
-static int32_t Cm_SortEntity_cmp(const void * a, const void * b) {
+static Order Cm_SortEntity_cmp(const ident a, const ident b) {
 
-  const cm_entity_t *m = a;
-  const cm_entity_t *n = b;
+  const cm_entity_t *m = *(const cm_entity_t *const *) a;
+  const cm_entity_t *n = *(const cm_entity_t *const *) b;
 
   if (!strcmp(m->key, "classname")) {
-    return INT_MIN;
+    return OrderAscending;
   }
 
   if (!strcmp(n->key, "classname")) {
-    return INT_MAX;
+    return OrderDescending;
   }
 
-  return strcmp(m->key, n->key);
+  const int32_t cmp = strcmp(m->key, n->key);
+  return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
 /**
@@ -182,37 +183,37 @@ cm_entity_t *Cm_SortEntity(cm_entity_t *entity) {
   assert(entity);
   assert(entity != &null_entity);
 
-  GPtrArray *pairs = g_ptr_array_new();
+  Vector *pairs = $(alloc(Vector), initWithSize, sizeof(cm_entity_t *));
 
   for (cm_entity_t *e = entity; e; e = e->next) {
-    g_ptr_array_add(pairs, e);
+    $(pairs, addElement, &e);
   }
 
-  g_ptr_array_sort_values(pairs, Cm_SortEntity_cmp);
+  $(pairs, sort, Cm_SortEntity_cmp);
 
   cm_entity_t *classname = NULL;
 
   // now rebuild the linked list
 
-  for (uint32_t i = 0; i < pairs->len; i++) {
+  for (size_t i = 0; i < pairs->count; i++) {
 
-    cm_entity_t *e = g_ptr_array_index(pairs, i);
+    cm_entity_t *e = *VectorElement(pairs, cm_entity_t *, i);
 
     if (i == 0) {
       classname = e;
       classname->prev = NULL;
     } else {
-      e->prev = g_ptr_array_index(pairs, i - 1);
+      e->prev = *VectorElement(pairs, cm_entity_t *, i - 1);
     }
 
-    if (i < pairs->len - 1) {
-      e->next = g_ptr_array_index(pairs, i + 1);
+    if (i < pairs->count - 1) {
+      e->next = *VectorElement(pairs, cm_entity_t *, i + 1);
     } else {
       e->next = NULL;
     }
   }
 
-  g_ptr_array_free(pairs, false);
+  release(pairs);
 
   return classname;
 }
@@ -220,9 +221,9 @@ cm_entity_t *Cm_SortEntity(cm_entity_t *entity) {
 /**
  * @brief Loads the BSP entity string lump.
  */
-GList *Cm_LoadEntities(const char *entity_string) {
+List *Cm_LoadEntities(const char *entity_string) {
 
-  GList *entities = NULL;
+  List *entities = $(alloc(List), init);
 
   parser_t parser = Parse_Init(entity_string, PARSER_ALL_COMMENTS);
 
@@ -267,11 +268,11 @@ GList *Cm_LoadEntities(const char *entity_string) {
 
       assert(entity);
 
-      entities = g_list_prepend(entities, entity);
+      $(entities, append, entity);
     }
   }
 
-  return g_list_reverse(entities);
+  return entities;
 }
 
 /**
@@ -367,17 +368,17 @@ cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entit
 }
 
 /**
- * @brief Returns a GPtrArray of brushes belonging to the given entity.
+ * @brief Returns a Vector of brushes belonging to the given entity.
  */
-GPtrArray *Cm_EntityBrushes(const cm_entity_t *entity) {
+Vector *Cm_EntityBrushes(const cm_entity_t *entity) {
 
-  GPtrArray *brushes = g_ptr_array_new();
+  Vector *brushes = $(alloc(Vector), initWithSize, sizeof(cm_bsp_brush_t *));
 
   cm_bsp_brush_t *brush = Cm_Bsp()->brushes;
   for (int32_t i = 0; i < Cm_Bsp()->num_brushes; i++, brush++) {
 
     if (brush->entity == entity) {
-      g_ptr_array_add(brushes, brush);
+      $(brushes, addElement, &brush);
     }
   }
 

@@ -439,8 +439,9 @@ char *Mem_CopyString(const char *in) {
 /**
  * @brief Comparison function for sorting `mem_stat_t` entries by descending allocated size.
  */
-static int32_t Mem_Stats_Sort(const void * a, const void * b) {
-  return (int32_t) (((const mem_stat_t *) b)->size - ((const mem_stat_t *) a)->size);
+static Order Mem_Stats_Sort(const ident a, const ident b) {
+  const int64_t diff = (int64_t) ((const mem_stat_t *) b)->size - (int64_t) ((const mem_stat_t *) a)->size;
+  return diff < 0 ? OrderAscending : diff > 0 ? OrderDescending : OrderSame;
 }
 
 /**
@@ -466,7 +467,7 @@ Vector *Mem_Stats(void) {
 
   Vector *stat_array = $(alloc(Vector), initWithSize, sizeof(mem_stat_t));
 
-  const mem_stat_t total = { .tag = -1, .size = mem_state.size, .count = 0 };
+  mem_stat_t total = { .tag = -1, .size = mem_state.size, .count = 0 };
   $(stat_array, addElement, &total);
 
   for (const mem_block_t *b = mem_state.head; b; b = b->next_block) {
@@ -481,7 +482,7 @@ Vector *Mem_Stats(void) {
     }
 
     if (stats == NULL) {
-      const mem_stat_t entry = {
+      mem_stat_t entry = {
         .tag = b->tag,
         .size = Mem_CalculateBlockSize(b),
         .count = 1

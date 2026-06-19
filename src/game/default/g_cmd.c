@@ -47,13 +47,13 @@ static void G_Give_f(g_client_t *cl) {
     quantity = 9999;
   }
 
-  if (g_ascii_strcasecmp(name, "all") == 0) {
+  if (SDL_strcasecmp(name, "all") == 0) {
     give_all = true;
   } else {
     give_all = false;
   }
 
-  if (give_all || g_ascii_strcasecmp(gi.Argv(1), "health") == 0) {
+  if (give_all || SDL_strcasecmp(gi.Argv(1), "health") == 0) {
     if (gi.Argc() == 3) {
       cl->entity->health = quantity;
     } else {
@@ -64,7 +64,7 @@ static void G_Give_f(g_client_t *cl) {
     }
   }
 
-  if (give_all || g_ascii_strcasecmp(name, "armor") == 0) {
+  if (give_all || SDL_strcasecmp(name, "armor") == 0) {
     for (g_item_tag_t t = ARMOR_FIRST; t < ARMOR_LAST; t++) {
       it = &g_items[t];
       if (!it->Pickup) {
@@ -80,7 +80,7 @@ static void G_Give_f(g_client_t *cl) {
     }
   }
 
-  if (give_all || g_ascii_strcasecmp(name, "weapons") == 0) {
+  if (give_all || SDL_strcasecmp(name, "weapons") == 0) {
     for (g_item_tag_t t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
       it = &g_items[t];
       if (!it->Pickup) {
@@ -96,7 +96,7 @@ static void G_Give_f(g_client_t *cl) {
     }
   }
 
-  if (give_all || g_ascii_strcasecmp(name, "ammo") == 0) {
+  if (give_all || SDL_strcasecmp(name, "ammo") == 0) {
     for (g_item_tag_t t = AMMO_FIRST; t < AMMO_LAST; t++) {
       it = &g_items[t];
       if (!it->Pickup) {

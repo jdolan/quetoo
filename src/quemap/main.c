@@ -340,15 +340,13 @@ int32_t main(int32_t argc, char **argv) {
 
   const char *filename = Com_Argv(Com_Argc() - 1);
 
-  if (!g_str_has_prefix(filename, "maps/")) {
+  if (strncmp(filename, "maps/", 5)) {
     PrintHelpMessage();
     Com_Error(ERROR_FATAL, "Invalid Quake path for %s.\n", filename);
   }
 
   // resolve the base name, used for all output files
-  char *basename = g_path_get_basename(filename);
-  StripExtension(basename, map_base);
-  free(basename);
+  StripExtension(Basename(filename), map_base);
 
   StripExtension(filename, map_name);
   SDL_strlcat(map_name, ".map", sizeof(map_name));

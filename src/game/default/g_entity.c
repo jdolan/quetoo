@@ -344,26 +344,31 @@ static void G_InitMedia(void) {
 }
 
 /**
+ * @brief Sort flag for G_CreateTeamSpawnPoints_SortFunc (no user_data in Objectively Vector sort).
+ */
+static g_entity_t *g_team_spawn_sort_flag;
+
+/**
  * @brief Sorts the spawns so that the furthest from the flag are at the beginning.
  */
-static int32_t G_CreateTeamSpawnPoints_CompareFunc(const void * a, const void * b, void * user_data) {
+static Order G_CreateTeamSpawnPoints_SortFunc(const ident a, const ident b) {
 
-  g_entity_t *flag = (g_entity_t *) user_data;
-  
-  const g_entity_t *ap = (const g_entity_t *) a;
-  const g_entity_t *bp = (const g_entity_t *) b;
+  g_entity_t *flag = g_team_spawn_sort_flag;
 
-  const int32_t a_dist = Vec3_DistanceSquared(flag->s.origin, ap->s.origin);
-  const int32_t b_dist = Vec3_DistanceSquared(flag->s.origin, bp->s.origin);
+  const g_entity_t *ap = *(const g_entity_t * const *) a;
+  const g_entity_t *bp = *(const g_entity_t * const *) b;
 
-  return SignOf(b_dist - a_dist);
+  const float a_dist = Vec3_DistanceSquared(flag->s.origin, ap->s.origin);
+  const float b_dist = Vec3_DistanceSquared(flag->s.origin, bp->s.origin);
+
+  return b_dist > a_dist ? OrderAscending : (b_dist < a_dist ? OrderDescending : OrderSame);
 }
 
 /**
  * @brief Creates team spawns if the map doesn't have one. Also creates flags, although
  * chances are they will be in crap positions.
  */
-static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns, GSList **team_blue_spawns) {
+static void G_CreateTeamSpawnPoints(Vector **dm_spawns, Vector **team_red_spawns, Vector **team_blue_spawns) {
 
   // find our flags
   g_entity_t *red_flag, *blue_flag;
@@ -377,21 +382,22 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
   } else if (!red_flag) {
     // no flag in map, so let's make one by repurposing the furthest spawn points
 
-    if (g_slist_length(*dm_spawns) < 4) {
+    if (!*dm_spawns || (*dm_spawns)->count < 4) {
       return; // not enough points to make a flag
     }
 
     float furthest_dist = 0;
 
-    for (GSList *pa = *dm_spawns; pa; pa = pa->next) {
-      for (GSList *pb = *dm_spawns; pb; pb = pb->next) {
+    for (uint32_t _a = 0; *dm_spawns && _a < (*dm_spawns)->count; _a++) {
+      Vector *_dms = *dm_spawns;
+      for (uint32_t _b = 0; _b < _dms->count; _b++) {
 
-        if (pa == pb) {
+        if (_a == _b) {
           continue;
         }
         
-        g_entity_t *pae = (g_entity_t *) pa->data;
-        g_entity_t *pab = (g_entity_t *) pb->data;
+        g_entity_t *pae = VectorElement(_dms, g_entity_t *, _a);
+        g_entity_t *pab = VectorElement(_dms, g_entity_t *, _b);
 
         if ((reused_spawns[0] == pae && reused_spawns[1] == pab) ||
           (reused_spawns[0] == pab && reused_spawns[1] == pae)) {
@@ -432,9 +438,9 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
     g_team_blue->flag_entity = blue_flag;
   }
 
-  for (GSList *point = *dm_spawns; point; point = point->next) {
-
-    g_entity_t *p = (g_entity_t *) point->data;
+  for (uint32_t _i = 0; *dm_spawns && _i < (*dm_spawns)->count; _i++) {
+    Vector *_dms = *dm_spawns;
+    g_entity_t *p = VectorElement(_dms, g_entity_t *, _i);
 
     if (p == reused_spawns[0] || p == reused_spawns[1]) {
       continue;
@@ -444,25 +450,32 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
     const float dist_to_blue = Vec3_DistanceSquared(blue_flag->s.origin, p->s.origin);
 
     if (dist_to_red < dist_to_blue) {
-      *team_red_spawns = g_slist_prepend(*team_red_spawns, p);
+      if (!*team_red_spawns) { *team_red_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
+      $(*team_red_spawns, addElement, &p);
     } else {
-      *team_blue_spawns = g_slist_prepend(*team_blue_spawns, p);
+      if (!*team_blue_spawns) { *team_blue_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
+      $(*team_blue_spawns, addElement, &p);
     }
   }
 
-  if (g_slist_length(*team_red_spawns) == g_slist_length(*team_blue_spawns)) {
+  const uint32_t num_red = *team_red_spawns ? (uint32_t) (*team_red_spawns)->count : 0;
+  const uint32_t num_blue = *team_blue_spawns ? (uint32_t) (*team_blue_spawns)->count : 0;
+
+  if (num_red == num_blue) {
     return; // best case scenario
   }
   
   // unmatched spawns, we need to move some
-  *team_red_spawns = g_slist_sort_with_data(*team_red_spawns, G_CreateTeamSpawnPoints_CompareFunc, red_flag);
-  *team_blue_spawns = g_slist_sort_with_data(*team_blue_spawns, G_CreateTeamSpawnPoints_CompareFunc, blue_flag);
+  g_team_spawn_sort_flag = red_flag;
+  if (*team_red_spawns) { $(*team_red_spawns, sort, G_CreateTeamSpawnPoints_SortFunc); }
+  g_team_spawn_sort_flag = blue_flag;
+  if (*team_blue_spawns) { $(*team_blue_spawns, sort, G_CreateTeamSpawnPoints_SortFunc); }
     
-  int32_t num_red_spawns = (int32_t) g_slist_length(*team_red_spawns);
-  int32_t num_blue_spawns = (int32_t) g_slist_length(*team_blue_spawns);
+  int32_t num_red_spawns = (int32_t) num_red;
+  int32_t num_blue_spawns = (int32_t) num_blue;
   int32_t diff = abs(num_red_spawns - num_blue_spawns);
 
-  GSList **from, **to;
+  Vector **from, **to;
 
   if (num_red_spawns > num_blue_spawns) {
     from = team_red_spawns;
@@ -474,20 +487,22 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 
   // odd number of points, make one neutral
   if (diff & 1) {
-    g_entity_t *point = (g_entity_t *) ((*from)->data);
-
-    *to = g_slist_prepend(*to, point);
+    Vector *_from = *from;
+    g_entity_t *point = VectorElement(_from, g_entity_t *, 0);
+    if (!*to) { *to = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
+    $(*to, addElement, &point);
   }
 
   int32_t num_move = diff - 1;
   
   // move spawns to the other team
   while (num_move) {
+    Vector *_from = *from;
+    g_entity_t *point = VectorElement(_from, g_entity_t *, 0);
 
-    g_entity_t *point = (g_entity_t *) ((*from)->data);
-
-    *from = g_slist_remove(*from, point);
-    *to = g_slist_prepend(*to, point);
+    $(*from, removeElementAtIndex, 0);
+    if (!*to) { *to = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
+    $(*to, addElement, &point);
 
     num_move--;
   }
@@ -499,18 +514,20 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
 static void G_InitSpawnPoints(void) {
 
   // first, set up all of the deathmatch points
-  GSList *dm_spawns = NULL;
+  Vector *dm_spawns = NULL;
   g_entity_t *spot = NULL;
 
   while ((spot = G_Find(spot, EOFS(classname), "info_player_deathmatch")) != NULL) {
-    dm_spawns = g_slist_prepend(dm_spawns, spot);
+    if (!dm_spawns) { dm_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
+    $(dm_spawns, addElement, &spot);
   }
 
   if (!dm_spawns) {
     spot = NULL;
 
     while ((spot = G_Find(spot, EOFS(classname), "info_player_start")) != NULL) {
-      dm_spawns = g_slist_prepend(dm_spawns, spot);
+      if (!dm_spawns) { dm_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
+      $(dm_spawns, addElement, &spot);
     }
   }
   
@@ -520,7 +537,7 @@ static void G_InitSpawnPoints(void) {
     g_team_list[t].flag_entity = G_Find(NULL, EOFS(classname), g_team_list[t].flag);
   }
 
-  GSList *team_spawns[MAX_TEAMS];
+  Vector *team_spawns[MAX_TEAMS];
 
   memset(team_spawns, 0, sizeof(team_spawns));
 
@@ -528,7 +545,8 @@ static void G_InitSpawnPoints(void) {
 
   while ((spot = G_Find(spot, EOFS(classname), "info_player_team_any")) != NULL) {
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
-      team_spawns[t] = g_slist_prepend(team_spawns[t], spot);
+      if (!team_spawns[t]) { team_spawns[t] = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
+      $(team_spawns[t], addElement, &spot);
     }
   }
 
@@ -537,25 +555,27 @@ static void G_InitSpawnPoints(void) {
     g_team_t *team = &g_team_list[t];
 
     while ((spot = G_Find(spot, EOFS(classname), team->spawn)) != NULL) {
-      team_spawns[t] = g_slist_prepend(team_spawns[t], spot);
+      if (!team_spawns[t]) { team_spawns[t] = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
+      $(team_spawns[t], addElement, &spot);
     }
 
-    team->spawn_points.count = g_slist_length(team_spawns[t]);
+    team->spawn_points.count = team_spawns[t] ? (int32_t) team_spawns[t]->count : 0;
   }
 
-  g_level.spawn_points.count = g_slist_length(dm_spawns);
-
-  GSList *point = NULL;
+  g_level.spawn_points.count = dm_spawns ? (int32_t) dm_spawns->count : 0;
 
   // in the odd case that the map only has team spawns, we'll use them
   if (!g_level.spawn_points.count) {
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
-      for (point = team_spawns[t]; point; point = point->next) {
-        dm_spawns = g_slist_prepend(dm_spawns, (g_entity_t *) point->data);
+      if (!team_spawns[t]) { continue; }
+      for (uint32_t i = 0; i < team_spawns[t]->count; i++) {
+        g_entity_t *p = VectorElement(team_spawns[t], g_entity_t *, i);
+        if (!dm_spawns) { dm_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
+        $(dm_spawns, addElement, &p);
       }
     }
     
-    g_level.spawn_points.count = g_slist_length(dm_spawns);
+    g_level.spawn_points.count = dm_spawns ? (int32_t) dm_spawns->count : 0;
 
     if (!g_level.spawn_points.count) {
       gi.Error("Map has no spawn points\n");
@@ -569,32 +589,30 @@ static void G_InitSpawnPoints(void) {
 
     // re-calculate final values since the above may change them
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
-      g_team_list[t].spawn_points.count = g_slist_length(team_spawns[t]);
+      g_team_list[t].spawn_points.count = team_spawns[t] ? (int32_t) team_spawns[t]->count : 0;
     }
 
-    g_level.spawn_points.count = g_slist_length(dm_spawns);
+    g_level.spawn_points.count = dm_spawns ? (int32_t) dm_spawns->count : 0;
   }
 
   // copy all the data in!
-  size_t i;
-
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
     g_team_list[t].spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_team_list[t].spawn_points.count, MEM_TAG_GAME_LEVEL);
   
-    for (i = 0, point = team_spawns[t]; point; point = point->next, i++) {
-      g_team_list[t].spawn_points.spots[i] = (g_entity_t *) point->data;
+    for (int32_t i = 0; team_spawns[t] && i < (int32_t) team_spawns[t]->count; i++) {
+      g_team_list[t].spawn_points.spots[i] = VectorElement(team_spawns[t], g_entity_t *, i);
     }
   
-    g_slist_free(team_spawns[t]);
+    if (team_spawns[t]) { release(team_spawns[t]); }
   }
   
   g_level.spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_level.spawn_points.count, MEM_TAG_GAME_LEVEL);
 
-  for (i = 0, point = dm_spawns; point; point = point->next, i++) {
-    g_level.spawn_points.spots[i] = (g_entity_t *) point->data;
+  for (int32_t i = 0; dm_spawns && i < (int32_t) dm_spawns->count; i++) {
+    g_level.spawn_points.spots[i] = VectorElement(dm_spawns, g_entity_t *, i);
   }
 
-  g_slist_free(dm_spawns);
+  if (dm_spawns) { release(dm_spawns); }
 
   G_InitNumTeams();
 }
@@ -663,8 +681,8 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
 
   SDL_strlcpy(g_level.name, name, sizeof(g_level.name));
 
-  g_level.frags    = g_array_new(false, false, sizeof(g_frag_t));
-  g_level.captures = g_array_new(false, false, sizeof(g_capture_t));
+  g_level.frags    = $(alloc(Vector), initWithSize, sizeof(g_frag_t));
+  g_level.captures = $(alloc(Vector), initWithSize, sizeof(g_capture_t));
 
   // Clear real client entity pointers before freeing entities to prevent dangling references
   G_ForEachClient(cl, {
@@ -713,21 +731,21 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
 /**
  * @brief CompareFunc to shuffle tracks.
  */
-int32_t G_worldspawn_MusicShuffle(const void * a, const void * b) {
-  return RandomRangei(-1, 2);
+int32_t G_worldspawn_MusicShuffle(const ident a, const ident b) {
+  return (Order) RandomRangei(-1, 2);
 }
 
 /**
  * @brief `Fs_Enumerator` to collect music track names.
  */
 static void G_worldspawn_EnumerateMusic(const char *path, void *data) {
-  GArray *tracks = (GArray *) data;
+  Vector *tracks = (Vector *) data;
   char name[MAX_QPATH];
   StripExtension(Basename(path), name);
   if (strcmp(name, "gtdstudio-explore") == 0) {
     return;
   }
-  g_array_append_val(tracks, name);
+  $(tracks, addElement, name);
 }
 
 /**
@@ -737,15 +755,15 @@ static void G_worldspawn_Music(void) {
 
   if (*g_level.music == '\0') {
 
-    GArray *tracks = g_array_new(0, 0, MAX_QPATH);
+    Vector *tracks = $(alloc(Vector), initWithSize, MAX_QPATH);
     gi.EnumerateFiles("music/*.ogg", G_worldspawn_EnumerateMusic, tracks);
-    g_array_sort(tracks, G_worldspawn_MusicShuffle);
+    $(tracks, sort, G_worldspawn_MusicShuffle);
 
-    for (int32_t i = 0; i < MIN(MAX_MUSICS, (int32_t) tracks->len); i++) {
-      gi.SetConfigString(CS_MUSICS + i, &g_array_index(tracks, char, i * MAX_QPATH));
+    for (int32_t i = 0; i < (int32_t) SDL_min(MAX_MUSICS, (int32_t) tracks->count); i++) {
+      gi.SetConfigString(CS_MUSICS + i, (char *) tracks->elements + (size_t) i * MAX_QPATH);
     }
 
-    g_array_free(tracks, 1);
+    release(tracks);
     return;
   }
 
@@ -765,8 +783,12 @@ static void G_worldspawn_Music(void) {
       break;
     }
 
+    while (isspace((unsigned char) *t)) { t++; }
+    char *_end = t + strlen(t) - 1;
+    while (_end >= t && isspace((unsigned char) *_end)) { *_end-- = '\0'; }
+
     if (*t != '\0') {
-      gi.SetConfigString(CS_MUSICS + i++, g_strstrip(t));
+      gi.SetConfigString(CS_MUSICS + i++, t);
     }
 
     t = strtok(NULL, ",");
@@ -851,7 +873,7 @@ static void G_worldspawn(g_entity_t *ent) {
   gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
   const cm_entity_t *items = gi.EntityValue(ent->def, "items");
-  if (g_ascii_strcasecmp(items->string, "quake") == 0) {
+  if (SDL_strcasecmp(items->string, "quake") == 0) {
     g_level.items = ITEMS_QUAKE;
   } else {
     g_level.items = ITEMS_DEFAULT;

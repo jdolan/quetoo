@@ -46,7 +46,7 @@ void teardown(void) {
 }
 
 START_TEST(check_Ms_AddServer) {
-  ck_assert_int_eq(g_list_length(ms_servers), 0);
+  ck_assert_int_eq(ms_servers ? (int) ms_servers->count : 0, 0);
 
   struct sockaddr_in addr;
   memset(&addr, 0, sizeof(addr));
@@ -56,21 +56,21 @@ START_TEST(check_Ms_AddServer) {
   addr.sin_port = htons(PORT_SERVER);
 
   Ms_AddServer(&addr);
-  ck_assert_int_eq(g_list_length(ms_servers), 1);
+  ck_assert_int_eq((int) ms_servers->count, 1);
 
-  ms_server_t *server = g_list_nth_data(ms_servers, 0);
+  ms_server_t *server = (ms_server_t *) ms_servers->head->data;
   ck_assert_msg(server->addr.sin_addr.s_addr == addr.sin_addr.s_addr, "Corrupt server address");
 
   Ms_AddServer(&addr);
-  ck_assert_int_eq(g_list_length(ms_servers), 1);
+  ck_assert_int_eq((int) ms_servers->count, 1);
 
   *(in_addr_t *) &addr.sin_addr = inet_addr("192.168.1.2");
 
   Ms_AddServer(&addr);
-  ck_assert_int_eq(g_list_length(ms_servers), 2);
+  ck_assert_int_eq((int) ms_servers->count, 2);
 
   Ms_RemoveServer(&addr);
-  ck_assert_int_eq(g_list_length(ms_servers), 1);
+  ck_assert_int_eq((int) ms_servers->count, 1);
 
   ms_server_t *s = Ms_GetServer(&addr);
   ck_assert_msg(!s, "Server was not NULL");

@@ -33,6 +33,7 @@
 #include "client/cl_types.h"
 #include "common/installer.h"
 #include <Objectively/RESTClient.h>
+#include <Objectively/Vector.h>
 
 #define CGAME_API_VERSION 32
 
@@ -537,7 +538,7 @@ typedef struct cg_import_s {
    * in the source .map file. Even `func_group` and other entities which have their
    * brushes merged into `worldspawn` during the compilation step are fully supported.
    */
-  GPtrArray *(*EntityBrushes)(const cm_entity_t *entity);
+  Vector *(*EntityBrushes)(const cm_entity_t *entity);
 
   /**
    * @brief Allocates a new entity definition. Used primarily by the editor.
@@ -1043,7 +1044,7 @@ typedef struct cg_export_s {
    * @brief Called each frame to run all pending movement commands and update the client's
    * predicted state.
    */
-  void (*PredictMovement)(const GPtrArray *cmds);
+  void (*PredictMovement)(const Vector *cmds);
 
   /**
    * @brief Called during the loading process to allow the client game to update the loading

@@ -23,7 +23,7 @@
 #include "points.h"
 #include "qlight.h"
 
-GPtrArray *lights = NULL;
+Vector *lights = NULL;
 
 /**
  * @brief Allocates and returns a new light structure.
@@ -158,7 +158,11 @@ void FreeLights(void) {
     return;
   }
 
-  g_ptr_array_free(lights, true);
+  for (size_t i = 0; i < lights->count; i++) {
+    FreeLight(*VectorElement(lights, light_t *, i));
+  }
+
+  release(lights);
   lights = NULL;
 }
 
@@ -171,20 +175,20 @@ void BuildLights(void) {
 
   Progress("Building lights", 0);
 
-  lights = lights ?: g_ptr_array_new_with_free_func((GDestroyNotify) FreeLight);
+  lights = lights ?: $(alloc(Vector), initWithSize, sizeof(light_t *));
 
   cm_entity_t **entity = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
     light_t *light = LightForEntity(*entity);
     if (light) {
-      g_ptr_array_add(lights, light);
+      $(lights, addElement, &light);
     }
     Progress("Building lights", i * 100.f / Cm_Bsp()->num_entities);
   }
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Building lights", (uint32_t) SDL_GetTicks() - start);
 
-  Com_Verbose("Lighting for %d lights\n", lights->len);
+  Com_Verbose("Lighting for %zu lights\n", lights->count);
 }
 
 /**
@@ -198,17 +202,17 @@ void EmitLights(void) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  if ((int32_t) lights->len >= MAX_BSP_LIGHTS) {
+  if ((int32_t) lights->count >= MAX_BSP_LIGHTS) {
     Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTS\n");
   }
 
   Bsp_AllocLump(&bsp_file, BSP_LUMP_ELEMENTS, MAX_BSP_ELEMENTS);
-  Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, lights->len);
+  Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, lights->count);
 
   bsp_light_t *out = bsp_file.lights;
-  for (uint32_t i = 0; i < lights->len; i++) {
+  for (size_t i = 0; i < lights->count; i++) {
 
-    light_t *light = g_ptr_array_index(lights, i);
+    light_t *light = *VectorElement(lights, light_t *, i);
 
     if (light->target_entity != -1) {
       // These will use the dynamic lighting code path at runtime and can not use precomputed
@@ -286,7 +290,7 @@ void EmitLights(void) {
 
     out++;
 
-    Progress("Emitting lights", 100.f * i / lights->len);
+    Progress("Emitting lights", 100.f * i / lights->count);
   }
 
   bsp_file.num_lights = (int32_t) (ptrdiff_t) (out - bsp_file.lights);

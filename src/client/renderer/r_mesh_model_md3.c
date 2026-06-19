@@ -292,7 +292,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
     Com_Error(ERROR_DROP, "%s MD3_MAX_SURFACES %d\n", mod->media.name, md3.num_surfaces);
   }
 
-  if (!g_str_has_prefix(mod->media.name, "players/")) {
+  if (strncmp(mod->media.name, "players/", 8)) {
     Com_Warn("%s: MD3 is only supported for player models; use OBJ instead\n", mod->media.name);
     return;
   }

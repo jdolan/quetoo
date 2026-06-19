@@ -39,20 +39,20 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
   ent->s.angles = Cm_EntityValue(ent->def, "angles")->vec3;
   ent->s.color = Color32i(0xffffffff);
 
-  if (g_str_equal(ent->classname, "worldspawn")) {
+  if (!strcmp(ent->classname, "worldspawn")) {
     ent->s.effects = EF_WORLD;
-  } else if (g_str_has_prefix(ent->classname, "info_player")) {
+  } else if (!strncmp(ent->classname, "info_player", strlen("info_player"))) {
     ent->bounds = Box3(Vec3(-16.f, -16.f, -24.f), Vec3(16.f, 16.f, 36.f));
     ent->s.color = Color32i(0xffff00ff);
-  } else if (g_str_has_prefix(ent->classname, "light")) {
+  } else if (!strncmp(ent->classname, "light", strlen("light"))) {
     ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
-  } else if (g_str_has_prefix(ent->classname, "trigger_")) {
+  } else if (!strncmp(ent->classname, "trigger_", strlen("trigger_"))) {
     ent->s.color = Color32i(0xff0088ff);
-  } else if (g_str_has_prefix(ent->classname, "func_")) {
+  } else if (!strncmp(ent->classname, "func_", strlen("func_"))) {
     ent->s.color = Color32i(0xff00ff00);
-  } else if (g_str_has_prefix(ent->classname, "misc_")) {
+  } else if (!strncmp(ent->classname, "misc_", strlen("misc_"))) {
     ent->s.color = Color32i(0xff00ffff);
-  } else if (g_str_has_prefix(ent->classname, "item_")) {
+  } else if (!strncmp(ent->classname, "item_", strlen("item_"))) {
     ent->s.color = Color32i(0xffffff00);
   }
 
@@ -65,15 +65,15 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
     // entity may have brushes without an inline model (e.g. misc_dust, brushes merged into worldspawn)
     // brush->entity always points to the original Cm_Bsp() entity; def may be a re-parsed copy after edits
     const cm_entity_t *bsp_def = number < Cm_Bsp()->num_entities ? Cm_Bsp()->entities[number] : def;
-    GPtrArray *brushes = Cm_EntityBrushes(bsp_def);
-    if (brushes->len) {
+    Vector *brushes = Cm_EntityBrushes(bsp_def);
+    if (brushes->count) {
       ent->bounds = Box3_Null();
-      for (uint32_t j = 0; j < brushes->len; j++) {
-        const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, j);
+      for (uint32_t j = 0; j < brushes->count; j++) {
+        const cm_bsp_brush_t *brush = VectorElement(brushes, cm_bsp_brush_t *, j);
         ent->bounds = Box3_Union(ent->bounds, brush->bounds);
       }
     }
-    g_ptr_array_free(brushes, true);
+    release(brushes);
   }
 
   Sv_LinkEntity(ent);

@@ -284,7 +284,8 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
     sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_BSP], &bsp_size);
 
     const char *dir = Fs_RealDir(sv.config_strings[CS_BSP]);
-    if (g_str_has_suffix(dir, ".pk3")) {
+    const size_t dir_len = strlen(dir);
+    if (dir_len >= 4 && !strcmp(dir + dir_len - 4, ".pk3")) {
       SDL_strlcpy(sv.config_strings[CS_PK3], Basename(dir), MAX_STRING_CHARS);
     } else {
       sv.config_strings[CS_PK3][0] = '\0';

@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <Objectively/List.h>
+
 #include "deps/minizip/miniz.h"
 
 #include "bsp.h"
@@ -26,6 +28,18 @@
 
 bool include_shared = false;
 bool update_zip = false;
+
+static bool HasSuffix(const char *str, const char *suffix) {
+  const size_t len = strlen(str);
+  const size_t suffix_len = strlen(suffix);
+  return len >= suffix_len && !strcmp(str + len - suffix_len, suffix);
+}
+
+static void CollectManifestAsset(const HashTable *table, ident key, ident value, ident data) {
+  List *assets = data;
+  const cm_manifest_entry_t *entry = value;
+  $(assets, append, SDL_strdup(entry->path));
+}
 
 /**
  * @brief Reads the manifest file and generates a pk3 archive containing
@@ -43,24 +57,18 @@ int32_t ZIP_Main(void) {
   char mf_path[MAX_OS_PATH];
   SDL_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
 
-  GHashTable *manifest = Cm_ReadManifest(mf_path);
+  HashTable *manifest = Cm_ReadManifest(mf_path);
   if (!manifest) {
     Com_Error(ERROR_FATAL, "Failed to load %s. Run -bsp first to generate the manifest.\n", mf_path);
   }
 
   // the manifest includes the bsp and all referenced assets
-  GList *assets = NULL;
+  List *assets = $(alloc(List), init);
+  assets->destroy = (ListDestroyFunc) SDL_free;
 
   // include the manifest itself so the pk3 is self-contained
-  assets = g_list_append(assets, SDL_strdup(mf_path));
-
-  GHashTableIter iter;
-  void * key, val;
-  g_hash_table_iter_init(&iter, manifest);
-  while (g_hash_table_iter_next(&iter, &key, &val)) {
-    const cm_manifest_entry_t *entry = val;
-    assets = g_list_append(assets, SDL_strdup(entry->path));
-  }
+  $(assets, append, SDL_strdup(mf_path));
+  $(manifest, enumerateEntries, CollectManifestAsset, assets);
 
   Cm_FreeManifest(manifest);
 
@@ -71,15 +79,13 @@ int32_t ZIP_Main(void) {
   SDL_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), map_base, getpid());
 
   if (mz_zip_writer_init_file(&zip, path, 0)) {
-    Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), path);
+    Com_Print("Compressing %zu resources to %s...\n", assets->count, path);
 
-    GList *a = assets;
-    while (a) {
-      const char *filename = (char *) a->data;
+    for (const ListNode *node = assets->head; node; node = node->next) {
+      const char *filename = node->data;
 
       if (!Fs_Exists(filename)) {
         Com_Warn("Missing %s\n", filename);
-        a = a->next;
         continue;
       }
 
@@ -95,10 +101,9 @@ int32_t ZIP_Main(void) {
           // skip it. This allows us to rebuild our official maps easily, but without
           // pulling in flares, envmaps, etc.
 
-          (g_str_has_prefix(dir, PKGDATADIR) && !g_str_has_suffix(dir, ".pk3"))) {
+          (!strncmp(dir, PKGDATADIR, strlen(PKGDATADIR)) && !HasSuffix(dir, ".pk3"))) {
 
             Com_Print("[S] %s (%s)\n", filename, dir);
-            a = a->next;
             continue;
         }
       }
@@ -107,7 +112,6 @@ int32_t ZIP_Main(void) {
       const int64_t len = Fs_Load(filename, &buffer);
       if (len == -1) {
         Com_Warn("Failed to read %s\n", filename);
-        a = a->next;
         continue;
       }
 
@@ -121,7 +125,6 @@ int32_t ZIP_Main(void) {
       Com_Print("[A] %s\n", filename);
 
       Fs_Free(buffer);
-      a = a->next;
     }
 
     if (!mz_zip_writer_finalize_archive(&zip)) {
@@ -135,7 +138,8 @@ int32_t ZIP_Main(void) {
           mz_zip_get_error_string(mz_zip_get_last_error(&zip)));
   }
 
-  g_list_free_full(assets, g_free);
+  $(assets, removeAll);
+  release(assets);
 
   const uint32_t end = (uint32_t) SDL_GetTicks();
   Com_Print("\nWrote %s in %d ms\n", path, end - start);
@@ -147,12 +151,11 @@ int32_t ZIP_Main(void) {
       const char *dir = Fs_RealDir(existing);
 
       if (dir) {
-        char *to_update = g_build_filename(dir, existing, NULL);
+        char to_update[MAX_OS_PATH];
+        SDL_snprintf(to_update, sizeof(to_update), "%s/%s", dir, existing);
 
         rename(path, to_update);
         Com_Print("Renamed %s to %s\n", path, to_update);
-
-        free(to_update);
       } else {
         Com_Warn("Can't update %s: Failed to resolve real path\n", existing);
       }

@@ -22,6 +22,10 @@
 #include <physfs.h>
 #include <SDL3/SDL.h>
 
+#include <Objectively/HashTable.h>
+#include <Objectively/List.h>
+#include <Objectively/Vector.h>
+
 #include "console.h"
 #include "filesystem.h"
 
@@ -67,7 +71,7 @@ typedef struct {
    * @brief For debugging purposes, track all loaded files to ensure that
    * they are freed (`Fs_Free`) in all code paths.
    */
-  GHashTable *loaded_files;
+  HashTable *loaded_files;
 } fs_state_t;
 
 static fs_state_t fs_state;
@@ -316,7 +320,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
             Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
           }
 
-          g_hash_table_insert(fs_state.loaded_files, *buffer,
+          $(fs_state.loaded_files, set, *buffer,
                     (void *) Mem_CopyString(filename));
         } else {
           *buffer = NULL;
@@ -324,7 +328,8 @@ int64_t Fs_Load(const char *filename, void **buffer) {
       }
     } else {
 
-      GList *list = NULL;
+      List *list = $(alloc(List), init);
+      list->destroy = (ListDestroyFunc) Mem_Free;
       len = 0;
 
       typedef struct {
@@ -342,7 +347,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
           Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
         }
 
-        list = g_list_append(list, chunk);
+        $(list, append, chunk);
         len += chunk->len;
       }
 
@@ -350,9 +355,9 @@ int64_t Fs_Load(const char *filename, void **buffer) {
         if (len > 0) {
           byte *buf = *buffer = Mem_TagMalloc(len + 1, MEM_TAG_FS);
 
-          GList *e = list;
+          const ListNode *e = list->head;
           while (e) {
-            fs_chunk_t *b = (fs_chunk_t *) e->data;
+            fs_chunk_t *b = e->data;
 
             memcpy(buf, b->data, b->len);
             buf += (ptrdiff_t) b->len;
@@ -360,7 +365,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
             e = e->next;
           }
 
-          g_hash_table_insert(fs_state.loaded_files, *buffer,
+          $(fs_state.loaded_files, set, *buffer,
                     (void *) Mem_CopyString(filename));
         } else {
 
@@ -368,7 +373,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
         }
       }
 
-      g_list_free_full(list, Mem_Free);
+      release(list);
     }
 
     Fs_Close(file);
@@ -390,8 +395,10 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 void Fs_Free(void *buffer) {
 
   if (buffer) {
-    if (!g_hash_table_remove(fs_state.loaded_files, buffer)) {
+    if (!$(fs_state.loaded_files, get, buffer)) {
       Com_Warn("Invalid buffer\n");
+    } else {
+      $(fs_state.loaded_files, remove, buffer);
     }
     Mem_Free(buffer);
   }
@@ -403,8 +410,8 @@ void Fs_Free(void *buffer) {
 bool Fs_Rename(const char *source, const char *dest) {
   const char *dir = Fs_WriteDir();
 
-  const char *src = va("%s"G_DIR_SEPARATOR_S"%s", dir, source);
-  const char *dst = va("%s"G_DIR_SEPARATOR_S"%s", dir, dest);
+  const char *src = va("%s/%s", dir, source);
+  const char *dst = va("%s/%s", dir, dest);
 
   return rename(src, dst) == 0;
 }
@@ -477,11 +484,8 @@ void Fs_Enumerate(const char *pattern, Fs_Enumerator func, void *data) {
   PHYSFS_enumerate(enumerator.dir, Fs_Enumerate_, &enumerator);
 }
 
-/**
- * @brief GHFunc for `Fs_CompleteFile`.
- */
 static void Fs_CompleteFile_enumerate(const char *path, void *data) {
-  GList **matches = (GList **) data;
+  List *matches = data;
 
   char name[MAX_OS_PATH];
   StripExtension(Basename(path), name);
@@ -492,8 +496,8 @@ static void Fs_CompleteFile_enumerate(const char *path, void *data) {
 /**
  * @brief Console completion for file names.
  */
-void Fs_CompleteFile(const char *pattern, GList **matches) {
-  Fs_Enumerate(pattern, Fs_CompleteFile_enumerate, (void *) matches);
+void Fs_CompleteFile(const char *pattern, List *matches) {
+  Fs_Enumerate(pattern, Fs_CompleteFile_enumerate, matches);
 }
 
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
@@ -504,10 +508,11 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
  */
 void Fs_AddToSearchPath(const char *path) {
 
-  if (g_file_test(path, G_FILE_TEST_EXISTS)) {
+  SDL_PathInfo info;
+  if (SDL_GetPathInfo(path, &info)) {
     Com_Print("Adding path %s..\n", path);
 
-    const bool is_dir = g_file_test(path, G_FILE_TEST_IS_DIR);
+    const bool is_dir = (info.type == SDL_PATHTYPE_DIRECTORY);
 
     if (PHYSFS_mount(path, NULL, !is_dir) == 0) {
       Com_Warn("%s: %s\n", path, Fs_LastError());
@@ -536,7 +541,7 @@ void Fs_AddToSearchPathv(const char *dir, ...) {
 
     dir = va_arg(args, const char *);
     if (dir) {
-      SDL_strlcat(path, G_DIR_SEPARATOR_S, sizeof(path));
+      SDL_strlcat(path, "/", sizeof(path));
     }
   }
 
@@ -565,17 +570,16 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
  */
 static void Fs_AddUserSearchPath(const char *dir) {
 
-  char *path = g_build_path(G_DIR_SEPARATOR_S, Sys_UserDir(), dir, NULL);
+  char path[MAX_OS_PATH];
+  SDL_snprintf(path, sizeof(path), "%s/%s", Sys_UserDir(), dir);
 
-  if (g_mkdir_with_parents(path, 0755)) {
+  if (!SDL_CreateDirectory(path)) {
     Com_Warn("Failed to create %s\n", path);
     return;
   }
 
   Fs_AddToSearchPath(path);
   Fs_SetWriteDir(path);
-
-  free(path);
 }
 
 /**
@@ -630,8 +634,9 @@ void Fs_SetGame(const char *dir) {
  */
 void Fs_SetWriteDir(const char *dir) {
 
-  if (g_file_test(dir, G_FILE_TEST_EXISTS)) {
-    if (!g_file_test(dir, G_FILE_TEST_IS_DIR)) {
+  SDL_PathInfo dir_info;
+  if (SDL_GetPathInfo(dir, &dir_info)) {
+    if (dir_info.type != SDL_PATHTYPE_DIRECTORY) {
       Com_Warn("%s exists but is not a directory\n", dir);
       return;
     }
@@ -667,14 +672,14 @@ const char *Fs_RealDir(const char *filename) {
 const char *Fs_RealPath(const char *path) {
   static char real_path[MAX_OS_PATH];
 
-  SDL_snprintf(real_path, sizeof(real_path), "%s%s", Fs_WriteDir(), G_DIR_SEPARATOR_S);
+  SDL_snprintf(real_path, sizeof(real_path), "%s/", Fs_WriteDir());
 
   const char *in = path;
   char *out = real_path + strlen(real_path);
 
   while (*in && (size_t) (out - real_path) < (sizeof(real_path) - 1)) {
     if (*in == '/') {
-      *out = G_DIR_SEPARATOR;
+      *out = '/';
     } else {
       *out = *in;
     }
@@ -754,7 +759,7 @@ void Fs_Init(const uint32_t flags) {
       // skips non-existent paths, leaving the installer with nowhere to write.
       char data_default[MAX_OS_PATH];
       SDL_snprintf(data_default, MAX_OS_PATH, "%s/%s", fs_state.data_dir, DEFAULT_GAME);
-      g_mkdir_with_parents(data_default, 0755);
+      SDL_CreateDirectory(data_default);
 
       char resources[MAX_OS_PATH];
       SDL_snprintf(resources, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
@@ -814,13 +819,14 @@ void Fs_Init(const uint32_t flags) {
   // these paths will be retained across all game modules
   fs_state.base_search_paths = PHYSFS_getSearchPath();
 
-  fs_state.loaded_files = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, Mem_Free);
+  fs_state.loaded_files = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
+  fs_state.loaded_files->destroyValue = (HashTableDestroyFunc) Mem_Free;
 }
 
 /**
  * @brief Prints the names of loaded (i.e. yet-to-be-freed) files.
  */
-static void Fs_LoadedFiles_(void * key, void * value, void * data) {
+static void Fs_LoadedFiles_(const HashTable *table, ident key, ident value, ident data) {
   Com_Print("Fs_PrintLoadedFiles: %s @ %p\n", (char *) value, key);
 }
 
@@ -833,8 +839,8 @@ void Fs_Shutdown(void) {
     return;
   }
 
-  g_hash_table_foreach(fs_state.loaded_files, Fs_LoadedFiles_, NULL);
-  g_hash_table_destroy(fs_state.loaded_files);
+  $(fs_state.loaded_files, enumerateEntries, Fs_LoadedFiles_, NULL);
+  release(fs_state.loaded_files);
 
   PHYSFS_freeList(fs_state.base_search_paths);
 

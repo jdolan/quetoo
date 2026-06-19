@@ -632,7 +632,7 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
  */
 static void G_Give(g_client_t *cl, char *it, int16_t quantity) {
 
-  if (!g_ascii_strcasecmp(it, "Health")) {
+  if (!SDL_strcasecmp(it, "Health")) {
     cl->entity->health = quantity;
     return;
   }
@@ -688,7 +688,8 @@ static bool G_GiveLevelLocals(g_client_t *cl) {
       break;
     }
 
-    it = g_strstrip(it);
+    while (isspace((unsigned char) *it)) { it++; }
+    { char *_end = it + strlen(it) - 1; while (_end >= it && isspace((unsigned char) *_end)) { *_end-- = '\0'; } }
 
     if (*it != '\0') {
 

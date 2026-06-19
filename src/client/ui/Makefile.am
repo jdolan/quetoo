@@ -20,7 +20,7 @@ libui_la_CFLAGS = \
 	-I$(top_srcdir)/src/client \
 	-I$(top_srcdir)/src/client/renderer \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
 	@SDL3_CFLAGS@

@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <Objectively/Vector.h>
+
 #include "bsp.h"
 
 #define LIGHT_COLOR Vec3(1.f, 1.f, 1.f)
@@ -88,7 +90,7 @@ typedef struct light_s {
   int32_t target_entity;
 } light_t;
 
-extern GPtrArray *lights;
+extern Vector *lights;
 
 void FreeLights(void);
 void BuildLights(void);

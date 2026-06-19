@@ -30,6 +30,44 @@
 //                         team name    skin             shirt    pants    helmet   hue
 #define DEFAULT_CLIENT_INFO "-1\\newbie\\qforcer/default\\default\\default\\default\\default"
 
+static char *Cg_StripWhitespace(char *str) {
+
+  while (isspace((unsigned char) *str)) {
+    str++;
+  }
+
+  if (*str) {
+    char *end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char) *end)) {
+      *end-- = '\0';
+    }
+  }
+
+  return str;
+}
+
+static size_t Cg_SplitClientInfo(char *str, char **info, size_t len) {
+
+  size_t count = 0;
+  char *cursor = str;
+
+  while (true) {
+    if (count == len) {
+      return count + 1;
+    }
+
+    info[count++] = cursor;
+
+    char *separator = strchr(cursor, '\\');
+    if (separator == NULL) {
+      return count;
+    }
+
+    *separator = '\0';
+    cursor = separator + 1;
+  }
+}
+
 /**
  * @brief Resolves a single skin line, matching the surface name against
  * all three mesh models and storing the material in the appropriate skins array.
@@ -68,7 +106,7 @@ static void Cg_LoadClientSkin(cg_client_info_t *ci, char *line) {
 
     const r_mesh_face_t *face = meshes[m].model->mesh->faces;
     for (int32_t i = 0; i < meshes[m].model->mesh->num_faces; i++, face++) {
-      if (!g_ascii_strcasecmp(face_name, face->name)) {
+      if (!SDL_strcasecmp(face_name, face->name)) {
         meshes[m].skins[i] = cgi.LoadMaterial(skin_name, ASSET_CONTEXT_PLAYERS);
         return;
       }
@@ -100,7 +138,7 @@ static bool Cg_LoadClientSkins(cg_client_info_t *ci, const char *skin) {
     line[j++] = c;
 
     if (c == '\n' || c == '\r' || i == len) {
-      Cg_LoadClientSkin(ci, g_strstrip(line));
+      Cg_LoadClientSkin(ci, Cg_StripWhitespace(line));
 
       j = 0;
       memset(line, 0, sizeof(line));
@@ -222,9 +260,11 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
   }
 
   // split info into tokens
-  char **info = g_strsplit(s, "\\", 0);
+  char info_string[sizeof(ci->info)];
+  char *info[MAX_CLIENT_INFO_ENTRIES];
+  SDL_strlcpy(info_string, s, sizeof(info_string));
 
-  if (g_strv_length(info) != MAX_CLIENT_INFO_ENTRIES) { // invalid info
+  if (Cg_SplitClientInfo(info_string, info, lengthof(info)) != MAX_CLIENT_INFO_ENTRIES) { // invalid info
     Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
   } else {
 
@@ -290,7 +330,6 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
     }
   }
 
-  g_strfreev(info);
 }
 
 /**

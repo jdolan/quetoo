@@ -55,7 +55,7 @@ const g_item_t *G_FindItem(const char *name) {
   for (g_item_tag_t t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
     const g_item_t *it = &g_items[t];
 
-    if (!g_ascii_strcasecmp(it->def.name, name)) {
+    if (!SDL_strcasecmp(it->def.name, name)) {
       if (G_ItemAvailable(it)) {
         return it;
       }
@@ -748,7 +748,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
           SDL_strlcpy(capture.team,        other_team->name,          sizeof(capture.team));
 
           if (capture.player_guid[0]) {
-            g_array_append_val(g_level.captures, capture);
+            $(g_level.captures, addElement, &capture);
           }
         }
 
@@ -1341,11 +1341,12 @@ void G_PrecacheItem(const g_item_t *it) {
     }
 
     // determine type based on extension
-    if (g_str_has_suffix(data, ".md3") || g_str_has_suffix(data, ".obj")) {
+    const size_t dlen = strlen(data);
+    if ((dlen >= 4 && (!strcmp(data + dlen - 4, ".md3") || !strcmp(data + dlen - 4, ".obj")))) {
       gi.ModelIndex(data);
-    } else if (g_str_has_suffix(data, ".wav") || g_str_has_suffix(data, ".ogg")) {
+    } else if (dlen >= 4 && (!strcmp(data + dlen - 4, ".wav") || !strcmp(data + dlen - 4, ".ogg"))) {
       gi.SoundIndex(data);
-    } else if (g_str_has_suffix(data, ".png") || g_str_has_suffix(data, ".jpg") || g_str_has_suffix(data, ".tga")) {
+    } else if (dlen >= 4 && (!strcmp(data + dlen - 4, ".png") || !strcmp(data + dlen - 4, ".jpg") || !strcmp(data + dlen - 4, ".tga"))) {
       gi.ImageIndex(data);
     } else {
       gi.Error("%s has unknown data type\n", it->def.classname);

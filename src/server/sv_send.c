@@ -141,12 +141,16 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
     }
   }
 
-  sv_client_message_t *msg = g_malloc0(sizeof(*msg));
+  sv_client_message_t *msg = Mem_TagMalloc(sizeof(*msg), MEM_TAG_SERVER);
 
   msg->offset = cl->datagram.buffer.size;
   msg->len = len;
 
-  cl->datagram.messages = g_list_append(cl->datagram.messages, msg);
+  if (!cl->datagram.messages) {
+    cl->datagram.messages = $(alloc(List), init);
+    cl->datagram.messages->destroy = (ListDestroyFunc) Mem_Free;
+  }
+  $(cl->datagram.messages, append, msg);
 
   Mem_WriteBuffer(&cl->datagram.buffer, data, len);
 
@@ -156,7 +160,7 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
     msg->offset = 0;
     cl->datagram.buffer.overflowed = false;
 
-    g_list_free_full(cl->datagram.messages, g_free);
+    $(cl->datagram.messages, removeAll); release(cl->datagram.messages); cl->datagram.messages = NULL;
     cl->datagram.messages = NULL;
   }
 }
@@ -271,21 +275,21 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
   }
 
   // but we can packetize the remaining datagram messages, which are parsed individually
-  const GList *e = cl->datagram.messages;
-  while (e) {
-    const sv_client_message_t *msg = (sv_client_message_t *) e->data;
+  if (cl->datagram.messages) {
+    for (const ListNode *node = cl->datagram.messages->head; node; node = node->next) {
+      const sv_client_message_t *msg = (const sv_client_message_t *) node->data;
 
-    // if we would overflow the packet, flush it first
-    if (buf.size + msg->len > (MAX_MSG_SIZE - 16)) {
-      Com_Debug(DEBUG_SERVER, "Fragmenting datagram @ %u bytes\n", (uint32_t) buf.size);
+      // if we would overflow the packet, flush it first
+      if (buf.size + msg->len > (MAX_MSG_SIZE - 16)) {
+        Com_Debug(DEBUG_SERVER, "Fragmenting datagram @ %u bytes\n", (uint32_t) buf.size);
 
-      Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
+        Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
 
-      Mem_ClearBuffer(&buf);
+        Mem_ClearBuffer(&buf);
+      }
+
+      Mem_WriteBuffer(&buf, cl->datagram.buffer.data + msg->offset, msg->len);
     }
-
-    Mem_WriteBuffer(&buf, cl->datagram.buffer.data + msg->offset, msg->len);
-    e = e->next;
   }
 
   // send the pending packet, which may include reliable messages
@@ -300,7 +304,7 @@ static void Sv_DemoCompleted(void) {
   if (sv_demo_list->string[0]) {
 
     const char *current_demo = sv.name;
-    const char *next_demo = g_strrstr(sv_demo_list->string, current_demo);
+    const char *next_demo = strstr(sv_demo_list->string, current_demo);
     char demo_token[MAX_QPATH];
 
     if (!next_demo) {
@@ -422,7 +426,7 @@ void Sv_SendClientPackets(void) {
       Mem_ClearBuffer(&cl->datagram.buffer);
 
       if (cl->datagram.messages) {
-        g_list_free_full(cl->datagram.messages, g_free);
+        $(cl->datagram.messages, removeAll); release(cl->datagram.messages); cl->datagram.messages = NULL;
       }
 
       cl->datagram.messages = NULL;

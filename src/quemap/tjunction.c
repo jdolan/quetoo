@@ -19,13 +19,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <Objectively/HashTable.h>
+#include <Objectively/Vector.h>
+
 #include "tjunction.h"
 #include "portal.h"
 #include "qbsp.h"
 
 static SDL_AtomicInt c_tjunctions;
-static GPtrArray *faces;
-static GHashTable *faces_set;
+static Vector *faces;
+static HashTable *faces_set;
 static SDL_SpinLock *faces_locks;
 static int32_t largest_winding = 0;
 
@@ -40,7 +43,7 @@ static void FixTJunctions_(int32_t face_num) {
     f_winding = Cm_AllocWinding(largest_winding);
   }
 
-  face_t *face = g_ptr_array_index(faces, face_num);
+  face_t *face = *VectorElement(faces, face_t *, face_num);
 
   SDL_SpinLock *face_lock = &faces_locks[face_num];
 
@@ -51,9 +54,9 @@ static void FixTJunctions_(int32_t face_num) {
   memcpy(face_winding, face->w, sizeof(cm_winding_t) + (face->w->num_points * sizeof(vec3_t)));
   SDL_UnlockSpinlock(face_lock);
 
-  for (size_t s = 0; s < faces->len; s++) {
+  for (size_t s = 0; s < faces->count; s++) {
 
-    const face_t *f = g_ptr_array_index(faces, s);
+    const face_t *f = *VectorElement(faces, face_t *, s);
     if (face == f) {
       continue;
     }
@@ -140,14 +143,14 @@ static void FixTJunctions_r(node_t *node) {
       continue;
     }
     
-    if (g_hash_table_contains(faces_set, face)) {
+    if ($(faces_set, get, face) != NULL) {
       continue;
     }
     
-    g_ptr_array_add(faces, face);
-    g_hash_table_add(faces_set, face);
+    $(faces, addElement, &face);
+    $(faces_set, set, face, face);
 
-    largest_winding = MAX(largest_winding, face->w->num_points);
+    largest_winding = Maxi(largest_winding, face->w->num_points);
   }
 }
 
@@ -159,21 +162,21 @@ void FixTJunctions(tree_t *tree) {
   Com_Verbose("--- FixTJunctions ---\n");
   SDL_SetAtomicInt(&c_tjunctions, 0);
 
-  faces = g_ptr_array_new();
-  faces_set = g_hash_table_new(g_direct_hash, g_direct_equal);
+  faces = $(alloc(Vector), initWithSize, sizeof(face_t *));
+  faces_set = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
   FixTJunctions_r(tree->head_node);
-  g_hash_table_destroy(faces_set);
+  release(faces_set);
   faces_set = NULL;
 
   const int32_t largest_point_count = largest_winding;
   largest_winding = sizeof(cm_winding_t) + (sizeof(vec3_t) * largest_point_count);
 
-  faces_locks = Mem_Malloc(sizeof(SDL_SpinLock) * faces->len);
+  faces_locks = Mem_Malloc(sizeof(SDL_SpinLock) * faces->count);
 
-  Work("Fixing t-junctions", FixTJunctions_, faces->len);
+  Work("Fixing t-junctions", FixTJunctions_, (int32_t) faces->count);
 
   Com_Verbose("%5i fixed tjunctions\n", SDL_GetAtomicInt(&c_tjunctions));
 
   Mem_Free(faces_locks);
-  g_ptr_array_free(faces, true);
+  release(faces);
 }

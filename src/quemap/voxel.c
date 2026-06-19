@@ -24,6 +24,20 @@
 #include "qlight.h"
 #include "voxel.h"
 
+typedef struct {
+  int32_t *indices;
+  size_t count;
+} voxel_light_indices_t;
+
+static void Voxel_CollectLightIndex(const HashTable *table, ident key, ident value, ident data) {
+  voxel_light_indices_t *collector = data;
+  const light_t *light = key;
+
+  if (light->out) {
+    collector->indices[collector->count++] = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
+  }
+}
+
 voxels_t voxels;
 
 /**
@@ -203,7 +217,7 @@ static void BuildVoxelVoxels(void) {
 
         v->bounds = Box3_FromCenterRadius(v->origin, BSP_VOXEL_SIZE * .5f);
 
-        v->lights = g_hash_table_new(g_direct_hash, g_direct_equal);
+        v->lights = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
       }
     }
   }
@@ -266,9 +280,9 @@ void LightVoxel(int32_t voxel_num) {
   points[0] = voxel->origin;
   Box3_ToPoints(voxel->bounds, &points[1]);
 
-  for (uint32_t i = 0; i < lights->len; i++) {
+  for (size_t i = 0; i < lights->count; i++) {
 
-    light_t *light = g_ptr_array_index(lights, i);
+    light_t *light = *VectorElement(lights, light_t *, i);
     if (light->target_entity != -1) {
       continue;
     }
@@ -280,7 +294,7 @@ void LightVoxel(int32_t voxel_num) {
 
       const cm_trace_t to_voxel = Light_Trace(light->origin, points[j], 0, CONTENTS_MASK_SHADOW);
       if (to_voxel.fraction == 1.f || Box3_ContainsPoint(voxel->bounds, to_voxel.end)) {
-        g_hash_table_add(voxel->lights, light);
+        $(voxel->lights, set, light, light);
         break;
       }
     }
@@ -295,8 +309,8 @@ void FloodLights(void) {
 
   voxel_t *v = voxels.voxels;
 
-  for (uint32_t i = 0; i < lights->len; i++) {
-    light_t *l = g_ptr_array_index(lights, i);
+  for (size_t i = 0; i < lights->count; i++) {
+    light_t *l = *VectorElement(lights, light_t *, i);
 
     l->visible_bounds = Box3_Null();
 
@@ -307,7 +321,7 @@ void FloodLights(void) {
     box3_t bounds = Box3_Null();
 
     for (size_t j = 0; j < voxels.num_voxels; j++) {
-      if (g_hash_table_contains(v[j].lights, l)) {
+      if ($(v[j].lights, get, l) != NULL) {
         bounds = Box3_Union(bounds, v[j].bounds);
       }
     }
@@ -316,12 +330,12 @@ void FloodLights(void) {
 
     for (size_t j = 0; j < voxels.num_voxels; j++) {
       if (Box3_Intersects(bounds, v[j].bounds)) {
-        g_hash_table_add(v[j].lights, l);
+        $(v[j].lights, set, l, l);
       }
     }
 
     for (size_t j = 0; j < voxels.num_voxels; j++) {
-      if (g_hash_table_contains(v[j].lights, l)) {
+      if ($(v[j].lights, get, l) != NULL) {
         l->visible_bounds = Box3_Union(l->visible_bounds, v[j].bounds);
       }
     }
@@ -533,7 +547,7 @@ void EmitVoxels(void) {
   
   for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
     v->lights_offset = (int32_t) voxels.num_light_indices;
-    v->lights_count = (int32_t) g_hash_table_size(v->lights);
+    v->lights_count = (int32_t) v->lights->count;
 
     voxels.num_light_indices += v->lights_count;
     
@@ -611,18 +625,13 @@ void EmitVoxels(void) {
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
         const voxel_t *voxel = &voxels.voxels[index];
 
-        GHashTableIter iter;
-        light_t *light;
-
         int32_t *indices = out_light_indices;
+        voxel_light_indices_t collector = {
+          .indices = out_light_indices
+        };
 
-        g_hash_table_iter_init(&iter, voxel->lights);
-        while (g_hash_table_iter_next(&iter, (void * *) &light, NULL)) {
-          if (!light->out) {
-            continue;
-          }
-          *out_light_indices++ = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
-        }
+        $(voxel->lights, enumerateEntries, Voxel_CollectLightIndex, &collector);
+        out_light_indices += collector.count;
 
         const int32_t count = (int32_t) (out_light_indices - indices);
         if (count > 1) {
@@ -659,7 +668,7 @@ void FreeVoxels(void) {
 
   voxel_t *v = voxels.voxels;
   for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
-    g_hash_table_destroy(v->lights);
+    release(v->lights);
   }
 
   Mem_FreeTag((mem_tag_t) MEM_TAG_VOXEL);

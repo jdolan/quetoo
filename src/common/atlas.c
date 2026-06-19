@@ -20,6 +20,7 @@
  */
 
 #include <assert.h>
+#include <stdlib.h>
 
 #include <Objectively/Array.h>
 
@@ -134,7 +135,7 @@ static const atlas_t *_sort_atlas;
  */
 static int Atlas_NodeComparator(const ident a, const ident b) {
 
-  return _sort_atlas->comparator((const atlas_node_t *) a, (const atlas_node_t *) b);
+  return _sort_atlas->comparator(*(const atlas_node_t **) a, *(const atlas_node_t **) b);
 }
 
 /**
@@ -231,7 +232,7 @@ int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
     }
 
     x += node->w + 2 * p;
-    row = MAX(row, node->h + 2 * p);
+    row = SDL_max(row, node->h + 2 * p);
   }
 
   return 0;

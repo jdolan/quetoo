@@ -18,6 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <ctype.h>
 #include <errno.h>
 #include <signal.h>
 #include <sys/types.h>
@@ -66,7 +67,7 @@ typedef struct ms_server_s {
   char players[MAX_CLIENTS][64];
 } ms_server_t;
 
-static GList *ms_servers;
+static List *ms_servers;
 static int32_t ms_sock;
 
 static bool verbose;
@@ -190,7 +191,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     const char *line_end = strchr(line, '\n');
     char cur_line[256];
     if (line_end) {
-      SDL_strlcpy(cur_line, line, MIN((size_t) (line_end - line) + 1, sizeof(cur_line)));
+      SDL_strlcpy(cur_line, line, (size_t) (line_end - line) + 1 < sizeof(cur_line) ? (size_t)(line_end - line) + 1 : sizeof(cur_line));
     } else {
       SDL_strlcpy(cur_line, line, sizeof(cur_line));
     }
@@ -202,7 +203,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
       StrStrip(name, stripped);
       Ms_InfoValue(cur_line, "ai", ai_val, sizeof(ai_val));
       Com_Verbose("Player: %s ai=%s\n", stripped, ai_val[0] ? ai_val : "(none)");
-      if (!atoi(ai_val) && !g_str_has_prefix(stripped, "[BOT]")) {
+      if (!atoi(ai_val) && strncmp(stripped, "[BOT]", 5)) {
         SDL_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
         new_count++;
       }
@@ -249,16 +250,13 @@ static const char *atos(const struct sockaddr_in *addr) {
  */
 static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
 
-  GList *s = ms_servers;
-  while (s) {
+  for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
     ms_server_t *server = (ms_server_t *) s->data;
 
     const struct sockaddr_in *addr = &server->addr;
     if (addr->sin_addr.s_addr == from->sin_addr.s_addr && addr->sin_port == from->sin_port) {
       return server;
     }
-
-    s = s->next;
   }
 
   return NULL;
@@ -269,7 +267,14 @@ static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
  */
 static void Ms_DropServer(ms_server_t *server) {
 
-  ms_servers = g_list_remove(ms_servers, server);
+  if (ms_servers) {
+    for (const ListNode *s = ms_servers->head; s; s = s->next) {
+      if (s->data == server) {
+        $(ms_servers, removeNode, (ListNode *) s);
+        break;
+      }
+    }
+  }
 
   Mem_Free(server);
 }
@@ -302,9 +307,12 @@ static bool Ms_BlacklistServer(struct sockaddr_in *from) {
     sscanf(c, "%255s\n", line);
     c += strlen(line) + 1;
 
-    const char *l = g_strstrip(line);
+    const char *l = line;
+    while (isspace((unsigned char) *l)) { l++; }
+    char *_lend = (char *) l + strlen(l) - 1;
+    while (_lend >= l && isspace((unsigned char) *_lend)) { *_lend-- = '\0'; }
 
-    if (!strlen(l) || g_str_has_prefix(l, "//") || g_str_has_prefix(l, "#")) {
+    if (!strlen(l) || !strncmp(l, "//", 2) || l[0] == '#') {
       continue;
     }
 
@@ -340,7 +348,10 @@ static void Ms_AddServer(struct sockaddr_in *from) {
   server->last_heartbeat = time(NULL);
   server->num_clients = -1;
 
-  ms_servers = g_list_prepend(ms_servers, server);
+  if (!ms_servers) {
+    ms_servers = $(alloc(List), init);
+  }
+  $(ms_servers, append, server);
   Com_Print("Server %s registered\n", stos(server));
 
   // send an acknowledgment
@@ -368,9 +379,8 @@ static void Ms_RemoveServer(struct sockaddr_in *from) {
 static void Ms_Frame(void) {
   const time_t now = time(NULL);
 
-  GList *s = ms_servers;
-  while (s) {
-    GList *next = s->next;
+  for (ListNode *s = ms_servers ? ms_servers->head : NULL; s; ) {
+    ListNode *next = s->next;
     ms_server_t *server = (ms_server_t *) s->data;
     if (now - server->last_heartbeat > 30) {
 
@@ -419,15 +429,13 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   Mem_WriteBuffer(&buf, servers, strlen(servers));
 
   uint32_t i = 0;
-  GList *s = ms_servers;
-  while (s) {
+  for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
     const ms_server_t *server = (ms_server_t *) s->data;
     if (server->validated && server->protocol == protocol) {
       Mem_WriteBuffer(&buf, &server->addr.sin_addr, sizeof(server->addr.sin_addr));
       Mem_WriteBuffer(&buf, &server->addr.sin_port, sizeof(server->addr.sin_port));
       i++;
     }
-    s = s->next;
   }
 
   if ((sendto(ms_sock, buf.data, buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1) {
@@ -490,15 +498,15 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
   *(line++) = '\0';
   cmd += 4;
 
-  if (!g_ascii_strncasecmp(cmd, "ping", 4)) {
+  if (!SDL_strncasecmp(cmd, "ping", 4)) {
     Ms_AddServer(from);
-  } else if (!g_ascii_strncasecmp(cmd, "heartbeat", 9) || !g_ascii_strncasecmp(cmd, "print", 5)) {
+  } else if (!SDL_strncasecmp(cmd, "heartbeat", 9) || !SDL_strncasecmp(cmd, "print", 5)) {
     Ms_Heartbeat(from, line);
-  } else if (!g_ascii_strncasecmp(cmd, "ack", 3)) {
+  } else if (!SDL_strncasecmp(cmd, "ack", 3)) {
     Ms_Ack(from);
-  } else if (!g_ascii_strncasecmp(cmd, "shutdown", 8)) {
+  } else if (!SDL_strncasecmp(cmd, "shutdown", 8)) {
     Ms_RemoveServer(from);
-  } else if (!g_ascii_strncasecmp(cmd, "getservers", 10) || !g_ascii_strncasecmp(cmd, "y", 1)) {
+  } else if (!SDL_strncasecmp(cmd, "getservers", 10) || !SDL_strncasecmp(cmd, "y", 1)) {
     Ms_GetServers(from, cmd);
   } else {
     Com_Warn("Unknown command from %s: '%s'\n", atos(from), cmd);
@@ -544,7 +552,12 @@ static void Shutdown(const char *msg) {
     fputs(msg, stdout);
   }
 
-  g_list_free_full(ms_servers, Mem_Free);
+  if (ms_servers) {
+    for (const ListNode *s = ms_servers->head; s; s = s->next) {
+      Mem_Free(s->data);
+    }
+    release(ms_servers);
+  }
 
   Fs_Shutdown();
 
