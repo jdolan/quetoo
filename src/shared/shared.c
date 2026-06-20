@@ -218,25 +218,6 @@ void Dirname(const char *in, char *out) {
 }
 
 /**
- * @brief Removes the first newline and everything following it
- * from the specified input string.
- */
-void StripNewline(const char *in, char *out) {
-
-  if (in) {
-    const size_t len = q_strlen(in);
-    memmove(out, in, len + 1);
-
-    char *ext = q_strrchr(out, '\n');
-    if (ext) {
-      *ext = '\0';
-    }
-  } else {
-    *out = '\0';
-  }
-}
-
-/**
  * @brief Removes any file extension(s) from the specified input string.
  */
 void StripExtension(const char *in, char *out) {
@@ -254,20 +235,6 @@ void StripExtension(const char *in, char *out) {
   }
 }
 
-/**
- * @return True if `c` is a color escape sequence, false otherwise.
- */
-bool StrIsColor(const char *c) {
-  if (c) {
-    if (*c == ESC_COLOR) {
-      const char num = *(c + 1);
-      if (num >= '0' && num <= '9') {
-        return true;
-      }
-    }
-  }
-  return false;
-}
 
 /**
  * @return True if `c` is an emoji escape sequence, false otherwise.
@@ -348,89 +315,6 @@ const char *EmojiEsc(const char *in, char *out, size_t out_size) {
 }
 
 /**
- * @brief Strips color escape sequences from the specified input string.
- */
-void StrStrip(const char *in, char *out) {
-
-  while (*in) {
-
-    if (StrIsColor(in)) {
-      in += 2;
-      continue;
-    }
-
-    *out++ = *in++;
-  }
-  *out = '\0';
-}
-
-/**
- * @brief Returns the length of s in printable characters.
- */
-size_t StrStripLen(const char *s) {
-
-  size_t len = 0;
-
-  while (*s) {
-    if (StrIsColor(s)) {
-      s += 2;
-      continue;
-    }
-
-    s++;
-    len++;
-  }
-
-  return len;
-}
-
-/**
- * @brief Performs a color- and case-insensitive string comparison.
- */
-int32_t StrStripCmp(const char *s1, const char *s2) {
-  char string1[q_strlen(s1) + 1], string2[q_strlen(s2) + 1];
-
-  StrStrip(s1, string1);
-  StrStrip(s2, string2);
-
-  return q_strcasecmp(string1, string2);
-}
-
-/**
- * @return The first color sequence in s.
- */
-int32_t StrColor(const char *s) {
-
-  const char *c = s;
-  while (*c) {
-    if (StrIsColor(c)) {
-      return *(c + 1) - '0';
-    }
-    c++;
-  }
-
-  return ESC_COLOR_DEFAULT;
-}
-
-/**
- * @return The last occurrence of a color escape sequence in s.
- */
-int32_t StrrColor(const char *s) {
-
-  if (s) {
-    const char *c = s + q_strlen(s) - 1;
-    while (c > s) {
-      if (StrIsColor(c)) {
-        return *(c + 1) - '0';
-      }
-      c--;
-    }
-  }
-
-  return ESC_COLOR_DEFAULT;
-}
-
-/**
  * @brief A shorthand `g_snprintf` into a statically allocated buffer. Several
  * buffers are maintained internally so that nested va()'s are safe within
  * reasonable limits. This function is not thread safe.
@@ -461,16 +345,6 @@ char *vtos(const vec3_t v) {
   q_snprintf(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v.x, v.y, v.z);
 
   return s;
-}
-
-/**
- * @brief Lowers an entire string.
- */
-void StrLower(const char *in, char *out) {
-
-  while (*in) {
-    (*(out++)) = (char) tolower(*(in++));
-  }
 }
 
 /**

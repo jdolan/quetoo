@@ -935,7 +935,7 @@ static bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
   for (size_t i = 0; i < lengthof(extensions); i++) {
     q_snprintf(asset->path, sizeof(asset->path), "%s.%s", name, extensions[i]);
 
-    StrLower(asset->path, asset->path);
+    q_strlower(asset->path, asset->path);
 
     if (Fs_Exists(asset->path)) {
       return true;

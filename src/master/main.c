@@ -160,7 +160,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
   char val[256];
 
   if (Ms_InfoValue(status, "sv_hostname", val, sizeof(val))) {
-    StrStrip(val, server->hostname);
+    q_strcolorstrip(val, server->hostname);
   }
 
   if (Ms_InfoValue(status, "sv_protocol", val, sizeof(val))) {
@@ -200,7 +200,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     char ai_val[4] = { 0 };
     if (Ms_InfoValue(cur_line, "name", name, sizeof(name)) && name[0]) {
       char stripped[64];
-      StrStrip(name, stripped);
+      q_strcolorstrip(name, stripped);
       Ms_InfoValue(cur_line, "ai", ai_val, sizeof(ai_val));
       Com_Verbose("Player: %s ai=%s\n", stripped, ai_val[0] ? ai_val : "(none)");
       if (!atoi(ai_val) && q_strncmp(stripped, "[BOT]", 5)) {

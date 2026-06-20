@@ -92,7 +92,7 @@ static void Cl_DrawConsole_Buffer(void) {
   color_t color = color_white;
   for (size_t i = 0; i < count; i++) {
     R_Draw2DString(0, y, lines[i], color);
-    color = ColorEsc(StrrColor(lines[i]));
+    color = ColorEsc(q_strrcolor(lines[i]));
     Mem_Free(lines[i]);
     y += ch;
   }
@@ -183,7 +183,7 @@ void Cl_DrawNotify(void) {
   color_t color = color_white;
   for (size_t i = 0; i < count; i++) {
     R_Draw2DString(0, y, lines[i], color);
-    color = ColorEsc(StrrColor(lines[i]));
+    color = ColorEsc(q_strrcolor(lines[i]));
     Mem_Free(lines[i]);
     y += ch;
   }
@@ -218,7 +218,7 @@ void Cl_DrawChat(void) {
     color_t color = color_white;
     for (size_t i = 0; i < count; i++) {
       R_Draw2DString(0, y, lines[i], color);
-      color = ColorEsc(StrrColor(lines[i]));
+      color = ColorEsc(q_strrcolor(lines[i]));
       Mem_Free(lines[i]);
       y += ch;
     }
@@ -255,7 +255,7 @@ void Cl_DrawChat(void) {
 static void Cl_Print(const console_string_t *str) {
   char stripped[q_strlen(str->chars) + 1];
 
-  StrStrip(str->chars, stripped);
+  q_strcolorstrip(str->chars, stripped);
   fputs(stripped, stdout);
 }
 

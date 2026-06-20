@@ -147,7 +147,7 @@ static void enumerateMaps(const char *path, void *data) {
             break;
           }
 
-          StrStrip(token, info->message);
+          q_strcolorstrip(token, info->message);
 
           char *c = q_strstr(info->message, "\\n");
           if (c) {

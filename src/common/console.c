@@ -64,7 +64,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
   }
 
   str->size = string_len;
-  str->length = StrStripLen(str->chars);
+  str->length = q_strcolorlen(str->chars);
 
   str->timestamp = quetoo.ticks;
 
@@ -121,7 +121,7 @@ static void Con_Dump_f(void) {
     while (list) {
       const char *c = ((console_string_t *) list->element)->chars;
       while (*c) {
-        if (StrIsColor(c)) {
+        if (q_striscolor(c)) {
           c++;
         } else {
           if (Fs_Write(file, c, 1, 1) != 1) {
@@ -193,7 +193,7 @@ void Con_Append(int32_t level, const char *string) {
   } else {
     char stripped[q_strlen(string) + 1];
 
-    StrStrip(string, stripped);
+    q_strcolorstrip(string, stripped);
     fputs(stripped, stdout);
   }
 }
@@ -231,7 +231,7 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
         break;
       }
 
-      if (StrIsColor(c)) {
+      if (q_striscolor(c)) {
         color = *(c + 1) - '0';
         c += 2;
       } else {

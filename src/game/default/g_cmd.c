@@ -526,7 +526,7 @@ static void G_Say_f(g_client_t *cl) {
   }
 
   // suppress empty messages
-  StrStrip(s, temp);
+  q_strcolorstrip(s, temp);
   if (!q_strlen(temp)) {
     return;
   }

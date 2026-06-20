@@ -201,11 +201,11 @@ static void Sv_DrawConsole_Buffer(void) {
     char *line = lines[j];
     char *s = line;
 
-    Sv_DrawConsole_Color(j ? StrrColor(lines[j - 1]) : ESC_COLOR_DEFAULT);
+    Sv_DrawConsole_Color(j ? q_strrcolor(lines[j - 1]) : ESC_COLOR_DEFAULT);
 
     size_t col = 1;
     while (*s) {
-      if (StrIsColor(s)) {
+      if (q_striscolor(s)) {
         Sv_DrawConsole_Color(*(s + 1) - '0');
         s++;
       } else if (isascii(*s)) {

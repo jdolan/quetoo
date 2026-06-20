@@ -1303,7 +1303,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
       break;
     }
 
-    if (StrIsColor(c)) {
+    if (q_striscolor(c)) {
       color = true;
       c += 2;
       continue;

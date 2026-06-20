@@ -171,3 +171,121 @@ char *q_strtok_r(char *s, const char *delim, char **save_ptr) {
 	return strtok_r(s, delim, save_ptr);
 #endif
 }
+
+/**
+ * @see qstring.h
+ */
+void q_strlower(const char *in, char *out) {
+
+	if (in) {
+		while (*in) {
+			*out++ = (char) tolower((unsigned char) *in++);
+		}
+	}
+	*out = '\0';
+}
+
+/**
+ * @see qstring.h
+ */
+void q_strtrim(const char *in, char *out) {
+
+	if (!in) {
+		*out = '\0';
+		return;
+	}
+
+	while (*in == ' ' || *in == '\t' || *in == '\r' || *in == '\n') {
+		in++;
+	}
+
+	const char *end = in + strlen(in);
+	while (end > in && (*(end - 1) == ' ' || *(end - 1) == '\t' || *(end - 1) == '\r' || *(end - 1) == '\n')) {
+		end--;
+	}
+
+	const size_t len = (size_t)(end - in);
+	memmove(out, in, len);
+	out[len] = '\0';
+}
+
+/**
+ * @see qstring.h
+ */
+void q_strcolorstrip(const char *in, char *out) {
+
+	while (*in) {
+		if (q_striscolor(in)) {
+			in += 2;
+			continue;
+		}
+		*out++ = *in++;
+	}
+	*out = '\0';
+}
+
+/**
+ * @see qstring.h
+ */
+size_t q_strcolorlen(const char *s) {
+
+	size_t len = 0;
+
+	while (s && *s) {
+		if (q_striscolor(s)) {
+			s += 2;
+			continue;
+		}
+		s++;
+		len++;
+	}
+
+	return len;
+}
+
+/**
+ * @see qstring.h
+ */
+int32_t q_strcolorcmp(const char *s1, const char *s2) {
+
+	char a[q_strlen(s1) + 1], b[q_strlen(s2) + 1];
+
+	q_strcolorstrip(s1 ? s1 : "", a);
+	q_strcolorstrip(s2 ? s2 : "", b);
+
+	return q_strcasecmp(a, b);
+}
+
+/**
+ * @see qstring.h
+ */
+int32_t q_strcolor(const char *s) {
+
+	const char *c = s;
+	while (c && *c) {
+		if (q_striscolor(c)) {
+			return *(c + 1) - '0';
+		}
+		c++;
+	}
+
+	return ESC_COLOR_DEFAULT;
+}
+
+/**
+ * @see qstring.h
+ */
+int32_t q_strrcolor(const char *s) {
+
+	if (s) {
+		const char *c = s + strlen(s) - 1;
+		while (c > s) {
+			if (q_striscolor(c)) {
+				return *(c + 1) - '0';
+			}
+			c--;
+		}
+	}
+
+	return ESC_COLOR_DEFAULT;
+}

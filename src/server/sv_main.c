@@ -101,7 +101,7 @@ const char *Sv_StatusString(void) {
       char player[MAX_TOKEN_CHARS];
 
       char name[sizeof(cl->name)];
-      StrStrip(cl->name, name);
+      q_strcolorstrip(cl->name, name);
 
       const int16_t score = cl->state == SV_CLIENT_ACTIVE ? cl->gclient->score : 0;
       const bool is_bot = cl->gclient->ai != NULL;

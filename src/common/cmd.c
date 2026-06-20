@@ -634,7 +634,7 @@ static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
 }
 
 static Order Cmd_List_sortfn(const ident a, const ident b) {
-  const int32_t cmp = StrStripCmp(*(const char *const *) a, *(const char *const *) b);
+  const int32_t cmp = q_strcolorcmp(*(const char *const *) a, *(const char *const *) b);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 

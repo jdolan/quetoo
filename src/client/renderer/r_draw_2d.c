@@ -267,7 +267,7 @@ GLint R_StringWidth(const char *s) {
   size_t len = 0;
 
   while (*s) {
-    if (StrIsColor(s)) {
+    if (q_striscolor(s)) {
       s += 2;
       continue;
     }
@@ -317,8 +317,8 @@ size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t s
   i = j = 0;
   while (*s && i < len && j < size) {
 
-    if (StrIsColor(s)) {
-      c = ColorEsc(StrColor(s));
+    if (q_striscolor(s)) {
+      c = ColorEsc(q_strcolor(s));
       j += 2;
       s += 2;
       continue;

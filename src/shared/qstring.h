@@ -168,3 +168,81 @@ char * __attribute__ ((warn_unused_result)) q_strndup(const char *s, size_t n);
  * @brief Portable reentrant tokenizer. Uses strtok_s on MSVC.
  */
 char *q_strtok_r(char *s, const char *delim, char **save_ptr);
+
+/**
+ * @brief Lowercases the string `in` into `out`. `out` must be at least as
+ * large as `in`. `in` and `out` may alias.
+ */
+void q_strlower(const char *in, char *out);
+
+/**
+ * @brief Trims all leading and trailing whitespace (`' '`, `'\t'`, `'\r'`,
+ * `'\n'`) from `in` into `out`. `out` must be at least as large as `in`.
+ */
+void q_strtrim(const char *in, char *out);
+
+/**
+ * @brief Escape sequences for Quake3-style color-encoded strings.
+ */
+#define ESC_COLOR          '^'
+#define ESC_COLOR_BLACK     0
+#define ESC_COLOR_RED       1
+#define ESC_COLOR_GREEN     2
+#define ESC_COLOR_YELLOW    3
+#define ESC_COLOR_BLUE      4
+#define ESC_COLOR_MAGENTA   5
+#define ESC_COLOR_CYAN      6
+#define ESC_COLOR_WHITE     7
+#define ESC_COLOR_ORANGE    8
+#define ESC_COLOR_GREY      9
+
+#define MAX_ESC_COLORS      10
+
+#define ESC_COLOR_DEFAULT   ESC_COLOR_WHITE
+#define ESC_COLOR_ALT       ESC_COLOR_GREEN
+
+#define ESC_COLOR_INFO      ESC_COLOR_ALT
+#define ESC_COLOR_CHAT      ESC_COLOR_ALT
+#define ESC_COLOR_TEAM_CHAT ESC_COLOR_YELLOW
+
+/**
+ * @return True if `s` points to a color escape sequence (`^[0-9]`).
+ * NULL-safe.
+ */
+static inline bool __attribute__ ((warn_unused_result)) q_striscolor(const char *s) {
+	if (s && *s == ESC_COLOR) {
+		const char n = *(s + 1);
+		return n >= '0' && n <= '9';
+	}
+	return false;
+}
+
+/**
+ * @brief Strips color escape sequences from `in`, writing the result to `out`.
+ * `out` must be at least as large as `in`.
+ */
+void q_strcolorstrip(const char *in, char *out);
+
+/**
+ * @return The visual (stripped) length of `s`, excluding color escapes.
+ * NULL-safe.
+ */
+size_t __attribute__ ((warn_unused_result)) q_strcolorlen(const char *s);
+
+/**
+ * @brief Case- and color-insensitive string comparison.
+ * @return Negative if `s1` < `s2`, 0 if equal, positive if `s1` > `s2`.
+ */
+int32_t __attribute__ ((warn_unused_result)) q_strcolorcmp(const char *s1, const char *s2);
+
+/**
+ * @return The index (0-9) of the first color escape sequence in `s`, or
+ * `ESC_COLOR_DEFAULT` if none is found. NULL-safe.
+ */
+int32_t __attribute__ ((warn_unused_result)) q_strcolor(const char *s);
+
+/**
+ * @return The index (0-9) of the last color escape sequence in `s`, or
+ * `ESC_COLOR_DEFAULT` if none is found. NULL-safe.
+ */
+int32_t __attribute__ ((warn_unused_result)) q_strrcolor(const char *s);

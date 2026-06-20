@@ -468,7 +468,7 @@ g_team_t *G_TeamByName(const char *c) {
 
   for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-    if (!StrStripCmp(g_team_list[i].name, c)) {
+    if (!q_strcolorcmp(g_team_list[i].name, c)) {
       return &g_team_list[i];
     }
   }

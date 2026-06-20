@@ -287,7 +287,7 @@ static void Sv_Say_f(void) {
     return;
   }
 
-  StrStrip(Cmd_Args(), text);
+  q_strcolorstrip(Cmd_Args(), text);
   if (!q_strlen(text)) {
     return;
   }
@@ -329,7 +329,7 @@ static void Sv_Tell_f(void) {
   }
 
   const char *msg = Cmd_Args() + q_strlen(Cmd_Argv(1)) + 1;
-  StrStrip(msg, text);
+  q_strcolorstrip(msg, text);
   if (!q_strlen(text)) {
     return;
   }

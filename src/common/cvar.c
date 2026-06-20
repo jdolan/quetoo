@@ -651,7 +651,7 @@ static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
 }
 
 static Order Cvar_List_sortfn(const ident a, const ident b) {
-  const int32_t cmp = StrStripCmp(*(const char *const *) a, *(const char *const *) b);
+  const int32_t cmp = q_strcolorcmp(*(const char *const *) a, *(const char *const *) b);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -705,7 +705,7 @@ static void Cvar_ServerInfo_enumerate(cvar_t *var, void *data) {
 
   if (var->flags & CVAR_SERVER_INFO) {
     char value[MAX_INFO_STRING_VALUE];
-    StrStrip(var->string, value);
+    q_strcolorstrip(var->string, value);
     InfoString_Set((char *) data, var->name, value);
   }
 }
