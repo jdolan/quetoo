@@ -28,6 +28,8 @@
  */
 const g_item_def_t bg_item_defs[] = {
 
+  { /* ITEM_NONE */ },
+
   {
     .classname = "weapon_blaster",
     .pickup_sound = "weapons/common/pickup.wav",
@@ -942,7 +944,7 @@ const g_item_def_t bg_item_defs[] = {
     .effect_color = { { 0.20f, 0.90f, 0.30f, 1.f } },
     .priority = 0.75,
     .precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
-  },
+  }
 };
 
 size_t bg_num_items = sizeof(bg_item_defs) / sizeof(bg_item_defs[0]);

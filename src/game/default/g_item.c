@@ -1549,7 +1549,7 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
       break;
 
     default:
-      gi.Error("Item %s has an invalid type\n", it->def.name);
+      gi.Error("Item %s (tag %d) has an invalid type\n", def->name, def->tag);
       break;
   }
 
@@ -1564,7 +1564,7 @@ void G_InitItems(void) {
 
   g_items = gi.Malloc(ITEM_TOTAL * sizeof(g_item_t), MEM_TAG_GAME);
 
-  for (size_t i = 0; i < bg_num_items; i++) {
-    G_InitItem(&g_items[bg_item_defs[i].tag], &bg_item_defs[i]);
+  for (g_item_tag_t tag = ITEM_FIRST; tag < ITEM_TOTAL; tag++) {
+    G_InitItem(&g_items[tag], &bg_item_defs[tag]);
   }
 }
