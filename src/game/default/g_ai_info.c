@@ -59,7 +59,7 @@ static _Bool G_Ai_NameInUse(const g_client_t *cl, const char *name) {
       continue;
     }
     const char *other_name = InfoString_Get(other->user_info, "name");
-    if (other_name && strcmp(other_name, name) == 0) {
+    if (other_name && q_strcmp(other_name, name) == 0) {
       return true;
     }
   });

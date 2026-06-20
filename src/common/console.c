@@ -36,7 +36,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
     return NULL;
   }
 
-  const size_t string_len = strlen(string) + 4;
+  const size_t string_len = q_strlen(string) + 4;
 
   str->level = level;
   str->chars = calloc(string_len, 1);
@@ -44,7 +44,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
   q_strlcpy(str->chars, string, string_len); // copy in input
 
   // remove trailing newline/carriage return
-  size_t chars_len = strlen(str->chars);
+  size_t chars_len = q_strlen(str->chars);
   while (chars_len > 0 && (str->chars[chars_len - 1] == '\n' || str->chars[chars_len - 1] == '\r')) {
     str->chars[--chars_len] = '\0';
   }
@@ -191,7 +191,7 @@ void Con_Append(int32_t level, const char *string) {
       }
     }
   } else {
-    char stripped[strlen(string) + 1];
+    char stripped[q_strlen(string) + 1];
 
     StrStrip(string, stripped);
     fputs(stripped, stdout);
@@ -258,7 +258,7 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
         lines[count][0] = ESC_COLOR;
         lines[count][1] = wrap_color + '0';
         lines[count][2] = '\0';
-        strncat(lines[count], line, eol - line);
+        q_strlcat(lines[count], line, (eol - line) + 3);
       } else {
         break;
       }
@@ -345,11 +345,11 @@ void Con_NavigateHistory(console_t *console, console_history_nav_t nav) {
       break;
   }
 
-  if (strlen(hist->strings[p])) {
+  if (q_strlen(hist->strings[p])) {
     console_input_t *in = &console->input;
 
     q_strlcpy(in->buffer, hist->strings[p], sizeof(in->buffer));
-    in->pos = strlen(in->buffer);
+    in->pos = q_strlen(in->buffer);
 
     hist->pos = p;
   }
@@ -440,7 +440,7 @@ void Con_AutocompleteMatch(List *matches, const char *name, const char *descript
  */
 void Con_AutocompleteInput_f(const uint32_t argi, List *matches) {
   const char *partial = Cmd_Argv(argi);
-  char pattern[strlen(partial) + 3];
+  char pattern[q_strlen(partial) + 3];
 
   q_snprintf(pattern, sizeof(pattern), "%s*", partial);
 
@@ -468,13 +468,13 @@ static void Con_PrintMatches(const console_t *console, List *matches) {
   for (const ListNode *m = matches->head; m; m = m->next) {
     const con_autocomplete_match_t *match = m->element;
     const char *str = (match->description ?: match->name);
-    const size_t str_len = strlen(str);
+    const size_t str_len = q_strlen(str);
 
     if (match->description) {
       all_simple = false;
     }
 
-    if (strchr(str, '\n') != NULL) {
+    if (q_strchr(str, '\n') != NULL) {
       widest = -1;
       break;
     }
@@ -510,7 +510,7 @@ static void Con_PrintMatches(const console_t *console, List *matches) {
     for (size_t i = 0; m && i < per_row; i++, m = m->next) {
       const con_autocomplete_match_t *match = m->element;
       const char *str = (match->description ?: match->name);
-      const size_t str_len = strlen(str);
+      const size_t str_len = q_strlen(str);
 
       q_strlcat(line, str, sizeof(line));
 
@@ -581,7 +581,7 @@ bool Con_CompleteInput(console_t *console) {
     max_len--; // prevent buffer overflow
   }
 
-  const size_t partial_len = strlen(partial);
+  const size_t partial_len = q_strlen(partial);
 
   if (!*partial) {
     release(matches);
@@ -591,7 +591,7 @@ bool Con_CompleteInput(console_t *console) {
   Cmd_TokenizeString(partial);
 
   uint32_t argi = Cmd_Argc() - 1;
-  const bool new_argument = partial[strlen(partial) - 1] == ' ';
+  const bool new_argument = partial[q_strlen(partial) - 1] == ' ';
 
   if (new_argument) {
     argi++;
@@ -633,7 +633,7 @@ bool Con_CompleteInput(console_t *console) {
   if (matches->count == 1) {
     match = ((const con_autocomplete_match_t *) matches->head->element)->name;
 
-    if (strchr(match, ' ') != NULL) {
+    if (q_strchr(match, ' ') != NULL) {
       match = va("\"%s\" ", match);
       output_quotes = true;
     } else {
@@ -642,9 +642,9 @@ bool Con_CompleteInput(console_t *console) {
   } else {
     match = Con_CommonPrefix(matches);
 
-    if (!strlen(match)) {
+    if (!q_strlen(match)) {
       match = Cmd_Argv(argi);
-    } else if (strchr(match, ' ') != NULL) {
+    } else if (q_strchr(match, ' ') != NULL) {
       match = va("\"%s", match);
       output_quotes = true;
     }
@@ -658,7 +658,7 @@ bool Con_CompleteInput(console_t *console) {
 
     if (Cmd_Argc() > 1) {
       const char *last_arg = Cmd_Argv(Cmd_Argc() - 1);
-      arg_pos = strlen(partial) - strlen(last_arg);
+      arg_pos = q_strlen(partial) - q_strlen(last_arg);
 
       uint8_t num_quotes = (partial[partial_len - 1] == '"') + (partial[arg_pos - 1 - (partial[partial_len - 1] == '"')] ==
                            '"');
@@ -681,7 +681,7 @@ bool Con_CompleteInput(console_t *console) {
     q_snprintf(partial + arg_pos, (size_t) (max_len - arg_pos), "%s", match);
   }
 
-  console->input.pos = strlen(console->input.buffer);
+  console->input.pos = q_strlen(console->input.buffer);
 
   // print matches
   Con_PrintMatches(console, matches);
@@ -706,7 +706,7 @@ void Con_SubmitInput(console_t *console) {
 
     console->history.pos = console->history.index;
 
-    const size_t buf_len = strlen(console->input.buffer);
+    const size_t buf_len = q_strlen(console->input.buffer);
     if (!buf_len || console->input.buffer[buf_len - 1] != '\n') {
       q_strlcat(console->input.buffer, "\n", sizeof(console->input.buffer));
     }

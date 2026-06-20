@@ -35,23 +35,23 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
 
   switch (item->def.type)
   {
-    case ITEM_HEALTH:
+    case ITEM_TYPE_HEALTH:
       if (item->def.tag == HEALTH_SMALL ||
         item->def.tag == HEALTH_MEGA) {
         return true;
       }
 
       return cl->entity->health < cl->entity->max_health;
-    case ITEM_ARMOR:
+    case ITEM_TYPE_ARMOR:
       if (item->def.tag == ARMOR_SHARD ||
         inventory[item->def.tag] < item->def.max) {
         return true;
       }
 
       return false;
-    case ITEM_AMMO:
+    case ITEM_TYPE_AMMO:
       return inventory[item->def.tag] < item->def.max;
-    case ITEM_WEAPON:
+    case ITEM_TYPE_WEAPON:
       if (inventory[item->def.tag]) {
         if (item->def.ammo) {
           return inventory[item->def.ammo] < g_items[item->def.ammo].def.max;
@@ -61,7 +61,7 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
       }
 
       return true;
-    case ITEM_TECH:
+    case ITEM_TYPE_TECH:
       for (g_item_tag_t tag = TECH_FIRST; tag < TECH_LAST; tag++) {
         if (inventory[tag]) {
           return false;
@@ -69,7 +69,7 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
       }
 
       return true;
-    case ITEM_FLAG: {
+    case ITEM_TYPE_FLAG: {
       const g_team_id_t team = cl->persistent.team->id;
       const g_team_id_t flag_team = (item->def.tag - FLAG_FIRST);
       if (flag_team == team && other->owner == NULL) {

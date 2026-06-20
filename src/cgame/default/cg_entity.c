@@ -120,7 +120,7 @@ void Cg_LoadEntities(void) {
     const cg_entity_class_t **clazz = cg_entity_classes;
     for (size_t j = 0; j < cg_num_entity_classes; j++, clazz++) {
 
-      if (!strcmp(classname, (*clazz)->classname)) {
+      if (!q_strcmp(classname, (*clazz)->classname)) {
 
         cg_entity_t e = {
           .id = MAX_ENTITIES + cg_entities->count,

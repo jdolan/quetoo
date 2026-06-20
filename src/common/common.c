@@ -52,7 +52,7 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
   const char *game = DEFAULT_GAME;
   const char *log_name = quetoo.log_file_name ? : "quetoo.log";
   for (int32_t i = 1; i < argc - 2; i++) {
-    if (!strcmp(argv[i], "+set") && !strcmp(argv[i + 1], "game")) {
+    if (!q_strcmp(argv[i], "+set") && !q_strcmp(argv[i + 1], "game")) {
       game = argv[i + 2];
       break;
     }
@@ -63,8 +63,8 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
 
   char dir[MAX_QPATH * 2];
   q_strlcpy(dir, path, sizeof(dir));
-  char *sep = strrchr(dir, '/');
-  if (!sep) { sep = strrchr(dir, '\\'); }
+  char *sep = q_strrchr(dir, '/');
+  if (!sep) { sep = q_strrchr(dir, '\\'); }
   if (sep) { *sep = '\0'; }
   SDL_CreateDirectory(dir);
 
@@ -120,7 +120,7 @@ const char *Com_GetDebug(void) {
 
   for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
     if (quetoo.debug_mask & (1 << i)) {
-      if (strlen(debug)) {
+      if (q_strlen(debug)) {
         q_strlcat(debug, " ", sizeof(debug));
       }
       q_strlcat(debug, DEBUG_CATEGORIES[i], sizeof(debug));
@@ -149,15 +149,15 @@ void Com_SetDebug(const char *debug) {
       break;
     }
 
-    if (!strcmp(token, "none") || !strcmp(token, "0")) {
+    if (!q_strcmp(token, "none") || !q_strcmp(token, "0")) {
       quetoo.debug_mask = 0;
-    } else if (!strcmp(token, "breakpoint") || !strcmp(token, "bp")) {
+    } else if (!q_strcmp(token, "breakpoint") || !q_strcmp(token, "bp")) {
       quetoo.debug_mask ^= DEBUG_BREAKPOINT;
-    } else if (!strcmp(token, "any") || !strcmp(token, "all")) {
+    } else if (!q_strcmp(token, "any") || !q_strcmp(token, "all")) {
       quetoo.debug_mask ^= DEBUG_ALL;
     } else {
       for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
-        if (!strcmp(token, DEBUG_CATEGORIES[i])) {
+        if (!q_strcmp(token, DEBUG_CATEGORIES[i])) {
           quetoo.debug_mask ^= (1 << i);
         }
       }
@@ -188,7 +188,7 @@ static int32_t Com_Sprintfv(char *str, size_t size, const char *func, const char
       fmt++;
     } else {
       q_snprintf(str, (size_t) size, "%s: ", func);
-      len = strlen(str);
+      len = q_strlen(str);
     }
   }
 
@@ -293,7 +293,7 @@ void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
  */
 void Com_Error_f(void) {
 
-  const err_t err = !strcmp(Cmd_Argv(1), "fatal") ? ERROR_FATAL : ERROR_DROP;
+  const err_t err = !q_strcmp(Cmd_Argv(1), "fatal") ? ERROR_FATAL : ERROR_DROP;
   Com_Error(err, "Test error (%s)\n", err == ERROR_FATAL ? "fatal" : "drop");
 }
 
@@ -405,7 +405,7 @@ void Com_Init(int32_t argc, char *argv[]) {
 
     // if we specified debug mode, quickly set it to all here
     // so that early systems prior to init can write stuff out
-    if (!strcmp(Com_Argv(i), "-debug") || !strcmp(Com_Argv(i), "+debug")) {
+    if (!q_strcmp(Com_Argv(i), "-debug") || !q_strcmp(Com_Argv(i), "+debug")) {
       Com_SetDebug("all");
       continue;
     }

@@ -90,11 +90,11 @@ static bool Parse_SkipWhitespace(parser_t *parser, const parse_flags_t flags) {
  */
 static bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
 
-  if (strncmp(parser->position.ptr, identifier, strlen(identifier))) {
+  if (q_strncmp(parser->position.ptr, identifier, q_strlen(identifier))) {
     return false;
   }
 
-  parser->position.ptr += strlen(identifier);
+  parser->position.ptr += q_strlen(identifier);
   Parse_NextColumn(parser, 2);
 
   while (true) {
@@ -133,12 +133,12 @@ static bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
  */
 static bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const char *end) {
 
-  if (strncmp(parser->position.ptr, start, strlen(start))) {
+  if (q_strncmp(parser->position.ptr, start, q_strlen(start))) {
     return false;
   }
 
-  parser->position.ptr += strlen(start);
-  Parse_NextColumn(parser, strlen(start));
+  parser->position.ptr += q_strlen(start);
+  Parse_NextColumn(parser, q_strlen(start));
 
   while (true) {
     char c = *parser->position.ptr;
@@ -147,9 +147,9 @@ static bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const ch
       return false;
     }
 
-    if (!strncmp(parser->position.ptr, end, strlen(end))) {
-      parser->position.ptr += strlen(end); // found it!
-      Parse_NextColumn(parser, strlen(end));
+    if (!q_strncmp(parser->position.ptr, end, q_strlen(end))) {
+      parser->position.ptr += q_strlen(end); // found it!
+      Parse_NextColumn(parser, q_strlen(end));
       return true;
     }
 
@@ -498,7 +498,7 @@ size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_
   // if we had quotes...
   if (*scratch == '"' && (flags & PARSE_WITHIN_QUOTES)) {
     // init sub-parser without quotes
-    scratch[strlen(scratch) - 1] = '\0';
+    scratch[q_strlen(scratch) - 1] = '\0';
 
     num_parsed = Parse_QuickPrimitive(scratch + 1, parser->flags, flags & ~(PARSE_WITHIN_QUOTES | PARSE_PEEK), type, output, count);
   } else {

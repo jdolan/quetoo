@@ -55,7 +55,7 @@ static cmd_state_t cmd_state;
  */
 void Cbuf_AddText(const char *text) {
 
-  const size_t l = strlen(text);
+  const size_t l = q_strlen(text);
 
   if (cmd_state.buf.size + l >= cmd_state.buf.max_size) {
     Com_Warn("Overflow\n");
@@ -70,7 +70,7 @@ void Cbuf_AddText(const char *text) {
  */
 void Cbuf_InsertText(const char *text) {
 
-  if (text  && strlen(text)) {
+  if (text  && q_strlen(text)) {
     void *temp;
 
     // copy off any commands still remaining in the exec buffer
@@ -212,7 +212,7 @@ void Cmd_TokenizeString(const char *text) {
   }
 
   // prevent overflows
-  if (strlen(text) >= MAX_STRING_CHARS) {
+  if (q_strlen(text) >= MAX_STRING_CHARS) {
     Com_Warn("MAX_STRING_CHARS exceeded\n");
     return;
   }
@@ -231,7 +231,7 @@ void Cmd_TokenizeString(const char *text) {
       q_strlcpy(cmd_state.args.args, parser.position.ptr + 1, MAX_STRING_CHARS);
 
       // strip off any trailing whitespace
-      size_t l = strlen(cmd_state.args.args);
+      size_t l = q_strlen(cmd_state.args.args);
       if (l > 0) {
         char *c = &cmd_state.args.args[l - 1];
 
@@ -246,7 +246,7 @@ void Cmd_TokenizeString(const char *text) {
     }
 
     // expand console variables
-    if (*cmd_state.args.argv[cmd_state.args.argc] == '$' && strcmp(cmd_state.args.argv[0], "alias")) {
+    if (*cmd_state.args.argv[cmd_state.args.argc] == '$' && q_strcmp(cmd_state.args.argv[0], "alias")) {
       const char *c = Cvar_GetString(cmd_state.args.argv[cmd_state.args.argc] + 1);
       q_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
     }
@@ -267,7 +267,7 @@ static cmd_t *Cmd_Get_(const char *name, const bool case_sensitive) {
       if (list->count == 1) { // only 1 entry, return it
         cmd_t *cmd = list->head->element;
 
-        if (!case_sensitive || strcmp(cmd->name, name) == 0) {
+        if (!case_sensitive || q_strcmp(cmd->name, name) == 0) {
           return cmd;
         }
       } else {
@@ -275,7 +275,7 @@ static cmd_t *Cmd_Get_(const char *name, const bool case_sensitive) {
         for (const ListNode *node = list->head; node; node = node->next) {
           cmd_t *cmd = node->element;
 
-          if (!strcmp(cmd->name, name)) {
+          if (!q_strcmp(cmd->name, name)) {
             return cmd;
           }
         }
@@ -679,8 +679,8 @@ static void Cmd_Exec_f(void) {
   }
 
   q_strlcpy(path, Cmd_Argv(1), sizeof(path));
-  const size_t plen = strlen(path);
-  if (plen < 4 || strcmp(path + plen - 4, ".cfg") != 0) {
+  const size_t plen = q_strlen(path);
+  if (plen < 4 || q_strcmp(path + plen - 4, ".cfg") != 0) {
     q_strlcat(path, ".cfg", sizeof(path));
   }
 
@@ -745,7 +745,7 @@ void Cmd_Init(void) {
     const char *c = Com_Argv(i);
 
     // if we encounter a non-set command, consume until the next + or EOL
-    if (*c == '+' && strncmp(c, "+set", 4)) {
+    if (*c == '+' && q_strncmp(c, "+set", 4)) {
       Cbuf_AddText(c + 1);
       i++;
 

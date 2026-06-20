@@ -341,7 +341,7 @@ size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t s
       x += r_draw_2d.font->char_height;
 
       i += 2;
-      j += strlen(name) + 2;
+      j += q_strlen(name) + 2;
 
       draw.first_vertex = r_draw_2d.active->num_vertexes;
       continue;
@@ -375,7 +375,7 @@ void R_BindFont(const char *name, GLint *cw, GLint *ch) {
 
   int32_t i;
   for (i = 0; i < r_draw_2d.num_fonts; i++) {
-    if (!strcmp(name, r_draw_2d.fonts[i].name)) {
+    if (!q_strcmp(name, r_draw_2d.fonts[i].name)) {
       if (upscale && i < r_draw_2d.num_fonts - 1) {
         r_draw_2d.font = &r_draw_2d.fonts[i + 1];
       } else {

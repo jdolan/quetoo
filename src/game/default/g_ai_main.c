@@ -313,9 +313,9 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
     float weight = (AI_MAX_ITEM_DISTANCE - distance) * item->def.priority;
 
     // boost weapons when unarmed, health/armor when retreating
-    if (!G_Ai_IsArmed(cl) && item->def.type == ITEM_WEAPON) {
+    if (!G_Ai_IsArmed(cl) && item->def.type == ITEM_TYPE_WEAPON) {
       weight *= 3.f;
-    } else if (G_Ai_ShouldRetreat(cl) && (item->def.type == ITEM_HEALTH || item->def.type == ITEM_ARMOR)) {
+    } else if (G_Ai_ShouldRetreat(cl) && (item->def.type == ITEM_TYPE_HEALTH || item->def.type == ITEM_TYPE_ARMOR)) {
       weight *= 3.f;
     }
 
@@ -1614,9 +1614,9 @@ static uint32_t G_Ai_LongRange(g_client_t *cl, pm_cmd_t *cmd) {
       // situational weighting: boost weapons when unarmed, health/armor when low
       weight = ent->item->def.priority;
 
-      if (!G_Ai_IsArmed(cl) && ent->item->def.type == ITEM_WEAPON) {
+      if (!G_Ai_IsArmed(cl) && ent->item->def.type == ITEM_TYPE_WEAPON) {
         weight *= 3.f;
-      } else if (G_Ai_ShouldRetreat(cl) && (ent->item->def.type == ITEM_HEALTH || ent->item->def.type == ITEM_ARMOR)) {
+      } else if (G_Ai_ShouldRetreat(cl) && (ent->item->def.type == ITEM_TYPE_HEALTH || ent->item->def.type == ITEM_TYPE_ARMOR)) {
         weight *= 3.f;
       }
     }

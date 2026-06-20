@@ -253,7 +253,7 @@ void Cl_DrawChat(void) {
  * @brief Outputs a stripped (color-code-free) console string to stdout.
  */
 static void Cl_Print(const console_string_t *str) {
-  char stripped[strlen(str->chars) + 1];
+  char stripped[q_strlen(str->chars) + 1];
 
   StrStrip(str->chars, stripped);
   fputs(stripped, stdout);

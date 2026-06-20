@@ -151,7 +151,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
   if (Fs_Rename(tempname, filename)) {
     Com_Print("Downloaded %s (%zu bytes)\n", filename, downloaded_length);
 
-    if (strstr(filename, ".pk3")) {
+    if (q_strstr(filename, ".pk3")) {
       Fs_AddToSearchPath(filename);
     }
   } else {
@@ -282,7 +282,7 @@ static void Cl_ParseServerData(void) {
 
   // game directory
   char *str = Net_ReadString(&net_message);
-  if (strcmp(Cvar_GetString("game"), str)) {
+  if (q_strcmp(Cvar_GetString("game"), str)) {
 
     Fs_SetGame(str);
 

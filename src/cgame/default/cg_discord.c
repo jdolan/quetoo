@@ -193,7 +193,7 @@ void Cg_UpdateDiscord(void) {
         q_snprintf(details, sizeof(details), "%s - %s", Cg_GetGameMode(), cgi.ConfigString(CS_MESSAGE));
         presence.details = details;
 
-        if (strcmp(cgi.server_name, "localhost")) {
+        if (q_strcmp(cgi.server_name, "localhost")) {
           presence.partyId = cgi.server_name;
 
           q_snprintf(joinSecret, sizeof(joinSecret), "JOIN_%s", presence.partyId);

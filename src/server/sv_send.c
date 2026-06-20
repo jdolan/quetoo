@@ -304,7 +304,7 @@ static void Sv_DemoCompleted(void) {
   if (sv_demo_list->string[0]) {
 
     const char *current_demo = sv.name;
-    const char *next_demo = strstr(sv_demo_list->string, current_demo);
+    const char *next_demo = q_strstr(sv_demo_list->string, current_demo);
     char demo_token[MAX_QPATH];
 
     if (!next_demo) {
@@ -312,7 +312,7 @@ static void Sv_DemoCompleted(void) {
       next_demo = sv_demo_list->string;
     } else {
 
-      next_demo += strlen(current_demo);
+      next_demo += q_strlen(current_demo);
 
       if (next_demo[0] == ' ') {
         next_demo++;
@@ -321,11 +321,10 @@ static void Sv_DemoCompleted(void) {
       }
     }
 
-    const char *space = strchr(next_demo, ' ') ? : (next_demo + strlen(next_demo));
+    const char *space = q_strchr(next_demo, ' ') ? : (next_demo + q_strlen(next_demo));
     size_t len = space - next_demo;
 
-    strncpy(demo_token, next_demo, len);
-    demo_token[len] = 0;
+    q_strlcpy(demo_token, next_demo, len + 1);
 
     if (demo_token[0]) {
       Sv_InitServer(demo_token, NULL, SV_ACTIVE_DEMO);

@@ -88,7 +88,7 @@ void Cl_ParseServerInfo(void) {
   q_strlcpy(string, Net_ReadString(&net_message), sizeof(string));
 
   // First line is the server infostring; subsequent lines are player entries.
-  char *player_start = strchr(string, '\n');
+  char *player_start = q_strchr(string, '\n');
   if (player_start) {
     *player_start++ = '\0';
   }
@@ -113,10 +113,10 @@ void Cl_ParseServerInfo(void) {
 
     const char *line = player_start;
     while (line && *line) {
-      const char *end = strchr(line, '\n');
+      const char *end = q_strchr(line, '\n');
 
       char player[MAX_TOKEN_CHARS];
-      const size_t len = end ? (size_t)(end - line) : strlen(line);
+      const size_t len = end ? (size_t)(end - line) : q_strlen(line);
       q_strlcpy(player, line, Mini(len + 1, sizeof(player)));
 
       if (player[0]) {

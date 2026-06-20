@@ -83,19 +83,19 @@ static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t bu
   char search[256];
   q_snprintf(search, sizeof(search), "\\%s\\", key);
 
-  const char *p = strstr(info, search);
+  const char *p = q_strstr(info, search);
   if (!p) {
     return false;
   }
 
-  p += strlen(search);
+  p += q_strlen(search);
 
   size_t len;
   const char *end = strpbrk(p, "\\\n");
   if (end) {
     len = end - p;
   } else {
-    len = strlen(p);
+    len = q_strlen(p);
   }
   len = Minui64(len, buf_size - 1);
 
@@ -145,7 +145,7 @@ static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name)
     server->num_clients, server->max_clients,
     ip, port);
 
-  Data *body = $$(Data, dataWithBytes, (const uint8_t *) json, strlen(json));
+  Data *body = $$(Data, dataWithBytes, (const uint8_t *) json, q_strlen(json));
   $($$(RESTClient, sharedInstance), postAsync, ms_discord_webhook, body, NULL, NULL);
   release(body);
 }
@@ -180,7 +180,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
   int32_t new_count = 0;
 
   // player lines begin after the infostring's trailing newline
-  const char *line = strchr(status, '\n');
+  const char *line = q_strchr(status, '\n');
   while (line && new_count < MAX_CLIENTS) {
     line++; // skip the newline
     if (*line == '\0') {
@@ -188,7 +188,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     }
 
     // isolate the current player line to prevent cross-line key lookups
-    const char *line_end = strchr(line, '\n');
+    const char *line_end = q_strchr(line, '\n');
     char cur_line[256];
     if (line_end) {
       q_strlcpy(cur_line, line, (size_t) (line_end - line) + 1 < sizeof(cur_line) ? (size_t)(line_end - line) + 1 : sizeof(cur_line));
@@ -203,7 +203,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
       StrStrip(name, stripped);
       Ms_InfoValue(cur_line, "ai", ai_val, sizeof(ai_val));
       Com_Verbose("Player: %s ai=%s\n", stripped, ai_val[0] ? ai_val : "(none)");
-      if (!atoi(ai_val) && strncmp(stripped, "[BOT]", 5)) {
+      if (!atoi(ai_val) && q_strncmp(stripped, "[BOT]", 5)) {
         q_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
         new_count++;
       }
@@ -218,7 +218,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     for (int32_t i = 0; i < new_count; i++) {
       bool found = false;
       for (int32_t j = 0; j < server->num_clients; j++) {
-        if (!strcmp(new_players[i], server->players[j])) {
+        if (!q_strcmp(new_players[i], server->players[j])) {
           found = true;
           break;
         }
@@ -305,14 +305,14 @@ static bool Ms_BlacklistServer(struct sockaddr_in *from) {
     char line[256];
 
     sscanf(c, "%255s\n", line);
-    c += strlen(line) + 1;
+    c += q_strlen(line) + 1;
 
     const char *l = line;
     while (isspace((unsigned char) *l)) { l++; }
-    char *_lend = (char *) l + strlen(l) - 1;
+    char *_lend = (char *) l + q_strlen(l) - 1;
     while (_lend >= l && isspace((unsigned char) *_lend)) { *_lend-- = '\0'; }
 
-    if (!strlen(l) || !strncmp(l, "//", 2) || l[0] == '#') {
+    if (!q_strlen(l) || !q_strncmp(l, "//", 2) || l[0] == '#') {
       continue;
     }
 
@@ -395,7 +395,7 @@ static void Ms_Frame(void) {
           Com_Verbose("Pinging %s\n", stos(server));
 
           const char *ping = "\xFF\xFF\xFF\xFF" "ping";
-          sendto(ms_sock, ping, strlen(ping), 0, (struct sockaddr *) &server->addr,
+          sendto(ms_sock, ping, q_strlen(ping), 0, (struct sockaddr *) &server->addr,
                  sizeof(server->addr));
         }
       }
@@ -414,7 +414,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
 
   // parse optional protocol version from command (e.g. "getservers 2026")
   int32_t protocol = PROTOCOL_MAJOR;
-  const char *p = cmd + strlen("getservers");
+  const char *p = cmd + q_strlen("getservers");
   while (*p == ' ') p++;
   if (*p) {
     const int32_t requested = atoi(p);
@@ -426,7 +426,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   Mem_InitBuffer(&buf, buffer, sizeof(buffer));
 
   const char *servers = "\xFF\xFF\xFF\xFF" "servers ";
-  Mem_WriteBuffer(&buf, servers, strlen(servers));
+  Mem_WriteBuffer(&buf, servers, q_strlen(servers));
 
   uint32_t i = 0;
   for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
@@ -593,12 +593,12 @@ int32_t quetoo_main(int32_t argc, char **argv) {
   int32_t i;
   for (i = 0; i < Com_Argc(); i++) {
 
-    if (!strcmp(Com_Argv(i), "-v") || !strcmp(Com_Argv(i), "-verbose")) {
+    if (!q_strcmp(Com_Argv(i), "-v") || !q_strcmp(Com_Argv(i), "-verbose")) {
       verbose = true;
       continue;
     }
 
-    if (!strcmp(Com_Argv(i), "-d") || !strcmp(Com_Argv(i), "-debug")) {
+    if (!q_strcmp(Com_Argv(i), "-d") || !q_strcmp(Com_Argv(i), "-debug")) {
       debug = true;
       continue;
     }

@@ -30,9 +30,9 @@ bool include_shared = false;
 bool update_zip = false;
 
 static bool HasSuffix(const char *str, const char *suffix) {
-  const size_t len = strlen(str);
-  const size_t suffix_len = strlen(suffix);
-  return len >= suffix_len && !strcmp(str + len - suffix_len, suffix);
+  const size_t len = q_strlen(str);
+  const size_t suffix_len = q_strlen(suffix);
+  return len >= suffix_len && !q_strcmp(str + len - suffix_len, suffix);
 }
 
 static void CollectManifestAsset(const HashTable *table, ident key, ident value, ident data) {
@@ -101,7 +101,7 @@ int32_t ZIP_Main(void) {
           // skip it. This allows us to rebuild our official maps easily, but without
           // pulling in flares, envmaps, etc.
 
-          (!strncmp(dir, PKGDATADIR, strlen(PKGDATADIR)) && !HasSuffix(dir, ".pk3"))) {
+          (!q_strncmp(dir, PKGDATADIR, q_strlen(PKGDATADIR)) && !HasSuffix(dir, ".pk3"))) {
 
             Com_Print("[S] %s (%s)\n", filename, dir);
             continue;

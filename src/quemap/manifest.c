@@ -32,15 +32,15 @@
 static HashTable *paths;
 
 static bool HasSuffix(const char *str, const char *suffix) {
-	const size_t len = strlen(str);
-	const size_t suffix_len = strlen(suffix);
-	return len >= suffix_len && !strcmp(str + len - suffix_len, suffix);
+	const size_t len = q_strlen(str);
+	const size_t suffix_len = q_strlen(suffix);
+	return len >= suffix_len && !q_strcmp(str + len - suffix_len, suffix);
 }
 
 static Order AssetPathCompare(const ident a, const ident b) {
 	const char *const *path_a = a;
 	const char *const *path_b = b;
-	const int32_t cmp = strcmp(*path_a, *path_b);
+	const int32_t cmp = q_strcmp(*path_a, *path_b);
 	return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -63,7 +63,7 @@ static bool Add(const char *name) {
 
 	assert(name);
 
-	if (!strlen(name)) {
+	if (!q_strlen(name)) {
 		Com_Verbose("Failed to add empty path\n");
 		return false;
 	}
@@ -73,12 +73,12 @@ static bool Add(const char *name) {
 		return false;
 	}
 
-	if (strchr(name, ' ')) {
+	if (q_strchr(name, ' ')) {
 		Com_Warn("Rejecting path with spaces: %s\n", name);
 		return false;
 	}
 
-	if (strstr(name, "..")) {
+	if (q_strstr(name, "..")) {
 		Com_Warn("Rejecting path with '..': %s\n", name);
 		return false;
 	}
@@ -230,11 +230,11 @@ static void AddEntities(void) {
 		const cm_entity_t *e = node->element;
 		while (e) {
 
-			if (!strcmp(e->key, "sound")) {
+			if (!q_strcmp(e->key, "sound")) {
 				AddSound(e->string);
-			} else if (!strcmp(e->key, "model")) {
+			} else if (!q_strcmp(e->key, "model")) {
 				AddModel(e->string);
-			} else if (!strcmp(e->key, "sky")) {
+			} else if (!q_strcmp(e->key, "sky")) {
 				AddSky(e->string);
 			}
 

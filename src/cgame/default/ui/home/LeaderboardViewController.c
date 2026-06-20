@@ -57,11 +57,11 @@ static const JSONProperties leaderboard_entry_properties = {
  * @brief Maps a column identifier to its API sort parameter.
  */
 static const char *sortParamForColumn(const char *identifier) {
-  if (strcmp(identifier, _player) == 0) return "name";
-  if (strcmp(identifier, _frags) == 0) return "frags";
-  if (strcmp(identifier, _deaths) == 0) return "deaths";
-  if (strcmp(identifier, _kd) == 0) return "kd";
-  if (strcmp(identifier, _time_played) == 0) return "time_played";
+  if (q_strcmp(identifier, _player) == 0) return "name";
+  if (q_strcmp(identifier, _frags) == 0) return "frags";
+  if (q_strcmp(identifier, _deaths) == 0) return "deaths";
+  if (q_strcmp(identifier, _kd) == 0) return "kd";
+  if (q_strcmp(identifier, _time_played) == 0) return "time_played";
   return NULL;
 }
 
@@ -138,12 +138,12 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
 static void selectOwnRow(LeaderboardViewController *this) {
 
   const char *guid_hash = cgi.GetCvarString("guid_hash");
-  if (strlen(guid_hash) == 0) {
+  if (q_strlen(guid_hash) == 0) {
     return;
   }
 
   for (size_t i = 0; i < this->leaderboardResponse.num_entries; i++) {
-    if (strcmp(this->leaderboardResponse.entries[i].guid, guid_hash) == 0) {
+    if (q_strcmp(this->leaderboardResponse.entries[i].guid, guid_hash) == 0) {
       $(this->leaderboard, selectRowAtIndex, i);
       return;
     }
@@ -184,23 +184,23 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
   }
 
   const char *guid_hash = cgi.GetCvarString("guid_hash");
-  if (strcmp(entry->guid, guid_hash) == 0) {
+  if (q_strcmp(entry->guid, guid_hash) == 0) {
     $((View *) cell, addClassName, "me");
   }
 
-  if (strcmp(column->identifier, _rank) == 0) {
+  if (q_strcmp(column->identifier, _rank) == 0) {
     $(cell->text, setText, va("%d", entry->rank));
-  } else if (strcmp(column->identifier, _player) == 0) {
+  } else if (q_strcmp(column->identifier, _player) == 0) {
     $(cell->text, setText, entry->name);
     cell->text->colorEscapes = true;
-  } else if (strcmp(column->identifier, _frags) == 0) {
+  } else if (q_strcmp(column->identifier, _frags) == 0) {
     $(cell->text, setText, va("%d", entry->frags));
-  } else if (strcmp(column->identifier, _deaths) == 0) {
+  } else if (q_strcmp(column->identifier, _deaths) == 0) {
     $(cell->text, setText, va("%d", entry->deaths));
-  } else if (strcmp(column->identifier, _kd) == 0) {
+  } else if (q_strcmp(column->identifier, _kd) == 0) {
     const float kd = entry->deaths > 0 ? (float) entry->frags / entry->deaths : (float) entry->frags;
     $(cell->text, setText, va("%.2f", kd));
-  } else if (strcmp(column->identifier, _time_played) == 0) {
+  } else if (q_strcmp(column->identifier, _time_played) == 0) {
     $(cell->text, setText, formatTime(entry->time_played));
   }
 

@@ -158,7 +158,7 @@ static BindTextView *initWithBind(BindTextView *self, const char *bind) {
   self = (BindTextView *) super(TextView, self, initWithFrame, NULL);
   if (self) {
 
-    self->bind = strdup(bind ?: "");
+    self->bind = q_strdup(bind ?: "");
     assert(self->bind);
   }
 

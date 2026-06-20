@@ -205,7 +205,7 @@ const char *Basename(const char *path) {
 void Dirname(const char *in, char *out) {
   char *c;
 
-  if (!(c = strrchr(in, '/'))) {
+  if (!(c = q_strrchr(in, '/'))) {
     strcpy(out, "./");
     return;
   }
@@ -224,10 +224,10 @@ void Dirname(const char *in, char *out) {
 void StripNewline(const char *in, char *out) {
 
   if (in) {
-    const size_t len = strlen(in);
+    const size_t len = q_strlen(in);
     memmove(out, in, len + 1);
 
-    char *ext = strrchr(out, '\n');
+    char *ext = q_strrchr(out, '\n');
     if (ext) {
       *ext = '\0';
     }
@@ -242,10 +242,10 @@ void StripNewline(const char *in, char *out) {
 void StripExtension(const char *in, char *out) {
 
   if (in) {
-    const size_t len = strlen(in);
+    const size_t len = q_strlen(in);
     memmove(out, in, len + 1);
 
-    char *ext = strrchr(out, '.');
+    char *ext = q_strrchr(out, '.');
     if (ext) {
       *ext = '\0';
     }
@@ -277,7 +277,7 @@ bool StrIsEmoji(const char *c) {
     if (*c == ESC_EMOJI) {
       c++;
       if (isalpha(*c)) {
-        while (isalnum(*c) || strchr("_-", *c)) {
+        while (isalnum(*c) || q_strchr("_-", *c)) {
           c++;
         }
         if (*c == ESC_EMOJI) {
@@ -330,7 +330,7 @@ const char *EmojiEsc(const char *in, char *out, size_t out_size) {
   in++;
 
   for (size_t i = 0; i < out_size - 1; i++) {
-    if (isalnum(*in) || strchr("_", *in)) {
+    if (isalnum(*in) || q_strchr("_", *in)) {
       if (out) {
         *out++ = *in++;
       }
@@ -388,7 +388,7 @@ size_t StrStripLen(const char *s) {
  * @brief Performs a color- and case-insensitive string comparison.
  */
 int32_t StrStripCmp(const char *s1, const char *s2) {
-  char string1[strlen(s1) + 1], string2[strlen(s2) + 1];
+  char string1[q_strlen(s1) + 1], string2[q_strlen(s2) + 1];
 
   StrStrip(s1, string1);
   StrStrip(s2, string2);
@@ -418,7 +418,7 @@ int32_t StrColor(const char *s) {
 int32_t StrrColor(const char *s) {
 
   if (s) {
-    const char *c = s + strlen(s) - 1;
+    const char *c = s + q_strlen(s) - 1;
     while (c > s) {
       if (StrIsColor(c)) {
         return *(c + 1) - '0';
@@ -507,7 +507,7 @@ char *InfoString_Get(const char *s, const char *key) {
     }
     *o = '\0';
 
-    if (!strcmp(key, pkey)) {
+    if (!q_strcmp(key, pkey)) {
       return value[value_index];
     }
 
@@ -576,7 +576,7 @@ bool InfoString_Delete(char *s, const char *key) {
   char value[512];
   char *o;
 
-  if (strstr(key, "\\")) {
+  if (q_strstr(key, "\\")) {
     return false;
   }
 
@@ -604,8 +604,8 @@ bool InfoString_Delete(char *s, const char *key) {
     }
     *o = '\0';
 
-    if (!strcmp(key, pkey)) {
-      memmove(start, s, strlen(s) + 1);
+    if (!q_strcmp(key, pkey)) {
+      memmove(start, s, q_strlen(s) + 1);
       return true;
     }
 
@@ -622,7 +622,7 @@ bool InfoString_Validate(const char *s) {
   if (!s || !*s) {
     return false;
   }
-  if (strstr(s, "\"")) {
+  if (q_strstr(s, "\"")) {
     return false;
   }
   return true;
@@ -635,40 +635,40 @@ bool InfoString_Validate(const char *s) {
 bool InfoString_Set(char *s, const char *key, const char *value) {
   char newi[MAX_INFO_STRING_STRING * 16], *v;
 
-  if (!strlen(key)) {
+  if (!q_strlen(key)) {
     return false;
   }
 
-  if (strstr(key, "\\") || strstr(value, "\\")) {
+  if (q_strstr(key, "\\") || q_strstr(value, "\\")) {
     return false;
   }
 
-  if (strstr(key, ";")) {
+  if (q_strstr(key, ";")) {
     return false;
   }
 
-  if (strstr(key, "\"") || strstr(value, "\"")) {
+  if (q_strstr(key, "\"") || q_strstr(value, "\"")) {
     return false;
   }
 
-  if (strlen(key) > MAX_INFO_STRING_KEY - 1 || strlen(value) > MAX_INFO_STRING_VALUE - 1) {
+  if (q_strlen(key) > MAX_INFO_STRING_KEY - 1 || q_strlen(value) > MAX_INFO_STRING_VALUE - 1) {
     return false;
   }
 
   InfoString_Delete(s, key);
 
-  if (strlen(s)) {
+  if (q_strlen(s)) {
     q_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value ?: "");
   } else {
     q_snprintf(newi, sizeof(newi), "%s\\%s", key, value ?: "");
   }
 
-  if (strlen(newi) + strlen(s) > MAX_INFO_STRING_STRING) {
+  if (q_strlen(newi) + q_strlen(s) > MAX_INFO_STRING_STRING) {
     return false;
   }
 
   // only copy ascii values
-  s += strlen(s);
+  s += q_strlen(s);
   v = newi;
   while (*v) {
     char c = *v++;

@@ -36,7 +36,7 @@ static void updateBindings(View *self) {
 
   TeamPlayerView *this = (TeamPlayerView *) self;
 
-  if (this->client && strlen(this->client->info)) {
+  if (this->client && q_strlen(this->client->info)) {
 
     char name[MAX_INFO_STRING_VALUE];
     StrStrip(this->client->name, name);

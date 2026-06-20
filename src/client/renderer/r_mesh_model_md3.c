@@ -48,19 +48,19 @@ static void R_LoadMd3Animations(r_model_t *mod) {
       break;
     }
 
-    if (!strcmp(token, "footsteps")) {
+    if (!q_strcmp(token, "footsteps")) {
       Parse_SkipToken(&parser, PARSE_DEFAULT);
       Parse_SkipToken(&parser, PARSE_DEFAULT | PARSE_NO_WRAP);
       continue;
     }
 
-    if (!strcmp(token, "headoffset")) {
+    if (!q_strcmp(token, "headoffset")) {
       Parse_SkipToken(&parser, PARSE_DEFAULT);
       Parse_SkipPrimitive(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, PARSE_FLOAT, 3);
       continue;
     }
 
-    if (!strcmp(token, "sex")) {
+    if (!q_strcmp(token, "sex")) {
       Parse_SkipToken(&parser, PARSE_DEFAULT);
       Parse_SkipToken(&parser, PARSE_DEFAULT | PARSE_NO_WRAP);
       continue;
@@ -292,7 +292,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
     Com_Error(ERROR_DROP, "%s MD3_MAX_SURFACES %d\n", mod->media.name, md3.num_surfaces);
   }
 
-  if (strncmp(mod->media.name, "players/", 8)) {
+  if (q_strncmp(mod->media.name, "players/", 8)) {
     Com_Warn("%s: MD3 is only supported for player models; use OBJ instead\n", mod->media.name);
     return;
   }
@@ -425,7 +425,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
   }
 
   // and animations for player models
-  if (strstr(mod->media.name, "/upper")) {
+  if (q_strstr(mod->media.name, "/upper")) {
     R_LoadMd3Animations(mod);
   }
 

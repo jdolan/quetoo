@@ -645,7 +645,7 @@ static void G_Give(g_client_t *cl, char *it, int16_t quantity) {
 
   const g_item_tag_t index = item->def.tag;
 
-  if (item->def.type == ITEM_WEAPON) { // weapons receive quantity as ammo
+  if (item->def.type == ITEM_TYPE_WEAPON) { // weapons receive quantity as ammo
     cl->inventory[index]++;
 
     if (item->def.ammo) {
@@ -689,11 +689,11 @@ static bool G_GiveLevelLocals(g_client_t *cl) {
     }
 
     while (isspace((unsigned char) *it)) { it++; }
-    { char *_end = it + strlen(it) - 1; while (_end >= it && isspace((unsigned char) *_end)) { *_end-- = '\0'; } }
+    { char *_end = it + q_strlen(it) - 1; while (_end >= it && isspace((unsigned char) *_end)) { *_end-- = '\0'; } }
 
     if (*it != '\0') {
 
-      if ((q = strrchr(it, ' '))) {
+      if ((q = q_strrchr(it, ' '))) {
         quantity = atoi(q + 1);
 
         if (quantity > -1) { // valid quantity
@@ -1221,18 +1221,18 @@ void G_ClientBegin(g_client_t *cl) {
       char motd[MAX_QPATH];
       q_snprintf(motd, sizeof(motd), "\n%s^7", g_motd->string);
 
-      strncat(welcome, motd, sizeof(welcome) - strlen(welcome) - 1);
+      q_strlcat(welcome, motd, sizeof(welcome));
     }
 
-    strncat(welcome, "\n^2Gameplay is ^1", sizeof(welcome) - strlen(welcome) - 1);
-    strncat(welcome, G_GameplayName(g_level.gameplay), sizeof(welcome) - strlen(welcome) - 1);
+    q_strlcat(welcome, "\n^2Gameplay is ^1", sizeof(welcome));
+    q_strlcat(welcome, G_GameplayName(g_level.gameplay), sizeof(welcome));
 
     if (g_level.teams) {
-      strncat(welcome, "\n^2Teams are enabled", sizeof(welcome) - strlen(welcome) - 1);
+      q_strlcat(welcome, "\n^2Teams are enabled", sizeof(welcome));
     }
 
     if (g_level.ctf) {
-      strncat(welcome, "\n^2CTF is enabled", sizeof(welcome) - strlen(welcome) - 1);
+      q_strlcat(welcome, "\n^2CTF is enabled", sizeof(welcome));
     }
 
     // FIXME: Move these tidbits into ConfigStrings so that the client can display a menu
@@ -1259,7 +1259,7 @@ void G_SetClientHookStyle(g_client_t *cl) {
   g_hook_style_t hook_style;
 
   // respect user_info on default
-  if (!strcmp(g_hook_style->string, "default")) {
+  if (!q_strcmp(g_hook_style->string, "default")) {
     hook_style = G_HookStyleByName(InfoString_Get(cl->persistent.user_info, "hook_style"));
   } else {
     hook_style = G_HookStyleByName(g_hook_style->string);
@@ -1281,7 +1281,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   }
 
   // save off the user_info in case we want to check something later
-  const size_t len = strlen(user_info);
+  const size_t len = q_strlen(user_info);
   memmove(cl->user_info, user_info, len + 1);
   memmove(cl->persistent.user_info, user_info, len + 1);
 
@@ -1322,7 +1322,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
     q_strlcat(name, "^7", sizeof(name));
   }
 
-  if (strncmp(cl->persistent.net_name, name, sizeof(cl->persistent.net_name))) {
+  if (q_strncmp(cl->persistent.net_name, name, sizeof(cl->persistent.net_name))) {
 
     if (*cl->persistent.net_name != '\0') {
       gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->persistent.net_name, name);
@@ -1338,7 +1338,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
     s = InfoString_Get(user_info, "skin");
 
     char *p;
-    if (strlen(s) && (p = strchr(s, '/'))) {
+    if (q_strlen(s) && (p = q_strchr(s, '/'))) {
       *p = 0;
       s = va("%s/%s", s, DEFAULT_TEAM_SKIN);
     } else {
@@ -1348,7 +1348,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
     s = InfoString_Get(user_info, "skin");
   }
 
-  if (strlen(s) && !strstr(s, "..")) { // something valid-ish was provided
+  if (q_strlen(s) && !q_strstr(s, "..")) { // something valid-ish was provided
     q_strlcpy(cl->persistent.skin, s, sizeof(cl->persistent.skin));
   } else {
     q_strlcpy(cl->persistent.skin, DEFAULT_USER_MODEL "/" DEFAULT_USER_SKIN, sizeof(cl->persistent.skin));
@@ -1362,7 +1362,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 
     cl->persistent.color = -1;
 
-    if (strlen(s) && strcmp(s, "default")) { // not default
+    if (q_strlen(s) && q_strcmp(s, "default")) { // not default
       const int32_t hue = atoi(s);
       if (hue >= 0) {
         cl->persistent.color = Minf(hue, 361);
@@ -1431,7 +1431,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 
   if (cl->entity) {
     s = InfoString_Get(user_info, "active");
-    if (strcmp(s, "0") == 0) {
+    if (q_strcmp(s, "0") == 0) {
       cl->entity->s.effects |= EF_INACTIVE;
     } else {
       cl->entity->s.effects &= ~(EF_INACTIVE);
@@ -1459,8 +1459,8 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 bool G_ClientConnect(g_client_t *cl, char *user_info) {
 
   // check password
-  if (strlen(g_password->string) && !cl->ai) {
-    if (strcmp(g_password->string, InfoString_Get(user_info, "password"))) {
+  if (q_strlen(g_password->string) && !cl->ai) {
+    if (q_strcmp(g_password->string, InfoString_Get(user_info, "password"))) {
       InfoString_Set(user_info, "rejmsg", "Password required or incorrect.");
       return false;
     }

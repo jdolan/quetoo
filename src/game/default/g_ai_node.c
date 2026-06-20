@@ -511,7 +511,7 @@ static void G_Ai_Node_UpdateCosts(const ai_node_id_t id) {
 static bool G_Ai_PlatformAccessible(const vec3_t position) {
 
   G_ForEachEntity(ent, {
-    if (!ent->classname || strcmp(ent->classname, "func_plat") != 0) {
+    if (!ent->classname || q_strcmp(ent->classname, "func_plat") != 0) {
       continue;
     }
 
@@ -1209,7 +1209,7 @@ void G_Ai_NodesReady(void) {
   gi.Print("  Game loaded %u additional nodes with %u new links.\n", added_nodes, added_links);
 
   G_ForEachEntity(ent, {
-    if (ent->classname && strcmp(ent->classname, "func_plat") == 0) {
+    if (ent->classname && q_strcmp(ent->classname, "func_plat") == 0) {
       if (!g_ai_platforms) {
         g_ai_platforms = $(alloc(Vector), initWithSize, sizeof(g_entity_t *));
       }

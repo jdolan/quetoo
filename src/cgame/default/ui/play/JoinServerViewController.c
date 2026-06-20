@@ -205,17 +205,17 @@ static ident valueForColumnAndRow(const TableView *tableView, const TableColumn 
   cl_server_info_t *server = (cl_server_info_t *) serverAtIndex(this->servers, row);
   assert(server);
 
-  if (strcmp(column->identifier, _hostname) == 0) {
+  if (q_strcmp(column->identifier, _hostname) == 0) {
     return server->hostname;
-  } else if (strcmp(column->identifier, _source) == 0) {
+  } else if (q_strcmp(column->identifier, _source) == 0) {
     return &server->source;
-  } else if (strcmp(column->identifier, _name) == 0) {
+  } else if (q_strcmp(column->identifier, _name) == 0) {
     return server->name;
-  } else if (strcmp(column->identifier, _gameplay) == 0) {
+  } else if (q_strcmp(column->identifier, _gameplay) == 0) {
     return server->gameplay;
-  } else if (strcmp(column->identifier, _players) == 0) {
+  } else if (q_strcmp(column->identifier, _players) == 0) {
     return &server->clients;
-  } else if (strcmp(column->identifier, _ping) == 0) {
+  } else if (q_strcmp(column->identifier, _ping) == 0) {
     return &server->ping;
   }
 
@@ -236,17 +236,17 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
-  if (strlen(server->error)) {
-    if (strcmp(column->identifier, _hostname) == 0) {
+  if (q_strlen(server->error)) {
+    if (q_strcmp(column->identifier, _hostname) == 0) {
       $(cell->text, setText, server->error);
       $((View *) cell, addClassName, "error");
     } else {
       $(cell->text, setText, NULL);
     }
   } else {
-    if (strcmp(column->identifier, _hostname) == 0) {
+    if (q_strcmp(column->identifier, _hostname) == 0) {
       $(cell->text, setText, server->hostname);
-    } else if (strcmp(column->identifier, _source) == 0) {
+    } else if (q_strcmp(column->identifier, _source) == 0) {
       switch (server->source) {
         case SERVER_SOURCE_INTERNET:
           $(cell->text, setText, "Internet");
@@ -258,17 +258,17 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
           $(cell->text, setText, "LAN");
           break;
       }
-    } else if (strcmp(column->identifier, _name) == 0) {
+    } else if (q_strcmp(column->identifier, _name) == 0) {
       $(cell->text, setText, server->name);
-    } else if (strcmp(column->identifier, _gameplay) == 0) {
+    } else if (q_strcmp(column->identifier, _gameplay) == 0) {
       $(cell->text, setText, server->gameplay);
-    } else if (strcmp(column->identifier, _players) == 0) {
+    } else if (q_strcmp(column->identifier, _players) == 0) {
       if (cg_join_server_hide_bots->value) {
         $(cell->text, setText, va("%d/%d", server->clients - server->bots, server->max_clients));
       } else {
         $(cell->text, setText, va("%d/%d", server->clients, server->max_clients));
       }
-    } else if (strcmp(column->identifier, _ping) == 0) {
+    } else if (q_strcmp(column->identifier, _ping) == 0) {
       $(cell->text, setText, va("%3d", server->ping));
     }
   }
@@ -433,17 +433,17 @@ static Order comparator(const ident a, const ident b) {
 
     int32_t cmp = 0;
 
-    if (strcmp(this->serversTableView->sortColumn->identifier, _hostname) == 0) {
-      cmp = strcmp(s0->hostname, s1->hostname);
-    } else if (strcmp(this->serversTableView->sortColumn->identifier, _source) == 0) {
+    if (q_strcmp(this->serversTableView->sortColumn->identifier, _hostname) == 0) {
+      cmp = q_strcmp(s0->hostname, s1->hostname);
+    } else if (q_strcmp(this->serversTableView->sortColumn->identifier, _source) == 0) {
       cmp = s0->source - s1->source;
-    } else if (strcmp(this->serversTableView->sortColumn->identifier, _name) == 0) {
-      cmp = strcmp(s0->name, s1->name);
-    } else if (strcmp(this->serversTableView->sortColumn->identifier, _gameplay) == 0) {
-      cmp = strcmp(s0->gameplay, s1->gameplay);
-    } else if (strcmp(this->serversTableView->sortColumn->identifier, _players) == 0) {
+    } else if (q_strcmp(this->serversTableView->sortColumn->identifier, _name) == 0) {
+      cmp = q_strcmp(s0->name, s1->name);
+    } else if (q_strcmp(this->serversTableView->sortColumn->identifier, _gameplay) == 0) {
+      cmp = q_strcmp(s0->gameplay, s1->gameplay);
+    } else if (q_strcmp(this->serversTableView->sortColumn->identifier, _players) == 0) {
       cmp = s0->clients - s1->clients;
-    } else if (strcmp(this->serversTableView->sortColumn->identifier, _ping) == 0) {
+    } else if (q_strcmp(this->serversTableView->sortColumn->identifier, _ping) == 0) {
       cmp = s0->ping - s1->ping;
     } else {
       assert(false);

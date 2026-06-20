@@ -94,7 +94,7 @@ void Sv_SetConfigString(const int32_t index, const char *val) {
   }
 
   // make sure it's actually changed
-  if (!strcmp(sv.config_strings[index], val)) {
+  if (!q_strcmp(sv.config_strings[index], val)) {
     return;
   }
 

@@ -44,7 +44,7 @@ static void Cl_WriteDemoHeader(void) {
   // and config_strings
   for (int32_t i = 0; i < MAX_CONFIG_STRINGS; i++) {
     if (*cl.config_strings[i] != '\0') {
-      if (msg.size + strlen(cl.config_strings[i]) + 32 > msg.max_size) { // write it out
+      if (msg.size + q_strlen(cl.config_strings[i]) + 32 > msg.max_size) { // write it out
         const int32_t len = LittleLong((int32_t) msg.size);
         Fs_Write(cls.demo_file, &len, sizeof(len), 1);
         Fs_Write(cls.demo_file, msg.data, msg.size, 1);

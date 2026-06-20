@@ -34,7 +34,7 @@ static int32_t Sv_FindIndex(const char *name, int32_t start, int32_t max, bool c
   }
 
   for (i = 0; i < max && sv.config_strings[start + i][0]; i++)
-    if (!strcmp(sv.config_strings[start + i], name)) {
+    if (!q_strcmp(sv.config_strings[start + i], name)) {
       return i;
     }
 
@@ -284,8 +284,8 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
     sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_BSP], &bsp_size);
 
     const char *dir = Fs_RealDir(sv.config_strings[CS_BSP]);
-    const size_t dir_len = strlen(dir);
-    if (dir_len >= 4 && !strcmp(dir + dir_len - 4, ".pk3")) {
+    const size_t dir_len = q_strlen(dir);
+    if (dir_len >= 4 && !q_strcmp(dir + dir_len - 4, ".pk3")) {
       q_strlcpy(sv.config_strings[CS_PK3], Basename(dir), MAX_STRING_CHARS);
     } else {
       sv.config_strings[CS_PK3][0] = '\0';

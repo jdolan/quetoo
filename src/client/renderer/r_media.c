@@ -29,7 +29,7 @@ typedef struct {
 static r_media_state_t r_media_state;
 
 static Order R_EnumerateMedia_comparator(const ident a, const ident b) {
-  const int32_t cmp = strcmp((*(const r_media_t *const *) a)->name, (*(const r_media_t *const *) b)->name);
+  const int32_t cmp = q_strcmp((*(const r_media_t *const *) a)->name, (*(const r_media_t *const *) b)->name);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -280,7 +280,7 @@ static bool R_MediaEqual(const void * a, const void * b) {
   const r_media_t *_a = a, *_b = b;
 
   if (_a->type == _b->type) {
-    return !strcmp(_a->name, _b->name);
+    return !q_strcmp(_a->name, _b->name);
   }
 
   return false;

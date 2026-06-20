@@ -116,7 +116,7 @@ static void S_RegisterMedia_InsertSortedKey(const char *name) {
 
   // find insertion point (insert before first node where name <= existing)
   for (ListNode *n = s_media_state.keys->head; n; n = n->next) {
-    if (strcmp(name, (const char *) n->element) <= 0) {
+    if (q_strcmp(name, (const char *) n->element) <= 0) {
       $(s_media_state.keys, insertElementAfter, n->prev, (void *) name);
       return;
     }
@@ -303,7 +303,7 @@ static bool S_MediaEqual(const void * a, const void * b) {
   const s_media_t *_a = a, *_b = b;
 
   if (_a->type == _b->type) {
-    return !strcmp(_a->name, _b->name);
+    return !q_strcmp(_a->name, _b->name);
   }
 
   return false;

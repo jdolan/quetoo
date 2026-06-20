@@ -134,7 +134,7 @@ static void Installer_CompareEntry(const HashTable *table, ident key, ident valu
   const cm_manifest_entry_t *le = ctx->local ? $(ctx->local, get, re->path) : NULL;
   if (le) {
     ((cm_manifest_entry_t *) le)->status = ENTRY_CURRENT;
-    if (strcmp(le->hash, re->hash) == 0) {
+    if (q_strcmp(le->hash, re->hash) == 0) {
       re->status = ENTRY_CURRENT;
     }
   }
@@ -199,7 +199,7 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
   {
     char dir[MAX_OS_PATH];
     q_strlcpy(dir, path, sizeof(dir));
-    char *slash = strrchr(dir, '/');
+    char *slash = q_strrchr(dir, '/');
     if (slash) { *slash = '\0'; }
     if (!SDL_CreateDirectory(dir)) {
       Com_Warn("Failed to create directory for: %s\n", path);
@@ -398,7 +398,7 @@ void Installer_Init(Installer_FrameFunction frame) {
   }
 
 #if defined(__linux__)
-  if (strcmp(Fs_BinDir(), "/usr/lib/quetoo/bin") == 0) {
+  if (q_strcmp(Fs_BinDir(), "/usr/lib/quetoo/bin") == 0) {
     Com_Print("Package-managed installation; auto-updates disabled.\n");
     return;
   }

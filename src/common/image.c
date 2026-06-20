@@ -411,7 +411,7 @@ bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height,
   }
 
   // write PBM header
-  SDL_WriteIO(f, header, strlen(header));
+  SDL_WriteIO(f, header, q_strlen(header));
 
   // output buffer
   byte *buffer = Mem_Malloc(width * height * 3 * bpp);

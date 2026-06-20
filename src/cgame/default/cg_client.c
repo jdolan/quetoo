@@ -37,7 +37,7 @@ static char *Cg_StripWhitespace(char *str) {
   }
 
   if (*str) {
-    char *end = str + strlen(str) - 1;
+    char *end = str + q_strlen(str) - 1;
     while (end > str && isspace((unsigned char) *end)) {
       *end-- = '\0';
     }
@@ -58,7 +58,7 @@ static size_t Cg_SplitClientInfo(char *str, char **info, size_t len) {
 
     info[count++] = cursor;
 
-    char *separator = strchr(cursor, '\\');
+    char *separator = q_strchr(cursor, '\\');
     if (separator == NULL) {
       return count;
     }
@@ -76,7 +76,7 @@ static void Cg_LoadClientSkin(cg_client_info_t *ci, char *line) {
 
   char *skin_name, *face_name = line;
 
-  if ((skin_name = strchr(face_name, ','))) {
+  if ((skin_name = q_strchr(face_name, ','))) {
     *skin_name++ = '\0';
 
     while (isspace(*skin_name)) {
@@ -280,7 +280,7 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
     q_strlcpy(ci->name, info[1], sizeof(ci->name));
 
     // check for valid skin
-    if ((v = strchr(info[2], '/'))) { // it's well-formed
+    if ((v = q_strchr(info[2], '/'))) { // it's well-formed
       *v = '\0';
 
       // load the models
@@ -315,7 +315,7 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
     // ensure we were able to load everything
     if (!Cg_ValidateSkin(ci)) {
 
-      if (!strcmp(s, DEFAULT_CLIENT_INFO)) {
+      if (!q_strcmp(s, DEFAULT_CLIENT_INFO)) {
         Cg_Error("Failed to load default client info\n");
       }
     }
@@ -337,7 +337,7 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
  */
 static void Cg_PreloadClientModel(const char *path, void *data) {
 
-  const char *name = strrchr(path, '/');
+  const char *name = q_strrchr(path, '/');
   if (!name) {
     return;
   }

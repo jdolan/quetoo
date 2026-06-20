@@ -121,7 +121,7 @@ const char *Sys_UserDir(void) {
     }
 
     {
-      const size_t pref_len = strlen(pref);
+      const size_t pref_len = q_strlen(pref);
       if (pref_len > 0 && (pref[pref_len - 1] == '/' || pref[pref_len - 1] == '\\')) {
         pref[pref_len - 1] = '\0';
       }
@@ -204,14 +204,14 @@ void Sys_InstallDesktopEntry(void) {
   }
 
   // Skip system-managed installs; the package manager owns desktop integration.
-  if (strncmp(exe, "/usr/", 5) == 0) {
+  if (q_strncmp(exe, "/usr/", 5) == 0) {
     return;
   }
 
   // Derive install prefix by stripping /bin/<name>.
   char prefix[MAX_OS_PATH];
   q_strlcpy(prefix, exe, sizeof(prefix));
-  char *bin = strstr(prefix, "/bin/");
+  char *bin = q_strstr(prefix, "/bin/");
   if (!bin) {
     return;
   }
@@ -243,7 +243,7 @@ void Sys_InstallDesktopEntry(void) {
       char contents[4096] = "";
       fread(contents, 1, sizeof(contents) - 1, f);
       fclose(f);
-      const bool up_to_date = strstr(contents, expected_exec) != NULL;
+      const bool up_to_date = q_strstr(contents, expected_exec) != NULL;
       if (up_to_date) {
         return;
       }
@@ -253,7 +253,7 @@ void Sys_InstallDesktopEntry(void) {
   {
     char dir[MAX_OS_PATH];
     q_strlcpy(dir, desktop_dest, sizeof(dir));
-    char *slash = strrchr(dir, '/');
+    char *slash = q_strrchr(dir, '/');
     if (slash) { *slash = '\0'; }
     SDL_CreateDirectory(dir);
   }
@@ -296,13 +296,13 @@ void Sys_InstallLocalBin(void) {
   static const char *names[] = { "quetoo", "quemap", "quetoo-dedicated", NULL };
 
   const char *exe = Sys_ExecutablePath();
-  if (!exe || strncmp(exe, "/usr/", 5) == 0) {
+  if (!exe || q_strncmp(exe, "/usr/", 5) == 0) {
     return;
   }
 
   char prefix[MAX_OS_PATH];
   q_strlcpy(prefix, exe, sizeof(prefix));
-  char *bin = strstr(prefix, "/bin/");
+  char *bin = q_strstr(prefix, "/bin/");
   if (!bin) {
     return;
   }
@@ -330,7 +330,7 @@ void Sys_InstallLocalBin(void) {
     const ssize_t rlen = readlink(dest, current, sizeof(current) - 1);
     if (rlen > 0) {
       current[rlen] = '\0';
-      if (strcmp(current, src) == 0) {
+      if (q_strcmp(current, src) == 0) {
         continue;
       }
       SDL_RemovePath(dest);
@@ -396,16 +396,16 @@ char *Sys_Backtrace(uint32_t start, uint32_t max_count) {
     }
 
     // we don't care about UCRT/Windows SDK stuff
-    if (!strcmp(symbol->Name, "invoke_main") || !strncmp(symbol->Name, "__scrt_", 7)) {
+    if (!q_strcmp(symbol->Name, "invoke_main") || !q_strncmp(symbol->Name, "__scrt_", 7)) {
       break;
     }
 
     // check for line number support
     if (SymGetLineFromAddr(process, (DWORD64) symbols[i], &dwDisplacement, &line)) {
-      char *last_slash = strrchr(line.FileName, '\\');
+      char *last_slash = q_strrchr(line.FileName, '\\');
 
       if (!last_slash)
-        last_slash = strrchr(line.FileName, '/');
+        last_slash = q_strrchr(line.FileName, '/');
 
       if (!last_slash)
         last_slash = line.FileName;
@@ -430,7 +430,7 @@ char *Sys_Backtrace(uint32_t start, uint32_t max_count) {
 
   // cut off the last \n
   {
-    size_t blen = strlen(buf);
+    size_t blen = q_strlen(buf);
     if (blen > 0 && buf[blen - 1] == '\n') {
       buf[blen - 1] = '\0';
     }
@@ -494,7 +494,7 @@ static void Sys_WriteCrashLog(const char *text) {
  */
 static char *Sys_UrlEncode(const char *str) {
 
-  const size_t max = strlen(str) * 3 + 1;
+  const size_t max = q_strlen(str) * 3 + 1;
   char *out = malloc(max);
   char *p = out;
 
@@ -543,7 +543,7 @@ void Sys_Raise(const char *msg) {
     // Truncate the dialog message to avoid oversized message boxes
     char *dialog_msg = NULL;
     SDL_asprintf(&dialog_msg, "%s\n\nFull report saved to:\n%s", crash, sys_crash_log_path);
-    if (strlen(dialog_msg) > CRASH_REPORT_DIALOG_MAX) {
+    if (q_strlen(dialog_msg) > CRASH_REPORT_DIALOG_MAX) {
       dialog_msg[CRASH_REPORT_DIALOG_MAX] = '\0';
     }
 
@@ -560,7 +560,7 @@ void Sys_Raise(const char *msg) {
                  CRASH_REPORT_GITHUB_URL, encoded_body);
     free(encoded_body);
 
-    if (strlen(issue_url) > CRASH_REPORT_URL_MAX) {
+    if (q_strlen(issue_url) > CRASH_REPORT_URL_MAX) {
       issue_url[CRASH_REPORT_URL_MAX] = '\0';
     }
 
@@ -682,7 +682,7 @@ static void Sys_CrashSignal(int sig, siginfo_t *info, void *ctx) {
       continue;
     }
     (void) write(fds[i], header, sizeof(header) - 1);
-    (void) write(fds[i], sig_name, strlen(sig_name));
+    (void) write(fds[i], sig_name, q_strlen(sig_name));
 #if HAVE_EXECINFO
     backtrace_symbols_fd(frames, count, fds[i]);
 #endif

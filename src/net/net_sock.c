@@ -134,10 +134,10 @@ bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr) {
 
   char *node = q_strdup(s);
 
-  char *service = strchr(node, ':');
+  char *service = q_strchr(node, ':');
   if (service) {
     *service++ = '\0';
-    char *slash = strchr(service, '/'); // strip trailing slash from URL-style addresses
+    char *slash = q_strchr(service, '/'); // strip trailing slash from URL-style addresses
     if (slash) {
       *slash = '\0';
     }
@@ -171,7 +171,7 @@ bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 
   a->addr = saddr.sin_addr.s_addr;
 
-  if (strcmp(s, "localhost") == 0) {
+  if (q_strcmp(s, "localhost") == 0) {
     a->port = 0;
     a->type = NA_LOOP;
   } else {

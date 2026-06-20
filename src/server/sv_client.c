@@ -88,7 +88,7 @@ static void Sv_ConfigStrings_f(void) {
   net_chan_t *ch = &sv_client->net_chan;
 
   while (start < MAX_CONFIG_STRINGS) {
-    const size_t len = strlen(sv.config_strings[start]);
+    const size_t len = q_strlen(sv.config_strings[start]);
     if (len) {
       if (ch->message.size + len >= ch->message.max_size - 48) {
         break;
@@ -248,7 +248,7 @@ static void Sv_UserStringCommand(const char *s) {
 
   Cmd_TokenizeString(s);
 
-  if (strchr(s, '\xFF')) { // catch end of message exploit
+  if (q_strchr(s, '\xFF')) { // catch end of message exploit
     Com_Warn("Illegal command from %s\n", Sv_NetaddrToString(sv_client));
     Sv_KickClient(sv_client, NULL);
     return;
@@ -256,7 +256,7 @@ static void Sv_UserStringCommand(const char *s) {
 
   for (c = sv_user_string_cmds; c->name; c++) {
 
-    if (!strcmp(Cmd_Argv(0), c->name)) {
+    if (!q_strcmp(Cmd_Argv(0), c->name)) {
       c->func();
       break;
     }
@@ -321,7 +321,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
           Com_Warn("CL_CMD_ENTITY_INFO from %s but editor is disabled\n", Sv_NetaddrToString(cl));
           break;
         }
-        if (strlen(info)) {
+        if (q_strlen(info)) {
           if (number != -1 && (number < 0 || number >= sv_max_entities->integer)) {
             Com_Warn("CL_CMD_ENTITY_INFO from %s: bad entity number %d\n", Sv_NetaddrToString(cl), number);
             break;

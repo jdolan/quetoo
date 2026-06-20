@@ -101,10 +101,10 @@ static void R_Screenshot_encode(void *data) {
   q_snprintf(path, sizeof(path), "screenshots/%s.%03d", date, millis);
 
   bool res;
-  if (!strcmp(r_screenshot_format->string, "tga")) {
+  if (!q_strcmp(r_screenshot_format->string, "tga")) {
     q_strlcat(path, ".tga", sizeof(path));
     res = Img_WriteTGA(path, surface->pixels, surface->w, surface->h);
-  } else if (!strcmp(r_screenshot_format->string, "jpg")) {
+  } else if (!q_strcmp(r_screenshot_format->string, "jpg")) {
     q_strlcat(path, ".jpg", sizeof(path));
     res = Img_WriteJPG(path, surface->pixels, surface->w, surface->h, 95);
   } else {
@@ -153,7 +153,7 @@ void R_Screenshot(r_view_t *view) {
 */
 void R_Screenshot_f(void) {
 
-  if (!strcmp(Cmd_Argv(1), "view")) {
+  if (!q_strcmp(Cmd_Argv(1), "view")) {
     r_image_state.screenshot = SCREENSHOT_VIEW;
   } else {
     r_image_state.screenshot = SCREENSHOT_DEFAULT;

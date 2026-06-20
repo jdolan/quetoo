@@ -422,7 +422,7 @@ static void Cg_DrawChase(const player_state_t *ps) {
 
   q_snprintf(string, sizeof(string), "Chasing ^7%s", ci->name);
 
-  if ((s = strchr(string, '\\'))) {
+  if ((s = q_strchr(string, '\\'))) {
     *s = '\0';
   }
 
@@ -547,7 +547,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
     color_t color = color_white;
 
-    if (strcmp(cg_draw_crosshair_color->string, "default")) {
+    if (q_strcmp(cg_draw_crosshair_color->string, "default")) {
       if (!Color_Parse(cg_draw_crosshair_color->string, &color)) {
         color = color_white;
       }

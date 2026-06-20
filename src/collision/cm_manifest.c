@@ -86,14 +86,14 @@ bool Cm_CheckManifestEntry(const cm_manifest_entry_t *entry) {
 	Cm_Md5Hex(data, len, hash, sizeof(hash));
 	Fs_Free(data);
 
-	return !strcmp(entry->hash, hash);
+	return !q_strcmp(entry->hash, hash);
 }
 
 /**
  * @brief Comparator for sorting manifest keys alphabetically.
  */
 static int Cm_ManifestKeyCmp(const void *a, const void *b) {
-	return strcmp(*(const char **) a, *(const char **) b);
+	return q_strcmp(*(const char **) a, *(const char **) b);
 }
 
 typedef struct {
@@ -157,32 +157,32 @@ HashTable *Cm_ParseManifest(const char *data, size_t len) {
 	buf[len] = '\0';
 
 	char *saveptr = NULL;
-	char *line = strtok_r(buf, "\n", &saveptr);
+	char *line = q_strtok_r(buf, "\n", &saveptr);
 	while (line) {
 
 		// Trim trailing whitespace
-		char *end = line + strlen(line);
+		char *end = line + q_strlen(line);
 		while (end > line && (*end == '\0' || *end == '\r' || *end == ' ' || *end == '\t')) {
 			*end-- = '\0';
 		}
 
 		if (*line == '\0') {
-			line = strtok_r(NULL, "\n", &saveptr);
+			line = q_strtok_r(NULL, "\n", &saveptr);
 			continue;
 		}
 
-		char *space1 = strchr(line, ' ');
+		char *space1 = q_strchr(line, ' ');
 		if (!space1) {
 			Com_Warn("Malformed manifest line: %s\n", line);
-			line = strtok_r(NULL, "\n", &saveptr);
+			line = q_strtok_r(NULL, "\n", &saveptr);
 			continue;
 		}
 		*space1 = '\0';
 
-		char *space2 = strchr(space1 + 1, ' ');
+		char *space2 = q_strchr(space1 + 1, ' ');
 		if (!space2) {
 			Com_Warn("Malformed manifest line: %s\n", line);
-			line = strtok_r(NULL, "\n", &saveptr);
+			line = q_strtok_r(NULL, "\n", &saveptr);
 			continue;
 		}
 		*space2 = '\0';
@@ -194,7 +194,7 @@ HashTable *Cm_ParseManifest(const char *data, size_t len) {
 
 		$(manifest, set, entry->path, entry);
 
-		line = strtok_r(NULL, "\n", &saveptr);
+		line = q_strtok_r(NULL, "\n", &saveptr);
 	}
 
 	Mem_Free(buf);

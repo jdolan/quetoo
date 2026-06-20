@@ -39,20 +39,20 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
   ent->s.angles = Cm_EntityValue(ent->def, "angles")->vec3;
   ent->s.color = Color32i(0xffffffff);
 
-  if (!strcmp(ent->classname, "worldspawn")) {
+  if (!q_strcmp(ent->classname, "worldspawn")) {
     ent->s.effects = EF_WORLD;
-  } else if (!strncmp(ent->classname, "info_player", strlen("info_player"))) {
+  } else if (!q_strncmp(ent->classname, "info_player", q_strlen("info_player"))) {
     ent->bounds = Box3(Vec3(-16.f, -16.f, -24.f), Vec3(16.f, 16.f, 36.f));
     ent->s.color = Color32i(0xffff00ff);
-  } else if (!strncmp(ent->classname, "light", strlen("light"))) {
+  } else if (!q_strncmp(ent->classname, "light", q_strlen("light"))) {
     ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
-  } else if (!strncmp(ent->classname, "trigger_", strlen("trigger_"))) {
+  } else if (!q_strncmp(ent->classname, "trigger_", q_strlen("trigger_"))) {
     ent->s.color = Color32i(0xff0088ff);
-  } else if (!strncmp(ent->classname, "func_", strlen("func_"))) {
+  } else if (!q_strncmp(ent->classname, "func_", q_strlen("func_"))) {
     ent->s.color = Color32i(0xff00ff00);
-  } else if (!strncmp(ent->classname, "misc_", strlen("misc_"))) {
+  } else if (!q_strncmp(ent->classname, "misc_", q_strlen("misc_"))) {
     ent->s.color = Color32i(0xff00ffff);
-  } else if (!strncmp(ent->classname, "item_", strlen("item_"))) {
+  } else if (!q_strncmp(ent->classname, "item_", q_strlen("item_"))) {
     ent->s.color = Color32i(0xffffff00);
   }
 
@@ -202,7 +202,7 @@ void Sv_SaveEditorMap_f(void) {
         break;
       }
     }
-    Fs_Write(file, brushes, sizeof(char), strlen(brushes));
+    Fs_Write(file, brushes, sizeof(char), q_strlen(brushes));
 
     Fs_Print(file, "}\n");
   }

@@ -94,9 +94,9 @@ void Cl_RequestNextDownload(void) {
 static void Cl_Mapshots_enumerate(const char *path, void *data) {
   List *list = (List *) data;
 
-  const size_t len = strlen(path);
-  if ((len >= 4 && !strcmp(path + len - 4, ".jpg")) ||
-      (len >= 4 && !strcmp(path + len - 4, ".png"))) {
+  const size_t len = q_strlen(path);
+  if ((len >= 4 && !q_strcmp(path + len - 4, ".jpg")) ||
+      (len >= 4 && !q_strcmp(path + len - 4, ".png"))) {
     $(list, appendElement, q_strdup(path));
   }
 }

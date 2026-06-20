@@ -115,7 +115,7 @@ void Cm_ParseEntity(cm_entity_t *pair) {
   assert(pair);
   assert(pair->string);
 
-  if (strlen(pair->string)) {
+  if (q_strlen(pair->string)) {
     pair->parsed |= ENTITY_STRING;
     pair->nullable_string = pair->string;
   }
@@ -163,15 +163,15 @@ static Order Cm_SortEntity_cmp(const ident a, const ident b) {
   const cm_entity_t *m = *(const cm_entity_t *const *) a;
   const cm_entity_t *n = *(const cm_entity_t *const *) b;
 
-  if (!strcmp(m->key, "classname")) {
+  if (!q_strcmp(m->key, "classname")) {
     return OrderAscending;
   }
 
-  if (!strcmp(n->key, "classname")) {
+  if (!q_strcmp(n->key, "classname")) {
     return OrderDescending;
   }
 
-  const int32_t cmp = strcmp(m->key, n->key);
+  const int32_t cmp = q_strcmp(m->key, n->key);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -235,7 +235,7 @@ List *Cm_LoadEntities(const char *entity_string) {
       break;
     }
 
-    if (!strcmp("{", token)) {
+    if (!q_strcmp("{", token)) {
 
       cm_entity_t *entity = NULL;
 
@@ -259,7 +259,7 @@ List *Cm_LoadEntities(const char *entity_string) {
 
         Parse_PeekToken(&parser, PARSE_DEFAULT, token, sizeof(token));
 
-        if (!strcmp("}", token)) {
+        if (!q_strcmp("}", token)) {
           break;
         }
       }
@@ -295,7 +295,7 @@ int32_t Cm_EntityNumber(const cm_entity_t *entity) {
 const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
 
   for (const cm_entity_t *e = entity; e; e = e->next) {
-    if (!strcmp(e->key, key)) {
+    if (!q_strcmp(e->key, key)) {
       return e;
     }
   }
@@ -319,7 +319,7 @@ cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entit
   cm_entity_t *e;
   cm_entity_t *target = NULL;
   for (e = entity; e; e = e->next) {
-    if (!strcmp(e->key, key)) {
+    if (!q_strcmp(e->key, key)) {
       target = e;
       break;
     }
@@ -450,7 +450,7 @@ void Cm_ParseMapBrushes(const char *map_text, cm_entity_t **entities, int32_t nu
 
     while (Parse_Token(&parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
 
-      if (!strcmp(token, "{")) {
+      if (!q_strcmp(token, "{")) {
         if (!in_entity) {
           in_entity = true;
         } else {
@@ -461,7 +461,7 @@ void Cm_ParseMapBrushes(const char *map_text, cm_entity_t **entities, int32_t nu
         }
       }
 
-      if (!strcmp(token, "}")) {
+      if (!q_strcmp(token, "}")) {
         if (brush_depth > 0) {
           brush_depth--;
         } else if (in_entity) {
@@ -473,9 +473,9 @@ void Cm_ParseMapBrushes(const char *map_text, cm_entity_t **entities, int32_t nu
 
     if (brushes) {
       const size_t len = parser.position.ptr - brushes - 1;
-      e->brushes = Mem_TagMalloc(len + strlen("// brush 0\n") + 1, MEM_TAG_COLLISION);
+      e->brushes = Mem_TagMalloc(len + q_strlen("// brush 0\n") + 1, MEM_TAG_COLLISION);
       strcpy(e->brushes, "// brush 0\n");
-      memcpy(e->brushes + strlen(e->brushes), brushes, len);
+      memcpy(e->brushes + q_strlen(e->brushes), brushes, len);
     }
   }
 }

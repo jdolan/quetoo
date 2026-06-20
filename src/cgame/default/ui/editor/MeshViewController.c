@@ -181,7 +181,7 @@ static void setModel(MeshViewController *self, r_model_t *model) {
 
   self->model = model;
 
-  const bool is_weapon = self->model && !strncmp(self->model->media.name, "models/weapons/", 15);
+  const bool is_weapon = self->model && !q_strncmp(self->model->media.name, "models/weapons/", 15);
 
   const r_mesh_config_t *world = self->model ? &self->model->mesh->config.world : &(r_mesh_config_t) { .scale = 1.f };
   const r_mesh_config_t *link  = self->model ? &self->model->mesh->config.link  : &(r_mesh_config_t) { .scale = 1.f };

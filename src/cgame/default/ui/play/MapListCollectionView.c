@@ -82,8 +82,8 @@ static Order sortMaps(const ident a, const ident b) {
   const MapListItemInfo *c = ((const Value *) a)->value;
   const MapListItemInfo *d = ((const Value *) b)->value;
 
-  const char *e = !strncmp(c->message, "The ", 4) ? c->message + 4 : c->message;
-  const char *f = !strncmp(d->message, "The ", 4) ? d->message + 4 : d->message;
+  const char *e = !q_strncmp(c->message, "The ", 4) ? c->message + 4 : c->message;
+  const char *f = !q_strncmp(d->message, "The ", 4) ? d->message + 4 : d->message;
 
   return q_strcasecmp(e, f) < 0 ? OrderAscending : OrderDescending;
 }
@@ -101,7 +101,7 @@ static void enumerateMaps(const char *path, void *data) {
     const Value *value = $(maps, objectAtIndex, i);
     const MapListItemInfo *info = value->value;
 
-    if (strcmp(info->mapname, path) == 0) {
+    if (q_strcmp(info->mapname, path) == 0) {
       return;
     }
   }
@@ -141,7 +141,7 @@ static void enumerateMaps(const char *path, void *data) {
           break;
         }
 
-        if (strcmp(token, "message") == 0) {
+        if (q_strcmp(token, "message") == 0) {
           
           if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
             break;
@@ -149,17 +149,17 @@ static void enumerateMaps(const char *path, void *data) {
 
           StrStrip(token, info->message);
 
-          char *c = strstr(info->message, "\\n");
+          char *c = q_strstr(info->message, "\\n");
           if (c) {
             *c = '\0';
           }
 
-          c = strstr(info->message, " - ");
+          c = q_strstr(info->message, " - ");
           if (c) {
             *c = '\0';
           }
 
-          c = strstr(info->message, " by ");
+          c = q_strstr(info->message, " by ");
           if (c) {
             *c = '\0';
           }

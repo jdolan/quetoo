@@ -152,29 +152,29 @@ static void Shutdown(const char *msg) {
 static void Check_BSP_Options(int32_t argc) {
 
   for (int32_t i = argc; i < Com_Argc(); i++) {
-    if (!strcmp(Com_Argv(i), "--micro-volume")) {
+    if (!q_strcmp(Com_Argv(i), "--micro-volume")) {
       micro_volume = atof(Com_Argv(i + 1));
       Com_Verbose("micro_volume = %f\n", micro_volume);
       i++;
-    } else if (!strcmp(Com_Argv(i), "--no-csg")) {
+    } else if (!q_strcmp(Com_Argv(i), "--no-csg")) {
       Com_Verbose("no_csg = true\n");
       no_csg = true;
-    } else if (!strcmp(Com_Argv(i), "--no-detail")) {
+    } else if (!q_strcmp(Com_Argv(i), "--no-detail")) {
       Com_Verbose("no_detail = true\n");
       no_detail = true;
-    } else if (!strcmp(Com_Argv(i), "--no-liquid")) {
+    } else if (!q_strcmp(Com_Argv(i), "--no-liquid")) {
       Com_Verbose("no_liquid = true\n");
       no_liquid = true;
-    } else if (!strcmp(Com_Argv(i), "--no-merge")) {
+    } else if (!q_strcmp(Com_Argv(i), "--no-merge")) {
       Com_Verbose("no_merge = true\n");
       no_merge = true;
-    } else if (!strcmp(Com_Argv(i), "--no-phong")) {
+    } else if (!q_strcmp(Com_Argv(i), "--no-phong")) {
       Com_Verbose("no_phong = true\n");
       no_phong = true;
-    } else if (!strcmp(Com_Argv(i), "--no-tjunc")) {
+    } else if (!q_strcmp(Com_Argv(i), "--no-tjunc")) {
       Com_Verbose("no_tjunc = true\n");
       no_tjunc = true;
-    } else if (!strcmp(Com_Argv(i), "--no-weld")) {
+    } else if (!q_strcmp(Com_Argv(i), "--no-weld")) {
       Com_Verbose("no_weld = true\n");
       no_weld = true;
     } else {
@@ -189,7 +189,7 @@ static void Check_BSP_Options(int32_t argc) {
 static void Check_LIGHT_Options(int32_t argc) {
 
   for (int32_t i = argc; i < Com_Argc(); i++) {
-    if (!strcmp(Com_Argv(i), "--antialias")) {
+    if (!q_strcmp(Com_Argv(i), "--antialias")) {
       antialias = true;
       Com_Verbose("antialias: true\n");
     } else {
@@ -205,10 +205,10 @@ static void Check_ZIP_Options(int32_t argc) {
 
   for (int32_t i = argc; i < Com_Argc(); i++) {
 
-    if (!strcmp(Com_Argv(i), "--include-shared")) {
+    if (!q_strcmp(Com_Argv(i), "--include-shared")) {
       include_shared = true;
       Com_Verbose("Including shared assets\n");
-    } else if (!strcmp(Com_Argv(i), "--update")) {
+    } else if (!q_strcmp(Com_Argv(i), "--update")) {
       update_zip = true;
       Com_Verbose("Updating existing zip archive\n");
     } else {
@@ -292,24 +292,24 @@ int32_t main(int32_t argc, char **argv) {
   // general options
   for (int32_t i = 1; i < Com_Argc(); i++) {
 
-    if (!strcmp(Com_Argv(i), "-h") || !strcmp(Com_Argv(i), "--help")) {
+    if (!q_strcmp(Com_Argv(i), "-h") || !q_strcmp(Com_Argv(i), "--help")) {
       PrintHelpMessage();
       Com_Shutdown(NULL);
     }
 
-    if (!strcmp(Com_Argv(i), "-v") || !strcmp(Com_Argv(i), "--verbose")) {
+    if (!q_strcmp(Com_Argv(i), "-v") || !q_strcmp(Com_Argv(i), "--verbose")) {
       verbose = true;
       continue;
     }
 
-    if (!strcmp(Com_Argv(i), "-d") || !strcmp(Com_Argv(i), "--debug")) {
+    if (!q_strcmp(Com_Argv(i), "-d") || !q_strcmp(Com_Argv(i), "--debug")) {
       Com_SetDebug("all");
       debug = true;
       verbose = true;
       continue;
     }
 
-    if (!strcmp(Com_Argv(i), "-t") || !strcmp(Com_Argv(i), "--threads")) {
+    if (!q_strcmp(Com_Argv(i), "-t") || !q_strcmp(Com_Argv(i), "--threads")) {
       num_threads = atoi(Com_Argv(i + 1));
       continue;
     }
@@ -318,13 +318,13 @@ int32_t main(int32_t argc, char **argv) {
   // read compiling options
   for (int32_t i = 1; i < Com_Argc(); i++) {
 
-    if (!strcmp(Com_Argv(i), "-bsp")) {
+    if (!q_strcmp(Com_Argv(i), "-bsp")) {
       do_bsp = true;
       Check_BSP_Options(i + 1);
       Check_LIGHT_Options(i + 1);
     }
 
-    if (!strcmp(Com_Argv(i), "-zip")) {
+    if (!q_strcmp(Com_Argv(i), "-zip")) {
       do_zip = true;
       Check_ZIP_Options(i + 1);
     }
@@ -340,7 +340,7 @@ int32_t main(int32_t argc, char **argv) {
 
   const char *filename = Com_Argv(Com_Argc() - 1);
 
-  if (strncmp(filename, "maps/", 5)) {
+  if (q_strncmp(filename, "maps/", 5)) {
     PrintHelpMessage();
     Com_Error(ERROR_FATAL, "Invalid Quake path for %s.\n", filename);
   }

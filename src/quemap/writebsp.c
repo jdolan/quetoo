@@ -60,8 +60,8 @@ void EmitMaterials(void) {
     bsp_material_t *out = &bsp_file.materials[bsp_file.num_materials];
 
     const char *name = m->cm->name;
-    if (!strncmp(name, "textures/", 9)) {
-      name += strlen("textures/");
+    if (!q_strncmp(name, "textures/", 9)) {
+      name += q_strlen("textures/");
     }
     q_strlcpy(out->name, name, sizeof(out->name));
 
@@ -382,7 +382,7 @@ void EmitEntities(void) {
     Progress("Emitting entities", 100.f * i / num_entities);
   }
 
-  const size_t len = strlen(out);
+  const size_t len = q_strlen(out);
 
   if (len == MAX_BSP_ENTITIES_SIZE - 1) {
     Com_Error(ERROR_FATAL, "MAX_BSP_ENTITIES_SIZE\n");

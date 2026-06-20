@@ -70,7 +70,7 @@ r_model_t *R_LoadModel(const char *name) {
       if ($(warned, get, (void *) key) == NULL) {
         char *warned_key = q_strdup(key);
         $(warned, set, warned_key, warned_key);
-        if (strstr(name, "players/")) {
+        if (q_strstr(name, "players/")) {
           Com_Debug(DEBUG_RENDERER, "Failed to load player %s\n", name);
         } else {
           Com_Warn("Failed to load %s\n", name);

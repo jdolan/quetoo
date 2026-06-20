@@ -25,6 +25,7 @@
 #include <Objectively/Vector.h>
 
 #include "mem.h"
+#include "shared/qstring.h"
 
 #define MEM_MAGIC 0x69696969
 typedef uint32_t mem_magic_t;
@@ -423,7 +424,7 @@ size_t Mem_Size(void) {
 char *Mem_TagCopyString(const char *in, mem_tag_t tag) {
   char *out;
 
-  out = Mem_TagMalloc(strlen(in) + 1, tag);
+  out = Mem_TagMalloc(q_strlen(in) + 1, tag);
   strcpy(out, in);
 
   return out;

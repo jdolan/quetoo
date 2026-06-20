@@ -142,7 +142,7 @@ static void G_Give_f(g_client_t *cl) {
     return;
   }
 
-  if (it->def.type == ITEM_AMMO) { // give the requested ammo quantity
+  if (it->def.type == ITEM_TYPE_AMMO) { // give the requested ammo quantity
 
     if (gi.Argc() == 3) {
       cl->inventory[it->def.tag] = quantity;
@@ -258,7 +258,7 @@ static void G_Use_f(g_client_t *cl) {
 
   // In Quake item set maps, redirect Quetoo weapon names to their Quake equivalents
   // so that generic bindings (e.g. "use Rocket Launcher") work across both item sets.
-  if (g_level.items == ITEMS_QUAKE && it->def.type == ITEM_WEAPON) {
+  if (g_level.items == ITEMS_QUAKE && it->def.type == ITEM_TYPE_WEAPON) {
     const g_item_t *mapped = G_MappedWeapon(it);
     if (mapped) {
       it = mapped;
@@ -296,10 +296,10 @@ static void G_Drop_f(g_client_t *cl) {
   const char *s = gi.Args();
   it = NULL;
 
-  if (!strcmp(s, "flag")) {
+  if (!q_strcmp(s, "flag")) {
     G_TossFlag(cl);
     return;
-  } else if (!strcmp(s, "tech")) {
+  } else if (!q_strcmp(s, "tech")) {
     G_TossTech(cl);
     return;
   } else { // or just look up the item
@@ -325,7 +325,7 @@ static void G_Drop_f(g_client_t *cl) {
 
   int32_t drop_quantity;
 
-  if (it->def.type == ITEM_AMMO) {
+  if (it->def.type == ITEM_TYPE_AMMO) {
     drop_quantity = it->def.quantity;
   } else {
     drop_quantity = 1;
@@ -342,7 +342,7 @@ static void G_Drop_f(g_client_t *cl) {
   it->Drop(cl, it);
 
   // adjust weapon if we need to
-  if (it->def.type == ITEM_WEAPON) {
+  if (it->def.type == ITEM_TYPE_WEAPON) {
     if (cl->weapon == it && !cl->next_weapon && !cl->inventory[index]) {
       G_UseBestWeapon(cl);
     }
@@ -370,7 +370,7 @@ static void G_WeaponLast_f(g_client_t *cl) {
     return;
   }
 
-  if (it->def.type != ITEM_WEAPON) {
+  if (it->def.type != ITEM_TYPE_WEAPON) {
     return;
   }
 
@@ -465,13 +465,13 @@ static char *G_ExpandVariables(g_client_t *cl, const char *text) {
   }
 
   memset(expanded, 0, sizeof(expanded));
-  len = strlen(text);
+  len = q_strlen(text);
 
   for (i = j = 0; i < len && j < sizeof(expanded); i++) {
     if (text[i] == '%' && i < len - 1) { // expand %variables
       const char *c = G_ExpandVariable(cl, text[i + 1]);
       q_strlcat(expanded, c, sizeof(expanded));
-      j += strlen(c);
+      j += q_strlen(c);
       i++;
     } else { // or just append normal chars
       expanded[j++] = text[i];
@@ -498,10 +498,10 @@ static void G_Say_f(g_client_t *cl) {
   bool team = false; // whether or not we're dealing with team chat
   bool arg0 = true; // whether or not we need to print arg0
 
-  if (!strcmp(gi.Argv(0), "say") || !strcmp(gi.Argv(0), "say_team")) {
+  if (!q_strcmp(gi.Argv(0), "say") || !q_strcmp(gi.Argv(0), "say_team")) {
     arg0 = false;
 
-    if (!strcmp(gi.Argv(0), "say_team") && (g_level.teams || g_level.ctf)) {
+    if (!q_strcmp(gi.Argv(0), "say_team") && (g_level.teams || g_level.ctf)) {
       team = true;
     }
   }
@@ -520,14 +520,14 @@ static void G_Say_f(g_client_t *cl) {
   }
 
   // strip quotes
-  if (s[0] == '"' && s[strlen(s) - 1] == '"') {
-    s[strlen(s) - 1] = '\0';
+  if (s[0] == '"' && s[q_strlen(s) - 1] == '"') {
+    s[q_strlen(s) - 1] = '\0';
     s++;
   }
 
   // suppress empty messages
   StrStrip(s, temp);
-  if (!strlen(temp)) {
+  if (!q_strlen(temp)) {
     return;
   }
 
@@ -576,8 +576,8 @@ static void G_PlayerList_f(g_client_t *cl) {
                c->persistent.net_name,
                c->persistent.skin);
 
-    if (strlen(text) + strlen(st) > sizeof(text) - 200) {
-      sprintf(text + strlen(text), "And more...\n");
+    if (q_strlen(text) + q_strlen(st) > sizeof(text) - 200) {
+      sprintf(text + q_strlen(text), "And more...\n");
       gi.ClientPrint(cl, PRINT_HIGH, "%s", text);
       return;
     }
@@ -652,7 +652,7 @@ static void G_Spectate_f(g_client_t *cl) {
     return;
   }
 
-  if (!strcmp(gi.Argv(0), "spectate")) {
+  if (!q_strcmp(gi.Argv(0), "spectate")) {
 
     if (cl->persistent.spectator) {
       gi.ClientPrint(cl, PRINT_HIGH, "You are already spectating\n");
@@ -669,7 +669,7 @@ static void G_Spectate_f(g_client_t *cl) {
     gi.WriteByte(MZ_LOGOUT);
     gi.Multicast(cl->entity->s.origin, MULTICAST_PHS);
 
-  } else if (!strcmp(gi.Argv(0), "join")) {
+  } else if (!q_strcmp(gi.Argv(0), "join")) {
 
     if (!cl->persistent.spectator) {
       gi.ClientPrint(cl, PRINT_HIGH, "You have already joined\n");
@@ -695,7 +695,7 @@ static void G_Spectate_f(g_client_t *cl) {
  */
 static void G_Admin_f(g_client_t *cl) {
 
-  if (strlen(g_admin_password->string) == 0) { // blank password (default) disabled
+  if (q_strlen(g_admin_password->string) == 0) { // blank password (default) disabled
     gi.ClientPrint(cl, PRINT_HIGH, "Admin features disabled\n");
     return;
   }
@@ -711,7 +711,7 @@ static void G_Admin_f(g_client_t *cl) {
   }
 
   if (!cl->persistent.admin) { // not yet an admin, assuming auth
-    if (strcmp(gi.Argv(1), g_admin_password->string) == 0) {
+    if (q_strcmp(gi.Argv(1), g_admin_password->string) == 0) {
       cl->persistent.admin = true;
       gi.BroadcastPrint(PRINT_HIGH, "%s became an admin\n", cl->persistent.net_name);
     } else {
@@ -721,7 +721,7 @@ static void G_Admin_f(g_client_t *cl) {
   }
 
   if (gi.Argc() > 2) {
-    if (strcmp(gi.Argv(2), "mute") == 0) {
+    if (q_strcmp(gi.Argv(2), "mute") == 0) {
       G_MuteClient(va("%s", gi.Argv(3)), true);
     }
   }
@@ -739,11 +739,11 @@ void G_ClientCommand(g_client_t *cl) {
 
   const char *cmd = gi.Argv(0);
 
-  if (strcmp(cmd, "say") == 0) {
+  if (q_strcmp(cmd, "say") == 0) {
     G_Say_f(cl);
     return;
   }
-  if (strcmp(cmd, "say_team") == 0) {
+  if (q_strcmp(cmd, "say_team") == 0) {
     G_Say_f(cl);
     return;
   }
@@ -754,43 +754,43 @@ void G_ClientCommand(g_client_t *cl) {
   }
 
   // these commands are allowed in a timeout
-  if (strcmp(cmd, "admin") == 0) {
+  if (q_strcmp(cmd, "admin") == 0) {
     G_Admin_f(cl);
     return;
   }
 
   // these commands are not allowed during intermission or timeout
-  if (strcmp(cmd, "spectate") == 0 || strcmp(cmd, "join") == 0) {
+  if (q_strcmp(cmd, "spectate") == 0 || q_strcmp(cmd, "join") == 0) {
     G_Spectate_f(cl);
-  } else if (strcmp(cmd, "team") == 0) {
+  } else if (q_strcmp(cmd, "team") == 0) {
     G_Team_f(cl);
-  } else if (strcmp(cmd, "use") == 0) {
+  } else if (q_strcmp(cmd, "use") == 0) {
     G_Use_f(cl);
-  } else if (strcmp(cmd, "drop") == 0) {
+  } else if (q_strcmp(cmd, "drop") == 0) {
     G_Drop_f(cl);
-  } else if (strcmp(cmd, "give") == 0) {
+  } else if (q_strcmp(cmd, "give") == 0) {
     G_Give_f(cl);
-  } else if (strcmp(cmd, "god") == 0) {
+  } else if (q_strcmp(cmd, "god") == 0) {
     G_God_f(cl);
-  } else if (strcmp(cmd, "no_clip") == 0) {
+  } else if (q_strcmp(cmd, "no_clip") == 0) {
     G_NoClip_f(cl);
-  } else if (strcmp(cmd, "wave") == 0) {
+  } else if (q_strcmp(cmd, "wave") == 0) {
     G_Wave_f(cl);
-  } else if (strcmp(cmd, "weapon_last") == 0) {
+  } else if (q_strcmp(cmd, "weapon_last") == 0) {
     G_WeaponLast_f(cl);
-  } else if (strcmp(cmd, "kill") == 0) {
+  } else if (q_strcmp(cmd, "kill") == 0) {
     G_Kill_f(cl);
-  } else if (strcmp(cmd, "player_list") == 0) {
+  } else if (q_strcmp(cmd, "player_list") == 0) {
     G_PlayerList_f(cl);
-  } else if (strcmp(cmd, "chase_previous") == 0) {
+  } else if (q_strcmp(cmd, "chase_previous") == 0) {
     G_ClientChasePrevious(cl);
-  } else if (strcmp(cmd, "chase_next") == 0) {
+  } else if (q_strcmp(cmd, "chase_next") == 0) {
     G_ClientChaseNext(cl);
   }
 #if defined(_DEBUG)
-  else if (strcmp(cmd, "pmove_record") == 0) {
+  else if (q_strcmp(cmd, "pmove_record") == 0) {
     G_RecordPmove();
-  } else if (strcmp(cmd, "pmove_play") == 0) {
+  } else if (q_strcmp(cmd, "pmove_play") == 0) {
     G_PlayPmove();
   }
 #endif

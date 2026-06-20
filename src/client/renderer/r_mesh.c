@@ -59,7 +59,7 @@ static const r_mesh_tag_t *R_MeshTag(const r_model_t *mod, const char *name, con
   const r_mesh_tag_t *tag = &model->tags[frame * model->num_tags];
 
   for (int32_t i = 0; i < model->num_tags; i++, tag++) {
-    if (!strcmp(name, tag->name)) {
+    if (!q_strcmp(name, tag->name)) {
       return tag;
     }
   }

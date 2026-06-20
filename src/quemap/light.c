@@ -53,9 +53,9 @@ static const cm_entity_t *FindTeamMaster(const char *team) {
   cm_entity_t **e = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
     const char *classname = Cm_EntityValue(*e, "classname")->string;
-    if (!strcmp(classname, "light")) {
+    if (!q_strcmp(classname, "light")) {
       const char *ent_team = Cm_EntityValue(*e, "team")->nullable_string;
-      if (ent_team && !strcmp(ent_team, team)) {
+      if (ent_team && !q_strcmp(ent_team, team)) {
         if (Cm_EntityValue(*e, "team_master")->parsed) {
           return *e;
         }
@@ -72,7 +72,7 @@ static const cm_entity_t *FindTeamMaster(const char *team) {
 static light_t *LightForEntity(const cm_entity_t *entity) {
 
   const char *classname = Cm_EntityValue(entity, "classname")->string;
-  if (!strcmp(classname, "light")) {
+  if (!q_strcmp(classname, "light")) {
 
     light_t *light = AllocLight();
 

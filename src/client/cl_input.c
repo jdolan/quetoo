@@ -252,7 +252,7 @@ static void Cl_UpdateMouseState(void) {
 static size_t Cl_TextEvent_Insert(char *dest, const char *src, const size_t ofs, const size_t len) {
   char tmp[MAX_STRING_CHARS];
 
-  const size_t l = strlen(dest);
+  const size_t l = q_strlen(dest);
 
   q_strlcpy(tmp, dest + ofs, sizeof(tmp));
   dest[ofs] = '\0';
@@ -262,7 +262,7 @@ static size_t Cl_TextEvent_Insert(char *dest, const char *src, const size_t ofs,
     q_strlcat(dest, tmp, len);
   }
 
-  return strlen(dest) - l;
+  return q_strlen(dest) - l;
 }
 
 /**
@@ -296,8 +296,8 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
 
     case SDL_EVENT_DROP_FILE: {
       const char *data = event->drop.data;
-      if (data && !strncmp(data, "quetoo://", 9)) {
-        Cbuf_AddText(va("connect %s\n", data + strlen("quetoo://")));
+      if (data && !q_strncmp(data, "quetoo://", 9)) {
+        Cbuf_AddText(va("connect %s\n", data + q_strlen("quetoo://")));
         return true;
       }
       return false;

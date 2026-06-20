@@ -77,7 +77,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
     atlas_node_t *node = *VectorElement(nodes, atlas_node_t *, i);
 
     r_atlas_image_t *atlas_image = node->data;
-    if (!strcmp(name, atlas_image->image.media.name)) {
+    if (!q_strcmp(name, atlas_image->image.media.name)) {
       R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas_image);
       return atlas_image;
     }

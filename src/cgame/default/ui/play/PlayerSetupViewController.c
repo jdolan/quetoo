@@ -37,7 +37,7 @@ static Order sortSkins(const ident a, const ident b) {
   const char *c = ((const Option *) a)->title->text;
   const char *d = ((const Option *) b)->title->text;
 
-  return strcmp(c, d) < 0 ? OrderAscending : OrderDescending;
+  return q_strcmp(c, d) < 0 ? OrderAscending : OrderDescending;
 }
 
 /**
@@ -64,7 +64,7 @@ static void enumerateSkins(const char *path, void *data) {
     for (size_t i = 0; i < options->count; i++) {
 
       const Option *option = $(options, objectAtIndex, i);
-      if (strcmp(option->title->text, title) == 0) {
+      if (q_strcmp(option->title->text, title) == 0) {
         return;
       }
     }
@@ -72,7 +72,7 @@ static void enumerateSkins(const char *path, void *data) {
     ident value = (ident) options->count;
     $(select, addOption, title, value);
 
-    if (strcmp(cg_skin->string, title) == 0) {
+    if (q_strcmp(cg_skin->string, title) == 0) {
       $(select, selectOptionWithValue, value);
     }
 
@@ -211,7 +211,7 @@ static void viewWillAppear(ViewController *self) {
 
   PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 
-  if (strcmp(cg_color->string, "default")) {
+  if (q_strcmp(cg_color->string, "default")) {
     $(this->effectsColorPicker, setColor, cg_color->integer, 1.0, 1.0);
   } else {
     $(this->effectsColorPicker, setColor, -1.0, 1.0, 1.0);

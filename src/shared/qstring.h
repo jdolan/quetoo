@@ -27,18 +27,18 @@
  * @file qstring.h
  * @brief Portable, null-safe string utilities.
  *
- * Every string operation in the codebase should use a q_str* function from
+ * Every string operation in the codebase should use a `q_str*` function from
  * this header rather than its raw C, POSIX, or SDL equivalent. This gives us:
  *
- *  - Portability: q_strlcpy/q_strlcat work on all platforms; q_strcasecmp
+ *  - Portability: `q_strlcpy`/`q_strlcat` work on all platforms; q_strcasecmp
  *    does not rely on locale-sensitive POSIX functions; q_strtok_r maps to
  *    strtok_s on MSVC.
  *
  *  - Null-safety: every comparison, search, and length function treats a NULL
  *    argument as an empty string rather than crashing.
  *
- *  - Allocation consistency: q_strdup/q_strndup use malloc; the caller frees
- *    with free(). No SDL_free / Mem_Free ambiguity.
+ *  - Allocation consistency: `q_strdup`/`q_strndup` use `malloc`; the caller frees
+ *    with `free`.
  */
 
 /**

@@ -45,7 +45,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
       break;
     }
 
-    if (!strcmp(token, "translate")) {
+    if (!q_strcmp(token, "translate")) {
 
       vec3_t v;
       if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
@@ -57,7 +57,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
       continue;
     }
 
-    if (!strcmp(token, "rotate")) {
+    if (!q_strcmp(token, "rotate")) {
 
       vec3_t v;
       if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
@@ -69,7 +69,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
       continue;
     }
 
-    if (!strcmp(token, "scale")) {
+    if (!q_strcmp(token, "scale")) {
 
       float v;
       if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, &v, 1)) {
@@ -81,7 +81,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
       continue;
     }
 
-    if (!strcmp(token, "muzzle")) {
+    if (!q_strcmp(token, "muzzle")) {
 
       vec3_t v;
       if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {

@@ -27,7 +27,7 @@
 void SetValueForKey(entity_t *ent, const char *key, const char *value) {
 
   for (entity_key_value_t *e = ent->values; e; e = e->next) {
-    if (!strcmp(e->key, key)) {
+    if (!q_strcmp(e->key, key)) {
       q_strlcpy(e->value, value, sizeof(e->value));
       return;
     }
@@ -47,7 +47,7 @@ void SetValueForKey(entity_t *ent, const char *key, const char *value) {
 const char *ValueForKey(const entity_t *ent, const char *key, const char *def) {
 
   for (const entity_key_value_t *e = ent->values; e; e = e->next) {
-    if (!strcmp(e->key, key)) {
+    if (!q_strcmp(e->key, key)) {
       return e->value;
     }
   }

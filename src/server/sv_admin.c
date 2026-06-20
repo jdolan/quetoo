@@ -116,7 +116,7 @@ static bool Sv_SetPlayer(void) {
       continue;
     }
 
-    if (!strcmp(cl->name, s)) {
+    if (!q_strcmp(cl->name, s)) {
       sv_client = cl;
       return true;
     }
@@ -288,15 +288,15 @@ static void Sv_Say_f(void) {
   }
 
   StrStrip(Cmd_Args(), text);
-  if (!strlen(text)) {
+  if (!q_strlen(text)) {
     return;
   }
 
   q_strlcpy(text, Cmd_Args(), sizeof(text));
   char *s = text;
 
-  if (s[0] == '"' && s[strlen(s) - 1] == '"') {
-    s[strlen(s) - 1] = '\0';
+  if (s[0] == '"' && s[q_strlen(s) - 1] == '"') {
+    s[q_strlen(s) - 1] = '\0';
     s++;
   }
 
@@ -328,17 +328,17 @@ static void Sv_Tell_f(void) {
     return;
   }
 
-  const char *msg = Cmd_Args() + strlen(Cmd_Argv(1)) + 1;
+  const char *msg = Cmd_Args() + q_strlen(Cmd_Argv(1)) + 1;
   StrStrip(msg, text);
-  if (!strlen(text)) {
+  if (!q_strlen(text)) {
     return;
   }
 
   q_strlcpy(text, msg, sizeof(text));
   char *s = text;
 
-  if (s[0] == '"' && s[strlen(s) - 1] == '"') {
-    s[strlen(s) - 1] = '\0';
+  if (s[0] == '"' && s[q_strlen(s) - 1] == '"') {
+    s[q_strlen(s) - 1] = '\0';
     s++;
   }
 

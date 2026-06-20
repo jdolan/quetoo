@@ -126,7 +126,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
       break;
 
     case SDLK_DELETE:
-      if (in->pos < strlen(in->buffer)) {
+      if (in->pos < q_strlen(in->buffer)) {
         char *c = in->buffer + in->pos;
         while (*c) {
           *c = *(c + 1);
@@ -158,7 +158,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 
     case SDLK_RIGHT:
       if (SDL_GetModState() & SDL_KMOD_CTRL) { // move one word right
-        const size_t len = strlen(in->buffer);
+        const size_t len = q_strlen(in->buffer);
         while (in->pos < len && in->buffer[in->pos] == ' ') {
           in->pos++; // off current word
         }
@@ -168,7 +168,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
         if (in->pos < len) { // all the way in front
           in->pos++;
         }
-      } else if (in->pos < strlen(in->buffer)) {
+      } else if (in->pos < q_strlen(in->buffer)) {
         in->pos++;
       }
       break;
@@ -194,7 +194,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
       break;
 
     case SDLK_END:
-      in->pos = strlen(in->buffer);
+      in->pos = q_strlen(in->buffer);
       break;
 
     case SDLK_A:
@@ -204,7 +204,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
       break;
     case SDLK_E:
       if (SDL_GetModState() & SDL_KMOD_CTRL) {
-        in->pos = strlen(in->buffer);
+        in->pos = q_strlen(in->buffer);
       }
       break;
     case SDLK_C:
@@ -224,7 +224,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
         q_strlcat(in->buffer, tail, sizeof(in->buffer));
         free(tail);
 
-        in->pos = Minf(in->pos + strlen(text), sizeof(in->buffer) - 1);
+        in->pos = Minf(in->pos + q_strlen(text), sizeof(in->buffer) - 1);
         SDL_free(text);
       }
       break;
@@ -317,7 +317,7 @@ static void Cl_KeyChat(const SDL_Event *event) {
       break;
 
     case SDLK_DELETE:
-      if (in->pos < strlen(in->buffer)) {
+      if (in->pos < q_strlen(in->buffer)) {
         char *c = in->buffer + in->pos;
         while (*c) {
           *c = *(c + 1);
@@ -368,7 +368,7 @@ SDL_Scancode Cl_KeyForName(const char *name) {
 SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
 
   for (SDL_Scancode k = from + 1; k < SDL_SCANCODE_COUNT; k++) {
-    if (strcmp(binding, cls.key_state.binds[k]) == 0) {
+    if (q_strcmp(binding, cls.key_state.binds[k]) == 0) {
       return k;
     }
   }
@@ -396,7 +396,7 @@ void Cl_Bind(SDL_Scancode key, const char *bind) {
   }
 
   // allocate for new binding and copy it in
-  cls.key_state.binds[key] = Mem_TagMalloc(strlen(bind) + 1, MEM_TAG_CLIENT);
+  cls.key_state.binds[key] = Mem_TagMalloc(q_strlen(bind) + 1, MEM_TAG_CLIENT);
   strcpy(cls.key_state.binds[key], bind);
 }
 
@@ -493,7 +493,7 @@ static void Cl_Bind_f(void) {
   }
 
   // check for compound bindings
-  if (strchr(cmd, ';')) {
+  if (q_strchr(cmd, ';')) {
     Com_Print("Complex bind \"%s\" ignored; use 'alias' instead\n", cmd);
     return;
   }
@@ -536,7 +536,7 @@ void Cl_InitKeys(void) {
 
   for (SDL_Scancode k = SDL_SCANCODE_UNKNOWN; k < SDL_SCANCODE_COUNT; k++) {
     const char *name = SDL_GetScancodeName(k);
-    if (strlen(name)) {
+    if (q_strlen(name)) {
       cl_key_names[k] = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CLIENT), cl_key_names);
     }
   }

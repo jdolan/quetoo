@@ -413,7 +413,7 @@ static void Cg_misc_flame_Init(cg_entity_t *self) {
 
   const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
   if (sound) {
-    if (strcmp(sound, "none")) {
+    if (q_strcmp(sound, "none")) {
       flame->sample = cgi.LoadSample(sound);
     }
   } else {
@@ -766,7 +766,7 @@ static void Cg_misc_sprite_Think(cg_entity_t *self) {
 
   const cg_entity_t *teammate = Cg_EntityForDefinition(self->team);
   if (teammate) {
-    if (!strcmp(self->clazz->classname, teammate->clazz->classname)) {
+    if (!q_strcmp(self->clazz->classname, teammate->clazz->classname)) {
       that = teammate->data;
     } else {
       Cg_Warn("Teammate is not %s\n", self->clazz->classname);
@@ -850,7 +850,7 @@ static void Cg_misc_steam_Init(cg_entity_t *self) {
 
   const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
   if (sound) {
-    if (strcmp(sound, "none")) {
+    if (q_strcmp(sound, "none")) {
       steam->sample = cgi.LoadSample(sound);
     }
   } else {
@@ -960,13 +960,13 @@ static void Cg_misc_weather_Init(cg_entity_t *self) {
 
   const char *type = cgi.EntityValue(self->def, "weather")->nullable_string;
   if (type) {
-    if (strstr(type, "rain")) {
+    if (q_strstr(type, "rain")) {
       weather->weather |= WEATHER_RAIN;
     }
-    if (strstr(type, "snow")) {
+    if (q_strstr(type, "snow")) {
       weather->weather |= WEATHER_SNOW;
     }
-    if (strstr(type, "ash")) {
+    if (q_strstr(type, "ash")) {
       weather->weather |= WEATHER_ASH;
     }
   }
@@ -977,7 +977,7 @@ static void Cg_misc_weather_Init(cg_entity_t *self) {
 
   const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
   if (sound) {
-    if (strcmp(sound, "none")) {
+    if (q_strcmp(sound, "none")) {
       weather->sample = cgi.LoadSample(sound);
     }
   } else {

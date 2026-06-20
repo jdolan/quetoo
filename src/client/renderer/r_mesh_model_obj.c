@@ -103,41 +103,41 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
   for (char *line = strtok(file, "\r\n"); line; line = strtok(NULL, "\r\n")) {
 
     vec3_t vec;
-    if (strncmp("v ", line, strlen("v ")) == 0) {
-      if (Parse_QuickPrimitive(line + strlen("v "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
+    if (q_strncmp("v ", line, q_strlen("v ")) == 0) {
+      if (Parse_QuickPrimitive(line + q_strlen("v "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
         // swap ordering to match Quetoo
         vec = Vec3(vec.x, vec.z, vec.y);
         mod->bounds = Box3_Append(mod->bounds, vec);
         $(obj.v, addElement, &vec);
       }
-    } else if (strncmp("vt ", line, strlen("vt ")) == 0) {
-      if (Parse_QuickPrimitive(line + strlen("vt "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 2) == 2) {
+    } else if (q_strncmp("vt ", line, q_strlen("vt ")) == 0) {
+      if (Parse_QuickPrimitive(line + q_strlen("vt "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 2) == 2) {
         vec.y = -vec.y;
         $(obj.vt, addElement, &vec);
       }
-    } else if (strncmp("vn ", line, strlen("vn ")) == 0) {
-      if (Parse_QuickPrimitive(line + strlen("vn "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
+    } else if (q_strncmp("vn ", line, q_strlen("vn ")) == 0) {
+      if (Parse_QuickPrimitive(line + q_strlen("vn "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
         // swap ordering to match Quetoo
         vec = Vec3_Normalize(Vec3(vec.x, vec.z, vec.y));
         $(obj.vn, addElement, &vec);
       }
-    } else if (strncmp("usemtl ", line, strlen("usemtl ")) == 0) {
+    } else if (q_strncmp("usemtl ", line, q_strlen("usemtl ")) == 0) {
       if (group.f->count) {
         $(obj.g, addElement, &group);
       } else {
         release(group.f);
       }
-      q_strlcpy(group.name, line + strlen("usemtl "), sizeof(group.name));
+      q_strlcpy(group.name, line + q_strlen("usemtl "), sizeof(group.name));
       group.f = $(alloc(Vector), initWithSize, sizeof(r_obj_face_t));
-    } else if (strncmp("g ", line, strlen("g ")) == 0) {
+    } else if (q_strncmp("g ", line, q_strlen("g ")) == 0) {
       if (group.f->count) {
         $(obj.g, addElement, &group);
       } else {
         release(group.f);
       }
-      q_strlcpy(group.name, line + strlen("g "), sizeof(group.name));
+      q_strlcpy(group.name, line + q_strlen("g "), sizeof(group.name));
       group.f = $(alloc(Vector), initWithSize, sizeof(r_obj_face_t));
-    } else if (strncmp("f ", line, strlen("f ")) == 0) {
+    } else if (q_strncmp("f ", line, q_strlen("f ")) == 0) {
 
       r_obj_face_t face;
       memset(&face, 0, sizeof(face));

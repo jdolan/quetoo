@@ -91,7 +91,7 @@ const char *Sv_StatusString(void) {
   static char status[MAX_MSG_SIZE - 16];
 
   q_snprintf(status, sizeof(status), "%s\n", Cvar_ServerInfo());
-  size_t status_len = strlen(status);
+  size_t status_len = q_strlen(status);
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
@@ -114,7 +114,7 @@ const char *Sv_StatusString(void) {
                    score, cl->ping, name);
       }
 
-      const size_t player_len = strlen(player);
+      const size_t player_len = q_strlen(player);
 
       if (status_len + player_len + 1 >= sizeof(status)) {
         break;
@@ -217,13 +217,13 @@ static void Sv_Connect_f(void) {
     return;
   }
 
-  if (strchr(user_info, '\xFF')) { // catch end of message in string exploit
+  if (q_strchr(user_info, '\xFF')) { // catch end of message in string exploit
     Com_Print("Illegal user_info contained xFF from %s\n", Net_NetaddrToString(addr));
     Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
   }
 
-  if (strlen(InfoString_Get(user_info, "ip"))) { // catch spoofed ips
+  if (q_strlen(InfoString_Get(user_info, "ip"))) { // catch spoofed ips
     Com_Print("Illegal user_info contained ip from %s\n", Net_NetaddrToString(addr));
     Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
@@ -311,7 +311,7 @@ static void Sv_Connect_f(void) {
   if (!(svs.game->ClientConnect(client->gclient, user_info))) {
     const char *rejmsg = InfoString_Get(user_info, "rejmsg");
 
-    if (strlen(rejmsg)) {
+    if (q_strlen(rejmsg)) {
       Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\n%s\nConnection refused\n", rejmsg);
     } else {
       Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
@@ -350,7 +350,7 @@ static bool Sv_RconAuthenticate(void) {
   }
 
   // and of course the passwords must match
-  if (strcmp(Cmd_Argv(1), rcon_password->string)) {
+  if (q_strcmp(Cmd_Argv(1), rcon_password->string)) {
     return false;
   }
 
@@ -429,17 +429,17 @@ static void Sv_ConnectionlessPacket(void) {
 
   Com_Debug(DEBUG_SERVER, "Packet from %s: %s\n", a, c);
 
-  if (!strcmp(c, "ping")) {
+  if (!q_strcmp(c, "ping")) {
     Sv_Ping_f();
-  } else if (!strcmp(c, "ack")) {
+  } else if (!q_strcmp(c, "ack")) {
     Sv_Ack_f();
-  } else if (!strcmp(c, "status")) {
+  } else if (!q_strcmp(c, "status")) {
     Sv_Status_f();
-  } else if (!strcmp(c, "get_challenge")) {
+  } else if (!q_strcmp(c, "get_challenge")) {
     Sv_GetChallenge_f();
-  } else if (!strcmp(c, "connect")) {
+  } else if (!q_strcmp(c, "connect")) {
     Sv_Connect_f();
-  } else if (!strcmp(c, "rcon")) {
+  } else if (!q_strcmp(c, "rcon")) {
     Sv_Rcon_f();
   } else {
     Com_Print("Bad connectionless packet from %s:\n%s\n", a, s);
@@ -729,7 +729,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
     return;
   }
 
-  if (strchr(cl->user_info, '\xFF')) { // catch end of message exploit
+  if (q_strchr(cl->user_info, '\xFF')) { // catch end of message exploit
     Com_Print("Illegal user_info contained xFF from %s\n", Sv_NetaddrToString(cl));
     Sv_KickClient(cl, "Bad user info");
     return;
@@ -764,7 +764,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 int32_t Sv_InstallerFrame(const installer_status_t *in) {
   static installer_status_t last;
 
-  if (in->state != last.state || strcmp(in->current_file, last.current_file)) {
+  if (in->state != last.state || q_strcmp(in->current_file, last.current_file)) {
     switch (in->state) {
       case INSTALLER_CHECKING:
         Com_Print("Checking binary version\u2026\n");

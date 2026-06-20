@@ -159,8 +159,8 @@ static void setEntity(EntityView *self, cg_editor_entity_t *edit, cm_entity_t *p
       $(self->value, setAttributedText, pair->string);
     }
 
-    if (!strcmp(pair->key, "classname")
-        && !strcmp(pair->string, "worldspawn")) {
+    if (!q_strcmp(pair->key, "classname")
+        && !q_strcmp(pair->string, "worldspawn")) {
       self->key->control.state |= ControlStateDisabled;
       self->value->control.state |= ControlStateDisabled;
     }

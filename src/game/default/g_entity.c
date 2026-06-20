@@ -163,7 +163,7 @@ static void G_SpawnEntity(cm_entity_t *def) {
   for (size_t i = 0; i < lengthof(g_entity_classes); i++) {
     const g_entity_class_t *clazz = g_entity_classes + i;
 
-    if (!strcmp(clazz->classname, ent->classname)) {
+    if (!q_strcmp(clazz->classname, ent->classname)) {
       clazz->Init(ent);
       return;
     }
@@ -214,7 +214,7 @@ static void G_InitEntityTeams(void) {
         continue;
       }
 
-      if (!strcmp(ent->team, e->team)) {
+      if (!q_strcmp(ent->team, e->team)) {
 
         e->team_master = ent;
         e->flags |= FL_TEAM_SLAVE;
@@ -742,7 +742,7 @@ static void G_worldspawn_EnumerateMusic(const char *path, void *data) {
   Vector *tracks = (Vector *) data;
   char name[MAX_QPATH];
   StripExtension(Basename(path), name);
-  if (strcmp(name, "gtdstudio-explore") == 0) {
+  if (q_strcmp(name, "gtdstudio-explore") == 0) {
     return;
   }
   $(tracks, addElement, name);
@@ -784,7 +784,7 @@ static void G_worldspawn_Music(void) {
     }
 
     while (isspace((unsigned char) *t)) { t++; }
-    char *_end = t + strlen(t) - 1;
+    char *_end = t + q_strlen(t) - 1;
     while (_end >= t && isspace((unsigned char) *_end)) { *_end-- = '\0'; }
 
     if (*t != '\0') {
@@ -839,7 +839,7 @@ static void G_worldspawn(g_entity_t *ent) {
   gi.SetConfigString(CS_MAX_CLIENTS, va("%d", sv_max_clients->integer));
 
   const cm_entity_t *gravity_map = G_MapValue("gravity");
-  if (strcmp(g_gravity->string, g_gravity->default_string)) { // prefer an explicit g_gravity override
+  if (q_strcmp(g_gravity->string, g_gravity->default_string)) { // prefer an explicit g_gravity override
     g_level.gravity = g_gravity->integer;
   } else if (gravity_map && (gravity_map->parsed & ENTITY_INTEGER) && gravity_map->integer > 0) { // then map metadata gravity
     g_level.gravity = gravity_map->integer;
@@ -857,7 +857,7 @@ static void G_worldspawn(g_entity_t *ent) {
   g_gravity->modified = false;
 
   const cm_entity_t *gameplay_map = G_MapValue("gameplay");
-  if (strcmp(g_gameplay->string, "default")) { // prefer g_gameplay
+  if (q_strcmp(g_gameplay->string, "default")) { // prefer g_gameplay
     g_level.gameplay = G_GameplayByName(g_gameplay->string);
   } else if (gameplay_map && (gameplay_map->parsed & ENTITY_INTEGER) && gameplay_map->integer > -1) { // then map metadata gameplay
     g_level.gameplay = gameplay_map->integer;
@@ -901,7 +901,7 @@ static void G_worldspawn(g_entity_t *ent) {
     if (num_teams->parsed & ENTITY_INTEGER) {
       g_level.num_teams = num_teams->integer;
     } else {
-      if (strcmp(g_num_teams->string, "default")) {
+      if (q_strcmp(g_num_teams->string, "default")) {
         g_level.num_teams = g_num_teams->integer;
       } else {
         g_level.num_teams = -1; // spawn point function will do this

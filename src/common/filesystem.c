@@ -225,7 +225,7 @@ int64_t Fs_Print(file_t *file, const char *fmt, ...) {
   vsnprintf(string, sizeof(string), fmt, args);
   va_end(args);
 
-  return Fs_Write(file, string, 1, strlen(string));
+  return Fs_Write(file, string, 1, q_strlen(string));
 }
 
 /**
@@ -431,7 +431,7 @@ int64_t Fs_LastModTime(const char *filename) {
  */
 bool Fs_Unlink(const char *filename) {
 
-  if (!strcmp(Fs_WriteDir(), Fs_RealDir(filename))) {
+  if (!q_strcmp(Fs_WriteDir(), Fs_RealDir(filename))) {
     return unlink(filename) == 0;
   }
 
@@ -475,7 +475,7 @@ void Fs_Enumerate(const char *pattern, Fs_Enumerator func, void *data) {
     .data = data,
   };
 
-  if (strchr(pattern, '/')) {
+  if (q_strchr(pattern, '/')) {
     Dirname(pattern, enumerator.dir);
   } else {
     q_strlcpy(enumerator.dir, "/", sizeof(enumerator.dir));
@@ -559,7 +559,7 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
   const char *real_dir = Fs_RealDir(path);
   const char *enum_dir = data;
 
-  if (!strcmp(real_dir, enum_dir)) {
+  if (!q_strcmp(real_dir, enum_dir)) {
     Fs_AddToSearchPathv(real_dir, path + 1, NULL);
   }
 }
@@ -592,7 +592,7 @@ void Fs_SetGame(const char *dir) {
     return;
   }
 
-  if (strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\") || strstr(dir, ":")) {
+  if (q_strstr(dir, "..") || q_strstr(dir, "/") || q_strstr(dir, "\\") || q_strstr(dir, ":")) {
     Com_Warn("Game should be a directory name, not a path (%s)\n", dir);
     return;
   }
@@ -605,7 +605,7 @@ void Fs_SetGame(const char *dir) {
   while (*path != NULL) {
     char **p = fs_state.base_search_paths;
     while (*p != NULL) {
-      if (!strcmp(*path, *p)) {
+      if (!q_strcmp(*path, *p)) {
         break;
       }
       p++;
@@ -675,7 +675,7 @@ const char *Fs_RealPath(const char *path) {
   q_snprintf(real_path, sizeof(real_path), "%s/", Fs_WriteDir());
 
   const char *in = path;
-  char *out = real_path + strlen(real_path);
+  char *out = real_path + q_strlen(real_path);
 
   while (*in && (size_t) (out - real_path) < (sizeof(real_path) - 1)) {
     if (*in == '/') {
@@ -723,11 +723,11 @@ void Fs_Init(const uint32_t flags) {
     Com_Debug(DEBUG_FILESYSTEM, "Resolved executable path: %s\n", path);
 
 #if defined(__APPLE__)
-    if ((c = strstr(path, "Quetoo.app"))) {
-      *(c + strlen("Quetoo.app")) = '\0';
+    if ((c = q_strstr(path, "Quetoo.app"))) {
+      *(c + q_strlen("Quetoo.app")) = '\0';
       q_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-      if (strstr(fs_state.base_dir, "AppTranslocation")) {
+      if (q_strstr(fs_state.base_dir, "AppTranslocation")) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
           "Move Quetoo to Applications",
           "Quetoo cannot run from this location.\n\n"
@@ -767,21 +767,21 @@ void Fs_Init(const uint32_t flags) {
       Fs_AddToSearchPathv(resources, DEFAULT_GAME, NULL);
     }
 #elif defined(__linux__)
-    if ((c = strstr(path, "/bin/"))) {
+    if ((c = q_strstr(path, "/bin/"))) {
       *c = '\0';
       q_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
       char bin_dir[MAX_OS_PATH];
       q_snprintf(bin_dir, MAX_OS_PATH, "%s/bin", fs_state.base_dir);
 
-      if (strcmp(bin_dir, fs_state.bin_dir) != 0) {
+      if (q_strcmp(bin_dir, fs_state.bin_dir) != 0) {
         q_strlcpy(fs_state.bin_dir, bin_dir, MAX_OS_PATH);
         q_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/lib/quetoo", fs_state.base_dir);
         q_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share/quetoo", fs_state.base_dir);
       }
     }
 #elif defined(_WIN32)
-    if ((c = strstr(path, "\\bin\\"))) {
+    if ((c = q_strstr(path, "\\bin\\"))) {
       *c = '\0';
       q_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
@@ -804,12 +804,12 @@ void Fs_Init(const uint32_t flags) {
   int32_t i;
   for (i = 1; i < Com_Argc(); i++) {
 
-    if (!strcmp(Com_Argv(i), "-p") || !strcmp(Com_Argv(i), "-path")) {
+    if (!q_strcmp(Com_Argv(i), "-p") || !q_strcmp(Com_Argv(i), "-path")) {
       Fs_AddToSearchPath(Com_Argv(i + 1));
       continue;
     }
 
-    if (!strcmp(Com_Argv(i), "-w") || !strcmp(Com_Argv(i), "-wpath")) {
+    if (!q_strcmp(Com_Argv(i), "-w") || !q_strcmp(Com_Argv(i), "-wpath")) {
       Fs_AddToSearchPath(Com_Argv(i + 1));
       Fs_SetWriteDir(Com_Argv(i + 1));
       continue;

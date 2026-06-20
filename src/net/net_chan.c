@@ -110,7 +110,7 @@ void Netchan_OutOfBandPrint(int32_t sock, const net_addr_t *addr, const char *fo
   vsnprintf(string, sizeof(string), format, args);
   va_end(args);
 
-  Netchan_OutOfBand(sock, addr, (const void *) string, strlen(string));
+  Netchan_OutOfBand(sock, addr, (const void *) string, q_strlen(string));
 }
 
 /**

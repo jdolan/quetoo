@@ -61,10 +61,10 @@ static void fetchHeroImages(void *data) {
 	Vector *urls = $(alloc(Vector), initWithSize, sizeof(char *));
 
 	char *p = (char *) list_data->bytes;
-	while ((p = strstr(p, prefix)) != NULL) {
+	while ((p = q_strstr(p, prefix)) != NULL) {
 
-		p += strlen(prefix);
-		char *s = strstr(p, suffix);
+		p += q_strlen(prefix);
+		char *s = q_strstr(p, suffix);
 		assert(s);
 		*s = '\0';
 
@@ -72,13 +72,13 @@ static void fetchHeroImages(void *data) {
 		const int url_len = q_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
 		if (url_len < 0 || (size_t) url_len >= sizeof(url)) {
 			Cg_Warn("Failed to build hero image URL: %s", p);
-			p = s + strlen(suffix);
+			p = s + q_strlen(suffix);
 			continue;
 		}
 
 		char *dup = q_strdup(url);
 		$(urls, addElement, &dup);
-		p = s + strlen(suffix);
+		p = s + q_strlen(suffix);
 	}
 
 	release(list_data);

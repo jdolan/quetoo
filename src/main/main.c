@@ -300,7 +300,7 @@ static void Init(void) {
   build = Cvar_Add("build", BUILD, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
   dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
-  if (strstr(Sys_ExecutablePath(), "-dedicated")) {
+  if (q_strstr(Sys_ExecutablePath(), "-dedicated")) {
     Cvar_ForceSetInteger(dedicated->name, 1);
   }
 
@@ -308,7 +308,7 @@ static void Init(void) {
   editor = Cvar_Add("editor", "0", CVAR_LATCH | CVAR_SERVER_INFO, "Enables the in-game editor.");
 
   game = Cvar_Add("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
-  game->modified = strcmp(game->string, DEFAULT_GAME);
+  game->modified = q_strcmp(game->string, DEFAULT_GAME);
 
   rcon_address = Cvar_Add("rcon_address", "", 0, "The remote console server address (defaults to current server)");
   rcon_password = Cvar_Add("rcon_password", "", CVAR_ARCHIVE, "The remote console password. "
@@ -466,7 +466,7 @@ int32_t main(int32_t argc, char *argv[]) {
     if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo", 0, NULL,
                        REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &key, NULL) == ERROR_SUCCESS) {
       const char *url_proto = "URL:Quetoo Protocol";
-      RegSetValueEx(key, NULL, 0, REG_SZ, (const BYTE *) url_proto, (DWORD) strlen(url_proto) + 1);
+      RegSetValueEx(key, NULL, 0, REG_SZ, (const BYTE *) url_proto, (DWORD) q_strlen(url_proto) + 1);
       RegSetValueEx(key, "URL Protocol", 0, REG_SZ, (const BYTE *) "", 1);
       RegCloseKey(key);
     }
@@ -476,7 +476,7 @@ int32_t main(int32_t argc, char *argv[]) {
                        REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &cmd_key, NULL) == ERROR_SUCCESS) {
       char cmd[MAX_PATH + 8];
       q_snprintf(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exe_path);
-      RegSetValueEx(cmd_key, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) strlen(cmd) + 1);
+      RegSetValueEx(cmd_key, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) q_strlen(cmd) + 1);
       RegCloseKey(cmd_key);
     }
   }
@@ -484,8 +484,8 @@ int32_t main(int32_t argc, char *argv[]) {
 
   // Handle quetoo:// URI scheme launch (Linux / Windows pass the URL as argv).
   for (int32_t i = 1; i < argc; i++) {
-    if (!strncmp(argv[i], "quetoo://", 9)) {
-      Cbuf_AddText(va("connect %s\n", argv[i] + strlen("quetoo://")));
+    if (!q_strncmp(argv[i], "quetoo://", 9)) {
+      Cbuf_AddText(va("connect %s\n", argv[i] + q_strlen("quetoo://")));
       break;
     }
   }

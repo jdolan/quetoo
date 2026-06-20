@@ -36,13 +36,13 @@ static bool Cvar_InfoValidate(const char *s) {
   if (!s) {
     return false;
   }
-  if (strstr(s, "\\")) {
+  if (q_strstr(s, "\\")) {
     return false;
   }
-  if (strstr(s, "\"")) {
+  if (q_strstr(s, "\"")) {
     return false;
   }
-  if (strstr(s, ";")) {
+  if (q_strstr(s, ";")) {
     return false;
   }
   return true;
@@ -62,7 +62,7 @@ cvar_t *Cvar_Get(const char *name) {
         // only return the exact match
         for (const ListNode *node = list->head; node; node = node->next) {
           cvar_t *cvar = node->element;
-          if (!strcmp(cvar->name, name)) {
+          if (!q_strcmp(cvar->name, name)) {
             return cvar;
           }
         }
@@ -144,7 +144,7 @@ static const char *Cvar_Stringify(const cvar_t *var) {
   static char str[MAX_STRING_CHARS];
   q_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
 
-  if (strcmp(var->string, var->default_string)) {
+  if (q_strcmp(var->string, var->default_string)) {
     q_strlcat(str, va(" [\"^3%s^7\"]", var->default_string), sizeof(str));
   }
 
@@ -339,12 +339,12 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, int32_t flags, boo
     // while latched variables can only be changed on map load
     if (var->flags & CVAR_LATCH) {
       if (var->latched_string) {
-        if (!strcmp(value, var->latched_string)) {
+        if (!q_strcmp(value, var->latched_string)) {
           return var;
         }
         Mem_Free(var->latched_string);
       } else {
-        if (!strcmp(value, var->string)) {
+        if (!q_strcmp(value, var->string)) {
           return var;
         }
       }
@@ -370,7 +370,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, int32_t flags, boo
     }
   }
 
-  if (!strcmp(var->string, value)) {
+  if (!q_strcmp(var->string, value)) {
     return var; // not changed
   }
 
@@ -616,11 +616,11 @@ static void Cvar_Set_f(void) {
 
   int32_t flags = 0;
 
-  if (!strcmp("seta", Cmd_Argv(0))) {
+  if (!q_strcmp("seta", Cmd_Argv(0))) {
     flags |= CVAR_ARCHIVE;
-  } else if (!strcmp("sets", Cmd_Argv(0))) {
+  } else if (!q_strcmp("sets", Cmd_Argv(0))) {
     flags |= CVAR_SERVER_INFO;
-  } else if (!strcmp("setu", Cmd_Argv(0))) {
+  } else if (!q_strcmp("setu", Cmd_Argv(0))) {
     flags |= CVAR_USER_INFO;
   }
 
@@ -797,7 +797,7 @@ void Cvar_Init(void) {
   for (int32_t i = 1; i < Com_Argc(); i++) {
     const char *s = Com_Argv(i);
 
-    if (!strncmp(s, "+set", 4)) {
+    if (!q_strncmp(s, "+set", 4)) {
       Cmd_ExecuteString(va("%s %s \"%s\"\n", Com_Argv(i) + 1, Com_Argv(i + 1), Com_Argv(i + 2)));
 
       cvar_t *var = Cvar_Get(Com_Argv(i + 1));
