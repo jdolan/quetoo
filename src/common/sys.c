@@ -495,7 +495,7 @@ static void Sys_WriteCrashLog(const char *text) {
 static char *Sys_UrlEncode(const char *str) {
 
   const size_t max = strlen(str) * 3 + 1;
-  char *out = Mem_Malloc(max);
+  char *out = malloc(max);
   char *p = out;
 
   for (const char *s = str; *s; s++) {

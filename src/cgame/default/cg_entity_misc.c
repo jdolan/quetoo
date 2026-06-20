@@ -163,15 +163,15 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   const char *type = cgi.EntityValue(self->def, "type")->nullable_string;
 
   const char *preset_str = cg_dust_preset_default;
-  if (!strcmp(type, "embers")) {
+  if (!q_strcmp(type, "embers")) {
     preset_str = cg_dust_preset_embers;
-  } else if (!strcmp(type, "bubbles")) {
+  } else if (!q_strcmp(type, "bubbles")) {
     preset_str = cg_dust_preset_bubbles;
-  } else if (!strcmp(type, "fizz")) {
+  } else if (!q_strcmp(type, "fizz")) {
     preset_str = cg_dust_preset_fizz;
-  } else if (!strcmp(type, "flame")) {
+  } else if (!q_strcmp(type, "flame")) {
     preset_str = cg_dust_preset_flame;
-  } else if (!strcmp(type, "steam")) {
+  } else if (!q_strcmp(type, "steam")) {
     preset_str = cg_dust_preset_steam;
   }
 
@@ -179,11 +179,11 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   cm_entity_t *def = cgi.EntityAssign(self->def, preset);
   cgi.FreeEntity(preset);
 
-  if (!strcmp(type, "fizz")) {
+  if (!q_strcmp(type, "fizz")) {
     dust->sprite.animation = cg_sprite_fizz_01;
-  } else if (!strcmp(type, "flame")) {
+  } else if (!q_strcmp(type, "flame")) {
     dust->sprite.atlas_image = cg_sprite_flame;
-  } else if (!strcmp(type, "steam")) {
+  } else if (!q_strcmp(type, "steam")) {
     dust->sprite.atlas_image = cg_sprite_steam;
   } else {
     const char *name = cgi.EntityValue(def, "sprite")->nullable_string ?: "particle";
