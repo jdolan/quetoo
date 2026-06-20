@@ -23,6 +23,7 @@
 #include "points.h"
 #include "qlight.h"
 #include "voxel.h"
+#include <Objectively/Vector.h>
 
 typedef struct {
   int32_t *indices;

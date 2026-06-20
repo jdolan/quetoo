@@ -31,6 +31,7 @@
 #include "config.h"
 #include "client/client.h"
 #include "server/server.h"
+#include <Objectively/Vector.h>
 
 static jmp_buf env;
 

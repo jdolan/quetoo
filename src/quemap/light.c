@@ -22,6 +22,7 @@
 #include "light.h"
 #include "points.h"
 #include "qlight.h"
+#include <Objectively/Vector.h>
 
 Vector *lights = NULL;
 

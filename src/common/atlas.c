@@ -23,6 +23,7 @@
 #include <stdlib.h>
 
 #include <Objectively/Array.h>
+#include <Objectively/Vector.h>
 
 #include "atlas.h"
 
