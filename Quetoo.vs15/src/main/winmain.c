@@ -44,7 +44,7 @@ static HRESULT GenerateCrashDump(MINIDUMP_TYPE flags, EXCEPTION_POINTERS *seh) {
   const char *dot = strrchr(moduleName, '.');
   const size_t nameLength = dot ? (dot - slash) : strlen(slash);
 
-  g_strlcpy(moduleName, slash, nameLength + 1);
+  q_strlcpy(moduleName, slash, nameLength + 1);
 
   sprintf_s(path, ARRAYSIZE(path),
             ".\\%s_%04u-%02u-%02u_%02u-%02u-%02u.dmp",

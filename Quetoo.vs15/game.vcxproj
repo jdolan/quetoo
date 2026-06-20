@@ -89,6 +89,9 @@
     <ProjectReference Include="libs\libshared.vcxproj">
       <Project>{2F1C792E-6243-462B-AF0D-E2554E77D5C5}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\Objectively\Objectively.vs15\Objectively.vcxproj">
+      <Project>{3e6b97c6-1f51-4d72-bdfe-1d492f5eda6c}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A663B8E2-126D-45DA-B3F8-B381AB866E7D}</ProjectGuid>
