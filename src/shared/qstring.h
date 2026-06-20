@@ -56,21 +56,21 @@ static inline size_t __attribute__ ((warn_unused_result)) q_strlen(const char *s
 /**
  * @return The first occurrence of `c` in `s`, or NULL if not found or `s` is NULL.
  */
-static inline const char * __attribute__ ((warn_unused_result)) q_strchr(const char *s, int c) {
+static inline char * __attribute__ ((warn_unused_result)) q_strchr(const char *s, int c) {
 	return s ? strchr(s, c) : NULL;
 }
 
 /**
  * @return The last occurrence of `c` in `s`, or NULL if not found or `s` is NULL.
  */
-static inline const char * __attribute__ ((warn_unused_result)) q_strrchr(const char *s, int c) {
+static inline char * __attribute__ ((warn_unused_result)) q_strrchr(const char *s, int c) {
 	return s ? strrchr(s, c) : NULL;
 }
 
 /**
  * @return The first occurrence of `needle` in `haystack`, or NULL if either is NULL.
  */
-static inline const char * __attribute__ ((warn_unused_result)) q_strstr(const char *haystack, const char *needle) {
+static inline char * __attribute__ ((warn_unused_result)) q_strstr(const char *haystack, const char *needle) {
 	return (haystack && needle) ? strstr(haystack, needle) : NULL;
 }
 

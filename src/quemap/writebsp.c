@@ -568,7 +568,7 @@ static int32_t EmitDrawElements(Vector *faces) {
       Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
     }
 
-    const bsp_face_t *a = *VectorElement(faces, bsp_face_t *, i);
+    const bsp_face_t *a = VectorValue(faces, bsp_face_t *, i);
     const int32_t a_surface = FaceSurface(a);
 
     if (a_surface & SURF_MASK_NO_DRAW_ELEMENTS) {
@@ -587,7 +587,7 @@ static int32_t EmitDrawElements(Vector *faces) {
 
     for (size_t j = i; j < faces->count; j++) {
 
-      const bsp_face_t *b = *VectorElement(faces, bsp_face_t *, j);
+      const bsp_face_t *b = VectorValue(faces, bsp_face_t *, j);
 
       if (FaceCmp(a, b)) {
         break;
@@ -651,7 +651,7 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
     out->visible_bounds = Box3_Null();
     for (size_t i = 0; i < faces->count; i++) {
 
-      bsp_face_t *face = *VectorElement(faces, bsp_face_t *, i);
+      bsp_face_t *face = VectorValue(faces, bsp_face_t *, i);
       face->block = (int32_t) (ptrdiff_t) (out - bsp_file.blocks);
 
       out->visible_bounds = Box3_Union(out->visible_bounds, face->bounds);

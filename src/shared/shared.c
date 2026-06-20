@@ -315,7 +315,7 @@ const char *EmojiEsc(const char *in, char *out, size_t out_size) {
 }
 
 /**
- * @brief A shorthand `g_snprintf` into a statically allocated buffer. Several
+ * @brief A shorthand `snprintf` into a statically allocated buffer. Several
  * buffers are maintained internally so that nested va()'s are safe within
  * reasonable limits. This function is not thread safe.
  */

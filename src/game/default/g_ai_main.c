@@ -213,7 +213,7 @@ static inline void G_Ai_RestorePath(const g_client_t *cl, ai_t *ai) {
     // generate a new path to the old target, because we might have gotten a bit out
     // of sync with moving to the item
     const ai_node_id_t src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
-    const ai_node_id_t dest = *VectorElement(ai->backup_move_target.path.path, ai_node_id_t, ai->backup_move_target.path.path->count - 1);
+    const ai_node_id_t dest = VectorValue(ai->backup_move_target.path.path, ai_node_id_t, ai->backup_move_target.path.path->count - 1);
     Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, NULL);
 
     if (!path) {
@@ -334,7 +334,7 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
     }
 
     for (uint32_t i = 0; i < items_visible->count; i++) {
-      const ai_item_pick_t pick = *VectorElement(items_visible, ai_item_pick_t, 0);
+      const ai_item_pick_t pick = VectorValue(items_visible, ai_item_pick_t, 0);
       const bool found = pick.weight > cl->ai->move_target.priority;
 
       if (!found) {
@@ -924,8 +924,8 @@ static bool G_Ai_AdvancePath(g_client_t *cl, ai_goal_t *goal) {
     return false;
   }
 
-  goal->path.path_position = G_Ai_Node_GetPosition(*VectorElement(goal->path.path, ai_node_id_t, goal->path.path_index));
-  goal->path.next_path_position = G_Ai_Node_GetPosition(*VectorElement(goal->path.path, ai_node_id_t, Mini(goal->path.path->count - 1, goal->path.path_index + 1)));
+  goal->path.path_position = G_Ai_Node_GetPosition(VectorValue(goal->path.path, ai_node_id_t, goal->path.path_index));
+  goal->path.next_path_position = G_Ai_Node_GetPosition(VectorValue(goal->path.path, ai_node_id_t, Mini(goal->path.path->count - 1, goal->path.path_index + 1)));
   goal->distress = 0;
   goal->distress_extension = false;
   goal->last_distance = FLT_MAX;
@@ -1018,7 +1018,7 @@ static bool G_Ai_GoalDistress(g_client_t *cl, ai_goal_t *goal, const vec3_t dest
  */
 static inline bool G_Ai_Path_IsLinked(const Vector *path, const uint32_t a, const uint32_t b) {
 
-  return G_Ai_Node_IsLinked(*VectorElement(path, ai_node_id_t, a), *VectorElement(path, ai_node_id_t, b));
+  return G_Ai_Node_IsLinked(VectorValue(path, ai_node_id_t, a), VectorValue(path, ai_node_id_t, b));
 }
 
 /**
@@ -1189,8 +1189,8 @@ static uint32_t G_Ai_Move(g_client_t *cl, pm_cmd_t *cmd) {
     // running off the edge, transition to walking so we don't overshoot targets beneath us
     } else if (!swimming && cl->ai->move_target.path.path_index > 0 &&
                G_Ai_ShouldSlowDrop(
-                 *VectorElement(cl->ai->move_target.path.path, ai_node_id_t, cl->ai->move_target.path.path_index - 1),
-                 *VectorElement(cl->ai->move_target.path.path, ai_node_id_t, cl->ai->move_target.path.path_index))) {
+                 VectorValue(cl->ai->move_target.path.path, ai_node_id_t, cl->ai->move_target.path.path_index - 1),
+                 VectorValue(cl->ai->move_target.path.path, ai_node_id_t, cl->ai->move_target.path.path_index))) {
       dir = Vec3_Scale(dir, PM_SPEED_RUN * 0.5f);
     // run full speed towards the target
     } else {
@@ -1938,7 +1938,7 @@ static void G_Ai_TestPath_f(void) {
         continue;
       }
 
-      Vector *path_to_start = G_Ai_Node_FindPath(cl, closest_to_player, *VectorElement(path, ai_node_id_t, 0), G_Ai_Node_Heuristic, NULL);
+      Vector *path_to_start = G_Ai_Node_FindPath(cl, closest_to_player, VectorValue(path, ai_node_id_t, 0), G_Ai_Node_Heuristic, NULL);
 
       if (path_to_start == NULL) {
         G_Ai_Debug("Can't find a path to the test path\n");
@@ -1946,7 +1946,7 @@ static void G_Ai_TestPath_f(void) {
       }
 
       for (uint32_t i = 1; i < path->count; i++) {
-        ai_node_id_t node = *VectorElement(path, ai_node_id_t, i);
+        ai_node_id_t node = VectorValue(path, ai_node_id_t, i);
         $(path_to_start, addElement, &node);
       }
       G_Ai_SetPathGoal(cl, &cl->ai->move_target, 1.0, path_to_start, NULL);

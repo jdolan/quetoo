@@ -29,7 +29,7 @@ static void R_FreeAtlas(r_media_t *media) {
   Vector *nodes = atlas->atlas->nodes;
 
   for (size_t i = 0; i < nodes->count; i++) {
-    atlas_node_t *node = *VectorElement(nodes, atlas_node_t *, i);
+    atlas_node_t *node = VectorValue(nodes, atlas_node_t *, i);
 
     for (int32_t layer = 0; layer < atlas->atlas->layers; layer++) {
       SDL_DestroySurface(node->surfaces[layer]);
@@ -74,7 +74,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
   Vector *nodes = atlas->atlas->nodes;
 
   for (size_t i = 0; i < nodes->count; i++) {
-    atlas_node_t *node = *VectorElement(nodes, atlas_node_t *, i);
+    atlas_node_t *node = VectorValue(nodes, atlas_node_t *, i);
 
     r_atlas_image_t *atlas_image = node->data;
     if (!q_strcmp(name, atlas_image->image.media.name)) {
@@ -145,7 +145,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
   atlas->image->levels = INT32_MAX;
 
   for (size_t i = 0; i < nodes->count; i++) {
-    const atlas_node_t *node = *VectorElement(nodes, atlas_node_t *, i);
+    const atlas_node_t *node = VectorValue(nodes, atlas_node_t *, i);
     atlas->image->levels = Mini(atlas->image->levels, floorf(log2f(Maxi(node->w, node->h)) + 1));
   }
 
@@ -182,7 +182,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
       R_GetError(NULL);
 
       for (size_t i = 0; i < nodes->count; i++) {
-        R_CompileAtlas_Node(*VectorElement(nodes, atlas_node_t *, i), atlas);
+        R_CompileAtlas_Node(VectorValue(nodes, atlas_node_t *, i), atlas);
       }
     }
 

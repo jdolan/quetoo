@@ -159,7 +159,7 @@ void FreeLights(void) {
   }
 
   for (size_t i = 0; i < lights->count; i++) {
-    FreeLight(*VectorElement(lights, light_t *, i));
+    FreeLight(VectorValue(lights, light_t *, i));
   }
 
   release(lights);
@@ -212,7 +212,7 @@ void EmitLights(void) {
   bsp_light_t *out = bsp_file.lights;
   for (size_t i = 0; i < lights->count; i++) {
 
-    light_t *light = *VectorElement(lights, light_t *, i);
+    light_t *light = VectorValue(lights, light_t *, i);
 
     if (light->target_entity != -1) {
       // These will use the dynamic lighting code path at runtime and can not use precomputed

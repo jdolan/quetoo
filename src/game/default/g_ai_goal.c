@@ -66,15 +66,15 @@ void G_Ai_SetPathGoal(const g_client_t *cl, ai_goal_t *goal, float priority, Vec
   
   goal->path.path = retain(path);
   goal->path.path_index = 0;
-  goal->path.path_position = G_Ai_Node_GetPosition(*VectorElement(path, ai_node_id_t, goal->path.path_index));
-  goal->path.next_path_position = G_Ai_Node_GetPosition(*VectorElement(path, ai_node_id_t, Mini(path->count - 1, goal->path.path_index + 1)));
+  goal->path.path_position = G_Ai_Node_GetPosition(VectorValue(path, ai_node_id_t, goal->path.path_index));
+  goal->path.next_path_position = G_Ai_Node_GetPosition(VectorValue(path, ai_node_id_t, Mini(path->count - 1, goal->path.path_index + 1)));
   goal->path.path_target = path_target;
 
   if (path_target) {
     goal->path.path_target_spawn_id = path_target->s.spawn_id;
   }
 
-  G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", *VectorElement(path, ai_node_id_t, 0), *VectorElement(path, ai_node_id_t, path->count - 1), priority, etos(path_target));
+  G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", VectorValue(path, ai_node_id_t, 0), VectorValue(path, ai_node_id_t, path->count - 1), priority, etos(path_target));
 }
 
 /**

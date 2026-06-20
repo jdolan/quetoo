@@ -116,7 +116,7 @@ atlas_node_t *Atlas_Find(atlas_t *atlas, int32_t layer, SDL_Surface *surface) {
   assert(atlas->layers > layer);
 
   for (size_t i = 0; i < atlas->nodes->count; i++) {
-    atlas_node_t *node = *VectorElement(atlas->nodes, atlas_node_t *, i);
+    atlas_node_t *node = VectorValue(atlas->nodes, atlas_node_t *, i);
     if (node->surfaces[layer] == surface) {
       return node;
     }
@@ -176,7 +176,7 @@ int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
   int32_t x = 0, y = 0, row = 0;
 
   for (int32_t i = start; i < (int32_t) atlas->nodes->count; i++) {
-    atlas_node_t *node = *VectorElement(atlas->nodes, atlas_node_t *, i);
+    atlas_node_t *node = VectorValue(atlas->nodes, atlas_node_t *, i);
 
     if (node->w + 2 * p > surfaces[0]->w ||
       node->h + 2 * p > surfaces[0]->h) {
@@ -245,7 +245,7 @@ void Atlas_Destroy(atlas_t *atlas) {
 
   if (atlas) {
     for (size_t i = 0; i < atlas->nodes->count; i++) {
-      Atlas_FreeNode(*VectorElement(atlas->nodes, atlas_node_t *, i));
+      Atlas_FreeNode(VectorValue(atlas->nodes, atlas_node_t *, i));
     }
     release(atlas->nodes);
     free(atlas);

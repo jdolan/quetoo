@@ -90,7 +90,7 @@ void Cg_PredictMovement(const Vector *cmds) {
 
   // run the commands
   for (uint32_t i = 0; i < cmds->count; i++) {
-    cl_cmd_t *cmd = *VectorElement(cmds, cl_cmd_t *, i);
+    cl_cmd_t *cmd = VectorValue(cmds, cl_cmd_t *, i);
 
     if (cmd->cmd.msec) { // if the command has time, run it
 

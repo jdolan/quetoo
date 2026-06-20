@@ -48,7 +48,7 @@ void S_LoadClientModelSamples(const char *model) {
   }
 
   for (size_t i = 0; i < sounds->count; i++) {
-    const s_media_t *media = *VectorElement(sounds, s_media_t *, i);
+    const s_media_t *media = VectorValue(sounds, s_media_t *, i);
     S_LoadClientModelSample(model, media->name);
   }
 
@@ -261,7 +261,7 @@ void S_EndLoading(void) {
   $(s_media_state.media, enumerate, S_EndLoading_Collect, to_free);
 
   for (size_t i = 0; i < to_free->count; i++) {
-    s_media_t *media = *VectorElement(to_free, s_media_t *, i);
+    s_media_t *media = VectorValue(to_free, s_media_t *, i);
     $(s_media_state.media, remove, media->name);
     S_FreeMedia_(NULL, media, true);
     Mem_Free(media);
@@ -342,7 +342,7 @@ void S_ShutdownMedia(void) {
   $(s_media_state.media, enumerate, S_ShutdownMedia_Collect, to_free);
 
   for (size_t i = 0; i < to_free->count; i++) {
-    s_media_t *media = *VectorElement(to_free, s_media_t *, i);
+    s_media_t *media = VectorValue(to_free, s_media_t *, i);
     $(s_media_state.media, remove, media->name);
     S_FreeMedia_(NULL, media, true);
     Mem_Free(media);

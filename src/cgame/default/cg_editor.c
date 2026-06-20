@@ -169,12 +169,12 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
 
       if (is_selected) {
         for (uint32_t j = 0; j < edit->brushes->count; j++) {
-          const cm_bsp_brush_t *brush = *VectorElement(edit->brushes, cm_bsp_brush_t *, j);
+          const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
           cgi.Draw3DBox(brush->bounds, color_red, true);
         }
       } else if (q_strcmp(classname, "worldspawn")) {
         for (uint32_t j = 0; j < edit->brushes->count; j++) {
-          const cm_bsp_brush_t *brush = *VectorElement(edit->brushes, cm_bsp_brush_t *, j);
+          const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
           cgi.Draw3DBox(brush->bounds, Color4fv(debug_color), true);
         }
       }
@@ -406,7 +406,7 @@ cg_editor_trace_t Cg_EntitySelectionTrace(const vec3_t start, const vec3_t end) 
 
     if (edit->brushes) {
       for (uint32_t j = 0; j < edit->brushes->count; j++) {
-        const cm_bsp_brush_t *brush = *VectorElement(edit->brushes, cm_bsp_brush_t *, j);
+        const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
 
         const cm_trace_t tr = cgi.TraceToBrush(start, end, brush);
 
@@ -459,7 +459,7 @@ cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end
 
     if (edit->brushes) {
       for (uint32_t j = 0; j < edit->brushes->count; j++) {
-        const cm_bsp_brush_t *brush = *VectorElement(edit->brushes, cm_bsp_brush_t *, j);
+        const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
 
         const cm_trace_t tr = cgi.TraceToBrush(start, end, brush);
 

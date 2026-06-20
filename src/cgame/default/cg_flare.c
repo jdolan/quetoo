@@ -66,7 +66,7 @@ void Cg_AddFlares(void) {
   }
 
   for (size_t i = 0; i < cg_flares->count; i++) {
-    cg_flare_t *flare = *VectorElement(cg_flares, cg_flare_t *, i);
+    cg_flare_t *flare = VectorValue(cg_flares, cg_flare_t *, i);
 
     mat4_t matrix = Mat4_Identity();
     flare->entity = NULL;
@@ -180,10 +180,10 @@ static _Bool Cg_FacesShareVertex(const r_bsp_face_t *a, const r_bsp_face_t *b) {
 static void Cg_MergeFlares(void) {
 
   for (size_t i = 0; i < cg_flares->count; i++) {
-    cg_flare_t *a = *VectorElement(cg_flares, cg_flare_t *, i);
+    cg_flare_t *a = VectorValue(cg_flares, cg_flare_t *, i);
 
     for (size_t j = i + 1; j < cg_flares->count; j++) {
-      cg_flare_t *b = *VectorElement(cg_flares, cg_flare_t *, j);
+      cg_flare_t *b = VectorValue(cg_flares, cg_flare_t *, j);
 
       if (a->face->brush_side == b->face->brush_side &&
           Cg_FacesShareVertex(a->face, b->face)) {

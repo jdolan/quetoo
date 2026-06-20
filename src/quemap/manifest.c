@@ -320,7 +320,7 @@ int32_t WriteManifest(void) {
 	HashTable *manifest = Cm_AllocManifest();
 
 	for (size_t i = 0; i < asset_paths->count; i++) {
-		const char *path = *VectorElement(asset_paths, char *, i);
+		const char *path = VectorValue(asset_paths, char *, i);
 
 		void *data = NULL;
 		const int64_t len = Fs_Load(path, &data);

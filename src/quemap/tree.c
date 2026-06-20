@@ -228,7 +228,7 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
       const int32_t plane = side->plane ^ 1;
       bool cached = false;
       for (size_t j = 0; j < cache->count; j++) {
-        if (*VectorElement(cache, intptr_t, j) == plane) {
+        if (VectorValue(cache, intptr_t, j) == plane) {
           cached = true;
           break;
         }

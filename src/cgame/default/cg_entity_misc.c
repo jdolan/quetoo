@@ -229,7 +229,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   Vector *brushes = cgi.EntityBrushes(brush_def);
   for (size_t i = 0; i < brushes->count; i++) {
 
-    const cm_bsp_brush_t *brush = *VectorElement(brushes, cm_bsp_brush_t *, i);
+    const cm_bsp_brush_t *brush = VectorValue(brushes, cm_bsp_brush_t *, i);
     self->bounds = Box3_Union(self->bounds, brush->bounds);
 
     const vec3_t brush_size = Box3_Size(brush->bounds);
@@ -1005,7 +1005,7 @@ static void Cg_misc_weather_Init(cg_entity_t *self) {
   Vector *brushes = cgi.EntityBrushes(brush_def);
   for (size_t i = 0; i < brushes->count; i++) {
 
-    const cm_bsp_brush_t *brush = *VectorElement(brushes, cm_bsp_brush_t *, i);
+    const cm_bsp_brush_t *brush = VectorValue(brushes, cm_bsp_brush_t *, i);
     self->bounds = Box3_Union(self->bounds, brush->bounds);
 
     const vec3_t brush_size = Box3_Size(brush->bounds);

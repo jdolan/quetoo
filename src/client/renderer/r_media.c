@@ -55,7 +55,7 @@ void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data) {
   $(ctx.media, sort, R_EnumerateMedia_comparator);
 
   for (size_t i = 0; i < ctx.media->count; i++) {
-    const r_media_t *media = *VectorElement(ctx.media, r_media_t *, i);
+    const r_media_t *media = VectorValue(ctx.media, r_media_t *, i);
     if (enumerator) {
       enumerator(media, data);
     }
@@ -222,7 +222,7 @@ static void R_FreeMediaEntries(void *data) {
   $(r_media_state.media, enumerate, R_FreeMedia_collect, &ctx);
 
   for (size_t i = 0; i < ctx.media->count; i++) {
-    r_media_t *media = *VectorElement(ctx.media, r_media_t *, i);
+    r_media_t *media = VectorValue(ctx.media, r_media_t *, i);
     $(r_media_state.media, remove, media);
   }
 

@@ -144,7 +144,7 @@ void ClearWeldingSpatialHash(void) {
  */
 static bool WeldingBucketContainsIndex(const Vector *array, int32_t index) {
   for (size_t i = 0; i < array->count; i++) {
-    const int32_t existing = *VectorElement((Vector *) array, int32_t, i);
+    const int32_t existing = VectorValue((Vector *) array, int32_t, i);
     if (existing == index) {
       return true;
     }
@@ -201,7 +201,7 @@ static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
         }
 
         for (size_t i = 0; i < array->count; i++) {
-          const int32_t idx = *VectorElement(array, int32_t, i);
+          const int32_t idx = VectorValue(array, int32_t, i);
           const vec3_t pos = bsp_file.vertexes[idx].position;
           const float dist = Vec3_DistanceSquared(pos, in);
 
@@ -444,7 +444,7 @@ static size_t FacesForVertex(const bsp_face_t *face, const bsp_vertex_t *vertex,
 
   size_t count = 0;
   for (size_t i = 0; i < arr->count; i++) {
-    faces[count++] = *VectorElement((Vector *) arr, const bsp_face_t *, i);
+    faces[count++] = VectorValue((Vector *) arr, const bsp_face_t *, i);
     if (count == MAX_VERTEX_FACES) {
       Com_Warn("Vertex @ %s is shared by too many faces.\n", vtos(vertex->position));
       break;

@@ -396,8 +396,8 @@ static void G_CreateTeamSpawnPoints(Vector **dm_spawns, Vector **team_red_spawns
           continue;
         }
         
-        g_entity_t *pae = *VectorElement(_dms, g_entity_t *, _a);
-        g_entity_t *pab = *VectorElement(_dms, g_entity_t *, _b);
+        g_entity_t *pae = VectorValue(_dms, g_entity_t *, _a);
+        g_entity_t *pab = VectorValue(_dms, g_entity_t *, _b);
 
         if ((reused_spawns[0] == pae && reused_spawns[1] == pab) ||
           (reused_spawns[0] == pab && reused_spawns[1] == pae)) {
@@ -440,7 +440,7 @@ static void G_CreateTeamSpawnPoints(Vector **dm_spawns, Vector **team_red_spawns
 
   for (uint32_t _i = 0; *dm_spawns && _i < (*dm_spawns)->count; _i++) {
     Vector *_dms = *dm_spawns;
-    g_entity_t *p = *VectorElement(_dms, g_entity_t *, _i);
+    g_entity_t *p = VectorValue(_dms, g_entity_t *, _i);
 
     if (p == reused_spawns[0] || p == reused_spawns[1]) {
       continue;
@@ -488,7 +488,7 @@ static void G_CreateTeamSpawnPoints(Vector **dm_spawns, Vector **team_red_spawns
   // odd number of points, make one neutral
   if (diff & 1) {
     Vector *_from = *from;
-    g_entity_t *point = *VectorElement(_from, g_entity_t *, 0);
+    g_entity_t *point = VectorValue(_from, g_entity_t *, 0);
     if (!*to) { *to = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
     $(*to, addElement, &point);
   }
@@ -498,7 +498,7 @@ static void G_CreateTeamSpawnPoints(Vector **dm_spawns, Vector **team_red_spawns
   // move spawns to the other team
   while (num_move) {
     Vector *_from = *from;
-    g_entity_t *point = *VectorElement(_from, g_entity_t *, 0);
+    g_entity_t *point = VectorValue(_from, g_entity_t *, 0);
 
     $(*from, removeElementAtIndex, 0);
     if (!*to) { *to = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
@@ -569,7 +569,7 @@ static void G_InitSpawnPoints(void) {
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
       if (!team_spawns[t]) { continue; }
       for (uint32_t i = 0; i < team_spawns[t]->count; i++) {
-        g_entity_t *p = *VectorElement(team_spawns[t], g_entity_t *, i);
+        g_entity_t *p = VectorValue(team_spawns[t], g_entity_t *, i);
         if (!dm_spawns) { dm_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
         $(dm_spawns, addElement, &p);
       }
@@ -600,7 +600,7 @@ static void G_InitSpawnPoints(void) {
     g_team_list[t].spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_team_list[t].spawn_points.count, MEM_TAG_GAME_LEVEL);
   
     for (int32_t i = 0; team_spawns[t] && i < (int32_t) team_spawns[t]->count; i++) {
-      g_team_list[t].spawn_points.spots[i] = *VectorElement(team_spawns[t], g_entity_t *, i);
+      g_team_list[t].spawn_points.spots[i] = VectorValue(team_spawns[t], g_entity_t *, i);
     }
   
     if (team_spawns[t]) { release(team_spawns[t]); }
@@ -609,7 +609,7 @@ static void G_InitSpawnPoints(void) {
   g_level.spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_level.spawn_points.count, MEM_TAG_GAME_LEVEL);
 
   for (int32_t i = 0; dm_spawns && i < (int32_t) dm_spawns->count; i++) {
-    g_level.spawn_points.spots[i] = *VectorElement(dm_spawns, g_entity_t *, i);
+    g_level.spawn_points.spots[i] = VectorValue(dm_spawns, g_entity_t *, i);
   }
 
   if (dm_spawns) { release(dm_spawns); }

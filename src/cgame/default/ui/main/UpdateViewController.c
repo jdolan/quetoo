@@ -85,14 +85,14 @@ static void fetchHeroImages(void *data) {
 
 	for (uint32_t i = (uint32_t) urls->count - 1; i > 0; i--) {
 		const uint32_t j = (uint32_t) rand() % (i + 1);
-		char *tmp = *VectorElement(urls, char *, i);
-		*VectorElement(urls, char *, i) = *VectorElement(urls, char *, j);
-		*VectorElement(urls, char *, j) = tmp;
+		char *tmp = VectorValue(urls, char *, i);
+		VectorValue(urls, char *, i) = VectorValue(urls, char *, j);
+		VectorValue(urls, char *, j) = tmp;
 	}
 
 	for (uint32_t i = 0; i < urls->count; i++) {
 		image_data = NULL;
-		char *url_str = *VectorElement(urls, char *, i);
+		char *url_str = VectorValue(urls, char *, i);
 		if ($(cgi.restClient, get, url_str, &image_data) == 200 && image_data) {
 			Image *image = NULL;
 
@@ -120,7 +120,7 @@ static void fetchHeroImages(void *data) {
 	}
 
 	for (uint32_t i = 0; i < urls->count; i++) {
-		free(*VectorElement(urls, char *, i));
+		free(VectorValue(urls, char *, i));
 	}
 	release(urls);
 }

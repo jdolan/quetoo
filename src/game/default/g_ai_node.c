@@ -24,8 +24,8 @@
 
 #define AI_NODE(vector, index) VectorElement((vector), ai_node_t, (index))
 #define AI_LINK(vector, index) VectorElement((vector), ai_link_t, (index))
-#define AI_NODE_ID(vector, index) (*VectorElement((vector), ai_node_id_t, (index)))
-#define AI_PLATFORM(vector, index) (*VectorElement((vector), g_entity_t *, (index)))
+#define AI_NODE_ID(vector, index) (VectorValue((vector), ai_node_id_t, (index)))
+#define AI_PLATFORM(vector, index) (VectorValue((vector), g_entity_t *, (index)))
 
 /**
  * @brief Cached spatial acceleration structures for the navigation graph.

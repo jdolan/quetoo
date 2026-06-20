@@ -197,17 +197,17 @@ cm_entity_t *Cm_SortEntity(cm_entity_t *entity) {
 
   for (size_t i = 0; i < pairs->count; i++) {
 
-    cm_entity_t *e = *VectorElement(pairs, cm_entity_t *, i);
+    cm_entity_t *e = VectorValue(pairs, cm_entity_t *, i);
 
     if (i == 0) {
       classname = e;
       classname->prev = NULL;
     } else {
-      e->prev = *VectorElement(pairs, cm_entity_t *, i - 1);
+      e->prev = VectorValue(pairs, cm_entity_t *, i - 1);
     }
 
     if (i < pairs->count - 1) {
-      e->next = *VectorElement(pairs, cm_entity_t *, i + 1);
+      e->next = VectorValue(pairs, cm_entity_t *, i + 1);
     } else {
       e->next = NULL;
     }

@@ -323,7 +323,7 @@ void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
   $(ctx.cmds, sort, Cmd_Enumerate_comparator);
 
   for (size_t i = 0; i < ctx.cmds->count; i++) {
-    cmd_t *cmd = *VectorElement(ctx.cmds, cmd_t *, i);
+    cmd_t *cmd = VectorValue(ctx.cmds, cmd_t *, i);
     func(cmd, data);
   }
 
@@ -650,7 +650,7 @@ static void Cmd_List_f(void) {
   $(ctx.strs, sort, Cmd_List_sortfn);
 
   for (size_t i = 0; i < ctx.strs->count; i++) {
-    char *str = *VectorElement(ctx.strs, char *, i);
+    char *str = VectorValue(ctx.strs, char *, i);
     Com_Print("%s\n", str);
     free(str);
   }
@@ -779,7 +779,7 @@ void Cmd_Shutdown(void) {
   $(cmd_state.commands, enumerate, Cmd_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
-    List *list = *VectorElement(ctx.lists, List *, i);
+    List *list = VectorValue(ctx.lists, List *, i);
     $(list, removeAll);
     release(list);
   }

@@ -282,7 +282,7 @@ void LightVoxel(int32_t voxel_num) {
 
   for (size_t i = 0; i < lights->count; i++) {
 
-    light_t *light = *VectorElement(lights, light_t *, i);
+    light_t *light = VectorValue(lights, light_t *, i);
     if (light->target_entity != -1) {
       continue;
     }
@@ -310,7 +310,7 @@ void FloodLights(void) {
   voxel_t *v = voxels.voxels;
 
   for (size_t i = 0; i < lights->count; i++) {
-    light_t *l = *VectorElement(lights, light_t *, i);
+    light_t *l = VectorValue(lights, light_t *, i);
 
     l->visible_bounds = Box3_Null();
 

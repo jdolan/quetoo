@@ -43,7 +43,7 @@ static void FixTJunctions_(int32_t face_num) {
     f_winding = Cm_AllocWinding(largest_winding);
   }
 
-  face_t *face = *VectorElement(faces, face_t *, face_num);
+  face_t *face = VectorValue(faces, face_t *, face_num);
 
   SDL_SpinLock *face_lock = &faces_locks[face_num];
 
@@ -56,7 +56,7 @@ static void FixTJunctions_(int32_t face_num) {
 
   for (size_t s = 0; s < faces->count; s++) {
 
-    const face_t *f = *VectorElement(faces, face_t *, s);
+    const face_t *f = VectorValue(faces, face_t *, s);
     if (face == f) {
       continue;
     }

@@ -222,7 +222,7 @@ static void Cg_ParseTeamInfo(const char *s) {
   const size_t count = info->count;
 
   if (count != lengthof(cg_state.teams) * 4) {
-    for (size_t i = 0; i < count; i++) { free(*VectorElement(info, char *, i)); }
+    for (size_t i = 0; i < count; i++) { free(VectorValue(info, char *, i)); }
     release(info);
     Cg_Error("Invalid team data: %s\n", s);
   }
@@ -230,18 +230,18 @@ static void Cg_ParseTeamInfo(const char *s) {
   cg_team_info_t *team = cg_state.teams;
   for (size_t i = 0; i < count; i += 4, team++) {
 
-    team->id = atoi(*VectorElement(info, char *, i + 0));
+    team->id = atoi(VectorValue(info, char *, i + 0));
 
-    q_strlcpy(team->name, *VectorElement(info, char *, i + 1), sizeof(team->name));
+    q_strlcpy(team->name, VectorValue(info, char *, i + 1), sizeof(team->name));
 
-    team->hue = atoi(*VectorElement(info, char *, i + 2));
+    team->hue = atoi(VectorValue(info, char *, i + 2));
 
-    if (!Color_Parse(*VectorElement(info, char *, i + 3), &team->color)) {
+    if (!Color_Parse(VectorValue(info, char *, i + 3), &team->color)) {
       team->color = color_white;
     }
   }
 
-  for (size_t i = 0; i < count; i++) { free(*VectorElement(info, char *, i)); }
+  for (size_t i = 0; i < count; i++) { free(VectorValue(info, char *, i)); }
   release(info);
 }
 

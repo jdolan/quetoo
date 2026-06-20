@@ -196,7 +196,7 @@ void Cvar_Enumerate(Cvar_Enumerator func, void *data) {
   $(ctx.vars, sort, Cvar_Enumerate_comparator);
 
   for (size_t i = 0; i < ctx.vars->count; i++) {
-    cvar_t *var = *VectorElement(ctx.vars, cvar_t *, i);
+    cvar_t *var = VectorValue(ctx.vars, cvar_t *, i);
     func(var, data);
   }
 
@@ -667,7 +667,7 @@ static void Cvar_List_f(void) {
   $(ctx.strs, sort, Cvar_List_sortfn);
 
   for (size_t i = 0; i < ctx.strs->count; i++) {
-    char *str = *VectorElement(ctx.strs, char *, i);
+    char *str = VectorValue(ctx.strs, char *, i);
     Com_Print("%s\n", str);
     free(str);
   }
@@ -760,7 +760,7 @@ static void Cvar_FreeAll(void) {
   $(cvar_vars, enumerate, Cvar_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
-    List *list = *VectorElement(ctx.lists, List *, i);
+    List *list = VectorValue(ctx.lists, List *, i);
     $(list, removeAll);
     release(list);
   }

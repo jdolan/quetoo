@@ -209,9 +209,9 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
         }
 
         const r_mesh_vertex_t v = {
-          .position = *VectorElement(obj.v, vec3_t, fv->v - 1),
-          .diffusemap = fv->vt ? *VectorElement(obj.vt, vec2_t, fv->vt - 1) : Vec2_Zero(),
-          .normal = *VectorElement(obj.vn, vec3_t, fv->vn - 1),
+          .position = VectorValue(obj.v, vec3_t, fv->v - 1),
+          .diffusemap = fv->vt ? VectorValue(obj.vt, vec2_t, fv->vt - 1) : Vec2_Zero(),
+          .normal = VectorValue(obj.vn, vec3_t, fv->vn - 1),
         };
 
         fv->el = R_FindOrAppendObjVertex(face, &v);
