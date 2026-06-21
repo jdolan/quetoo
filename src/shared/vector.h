@@ -439,10 +439,24 @@ static inline uint32_t Randomu(void) {
 }
 
 /**
+ * @return A psuedo random single precision value in [0.0, 1.0).
+ */
+static inline float __attribute__ ((warn_unused_result)) Randomf(void) {
+  return (float) Randomu() * 0x1p-32f;
+}
+
+/**
+ * @return A psuedo random boolean.
+ */
+static inline bool __attribute__ ((warn_unused_result)) Randomb(void) {
+  return !!(Randomu() & 1);
+}
+
+/**
  * @return A psuedo random number between `begin` and `end`.
  */
 static inline float __attribute__ ((warn_unused_result)) RandomRangef(float begin, float end) {
-  return begin + (end - begin) * ((float) Randomu() / (float) UINT32_MAX);
+  return begin + (end - begin) * Randomf();
 }
 
 /**
@@ -457,21 +471,7 @@ static inline int32_t __attribute__ ((warn_unused_result)) Randomi(void) {
  */
 static inline int32_t __attribute__ ((warn_unused_result)) RandomRangei(int32_t begin, int32_t end) {
   if (end <= begin) { return begin; }
-  return begin + (int32_t) (Randomu() % (uint32_t) (end - begin));
-}
-
-/**
- * @return A psuedo random single precision value between `0.f` and `1.f`.
- */
-static inline float __attribute__ ((warn_unused_result)) Randomf(void) {
-  return (float) Randomu() / (float) UINT32_MAX;
-}
-
-/**
- * @return A psuedo random boolean.
- */
-static inline bool __attribute__ ((warn_unused_result)) Randomb(void) {
-  return !!(Randomu() & 1);
+  return begin + (int32_t) (Randomu() % (uint32_t) ((int64_t) end - begin));
 }
 
 /**
