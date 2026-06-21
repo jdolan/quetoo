@@ -211,6 +211,7 @@
 		CE41019C242CE0D900BF482F /* version.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE41019B242CE0B200BF482F /* version.glsl */; };
 		CE45F4F425733768004DEFED /* uniforms.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE45F4C625728264004DEFED /* uniforms.glsl */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
+		CE4A1B022FE9A000000B0003 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4A1B002FE9A000000B0001 /* SDL3.xcframework */; };
 		CE4A255C1FA2032700A539E7 /* draw_2d_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */; };
 		CE4A255D1FA2032700A539E7 /* draw_2d_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */; };
 		CE4DCF06256DCCA100FECAFC /* cg_weapon.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4DCF04256DCCA100FECAFC /* cg_weapon.h */; };
@@ -632,8 +633,6 @@
 		CEF3B6002F455CB30024F4DF /* voxel.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF3B5FF2F455C990024F4DF /* voxel.glsl */; };
 		CEF3B6022F456FBE0024F4DF /* light.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF3B6012F456F5A0024F4DF /* light.glsl */; };
 		CEF601BB2FE60508005C680C /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
-		CE4A1B012FE9A000000B0002 /* SDL3.xcframework in Frameworks (quetoo) */ = {isa = PBXBuildFile; fileRef = CE4A1B002FE9A000000B0001 /* SDL3.xcframework */; };
-		CE4A1B022FE9A000000B0003 /* SDL3.xcframework in Frameworks (cgame) */ = {isa = PBXBuildFile; fileRef = CE4A1B002FE9A000000B0001 /* SDL3.xcframework */; };
 		CEF601BC2FE60835005C680C /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
 		CEF601BE2FE6083F005C680C /* ObjectivelyMVC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BD2FE6083F005C680C /* ObjectivelyMVC.framework */; };
 		CEF601BF2FE6088A005C680C /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
@@ -641,6 +640,9 @@
 		CEF601C12FE608A6005C680C /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
 		CEF601C22FE608AF005C680C /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
 		CEF601C32FE608D5005C680C /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CEF601C52FE711B7005C680C /* SDL3_image.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C42FE711B7005C680C /* SDL3_image.xcframework */; };
+		CEF601C72FE711B7005C680C /* SDL3_ttf.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C62FE711B7005C680C /* SDL3_ttf.xcframework */; };
+		CEF601C92FE711C9005C680C /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C82FE711C9005C680C /* SDL3.xcframework */; };
 		CEF75F412EB996E80026CCA4 /* sv_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF75F402EB996E80026CCA4 /* sv_editor.c */; };
 		CEF75F422EB996E80026CCA4 /* sv_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF75F3F2EB996E80026CCA4 /* sv_editor.h */; };
 		CEF7B4A72ED9500E00B551CA /* shadow_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF7B4A52ED94FED00B551CA /* shadow_fs.glsl */; };
@@ -1605,6 +1607,7 @@
 		CE42657621C3EF0500F768DD /* csg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = csg.h; sourceTree = "<group>"; };
 		CE42657721C3EF7500F768DD /* portal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = portal.h; sourceTree = "<group>"; };
 		CE45F4C625728264004DEFED /* uniforms.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = uniforms.glsl; sourceTree = "<group>"; };
+		CE4A1B002FE9A000000B0001 /* SDL3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3.xcframework; path = "$(WORKSPACE_PREFIX)/ObjectivelyMVC/Frameworks/SDL3.xcframework"; sourceTree = "<group>"; };
 		CE4DCF04256DCCA100FECAFC /* cg_weapon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_weapon.h; sourceTree = "<group>"; };
 		CE4DCF05256DCCA100FECAFC /* cg_weapon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_weapon.c; sourceTree = "<group>"; };
 		CE4DCF9F256F0DAD00FECAFC /* check_cm_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_test; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1874,8 +1877,10 @@
 		CEF3B5FF2F455C990024F4DF /* voxel.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = voxel.glsl; sourceTree = "<group>"; };
 		CEF3B6012F456F5A0024F4DF /* light.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = light.glsl; sourceTree = "<group>"; };
 		CEF601BA2FE60508005C680C /* Objectively.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Objectively.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE4A1B002FE9A000000B0001 /* SDL3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3.xcframework; path = "$(WORKSPACE_PREFIX)/ObjectivelyMVC/Frameworks/SDL3.xcframework"; sourceTree = "<group>"; };
 		CEF601BD2FE6083F005C680C /* ObjectivelyMVC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ObjectivelyMVC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEF601C42FE711B7005C680C /* SDL3_image.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3_image.xcframework; path = ../ObjectivelyMVC/Frameworks/SDL3_image.xcframework; sourceTree = "<group>"; };
+		CEF601C62FE711B7005C680C /* SDL3_ttf.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3_ttf.xcframework; path = ../ObjectivelyMVC/Frameworks/SDL3_ttf.xcframework; sourceTree = "<group>"; };
+		CEF601C82FE711C9005C680C /* SDL3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3.xcframework; path = ../ObjectivelyMVC/Frameworks/SDL3.xcframework; sourceTree = "<group>"; };
 		CEF75F3F2EB996E80026CCA4 /* sv_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_editor.h; sourceTree = "<group>"; };
 		CEF75F402EB996E80026CCA4 /* sv_editor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_editor.c; sourceTree = "<group>"; };
 		CEF7B4A52ED94FED00B551CA /* shadow_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_fs.glsl; sourceTree = "<group>"; };
@@ -1961,8 +1966,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				CEF601BF2FE6088A005C680C /* Objectively.framework in Frameworks */,
-				CE4A1B012FE9A000000B0002 /* SDL3.xcframework in Frameworks */,
 				CEF601C02FE6088A005C680C /* ObjectivelyMVC.framework in Frameworks */,
+				CEF601C92FE711C9005C680C /* SDL3.xcframework in Frameworks */,
+				CEF601C52FE711B7005C680C /* SDL3_image.xcframework in Frameworks */,
+				CEF601C72FE711B7005C680C /* SDL3_ttf.xcframework in Frameworks */,
 				CE2B082223F9EB7A007C77B6 /* libclient-renderer.a in Frameworks */,
 				CE2B082323F9EB7A007C77B6 /* libclient-sound.a in Frameworks */,
 				CE2B082423F9EB7A007C77B6 /* libclient-ui.a in Frameworks */,
@@ -3028,6 +3035,9 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CEF601C82FE711C9005C680C /* SDL3.xcframework */,
+				CEF601C42FE711B7005C680C /* SDL3_image.xcframework */,
+				CEF601C62FE711B7005C680C /* SDL3_ttf.xcframework */,
 				CEF601BD2FE6083F005C680C /* ObjectivelyMVC.framework */,
 				CEF601BA2FE60508005C680C /* Objectively.framework */,
 				CE4A1B002FE9A000000B0001 /* SDL3.xcframework */,
@@ -5508,7 +5518,6 @@
 					"$(HOMEBREW_PREFIX)/lib",
 				);
 				OTHER_LDFLAGS = (
-					"-lSDL3_image",
 					"-lcurl",
 					"-lglib-2.0",
 					"-lncurses",
@@ -5528,7 +5537,6 @@
 					"$(HOMEBREW_PREFIX)/lib",
 				);
 				OTHER_LDFLAGS = (
-					"-lSDL3_image",
 					"-lcurl",
 					"-lglib-2.0",
 					"-lncurses",

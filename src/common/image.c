@@ -71,6 +71,7 @@ SDL_Surface *Img_LoadSurface(const char *name) {
     }
   }
 
+  Com_Warn("Failed to load %s\n", basename);
   return NULL;
 }
 
