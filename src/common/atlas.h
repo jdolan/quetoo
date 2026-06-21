@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <glib.h>
+#include <Objectively/Vector.h>
 #include <SDL3_image/SDL_image.h>
 
 /**
@@ -88,7 +88,7 @@ typedef struct atlas_s {
   /**
    * @brief Array of `atlas_node_t` pointers to be packed.
    */
-  GPtrArray *nodes;
+  Vector *nodes;
 
   /**
    * @brief Comparator used to sort nodes before packing (default: sort by height).

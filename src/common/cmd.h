@@ -46,7 +46,7 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc func, uint32_t flags, const char
 void Cmd_SetAutocomplete(cmd_t *cmd, AutocompleteFunc autocomplete);
 void Cmd_Remove(const char *name);
 void Cmd_RemoveAll(uint32_t flags);
-void Cmd_CompleteCommand(const char *pattern, GList **matches);
+void Cmd_CompleteCommand(const char *pattern, List *matches);
 void Cmd_Init(void);
 void Cmd_Shutdown(void);
 

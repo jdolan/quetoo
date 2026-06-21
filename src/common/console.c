@@ -30,25 +30,30 @@ console_state_t console_state;
  */
 static console_string_t *Con_AllocString(int32_t level, const char *string) {
 
-  console_string_t *str = g_new0(console_string_t, 1);
+  console_string_t *str = calloc(1, sizeof(console_string_t));
   if (str == NULL) {
     raise(SIGABRT);
     return NULL;
   }
 
-  const size_t string_len = strlen(string) + 4;
+  const size_t string_len = q_strlen(string) + 4;
 
   str->level = level;
-  str->chars = g_new0(char, string_len);
+  str->chars = calloc(string_len, 1);
 
-  g_strlcpy(str->chars, string, string_len); // copy in input
-  g_strchomp(str->chars); // remove \n if it's there
+  q_strlcpy(str->chars, string, string_len); // copy in input
 
-  if (!g_str_has_suffix(str->chars, "^7")) { // append ^7 if we need it
-    g_strlcat(str->chars, "^7", string_len);
+  // remove trailing newline/carriage return
+  size_t chars_len = q_strlen(str->chars);
+  while (chars_len > 0 && (str->chars[chars_len - 1] == '\n' || str->chars[chars_len - 1] == '\r')) {
+    str->chars[--chars_len] = '\0';
   }
 
-  if (g_strlcat(str->chars, "\n", string_len) >= string_len) {
+  if (chars_len < 2 || str->chars[chars_len - 2] != '^' || str->chars[chars_len - 1] != '7') { // append ^7 if we need it
+    q_strlcat(str->chars, "^7", string_len);
+  }
+
+  if (q_strlcat(str->chars, "\n", string_len) >= string_len) {
     raise(SIGABRT);
     return NULL;
   }
@@ -59,7 +64,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
   }
 
   str->size = string_len;
-  str->length = StrStripLen(str->chars);
+  str->length = q_strcolorlen(str->chars);
 
   str->timestamp = quetoo.ticks;
 
@@ -72,23 +77,9 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 static void Con_FreeString(console_string_t *str) {
 
   if (str) {
-    g_free(str->chars);
-    g_free(str);
+    free(str->chars);
+    free(str);
   }
-}
-
-/**
- * @brief GFunc flavor of `Con_FreeString`.
- */
-static void Con_FreeString_GFunc(gpointer data, gpointer user_data) {
-  Con_FreeString(data);
-}
-
-/**
- * @brief GDestroyNotify flavor of `Con_FreeString`.
- */
-static void Con_FreeString_GDestroyNotify(gpointer data) {
-  Con_FreeString(data);
 }
 
 /**
@@ -96,8 +87,7 @@ static void Con_FreeString_GDestroyNotify(gpointer data) {
  */
 static void Con_FreeStrings(void) {
 
-  g_queue_foreach(&console_state.strings, Con_FreeString_GFunc, NULL);
-  g_queue_clear(&console_state.strings);
+  $(console_state.strings, removeAll);
 
   console_state.size = 0;
 }
@@ -127,11 +117,11 @@ static void Con_Dump_f(void) {
   } else {
     SDL_LockMutex(console_state.lock);
 
-    const GList *list = console_state.strings.head;
+    const ListNode *list = console_state.strings->head;
     while (list) {
-      const char *c = ((console_string_t *) list->data)->chars;
+      const char *c = ((console_string_t *) list->element)->chars;
       while (*c) {
-        if (StrIsColor(c)) {
+        if (q_striscolor(c)) {
           c++;
         } else {
           if (Fs_Write(file, c, 1, 1) != 1) {
@@ -174,17 +164,15 @@ void Con_Append(int32_t level, const char *string) {
 
   SDL_LockMutex(console_state.lock);
 
-  g_queue_push_tail(&console_state.strings, str);
+  $(console_state.strings, appendElement, str);
   console_state.size += str->size;
 
   while (console_state.size > CON_MAX_SIZE) {
-    GList *first = console_state.strings.head;
-    console_string_t *old = first->data;
+    ListNode *first = console_state.strings->head;
+    console_string_t *old = first->element;
 
-    g_queue_unlink(&console_state.strings, first);
     console_state.size -= old->size;
-
-    g_list_free_full(first, Con_FreeString_GDestroyNotify);
+    $(console_state.strings, removeNode, first);
   }
 
   SDL_UnlockMutex(console_state.lock);
@@ -193,8 +181,8 @@ void Con_Append(int32_t level, const char *string) {
 
     // iterate the configured consoles and append the new string
 
-    for (GList *list = console_state.consoles; list; list = list->next) {
-      const console_t *console = list->data;
+    for (ListNode *node = console_state.consoles->head; node; node = node->next) {
+      const console_t *console = node->element;
 
       if (console->Append) {
         if (Con_Filter(console, str)) {
@@ -203,9 +191,9 @@ void Con_Append(int32_t level, const char *string) {
       }
     }
   } else {
-    char stripped[strlen(string) + 1];
+    char stripped[q_strlen(string) + 1];
 
-    StrStrip(string, stripped);
+    q_strcolorstrip(string, stripped);
     fputs(stripped, stdout);
   }
 }
@@ -243,7 +231,7 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
         break;
       }
 
-      if (StrIsColor(c)) {
+      if (q_striscolor(c)) {
         color = *(c + 1) - '0';
         c += 2;
       } else {
@@ -266,11 +254,11 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
 
     if (lines) {
       if (count < max_lines) {
-        lines[count] = g_malloc((eol - line) + 3);
+        lines[count] = Mem_Malloc((eol - line) + 3);
         lines[count][0] = ESC_COLOR;
         lines[count][1] = wrap_color + '0';
         lines[count][2] = '\0';
-        strncat(lines[count], line, eol - line);
+        q_strlcat(lines[count], line, (eol - line) + 3);
       } else {
         break;
       }
@@ -298,10 +286,10 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
 
   ssize_t back = console->scroll + max_lines;
 
-  GList *start = NULL;
-  GList *list = console_state.strings.tail;
+  ListNode *start = NULL;
+  ListNode *list = console_state.strings->tail;
   while (list) {
-    const console_string_t *str = list->data;
+    const console_string_t *str = list->element;
 
     if (str->timestamp < console->whence) {
       break;
@@ -326,7 +314,7 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
   size_t count = 0;
 
   while (start) {
-    const console_string_t *str = start->data;
+    const console_string_t *str = start->element;
 
     if (Con_Filter(console, str)) {
       count += Con_Wrap(str->chars, console->width, lines + count, max_lines - count);
@@ -357,11 +345,11 @@ void Con_NavigateHistory(console_t *console, console_history_nav_t nav) {
       break;
   }
 
-  if (strlen(hist->strings[p])) {
+  if (q_strlen(hist->strings[p])) {
     console_input_t *in = &console->input;
 
-    g_strlcpy(in->buffer, hist->strings[p], sizeof(in->buffer));
-    in->pos = strlen(in->buffer);
+    q_strlcpy(in->buffer, hist->strings[p], sizeof(in->buffer));
+    in->pos = q_strlen(in->buffer);
 
     hist->pos = p;
   }
@@ -379,7 +367,7 @@ void Con_ReadHistory(console_t *console, file_t *file) {
   console_history_t *hist = &console->history;
 
   while (Fs_ReadLine(file, str, sizeof(str))) {
-    g_strlcpy(hist->strings[hist->index++ % CON_HISTORY_SIZE], str, sizeof(str));
+    q_strlcpy(hist->strings[hist->index++ % CON_HISTORY_SIZE], str, sizeof(str));
   }
 
   hist->pos = hist->index;
@@ -411,13 +399,13 @@ static int32_t Con_AutocompleteMatchCompare(const void *a, const void *b) {
   const con_autocomplete_match_t *ma = (const con_autocomplete_match_t *) a;
   const con_autocomplete_match_t *mb = (const con_autocomplete_match_t *) b;
 
-  return g_ascii_strcasecmp(ma->description ?: ma->name, mb->description ?: mb->name);
+  return q_strcasecmp(ma->description ?: ma->name, mb->description ?: mb->name);
 }
 
 /**
  * @brief Convenience function for most autocomplete matching.
  */
-void Con_AutocompleteMatch(GList **matches, const char *name, const char *description) {
+void Con_AutocompleteMatch(List *matches, const char *name, const char *description) {
 
   con_autocomplete_match_t *match = Mem_Malloc(sizeof(con_autocomplete_match_t));
 
@@ -428,22 +416,33 @@ void Con_AutocompleteMatch(GList **matches, const char *name, const char *descri
     match->description = Mem_CopyString(description);
     Mem_Link(match->description, match);
   }
-  
-  if (!g_list_find_custom(*matches, match, Con_AutocompleteMatchCompare)) {
-    *matches = g_list_insert_sorted(*matches, match, Con_AutocompleteMatchCompare);
-  } else {
-    Mem_Free(match);
+
+  ListNode *insert_after = NULL;
+  for (ListNode *node = matches->head; node; node = node->next) {
+    const con_autocomplete_match_t *m = node->element;
+    const int32_t cmp = Con_AutocompleteMatchCompare(m, match);
+    if (cmp == 0) {
+      Mem_Free(match);
+      return;
+    }
+    if (cmp < 0) {
+      insert_after = node;
+    } else {
+      break;
+    }
   }
+
+  $(matches, insertElementAfter, insert_after, match);
 }
 
 /**
  * @brief Tab completion for cvars & commands. This is the "generic case".
  */
-void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
+void Con_AutocompleteInput_f(const uint32_t argi, List *matches) {
   const char *partial = Cmd_Argv(argi);
-  char pattern[strlen(partial) + 3];
+  char pattern[q_strlen(partial) + 3];
 
-  g_snprintf(pattern, (gulong) sizeof(pattern), "%s*", partial);
+  q_snprintf(pattern, sizeof(pattern), "%s*", partial);
 
   Cmd_CompleteCommand(pattern, matches);
   Cvar_CompleteVar(pattern, matches);
@@ -452,8 +451,8 @@ void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
 /**
  * @brief Prints the list of autocomplete matches to the console, formatted in columns.
  */
-static void Con_PrintMatches(const console_t *console, GList *matches) {
-  const guint num_matches = g_list_length(matches);
+static void Con_PrintMatches(const console_t *console, List *matches) {
+  const uint32_t num_matches = (uint32_t) matches->count;
 
   if (!num_matches) {
     return;
@@ -466,16 +465,16 @@ static void Con_PrintMatches(const console_t *console, GList *matches) {
   bool all_simple = true;
 
   // calculate width per column
-  for (const GList *m = matches; m; m = m->next) {
-    const con_autocomplete_match_t *match = (const con_autocomplete_match_t *) m->data;
+  for (const ListNode *m = matches->head; m; m = m->next) {
+    const con_autocomplete_match_t *match = m->element;
     const char *str = (match->description ?: match->name);
-    const size_t str_len = strlen(str);
+    const size_t str_len = q_strlen(str);
 
     if (match->description) {
       all_simple = false;
     }
 
-    if (strchr(str, '\n') != NULL) {
+    if (q_strchr(str, '\n') != NULL) {
       widest = -1;
       break;
     }
@@ -492,8 +491,8 @@ static void Con_PrintMatches(const console_t *console, GList *matches) {
   // simple path
   if (per_row == 1 || (!all_simple && num_rows == 1)) {
     
-    for (const GList *m = matches; m; m = m->next) {
-      const con_autocomplete_match_t *match = (const con_autocomplete_match_t *) m->data;
+    for (const ListNode *m = matches->head; m; m = m->next) {
+      const con_autocomplete_match_t *match = m->element;
       const char *str = (match->description ?: match->name);
 
       Con_Append(PRINT_ECHO, va("%s\n", str));
@@ -502,26 +501,26 @@ static void Con_PrintMatches(const console_t *console, GList *matches) {
     return;
   }
 
-  const GList *m = matches;
+  const ListNode *m = matches->head;
   char line[per_row * widest + 1];
 
   while (m) {
     line[0] = '\0';
 
     for (size_t i = 0; m && i < per_row; i++, m = m->next) {
-      const con_autocomplete_match_t *match = (const con_autocomplete_match_t *) m->data;
+      const con_autocomplete_match_t *match = m->element;
       const char *str = (match->description ?: match->name);
-      const size_t str_len = strlen(str);
+      const size_t str_len = q_strlen(str);
 
-      g_strlcat(line, str, sizeof(line));
+      q_strlcat(line, str, sizeof(line));
 
       for (size_t x = 0; x < widest - str_len; x++) {
-        g_strlcat(line, " ", sizeof(line));
+        q_strlcat(line, " ", sizeof(line));
       }
     }
 
     if (line[0]) {
-      g_strlcat(line, "\n", sizeof(line));
+      q_strlcat(line, "\n", sizeof(line));
       Con_Append(PRINT_ECHO, line);
     }
   }
@@ -530,24 +529,24 @@ static void Con_PrintMatches(const console_t *console, GList *matches) {
 /**
  * @brief Returns the longest common prefix the specified words share.
  */
-static char *Con_CommonPrefix(GList *matches) {
+static char *Con_CommonPrefix(List *matches) {
   static char common_prefix[MAX_TOKEN_CHARS];
 
   memset(common_prefix, 0, sizeof(common_prefix));
 
-  if (!matches) {
+  if (!matches || !matches->count) {
     return common_prefix;
   }
 
   for (size_t i = 0; i < sizeof(common_prefix) - 1; i++) {
-    GList *e = matches;
-    const con_autocomplete_match_t *m = (const con_autocomplete_match_t *) e->data;
+    ListNode *e = matches->head;
+    const con_autocomplete_match_t *m = e->element;
     const char c = m->name[i];
 
     e = e->next;
 
     while (e) {
-      m = (const con_autocomplete_match_t *) e->data;
+      m = e->element;
       const char *w = m->name;
 
       if (!c || tolower(w[i]) != tolower(c)) { // prefix no longer common
@@ -572,7 +571,7 @@ static char *Con_CommonPrefix(GList *matches) {
  */
 bool Con_CompleteInput(console_t *console) {
   const char *match;
-  GList *matches = NULL;
+  List *matches = $(alloc(List), init);
 
   char *partial = console->input.buffer;
   size_t max_len = sizeof(console->input.buffer) - 1;
@@ -582,16 +581,17 @@ bool Con_CompleteInput(console_t *console) {
     max_len--; // prevent buffer overflow
   }
 
-  const size_t partial_len = strlen(partial);
+  const size_t partial_len = q_strlen(partial);
 
   if (!*partial) {
+    release(matches);
     return false;    // lets start with at least something
   }
 
   Cmd_TokenizeString(partial);
 
   uint32_t argi = Cmd_Argc() - 1;
-  const bool new_argument = partial[strlen(partial) - 1] == ' ';
+  const bool new_argument = partial[q_strlen(partial) - 1] == ' ';
 
   if (new_argument) {
     argi++;
@@ -617,21 +617,23 @@ bool Con_CompleteInput(console_t *console) {
   }
 
   if (!autocomplete) {
+    release(matches);
     return false;
   }
 
-  autocomplete(argi, &matches);
+  autocomplete(argi, matches);
 
-  if (g_list_length(matches) == 0) {
+  if (matches->count == 0) {
+    release(matches);
     return false;
   }
 
   bool output_quotes = false;
 
-  if (g_list_length(matches) == 1) {
-    match = ((const con_autocomplete_match_t *) g_list_nth_data(matches, 0))->name;
+  if (matches->count == 1) {
+    match = ((const con_autocomplete_match_t *) matches->head->element)->name;
 
-    if (strchr(match, ' ') != NULL) {
+    if (q_strchr(match, ' ') != NULL) {
       match = va("\"%s\" ", match);
       output_quotes = true;
     } else {
@@ -640,23 +642,23 @@ bool Con_CompleteInput(console_t *console) {
   } else {
     match = Con_CommonPrefix(matches);
 
-    if (!strlen(match)) {
+    if (!q_strlen(match)) {
       match = Cmd_Argv(argi);
-    } else if (strchr(match, ' ') != NULL) {
+    } else if (q_strchr(match, ' ') != NULL) {
       match = va("\"%s", match);
       output_quotes = true;
     }
   }
 
   if (new_argument) {
-    g_strlcat(partial, match, max_len);
+    q_strlcat(partial, match, max_len);
   } else {
     size_t arg_pos = 0;
     bool input_quotes = false;
 
     if (Cmd_Argc() > 1) {
       const char *last_arg = Cmd_Argv(Cmd_Argc() - 1);
-      arg_pos = strlen(partial) - strlen(last_arg);
+      arg_pos = q_strlen(partial) - q_strlen(last_arg);
 
       uint8_t num_quotes = (partial[partial_len - 1] == '"') + (partial[arg_pos - 1 - (partial[partial_len - 1] == '"')] ==
                            '"');
@@ -669,22 +671,23 @@ bool Con_CompleteInput(console_t *console) {
 
     if (!output_quotes && input_quotes) {
 
-      if (g_list_length(matches) == 1) {
+      if (matches->count == 1) {
         match = va("\"%s\"", match);
       } else {
         match = va("\"%s", match);
       }
     }
 
-    g_snprintf(partial + arg_pos, (gulong) (max_len - arg_pos), "%s", match);
+    q_snprintf(partial + arg_pos, (size_t) (max_len - arg_pos), "%s", match);
   }
 
-  console->input.pos = strlen(console->input.buffer);
+  console->input.pos = q_strlen(console->input.buffer);
 
   // print matches
   Con_PrintMatches(console, matches);
 
-  g_list_free_full(matches, Mem_Free);
+  matches->destroy = (ListDestroyFunc) Mem_Free;
+  release(matches);
 
   return true;
 }
@@ -699,12 +702,13 @@ void Con_SubmitInput(console_t *console) {
   if (*console->input.buffer) {
 
     const size_t h = console->history.index++ % CON_HISTORY_SIZE;
-    g_strlcpy(console->history.strings[h], console->input.buffer, MAX_PRINT_MSG);
+    q_strlcpy(console->history.strings[h], console->input.buffer, MAX_PRINT_MSG);
 
     console->history.pos = console->history.index;
 
-    if (!g_str_has_suffix(console->input.buffer, "\n")) {
-      g_strlcat(console->input.buffer, "\n", sizeof(console->input.buffer));
+    const size_t buf_len = q_strlen(console->input.buffer);
+    if (!buf_len || console->input.buffer[buf_len - 1] != '\n') {
+      q_strlcat(console->input.buffer, "\n", sizeof(console->input.buffer));
     }
 
     const char *cmd = console->input.buffer;
@@ -729,7 +733,7 @@ void Con_AddConsole(const console_t *console) {
 
   SDL_LockMutex(console_state.lock);
 
-  console_state.consoles = g_list_append(console_state.consoles, (gpointer) console);
+  $(console_state.consoles, appendElement, (void *) console);
 
   SDL_UnlockMutex(console_state.lock);
 }
@@ -741,7 +745,10 @@ void Con_RemoveConsole(const console_t *console) {
 
   SDL_LockMutex(console_state.lock);
 
-  console_state.consoles = g_list_remove(console_state.consoles, (gpointer) console);
+  ListNode *node = $(console_state.consoles, nodeForElement, (void *) console);
+  if (node) {
+    $(console_state.consoles, removeNode, node);
+  }
 
   SDL_UnlockMutex(console_state.lock);
 }
@@ -753,6 +760,11 @@ void Con_RemoveConsole(const console_t *console) {
 void Con_Init(void) {
 
   memset(&console_state, 0, sizeof(console_state));
+
+  console_state.strings = $(alloc(List), init);
+  console_state.strings->destroy = (ListDestroyFunc) Con_FreeString;
+
+  console_state.consoles = $(alloc(List), init);
 
   console_state.lock = SDL_CreateMutex();
 
@@ -770,7 +782,11 @@ void Con_Shutdown(void) {
 
   Con_FreeStrings();
 
-  g_list_free(console_state.consoles);
+  release(console_state.strings);
+  console_state.strings = NULL;
+
+  release(console_state.consoles);
+  console_state.consoles = NULL;
 
   SDL_DestroyMutex(console_state.lock);
   console_state.lock = NULL;

@@ -772,7 +772,7 @@ typedef struct {
   /**
    * @brief List of `cl_server_info_t` discovered from all sources.
    */
-  GList *servers;
+  List *servers;
 
   /**
    * @brief System time when the last LAN broadcast ping was sent.

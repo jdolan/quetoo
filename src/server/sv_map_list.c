@@ -26,7 +26,7 @@
  */
 const cm_entity_t *Sv_NextMap(void) {
 
-  if (g_strcmp0(svs.maps.filename, sv_map_list->string)) {
+  if (q_strcmp(svs.maps.filename, sv_map_list->string)) {
     Sv_InitMapList();
   }
 
@@ -43,7 +43,11 @@ const cm_entity_t *Sv_NextMap(void) {
     svs.maps.index = (svs.maps.index + 1) % svs.maps.length;
   }
 
-  return g_list_nth_data(svs.maps.list, svs.maps.index);
+  const ListNode *node = svs.maps.list->head;
+  for (int32_t i = 0; i < svs.maps.index && node; i++) {
+    node = node->next;
+  }
+  return node ? (const cm_entity_t *) node->element : NULL;
 }
 
 /**
@@ -63,25 +67,29 @@ void Sv_InitMapList(void) {
     return;
   }
 
-  g_strlcpy(svs.maps.filename, sv_map_list->string, sizeof(svs.maps.filename));
+  q_strlcpy(svs.maps.filename, sv_map_list->string, sizeof(svs.maps.filename));
 
   svs.maps.list = Cm_LoadEntities(buffer);
 
-  int32_t i = 0;
-  for (GList *next, *link = svs.maps.list; link; link = next, i++) {
-    next = link->next;
+  List *valid = $(alloc(List), init);
 
-    cm_entity_t *props = link->data;
+  int32_t i = 0;
+  for (const ListNode *node = svs.maps.list->head; node; node = node->next, i++) {
+    cm_entity_t *props = (cm_entity_t *) node->element;
 
     const cm_entity_t *name = Cm_EntityValue(props, "name");
-    if (strlen(name->string) == 0) {
+    if (q_strlen(name->string) == 0) {
       Com_Warn("Map list element %d in %s is missing \"name\"\n", i, sv_map_list->string);
       Cm_FreeEntity(props);
-      svs.maps.list = g_list_delete_link(svs.maps.list, link);
+    } else {
+      $(valid, appendElement, props);
     }
   }
 
-  svs.maps.length = g_list_length(svs.maps.list);
+  release(svs.maps.list);
+  svs.maps.list = valid;
+
+  svs.maps.length = (int32_t) svs.maps.list->count;
   svs.maps.index = -1;
 
   Fs_Free(buffer);
@@ -95,7 +103,9 @@ void Sv_InitMapList(void) {
 void Sv_ShutdownMapList(void) {
 
   if (svs.maps.list) {
-    g_list_free_full(svs.maps.list, (GDestroyNotify) Cm_FreeEntity);
+    svs.maps.list->destroy = (ListDestroyFunc) Cm_FreeEntity;
+    $(svs.maps.list, removeAll);
+    release(svs.maps.list);
   }
 
   svs.maps.list = NULL;

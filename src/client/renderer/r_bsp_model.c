@@ -300,7 +300,7 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 
     r_bsp_block_decals_t *decals = &out->decals;
 
-    decals->triangles = g_array_sized_new(true, true, sizeof(r_decal_triangle_t), MAX_BSP_BLOCK_DECALS);
+    decals->triangles = $(alloc(Vector), initWithSize, sizeof(r_decal_triangle_t));
 
     glGenVertexArrays(1, &decals->vertex_array);
     glBindVertexArray(decals->vertex_array);
@@ -387,7 +387,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
     out->radius = in->radius;
     out->intensity = in->intensity;
     out->bounds = in->bounds;
-    g_strlcpy(out->style, in->style, sizeof(out->style));
+    q_strlcpy(out->style, in->style, sizeof(out->style));
     out->drift = in->drift;
     out->depth_pass_elements = (GLvoid *) (in->first_depth_pass_element * sizeof(GLuint));
     out->num_depth_pass_elements = in->num_depth_pass_elements;
@@ -603,7 +603,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
   for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
 
     char name[MAX_QPATH];
-    g_snprintf(name, sizeof(name), "%s#%d", mod->media.name, i);
+    q_snprintf(name, sizeof(name), "%s#%d", mod->media.name, i);
 
     r_model_t *out = (r_model_t *) R_AllocMedia(name, sizeof(r_model_t), R_MEDIA_MODEL);
 
@@ -746,7 +746,7 @@ static void R_FreeBspModel(r_media_t *self) {
   for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
 
     if (block->decals.triangles) {
-      g_array_free(block->decals.triangles, true);
+      release(block->decals.triangles);
     }
 
     glDeleteBuffers(1, &block->decals.vertex_buffer);

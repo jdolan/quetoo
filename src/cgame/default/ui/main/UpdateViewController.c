@@ -58,40 +58,42 @@ static void fetchHeroImages(void *data) {
 	static const char prefix[] = "<Key>hero-images/";
 	static const char suffix[] = "</Key>";
 
-	GPtrArray *urls = g_ptr_array_new_with_free_func(g_free);
+	Vector *urls = $(alloc(Vector), initWithSize, sizeof(char *));
 
 	char *p = (char *) list_data->bytes;
-	while ((p = strstr(p, prefix)) != NULL) {
+	while ((p = q_strstr(p, prefix)) != NULL) {
 
-		p += strlen(prefix);
-		char *s = strstr(p, suffix);
+		p += q_strlen(prefix);
+		char *s = q_strstr(p, suffix);
 		assert(s);
 		*s = '\0';
 
 		char url[MAX_STRING_CHARS];
-		const int url_len = g_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
+		const int url_len = q_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
 		if (url_len < 0 || (size_t) url_len >= sizeof(url)) {
 			Cg_Warn("Failed to build hero image URL: %s", p);
-			p = s + strlen(suffix);
+			p = s + q_strlen(suffix);
 			continue;
 		}
 
-		g_ptr_array_add(urls, g_strdup(url));
-		p = s + strlen(suffix);
+		char *dup = q_strdup(url);
+		$(urls, addElement, &dup);
+		p = s + q_strlen(suffix);
 	}
 
 	release(list_data);
 
-	for (guint i = urls->len - 1; i > 0; i--) {
-		const guint j = (guint) rand() % (i + 1);
-		gpointer tmp = urls->pdata[i];
-		urls->pdata[i] = urls->pdata[j];
-		urls->pdata[j] = tmp;
+	for (uint32_t i = (uint32_t) urls->count - 1; i > 0; i--) {
+		const uint32_t j = (uint32_t) rand() % (i + 1);
+		char *tmp = VectorValue(urls, char *, i);
+		VectorValue(urls, char *, i) = VectorValue(urls, char *, j);
+		VectorValue(urls, char *, j) = tmp;
 	}
 
-	for (guint i = 0; i < urls->len; i++) {
+	for (uint32_t i = 0; i < urls->count; i++) {
 		image_data = NULL;
-		if ($(cgi.restClient, get, urls->pdata[i], &image_data) == 200 && image_data) {
+		char *url_str = VectorValue(urls, char *, i);
+		if ($(cgi.restClient, get, url_str, &image_data) == 200 && image_data) {
 			Image *image = NULL;
 
       SDL_Surface *surf = cgi.LoadSurfaceFromData(image_data->bytes, image_data->length);
@@ -112,12 +114,15 @@ static void fetchHeroImages(void *data) {
 			}
 			release(image);
 		} else {
-			Cg_Warn("Failed to fetch hero image: %s", (char *) urls->pdata[i]);
+			Cg_Warn("Failed to fetch hero image: %s", url_str);
 		}
 		release(image_data);
 	}
 
-	g_ptr_array_free(urls, true);
+	for (uint32_t i = 0; i < urls->count; i++) {
+		free(VectorValue(urls, char *, i));
+	}
+	release(urls);
 }
 
 #pragma mark - Object

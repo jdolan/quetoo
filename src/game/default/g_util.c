@@ -47,7 +47,7 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
   Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
   ent->s.origin = Vec3_Fmaf(ent->s.origin, fwd, forward);
   
-  if (!g_strcmp0(ent->classname, "info_player_intermission")) {
+  if (!q_strcmp(ent->classname, "info_player_intermission")) {
     G_Ai_DropItemLikeNode(ent);
   }
 }
@@ -126,7 +126,7 @@ g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match) {
     if (!s) {
       continue;
     }
-    if (!g_ascii_strcasecmp(s, match)) {
+    if (!q_strcasecmp(s, match)) {
       return ent;
     }
   }
@@ -388,10 +388,10 @@ void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius,
   const g_item_t *item = ent->item;
   if (item) {
     switch (item->def.type) {
-      case ITEM_TECH:
+      case ITEM_TYPE_TECH:
         G_ResetDroppedTech(ent);
         break;
-      case ITEM_FLAG:
+      case ITEM_TYPE_FLAG:
         G_ResetDroppedFlag(ent);
         break;
       default:
@@ -442,15 +442,17 @@ g_gameplay_t G_GameplayByName(const char *c) {
     return gameplay;
   }
 
-  char *lower = g_strchug(g_ascii_strdown(c, -1));
-
-  if (g_str_has_prefix(lower, "insta")) {
-    gameplay = GAME_INSTAGIB;
-  } else if (g_str_has_prefix(lower, "arena")) {
-    gameplay = GAME_ARENA;
+  char lower[64];
+  q_strlcpy(lower, c, sizeof(lower));
+  for (char *p = lower; *p; p++) {
+    *p = (char) tolower((unsigned char) *p);
   }
 
-  g_free(lower);
+  if (!q_strncmp(lower, "insta", 5)) {
+    gameplay = GAME_INSTAGIB;
+  } else if (!q_strncmp(lower, "arena", 5)) {
+    gameplay = GAME_ARENA;
+  }
   return gameplay;
 }
 
@@ -466,7 +468,7 @@ g_team_t *G_TeamByName(const char *c) {
 
   for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-    if (!StrStripCmp(g_team_list[i].name, c)) {
+    if (!q_strcolorcmp(g_team_list[i].name, c)) {
       return &g_team_list[i];
     }
   }
@@ -483,13 +485,13 @@ g_team_t *G_TeamForFlag(const g_entity_t *ent) {
     return NULL;
   }
 
-  if (!ent->item || ent->item->def.type != ITEM_FLAG) {
+  if (!ent->item || ent->item->def.type != ITEM_TYPE_FLAG) {
     return NULL;
   }
 
   for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-    if (!g_strcmp0(ent->classname, g_team_list[i].flag)) {
+    if (!q_strcmp(ent->classname, g_team_list[i].flag)) {
       return &g_team_list[i];
     }
   }
@@ -588,7 +590,7 @@ g_client_t *G_ClientByName(char *name) {
   int32_t match = INT32_MAX;
 
   G_ForEachClient(cl, {
-    const int32_t m = g_strcmp0(name, cl->persistent.net_name);
+    const int32_t m = q_strcmp(name, cl->persistent.net_name);
     if (m < match) {
       client = cl;
       match = m;
@@ -603,9 +605,9 @@ g_client_t *G_ClientByName(char *name) {
  */
 g_hook_style_t G_HookStyleByName(const char *s) {
   
-  if (!g_strcmp0(s, "swing_manual")) {
+  if (!q_strcmp(s, "swing_manual")) {
     return HOOK_SWING_MANUAL;
-  } else if (!g_strcmp0(s, "swing_auto")) {
+  } else if (!q_strcmp(s, "swing_auto")) {
     return HOOK_SWING_AUTO;
   }
 

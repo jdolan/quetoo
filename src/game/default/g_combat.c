@@ -446,15 +446,15 @@ void G_Damage(const g_damage_t *dmg) {
             .attacker_ai = attacker_ai,
             .target_ai = target_ai,
           };
-          g_strlcpy(frag.level, g_level.name, sizeof(frag.level));
-          g_strlcpy(frag.attacker, attacker->client->persistent.net_name, sizeof(frag.attacker));
-          g_strlcpy(frag.attacker_guid, attacker->client->persistent.guid, sizeof(frag.attacker_guid));
-          g_strlcpy(frag.target, target->client->persistent.net_name, sizeof(frag.target));
-          g_strlcpy(frag.target_guid, target->client->persistent.guid, sizeof(frag.target_guid));
-          g_strlcpy(frag.weapon, G_WeaponNameForMod(mod), sizeof(frag.weapon));
+          q_strlcpy(frag.level, g_level.name, sizeof(frag.level));
+          q_strlcpy(frag.attacker, attacker->client->persistent.net_name, sizeof(frag.attacker));
+          q_strlcpy(frag.attacker_guid, attacker->client->persistent.guid, sizeof(frag.attacker_guid));
+          q_strlcpy(frag.target, target->client->persistent.net_name, sizeof(frag.target));
+          q_strlcpy(frag.target_guid, target->client->persistent.guid, sizeof(frag.target_guid));
+          q_strlcpy(frag.weapon, G_WeaponNameForMod(mod), sizeof(frag.weapon));
 
           if (frag.attacker_guid[0] && frag.target_guid[0]) {
-            g_array_append_val(g_level.frags, frag);
+            $(g_level.frags, addElement, &frag);
           }
         }
       }

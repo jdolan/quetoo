@@ -92,7 +92,7 @@ static void G_misc_teleporter_Touch(g_entity_t *ent, g_entity_t *other, const cm
   int32_t sound_index;
   if (custom_sound) {
     sound_index = gi.SoundIndex(custom_sound);
-  } else if (g_level.items == ITEMS_QUAKE && !g_strcmp0(ent->classname, "trigger_teleporter")) {
+  } else if (g_level.items == ITEMS_QUAKE && !q_strcmp(ent->classname, "trigger_teleporter")) {
     sound_index = g_media.sounds.quake_teleport[RandomRangei(0, 5)];
   } else {
     sound_index = g_media.sounds.teleport;

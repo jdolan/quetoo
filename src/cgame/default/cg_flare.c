@@ -52,7 +52,7 @@ typedef struct {
   const cl_entity_t *entity;
 } cg_flare_t;
 
-static GPtrArray *cg_flares;
+static Vector *cg_flares;
 
 #define FLARE_ALPHA_RAMP 0.01
 
@@ -65,8 +65,8 @@ void Cg_AddFlares(void) {
     return;
   }
 
-  for (guint i = 0; i < cg_flares->len; i++) {
-    cg_flare_t *flare = g_ptr_array_index(cg_flares, i);
+  for (size_t i = 0; i < cg_flares->count; i++) {
+    cg_flare_t *flare = VectorValue(cg_flares, cg_flare_t *, i);
 
     mat4_t matrix = Mat4_Identity();
     flare->entity = NULL;
@@ -179,17 +179,17 @@ static _Bool Cg_FacesShareVertex(const r_bsp_face_t *a, const r_bsp_face_t *b) {
  */
 static void Cg_MergeFlares(void) {
 
-  for (guint i = 0; i < cg_flares->len; i++) {
-    cg_flare_t *a = g_ptr_array_index(cg_flares, i);
+  for (size_t i = 0; i < cg_flares->count; i++) {
+    cg_flare_t *a = VectorValue(cg_flares, cg_flare_t *, i);
 
-    for (guint j = i + 1; j < cg_flares->len; j++) {
-      cg_flare_t *b = g_ptr_array_index(cg_flares, j);
+    for (size_t j = i + 1; j < cg_flares->count; j++) {
+      cg_flare_t *b = VectorValue(cg_flares, cg_flare_t *, j);
 
       if (a->face->brush_side == b->face->brush_side &&
           Cg_FacesShareVertex(a->face, b->face)) {
         a->bounds = Box3_Union(a->bounds, b->bounds);
 
-        g_ptr_array_remove_index(cg_flares, j);
+        $(cg_flares, removeElementAtIndex, j);
         cgi.Free(b);
 
         j--;
@@ -212,7 +212,7 @@ static void Cg_MergeFlares(void) {
  */
 void Cg_LoadFlares(void) {
 
-  cg_flares = g_ptr_array_new();
+  cg_flares = $(alloc(Vector), initWithSize, sizeof(cg_flare_t *));
 
   const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
 
@@ -240,13 +240,13 @@ void Cg_LoadFlares(void) {
       }
 
       cg_flare_t *flare = Cg_LoadFlare(face, stage);
-      g_ptr_array_add(cg_flares, flare);
+      $(cg_flares, addElement, &flare);
     }
   }
 
   Cg_MergeFlares();
 
-  Cg_Debug("Loaded %u flares\n", cg_flares->len);
+  Cg_Debug("Loaded %zu flares\n", cg_flares->count);
 }
 
 /**
@@ -255,7 +255,7 @@ void Cg_LoadFlares(void) {
 void Cg_FreeFlares(void) {
 
   if (cg_flares) {
-    g_ptr_array_free(cg_flares, 1);
+    release(cg_flares);
     cg_flares = NULL;
   }
 }

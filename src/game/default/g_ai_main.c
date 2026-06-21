@@ -171,6 +171,15 @@ static int32_t G_Ai_CompareItems(const void *a, const void *b) {
   return SignOf(w1->weight - w0->weight);
 }
 
+static Order G_Ai_CompareItemsOrder(const ident a, const ident b) {
+  const int32_t cmp = G_Ai_CompareItems(a, b);
+  return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
+}
+
+static inline int64_t G_Ai_Microseconds(void) {
+  return (int64_t) g_level.time * 1000;
+}
+
 #define AI_ITEM_UNREACHABLE -1.0
 
 /**
@@ -204,14 +213,14 @@ static inline void G_Ai_RestorePath(const g_client_t *cl, ai_t *ai) {
     // generate a new path to the old target, because we might have gotten a bit out
     // of sync with moving to the item
     const ai_node_id_t src = G_Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
-    const ai_node_id_t dest = g_array_index(ai->backup_move_target.path.path, ai_node_id_t, ai->backup_move_target.path.path->len - 1);
-    GArray *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, NULL);
+    const ai_node_id_t dest = VectorValue(ai->backup_move_target.path.path, ai_node_id_t, ai->backup_move_target.path.path->count - 1);
+    Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, NULL);
 
     if (!path) {
       G_Ai_ClearGoal(&ai->move_target);
     } else {
       G_Ai_SetPathGoal(cl, &ai->move_target, ai->backup_move_target.priority, path, ai->backup_move_target.path.path_target);
-      g_array_unref(path);
+      release(path);
     }
   } else {
     G_Ai_ClearGoal(&ai->move_target);
@@ -274,7 +283,7 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
   }
 
   // we have nothing to do, start looking for a new one
-  GArray *items_visible = g_array_new(false, false, sizeof(ai_item_pick_t));
+  Vector *items_visible = $(alloc(Vector), initWithSize, sizeof(ai_item_pick_t));
 
   G_ForEachEntity(ent, {
     if (ent->s.solid != SOLID_TRIGGER) {
@@ -304,28 +313,28 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
     float weight = (AI_MAX_ITEM_DISTANCE - distance) * item->def.priority;
 
     // boost weapons when unarmed, health/armor when retreating
-    if (!G_Ai_IsArmed(cl) && item->def.type == ITEM_WEAPON) {
+    if (!G_Ai_IsArmed(cl) && item->def.type == ITEM_TYPE_WEAPON) {
       weight *= 3.f;
-    } else if (G_Ai_ShouldRetreat(cl) && (item->def.type == ITEM_HEALTH || item->def.type == ITEM_ARMOR)) {
+    } else if (G_Ai_ShouldRetreat(cl) && (item->def.type == ITEM_TYPE_HEALTH || item->def.type == ITEM_TYPE_ARMOR)) {
       weight *= 3.f;
     }
 
-    items_visible = g_array_append_vals(items_visible, &(const ai_item_pick_t) {
+    $(items_visible, addElement, &(ai_item_pick_t) {
       .entity = ent,
       .item = item,
       .weight = weight
-    }, 1);
+    });
   });
 
   // found one, set it up
-  if (items_visible->len) {
+  if (items_visible->count) {
 
-    if (items_visible->len > 1) {
-      g_array_sort(items_visible, G_Ai_CompareItems);
+    if (items_visible->count > 1) {
+      $(items_visible, sort, G_Ai_CompareItemsOrder);
     }
 
-    for (guint i = 0; i < items_visible->len; i++) {
-      const ai_item_pick_t pick = g_array_index(items_visible, ai_item_pick_t, 0);
+    for (uint32_t i = 0; i < items_visible->count; i++) {
+      const ai_item_pick_t pick = VectorValue(items_visible, ai_item_pick_t, 0);
       const bool found = pick.weight > cl->ai->move_target.priority;
 
       if (!found) {
@@ -340,17 +349,17 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
 
         if (src != AI_NODE_INVALID) {
           float length;
-          GArray *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, &length);
+          Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, &length);
 
           // item is too far or not pathable despite dropping a node
           if (!path || length > AI_MAX_ITEM_DISTANCE) {
-            g_array_unref(path);
+            release(path);
             continue;
           }
 
           G_Ai_BackupPath(cl->ai);
           G_Ai_SetPathGoal(cl, &cl->ai->move_target, pick.weight, path, pick.entity);  
-          g_array_unref(path);
+          release(path);
 
           path_found = true;
         }
@@ -369,7 +378,7 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
     }
   }
 
-  g_array_free(items_visible, true);
+  release(items_visible);
   return 100;
 }
 
@@ -651,11 +660,11 @@ static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
         
         const ai_node_id_t closest = G_Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
         const ai_node_id_t closest_to_target = G_Ai_Node_FindClosest(where_to, 128.f, true, true);
-        GArray *path = G_Ai_Node_FindPath(cl, closest, closest_to_target, G_Ai_Node_Heuristic, NULL);
+        Vector *path = G_Ai_Node_FindPath(cl, closest, closest_to_target, G_Ai_Node_Heuristic, NULL);
 
         if (path) {
           G_Ai_SetPathGoal(cl, &cl->ai->move_target, 0.7f, path, cl->ai->combat_target.entity.ent);
-          g_array_unref(path);
+          release(path);
           G_Ai_Debug("Enemy out of sight & chasing\n");
         }
       }
@@ -727,10 +736,10 @@ static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
     bool pathed = false;
 
     if (my_node != AI_NODE_INVALID && enemy_node != AI_NODE_INVALID && my_node != enemy_node) {
-      GArray *path = G_Ai_Node_FindPath(cl, my_node, enemy_node, G_Ai_Node_Heuristic, NULL);
+      Vector *path = G_Ai_Node_FindPath(cl, my_node, enemy_node, G_Ai_Node_Heuristic, NULL);
       if (path) {
         G_Ai_SetPathGoal(cl, &cl->ai->move_target, 0.7f, path, enemy);
-        g_array_unref(path);
+        release(path);
         pathed = true;
         G_Ai_Debug("Chasing enemy via path\n");
       }
@@ -911,12 +920,12 @@ static bool G_Ai_AdvancePath(g_client_t *cl, ai_goal_t *goal) {
   goal->path.path_index++;
 
   // we're done with this path
-  if (goal->path.path_index == goal->path.path->len) {
+  if (goal->path.path_index == goal->path.path->count) {
     return false;
   }
 
-  goal->path.path_position = G_Ai_Node_GetPosition(g_array_index(goal->path.path, ai_node_id_t, goal->path.path_index));
-  goal->path.next_path_position = G_Ai_Node_GetPosition(g_array_index(goal->path.path, ai_node_id_t, Mini(goal->path.path->len - 1, goal->path.path_index + 1)));
+  goal->path.path_position = G_Ai_Node_GetPosition(VectorValue(goal->path.path, ai_node_id_t, goal->path.path_index));
+  goal->path.next_path_position = G_Ai_Node_GetPosition(VectorValue(goal->path.path, ai_node_id_t, Mini(goal->path.path->count - 1, goal->path.path_index + 1)));
   goal->distress = 0;
   goal->distress_extension = false;
   goal->last_distance = FLT_MAX;
@@ -1007,9 +1016,9 @@ static bool G_Ai_GoalDistress(g_client_t *cl, ai_goal_t *goal, const vec3_t dest
 /**
  * @brief Returns true if consecutive nodes at path indices a and b are linked.
  */
-static inline bool G_Ai_Path_IsLinked(const GArray *path, const guint a, const guint b) {
+static inline bool G_Ai_Path_IsLinked(const Vector *path, const uint32_t a, const uint32_t b) {
 
-  return G_Ai_Node_IsLinked(g_array_index(path, ai_node_id_t, a), g_array_index(path, ai_node_id_t, b));
+  return G_Ai_Node_IsLinked(VectorValue(path, ai_node_id_t, a), VectorValue(path, ai_node_id_t, b));
 }
 
 /**
@@ -1180,8 +1189,8 @@ static uint32_t G_Ai_Move(g_client_t *cl, pm_cmd_t *cmd) {
     // running off the edge, transition to walking so we don't overshoot targets beneath us
     } else if (!swimming && cl->ai->move_target.path.path_index > 0 &&
                G_Ai_ShouldSlowDrop(
-                 g_array_index(cl->ai->move_target.path.path, ai_node_id_t, cl->ai->move_target.path.path_index - 1),
-                 g_array_index(cl->ai->move_target.path.path, ai_node_id_t, cl->ai->move_target.path.path_index))) {
+                 VectorValue(cl->ai->move_target.path.path, ai_node_id_t, cl->ai->move_target.path.path_index - 1),
+                 VectorValue(cl->ai->move_target.path.path, ai_node_id_t, cl->ai->move_target.path.path_index))) {
       dir = Vec3_Scale(dir, PM_SPEED_RUN * 0.5f);
     // run full speed towards the target
     } else {
@@ -1574,7 +1583,7 @@ static uint32_t G_Ai_LongRange(g_client_t *cl, pm_cmd_t *cmd) {
     return 200;
   }
 
-  GArray *goal_possibilities = g_array_new(false, false, sizeof(ai_item_pick_t));
+  Vector *goal_possibilities = $(alloc(Vector), initWithSize, sizeof(ai_item_pick_t));
 
   G_ForEachEntity(ent, {
 
@@ -1605,9 +1614,9 @@ static uint32_t G_Ai_LongRange(g_client_t *cl, pm_cmd_t *cmd) {
       // situational weighting: boost weapons when unarmed, health/armor when low
       weight = ent->item->def.priority;
 
-      if (!G_Ai_IsArmed(cl) && ent->item->def.type == ITEM_WEAPON) {
+      if (!G_Ai_IsArmed(cl) && ent->item->def.type == ITEM_TYPE_WEAPON) {
         weight *= 3.f;
-      } else if (G_Ai_ShouldRetreat(cl) && (ent->item->def.type == ITEM_HEALTH || ent->item->def.type == ITEM_ARMOR)) {
+      } else if (G_Ai_ShouldRetreat(cl) && (ent->item->def.type == ITEM_TYPE_HEALTH || ent->item->def.type == ITEM_TYPE_ARMOR)) {
         weight *= 3.f;
       }
     }
@@ -1621,32 +1630,32 @@ static uint32_t G_Ai_LongRange(g_client_t *cl, pm_cmd_t *cmd) {
     weight = Randomf() * weight;
 
     // add!!
-    goal_possibilities = g_array_append_vals(goal_possibilities, &(ai_item_pick_t) {
+    $(goal_possibilities, addElement, &(ai_item_pick_t) {
       .weight = weight,
       .entity = ent
-    }, 1);
+    });
   });
 
   // sort!
-  if (goal_possibilities->len > 1) {
-    g_array_sort(goal_possibilities, G_Ai_CompareItems);
+  if (goal_possibilities->count > 1) {
+    $(goal_possibilities, sort, G_Ai_CompareItemsOrder);
   }
 
   // go down the list, high priority wins but might not be pickable
-  for (guint i = 0; i < goal_possibilities->len; i++) {
+  for (uint32_t i = 0; i < goal_possibilities->count; i++) {
 
-    const ai_item_pick_t *pick = &g_array_index(goal_possibilities, ai_item_pick_t, i);
+    const ai_item_pick_t *pick = VectorElement(goal_possibilities, ai_item_pick_t, i);
     const ai_node_id_t closest_to_item = G_Ai_Node_FindClosest(pick->entity->s.origin, 256.f, true, true);
 
-    GArray *path = G_Ai_Node_FindPath(cl, closest, closest_to_item, G_Ai_Node_Heuristic, NULL);
+    Vector *path = G_Ai_Node_FindPath(cl, closest, closest_to_item, G_Ai_Node_Heuristic, NULL);
     if (path) {
       G_Ai_SetPathGoal(cl, &cl->ai->move_target, pick->weight, path, pick->entity);
-      g_array_unref(path);
+      release(path);
       break;
     }
   }
 
-  g_array_free(goal_possibilities, true);
+  release(goal_possibilities);
 
   // got one; don't try again for a while.
   return 1000;
@@ -1696,9 +1705,9 @@ void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd) {
   for (int32_t i = 0; i < AI_FUNC_GOAL_TOTAL; i++) {
 
     if (cl->ai->func_goal_next_thinks[i] <= g_level.time) {
-      const gint64 func_start = g_get_monotonic_time();
+      const int64_t func_start = G_Ai_Microseconds();
       const uint32_t next = g_ai_goalfuncs[i](cl, cmd);
-      const gint64 func_us = g_get_monotonic_time() - func_start;
+      const int64_t func_us = G_Ai_Microseconds() - func_start;
 
       cl->ai->func_goal_next_thinks[i] = g_level.time + next;
 
@@ -1779,9 +1788,9 @@ static void G_Ai_ClientThink(g_entity_t *ent) {
 
     cmd.msec = (i == num_runs - 1) ? msec_left : ceilf(1000.f / QUETOO_TICK_RATE / num_runs);
 
-    const gint64 think_start = g_get_monotonic_time();
+    const int64_t think_start = G_Ai_Microseconds();
     G_Ai_Think(ent->client, &cmd);
-    const gint64 think_us = g_get_monotonic_time() - think_start;
+    const int64_t think_us = G_Ai_Microseconds() - think_start;
 
     if (think_us > 100000) { // > 100ms for one think pass is pathological
       if (ent->client) {
@@ -1914,7 +1923,7 @@ static void G_Ai_DeleteNodes_f(void) {
  */
 static void G_Ai_TestPath_f(void) {
 
-  GArray *path = G_Ai_Node_TestPath();
+  Vector *path = G_Ai_Node_TestPath();
 
   if (!path) {
     return;
@@ -1929,16 +1938,19 @@ static void G_Ai_TestPath_f(void) {
         continue;
       }
 
-      GArray *path_to_start = G_Ai_Node_FindPath(cl, closest_to_player, g_array_index(path, ai_node_id_t, 0), G_Ai_Node_Heuristic, NULL);
+      Vector *path_to_start = G_Ai_Node_FindPath(cl, closest_to_player, VectorValue(path, ai_node_id_t, 0), G_Ai_Node_Heuristic, NULL);
 
       if (path_to_start == NULL) {
         G_Ai_Debug("Can't find a path to the test path\n");
         continue;
       }
 
-      path_to_start = g_array_append_vals(path_to_start, &g_array_index(path, ai_node_id_t, 1), path->len - 1);
+      for (uint32_t i = 1; i < path->count; i++) {
+        ai_node_id_t node = VectorValue(path, ai_node_id_t, i);
+        $(path_to_start, addElement, &node);
+      }
       G_Ai_SetPathGoal(cl, &cl->ai->move_target, 1.0, path_to_start, NULL);
-      g_array_unref(path_to_start);
+      release(path_to_start);
     }
   });
 }

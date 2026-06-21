@@ -23,6 +23,7 @@
 
 #include "cmd.h"
 #include "filesystem.h"
+#include <Objectively/List.h>
 
 extern bool cvar_user_info_modified;
 
@@ -42,7 +43,7 @@ cvar_t *Cvar_ForceSetString(const char *name, const char *value);
 cvar_t *Cvar_ForceSetValue(const char *name, float value);
 cvar_t *Cvar_Toggle(const char *name);
 void Cvar_Enumerate(Cvar_Enumerator func, void *data);
-void Cvar_CompleteVar(const char *pattern, GList **matches);
+void Cvar_CompleteVar(const char *pattern, List *matches);
 void Cvar_ResetDeveloper(void);
 bool Cvar_PendingLatched(void);
 void Cvar_UpdateLatched(void);
@@ -52,6 +53,5 @@ bool Cvar_Command(void);
 char *Cvar_UserInfo(void);
 char *Cvar_ServerInfo(void);
 void Cvar_WriteAll(file_t *f);
-bool Cvar_ExpandString(const char *input, const size_t in_size, GString **output);
 void Cvar_Init(void);
 void Cvar_Shutdown(void);

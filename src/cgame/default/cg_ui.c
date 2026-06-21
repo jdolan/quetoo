@@ -37,7 +37,10 @@ void Cg_InitUi(void) {
   stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common/common.css");
   assert(stylesheet);
 
-  $(cgi.Theme(), addStylesheet, stylesheet);
+  Theme *theme = cgi.Theme();
+  assert(theme);
+
+  $(theme, addStylesheet, stylesheet);
 
   mainViewController = $(alloc(MainViewController), init);
   assert(mainViewController);

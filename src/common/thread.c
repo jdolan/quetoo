@@ -23,6 +23,7 @@
 #include <SDL3/SDL_mutex.h>
 #include <SDL3/SDL_timer.h>
 
+#include "shared/qstring.h"
 #include "thread.h"
 
 typedef struct {
@@ -167,7 +168,7 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread
           t->status = THREAD_RUNNING;
           t->options = options;
 
-          g_strlcpy(t->name, name, sizeof(t->name));
+          q_strlcpy(t->name, name, sizeof(t->name));
 
           t->Run = run;
           t->data = data;

@@ -39,7 +39,7 @@ libitem_la_SOURCES = \
 libitem_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@OBJECTIVELY_CFLAGS@
 libitem_la_LDFLAGS = \
 	-shared
 libitem_la_LIBADD =
@@ -49,7 +49,7 @@ libpmove_la_SOURCES = \
 libpmove_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@OBJECTIVELY_CFLAGS@
 libpmove_la_LDFLAGS = \
 	-shared
 libpmove_la_LIBADD = \
@@ -92,7 +92,7 @@ game_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@
+	@OBJECTIVELY_CFLAGS@
 
 game_la_LDFLAGS = \
 	-avoid-version \
@@ -103,4 +103,4 @@ game_la_LDFLAGS = \
 game_la_LIBADD = \
 	libitem.la \
 	libpmove.la \
-	@GLIB_LIBS@
+	@OBJECTIVELY_LIBS@

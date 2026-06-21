@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <Objectively/HashTable.h>
+
 #include "common/common.h"
 
 /**
@@ -62,9 +64,9 @@ typedef struct {
 
 /**
  * @brief Allocates an empty manifest table.
- * @return A new GHashTable mapping path strings to `cm_manifest_entry_t` values.
+ * @return A new HashTable mapping path strings to `cm_manifest_entry_t` values.
  */
-GHashTable *Cm_AllocManifest(void);
+HashTable *Cm_AllocManifest(void);
 
 /**
  * @brief Inserts an entry into a manifest table, computing the `MD5` checksum of the given data.
@@ -73,7 +75,7 @@ GHashTable *Cm_AllocManifest(void);
  * @param data The file data to checksum.
  * @param len The length of the data in bytes.
  */
-void Cm_AddManifestEntry(GHashTable *manifest, const char *path, const void *data, size_t len);
+void Cm_AddManifestEntry(HashTable *manifest, const char *path, const void *data, size_t len);
 
 /**
  * @brief Verifies a manifest entry against the local file on disk.
@@ -88,7 +90,7 @@ bool Cm_CheckManifestEntry(const cm_manifest_entry_t *entry);
  * @param manifest The manifest table to write.
  * @return The number of entries written, or -1 on failure.
  */
-int32_t Cm_WriteManifest(const char *path, GHashTable *manifest);
+int32_t Cm_WriteManifest(const char *path, HashTable *manifest);
 
 /**
  * @brief Parses a manifest from an in-memory buffer.
@@ -96,18 +98,18 @@ int32_t Cm_WriteManifest(const char *path, GHashTable *manifest);
  * Returns an empty table (never `NULL`) when @c data is `NULL` or @c len is zero.
  * @param data The manifest text data, or `NULL` for an empty manifest.
  * @param len The length of @c data in bytes.
- * @return A GHashTable mapping path strings to `cm_manifest_entry_t` values.
+ * @return A HashTable mapping path strings to `cm_manifest_entry_t` values.
  */
-GHashTable *Cm_ParseManifest(const char *data, size_t len);
+HashTable *Cm_ParseManifest(const char *data, size_t len);
 
 /**
  * @brief Reads a manifest file into a table.
  * @param path The manifest file path (e.g. "maps/`edge.mf`").
- * @return A GHashTable of `cm_manifest_entry_t`, or `NULL` if the file does not exist.
+ * @return A HashTable of `cm_manifest_entry_t`, or `NULL` if the file does not exist.
  */
-GHashTable *Cm_ReadManifest(const char *path);
+HashTable *Cm_ReadManifest(const char *path);
 
 /**
  * @brief Frees a manifest table and all its entries.
  */
-void Cm_FreeManifest(GHashTable *manifest);
+void Cm_FreeManifest(HashTable *manifest);

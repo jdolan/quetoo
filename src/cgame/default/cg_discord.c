@@ -25,6 +25,8 @@
 #include "deps/discord-rpc/include/discord_rpc.h"
 
 #define DISCORD_APP_ID        378347526203637760
+#define STRINGIFY_(x) #x
+#define STRINGIFY(x) STRINGIFY_(x)
 
 enum EDiscordResult {
   DiscordResult_Ok,
@@ -188,16 +190,16 @@ void Cg_UpdateDiscord(void) {
         presence.largeImageKey = "default";
         presence.state = "Playing";
 
-        g_snprintf(details, sizeof(details), "%s - %s", Cg_GetGameMode(), cgi.ConfigString(CS_MESSAGE));
+        q_snprintf(details, sizeof(details), "%s - %s", Cg_GetGameMode(), cgi.ConfigString(CS_MESSAGE));
         presence.details = details;
 
-        if (g_strcmp0(cgi.server_name, "localhost")) {
+        if (q_strcmp(cgi.server_name, "localhost")) {
           presence.partyId = cgi.server_name;
 
-          g_snprintf(joinSecret, sizeof(joinSecret), "JOIN_%s", presence.partyId);
+          q_snprintf(joinSecret, sizeof(joinSecret), "JOIN_%s", presence.partyId);
           presence.joinSecret = joinSecret;
 
-          g_snprintf(spectateSecret, sizeof(spectateSecret), "SPCT_%s", presence.partyId);
+          q_snprintf(spectateSecret, sizeof(spectateSecret), "SPCT_%s", presence.partyId);
           presence.spectateSecret = spectateSecret;
         }
 
@@ -227,14 +229,14 @@ void Cg_UpdateDiscord(void) {
 
 static void Cg_DiscordJoinGame(const char *secret) {
 
-  if (g_ascii_strncasecmp(secret, "JOIN_", 5)) {
+  if (q_strncasecmp(secret, "JOIN_", 5)) {
     Cg_Warn("Invalid invitation\n");
     return;
   }
 
   // Sanitize the address to prevent command injection via newlines or semicolons
   char addr[MAX_STRING_CHARS];
-  g_strlcpy(addr, secret + 5, sizeof(addr));
+  q_strlcpy(addr, secret + 5, sizeof(addr));
   for (char *c = addr; *c; c++) {
     if (*c == '\n' || *c == ';' || *c == '"') {
       *c = '\0';
@@ -264,13 +266,13 @@ void Cg_InitDiscord(void) {
 
 #if defined(_WIN32)
   __try {
-    Discord_Initialize(G_STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
+    Discord_Initialize(STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
   } __except(EXCEPTION_EXECUTE_HANDLER) {
     cgi.Warn(__func__, "Discord RPC initialization crashed, Rich Presence disabled\n");
     cg_discord_state.failed = true;
   }
 #else
-  Discord_Initialize(G_STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
+  Discord_Initialize(STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
 #endif
 }
 

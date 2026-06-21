@@ -66,7 +66,7 @@ static void updateBindings(View *self) {
       Option *option = $(options, objectAtIndex, i);
       if (this->expectsStringValue) {
         const char *string = option->value ?: option->title->text;
-        option->isSelected = !strcmp(string, this->var->string);
+        option->isSelected = !q_strcmp(string, this->var->string);
       } else {
         option->isSelected = (intptr_t) option->value == this->var->integer;
       }

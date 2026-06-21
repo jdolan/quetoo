@@ -34,7 +34,7 @@ r_model_t *R_LoadModel(const char *name) {
   }
 
   if (*name == '*') {
-    g_snprintf(key, sizeof(key), "%s#%s", r_models.world->media.name, name + 1);
+    q_snprintf(key, sizeof(key), "%s#%s", r_models.world->media.name, name + 1);
   } else {
     StripExtension(name, key);
   }
@@ -54,7 +54,7 @@ r_model_t *R_LoadModel(const char *name) {
     size_t i;
     for (i = 0; i < lengthof(formats); i++, format++) {
 
-      g_snprintf(path, sizeof(path), "%s.%s", key, format->extension);
+      q_snprintf(path, sizeof(path), "%s.%s", key, format->extension);
 
       if (Fs_Exists(path)) {
         break;
@@ -62,13 +62,15 @@ r_model_t *R_LoadModel(const char *name) {
     }
 
     if (i == lengthof(formats)) {
-      static GHashTable *warned;
+      static HashTable *warned;
       if (!warned) {
-        warned = g_hash_table_new(g_str_hash, g_str_equal);
+        warned = $(alloc(HashTable), init, HashTableHashStr, HashTableEqualStr);
+        warned->destroyKey = (HashTableDestroyFunc) free;
       }
-      if (!g_hash_table_contains(warned, key)) {
-        g_hash_table_add(warned, g_strdup(key));
-        if (strstr(name, "players/")) {
+      if ($(warned, get, (void *) key) == NULL) {
+        char *warned_key = q_strdup(key);
+        $(warned, set, warned_key, warned_key);
+        if (q_strstr(name, "players/")) {
           Com_Debug(DEBUG_RENDERER, "Failed to load player %s\n", name);
         } else {
           Com_Warn("Failed to load %s\n", name);

@@ -19,10 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <Objectively/HashTable.h>
+#include <Objectively/Vector.h>
+
 #include "console.h"
 #include "filesystem.h"
 
-static GHashTable *cvar_vars;
+static HashTable *cvar_vars;
 
 bool cvar_user_info_modified;
 
@@ -33,13 +36,13 @@ static bool Cvar_InfoValidate(const char *s) {
   if (!s) {
     return false;
   }
-  if (strstr(s, "\\")) {
+  if (q_strstr(s, "\\")) {
     return false;
   }
-  if (strstr(s, "\"")) {
+  if (q_strstr(s, "\"")) {
     return false;
   }
-  if (strstr(s, ";")) {
+  if (q_strstr(s, ";")) {
     return false;
   }
   return true;
@@ -51,15 +54,15 @@ static bool Cvar_InfoValidate(const char *s) {
 cvar_t *Cvar_Get(const char *name) {
 
   if (cvar_vars) {
-    const GQueue *queue = (GQueue *) g_hash_table_lookup(cvar_vars, name);
-    if (queue) {
-      if (queue->length == 1) { // only 1 entry, return it
-        return (cvar_t *) queue->head->data;
+    const List *list = $(cvar_vars, get, (void *) name);
+    if (list) {
+      if (list->count == 1) { // only 1 entry, return it
+        return list->head->element;
       } else {
         // only return the exact match
-        for (const GList *list = queue->head; list; list = list->next) {
-          cvar_t *cvar = (cvar_t *) list->data;
-          if (!g_strcmp0(cvar->name, name)) {
+        for (const ListNode *node = list->head; node; node = node->next) {
+          cvar_t *cvar = node->element;
+          if (!q_strcmp(cvar->name, name)) {
             return cvar;
           }
         }
@@ -116,91 +119,88 @@ float Cvar_GetValue(const char *name) {
  * @brief Print a cvar to the console.
  */
 static const char *Cvar_Stringify(const cvar_t *var) {
-  GList *modifiers = NULL;
+  const char *modifiers[8];
+  size_t mod_count = 0;
 
   if (var->flags & CVAR_ARCHIVE) {
-    modifiers = g_list_append(modifiers, "^2archived^7");
+    modifiers[mod_count++] = "^2archived^7";
   }
-
   if (var->flags & CVAR_USER_INFO) {
-    modifiers = g_list_append(modifiers, "^4user^7");
+    modifiers[mod_count++] = "^4user^7";
   }
-
   if (var->flags & CVAR_SERVER_INFO) {
-    modifiers = g_list_append(modifiers, "^5server^7");
+    modifiers[mod_count++] = "^5server^7";
   }
-
   if (var->flags & CVAR_DEVELOPER) {
-    modifiers = g_list_append(modifiers, "^1developer^7");
+    modifiers[mod_count++] = "^1developer^7";
   }
-
   if (var->flags & CVAR_NO_SET) {
-    modifiers = g_list_append(modifiers, "^3readonly^7");
+    modifiers[mod_count++] = "^3readonly^7";
   }
-
   if (var->flags & CVAR_LATCH) {
-    modifiers = g_list_append(modifiers, "^6latched^7");
+    modifiers[mod_count++] = "^6latched^7";
   }
 
   static char str[MAX_STRING_CHARS];
-  g_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
+  q_snprintf(str, sizeof(str), "%s \"^3%s^7\"", var->name, var->string);
 
-  if (g_strcmp0(var->string, var->default_string)) {
-    g_strlcat(str, va(" [\"^3%s^7\"]", var->default_string), sizeof(str));
+  if (q_strcmp(var->string, var->default_string)) {
+    q_strlcat(str, va(" [\"^3%s^7\"]", var->default_string), sizeof(str));
   }
 
-  if (modifiers) {
-    g_strlcat(str, " (", sizeof(str));
-
-    const guint len = g_list_length(modifiers);
-    for (guint i = 0; i < len; i++) {
+  if (mod_count) {
+    q_strlcat(str, " (", sizeof(str));
+    for (size_t i = 0; i < mod_count; i++) {
       if (i) {
-        g_strlcat(str, ", ", sizeof(str));
+        q_strlcat(str, ", ", sizeof(str));
       }
-      g_strlcat(str, (char *) g_list_nth_data(modifiers, i), sizeof(str));
+      q_strlcat(str, modifiers[i], sizeof(str));
     }
-
-    g_strlcat(str, ")", sizeof(str));
-    g_list_free(modifiers);
+    q_strlcat(str, ")", sizeof(str));
   }
 
   if (var->description) {
-    g_strlcat(str, va("\n  ^2%s^7", var->description), sizeof(str));
+    q_strlcat(str, va("\n  ^2%s^7", var->description), sizeof(str));
   }
 
   return str;
 }
 
-/**
- * @brief GCompareFunc for `Cvar_Enumerate`.
- */
-static gint Cvar_Enumerate_comparator(gconstpointer a, const gconstpointer b) {
-  return g_ascii_strcasecmp(((const cvar_t *) a)->name, ((const cvar_t *) b)->name);
+static Order Cvar_Enumerate_comparator(const ident a, const ident b) {
+  const int32_t cmp = q_strcasecmp((*(const cvar_t *const *) a)->name, (*(const cvar_t *const *) b)->name);
+  return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
+}
+
+typedef struct {
+  Vector *vars;
+} Cvar_Enumerate_ctx_t;
+
+static void Cvar_Enumerate_collect(const HashTable *table, ident key, ident value, ident data) {
+  Cvar_Enumerate_ctx_t *ctx = data;
+  const List *list = value;
+  for (const ListNode *node = list->head; node; node = node->next) {
+    cvar_t *var = node->element;
+    $(ctx->vars, addElement, &var);
+  }
 }
 
 /**
  * @brief Enumerates all known variables with the given function.
  */
 void Cvar_Enumerate(Cvar_Enumerator func, void *data) {
-  GList *sorted = NULL;
+  Cvar_Enumerate_ctx_t ctx = {
+    .vars = $(alloc(Vector), initWithSize, sizeof(cvar_t *)),
+  };
 
-  GHashTableIter iter;
-  gpointer key, value;
-  g_hash_table_iter_init(&iter, cvar_vars);
+  $(cvar_vars, enumerate, Cvar_Enumerate_collect, &ctx);
+  $(ctx.vars, sort, Cvar_Enumerate_comparator);
 
-  while (g_hash_table_iter_next(&iter, &key, &value)) {
-    const GQueue *queue = (GQueue *) value;
-
-    for (GList *list = queue->head; list; list = list->next) {
-      sorted = g_list_concat(sorted, g_list_copy(list));
-    }
+  for (size_t i = 0; i < ctx.vars->count; i++) {
+    cvar_t *var = VectorValue(ctx.vars, cvar_t *, i);
+    func(var, data);
   }
 
-  sorted = g_list_sort(sorted, Cvar_Enumerate_comparator);
-
-  g_list_foreach(sorted, (GFunc) func, data);
-
-  g_list_free(sorted);
+  release(ctx.vars);
 }
 
 static char cvar_complete_pattern[MAX_STRING_CHARS];
@@ -209,7 +209,7 @@ static char cvar_complete_pattern[MAX_STRING_CHARS];
  * @brief Enumeration helper for `Cvar_CompleteVar`.
  */
 static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
-  GList **matches = (GList **) data;
+  List *matches = data;
 
   if (GlobMatch(cvar_complete_pattern, var->name, GLOB_CASE_INSENSITIVE)) {
     Con_AutocompleteMatch(matches, var->name, Cvar_Stringify(var));
@@ -219,9 +219,9 @@ static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
 /**
  * @brief Console completion for console variables.
  */
-void Cvar_CompleteVar(const char *pattern, GList **matches) {
-  g_strlcpy(cvar_complete_pattern, pattern, sizeof(cvar_complete_pattern));
-  Cvar_Enumerate(Cvar_CompleteVar_enumerate, (void *) matches);
+void Cvar_CompleteVar(const char *pattern, List *matches) {
+  q_strlcpy(cvar_complete_pattern, pattern, sizeof(cvar_complete_pattern));
+  Cvar_Enumerate(Cvar_CompleteVar_enumerate, matches);
 }
 
 /**
@@ -281,15 +281,16 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
     var->description = Mem_Link(Mem_TagCopyString(description, MEM_TAG_CVAR), var);
   }
 
-  gpointer key = (gpointer) var->name;
-  GQueue *queue = (GQueue *) g_hash_table_lookup(cvar_vars, key);
+  void *key = (void *) var->name;
+  List *list = $(cvar_vars, get, key);
 
-  if (!queue) {
-    queue = g_queue_new();
-    g_hash_table_insert(cvar_vars, key, queue);
+  if (!list) {
+    list = $(alloc(List), init);
+    list->destroy = (ListDestroyFunc) Mem_Free;
+    $(cvar_vars, set, key, list);
   }
 
-  g_queue_push_head(queue, var);
+  $(list, prependElement, var);
   return var;
 }
 
@@ -338,12 +339,12 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, int32_t flags, boo
     // while latched variables can only be changed on map load
     if (var->flags & CVAR_LATCH) {
       if (var->latched_string) {
-        if (!g_strcmp0(value, var->latched_string)) {
+        if (!q_strcmp(value, var->latched_string)) {
           return var;
         }
         Mem_Free(var->latched_string);
       } else {
-        if (!g_strcmp0(value, var->string)) {
+        if (!q_strcmp(value, var->string)) {
           return var;
         }
       }
@@ -369,7 +370,7 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, int32_t flags, boo
     }
   }
 
-  if (!g_strcmp0(var->string, value)) {
+  if (!q_strcmp(var->string, value)) {
     return var; // not changed
   }
 
@@ -598,7 +599,7 @@ bool Cvar_Command(void) {
 /**
  * @brief Set command autocompletion.
  */
-static void Cvar_Set_Autocomplete_f(const uint32_t argi, GList **matches) {
+static void Cvar_Set_Autocomplete_f(const uint32_t argi, List *matches) {
   const char *pattern = va("%s*", Cmd_Argv(argi));
   Cvar_CompleteVar(pattern, matches);
 }
@@ -615,11 +616,11 @@ static void Cvar_Set_f(void) {
 
   int32_t flags = 0;
 
-  if (!g_strcmp0("seta", Cmd_Argv(0))) {
+  if (!q_strcmp("seta", Cmd_Argv(0))) {
     flags |= CVAR_ARCHIVE;
-  } else if (!g_strcmp0("sets", Cmd_Argv(0))) {
+  } else if (!q_strcmp("sets", Cmd_Argv(0))) {
     flags |= CVAR_SERVER_INFO;
-  } else if (!g_strcmp0("setu", Cmd_Argv(0))) {
+  } else if (!q_strcmp("setu", Cmd_Argv(0))) {
     flags |= CVAR_USER_INFO;
   }
 
@@ -639,30 +640,39 @@ static void Cvar_Toggle_f(void) {
   Cvar_Toggle(Cmd_Argv(1));
 }
 
-/**
- * @brief `Cvar_Enumerator` for `Cvar_List_f`.
- */
+typedef struct {
+  Vector *strs;
+} Cvar_List_ctx_t;
+
 static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
+  Cvar_List_ctx_t *ctx = data;
+  char *str = q_strdup(Cvar_Stringify(var));
+  $(ctx->strs, addElement, &str);
+}
 
-  gchar *str = g_strdup(Cvar_Stringify(var));
-
-  GSList **list = (GSList **) data;
-  *list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) StrStripCmp);
+static Order Cvar_List_sortfn(const ident a, const ident b) {
+  const int32_t cmp = q_strcolorcmp(*(const char *const *) a, *(const char *const *) b);
+  return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
 /**
  * @brief Lists all known console variables.
  */
 static void Cvar_List_f(void) {
-  GSList *list = NULL;
+  Cvar_List_ctx_t ctx = {
+    .strs = $(alloc(Vector), initWithSize, sizeof(char *)),
+  };
 
-  Cvar_Enumerate(Cvar_List_f_enumerate, &list);
-  
-  for (GSList *entry = list; entry; entry = entry->next) {
-    Com_Print("%s\n", (const gchar *) entry->data);
+  Cvar_Enumerate(Cvar_List_f_enumerate, &ctx);
+  $(ctx.strs, sort, Cvar_List_sortfn);
+
+  for (size_t i = 0; i < ctx.strs->count; i++) {
+    char *str = VectorValue(ctx.strs, char *, i);
+    Com_Print("%s\n", str);
+    free(str);
   }
 
-  g_slist_free_full(list, g_free);
+  release(ctx.strs);
 }
 
 /**
@@ -695,7 +705,7 @@ static void Cvar_ServerInfo_enumerate(cvar_t *var, void *data) {
 
   if (var->flags & CVAR_SERVER_INFO) {
     char value[MAX_INFO_STRING_VALUE];
-    StrStrip(var->string, value);
+    q_strcolorstrip(var->string, value);
     InfoString_Set((char *) data, var->name, value);
   }
 }
@@ -730,48 +740,32 @@ void Cvar_WriteAll(file_t *f) {
   Cvar_Enumerate(Cvar_WriteAll_enumerate, (void *) f);
 }
 
-static GRegex *cvar_emplace_regex = NULL;
+typedef struct {
+  Vector *lists;
+} Cvar_Shutdown_ctx_t;
 
-/**
- * @brief `g_regex_replace_eval` callback that substitutes a matched cvar name with its current string value.
- */
-static gboolean Cvar_ExpandString_EvalCallback(const GMatchInfo *match_info, GString *result, gpointer data) {
-  gchar *name = g_match_info_fetch(match_info, 1);
-  const char *value = Cvar_GetString(name);
-  g_string_append(result, value);
-  g_free(name);
-  return false;
+static void Cvar_Shutdown_collect(const HashTable *table, ident key, ident value, ident data) {
+  Vector *lists = data;
+  $(lists, addElement, &value);
 }
 
 /**
- * @brief Replaces placeholders (`$my_cvar`) with the interpolated string values.
- * @returns false if no emplacement was performed (or could be performed), otherwise the *output is set
- * to a valid GString.
+ * @brief Frees all cvar lists in the hash table.
  */
-bool Cvar_ExpandString(const char *input, const size_t in_size, GString **output) {
+static void Cvar_FreeAll(void) {
+  Cvar_Shutdown_ctx_t ctx = {
+    .lists = $(alloc(Vector), initWithSize, sizeof(ident)),
+  };
 
-  if (!input || !in_size) {
-    return false;
+  $(cvar_vars, enumerate, Cvar_Shutdown_collect, ctx.lists);
+
+  for (size_t i = 0; i < ctx.lists->count; i++) {
+    List *list = VectorValue(ctx.lists, List *, i);
+    $(list, removeAll);
+    release(list);
   }
 
-  GError *error = NULL;
-  gchar *replaced = g_regex_replace_eval(cvar_emplace_regex, input, in_size, 0, 0, Cvar_ExpandString_EvalCallback, NULL, &error);
-
-  if (error) {
-    Com_Warn("Script expansion error: %s\n", error->message);
-  }
-
-  *output = g_string_new(replaced);
-  g_free(replaced);
-  return true;
-}
-
-/**
- * @brief Frees a GQueue value stored in the cvar hash table.
- */
-static void Cvar_HashTable_Free(gpointer list) {
-
-  g_queue_free_full((GQueue *) list, Mem_Free);
+  release(ctx.lists);
 }
 
 /**
@@ -782,7 +776,7 @@ static void Cvar_HashTable_Free(gpointer list) {
  */
 void Cvar_Init(void) {
 
-  cvar_vars = g_hash_table_new_full(g_stri_hash, g_stri_equal, NULL, Cvar_HashTable_Free);
+  cvar_vars = $(alloc(HashTable), init, HashTableHashStri, HashTableEqualStri);
 
   cmd_t *set_cmd = Cmd_Add("set", Cvar_Set_f, 0, "Set a console variable");
   cmd_t *seta_cmd = Cmd_Add("seta", Cvar_Set_f, 0, "Set an archived console variable");
@@ -803,7 +797,7 @@ void Cvar_Init(void) {
   for (int32_t i = 1; i < Com_Argc(); i++) {
     const char *s = Com_Argv(i);
 
-    if (!strncmp(s, "+set", 4)) {
+    if (!q_strncmp(s, "+set", 4)) {
       Cmd_ExecuteString(va("%s %s \"%s\"\n", Com_Argv(i) + 1, Com_Argv(i + 1), Com_Argv(i + 2)));
 
       cvar_t *var = Cvar_Get(Com_Argv(i + 1));
@@ -816,16 +810,6 @@ void Cvar_Init(void) {
       i += 2;
     }
   }
-
-  // this only needs to be done once
-  if (!cvar_emplace_regex) {
-    GError *error = NULL;
-    cvar_emplace_regex = g_regex_new("\\$([a-z0-9_]+)", G_REGEX_CASELESS | G_REGEX_MULTILINE | G_REGEX_DOTALL, 0, &error);
-
-    if (error) {
-      Com_Warn("Error compiling regex: %s\n", error->message);
-    }
-  }
 }
 
 /**
@@ -833,7 +817,8 @@ void Cvar_Init(void) {
  */
 void Cvar_Shutdown(void) {
 
-  g_hash_table_destroy(cvar_vars);
+  Cvar_FreeAll();
+  release(cvar_vars);
   cvar_vars = NULL;
 
   Cmd_Remove("set");

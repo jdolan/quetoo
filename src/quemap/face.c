@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <Objectively/HashTable.h>
+#include <Objectively/Vector.h>
+
 #include "bsp.h"
 #include "face.h"
 #include "map.h"
@@ -85,14 +88,13 @@ face_t *MergeFaces(face_t *a, face_t *b) {
   return merged;
 }
 
-static GHashTable* welding_spatial_hash;
-static GSList* welding_hash_keys;
+static HashTable *welding_spatial_hash;
 
 /**
- * @brief Destroys a GHashTable stored as a value in the welding spatial hash.
+ * @brief Destroys a Vector stored as a value in the welding spatial hash.
  */
-static void WeldingSpatialHashValueDestroyFunc(GHashTable *ptr) {
-  g_hash_table_destroy(ptr);
+static void WeldingSpatialHashValueDestroyFunc(ident ptr) {
+  release(ptr);
 }
 
 /**
@@ -105,7 +107,8 @@ static vec3i_t GetWeldingPoint(const vec3_t p) {
 /**
  * @brief Hash function for integer grid-cell keys used by the welding spatial hash.
  */
-static guint WeldingSpatialHashFunc(const vec3i_t* ptr) {
+static size_t WeldingSpatialHashFunc(const ident ptr_) {
+  const vec3i_t *ptr = ptr_;
   const uint32_t x = (uint32_t) roundf((MAX_WORLD_COORD + ptr->x) * .5f);
   const uint32_t y = (uint32_t) roundf((MAX_WORLD_COORD + ptr->y) * .5f);
   const uint32_t z = (uint32_t) roundf((MAX_WORLD_COORD + ptr->z) * .25f);
@@ -116,7 +119,9 @@ static guint WeldingSpatialHashFunc(const vec3i_t* ptr) {
 /**
  * @brief Equality function for integer grid-cell keys used by the welding spatial hash.
  */
-static gboolean WeldingSpatialHashEqualFunc(const vec3i_t* a, const vec3i_t* b) {
+static bool WeldingSpatialHashEqualFunc(const ident a_, const ident b_) {
+  const vec3i_t *a = a_;
+  const vec3i_t *b = b_;
   return a->x == b->x && a->y == b->y && a->z == b->z;
 }
 
@@ -126,44 +131,30 @@ static gboolean WeldingSpatialHashEqualFunc(const vec3i_t* a, const vec3i_t* b) 
 void ClearWeldingSpatialHash(void) {
 
   if (welding_spatial_hash) {
-    g_hash_table_remove_all(welding_spatial_hash);
-    g_slist_free_full(welding_hash_keys, Mem_Free);
-    welding_hash_keys = NULL;
-  } else {
-    welding_spatial_hash = g_hash_table_new_full((GHashFunc) WeldingSpatialHashFunc,
-                           (GEqualFunc) WeldingSpatialHashEqualFunc,
-                           NULL,
-                           (GDestroyNotify) WeldingSpatialHashValueDestroyFunc);
-    welding_hash_keys = g_slist_alloc();
+    release(welding_spatial_hash);
   }
+
+  welding_spatial_hash = $(alloc(HashTable), init, WeldingSpatialHashFunc, WeldingSpatialHashEqualFunc);
+  welding_spatial_hash->destroyKey = (HashTableDestroyFunc) Mem_Free;
+  welding_spatial_hash->destroyValue = (HashTableDestroyFunc) WeldingSpatialHashValueDestroyFunc;
 }
 
 /**
- * @brief GEqualFunc comparing two vertex indices by their BSP vertex positions for use within a hash bucket.
+ * @brief Returns true if the bucket already contains a vertex with the same BSP position.
  */
-static gboolean WeldingHashKeyEquals(gconstpointer a, gconstpointer b) {
-  const int32_t key_a = GPOINTER_TO_INT(a);
-  const int32_t key_b = GPOINTER_TO_INT(b);
+static bool WeldingBucketContainsIndex(const Vector *array, int32_t index) {
+  for (size_t i = 0; i < array->count; i++) {
+    const int32_t existing = VectorValue((Vector *) array, int32_t, i);
+    if (existing == index) {
+      return true;
+    }
 
-  if (key_a == key_b) {
-    return true;
+    if (Vec3_Equal(bsp_file.vertexes[existing].position, bsp_file.vertexes[index].position)) {
+      return true;
+    }
   }
 
-  return Vec3_Equal(bsp_file.vertexes[key_a].position, bsp_file.vertexes[key_b].position);
-}
-
-/**
- * @brief GHashFunc hashing a vertex index by its quantized BSP vertex position.
- */
-static guint WeldingHashKeyHash(gconstpointer a) {
-  const int32_t key_a = GPOINTER_TO_INT(a);
-  const vec3_t *v = &bsp_file.vertexes[key_a].position;
-
-  return WeldingSpatialHashFunc(&(const vec3i_t) {
-    .x = v->x * VERTEX_EPSILON,
-    .y = v->y * VERTEX_EPSILON,
-    .z = v->z * VERTEX_EPSILON
-  });
+  return false;
 }
 
 /**
@@ -171,20 +162,20 @@ static guint WeldingHashKeyHash(gconstpointer a) {
  */
 static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
   const vec3i_t spatial = GetWeldingPoint(v);
-  GHashTable *array = g_hash_table_lookup(welding_spatial_hash, &spatial);
+  Vector *array = $(welding_spatial_hash, get, (ident) &spatial);
 
   if (!array) {
-    array = g_hash_table_new(WeldingHashKeyHash, WeldingHashKeyEquals);
+    array = $(alloc(Vector), initWithSize, sizeof(int32_t));
 
-    gpointer key_copy = Mem_Malloc(sizeof(spatial));
-    memcpy(key_copy, &spatial, sizeof(spatial));
+    vec3i_t *key_copy = Mem_Malloc(sizeof(*key_copy));
+    *key_copy = spatial;
 
-    welding_hash_keys = g_slist_prepend(welding_hash_keys, key_copy);
-    g_hash_table_insert(welding_spatial_hash, key_copy, array);
+    $(welding_spatial_hash, set, key_copy, array);
   }
 
-  if (!g_hash_table_contains(array, GINT_TO_POINTER(index))) {
-    g_hash_table_add(array, GINT_TO_POINTER(index));
+  if (!WeldingBucketContainsIndex(array, index)) {
+    int32_t element = index;
+    $(array, addElement, &element);
   }
 }
 
@@ -203,18 +194,14 @@ static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
     for (int32_t y = 0; y < (int32_t) lengthof(offsets); y++) {
       for (int32_t x = 0; x < (int32_t) lengthof(offsets); x++) {
         const vec3i_t key = GetWeldingPoint(Vec3(in.x + offsets[x], in.y + offsets[y], in.z + offsets[z]));
-        GHashTable *array = g_hash_table_lookup(welding_spatial_hash, &key);
+        Vector *array = $(welding_spatial_hash, get, (ident) &key);
 
         if (!array) {
           continue;
         }
 
-        GHashTableIter iter;
-        gpointer iter_key;
-        g_hash_table_iter_init(&iter, array);
-
-        while (g_hash_table_iter_next(&iter, &iter_key, NULL)) {
-          const int32_t idx = GPOINTER_TO_INT(iter_key);
+        for (size_t i = 0; i < array->count; i++) {
+          const int32_t idx = VectorValue(array, int32_t, i);
           const vec3_t pos = bsp_file.vertexes[idx].position;
           const float dist = Vec3_DistanceSquared(pos, in);
 
@@ -390,21 +377,22 @@ bsp_face_t *EmitFace(const face_t *face) {
 static const bsp_model_t *phong_model;
 static float phong_cosine;
 
-// Pre-built for PhongShading: position -> GPtrArray*(bsp_face_t*) and brush_side* -> winding*
-static GHashTable *phong_vertex_faces;
-static GHashTable *phong_brush_side_windings;
+// Pre-built for PhongShading: position -> Vector*(bsp_face_t*) and brush_side* -> winding*
+static HashTable *phong_vertex_faces;
+static HashTable *phong_brush_side_windings;
+
+static void ReleaseObject(ident object) {
+  release(object);
+}
 
 /**
  * @brief Builds lookup tables used by Phong shading for O(1) vertex-to-face and brush-side-to-winding queries.
  */
 static void BuildPhongMaps(const bsp_model_t *mod) {
 
-  phong_vertex_faces = g_hash_table_new_full(
-    (GHashFunc) WeldingSpatialHashFunc,
-    (GEqualFunc) WeldingSpatialHashEqualFunc,
-    g_free,
-    (GDestroyNotify) g_ptr_array_unref
-  );
+  phong_vertex_faces = $(alloc(HashTable), init, WeldingSpatialHashFunc, WeldingSpatialHashEqualFunc);
+  phong_vertex_faces->destroyKey = (HashTableDestroyFunc) Mem_Free;
+  phong_vertex_faces->destroyValue = ReleaseObject;
 
   const bsp_face_t *f = &bsp_file.faces[mod->first_face];
   for (int32_t i = 0; i < mod->num_faces; i++, f++) {
@@ -414,30 +402,31 @@ static void BuildPhongMaps(const bsp_model_t *mod) {
     const bsp_vertex_t *v = &bsp_file.vertexes[f->first_vertex];
     for (int32_t j = 0; j < f->num_vertexes; j++, v++) {
       const vec3i_t key = GetWeldingPoint(v->position);
-      GPtrArray *arr = g_hash_table_lookup(phong_vertex_faces, &key);
+      Vector *arr = $(phong_vertex_faces, get, (ident) &key);
       if (!arr) {
-        arr = g_ptr_array_new();
-        vec3i_t *key_copy = g_new(vec3i_t, 1);
+        arr = $(alloc(Vector), initWithSize, sizeof(bsp_face_t *));
+        vec3i_t *key_copy = Mem_Malloc(sizeof(*key_copy));
         *key_copy = key;
-        g_hash_table_insert(phong_vertex_faces, key_copy, arr);
+        $(phong_vertex_faces, set, key_copy, arr);
       }
-      g_ptr_array_add(arr, (gpointer) f);
+      const bsp_face_t *face = f;
+      $(arr, addElement, &face);
     }
   }
 
-  phong_brush_side_windings = g_hash_table_new(g_direct_hash, g_direct_equal);
+  phong_brush_side_windings = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
   const brush_side_t *map_side = brush_sides;
   for (int32_t j = 0; j < num_brush_sides; j++, map_side++) {
     if (map_side->out && map_side->winding) {
-      g_hash_table_insert(phong_brush_side_windings, (gpointer) map_side->out, map_side->winding);
+      $(phong_brush_side_windings, set, (void *) map_side->out, map_side->winding);
     }
   }
 }
 
 static void FreePhongMaps(void) {
-  g_hash_table_destroy(phong_vertex_faces);
+  release(phong_vertex_faces);
   phong_vertex_faces = NULL;
-  g_hash_table_destroy(phong_brush_side_windings);
+  release(phong_brush_side_windings);
   phong_brush_side_windings = NULL;
 }
 
@@ -448,14 +437,14 @@ static void FreePhongMaps(void) {
 static size_t FacesForVertex(const bsp_face_t *face, const bsp_vertex_t *vertex, const bsp_face_t **faces) {
 
   const vec3i_t key = GetWeldingPoint(vertex->position);
-  const GPtrArray *arr = g_hash_table_lookup(phong_vertex_faces, &key);
+  const Vector *arr = $(phong_vertex_faces, get, (ident) &key);
   if (!arr) {
     return 0;
   }
 
   size_t count = 0;
-  for (guint i = 0; i < arr->len; i++) {
-    faces[count++] = arr->pdata[i];
+  for (size_t i = 0; i < arr->count; i++) {
+    faces[count++] = VectorValue((Vector *) arr, const bsp_face_t *, i);
     if (count == MAX_VERTEX_FACES) {
       Com_Warn("Vertex @ %s is shared by too many faces.\n", vtos(vertex->position));
       break;
@@ -523,7 +512,7 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
        * are more reliable.
        */
 
-      cm_winding_t *w = g_hash_table_lookup(phong_brush_side_windings, s);
+      cm_winding_t *w = $(phong_brush_side_windings, get, (ident) s);
       if (!w) {
         continue;
       }

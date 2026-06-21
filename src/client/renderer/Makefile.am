@@ -76,7 +76,7 @@ librenderer_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/client \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL3_CFLAGS@
 

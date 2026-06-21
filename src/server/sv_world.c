@@ -32,7 +32,7 @@ typedef struct sv_sector_s {
   int32_t axis; // -1 = leaf
   float dist;
   struct sv_sector_s *children[2];
-  GList *entities;
+  List *entities;
 } sv_sector_t;
 
 #define SECTOR_DEPTH  4
@@ -95,7 +95,8 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, const box3_t bounds) {
 static void Sv_InitWorld(void) {
 
   for (size_t i = 0; i < sv_world.num_sectors; i++) {
-    g_list_free(sv_world.sectors[i].entities);
+    release(sv_world.sectors[i].entities);
+    sv_world.sectors[i].entities = NULL;
   }
 
   memset(&sv_world, 0, sizeof(sv_world));
@@ -147,7 +148,14 @@ void Sv_UnlinkEntity(g_entity_t *ent) {
 
   if (sent->sector) {
     sv_sector_t *sector = (sv_sector_t *) sent->sector;
-    sector->entities = g_list_remove(sector->entities, ent);
+    if (sector->entities) {
+      for (ListNode *node = sector->entities->head; node; node = node->next) {
+        if (node->element == ent) {
+          $(sector->entities, removeNode, node);
+          break;
+        }
+      }
+    }
 
     g_entity_t *gent = sent->gent;
     memset(sent, 0, sizeof(*sent));
@@ -217,7 +225,10 @@ void Sv_LinkEntity(g_entity_t *ent) {
 
   // add it to the sector
   sent->sector = sector;
-  sector->entities = g_list_prepend(sector->entities, ent);
+  if (!sector->entities) {
+    sector->entities = $(alloc(List), init);
+  }
+  $(sector->entities, prependElement, ent);
 }
 
 /**
@@ -254,25 +265,24 @@ static bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
  */
 static void Sv_BoxEntities_r(sv_sector_t *sector) {
 
-  GList *e = sector->entities;
-  while (e) {
-    g_entity_t *ent = (g_entity_t *) e->data;
+  if (sector->entities) {
+    for (const ListNode *node = sector->entities->head; node; node = node->next) {
+      g_entity_t *ent = (g_entity_t *) node->element;
 
-    if (Sv_BoxEntities_Filter(ent)) {
+      if (Sv_BoxEntities_Filter(ent)) {
 
-      if (Box3_Intersects(ent->abs_bounds, sv_world.box)) {
+        if (Box3_Intersects(ent->abs_bounds, sv_world.box)) {
 
-        sv_world.box_entities[sv_world.num_box_entities] = ent;
-        sv_world.num_box_entities++;
+          sv_world.box_entities[sv_world.num_box_entities] = ent;
+          sv_world.num_box_entities++;
 
-        if (sv_world.num_box_entities == sv_world.max_box_entities) {
-          Com_Warn("sv_world.max_box_entities\n");
-          return;
+          if (sv_world.num_box_entities == sv_world.max_box_entities) {
+            Com_Warn("sv_world.max_box_entities\n");
+            return;
+          }
         }
       }
     }
-
-    e = e->next;
   }
 
   if (sector->axis == -1) {

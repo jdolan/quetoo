@@ -147,7 +147,7 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
 void G_target_speaker(g_entity_t *ent) {
 
   const char *sound = gi.EntityValue(ent->def, "sound")->string;
-  if (!strlen(sound)) {
+  if (!q_strlen(sound)) {
     gi.Warn("No sound specified for %s\n", etos(ent));
     return;
   }

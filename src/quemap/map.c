@@ -335,7 +335,7 @@ static void UnparseBrush(brush_t *brush, parser_t *parser) {
     char token[MAX_TOKEN_CHARS];
     while (true) {
       Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-      if (!g_strcmp0(token, "}")) {
+      if (!q_strcmp(token, "}")) {
         break;
       }
     }
@@ -418,27 +418,27 @@ static void SetMaterialFlags(brush_side_t *side) {
     }
   }
 
-  if (!g_strcmp0(side->texture, "common/caulk")) {
+  if (!q_strcmp(side->texture, "common/caulk")) {
     side->surface |= SURF_NO_DRAW;
-  } else if (!g_strcmp0(side->texture, "common/clip")) {
+  } else if (!q_strcmp(side->texture, "common/clip")) {
     side->contents |= CONTENTS_PLAYER_CLIP;
-  } else if (!g_strcmp0(side->texture, "common/dust")) {
+  } else if (!q_strcmp(side->texture, "common/dust")) {
     side->contents |= CONTENTS_ATMOSPHERIC;
-  } else if (!g_strcmp0(side->texture, "common/hint")) {
+  } else if (!q_strcmp(side->texture, "common/hint")) {
     side->surface |= SURF_HINT;
-  } else if (!g_strcmp0(side->texture, "common/ladder")) {
+  } else if (!q_strcmp(side->texture, "common/ladder")) {
     side->contents |= CONTENTS_LADDER | CONTENTS_PLAYER_CLIP;
-  } else if (!g_strcmp0(side->texture, "common/monsterclip")) {
+  } else if (!q_strcmp(side->texture, "common/monsterclip")) {
     side->contents |= CONTENTS_MONSTER_CLIP;
-  } else if (!g_strcmp0(side->texture, "common/origin")) {
+  } else if (!q_strcmp(side->texture, "common/origin")) {
     side->contents |= CONTENTS_ORIGIN;
-  } else if (!g_strcmp0(side->texture, "common/skip")) {
+  } else if (!q_strcmp(side->texture, "common/skip")) {
     side->surface |= SURF_SKIP;
-  } else if (!g_strcmp0(side->texture, "common/sky")) {
+  } else if (!q_strcmp(side->texture, "common/sky")) {
     side->surface |= SURF_SKY;
-  } else if (!g_strcmp0(side->texture, "common/trigger")) {
+  } else if (!q_strcmp(side->texture, "common/trigger")) {
     side->surface |= SURF_NO_DRAW;
-  } else if (!g_strcmp0(side->texture, "common/weather")) {
+  } else if (!q_strcmp(side->texture, "common/weather")) {
     side->contents |= CONTENTS_ATMOSPHERIC;
   }
 
@@ -455,13 +455,13 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
 
-  if (g_strcmp0(token, "{")) {
+  if (q_strcmp(token, "{")) {
     return NULL;
   }
 
   // Check if this is a patchDef2 block
   if (Parse_Token(parser, PARSE_DEFAULT | PARSE_PEEK, token, sizeof(token))) {
-    if (!g_strcmp0(token, "patchDef2")) {
+    if (!q_strcmp(token, "patchDef2")) {
       const int32_t entity_num = (int32_t) (entity - entities);
       patch_t *patch = ParsePatch(parser, entity_num);
       if (patch) {
@@ -491,7 +491,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
       Com_Error(ERROR_FATAL, "EOF without closing brush\n");
     }
 
-    if (!g_strcmp0(token, "}")) {
+    if (!q_strcmp(token, "}")) {
       Parse_SkipToken(parser, PARSE_DEFAULT);
       break;
     }
@@ -509,7 +509,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
     for (int32_t i = 0; i < 3; i++) {
 
       Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-      if (g_strcmp0(token, "(")) {
+      if (q_strcmp(token, "(")) {
         Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
       }
 
@@ -518,7 +518,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
       Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_DOUBLE, &points[i].z, 1);
 
       Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
-      if (g_strcmp0(token, ")")) {
+      if (q_strcmp(token, ")")) {
         Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
       }
     }
@@ -526,16 +526,16 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
     // read the texture name
     Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
 
-    if (strlen(token) > sizeof(side->texture) - 1) {
+    if (q_strlen(token) > sizeof(side->texture) - 1) {
       Com_Error(ERROR_FATAL, "Texture name \"%s\" is too long.\n", token);
     }
 
-    g_strlcpy(side->texture, token, sizeof(side->texture));
+    q_strlcpy(side->texture, token, sizeof(side->texture));
 
     // detect Valve-220 vs standard Q1/Q3 format by peeking for '['
     Parse_PeekToken(parser, PARSE_NO_WRAP, token, sizeof(token));
 
-    if (!g_strcmp0(token, "[")) {
+    if (!q_strcmp(token, "[")) {
       // Valve-220: [ ux uy uz shift_x ] [ vx vy vz shift_y ] rotation scale_x scale_y
       if (map_format == MAP_FORMAT_UNKNOWN) {
         map_format = MAP_FORMAT_VALVE;
@@ -544,7 +544,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
       }
       for (int32_t i = 0; i < 2; i++) {
         Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
-        if (g_strcmp0(token, "[")) {
+        if (q_strcmp(token, "[")) {
           Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
         }
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].x, 1);
@@ -552,7 +552,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].z, 1);
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].w, 1); // shift
         Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
-        if (g_strcmp0(token, "]")) {
+        if (q_strcmp(token, "]")) {
           Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
         }
       }
@@ -786,7 +786,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 
   Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token));
 
-  if (!g_strcmp0(token, "{")) {
+  if (!q_strcmp(token, "{")) {
 
     if (num_entities == MAX_BSP_ENTITIES) {
       Com_Error(ERROR_FATAL, "MAX_BSP_ENTITIES\n");
@@ -807,12 +807,12 @@ static entity_t *ParseEntity(parser_t *parser) {
         Com_Error(ERROR_FATAL, "EOF without closing entity\n");
       }
 
-      if (!g_strcmp0(token, "}")) {
+      if (!q_strcmp(token, "}")) {
         Parse_SkipToken(parser, PARSE_DEFAULT);
         break;
       }
 
-      if (!g_strcmp0(token, "{")) {
+      if (!q_strcmp(token, "{")) {
         brush_t *brush = ParseBrush(parser, entity);
         if (brush) {
           entity->num_brushes++;
@@ -868,10 +868,10 @@ static entity_t *ParseEntity(parser_t *parser) {
     // associated with them will still be available. Their brushes will point to their
     // defining cm_entity_t.
     const char *classname = ValueForKey(entity, "classname", NULL);
-    if (!g_strcmp0(classname, "func_group") ||
-      !g_strcmp0(classname, "misc_dust") ||
-      !g_strcmp0(classname, "misc_sprite") ||
-      !g_strcmp0(classname, "misc_weather")) {
+    if (!q_strcmp(classname, "func_group") ||
+      !q_strcmp(classname, "misc_dust") ||
+      !q_strcmp(classname, "misc_sprite") ||
+      !q_strcmp(classname, "misc_weather")) {
       MoveBrushesToWorld(entity);
       MovePatchesToWorld(entity);
     }

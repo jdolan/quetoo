@@ -54,8 +54,8 @@ cm_entity_t *Cm_CopyEntity(const cm_entity_t *entity) {
 
     cm_entity_t *out = Cm_AllocEntity();
 
-    g_strlcpy(out->key, in->key, sizeof(out->key));
-    g_strlcpy(out->string, in->string, sizeof(out->string));
+    q_strlcpy(out->key, in->key, sizeof(out->key));
+    q_strlcpy(out->string, in->string, sizeof(out->string));
 
     Cm_ParseEntity(out);
 
@@ -92,8 +92,8 @@ cm_entity_t *Cm_EntityAssign(const cm_entity_t *dst, const cm_entity_t *src) {
 
     cm_entity_t *pair = Cm_AllocEntity();
 
-    g_strlcpy(pair->key, s->key, sizeof(pair->key));
-    g_strlcpy(pair->string, s->string, sizeof(pair->string));
+    q_strlcpy(pair->key, s->key, sizeof(pair->key));
+    q_strlcpy(pair->string, s->string, sizeof(pair->string));
 
     Cm_ParseEntity(pair);
 
@@ -115,7 +115,7 @@ void Cm_ParseEntity(cm_entity_t *pair) {
   assert(pair);
   assert(pair->string);
 
-  if (strlen(pair->string)) {
+  if (q_strlen(pair->string)) {
     pair->parsed |= ENTITY_STRING;
     pair->nullable_string = pair->string;
   }
@@ -158,20 +158,21 @@ void Cm_ParseEntity(cm_entity_t *pair) {
  * @brief GCompareFunc for entity sorting.
  * @details Classname comes first, followed by the rest in lexigraphical order.
  */
-static gint Cm_SortEntity_cmp(gconstpointer a, gconstpointer b) {
+static Order Cm_SortEntity_cmp(const ident a, const ident b) {
 
-  const cm_entity_t *m = a;
-  const cm_entity_t *n = b;
+  const cm_entity_t *m = *(const cm_entity_t *const *) a;
+  const cm_entity_t *n = *(const cm_entity_t *const *) b;
 
-  if (!g_strcmp0(m->key, "classname")) {
-    return INT_MIN;
+  if (!q_strcmp(m->key, "classname")) {
+    return OrderAscending;
   }
 
-  if (!g_strcmp0(n->key, "classname")) {
-    return INT_MAX;
+  if (!q_strcmp(n->key, "classname")) {
+    return OrderDescending;
   }
 
-  return g_strcmp0(m->key, n->key);
+  const int32_t cmp = q_strcmp(m->key, n->key);
+  return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
 /**
@@ -182,37 +183,37 @@ cm_entity_t *Cm_SortEntity(cm_entity_t *entity) {
   assert(entity);
   assert(entity != &null_entity);
 
-  GPtrArray *pairs = g_ptr_array_new();
+  Vector *pairs = $(alloc(Vector), initWithSize, sizeof(cm_entity_t *));
 
   for (cm_entity_t *e = entity; e; e = e->next) {
-    g_ptr_array_add(pairs, e);
+    $(pairs, addElement, &e);
   }
 
-  g_ptr_array_sort_values(pairs, Cm_SortEntity_cmp);
+  $(pairs, sort, Cm_SortEntity_cmp);
 
   cm_entity_t *classname = NULL;
 
   // now rebuild the linked list
 
-  for (guint i = 0; i < pairs->len; i++) {
+  for (size_t i = 0; i < pairs->count; i++) {
 
-    cm_entity_t *e = g_ptr_array_index(pairs, i);
+    cm_entity_t *e = VectorValue(pairs, cm_entity_t *, i);
 
     if (i == 0) {
       classname = e;
       classname->prev = NULL;
     } else {
-      e->prev = g_ptr_array_index(pairs, i - 1);
+      e->prev = VectorValue(pairs, cm_entity_t *, i - 1);
     }
 
-    if (i < pairs->len - 1) {
-      e->next = g_ptr_array_index(pairs, i + 1);
+    if (i < pairs->count - 1) {
+      e->next = VectorValue(pairs, cm_entity_t *, i + 1);
     } else {
       e->next = NULL;
     }
   }
 
-  g_ptr_array_free(pairs, false);
+  release(pairs);
 
   return classname;
 }
@@ -220,9 +221,9 @@ cm_entity_t *Cm_SortEntity(cm_entity_t *entity) {
 /**
  * @brief Loads the BSP entity string lump.
  */
-GList *Cm_LoadEntities(const char *entity_string) {
+List *Cm_LoadEntities(const char *entity_string) {
 
-  GList *entities = NULL;
+  List *entities = $(alloc(List), init);
 
   parser_t parser = Parse_Init(entity_string, PARSER_ALL_COMMENTS);
 
@@ -234,7 +235,7 @@ GList *Cm_LoadEntities(const char *entity_string) {
       break;
     }
 
-    if (!g_strcmp0("{", token)) {
+    if (!q_strcmp("{", token)) {
 
       cm_entity_t *entity = NULL;
 
@@ -258,7 +259,7 @@ GList *Cm_LoadEntities(const char *entity_string) {
 
         Parse_PeekToken(&parser, PARSE_DEFAULT, token, sizeof(token));
 
-        if (!g_strcmp0("}", token)) {
+        if (!q_strcmp("}", token)) {
           break;
         }
       }
@@ -267,11 +268,11 @@ GList *Cm_LoadEntities(const char *entity_string) {
 
       assert(entity);
 
-      entities = g_list_prepend(entities, entity);
+      $(entities, appendElement, entity);
     }
   }
 
-  return g_list_reverse(entities);
+  return entities;
 }
 
 /**
@@ -294,7 +295,7 @@ int32_t Cm_EntityNumber(const cm_entity_t *entity) {
 const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
 
   for (const cm_entity_t *e = entity; e; e = e->next) {
-    if (!g_strcmp0(e->key, key)) {
+    if (!q_strcmp(e->key, key)) {
       return e;
     }
   }
@@ -318,7 +319,7 @@ cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entit
   cm_entity_t *e;
   cm_entity_t *target = NULL;
   for (e = entity; e; e = e->next) {
-    if (!g_strcmp0(e->key, key)) {
+    if (!q_strcmp(e->key, key)) {
       target = e;
       break;
     }
@@ -333,31 +334,31 @@ cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entit
     }
   }
 
-  g_strlcpy(target->key, key, sizeof(target->key));
+  q_strlcpy(target->key, key, sizeof(target->key));
 
   switch (field) {
     case ENTITY_STRING:
-      g_strlcpy(target->string, (const char *) value, sizeof(entity->string));
+      q_strlcpy(target->string, (const char *) value, sizeof(entity->string));
       break;
     case ENTITY_INTEGER:
-      g_snprintf(target->string, sizeof(entity->string), "%d", *(int32_t *) value);
+      q_snprintf(target->string, sizeof(entity->string), "%d", *(int32_t *) value);
       break;
     case ENTITY_FLOAT:
-      g_snprintf(target->string, sizeof(entity->string), "%g", *(float *) value);
+      q_snprintf(target->string, sizeof(entity->string), "%g", *(float *) value);
       break;
     case ENTITY_VEC2: {
       const vec2_t v = *(vec2_t *) value;
-      g_snprintf(target->string, sizeof(entity->string), "%g %g", v.x, v.y);
+      q_snprintf(target->string, sizeof(entity->string), "%g %g", v.x, v.y);
       break;
     }
     case ENTITY_VEC3: {
       const vec3_t v = *(vec3_t *) value;
-      g_snprintf(target->string, sizeof(entity->string), "%g %g %g", v.x, v.y, v.z);
+      q_snprintf(target->string, sizeof(entity->string), "%g %g %g", v.x, v.y, v.z);
       break;
     }
     case ENTITY_VEC4: {
       const vec4_t v = *(vec4_t *) value;
-      g_snprintf(target->string, sizeof(entity->string), "%g %g %g %g", v.x, v.y, v.z, v.w);
+      q_snprintf(target->string, sizeof(entity->string), "%g %g %g %g", v.x, v.y, v.z, v.w);
       break;
     }
   }
@@ -367,17 +368,17 @@ cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entit
 }
 
 /**
- * @brief Returns a GPtrArray of brushes belonging to the given entity.
+ * @brief Returns a Vector of brushes belonging to the given entity.
  */
-GPtrArray *Cm_EntityBrushes(const cm_entity_t *entity) {
+Vector *Cm_EntityBrushes(const cm_entity_t *entity) {
 
-  GPtrArray *brushes = g_ptr_array_new();
+  Vector *brushes = $(alloc(Vector), initWithSize, sizeof(cm_bsp_brush_t *));
 
   cm_bsp_brush_t *brush = Cm_Bsp()->brushes;
   for (int32_t i = 0; i < Cm_Bsp()->num_brushes; i++, brush++) {
 
     if (brush->entity == entity) {
-      g_ptr_array_add(brushes, brush);
+      $(brushes, addElement, &brush);
     }
   }
 
@@ -449,7 +450,7 @@ void Cm_ParseMapBrushes(const char *map_text, cm_entity_t **entities, int32_t nu
 
     while (Parse_Token(&parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
 
-      if (!g_strcmp0(token, "{")) {
+      if (!q_strcmp(token, "{")) {
         if (!in_entity) {
           in_entity = true;
         } else {
@@ -460,7 +461,7 @@ void Cm_ParseMapBrushes(const char *map_text, cm_entity_t **entities, int32_t nu
         }
       }
 
-      if (!g_strcmp0(token, "}")) {
+      if (!q_strcmp(token, "}")) {
         if (brush_depth > 0) {
           brush_depth--;
         } else if (in_entity) {
@@ -472,9 +473,9 @@ void Cm_ParseMapBrushes(const char *map_text, cm_entity_t **entities, int32_t nu
 
     if (brushes) {
       const size_t len = parser.position.ptr - brushes - 1;
-      e->brushes = Mem_TagMalloc(len + strlen("// brush 0\n") + 1, MEM_TAG_COLLISION);
+      e->brushes = Mem_TagMalloc(len + q_strlen("// brush 0\n") + 1, MEM_TAG_COLLISION);
       strcpy(e->brushes, "// brush 0\n");
-      memcpy(e->brushes + strlen(e->brushes), brushes, len);
+      memcpy(e->brushes + q_strlen(e->brushes), brushes, len);
     }
   }
 }

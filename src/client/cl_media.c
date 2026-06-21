@@ -19,7 +19,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <Objectively/HashTable.h>
+
 #include "cl_local.h"
+
+/**
+ * @brief HashTable enumerate callback for manifest entry validation/download.
+ */
+static void Cl_CheckManifestEntry_(const HashTable *table, ident key, ident val, ident data) {
+  (void) table;
+  const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) val;
+  if (Fs_Exists(entry->path)) {
+    if (!Cm_CheckManifestEntry(entry)) {
+      Com_Warn("%s differs from server (expected %s)\n", entry->path, entry->hash);
+    }
+  } else {
+    Cl_CheckOrDownloadFile(entry->path);
+  }
+}
 
 /**
  * @brief Entry point for file downloads, or "precache" from server. Attempt to
@@ -49,25 +66,12 @@ void Cl_RequestNextDownload(void) {
     if (*cl.config_strings[CS_MANIFEST] != '\0') {
       Cl_CheckOrDownloadFile(cl.config_strings[CS_MANIFEST]);
 
-      GHashTable *manifest = Cm_ReadManifest(cl.config_strings[CS_MANIFEST]);
+      HashTable *manifest = Cm_ReadManifest(cl.config_strings[CS_MANIFEST]);
       if (!manifest) {
         Com_Error(ERROR_DROP, "Failed to read %s\n", cl.config_strings[CS_MANIFEST]);
       }
 
-      GHashTableIter iter;
-      gpointer key, val;
-      g_hash_table_iter_init(&iter, manifest);
-      while (g_hash_table_iter_next(&iter, &key, &val)) {
-        const cm_manifest_entry_t *entry = val;
-
-        if (Fs_Exists(entry->path)) {
-          if (!Cm_CheckManifestEntry(entry)) {
-            Com_Warn("%s differs from server (expected %s)\n", entry->path, entry->hash);
-          }
-        } else {
-          Cl_CheckOrDownloadFile(entry->path);
-        }
-      }
+      $(manifest, enumerate, Cl_CheckManifestEntry_, NULL);
 
       Cm_FreeManifest(manifest);
     }
@@ -88,23 +92,26 @@ void Cl_RequestNextDownload(void) {
  * @brief `Fs_Enumerate` function for `Cl_Mapshots`.
  */
 static void Cl_Mapshots_enumerate(const char *path, void *data) {
-  GList **list = (GList **) data;
+  List *list = (List *) data;
 
-  if (g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".png")) {
-    *list = g_list_append(*list, g_strdup(path));
+  const size_t len = q_strlen(path);
+  if ((len >= 4 && !q_strcmp(path + len - 4, ".jpg")) ||
+      (len >= 4 && !q_strcmp(path + len - 4, ".png"))) {
+    $(list, appendElement, q_strdup(path));
   }
 }
 
 /**
- * @return A GList of known mapshots for the given map.
+ * @return A List of known mapshots for the given map.
  */
-GList *Cl_Mapshots(const char *mapname) {
+List *Cl_Mapshots(const char *mapname) {
 
   char map[MAX_QPATH];
   StripExtension(mapname, map);
 
-  GList *list = NULL;
-  Fs_Enumerate(va("mapshots/%s/*", Basename(map)), Cl_Mapshots_enumerate, (void *) &list);
+  List *list = $(alloc(List), init);
+  list->destroy = (ListDestroyFunc) free;
+  Fs_Enumerate(va("mapshots/%s/*", Basename(map)), Cl_Mapshots_enumerate, (void *) list);
 
   return list;
 }
@@ -266,16 +273,22 @@ void Cl_LoadMedia(void) {
 
   cls.state = CL_LOADING;
 
-  GList *mapshots = Cl_Mapshots(cl.config_strings[CS_BSP]);
-  const size_t len = g_list_length(mapshots);
+  List *mapshots = Cl_Mapshots(cl.config_strings[CS_BSP]);
+  const size_t len = mapshots->count;
 
   if (len > 0) {
-    strcpy(cls.loading.mapshot, g_list_nth_data(mapshots, rand() % len));
+    const ListNode *node = mapshots->head;
+    const size_t pick = (size_t) rand() % len;
+    for (size_t i = 0; i < pick; i++) {
+      node = node->next;
+    }
+    strcpy(cls.loading.mapshot, (const char *) node->element);
   } else {
     cls.loading.mapshot[0] = '\0';
   }
 
-  g_list_free_full(mapshots, g_free);
+  $(mapshots, removeAll);
+  release(mapshots);
 
   Cl_UpdatePrediction();
 
