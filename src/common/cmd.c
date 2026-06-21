@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <Objectively/HashTable.h>
+#include <Objectively/Vector.h>
+
 #include "console.h"
 #include "filesystem.h"
 
@@ -31,7 +34,7 @@ typedef struct cmd_args_s {
 #define CBUF_CHARS 65536
 
 typedef struct cmd_state_s {
-  GHashTable *commands;
+  HashTable *commands;
 
   mem_buf_t buf;
   char buffers[2][CBUF_CHARS];
@@ -52,7 +55,7 @@ static cmd_state_t cmd_state;
  */
 void Cbuf_AddText(const char *text) {
 
-  const size_t l = strlen(text);
+  const size_t l = q_strlen(text);
 
   if (cmd_state.buf.size + l >= cmd_state.buf.max_size) {
     Com_Warn("Overflow\n");
@@ -67,7 +70,7 @@ void Cbuf_AddText(const char *text) {
  */
 void Cbuf_InsertText(const char *text) {
 
-  if (text  && strlen(text)) {
+  if (text  && q_strlen(text)) {
     void *temp;
 
     // copy off any commands still remaining in the exec buffer
@@ -144,7 +147,7 @@ void Cbuf_Execute(void) {
     if (i >= sizeof(line)) {
       Com_Warn("Command exceeded %" PRIuPTR " chars, discarded\n", sizeof(line));
     } else {
-      g_strlcpy(line, text, i + 1);
+      q_strlcpy(line, text, i + 1);
     }
 
     // delete the text from the command buffer and move remaining commands down
@@ -209,7 +212,7 @@ void Cmd_TokenizeString(const char *text) {
   }
 
   // prevent overflows
-  if (strlen(text) >= MAX_STRING_CHARS) {
+  if (q_strlen(text) >= MAX_STRING_CHARS) {
     Com_Warn("MAX_STRING_CHARS exceeded\n");
     return;
   }
@@ -225,10 +228,10 @@ void Cmd_TokenizeString(const char *text) {
 
     // set cmd_state.args to everything after the command name
     if (cmd_state.args.argc == 1) {
-      g_strlcpy(cmd_state.args.args, parser.position.ptr + 1, MAX_STRING_CHARS);
+      q_strlcpy(cmd_state.args.args, parser.position.ptr + 1, MAX_STRING_CHARS);
 
       // strip off any trailing whitespace
-      size_t l = strlen(cmd_state.args.args);
+      size_t l = q_strlen(cmd_state.args.args);
       if (l > 0) {
         char *c = &cmd_state.args.args[l - 1];
 
@@ -243,9 +246,9 @@ void Cmd_TokenizeString(const char *text) {
     }
 
     // expand console variables
-    if (*cmd_state.args.argv[cmd_state.args.argc] == '$' && g_strcmp0(cmd_state.args.argv[0], "alias")) {
+    if (*cmd_state.args.argv[cmd_state.args.argc] == '$' && q_strcmp(cmd_state.args.argv[0], "alias")) {
       const char *c = Cvar_GetString(cmd_state.args.argv[cmd_state.args.argc] + 1);
-      g_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
+      q_strlcpy(cmd_state.args.argv[cmd_state.args.argc], c, MAX_TOKEN_CHARS);
     }
 
     cmd_state.args.argc++;
@@ -258,21 +261,21 @@ void Cmd_TokenizeString(const char *text) {
 static cmd_t *Cmd_Get_(const char *name, const bool case_sensitive) {
 
   if (cmd_state.commands) {
-    const GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, name);
+    List *list = $(cmd_state.commands, get, (void *) name);
 
-    if (queue) {
-      if (queue->length == 1) { // only 1 entry, return it
-        cmd_t *cmd = (cmd_t *) queue->head->data;
+    if (list) {
+      if (list->count == 1) { // only 1 entry, return it
+        cmd_t *cmd = list->head->element;
 
-        if (!case_sensitive || g_strcmp0(cmd->name, name) == 0) {
+        if (!case_sensitive || q_strcmp(cmd->name, name) == 0) {
           return cmd;
         }
       } else {
         // only return the exact match
-        for (const GList *list = queue->head; list; list = list->next) {
-          cmd_t *cmd = (cmd_t *) list->data;
+        for (const ListNode *node = list->head; node; node = node->next) {
+          cmd_t *cmd = node->element;
 
-          if (!g_strcmp0(cmd->name, name)) {
+          if (!q_strcmp(cmd->name, name)) {
             return cmd;
           }
         }
@@ -290,36 +293,41 @@ cmd_t *Cmd_Get(const char *name) {
   return Cmd_Get_(name, false);
 }
 
-/**
- * @brief GCompareFunc for `Cmd_Enumerate`.
- */
-static gint Cmd_Enumerate_comparator(gconstpointer a, const gconstpointer b) {
-  return g_ascii_strcasecmp(((const cmd_t *) a)->name, ((const cmd_t *) b)->name);
+static Order Cmd_Enumerate_comparator(const ident a, const ident b) {
+  const int32_t cmp = q_strcasecmp((*(const cmd_t *const *) a)->name, (*(const cmd_t *const *) b)->name);
+  return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
+}
+
+typedef struct {
+  Vector *cmds;
+} Cmd_Enumerate_ctx_t;
+
+static void Cmd_Enumerate_collect(const HashTable *table, ident key, ident value, ident data) {
+  Cmd_Enumerate_ctx_t *ctx = data;
+  const List *list = value;
+  for (const ListNode *node = list->head; node; node = node->next) {
+    cmd_t *cmd = node->element;
+    $(ctx->cmds, addElement, &cmd);
+  }
 }
 
 /**
  * @brief Enumerates all known commands with the given function.
  */
 void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
-  GList *sorted = NULL;
+  Cmd_Enumerate_ctx_t ctx = {
+    .cmds = $(alloc(Vector), initWithSize, sizeof(cmd_t *)),
+  };
 
-  GHashTableIter iter;
-  gpointer key, value;
-  g_hash_table_iter_init(&iter, cmd_state.commands);
+  $(cmd_state.commands, enumerate, Cmd_Enumerate_collect, &ctx);
+  $(ctx.cmds, sort, Cmd_Enumerate_comparator);
 
-  while (g_hash_table_iter_next(&iter, &key, &value)) {
-    const GQueue *queue = (GQueue *) value;
-
-    for (GList *list = queue->head; list; list = list->next) {
-      sorted = g_list_concat(sorted, g_list_copy(list));
-    }
+  for (size_t i = 0; i < ctx.cmds->count; i++) {
+    cmd_t *cmd = VectorValue(ctx.cmds, cmd_t *, i);
+    func(cmd, data);
   }
 
-  sorted = g_list_sort(sorted, Cmd_Enumerate_comparator);
-
-  g_list_foreach(sorted, (GFunc) func, data);
-
-  g_list_free(sorted);
+  release(ctx.cmds);
 }
 
 /**
@@ -349,15 +357,16 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
     cmd->description = Mem_Link(Mem_TagCopyString(description, MEM_TAG_CMD), cmd);
   }
 
-  gpointer key = (gpointer) name;
-  GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, key);
+  void *key = (void *) cmd->name;
+  List *list = $(cmd_state.commands, get, key);
 
-  if (!queue) {
-    queue = g_queue_new();
-    g_hash_table_insert(cmd_state.commands, key, queue);
+  if (!list) {
+    list = $(alloc(List), init);
+    list->destroy = (ListDestroyFunc) Mem_Free;
+    $(cmd_state.commands, set, key, list);
   }
 
-  g_queue_push_head(queue, cmd);
+  $(list, prependElement, cmd);
   return cmd;
 }
 
@@ -389,31 +398,39 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
   cmd->name = Mem_Link(Mem_TagCopyString(name, MEM_TAG_CMD), cmd);
   cmd->commands = Mem_Link(Mem_TagCopyString(commands, MEM_TAG_CMD), cmd);
 
-  gpointer key = (gpointer) cmd->name;
+  void *key = (void *) cmd->name;
+  List *list = $(cmd_state.commands, get, key);
 
-  GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, key);
-
-  if (!queue) {
-    queue = g_queue_new();
-    g_hash_table_insert(cmd_state.commands, key, queue);
+  if (!list) {
+    list = $(alloc(List), init);
+    list->destroy = (ListDestroyFunc) Mem_Free;
+    $(cmd_state.commands, set, key, list);
   }
 
-  g_queue_push_head(queue, cmd);
+  $(list, prependElement, cmd);
   return cmd;
 }
 
 /**
- * @brief Removes the specified command. Returns the backing queue.
+ * @brief Removes the specified command from its backing list.
+ * @note Disables the list destroy callback so the caller controls cmd lifetime.
  */
-static GQueue *Cmd_Remove_(cmd_t *cmd) {
-  GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, cmd->name);
+static List *Cmd_RemovePtr_(cmd_t *cmd) {
+  List *list = $(cmd_state.commands, get, (void *) cmd->name);
 
-  if (!g_queue_remove(queue, cmd)) {
+  ListNode *node = $(list, nodeForElement, cmd);
+  if (!node) {
     Com_Error(ERROR_FATAL, "Missing command: %s\n", cmd->name);
+    return list;
   }
 
-  Mem_Free(cmd);
-  return queue;
+  // Disable destroy so we control when cmd is freed
+  ListDestroyFunc saved = list->destroy;
+  list->destroy = NULL;
+  $(list, removeNode, node);
+  list->destroy = saved;
+
+  return list;
 }
 
 /**
@@ -423,10 +440,29 @@ void Cmd_Remove(const char *name) {
   cmd_t *cmd = Cmd_Get_(name, true);
 
   if (cmd) {
-    const GQueue *queue = Cmd_Remove_(cmd);
+    List *list = Cmd_RemovePtr_(cmd);
 
-    if (!queue->length) {
-      g_hash_table_remove(cmd_state.commands, name);
+    if (!list->count) {
+      $(cmd_state.commands, remove, (void *) name);
+      release(list);
+    }
+
+    Mem_Free(cmd);
+  }
+}
+
+typedef struct {
+  uint32_t flags;
+  List *cmds;
+} Cmd_RemoveAll_ctx_t;
+
+static void Cmd_RemoveAll_collect(const HashTable *table, ident key, ident value, ident data) {
+  Cmd_RemoveAll_ctx_t *ctx = data;
+  const List *list = value;
+  for (const ListNode *node = list->head; node; node = node->next) {
+    cmd_t *cmd = node->element;
+    if (cmd->flags & ctx->flags) {
+      $(ctx->cmds, appendElement, cmd);
     }
   }
 }
@@ -435,27 +471,26 @@ void Cmd_Remove(const char *name) {
  * @brief Removes all commands which match the specified flags mask.
  */
 void Cmd_RemoveAll(uint32_t flags) {
-  GHashTableIter iter;
-  gpointer key, value;
-  g_hash_table_iter_init(&iter, cmd_state.commands);
+  Cmd_RemoveAll_ctx_t ctx = {
+    .flags = flags,
+    .cmds = $(alloc(List), init),
+  };
 
-  while (g_hash_table_iter_next (&iter, &key, &value)) {
-    const GQueue *queue = (GQueue *) value;
-    
-    for (const GList *list = queue->head; list; ) {
-      cmd_t *cmd = (cmd_t *) list->data;
-      list = list->next; // advance before Cmd_Remove_ frees the GList node
+  $(cmd_state.commands, enumerate, Cmd_RemoveAll_collect, &ctx);
 
-      if (cmd->flags & flags) {
-        Cmd_Remove_(cmd);
-        
-        if (!queue->length) {
-          g_hash_table_iter_remove(&iter);
-          break;
-        }
-      }
+  for (const ListNode *node = ctx.cmds->head; node; node = node->next) {
+    cmd_t *cmd = node->element;
+    List *list = Cmd_RemovePtr_(cmd);
+
+    if (!list->count) {
+      $(cmd_state.commands, remove, (void *) cmd->name);
+      release(list);
     }
+
+    Mem_Free(cmd);
   }
+
+  release(ctx.cmds);
 }
 
 /**
@@ -466,15 +501,15 @@ static const char *Cmd_Stringify(const cmd_t *cmd) {
   buffer[0] = '\0';
 
   if (cmd->Execute) {
-    g_strlcat(buffer, va("^1%s^7", cmd->name), sizeof(buffer));
+    q_strlcat(buffer, va("^1%s^7", cmd->name), sizeof(buffer));
 
     if (cmd->description) {
-      g_strlcat(buffer, va("\n\t%s", cmd->description), sizeof(buffer));
+      q_strlcat(buffer, va("\n\t%s", cmd->description), sizeof(buffer));
     }
   } else if (cmd->commands) {
-    g_strlcat(buffer, va("^3%s^7\n\t%s", cmd->name, cmd->commands), sizeof(buffer));
+    q_strlcat(buffer, va("^3%s^7\n\t%s", cmd->name, cmd->commands), sizeof(buffer));
   } else {
-    g_strlcat(buffer, va("^3%s^7", cmd->name), sizeof(buffer));
+    q_strlcat(buffer, va("^3%s^7", cmd->name), sizeof(buffer));
   }
 
   return buffer;
@@ -486,7 +521,7 @@ static char cmd_complete_pattern[MAX_STRING_CHARS];
  * @brief Enumeration helper for `Cmd_CompleteCommand`.
  */
 static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
-  GList **matches = (GList **) data;
+  List *matches = data;
 
   if (GlobMatch(cmd_complete_pattern, cmd->name, GLOB_CASE_INSENSITIVE)) {
     Con_AutocompleteMatch(matches, cmd->name, Cmd_Stringify(cmd));
@@ -496,9 +531,9 @@ static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
 /**
  * @brief Console completion for commands and aliases.
  */
-void Cmd_CompleteCommand(const char *pattern, GList **matches) {
-  g_strlcpy(cmd_complete_pattern, pattern, sizeof(cmd_complete_pattern));
-  Cmd_Enumerate(Cmd_CompleteCommand_enumerate, (void *) matches);
+void Cmd_CompleteCommand(const char *pattern, List *matches) {
+  q_strlcpy(cmd_complete_pattern, pattern, sizeof(cmd_complete_pattern));
+  Cmd_Enumerate(Cmd_CompleteCommand_enumerate, matches);
 }
 
 /**
@@ -578,45 +613,55 @@ static void Cmd_Alias_f(void) {
 
   cmd[0] = '\0';
   for (int32_t i = 2; i < Cmd_Argc(); i++) {
-    g_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
+    q_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
     if (i != (Cmd_Argc() - 1)) {
-      g_strlcat(cmd, " ", sizeof(cmd));
+      q_strlcat(cmd, " ", sizeof(cmd));
     }
   }
-  g_strlcat(cmd, "\n", sizeof(cmd));
+  q_strlcat(cmd, "\n", sizeof(cmd));
 
   Cmd_Alias(Cmd_Argv(1), cmd);
 }
 
-/**
- * @brief Enumeration helper for `Cmd_List_f`.
- */
-static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
-  GSList **list = (GSList **) data;
-  gchar *str = g_strdup(Cmd_Stringify(cmd));
+typedef struct {
+  Vector *strs;
+} Cmd_List_ctx_t;
 
-  *list = g_slist_insert_sorted(*list, (gpointer) str, (GCompareFunc) StrStripCmp);
+static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
+  Cmd_List_ctx_t *ctx = data;
+  char *str = q_strdup(Cmd_Stringify(cmd));
+  $(ctx->strs, addElement, &str);
+}
+
+static Order Cmd_List_sortfn(const ident a, const ident b) {
+  const int32_t cmp = q_strcolorcmp(*(const char *const *) a, *(const char *const *) b);
+  return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
 /**
  * @brief Lists all known commands at the console.
  */
 static void Cmd_List_f(void) {
-  GSList *list = NULL;
+  Cmd_List_ctx_t ctx = {
+    .strs = $(alloc(Vector), initWithSize, sizeof(char *)),
+  };
 
-  Cmd_Enumerate(Cmd_List_f_enumerate, &list);
-  
-  for (GSList *entry = list; entry; entry = entry->next) {
-    Com_Print("%s\n", (const gchar *) entry->data);
+  Cmd_Enumerate(Cmd_List_f_enumerate, &ctx);
+  $(ctx.strs, sort, Cmd_List_sortfn);
+
+  for (size_t i = 0; i < ctx.strs->count; i++) {
+    char *str = VectorValue(ctx.strs, char *, i);
+    Com_Print("%s\n", str);
+    free(str);
   }
 
-  g_slist_free_full(list, g_free);
+  release(ctx.strs);
 }
 
 /**
  * @brief Demo command autocompletion.
  */
-static void Cmd_Exec_Autocomplete_f(const uint32_t argi, GList **matches) {
+static void Cmd_Exec_Autocomplete_f(const uint32_t argi, List *matches) {
   const char *pattern = va("%s*.cfg", Cmd_Argv(argi));
   Fs_CompleteFile(pattern, matches);
 }
@@ -633,9 +678,10 @@ static void Cmd_Exec_f(void) {
     return;
   }
 
-  g_strlcpy(path, Cmd_Argv(1), sizeof(path));
-  if (!g_str_has_suffix(path, ".cfg")) {
-    g_strlcat(path, ".cfg", sizeof(path));
+  q_strlcpy(path, Cmd_Argv(1), sizeof(path));
+  const size_t plen = q_strlen(path);
+  if (plen < 4 || q_strcmp(path + plen - 4, ".cfg") != 0) {
+    q_strlcat(path, ".cfg", sizeof(path));
   }
 
   if (Fs_Load(path, &buffer) == -1) {
@@ -668,12 +714,13 @@ static void Cmd_Wait_f(void) {
   cmd_state.wait = true;
 }
 
-/**
- * @brief Frees a GQueue value stored in the command hash table.
- */
-static void Cmd_HashTable_Free(gpointer list) {
+typedef struct {
+  Vector *lists;
+} Cmd_Shutdown_ctx_t;
 
-  g_queue_free_full((GQueue *) list, Mem_Free);
+static void Cmd_Shutdown_collect(const HashTable *table, ident key, ident value, ident data) {
+  Vector *lists = data;
+  $(lists, addElement, &value);
 }
 
 /**
@@ -683,7 +730,7 @@ void Cmd_Init(void) {
 
   memset(&cmd_state, 0, sizeof(cmd_state));
 
-  cmd_state.commands = g_hash_table_new_full(g_stri_hash, g_stri_equal, NULL, Cmd_HashTable_Free);
+  cmd_state.commands = $(alloc(HashTable), init, HashTableHashStri, HashTableEqualStri);
 
   Mem_InitBuffer(&cmd_state.buf, (byte *) cmd_state.buffers[0], sizeof(cmd_state.buffers[0]));
 
@@ -698,7 +745,7 @@ void Cmd_Init(void) {
     const char *c = Com_Argv(i);
 
     // if we encounter a non-set command, consume until the next + or EOL
-    if (*c == '+' && strncmp(c, "+set", 4)) {
+    if (*c == '+' && q_strncmp(c, "+set", 4)) {
       Cbuf_AddText(c + 1);
       i++;
 
@@ -725,7 +772,21 @@ void Cmd_Init(void) {
  */
 void Cmd_Shutdown(void) {
 
-  g_hash_table_destroy(cmd_state.commands);
+  Cmd_Shutdown_ctx_t ctx = {
+    .lists = $(alloc(Vector), initWithSize, sizeof(ident)),
+  };
+
+  $(cmd_state.commands, enumerate, Cmd_Shutdown_collect, ctx.lists);
+
+  for (size_t i = 0; i < ctx.lists->count; i++) {
+    List *list = VectorValue(ctx.lists, List *, i);
+    $(list, removeAll);
+    release(list);
+  }
+
+  release(ctx.lists);
+  release(cmd_state.commands);
+  cmd_state.commands = NULL;
 }
 
 /*

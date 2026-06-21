@@ -27,22 +27,36 @@
 static struct {
 
   /**
-   * @brief The queue of allocated lights.
+   * @brief The allocated lights.
    */
-  GQueue *allocated;
+  List *allocated;
 
   /**
-   * @brief The queue of free lights.
+   * @brief The free lights.
    */
-  GQueue *free;
+  List *free;
 } cg_lights;
+
+static cg_light_t *Cg_PopLight(List *lights) {
+
+  if (lights == NULL || lights->head == NULL) {
+    return NULL;
+  }
+
+  ListNode *node = lights->head;
+  cg_light_t *light = node->element;
+
+  $(lights, removeNode, node);
+
+  return light;
+}
 
 /**
  * @brief Allocates a dynamic light source.
  */
 static cg_light_t *Cg_AllocLight(const cg_light_t *in) {
 
-  cg_light_t *light = g_queue_pop_head(cg_lights.free);
+  cg_light_t *light = Cg_PopLight(cg_lights.free);
   if (light == NULL) {
     light = cgi.Malloc(sizeof(cg_light_t), MEM_TAG_CGAME_LEVEL);
   }
@@ -53,7 +67,7 @@ static cg_light_t *Cg_AllocLight(const cg_light_t *in) {
 
   light->time = cgi.client->unclamped_time;
 
-  g_queue_push_head(cg_lights.allocated, light);
+  $(cg_lights.allocated, prependElement, light);
   return light;
 }
 
@@ -62,10 +76,11 @@ static cg_light_t *Cg_AllocLight(const cg_light_t *in) {
  */
 static void Cg_FreeLight(cg_light_t *light) {
 
-  const bool removed = g_queue_remove(cg_lights.allocated, light);
-  assert(removed);
+  ListNode *node = $(cg_lights.allocated, nodeForElement, light);
+  assert(node);
 
-  g_queue_push_head(cg_lights.free, light);
+  $(cg_lights.allocated, removeNode, node);
+  $(cg_lights.free, prependElement, light);
 }
 
 /**
@@ -90,7 +105,7 @@ void Cg_AddLight(const cg_light_t *in) {
 float Cg_AnimateLight(float intensity, const char *style, float drift) {
 
   if (style && *style) {
-    const size_t len = strlen(style);
+    const size_t len = q_strlen(style);
     const uint32_t phase_offset = (uint32_t)(drift * len * 100);
     const uint32_t time = cgi.client->unclamped_time + phase_offset;
     const uint32_t style_index = (time / 100) % len;
@@ -114,7 +129,7 @@ float Cg_AnimateLight(float intensity, const char *style, float drift) {
 static int32_t Cg_ResolveModel1(const char *model) {
 
   for (int32_t i = 1; i < MAX_MODELS; i++) {
-    if (!g_strcmp0(cgi.client->config_strings[CS_MODELS + i], model)) {
+    if (!q_strcmp(cgi.client->config_strings[CS_MODELS + i], model)) {
       return i;
     }
   }
@@ -184,11 +199,10 @@ void Cg_AddLights(void) {
 
   Cg_AddBspLights();
 
-  GList *list = cg_lights.allocated->head;
-  while (list != NULL) {
-    GList *next = list->next; // for potential removal
+  for (ListNode *node = cg_lights.allocated->head; node; ) {
+    ListNode *next = node->next;
 
-    cg_light_t *light = list->data;
+    cg_light_t *light = node->element;
 
     const uint32_t age = cgi.client->unclamped_time - light->time;
     float intensity = light->intensity;
@@ -212,7 +226,7 @@ void Cg_AddLights(void) {
       Cg_FreeLight(light);
     }
 
-    list = next;
+    node = next;
   }
 }
 
@@ -223,8 +237,8 @@ void Cg_InitLights(void) {
 
   memset(&cg_lights, 0, sizeof(cg_lights));
 
-  cg_lights.allocated = g_queue_new();
-  cg_lights.free = g_queue_new();
+  cg_lights.allocated = $(alloc(List), init);
+  cg_lights.free = $(alloc(List), init);
 }
 
 /**
@@ -233,13 +247,17 @@ void Cg_InitLights(void) {
 void Cg_FreeLights(void) {
 
   if (cg_lights.allocated) {
-    g_queue_free_full(cg_lights.allocated, cgi.Free);
+    cg_lights.allocated->destroy = (ListDestroyFunc) cgi.Free;
+    $(cg_lights.allocated, removeAll);
+    release(cg_lights.allocated);
   }
 
   cg_lights.allocated = NULL;
 
   if (cg_lights.free) {
-    g_queue_free_full(cg_lights.free, cgi.Free);
+    cg_lights.free->destroy = (ListDestroyFunc) cgi.Free;
+    $(cg_lights.free, removeAll);
+    release(cg_lights.free);
   }
 
   cg_lights.free = NULL;

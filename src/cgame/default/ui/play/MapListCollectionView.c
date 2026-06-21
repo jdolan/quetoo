@@ -82,10 +82,10 @@ static Order sortMaps(const ident a, const ident b) {
   const MapListItemInfo *c = ((const Value *) a)->value;
   const MapListItemInfo *d = ((const Value *) b)->value;
 
-  const char *e = g_str_has_prefix(c->message, "The ") ? c->message + 4 : c->message;
-  const char *f = g_str_has_prefix(d->message, "The ") ? d->message + 4 : d->message;
+  const char *e = !q_strncmp(c->message, "The ", 4) ? c->message + 4 : c->message;
+  const char *f = !q_strncmp(d->message, "The ", 4) ? d->message + 4 : d->message;
 
-  return g_ascii_strcasecmp(e, f) < 0 ? OrderAscending : OrderDescending;
+  return q_strcasecmp(e, f) < 0 ? OrderAscending : OrderDescending;
 }
 
 /**
@@ -101,7 +101,7 @@ static void enumerateMaps(const char *path, void *data) {
     const Value *value = $(maps, objectAtIndex, i);
     const MapListItemInfo *info = value->value;
 
-    if (g_strcmp0(info->mapname, path) == 0) {
+    if (q_strcmp(info->mapname, path) == 0) {
       return;
     }
   }
@@ -122,12 +122,12 @@ static void enumerateMaps(const char *path, void *data) {
         return;
       }
 
-      MapListItemInfo *info = g_new0(MapListItemInfo, 1);
+      MapListItemInfo *info = calloc(1, sizeof(*info));
 
-      g_strlcpy(info->mapname, path, sizeof(info->mapname));
-      g_strlcpy(info->message, path, sizeof(info->message));
+      q_strlcpy(info->mapname, path, sizeof(info->mapname));
+      q_strlcpy(info->message, path, sizeof(info->message));
 
-      gchar *entities = g_malloc(header.lumps[BSP_LUMP_ENTITIES].file_len);
+      char *entities = malloc(header.lumps[BSP_LUMP_ENTITIES].file_len);
 
       cgi.SeekFile(file, header.lumps[BSP_LUMP_ENTITIES].file_ofs);
       cgi.ReadFile(file, entities, 1, header.lumps[BSP_LUMP_ENTITIES].file_len);
@@ -141,25 +141,25 @@ static void enumerateMaps(const char *path, void *data) {
           break;
         }
 
-        if (g_strcmp0(token, "message") == 0) {
+        if (q_strcmp(token, "message") == 0) {
           
           if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
             break;
           }
 
-          StrStrip(token, info->message);
+          q_strcolorstrip(token, info->message);
 
-          char *c = strstr(info->message, "\\n");
+          char *c = q_strstr(info->message, "\\n");
           if (c) {
             *c = '\0';
           }
 
-          c = strstr(info->message, " - ");
+          c = q_strstr(info->message, " - ");
           if (c) {
             *c = '\0';
           }
 
-          c = strstr(info->message, " by ");
+          c = q_strstr(info->message, " by ");
           if (c) {
             *c = '\0';
           }
@@ -168,15 +168,21 @@ static void enumerateMaps(const char *path, void *data) {
         }
       }
 
-      g_free(entities);
+      free(entities);
 
-      GList *mapshots = cgi.Mapshots(path);
+      List *mapshots = cgi.Mapshots(path);
 
-      const guint len = g_list_length(mapshots);
+      const uint32_t len = mapshots ? (uint32_t) mapshots->count : 0;
       if (len) {
-        const char *mapshot = g_list_nth_data(mapshots, RandomRangeu(0, len));
+        const size_t index = RandomRangeu(0, len);
+        const ListNode *node = mapshots->head;
+        for (size_t i = 0; node && i < index; i++) {
+          node = node->next;
+        }
 
-        SDL_Surface *surf = cgi.LoadSurface(mapshot);
+        const char *mapshot = node ? node->element : NULL;
+
+        SDL_Surface *surf = mapshot ? cgi.LoadSurface(mapshot) : NULL;
         if (surf) {
           info->mapshot = SDL_CreateSurface(this->collectionView.itemSize.w, this->collectionView.itemSize.h, SDL_PIXELFORMAT_RGB24);
           SDL_BlitSurfaceScaled(surf, NULL, info->mapshot, NULL, SDL_SCALEMODE_LINEAR);
@@ -185,7 +191,11 @@ static void enumerateMaps(const char *path, void *data) {
         }
       }
 
-      g_list_free_full(mapshots, g_free);
+      if (mapshots) {
+        mapshots->destroy = (ListDestroyFunc) free;
+        $(mapshots, removeAll);
+        release(mapshots);
+      }
 
       Value *value = $(alloc(Value), initWithValue, info);
 
@@ -266,7 +276,7 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
     self->lock = $(alloc(Lock), init);
     assert(self->lock);
 
-    self->maps = $$(MutableArray, array);
+    self->maps = $$(Array, array);
     assert(self->maps);
 
     cgi.Thread(__func__, loadMaps, self, THREAD_NO_WAIT);
@@ -289,7 +299,7 @@ static Array *selectedMaps(const MapListCollectionView *self) {
 
   const CollectionView *this = (const CollectionView *) self;
 
-  MutableArray *selectedMaps = $$(MutableArray, array);
+  Array *selectedMaps = $$(Array, array);
 
   Array *selection = $(this, selectionIndexPaths);
   for (size_t i = 0; i < selection->count; i++) {

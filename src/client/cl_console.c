@@ -92,8 +92,8 @@ static void Cl_DrawConsole_Buffer(void) {
   color_t color = color_white;
   for (size_t i = 0; i < count; i++) {
     R_Draw2DString(0, y, lines[i], color);
-    color = ColorEsc(StrrColor(lines[i]));
-    g_free(lines[i]);
+    color = ColorEsc(q_strrcolor(lines[i]));
+    Mem_Free(lines[i]);
     y += ch;
   }
 }
@@ -183,8 +183,8 @@ void Cl_DrawNotify(void) {
   color_t color = color_white;
   for (size_t i = 0; i < count; i++) {
     R_Draw2DString(0, y, lines[i], color);
-    color = ColorEsc(StrrColor(lines[i]));
-    g_free(lines[i]);
+    color = ColorEsc(q_strrcolor(lines[i]));
+    Mem_Free(lines[i]);
     y += ch;
   }
 
@@ -218,8 +218,8 @@ void Cl_DrawChat(void) {
     color_t color = color_white;
     for (size_t i = 0; i < count; i++) {
       R_Draw2DString(0, y, lines[i], color);
-      color = ColorEsc(StrrColor(lines[i]));
-      g_free(lines[i]);
+      color = ColorEsc(q_strrcolor(lines[i]));
+      Mem_Free(lines[i]);
       y += ch;
     }
   }
@@ -253,9 +253,9 @@ void Cl_DrawChat(void) {
  * @brief Outputs a stripped (color-code-free) console string to stdout.
  */
 static void Cl_Print(const console_string_t *str) {
-  char stripped[strlen(str->chars) + 1];
+  char stripped[q_strlen(str->chars) + 1];
 
-  StrStrip(str->chars, stripped);
+  q_strcolorstrip(str->chars, stripped);
   fputs(stripped, stdout);
 }
 
@@ -314,9 +314,9 @@ static void Cl_MessageMode2_f(void) {
  * @brief Generate a backtrace.
  */
 static void Cl_Backtrace_f(void) {
-  GString *backtrace = Sys_Backtrace(0, UINT32_MAX);
-  Com_Print("%s\n", backtrace->str);
-  g_string_free(backtrace, true);
+  char *backtrace = Sys_Backtrace(0, UINT32_MAX);
+  Com_Print("%s\n", backtrace);
+  free(backtrace);
 }
 
 /**

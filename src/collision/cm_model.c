@@ -28,17 +28,17 @@ cm_bsp_t cm_bsp = {};
  */
 static void Cm_LoadBspEntities(cm_bsp_t *bsp) {
 
-  GList *entities = Cm_LoadEntities(bsp->file->entity_string);
+  List *entities = Cm_LoadEntities(bsp->file->entity_string);
 
-  bsp->num_entities = g_list_length(entities);
+  bsp->num_entities = (int32_t) entities->count;
   bsp->entities = Mem_TagMalloc(sizeof(cm_entity_t *) * bsp->num_entities, MEM_TAG_COLLISION);
 
   cm_entity_t **out = bsp->entities;
-  for (const GList *list = entities; list; list = list->next, out++) {
-    *out = list->data;
+  for (const ListNode *node = entities->head; node; node = node->next, out++) {
+    *out = node->element;
   }
 
-  g_list_free(entities);
+  release(entities);
 }
 
 /**
@@ -325,7 +325,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
     cm_bsp.mod_time = Fs_LastModTime(name);
   }
 
-  g_strlcpy(cm_bsp.name, name, sizeof(cm_bsp.name));
+  q_strlcpy(cm_bsp.name, name, sizeof(cm_bsp.name));
 
   Fs_Free(header);
 

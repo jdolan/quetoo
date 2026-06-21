@@ -20,7 +20,6 @@ call ROBO "../../Objectively/Objectively.vs15/libs/dlfcn/%build_platform%/" "%qu
 call ROBO "../../ObjectivelyMVC/ObjectivelyMVC.vs15/bin/%build_platform%%build_configuration%/" "%quetoo_folder%/bin/" ObjectivelyMVC.*
 
 call ROBO "libs/gettext/%build_platform%/bin/" "%quetoo_folder%/bin/" *.dll
-call ROBO "libs/glib/%build_platform%/bin/" "%quetoo_folder%/bin/" *.dll
 
 call ROBO "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl/lib/%build_platform%/" "%quetoo_folder%/bin/" *.dll
 call ROBO "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl/lib/%build_platform%/" "%quetoo_folder%/bin/" *.pdb

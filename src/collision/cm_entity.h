@@ -21,6 +21,9 @@
 
 #pragma once
 
+#include <Objectively/List.h>
+#include <Objectively/Vector.h>
+
 #include "cm_types.h"
 
 /**
@@ -57,10 +60,10 @@ void Cm_ParseEntity(cm_entity_t *pair);
 cm_entity_t *Cm_SortEntity(cm_entity_t *entity);
 
 /**
- * @brief Parses an entity string into a GList of entity linked lists.
- * @return A GList of `cm_entity_t`* head pointers (one per entity).
+ * @brief Parses an entity string into a List of entity linked lists.
+ * @return A List of `cm_entity_t`* head pointers (one per entity).
  */
-GList *Cm_LoadEntities(const char *entity_string);
+List *Cm_LoadEntities(const char *entity_string);
 
 /**
  * @brief Returns the index of the entity in the BSP entities array, or -1 if not found.
@@ -79,9 +82,9 @@ const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key);
 cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entity_parsed_t field, const void *value);
 
 /**
- * @brief Returns a GPtrArray of brushes belonging to the given entity.
+ * @brief Returns a Vector of brushes belonging to the given entity.
  */
-GPtrArray *Cm_EntityBrushes(const cm_entity_t *entity);
+Vector *Cm_EntityBrushes(const cm_entity_t *entity);
 
 /**
  * @brief Serializes the entity linked list to a Quake info string.

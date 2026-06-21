@@ -21,6 +21,9 @@
 
 #include "cl_local.h"
 
+#include <Objectively/RESTClient.h>
+#include <Objectively/URLCache.h>
+
 static void *cgame_handle;
 
 /**
@@ -123,7 +126,7 @@ static vec3_t Cl_ReadAngles(void) {
 /**
  * @brief Returns the current list of known servers for the client game module.
  */
-static GList *Cl_Servers(void) {
+static List *Cl_Servers(void) {
   return cls.servers;
 }
 
@@ -178,10 +181,13 @@ void Cl_InitCgame(void) {
   import.Thread = Thread_Create_;
   import.Wait = Thread_Wait;
 
-  import.HttpGet = Net_HttpGet;
-  import.HttpGetInstance = Net_HttpGetInstance;
-  import.HttpGetInstances = Net_HttpGetInstances;
-  import.HttpGetAsync = Net_HttpGetAsync;
+  {
+    RESTClient *client = $$(RESTClient, sharedInstance);
+    if (client->session->configuration->urlCache == NULL) {
+      client->session->configuration->urlCache = $(alloc(URLCache), init);
+    }
+    import.restClient = client;
+  }
 
   import.OpenFile = Fs_OpenRead;
   import.SeekFile = Fs_Seek;

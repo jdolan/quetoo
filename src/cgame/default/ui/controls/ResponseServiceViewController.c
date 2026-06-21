@@ -35,7 +35,7 @@ static void enumerateCrosshairs(const char *path, void *data) {
 
   StripExtension(Basename(path), name);
 
-  intptr_t value = strtol(name + strlen("ch"), NULL, 10);
+  intptr_t value = strtol(name + q_strlen("ch"), NULL, 10);
   assert(value);
 
   $((Select *) data, addOption, name, (ident) value);
@@ -49,7 +49,7 @@ static Order sortAlphabetical(const ident a, const ident b) {
   const char *c = ((const Option *) a)->title->text;
   const char *d = ((const Option *) b)->title->text;
 
-  return g_strcmp0(c, d) < 0 ? OrderAscending : OrderDescending;
+  return q_strcmp(c, d) < 0 ? OrderAscending : OrderDescending;
 }
 
 /**

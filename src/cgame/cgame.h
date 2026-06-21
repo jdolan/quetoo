@@ -32,9 +32,10 @@
 
 #include "client/cl_types.h"
 #include "common/installer.h"
-#include "net/net_http.h"
+#include <Objectively/RESTClient.h>
+#include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 30
+#define CGAME_API_VERSION 32
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -166,46 +167,11 @@ typedef struct cg_import_s {
    */
 
   /**
-   * @brief Performs a synchronous HTTP `GET` request.
-   * @param url The URL to fetch.
-   * @param body Receives a newly allocated buffer containing the response body. Caller must free.
-   * @param length Receives the length of the response body in bytes.
-   * @return The HTTP status code, or 0 on network error.
-   * @remarks This call blocks until the request completes. Use on a dedicated thread (see Thread)
-   * to avoid stalling the frame loop.
+   * @brief The shared RESTClient instance, backed by a URLSession with URLCache enabled.
+   * @remarks Use this for all HTTP requests from cgame. The session is shared with the engine;
+   * call `$(cgi.restClient->session->configuration->urlCache, removeAllCachedResponses)` to clear it.
    */
-  int32_t (*HttpGet)(const char *url, void **body, size_t *length);
-
-  /**
-   * @brief Performs a synchronous HTTP `GET` request and deserializes a single JSON object.
-   * @param url The URL to fetch.
-   * @param properties The JsonProperty descriptors for the destination struct.
-   * @param instance Receives the parsed struct instance.
-   * @return The HTTP status code, or 0 on network error / parse failure.
-   */
-  int32_t (*HttpGetInstance)(const char *url, const JsonProperty *properties, void *instance);
-
-  /**
-   * @brief Performs a synchronous HTTP `GET` request and deserializes a JSON array.
-   * @param url The URL to fetch.
-   * @param properties The JsonProperty descriptors for the destination struct array.
-   * @param instances Receives the parsed struct instances.
-   * @param stride The byte distance between consecutive structs.
-   * @param count The capacity of the destination array.
-   * @param instances_count Receives the number of parsed instances.
-   * @return The HTTP status code.
-   */
-  int32_t (*HttpGetInstances)(const char *url, const JsonProperty *properties,
-                              void *instances, size_t stride, size_t count, size_t *instances_count);
-
-  /**
-   * @brief Performs an asynchronous HTTP `GET` request.
-   * @param url The URL to fetch.
-   * @param callback Invoked on a background thread when the request completes.
-   * @param user_data User data pointer passed through to the callback.
-   * @remarks The response body is valid only for the duration of the callback; copy it if needed.
-   */
-  void (*HttpGetAsync)(const char *url, Net_HttpCallback callback, void *user_data);
+  RESTClient *restClient;
 
   /**
    * @}
@@ -439,7 +405,7 @@ typedef struct cg_import_s {
   /**
    * @return The list of known servers (`cl_server_info_t`).
    */
-  GList *(*Servers)(void);
+  List *(*Servers)(void);
 
   /**
    * @brief Refreshes the list of known servers from the master and LAN.
@@ -455,7 +421,7 @@ typedef struct cg_import_s {
   /**
    * @return The list of mapshots (char *) for the given map.
    */
-  GList *(*Mapshots)(const char *map);
+  List *(*Mapshots)(const char *map);
 
   /**
    * @return The configuration string at `index`.
@@ -572,7 +538,7 @@ typedef struct cg_import_s {
    * in the source .map file. Even `func_group` and other entities which have their
    * brushes merged into `worldspawn` during the compilation step are fully supported.
    */
-  GPtrArray *(*EntityBrushes)(const cm_entity_t *entity);
+  Vector *(*EntityBrushes)(const cm_entity_t *entity);
 
   /**
    * @brief Allocates a new entity definition. Used primarily by the editor.
@@ -1078,7 +1044,7 @@ typedef struct cg_export_s {
    * @brief Called each frame to run all pending movement commands and update the client's
    * predicted state.
    */
-  void (*PredictMovement)(const GPtrArray *cmds);
+  void (*PredictMovement)(const Vector *cmds);
 
   /**
    * @brief Called during the loading process to allow the client game to update the loading

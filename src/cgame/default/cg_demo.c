@@ -561,7 +561,7 @@ static void Cg_DemoCamSave_f(void) {
     const char *line = va("%u %f %f %f %f %f %f\n", k->time,
                           k->origin.x, k->origin.y, k->origin.z,
                           k->angles.x, k->angles.y, k->angles.z);
-    cgi.WriteFile(file, line, 1, strlen(line));
+    cgi.WriteFile(file, line, 1, q_strlen(line));
   }
 
   cgi.CloseFile(file);
@@ -738,7 +738,7 @@ void Cg_DrawDemoBar(void) {
   cgi.Draw2DFill(barX + progress - 1, barY - 4, 3, barHeight + 8, color_white);
 
   char text[MAX_STRING_CHARS];
-  g_snprintf(text, sizeof(text), "%u:%02u / %u:%02u   %.2gx%s",
+  q_snprintf(text, sizeof(text), "%u:%02u / %u:%02u   %.2gx%s",
              time / 60000, (time / 1000) % 60,
              duration / 60000, (duration / 1000) % 60,
              speed, paused ? "   PAUSED" : "");

@@ -37,13 +37,21 @@
  */
 typedef struct {
   int32_t rank;
-  char    name[64];
-  char    guid[68];
+  char name[64];
+  char guid[68];
   int32_t frags;
   int32_t deaths;
   int32_t captures;
   int32_t time_played;
 } LeaderboardEntry;
+
+/**
+ * @brief The leaderboard API response shape.
+ */
+typedef struct {
+  LeaderboardEntry entries[LEADERBOARD_MAX_ENTRIES];
+  size_t num_entries;
+} LeaderboardResponse;
 
 typedef struct LeaderboardViewController LeaderboardViewController;
 typedef struct LeaderboardViewControllerInterface LeaderboardViewControllerInterface;
@@ -75,8 +83,7 @@ struct LeaderboardViewController {
   /**
    * @brief Current leaderboard entries fetched from the stats API.
    */
-  LeaderboardEntry entries[LEADERBOARD_MAX_ENTRIES];
-  size_t num_entries;
+  LeaderboardResponse leaderboardResponse;
 };
 
 /**

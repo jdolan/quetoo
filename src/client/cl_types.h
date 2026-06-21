@@ -659,6 +659,12 @@ typedef struct {
    * @brief Measured round-trip latency to the server in milliseconds.
    */
   int32_t ping;
+
+  /**
+   * @brief Exponentially smoothed ping, retained across refreshes to damp the
+   * per-request variance from one-shot status replies.
+   */
+  int32_t ping_smoothed;
 } cl_server_info_t;
 
 typedef struct {
@@ -687,6 +693,8 @@ typedef enum {
   NOTIFICATION_SERVER_PARSED,
   NOTIFICATION_ENTITY_PARSED,
   NOTIFICATION_ENTITY_SELECTED,
+  NOTIFICATION_LEADERBOARD_FETCHED,
+  NOTIFICATION_STATS_FETCHED,
 } cl_notification_t;
 
 /**
@@ -764,7 +772,7 @@ typedef struct {
   /**
    * @brief List of `cl_server_info_t` discovered from all sources.
    */
-  GList *servers;
+  List *servers;
 
   /**
    * @brief System time when the last LAN broadcast ping was sent.

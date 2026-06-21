@@ -160,12 +160,12 @@ typedef struct {
       /**
        * @brief Array of `ai_node_id_t` forming the route.
        */
-      GArray *path;
+      Vector *path;
 
       /**
        * @brief Index of the current node being navigated toward.
        */
-      guint path_index;
+      uint32_t path_index;
 
       /**
        * @brief World positions of current and next node.

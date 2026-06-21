@@ -50,7 +50,7 @@ libclient_la_SOURCES = \
 libclient_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL3_CFLAGS@ \
@@ -70,7 +70,7 @@ libclient_null_la_SOURCES = \
 libclient_null_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL3_CFLAGS@ \

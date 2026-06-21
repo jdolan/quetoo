@@ -55,8 +55,8 @@ START_TEST(check_parse_simple_brush) {
     "}\n";
 
   cm_entity_t *e = Cm_AllocEntity();
-  g_strlcpy(e->key, "classname", sizeof(e->key));
-  g_strlcpy(e->string, "worldspawn", sizeof(e->string));
+  SDL_strlcpy(e->key, "classname", sizeof(e->key));
+  SDL_strlcpy(e->string, "worldspawn", sizeof(e->string));
 
   cm_entity_t *entities[] = { e };
   Cm_ParseMapBrushes(map_text, entities, 1);
@@ -82,8 +82,8 @@ START_TEST(check_parse_no_brushes) {
     "}\n";
 
   cm_entity_t *e = Cm_AllocEntity();
-  g_strlcpy(e->key, "classname", sizeof(e->key));
-  g_strlcpy(e->string, "info_player_deathmatch", sizeof(e->string));
+  SDL_strlcpy(e->key, "classname", sizeof(e->key));
+  SDL_strlcpy(e->string, "info_player_deathmatch", sizeof(e->string));
 
   cm_entity_t *entities[] = { e };
   Cm_ParseMapBrushes(map_text, entities, 1);
@@ -118,8 +118,8 @@ START_TEST(check_parse_patchdef2) {
     "}\n";
 
   cm_entity_t *e = Cm_AllocEntity();
-  g_strlcpy(e->key, "classname", sizeof(e->key));
-  g_strlcpy(e->string, "worldspawn", sizeof(e->string));
+  SDL_strlcpy(e->key, "classname", sizeof(e->key));
+  SDL_strlcpy(e->string, "worldspawn", sizeof(e->string));
 
   cm_entity_t *entities[] = { e };
   Cm_ParseMapBrushes(map_text, entities, 1);
@@ -163,8 +163,8 @@ START_TEST(check_parse_mixed_brush_and_patch) {
     "}\n";
 
   cm_entity_t *e = Cm_AllocEntity();
-  g_strlcpy(e->key, "classname", sizeof(e->key));
-  g_strlcpy(e->string, "worldspawn", sizeof(e->string));
+  SDL_strlcpy(e->key, "classname", sizeof(e->key));
+  SDL_strlcpy(e->string, "worldspawn", sizeof(e->string));
 
   cm_entity_t *entities[] = { e };
   Cm_ParseMapBrushes(map_text, entities, 1);
@@ -294,8 +294,8 @@ START_TEST(check_parse_preserves_comments) {
     "}\n";
 
   cm_entity_t *e = Cm_AllocEntity();
-  g_strlcpy(e->key, "classname", sizeof(e->key));
-  g_strlcpy(e->string, "worldspawn", sizeof(e->string));
+  SDL_strlcpy(e->key, "classname", sizeof(e->key));
+  SDL_strlcpy(e->string, "worldspawn", sizeof(e->string));
 
   cm_entity_t *entities[] = { e };
   Cm_ParseMapBrushes(map_text, entities, 1);
@@ -318,12 +318,12 @@ START_TEST(check_parse_preserves_comments) {
 START_TEST(check_copy_entity_preserves_brushes) {
 
   cm_entity_t *origin = Cm_AllocEntity();
-  g_strlcpy(origin->key, "origin", sizeof(origin->key));
-  g_strlcpy(origin->string, "128 256 512", sizeof(origin->string));
+  SDL_strlcpy(origin->key, "origin", sizeof(origin->key));
+  SDL_strlcpy(origin->string, "128 256 512", sizeof(origin->string));
 
   cm_entity_t *classname = Cm_AllocEntity();
-  g_strlcpy(classname->key, "classname", sizeof(classname->key));
-  g_strlcpy(classname->string, "worldspawn", sizeof(classname->string));
+  SDL_strlcpy(classname->key, "classname", sizeof(classname->key));
+  SDL_strlcpy(classname->string, "worldspawn", sizeof(classname->string));
   classname->brushes = Mem_TagCopyString("{ test brush data }\n", MEM_TAG_COLLISION);
 
   // Build a linked list: origin -> classname (brushes on classname node)

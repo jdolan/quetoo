@@ -266,7 +266,7 @@ typedef struct {
   /**
    * @brief List of `sv_client_message_t` bounds for safe fragmentation.
    */
-  GList *messages;
+  List *messages;
 } sv_client_datagram_t;
 
 /**
@@ -394,7 +394,7 @@ typedef struct {
   /**
    * @brief Cached map list entries (`cm_entity_t *`) parsed from `sv_map_list`.
    */
-  GList *list;
+  List *list;
 
   /**
    * @brief The length of `map_list`.

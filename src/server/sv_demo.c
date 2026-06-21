@@ -86,7 +86,7 @@ static void Sv_WriteRecordEpoch(void) {
 
   for (int32_t i = 0; i < MAX_CONFIG_STRINGS; i++) {
     if (sv.config_strings[i][0] != '\0') {
-      if (msg.size + strlen(sv.config_strings[i]) + 32 > msg.max_size) {
+      if (msg.size + q_strlen(sv.config_strings[i]) + 32 > msg.max_size) {
         Sv_FlushRecordHeader(&msg);
       }
       Net_WriteByte(&msg, SV_CMD_CONFIG_STRING);
@@ -246,13 +246,13 @@ void Sv_Record_f(void) {
 
   char name[MAX_QPATH];
   if (Cmd_Argc() == 2) {
-    g_snprintf(name, sizeof(name), "demos/%s.demo", Cmd_Argv(1));
+    q_snprintf(name, sizeof(name), "demos/%s.demo", Cmd_Argv(1));
   } else {
     const time_t t = time(NULL);
     const struct tm *tm = localtime(&t);
     char datestamp[32];
     strftime(datestamp, sizeof(datestamp), "%Y-%m-%d-%H-%M-%S", tm);
-    g_snprintf(name, sizeof(name), "demos/server-%s.demo", datestamp);
+    q_snprintf(name, sizeof(name), "demos/server-%s.demo", datestamp);
   }
 
   if (!(sv.record_file = Fs_OpenWrite(name))) {

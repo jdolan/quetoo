@@ -60,7 +60,7 @@ typedef struct s_media_s {
   /**
    * @brief The media on which this media depends.
    */
-  GList *dependencies;
+  List *dependencies;
 
   /**
    * @brief The media retain callback, to avoid being freed.

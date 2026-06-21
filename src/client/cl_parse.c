@@ -20,7 +20,9 @@
  */
 
 #include "cl_local.h"
-#include "net/net_http.h"
+
+#include <Objectively/RESTClient.h>
+#include "net/net_http_server.h"
 
 #include <SDL3/SDL_atomic.h>
 #include <SDL3/SDL_timer.h>
@@ -31,23 +33,16 @@
 static struct {
 	SDL_AtomicInt complete;
 	int32_t status;
-	void *data;
-	size_t length;
+	Data *data;
 } cl_download;
 
 /**
- * @brief `Net_HttpCallback` for `Cl_CheckOrDownloadFile`.
+ * @brief `RESTClientCompletion` for `Cl_CheckOrDownloadFile`.
  */
-static void Cl_DownloadComplete(int32_t status, void *body, size_t length, void *user_data) {
+static void Cl_DownloadComplete(int32_t status, Data *data, void *user_data) {
 
-	if (body && length) {
-		cl_download.data = Mem_Malloc(length);
-		memcpy(cl_download.data, body, length);
-		cl_download.length = length;
-	} else {
-		cl_download.data = NULL;
-		cl_download.length = 0;
-	}
+	release(cl_download.data);
+	cl_download.data = (status == 200 && data) ? retain(data) : NULL;
 
 	cl_download.status = status;
 	SDL_SetAtomicInt(&cl_download.complete, 1);
@@ -101,10 +96,10 @@ void Cl_CheckOrDownloadFile(const char *filename) {
 
   SDL_SetAtomicInt(&cl_download.complete, 0);
   cl_download.status = 0;
+  release(cl_download.data);
   cl_download.data = NULL;
-  cl_download.length = 0;
 
-  Net_HttpGetAsync(url, Cl_DownloadComplete, NULL);
+  $($$(RESTClient, sharedInstance), getAsync, url, Cl_DownloadComplete, NULL);
 
   const char *base = Basename(filename);
   while (!SDL_GetAtomicInt(&cl_download.complete)) {
@@ -118,40 +113,45 @@ void Cl_CheckOrDownloadFile(const char *filename) {
     SDL_Delay(16);
   }
 
-  if (cl_download.status != 200 || !cl_download.data || !cl_download.length) {
+  if (cl_download.status != 200 || !cl_download.data) {
     Com_Warn("Failed to download %s (HTTP %d)\n", filename, cl_download.status);
-    if (cl_download.data) {
-      Mem_Free(cl_download.data);
-    }
+    release(cl_download.data);
+    cl_download.data = NULL;
     return;
   }
 
-  if (cl_download.length > MAX_DOWNLOAD_SIZE) {
-    Com_Warn("Download %s exceeds maximum size (%zu bytes)\n", filename, cl_download.length);
-    Mem_Free(cl_download.data);
+  if (cl_download.data->length > MAX_DOWNLOAD_SIZE) {
+    Com_Warn("Download %s exceeds maximum size (%zu bytes)\n", filename, cl_download.data->length);
+    release(cl_download.data);
+    cl_download.data = NULL;
     return;
   }
 
   // write to a temp file, then rename
   char tempname[MAX_OS_PATH];
   StripExtension(filename, tempname);
-  g_strlcat(tempname, ".tmp", sizeof(tempname));
+  q_strlcat(tempname, ".tmp", sizeof(tempname));
 
   file_t *file = Fs_OpenWrite(tempname);
   if (!file) {
     Com_Warn("Failed to open %s for writing\n", tempname);
-    Mem_Free(cl_download.data);
+    release(cl_download.data);
+    cl_download.data = NULL;
     return;
   }
 
-  Fs_Write(file, cl_download.data, 1, cl_download.length);
+  Fs_Write(file, cl_download.data->bytes, 1, cl_download.data->length);
   Fs_Close(file);
-  Mem_Free(cl_download.data);
+
+  const size_t downloaded_length = cl_download.data->length;
+
+  release(cl_download.data);
+  cl_download.data = NULL;
 
   if (Fs_Rename(tempname, filename)) {
-    Com_Print("Downloaded %s (%zu bytes)\n", filename, cl_download.length);
+    Com_Print("Downloaded %s (%zu bytes)\n", filename, downloaded_length);
 
-    if (strstr(filename, ".pk3")) {
+    if (q_strstr(filename, ".pk3")) {
       Fs_AddToSearchPath(filename);
     }
   } else {
@@ -230,7 +230,7 @@ int32_t Cl_ParseConfigString(void) {
     Com_Error(ERROR_DROP, "Invalid index %i\n", i);
   }
 
-  g_strlcpy(cl.config_strings[i], Net_ReadString(&net_message), MAX_STRING_CHARS);
+  q_strlcpy(cl.config_strings[i], Net_ReadString(&net_message), MAX_STRING_CHARS);
 
   const char *s = cl.config_strings[i];
 
@@ -282,7 +282,7 @@ static void Cl_ParseServerData(void) {
 
   // game directory
   char *str = Net_ReadString(&net_message);
-  if (g_strcmp0(Cvar_GetString("game"), str)) {
+  if (q_strcmp(Cvar_GetString("game"), str)) {
 
     Fs_SetGame(str);
 

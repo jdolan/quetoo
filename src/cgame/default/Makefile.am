@@ -68,7 +68,7 @@ cgame_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
 	@SDL3_CFLAGS@
 

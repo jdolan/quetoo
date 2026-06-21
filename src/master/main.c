@@ -18,6 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <ctype.h>
 #include <errno.h>
 #include <signal.h>
 #include <sys/types.h>
@@ -48,7 +49,7 @@
 #endif
 
 #include "common/common.h"
-#include "net/net_http.h"
+#include <Objectively/RESTClient.h>
 
 quetoo_t quetoo;
 
@@ -66,7 +67,7 @@ typedef struct ms_server_s {
   char players[MAX_CLIENTS][64];
 } ms_server_t;
 
-static GList *ms_servers;
+static List *ms_servers;
 static int32_t ms_sock;
 
 static bool verbose;
@@ -80,21 +81,21 @@ static const char *ms_discord_webhook;
  */
 static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t buf_size) {
   char search[256];
-  g_snprintf(search, sizeof(search), "\\%s\\", key);
+  q_snprintf(search, sizeof(search), "\\%s\\", key);
 
-  const char *p = strstr(info, search);
+  const char *p = q_strstr(info, search);
   if (!p) {
     return false;
   }
 
-  p += strlen(search);
+  p += q_strlen(search);
 
   size_t len;
   const char *end = strpbrk(p, "\\\n");
   if (end) {
     len = end - p;
   } else {
-    len = strlen(p);
+    len = q_strlen(p);
   }
   len = Minui64(len, buf_size - 1);
 
@@ -138,13 +139,15 @@ static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name)
   const int32_t port = ntohs(server->addr.sin_port);
 
   char json[1024];
-  g_snprintf(json, sizeof(json),
+  q_snprintf(json, sizeof(json),
     "{\"embeds\":[{\"description\":\"\xF0\x9F\x8E\xAE **%s** joined **%s** on **%s** \xC2\xB7 %d/%d players \xC2\xB7 [Join](https://quetoo.org/join/?%s:%d)\",\"color\":3066993}]}",
     escaped_player, escaped_host, escaped_map,
     server->num_clients, server->max_clients,
     ip, port);
 
-  Net_HttpPostAsync(ms_discord_webhook, json, strlen(json), "application/json", NULL, NULL);
+  Data *body = $$(Data, dataWithBytes, (const uint8_t *) json, q_strlen(json));
+  $($$(RESTClient, sharedInstance), postAsync, ms_discord_webhook, body, NULL, NULL);
+  release(body);
 }
 
 /**
@@ -157,7 +160,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
   char val[256];
 
   if (Ms_InfoValue(status, "sv_hostname", val, sizeof(val))) {
-    StrStrip(val, server->hostname);
+    q_strcolorstrip(val, server->hostname);
   }
 
   if (Ms_InfoValue(status, "sv_protocol", val, sizeof(val))) {
@@ -170,14 +173,14 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
   }
 
   if (Ms_InfoValue(status, "sv_map", val, sizeof(val))) {
-    g_strlcpy(server->map, val, sizeof(server->map));
+    q_strlcpy(server->map, val, sizeof(server->map));
   }
 
   char new_players[MAX_CLIENTS][64];
   int32_t new_count = 0;
 
   // player lines begin after the infostring's trailing newline
-  const char *line = strchr(status, '\n');
+  const char *line = q_strchr(status, '\n');
   while (line && new_count < MAX_CLIENTS) {
     line++; // skip the newline
     if (*line == '\0') {
@@ -185,23 +188,23 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     }
 
     // isolate the current player line to prevent cross-line key lookups
-    const char *line_end = strchr(line, '\n');
+    const char *line_end = q_strchr(line, '\n');
     char cur_line[256];
     if (line_end) {
-      g_strlcpy(cur_line, line, MIN((size_t) (line_end - line) + 1, sizeof(cur_line)));
+      q_strlcpy(cur_line, line, (size_t) (line_end - line) + 1 < sizeof(cur_line) ? (size_t)(line_end - line) + 1 : sizeof(cur_line));
     } else {
-      g_strlcpy(cur_line, line, sizeof(cur_line));
+      q_strlcpy(cur_line, line, sizeof(cur_line));
     }
 
     char name[64] = { 0 };
     char ai_val[4] = { 0 };
     if (Ms_InfoValue(cur_line, "name", name, sizeof(name)) && name[0]) {
       char stripped[64];
-      StrStrip(name, stripped);
+      q_strcolorstrip(name, stripped);
       Ms_InfoValue(cur_line, "ai", ai_val, sizeof(ai_val));
       Com_Verbose("Player: %s ai=%s\n", stripped, ai_val[0] ? ai_val : "(none)");
-      if (!atoi(ai_val) && !g_str_has_prefix(stripped, "[BOT]")) {
-        g_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
+      if (!atoi(ai_val) && q_strncmp(stripped, "[BOT]", 5)) {
+        q_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
         new_count++;
       }
     }
@@ -215,7 +218,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     for (int32_t i = 0; i < new_count; i++) {
       bool found = false;
       for (int32_t j = 0; j < server->num_clients; j++) {
-        if (!g_strcmp0(new_players[i], server->players[j])) {
+        if (!q_strcmp(new_players[i], server->players[j])) {
           found = true;
           break;
         }
@@ -229,7 +232,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
 
   server->num_clients = new_count;
   for (int32_t i = 0; i < new_count; i++) {
-    g_strlcpy(server->players[i], new_players[i], sizeof(server->players[i]));
+    q_strlcpy(server->players[i], new_players[i], sizeof(server->players[i]));
   }
 }
 
@@ -247,16 +250,13 @@ static const char *atos(const struct sockaddr_in *addr) {
  */
 static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
 
-  GList *s = ms_servers;
-  while (s) {
-    ms_server_t *server = (ms_server_t *) s->data;
+  for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
+    ms_server_t *server = (ms_server_t *) s->element;
 
     const struct sockaddr_in *addr = &server->addr;
     if (addr->sin_addr.s_addr == from->sin_addr.s_addr && addr->sin_port == from->sin_port) {
       return server;
     }
-
-    s = s->next;
   }
 
   return NULL;
@@ -267,7 +267,14 @@ static ms_server_t *Ms_GetServer(struct sockaddr_in *from) {
  */
 static void Ms_DropServer(ms_server_t *server) {
 
-  ms_servers = g_list_remove(ms_servers, server);
+  if (ms_servers) {
+    for (const ListNode *s = ms_servers->head; s; s = s->next) {
+      if (s->element == server) {
+        $(ms_servers, removeNode, (ListNode *) s);
+        break;
+      }
+    }
+  }
 
   Mem_Free(server);
 }
@@ -298,11 +305,14 @@ static bool Ms_BlacklistServer(struct sockaddr_in *from) {
     char line[256];
 
     sscanf(c, "%255s\n", line);
-    c += strlen(line) + 1;
+    c += q_strlen(line) + 1;
 
-    const char *l = g_strstrip(line);
+    const char *l = line;
+    while (isspace((unsigned char) *l)) { l++; }
+    char *_lend = (char *) l + q_strlen(l) - 1;
+    while (_lend >= l && isspace((unsigned char) *_lend)) { *_lend-- = '\0'; }
 
-    if (!strlen(l) || g_str_has_prefix(l, "//") || g_str_has_prefix(l, "#")) {
+    if (!q_strlen(l) || !q_strncmp(l, "//", 2) || l[0] == '#') {
       continue;
     }
 
@@ -338,7 +348,10 @@ static void Ms_AddServer(struct sockaddr_in *from) {
   server->last_heartbeat = time(NULL);
   server->num_clients = -1;
 
-  ms_servers = g_list_prepend(ms_servers, server);
+  if (!ms_servers) {
+    ms_servers = $(alloc(List), init);
+  }
+  $(ms_servers, appendElement, server);
   Com_Print("Server %s registered\n", stos(server));
 
   // send an acknowledgment
@@ -366,10 +379,9 @@ static void Ms_RemoveServer(struct sockaddr_in *from) {
 static void Ms_Frame(void) {
   const time_t now = time(NULL);
 
-  GList *s = ms_servers;
-  while (s) {
-    GList *next = s->next;
-    ms_server_t *server = (ms_server_t *) s->data;
+  for (ListNode *s = ms_servers ? ms_servers->head : NULL; s; ) {
+    ListNode *next = s->next;
+    ms_server_t *server = (ms_server_t *) s->element;
     if (now - server->last_heartbeat > 30) {
 
       if (server->queued_pings > 6) {
@@ -383,7 +395,7 @@ static void Ms_Frame(void) {
           Com_Verbose("Pinging %s\n", stos(server));
 
           const char *ping = "\xFF\xFF\xFF\xFF" "ping";
-          sendto(ms_sock, ping, strlen(ping), 0, (struct sockaddr *) &server->addr,
+          sendto(ms_sock, ping, q_strlen(ping), 0, (struct sockaddr *) &server->addr,
                  sizeof(server->addr));
         }
       }
@@ -402,7 +414,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
 
   // parse optional protocol version from command (e.g. "getservers 2026")
   int32_t protocol = PROTOCOL_MAJOR;
-  const char *p = cmd + strlen("getservers");
+  const char *p = cmd + q_strlen("getservers");
   while (*p == ' ') p++;
   if (*p) {
     const int32_t requested = atoi(p);
@@ -414,18 +426,16 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   Mem_InitBuffer(&buf, buffer, sizeof(buffer));
 
   const char *servers = "\xFF\xFF\xFF\xFF" "servers ";
-  Mem_WriteBuffer(&buf, servers, strlen(servers));
+  Mem_WriteBuffer(&buf, servers, q_strlen(servers));
 
   uint32_t i = 0;
-  GList *s = ms_servers;
-  while (s) {
-    const ms_server_t *server = (ms_server_t *) s->data;
+  for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
+    const ms_server_t *server = (ms_server_t *) s->element;
     if (server->validated && server->protocol == protocol) {
       Mem_WriteBuffer(&buf, &server->addr.sin_addr, sizeof(server->addr.sin_addr));
       Mem_WriteBuffer(&buf, &server->addr.sin_port, sizeof(server->addr.sin_port));
       i++;
     }
-    s = s->next;
   }
 
   if ((sendto(ms_sock, buf.data, buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1) {
@@ -488,15 +498,15 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
   *(line++) = '\0';
   cmd += 4;
 
-  if (!g_ascii_strncasecmp(cmd, "ping", 4)) {
+  if (!q_strncasecmp(cmd, "ping", 4)) {
     Ms_AddServer(from);
-  } else if (!g_ascii_strncasecmp(cmd, "heartbeat", 9) || !g_ascii_strncasecmp(cmd, "print", 5)) {
+  } else if (!q_strncasecmp(cmd, "heartbeat", 9) || !q_strncasecmp(cmd, "print", 5)) {
     Ms_Heartbeat(from, line);
-  } else if (!g_ascii_strncasecmp(cmd, "ack", 3)) {
+  } else if (!q_strncasecmp(cmd, "ack", 3)) {
     Ms_Ack(from);
-  } else if (!g_ascii_strncasecmp(cmd, "shutdown", 8)) {
+  } else if (!q_strncasecmp(cmd, "shutdown", 8)) {
     Ms_RemoveServer(from);
-  } else if (!g_ascii_strncasecmp(cmd, "getservers", 10) || !g_ascii_strncasecmp(cmd, "y", 1)) {
+  } else if (!q_strncasecmp(cmd, "getservers", 10) || !q_strncasecmp(cmd, "y", 1)) {
     Ms_GetServers(from, cmd);
   } else {
     Com_Warn("Unknown command from %s: '%s'\n", atos(from), cmd);
@@ -542,7 +552,12 @@ static void Shutdown(const char *msg) {
     fputs(msg, stdout);
   }
 
-  g_list_free_full(ms_servers, Mem_Free);
+  if (ms_servers) {
+    for (const ListNode *s = ms_servers->head; s; s = s->next) {
+      Mem_Free(s->element);
+    }
+    release(ms_servers);
+  }
 
   Fs_Shutdown();
 
@@ -578,12 +593,12 @@ int32_t quetoo_main(int32_t argc, char **argv) {
   int32_t i;
   for (i = 0; i < Com_Argc(); i++) {
 
-    if (!g_strcmp0(Com_Argv(i), "-v") || !g_strcmp0(Com_Argv(i), "-verbose")) {
+    if (!q_strcmp(Com_Argv(i), "-v") || !q_strcmp(Com_Argv(i), "-verbose")) {
       verbose = true;
       continue;
     }
 
-    if (!g_strcmp0(Com_Argv(i), "-d") || !g_strcmp0(Com_Argv(i), "-debug")) {
+    if (!q_strcmp(Com_Argv(i), "-d") || !q_strcmp(Com_Argv(i), "-debug")) {
       debug = true;
       continue;
     }

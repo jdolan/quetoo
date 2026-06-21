@@ -25,7 +25,7 @@
 
 #include <errno.h>
 #include <signal.h>
-#include <glib/gstdio.h>
+#include <time.h>
 
 #if !defined(_WIN32)
   #include <unistd.h>
@@ -96,7 +96,10 @@ const char *Sys_ExecutablePath(void) {
  * @return The current user's name.
  */
 const char *Sys_Username(void) {
-  return g_get_user_name();
+  const char *name = getenv("USER");
+  if (!name || !*name) { name = getenv("USERNAME"); }
+  if (!name || !*name) { name = "unknown"; }
+  return name;
 }
 
 /**
@@ -117,11 +120,14 @@ const char *Sys_UserDir(void) {
       Com_Error(ERROR_FATAL, "SDL_GetPrefPath failed: %s\n", SDL_GetError());
     }
 
-    if (g_str_has_suffix(pref, G_DIR_SEPARATOR_S)) {
-      pref[strlen(pref) - strlen(G_DIR_SEPARATOR_S)] = '\0';
+    {
+      const size_t pref_len = q_strlen(pref);
+      if (pref_len > 0 && (pref[pref_len - 1] == '/' || pref[pref_len - 1] == '\\')) {
+        pref[pref_len - 1] = '\0';
+      }
     }
 
-    g_strlcpy(user_dir, pref, sizeof(user_dir));
+    q_strlcpy(user_dir, pref, sizeof(user_dir));
     SDL_free(pref);
   }
 
@@ -143,7 +149,7 @@ void *Sys_OpenLibrary(const char *name, bool global) {
   if (Fs_Exists(so_name)) {
     char path[MAX_OS_PATH];
 
-    g_snprintf(path, sizeof(path), "%s%c%s", Fs_RealDir(so_name), G_DIR_SEPARATOR, so_name);
+    q_snprintf(path, sizeof(path), "%s/%s", Fs_RealDir(so_name), so_name);
     Com_Print("  Loading %s...\n", path);
 
     void *handle = dlopen(path, RTLD_LAZY | (global ? RTLD_GLOBAL : RTLD_LOCAL));
@@ -198,47 +204,62 @@ void Sys_InstallDesktopEntry(void) {
   }
 
   // Skip system-managed installs; the package manager owns desktop integration.
-  if (g_str_has_prefix(exe, "/usr/")) {
+  if (q_strncmp(exe, "/usr/", 5) == 0) {
     return;
   }
 
   // Derive install prefix by stripping /bin/<name>.
   char prefix[MAX_OS_PATH];
-  g_strlcpy(prefix, exe, sizeof(prefix));
-  char *bin = strstr(prefix, "/bin/");
+  q_strlcpy(prefix, exe, sizeof(prefix));
+  char *bin = q_strstr(prefix, "/bin/");
   if (!bin) {
     return;
   }
   *bin = '\0';
 
   char icon_path[MAX_OS_PATH];
-  g_snprintf(icon_path, sizeof(icon_path),
+  q_snprintf(icon_path, sizeof(icon_path),
     "%s/share/icons/hicolor/256x256/apps/quetoo.png", prefix);
 
   // Destination: ~/.local/share/applications/quetoo.desktop
   char desktop_dest[MAX_OS_PATH];
-  g_snprintf(desktop_dest, sizeof(desktop_dest),
-    "%s/applications/quetoo.desktop", g_get_user_data_dir());
+  {
+    const char *xdg = getenv("XDG_DATA_HOME");
+    char data_home[MAX_OS_PATH];
+    if (xdg && *xdg) {
+      q_strlcpy(data_home, xdg, sizeof(data_home));
+    } else {
+      q_snprintf(data_home, sizeof(data_home), "%s/.local/share", getenv("HOME") ? getenv("HOME") : "");
+    }
+    q_snprintf(desktop_dest, sizeof(desktop_dest), "%s/applications/quetoo.desktop", data_home);
+  }
 
   // Skip writing if Exec= already points at this binary (no change needed).
   char expected_exec[MAX_OS_PATH];
-  g_snprintf(expected_exec, sizeof(expected_exec), "Exec=%s", exe);
-  if (g_file_test(desktop_dest, G_FILE_TEST_EXISTS)) {
-    gchar *contents = NULL;
-    if (g_file_get_contents(desktop_dest, &contents, NULL, NULL)) {
-      const bool up_to_date = strstr(contents, expected_exec) != NULL;
-      g_free(contents);
+  q_snprintf(expected_exec, sizeof(expected_exec), "Exec=%s", exe);
+  if (SDL_GetPathInfo(desktop_dest, NULL)) {
+    FILE *f = fopen(desktop_dest, "r");
+    if (f) {
+      char contents[4096] = "";
+      fread(contents, 1, sizeof(contents) - 1, f);
+      fclose(f);
+      const bool up_to_date = q_strstr(contents, expected_exec) != NULL;
       if (up_to_date) {
         return;
       }
     }
   }
 
-  gchar *dir = g_path_get_dirname(desktop_dest);
-  g_mkdir_with_parents(dir, 0755);
-  g_free(dir);
+  {
+    char dir[MAX_OS_PATH];
+    q_strlcpy(dir, desktop_dest, sizeof(dir));
+    char *slash = q_strrchr(dir, '/');
+    if (slash) { *slash = '\0'; }
+    SDL_CreateDirectory(dir);
+  }
 
-  gchar *content = g_strdup_printf(
+  char *content = NULL;
+  SDL_asprintf(&content,
     "[Desktop Entry]\n"
     "Name=Quetoo\n"
     "Comment=Free, open-source arena first-person shooter\n"
@@ -251,16 +272,18 @@ void Sys_InstallDesktopEntry(void) {
     "StartupNotify=true\n",
     exe, icon_path);
 
-  GError *error = NULL;
-  if (!g_file_set_contents(desktop_dest, content, -1, &error)) {
-    Com_Warn("Failed to install desktop entry: %s\n", error->message);
-    g_error_free(error);
+  FILE *df = fopen(desktop_dest, "w");
+  if (df) {
+    fputs(content, df);
+    fclose(df);
+  } else {
+    Com_Warn("Failed to install desktop entry: %s\n", desktop_dest);
   }
 
-  g_free(content);
+  free(content);
 
   // Register quetoo:// URI scheme handler for this user session.
-  system("update-desktop-database ~/.local/share/applications/ 2>/dev/null");
+  (void) system("update-desktop-database ~/.local/share/applications/ 2>/dev/null");
 }
 
 /**
@@ -273,61 +296,61 @@ void Sys_InstallLocalBin(void) {
   static const char *names[] = { "quetoo", "quemap", "quetoo-dedicated", NULL };
 
   const char *exe = Sys_ExecutablePath();
-  if (!exe || g_str_has_prefix(exe, "/usr/")) {
+  if (!exe || q_strncmp(exe, "/usr/", 5) == 0) {
     return;
   }
 
   char prefix[MAX_OS_PATH];
-  g_strlcpy(prefix, exe, sizeof(prefix));
-  char *bin = strstr(prefix, "/bin/");
+  q_strlcpy(prefix, exe, sizeof(prefix));
+  char *bin = q_strstr(prefix, "/bin/");
   if (!bin) {
     return;
   }
   *bin = '\0';
 
-  gchar *local_bin = g_build_filename(g_get_home_dir(), ".local", "bin", NULL);
-  g_mkdir_with_parents(local_bin, 0755);
+  char local_bin[MAX_OS_PATH];
+  {
+    const char *home = getenv("HOME");
+    q_snprintf(local_bin, sizeof(local_bin), "%s/.local/bin", home ? home : "");
+  }
+  SDL_CreateDirectory(local_bin);
 
   for (const char * const *name = names; *name; name++) {
     char src[MAX_OS_PATH];
-    g_snprintf(src, sizeof(src), "%s/bin/%s", prefix, *name);
+    q_snprintf(src, sizeof(src), "%s/bin/%s", prefix, *name);
 
-    if (!g_file_test(src, G_FILE_TEST_EXISTS)) {
+    if (!SDL_GetPathInfo(src, NULL)) {
       continue;
     }
 
-    gchar *dest = g_build_filename(local_bin, *name, NULL);
+    char dest[MAX_OS_PATH];
+    q_snprintf(dest, sizeof(dest), "%s/%s", local_bin, *name);
 
     char current[MAX_OS_PATH] = { 0 };
-    const ssize_t len = readlink(dest, current, sizeof(current) - 1);
-    if (len > 0) {
-      current[len] = '\0';
-      if (g_strcmp0(current, src) == 0) {
-        g_free(dest);
+    const ssize_t rlen = readlink(dest, current, sizeof(current) - 1);
+    if (rlen > 0) {
+      current[rlen] = '\0';
+      if (q_strcmp(current, src) == 0) {
         continue;
       }
-      g_unlink(dest);
+      SDL_RemovePath(dest);
     }
 
     if (symlink(src, dest) != 0) {
       Com_Warn("Failed to install %s to %s: %s\n", src, dest, strerror(errno));
     }
-
-    g_free(dest);
   }
-
-  g_free(local_bin);
 }
 #endif
 
 /**
- * @brief On platforms supporting it, capture a backtrace. Returns
- * allocated memory; use `g_string_free` on it.
+ * @brief On platforms supporting it, capture a backtrace.
+ * @return Heap-allocated string; caller must `free()`.
  * @param start How many frames to skip
  * @param count How many frames total to include
  */
-GString *Sys_Backtrace(uint32_t start, uint32_t max_count) {
-  GString *backtrace_str = g_string_new(NULL);
+char *Sys_Backtrace(uint32_t start, uint32_t max_count) {
+  char buf[8192] = "";
 
 #if HAVE_EXECINFO
   void *symbols[MAX_BACKTRACE_SYMBOLS];
@@ -336,9 +359,8 @@ GString *Sys_Backtrace(uint32_t start, uint32_t max_count) {
   char **strings = backtrace_symbols(symbols, symbol_count);
 
   for (uint32_t i = start, s = 0; s < max_count && i < (uint32_t) symbol_count; i++, s++) {
-
-    g_string_append(backtrace_str, strings[i]);
-    g_string_append(backtrace_str, "\n");
+    q_strlcat(buf, strings[i], sizeof(buf));
+    q_strlcat(buf, "\n", sizeof(buf));
   }
 
   free(strings);
@@ -369,44 +391,52 @@ GString *Sys_Backtrace(uint32_t start, uint32_t max_count) {
     BOOL result = SymFromAddr(process, (DWORD64) symbols[i], 0, symbol);
 
     if (!result) {
-      g_string_append(backtrace_str, "> ???\n");
+      q_strlcat(buf, "> ???\n", sizeof(buf));
       continue;
     }
 
     // we don't care about UCRT/Windows SDK stuff
-    if (!g_strcmp0(symbol->Name, "invoke_main") || !strncmp(symbol->Name, "__scrt_", 7)) {
+    if (!q_strcmp(symbol->Name, "invoke_main") || !q_strncmp(symbol->Name, "__scrt_", 7)) {
       break;
     }
 
     // check for line number support
     if (SymGetLineFromAddr(process, (DWORD64) symbols[i], &dwDisplacement, &line)) {
-      char *last_slash = strrchr(line.FileName, '\\');
+      char *last_slash = q_strrchr(line.FileName, '\\');
 
       if (!last_slash)
-        last_slash = strrchr(line.FileName, '/');
+        last_slash = q_strrchr(line.FileName, '/');
 
       if (!last_slash)
         last_slash = line.FileName;
       else
         last_slash++;
 
-      g_string_append_printf(backtrace_str, "> %s (%s:%i)\n", symbol->Name, last_slash, line.LineNumber);
+      char frame[512];
+      q_snprintf(frame, sizeof(frame), "> %s (%s:%i)\n", symbol->Name, last_slash, line.LineNumber);
+      q_strlcat(buf, frame, sizeof(buf));
     }
-    else
-      g_string_append_printf(backtrace_str, "> %s (unknown:unknown)\n", symbol->Name);
+    else {
+      char frame[512];
+      q_snprintf(frame, sizeof(frame), "> %s (unknown:unknown)\n", symbol->Name);
+      q_strlcat(buf, frame, sizeof(buf));
+    }
   }
 
   free(symbol);
 #else
-  g_string_append(backtrace_str, "Backtrace not supported.\n");
+  q_strlcat(buf, "Backtrace not supported.\n", sizeof(buf));
 #endif
 
   // cut off the last \n
-  if (backtrace_str->len) {
-    g_string_truncate(backtrace_str, backtrace_str->len - 1);
+  {
+    size_t blen = q_strlen(buf);
+    if (blen > 0 && buf[blen - 1] == '\n') {
+      buf[blen - 1] = '\0';
+    }
   }
 
-  return backtrace_str;
+  return q_strdup(buf);
 }
 
 /**
@@ -428,10 +458,11 @@ static void Sys_EnsureCrashLogPath(void) {
     return;
   }
 
-  gchar *dir = g_build_filename(Sys_UserDir(), "default", NULL);
-  g_mkdir_with_parents(dir, 0755);
-  g_snprintf(sys_crash_log_path, sizeof(sys_crash_log_path), "%s%scrash.log", dir, G_DIR_SEPARATOR_S);
-  g_free(dir);
+  char *dir = NULL;
+  SDL_asprintf(&dir, "%s/default", Sys_UserDir());
+  SDL_CreateDirectory(dir);
+  q_snprintf(sys_crash_log_path, sizeof(sys_crash_log_path), "%s/crash.log", dir);
+  free(dir);
 
 #if !defined(_WIN32)
   if (sys_crash_log_fd == -1) {
@@ -447,17 +478,10 @@ static void Sys_WriteCrashLog(const char *text) {
 
   Sys_EnsureCrashLogPath();
 
-  GError *error = NULL;
-  GIOChannel *channel = g_io_channel_new_file(sys_crash_log_path, "a", &error);
-  if (channel) {
-    gsize written;
-    g_io_channel_write_chars(channel, text, -1, &written, NULL);
-    g_io_channel_shutdown(channel, TRUE, NULL);
-    g_io_channel_unref(channel);
-  } else {
-    if (error) {
-      g_error_free(error);
-    }
+  FILE *log = fopen(sys_crash_log_path, "a");
+  if (log) {
+    fputs(text, log);
+    fclose(log);
   }
 
   fputs(text, stderr);
@@ -466,21 +490,24 @@ static void Sys_WriteCrashLog(const char *text) {
 
 /**
  * @brief Percent-encodes a string for use as a URL query parameter value.
- * @return Heap-allocated encoded string; caller must `g_free`.
+ * @return Heap-allocated encoded string; caller must `free()`.
  */
-static gchar *Sys_UrlEncode(const char *str) {
+static char *Sys_UrlEncode(const char *str) {
 
-  GString *out = g_string_sized_new(strlen(str) * 3);
+  const size_t max = q_strlen(str) * 3 + 1;
+  char *out = malloc(max);
+  char *p = out;
 
-  for (const char *p = str; *p; p++) {
-    if (g_ascii_isalnum(*p) || *p == '-' || *p == '_' || *p == '.' || *p == '~') {
-      g_string_append_c(out, *p);
+  for (const char *s = str; *s; s++) {
+    if (isalnum((unsigned char) *s) || *s == '-' || *s == '_' || *s == '.' || *s == '~') {
+      *p++ = *s;
     } else {
-      g_string_append_printf(out, "%%%02X", (unsigned char) *p);
+      p += q_snprintf(p, out + max - p, "%%%02X", (unsigned char) *s);
     }
   }
+  *p = '\0';
 
-  return g_string_free(out, false);
+  return out;
 }
 
 #define CRASH_REPORT_GITHUB_URL "https://github.com/jdolan/quetoo/issues/new"
@@ -492,47 +519,48 @@ static gchar *Sys_UrlEncode(const char *str) {
  */
 void Sys_Raise(const char *msg) {
 
-  GString *crash = g_string_new(NULL);
+  // Format timestamp
+  char timestamp[32] = "";
+  {
+    time_t t = time(NULL);
+    struct tm *tm_local = localtime(&t);
+    if (tm_local) {
+      strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", tm_local);
+    }
+  }
 
-  GDateTime *now = g_date_time_new_now_local();
-  gchar *timestamp = g_date_time_format(now, "%Y-%m-%d %H:%M:%S");
-  g_date_time_unref(now);
-
-  g_string_append_printf(crash, "Quetoo %s %s — %s\n\n", VERSION, BUILD, timestamp);
-  g_free(timestamp);
-  g_string_append_printf(crash, "Error: %s\n\nBacktrace:\n", msg);
-
-  GString *bt = Sys_Backtrace(0, UINT32_MAX);
-  g_string_append(crash, bt->str);
-  g_string_free(bt, true);
+  char *bt = Sys_Backtrace(0, UINT32_MAX);
+  char *crash = NULL;
+  SDL_asprintf(&crash, "Quetoo %s %s — %s\n\nError: %s\n\nBacktrace:\n%s",
+               VERSION, BUILD, timestamp, msg, bt ? bt : "");
+  free(bt);
 
   Sys_EnsureCrashLogPath();
-  Sys_WriteCrashLog(crash->str);
+  Sys_WriteCrashLog(crash);
 
   if (Com_WasInit(QUETOO_CLIENT)) {
 
     // Truncate the dialog message to avoid oversized message boxes
-    gchar *dialog_msg = g_strdup_printf("%s\n\nFull report saved to:\n%s", crash->str, sys_crash_log_path);
-    if (strlen(dialog_msg) > CRASH_REPORT_DIALOG_MAX) {
+    char *dialog_msg = NULL;
+    SDL_asprintf(&dialog_msg, "%s\n\nFull report saved to:\n%s", crash, sys_crash_log_path);
+    if (q_strlen(dialog_msg) > CRASH_REPORT_DIALOG_MAX) {
       dialog_msg[CRASH_REPORT_DIALOG_MAX] = '\0';
     }
 
     // Build a pre-filled GitHub new-issue URL
-    GString *issue_body = g_string_new(NULL);
-    g_string_append_printf(issue_body, "**Quetoo %s %s crash report**\n\n", VERSION, BUILD);
-    g_string_append_printf(issue_body, "**Error:** %s\n\n", msg);
-    g_string_append(issue_body, "**Backtrace:**\n``\n");
-    g_string_append(issue_body, crash->str);
-    g_string_append(issue_body, "\n``\n");
+    char *issue_body = NULL;
+    SDL_asprintf(&issue_body, "**Quetoo %s %s crash report**\n\n**Error:** %s\n\n**Backtrace:**\n``\n%s\n``\n",
+                 VERSION, BUILD, msg, crash);
 
-    gchar *encoded_body = Sys_UrlEncode(issue_body->str);
-    g_string_free(issue_body, true);
+    char *encoded_body = Sys_UrlEncode(issue_body);
+    free(issue_body);
 
-    gchar *issue_url = g_strdup_printf("%s?title=Crash%%20Report&body=%s",
-                                       CRASH_REPORT_GITHUB_URL, encoded_body);
-    g_free(encoded_body);
+    char *issue_url = NULL;
+    SDL_asprintf(&issue_url, "%s?title=Crash%%20Report&body=%s",
+                 CRASH_REPORT_GITHUB_URL, encoded_body);
+    free(encoded_body);
 
-    if (strlen(issue_url) > CRASH_REPORT_URL_MAX) {
+    if (q_strlen(issue_url) > CRASH_REPORT_URL_MAX) {
       issue_url[CRASH_REPORT_URL_MAX] = '\0';
     }
 
@@ -566,7 +594,7 @@ void Sys_Raise(const char *msg) {
 
     switch (button) {
       case 1:
-        SDL_SetClipboardText(crash->str);
+        SDL_SetClipboardText(crash);
         break;
       case 2:
         SDL_OpenURL(issue_url);
@@ -575,11 +603,11 @@ void Sys_Raise(const char *msg) {
         break;
     }
 
-    g_free(dialog_msg);
-    g_free(issue_url);
+    free(dialog_msg);
+    free(issue_url);
   }
 
-  g_string_free(crash, true);
+  free(crash);
 
 #if defined(_MSC_VER)
   RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, NULL);
@@ -653,8 +681,8 @@ static void Sys_CrashSignal(int sig, siginfo_t *info, void *ctx) {
     if (fds[i] == -1) {
       continue;
     }
-    write(fds[i], header, sizeof(header) - 1);
-    write(fds[i], sig_name, strlen(sig_name));
+    (void) write(fds[i], header, sizeof(header) - 1);
+    (void) write(fds[i], sig_name, q_strlen(sig_name));
 #if HAVE_EXECINFO
     backtrace_symbols_fd(frames, count, fds[i]);
 #endif

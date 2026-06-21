@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <Objectively/HashTable.h>
+
 /**
  * @brief The voxel type.
  */
@@ -31,7 +33,7 @@ typedef struct {
   vec3_t caustics;
   float exposure;
   float occlusion;
-  GHashTable *lights;
+  HashTable *lights;
   int32_t lights_offset;
   int32_t lights_count;
 } voxel_t;

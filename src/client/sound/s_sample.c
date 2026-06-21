@@ -147,14 +147,14 @@ static void S_LoadSampleBuffer(s_sample_t *sample) {
 
   char name[MAX_QPATH];
   if (sample->media.name[0] == '#') {
-    g_strlcpy(name, (sample->media.name + 1), sizeof(name));
+    q_strlcpy(name, (sample->media.name + 1), sizeof(name));
   } else {
-    g_snprintf(name, sizeof(name), "sounds/%s", sample->media.name);
+    q_snprintf(name, sizeof(name), "sounds/%s", sample->media.name);
   }
 
   char path[MAX_QPATH];
   for (const char **fmt = snd_formats; *fmt; fmt++) {
-    g_snprintf(path, sizeof(path), "%s.%s", name, *fmt);
+    q_snprintf(path, sizeof(path), "%s.%s", name, *fmt);
     if (S_LoadSampleBuffer_(sample, path)) {
       break;
     }
@@ -163,7 +163,7 @@ static void S_LoadSampleBuffer(s_sample_t *sample) {
   if (sample->buffer) {
     Com_Debug(DEBUG_SOUND, "Loaded %s for %s\n", path, sample->media.name);
   } else {
-    if (g_str_has_prefix(sample->media.name, "#players")) {
+    if (!q_strncmp(sample->media.name, "#players", 8)) {
       Com_Debug(DEBUG_SOUND, "Failed to load player sample %s\n", sample->media.name);
     } else {
       Com_Warn("Failed to load %s\n", sample->media.name);
@@ -237,7 +237,7 @@ s_sample_t *S_LoadClientModelSample(const char *model, const char *name) {
   }
 
   char key[MAX_QPATH];
-  g_snprintf(key, sizeof(key), "#players/%s/%s", model, name + 1);
+  q_snprintf(key, sizeof(key), "#players/%s/%s", model, name + 1);
 
   s_sample_t *sample = (s_sample_t *) S_FindMedia(key, S_MEDIA_SAMPLE);
   if (sample == NULL) {
@@ -247,7 +247,7 @@ s_sample_t *S_LoadClientModelSample(const char *model, const char *name) {
       Com_Debug(DEBUG_SOUND, "Loaded %s\n", key);
     } else {
       char alias[MAX_QPATH];
-      g_snprintf(alias, sizeof(alias), "#players/common/%s", name + 1);
+      q_snprintf(alias, sizeof(alias), "#players/common/%s", name + 1);
 
       s_sample_t *aliased = S_LoadSample(alias);
       if (aliased->buffer) {

@@ -205,7 +205,7 @@ const char *Basename(const char *path) {
 void Dirname(const char *in, char *out) {
   char *c;
 
-  if (!(c = strrchr(in, '/'))) {
+  if (!(c = q_strrchr(in, '/'))) {
     strcpy(out, "./");
     return;
   }
@@ -218,34 +218,15 @@ void Dirname(const char *in, char *out) {
 }
 
 /**
- * @brief Removes the first newline and everything following it
- * from the specified input string.
- */
-void StripNewline(const char *in, char *out) {
-
-  if (in) {
-    const size_t len = strlen(in);
-    memmove(out, in, len + 1);
-
-    char *ext = strrchr(out, '\n');
-    if (ext) {
-      *ext = '\0';
-    }
-  } else {
-    *out = '\0';
-  }
-}
-
-/**
  * @brief Removes any file extension(s) from the specified input string.
  */
 void StripExtension(const char *in, char *out) {
 
   if (in) {
-    const size_t len = strlen(in);
+    const size_t len = q_strlen(in);
     memmove(out, in, len + 1);
 
-    char *ext = strrchr(out, '.');
+    char *ext = q_strrchr(out, '.');
     if (ext) {
       *ext = '\0';
     }
@@ -254,20 +235,6 @@ void StripExtension(const char *in, char *out) {
   }
 }
 
-/**
- * @return True if `c` is a color escape sequence, false otherwise.
- */
-bool StrIsColor(const char *c) {
-  if (c) {
-    if (*c == ESC_COLOR) {
-      const char num = *(c + 1);
-      if (num >= '0' && num <= '9') {
-        return true;
-      }
-    }
-  }
-  return false;
-}
 
 /**
  * @return True if `c` is an emoji escape sequence, false otherwise.
@@ -277,7 +244,7 @@ bool StrIsEmoji(const char *c) {
     if (*c == ESC_EMOJI) {
       c++;
       if (isalpha(*c)) {
-        while (isalnum(*c) || strchr("_-", *c)) {
+        while (isalnum(*c) || q_strchr("_-", *c)) {
           c++;
         }
         if (*c == ESC_EMOJI) {
@@ -330,7 +297,7 @@ const char *EmojiEsc(const char *in, char *out, size_t out_size) {
   in++;
 
   for (size_t i = 0; i < out_size - 1; i++) {
-    if (isalnum(*in) || strchr("_", *in)) {
+    if (isalnum(*in) || q_strchr("_", *in)) {
       if (out) {
         *out++ = *in++;
       }
@@ -348,90 +315,7 @@ const char *EmojiEsc(const char *in, char *out, size_t out_size) {
 }
 
 /**
- * @brief Strips color escape sequences from the specified input string.
- */
-void StrStrip(const char *in, char *out) {
-
-  while (*in) {
-
-    if (StrIsColor(in)) {
-      in += 2;
-      continue;
-    }
-
-    *out++ = *in++;
-  }
-  *out = '\0';
-}
-
-/**
- * @brief Returns the length of s in printable characters.
- */
-size_t StrStripLen(const char *s) {
-
-  size_t len = 0;
-
-  while (*s) {
-    if (StrIsColor(s)) {
-      s += 2;
-      continue;
-    }
-
-    s++;
-    len++;
-  }
-
-  return len;
-}
-
-/**
- * @brief Performs a color- and case-insensitive string comparison.
- */
-int32_t StrStripCmp(const char *s1, const char *s2) {
-  char string1[strlen(s1) + 1], string2[strlen(s2) + 1];
-
-  StrStrip(s1, string1);
-  StrStrip(s2, string2);
-
-  return g_ascii_strcasecmp(string1, string2);
-}
-
-/**
- * @return The first color sequence in s.
- */
-int32_t StrColor(const char *s) {
-
-  const char *c = s;
-  while (*c) {
-    if (StrIsColor(c)) {
-      return *(c + 1) - '0';
-    }
-    c++;
-  }
-
-  return ESC_COLOR_DEFAULT;
-}
-
-/**
- * @return The last occurrence of a color escape sequence in s.
- */
-int32_t StrrColor(const char *s) {
-
-  if (s) {
-    const char *c = s + strlen(s) - 1;
-    while (c > s) {
-      if (StrIsColor(c)) {
-        return *(c + 1) - '0';
-      }
-      c--;
-    }
-  }
-
-  return ESC_COLOR_DEFAULT;
-}
-
-/**
- * @brief A shorthand `g_snprintf` into a statically allocated buffer. Several
+ * @brief A shorthand `snprintf` into a statically allocated buffer. Several
  * buffers are maintained internally so that nested va()'s are safe within
  * reasonable limits. This function is not thread safe.
  */
@@ -458,19 +342,9 @@ char *vtos(const vec3_t v) {
   static char str[8][MAX_QPATH];
 
   char *s = str[index++ % 8];
-  g_snprintf(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v.x, v.y, v.z);
+  q_snprintf(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v.x, v.y, v.z);
 
   return s;
-}
-
-/**
- * @brief Lowers an entire string.
- */
-void StrLower(const char *in, char *out) {
-
-  while (*in) {
-    (*(out++)) = (char) tolower(*(in++));
-  }
 }
 
 /**
@@ -507,7 +381,7 @@ char *InfoString_Get(const char *s, const char *key) {
     }
     *o = '\0';
 
-    if (!g_strcmp0(key, pkey)) {
+    if (!q_strcmp(key, pkey)) {
       return value[value_index];
     }
 
@@ -542,7 +416,7 @@ const char *InfoString_Next(const char *s, char *key, char *value) {
     s++;
   }
 
-  g_strlcpy(key, src, s - src + 1);
+  q_strlcpy(key, src, s - src + 1);
 
   if (*s == '\\') {
     s++;
@@ -553,7 +427,7 @@ const char *InfoString_Next(const char *s, char *key, char *value) {
     s++;
   }
 
-  g_strlcpy(value, src, s - src + 1);
+  q_strlcpy(value, src, s - src + 1);
 
   if (*s == '\\') {
     s++;
@@ -576,7 +450,7 @@ bool InfoString_Delete(char *s, const char *key) {
   char value[512];
   char *o;
 
-  if (strstr(key, "\\")) {
+  if (q_strstr(key, "\\")) {
     return false;
   }
 
@@ -604,8 +478,8 @@ bool InfoString_Delete(char *s, const char *key) {
     }
     *o = '\0';
 
-    if (!g_strcmp0(key, pkey)) {
-      memmove(start, s, strlen(s) + 1);
+    if (!q_strcmp(key, pkey)) {
+      memmove(start, s, q_strlen(s) + 1);
       return true;
     }
 
@@ -622,7 +496,7 @@ bool InfoString_Validate(const char *s) {
   if (!s || !*s) {
     return false;
   }
-  if (strstr(s, "\"")) {
+  if (q_strstr(s, "\"")) {
     return false;
   }
   return true;
@@ -635,40 +509,40 @@ bool InfoString_Validate(const char *s) {
 bool InfoString_Set(char *s, const char *key, const char *value) {
   char newi[MAX_INFO_STRING_STRING * 16], *v;
 
-  if (!strlen(key)) {
+  if (!q_strlen(key)) {
     return false;
   }
 
-  if (strstr(key, "\\") || strstr(value, "\\")) {
+  if (q_strstr(key, "\\") || q_strstr(value, "\\")) {
     return false;
   }
 
-  if (strstr(key, ";")) {
+  if (q_strstr(key, ";")) {
     return false;
   }
 
-  if (strstr(key, "\"") || strstr(value, "\"")) {
+  if (q_strstr(key, "\"") || q_strstr(value, "\"")) {
     return false;
   }
 
-  if (strlen(key) > MAX_INFO_STRING_KEY - 1 || strlen(value) > MAX_INFO_STRING_VALUE - 1) {
+  if (q_strlen(key) > MAX_INFO_STRING_KEY - 1 || q_strlen(value) > MAX_INFO_STRING_VALUE - 1) {
     return false;
   }
 
   InfoString_Delete(s, key);
 
-  if (strlen(s)) {
-    g_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value ?: "");
+  if (q_strlen(s)) {
+    q_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value ?: "");
   } else {
-    g_snprintf(newi, sizeof(newi), "%s\\%s", key, value ?: "");
+    q_snprintf(newi, sizeof(newi), "%s\\%s", key, value ?: "");
   }
 
-  if (strlen(newi) + strlen(s) > MAX_INFO_STRING_STRING) {
+  if (q_strlen(newi) + q_strlen(s) > MAX_INFO_STRING_STRING) {
     return false;
   }
 
   // only copy ascii values
-  s += strlen(s);
+  s += q_strlen(s);
   v = newi;
   while (*v) {
     char c = *v++;
@@ -680,24 +554,4 @@ bool InfoString_Set(char *s, const char *key, const char *value) {
   *s = '\0';
 
   return true;
-}
-
-/**
- * @brief Case-insensitive version of `g_str_equal`
- */
-gboolean g_stri_equal(gconstpointer v1, gconstpointer v2) {
-  return g_ascii_strcasecmp((const gchar *) v1, (const gchar *) v2) == 0;
-}
-
-/**
- * @brief Case-insensitive version of `g_str_hash`
- */
-guint g_stri_hash(gconstpointer v) {
-  guint32 h = 5381;
-
-  for (const char *p = (const char *) v; *p; p++) {
-    h = (h << 5) + h + tolower(*p);
-  }
-
-  return h;
 }

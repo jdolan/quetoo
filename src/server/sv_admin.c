@@ -117,7 +117,7 @@ static bool Sv_SetPlayer(void) {
       continue;
     }
 
-    if (!g_strcmp0(cl->name, s)) {
+    if (!q_strcmp(cl->name, s)) {
       sv_client = cl;
       return true;
     }
@@ -130,7 +130,7 @@ static bool Sv_SetPlayer(void) {
 /**
  * @brief Demo command autocompletion.
  */
-static void Sv_Demo_Autocomplete_f(const uint32_t argi, GList **matches) {
+static void Sv_Demo_Autocomplete_f(const uint32_t argi, List *matches) {
   const char *pattern = va("demos/%s*.demo", Cmd_Argv(argi));
   Fs_CompleteFile(pattern, matches);
 }
@@ -298,7 +298,7 @@ static void Sv_DemoStep_f(void) {
 /**
  * @brief Map command autocompletion.
  */
-static void Sv_Map_Autocomplete_f(const uint32_t argi, GList **matches) {
+static void Sv_Map_Autocomplete_f(const uint32_t argi, List *matches) {
   const char *pattern = va("maps/%s*.bsp", Cmd_Argv(argi));
   Fs_CompleteFile(pattern, matches);
 }
@@ -384,7 +384,7 @@ static void Sv_Status_f(void) {
     const uint32_t ping = Mini(cl->ping, 9999);
 
     char status[MAX_STRING_CHARS];
-    g_snprintf(status, sizeof(status), "%3d %4d %16s %7d %22s %3d",
+    q_snprintf(status, sizeof(status), "%3d %4d %16s %7d %22s %3d",
                i,
                ping,
                cl->name,
@@ -429,16 +429,16 @@ static void Sv_Say_f(void) {
     return;
   }
 
-  StrStrip(Cmd_Args(), text);
-  if (!strlen(text)) {
+  q_strcolorstrip(Cmd_Args(), text);
+  if (!q_strlen(text)) {
     return;
   }
 
-  g_strlcpy(text, Cmd_Args(), sizeof(text));
+  q_strlcpy(text, Cmd_Args(), sizeof(text));
   char *s = text;
 
-  if (s[0] == '"' && s[strlen(s) - 1] == '"') {
-    s[strlen(s) - 1] = '\0';
+  if (s[0] == '"' && s[q_strlen(s) - 1] == '"') {
+    s[q_strlen(s) - 1] = '\0';
     s++;
   }
 
@@ -470,17 +470,17 @@ static void Sv_Tell_f(void) {
     return;
   }
 
-  const char *msg = Cmd_Args() + strlen(Cmd_Argv(1)) + 1;
-  StrStrip(msg, text);
-  if (!strlen(text)) {
+  const char *msg = Cmd_Args() + q_strlen(Cmd_Argv(1)) + 1;
+  q_strcolorstrip(msg, text);
+  if (!q_strlen(text)) {
     return;
   }
 
-  g_strlcpy(text, msg, sizeof(text));
+  q_strlcpy(text, msg, sizeof(text));
   char *s = text;
 
-  if (s[0] == '"' && s[strlen(s) - 1] == '"') {
-    s[strlen(s) - 1] = '\0';
+  if (s[0] == '"' && s[q_strlen(s) - 1] == '"') {
+    s[q_strlen(s) - 1] = '\0';
     s++;
   }
 
@@ -551,8 +551,8 @@ static void Sv_Stuff_f(void) {
 
   strcpy(text, Cmd_Argv(2));
   for (i = 3; i <= Cmd_Argc(); i++) {
-    g_strlcat(text, " ", sizeof(text));
-    g_strlcat(text, Cmd_Argv(i), sizeof(text));
+    q_strlcat(text, " ", sizeof(text));
+    q_strlcat(text, Cmd_Argv(i), sizeof(text));
   }
 
   Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);

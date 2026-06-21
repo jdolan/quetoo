@@ -47,54 +47,56 @@ static void fetchHeroImages(void *data) {
 
 	UpdateViewController *this = data;
 
-	void *list_body = NULL, *image_body = NULL;
-	size_t list_length, image_length;
+	Data *list_data = NULL, *image_data = NULL;
 
-	if (cgi.HttpGet(QUETOO_HERO_LIST_URL, &list_body, &list_length) != 200) {
+	if ($(cgi.restClient, get, QUETOO_HERO_LIST_URL, &list_data) != 200 || !list_data) {
 		Cg_Warn("Failed to fetch hero image list");
-		cgi.Free(list_body);
+		release(list_data);
 		return;
 	}
 
 	static const char prefix[] = "<Key>hero-images/";
 	static const char suffix[] = "</Key>";
 
-	GPtrArray *urls = g_ptr_array_new_with_free_func(g_free);
+	Vector *urls = $(alloc(Vector), initWithSize, sizeof(char *));
 
-	char *p = (char *) list_body;
-	while ((p = strstr(p, prefix)) != NULL) {
+	char *p = (char *) list_data->bytes;
+	while ((p = q_strstr(p, prefix)) != NULL) {
 
-		p += strlen(prefix);
-		char *s = strstr(p, suffix);
+		p += q_strlen(prefix);
+		char *s = q_strstr(p, suffix);
 		assert(s);
 		*s = '\0';
 
 		char url[MAX_STRING_CHARS];
-		const int url_len = g_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
+		const int url_len = q_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
 		if (url_len < 0 || (size_t) url_len >= sizeof(url)) {
 			Cg_Warn("Failed to build hero image URL: %s", p);
-			p = s + strlen(suffix);
+			p = s + q_strlen(suffix);
 			continue;
 		}
 
-		g_ptr_array_add(urls, g_strdup(url));
-		p = s + strlen(suffix);
+		char *dup = q_strdup(url);
+		$(urls, addElement, &dup);
+		p = s + q_strlen(suffix);
 	}
 
-	cgi.Free(list_body);
+	release(list_data);
 
-	for (guint i = urls->len - 1; i > 0; i--) {
-		const guint j = (guint) rand() % (i + 1);
-		gpointer tmp = urls->pdata[i];
-		urls->pdata[i] = urls->pdata[j];
-		urls->pdata[j] = tmp;
+	for (uint32_t i = (uint32_t) urls->count - 1; i > 0; i--) {
+		const uint32_t j = (uint32_t) rand() % (i + 1);
+		char *tmp = VectorValue(urls, char *, i);
+		VectorValue(urls, char *, i) = VectorValue(urls, char *, j);
+		VectorValue(urls, char *, j) = tmp;
 	}
 
-	for (guint i = 0; i < urls->len; i++) {
-		if (cgi.HttpGet(urls->pdata[i], &image_body, &image_length) == 200) {
+	for (uint32_t i = 0; i < urls->count; i++) {
+		image_data = NULL;
+		char *url_str = VectorValue(urls, char *, i);
+		if ($(cgi.restClient, get, url_str, &image_data) == 200 && image_data) {
 			Image *image = NULL;
 
-      SDL_Surface *surf = cgi.LoadSurfaceFromData(image_body, image_length);
+      SDL_Surface *surf = cgi.LoadSurfaceFromData(image_data->bytes, image_data->length);
       if (surf) {
         cgi.BlurSurface(surf, 3);
         image = $$(Image, imageWithSurface, surf);
@@ -102,7 +104,7 @@ static void fetchHeroImages(void *data) {
       }
 
 			if (image == NULL) {
-				image = $$(Image, imageWithBytes, image_body, image_length);
+				image = $$(Image, imageWithBytes, image_data->bytes, image_data->length);
 			}
 
 			if (image) {
@@ -112,12 +114,15 @@ static void fetchHeroImages(void *data) {
 			}
 			release(image);
 		} else {
-			Cg_Warn("Failed to fetch hero image: %s", (char *) urls->pdata[i]);
+			Cg_Warn("Failed to fetch hero image: %s", url_str);
 		}
-		cgi.Free(image_body);
+		release(image_data);
 	}
 
-	g_ptr_array_free(urls, true);
+	for (uint32_t i = 0; i < urls->count; i++) {
+		free(VectorValue(urls, char *, i));
+	}
+	release(urls);
 }
 
 #pragma mark - Object
@@ -162,7 +167,7 @@ static void loadView(ViewController *self) {
 
 	this->pendingImagesLock = SDL_CreateMutex();
 	assert(this->pendingImagesLock);
-	this->pendingImages = $(alloc(MutableArray), init);
+	this->pendingImages = $(alloc(Array), init);
 	assert(this->pendingImages);
 
 	$(this->logo, setImageWithResourceName, "ui/loading.png");

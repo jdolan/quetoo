@@ -4,14 +4,14 @@ TESTS_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@CHECK_CFLAGS@ \
-	@GLIB_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@ \
 	@SDL3_CFLAGS@
 	
 TESTS_LIBS = \
 	libtests.la \
 	@BASE_LIBS@ \
 	@CHECK_LIBS@ \
-	@GLIB_LIBS@ \
+	@OBJECTIVELY_LIBS@ \
 	@SDL3_LIBS@
 
 noinst_LTLIBRARIES = \

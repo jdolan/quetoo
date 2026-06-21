@@ -181,6 +181,18 @@ static void setClippingFrame(Renderer *self, const SDL_Rect *frame) {
 }
 
 /**
+ * @see Renderer::renderDeviceDidReset(Renderer *self)
+ */
+static void renderDeviceDidReset(Renderer *self) {
+}
+
+/**
+ * @see Renderer::renderDeviceWillReset(Renderer *self)
+ */
+static void renderDeviceWillReset(Renderer *self) {
+}
+
+/**
  * @fn QuetooRenderer *QuetooRenderer::init(QuetooRenderer *self)
  * @memberof QuetooRenderer
  */
@@ -203,6 +215,8 @@ static void initialize(Class *clazz) {
   ((RendererInterface *) clazz->interface)->drawRectFilled = drawRectFilled;
   ((RendererInterface *) clazz->interface)->drawTexture = drawTexture;
   ((RendererInterface *) clazz->interface)->endFrame = endFrame;
+  ((RendererInterface *) clazz->interface)->renderDeviceDidReset = renderDeviceDidReset;
+  ((RendererInterface *) clazz->interface)->renderDeviceWillReset = renderDeviceWillReset;
   ((RendererInterface *) clazz->interface)->setDrawColor = setDrawColor;
   ((RendererInterface *) clazz->interface)->setClippingFrame = setClippingFrame;
 

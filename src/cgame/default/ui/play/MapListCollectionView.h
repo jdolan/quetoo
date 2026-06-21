@@ -59,7 +59,7 @@ struct MapListCollectionView {
   /**
    * @brief Available maps.
    */
-  MutableArray *maps;
+  Array *maps;
 };
 
 /**

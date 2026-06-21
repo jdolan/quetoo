@@ -211,29 +211,40 @@ static void Cg_Shutdown(void) {
  */
 static void Cg_ParseTeamInfo(const char *s) {
 
-  gchar **info = g_strsplit(s, "\\", 0);
-  const size_t count = g_strv_length(info);
+  Vector *info = $(alloc(Vector), initWithSize, sizeof(char *));
+
+  char buf[MAX_STRING_CHARS];
+  q_strlcpy(buf, s, sizeof(buf));
+  char *save = NULL;
+  for (char *tok = q_strtok_r(buf, "\\", &save); tok; tok = q_strtok_r(NULL, "\\", &save)) {
+    char *dup = q_strdup(tok);
+    $(info, addElement, &dup);
+  }
+
+  const size_t count = info->count;
 
   if (count != lengthof(cg_state.teams) * 4) {
-    g_strfreev(info);
+    for (size_t i = 0; i < count; i++) { free(VectorValue(info, char *, i)); }
+    release(info);
     Cg_Error("Invalid team data: %s\n", s);
   }
 
   cg_team_info_t *team = cg_state.teams;
   for (size_t i = 0; i < count; i += 4, team++) {
 
-    team->id = atoi(info[i + 0]);
+    team->id = atoi(VectorValue(info, char *, i + 0));
 
-    g_strlcpy(team->name, info[i + 1], sizeof(team->name));
+    q_strlcpy(team->name, VectorValue(info, char *, i + 1), sizeof(team->name));
 
-    team->hue = atoi(info[i + 2]);
+    team->hue = atoi(VectorValue(info, char *, i + 2));
 
-    if (!Color_Parse(info[i + 3], &team->color)) {
+    if (!Color_Parse(VectorValue(info, char *, i + 3), &team->color)) {
       team->color = color_white;
     }
   }
 
-  g_strfreev(info);
+  for (size_t i = 0; i < count; i++) { free(VectorValue(info, char *, i)); }
+  release(info);
 }
 
 /**

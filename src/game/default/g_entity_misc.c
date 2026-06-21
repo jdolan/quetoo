@@ -27,8 +27,21 @@
  */
 static void G_misc_teleporter_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
+  // a grappling hook shouldn't reach through teleporters: detach a hook
+  // projectile that flies into one rather than letting it pass through (#867)
+  if (other->owner && other->owner->client &&
+      other->owner->client->hook_entity == other) {
+    G_HookDetach(other->owner->client);
+    return;
+  }
+
   if (!G_IsMeat(other)) {
     return;
+  }
+
+  // release a hooked player as they warp, so they aren't tethered across the portal
+  if (other->client && other->client->hook_entity) {
+    G_HookDetach(other->client);
   }
 
   const g_entity_t *dest = G_Find(NULL, EOFS(target_name), ent->target);
@@ -79,7 +92,7 @@ static void G_misc_teleporter_Touch(g_entity_t *ent, g_entity_t *other, const cm
   int32_t sound_index;
   if (custom_sound) {
     sound_index = gi.SoundIndex(custom_sound);
-  } else if (g_level.items == ITEMS_QUAKE && !g_strcmp0(ent->classname, "trigger_teleporter")) {
+  } else if (g_level.items == ITEMS_QUAKE && !q_strcmp(ent->classname, "trigger_teleporter")) {
     sound_index = g_media.sounds.quake_teleport[RandomRangei(0, 5)];
   } else {
     sound_index = g_media.sounds.teleport;

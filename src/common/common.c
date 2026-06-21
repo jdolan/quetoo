@@ -52,18 +52,23 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
   const char *game = DEFAULT_GAME;
   const char *log_name = quetoo.log_file_name ? : "quetoo.log";
   for (int32_t i = 1; i < argc - 2; i++) {
-    if (!g_strcmp0(argv[i], "+set") && !g_strcmp0(argv[i + 1], "game")) {
+    if (!q_strcmp(argv[i], "+set") && !q_strcmp(argv[i + 1], "game")) {
       game = argv[i + 2];
       break;
     }
   }
 
-  gchar *path = g_build_filename(Sys_UserDir(), game, log_name, NULL);
-  gchar *dir = g_path_get_dirname(path);
-  g_mkdir_with_parents(dir, 0700);
-  g_free(dir);
+  char path[MAX_QPATH * 3];
+  q_snprintf(path, sizeof(path), "%s/%s/%s", Sys_UserDir(), game, log_name);
+
+  char dir[MAX_QPATH * 2];
+  q_strlcpy(dir, path, sizeof(dir));
+  char *sep = q_strrchr(dir, '/');
+  if (!sep) { sep = q_strrchr(dir, '\\'); }
+  if (sep) { *sep = '\0'; }
+  SDL_CreateDirectory(dir);
+
   quetoo.log_file = fopen(path, "w");
-  g_free(path);
 
   Com_LogString(va("Quetoo %s %s\n", VERSION, BUILD));
 
@@ -115,15 +120,15 @@ const char *Com_GetDebug(void) {
 
   for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
     if (quetoo.debug_mask & (1 << i)) {
-      if (strlen(debug)) {
-        g_strlcat(debug, " ", sizeof(debug));
+      if (q_strlen(debug)) {
+        q_strlcat(debug, " ", sizeof(debug));
       }
-      g_strlcat(debug, DEBUG_CATEGORIES[i], sizeof(debug));
+      q_strlcat(debug, DEBUG_CATEGORIES[i], sizeof(debug));
     }
   }
 
   if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
-    g_strlcat(debug, " breakpoint", sizeof(debug));
+    q_strlcat(debug, " breakpoint", sizeof(debug));
   }
 
   return debug;
@@ -144,15 +149,15 @@ void Com_SetDebug(const char *debug) {
       break;
     }
 
-    if (!g_strcmp0(token, "none") || !g_strcmp0(token, "0")) {
+    if (!q_strcmp(token, "none") || !q_strcmp(token, "0")) {
       quetoo.debug_mask = 0;
-    } else if (!g_strcmp0(token, "breakpoint") || !g_strcmp0(token, "bp")) {
+    } else if (!q_strcmp(token, "breakpoint") || !q_strcmp(token, "bp")) {
       quetoo.debug_mask ^= DEBUG_BREAKPOINT;
-    } else if (!g_strcmp0(token, "any") || !g_strcmp0(token, "all")) {
+    } else if (!q_strcmp(token, "any") || !q_strcmp(token, "all")) {
       quetoo.debug_mask ^= DEBUG_ALL;
     } else {
       for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
-        if (!g_strcmp0(token, DEBUG_CATEGORIES[i])) {
+        if (!q_strcmp(token, DEBUG_CATEGORIES[i])) {
           quetoo.debug_mask ^= (1 << i);
         }
       }
@@ -182,8 +187,8 @@ static int32_t Com_Sprintfv(char *str, size_t size, const char *func, const char
     if (fmt[0] == '!') { // skip it
       fmt++;
     } else {
-      g_snprintf(str, (gulong) size, "%s: ", func);
-      len = strlen(str);
+      q_snprintf(str, (size_t) size, "%s: ", func);
+      len = q_strlen(str);
     }
   }
 
@@ -288,7 +293,7 @@ void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
  */
 void Com_Error_f(void) {
 
-  const err_t err = !g_strcmp0(Cmd_Argv(1), "fatal") ? ERROR_FATAL : ERROR_DROP;
+  const err_t err = !q_strcmp(Cmd_Argv(1), "fatal") ? ERROR_FATAL : ERROR_DROP;
   Com_Error(err, "Test error (%s)\n", err == ERROR_FATAL ? "fatal" : "drop");
 }
 
@@ -400,7 +405,7 @@ void Com_Init(int32_t argc, char *argv[]) {
 
     // if we specified debug mode, quickly set it to all here
     // so that early systems prior to init can write stuff out
-    if (!g_strcmp0(Com_Argv(i), "-debug") || !g_strcmp0(Com_Argv(i), "+debug")) {
+    if (!q_strcmp(Com_Argv(i), "-debug") || !q_strcmp(Com_Argv(i), "+debug")) {
       Com_SetDebug("all");
       continue;
     }

@@ -60,7 +60,7 @@ typedef struct r_media_s {
   /**
    * @brief The media on which this media depends.
    */
-  GList *dependencies;
+  List *dependencies;
 
   /**
    * @brief The media registration callback.
@@ -661,7 +661,7 @@ typedef struct {
   /**
    * @brief The triangles of the decals attached to the containing block.
    */
-  GArray *triangles;
+  Vector *triangles;
 
   /**
    * @brief The decal vertex buffer object.

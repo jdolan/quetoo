@@ -68,7 +68,7 @@ struct UpdateViewController {
 	/**
 	 * @brief Pending hero images fetched by the background thread, then added to slideShow on the main thread.
 	 */
-	MutableArray *pendingImages;
+	Array *pendingImages;
 
   /**
    * @brief A mutex for ensuring consistent access to the pendingImages array.

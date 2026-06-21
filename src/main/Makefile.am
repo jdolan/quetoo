@@ -7,7 +7,7 @@ quetoo_SOURCES = \
 quetoo_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
 	@SDL3_CFLAGS@
 quetoo_LDADD = \
@@ -19,7 +19,7 @@ quetoo_dedicated_SOURCES = \
 quetoo_dedicated_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
 	@SDL3_CFLAGS@
 quetoo_dedicated_LDADD = \

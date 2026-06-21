@@ -25,6 +25,7 @@
 #include "color.h"
 #include "matrix.h"
 #include "parse.h"
+#include "qstring.h"
 #include "swap.h"
 #include "vector.h"
 
@@ -414,7 +415,8 @@ typedef struct {
  * @param argi The index of the argument being autocompleted.
  * @param matches The list of matches you need to write to.
  */
-typedef void (*AutocompleteFunc)(const uint32_t argi, GList **matches);
+typedef struct List List;
+typedef void (*AutocompleteFunc)(const uint32_t argi, List *matches);
 
 /**
  * @brief Console variables hold mutable scalars and strings.
@@ -507,49 +509,19 @@ typedef enum {
 bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);
-void StripNewline(const char *in, char *out);
 void StripExtension(const char *in, char *out);
 
 /**
- * @brief Escape sequences for color encoded strings.
+ * @brief Emoji escape sequence character.
  */
-#define ESC_COLOR          '^'
-#define ESC_COLOR_BLACK     0
-#define ESC_COLOR_RED       1
-#define ESC_COLOR_GREEN     2
-#define ESC_COLOR_YELLOW    3
-#define ESC_COLOR_BLUE      4
-#define ESC_COLOR_MAGENTA   5
-#define ESC_COLOR_CYAN      6
-#define ESC_COLOR_WHITE     7
-#define ESC_COLOR_ORANGE    8
-#define ESC_COLOR_GREY      9
-
-#define MAX_ESC_COLORS      10
-
-#define ESC_COLOR_DEFAULT   ESC_COLOR_WHITE
-#define ESC_COLOR_ALT       ESC_COLOR_GREEN
-
-#define ESC_COLOR_INFO      ESC_COLOR_ALT
-#define ESC_COLOR_CHAT      ESC_COLOR_ALT
-#define ESC_COLOR_TEAM_CHAT ESC_COLOR_YELLOW
-
 #define ESC_EMOJI           ':'
 
-bool StrIsColor(const char *s);
 bool StrIsEmoji(const char *s);
 color_t ColorEsc(int32_t esc);
 const char *EmojiEsc(const char *in, char *out, size_t out_size);
-size_t StrStripLen(const char *s);
-int32_t StrStripCmp(const char *s1, const char *s2);
-int32_t StrColor(const char *s);
-int32_t StrrColor(const char *s);
-void StrStrip(const char *in, char *out);
 
 char *va(const char *format, ...) __attribute__((format(printf, 1, 2)));
 char *vtos(const vec3_t v);
-
-void StrLower(const char *in, char *out);
 
 /**
  * @brief A convenience macro for printing `g_entity_t` pointers in debug messages.
@@ -569,9 +541,6 @@ char *InfoString_Get(const char *s, const char *key);
 bool InfoString_Delete(char *s, const char *key);
 bool InfoString_Set(char *s, const char *key, const char *value);
 bool InfoString_Validate(const char *s);
-
-gboolean g_stri_equal(gconstpointer v1, gconstpointer v2);
-guint g_stri_hash(gconstpointer v);
 
 /**
  * @brief The type of an AI node.

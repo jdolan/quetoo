@@ -20,9 +20,9 @@
  */
 
 #include "sv_local.h"
-#include "net/net_http.h"
+#include <Objectively/RESTClient.h>
 
-#include <Objectively/JSONSerialization.h>
+#include <Objectively/JSONContext.h>
 
 /**
  * @brief Fetch the active debug mask.
@@ -94,12 +94,12 @@ void Sv_SetConfigString(const int32_t index, const char *val) {
   }
 
   // make sure it's actually changed
-  if (!g_strcmp0(sv.config_strings[index], val)) {
+  if (!q_strcmp(sv.config_strings[index], val)) {
     return;
   }
 
   // change the string in sv.config_strings
-  g_strlcpy(sv.config_strings[index], val, sizeof(sv.config_strings[0]));
+  q_strlcpy(sv.config_strings[index], val, sizeof(sv.config_strings[0]));
 
   if (svs.state >= SV_ACTIVE_GAME) { // send the update to everyone
     Mem_ClearBuffer(&sv.multicast);
@@ -204,13 +204,14 @@ static void Sv_WriteAngles(const vec3_t angles) {
 static void *game_handle;
 
 /**
- * @brief `Net_HttpCallback` for `Sv_FragLog` and `Sv_CaptureLog`.
+ * @brief `RESTClientCompletion` for `Sv_PostStats`.
  */
-static void Sv_PostStatsCallback(int32_t status, void *body, size_t length, void *user_data) {
+static void Sv_PostStatsCallback(int32_t status, Data *data, void *user_data) {
   const char *url = user_data;
 
   if (status < 200 || status >= 300) {
-    Com_Warn("Sv_PostStatsCallback: POST to %s failed (HTTP %d): %.*s\n", url, status, (int) length, (const char *) body);
+    Com_Warn("Sv_PostStatsCallback: POST to %s failed (HTTP %d): %.*s\n", url, status,
+             data ? (int) data->length : 0, data ? (const char *) data->bytes : "");
   } else {
     Com_Print("POST to %s: HTTP %d\n", url, status);
   }
@@ -228,50 +229,54 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
 
   if (frags_len) {
 
-    static char frags_url[MAX_STRING_CHARS];
-    g_snprintf(frags_url, sizeof(frags_url), "%s/api/frags", sv_stats_url->string);
-
-    static const JsonProperty props[] = MakeJsonProperties(
-      MakeJsonProperty(g_frag_t, level,         JsonPropertyCharacters),
-      MakeJsonProperty(g_frag_t, attacker,      JsonPropertyCharacters),
-      MakeJsonProperty(g_frag_t, attacker_guid, JsonPropertyCharacters),
-      MakeJsonProperty(g_frag_t, attacker_ai,   JsonPropertyBool),
-      MakeJsonProperty(g_frag_t, target,        JsonPropertyCharacters),
-      MakeJsonProperty(g_frag_t, target_guid,   JsonPropertyCharacters),
-      MakeJsonProperty(g_frag_t, target_ai,     JsonPropertyBool),
-      MakeJsonProperty(g_frag_t, weapon,        JsonPropertyCharacters),
-      MakeJsonProperty(g_frag_t, mod,           JsonPropertyInteger),
-      MakeJsonProperty(g_frag_t, time,          JsonPropertyInteger)
+    const JSONProperties sv_frag_properties = MakeJSONProperties(g_frag_t,
+      MakeJSONProperty(g_frag_t, level,         JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_frag_t, attacker,      JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_frag_t, attacker_guid, JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_frag_t, attacker_ai,   JSONSerializeBoole,      NULL, NULL),
+      MakeJSONProperty(g_frag_t, target,        JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_frag_t, target_guid,   JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_frag_t, target_ai,     JSONSerializeBoole,      NULL, NULL),
+      MakeJSONProperty(g_frag_t, weapon,        JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_frag_t, mod,           JSONSerializeInt32,      NULL, NULL),
+      MakeJSONProperty(g_frag_t, time,          JSONSerializeInt32,      NULL, NULL)
     );
 
-    Data *data = $$(JSONSerialization, dataFromInstances, props, (ident) frags, frags_len, sizeof(g_frag_t));
+    static char frags_url[MAX_STRING_CHARS];
+    q_snprintf(frags_url, sizeof(frags_url), "%s/api/frags", sv_stats_url->string);
+
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    Data *data = $(ctx, dataFromStructs, &sv_frag_properties, (ident) frags, frags_len);
+    release(ctx);
     assert(data);
 
     Com_Print("POSTing %zd frags to %s\n", frags_len, frags_url);
-    Net_HttpPostAsync(frags_url, data->bytes, data->length, "application/json", Sv_PostStatsCallback, frags_url);
+    $($$(RESTClient, sharedInstance), postAsync, frags_url, data, Sv_PostStatsCallback, frags_url);
 
     release(data);
   }
 
   if (captures_len) {
 
-    static char captures_url[MAX_STRING_CHARS];
-    g_snprintf(captures_url, sizeof(captures_url), "%s/api/captures", sv_stats_url->string);
-
-    static const JsonProperty props[] = MakeJsonProperties(
-      MakeJsonProperty(g_capture_t, level,       JsonPropertyCharacters),
-      MakeJsonProperty(g_capture_t, player,      JsonPropertyCharacters),
-      MakeJsonProperty(g_capture_t, player_guid, JsonPropertyCharacters),
-      MakeJsonProperty(g_capture_t, player_ai,   JsonPropertyBool),
-      MakeJsonProperty(g_capture_t, team,        JsonPropertyCharacters),
-      MakeJsonProperty(g_capture_t, time,        JsonPropertyInteger)
+    const JSONProperties sv_capture_properties = MakeJSONProperties(g_capture_t,
+      MakeJSONProperty(g_capture_t, level,       JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_capture_t, player,      JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_capture_t, player_guid, JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_capture_t, player_ai,   JSONSerializeBoole,      NULL, NULL),
+      MakeJSONProperty(g_capture_t, team,        JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_capture_t, time,        JSONSerializeInt32,      NULL, NULL)
     );
 
-    Data *data = $$(JSONSerialization, dataFromInstances, props, (ident) captures, captures_len, sizeof(g_capture_t));
+    static char captures_url[MAX_STRING_CHARS];
+    q_snprintf(captures_url, sizeof(captures_url), "%s/api/captures", sv_stats_url->string);
+
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    Data *data = $(ctx, dataFromStructs, &sv_capture_properties, (ident) captures, captures_len);
+    release(ctx);
     assert(data);
 
     Com_Print("POSTing %zd captures to %s\n", captures_len, captures_url);
-    Net_HttpPostAsync(captures_url, data->bytes, data->length, "application/json", Sv_PostStatsCallback, captures_url);
+    $($$(RESTClient, sharedInstance), postAsync, captures_url, data, Sv_PostStatsCallback, captures_url);
 
     release(data);
   }

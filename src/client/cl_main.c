@@ -23,20 +23,13 @@
  #include <winsock2.h>
 #endif
 
-#include <Objectively/JSONSerialization.h>
+#include <Objectively/JSONContext.h>
+#include <Objectively/RESTClient.h>
+#include <Objectively/URLCache.h>
 #include "cl_local.h"
-#include "net/net_http.h"
 #include "server/server.h"
 
 #define QUETOO_GUID_URL "https://giblets.quetoo.org/api/guid"
-
-typedef struct {
-  char guid[68];
-} GuidHashResponse;
-
-static const JsonProperty guid_hash_properties[] = MakeJsonProperties(
-  MakeJsonProperty(GuidHashResponse, guid, JsonPropertyCharacters)
-);
 
 cvar_t *cl_chat_sound;
 cvar_t *cl_draw_counters;
@@ -58,32 +51,6 @@ cvar_t *rate;
 cvar_t *qport;
 
 cvar_t *cl_draw_net_messages;
-
-/**
- * @brief Requests the server-side GUID hash once at startup and stores it in `guid_hashed`.
- */
-static void Cl_InitGuidHash(void) {
-
-  if (!guid || !guid->string[0]) {
-    Cvar_ForceSetString("guid_hashed", "");
-    return;
-  }
-
-  Cvar_ForceSetString("guid_hashed", "");
-
-  char url[256];
-  g_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
-
-  GuidHashResponse response = { 0 };
-
-  if (Net_HttpGetInstance(url, guid_hash_properties, &response) == 200) {
-    if (response.guid[0]) {
-      Cvar_ForceSetString("guid_hashed", response.guid);
-    } else {
-      Com_Warn("GUID hash response missing guid field\n");
-    }
-  }
-}
 
 cl_static_t cls;
 cl_client_t cl;
@@ -121,13 +88,13 @@ static void Cl_SendConnect(void) {
 static void Cl_AttemptConnect(void) {
 
   // if the local server is running and we aren't then connect
-  if (Com_WasInit(QUETOO_SERVER) && g_strcmp0(cls.server_name, "localhost")) {
+  if (Com_WasInit(QUETOO_SERVER) && q_strcmp(cls.server_name, "localhost")) {
 
     if (cls.state > CL_DISCONNECTED) {
       Cl_Disconnect();
     }
 
-    g_strlcpy(cls.server_name, "localhost", sizeof(cls.server_name));
+    q_strlcpy(cls.server_name, "localhost", sizeof(cls.server_name));
 
     cls.state = CL_CONNECTING;
     cls.connect_time = 0;
@@ -158,7 +125,7 @@ static void Cl_AttemptConnect(void) {
   cls.connect_time = quetoo.ticks;
 
   const char *s = Net_NetaddrToString(&addr);
-  if (g_strcmp0(cls.server_name, s)) {
+  if (q_strcmp(cls.server_name, s)) {
     Com_Print("Connecting to %s (%s)...\n", cls.server_name, s);
   } else {
     Com_Print("Connecting to %s...\n", cls.server_name);
@@ -178,7 +145,7 @@ void Cl_Connect(const net_addr_t *addr) {
 
   Cl_Disconnect();
 
-  g_strlcpy(cls.server_name, Net_NetaddrToString(addr), sizeof(cls.server_name));
+  q_strlcpy(cls.server_name, Net_NetaddrToString(addr), sizeof(cls.server_name));
 
   cls.state = CL_CONNECTING;
   cls.connect_time = 0;
@@ -250,7 +217,7 @@ static void Cl_Rcon_f(void) {
     }
   }
 
-  Net_SendDatagram(NS_UDP_CLIENT, &to, message, strlen(message) + 1);
+  Net_SendDatagram(NS_UDP_CLIENT, &to, message, q_strlen(message) + 1);
 }
 
 /**
@@ -305,7 +272,7 @@ void Cl_SendDisconnect(void) {
   cmd[0] = CL_CMD_STRING;
   strcpy((char *) cmd + 1, "disconnect");
 
-  Netchan_Transmit(&cls.net_chan, cmd, strlen((char *) cmd));
+  Netchan_Transmit(&cls.net_chan, cmd, q_strlen((char *) cmd));
 }
 
 /**
@@ -323,7 +290,10 @@ void Cl_Disconnect(void) {
   Cl_SendDisconnect();
 
   Cl_ClearState();
-  Net_HttpClearCache();
+  RESTClient *client = $$(RESTClient, sharedInstance);
+  if (client->session->configuration->urlCache) {
+    $(client->session->configuration->urlCache, removeAllCachedResponses);
+  }
 
   if (cls.demo_file) {
     Cl_Stop_f();
@@ -409,7 +379,7 @@ static void Cl_ConnectionlessPacket(void) {
   Com_Debug(DEBUG_CLIENT, "%s: %s\n", Net_NetaddrToString(&net_from), c);
 
   // server connection
-  if (!g_strcmp0(c, "client_connect")) {
+  if (!q_strcmp(c, "client_connect")) {
 
     if (cls.state == CL_CONNECTED) {
       Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(&net_from));
@@ -427,32 +397,32 @@ static void Cl_ConnectionlessPacket(void) {
   }
 
   // server responding to a status query
-  if (!g_strcmp0(c, "status")) {
+  if (!q_strcmp(c, "status")) {
     Cl_ParseServerInfo();
     return;
   }
 
   // print command from somewhere
-  if (!g_strcmp0(c, "print")) {
+  if (!q_strcmp(c, "print")) {
     s = Net_ReadString(&net_message);
     Com_Print("%s", s);
     return;
   }
 
   // ping from somewhere
-  if (!g_strcmp0(c, "ping")) {
+  if (!q_strcmp(c, "ping")) {
     Netchan_OutOfBandPrint(NS_UDP_CLIENT, &net_from, "ack");
     return;
   }
 
   // servers list from master
-  if (!g_strcmp0(c, "servers")) {
+  if (!q_strcmp(c, "servers")) {
     Cl_ParseServers();
     return;
   }
 
   // challenge from the server we are connecting to
-  if (!g_strcmp0(c, "challenge")) {
+  if (!q_strcmp(c, "challenge")) {
     if (cls.state != CL_CONNECTING) {
       Com_Warn("Ignoring challenge from %s\n", Net_NetaddrToString(&net_from));
       return;
@@ -569,14 +539,6 @@ static void Cl_InitLocal(void) {
   // user info
 
   guid = Cvar_Add("guid", "", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-  if (strlen(guid->string) == 0) {
-    char *uuid = g_uuid_string_random();
-    Cvar_ForceSetString("guid", uuid);
-    g_free(uuid);
-  }
-
-  Cvar_Add("guid_hashed", "", CVAR_NO_SET, NULL);
-
   name = Cvar_Add("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name");
   active = Cvar_Add("active", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
   message_level = Cvar_Add("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive");
@@ -750,6 +712,55 @@ void Cl_Frame(const uint32_t msec) {
 }
 
 /**
+ * @brief Synchronously fetches the server-side GUID hash and stores it in `guid_hash` cvar.
+ */
+static void Cl_InitGuid(void) {
+
+  if (q_strlen(guid->string) == 0) {
+    // Generate a random RFC 4122 version 4 UUID
+    char uuid[37];
+    const uint32_t a = (uint32_t) SDL_rand(INT32_MAX);
+    const uint32_t b = (uint32_t) SDL_rand(INT32_MAX);
+    const uint32_t c = (uint32_t) SDL_rand(INT32_MAX);
+    const uint32_t d = (uint32_t) SDL_rand(INT32_MAX);
+    q_snprintf(uuid, sizeof(uuid),
+      "%08x-%04x-%04x-%04x-%04x%08x",
+      a,
+      b & 0xffff,
+      (b >> 16 & 0x0fff) | 0x4000,   // version 4
+      (c & 0x3fff) | 0x8000,          // variant 1
+      c >> 16 & 0xffff,
+      d);
+    Cvar_ForceSetString("guid", uuid);
+  }
+
+  Cvar_Add("guid_hash", "", CVAR_NO_SET, NULL);
+
+  char url[256];
+  q_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
+
+  Data *data;
+  const int32_t status = $($$(RESTClient, sharedInstance), get, url, &data);
+  if (status == 200) {
+
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    Dictionary *dictionary = $(ctx, objectFromData, data, 0);
+    if ($(dictionary, containsKeyPath, "guid")) {
+      String *hash = $(dictionary, objectForKeyPathWithClass, "guid", _String());
+      Cvar_ForceSetString("guid_hash", hash->chars);
+    } else {
+      Com_Warn("Malformed GUID response from %s\n", url);
+    }
+
+    release(ctx);
+    release(dictionary);
+    release(data);
+  } else {
+    Com_Warn("Failed to fetch %s: HTTP %d\n", url, status);
+  }
+}
+
+/**
  * @brief Initializes all client subsystems: console, renderer, sound, UI, and cgame.
  */
 void Cl_Init(void) {
@@ -772,11 +783,11 @@ void Cl_Init(void) {
 
   Net_Config(NS_UDP_CLIENT, true);
 
-  Cl_InitGuidHash();
-
   S_Init();
 
   R_Init();
+
+  Cl_InitGuid();
 
   Ui_Init();
 

@@ -34,9 +34,9 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
   s = (cl_server_info_t *) Mem_TagMalloc(sizeof(*s), MEM_TAG_CLIENT);
 
   s->addr = *addr;
-  g_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
+  q_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
 
-  cls.servers = g_list_prepend(cls.servers, s);
+  if (!cls.servers) { cls.servers = $(alloc(List), init); cls.servers->destroy = (ListDestroyFunc) Mem_Free; } $(cls.servers, prependElement, s);
 
   return s;
 }
@@ -45,10 +45,10 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
  * @brief Finds the server info entry matching the given network address.
  */
 static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
-  const GList *e = cls.servers;
+  const ListNode *e = cls.servers ? cls.servers->head : NULL;
 
   while (e) {
-    cl_server_info_t *s = (cl_server_info_t *) e->data;
+    cl_server_info_t *s = (cl_server_info_t *) e->element;
 
     if (Net_CompareNetaddr(addr, &s->addr)) {
       return s;
@@ -65,7 +65,7 @@ static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
  */
 void Cl_FreeServers(void) {
 
-  g_list_free_full(cls.servers, Mem_Free);
+  if (cls.servers) { $(cls.servers, removeAll); release(cls.servers); }
 
   cls.servers = NULL;
 }
@@ -85,10 +85,10 @@ void Cl_ParseServerInfo(void) {
     server->ping_time = cls.broadcast_time;
   }
 
-  g_strlcpy(string, Net_ReadString(&net_message), sizeof(string));
+  q_strlcpy(string, Net_ReadString(&net_message), sizeof(string));
 
   // First line is the server infostring; subsequent lines are player entries.
-  char *player_start = strchr(string, '\n');
+  char *player_start = q_strchr(string, '\n');
   if (player_start) {
     *player_start++ = '\0';
   }
@@ -97,15 +97,15 @@ void Cl_ParseServerInfo(void) {
   char name[sizeof(server->name)];
   char gameplay[sizeof(server->gameplay)];
 
-  g_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
-  g_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
-  g_strlcpy(gameplay, InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
+  q_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
+  q_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
+  q_strlcpy(gameplay, InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
   const int32_t max_clients = atoi(InfoString_Get(string, "sv_max_clients"));
 
   if (hostname[0] && name[0]) {
-    g_strlcpy(server->hostname, hostname, sizeof(server->hostname));
-    g_strlcpy(server->name, name, sizeof(server->name));
-    g_strlcpy(server->gameplay, gameplay, sizeof(server->gameplay));
+    q_strlcpy(server->hostname, hostname, sizeof(server->hostname));
+    q_strlcpy(server->name, name, sizeof(server->name));
+    q_strlcpy(server->gameplay, gameplay, sizeof(server->gameplay));
     server->max_clients = max_clients;
 
     server->clients = 0;
@@ -113,11 +113,11 @@ void Cl_ParseServerInfo(void) {
 
     const char *line = player_start;
     while (line && *line) {
-      const char *end = strchr(line, '\n');
+      const char *end = q_strchr(line, '\n');
 
       char player[MAX_TOKEN_CHARS];
-      const size_t len = end ? (size_t)(end - line) : strlen(line);
-      g_strlcpy(player, line, MIN(len + 1, sizeof(player)));
+      const size_t len = end ? (size_t)(end - line) : q_strlen(line);
+      q_strlcpy(player, line, Mini(len + 1, sizeof(player)));
 
       if (player[0]) {
         server->clients++;
@@ -129,7 +129,17 @@ void Cl_ParseServerInfo(void) {
       line = end ? end + 1 : NULL;
     }
 
-    server->ping = Clampf(quetoo.ticks - server->ping_time, 1u, 999u);
+    const int32_t sample = Clampf(quetoo.ticks - server->ping_time, 1u, 999u);
+
+    // smooth across refreshes so the displayed ping converges instead of
+    // bouncing on each request's one-shot round-trip measurement
+    if (server->ping_smoothed == 0) {
+      server->ping_smoothed = sample;
+    } else {
+      server->ping_smoothed = (server->ping_smoothed * 3 + sample) / 4;
+    }
+
+    server->ping = server->ping_smoothed;
     server->error[0] = '\0';
 
   } else {
@@ -141,7 +151,7 @@ void Cl_ParseServerInfo(void) {
     server->max_clients = 0;
     server->bots = 0;
 
-    g_snprintf(server->error, sizeof(server->error), "Invalid response from %s\n", Net_NetaddrToString(&server->addr));
+    q_snprintf(server->error, sizeof(server->error), "Invalid response from %s\n", Net_NetaddrToString(&server->addr));
   }
 
   SDL_PushEvent(&(SDL_Event) {
@@ -193,11 +203,11 @@ void Cl_Ping_f(void) {
  * @brief Sends a LAN broadcast and resets ping times for all broadcast servers.
  */
 static void Cl_SendBroadcast(void) {
-  const GList *e = cls.servers;
+  const ListNode *e = cls.servers ? cls.servers->head : NULL;
 
 
   while (e) { // update old ping times
-    cl_server_info_t *s = (cl_server_info_t *) e->data;
+    cl_server_info_t *s = (cl_server_info_t *) e->element;
 
     if (s->source == SERVER_SOURCE_BCAST) {
       s->ping_time = quetoo.ticks;
@@ -266,7 +276,7 @@ void Cl_ParseServers(void) {
     port += *buffptr++;
 
     char s[32];
-    g_snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
+    q_snprintf(s, sizeof(s), "%d.%d.%d.%d:%d", ip[0], ip[1], ip[2], ip[3], port);
 
     Com_Debug(DEBUG_CLIENT, "Parsed %s\n", s);
 
@@ -292,10 +302,10 @@ void Cl_ParseServers(void) {
 
   // then ping them
 
-  GList *e = cls.servers;
+  const ListNode *e = cls.servers ? cls.servers->head : NULL;
 
   while (e) {
-    server = (cl_server_info_t *) e->data;
+    server = (cl_server_info_t *) e->element;
 
     if (server->source == SERVER_SOURCE_INTERNET) {
       server->ping_time = quetoo.ticks;
@@ -321,12 +331,12 @@ void Cl_ParseServers(void) {
 void Cl_Servers_List_f(void) {
   char string[256];
 
-  GList *e = cls.servers;
+  const ListNode *e = cls.servers ? cls.servers->head : NULL;
 
   while (e) {
-    const cl_server_info_t *s = (cl_server_info_t *) e->data;
+    const cl_server_info_t *s = (const cl_server_info_t *) e->element;
 
-    g_snprintf(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
+    q_snprintf(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
                s->hostname, Net_NetaddrToString(&s->addr), s->name, s->gameplay, s->clients,
                s->max_clients, s->ping);
     Com_Print("%s\n", string);

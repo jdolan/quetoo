@@ -54,3 +54,4 @@
 #include "cg_ui.h"
 #include "cg_view.h"
 #include "cg_weapon.h"
+#include <Objectively/Vector.h>
