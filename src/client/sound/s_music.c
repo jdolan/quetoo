@@ -405,7 +405,7 @@ void S_RenderMusic(const s_stage_t *stage) {
 
   SDL_UnlockMutex(s_music_state.mutex);
 
-  if (S_MusicGain() && state != AL_PLAYING) {
+  if (S_MusicGain() && (state == AL_STOPPED || state == AL_INITIAL)) {
     S_NextTrack_f();
   }
 
@@ -423,8 +423,12 @@ void S_NextTrack_f(void) {
     s_music_t *current = S_CurrentMusic();
     s_music_t *music = S_NextMusic();
 
-    if (music && music != current) {
-      S_PlayMusic(music);
+    if (music) {
+      if (music == s_music_state.default_music && current == s_music_state.default_music) {
+        Com_Debug(DEBUG_SOUND, "Default music already playing\n");
+      } else {
+        S_PlayMusic(music);
+      }
     } else {
       Com_Debug(DEBUG_SOUND, "No music available\n");
     }
