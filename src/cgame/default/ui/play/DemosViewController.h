@@ -57,9 +57,9 @@ struct DemosViewController {
   TableView *demos;
 
   /**
-   * @brief The recorded demo names (strdup'd), one per row.
+   * @brief The recorded demo names (String objects), one per row.
    */
-  GList *names;
+  Array *names;
 
   /**
    * @brief The selected row, or -1 if none.

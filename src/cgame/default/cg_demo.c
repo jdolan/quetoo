@@ -231,7 +231,7 @@ static cm_trace_t Cg_DemoCamera_Trace(const vec3_t start, const vec3_t end, cons
  * spectator. The command msec is real frame time, so the camera flies at a
  * constant real-time speed regardless of the demo playback speed.
  */
-void Cg_PredictDemoCamera(const GPtrArray *cmds) {
+void Cg_PredictDemoCamera(const Vector *cmds) {
 
   pm_move_t pm = { .s = cg_demo.s };
   pm.s.type = PM_SPECTATOR;
@@ -244,8 +244,8 @@ void Cg_PredictDemoCamera(const GPtrArray *cmds) {
   pm.DebugMask = cgi.DebugMask;
   pm.debug_mask = DEBUG_PMOVE_CLIENT;
 
-  for (guint i = 0; i < cmds->len; i++) {
-    const cl_cmd_t *cmd = g_ptr_array_index(cmds, i);
+  for (uint32_t i = 0; i < cmds->count; i++) {
+    const cl_cmd_t *cmd = VectorValue(cmds, cl_cmd_t *, i);
     if (cmd->cmd.msec) {
       pm.cmd = cmd->cmd;
       Pm_Move(&pm);

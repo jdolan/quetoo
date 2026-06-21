@@ -33,7 +33,7 @@ bool Cg_DemoOverridingView(void);
 void Cg_DrawDemoBar(void);
 void Cg_DrawDemoLetterbox(void);
 void Cg_InitDemo(void);
-void Cg_PredictDemoCamera(const GPtrArray *cmds);
+void Cg_PredictDemoCamera(const Vector *cmds);
 void Cg_UpdateDemoFov(void);
 void Cg_UpdateDemoView(void);
 

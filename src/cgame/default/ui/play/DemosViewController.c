@@ -36,14 +36,26 @@ static void enumerateDemos(const char *path, void *data) {
 
   DemosViewController *this = data;
 
-  char *base = g_path_get_basename(path);
-  char *dot = strrchr(base, '.');
+  const char *slash = q_strrchr(path, '/');
+
+  char name[MAX_QPATH];
+  q_strlcpy(name, slash ? slash + 1 : path, sizeof(name));
+
+  char *dot = q_strrchr(name, '.');
   if (dot) {
     *dot = '\0';
   }
 
-  this->names = g_list_append(this->names, g_strdup(base));
-  g_free(base);
+  String *string = $$(String, stringWithCharacters, name);
+  $(this->names, addObject, string);
+  release(string);
+}
+
+/**
+ * @brief Comparator that sorts demo name Strings alphabetically.
+ */
+static Order sortDemos(const ident a, const ident b) {
+  return q_strcmp(((const String *) a)->chars, ((const String *) b)->chars) < 0 ? OrderAscending : OrderDescending;
 }
 
 /**
@@ -51,13 +63,13 @@ static void enumerateDemos(const char *path, void *data) {
  */
 static void loadDemos(DemosViewController *this) {
 
-  g_list_free_full(this->names, g_free);
-  this->names = NULL;
+  release(this->names);
+  this->names = $$(Array, array);
   this->selectedRow = -1;
 
   cgi.EnumerateFiles("demos/*.demo", enumerateDemos, this);
 
-  this->names = g_list_sort(this->names, (GCompareFunc) g_strcmp0);
+  $(this->names, sort, sortDemos);
 }
 
 /**
@@ -65,30 +77,28 @@ static void loadDemos(DemosViewController *this) {
  */
 static void playSelected(DemosViewController *this) {
 
-  if (this->selectedRow < 0) {
+  if (this->selectedRow < 0 || (size_t) this->selectedRow >= ((const Array *) this->names)->count) {
     return;
   }
 
-  const char *name = g_list_nth_data(this->names, (guint) this->selectedRow);
-  if (name) {
-    cgi.Cbuf(va("demo \"%s\"\n", name));
-  }
+  const String *name = $((Array *) this->names, objectAtIndex, (size_t) this->selectedRow);
+  cgi.Cbuf(va("demo \"%s\"\n", name->chars));
 }
 
 #pragma mark - TableView dataSource / delegate
 
 static size_t numberOfRows(const TableView *tableView) {
   const DemosViewController *this = tableView->dataSource.self;
-  return g_list_length(this->names);
+  return ((const Array *) this->names)->count;
 }
 
 static TableCellView *cellForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
 
   const DemosViewController *this = tableView->dataSource.self;
-  const char *name = g_list_nth_data(this->names, (guint) row);
+  const String *name = $((Array *) this->names, objectAtIndex, row);
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
-  $(cell->text, setText, name);
+  $(cell->text, setText, name->chars);
 
   return cell;
 }
@@ -132,6 +142,8 @@ static void loadView(ViewController *self) {
   super(ViewController, self, loadView);
 
   DemosViewController *this = (DemosViewController *) self;
+
+  this->names = $$(Array, array);
 
   Button *play, *refresh;
   Outlet outlets[] = MakeOutlets(
@@ -181,7 +193,7 @@ static void dealloc(Object *self) {
 
   DemosViewController *this = (DemosViewController *) self;
 
-  g_list_free_full(this->names, g_free);
+  release(this->names);
 
   super(Object, self, dealloc);
 }
