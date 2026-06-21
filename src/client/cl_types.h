@@ -662,7 +662,7 @@ typedef struct {
 
   /**
    * @brief Exponentially smoothed ping, retained across refreshes to damp the
-   * per-request jitter caused by the server's frame-quantized socket servicing.
+   * per-request variance from one-shot status replies.
    */
   int32_t ping_smoothed;
 } cl_server_info_t;
