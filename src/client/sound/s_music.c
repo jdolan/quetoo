@@ -405,7 +405,7 @@ void S_RenderMusic(const s_stage_t *stage) {
 
   SDL_UnlockMutex(s_music_state.mutex);
 
-  if (S_MusicGain() && state != AL_PLAYING) {
+  if (S_MusicGain() && (state == AL_STOPPED || state == AL_INITIAL)) {
     S_NextTrack_f();
   }
 
