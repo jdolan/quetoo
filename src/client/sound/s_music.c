@@ -420,10 +420,15 @@ void S_RenderMusic(const s_stage_t *stage) {
 void S_NextTrack_f(void) {
 
   if (S_MusicGain()) {
+    s_music_t *current = S_CurrentMusic();
     s_music_t *music = S_NextMusic();
 
     if (music) {
-      S_PlayMusic(music);
+      if (music == s_music_state.default_music && current == s_music_state.default_music) {
+        Com_Debug(DEBUG_SOUND, "Default music already playing\n");
+      } else {
+        S_PlayMusic(music);
+      }
     } else {
       Com_Debug(DEBUG_SOUND, "No music available\n");
     }
