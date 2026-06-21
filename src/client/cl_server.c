@@ -133,6 +133,7 @@ void Cl_ParseServerInfo(void) {
 
     // smooth across refreshes so the displayed ping converges instead of
     // bouncing on each request's one-shot round-trip measurement
+    if (server->ping_smoothed == 0) {
       server->ping_smoothed = sample;
     } else {
       server->ping_smoothed = (server->ping_smoothed * 3 + sample) / 4;
