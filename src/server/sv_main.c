@@ -827,6 +827,7 @@ static void Sv_WaitForPackets(const uint32_t msec) {
     // timestamp and ingest whatever arrived at its true receive time
     quetoo.ticks = (uint32_t) SDL_GetTicks();
     Sv_ReadPackets();
+    quetoo.ticks = (uint32_t) SDL_GetTicks();
   }
 }
 
