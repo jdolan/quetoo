@@ -129,7 +129,16 @@ void Cl_ParseServerInfo(void) {
       line = end ? end + 1 : NULL;
     }
 
-    server->ping = Clampf(quetoo.ticks - server->ping_time, 1u, 999u);
+    const int32_t sample = Clampf(quetoo.ticks - server->ping_time, 1u, 999u);
+
+    // smooth across refreshes so the displayed ping converges instead of
+    // bouncing on each request's one-shot round-trip measurement
+      server->ping_smoothed = sample;
+    } else {
+      server->ping_smoothed = (server->ping_smoothed * 3 + sample) / 4;
+    }
+
+    server->ping = server->ping_smoothed;
     server->error[0] = '\0';
 
   } else {

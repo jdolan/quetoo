@@ -659,6 +659,12 @@ typedef struct {
    * @brief Measured round-trip latency to the server in milliseconds.
    */
   int32_t ping;
+
+  /**
+   * @brief Exponentially smoothed ping, retained across refreshes to damp the
+   * per-request variance from one-shot status replies.
+   */
+  int32_t ping_smoothed;
 } cl_server_info_t;
 
 typedef struct {
