@@ -132,8 +132,7 @@ void Cl_ParseServerInfo(void) {
     const int32_t sample = Clampf(quetoo.ticks - server->ping_time, 1u, 999u);
 
     // smooth across refreshes so the displayed ping converges instead of
-    // bouncing on each request's frame-quantized round-trip
-    if (server->ping_smoothed <= 0) {
+    // bouncing on each request's one-shot round-trip measurement
       server->ping_smoothed = sample;
     } else {
       server->ping_smoothed = (server->ping_smoothed * 3 + sample) / 4;
