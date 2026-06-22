@@ -44,16 +44,14 @@ void Mem_ClearBuffer(mem_buf_t *buf) {
 
 /**
  * @brief Advances the write cursor by `len` bytes and returns a pointer to the newly reserved region.
- * @details If `allow_overflow` is set and the buffer would overflow, the buffer is cleared first.
- *   Aborts if the buffer does not have `allow_overflow` set and an overflow would occur.
+ * @details Errors if len exceeds the buffer's remaining capacity.
  */
 void *Mem_AllocBuffer(mem_buf_t *buf, size_t len) {
   void *data;
 
   if (len > buf->max_size - buf->size) {
     const uint32_t delta = (uint32_t) (buf->size + len - buf->max_size);
-    fprintf(stderr, "%s: Overflow by %u bytes\n", __func__, delta);
-    return NULL;
+    Com_Error(ERROR_FATAL, "Buffer overflow writing %zd bytes to %zd sized buffer\n", len, buf->max_size);
   }
 
   data = buf->data + buf->size;
@@ -66,11 +64,5 @@ void *Mem_AllocBuffer(mem_buf_t *buf, size_t len) {
  * @brief Copies `len` bytes from `data` into the next available region of the buffer.
  */
 void Mem_WriteBuffer(mem_buf_t *buf, const void *data, size_t len) {
-
-  void *out = Mem_AllocBuffer(buf, len);
-  if (out) {
-    memcpy(out, data, len);
-  } else {
-    Com_Error(ERROR_FATAL, "Buffer overflow writing %zd bytes to %zd sized buffer\n", len, buf->max_size);
-  }
+  memcpy(Mem_AllocBuffer(buf, len), data, len);
 }
