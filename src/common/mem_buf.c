@@ -47,14 +47,12 @@ void Mem_ClearBuffer(mem_buf_t *buf) {
  * @details Errors if len exceeds the buffer's remaining capacity.
  */
 void *Mem_AllocBuffer(mem_buf_t *buf, size_t len) {
-  void *data;
 
   if (len > buf->max_size - buf->size) {
-    const uint32_t delta = (uint32_t) (buf->size + len - buf->max_size);
     Com_Error(ERROR_FATAL, "Buffer overflow writing %zu bytes to %zu sized buffer\n", len, buf->max_size);
   }
 
-  data = buf->data + buf->size;
+  void *data = buf->data + buf->size;
   buf->size += len;
 
   return data;
