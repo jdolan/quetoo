@@ -924,8 +924,13 @@ static bool G_Ai_AdvancePath(g_client_t *cl, ai_goal_t *goal) {
     return false;
   }
 
-  goal->path.path_position = G_Ai_Node_GetPosition(VectorValue(goal->path.path, ai_node_id_t, goal->path.path_index));
-  goal->path.next_path_position = G_Ai_Node_GetPosition(VectorValue(goal->path.path, ai_node_id_t, Mini(goal->path.path->count - 1, goal->path.path_index + 1)));
+  const Vector *path = goal->path.path;
+  const uint32_t index = goal->path.path_index;
+
+  const ai_node_id_t node = VectorValue(path, ai_node_id_t, index);
+  const ai_node_id_t next = VectorValue(path, ai_node_id_t, Minz(path->count - 1, index + 1));
+  goal->path.path_position = G_Ai_Node_GetPosition(node);
+  goal->path.next_path_position = G_Ai_Node_GetPosition(next);
   goal->distress = 0;
   goal->distress_extension = false;
   goal->last_distance = FLT_MAX;

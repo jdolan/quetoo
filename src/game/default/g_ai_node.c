@@ -163,7 +163,7 @@ static bool G_Ai_Node_EnsureSpatialIndex(void) {
 
   G_Ai_Node_InvalidateSpatialIndex();
 
-  const uint32_t n = g_ai_nodes->count;
+  const uint32_t n = (uint32_t) g_ai_nodes->count;
   g_ai_nodes_kdtree_positions = malloc(sizeof(vec3_t) * n);
   if (!g_ai_nodes_kdtree_positions) {
     return false;
@@ -1149,7 +1149,7 @@ void G_Ai_InitNodes(void) {
     const ai_node_t *node = AI_NODE(g_ai_nodes, i);
 
     if (node->links) {
-      g_ai_player_roam.file_links += node->links->count;
+      g_ai_player_roam.file_links += (uint32_t) node->links->count;
     }
   }
 }
@@ -1194,7 +1194,7 @@ void G_Ai_NodesReady(void) {
     return;
   }
 
-  const uint32_t added_nodes = g_ai_nodes->count - g_ai_player_roam.file_nodes;
+  const uint32_t added_nodes = (uint32_t) g_ai_nodes->count - g_ai_player_roam.file_nodes;
   uint32_t added_links = 0;
 
   for (uint32_t i = 0; i < g_ai_nodes->count; i++) {
