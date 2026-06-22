@@ -144,6 +144,34 @@ static char *Cl_ConfigString(int32_t index) {
 }
 
 /**
+ * @brief Adds a new stage to the material and rebuilds its render stages.
+ */
+static cm_stage_t *Cl_AddMaterialStage(r_material_t *material) {
+  cm_stage_t *stage = Cm_AddStage(material->cm);
+  R_UpdateMaterialStages(material);
+  return stage;
+}
+
+/**
+ * @brief Removes a stage from the material and rebuilds its render stages.
+ */
+static void Cl_RemoveMaterialStage(r_material_t *material, cm_stage_t *stage) {
+  Cm_RemoveStage(material->cm, stage);
+  R_UpdateMaterialStages(material);
+}
+
+/**
+ * @brief Recomputes a stage's derived flags after an editor flag toggle, then
+ * rebuilds the material's render stages (a flag may change whether the stage draws
+ * or which media it needs).
+ */
+static void Cl_FinalizeMaterialStage(r_material_t *material, cm_stage_t *stage) {
+  Cm_FinalizeStage(stage);
+  material->cm->dirty = true;
+  R_UpdateMaterialStages(material);
+}
+
+/**
  * @brief Initializes the client game subsystem
  */
 void Cl_InitCgame(void) {
@@ -290,6 +318,9 @@ void Cl_InitCgame(void) {
   import.CompileAtlas = R_CompileAtlas;
   import.CreateAnimation = R_CreateAnimation;
   import.LoadMaterial = R_LoadMaterial;
+  import.AddMaterialStage = Cl_AddMaterialStage;
+  import.RemoveMaterialStage = Cl_RemoveMaterialStage;
+  import.FinalizeMaterialStage = Cl_FinalizeMaterialStage;
   import.LoadModel = R_LoadModel;
   import.WorldModel = R_WorldModel;
 

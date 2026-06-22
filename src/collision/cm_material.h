@@ -507,6 +507,24 @@ cm_material_t *Cm_LoadMaterial(const char *name, cm_asset_context_t context);
 void Cm_FreeMaterial(cm_material_t *material);
 
 /**
+ * @brief Recomputes a stage's derived flags (`STAGE_DRAW`, lighting) and blend
+ * defaults. Safe to call repeatedly, e.g. after the editor toggles a flag.
+ */
+void Cm_FinalizeStage(cm_stage_t *s);
+
+/**
+ * @brief Allocates, defaults, and appends a new stage to the material, marking it
+ * dirty. The stage defaults to a textured copy of the diffusemap so it renders.
+ * @return The new stage.
+ */
+cm_stage_t *Cm_AddStage(cm_material_t *m);
+
+/**
+ * @brief Unlinks and frees a stage from the material, marking it dirty.
+ */
+void Cm_RemoveStage(cm_material_t *m, cm_stage_t *s);
+
+/**
  * @brief Resolves all asset paths referenced by the material.
  * @return true if the diffusemap was resolved successfully.
  */

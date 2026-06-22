@@ -22,6 +22,7 @@
 #include "cg_local.h"
 
 #include "MaterialViewController.h"
+#include "StageView.h"
 
 #define _Class _MaterialViewController
 
@@ -57,6 +58,81 @@ static void didSetValue(Slider *slider, double value) {
   this->material->cm->dirty = true;
 }
 
+/**
+ * @brief Rebuilds the stage list, one StageView per collision stage.
+ */
+static void loadStages(MaterialViewController *this);
+
+/**
+ * @brief StageViewDelegate: defer stage removal to the event queue, since it
+ * fires from within the Remove button's handler and removal frees the view.
+ */
+static void didRemoveStage(StageView *stageView) {
+
+  SDL_PushEvent(&(SDL_Event) {
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = NOTIFICATION_MATERIAL_STAGE_REMOVED,
+    .user.data1 = stageView->stage,
+  });
+}
+
+/**
+ * @brief ButtonDelegate: append a new stage and rebuild the list. Safe to rebuild
+ * synchronously here — the Add Stage button is not part of the stage list.
+ */
+static void didClickAddStage(Button *button) {
+
+  MaterialViewController *this = button->delegate.self;
+
+  if (this->material) {
+    cgi.AddMaterialStage(this->material);
+    loadStages(this);
+  }
+}
+
+/**
+ * @brief StageViewDelegate: make the clicked panel the single selected stage,
+ * revealing its Remove button and hiding any other's.
+ */
+static void didSelectStage(StageView *stageView) {
+
+  MaterialViewController *this = stageView->delegate.self;
+
+  if (this->selectedStage == stageView) {
+    return;
+  }
+
+  if (this->selectedStage) {
+    $(this->selectedStage, setSelected, false);
+  }
+
+  $(stageView, setSelected, true);
+  this->selectedStage = stageView;
+}
+
+static void loadStages(MaterialViewController *this) {
+
+  $((View *) this->stages, removeAllSubviews);
+  this->selectedStage = NULL;
+
+  if (this->material) {
+    for (cm_stage_t *stage = this->material->cm->stages; stage; stage = stage->next) {
+
+      StageView *stageView = $(alloc(StageView), initWithStage, this->material, stage);
+
+      stageView->delegate.self = this;
+      stageView->delegate.didRemoveStage = didRemoveStage;
+      stageView->delegate.didSelectStage = didSelectStage;
+
+      $((View *) this->stages, addSubview, (View *) stageView);
+
+      release(stageView);
+    }
+  }
+
+  $((View *) this->stages, sizeToFit);
+}
+
 #pragma mark - ViewController
 
 /**
@@ -69,7 +145,8 @@ static void loadView(ViewController *self) {
   MaterialViewController *this = (MaterialViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("name", &this->name),
+    MakeOutlet("content", &this->content),
+    MakeOutlet("materialBox", &this->materialBox),
     MakeOutlet("diffusemap", &this->diffusemap),
     MakeOutlet("normalmap", &this->normalmap),
     MakeOutlet("specularmap", &this->specularmap),
@@ -78,7 +155,9 @@ static void loadView(ViewController *self) {
     MakeOutlet("specularity", &this->specularity),
     MakeOutlet("parallax", &this->parallax),
     MakeOutlet("shadow", &this->shadow),
-    MakeOutlet("alpha_test", &this->alphaTest)
+    MakeOutlet("alpha_test", &this->alphaTest),
+    MakeOutlet("stages", &this->stages),
+    MakeOutlet("addStage", &this->addStage)
   );
 
   $(self->view, awakeWithResourceName, "ui/editor/MaterialViewController.json");
@@ -104,6 +183,48 @@ static void loadView(ViewController *self) {
 
   this->alphaTest->delegate.self = self;
   this->alphaTest->delegate.didSetValue = didSetValue;
+
+  this->addStage->delegate.self = self;
+  this->addStage->delegate.didClick = didClickAddStage;
+}
+
+/**
+ * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
+ */
+static void respondToEvent(ViewController *self, const SDL_Event *event) {
+
+  MaterialViewController *this = (MaterialViewController *) self;
+
+  if (event->type == MVC_NOTIFICATION_EVENT
+      && event->user.code == NOTIFICATION_MATERIAL_STAGE_REMOVED
+      && this->material) {
+
+    cm_stage_t *stage = (cm_stage_t *) event->user.data1;
+
+    for (const cm_stage_t *s = this->material->cm->stages; s; s = s->next) {
+      if (s == stage) {
+        cgi.RemoveMaterialStage(this->material, stage);
+        loadStages(this);
+        break;
+      }
+    }
+  } else if (event->type == MVC_NOTIFICATION_EVENT
+      && event->user.code == NOTIFICATION_MATERIAL_STAGE_EFFECTS_CHANGED
+      && this->material) {
+
+    StageView *stageView = (StageView *) event->user.data1;
+
+    // validate the stage view is still one of ours before rebuilding it
+    const Array *subviews = ((View *) this->stages)->subviews;
+    for (size_t i = 0; i < subviews->count; i++) {
+      if ($(subviews, objectAtIndex, i) == (ident) stageView) {
+        $(stageView, rebuildEffects);
+        break;
+      }
+    }
+  }
+
+  super(ViewController, self, respondToEvent, event);
 }
 
 /**
@@ -147,7 +268,7 @@ static void setMaterial(MaterialViewController *self, r_material_t *material) {
   self->material = material;
 
   if (self->material) {
-    $(self->name, setDefaultText, self->material->cm->basename);
+    $(self->materialBox->label->text, setText, va("Material ( %s )", self->material->cm->basename));
     $(self->diffusemap, setDefaultText, self->material->cm->diffusemap.name);
     $(self->normalmap, setDefaultText, self->material->cm->normalmap.name);
     $(self->specularmap, setDefaultText, self->material->cm->specularmap.name);
@@ -160,7 +281,7 @@ static void setMaterial(MaterialViewController *self, r_material_t *material) {
     $(self->alphaTest, setValue, (double) self->material->cm->alpha_test);
 
   } else {
-    $(self->name, setDefaultText, NULL);
+    $(self->materialBox->label->text, setText, "Material");
     $(self->diffusemap, setDefaultText, NULL);
     $(self->normalmap, setDefaultText, NULL);
     $(self->specularmap, setDefaultText, NULL);
@@ -172,6 +293,11 @@ static void setMaterial(MaterialViewController *self, r_material_t *material) {
     $(self->shadow, setValue, MATERIAL_SHADOW);
     $(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
   }
+
+  ((Control *) self->addStage)->state = self->material ? ControlStateDefault : ControlStateDisabled;
+  $((Control *) self->addStage, stateDidChange);
+
+  loadStages(self);
 }
 
 #pragma mark - Class lifecycle
@@ -182,6 +308,7 @@ static void setMaterial(MaterialViewController *self, r_material_t *material) {
 static void initialize(Class *clazz) {
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
   ((MaterialViewControllerInterface *) clazz->interface)->init = init;

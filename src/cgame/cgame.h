@@ -34,7 +34,7 @@
 #include "common/installer.h"
 #include <Objectively/RESTClient.h>
 
-#define CGAME_API_VERSION 31
+#define CGAME_API_VERSION 32
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -942,6 +942,26 @@ typedef struct cg_import_s {
    * @param depth_test Depth test.
   */
   void (*Draw3DBox)(const box3_t bounds, const color_t color, bool depth_test);
+
+  /**
+   * @brief Appends a new stage to the material (in-game editor), defaulting it to a
+   * textured copy of the diffusemap, and rebuilds the material's render stages.
+   * @return The new stage.
+   */
+  cm_stage_t *(*AddMaterialStage)(r_material_t *material);
+
+  /**
+   * @brief Removes a stage from the material (in-game editor) and rebuilds its
+   * render stages.
+   */
+  void (*RemoveMaterialStage)(r_material_t *material, cm_stage_t *stage);
+
+  /**
+   * @brief Recomputes a stage's derived flags after the editor toggles one, then
+   * rebuilds the material's render stages. Use after changing a stage's flags;
+   * editing a stage parameter needs no call (the draw path reads it live).
+   */
+  void (*FinalizeMaterialStage)(r_material_t *material, cm_stage_t *stage);
 
   /**
    * @}

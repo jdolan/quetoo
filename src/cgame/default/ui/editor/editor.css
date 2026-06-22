@@ -1,6 +1,11 @@
+/* The editor is docked to the left edge. Drag and resize are disabled (they were
+ * the source of the per-frame relayout lag). draggable/resizable are Panel
+ * properties bound in Panel::applyStyle, so they live in CSS, not JSON. */
 Panel.editor {
-  alignment: middle-right;
-  draggable: true;
+  alignment: top-left;
+  draggable: false;
+  resizable: false;
+  min-width: 420;
 }
 
 Panel.editor .tabPageView {

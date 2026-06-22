@@ -21,6 +21,8 @@
 
 #include "cg_local.h"
 
+#include <ObjectivelyMVC/Panel.h>
+
 #include "EditorViewController.h"
 #include "EntityViewController.h"
 #include "MaterialViewController.h"

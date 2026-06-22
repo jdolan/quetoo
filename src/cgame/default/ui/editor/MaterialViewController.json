@@ -3,146 +3,200 @@
   "subviews": [
     {
       "class": "StackView",
+      "identifier": "content",
       "classNames": [
         "container"
       ],
       "subviews": [
         {
-          "class": "Input",
+          "class": "Box",
+          "identifier": "materialBox",
           "label": {
             "text": {
               "text": "Material"
             }
           },
-          "control": {
-            "class": "TextView",
-            "identifier": "name"
+          "contentView": {
+            "subviews": [
+              {
+                "class": "Input",
+                "label": {
+                  "text": {
+                    "text": "Diffusemap"
+                  }
+                },
+                "control": {
+                  "class": "TextView",
+                  "identifier": "diffusemap"
+                }
+              },
+              {
+                "class": "Input",
+                "label": {
+                  "text": {
+                    "text": "Normalmap"
+                  }
+                },
+                "control": {
+                  "class": "TextView",
+                  "identifier": "normalmap"
+                }
+              },
+              {
+                "class": "Input",
+                "label": {
+                  "text": {
+                    "text": "Specularmap"
+                  }
+                },
+                "control": {
+                  "class": "TextView",
+                  "identifier": "specularmap"
+                }
+              }
+            ]
           }
         },
         {
-          "class": "Input",
+          "class": "Box",
           "label": {
             "text": {
-              "text": "Diffusemap"
+              "text": "PBR Settings"
             }
           },
-          "control": {
-            "class": "TextView",
-            "identifier": "diffusemap"
+          "contentView": {
+            "subviews": [
+              {
+                "class": "Input",
+                "label": {
+                  "text": {
+                    "text": "Roughness"
+                  }
+                },
+                "control": {
+                  "class": "Slider",
+                  "identifier": "roughness",
+                  "min": 0,
+                  "max": 8,
+                  "step": 0.125
+                }
+              },
+              {
+                "class": "Input",
+                "label": {
+                  "text": {
+                    "text": "Parallax"
+                  }
+                },
+                "control": {
+                  "class": "Slider",
+                  "identifier": "parallax",
+                  "min": 0,
+                  "max": 8,
+                  "step": 0.125
+                }
+              },
+              {
+                "class": "Input",
+                "label": {
+                  "text": {
+                    "text": "Shadow"
+                  }
+                },
+                "control": {
+                  "class": "Slider",
+                  "identifier": "shadow",
+                  "min": 0,
+                  "max": 8,
+                  "step": 0.125
+                }
+              },
+              {
+                "class": "Input",
+                "label": {
+                  "text": {
+                    "text": "Hardness"
+                  }
+                },
+                "control": {
+                  "class": "Slider",
+                  "identifier": "hardness",
+                  "min": 0,
+                  "max": 8,
+                  "step": 0.125
+                }
+              },
+              {
+                "class": "Input",
+                "label": {
+                  "text": {
+                    "text": "Specularity"
+                  }
+                },
+                "control": {
+                  "class": "Slider",
+                  "identifier": "specularity",
+                  "min": 0,
+                  "max": 8,
+                  "step": 0.125
+                }
+              },
+              {
+                "class": "Input",
+                "label": {
+                  "text": {
+                    "text": "Alpha test"
+                  }
+                },
+                "control": {
+                  "class": "Slider",
+                  "identifier": "alpha_test",
+                  "min": 0,
+                  "max": 1,
+                  "step": 0.05
+                }
+              }
+            ]
           }
         },
         {
-          "class": "Input",
+          "class": "Box",
+          "classNames": [
+            "stagesBox"
+          ],
           "label": {
             "text": {
-              "text": "Normalmap"
+              "text": "Material Stages"
             }
           },
-          "control": {
-            "class": "TextView",
-            "identifier": "normalmap"
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Specularmap"
-            }
-          },
-          "control": {
-            "class": "TextView",
-            "identifier": "specularmap"
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Roughness"
-            }
-          },
-          "control": {
-            "class": "Slider",
-            "identifier": "roughness",
-            "min": 0,
-            "max": 8,
-            "step": 0.125
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Parallax"
-            }
-          },
-          "control": {
-            "class": "Slider",
-            "identifier": "parallax",
-            "min": 0,
-            "max": 8,
-            "step": 0.125
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Shadow"
-            }
-          },
-          "control": {
-            "class": "Slider",
-            "identifier": "shadow",
-            "min": 0,
-            "max": 8,
-            "step": 0.125
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Hardness"
-            }
-          },
-          "control": {
-            "class": "Slider",
-            "identifier": "hardness",
-            "min": 0,
-            "max": 8,
-            "step": 0.125
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Specularity"
-            }
-          },
-          "control": {
-            "class": "Slider",
-            "identifier": "specularity",
-            "min": 0,
-            "max": 8,
-            "step": 0.125
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Alpha test"
-            }
-          },
-          "control": {
-            "class": "Slider",
-            "identifier": "alpha_test",
-            "min": 0,
-            "max": 1,
-            "step": 0.05
+          "contentView": {
+            "subviews": [
+              {
+                "class": "StackView",
+                "classNames": [
+                  "stagesHeader"
+                ],
+                "subviews": [
+                  {
+                    "class": "Button",
+                    "identifier": "addStage",
+                    "classNames": [
+                      "addStage"
+                    ],
+                    "title": {
+                      "text": "+ Add Stage"
+                    }
+                  }
+                ]
+              },
+              {
+                "class": "StackView",
+                "identifier": "stages",
+                "classNames": [
+                  "stages"
+                ]
+              }
+            ]
           }
         }
       ]
