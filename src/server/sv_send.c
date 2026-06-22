@@ -280,7 +280,7 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
       const sv_client_message_t *msg = (const sv_client_message_t *) node->element;
 
       // if we would overflow the packet, flush it first
-      if (buf.size + msg->len > (MAX_MSG_SIZE - 16)) {
+      if (buf.size + msg->len > (MAX_MSG_SIZE_UDP - 16)) {
         Com_Debug(DEBUG_SERVER, "Fragmenting datagram @ %u bytes\n", (uint32_t) buf.size);
 
         Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
