@@ -269,9 +269,12 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
   Sv_WriteClientFrame(cl, &buf);
 
   // the frame itself (player state and delta entities) must fit into a single message,
-  // since it is parsed as a single command by the client
-  if (buf.overflowed || buf.size > MAX_MSG_SIZE - 16) {
-    Com_Error(ERROR_DROP, "Frame exceeds MAX_MSG_SIZE (%u)\n", (uint32_t) buf.size);
+  // since it is parsed as a single command by the client. The netchan fragments
+  // oversized messages for transmission, so only a frame that exhausts the message
+  // buffer entirely is unrecoverable; skip it rather than crashing the server.
+  if (buf.overflowed) {
+    Com_Warn("Frame overflow for %s; skipping frame\n", cl->name);
+    return;
   }
 
   // but we can packetize the remaining datagram messages, which are parsed individually
@@ -285,6 +288,11 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 
         Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
 
+        // drain any pending fragments before reusing the netchan
+        while (cl->net_chan.unsent_fragments) {
+          Netchan_TransmitNextFragment(&cl->net_chan);
+        }
+
         Mem_ClearBuffer(&buf);
       }
 
@@ -294,6 +302,11 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 
   // send the pending packet, which may include reliable messages
   Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
+
+  // drain any pending fragments from the final frame
+  while (cl->net_chan.unsent_fragments) {
+    Netchan_TransmitNextFragment(&cl->net_chan);
+  }
 }
 
 /**
@@ -414,6 +427,11 @@ void Sv_SendClientPackets(void) {
 
       if ((size = Sv_GetDemoMessage(buffer))) {
         Netchan_Transmit(&cl->net_chan, buffer, size);
+
+        // drain any pending fragments
+        while (cl->net_chan.unsent_fragments) {
+          Netchan_TransmitNextFragment(&cl->net_chan);
+        }
       } else {
         break;    // recording is done, so we're done
       }
@@ -432,6 +450,11 @@ void Sv_SendClientPackets(void) {
 
     } else if (cl->net_chan.message.size) { // update reliable
       Netchan_Transmit(&cl->net_chan, NULL, 0);
+
+      // a large reliable message (e.g. config strings) may have fragmented
+      while (cl->net_chan.unsent_fragments) {
+        Netchan_TransmitNextFragment(&cl->net_chan);
+      }
     } else if (quetoo.ticks - cl->net_chan.last_sent > 1000) { // or just don't timeout
       Netchan_Transmit(&cl->net_chan, NULL, 0);
     }

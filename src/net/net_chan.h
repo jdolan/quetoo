@@ -29,6 +29,7 @@ extern mem_buf_t net_message;
 
 void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t qport);
 void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len);
+void Netchan_TransmitNextFragment(net_chan_t *chan);
 void Netchan_OutOfBand(int32_t sock, const net_addr_t *addr, const void *data, size_t len);
 void Netchan_OutOfBandPrint(int32_t sock, const net_addr_t *addr, const char *format, ...) __attribute__((format(printf,
         3, 4)));

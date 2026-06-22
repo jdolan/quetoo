@@ -58,6 +58,23 @@
  */
 #define MAX_MSG_SIZE_UDP 1450
 
+/**
+ * @brief The high bit of the sequence number flags a reliable payload (Q2 style).
+ * The next bit flags a fragmented message (Q3 style); see `Netchan_Transmit`.
+ * The remaining 30 bits are the actual sequence number.
+ */
+#define RELIABLE_BIT (1u << 31)
+#define FRAGMENT_BIT (1u << 30)
+#define SEQUENCE_MASK (~(RELIABLE_BIT | FRAGMENT_BIT))
+
+/**
+ * @brief Messages larger than this are split into multiple fragments, each fit
+ * for Internet (sub-MTU) transmission, and reassembled by the receiver. A
+ * message that is an exact multiple of this size is terminated by a final,
+ * empty fragment.
+ */
+#define FRAGMENT_SIZE 1300
+
 // A typedef for net_sockaddr, to reduce "struct" everywhere and silence Windows warning.
 typedef struct sockaddr_in net_sockaddr;
 
@@ -112,4 +129,16 @@ typedef struct {
   // message is copied to this buffer when it is first transfered
   size_t reliable_size;
   byte reliable_buffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
+
+  // outgoing fragmented messages are drained across Netchan_TransmitNextFragment calls
+  bool unsent_fragments; // true while a fragmented message is being sent
+  bool unsent_reliable; // whether the in-flight fragmented message carries reliable data
+  size_t unsent_fragment_start; // offset of the next fragment to send
+  size_t unsent_length; // total length of the message being fragmented
+  byte unsent_buffer[MAX_MSG_SIZE];
+
+  // incoming fragmented messages are reassembled here before processing
+  uint32_t fragment_sequence; // sequence of the message currently being reassembled
+  size_t fragment_size; // bytes reassembled so far
+  byte fragment_buffer[MAX_MSG_SIZE];
 } net_chan_t;

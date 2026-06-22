@@ -25,11 +25,14 @@
  *
  * packet header
  * -------------
- * 31  sequence
+ * 30  sequence
+ * 1  is this message a fragment of a larger message
  * 1  does this message contain a reliable payload
  * 31  acknowledge sequence
  * 1  acknowledge receipt of even/odd message
  * 8  qport
+ * [16  fragment offset, if fragmented]
+ * [16  fragment length, if fragmented]
  *
  * The remote connection never knows if it missed a reliable message, the
  * local side detects that it has been dropped by seeing a sequence acknowledge
@@ -148,10 +151,75 @@ static bool Netchan_CheckRetransmit(net_chan_t *chan) {
 }
 
 /**
+ * @brief Sends the next fragment of the outgoing message currently being
+ * fragmented. The caller drains all fragments by looping on `unsent_fragments`.
+ *
+ * Every fragment of a message carries the same sequence number; the sequence
+ * is only advanced once the final fragment has been sent. A message that is an
+ * exact multiple of `FRAGMENT_SIZE` is terminated by a final, empty fragment so
+ * that the receiver can tell the message is complete.
+ */
+void Netchan_TransmitNextFragment(net_chan_t *chan) {
+  mem_buf_t send;
+  byte send_buffer[MAX_MSG_SIZE];
+
+  Mem_InitBuffer(&send, send_buffer, sizeof(send_buffer));
+
+  const uint32_t w1 = (chan->outgoing_sequence & SEQUENCE_MASK) |
+                      ((uint32_t) chan->unsent_reliable << 31) | FRAGMENT_BIT;
+  const uint32_t w2 = (chan->incoming_sequence & SEQUENCE_MASK) | ((uint32_t) chan->reliable_incoming << 31);
+
+  Net_WriteLong(&send, w1);
+  Net_WriteLong(&send, w2);
+
+  // send the qport if we are a client
+  if (chan->source == NS_UDP_CLIENT) {
+    Net_WriteByte(&send, chan->qport);
+  }
+
+  size_t fragment_length = chan->unsent_length - chan->unsent_fragment_start;
+  if (fragment_length > FRAGMENT_SIZE) {
+    fragment_length = FRAGMENT_SIZE;
+  }
+
+  Net_WriteShort(&send, (int32_t) chan->unsent_fragment_start);
+  Net_WriteShort(&send, (int32_t) fragment_length);
+  Net_WriteData(&send, chan->unsent_buffer + chan->unsent_fragment_start, fragment_length);
+
+  // send the datagram
+  Net_SendDatagram(chan->source, &chan->remote_address, send.data, send.size);
+  chan->last_sent = quetoo.ticks;
+
+  if (net_show_packets->value) {
+    Com_Print("Send %u bytes : s=%i ack=%i rack=%i (fragment %u)\n", (uint32_t) send.size,
+              chan->outgoing_sequence, chan->incoming_sequence, chan->reliable_incoming,
+              (uint32_t) chan->unsent_fragment_start);
+  }
+
+  chan->unsent_fragment_start += fragment_length;
+
+  // a message that exactly fills a fragment still needs a final, empty fragment
+  // so the receiver knows there are no more; only then is the message complete
+  if (chan->unsent_fragment_start == chan->unsent_length && fragment_length != FRAGMENT_SIZE) {
+    chan->outgoing_sequence++;
+    if (chan->unsent_reliable) {
+      chan->reliable_outgoing = chan->outgoing_sequence;
+    }
+    chan->unsent_fragments = false;
+  }
+}
+
+/**
  * @brief Tries to send an unreliable message to a connection, and handles the
  * transmission / retransmission of the reliable messages.
  *
  * A 0 size will still generate a packet and deal with the reliable messages.
+ *
+ * Messages larger than `FRAGMENT_SIZE` are split into multiple sub-MTU
+ * fragments, drained by the caller via `Netchan_TransmitNextFragment`, and
+ * reassembled by the receiver in `Netchan_Process`. This keeps large server
+ * frames (e.g. many entities) deliverable over real UDP without relying on IP
+ * fragmentation.
  */
 void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
   mem_buf_t send;
@@ -174,11 +242,38 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
     send_reliable = true;
   }
 
-  // write the packet header
+  // assemble the reliable and unreliable parts into a single payload; the
+  // reliable message is always placed first
+  size_t payload_size = 0;
+
+  if (send_reliable) {
+    memcpy(chan->unsent_buffer, chan->reliable_buffer, chan->reliable_size);
+    payload_size = chan->reliable_size;
+  }
+
+  if (payload_size + len <= sizeof(chan->unsent_buffer)) {
+    memcpy(chan->unsent_buffer + payload_size, data, len);
+    payload_size += len;
+  } else {
+    Com_Warn("Netchan_Transmit: dumped unreliable\n");
+  }
+
+  // large messages are fragmented and drained by the caller
+  if (payload_size > FRAGMENT_SIZE) {
+    chan->unsent_fragments = true;
+    chan->unsent_reliable = send_reliable;
+    chan->unsent_fragment_start = 0;
+    chan->unsent_length = payload_size;
+
+    Netchan_TransmitNextFragment(chan);
+    return;
+  }
+
+  // otherwise, write the entire message as a single packet
   Mem_InitBuffer(&send, send_buffer, sizeof(send_buffer));
 
-  const uint32_t w1 = (chan->outgoing_sequence & ~(1u << 31)) | ((uint32_t) send_reliable << 31);
-  const uint32_t w2 = (chan->incoming_sequence & ~(1u << 31)) | ((uint32_t) chan->reliable_incoming << 31);
+  const uint32_t w1 = (chan->outgoing_sequence & SEQUENCE_MASK) | ((uint32_t) send_reliable << 31);
+  const uint32_t w2 = (chan->incoming_sequence & SEQUENCE_MASK) | ((uint32_t) chan->reliable_incoming << 31);
 
   chan->outgoing_sequence++;
   chan->last_sent = quetoo.ticks;
@@ -191,18 +286,11 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
     Net_WriteByte(&send, chan->qport);
   }
 
-  // copy the reliable message to the packet first
   if (send_reliable) {
-    Mem_WriteBuffer(&send, chan->reliable_buffer, chan->reliable_size);
     chan->reliable_outgoing = chan->outgoing_sequence;
   }
 
-  // add the unreliable part if space is available
-  if (send.max_size - send.size >= len) {
-    Mem_WriteBuffer(&send, data, len);
-  } else {
-    Com_Warn("Netchan_Transmit: dumped unreliable\n");
-  }
+  Net_WriteData(&send, chan->unsent_buffer, payload_size);
 
   // send the datagram
   Net_SendDatagram(chan->source, &chan->remote_address, send.data, send.size);
@@ -237,19 +325,29 @@ bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
     Net_ReadByte(msg);
   }
 
-  reliable_message = sequence >> 31u;
+  const bool fragmented = (sequence & FRAGMENT_BIT) != 0;
+
+  reliable_message = (sequence & RELIABLE_BIT) ? 1 : 0;
   reliable_ack = sequence_ack >> 31u;
 
-  sequence &= ~(1u << 31);
+  sequence &= SEQUENCE_MASK;
   sequence_ack &= ~(1u << 31);
+
+  // read the fragment header, if present
+  uint32_t fragment_offset = 0, fragment_length = 0;
+  if (fragmented) {
+    fragment_offset = Net_ReadShort(msg) & 0xffff;
+    fragment_length = Net_ReadShort(msg) & 0xffff;
+  }
 
   if (net_show_packets->value) {
     if (reliable_message)
-      Com_Print("Recv %u bytes: s=%i reliable=%i ack=%i rack=%i\n", (uint32_t) msg->size,
-                sequence, chan->reliable_incoming ^ 1, sequence_ack, reliable_ack);
+      Com_Print("Recv %u bytes: s=%i reliable=%i ack=%i rack=%i%s\n", (uint32_t) msg->size,
+                sequence, chan->reliable_incoming ^ 1, sequence_ack, reliable_ack,
+                fragmented ? " (fragment)" : "");
     else
-      Com_Print("Recv %u bytes : s=%i ack=%i rack=%i\n", (uint32_t) msg->size, sequence,
-                sequence_ack, reliable_ack);
+      Com_Print("Recv %u bytes : s=%i ack=%i rack=%i%s\n", (uint32_t) msg->size, sequence,
+                sequence_ack, reliable_ack, fragmented ? " (fragment)" : "");
   }
 
   // discard stale or duplicated packets
@@ -258,6 +356,40 @@ bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
       Com_Print("%s:Out of order packet %i at %i\n",
                 Net_NetaddrToString(&chan->remote_address), sequence, chan->incoming_sequence);
     return false;
+  }
+
+  // reassemble fragmented messages, deferring processing until the message is
+  // complete; fragments must arrive in order and contiguously
+  if (fragmented) {
+
+    if (chan->fragment_sequence != sequence) { // a new fragmented message
+      chan->fragment_sequence = sequence;
+      chan->fragment_size = 0;
+    }
+
+    if (fragment_offset != chan->fragment_size ||
+        chan->fragment_size + fragment_length > sizeof(chan->fragment_buffer)) {
+      if (net_show_drop->value)
+        Com_Print("%s:Dropped fragmented message at %i\n",
+                  Net_NetaddrToString(&chan->remote_address), sequence);
+      chan->fragment_sequence = 0;
+      return false;
+    }
+
+    Net_ReadData(msg, chan->fragment_buffer + chan->fragment_size, fragment_length);
+    chan->fragment_size += fragment_length;
+
+    // a full-size fragment means more are still coming
+    if (fragment_length == FRAGMENT_SIZE) {
+      return false;
+    }
+
+    // the message is complete; present it to the caller as the payload
+    memcpy(msg->data, chan->fragment_buffer, chan->fragment_size);
+    msg->size = chan->fragment_size;
+    msg->read = 0;
+
+    chan->fragment_sequence = 0;
   }
 
   // dropped packets don't keep the message from being used

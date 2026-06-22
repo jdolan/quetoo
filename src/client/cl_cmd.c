@@ -138,6 +138,12 @@ void Cl_SendCommands(void) {
 
       if (cls.net_chan.message.size || delta > 1000) {
         Netchan_Transmit(&cls.net_chan, NULL, 0);
+
+        // a large reliable message may have fragmented
+        while (cls.net_chan.unsent_fragments) {
+          Netchan_TransmitNextFragment(&cls.net_chan);
+        }
+
         cl.packet_counter[cl.sample_index]++;
       }
 
@@ -157,6 +163,12 @@ void Cl_SendCommands(void) {
       Cl_WriteMovementCommand(&buf);
 
       Netchan_Transmit(&cls.net_chan, buf.data, buf.size);
+
+      // a large reliable message (e.g. user info) may have fragmented
+      while (cls.net_chan.unsent_fragments) {
+        Netchan_TransmitNextFragment(&cls.net_chan);
+      }
+
       cl.packet_counter[cl.sample_index]++;
 
       Cl_InitMovementCommand();

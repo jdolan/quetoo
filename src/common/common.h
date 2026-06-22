@@ -48,7 +48,7 @@
  * of core net messages or serialized data types change. The game and client
  * game maintain `PROTOCOL_MINOR` as well.
  */
-#define PROTOCOL_MAJOR 2027
+#define PROTOCOL_MAJOR 2028
 
 /**
  * @brief The IP address of the master server, where the authoritative list of
