@@ -68,7 +68,7 @@ void G_Ai_SetPathGoal(const g_client_t *cl, ai_goal_t *goal, float priority, Vec
   goal->path.path_index = 0;
 
   const ai_node_id_t node = VectorValue(path, ai_node_id_t, 0);
-  const ai_node_id_t next = VectorValue(path, ai_node_id_t, Mini((int32_t) path->count - 1, 1));
+  const ai_node_id_t next = VectorValue(path, ai_node_id_t, Minz(path->count - 1, 1));
   goal->path.path_position = G_Ai_Node_GetPosition(node);
   goal->path.next_path_position = G_Ai_Node_GetPosition(next);
   goal->path.path_target = path_target;

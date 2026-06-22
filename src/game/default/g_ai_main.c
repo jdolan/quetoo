@@ -928,7 +928,7 @@ static bool G_Ai_AdvancePath(g_client_t *cl, ai_goal_t *goal) {
   const uint32_t index = goal->path.path_index;
 
   const ai_node_id_t node = VectorValue(path, ai_node_id_t, index);
-  const ai_node_id_t next = VectorValue(path, ai_node_id_t, Mini((int32_t) path->count - 1, (int32_t) index + 1));
+  const ai_node_id_t next = VectorValue(path, ai_node_id_t, Minz(path->count - 1, index + 1));
   goal->path.path_position = G_Ai_Node_GetPosition(node);
   goal->path.next_path_position = G_Ai_Node_GetPosition(next);
   goal->distress = 0;

@@ -759,8 +759,8 @@ static void G_worldspawn_Music(void) {
     gi.EnumerateFiles("music/*.ogg", G_worldspawn_EnumerateMusic, tracks);
     $(tracks, sort, G_worldspawn_MusicShuffle);
 
-    for (int32_t i = 0; i < (int32_t) Mini(MAX_MUSICS, (int32_t) tracks->count); i++) {
-      gi.SetConfigString(CS_MUSICS + i, (char *) tracks->elements + (size_t) i * MAX_QPATH);
+    for (size_t i = 0; i < Minz(MAX_MUSICS, tracks->count); i++) {
+      gi.SetConfigString(CS_MUSICS + (int32_t) i, (char *) tracks->elements + i * MAX_QPATH);
     }
 
     release(tracks);
