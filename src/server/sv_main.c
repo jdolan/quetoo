@@ -448,11 +448,6 @@ static void Sv_ConnectionlessPacket(void) {
 
 /**
  * @brief Updates the "ping" times for all spawned clients.
- * @details Now that @ref Sv_WaitForPackets timestamps acks at their true receive time,
- * each recorded round-trip is an accurate, millisecond-resolution sample. We report the
- * most recently measured round-trip so the displayed ping tracks live latency without
- * any smoothing lag; the frame-quantized inflation the old socket servicing introduced
- * is gone.
  */
 static void Sv_UpdatePings(void) {
 
@@ -464,10 +459,18 @@ static void Sv_UpdatePings(void) {
       continue;
     }
 
-    if (cl->last_frame > -1) {
-      cl->ping = cl->frame_latency[cl->last_frame & (SV_CLIENT_LATENCY_COUNT - 1)];
-    } else {
+    int32_t total = 0, count = 0;
+    for (int32_t j = 0; j < SV_CLIENT_LATENCY_COUNT; j++) {
+      if (cl->frame_latency[j] > 0) {
+        total += cl->frame_latency[j];
+        count++;
+      }
+    }
+
+    if (!count) {
       cl->ping = 0;
+    } else {
+      cl->ping = total / (float) count;
     }
 
     cl->gclient->ping = cl->ping;
@@ -805,35 +808,6 @@ int32_t Sv_InstallerFrame(const installer_status_t *in) {
 }
 
 /**
- * @brief On a dedicated server, sleeps out the remainder of the frame interval while
- * waking on socket activity to read client packets at their true arrival time.
- * @details The simulation only advances on @ref QUETOO_TICK_MILLIS boundaries, but
- * the socket was historically serviced only at those same boundaries -- so a packet
- * could sit in the kernel buffer for most of a tick before being timestamped,
- * quantizing every ping estimate to the frame interval. Blocking on the socket
- * instead of sleeping lets us stamp and ingest each datagram within a main-loop
- * iteration, giving millisecond-resolution ping and answering connectionless queries
- * (e.g. server-browser pings) without frame-boundary latency. Movement commands are
- * command-driven and already processed on receipt, so this shifts only wall-clock
- * timing, not the deterministic simulation result.
- */
-static void Sv_WaitForPackets(const uint32_t msec) {
-
-  const uint32_t end = quetoo.ticks + msec;
-
-  while (quetoo.ticks < end) {
-
-    // block until a packet arrives or the budget elapses
-    Net_Sleep(end - quetoo.ticks);
-
-    // timestamp and ingest whatever arrived at its true receive time
-    quetoo.ticks = (uint32_t) SDL_GetTicks();
-    Sv_ReadPackets();
-    quetoo.ticks = (uint32_t) SDL_GetTicks();
-  }
-}
-
-/**
  * @brief Main server frame entry point; advances the simulation and services all clients.
  */
 void Sv_Frame(const uint32_t msec) {
@@ -855,7 +829,7 @@ void Sv_Frame(const uint32_t msec) {
 
     if (frame_delta < QUETOO_TICK_MILLIS) {
       if (dedicated->value) {
-        Sv_WaitForPackets(QUETOO_TICK_MILLIS - frame_delta);
+        SDL_Delay(QUETOO_TICK_MILLIS - frame_delta);
       }
 
       return;
