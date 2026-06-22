@@ -312,7 +312,7 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
 
   R_GetError(NULL);
 
-  r_stats.queries_allocated = r_occlusion_queries.allocated->count;
+  r_stats.queries_allocated = (int32_t) r_occlusion_queries.allocated->count;
 }
 
 /**

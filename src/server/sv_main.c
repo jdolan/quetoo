@@ -331,7 +331,6 @@ static void Sv_Connect_f(void) {
   Netchan_Setup(NS_UDP_SERVER, &client->net_chan, addr, qport);
 
   Mem_InitBuffer(&client->datagram.buffer, client->datagram.data, sizeof(client->datagram.data));
-  client->datagram.buffer.allow_overflow = true;
 
   client->last_message = quetoo.ticks;
 

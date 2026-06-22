@@ -130,7 +130,6 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
   // Ensure the datagram buffer is initialized
   if (!cl->datagram.buffer.data) {
     Mem_InitBuffer(&cl->datagram.buffer, cl->datagram.data, sizeof(cl->datagram.data));
-    cl->datagram.buffer.allow_overflow = true;
   }
 
   if (len > MAX_MSG_SIZE_UDP) {
@@ -153,16 +152,6 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
   $(cl->datagram.messages, appendElement, msg);
 
   Mem_WriteBuffer(&cl->datagram.buffer, data, len);
-
-  if (cl->datagram.buffer.overflowed) {
-    Com_Warn("Client datagram overflow for %s\n", cl->name);
-
-    msg->offset = 0;
-    cl->datagram.buffer.overflowed = false;
-
-    $(cl->datagram.messages, removeAll); release(cl->datagram.messages); cl->datagram.messages = NULL;
-    cl->datagram.messages = NULL;
-  }
 }
 
 /**
@@ -263,24 +252,16 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
   Sv_BuildClientFrame(cl);
 
   Mem_InitBuffer(&buf, buffer, sizeof(buffer));
-  buf.allow_overflow = true;
 
   // send over all the relevant entity_state_t and the player_state_t
   Sv_WriteClientFrame(cl, &buf);
 
-  // the frame itself (player state and delta entities) must fit into a single message,
-  // since it is parsed as a single command by the client
-  if (buf.overflowed || buf.size > MAX_MSG_SIZE - 16) {
-    Com_Error(ERROR_DROP, "Frame exceeds MAX_MSG_SIZE (%u)\n", (uint32_t) buf.size);
-  }
-
-  // but we can packetize the remaining datagram messages, which are parsed individually
   if (cl->datagram.messages) {
     for (const ListNode *node = cl->datagram.messages->head; node; node = node->next) {
       const sv_client_message_t *msg = (const sv_client_message_t *) node->element;
 
       // if we would overflow the packet, flush it first
-      if (buf.size + msg->len > (MAX_MSG_SIZE - 16)) {
+      if (buf.size + msg->len > (MAX_MSG_SIZE_UDP - 16)) {
         Com_Debug(DEBUG_SERVER, "Fragmenting datagram @ %u bytes\n", (uint32_t) buf.size);
 
         Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
@@ -398,13 +379,6 @@ void Sv_SendClientPackets(void) {
     }
 
     if (svs.clients[i].gclient->ai) {
-      continue;
-    }
-
-    // if the client's reliable message overflowed, we must drop them
-    if (cl->net_chan.message.overflowed) {
-      Sv_DropClient(cl);
-      Sv_BroadcastPrint(PRINT_MEDIUM, "%s overflowed\n", cl->name);
       continue;
     }
 

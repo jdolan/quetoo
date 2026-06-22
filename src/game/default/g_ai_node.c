@@ -143,7 +143,7 @@ static bool G_Ai_Node_Visible(const vec3_t position, const ai_node_id_t node) {
  */
 uint32_t G_Ai_Node_Count(void) {
 
-  return g_ai_nodes ? g_ai_nodes->count : 0;
+  return g_ai_nodes ? (uint32_t) g_ai_nodes->count : 0;
 }
 
 /**

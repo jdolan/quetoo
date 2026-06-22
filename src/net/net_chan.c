@@ -129,7 +129,6 @@ void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t
   chan->outgoing_sequence = 1;
 
   Mem_InitBuffer(&chan->message, chan->message_buffer, sizeof(chan->message_buffer));
-  chan->message.allow_overflow = true;
 }
 
 /**
@@ -156,11 +155,6 @@ static bool Netchan_CheckRetransmit(net_chan_t *chan) {
 void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
   mem_buf_t send;
   byte send_buffer[MAX_MSG_SIZE];
-
-  // check for message overflow
-  if (chan->message.overflowed) {
-    Com_Error(ERROR_DROP, "%s: Overflow\n", Net_NetaddrToString(&chan->remote_address));
-  }
 
   // check for re-transmission of reliable message
   bool send_reliable = Netchan_CheckRetransmit(chan);

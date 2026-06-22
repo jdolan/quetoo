@@ -116,8 +116,8 @@ void Cl_ParseServerInfo(void) {
       const char *end = q_strchr(line, '\n');
 
       char player[MAX_TOKEN_CHARS];
-      const size_t len = end ? (size_t)(end - line) : q_strlen(line);
-      q_strlcpy(player, line, Mini(len + 1, sizeof(player)));
+      const size_t len = end ? (size_t) (end - line) : q_strlen(line);
+      q_strlcpy(player, line, Mini((int32_t) len + 1, sizeof(player)));
 
       if (player[0]) {
         server->clients++;
