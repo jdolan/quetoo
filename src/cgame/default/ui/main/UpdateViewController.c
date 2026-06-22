@@ -23,7 +23,6 @@
 
 #include <SDL3_image/SDL_image.h>
 
-#include "DialogViewController.h"
 #include "UpdateViewController.h"
 
 #define _Class _UpdateViewController
@@ -208,17 +207,9 @@ static void setStatus(UpdateViewController *self, const installer_status_t *in) 
       $(self->progressBar, setLabelFormat, "Checking for binary updates\u2026");
       $(self->progressBar, setValue, 0.0);
       break;
-    case INSTALLER_UPDATE_AVAILABLE: {
-      const Dialog dialog = {
-        .message = "A new version of Quetoo is available. Download now?",
-        .ok = "Yes",
-        .cancel = "No",
-        .okFunction = openReleasesPage
-      };
-
-      ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
-      $((ViewController *) self, addChildViewController, viewController);
-    }
+    case INSTALLER_UPDATE_AVAILABLE:
+      $(self->progressBar, setLabelFormat, "Update available.");
+      $(self->progressBar, setValue, 100.0);
       break;
 		case INSTALLER_COMPARING:
 			$(self->progressBar, setLabelFormat, "Comparing data files\u2026");

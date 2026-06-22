@@ -28,6 +28,7 @@
 static MainViewController *mainViewController;
 static UpdateViewController *updateViewController;
 static Stylesheet *stylesheet;
+static bool update_available;
 
 /**
  * @brief Initializes the user interface.
@@ -49,12 +50,23 @@ void Cg_InitUi(void) {
 }
 
 /**
+ * @brief Returns true if a binary update was detected during startup, clearing the flag.
+ */
+bool Cg_IsUpdateAvailable(void) {
+  const bool avail = update_available;
+  update_available = false;
+  return avail;
+}
+
+/**
  * @brief Shuts down the user interface.
  */
 void Cg_ShutdownUi(void) {
 
   cgi.PopAllViewControllers();
   cgi.PopViewController();
+
+  update_available = false;
 
   release(updateViewController);
   updateViewController = NULL;
@@ -109,6 +121,14 @@ int32_t Cg_UpdateInstaller(const installer_status_t *in) {
   }
 
   $(updateViewController, setStatus, in);
+
+  if (in->state == INSTALLER_UPDATE_AVAILABLE) {
+    update_available = true;
+    cgi.PopViewController();
+    release(updateViewController);
+    updateViewController = NULL;
+    return 1;
+  }
 
   if (in->state == INSTALLER_DONE || in->state == INSTALLER_ERROR) {
     static uint64_t done_at = 0;

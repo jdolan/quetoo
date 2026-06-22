@@ -23,10 +23,20 @@
 
 #include "HomeViewController.h"
 
+#include "DialogViewController.h"
 #include "LeaderboardViewController.h"
 #include "StatsViewController.h"
 
 #define _Class _HomeViewController
+
+#pragma mark - Delegates
+
+/**
+ * @brief Dialog::okFunction for opening the releases page.
+ */
+static void openReleasesPage(ident data) {
+  SDL_OpenURL(QUETOO_RELEASES_URL);
+}
 
 #pragma mark - Object
 
@@ -77,6 +87,27 @@ static void loadView(ViewController *self) {
 }
 
 /**
+ * @see ViewController::viewWillAppear(ViewController *)
+ */
+static void viewWillAppear(ViewController *self) {
+
+  super(ViewController, self, viewWillAppear);
+
+  if (Cg_IsUpdateAvailable()) {
+    const Dialog dialog = {
+      .message = "A new version of Quetoo is available. Download now?",
+      .ok = "Yes",
+      .cancel = "No",
+      .okFunction = openReleasesPage
+    };
+
+    ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
+    $(self, addChildViewController, viewController);
+    release(viewController);
+  }
+}
+
+/**
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
@@ -84,6 +115,7 @@ static void initialize(Class *clazz) {
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 }
 
 /**
