@@ -47,9 +47,9 @@
 #include "common/common.h"
 
 /**
- * @brief Max length of a single packet. No individual command can exceed
- * this length. However, large server messages can be split into multiple
- * messages and sent in series. See `Sv_SendClientDatagram`.
+ * @brief Max length of a single server message. No individual message can exceed
+ * this length. However, large server messages can be split into multiple packets
+ * and sent in series. See `Sv_SendClientDatagram`.
  */
 #define MAX_MSG_SIZE 16384
 

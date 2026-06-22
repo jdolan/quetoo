@@ -21,7 +21,7 @@
 
 #include <signal.h>
 
-#include "mem_buf.h"
+#include "common.h"
 
 /**
  * @brief Initializes a fixed-size memory buffer backed by the given data array.
@@ -38,9 +38,8 @@ void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t len) {
  * @brief Resets the buffer's write position to zero and clears the overflow flag.
  */
 void Mem_ClearBuffer(mem_buf_t *buf) {
-
   buf->size = 0;
-  buf->overflowed = false;
+  buf->read = 0;
 }
 
 /**
@@ -54,19 +53,7 @@ void *Mem_AllocBuffer(mem_buf_t *buf, size_t len) {
   if (len > buf->max_size - buf->size) {
     const uint32_t delta = (uint32_t) (buf->size + len - buf->max_size);
     fprintf(stderr, "%s: Overflow by %u bytes\n", __func__, delta);
-
-    if (!buf->allow_overflow) {
-      fprintf(stderr, "Overflow without allow_overflow set\n");
-      raise(SIGABRT);
-    }
-
-    if (len > buf->max_size) {
-      fprintf(stderr, "%u is > buffer size %u\n", (uint32_t) len, (uint32_t) buf->max_size);
-      raise(SIGABRT);
-    }
-
-    Mem_ClearBuffer(buf);
-    buf->overflowed = true;
+    return NULL;
   }
 
   data = buf->data + buf->size;
@@ -79,5 +66,11 @@ void *Mem_AllocBuffer(mem_buf_t *buf, size_t len) {
  * @brief Copies `len` bytes from `data` into the next available region of the buffer.
  */
 void Mem_WriteBuffer(mem_buf_t *buf, const void *data, size_t len) {
-  memcpy(Mem_AllocBuffer(buf, len), data, len);
+
+  void *out = Mem_AllocBuffer(buf, len);
+  if (out) {
+    memcpy(out, data, len);
+  } else {
+    Com_Error(ERROR_FATAL, "Buffer overflow writing %zd bytes to %zd sized buffer\n", len, buf->max_size);
+  }
 }
