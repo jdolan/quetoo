@@ -268,13 +268,6 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
   // send over all the relevant entity_state_t and the player_state_t
   Sv_WriteClientFrame(cl, &buf);
 
-  // the frame itself (player state and delta entities) must fit into a single message,
-  // since it is parsed as a single command by the client
-  if (buf.overflowed || buf.size > MAX_MSG_SIZE - 16) {
-    Com_Error(ERROR_DROP, "Frame exceeds MAX_MSG_SIZE (%u)\n", (uint32_t) buf.size);
-  }
-
-  // but we can packetize the remaining datagram messages, which are parsed individually
   if (cl->datagram.messages) {
     for (const ListNode *node = cl->datagram.messages->head; node; node = node->next) {
       const sv_client_message_t *msg = (const sv_client_message_t *) node->element;
