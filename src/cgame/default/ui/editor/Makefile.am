@@ -34,6 +34,9 @@ libcguieditor_la_CFLAGS = \
 	-I$(top_srcdir)/src/cgame \
 	-I$(top_srcdir)/src/cgame/default \
 	-I$(top_srcdir)/src/cgame/default/ui \
+	-I$(top_srcdir)/src/cgame/default/ui/common \
+	-I$(top_srcdir)/src/cgame/default/ui/controls \
+	-I$(top_srcdir)/src/cgame/default/ui/settings \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
