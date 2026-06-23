@@ -357,6 +357,11 @@ typedef struct {
    * @brief The current map list index.
    */
   int32_t index;
+
+  /**
+   * @brief The modification time of the file when it was last loaded.
+   */
+  int64_t modtime;
 } sv_map_list_t;
 
 /**
