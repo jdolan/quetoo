@@ -406,7 +406,7 @@ static void G_Ai_Node_UnlinkAll(const ai_node_id_t id) {
     return;
   }
 
-  for (uint32_t i = node->links->count - 1; ; i--) {
+  for (size_t i = node->links->count - 1; ; i--) {
     G_Ai_Node_Unlink(id, AI_LINK(node->links, i)->id);
     
     if (i == 0 || !node->links) {
