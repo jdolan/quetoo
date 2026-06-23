@@ -44,27 +44,17 @@
  */
 #define EDITOR_PANEL_WIDTH 420
 
+/**
+ * @brief Non-page chrome of the docked panel, in UI (window_bounds) units: the
+ * tab selection bar + the action-button bar + the panel's paddings/spacings.
+ * Used to size the tab page so the panel spans from below the strip to the
+ * window bottom: tabPage.h = window_bounds.h - EDITOR_MENU_HEIGHT - this.
+ * Roughly constant across resolutions (UI elements are fixed-unit); tune if the
+ * action bar doesn't sit flush at the window bottom.
+ */
+#define EDITOR_PANEL_CHROME 130
+
 #pragma mark - Delegates
-
-/**
- * @brief ButtonDelegate for Create Entity.
- */
-static void didClickCreateEntity(Button *button) {
-
-  EditorViewController *this = button->delegate.self;
-
-  $(this->entityViewController, createEntity);
-}
-
-/**
- * @brief ButtonDelegate for Delete Entity.
- */
-static void didClickDeleteEntity(Button *button) {
-
-  EditorViewController *this = button->delegate.self;
-
-  $(this->entityViewController, deleteEntity);
-}
 
 /**
  * @brief ButtonDelegate for Save .map, .mat, and mesh configs.
@@ -218,6 +208,27 @@ static void dealloc(Object *self) {
   super(Object, self, dealloc);
 }
 
+/**
+ * @brief TabView delegate: re-fit the docked panel to the newly selected tab.
+ * @details The panel is content-sized (Panel `autoresizing-mask: contain`), but a
+ * PageView height change on tab switch does not reliably propagate up to the
+ * panel in a single pass, so the panel stays sized to the first (entity) tab and
+ * taller tabs (material/mesh) overflow -- their content runs past the panel and
+ * the action bar overlaps the middle of the form. Marking the chain from the new
+ * page up to and including the panel dirty forces the next layout pass (this same
+ * KEY_UI frame, depth-first) to re-fit each view to the selected tab.
+ */
+static void didSelectTab(TabView *tabView, TabViewItem *tab) {
+
+  // Intentionally a no-op. The tab page is a FIXED height (editor.css
+  // `.tabPageView { height: 600 }`), so the panel never needs to re-fit when the
+  // active tab changes -- the action bar stays put and shorter tabs simply have
+  // empty space below their content. Per-tab auto-fit (sizeToContain here) was
+  // both unreliable in MVC and crashed on teardown, so it was removed.
+  (void) tabView;
+  (void) tab;
+}
+
 #pragma mark - ViewController
 
 /**
@@ -247,8 +258,6 @@ static void loadView(ViewController *self) {
     MakeOutlet("editorMenu", &this->menu),
     MakeOutlet("editorContent", &this->content),
     MakeOutlet("editorPanel", &this->panel),
-    MakeOutlet("createEntity", &this->createEntity),
-    MakeOutlet("deleteEntity", &this->deleteEntity),
     MakeOutlet("save", &this->save)
   );
 
@@ -304,13 +313,20 @@ static void loadView(ViewController *self) {
   $(tabViewController, addChildViewController, (ViewController *) this->meshViewController);
 
   $(self, addChildViewController, tabViewController);
-  $((View *) this->panel->contentView, addSubview, tabViewController->view);
 
-  this->createEntity->delegate.self = this;
-  this->createEntity->delegate.didClick = didClickCreateEntity;
+  // Re-fit the panel when the active tab changes (taller tabs otherwise overflow
+  // the entity-tab-sized panel; see didSelectTab).
+  this->tabViewController->tabView->delegate.self = this;
+  this->tabViewController->tabView->delegate.didSelectTab = didSelectTab;
 
-  this->deleteEntity->delegate.self = this;
-  this->deleteEntity->delegate.didClick = didClickDeleteEntity;
+  // Match the working menu panels (Settings/CreateServer): the action buttons
+  // live in a `.accessoryView` StackView INSIDE the panel's contentView (not the
+  // Panel's built-in accessoryView property, whose contentSize math undersizes
+  // the content and floats/pushes the bar). The tab view goes ABOVE that bar.
+  View *editorAccessory = $(self->view, descendantWithIdentifier, "editorAccessory");
+  assert(editorAccessory);
+  $((View *) this->panel->contentView, addSubviewRelativeTo, tabViewController->view,
+    editorAccessory, ViewPositionBefore);
 
   this->save->delegate.self = this;
   this->save->delegate.didClick = didClickSave;
@@ -334,14 +350,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
     switch (event->user.code) {
       case NOTIFICATION_ENTITY_SELECTED: {
-        Control *deleteEntity = (Control *) this->deleteEntity;
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
-        if (number <= 0) {
-          deleteEntity->state |= ControlStateDisabled;
-        } else {
-          deleteEntity->state &= ~ControlStateDisabled;
-        }
-        $(deleteEntity, stateDidChange);
 
         r_model_t *model = NULL;
         if (number > 0) {
@@ -375,61 +384,26 @@ static void showEditorTab(EditorViewController *self) {
  */
 static void fitContentHeight(EditorViewController *self) {
 
-  View *view = self->viewController.view;
-  View *panel = (View *) self->panel;
-  View *panelContent = (View *) self->panel->contentView;
-  View *accessory = (View *) self->panel->accessoryView;
+  View *tabPage = (View *) self->tabViewController->tabView->tabPageView;
 
-  // The render context is MVC's coordinate space (both come from
-  // SDL_GetWindowSize), so derive the fill height from it rather than from
-  // content->frame.h. That frame is 0 until a KEY_UI layout pass has run, but
-  // this code never runs on a KEY_UI frame (see below), so reading it forced the
-  // old "open, then press escape twice before the panel fills" behavior.
-  const int w = cgi.context->w, h = cgi.context->h;
+  // Size the (fixed, autoresizing:none) tab page so the panel spans from below
+  // the strip to the window bottom -- resolution-adaptive, unlike a hardcoded
+  // height. window_bounds is the UI's coordinate space (raw SDL_GetWindowSize,
+  // NOT r_draw_scale-divided), so the chrome constant is stable across displays.
+  //
+  // This only assigns a frame value + needsLayout flags; it does NOT force a
+  // layout or touch any ancestor/root frame. That distinction is the whole
+  // ballgame: the earlier full-height attempts broke hit-testing / crashed
+  // precisely because they forced layout from this (KEY_GAME) tick. MVC applies
+  // the new height on its next KEY_UI layout, and `autoresizing-mask: none`
+  // keeps it (the parent does not override it).
+  const int target = cgi.context->window_bounds.h - EDITOR_MENU_HEIGHT - EDITOR_PANEL_CHROME;
 
-  // Available height below the strip (the content area's top inset is the strip).
-  const int available = h - EDITOR_MENU_HEIGHT;
-  if (available <= 0) {
-    return;
+  if (target > 0 && tabPage->frame.h != target) {
+    tabPage->frame.h = target;
+    tabPage->needsLayout = true;
+    ((View *) self->panel)->needsLayout = true;
   }
-
-  // Steady state: already filled for this window size, nothing to do. Cheap
-  // early-out so the forced layout below only runs on open and on resize.
-  if (view->frame.w == w && view->frame.h == h && panel->frame.h == available) {
-    return;
-  }
-
-  // Cg_CheckEditor runs from Cg_UpdateScreen, which the client invokes only when
-  // key_dest != KEY_UI — never on a frame where WindowController lays the tree
-  // out (that is Ui_Draw, KEY_UI only). So size the root to the window and force
-  // the layout *here*; deferring via needsLayout (the old approach) parks the
-  // reflow until the next KEY_UI frame, i.e. requires pressing escape to apply.
-  view->frame.w = w;
-  view->frame.h = h;
-  view->needsLayout = true;
-  $(view, layoutIfNeeded);
-
-  // Non-page chrome: the accessory bar + the panel's own padding + the stack
-  // spacing between content and accessory. Stable (independent of content
-  // height), so the target is computed in a single shot.
-  const int chrome = accessory->frame.h
-      + panel->padding.top + panel->padding.bottom
-      + self->panel->stackView->spacing;
-  const int target = available - chrome;
-  if (target <= 0) {
-    return;
-  }
-
-  // Two things are needed, and neither happens on its own: (1) grow the panel —
-  // its parent sizes it from its frame, not its content, so it won't expand to
-  // fit; (2) stretch the content area so the accessory bar is pushed to the
-  // bottom (the panel sizes its content to natural height otherwise). Apply it
-  // immediately with a second forced layout so the panel is correct the first
-  // time it is drawn (the next KEY_UI frame), without an escape round-trip.
-  panelContent->minSize.h = target;
-  const SDL_Size size = MakeSize(panel->frame.w, available);
-  $(panel, resize, &size);
-  $(view, layoutIfNeeded);
 }
 
 #pragma mark - Class lifecycle

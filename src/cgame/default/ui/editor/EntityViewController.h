@@ -23,6 +23,8 @@
 
 #include "EntityView.h"
 
+#include <ObjectivelyMVC/Box.h>
+#include <ObjectivelyMVC/Button.h>
 #include <ObjectivelyMVC/ViewController.h>
 
 /**
@@ -50,6 +52,29 @@ struct EntityViewController {
    * @brief The interface. @private
    */
   EntityViewControllerInterface *interface;
+
+  /**
+   * @brief The Create Entity button (moved off the shared panel accessory so it
+   * lives on the Entity tab where it belongs).
+   */
+  Button *createEntity;
+
+  /**
+   * @brief The Delete Entity button. Disabled when nothing (or worldspawn) is
+   * selected.
+   */
+  Button *deleteEntity;
+
+  /**
+   * @brief The group Box wrapping the entity's key-value pairs; its title shows
+   * the entity's classname.
+   */
+  Box *entityBox;
+
+  /**
+   * @brief The "Team Master" group Box; shown only for `light` entities.
+   */
+  Box *teamMasterBox;
 
   /**
    * @brief The StackView containing the entity key-value pairs.

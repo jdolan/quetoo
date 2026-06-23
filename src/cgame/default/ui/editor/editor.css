@@ -34,6 +34,8 @@ Panel.editor {
 Panel.editor .tabPageView {
   autoresizing-mask: none;
   width: 420;
+  /* height is set per-resolution in EditorViewController::fitContentHeight
+     (window_bounds.h - strip - chrome) so the panel fills the viewport. */
 }
 
 #entity {

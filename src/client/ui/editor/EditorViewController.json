@@ -10,31 +10,23 @@
           "classNames": [
             "editor"
           ],
-          "accessoryView": {
-            "style": {
-              "hidden": false
-            },
+          "contentView": {
             "subviews": [
               {
-                "identifier": "createEntity",
-                "class": "Button",
-                "title": {
-                  "text": "Create Entity"
-                }
-              },
-              {
-                "identifier": "deleteEntity",
-                "class": "Button",
-                "title": {
-                  "text": "Delete Entity"
-                }
-              },
-              {
-                "class": "Button",
-                "identifier": "save",
-                "title": {
-                  "text": "Save"
-                }
+                "class": "StackView",
+                "classNames": [
+                  "accessoryView"
+                ],
+                "identifier": "editorAccessory",
+                "subviews": [
+                  {
+                    "class": "Button",
+                    "identifier": "save",
+                    "title": {
+                      "text": "Save"
+                    }
+                  }
+                ]
               }
             ]
           }
