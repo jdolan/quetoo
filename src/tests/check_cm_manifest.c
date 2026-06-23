@@ -57,17 +57,17 @@ START_TEST(check_Cm_ReadManifest) {
 		"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6 5678 sounds/weapons/rg_fire.ogg\n"
 	);
 
-	GHashTable *manifest = Cm_ReadManifest("test.mf");
+	HashTable *manifest = Cm_ReadManifest("test.mf");
 	ck_assert_msg(manifest != NULL, "Cm_ReadManifest returned NULL");
-	ck_assert_int_eq(g_hash_table_size(manifest), 2);
+	ck_assert_int_eq((manifest)->count, 2);
 
-	const cm_manifest_entry_t *e0 = g_hash_table_lookup(manifest, "textures/edge/floor01_d.tga");
+	const cm_manifest_entry_t *e0 = $(manifest, get, (void *) "textures/edge/floor01_d.tga");
 	ck_assert_msg(e0 != NULL, "Missing textures/edge/floor01_d.tga");
 	ck_assert_str_eq(e0->hash, "d41d8cd98f00b204e9800998ecf8427e");
 	ck_assert_int_eq(e0->size, 1234);
 	ck_assert_str_eq(e0->path, "textures/edge/floor01_d.tga");
 
-	const cm_manifest_entry_t *e1 = g_hash_table_lookup(manifest, "sounds/weapons/rg_fire.ogg");
+	const cm_manifest_entry_t *e1 = $(manifest, get, (void *) "sounds/weapons/rg_fire.ogg");
 	ck_assert_msg(e1 != NULL, "Missing sounds/weapons/rg_fire.ogg");
 	ck_assert_str_eq(e1->hash, "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6");
 	ck_assert_int_eq(e1->size, 5678);
@@ -88,9 +88,9 @@ START_TEST(check_Cm_ReadManifest_empty_lines) {
 		"\n"
 	);
 
-	GHashTable *manifest = Cm_ReadManifest("test_empty.mf");
+	HashTable *manifest = Cm_ReadManifest("test_empty.mf");
 	ck_assert_msg(manifest != NULL, "Cm_ReadManifest returned NULL");
-	ck_assert_int_eq(g_hash_table_size(manifest), 2);
+	ck_assert_int_eq((manifest)->count, 2);
 
 	Cm_FreeManifest(manifest);
 
@@ -98,8 +98,37 @@ START_TEST(check_Cm_ReadManifest_empty_lines) {
 
 START_TEST(check_Cm_ReadManifest_missing_file) {
 
-	GHashTable *manifest = Cm_ReadManifest("nonexistent.mf");
+	HashTable *manifest = Cm_ReadManifest("nonexistent.mf");
 	ck_assert_msg(manifest == NULL, "Expected NULL for missing manifest");
+
+} END_TEST
+
+START_TEST(check_Cm_ParseManifest_respects_len) {
+
+	// Simulates a buffer from Net_HttpGet, which is not null-terminated: the
+	// valid manifest is followed by stale bytes that look like another (bogus)
+	// entry. Cm_ParseManifest must honor `len` and never read past it.
+	static const char valid[] =
+		"d41d8cd98f00b204e9800998ecf8427e 1234 textures/edge/floor01_d.tga\n";
+	static const char garbage[] =
+		"deadbeefdeadbeefdeadbeefdeadbeef 9999 textures/overrun.tga\n";
+
+	const size_t len = sizeof(valid) - 1; // valid content only, no null terminator
+
+	char *buffer = Mem_Malloc(len + sizeof(garbage));
+	memcpy(buffer, valid, len);
+	memcpy(buffer + len, garbage, sizeof(garbage)); // trailing bytes past `len`
+
+	HashTable *manifest = Cm_ParseManifest(buffer, len);
+	ck_assert_msg(manifest != NULL, "Cm_ParseManifest returned NULL");
+	ck_assert_int_eq((manifest)->count, 1);
+	ck_assert_msg($(manifest, get, (void *) "textures/edge/floor01_d.tga") != NULL,
+		"Missing valid entry");
+	ck_assert_msg($(manifest, get, (void *) "textures/overrun.tga") == NULL,
+		"Parsed an entry from beyond `len` (buffer over-read)");
+
+	Cm_FreeManifest(manifest);
+	Mem_Free(buffer);
 
 } END_TEST
 
@@ -108,7 +137,7 @@ START_TEST(check_Cm_WriteManifest) {
 	const char *content1 = "hello";
 	const char *content2 = "world";
 
-	GHashTable *manifest = Cm_AllocManifest();
+	HashTable *manifest = Cm_AllocManifest();
 	Cm_AddManifestEntry(manifest, "textures/edge/floor01_d.tga", content1, strlen(content1));
 	Cm_AddManifestEntry(manifest, "sounds/weapons/rg_fire.ogg", content2, strlen(content2));
 
@@ -135,36 +164,36 @@ START_TEST(check_Cm_Manifest_roundtrip) {
 	const char *content2 = "file2data";
 	const char *content3 = "file3data";
 
-	GHashTable *manifest = Cm_AllocManifest();
+	HashTable *manifest = Cm_AllocManifest();
 	Cm_AddManifestEntry(manifest, "textures/edge/floor01_d.tga", content1, strlen(content1));
 	Cm_AddManifestEntry(manifest, "sounds/weapons/rg_fire.ogg", content2, strlen(content2));
 	Cm_AddManifestEntry(manifest, "maps/edge.nav", content3, strlen(content3));
 
 	// save original entries for comparison
-	const cm_manifest_entry_t orig_tex  = *((cm_manifest_entry_t *) g_hash_table_lookup(manifest, "textures/edge/floor01_d.tga"));
-	const cm_manifest_entry_t orig_snd  = *((cm_manifest_entry_t *) g_hash_table_lookup(manifest, "sounds/weapons/rg_fire.ogg"));
-	const cm_manifest_entry_t orig_nav  = *((cm_manifest_entry_t *) g_hash_table_lookup(manifest, "maps/edge.nav"));
+	const cm_manifest_entry_t orig_tex  = *((cm_manifest_entry_t *) $(manifest, get, (void *) "textures/edge/floor01_d.tga"));
+	const cm_manifest_entry_t orig_snd  = *((cm_manifest_entry_t *) $(manifest, get, (void *) "sounds/weapons/rg_fire.ogg"));
+	const cm_manifest_entry_t orig_nav  = *((cm_manifest_entry_t *) $(manifest, get, (void *) "maps/edge.nav"));
 
 	Cm_WriteManifest("test_roundtrip.mf", manifest);
 	Cm_FreeManifest(manifest);
 
-	GHashTable *loaded = Cm_ReadManifest("test_roundtrip.mf");
+	HashTable *loaded = Cm_ReadManifest("test_roundtrip.mf");
 	ck_assert_msg(loaded != NULL, "Cm_ReadManifest returned NULL after write");
-	ck_assert_int_eq(g_hash_table_size(loaded), 3);
+	ck_assert_int_eq((loaded)->count, 3);
 
 	const cm_manifest_entry_t *e;
 
-	e = g_hash_table_lookup(loaded, "textures/edge/floor01_d.tga");
+	e = $(loaded, get, (void *) "textures/edge/floor01_d.tga");
 	ck_assert_msg(e != NULL, "Missing textures/edge/floor01_d.tga after roundtrip");
 	ck_assert_str_eq(e->hash, orig_tex.hash);
 	ck_assert_int_eq(e->size, orig_tex.size);
 
-	e = g_hash_table_lookup(loaded, "sounds/weapons/rg_fire.ogg");
+	e = $(loaded, get, (void *) "sounds/weapons/rg_fire.ogg");
 	ck_assert_msg(e != NULL, "Missing sounds/weapons/rg_fire.ogg after roundtrip");
 	ck_assert_str_eq(e->hash, orig_snd.hash);
 	ck_assert_int_eq(e->size, orig_snd.size);
 
-	e = g_hash_table_lookup(loaded, "maps/edge.nav");
+	e = $(loaded, get, (void *) "maps/edge.nav");
 	ck_assert_msg(e != NULL, "Missing maps/edge.nav after roundtrip");
 	ck_assert_str_eq(e->hash, orig_nav.hash);
 	ck_assert_int_eq(e->size, orig_nav.size);
@@ -179,10 +208,10 @@ START_TEST(check_Cm_CheckManifestEntry) {
 	const char *content = "test file content";
 	write_file("test_asset.tga", content);
 
-	GHashTable *manifest = Cm_AllocManifest();
+	HashTable *manifest = Cm_AllocManifest();
 	Cm_AddManifestEntry(manifest, "test_asset.tga", content, strlen(content));
 
-	const cm_manifest_entry_t *entry = g_hash_table_lookup(manifest, "test_asset.tga");
+	const cm_manifest_entry_t *entry = $(manifest, get, (void *) "test_asset.tga");
 
 	// local file matches — should return true
 	ck_assert(Cm_CheckManifestEntry(entry));
@@ -212,6 +241,7 @@ int32_t main(int32_t argc, char **argv) {
 		tcase_add_test(tcase, check_Cm_ReadManifest);
 		tcase_add_test(tcase, check_Cm_ReadManifest_empty_lines);
 		tcase_add_test(tcase, check_Cm_ReadManifest_missing_file);
+		tcase_add_test(tcase, check_Cm_ParseManifest_respects_len);
 
 		suite_add_tcase(suite, tcase);
 	}

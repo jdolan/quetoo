@@ -71,9 +71,7 @@ void Sv_DropClient(sv_client_t *client) {
   Mem_ClearBuffer(&client->net_chan.message);
   Mem_ClearBuffer(&client->datagram.buffer);
 
-  if (client->datagram.messages) {
-    g_list_free_full(client->datagram.messages, g_free);
-  }
+  client->datagram.messages = release(client->datagram.messages);
 
   g_client_t *gclient = client->gclient;
   memset(client, 0, sizeof(*client));
@@ -88,8 +86,8 @@ void Sv_DropClient(sv_client_t *client) {
 const char *Sv_StatusString(void) {
   static char status[MAX_MSG_SIZE - 16];
 
-  g_snprintf(status, sizeof(status), "%s\n", Cvar_ServerInfo());
-  size_t status_len = strlen(status);
+  q_snprintf(status, sizeof(status), "%s\n", Cvar_ServerInfo());
+  size_t status_len = q_strlen(status);
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
@@ -99,20 +97,20 @@ const char *Sv_StatusString(void) {
       char player[MAX_TOKEN_CHARS];
 
       char name[sizeof(cl->name)];
-      StrStrip(cl->name, name);
+      q_strcolorstrip(cl->name, name);
 
       const int16_t score = cl->state == SV_CLIENT_ACTIVE ? cl->gclient->score : 0;
       const bool is_bot = cl->gclient->ai != NULL;
 
       if (is_bot) {
-        g_snprintf(player, sizeof(player), "\\score\\%d\\ping\\%u\\name\\%s\\ai\\1\n",
+        q_snprintf(player, sizeof(player), "\\score\\%d\\ping\\%u\\name\\%s\\ai\\1\n",
                    score, cl->ping, name);
       } else {
-        g_snprintf(player, sizeof(player), "\\score\\%d\\ping\\%u\\name\\%s\n",
+        q_snprintf(player, sizeof(player), "\\score\\%d\\ping\\%u\\name\\%s\n",
                    score, cl->ping, name);
       }
 
-      const size_t player_len = strlen(player);
+      const size_t player_len = q_strlen(player);
 
       if (status_len + player_len + 1 >= sizeof(status)) {
         break;
@@ -207,7 +205,7 @@ static void Sv_Connect_f(void) {
 
   // copy user_info, leave room for ip stuffing
   char user_info[MAX_INFO_STRING_STRING];
-  g_strlcpy(user_info, Cmd_Argv(4), sizeof(user_info) - 25);
+  q_strlcpy(user_info, Cmd_Argv(4), sizeof(user_info) - 25);
 
   if (*user_info == '\0') { // catch empty user_info
     Com_Print("Empty user_info from %s\n", Net_NetaddrToString(addr));
@@ -215,13 +213,13 @@ static void Sv_Connect_f(void) {
     return;
   }
 
-  if (strchr(user_info, '\xFF')) { // catch end of message in string exploit
+  if (q_strchr(user_info, '\xFF')) { // catch end of message in string exploit
     Com_Print("Illegal user_info contained xFF from %s\n", Net_NetaddrToString(addr));
     Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
   }
 
-  if (strlen(InfoString_Get(user_info, "ip"))) { // catch spoofed ips
+  if (q_strlen(InfoString_Get(user_info, "ip"))) { // catch spoofed ips
     Com_Print("Illegal user_info contained ip from %s\n", Net_NetaddrToString(addr));
     Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
@@ -309,7 +307,7 @@ static void Sv_Connect_f(void) {
   if (!(svs.game->ClientConnect(client->gclient, user_info))) {
     const char *rejmsg = InfoString_Get(user_info, "rejmsg");
 
-    if (strlen(rejmsg)) {
+    if (q_strlen(rejmsg)) {
       Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\n%s\nConnection refused\n", rejmsg);
     } else {
       Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
@@ -320,7 +318,7 @@ static void Sv_Connect_f(void) {
   }
 
   // parse some info from the info strings
-  g_strlcpy(client->user_info, user_info, sizeof(client->user_info));
+  q_strlcpy(client->user_info, user_info, sizeof(client->user_info));
   Sv_UserInfoChanged(client);
 
   // send the connect packet to the client
@@ -329,7 +327,6 @@ static void Sv_Connect_f(void) {
   Netchan_Setup(NS_UDP_SERVER, &client->net_chan, addr, qport);
 
   Mem_InitBuffer(&client->datagram.buffer, client->datagram.data, sizeof(client->datagram.data));
-  client->datagram.buffer.allow_overflow = true;
 
   client->last_message = quetoo.ticks;
 
@@ -348,7 +345,7 @@ static bool Sv_RconAuthenticate(void) {
   }
 
   // and of course the passwords must match
-  if (g_strcmp0(Cmd_Argv(1), rcon_password->string)) {
+  if (q_strcmp(Cmd_Argv(1), rcon_password->string)) {
     return false;
   }
 
@@ -362,7 +359,7 @@ static char sv_rcon_buffer[MAX_PRINT_MSG];
  */
 static void Sv_Rcon_Print(const console_string_t *str) {
 
-  g_strlcat(sv_rcon_buffer, str->chars, sizeof(sv_rcon_buffer));
+  q_strlcat(sv_rcon_buffer, str->chars, sizeof(sv_rcon_buffer));
 }
 
 /**
@@ -394,8 +391,8 @@ static void Sv_Rcon_f(void) {
     cmd[0] = '\0';
 
     for (int32_t i = 2; i < Cmd_Argc(); i++) {
-      g_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
-      g_strlcat(cmd, " ", sizeof(cmd));
+      q_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
+      q_strlcat(cmd, " ", sizeof(cmd));
     }
 
     Cmd_ExecuteString(cmd);
@@ -427,17 +424,17 @@ static void Sv_ConnectionlessPacket(void) {
 
   Com_Debug(DEBUG_SERVER, "Packet from %s: %s\n", a, c);
 
-  if (!g_strcmp0(c, "ping")) {
+  if (!q_strcmp(c, "ping")) {
     Sv_Ping_f();
-  } else if (!g_strcmp0(c, "ack")) {
+  } else if (!q_strcmp(c, "ack")) {
     Sv_Ack_f();
-  } else if (!g_strcmp0(c, "status")) {
+  } else if (!q_strcmp(c, "status")) {
     Sv_Status_f();
-  } else if (!g_strcmp0(c, "get_challenge")) {
+  } else if (!q_strcmp(c, "get_challenge")) {
     Sv_GetChallenge_f();
-  } else if (!g_strcmp0(c, "connect")) {
+  } else if (!q_strcmp(c, "connect")) {
     Sv_Connect_f();
-  } else if (!g_strcmp0(c, "rcon")) {
+  } else if (!q_strcmp(c, "rcon")) {
     Sv_Rcon_f();
   } else {
     Com_Print("Bad connectionless packet from %s:\n%s\n", a, s);
@@ -644,7 +641,7 @@ static void Sv_SyncGameClients(void) {
 
     if (client->state == SV_CLIENT_FREE) {
       if (cl->in_use && cl->ai) { // ai client has just connected
-        g_strlcpy(client->user_info, cl->user_info, sizeof(client->user_info));
+        q_strlcpy(client->user_info, cl->user_info, sizeof(client->user_info));
         Sv_UserInfoChanged(client);
         client->last_message = UINT32_MAX; // ai clients never time out
         client->state = SV_CLIENT_ACTIVE;
@@ -691,13 +688,13 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
   if (*cl->name == '\0') { // force a name to kick
     strcpy(name, "player");
   } else {
-    g_strlcpy(name, cl->name, sizeof(name));
+    q_strlcpy(name, cl->name, sizeof(name));
   }
 
   memset(buf, 0, sizeof(buf));
 
   if (msg && *msg != '\0') {
-    g_snprintf(buf, sizeof(buf), ": %s", msg);
+    q_snprintf(buf, sizeof(buf), ": %s", msg);
   }
 
   Sv_ClientPrint(cl->gclient, PRINT_HIGH, "You were kicked%s\n", buf);
@@ -727,7 +724,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
     return;
   }
 
-  if (strchr(cl->user_info, '\xFF')) { // catch end of message exploit
+  if (q_strchr(cl->user_info, '\xFF')) { // catch end of message exploit
     Com_Print("Illegal user_info contained xFF from %s\n", Sv_NetaddrToString(cl));
     Sv_KickClient(cl, "Bad user info");
     return;
@@ -743,7 +740,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
   svs.game->ClientUserInfoChanged(cl->gclient, cl->user_info);
 
   // name for C code, mask off high bit
-  g_strlcpy(cl->name, InfoString_Get(cl->user_info, "name"), sizeof(cl->name));
+  q_strlcpy(cl->name, InfoString_Get(cl->user_info, "name"), sizeof(cl->name));
   for (i = 0; i < sizeof(cl->name); i++) {
     cl->name[i] &= 127;
   }
@@ -762,7 +759,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 int32_t Sv_InstallerFrame(const installer_status_t *in) {
   static installer_status_t last;
 
-  if (in->state != last.state || strcmp(in->current_file, last.current_file)) {
+  if (in->state != last.state || q_strcmp(in->current_file, last.current_file)) {
     switch (in->state) {
       case INSTALLER_CHECKING:
         Com_Print("Checking binary version\u2026\n");

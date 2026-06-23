@@ -63,6 +63,11 @@ struct MainViewController {
    * @brief The NavigationViewController.
    */
   NavigationViewController *navigationViewController;
+
+  /**
+   * @brief Set when an update is available, to present the update dialog on next appearance.
+   */
+  bool updateAvailable;
 };
 
 /**

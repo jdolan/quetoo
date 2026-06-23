@@ -22,8 +22,9 @@
 #include "light.h"
 #include "points.h"
 #include "qlight.h"
+#include <Objectively/Vector.h>
 
-GPtrArray *lights = NULL;
+Vector *lights = NULL;
 
 /**
  * @brief Allocates and returns a new light structure.
@@ -53,9 +54,9 @@ static const cm_entity_t *FindTeamMaster(const char *team) {
   cm_entity_t **e = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
     const char *classname = Cm_EntityValue(*e, "classname")->string;
-    if (!g_strcmp0(classname, "light")) {
+    if (!q_strcmp(classname, "light")) {
       const char *ent_team = Cm_EntityValue(*e, "team")->nullable_string;
-      if (ent_team && !g_strcmp0(ent_team, team)) {
+      if (ent_team && !q_strcmp(ent_team, team)) {
         if (Cm_EntityValue(*e, "team_master")->parsed) {
           return *e;
         }
@@ -72,7 +73,7 @@ static const cm_entity_t *FindTeamMaster(const char *team) {
 static light_t *LightForEntity(const cm_entity_t *entity) {
 
   const char *classname = Cm_EntityValue(entity, "classname")->string;
-  if (!g_strcmp0(classname, "light")) {
+  if (!q_strcmp(classname, "light")) {
 
     light_t *light = AllocLight();
 
@@ -81,7 +82,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
     light->radius = Cm_EntityValue(entity, "radius")->value;
     light->color = Cm_EntityValue(entity, "color")->vec3;
     light->intensity = Cm_EntityValue(entity, "intensity")->value;
-    g_strlcpy(light->style, Cm_EntityValue(entity, "style")->string, sizeof(light->style));
+    q_strlcpy(light->style, Cm_EntityValue(entity, "style")->string, sizeof(light->style));
 
     const float drift = Cm_EntityValue(entity, "drift")->value;
 
@@ -96,7 +97,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
       light->intensity = light->intensity ?: Cm_EntityValue(master, "intensity")->value;
 
       if (!*light->style) {
-        g_strlcpy(light->style, Cm_EntityValue(master, "style")->string, sizeof(light->style));
+        q_strlcpy(light->style, Cm_EntityValue(master, "style")->string, sizeof(light->style));
       }
 
       if (!light->drift) {
@@ -132,7 +133,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
       const cm_bsp_t *bsp = Cm_Bsp();
       for (int32_t i = 0; i < bsp->num_entities; i++) {
         const char *targetname = Cm_EntityValue(bsp->entities[i], "targetname")->nullable_string;
-        if (!g_strcmp0(targetname, target)) {
+        if (!q_strcmp(targetname, target)) {
           light->target_entity = i;
           break;
         }
@@ -158,8 +159,11 @@ void FreeLights(void) {
     return;
   }
 
-  g_ptr_array_free(lights, true);
-  lights = NULL;
+  for (size_t i = 0; i < lights->count; i++) {
+    FreeLight(VectorValue(lights, light_t *, i));
+  }
+
+  lights = release(lights);
 }
 
 /**
@@ -171,20 +175,20 @@ void BuildLights(void) {
 
   Progress("Building lights", 0);
 
-  lights = lights ?: g_ptr_array_new_with_free_func((GDestroyNotify) FreeLight);
+  lights = lights ?: $(alloc(Vector), initWithSize, sizeof(light_t *));
 
   cm_entity_t **entity = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
     light_t *light = LightForEntity(*entity);
     if (light) {
-      g_ptr_array_add(lights, light);
+      $(lights, add, &light);
     }
     Progress("Building lights", i * 100.f / Cm_Bsp()->num_entities);
   }
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Building lights", (uint32_t) SDL_GetTicks() - start);
 
-  Com_Verbose("Lighting for %d lights\n", lights->len);
+  Com_Verbose("Lighting for %zu lights\n", lights->count);
 }
 
 /**
@@ -198,17 +202,17 @@ void EmitLights(void) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  if ((int32_t) lights->len >= MAX_BSP_LIGHTS) {
+  if ((int32_t) lights->count >= MAX_BSP_LIGHTS) {
     Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTS\n");
   }
 
   Bsp_AllocLump(&bsp_file, BSP_LUMP_ELEMENTS, MAX_BSP_ELEMENTS);
-  Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, lights->len);
+  Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, lights->count);
 
   bsp_light_t *out = bsp_file.lights;
-  for (guint i = 0; i < lights->len; i++) {
+  for (size_t i = 0; i < lights->count; i++) {
 
-    light_t *light = g_ptr_array_index(lights, i);
+    light_t *light = VectorValue(lights, light_t *, i);
 
     if (light->target_entity != -1) {
       // These will use the dynamic lighting code path at runtime and can not use precomputed
@@ -229,7 +233,7 @@ void EmitLights(void) {
     out->intensity = light->intensity;
     out->bounds = light->visible_bounds;
     out->target_entity = light->target_entity;
-    g_strlcpy(out->style, light->style, sizeof(out->style));
+    q_strlcpy(out->style, light->style, sizeof(out->style));
     out->drift = light->drift;
 
     if (light->target_entity == -1) {
@@ -286,7 +290,7 @@ void EmitLights(void) {
 
     out++;
 
-    Progress("Emitting lights", 100.f * i / lights->len);
+    Progress("Emitting lights", 100.f * i / lights->count);
   }
 
   bsp_file.num_lights = (int32_t) (ptrdiff_t) (out - bsp_file.lights);

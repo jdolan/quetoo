@@ -88,13 +88,13 @@ static void Cl_SendConnect(void) {
 static void Cl_AttemptConnect(void) {
 
   // if the local server is running and we aren't then connect
-  if (Com_WasInit(QUETOO_SERVER) && g_strcmp0(cls.server_name, "localhost")) {
+  if (Com_WasInit(QUETOO_SERVER) && q_strcmp(cls.server_name, "localhost")) {
 
     if (cls.state > CL_DISCONNECTED) {
       Cl_Disconnect();
     }
 
-    g_strlcpy(cls.server_name, "localhost", sizeof(cls.server_name));
+    q_strlcpy(cls.server_name, "localhost", sizeof(cls.server_name));
 
     cls.state = CL_CONNECTING;
     cls.connect_time = 0;
@@ -125,7 +125,7 @@ static void Cl_AttemptConnect(void) {
   cls.connect_time = quetoo.ticks;
 
   const char *s = Net_NetaddrToString(&addr);
-  if (g_strcmp0(cls.server_name, s)) {
+  if (q_strcmp(cls.server_name, s)) {
     Com_Print("Connecting to %s (%s)...\n", cls.server_name, s);
   } else {
     Com_Print("Connecting to %s...\n", cls.server_name);
@@ -145,7 +145,7 @@ void Cl_Connect(const net_addr_t *addr) {
 
   Cl_Disconnect();
 
-  g_strlcpy(cls.server_name, Net_NetaddrToString(addr), sizeof(cls.server_name));
+  q_strlcpy(cls.server_name, Net_NetaddrToString(addr), sizeof(cls.server_name));
 
   cls.state = CL_CONNECTING;
   cls.connect_time = 0;
@@ -217,7 +217,7 @@ static void Cl_Rcon_f(void) {
     }
   }
 
-  Net_SendDatagram(NS_UDP_CLIENT, &to, message, strlen(message) + 1);
+  Net_SendDatagram(NS_UDP_CLIENT, &to, message, q_strlen(message) + 1);
 }
 
 /**
@@ -272,7 +272,7 @@ void Cl_SendDisconnect(void) {
   cmd[0] = CL_CMD_STRING;
   strcpy((char *) cmd + 1, "disconnect");
 
-  Netchan_Transmit(&cls.net_chan, cmd, strlen((char *) cmd));
+  Netchan_Transmit(&cls.net_chan, cmd, q_strlen((char *) cmd));
 }
 
 /**
@@ -379,7 +379,7 @@ static void Cl_ConnectionlessPacket(void) {
   Com_Debug(DEBUG_CLIENT, "%s: %s\n", Net_NetaddrToString(&net_from), c);
 
   // server connection
-  if (!g_strcmp0(c, "client_connect")) {
+  if (!q_strcmp(c, "client_connect")) {
 
     if (cls.state == CL_CONNECTED) {
       Com_Warn("Ignoring duplicate connect from %s\n", Net_NetaddrToString(&net_from));
@@ -397,32 +397,32 @@ static void Cl_ConnectionlessPacket(void) {
   }
 
   // server responding to a status query
-  if (!g_strcmp0(c, "status")) {
+  if (!q_strcmp(c, "status")) {
     Cl_ParseServerInfo();
     return;
   }
 
   // print command from somewhere
-  if (!g_strcmp0(c, "print")) {
+  if (!q_strcmp(c, "print")) {
     s = Net_ReadString(&net_message);
     Com_Print("%s", s);
     return;
   }
 
   // ping from somewhere
-  if (!g_strcmp0(c, "ping")) {
+  if (!q_strcmp(c, "ping")) {
     Netchan_OutOfBandPrint(NS_UDP_CLIENT, &net_from, "ack");
     return;
   }
 
   // servers list from master
-  if (!g_strcmp0(c, "servers")) {
+  if (!q_strcmp(c, "servers")) {
     Cl_ParseServers();
     return;
   }
 
   // challenge from the server we are connecting to
-  if (!g_strcmp0(c, "challenge")) {
+  if (!q_strcmp(c, "challenge")) {
     if (cls.state != CL_CONNECTING) {
       Com_Warn("Ignoring challenge from %s\n", Net_NetaddrToString(&net_from));
       return;
@@ -714,16 +714,28 @@ void Cl_Frame(const uint32_t msec) {
  */
 static void Cl_InitGuid(void) {
 
-  if (strlen(guid->string) == 0) {
-    char *uuid = g_uuid_string_random();
+  if (q_strlen(guid->string) == 0) {
+    // Generate a random RFC 4122 version 4 UUID
+    char uuid[37];
+    const uint32_t a = (uint32_t) SDL_rand(INT32_MAX);
+    const uint32_t b = (uint32_t) SDL_rand(INT32_MAX);
+    const uint32_t c = (uint32_t) SDL_rand(INT32_MAX);
+    const uint32_t d = (uint32_t) SDL_rand(INT32_MAX);
+    q_snprintf(uuid, sizeof(uuid),
+      "%08x-%04x-%04x-%04x-%04x%08x",
+      a,
+      b & 0xffff,
+      (b >> 16 & 0x0fff) | 0x4000,   // version 4
+      (c & 0x3fff) | 0x8000,          // variant 1
+      c >> 16 & 0xffff,
+      d);
     Cvar_ForceSetString("guid", uuid);
-    g_free(uuid);
   }
 
   Cvar_Add("guid_hash", "", CVAR_NO_SET, NULL);
 
   char url[256];
-  g_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
+  q_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
 
   Data *data;
   const int32_t status = $($$(RESTClient, sharedInstance), get, url, &data);

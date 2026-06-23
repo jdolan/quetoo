@@ -23,3 +23,4 @@
 
 #define __SV_LOCAL_H__
 #include "server.h"
+#include <Objectively/Vector.h>

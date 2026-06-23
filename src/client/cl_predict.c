@@ -236,17 +236,18 @@ void Cl_PredictMovement(void) {
     return;
   }
 
-  GPtrArray *cmds = g_ptr_array_new();
+  Vector *cmds = $(alloc(Vector), initWithSize, sizeof(cl_cmd_t *));
 
   while (++ack <= last) {
-    g_ptr_array_add(cmds, &cl.cmds[ack & CMD_MASK]);
+    cl_cmd_t *cmd = &cl.cmds[ack & CMD_MASK];
+    $(cmds, add, &cmd);
   }
 
-  if (cmds->len) {
+  if (cmds->count) {
     cls.cgame->PredictMovement(cmds);
   }
 
-  g_ptr_array_free(cmds, true);
+  release(cmds);
 }
 
 /**

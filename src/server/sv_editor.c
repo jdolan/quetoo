@@ -39,20 +39,20 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
   ent->s.angles = Cm_EntityValue(ent->def, "angles")->vec3;
   ent->s.color = Color32i(0xffffffff);
 
-  if (g_str_equal(ent->classname, "worldspawn")) {
+  if (!q_strcmp(ent->classname, "worldspawn")) {
     ent->s.effects = EF_WORLD;
-  } else if (g_str_has_prefix(ent->classname, "info_player")) {
+  } else if (!q_strncmp(ent->classname, "info_player", q_strlen("info_player"))) {
     ent->bounds = Box3(Vec3(-16.f, -16.f, -24.f), Vec3(16.f, 16.f, 36.f));
     ent->s.color = Color32i(0xffff00ff);
-  } else if (g_str_has_prefix(ent->classname, "light")) {
+  } else if (!q_strncmp(ent->classname, "light", q_strlen("light"))) {
     ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
-  } else if (g_str_has_prefix(ent->classname, "trigger_")) {
+  } else if (!q_strncmp(ent->classname, "trigger_", q_strlen("trigger_"))) {
     ent->s.color = Color32i(0xff0088ff);
-  } else if (g_str_has_prefix(ent->classname, "func_")) {
+  } else if (!q_strncmp(ent->classname, "func_", q_strlen("func_"))) {
     ent->s.color = Color32i(0xff00ff00);
-  } else if (g_str_has_prefix(ent->classname, "misc_")) {
+  } else if (!q_strncmp(ent->classname, "misc_", q_strlen("misc_"))) {
     ent->s.color = Color32i(0xff00ffff);
-  } else if (g_str_has_prefix(ent->classname, "item_")) {
+  } else if (!q_strncmp(ent->classname, "item_", q_strlen("item_"))) {
     ent->s.color = Color32i(0xffffff00);
   }
 
@@ -65,15 +65,15 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
     // entity may have brushes without an inline model (e.g. misc_dust, brushes merged into worldspawn)
     // brush->entity always points to the original Cm_Bsp() entity; def may be a re-parsed copy after edits
     const cm_entity_t *bsp_def = number < Cm_Bsp()->num_entities ? Cm_Bsp()->entities[number] : def;
-    GPtrArray *brushes = Cm_EntityBrushes(bsp_def);
-    if (brushes->len) {
+    Vector *brushes = Cm_EntityBrushes(bsp_def);
+    if (brushes->count) {
       ent->bounds = Box3_Null();
-      for (guint j = 0; j < brushes->len; j++) {
-        const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, j);
+      for (uint32_t j = 0; j < brushes->count; j++) {
+        const cm_bsp_brush_t *brush = VectorValue(brushes, cm_bsp_brush_t *, j);
         ent->bounds = Box3_Union(ent->bounds, brush->bounds);
       }
     }
-    g_ptr_array_free(brushes, true);
+    release(brushes);
   }
 
   Sv_LinkEntity(ent);
@@ -134,7 +134,7 @@ void Sv_FreeEditorEntity(int32_t number) {
 void Sv_LoadEditorMap(void) {
   char path[MAX_QPATH];
   StripExtension(Cm_Bsp()->name, path);
-  g_strlcat(path, ".map", sizeof(path));
+  q_strlcat(path, ".map", sizeof(path));
 
   void *buffer;
   if (Fs_Load(path, &buffer) == -1) {
@@ -165,7 +165,7 @@ void Sv_SaveEditorMap_f(void) {
 
   char path[MAX_QPATH];
   StripExtension(Cm_Bsp()->name, path);
-  g_strlcat(path, ".map", sizeof(path));
+  q_strlcat(path, ".map", sizeof(path));
 
   file_t *file = Fs_OpenWrite(path);
   if (!file) {
@@ -202,7 +202,7 @@ void Sv_SaveEditorMap_f(void) {
         break;
       }
     }
-    Fs_Write(file, brushes, sizeof(char), strlen(brushes));
+    Fs_Write(file, brushes, sizeof(char), q_strlen(brushes));
 
     Fs_Print(file, "}\n");
   }

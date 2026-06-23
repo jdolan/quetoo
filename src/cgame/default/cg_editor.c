@@ -47,8 +47,8 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
       continue;
     }
 
-    if (!g_strcmp0(cgi.EntityValue(e, "classname")->string, classname)) {
-      if (!g_strcmp0(cgi.EntityValue(e, "team")->string, team)) {
+    if (!q_strcmp(cgi.EntityValue(e, "classname")->string, classname)) {
+      if (!q_strcmp(cgi.EntityValue(e, "team")->string, team)) {
         if (cgi.EntityValue(e, "team_master")->parsed) {
           return i;
         }
@@ -125,7 +125,7 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
     }
 
     const char *classname = cgi.EntityValue(edit->def, "classname")->string;
-    if (!g_strcmp0(classname, "func_group") && !cg_editor.show_func_groups) {
+    if (!q_strcmp(classname, "func_group") && !cg_editor.show_func_groups) {
       continue;
     }
 
@@ -134,7 +134,7 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
     vec4_t debug_color = ent->current.color.rgba ? Color32_Vec4(ent->current.color) : color_white.vec4;
     vec4_t model_color = color_white.vec4;
 
-    if (!g_strcmp0(classname, "light")) {
+    if (!q_strcmp(classname, "light")) {
       model_color = Cg_AddEditorEntity_Light(edit);
       debug_color = model_color;
     } else {
@@ -168,13 +168,13 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
       });
 
       if (is_selected) {
-        for (guint j = 0; j < edit->brushes->len; j++) {
-          const cm_bsp_brush_t *brush = g_ptr_array_index(edit->brushes, j);
+        for (uint32_t j = 0; j < edit->brushes->count; j++) {
+          const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
           cgi.Draw3DBox(brush->bounds, color_red, true);
         }
-      } else if (g_strcmp0(classname, "worldspawn")) {
-        for (guint j = 0; j < edit->brushes->len; j++) {
-          const cm_bsp_brush_t *brush = g_ptr_array_index(edit->brushes, j);
+      } else if (q_strcmp(classname, "worldspawn")) {
+        for (uint32_t j = 0; j < edit->brushes->count; j++) {
+          const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
           cgi.Draw3DBox(brush->bounds, Color4fv(debug_color), true);
         }
       }
@@ -212,7 +212,7 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
       }
     }
 
-    if (is_selected && g_strcmp0(classname, "worldspawn")) {
+    if (is_selected && q_strcmp(classname, "worldspawn")) {
       vec3_t points[2] = { ent->origin };
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, Vec3(1.f, 0.f, 0.f));
@@ -246,12 +246,12 @@ static void Cg_InitEditorEntity(int16_t number) {
   edit->def = cgi.EntityFromInfoString(info);
 
   const char *mod = cgi.EntityValue(edit->def, "model")->string;
-  if (strlen(mod)) {
+  if (q_strlen(mod)) {
     edit->model = cgi.LoadModel(mod);
   } else {
     const char *classname = cgi.EntityValue(edit->def, "classname")->string;
     for (size_t i = 0; i < bg_num_items; i++) {
-      if (!g_strcmp0(bg_item_defs[i].classname, classname)) {
+      if (!q_strcmp(bg_item_defs[i].classname, classname)) {
         edit->model = cgi.LoadModel(bg_item_defs[i].model);
         break;
       }
@@ -260,9 +260,8 @@ static void Cg_InitEditorEntity(int16_t number) {
 
   if (number < cgi.Bsp()->num_entities) {
     edit->brushes = cgi.EntityBrushes(cgi.Bsp()->entities[number]);
-    if (!edit->brushes->len) {
-      g_ptr_array_free(edit->brushes, true);
-      edit->brushes = NULL;
+    if (!edit->brushes->count) {
+      edit->brushes = release(edit->brushes);
     }
   }
 
@@ -270,7 +269,7 @@ static void Cg_InitEditorEntity(int16_t number) {
 
   const cg_entity_class_t *clazz = NULL;
   for (size_t j = 0; j < cg_num_entity_classes; j++) {
-    if (!g_strcmp0(classname, cg_entity_classes[j]->classname)) {
+    if (!q_strcmp(classname, cg_entity_classes[j]->classname)) {
       clazz = cg_entity_classes[j];
       break;
     }
@@ -306,9 +305,7 @@ static void Cg_FreeEditorEntity(int16_t number) {
 
   cgi.FreeEntity(edit->def);
 
-  if (edit->brushes) {
-    g_ptr_array_free(edit->brushes, true);
-  }
+  release(edit->brushes);
 
   if (edit->misc.clazz && edit->misc.data) {
     if (edit->misc.clazz->Free) {
@@ -331,7 +328,7 @@ void Cg_ParseEditorEntity(int16_t number, const char *info) {
     cg_editor.entities[i].shadow_cached = false;
   }
 
-  if (*cgi.state == CL_ACTIVE && strlen(info)) {
+  if (*cgi.state == CL_ACTIVE && q_strlen(info)) {
     Cg_InitEditorEntity(number);
   }
 
@@ -399,14 +396,14 @@ cg_editor_trace_t Cg_EntitySelectionTrace(const vec3_t start, const vec3_t end) 
     }
 
     if (!cg_editor.show_func_groups) {
-      if (!g_strcmp0(cgi.EntityValue(edit->def, "classname")->string, "func_group")) {
+      if (!q_strcmp(cgi.EntityValue(edit->def, "classname")->string, "func_group")) {
         continue;
       }
     }
 
     if (edit->brushes) {
-      for (guint j = 0; j < edit->brushes->len; j++) {
-        const cm_bsp_brush_t *brush = g_ptr_array_index(edit->brushes, j);
+      for (uint32_t j = 0; j < edit->brushes->count; j++) {
+        const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
 
         const cm_trace_t tr = cgi.TraceToBrush(start, end, brush);
 
@@ -458,8 +455,8 @@ cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end
     }
 
     if (edit->brushes) {
-      for (guint j = 0; j < edit->brushes->len; j++) {
-        const cm_bsp_brush_t *brush = g_ptr_array_index(edit->brushes, j);
+      for (uint32_t j = 0; j < edit->brushes->count; j++) {
+        const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
 
         const cm_trace_t tr = cgi.TraceToBrush(start, end, brush);
 

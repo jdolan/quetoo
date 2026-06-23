@@ -38,7 +38,7 @@ static struct {
   uint32_t next_buffer;
   s_music_t *default_music;
   s_music_t *current_music;
-  GList *playlist;
+  List *playlist;
 
   SDL_Thread *thread; // thread sound system runs on
   SDL_Mutex *mutex; // mutex for music state
@@ -85,7 +85,7 @@ static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, file
   *snd = NULL;
 
   StripExtension(name, path);
-  g_snprintf(path, sizeof(path), "music/%s.ogg", name);
+  q_snprintf(path, sizeof(path), "music/%s.ogg", name);
 
   if ((*file = Fs_OpenRead(path)) != NULL) {
   
@@ -114,9 +114,7 @@ static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, file
  */
 void S_ClearPlaylist(void) {
 
-  g_list_free(s_music_state.playlist);
-
-  s_music_state.playlist = NULL;
+    s_music_state.playlist = release(s_music_state.playlist);
 }
 
 /**
@@ -130,7 +128,11 @@ s_music_t *S_CurrentMusic(void) {
  * @brief Returns true if @p music is in the current playlist.
  */
 bool S_PlaylistContains(const s_music_t *music) {
-  return g_list_find(s_music_state.playlist, (gconstpointer) music) != NULL;
+  if (!s_music_state.playlist) { return false; }
+  for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
+    if (n->element == music) { return true; }
+  }
+  return false;
 }
 
 /**
@@ -168,7 +170,10 @@ s_music_t *S_LoadMusic(const char *name) {
   }
 
   if (music) {
-    s_music_state.playlist = g_list_append(s_music_state.playlist, music);
+    if (!s_music_state.playlist) {
+      s_music_state.playlist = $(alloc(List), init);
+    }
+    $(s_music_state.playlist, append, music);
   }
 
   return music;
@@ -296,18 +301,19 @@ static void S_PlayMusic(s_music_t *music) {
  * @brief Returns the previous track in the configured playlist.
  */
 static s_music_t *S_PrevMusic(void) {
-  GList *elt;
 
-  if (g_list_length(s_music_state.playlist)) {
+  if (s_music_state.playlist && s_music_state.playlist->count) {
 
-    if ((elt = g_list_find(s_music_state.playlist, s_music_state.current_music))) {
-
-      if (elt->prev) {
-        return (s_music_t *) elt->prev->data;
+    for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
+      if (n->element == s_music_state.current_music) {
+        if (n->prev) {
+          return (s_music_t *) n->prev->element;
+        }
+        break;
       }
     }
 
-    return g_list_last(s_music_state.playlist)->data;
+    return (s_music_t *) s_music_state.playlist->tail->element;
   }
 
   return s_music_state.default_music;
@@ -317,18 +323,19 @@ static s_music_t *S_PrevMusic(void) {
  * @brief Returns the next track in the configured playlist.
  */
 static s_music_t *S_NextMusic(void) {
-  GList *elt;
 
-  if (g_list_length(s_music_state.playlist)) {
+  if (s_music_state.playlist && s_music_state.playlist->count) {
 
-    if ((elt = g_list_find(s_music_state.playlist, s_music_state.current_music))) {
-
-      if (elt->next) {
-        return (s_music_t *) elt->next->data;
+    for (const ListNode *n = s_music_state.playlist->head; n; n = n->next) {
+      if (n->element == s_music_state.current_music) {
+        if (n->next) {
+          return (s_music_t *) n->next->element;
+        }
+        break;
       }
     }
 
-    return g_list_nth_data(s_music_state.playlist, 0);
+    return (s_music_t *) s_music_state.playlist->head->element;
   }
 
   return s_music_state.default_music;
@@ -395,7 +402,7 @@ void S_RenderMusic(const s_stage_t *stage) {
 
   SDL_UnlockMutex(s_music_state.mutex);
 
-  if (S_MusicGain() && state != AL_PLAYING) {
+  if (S_MusicGain() && (state == AL_STOPPED || state == AL_INITIAL)) {
     S_NextTrack_f();
   }
 
@@ -413,8 +420,12 @@ void S_NextTrack_f(void) {
     s_music_t *current = S_CurrentMusic();
     s_music_t *music = S_NextMusic();
 
-    if (music && music != current) {
-      S_PlayMusic(music);
+    if (music) {
+      if (music == s_music_state.default_music && current == s_music_state.default_music) {
+        Com_Debug(DEBUG_SOUND, "Default music already playing\n");
+      } else {
+        S_PlayMusic(music);
+      }
     } else {
       Com_Debug(DEBUG_SOUND, "No music available\n");
     }

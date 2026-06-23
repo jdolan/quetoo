@@ -23,7 +23,7 @@
 
 #include "cl_types.h"
 
-GList *Cl_Mapshots(const char *mapname);
+List *Cl_Mapshots(const char *mapname);
 void Cl_LoadingProgress(int32_t percent, const char *file);
 
 #if defined(__CL_LOCAL_H__)

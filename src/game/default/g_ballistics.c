@@ -54,6 +54,34 @@ static bool G_TakesDamage(g_entity_t *ent) {
 }
 
 /**
+ * @brief Resolves an explosive projectile that spawns flush against a wall or
+ * an enemy. Against world geometry the projectile is pulled back to the
+ * shooter's origin so it detonates against the surface on its first move.
+ * Against a point-blank enemy it is detonated immediately, rather than
+ * suspending inside the entity with no valid trajectory (#867).
+ * @return True if the projectile detonated and was freed, in which case the
+ * caller must not link or otherwise touch it.
+ */
+static bool G_ImmediateImpact(g_entity_t *ent, g_entity_t *projectile) {
+
+  const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
+                                 ent, CONTENTS_MASK_SOLID);
+
+  if (tr.fraction == 1.0) {
+    return false;
+  }
+
+  if (tr.ent != ent && G_TakesDamage(tr.ent)) {
+    gi.LinkEntity(projectile);
+    projectile->Touch(projectile, tr.ent, &tr);
+    return true;
+  }
+
+  projectile->s.origin = ent->s.origin;
+  return false;
+}
+
+/**
  * @brief Used to add generic bubble trails to shots.
  */
 static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr, float freq) {
@@ -565,10 +593,6 @@ void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 
   G_PlayerProjectile(projectile, 0.33);
 
-  if (G_ImmediateWall(ent, projectile)) {
-    projectile->s.origin = ent->s.origin;
-  }
-
   projectile->solid = SOLID_PROJECTILE;
   projectile->mass = 75.f;
   projectile->avelocity.x = RandomRangef(-310.f, -290.f);
@@ -587,6 +611,10 @@ void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
   projectile->hit_sound = g_media.sounds.grenade_hit;
   projectile->s.trail = TRAIL_GRENADE;
   projectile->s.model1 = g_media.models.grenade;
+
+  if (G_ImmediateImpact(ent, projectile)) {
+    return;
+  }
 
   gi.LinkEntity(projectile);
 }
@@ -659,10 +687,6 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, vec3_t con
   // add some of the player's velocity to the projectile
   G_PlayerProjectile(projectile, 0.33);
 
-  if (G_ImmediateWall(ent, projectile)) {
-    projectile->s.origin = ent->s.origin;
-  }
-
   projectile->spawn_flags = HAND_GRENADE;
 
   // if client is holding it, let the nade know it's being held
@@ -685,6 +709,10 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, vec3_t con
   projectile->Touch = G_GrenadeProjectile_Touch;
   projectile->hit_sound = g_media.sounds.grenade_hit;
   projectile->s.sound = 0;
+
+  if (G_ImmediateImpact(ent, projectile)) {
+    return;
+  }
 
   gi.LinkEntity(projectile);
 }
@@ -758,10 +786,6 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
   projectile->velocity = Vec3_Scale(dir, speed);
   projectile->avelocity = Vec3(0.0, 0.0, 600.0);
 
-  if (G_ImmediateWall(ent, projectile)) {
-    projectile->s.origin = ent->s.origin;
-  }
-
   projectile->solid = SOLID_PROJECTILE;
   projectile->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
   projectile->damage = damage;
@@ -775,6 +799,10 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
   projectile->s.model1 = g_media.models.rocket;
   projectile->s.sound = g_media.sounds.rocket_fly;
   projectile->s.trail = TRAIL_ROCKET;
+
+  if (G_ImmediateImpact(ent, projectile)) {
+    return;
+  }
 
   gi.LinkEntity(projectile);
 }
@@ -795,10 +823,6 @@ void G_QuakeRocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
   projectile->velocity = Vec3_Scale(dir, speed);
   projectile->avelocity = Vec3_Zero();
 
-  if (G_ImmediateWall(ent, projectile)) {
-    projectile->s.origin = ent->s.origin;
-  }
-
   projectile->solid = SOLID_PROJECTILE;
   projectile->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
   projectile->damage = damage;
@@ -812,6 +836,10 @@ void G_QuakeRocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
   projectile->s.model1 = g_media.models.quake_rocket;
   projectile->s.sound = g_media.sounds.rocket_fly;
   projectile->s.trail = TRAIL_ROCKET;
+
+  if (G_ImmediateImpact(ent, projectile)) {
+    return;
+  }
 
   gi.LinkEntity(projectile);
 }

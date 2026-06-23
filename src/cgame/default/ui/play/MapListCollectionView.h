@@ -22,6 +22,7 @@
 #pragma once
 
 #include <Objectively/Lock.h>
+#include <Objectively/PointerArray.h>
 
 #include <ObjectivelyMVC/CollectionView.h>
 
@@ -59,7 +60,7 @@ struct MapListCollectionView {
   /**
    * @brief Available maps.
    */
-  MutableArray *maps;
+  PointerArray *maps;
 };
 
 /**
@@ -82,11 +83,11 @@ struct MapListCollectionViewInterface {
   MapListCollectionView *(*initWithFrame)(MapListCollectionView *self, const SDL_Rect *frame);
 
   /**
-   * @fn Array *MapListCollectionView::selectedMaps(const MapListCollectionView *self)
-   * @return An Array of selected MapListItemInfo Values.
+   * @fn PointerArray *MapListCollectionView::selectedMaps(const MapListCollectionView *self)
+   * @return A PointerArray of selected MapListItemInfo pointers.
    * @memberof MapListCollectionView
    */
-  Array *(*selectedMaps)(const MapListCollectionView *self);
+  PointerArray *(*selectedMaps)(const MapListCollectionView *self);
 };
 
 /**

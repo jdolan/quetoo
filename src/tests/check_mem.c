@@ -109,10 +109,17 @@ START_TEST(check_Mem_LinkMalloc_MultipleChildren) {
 START_TEST(check_Mem_LinkMalloc_DeepHierarchy) {
   // Test deep parent->child->grandchild chains
   byte *parent = Mem_Malloc(1);
+  ck_assert_ptr_nonnull(parent);
+
   byte *child = Mem_LinkMalloc(1, parent);
+  ck_assert_ptr_nonnull(child);
+
   byte *grandchild = Mem_LinkMalloc(1, child);
+  ck_assert_ptr_nonnull(grandchild);
+
   byte *greatgrandchild = Mem_LinkMalloc(1, grandchild);
-  
+  ck_assert_ptr_nonnull(greatgrandchild);
+
   ck_assert(Mem_Size() == 4);
   
   // Freeing parent should cascade through all descendants
@@ -124,9 +131,14 @@ START_TEST(check_Mem_LinkMalloc_DeepHierarchy) {
 START_TEST(check_Mem_TagMalloc_MixedWithLinks) {
   // Test that tag-based freeing works with linked allocations
   byte *parent = Mem_TagMalloc(1, 100);
+  ck_assert_ptr_nonnull(parent);
+
   byte *child1 = Mem_LinkMalloc(1, parent);
+  ck_assert_ptr_nonnull(child1);
+
   byte *child2 = Mem_LinkMalloc(1, parent);
-  
+  ck_assert_ptr_nonnull(child2);
+
   // Add some unrelated allocations with different tag
   Mem_TagMalloc(10, 200);
   Mem_TagMalloc(10, 200);
@@ -147,8 +159,11 @@ START_TEST(check_Mem_TagMalloc_MixedWithLinks) {
 START_TEST(check_Mem_Realloc_PreservesLinks) {
   // Test that reallocating a parent preserves its children
   byte *parent = Mem_Malloc(10);
+  ck_assert_ptr_nonnull(parent);
+
   byte *child = Mem_LinkMalloc(5, parent);
-  
+  ck_assert_ptr_nonnull(child);
+
   ck_assert(Mem_Size() == 15);
   
   // Realloc the parent
@@ -165,9 +180,14 @@ START_TEST(check_Mem_Realloc_PreservesLinks) {
 START_TEST(check_Mem_Link_Reparenting) {
   // Test that linking a child to a new parent works correctly
   byte *parent1 = Mem_Malloc(1);
+  ck_assert_ptr_nonnull(parent1);
+
   byte *parent2 = Mem_Malloc(1);
+  ck_assert_ptr_nonnull(parent2);
+
   byte *child = Mem_LinkMalloc(1, parent1);
-  
+  ck_assert_ptr_nonnull(child);
+
   ck_assert(Mem_Size() == 3);
   
   // Reparent child to parent2
@@ -186,6 +206,7 @@ START_TEST(check_Mem_Link_Reparenting) {
 
 START_TEST(check_Mem_CopyString) {
   char *test = Mem_CopyString("test");
+  ck_assert_ptr_nonnull(test);
 
   ck_assert(Mem_Size() == strlen(test) + 1);
 

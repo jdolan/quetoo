@@ -166,7 +166,9 @@ int32_t BSP_Main(void) {
 
   BeginBSPFile();
 
-  LoadMapFile(map_name);
+  map_format = LoadMapFile(map_name);
+
+  Com_Verbose("Map format: %s\n", map_format == MAP_FORMAT_VALVE ? "Quake3 (Valve)" : "Quake3");
 
   EmitPlanes();
   EmitMaterials();

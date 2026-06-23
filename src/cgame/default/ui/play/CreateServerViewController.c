@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <Objectively/Value.h>
-
 #include "cg_local.h"
 
 #include "CreateServerViewController.h"
@@ -59,18 +57,17 @@ static void createServer(Button *button) {
 
   CreateServerViewController *this = button->delegate.self;
 
-  Array *selectedMaps = $(this->mapList, selectedMaps);
+  PointerArray *selectedMaps = $(this->mapList, selectedMaps);
   if (selectedMaps->count) {
 
     file_t *file = cgi.OpenFileWrite(MAP_LIST_UI);
     if (file) {
 
-      MutableString *string = mstr("");
+      String *string = str("");
+      assert(string);
 
       for (size_t i = 0; i < selectedMaps->count; i++) {
-
-        const Value *value = $(selectedMaps, objectAtIndex, i);
-        const MapListItemInfo *info = (MapListItemInfo *) value->value;
+        const MapListItemInfo *info = (MapListItemInfo *) $(selectedMaps, get, i);
 
         char name[MAX_QPATH];
         StripExtension(Basename(info->mapname), name);
@@ -78,7 +75,7 @@ static void createServer(Button *button) {
         $(string, appendFormat, "{\n\tname %s\n}\n", name);
       }
 
-      const int64_t len = cgi.WriteFile(file, string->string.chars, string->string.length, 1);
+      const int64_t len = cgi.WriteFile(file, string->chars, string->length, 1);
 
       if (len == -1) {
         Cg_Warn("Failed to write %s\n", MAP_LIST_UI);

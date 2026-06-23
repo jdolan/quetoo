@@ -19,13 +19,36 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <Objectively/HashTable.h>
+#include <Objectively/List.h>
+#include <Objectively/Vector.h>
+
 #include "bsp.h"
 #include "manifest.h"
 #include "material.h"
 
 #include "collision/cm_manifest.h"
 
-static GHashTable *paths;
+static HashTable *paths;
+
+static bool HasSuffix(const char *str, const char *suffix) {
+	const size_t len = q_strlen(str);
+	const size_t suffix_len = q_strlen(suffix);
+	return len >= suffix_len && !q_strcmp(str + len - suffix_len, suffix);
+}
+
+static Order AssetPathCompare(const ident a, const ident b) {
+	const char *const *path_a = a;
+	const char *const *path_b = b;
+	const int32_t cmp = q_strcmp(*path_a, *path_b);
+	return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
+}
+
+static void CollectAssetPath(const HashTable *table, ident key, ident value, ident data) {
+	Vector *asset_paths = data;
+	const char *path = value;
+	$(asset_paths, add, &path);
+}
 
 /**
  * @brief Forbidden extensions that must never appear in a manifest.
@@ -40,7 +63,7 @@ static bool Add(const char *name) {
 
 	assert(name);
 
-	if (!strlen(name)) {
+	if (!q_strlen(name)) {
 		Com_Verbose("Failed to add empty path\n");
 		return false;
 	}
@@ -50,26 +73,26 @@ static bool Add(const char *name) {
 		return false;
 	}
 
-	if (strchr(name, ' ')) {
+	if (q_strchr(name, ' ')) {
 		Com_Warn("Rejecting path with spaces: %s\n", name);
 		return false;
 	}
 
-	if (strstr(name, "..")) {
+	if (q_strstr(name, "..")) {
 		Com_Warn("Rejecting path with '..': %s\n", name);
 		return false;
 	}
 
 	for (const char **ext = forbidden_extensions; *ext; ext++) {
-		if (g_str_has_suffix(name, *ext)) {
+		if (HasSuffix(name, *ext)) {
 			Com_Warn("Rejecting forbidden file type: %s\n", name);
 			return false;
 		}
 	}
 
 	if (Fs_Exists(name)) {
-		if (!g_hash_table_contains(paths, name)) {
-			g_hash_table_insert(paths, g_strdup(name), g_strdup(name));
+		if ($(paths, get, (void *) name) == NULL) {
+			$(paths, set, q_strdup(name), q_strdup(name));
 		}
 		return true;
 	} else {
@@ -201,17 +224,18 @@ static void AddModel(const char *model) {
  */
 static void AddEntities(void) {
 
-	GList *entities = Cm_LoadEntities(bsp_file.entity_string);
+	List *entities = Cm_LoadEntities(bsp_file.entity_string);
+  entities->destroy = (Consumer) Cm_FreeEntity;
 
-	for (GList *entity = entities; entity; entity = entity->next) {
-		const cm_entity_t *e = entity->data;
+	for (const ListNode *node = entities->head; node; node = node->next) {
+		const cm_entity_t *e = node->element;
 		while (e) {
 
-			if (!g_strcmp0(e->key, "sound")) {
+			if (!q_strcmp(e->key, "sound")) {
 				AddSound(e->string);
-			} else if (!g_strcmp0(e->key, "model")) {
+			} else if (!q_strcmp(e->key, "model")) {
 				AddModel(e->string);
-			} else if (!g_strcmp0(e->key, "sky")) {
+			} else if (!q_strcmp(e->key, "sky")) {
 				AddSky(e->string);
 			}
 
@@ -219,7 +243,7 @@ static void AddEntities(void) {
 		}
 	}
 
-	g_list_free_full(entities, Mem_Free);
+	release(entities);
 }
 
 /**
@@ -248,7 +272,7 @@ static void AddDocumentation(void) {
  */
 static void AddMapshots_enumerate(const char *path, void *data) {
 
-	if (g_str_has_suffix(path, ".png") || g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".tga")) {
+	if (HasSuffix(path, ".png") || HasSuffix(path, ".jpg") || HasSuffix(path, ".tga")) {
 		Add(path);
 	}
 }
@@ -269,7 +293,9 @@ int32_t WriteManifest(void) {
 	Com_Print("\n------------------------------------------\n");
 	Com_Print("\nWriting manifest for %s\n\n", bsp_name);
 
-	paths = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+	paths = $(alloc(HashTable), init, HashTableHashStr, HashTableEqualStr);
+	paths->destroyKey = free;
+	paths->destroyValue = free;
 
 	LoadBSPFile(bsp_name, (1 << BSP_LUMP_MATERIALS) | (1 << BSP_LUMP_ENTITIES));
 
@@ -285,14 +311,15 @@ int32_t WriteManifest(void) {
 	Add(bsp_path);
 
 	// sort the asset paths
-	GList *asset_paths = g_hash_table_get_values(paths);
-	asset_paths = g_list_sort(asset_paths, (GCompareFunc) g_strcmp0);
+	Vector *asset_paths = $(alloc(Vector), initWithSize, sizeof(char *));
+	$(paths, enumerate, CollectAssetPath, asset_paths);
+	$(asset_paths, sort, AssetPathCompare);
 
 	// build the manifest entries with checksums
-	GHashTable *manifest = Cm_AllocManifest();
+	HashTable *manifest = Cm_AllocManifest();
 
-	for (GList *a = asset_paths; a; a = a->next) {
-		const char *path = (const char *) a->data;
+	for (size_t i = 0; i < asset_paths->count; i++) {
+		const char *path = VectorValue(asset_paths, char *, i);
 
 		void *data = NULL;
 		const int64_t len = Fs_Load(path, &data);
@@ -308,12 +335,12 @@ int32_t WriteManifest(void) {
 		}
 	}
 
-	g_list_free(asset_paths);
-	g_hash_table_destroy(paths);
+	release(asset_paths);
+	release(paths);
 
 	// write the manifest
 	char mf_path[MAX_OS_PATH];
-	g_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
+	q_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
 
 	const int32_t count = Cm_WriteManifest(mf_path, manifest);
 	if (count < 0) {

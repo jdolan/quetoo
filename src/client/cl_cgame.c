@@ -126,7 +126,7 @@ static vec3_t Cl_ReadAngles(void) {
 /**
  * @brief Returns the current list of known servers for the client game module.
  */
-static GList *Cl_Servers(void) {
+static List *Cl_Servers(void) {
   return cls.servers;
 }
 

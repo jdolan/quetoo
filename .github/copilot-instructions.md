@@ -345,6 +345,16 @@ When a GitHub issue contains a Windows `.dmp` crash file, use the **`win-crash-d
 
 The skill documents the full workflow: download the `.dmp`, extract the PDB GUID, fetch matching symbols from the GitHub releases page (`quetoo-x86_64-pc-windows-symbols.zip`), and run `src/tools/symbolicate_dmp.py` to produce a symbolicated stack trace. **Never skip the symbols step** — wrong or missing PDB produces garbage output.
 
+### CI Build Failures
+
+When CI fails (or after pushing a fix and needing to confirm it passed), use the **`ci-watch-fix`** skill:
+
+```
+.github/copilot/skills/ci-watch-fix.md
+```
+
+The skill documents the full workflow: finding the failing run, extracting real errors (filtering glib noise), diagnosing by category (missing include, stale dep, linker, allocator), fixing locally, and confirming the new run goes green. Includes a one-liner that extracts all real errors from the latest run in one shot.
+
 ## Dependencies
 
 ### Required Libraries

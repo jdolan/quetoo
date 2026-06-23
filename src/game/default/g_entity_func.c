@@ -335,6 +335,8 @@ static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
       gi.WritePosition(other->s.origin);
       gi.Multicast(other->s.origin, MULTICAST_PVS);
       G_FreeEntity(other);
+    } else if (other->Die) {
+      other->Die(other, ent, MOD_CRUSH);
     }
     return;
   }
@@ -1007,7 +1009,7 @@ static void G_func_door_GoingDown(g_entity_t *ent) {
   }
 
   ent->move_info.state = MOVE_STATE_GOING_DOWN;
-  if (g_strcmp0(ent->classname, "func_door_rotating")) {
+  if (q_strcmp(ent->classname, "func_door_rotating")) {
     G_MoveInfo_Linear_Init(ent, ent->move_info.start_origin, G_func_door_Bottom);
   } else { // rotating
     G_MoveInfo_Angular_Init(ent, G_func_door_Bottom);
@@ -1040,7 +1042,7 @@ static void G_func_door_GoingUp(g_entity_t *ent, g_entity_t *activator) {
     ent->s.sound = ent->move_info.sound_middle;
   }
   ent->move_info.state = MOVE_STATE_GOING_UP;
-  if (g_strcmp0(ent->classname, "func_door_rotating")) {
+  if (q_strcmp(ent->classname, "func_door_rotating")) {
     G_MoveInfo_Linear_Init(ent, ent->move_info.end_origin, G_func_door_Top);
   } else { // rotating
     G_MoveInfo_Angular_Init(ent, G_func_door_Top);
@@ -1224,7 +1226,7 @@ static void G_func_door_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace
 
   ent->touch_time = g_level.time + 10000;
 
-  if (ent->message && strlen(ent->message)) {
+  if (ent->message && q_strlen(ent->message)) {
     gi.WriteByte(SV_CMD_CENTER_PRINT);
     gi.WriteString(ent->message);
     gi.Unicast(other->client, true);

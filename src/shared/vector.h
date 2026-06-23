@@ -337,6 +337,13 @@ static inline uint64_t __attribute__ ((warn_unused_result)) Minui64(uint64_t a, 
 }
 
 /**
+ * @return The minimum of `a` and `b`.
+ */
+static inline size_t __attribute__ ((warn_unused_result)) Minz(size_t a, size_t b) {
+  return a < b ? a : b;
+}
+
+/**
  * @return The maximum of `a` and `b`.
  */
 static inline float __attribute__ ((warn_unused_result)) Maxf(float a, float b) {
@@ -354,6 +361,13 @@ static inline int32_t __attribute__ ((warn_unused_result)) Maxi(int32_t a, int32
  * @return The maximum of `a` and `b`.
  */
 static inline int64_t __attribute__ ((warn_unused_result)) Maxui64(uint64_t a, uint64_t b) {
+  return a > b ? a : b;
+}
+
+/**
+ * @return The maximum of `a` and `b`.
+ */
+static inline size_t __attribute__ ((warn_unused_result)) Maxz(size_t a, size_t b) {
   return a > b ? a : b;
 }
 
@@ -424,68 +438,62 @@ static inline float __attribute__ ((warn_unused_result)) ClampEuler(float theta)
 
 
 /**
- * @return A random number generator.
+ * @return A thread-local pseudo-random 32-bit value (xorshift64 state).
  */
-static inline GRand *InitRandom(void) {
-  static _Thread_local GRand *rand;
-
-  if (rand == NULL) {
-    rand = g_rand_new_with_seed((guint32) time(NULL));
+static inline uint32_t Randomu(void) {
+  static _Thread_local uint64_t state;
+  if (!state) {
+    state = (uint64_t) time(NULL) ^ (uint64_t) (uintptr_t) &state;
+    if (!state) { state = 1; }
   }
-
-  return rand;
+  state ^= state << 13;
+  state ^= state >> 7;
+  state ^= state << 17;
+  return (uint32_t) state;
 }
 
 /**
- * @return A psuedo random number between `begin` and `end`.
- */
-static inline float __attribute__ ((warn_unused_result)) RandomRangef(float begin, float end) {
-  return (float) g_rand_double_range(InitRandom(), (gdouble) begin, (gdouble) end);
-}
-
-/**
- * @return A psuedo random integral value between `0` and `UINT_MAX`.
- */
-static inline uint32_t __attribute__ ((warn_unused_result)) Randomu(void) {
-  return g_rand_int(InitRandom());
-}
-
-#define INT32_TO_UINT32(x) (uint32_t) ((int64_t) ((x) - INT32_MIN))
-#define UINT32_TO_INT32(x)  (int32_t) ((int64_t) ((x) + INT32_MIN))
-
-/**
- * @return A psuedo random number between `begin` and `end`.
- */
-static inline uint32_t __attribute__ ((warn_unused_result)) RandomRangeu(uint32_t begin, uint32_t end) {
-  return INT32_TO_UINT32(g_rand_int_range(InitRandom(), UINT32_TO_INT32(begin), UINT32_TO_INT32(end)));
-}
-
-/**
- * @return A psuedo random integral value between `INT_MIN` and `INT_MAX`.
- */
-static inline int32_t __attribute__ ((warn_unused_result)) Randomi(void) {
-  return UINT32_TO_INT32(g_rand_int(InitRandom()));
-}
-
-/**
- * @return A psuedo random number between `begin` and `end`.
- */
-static inline int32_t __attribute__ ((warn_unused_result)) RandomRangei(int32_t begin, int32_t end) {
-  return g_rand_int_range(InitRandom(), begin, end);
-}
-
-/**
- * @return A psuedo random single precision value between `0.f` and `1.f`.
+ * @return A psuedo random single precision value in [0.0, 1.0).
  */
 static inline float __attribute__ ((warn_unused_result)) Randomf(void) {
-  return (float) g_rand_double(InitRandom());
+  return (float) Randomu() * 0x1p-32f;
 }
 
 /**
  * @return A psuedo random boolean.
  */
 static inline bool __attribute__ ((warn_unused_result)) Randomb(void) {
-  return !!(g_rand_int(InitRandom()) & 1);
+  return !!(Randomu() & 1);
+}
+
+/**
+ * @return A psuedo random number between `begin` and `end`.
+ */
+static inline float __attribute__ ((warn_unused_result)) RandomRangef(float begin, float end) {
+  return begin + (end - begin) * Randomf();
+}
+
+/**
+ * @return A psuedo random integral value between `INT_MIN` and `INT_MAX`.
+ */
+static inline int32_t __attribute__ ((warn_unused_result)) Randomi(void) {
+  return (int32_t) Randomu();
+}
+
+/**
+ * @return A psuedo random number between `begin` and `end`.
+ */
+static inline int32_t __attribute__ ((warn_unused_result)) RandomRangei(int32_t begin, int32_t end) {
+  if (end <= begin) { return begin; }
+  return begin + (int32_t) (Randomu() % (uint32_t) ((int64_t) end - begin));
+}
+
+/**
+ * @return A psuedo random number between `begin` and `end`.
+ */
+static inline uint32_t __attribute__ ((warn_unused_result)) RandomRangeu(uint32_t begin, uint32_t end) {
+  if (end <= begin) { return begin; }
+  return begin + Randomu() % (end - begin);
 }
 
 /**

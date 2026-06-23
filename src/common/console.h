@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <Objectively/List.h>
 #include <SDL3/SDL_mutex.h>
 
 #include "cmd.h"
@@ -73,7 +74,7 @@ typedef struct {
   /**
    * @brief The console strings.
    */
-  GQueue strings;
+  List *strings;
 
   /**
    * @brief The length of the console strings in characters.
@@ -83,7 +84,7 @@ typedef struct {
   /**
    * @brief The configured consoles.
    */
-  GList *consoles;
+  List *consoles;
 
   /**
    * @brief A lock for coordinating thread access to the console.
@@ -220,8 +221,8 @@ bool Con_CompleteInput(console_t *console);
 void Con_SubmitInput(console_t *console);
 void Con_AddConsole(const console_t *console);
 void Con_RemoveConsole(const console_t *console);
-void Con_AutocompleteMatch(GList **matches, const char *name, const char *description);
-void Con_AutocompleteInput_f(const uint32_t argi, GList **matches);
+void Con_AutocompleteMatch(List *matches, const char *name, const char *description);
+void Con_AutocompleteInput_f(const uint32_t argi, List *matches);
 
 void Con_Init(void);
 void Con_Shutdown(void);

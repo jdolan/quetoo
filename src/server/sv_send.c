@@ -130,7 +130,6 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
   // Ensure the datagram buffer is initialized
   if (!cl->datagram.buffer.data) {
     Mem_InitBuffer(&cl->datagram.buffer, cl->datagram.data, sizeof(cl->datagram.data));
-    cl->datagram.buffer.allow_overflow = true;
   }
 
   if (len > MAX_MSG_SIZE_UDP) {
@@ -141,24 +140,19 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
     }
   }
 
-  sv_client_message_t *msg = g_malloc0(sizeof(*msg));
+  sv_client_message_t *msg = Mem_TagMalloc(sizeof(*msg), MEM_TAG_SERVER);
 
   msg->offset = cl->datagram.buffer.size;
   msg->len = len;
 
-  cl->datagram.messages = g_list_append(cl->datagram.messages, msg);
+  if (!cl->datagram.messages) {
+    cl->datagram.messages = $(alloc(List), init);
+    cl->datagram.messages->destroy = Mem_Free;
+  }
+
+  $(cl->datagram.messages, append, msg);
 
   Mem_WriteBuffer(&cl->datagram.buffer, data, len);
-
-  if (cl->datagram.buffer.overflowed) {
-    Com_Warn("Client datagram overflow for %s\n", cl->name);
-
-    msg->offset = 0;
-    cl->datagram.buffer.overflowed = false;
-
-    g_list_free_full(cl->datagram.messages, g_free);
-    cl->datagram.messages = NULL;
-  }
 }
 
 /**
@@ -259,33 +253,25 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
   Sv_BuildClientFrame(cl);
 
   Mem_InitBuffer(&buf, buffer, sizeof(buffer));
-  buf.allow_overflow = true;
 
   // send over all the relevant entity_state_t and the player_state_t
   Sv_WriteClientFrame(cl, &buf);
 
-  // the frame itself (player state and delta entities) must fit into a single message,
-  // since it is parsed as a single command by the client
-  if (buf.overflowed || buf.size > MAX_MSG_SIZE - 16) {
-    Com_Error(ERROR_DROP, "Frame exceeds MAX_MSG_SIZE (%u)\n", (uint32_t) buf.size);
-  }
+  if (cl->datagram.messages) {
+    for (const ListNode *node = cl->datagram.messages->head; node; node = node->next) {
+      const sv_client_message_t *msg = (const sv_client_message_t *) node->element;
 
-  // but we can packetize the remaining datagram messages, which are parsed individually
-  const GList *e = cl->datagram.messages;
-  while (e) {
-    const sv_client_message_t *msg = (sv_client_message_t *) e->data;
+      // if we would overflow the packet, flush it first
+      if (buf.size + msg->len > (MAX_MSG_SIZE_UDP - 16)) {
+        Com_Debug(DEBUG_SERVER, "Fragmenting datagram @ %u bytes\n", (uint32_t) buf.size);
 
-    // if we would overflow the packet, flush it first
-    if (buf.size + msg->len > (MAX_MSG_SIZE - 16)) {
-      Com_Debug(DEBUG_SERVER, "Fragmenting datagram @ %u bytes\n", (uint32_t) buf.size);
+        Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
 
-      Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
+        Mem_ClearBuffer(&buf);
+      }
 
-      Mem_ClearBuffer(&buf);
+      Mem_WriteBuffer(&buf, cl->datagram.buffer.data + msg->offset, msg->len);
     }
-
-    Mem_WriteBuffer(&buf, cl->datagram.buffer.data + msg->offset, msg->len);
-    e = e->next;
   }
 
   // send the pending packet, which may include reliable messages
@@ -300,7 +286,7 @@ static void Sv_DemoCompleted(void) {
   if (sv_demo_list->string[0]) {
 
     const char *current_demo = sv.name;
-    const char *next_demo = g_strrstr(sv_demo_list->string, current_demo);
+    const char *next_demo = q_strstr(sv_demo_list->string, current_demo);
     char demo_token[MAX_QPATH];
 
     if (!next_demo) {
@@ -308,7 +294,7 @@ static void Sv_DemoCompleted(void) {
       next_demo = sv_demo_list->string;
     } else {
 
-      next_demo += strlen(current_demo);
+      next_demo += q_strlen(current_demo);
 
       if (next_demo[0] == ' ') {
         next_demo++;
@@ -317,11 +303,10 @@ static void Sv_DemoCompleted(void) {
       }
     }
 
-    const char *space = strchr(next_demo, ' ') ? : (next_demo + strlen(next_demo));
+    const char *space = q_strchr(next_demo, ' ') ? : (next_demo + q_strlen(next_demo));
     size_t len = space - next_demo;
 
-    strncpy(demo_token, next_demo, len);
-    demo_token[len] = 0;
+    q_strlcpy(demo_token, next_demo, len + 1);
 
     if (demo_token[0]) {
       Sv_InitServer(demo_token, NULL, SV_ACTIVE_DEMO);
@@ -398,13 +383,6 @@ void Sv_SendClientPackets(void) {
       continue;
     }
 
-    // if the client's reliable message overflowed, we must drop them
-    if (cl->net_chan.message.overflowed) {
-      Sv_DropClient(cl);
-      Sv_BroadcastPrint(PRINT_MEDIUM, "%s overflowed\n", cl->name);
-      continue;
-    }
-
     if (svs.state == SV_ACTIVE_DEMO) { // send the demo packet
       byte buffer[MAX_MSG_SIZE];
       size_t size;
@@ -421,11 +399,7 @@ void Sv_SendClientPackets(void) {
       // clean up for the next frame
       Mem_ClearBuffer(&cl->datagram.buffer);
 
-      if (cl->datagram.messages) {
-        g_list_free_full(cl->datagram.messages, g_free);
-      }
-
-      cl->datagram.messages = NULL;
+      cl->datagram.messages = release(cl->datagram.messages);
 
     } else if (cl->net_chan.message.size) { // update reliable
       Netchan_Transmit(&cl->net_chan, NULL, 0);

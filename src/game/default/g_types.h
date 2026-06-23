@@ -24,6 +24,7 @@
 #include "shared/shared.h"
 #include "collision/cm_types.h"
 #include "bg_item.h"
+#include <Objectively/Vector.h>
 
 /**
  * @brief Game protocol version (protocol minor version). To be incremented
@@ -868,12 +869,12 @@ typedef struct {
   /**
    * @brief Accumulated frag events for this map, POSTed at intermission.
    */
-  GArray *frags;
+  Vector *frags;
 
   /**
    * @brief Accumulated capture events for this CTF map, POSTed at intermission.
    */
-  GArray *captures;
+  Vector *captures;
 } g_level_t;
 
 /**
