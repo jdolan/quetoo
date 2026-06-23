@@ -97,7 +97,7 @@ static void Cl_Mapshots_enumerate(const char *path, void *data) {
   const size_t len = q_strlen(path);
   if ((len >= 4 && !q_strcmp(path + len - 4, ".jpg")) ||
       (len >= 4 && !q_strcmp(path + len - 4, ".png"))) {
-    $(list, appendElement, q_strdup(path));
+    $(list, append, q_strdup(path));
   }
 }
 

@@ -272,7 +272,7 @@ ai_node_id_t G_Ai_Node_Create(const vec3_t position) {
   ai_node_t node = (ai_node_t) {
     .position = position
   };
-  $(g_ai_nodes, addElement, &node);
+  $(g_ai_nodes, add, &node);
 
   G_Ai_Node_InvalidateSpatialIndex();
 
@@ -331,7 +331,7 @@ void G_Ai_Node_Link(const ai_node_id_t a, const ai_node_id_t b, const float cost
     .id = b,
     .cost = cost
   };
-  $(node_a->links, addElement, &link);
+  $(node_a->links, add, &link);
 
   G_Ai_Debug("Connected %d -> %d\n", a, b);
 }
@@ -1024,7 +1024,7 @@ void G_Ai_Node_Render(void) {
             .link = ulink,
             .bits = bit
           };
-          $(unique_links, addElement, &render_link);
+          $(unique_links, add, &render_link);
         }
       }
     }
@@ -1107,7 +1107,7 @@ void G_Ai_InitNodes(void) {
 
   for (size_t i = 0; i < num_nodes; i++) {
     ai_node_t node = { 0 };
-    $(g_ai_nodes, addElement, &node);
+    $(g_ai_nodes, add, &node);
   }
 
   G_Ai_Node_InvalidateSpatialIndex();
@@ -1128,7 +1128,7 @@ void G_Ai_InitNodes(void) {
 
       for (size_t l = 0; l < num_links; l++) {
         ai_link_t link = { 0 };
-        $(node->links, addElement, &link);
+        $(node->links, add, &link);
       }
 
       gi.ReadFile(file, node->links->elements, sizeof(ai_link_t), num_links);
@@ -1214,7 +1214,7 @@ void G_Ai_NodesReady(void) {
       if (!g_ai_platforms) {
         g_ai_platforms = $(alloc(Vector), initWithSize, sizeof(g_entity_t *));
       }
-      $(g_ai_platforms, addElement, &ent);
+      $(g_ai_platforms, add, &ent);
     }
   });
 
@@ -1291,7 +1291,7 @@ void G_Ai_DeleteNodes(void) {
       }
     }
 
-    $(g_ai_nodes, removeAllElements);
+    $(g_ai_nodes, removeAll);
   }
 
   g_ai_platforms = release(g_ai_platforms);
@@ -1619,7 +1619,7 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
     G_Ai_Debug("Found path from %u -> %u with %u nodes visited\n", start, end, visited);
 
     return_path = $(alloc(Vector), initWithSize, sizeof(ai_node_id_t));
-    $(return_path, insertElementAtIndex, (void *) &end, 0);
+    $(return_path, insert, (void *) &end, 0);
 
     if (start != end) {
       ai_node_id_t from = end;
@@ -1627,7 +1627,7 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
       for (;;) {
         const ai_node_t *from_node = AI_NODE(g_ai_nodes, from);
         from = from_node->came_from;
-        $(return_path, insertElementAtIndex, &from, 0);
+        $(return_path, insert, &from, 0);
 
         if (from == start) {
           break;

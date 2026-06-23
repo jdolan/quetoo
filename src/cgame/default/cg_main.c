@@ -215,7 +215,7 @@ static void Cg_ParseTeamInfo(const char *s) {
   q_strlcpy(buf, s, sizeof(buf));
   char *save = NULL;
   for (char *tok = q_strtok_r(buf, "\\", &save); tok; tok = q_strtok_r(NULL, "\\", &save)) {
-    $(info, addPointer, q_strdup(tok));
+    $(info, add, q_strdup(tok));
   }
 
   const size_t count = info->count;
@@ -228,13 +228,13 @@ static void Cg_ParseTeamInfo(const char *s) {
   cg_team_info_t *team = cg_state.teams;
   for (size_t i = 0; i < count; i += 4, team++) {
 
-    team->id = atoi((char *) $(info, pointerAtIndex, i + 0));
+    team->id = atoi((char *) $(info, get, i + 0));
 
-    q_strlcpy(team->name, (char *) $(info, pointerAtIndex, i + 1), sizeof(team->name));
+    q_strlcpy(team->name, (char *) $(info, get, i + 1), sizeof(team->name));
 
-    team->hue = atoi((char *) $(info, pointerAtIndex, i + 2));
+    team->hue = atoi((char *) $(info, get, i + 2));
 
-    if (!Color_Parse((char *) $(info, pointerAtIndex, i + 3), &team->color)) {
+    if (!Color_Parse((char *) $(info, get, i + 3), &team->color)) {
       team->color = color_white;
     }
   }

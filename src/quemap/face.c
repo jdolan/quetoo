@@ -175,7 +175,7 @@ static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
 
   if (!WeldingBucketContainsIndex(array, index)) {
     int32_t element = index;
-    $(array, addElement, &element);
+    $(array, add, &element);
   }
 }
 
@@ -410,7 +410,7 @@ static void BuildPhongMaps(const bsp_model_t *mod) {
         $(phong_vertex_faces, set, key_copy, arr);
       }
       const bsp_face_t *face = f;
-      $(arr, addElement, &face);
+      $(arr, add, &face);
     }
   }
 

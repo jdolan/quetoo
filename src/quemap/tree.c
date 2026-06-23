@@ -258,7 +258,7 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
       }
 
       intptr_t cached_plane = plane;
-      $(cache, addElement, &cached_plane);
+      $(cache, add, &cached_plane);
     }
   }
 

@@ -23,6 +23,8 @@
 
 #include <SDL3_image/SDL_image.h>
 
+#include <Objectively/PointerArray.h>
+
 #include "UpdateViewController.h"
 
 #define _Class _UpdateViewController
@@ -68,7 +70,7 @@ static void fetchHeroImages(void *data) {
 			continue;
 		}
 
-		$(urls, addPointer, q_strdup(url));
+		$(urls, add, q_strdup(url));
 		p = s + q_strlen(suffix);
 	}
 

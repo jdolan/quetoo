@@ -41,7 +41,7 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
     cls.servers->destroy = Mem_Free;
   }
 
-  $(cls.servers, prependElement, s);
+  $(cls.servers, prepend, s);
 
   return s;
 }

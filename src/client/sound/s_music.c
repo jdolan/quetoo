@@ -173,7 +173,7 @@ s_music_t *S_LoadMusic(const char *name) {
     if (!s_music_state.playlist) {
       s_music_state.playlist = $(alloc(List), init);
     }
-    $(s_music_state.playlist, appendElement, music);
+    $(s_music_state.playlist, append, music);
   }
 
   return music;

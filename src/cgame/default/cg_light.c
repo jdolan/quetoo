@@ -67,7 +67,7 @@ static cg_light_t *Cg_AllocLight(const cg_light_t *in) {
 
   light->time = cgi.client->unclamped_time;
 
-  $(cg_lights.allocated, prependElement, light);
+  $(cg_lights.allocated, prepend, light);
   return light;
 }
 
@@ -80,7 +80,7 @@ static void Cg_FreeLight(cg_light_t *light) {
   assert(node);
 
   $(cg_lights.allocated, removeNode, node);
-  $(cg_lights.free, prependElement, light);
+  $(cg_lights.free, prepend, light);
 }
 
 /**

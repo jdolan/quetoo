@@ -240,7 +240,7 @@ void Cl_PredictMovement(void) {
 
   while (++ack <= last) {
     cl_cmd_t *cmd = &cl.cmds[ack & CMD_MASK];
-    $(cmds, addElement, &cmd);
+    $(cmds, add, &cmd);
   }
 
   if (cmds->count) {

@@ -102,7 +102,7 @@ atlas_node_t *Atlas_Insert(atlas_t *atlas, ...) {
     va_end(args);
     assert(node->surfaces[0]);
 
-    $(atlas->nodes, addElement, &node);
+    $(atlas->nodes, add, &node);
   }
 
   return node;

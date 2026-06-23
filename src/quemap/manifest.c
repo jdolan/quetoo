@@ -47,7 +47,7 @@ static Order AssetPathCompare(const ident a, const ident b) {
 static void CollectAssetPath(const HashTable *table, ident key, ident value, ident data) {
 	Vector *asset_paths = data;
 	const char *path = value;
-	$(asset_paths, addElement, &path);
+	$(asset_paths, add, &path);
 }
 
 /**

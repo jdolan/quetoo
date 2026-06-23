@@ -40,7 +40,7 @@ typedef struct {
 static void R_EnumerateMedia_collect(const HashTable *table, ident key, ident value, ident data) {
   R_EnumerateMedia_ctx_t *ctx = data;
   r_media_t *media = value;
-  $(ctx->media, addElement, &media);
+  $(ctx->media, add, &media);
 }
 
 /**
@@ -92,7 +92,7 @@ r_media_t *R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
   }
 
   if ($(dependent->dependencies, nodeForElement, dependency) == NULL) {
-    $(dependent->dependencies, prependElement, dependency);
+    $(dependent->dependencies, prepend, dependency);
   }
 
   return R_RegisterMedia(dependency);
@@ -206,7 +206,7 @@ static void R_FreeMedia_collect(const HashTable *table, ident key, ident value, 
   r_media_t *media = value;
 
   if (R_FreeMedia_(media, ctx->data)) {
-    $(ctx->media, addElement, &media);
+    $(ctx->media, add, &media);
   }
 }
 

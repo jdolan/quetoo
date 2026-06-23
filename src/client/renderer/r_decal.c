@@ -189,7 +189,7 @@ static void R_ClipDecalToFace(const r_view_t *view,
     }
     
     decals->image = (r_image_t *) decal->image;
-    $(decals->triangles, addElement, &triangle);
+    $(decals->triangles, add, &triangle);
   }
 
   decals->dirty = true;

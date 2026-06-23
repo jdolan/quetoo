@@ -306,7 +306,7 @@ static void Cmd_Enumerate_collect(const HashTable *table, ident key, ident value
   Cmd_Enumerate_ctx_t *ctx = data;
   const List *list = value;
   for (const ListNode *node = list->head; node; node = node->next) {
-    $(ctx->cmds, addPointer, node->element);
+    $(ctx->cmds, add, node->element);
   }
 }
 
@@ -322,7 +322,7 @@ void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
   $(ctx.cmds, sort, Cmd_Enumerate_comparator);
 
   for (size_t i = 0; i < ctx.cmds->count; i++) {
-    func((cmd_t *) $(ctx.cmds, pointerAtIndex, i), data);
+    func((cmd_t *) $(ctx.cmds, get, i), data);
   }
 
   release(ctx.cmds);
@@ -364,7 +364,7 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
     $(cmd_state.commands, set, key, list);
   }
 
-  $(list, prependElement, cmd);
+  $(list, prepend, cmd);
   return cmd;
 }
 
@@ -405,7 +405,7 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
     $(cmd_state.commands, set, key, list);
   }
 
-  $(list, prependElement, cmd);
+  $(list, prepend, cmd);
   return cmd;
 }
 
@@ -460,7 +460,7 @@ static void Cmd_RemoveAll_collect(const HashTable *table, ident key, ident value
   for (const ListNode *node = list->head; node; node = node->next) {
     cmd_t *cmd = node->element;
     if (cmd->flags & ctx->flags) {
-      $(ctx->cmds, appendElement, cmd);
+      $(ctx->cmds, append, cmd);
     }
   }
 }
@@ -627,7 +627,7 @@ typedef struct {
 
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
   Cmd_List_ctx_t *ctx = data;
-  $(ctx->strs, addPointer, q_strdup(Cmd_Stringify(cmd)));
+  $(ctx->strs, add, q_strdup(Cmd_Stringify(cmd)));
 }
 
 static Order Cmd_List_sortfn(const ident a, const ident b) {
@@ -647,7 +647,7 @@ static void Cmd_List_f(void) {
   $(ctx.strs, sort, Cmd_List_sortfn);
 
   for (size_t i = 0; i < ctx.strs->count; i++) {
-    Com_Print("%s\n", (char *) $(ctx.strs, pointerAtIndex, i));
+    Com_Print("%s\n", (char *) $(ctx.strs, get, i));
   }
 
   release(ctx.strs);
@@ -714,7 +714,7 @@ typedef struct {
 } Cmd_Shutdown_ctx_t;
 
 static void Cmd_Shutdown_collect(const HashTable *table, ident key, ident value, ident data) {
-  $(((PointerArray *) data), addPointer, value);
+  $(((PointerArray *) data), add, value);
 }
 
 /**
@@ -773,7 +773,7 @@ void Cmd_Shutdown(void) {
   $(cmd_state.commands, enumerate, Cmd_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
-    release((List *) $(ctx.lists, pointerAtIndex, i));
+    release((List *) $(ctx.lists, get, i));
   }
 
   release(ctx.lists);

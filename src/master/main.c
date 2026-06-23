@@ -351,7 +351,7 @@ static void Ms_AddServer(struct sockaddr_in *from) {
   if (!ms_servers) {
     ms_servers = $(alloc(List), init);
   }
-  $(ms_servers, appendElement, server);
+  $(ms_servers, append, server);
   Com_Print("Server %s registered\n", stos(server));
 
   // send an acknowledgment

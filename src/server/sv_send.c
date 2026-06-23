@@ -150,7 +150,7 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
     cl->datagram.messages->destroy = Mem_Free;
   }
 
-  $(cl->datagram.messages, appendElement, msg);
+  $(cl->datagram.messages, append, msg);
 
   Mem_WriteBuffer(&cl->datagram.buffer, data, len);
 }

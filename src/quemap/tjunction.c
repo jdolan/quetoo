@@ -147,7 +147,7 @@ static void FixTJunctions_r(node_t *node) {
       continue;
     }
     
-    $(faces, addElement, &face);
+    $(faces, add, &face);
     $(faces_set, set, face, face);
 
     largest_winding = Maxi(largest_winding, face->w->num_points);

@@ -164,7 +164,7 @@ void Con_Append(int32_t level, const char *string) {
 
   SDL_LockMutex(console_state.lock);
 
-  $(console_state.strings, appendElement, str);
+  $(console_state.strings, append, str);
   console_state.size += str->size;
 
   while (console_state.size > CON_MAX_SIZE) {
@@ -432,7 +432,7 @@ void Con_AutocompleteMatch(List *matches, const char *name, const char *descript
     }
   }
 
-  $(matches, insertElementAfter, insert_after, match);
+  $(matches, insertAfter, insert_after, match);
 }
 
 /**
@@ -733,7 +733,7 @@ void Con_AddConsole(const console_t *console) {
 
   SDL_LockMutex(console_state.lock);
 
-  $(console_state.consoles, appendElement, (void *) console);
+  $(console_state.consoles, append, (void *) console);
 
   SDL_UnlockMutex(console_state.lock);
 }

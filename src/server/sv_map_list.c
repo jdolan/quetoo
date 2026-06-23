@@ -83,7 +83,7 @@ void Sv_InitMapList(void) {
       Com_Warn("Map list element %d in %s is missing \"name\"\n", i, sv_map_list->string);
       Cm_FreeEntity(props);
     } else {
-      $(valid, appendElement, props);
+      $(valid, append, props);
     }
   }
 

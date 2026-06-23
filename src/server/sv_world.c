@@ -227,7 +227,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
   if (!sector->entities) {
     sector->entities = $(alloc(List), init);
   }
-  $(sector->entities, prependElement, ent);
+  $(sector->entities, prepend, ent);
 }
 
 /**

@@ -147,7 +147,7 @@ r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
 
   r_occlusion_queries.dirty = true;
 
-  $(r_occlusion_queries.allocated, prependElement, query);
+  $(r_occlusion_queries.allocated, prepend, query);
   return query;
 }
 
@@ -164,7 +164,7 @@ void R_FreeOcclusionQuery(r_occlusion_query_t *query) {
   if (node) {
     $(r_occlusion_queries.allocated, removeNode, node);
   }
-  $(r_occlusion_queries.free, prependElement, query);
+  $(r_occlusion_queries.free, prepend, query);
 
   r_occlusion_queries.dirty = true;
 }

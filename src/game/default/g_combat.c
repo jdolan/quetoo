@@ -454,7 +454,7 @@ void G_Damage(const g_damage_t *dmg) {
           q_strlcpy(frag.weapon, G_WeaponNameForMod(mod), sizeof(frag.weapon));
 
           if (frag.attacker_guid[0] && frag.target_guid[0]) {
-            $(g_level.frags, addElement, &frag);
+            $(g_level.frags, add, &frag);
           }
         }
       }

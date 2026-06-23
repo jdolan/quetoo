@@ -319,7 +319,7 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
       weight *= 3.f;
     }
 
-    $(items_visible, addElement, &(ai_item_pick_t) {
+    $(items_visible, add, &(ai_item_pick_t) {
       .entity = ent,
       .item = item,
       .weight = weight
@@ -1635,7 +1635,7 @@ static uint32_t G_Ai_LongRange(g_client_t *cl, pm_cmd_t *cmd) {
     weight = Randomf() * weight;
 
     // add!!
-    $(goal_possibilities, addElement, &(ai_item_pick_t) {
+    $(goal_possibilities, add, &(ai_item_pick_t) {
       .weight = weight,
       .entity = ent
     });
@@ -1952,7 +1952,7 @@ static void G_Ai_TestPath_f(void) {
 
       for (uint32_t i = 1; i < path->count; i++) {
         ai_node_id_t node = VectorValue(path, ai_node_id_t, i);
-        $(path_to_start, addElement, &node);
+        $(path_to_start, add, &node);
       }
       G_Ai_SetPathGoal(cl, &cl->ai->move_target, 1.0, path_to_start, NULL);
       release(path_to_start);

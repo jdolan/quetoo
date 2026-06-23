@@ -468,7 +468,7 @@ static void reloadServers(JoinServerViewController *self) {
   const List *servers = cgi.Servers();
   for (const ListNode *node = servers ? servers->head : NULL; node; node = node->next) {
     cl_server_info_t *server = node->element;
-    $(self->servers, appendElement, server);
+    $(self->servers, append, server);
   }
 
   for (ListNode *node = self->servers->head; node; ) {

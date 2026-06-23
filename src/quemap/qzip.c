@@ -38,7 +38,7 @@ static bool HasSuffix(const char *str, const char *suffix) {
 static void CollectManifestAsset(const HashTable *table, ident key, ident value, ident data) {
   List *assets = data;
   const cm_manifest_entry_t *entry = value;
-  $(assets, appendElement, q_strdup(entry->path));
+  $(assets, append, q_strdup(entry->path));
 }
 
 /**
@@ -67,7 +67,7 @@ int32_t ZIP_Main(void) {
   assets->destroy = free;
 
   // include the manifest itself so the pk3 is self-contained
-  $(assets, appendElement, q_strdup(mf_path));
+  $(assets, append, q_strdup(mf_path));
   $(manifest, enumerate, CollectManifestAsset, assets);
 
   Cm_FreeManifest(manifest);

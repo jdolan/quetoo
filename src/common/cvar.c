@@ -179,7 +179,7 @@ static void Cvar_Enumerate_collect(const HashTable *table, ident key, ident valu
   Cvar_Enumerate_ctx_t *ctx = data;
   const List *list = value;
   for (const ListNode *node = list->head; node; node = node->next) {
-    $(ctx->vars, addPointer, node->element);
+    $(ctx->vars, add, node->element);
   }
 }
 
@@ -195,7 +195,7 @@ void Cvar_Enumerate(Cvar_Enumerator func, void *data) {
   $(ctx.vars, sort, Cvar_Enumerate_comparator);
 
   for (size_t i = 0; i < ctx.vars->count; i++) {
-    func((cvar_t *) $(ctx.vars, pointerAtIndex, i), data);
+    func((cvar_t *) $(ctx.vars, get, i), data);
   }
 
   release(ctx.vars);
@@ -288,7 +288,7 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
     $(cvar_vars, set, key, list);
   }
 
-  $(list, prependElement, var);
+  $(list, prepend, var);
   return var;
 }
 
@@ -644,7 +644,7 @@ typedef struct {
 
 static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
   Cvar_List_ctx_t *ctx = data;
-  $(ctx->strs, addPointer, q_strdup(Cvar_Stringify(var)));
+  $(ctx->strs, add, q_strdup(Cvar_Stringify(var)));
 }
 
 static Order Cvar_List_sortfn(const ident a, const ident b) {
@@ -664,7 +664,7 @@ static void Cvar_List_f(void) {
   $(ctx.strs, sort, Cvar_List_sortfn);
 
   for (size_t i = 0; i < ctx.strs->count; i++) {
-    Com_Print("%s\n", (char *) $(ctx.strs, pointerAtIndex, i));
+    Com_Print("%s\n", (char *) $(ctx.strs, get, i));
   }
 
   release(ctx.strs);
@@ -740,7 +740,7 @@ typedef struct {
 } Cvar_Shutdown_ctx_t;
 
 static void Cvar_Shutdown_collect(const HashTable *table, ident key, ident value, ident data) {
-  $(((PointerArray *) data), addPointer, value);
+  $(((PointerArray *) data), add, value);
 }
 
 /**
@@ -755,7 +755,7 @@ static void Cvar_FreeAll(void) {
   $(cvar_vars, enumerate, Cvar_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
-    release((List *) $(ctx.lists, pointerAtIndex, i));
+    release((List *) $(ctx.lists, get, i));
   }
 
   release(ctx.lists);

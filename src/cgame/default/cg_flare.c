@@ -240,7 +240,7 @@ void Cg_LoadFlares(void) {
       }
 
       cg_flare_t *flare = Cg_LoadFlare(face, stage);
-      $(cg_flares, addElement, &flare);
+      $(cg_flares, add, &flare);
     }
   }
 

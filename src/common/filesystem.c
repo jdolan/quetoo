@@ -347,7 +347,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
           Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
         }
 
-        $(list, appendElement, chunk);
+        $(list, append, chunk);
         len += chunk->len;
       }
 

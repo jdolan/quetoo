@@ -181,7 +181,7 @@ void BuildLights(void) {
   for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
     light_t *light = LightForEntity(*entity);
     if (light) {
-      $(lights, addElement, &light);
+      $(lights, add, &light);
     }
     Progress("Building lights", i * 100.f / Cm_Bsp()->num_entities);
   }
