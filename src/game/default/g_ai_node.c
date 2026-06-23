@@ -1207,7 +1207,7 @@ void G_Ai_NodesReady(void) {
   }
 
   added_links -= g_ai_player_roam.file_links;
-  gi.Print("  Game loaded %u additional nodes with %zu new links.\n", added_nodes, added_links);
+  gi.Print("  Game loaded %zu additional nodes with %zu new links.\n", added_nodes, added_links);
 
   G_ForEachEntity(ent, {
     if (ent->classname && q_strcmp(ent->classname, "func_plat") == 0) {
