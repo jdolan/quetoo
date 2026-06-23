@@ -225,6 +225,7 @@ static void AddModel(const char *model) {
 static void AddEntities(void) {
 
 	List *entities = Cm_LoadEntities(bsp_file.entity_string);
+  entities->destroy = (Consumer) Cm_FreeEntity;
 
 	for (const ListNode *node = entities->head; node; node = node->next) {
 		const cm_entity_t *e = node->element;
@@ -242,8 +243,6 @@ static void AddEntities(void) {
 		}
 	}
 
-	entities->destroy = (ListDestroyFunc) Cm_FreeEntity;
-	$(entities, removeAll);
 	release(entities);
 }
 
@@ -295,8 +294,8 @@ int32_t WriteManifest(void) {
 	Com_Print("\nWriting manifest for %s\n\n", bsp_name);
 
 	paths = $(alloc(HashTable), init, HashTableHashStr, HashTableEqualStr);
-	paths->destroyKey = (HashTableDestroyFunc) free;
-	paths->destroyValue = (HashTableDestroyFunc) free;
+	paths->destroyKey = free;
+	paths->destroyValue = free;
 
 	LoadBSPFile(bsp_name, (1 << BSP_LUMP_MATERIALS) | (1 << BSP_LUMP_ENTITIES));
 

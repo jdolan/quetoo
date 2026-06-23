@@ -479,11 +479,8 @@ static void G_PostStats(void) {
   gi.PostStats((g_frag_t *) g_level.frags->elements, (int32_t) g_level.frags->count,
                (g_capture_t *) g_level.captures->elements, (int32_t) g_level.captures->count);
 
-  release(g_level.frags);
-  g_level.frags = NULL;
-
-  release(g_level.captures);
-  g_level.captures = NULL;
+  g_level.frags = release(g_level.frags);
+  g_level.captures = release(g_level.captures);
 }
 
 /**

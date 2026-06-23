@@ -70,6 +70,7 @@ void Sv_InitMapList(void) {
   q_strlcpy(svs.maps.filename, sv_map_list->string, sizeof(svs.maps.filename));
 
   svs.maps.list = Cm_LoadEntities(buffer);
+  svs.maps.list->destroy = (Consumer) Cm_FreeEntity;
 
   List *valid = $(alloc(List), init);
 
@@ -102,13 +103,7 @@ void Sv_InitMapList(void) {
  */
 void Sv_ShutdownMapList(void) {
 
-  if (svs.maps.list) {
-    svs.maps.list->destroy = (ListDestroyFunc) Cm_FreeEntity;
-    $(svs.maps.list, removeAll);
-    release(svs.maps.list);
-  }
-
-  svs.maps.list = NULL;
+  svs.maps.list = release(svs.maps.list);
   svs.maps.length = 0;
   svs.maps.index = -1;
   svs.maps.filename[0] = '\0';

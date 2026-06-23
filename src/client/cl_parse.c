@@ -96,8 +96,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
 
   SDL_SetAtomicInt(&cl_download.complete, 0);
   cl_download.status = 0;
-  release(cl_download.data);
-  cl_download.data = NULL;
+  cl_download.data = release(cl_download.data);
 
   $($$(RESTClient, sharedInstance), getAsync, url, Cl_DownloadComplete, NULL);
 
@@ -115,15 +114,13 @@ void Cl_CheckOrDownloadFile(const char *filename) {
 
   if (cl_download.status != 200 || !cl_download.data) {
     Com_Warn("Failed to download %s (HTTP %d)\n", filename, cl_download.status);
-    release(cl_download.data);
-    cl_download.data = NULL;
+    cl_download.data = release(cl_download.data);
     return;
   }
 
   if (cl_download.data->length > MAX_DOWNLOAD_SIZE) {
     Com_Warn("Download %s exceeds maximum size (%zu bytes)\n", filename, cl_download.data->length);
-    release(cl_download.data);
-    cl_download.data = NULL;
+    cl_download.data = release(cl_download.data);
     return;
   }
 
@@ -135,8 +132,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
   file_t *file = Fs_OpenWrite(tempname);
   if (!file) {
     Com_Warn("Failed to open %s for writing\n", tempname);
-    release(cl_download.data);
-    cl_download.data = NULL;
+    cl_download.data = release(cl_download.data);
     return;
   }
 
@@ -145,8 +141,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
 
   const size_t downloaded_length = cl_download.data->length;
 
-  release(cl_download.data);
-  cl_download.data = NULL;
+  cl_download.data = release(cl_download.data);
 
   if (Fs_Rename(tempname, filename)) {
     Com_Print("Downloaded %s (%zu bytes)\n", filename, downloaded_length);

@@ -95,8 +95,7 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, const box3_t bounds) {
 static void Sv_InitWorld(void) {
 
   for (size_t i = 0; i < sv_world.num_sectors; i++) {
-    release(sv_world.sectors[i].entities);
-    sv_world.sectors[i].entities = NULL;
+    sv_world.sectors[i].entities = release(sv_world.sectors[i].entities);
   }
 
   memset(&sv_world, 0, sizeof(sv_world));

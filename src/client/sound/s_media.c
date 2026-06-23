@@ -220,10 +220,7 @@ static bool S_FreeMedia_(const char *key, s_media_t *media, bool force) {
     media->Free(media);
   }
 
-  if (media->dependencies) {
-    release(media->dependencies);
-    media->dependencies = NULL;
-  }
+  media->dependencies = release(media->dependencies);
 
   // remove key from sorted keys list
   if (s_media_state.keys) {

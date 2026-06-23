@@ -66,18 +66,13 @@ void Cg_ShutdownUi(void) {
   cgi.PopAllViewControllers();
   cgi.PopViewController();
 
-  update_available = false;
-
-  release(updateViewController);
-  updateViewController = NULL;
-
-  release(mainViewController);
-  mainViewController = NULL;
-
   $(cgi.Theme(), removeStylesheet, stylesheet);
 
-  release(stylesheet);
-  stylesheet = NULL;
+  update_available = false;
+
+  updateViewController = release(updateViewController);
+  mainViewController = release(mainViewController);
+  stylesheet = release(stylesheet);
 }
 
 /**

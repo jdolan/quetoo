@@ -65,7 +65,7 @@ r_model_t *R_LoadModel(const char *name) {
       static HashTable *warned;
       if (!warned) {
         warned = $(alloc(HashTable), init, HashTableHashStr, HashTableEqualStr);
-        warned->destroyKey = (HashTableDestroyFunc) free;
+        warned->destroyKey = free;
       }
       if ($(warned, get, (void *) key) == NULL) {
         char *warned_key = q_strdup(key);

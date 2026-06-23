@@ -222,7 +222,6 @@ static void Cg_ParseTeamInfo(const char *s) {
   const size_t count = info->count;
 
   if (count != lengthof(cg_state.teams) * 4) {
-    for (size_t i = 0; i < count; i++) { free(VectorValue(info, char *, i)); }
     release(info);
     Cg_Error("Invalid team data: %s\n", s);
   }

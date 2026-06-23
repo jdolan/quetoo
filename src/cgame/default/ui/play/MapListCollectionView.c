@@ -191,11 +191,7 @@ static void enumerateMaps(const char *path, void *data) {
         }
       }
 
-      if (mapshots) {
-        mapshots->destroy = (ListDestroyFunc) free;
-        $(mapshots, removeAll);
-        release(mapshots);
-      }
+      release(mapshots);
 
       Value *value = $(alloc(Value), initWithValue, info);
 

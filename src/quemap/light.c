@@ -163,8 +163,7 @@ void FreeLights(void) {
     FreeLight(VectorValue(lights, light_t *, i));
   }
 
-  release(lights);
-  lights = NULL;
+  lights = release(lights);
 }
 
 /**

@@ -362,7 +362,7 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 
   if (!list) {
     list = $(alloc(List), init);
-    list->destroy = (ListDestroyFunc) Mem_Free;
+    list->destroy = Mem_Free;
     $(cmd_state.commands, set, key, list);
   }
 
@@ -403,7 +403,7 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
 
   if (!list) {
     list = $(alloc(List), init);
-    list->destroy = (ListDestroyFunc) Mem_Free;
+    list->destroy = Mem_Free;
     $(cmd_state.commands, set, key, list);
   }
 
@@ -425,7 +425,7 @@ static List *Cmd_RemovePtr_(cmd_t *cmd) {
   }
 
   // Disable destroy so we control when cmd is freed
-  ListDestroyFunc saved = list->destroy;
+  Consumer saved = list->destroy;
   list->destroy = NULL;
   $(list, removeNode, node);
   list->destroy = saved;
@@ -779,14 +779,12 @@ void Cmd_Shutdown(void) {
   $(cmd_state.commands, enumerate, Cmd_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
-    List *list = VectorValue(ctx.lists, List *, i);
-    $(list, removeAll);
-    release(list);
+    release(VectorValue(ctx.lists, List *, i));
   }
 
   release(ctx.lists);
-  release(cmd_state.commands);
-  cmd_state.commands = NULL;
+
+  cmd_state.commands = release(cmd_state.commands);
 }
 
 /*

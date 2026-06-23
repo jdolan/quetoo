@@ -71,11 +71,7 @@ void Sv_DropClient(sv_client_t *client) {
   Mem_ClearBuffer(&client->net_chan.message);
   Mem_ClearBuffer(&client->datagram.buffer);
 
-  if (client->datagram.messages) {
-    $(client->datagram.messages, removeAll);
-    release(client->datagram.messages);
-    client->datagram.messages = NULL;
-  }
+  client->datagram.messages = release(client->datagram.messages);
 
   g_client_t *gclient = client->gclient;
   memset(client, 0, sizeof(*client));

@@ -33,13 +33,6 @@
 #pragma mark - Delegates
 
 /**
- * @brief Dialog::okFunction for opening the releases page.
- */
-static void openReleasesPage(ident data) {
-  SDL_OpenURL(QUETOO_RELEASES_URL);
-}
-
-/**
  * @brief `ThreadRunFunc` that pre-fetches all hero images synchronously.
  */
 static void fetchHeroImages(void *data) {

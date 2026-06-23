@@ -286,7 +286,7 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 
   if (!list) {
     list = $(alloc(List), init);
-    list->destroy = (ListDestroyFunc) Mem_Free;
+    list->destroy = Mem_Free;
     $(cvar_vars, set, key, list);
   }
 
@@ -753,6 +753,7 @@ static void Cvar_Shutdown_collect(const HashTable *table, ident key, ident value
  * @brief Frees all cvar lists in the hash table.
  */
 static void Cvar_FreeAll(void) {
+
   Cvar_Shutdown_ctx_t ctx = {
     .lists = $(alloc(Vector), initWithSize, sizeof(ident)),
   };
@@ -760,9 +761,7 @@ static void Cvar_FreeAll(void) {
   $(cvar_vars, enumerate, Cvar_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
-    List *list = VectorValue(ctx.lists, List *, i);
-    $(list, removeAll);
-    release(list);
+    release(VectorValue(ctx.lists, List *, i));
   }
 
   release(ctx.lists);

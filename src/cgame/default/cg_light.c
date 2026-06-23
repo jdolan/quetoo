@@ -247,18 +247,12 @@ void Cg_InitLights(void) {
 void Cg_FreeLights(void) {
 
   if (cg_lights.allocated) {
-    cg_lights.allocated->destroy = (ListDestroyFunc) cgi.Free;
-    $(cg_lights.allocated, removeAll);
-    release(cg_lights.allocated);
+    cg_lights.allocated->destroy = cgi.Free;
+    cg_lights.allocated = release(cg_lights.allocated);
   }
-
-  cg_lights.allocated = NULL;
 
   if (cg_lights.free) {
-    cg_lights.free->destroy = (ListDestroyFunc) cgi.Free;
-    $(cg_lights.free, removeAll);
-    release(cg_lights.free);
+    cg_lights.free->destroy = cgi.Free;
+    cg_lights.free = release(cg_lights.free);
   }
-
-  cg_lights.free = NULL;
 }

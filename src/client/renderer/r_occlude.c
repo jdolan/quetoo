@@ -316,6 +316,18 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
 }
 
 /**
+ * @brief GDestroyNotify for deleting occlusion queries.
+ */
+static void R_ShutdownOcclusionQuery(void * data) {
+
+  r_occlusion_query_t *query = data;
+
+  glDeleteQueries(1, &query->name);
+
+  Mem_Free(query);
+}
+
+/**
  * @brief Initializes occlusion query state, allocating GPU buffers for bounding box rendering.
  */
 void R_InitOcclusionQueries(void) {
@@ -359,18 +371,6 @@ void R_InitOcclusionQueries(void) {
 }
 
 /**
- * @brief GDestroyNotify for deleting occlusion queries.
- */
-static void R_ShutdownOcclusionQuery(void * data) {
-
-  r_occlusion_query_t *query = data;
-
-  glDeleteQueries(1, &query->name);
-
-  Mem_Free(query);
-}
-
-/**
  * @brief Shuts down occlusion query state, freeing all GPU resources and allocated queries.
  */
 void R_ShutdownOcclusionQueries(void) {
@@ -380,15 +380,9 @@ void R_ShutdownOcclusionQueries(void) {
 
   glDeleteVertexArrays(1, &r_occlusion_queries.vertex_array);
 
-  if (r_occlusion_queries.allocated) {
-    r_occlusion_queries.allocated->destroy = (ListDestroyFunc) R_ShutdownOcclusionQuery;
-    $(r_occlusion_queries.allocated, removeAll);
-    release(r_occlusion_queries.allocated);
-  }
+  r_occlusion_queries.allocated->destroy = R_ShutdownOcclusionQuery;
+  r_occlusion_queries.allocated = release(r_occlusion_queries.allocated);
 
-  if (r_occlusion_queries.free) {
-    r_occlusion_queries.free->destroy = (ListDestroyFunc) R_ShutdownOcclusionQuery;
-    $(r_occlusion_queries.free, removeAll);
-    release(r_occlusion_queries.free);
-  }
+  r_occlusion_queries.free->destroy = R_ShutdownOcclusionQuery;
+  r_occlusion_queries.free = release(r_occlusion_queries.free);
 }

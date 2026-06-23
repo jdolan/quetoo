@@ -686,7 +686,7 @@ bool Con_CompleteInput(console_t *console) {
   // print matches
   Con_PrintMatches(console, matches);
 
-  matches->destroy = (ListDestroyFunc) Mem_Free;
+  matches->destroy = Mem_Free;
   release(matches);
 
   return true;
@@ -762,7 +762,7 @@ void Con_Init(void) {
   memset(&console_state, 0, sizeof(console_state));
 
   console_state.strings = $(alloc(List), init);
-  console_state.strings->destroy = (ListDestroyFunc) Con_FreeString;
+  console_state.strings->destroy = (Consumer) Con_FreeString;
 
   console_state.consoles = $(alloc(List), init);
 
@@ -782,11 +782,8 @@ void Con_Shutdown(void) {
 
   Con_FreeStrings();
 
-  release(console_state.strings);
-  console_state.strings = NULL;
-
-  release(console_state.consoles);
-  console_state.consoles = NULL;
+  console_state.strings = release(console_state.strings);
+  console_state.consoles = release(console_state.consoles);
 
   SDL_DestroyMutex(console_state.lock);
   console_state.lock = NULL;
