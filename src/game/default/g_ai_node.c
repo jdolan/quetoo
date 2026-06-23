@@ -364,7 +364,7 @@ static void G_Ai_Node_Unlink(const ai_node_id_t a, const ai_node_id_t b) {
         const ai_link_t *link = AI_LINK(node_a->links, i);
 
         if (link->id == b) {
-          $(node_a->links, removeElementAtIndex, i);
+          $(node_a->links, removeAt, i);
 
           if (!node_a->links->count) {
             release(node_a->links);
@@ -384,7 +384,7 @@ static void G_Ai_Node_Unlink(const ai_node_id_t a, const ai_node_id_t b) {
         const ai_link_t *link = AI_LINK(node_b->links, i);
 
         if (link->id == a) {
-          $(node_b->links, removeElementAtIndex, i);
+          $(node_b->links, removeAt, i);
 
           if (!node_b->links->count) {
             release(node_b->links);
@@ -450,7 +450,7 @@ void G_Ai_Node_Destroy(const ai_node_id_t id) {
   }
 
   G_Ai_Node_UnlinkAll(id);
-  $(g_ai_nodes, removeElementAtIndex, id);
+  $(g_ai_nodes, removeAt, id);
 
   G_Ai_Node_InvalidateSpatialIndex();
 

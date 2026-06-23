@@ -189,7 +189,7 @@ static void Cg_MergeFlares(void) {
           Cg_FacesShareVertex(a->face, b->face)) {
         a->bounds = Box3_Union(a->bounds, b->bounds);
 
-        $(cg_flares, removeElementAtIndex, j);
+        $(cg_flares, removeAt, j);
         cgi.Free(b);
 
         j--;

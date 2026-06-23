@@ -500,7 +500,7 @@ static void G_CreateTeamSpawnPoints(Vector **dm_spawns, Vector **team_red_spawns
     Vector *_from = *from;
     g_entity_t *point = VectorValue(_from, g_entity_t *, 0);
 
-    $(*from, removeElementAtIndex, 0);
+    $(*from, removeAt, 0);
     if (!*to) { *to = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
     $(*to, add, &point);
 
