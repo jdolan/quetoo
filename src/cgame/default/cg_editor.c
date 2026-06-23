@@ -508,15 +508,31 @@ void Cg_CheckEditor(void) {
     return;
   }
 
+  static cl_key_dest_t last_key_dest = KEY_GAME;
+  const cl_key_dest_t key_dest = cgi.GetKeyDest();
+
   if (editor->value) {
     if (!instanceof(EditorViewController, cgi.TopViewController())) {
       ViewController *vc = (ViewController *) alloc(EditorViewController);
       cgi.PushViewController($(vc, init));
       release(vc);
+    } else {
+      EditorViewController *editorViewController = (EditorViewController *) cgi.TopViewController();
+
+      if (key_dest == KEY_GAME && last_key_dest == KEY_UI) {
+        // Escape just closed the editor UI: reset to the Editor tab so the next
+        // time it's opened the editor panel is shown (not the last-clicked tab).
+        $(editorViewController, showEditorTab);
+      }
+
+      // Keep the docked panel filling the viewport below the strip (tracks resize).
+      $(editorViewController, fitContentHeight);
     }
   } else {
     if (instanceof(EditorViewController, cgi.TopViewController())) {
       cgi.PopViewController();
     }
   }
+
+  last_key_dest = key_dest;
 }
