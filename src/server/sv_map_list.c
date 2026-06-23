@@ -26,9 +26,11 @@
  */
 const cm_entity_t *Sv_NextMap(void) {
 
-  if (q_strcmp(svs.maps.filename, sv_map_list->string) ||
-      (*sv_map_list->string && Fs_LastModTime(sv_map_list->string) != svs.maps.modtime)) {
-    Sv_InitMapList();
+  if (strlen(sv_map_list->string)) {
+    if (q_strcmp(svs.maps.filename, sv_map_list->string) ||
+        (Fs_LastModTime(sv_map_list->string) != svs.maps.modtime)) {
+      Sv_InitMapList();
+    }
   }
 
   if (svs.maps.list == NULL) {
@@ -48,6 +50,7 @@ const cm_entity_t *Sv_NextMap(void) {
   for (int32_t i = 0; i < svs.maps.index && node; i++) {
     node = node->next;
   }
+
   return node ? (const cm_entity_t *) node->element : NULL;
 }
 
