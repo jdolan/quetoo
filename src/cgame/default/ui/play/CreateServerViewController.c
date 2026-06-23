@@ -29,6 +29,17 @@
 #pragma mark - Delegates
 
 /**
+ * @brief TextViewDelegate for the Bots field.
+ * Stores (entered value + 1) into sv_min_clients, accounting for the
+ * player themselves occupying one client slot.
+ */
+static void botsDidEndEditing(TextView *textView) {
+
+  const String *string = (String *) textView->attributedText;
+  cgi.SetCvarInteger("sv_min_clients", atoi(string->chars) + 1);
+}
+
+/**
  * @brief Select teams mode.
  */
 static void selectTeams(Select *select, Option *option) {
@@ -111,6 +122,7 @@ static void loadView(ViewController *self) {
   CreateServerViewController *this = (CreateServerViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
+    MakeOutlet("bots", &this->bots),
     MakeOutlet("gameplay", &this->gameplay),
     MakeOutlet("teams", &this->teams),
     MakeOutlet("mapList", &this->mapList),
@@ -122,7 +134,13 @@ static void loadView(ViewController *self) {
 
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/CreateServerViewController.css");
   assert(self->view->stylesheet);
-  
+
+  const cvar_t *sv_min_clients = cgi.GetCvar("sv_min_clients");
+  const int32_t bots = sv_min_clients ? Maxi(0, sv_min_clients->integer - 1) : 0;
+  $(this->bots, setDefaultText, va("%d", bots));
+
+  this->bots->delegate.didEndEditing = botsDidEndEditing;
+
   $(this->gameplay, addOption, "Default", "default");
   $(this->gameplay, addOption, "Deathmatch", "deathmatch");
   $(this->gameplay, addOption, "Instagib", "instagib");
