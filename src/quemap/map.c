@@ -881,6 +881,81 @@ static entity_t *ParseEntity(parser_t *parser) {
 }
 
 /**
+ * @brief Vertical tolerance (in units) for the trigger_void floor check. A solid whose
+ * top is within this distance of the brush's bottom face is treated as "touching".
+ */
+#define VOID_FLOOR_EPSILON 1.f
+
+/**
+ * @brief Warns the mapper about any `trigger_void` brush whose bottom face touches (or sits
+ * below) solid world geometry. The trigger kills a falling player only when their feet reach
+ * the brush's bottom face; if a solid floor pokes up to or above that plane within the brush
+ * footprint, the player lands on it and the kill never fires. See G_trigger_void_Touch.
+ */
+static void CheckTriggerVoidBrushes(void) {
+
+  for (int32_t i = 1; i < num_entities; i++) {
+
+    const entity_t *entity = &entities[i];
+
+    const char *classname = ValueForKey(entity, "classname", NULL);
+    if (q_strcmp(classname, "trigger_void")) {
+      continue;
+    }
+
+    const brush_t *brush = brushes + entity->first_brush;
+    for (int32_t j = 0; j < entity->num_brushes; j++, brush++) {
+
+      if (!brush->num_brush_sides) {
+        continue;
+      }
+
+      // the kill plane is the bottom face of the trigger brush
+      const float kill_z = brush->bounds.mins.z;
+
+      // find the highest solid world surface directly beneath the brush footprint
+      float floor_top = -FLT_MAX;
+
+      const brush_t *solid = brushes + entities[0].first_brush;
+      for (int32_t k = 0; k < entities[0].num_brushes; k++, solid++) {
+
+        if (!solid->num_brush_sides || !(solid->contents & CONTENTS_SOLID)) {
+          continue;
+        }
+
+        // require a real interior overlap in XY, so flush side walls don't count
+        const float ox = fminf(brush->bounds.maxs.x, solid->bounds.maxs.x) -
+                         fmaxf(brush->bounds.mins.x, solid->bounds.mins.x);
+        const float oy = fminf(brush->bounds.maxs.y, solid->bounds.maxs.y) -
+                         fmaxf(brush->bounds.mins.y, solid->bounds.mins.y);
+        if (ox <= 1.f || oy <= 1.f) {
+          continue;
+        }
+
+        // ignore solids entirely above the kill plane (ceilings poking down into the volume)
+        if (solid->bounds.mins.z > kill_z + VOID_FLOOR_EPSILON) {
+          continue;
+        }
+
+        // ignore solids entirely below the kill plane (a genuine air gap, the desired case)
+        if (solid->bounds.maxs.z < kill_z - VOID_FLOOR_EPSILON) {
+          continue;
+        }
+
+        floor_top = fmaxf(floor_top, solid->bounds.maxs.z);
+      }
+
+      if (floor_top > -FLT_MAX) {
+        Com_Warn("Entity %d (trigger_void) brush %d @ %s: bottom face touches solid "
+                 "(floor top %g vs. kill plane %g); players will not be killed. "
+                 "Raise the bottom face above the floor.\n",
+                 i, brush->brush, vtos(Box3_Center(brush->bounds)), floor_top, kill_z);
+      }
+    }
+  }
+}
+
+/**
  * @brief Loads and parses the .map file, populating the global entities, brushes, planes, and patches arrays.
  * @return The resolved map format, also stored in the global `map_format`.
  */
@@ -927,6 +1002,8 @@ map_format_t LoadMapFile(const char *filename) {
   }
 
   map_bounds = entities[0].bounds;
+
+  CheckTriggerVoidBrushes();
 
   Com_Verbose("%5i brushes\n", num_brushes);
   Com_Verbose("%5i brush sides\n", num_brush_sides);

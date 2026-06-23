@@ -444,9 +444,9 @@ static void G_trigger_void_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
 
   if (!other->take_damage) { // handle dropped items landing in the void
     if (other->item) {
-      if (other->item->def.type == ITEM_FLAG) {
+      if (other->item->def.type == ITEM_TYPE_FLAG) {
         G_ResetDroppedFlag(other);
-      } else if (other->item->def.type == ITEM_TECH) {
+      } else if (other->item->def.type == ITEM_TYPE_TECH) {
         G_ResetDroppedTech(other);
       } else {
         G_FreeEntity(other);
