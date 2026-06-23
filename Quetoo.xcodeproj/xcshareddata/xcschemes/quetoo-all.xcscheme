@@ -96,8 +96,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set version 9956"
-            isEnabled = "YES">
+            argument = "+set version -1"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_window_width 1920 +set r_window_height 1080"
