@@ -231,7 +231,6 @@ static void viewWillAppear(ViewController *self) {
 
     ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
     $(self, addChildViewController, viewController);
-    release(viewController);
   }
 }
 
