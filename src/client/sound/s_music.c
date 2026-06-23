@@ -114,10 +114,7 @@ static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, file
  */
 void S_ClearPlaylist(void) {
 
-  if (s_music_state.playlist) {
-    release(s_music_state.playlist);
-    s_music_state.playlist = NULL;
-  }
+    s_music_state.playlist = release(s_music_state.playlist);
 }
 
 /**
@@ -176,7 +173,7 @@ s_music_t *S_LoadMusic(const char *name) {
     if (!s_music_state.playlist) {
       s_music_state.playlist = $(alloc(List), init);
     }
-    $(s_music_state.playlist, appendElement, music);
+    $(s_music_state.playlist, append, music);
   }
 
   return music;

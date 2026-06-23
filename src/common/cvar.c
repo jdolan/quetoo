@@ -20,7 +20,7 @@
  */
 
 #include <Objectively/HashTable.h>
-#include <Objectively/Vector.h>
+#include <Objectively/PointerArray.h>
 
 #include "console.h"
 #include "filesystem.h"
@@ -167,20 +167,19 @@ static const char *Cvar_Stringify(const cvar_t *var) {
 }
 
 static Order Cvar_Enumerate_comparator(const ident a, const ident b) {
-  const int32_t cmp = q_strcasecmp((*(const cvar_t *const *) a)->name, (*(const cvar_t *const *) b)->name);
+  const int32_t cmp = q_strcasecmp(((const cvar_t *) a)->name, ((const cvar_t *) b)->name);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
 typedef struct {
-  Vector *vars;
+  PointerArray *vars;
 } Cvar_Enumerate_ctx_t;
 
 static void Cvar_Enumerate_collect(const HashTable *table, ident key, ident value, ident data) {
   Cvar_Enumerate_ctx_t *ctx = data;
   const List *list = value;
   for (const ListNode *node = list->head; node; node = node->next) {
-    cvar_t *var = node->element;
-    $(ctx->vars, addElement, &var);
+    $(ctx->vars, add, node->element);
   }
 }
 
@@ -189,15 +188,14 @@ static void Cvar_Enumerate_collect(const HashTable *table, ident key, ident valu
  */
 void Cvar_Enumerate(Cvar_Enumerator func, void *data) {
   Cvar_Enumerate_ctx_t ctx = {
-    .vars = $(alloc(Vector), initWithSize, sizeof(cvar_t *)),
+    .vars = $(alloc(PointerArray), init),
   };
 
   $(cvar_vars, enumerate, Cvar_Enumerate_collect, &ctx);
   $(ctx.vars, sort, Cvar_Enumerate_comparator);
 
   for (size_t i = 0; i < ctx.vars->count; i++) {
-    cvar_t *var = VectorValue(ctx.vars, cvar_t *, i);
-    func(var, data);
+    func((cvar_t *) $(ctx.vars, get, i), data);
   }
 
   release(ctx.vars);
@@ -286,11 +284,11 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 
   if (!list) {
     list = $(alloc(List), init);
-    list->destroy = (ListDestroyFunc) Mem_Free;
+    list->destroy = Mem_Free;
     $(cvar_vars, set, key, list);
   }
 
-  $(list, prependElement, var);
+  $(list, prepend, var);
   return var;
 }
 
@@ -641,17 +639,16 @@ static void Cvar_Toggle_f(void) {
 }
 
 typedef struct {
-  Vector *strs;
+  PointerArray *strs;
 } Cvar_List_ctx_t;
 
 static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
   Cvar_List_ctx_t *ctx = data;
-  char *str = q_strdup(Cvar_Stringify(var));
-  $(ctx->strs, addElement, &str);
+  $(ctx->strs, add, q_strdup(Cvar_Stringify(var)));
 }
 
 static Order Cvar_List_sortfn(const ident a, const ident b) {
-  const int32_t cmp = q_strcolorcmp(*(const char *const *) a, *(const char *const *) b);
+  const int32_t cmp = q_strcolorcmp((const char *) a, (const char *) b);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -660,16 +657,14 @@ static Order Cvar_List_sortfn(const ident a, const ident b) {
  */
 static void Cvar_List_f(void) {
   Cvar_List_ctx_t ctx = {
-    .strs = $(alloc(Vector), initWithSize, sizeof(char *)),
+    .strs = $(alloc(PointerArray), initWithDestroy, free),
   };
 
   Cvar_Enumerate(Cvar_List_f_enumerate, &ctx);
   $(ctx.strs, sort, Cvar_List_sortfn);
 
   for (size_t i = 0; i < ctx.strs->count; i++) {
-    char *str = VectorValue(ctx.strs, char *, i);
-    Com_Print("%s\n", str);
-    free(str);
+    Com_Print("%s\n", (char *) $(ctx.strs, get, i));
   }
 
   release(ctx.strs);
@@ -741,28 +736,26 @@ void Cvar_WriteAll(file_t *f) {
 }
 
 typedef struct {
-  Vector *lists;
+  PointerArray *lists;
 } Cvar_Shutdown_ctx_t;
 
 static void Cvar_Shutdown_collect(const HashTable *table, ident key, ident value, ident data) {
-  Vector *lists = data;
-  $(lists, addElement, &value);
+  $(((PointerArray *) data), add, value);
 }
 
 /**
  * @brief Frees all cvar lists in the hash table.
  */
 static void Cvar_FreeAll(void) {
+
   Cvar_Shutdown_ctx_t ctx = {
-    .lists = $(alloc(Vector), initWithSize, sizeof(ident)),
+    .lists = $(alloc(PointerArray), init),
   };
 
   $(cvar_vars, enumerate, Cvar_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
-    List *list = VectorValue(ctx.lists, List *, i);
-    $(list, removeAll);
-    release(list);
+    release((List *) $(ctx.lists, get, i));
   }
 
   release(ctx.lists);

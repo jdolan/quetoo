@@ -72,6 +72,7 @@ void Sv_InitMapList(void) {
   svs.maps.list = Cm_LoadEntities(buffer);
 
   List *valid = $(alloc(List), init);
+  valid->destroy = (Consumer) Cm_FreeEntity;
 
   int32_t i = 0;
   for (const ListNode *node = svs.maps.list->head; node; node = node->next, i++) {
@@ -82,7 +83,7 @@ void Sv_InitMapList(void) {
       Com_Warn("Map list element %d in %s is missing \"name\"\n", i, sv_map_list->string);
       Cm_FreeEntity(props);
     } else {
-      $(valid, appendElement, props);
+      $(valid, append, props);
     }
   }
 
@@ -102,13 +103,7 @@ void Sv_InitMapList(void) {
  */
 void Sv_ShutdownMapList(void) {
 
-  if (svs.maps.list) {
-    svs.maps.list->destroy = (ListDestroyFunc) Cm_FreeEntity;
-    $(svs.maps.list, removeAll);
-    release(svs.maps.list);
-  }
-
-  svs.maps.list = NULL;
+  svs.maps.list = release(svs.maps.list);
   svs.maps.length = 0;
   svs.maps.index = -1;
   svs.maps.filename[0] = '\0';

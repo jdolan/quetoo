@@ -20,7 +20,7 @@
  */
 
 #include <Objectively/HashTable.h>
-#include <Objectively/Vector.h>
+#include <Objectively/PointerArray.h>
 
 #include "console.h"
 #include "filesystem.h"
@@ -294,20 +294,19 @@ cmd_t *Cmd_Get(const char *name) {
 }
 
 static Order Cmd_Enumerate_comparator(const ident a, const ident b) {
-  const int32_t cmp = q_strcasecmp((*(const cmd_t *const *) a)->name, (*(const cmd_t *const *) b)->name);
+  const int32_t cmp = q_strcasecmp(((const cmd_t *) a)->name, ((const cmd_t *) b)->name);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
 typedef struct {
-  Vector *cmds;
+  PointerArray *cmds;
 } Cmd_Enumerate_ctx_t;
 
 static void Cmd_Enumerate_collect(const HashTable *table, ident key, ident value, ident data) {
   Cmd_Enumerate_ctx_t *ctx = data;
   const List *list = value;
   for (const ListNode *node = list->head; node; node = node->next) {
-    cmd_t *cmd = node->element;
-    $(ctx->cmds, addElement, &cmd);
+    $(ctx->cmds, add, node->element);
   }
 }
 
@@ -316,15 +315,14 @@ static void Cmd_Enumerate_collect(const HashTable *table, ident key, ident value
  */
 void Cmd_Enumerate(Cmd_Enumerator func, void *data) {
   Cmd_Enumerate_ctx_t ctx = {
-    .cmds = $(alloc(Vector), initWithSize, sizeof(cmd_t *)),
+    .cmds = $(alloc(PointerArray), init),
   };
 
   $(cmd_state.commands, enumerate, Cmd_Enumerate_collect, &ctx);
   $(ctx.cmds, sort, Cmd_Enumerate_comparator);
 
   for (size_t i = 0; i < ctx.cmds->count; i++) {
-    cmd_t *cmd = VectorValue(ctx.cmds, cmd_t *, i);
-    func(cmd, data);
+    func((cmd_t *) $(ctx.cmds, get, i), data);
   }
 
   release(ctx.cmds);
@@ -362,11 +360,11 @@ cmd_t *Cmd_Add(const char *name, CmdExecuteFunc function, uint32_t flags,
 
   if (!list) {
     list = $(alloc(List), init);
-    list->destroy = (ListDestroyFunc) Mem_Free;
+    list->destroy = Mem_Free;
     $(cmd_state.commands, set, key, list);
   }
 
-  $(list, prependElement, cmd);
+  $(list, prepend, cmd);
   return cmd;
 }
 
@@ -403,11 +401,11 @@ static cmd_t *Cmd_Alias(const char *name, const char *commands) {
 
   if (!list) {
     list = $(alloc(List), init);
-    list->destroy = (ListDestroyFunc) Mem_Free;
+    list->destroy = Mem_Free;
     $(cmd_state.commands, set, key, list);
   }
 
-  $(list, prependElement, cmd);
+  $(list, prepend, cmd);
   return cmd;
 }
 
@@ -425,7 +423,7 @@ static List *Cmd_RemovePtr_(cmd_t *cmd) {
   }
 
   // Disable destroy so we control when cmd is freed
-  ListDestroyFunc saved = list->destroy;
+  Consumer saved = list->destroy;
   list->destroy = NULL;
   $(list, removeNode, node);
   list->destroy = saved;
@@ -462,7 +460,7 @@ static void Cmd_RemoveAll_collect(const HashTable *table, ident key, ident value
   for (const ListNode *node = list->head; node; node = node->next) {
     cmd_t *cmd = node->element;
     if (cmd->flags & ctx->flags) {
-      $(ctx->cmds, appendElement, cmd);
+      $(ctx->cmds, append, cmd);
     }
   }
 }
@@ -624,17 +622,16 @@ static void Cmd_Alias_f(void) {
 }
 
 typedef struct {
-  Vector *strs;
+  PointerArray *strs;
 } Cmd_List_ctx_t;
 
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
   Cmd_List_ctx_t *ctx = data;
-  char *str = q_strdup(Cmd_Stringify(cmd));
-  $(ctx->strs, addElement, &str);
+  $(ctx->strs, add, q_strdup(Cmd_Stringify(cmd)));
 }
 
 static Order Cmd_List_sortfn(const ident a, const ident b) {
-  const int32_t cmp = q_strcolorcmp(*(const char *const *) a, *(const char *const *) b);
+  const int32_t cmp = q_strcolorcmp((const char *) a, (const char *) b);
   return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
 }
 
@@ -643,16 +640,14 @@ static Order Cmd_List_sortfn(const ident a, const ident b) {
  */
 static void Cmd_List_f(void) {
   Cmd_List_ctx_t ctx = {
-    .strs = $(alloc(Vector), initWithSize, sizeof(char *)),
+    .strs = $(alloc(PointerArray), initWithDestroy, free),
   };
 
   Cmd_Enumerate(Cmd_List_f_enumerate, &ctx);
   $(ctx.strs, sort, Cmd_List_sortfn);
 
   for (size_t i = 0; i < ctx.strs->count; i++) {
-    char *str = VectorValue(ctx.strs, char *, i);
-    Com_Print("%s\n", str);
-    free(str);
+    Com_Print("%s\n", (char *) $(ctx.strs, get, i));
   }
 
   release(ctx.strs);
@@ -715,12 +710,11 @@ static void Cmd_Wait_f(void) {
 }
 
 typedef struct {
-  Vector *lists;
+  PointerArray *lists;
 } Cmd_Shutdown_ctx_t;
 
 static void Cmd_Shutdown_collect(const HashTable *table, ident key, ident value, ident data) {
-  Vector *lists = data;
-  $(lists, addElement, &value);
+  $(((PointerArray *) data), add, value);
 }
 
 /**
@@ -773,20 +767,18 @@ void Cmd_Init(void) {
 void Cmd_Shutdown(void) {
 
   Cmd_Shutdown_ctx_t ctx = {
-    .lists = $(alloc(Vector), initWithSize, sizeof(ident)),
+    .lists = $(alloc(PointerArray), init),
   };
 
   $(cmd_state.commands, enumerate, Cmd_Shutdown_collect, ctx.lists);
 
   for (size_t i = 0; i < ctx.lists->count; i++) {
-    List *list = VectorValue(ctx.lists, List *, i);
-    $(list, removeAll);
-    release(list);
+    release((List *) $(ctx.lists, get, i));
   }
 
   release(ctx.lists);
-  release(cmd_state.commands);
-  cmd_state.commands = NULL;
+
+  cmd_state.commands = release(cmd_state.commands);
 }
 
 /*

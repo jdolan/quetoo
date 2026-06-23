@@ -43,7 +43,7 @@ void S_LoadClientModelSamples(const char *model) {
     s_media_t *media = $(s_media_state.media, get, node->element);
 
     if (media && media->name[0] == '*') {
-      $(sounds, addElement, &media);
+      $(sounds, add, &media);
     }
   }
 
@@ -90,7 +90,7 @@ void S_RegisterDependency(s_media_t *dependent, s_media_t *dependency) {
         if (!dependent->dependencies) {
           dependent->dependencies = $(alloc(List), init);
         }
-        $(dependent->dependencies, appendElement, dependency);
+        $(dependent->dependencies, append, dependency);
 
         S_RegisterMedia(dependency);
       }
@@ -117,11 +117,11 @@ static void S_RegisterMedia_InsertSortedKey(const char *name) {
   // find insertion point (insert before first node where name <= existing)
   for (ListNode *n = s_media_state.keys->head; n; n = n->next) {
     if (q_strcmp(name, (const char *) n->element) <= 0) {
-      $(s_media_state.keys, insertElementAfter, n->prev, (void *) name);
+      $(s_media_state.keys, insertAfter, n->prev, (void *) name);
       return;
     }
   }
-  $(s_media_state.keys, appendElement, (void *) name);
+  $(s_media_state.keys, append, (void *) name);
 }
 
 /**
@@ -220,10 +220,7 @@ static bool S_FreeMedia_(const char *key, s_media_t *media, bool force) {
     media->Free(media);
   }
 
-  if (media->dependencies) {
-    release(media->dependencies);
-    media->dependencies = NULL;
-  }
+  media->dependencies = release(media->dependencies);
 
   // remove key from sorted keys list
   if (s_media_state.keys) {
@@ -246,7 +243,7 @@ static void S_EndLoading_Collect(const HashTable *table, ident k, ident v, ident
   s_media_t *media = (s_media_t *) v;
   Vector *vec = (Vector *) data;
   if (!(media->seed == s_media_state.seed || (media->Retain && media->Retain(media)))) {
-    $(vec, addElement, &media);
+    $(vec, add, &media);
   }
 }
 
@@ -330,7 +327,7 @@ static void S_ShutdownMedia_Collect(const HashTable *table, ident k, ident v, id
   (void) table; (void) k;
   Vector *vec = (Vector *) data;
   s_media_t *media = (s_media_t *) v;
-  $(vec, addElement, &media);
+  $(vec, add, &media);
 }
 
 /**

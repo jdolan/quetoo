@@ -147,7 +147,7 @@ static void FixTJunctions_r(node_t *node) {
       continue;
     }
     
-    $(faces, addElement, &face);
+    $(faces, add, &face);
     $(faces_set, set, face, face);
 
     largest_winding = Maxi(largest_winding, face->w->num_points);
@@ -165,8 +165,7 @@ void FixTJunctions(tree_t *tree) {
   faces = $(alloc(Vector), initWithSize, sizeof(face_t *));
   faces_set = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
   FixTJunctions_r(tree->head_node);
-  release(faces_set);
-  faces_set = NULL;
+  faces_set = release(faces_set);
 
   const int32_t largest_point_count = largest_winding;
   largest_winding = sizeof(cm_winding_t) + (sizeof(vec3_t) * largest_point_count);

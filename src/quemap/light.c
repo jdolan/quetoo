@@ -163,8 +163,7 @@ void FreeLights(void) {
     FreeLight(VectorValue(lights, light_t *, i));
   }
 
-  release(lights);
-  lights = NULL;
+  lights = release(lights);
 }
 
 /**
@@ -182,7 +181,7 @@ void BuildLights(void) {
   for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
     light_t *light = LightForEntity(*entity);
     if (light) {
-      $(lights, addElement, &light);
+      $(lights, add, &light);
     }
     Progress("Building lights", i * 100.f / Cm_Bsp()->num_entities);
   }

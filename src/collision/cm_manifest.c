@@ -44,7 +44,7 @@ static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hex_size) 
  */
 HashTable *Cm_AllocManifest(void) {
 	HashTable *manifest = $(alloc(HashTable), init, HashTableHashStr, HashTableEqualStr);
-	manifest->destroyValue = (HashTableDestroyFunc) Mem_Free;
+	manifest->destroyValue = Mem_Free;
 	return manifest;
 }
 

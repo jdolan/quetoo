@@ -40,7 +40,7 @@ typedef struct {
 static void R_EnumerateMedia_collect(const HashTable *table, ident key, ident value, ident data) {
   R_EnumerateMedia_ctx_t *ctx = data;
   r_media_t *media = value;
-  $(ctx->media, addElement, &media);
+  $(ctx->media, add, &media);
 }
 
 /**
@@ -92,7 +92,7 @@ r_media_t *R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
   }
 
   if ($(dependent->dependencies, nodeForElement, dependency) == NULL) {
-    $(dependent->dependencies, prependElement, dependency);
+    $(dependent->dependencies, prepend, dependency);
   }
 
   return R_RegisterMedia(dependency);
@@ -191,10 +191,7 @@ static bool R_FreeMedia_(r_media_t *media, void *data) {
     media->Free(media);
   }
 
-  if (media->dependencies) {
-    release(media->dependencies);
-    media->dependencies = NULL;
-  }
+  media->dependencies = release(media->dependencies);
 
   return true;
 }
@@ -209,7 +206,7 @@ static void R_FreeMedia_collect(const HashTable *table, ident key, ident value, 
   r_media_t *media = value;
 
   if (R_FreeMedia_(media, ctx->data)) {
-    $(ctx->media, addElement, &media);
+    $(ctx->media, add, &media);
   }
 }
 
@@ -294,7 +291,7 @@ void R_InitMedia(void) {
   memset(&r_media_state, 0, sizeof(r_media_state));
 
   r_media_state.media = $(alloc(HashTable), init, (HashTableHashFunc) R_MediaHash, (HashTableEqualFunc) R_MediaEqual);
-  r_media_state.media->destroyValue = (HashTableDestroyFunc) Mem_Free;
+  r_media_state.media->destroyValue = Mem_Free;
 
   R_BeginLoading();
 }
@@ -305,6 +302,6 @@ void R_InitMedia(void) {
 void R_ShutdownMedia(void) {
 
   R_FreeMediaEntries((void *) 1);
-  release(r_media_state.media);
-  r_media_state.media = NULL;
+
+  r_media_state.media = release(r_media_state.media);
 }

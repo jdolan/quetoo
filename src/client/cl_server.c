@@ -36,7 +36,12 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
   s->addr = *addr;
   q_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
 
-  if (!cls.servers) { cls.servers = $(alloc(List), init); cls.servers->destroy = (ListDestroyFunc) Mem_Free; } $(cls.servers, prependElement, s);
+  if (!cls.servers) {
+    cls.servers = $(alloc(List), init);
+    cls.servers->destroy = Mem_Free;
+  }
+
+  $(cls.servers, prepend, s);
 
   return s;
 }
@@ -64,10 +69,7 @@ static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
  * @brief Frees the list of known servers and clears the pointer.
  */
 void Cl_FreeServers(void) {
-
-  if (cls.servers) { $(cls.servers, removeAll); release(cls.servers); }
-
-  cls.servers = NULL;
+  cls.servers = release(cls.servers);
 }
 
 /**

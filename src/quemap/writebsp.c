@@ -635,7 +635,7 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
           Com_Verbose("Face %s @ %s resides in multiple blocks\n", material->name, vtos(Box3_Center(face->bounds)));
         }
         
-        $(faces, addElement, &face);
+        $(faces, add, &face);
       }
     }
 

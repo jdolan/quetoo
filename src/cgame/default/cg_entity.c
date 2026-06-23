@@ -156,7 +156,7 @@ void Cg_LoadEntities(void) {
           e.next_think += interval * Randomf();
         }
 
-        $(cg_entities, addElement, &e);
+        $(cg_entities, add, &e);
       }
     }
   }

@@ -147,9 +147,10 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 
   if (!cl->datagram.messages) {
     cl->datagram.messages = $(alloc(List), init);
-    cl->datagram.messages->destroy = (ListDestroyFunc) Mem_Free;
+    cl->datagram.messages->destroy = Mem_Free;
   }
-  $(cl->datagram.messages, appendElement, msg);
+
+  $(cl->datagram.messages, append, msg);
 
   Mem_WriteBuffer(&cl->datagram.buffer, data, len);
 }
@@ -398,11 +399,7 @@ void Sv_SendClientPackets(void) {
       // clean up for the next frame
       Mem_ClearBuffer(&cl->datagram.buffer);
 
-      if (cl->datagram.messages) {
-        $(cl->datagram.messages, removeAll); release(cl->datagram.messages); cl->datagram.messages = NULL;
-      }
-
-      cl->datagram.messages = NULL;
+      cl->datagram.messages = release(cl->datagram.messages);
 
     } else if (cl->net_chan.message.size) { // update reliable
       Netchan_Transmit(&cl->net_chan, NULL, 0);

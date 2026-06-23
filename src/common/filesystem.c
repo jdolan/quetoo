@@ -329,7 +329,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
     } else {
 
       List *list = $(alloc(List), init);
-      list->destroy = (ListDestroyFunc) Mem_Free;
+      list->destroy = Mem_Free;
       len = 0;
 
       typedef struct {
@@ -347,7 +347,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
           Com_Error(ERROR_DROP, "%s: %s\n", filename, Fs_LastError());
         }
 
-        $(list, appendElement, chunk);
+        $(list, append, chunk);
         len += chunk->len;
       }
 
@@ -820,7 +820,7 @@ void Fs_Init(const uint32_t flags) {
   fs_state.base_search_paths = PHYSFS_getSearchPath();
 
   fs_state.loaded_files = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
-  fs_state.loaded_files->destroyValue = (HashTableDestroyFunc) Mem_Free;
+  fs_state.loaded_files->destroyValue = Mem_Free;
 }
 
 /**

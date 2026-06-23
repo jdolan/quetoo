@@ -451,10 +451,10 @@ static void G_CreateTeamSpawnPoints(Vector **dm_spawns, Vector **team_red_spawns
 
     if (dist_to_red < dist_to_blue) {
       if (!*team_red_spawns) { *team_red_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-      $(*team_red_spawns, addElement, &p);
+      $(*team_red_spawns, add, &p);
     } else {
       if (!*team_blue_spawns) { *team_blue_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-      $(*team_blue_spawns, addElement, &p);
+      $(*team_blue_spawns, add, &p);
     }
   }
 
@@ -490,7 +490,7 @@ static void G_CreateTeamSpawnPoints(Vector **dm_spawns, Vector **team_red_spawns
     Vector *_from = *from;
     g_entity_t *point = VectorValue(_from, g_entity_t *, 0);
     if (!*to) { *to = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-    $(*to, addElement, &point);
+    $(*to, add, &point);
   }
 
   int32_t num_move = diff - 1;
@@ -500,9 +500,9 @@ static void G_CreateTeamSpawnPoints(Vector **dm_spawns, Vector **team_red_spawns
     Vector *_from = *from;
     g_entity_t *point = VectorValue(_from, g_entity_t *, 0);
 
-    $(*from, removeElementAtIndex, 0);
+    $(*from, removeAt, 0);
     if (!*to) { *to = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-    $(*to, addElement, &point);
+    $(*to, add, &point);
 
     num_move--;
   }
@@ -519,7 +519,7 @@ static void G_InitSpawnPoints(void) {
 
   while ((spot = G_Find(spot, EOFS(classname), "info_player_deathmatch")) != NULL) {
     if (!dm_spawns) { dm_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-    $(dm_spawns, addElement, &spot);
+    $(dm_spawns, add, &spot);
   }
 
   if (!dm_spawns) {
@@ -527,7 +527,7 @@ static void G_InitSpawnPoints(void) {
 
     while ((spot = G_Find(spot, EOFS(classname), "info_player_start")) != NULL) {
       if (!dm_spawns) { dm_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-      $(dm_spawns, addElement, &spot);
+      $(dm_spawns, add, &spot);
     }
   }
   
@@ -546,7 +546,7 @@ static void G_InitSpawnPoints(void) {
   while ((spot = G_Find(spot, EOFS(classname), "info_player_team_any")) != NULL) {
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
       if (!team_spawns[t]) { team_spawns[t] = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-      $(team_spawns[t], addElement, &spot);
+      $(team_spawns[t], add, &spot);
     }
   }
 
@@ -556,7 +556,7 @@ static void G_InitSpawnPoints(void) {
 
     while ((spot = G_Find(spot, EOFS(classname), team->spawn)) != NULL) {
       if (!team_spawns[t]) { team_spawns[t] = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-      $(team_spawns[t], addElement, &spot);
+      $(team_spawns[t], add, &spot);
     }
 
     team->spawn_points.count = team_spawns[t] ? (int32_t) team_spawns[t]->count : 0;
@@ -571,7 +571,7 @@ static void G_InitSpawnPoints(void) {
       for (uint32_t i = 0; i < team_spawns[t]->count; i++) {
         g_entity_t *p = VectorValue(team_spawns[t], g_entity_t *, i);
         if (!dm_spawns) { dm_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-        $(dm_spawns, addElement, &p);
+        $(dm_spawns, add, &p);
       }
     }
     
@@ -745,7 +745,7 @@ static void G_worldspawn_EnumerateMusic(const char *path, void *data) {
   if (q_strcmp(name, "gtdstudio-explore") == 0) {
     return;
   }
-  $(tracks, addElement, name);
+  $(tracks, add, name);
 }
 
 /**

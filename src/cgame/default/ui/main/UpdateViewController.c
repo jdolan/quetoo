@@ -22,8 +22,8 @@
 #include "cg_local.h"
 
 #include <SDL3_image/SDL_image.h>
+#include <Objectively/PointerArray.h>
 
-#include "DialogViewController.h"
 #include "UpdateViewController.h"
 
 #define _Class _UpdateViewController
@@ -32,13 +32,6 @@
 #define QUETOO_HERO_LIST_URL  "https://quetoo.s3.amazonaws.com/?prefix=hero-images/&delimiter=/"
 
 #pragma mark - Delegates
-
-/**
- * @brief Dialog::okFunction for opening the releases page.
- */
-static void openReleasesPage(ident data) {
-  SDL_OpenURL(QUETOO_RELEASES_URL);
-}
 
 /**
  * @brief `ThreadRunFunc` that pre-fetches all hero images synchronously.
@@ -58,7 +51,7 @@ static void fetchHeroImages(void *data) {
 	static const char prefix[] = "<Key>hero-images/";
 	static const char suffix[] = "</Key>";
 
-	Vector *urls = $(alloc(Vector), initWithSize, sizeof(char *));
+	PointerArray *urls = $(alloc(PointerArray), initWithDestroy, free);
 
 	char *p = (char *) list_data->bytes;
 	while ((p = q_strstr(p, prefix)) != NULL) {
@@ -68,6 +61,11 @@ static void fetchHeroImages(void *data) {
 		assert(s);
 		*s = '\0';
 
+		if (*p == '\0') {
+			p = s + q_strlen(suffix);
+			continue;
+		}
+
 		char url[MAX_STRING_CHARS];
 		const int url_len = q_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
 		if (url_len < 0 || (size_t) url_len >= sizeof(url)) {
@@ -76,23 +74,24 @@ static void fetchHeroImages(void *data) {
 			continue;
 		}
 
-		char *dup = q_strdup(url);
-		$(urls, addElement, &dup);
+		$(urls, add, q_strdup(url));
 		p = s + q_strlen(suffix);
 	}
 
 	release(list_data);
 
-	for (uint32_t i = (uint32_t) urls->count - 1; i > 0; i--) {
-		const uint32_t j = (uint32_t) rand() % (i + 1);
-		char *tmp = VectorValue(urls, char *, i);
-		VectorValue(urls, char *, i) = VectorValue(urls, char *, j);
-		VectorValue(urls, char *, j) = tmp;
+	if (urls->count > 1) {
+		for (size_t i = urls->count - 1; i > 0; i--) {
+			const size_t j = Randomu() % (i + 1);
+			void *tmp = urls->elements[i];
+			urls->elements[i] = urls->elements[j];
+			urls->elements[j] = tmp;
+		}
 	}
 
-	for (uint32_t i = 0; i < urls->count; i++) {
+	for (size_t i = 0; i < urls->count; i++) {
 		image_data = NULL;
-		char *url_str = VectorValue(urls, char *, i);
+		const char *url_str = urls->elements[i];
 		if ($(cgi.restClient, get, url_str, &image_data) == 200 && image_data) {
 			Image *image = NULL;
 
@@ -119,10 +118,7 @@ static void fetchHeroImages(void *data) {
 		release(image_data);
 	}
 
-	for (uint32_t i = 0; i < urls->count; i++) {
-		free(VectorValue(urls, char *, i));
-	}
-	release(urls);
+	urls = release(urls);
 }
 
 #pragma mark - Object
@@ -208,17 +204,9 @@ static void setStatus(UpdateViewController *self, const installer_status_t *in) 
       $(self->progressBar, setLabelFormat, "Checking for binary updates\u2026");
       $(self->progressBar, setValue, 0.0);
       break;
-    case INSTALLER_UPDATE_AVAILABLE: {
-      const Dialog dialog = {
-        .message = "A new version of Quetoo is available. Download now?",
-        .ok = "Yes",
-        .cancel = "No",
-        .okFunction = openReleasesPage
-      };
-
-      ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
-      $((ViewController *) self, addChildViewController, viewController);
-    }
+    case INSTALLER_UPDATE_AVAILABLE:
+      $(self->progressBar, setLabelFormat, "Update available.");
+      $(self->progressBar, setValue, 100.0);
       break;
 		case INSTALLER_COMPARING:
 			$(self->progressBar, setLabelFormat, "Comparing data files\u2026");

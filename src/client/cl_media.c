@@ -97,7 +97,7 @@ static void Cl_Mapshots_enumerate(const char *path, void *data) {
   const size_t len = q_strlen(path);
   if ((len >= 4 && !q_strcmp(path + len - 4, ".jpg")) ||
       (len >= 4 && !q_strcmp(path + len - 4, ".png"))) {
-    $(list, appendElement, q_strdup(path));
+    $(list, append, q_strdup(path));
   }
 }
 
@@ -110,7 +110,7 @@ List *Cl_Mapshots(const char *mapname) {
   StripExtension(mapname, map);
 
   List *list = $(alloc(List), init);
-  list->destroy = (ListDestroyFunc) free;
+  list->destroy = free;
   Fs_Enumerate(va("mapshots/%s/*", Basename(map)), Cl_Mapshots_enumerate, (void *) list);
 
   return list;
@@ -287,7 +287,6 @@ void Cl_LoadMedia(void) {
     cls.loading.mapshot[0] = '\0';
   }
 
-  $(mapshots, removeAll);
   release(mapshots);
 
   Cl_UpdatePrediction();

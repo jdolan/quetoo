@@ -131,12 +131,12 @@ static bool WeldingSpatialHashEqualFunc(const ident a_, const ident b_) {
 void ClearWeldingSpatialHash(void) {
 
   if (welding_spatial_hash) {
-    release(welding_spatial_hash);
+    welding_spatial_hash = release(welding_spatial_hash);
   }
 
   welding_spatial_hash = $(alloc(HashTable), init, WeldingSpatialHashFunc, WeldingSpatialHashEqualFunc);
-  welding_spatial_hash->destroyKey = (HashTableDestroyFunc) Mem_Free;
-  welding_spatial_hash->destroyValue = (HashTableDestroyFunc) WeldingSpatialHashValueDestroyFunc;
+  welding_spatial_hash->destroyKey = Mem_Free;
+  welding_spatial_hash->destroyValue = WeldingSpatialHashValueDestroyFunc;
 }
 
 /**
@@ -175,7 +175,7 @@ static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
 
   if (!WeldingBucketContainsIndex(array, index)) {
     int32_t element = index;
-    $(array, addElement, &element);
+    $(array, add, &element);
   }
 }
 
@@ -391,7 +391,7 @@ static void ReleaseObject(ident object) {
 static void BuildPhongMaps(const bsp_model_t *mod) {
 
   phong_vertex_faces = $(alloc(HashTable), init, WeldingSpatialHashFunc, WeldingSpatialHashEqualFunc);
-  phong_vertex_faces->destroyKey = (HashTableDestroyFunc) Mem_Free;
+  phong_vertex_faces->destroyKey = Mem_Free;
   phong_vertex_faces->destroyValue = ReleaseObject;
 
   const bsp_face_t *f = &bsp_file.faces[mod->first_face];
@@ -410,7 +410,7 @@ static void BuildPhongMaps(const bsp_model_t *mod) {
         $(phong_vertex_faces, set, key_copy, arr);
       }
       const bsp_face_t *face = f;
-      $(arr, addElement, &face);
+      $(arr, add, &face);
     }
   }
 
@@ -424,10 +424,8 @@ static void BuildPhongMaps(const bsp_model_t *mod) {
 }
 
 static void FreePhongMaps(void) {
-  release(phong_vertex_faces);
-  phong_vertex_faces = NULL;
-  release(phong_brush_side_windings);
-  phong_brush_side_windings = NULL;
+  phong_vertex_faces = release(phong_vertex_faces);
+  phong_brush_side_windings = release(phong_brush_side_windings);
 }
 
 /**

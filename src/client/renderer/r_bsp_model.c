@@ -745,12 +745,9 @@ static void R_FreeBspModel(r_media_t *self) {
   r_bsp_block_t *block = bsp->blocks;
   for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
 
-    if (block->decals.triangles) {
-      release(block->decals.triangles);
-    }
+    release(block->decals.triangles);
 
     glDeleteBuffers(1, &block->decals.vertex_buffer);
-
     glDeleteVertexArrays(1, &block->decals.vertex_array);
 
     R_FreeOcclusionQuery(block->query);

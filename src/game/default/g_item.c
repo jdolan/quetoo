@@ -748,7 +748,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
           q_strlcpy(capture.team,        other_team->name,          sizeof(capture.team));
 
           if (capture.player_guid[0]) {
-            $(g_level.captures, addElement, &capture);
+            $(g_level.captures, add, &capture);
           }
         }
 

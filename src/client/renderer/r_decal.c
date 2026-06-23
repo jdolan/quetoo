@@ -160,7 +160,7 @@ static void R_ClipDecalToFace(const r_view_t *view,
   if (overflow > 0) {
     const int32_t remove_count = Mini(overflow, (int32_t) decals->triangles->count);
     for (int32_t i = 0; i < remove_count; i++) {
-      $(decals->triangles, removeElementAtIndex, 0);
+      $(decals->triangles, removeAt, 0);
     }
   }
   
@@ -189,7 +189,7 @@ static void R_ClipDecalToFace(const r_view_t *view,
     }
     
     decals->image = (r_image_t *) decal->image;
-    $(decals->triangles, addElement, &triangle);
+    $(decals->triangles, add, &triangle);
   }
 
   decals->dirty = true;

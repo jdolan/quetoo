@@ -469,7 +469,7 @@ Vector *Mem_Stats(void) {
   Vector *stat_array = $(alloc(Vector), initWithSize, sizeof(mem_stat_t));
 
   mem_stat_t total = { .tag = -1, .size = mem_state.size, .count = 0 };
-  $(stat_array, addElement, &total);
+  $(stat_array, add, &total);
 
   for (const mem_block_t *b = mem_state.head; b; b = b->next_block) {
     mem_stat_t *stats = NULL;
@@ -488,7 +488,7 @@ Vector *Mem_Stats(void) {
         .size = Mem_CalculateBlockSize(b),
         .count = 1
       };
-      $(stat_array, addElement, &entry);
+      $(stat_array, add, &entry);
     } else {
       stats->size += Mem_CalculateBlockSize(b);
       stats->count++;

@@ -67,7 +67,7 @@ static cg_light_t *Cg_AllocLight(const cg_light_t *in) {
 
   light->time = cgi.client->unclamped_time;
 
-  $(cg_lights.allocated, prependElement, light);
+  $(cg_lights.allocated, prepend, light);
   return light;
 }
 
@@ -80,7 +80,7 @@ static void Cg_FreeLight(cg_light_t *light) {
   assert(node);
 
   $(cg_lights.allocated, removeNode, node);
-  $(cg_lights.free, prependElement, light);
+  $(cg_lights.free, prepend, light);
 }
 
 /**
@@ -247,18 +247,12 @@ void Cg_InitLights(void) {
 void Cg_FreeLights(void) {
 
   if (cg_lights.allocated) {
-    cg_lights.allocated->destroy = (ListDestroyFunc) cgi.Free;
-    $(cg_lights.allocated, removeAll);
-    release(cg_lights.allocated);
+    cg_lights.allocated->destroy = cgi.Free;
+    cg_lights.allocated = release(cg_lights.allocated);
   }
-
-  cg_lights.allocated = NULL;
 
   if (cg_lights.free) {
-    cg_lights.free->destroy = (ListDestroyFunc) cgi.Free;
-    $(cg_lights.free, removeAll);
-    release(cg_lights.free);
+    cg_lights.free->destroy = cgi.Free;
+    cg_lights.free = release(cg_lights.free);
   }
-
-  cg_lights.free = NULL;
 }

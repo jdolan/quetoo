@@ -261,8 +261,7 @@ static void Cg_InitEditorEntity(int16_t number) {
   if (number < cgi.Bsp()->num_entities) {
     edit->brushes = cgi.EntityBrushes(cgi.Bsp()->entities[number]);
     if (!edit->brushes->count) {
-      release(edit->brushes);
-      edit->brushes = NULL;
+      edit->brushes = release(edit->brushes);
     }
   }
 
@@ -306,9 +305,7 @@ static void Cg_FreeEditorEntity(int16_t number) {
 
   cgi.FreeEntity(edit->def);
 
-  if (edit->brushes) {
-    release(edit->brushes);
-  }
+  release(edit->brushes);
 
   if (edit->misc.clazz && edit->misc.data) {
     if (edit->misc.clazz->Free) {

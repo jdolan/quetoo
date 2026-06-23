@@ -186,7 +186,7 @@ cm_entity_t *Cm_SortEntity(cm_entity_t *entity) {
   Vector *pairs = $(alloc(Vector), initWithSize, sizeof(cm_entity_t *));
 
   for (cm_entity_t *e = entity; e; e = e->next) {
-    $(pairs, addElement, &e);
+    $(pairs, add, &e);
   }
 
   $(pairs, sort, Cm_SortEntity_cmp);
@@ -268,7 +268,7 @@ List *Cm_LoadEntities(const char *entity_string) {
 
       assert(entity);
 
-      $(entities, appendElement, entity);
+      $(entities, append, entity);
     }
   }
 
@@ -378,7 +378,7 @@ Vector *Cm_EntityBrushes(const cm_entity_t *entity) {
   for (int32_t i = 0; i < Cm_Bsp()->num_brushes; i++, brush++) {
 
     if (brush->entity == entity) {
-      $(brushes, addElement, &brush);
+      $(brushes, add, &brush);
     }
   }
 

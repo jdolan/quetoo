@@ -38,7 +38,7 @@ static bool HasSuffix(const char *str, const char *suffix) {
 static void CollectManifestAsset(const HashTable *table, ident key, ident value, ident data) {
   List *assets = data;
   const cm_manifest_entry_t *entry = value;
-  $(assets, appendElement, q_strdup(entry->path));
+  $(assets, append, q_strdup(entry->path));
 }
 
 /**
@@ -64,10 +64,10 @@ int32_t ZIP_Main(void) {
 
   // the manifest includes the bsp and all referenced assets
   List *assets = $(alloc(List), init);
-  assets->destroy = (ListDestroyFunc) free;
+  assets->destroy = free;
 
   // include the manifest itself so the pk3 is self-contained
-  $(assets, appendElement, q_strdup(mf_path));
+  $(assets, append, q_strdup(mf_path));
   $(manifest, enumerate, CollectManifestAsset, assets);
 
   Cm_FreeManifest(manifest);
@@ -138,7 +138,6 @@ int32_t ZIP_Main(void) {
           mz_zip_get_error_string(mz_zip_get_last_error(&zip)));
   }
 
-  $(assets, removeAll);
   release(assets);
 
   const uint32_t end = (uint32_t) SDL_GetTicks();
