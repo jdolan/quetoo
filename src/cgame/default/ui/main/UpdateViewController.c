@@ -80,11 +80,13 @@ static void fetchHeroImages(void *data) {
 
 	release(list_data);
 
-	for (uint32_t i = (uint32_t) urls->count - 1; i > 0; i--) {
-		const uint32_t j = (uint32_t) rand() % (i + 1);
-		void *tmp = urls->elements[i];
-		urls->elements[i] = urls->elements[j];
-		urls->elements[j] = tmp;
+	if (urls->count > 1) {
+		for (uint32_t i = (uint32_t) urls->count - 1; i > 0; i--) {
+			const uint32_t j = (uint32_t) rand() % (i + 1);
+			void *tmp = urls->elements[i];
+			urls->elements[i] = urls->elements[j];
+			urls->elements[j] = tmp;
+		}
 	}
 
 	for (uint32_t i = 0; i < urls->count; i++) {
