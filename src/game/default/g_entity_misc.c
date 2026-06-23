@@ -70,16 +70,22 @@ static void G_misc_teleporter_Touch(g_entity_t *ent, g_entity_t *other, const cm
 
     other->client->ps.pm_state.time = 20;
 
-    // set delta angles
-    other->client->ps.pm_state.delta_angles = Vec3_Subtract(dest->s.angles, other->client->cmd_angles);
+    // snap view angles directly to the destination; the client will snap
+    // cl.angles to match, so no delta_angles compensation is needed
+other->client->ps.pm_state.view_angles = dest->s.angles;
+other->client->ps.pm_state.delta_angles = Vec3_Zero();
+other->client->angles = dest->s.angles;
+Vec3_Vectors(other->client->angles, &other->client->forward, &other->client->right, &other->client->up);
 
     other->velocity = Vec3_Scale(forward, other->client->speed);
 
-    other->client->cmd_angles = Vec3_Zero();
-    other->client->angles = Vec3_Zero();
+    // signal the client to snap to the destination angles
+    gi.WriteByte(SV_CMD_SNAP_ANGLES);
+    gi.WriteAngles(dest->s.angles);
+    gi.Unicast(other->client, true);
   } else {
 
-    const vec3_t vel = Vec3(other->velocity.x, other->velocity.x, 0.0);
+    const vec3_t vel = Vec3(other->velocity.x, other->velocity.y, 0.0);
     other->velocity = Vec3_Scale(forward, Vec3_Length(vel));
 
     other->s.angles.y += dest->s.angles.y;
