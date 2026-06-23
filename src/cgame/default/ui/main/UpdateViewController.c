@@ -22,7 +22,6 @@
 #include "cg_local.h"
 
 #include <SDL3_image/SDL_image.h>
-
 #include <Objectively/PointerArray.h>
 
 #include "UpdateViewController.h"
