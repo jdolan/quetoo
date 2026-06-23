@@ -70,9 +70,9 @@ void Sv_InitMapList(void) {
   q_strlcpy(svs.maps.filename, sv_map_list->string, sizeof(svs.maps.filename));
 
   svs.maps.list = Cm_LoadEntities(buffer);
-  svs.maps.list->destroy = (Consumer) Cm_FreeEntity;
 
   List *valid = $(alloc(List), init);
+  valid->destroy = (Consumer) Cm_FreeEntity;
 
   int32_t i = 0;
   for (const ListNode *node = svs.maps.list->head; node; node = node->next, i++) {
