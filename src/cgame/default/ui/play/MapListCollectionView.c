@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <Objectively/Pointer.h>
+#include <Objectively/PointerArray.h>
 
 #include "cg_local.h"
 
@@ -27,6 +27,17 @@
 #include "MapListCollectionItemView.h"
 
 #define _Class _MapListCollectionView
+
+/**
+ * @brief PointerArray destroy function for MapListItemInfo.
+ */
+static void freeMapListItemInfo(void *p) {
+  MapListItemInfo *info = p;
+  if (info->mapshot) {
+    SDL_DestroySurface(info->mapshot);
+  }
+  free(info);
+}
 
 #pragma mark CollectionViewDataSource
 
@@ -37,7 +48,7 @@ static size_t numberOfItems(const CollectionView *collectionView) {
 
   const MapListCollectionView *this = (const MapListCollectionView *) collectionView;
 
-  return ((Array *) this->maps)->count;
+  return this->maps->count;
 }
 
 /**
@@ -49,7 +60,7 @@ static ident objectForItemAtIndexPath(const CollectionView *collectionView, cons
 
   const size_t index = $(indexPath, indexAtPosition, 0);
 
-  return $((Array *) this->maps, objectAtIndex, index);
+  return $(this->maps, pointerAtIndex, $(indexPath, indexAtPosition, 0));
 }
 
 #pragma mark - CollectionViewDelegate
@@ -62,12 +73,12 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
   const MapListCollectionView *this = (const MapListCollectionView *) collectionView;
   const size_t index = $(indexPath, indexAtPosition, 0);
 
-  Pointer *value = $((Array *) this->maps, objectAtIndex, index);
+  const MapListItemInfo *info = $(this->maps, pointerAtIndex, index);
 
   MapListCollectionItemView *item = $(alloc(MapListCollectionItemView), initWithFrame, NULL);
   assert(item);
 
-  $(item, setMapListItemInfo, value->pointer);
+  $(item, setMapListItemInfo, info);
 
   return (CollectionItemView *) item;
 }
@@ -79,8 +90,8 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
  */
 static Order sortMaps(const ident a, const ident b) {
 
-  const MapListItemInfo *c = ((const Pointer *) a)->pointer;
-  const MapListItemInfo *d = ((const Pointer *) b)->pointer;
+  const MapListItemInfo *c = a;
+  const MapListItemInfo *d = b;
 
   const char *e = !q_strncmp(c->message, "The ", 4) ? c->message + 4 : c->message;
   const char *f = !q_strncmp(d->message, "The ", 4) ? d->message + 4 : d->message;
@@ -95,12 +106,8 @@ static void enumerateMaps(const char *path, void *data) {
 
   MapListCollectionView *this = (MapListCollectionView *) data;
 
-  const Array *maps = (Array *) this->maps;
-  for (size_t i = 0; i < maps->count; i++) {
-
-    const Pointer *value = $(maps, objectAtIndex, i);
-    const MapListItemInfo *info = value->pointer;
-
+  for (size_t i = 0; i < this->maps->count; i++) {
+    const MapListItemInfo *info = $(this->maps, pointerAtIndex, i);
     if (q_strcmp(info->mapname, path) == 0) {
       return;
     }
@@ -193,10 +200,8 @@ static void enumerateMaps(const char *path, void *data) {
 
       release(mapshots);
 
-      Pointer *value = ptr(info, NULL);
-
       synchronized(this->lock, {
-        $(this->maps, addObject, value);
+        $(this->maps, addPointer, info);
         $(this->maps, sort, sortMaps);
       });
     }
@@ -248,10 +253,9 @@ static void layoutIfNeeded(View *self) {
 
   synchronized(this->lock, {
 
-    const Array *maps = (Array *) this->maps;
     const Array *items = (Array *) this->collectionView.items;
 
-    if (maps->count != items->count) {
+    if (this->maps->count != items->count) {
       $((CollectionView *) this, reloadData);
     }
 
@@ -272,7 +276,7 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
     self->lock = $(alloc(Lock), init);
     assert(self->lock);
 
-    self->maps = $$(Array, array);
+    self->maps = $(alloc(PointerArray), initWithDestroy, freeMapListItemInfo);
     assert(self->maps);
 
     cgi.Thread(__func__, loadMaps, self, THREAD_NO_WAIT);
@@ -288,26 +292,24 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
 }
 
 /**
- * @fn Array *MapListCollectionView::selectedMaps(const MapListCollectionView *self)
+ * @fn PointerArray *MapListCollectionView::selectedMaps(const MapListCollectionView *self)
  * @memberof MapListCollectionView
  */
-static Array *selectedMaps(const MapListCollectionView *self) {
+static PointerArray *selectedMaps(const MapListCollectionView *self) {
 
   const CollectionView *this = (const CollectionView *) self;
 
-  Array *selectedMaps = $$(Array, array);
+  PointerArray *selected = $(alloc(PointerArray), init);
 
   Array *selection = $(this, selectionIndexPaths);
   for (size_t i = 0; i < selection->count; i++) {
     const IndexPath *indexPath = $(selection, objectAtIndex, i);
-
-    Pointer *value = this->dataSource.objectForItemAtIndexPath(this, indexPath);
-    $(selectedMaps, addObject, value);
+    $(selected, addPointer, this->dataSource.objectForItemAtIndexPath(this, indexPath));
   }
 
   release(selection);
 
-  return (Array *) selectedMaps;
+  return selected;
 }
 
 #pragma mark - Class lifecycle

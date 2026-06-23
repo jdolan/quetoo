@@ -81,15 +81,15 @@ static void fetchHeroImages(void *data) {
 	release(list_data);
 
 	if (urls->count > 1) {
-		for (uint32_t i = (uint32_t) urls->count - 1; i > 0; i--) {
-			const uint32_t j = (uint32_t) rand() % (i + 1);
+		for (size_t i = urls->count - 1; i > 0; i--) {
+			const size_t j = Randomu() % (i + 1);
 			void *tmp = urls->elements[i];
 			urls->elements[i] = urls->elements[j];
 			urls->elements[j] = tmp;
 		}
 	}
 
-	for (uint32_t i = 0; i < urls->count; i++) {
+	for (size_t i = 0; i < urls->count; i++) {
 		image_data = NULL;
 		const char *url_str = urls->elements[i];
 		if ($(cgi.restClient, get, url_str, &image_data) == 200 && image_data) {
