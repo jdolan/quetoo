@@ -62,8 +62,8 @@
                           }
                         },
                         "control": {
-                          "class": "CvarTextView",
-                          "var": "sv_min_clients"
+                          "class": "TextView",
+                          "identifier": "bots"
                         }
                       },
                       {

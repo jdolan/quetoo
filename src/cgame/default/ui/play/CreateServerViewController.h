@@ -56,6 +56,11 @@ struct CreateServerViewController {
   CreateServerViewControllerInterface *interface;
 
   /**
+   * @brief The Bots TextView (displays bot count = sv_min_clients - 1).
+   */
+  TextView *bots;
+
+  /**
    * @brief The create Button.
    */
   Button *create;
