@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <Objectively/Value.h>
+#include <Objectively/Pointer.h>
 
 #include "cg_local.h"
 
@@ -62,12 +62,12 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
   const MapListCollectionView *this = (const MapListCollectionView *) collectionView;
   const size_t index = $(indexPath, indexAtPosition, 0);
 
-  Value *value = $((Array *) this->maps, objectAtIndex, index);
+  Pointer *value = $((Array *) this->maps, objectAtIndex, index);
 
   MapListCollectionItemView *item = $(alloc(MapListCollectionItemView), initWithFrame, NULL);
   assert(item);
 
-  $(item, setMapListItemInfo, value->value);
+  $(item, setMapListItemInfo, value->pointer);
 
   return (CollectionItemView *) item;
 }
@@ -79,8 +79,8 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
  */
 static Order sortMaps(const ident a, const ident b) {
 
-  const MapListItemInfo *c = ((const Value *) a)->value;
-  const MapListItemInfo *d = ((const Value *) b)->value;
+  const MapListItemInfo *c = ((const Pointer *) a)->pointer;
+  const MapListItemInfo *d = ((const Pointer *) b)->pointer;
 
   const char *e = !q_strncmp(c->message, "The ", 4) ? c->message + 4 : c->message;
   const char *f = !q_strncmp(d->message, "The ", 4) ? d->message + 4 : d->message;
@@ -98,8 +98,8 @@ static void enumerateMaps(const char *path, void *data) {
   const Array *maps = (Array *) this->maps;
   for (size_t i = 0; i < maps->count; i++) {
 
-    const Value *value = $(maps, objectAtIndex, i);
-    const MapListItemInfo *info = value->value;
+    const Pointer *value = $(maps, objectAtIndex, i);
+    const MapListItemInfo *info = value->pointer;
 
     if (q_strcmp(info->mapname, path) == 0) {
       return;
@@ -193,7 +193,7 @@ static void enumerateMaps(const char *path, void *data) {
 
       release(mapshots);
 
-      Value *value = $(alloc(Value), initWithValue, info);
+      Pointer *value = ptr(info, NULL);
 
       synchronized(this->lock, {
         $(this->maps, addObject, value);
@@ -301,7 +301,7 @@ static Array *selectedMaps(const MapListCollectionView *self) {
   for (size_t i = 0; i < selection->count; i++) {
     const IndexPath *indexPath = $(selection, objectAtIndex, i);
 
-    Value *value = this->dataSource.objectForItemAtIndexPath(this, indexPath);
+    Pointer *value = this->dataSource.objectForItemAtIndexPath(this, indexPath);
     $(selectedMaps, addObject, value);
   }
 

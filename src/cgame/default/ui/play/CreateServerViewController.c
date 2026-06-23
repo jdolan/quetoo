@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <Objectively/Value.h>
+#include <Objectively/Pointer.h>
 
 #include "cg_local.h"
 
@@ -70,8 +70,8 @@ static void createServer(Button *button) {
 
       for (size_t i = 0; i < selectedMaps->count; i++) {
 
-        const Value *value = $(selectedMaps, objectAtIndex, i);
-        const MapListItemInfo *info = (MapListItemInfo *) value->value;
+        const Pointer *value = $(selectedMaps, objectAtIndex, i);
+        const MapListItemInfo *info = (MapListItemInfo *) value->pointer;
 
         char name[MAX_QPATH];
         StripExtension(Basename(info->mapname), name);

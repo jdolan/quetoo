@@ -50,7 +50,7 @@ static void fetchHeroImages(void *data) {
 	static const char prefix[] = "<Key>hero-images/";
 	static const char suffix[] = "</Key>";
 
-	Vector *urls = $(alloc(Vector), initWithSize, sizeof(char *));
+	PointerArray *urls = $(alloc(PointerArray), initWithDestroy, free);
 
 	char *p = (char *) list_data->bytes;
 	while ((p = q_strstr(p, prefix)) != NULL) {
@@ -68,8 +68,7 @@ static void fetchHeroImages(void *data) {
 			continue;
 		}
 
-		char *dup = q_strdup(url);
-		$(urls, addElement, &dup);
+		$(urls, addPointer, q_strdup(url));
 		p = s + q_strlen(suffix);
 	}
 
@@ -77,14 +76,14 @@ static void fetchHeroImages(void *data) {
 
 	for (uint32_t i = (uint32_t) urls->count - 1; i > 0; i--) {
 		const uint32_t j = (uint32_t) rand() % (i + 1);
-		char *tmp = VectorValue(urls, char *, i);
-		VectorValue(urls, char *, i) = VectorValue(urls, char *, j);
-		VectorValue(urls, char *, j) = tmp;
+		void *tmp = urls->elements[i];
+		urls->elements[i] = urls->elements[j];
+		urls->elements[j] = tmp;
 	}
 
 	for (uint32_t i = 0; i < urls->count; i++) {
 		image_data = NULL;
-		char *url_str = VectorValue(urls, char *, i);
+		const char *url_str = urls->elements[i];
 		if ($(cgi.restClient, get, url_str, &image_data) == 200 && image_data) {
 			Image *image = NULL;
 
@@ -111,10 +110,7 @@ static void fetchHeroImages(void *data) {
 		release(image_data);
 	}
 
-	for (uint32_t i = 0; i < urls->count; i++) {
-		free(VectorValue(urls, char *, i));
-	}
-	release(urls);
+	urls = release(urls);
 }
 
 #pragma mark - Object
