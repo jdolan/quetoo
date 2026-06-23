@@ -27,7 +27,7 @@
 const cm_entity_t *Sv_NextMap(void) {
 
   if (q_strcmp(svs.maps.filename, sv_map_list->string) ||
-      Fs_LastModTime(sv_map_list->string) != svs.maps.modtime) {
+      (*sv_map_list->string && Fs_LastModTime(sv_map_list->string) != svs.maps.modtime)) {
     Sv_InitMapList();
   }
 
