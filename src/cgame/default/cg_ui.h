@@ -26,7 +26,6 @@
 void Cg_InitUi(void);
 void Cg_ShutdownUi(void);
 void Cg_ClearUi(void);
-bool Cg_IsUpdateAvailable(void);
 void Cg_UpdateLoading(const cl_loading_t loading);
 int32_t Cg_UpdateInstaller(const installer_status_t *status);
 

@@ -61,6 +61,11 @@ static void fetchHeroImages(void *data) {
 		assert(s);
 		*s = '\0';
 
+		if (*p == '\0') {
+			p = s + q_strlen(suffix);
+			continue;
+		}
+
 		char url[MAX_STRING_CHARS];
 		const int url_len = q_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
 		if (url_len < 0 || (size_t) url_len >= sizeof(url)) {
