@@ -21,7 +21,7 @@
 
 #include <signal.h>
 
-#include "mem_buf.h"
+#include "common.h"
 
 /**
  * @brief Initializes a fixed-size memory buffer backed by the given data array.
@@ -38,38 +38,21 @@ void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t len) {
  * @brief Resets the buffer's write position to zero and clears the overflow flag.
  */
 void Mem_ClearBuffer(mem_buf_t *buf) {
-
   buf->size = 0;
-  buf->overflowed = false;
+  buf->read = 0;
 }
 
 /**
  * @brief Advances the write cursor by `len` bytes and returns a pointer to the newly reserved region.
- * @details If `allow_overflow` is set and the buffer would overflow, the buffer is cleared first.
- *   Aborts if the buffer does not have `allow_overflow` set and an overflow would occur.
+ * @details Errors if len exceeds the buffer's remaining capacity.
  */
 void *Mem_AllocBuffer(mem_buf_t *buf, size_t len) {
-  void *data;
 
   if (len > buf->max_size - buf->size) {
-    const uint32_t delta = (uint32_t) (buf->size + len - buf->max_size);
-    fprintf(stderr, "%s: Overflow by %u bytes\n", __func__, delta);
-
-    if (!buf->allow_overflow) {
-      fprintf(stderr, "Overflow without allow_overflow set\n");
-      raise(SIGABRT);
-    }
-
-    if (len > buf->max_size) {
-      fprintf(stderr, "%u is > buffer size %u\n", (uint32_t) len, (uint32_t) buf->max_size);
-      raise(SIGABRT);
-    }
-
-    Mem_ClearBuffer(buf);
-    buf->overflowed = true;
+    Com_Error(ERROR_FATAL, "Buffer overflow writing %zu bytes to %zu sized buffer\n", len, buf->max_size);
   }
 
-  data = buf->data + buf->size;
+  void *data = buf->data + buf->size;
   buf->size += len;
 
   return data;

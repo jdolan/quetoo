@@ -209,29 +209,37 @@ static void Cg_Shutdown(void) {
  */
 static void Cg_ParseTeamInfo(const char *s) {
 
-  gchar **info = g_strsplit(s, "\\", 0);
-  const size_t count = g_strv_length(info);
+  PointerArray *info = $(alloc(PointerArray), initWithDestroy, free);
+
+  char buf[MAX_STRING_CHARS];
+  q_strlcpy(buf, s, sizeof(buf));
+  char *save = NULL;
+  for (char *tok = q_strtok_r(buf, "\\", &save); tok; tok = q_strtok_r(NULL, "\\", &save)) {
+    $(info, add, q_strdup(tok));
+  }
+
+  const size_t count = info->count;
 
   if (count != lengthof(cg_state.teams) * 4) {
-    g_strfreev(info);
+    release(info);
     Cg_Error("Invalid team data: %s\n", s);
   }
 
   cg_team_info_t *team = cg_state.teams;
   for (size_t i = 0; i < count; i += 4, team++) {
 
-    team->id = atoi(info[i + 0]);
+    team->id = atoi((char *) $(info, get, i + 0));
 
-    g_strlcpy(team->name, info[i + 1], sizeof(team->name));
+    q_strlcpy(team->name, (char *) $(info, get, i + 1), sizeof(team->name));
 
-    team->hue = atoi(info[i + 2]);
+    team->hue = atoi((char *) $(info, get, i + 2));
 
-    if (!Color_Parse(info[i + 3], &team->color)) {
+    if (!Color_Parse((char *) $(info, get, i + 3), &team->color)) {
       team->color = color_white;
     }
   }
 
-  g_strfreev(info);
+  release(info);
 }
 
 /**

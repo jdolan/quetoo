@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <Objectively/Vector.h>
+
 #include "bsp.h"
 #include "face.h"
 #include "map.h"
@@ -58,10 +60,10 @@ void EmitMaterials(void) {
     bsp_material_t *out = &bsp_file.materials[bsp_file.num_materials];
 
     const char *name = m->cm->name;
-    if (g_str_has_prefix(name, "textures/")) {
-      name += strlen("textures/");
+    if (!q_strncmp(name, "textures/", 9)) {
+      name += q_strlen("textures/");
     }
-    g_strlcpy(out->name, name, sizeof(out->name));
+    q_strlcpy(out->name, name, sizeof(out->name));
 
     bsp_file.num_materials++;
 
@@ -369,18 +371,18 @@ void EmitEntities(void) {
   for (int32_t i = 0; i < num_entities; i++) {
     const entity_key_value_t *e = entities[i].values;
     if (e) {
-      g_strlcat(out, "{\n", MAX_BSP_ENTITIES_SIZE);
+      q_strlcat(out, "{\n", MAX_BSP_ENTITIES_SIZE);
       while (e) {
-        g_strlcat(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENTITIES_SIZE);
+        q_strlcat(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENTITIES_SIZE);
         e = e->next;
       }
-      g_strlcat(out, "}\n", MAX_BSP_ENTITIES_SIZE);
+      q_strlcat(out, "}\n", MAX_BSP_ENTITIES_SIZE);
     }
 
     Progress("Emitting entities", 100.f * i / num_entities);
   }
 
-  const size_t len = strlen(out);
+  const size_t len = q_strlen(out);
 
   if (len == MAX_BSP_ENTITIES_SIZE - 1) {
     Com_Error(ERROR_FATAL, "MAX_BSP_ENTITIES_SIZE\n");
@@ -513,7 +515,7 @@ static void EmitDepthPassElements(bsp_model_t *mod) {
  * @details Opaque and blended faces are equal if they share material and contents.
  * @details Material faces equal if they share blend equality and brush side.
  */
-static gint FaceCmp(gconstpointer a, gconstpointer b) {
+static int32_t FaceCmp(const void * a, const void * b) {
 
   const bsp_face_t *a_face = a;
   const bsp_face_t *b_face = b;
@@ -521,7 +523,7 @@ static gint FaceCmp(gconstpointer a, gconstpointer b) {
   const int32_t a_material = FaceMaterial(a_face);
   const int32_t b_material = FaceMaterial(b_face);
 
-  gint order = a_material - b_material;
+  int32_t order = a_material - b_material;
   if (order == 0) {
 
     const int32_t a_surface = FaceSurface(a_face) & SURF_MASK_DRAW_ELEMENTS_CMP;
@@ -540,6 +542,13 @@ static gint FaceCmp(gconstpointer a, gconstpointer b) {
   return order;
 }
 
+static Order FaceCmpOrder(const ident a, const ident b) {
+  const bsp_face_t *const *a_face = a;
+  const bsp_face_t *const *b_face = b;
+  const int32_t cmp = FaceCmp(*a_face, *b_face);
+  return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
+}
+
 /**
  * @brief Emits glDrawElements commands for the given face list.
  * @details Sorts opaque and alpha test faces in the given model by material, and emits
@@ -547,19 +556,19 @@ static gint FaceCmp(gconstpointer a, gconstpointer b) {
  * as this would break the references that the nodes hold to them.
  * @return The number of draw elements commands emitted.
  */
-static int32_t EmitDrawElements(GPtrArray *faces) {
+static int32_t EmitDrawElements(Vector *faces) {
 
   const int32_t num_draw_elements = bsp_file.num_draw_elements;
 
-  g_ptr_array_sort_values(faces, FaceCmp);
+  $(faces, sort, FaceCmpOrder);
 
-  for (guint i = 0; i < faces->len; i++) {
+  for (size_t i = 0; i < faces->count; i++) {
 
     if (bsp_file.num_draw_elements == MAX_BSP_DRAW_ELEMENTS) {
       Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
     }
 
-    const bsp_face_t *a = g_ptr_array_index(faces, i);
+    const bsp_face_t *a = VectorValue(faces, bsp_face_t *, i);
     const int32_t a_surface = FaceSurface(a);
 
     if (a_surface & SURF_MASK_NO_DRAW_ELEMENTS) {
@@ -576,9 +585,9 @@ static int32_t EmitDrawElements(GPtrArray *faces) {
 
     out->first_element = bsp_file.num_elements;
 
-    for (guint j = i; j < faces->len; j++) {
+    for (size_t j = i; j < faces->count; j++) {
 
-      const bsp_face_t *b = g_ptr_array_index(faces, j);
+      const bsp_face_t *b = VectorValue(faces, bsp_face_t *, j);
 
       if (FaceCmp(a, b)) {
         break;
@@ -613,7 +622,7 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
 
   if (node->contents == CONTENTS_BLOCK) {
 
-    GPtrArray *faces = g_ptr_array_new();
+    Vector *faces = $(alloc(Vector), initWithSize, sizeof(bsp_face_t *));
 
     bsp_face_t *face = bsp_file.faces + mod->first_face;
     for (int32_t i = 0; i < mod->num_faces; i++, face++) {
@@ -626,12 +635,12 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
           Com_Verbose("Face %s @ %s resides in multiple blocks\n", material->name, vtos(Box3_Center(face->bounds)));
         }
         
-        g_ptr_array_add(faces, face);
+        $(faces, add, &face);
       }
     }
 
-    if (faces->len == 0) {
-      g_ptr_array_free(faces, true);
+    if (faces->count == 0) {
+      release(faces);
       node->contents = CONTENTS_NODE;
       return;
     }
@@ -640,9 +649,9 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
     out->node = (int32_t) (ptrdiff_t) (node - bsp_file.nodes);
 
     out->visible_bounds = Box3_Null();
-    for (guint i = 0; i < faces->len; i++) {
+    for (size_t i = 0; i < faces->count; i++) {
 
-      bsp_face_t *face = g_ptr_array_index(faces, i);
+      bsp_face_t *face = VectorValue(faces, bsp_face_t *, i);
       face->block = (int32_t) (ptrdiff_t) (out - bsp_file.blocks);
 
       out->visible_bounds = Box3_Union(out->visible_bounds, face->bounds);
@@ -651,7 +660,7 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
     out->first_draw_element = bsp_file.num_draw_elements;
     out->num_draw_elements = EmitDrawElements(faces);
 
-    g_ptr_array_free(faces, true);
+    release(faces);
     return;
   }
 

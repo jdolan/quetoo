@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <Objectively/Vector.h>
+
 #include "quetoo.h"
 
 void Mem_Free(void *p);
@@ -44,7 +46,7 @@ typedef struct {
   size_t    count; // number of blocks
 } mem_stat_t;
 
-GArray *Mem_Stats(void);
+Vector *Mem_Stats(void);
 
 void Mem_Init(void);
 void Mem_Shutdown(void);

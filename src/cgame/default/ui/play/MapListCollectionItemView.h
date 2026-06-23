@@ -78,12 +78,12 @@ struct MapListCollectionItemViewInterface {
   MapListCollectionItemView *(*initWithFrame)(MapListCollectionItemView *self, const SDL_Rect *frame);
 
   /**
-   * @fn void MapListCollectionItemView::setMapListItemInfo(MapListCollectionItemView *self, MapListItemInfo *info);
+   * @fn void MapListCollectionItemView::setMapListItemInfo(MapListCollectionItemView *self, const MapListItemInfo *info);
    * @brief Sets the information for this item.
    * @param info The MapListItemInfo.
    * @memberof MapListCollectionItemView
    */
-  void (*setMapListItemInfo)(MapListCollectionItemView *self, MapListItemInfo *info);
+  void (*setMapListItemInfo)(MapListCollectionItemView *self, const MapListItemInfo *info);
 };
 
 /**

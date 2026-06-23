@@ -134,12 +134,12 @@ static void fetchStatsComplete(int32_t status, Data *data, void *user_data) {
 static void fetchStats(StatsViewController *this) {
 
   const char *guid_hash = cgi.GetCvarString("guid_hash");
-  if (strlen(guid_hash) == 0) {
+  if (q_strlen(guid_hash) == 0) {
     return;
   }
 
   char url[MAX_STRING_CHARS];
-  g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hash);
+  q_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hash);
 
   $(cgi.restClient, getAsync, url, fetchStatsComplete, NULL);
 }
@@ -156,7 +156,7 @@ static size_t numberOfRows(const TableView *tableView) {
   size_t i;
   const KillsByWeapon *w = this->stats.kills_by_weapon;
   for (i = 0; i < lengthof(this->stats.kills_by_weapon); i++, w++) {
-    if (strlen(w->weapon) == 0) {
+    if (q_strlen(w->weapon) == 0) {
       break;
     }
   }
@@ -177,9 +177,9 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
-  if (g_strcmp0(column->identifier, _weapon) == 0) {
+  if (q_strcmp(column->identifier, _weapon) == 0) {
     $(cell->text, setText, w->weapon);
-  } else if (g_strcmp0(column->identifier, _frags) == 0) {
+  } else if (q_strcmp(column->identifier, _frags) == 0) {
     $(cell->text, setText, va("%d", w->frags));
   }
 

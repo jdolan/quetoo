@@ -17,7 +17,7 @@ noinst_LTLIBRARIES = \
 libcollision_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@ \
 	@SDL3_CFLAGS@
 
 libcollision_la_SOURCES = \

@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <SDL3/SDL.h>
+
 #include "shared/shared.h"
 
 #include "atlas.h"
@@ -81,7 +83,7 @@
 /**
  * @brief Disallow dangerous downloads for both the client and server.
  */
-#define IS_INVALID_DOWNLOAD(f) (!*f || *f == '/' || strstr(f, "..") || strchr(f, ' '))
+#define IS_INVALID_DOWNLOAD(f) (!*f || *f == '/' || q_strstr(f, "..") || q_strchr(f, ' '))
 
 /**
  * @brief Error categories.

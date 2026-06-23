@@ -34,7 +34,7 @@ const g_item_t *G_FindItemByClassName(const char *classname) {
   for (g_item_tag_t t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
     const g_item_t *it = &g_items[t];
 
-    if (!g_strcmp0(it->def.classname, classname)) {
+    if (!q_strcmp(it->def.classname, classname)) {
       return it;
     }
   }
@@ -55,7 +55,7 @@ const g_item_t *G_FindItem(const char *name) {
   for (g_item_tag_t t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
     const g_item_t *it = &g_items[t];
 
-    if (!g_ascii_strcasecmp(it->def.name, name)) {
+    if (!q_strcasecmp(it->def.name, name)) {
       if (G_ItemAvailable(it)) {
         return it;
       }
@@ -742,13 +742,13 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
             .player_ai = player_ai,
             .time = (uint32_t) time(NULL),
           };
-          g_strlcpy(capture.level,       g_level.name,              sizeof(capture.level));
-          g_strlcpy(capture.player,      cl->persistent.net_name,   sizeof(capture.player));
-          g_strlcpy(capture.player_guid, cl->persistent.guid,       sizeof(capture.player_guid));
-          g_strlcpy(capture.team,        other_team->name,          sizeof(capture.team));
+          q_strlcpy(capture.level,       g_level.name,              sizeof(capture.level));
+          q_strlcpy(capture.player,      cl->persistent.net_name,   sizeof(capture.player));
+          q_strlcpy(capture.player_guid, cl->persistent.guid,       sizeof(capture.player_guid));
+          q_strlcpy(capture.team,        other_team->name,          sizeof(capture.team));
 
           if (capture.player_guid[0]) {
-            g_array_append_val(g_level.captures, capture);
+            $(g_level.captures, add, &capture);
           }
         }
 
@@ -826,16 +826,16 @@ static g_entity_t *G_DropFlag(g_client_t *cl, const g_item_t *item) {
  */
 static void G_DropItem_SetExpiration(g_entity_t *ent) {
 
-  if (ent->item->def.type == ITEM_FLAG) { // flags go back to base
+  if (ent->item->def.type == ITEM_TYPE_FLAG) { // flags go back to base
     ent->Think = G_ResetDroppedFlag;
-  } else if (ent->item->def.type == ITEM_TECH) {
+  } else if (ent->item->def.type == ITEM_TYPE_TECH) {
     ent->Think = G_ResetDroppedTech;
   } else { // everything else just gets freed
     ent->Think = G_FreeEntity;
   }
 
   uint32_t expiration;
-  if (ent->item->def.type == ITEM_POWERUP) { // expire from last touch
+  if (ent->item->def.type == ITEM_TYPE_POWERUP) { // expire from last touch
     expiration = ent->timestamp - g_level.time;
   } else { // general case
     expiration = 30000;
@@ -969,9 +969,9 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
 
   // we're in a bad spot, forget it
   if (tr.start_solid) {
-    if (item->def.type == ITEM_TECH) {
+    if (item->def.type == ITEM_TYPE_TECH) {
       G_ResetDroppedTech(it);
-    } else if (item->def.type == ITEM_FLAG) {
+    } else if (item->def.type == ITEM_TYPE_FLAG) {
       G_ResetDroppedFlag(it);
     } else {
       G_FreeEntity(it);
@@ -996,7 +996,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
 
   it->s.model1 = item->model_index;
 
-  if (item->def.type == ITEM_WEAPON) {
+  if (item->def.type == ITEM_TYPE_WEAPON) {
     const g_item_t *ammo = item->def.ammo ? &g_items[item->def.ammo] : NULL;
     if (ammo) {
       it->health = ammo->def.quantity;
@@ -1190,7 +1190,7 @@ void G_ResetItem(g_entity_t *ent) {
   ent->sv_flags &= ~SVF_NO_CLIENT;
   ent->Touch = G_TouchItem;
 
-  if (ent->item->def.type == ITEM_FLAG) {
+  if (ent->item->def.type == ITEM_TYPE_FLAG) {
     const g_team_id_t flag_team = ent->item->def.tag - FLAG_FIRST;
     const g_team_id_t last_team = FLAG_FIRST + g_level.num_teams - 1;
     if (g_level.ctf == false || flag_team > last_team) {
@@ -1211,7 +1211,7 @@ void G_ResetItem(g_entity_t *ent) {
   }
 
   const bool inhibited = (g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB)
-                          && ent->item->def.type != ITEM_FLAG;
+                          && ent->item->def.type != ITEM_TYPE_FLAG;
 
   if (inhibited || (ent->flags & FL_TEAM_SLAVE)) {
     ent->sv_flags |= SVF_NO_CLIENT;
@@ -1341,11 +1341,12 @@ void G_PrecacheItem(const g_item_t *it) {
     }
 
     // determine type based on extension
-    if (g_str_has_suffix(data, ".md3") || g_str_has_suffix(data, ".obj")) {
+    const size_t dlen = q_strlen(data);
+    if ((dlen >= 4 && (!q_strcmp(data + dlen - 4, ".md3") || !q_strcmp(data + dlen - 4, ".obj")))) {
       gi.ModelIndex(data);
-    } else if (g_str_has_suffix(data, ".wav") || g_str_has_suffix(data, ".ogg")) {
+    } else if (dlen >= 4 && (!q_strcmp(data + dlen - 4, ".wav") || !q_strcmp(data + dlen - 4, ".ogg"))) {
       gi.SoundIndex(data);
-    } else if (g_str_has_suffix(data, ".png") || g_str_has_suffix(data, ".jpg") || g_str_has_suffix(data, ".tga")) {
+    } else if (dlen >= 4 && (!q_strcmp(data + dlen - 4, ".png") || !q_strcmp(data + dlen - 4, ".jpg") || !q_strcmp(data + dlen - 4, ".tga"))) {
       gi.ImageIndex(data);
     } else {
       gi.Error("%s has unknown data type\n", it->def.classname);
@@ -1384,14 +1385,14 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
   }
 
   // weapons override the health field to store their ammo count
-  if (ent->item->def.type == ITEM_WEAPON) {
+  if (ent->item->def.type == ITEM_TYPE_WEAPON) {
     const g_item_t *ammo = ent->item->def.ammo ? &g_items[ent->item->def.ammo] : NULL;
     if (ammo) {
       ent->health = ammo->def.quantity;
     } else {
       ent->health = 0;
     }
-  } else if (ent->item->def.type == ITEM_FLAG) {
+  } else if (ent->item->def.type == ITEM_TYPE_FLAG) {
     // pass flag tint over (0-based team index)
     ent->s.animation1 = item->def.tag - FLAG_FIRST;
   }
@@ -1410,7 +1411,7 @@ g_item_t *g_items;
  */
 bool G_ItemAvailable(const g_item_t *item) {
 
-  if (item->def.type == ITEM_WEAPON) {
+  if (item->def.type == ITEM_TYPE_WEAPON) {
     if (g_level.items == ITEMS_QUAKE) {
       return item->def.tag >= WEAPON_QUAKE_SHOTGUN;
     } else {
@@ -1418,7 +1419,7 @@ bool G_ItemAvailable(const g_item_t *item) {
     }
   }
 
-  if (item->def.type == ITEM_AMMO) {
+  if (item->def.type == ITEM_TYPE_AMMO) {
     if (g_level.items == ITEMS_QUAKE) {
       return item->def.tag >= AMMO_QUAKE_SHELLS;
     } else {
@@ -1426,7 +1427,7 @@ bool G_ItemAvailable(const g_item_t *item) {
     }
   }
 
-  if (item->def.type == ITEM_ARMOR) {
+  if (item->def.type == ITEM_TYPE_ARMOR) {
     if (g_level.items == ITEMS_QUAKE) {
       return item->def.tag >= ARMOR_QUAKE_JACKET;
     } else {
@@ -1434,7 +1435,7 @@ bool G_ItemAvailable(const g_item_t *item) {
     }
   }
 
-  if (item->def.type == ITEM_HEALTH) {
+  if (item->def.type == ITEM_TYPE_HEALTH) {
     if (g_level.items == ITEMS_QUAKE) {
       return item->def.tag >= HEALTH_QUAKE_MEDIUM;
     } else {
@@ -1442,7 +1443,7 @@ bool G_ItemAvailable(const g_item_t *item) {
     }
   }
 
-  if (item->def.type == ITEM_POWERUP) {
+  if (item->def.type == ITEM_TYPE_POWERUP) {
     return true;
   }
 
@@ -1457,98 +1458,98 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
   it->def = *def;
 
   switch (it->def.type) {
-    case ITEM_ARMOR:
+    case ITEM_TYPE_ARMOR:
       it->Pickup = G_PickupArmor;
       break;
 
-    case ITEM_WEAPON:
+    case ITEM_TYPE_WEAPON:
       it->Pickup = G_PickupWeapon;
       it->Use = G_UseWeapon;
       it->Drop = G_DropWeapon;
 
-      if (!g_strcmp0(it->def.classname, "weapon_blaster") ||
-          !g_strcmp0(it->def.classname, "weapon_handgrenades")) {
+      if (!q_strcmp(it->def.classname, "weapon_blaster") ||
+          !q_strcmp(it->def.classname, "weapon_handgrenades")) {
         it->Drop = NULL;
-      } else if (!g_strcmp0(it->def.classname, "weapon_grenadelauncher")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_grenadelauncher")) {
         it->Pickup = G_PickupGrenadeLauncher;
       }
 
-      if (!g_strcmp0(it->def.classname, "weapon_blaster")) {
+      if (!q_strcmp(it->def.classname, "weapon_blaster")) {
         it->Think = G_FireBlaster;
-      } else if (!g_strcmp0(it->def.classname, "weapon_shotgun")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_shotgun")) {
         it->Think = G_FireShotgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_supershotgun")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_supershotgun")) {
         it->Think = G_FireSuperShotgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_machinegun")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_machinegun")) {
         it->Think = G_FireMachinegun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_handgrenades")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_handgrenades")) {
         it->Think = G_FireHandGrenade;
-      } else if (!g_strcmp0(it->def.classname, "weapon_grenadelauncher")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_grenadelauncher")) {
         it->Think = G_FireGrenadeLauncher;
-      } else if (!g_strcmp0(it->def.classname, "weapon_rocketlauncher")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_rocketlauncher")) {
         it->Think = G_FireRocketLauncher;
-      } else if (!g_strcmp0(it->def.classname, "weapon_hyperblaster")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_hyperblaster")) {
         it->Think = G_FireHyperblaster;
-      } else if (!g_strcmp0(it->def.classname, "weapon_lightning")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_lightning")) {
         it->Think = G_FireLightning;
-      } else if (!g_strcmp0(it->def.classname, "weapon_railgun")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_railgun")) {
         it->Think = G_FireRailgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_bfg")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_bfg")) {
         it->Think = G_FireBfg;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_shotgun")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_quake_shotgun")) {
         it->Think = G_FireQuakeShotgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_supershotgun")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_quake_supershotgun")) {
         it->Think = G_FireQuakeSuperShotgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_nailgun")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_quake_nailgun")) {
         it->Think = G_FireQuakeNailgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_supernailgun")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_quake_supernailgun")) {
         it->Think = G_FireQuakeSuperNailgun;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_grenadelauncher")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_quake_grenadelauncher")) {
         it->Think = G_FireQuakeGrenadeLauncher;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_rocketlauncher")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_quake_rocketlauncher")) {
         it->Think = G_FireQuakeRocketLauncher;
-      } else if (!g_strcmp0(it->def.classname, "weapon_quake_thunderbolt")) {
+      } else if (!q_strcmp(it->def.classname, "weapon_quake_thunderbolt")) {
         it->Think = G_FireQuakeThunderbolt;
       }
       break;
 
-    case ITEM_AMMO:
+    case ITEM_TYPE_AMMO:
       it->Pickup = G_PickupAmmo;
       it->Drop = G_DropItem;
-      if (!g_strcmp0(it->def.classname, "ammo_grenades")) {
+      if (!q_strcmp(it->def.classname, "ammo_grenades")) {
         it->Pickup = G_PickupGrenades;
         it->Use = G_UseGrenades;
       }
       break;
 
-    case ITEM_HEALTH:
+    case ITEM_TYPE_HEALTH:
       it->Pickup = G_PickupHealth;
       break;
 
-    case ITEM_FLAG:
+    case ITEM_TYPE_FLAG:
       it->Pickup = G_PickupFlag;
       it->Drop = G_DropFlag;
       break;
 
-    case ITEM_POWERUP:
-      if (!g_strcmp0(it->def.classname, "item_adrenaline")) {
+    case ITEM_TYPE_POWERUP:
+      if (!q_strcmp(it->def.classname, "item_adrenaline")) {
         it->Pickup = G_PickupAdrenaline;
-      } else if (!g_strcmp0(it->def.classname, "item_quad")) {
+      } else if (!q_strcmp(it->def.classname, "item_quad")) {
         it->Pickup = G_PickupQuadDamage;
-      } else if (!g_strcmp0(it->def.classname, "item_invisibility")) {
+      } else if (!q_strcmp(it->def.classname, "item_invisibility")) {
         it->Pickup = G_PickupInvisibility;
-      } else if (!g_strcmp0(it->def.classname, "item_invulnerability")) {
+      } else if (!q_strcmp(it->def.classname, "item_invulnerability")) {
         it->Pickup = G_PickupInvulnerability;
       }
       break;
 
-    case ITEM_TECH:
+    case ITEM_TYPE_TECH:
       it->Pickup = G_PickupTech;
       it->Drop = G_DropTech;
       break;
 
     default:
-      gi.Error("Item %s has an invalid type\n", it->def.name);
+      gi.Error("Item %s (tag %d) has an invalid type\n", def->name, def->tag);
       break;
   }
 
@@ -1563,7 +1564,7 @@ void G_InitItems(void) {
 
   g_items = gi.Malloc(ITEM_TOTAL * sizeof(g_item_t), MEM_TAG_GAME);
 
-  for (size_t i = 0; i < bg_num_items; i++) {
-    G_InitItem(&g_items[bg_item_defs[i].tag], &bg_item_defs[i]);
+  for (g_item_tag_t tag = ITEM_FIRST; tag < ITEM_TOTAL; tag++) {
+    G_InitItem(&g_items[tag], &bg_item_defs[tag]);
   }
 }

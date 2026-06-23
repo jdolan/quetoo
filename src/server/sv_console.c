@@ -84,7 +84,7 @@ static void Sv_HandleEvents(void) {
         break;
 
       case KEY_DC:
-        if (in->pos < strlen(in->buffer)) {
+        if (in->pos < q_strlen(in->buffer)) {
           char *c = in->buffer + in->pos;
           while (*c) {
             *c = *(c + 1);
@@ -108,16 +108,16 @@ static void Sv_HandleEvents(void) {
         break;
 
       case KEY_RIGHT:
-        if (in->pos < strlen(in->buffer)) {
+        if (in->pos < q_strlen(in->buffer)) {
           in->pos++;
         }
         break;
 
       case KEY_PPAGE:
-        if (sv_console.scroll < console_state.strings.length) {
+        if (sv_console.scroll < console_state.strings->count) {
           sv_console.scroll++;
         } else {
-          sv_console.scroll = console_state.strings.length;
+          sv_console.scroll = console_state.strings->count;
         }
         break;
 
@@ -134,17 +134,17 @@ static void Sv_HandleEvents(void) {
         break;
 
       case KEY_END:
-        in->pos = strlen(in->buffer);
+        in->pos = q_strlen(in->buffer);
         break;
 
       default:
         if (isascii(key) && isprint(key)) {
-          if (strlen(in->buffer) < sizeof(in->buffer) - 1) {
+          if (q_strlen(in->buffer) < sizeof(in->buffer) - 1) {
             char tmp[MAX_STRING_CHARS];
-            g_strlcpy(tmp, in->buffer + in->pos, sizeof(tmp));
+            q_strlcpy(tmp, in->buffer + in->pos, sizeof(tmp));
             in->buffer[in->pos++] = key;
             in->buffer[in->pos] = '\0';
-            g_strlcat(in->buffer, tmp, sizeof(in->buffer));
+            q_strlcat(in->buffer, tmp, sizeof(in->buffer));
           }
         }
         break;
@@ -201,11 +201,11 @@ static void Sv_DrawConsole_Buffer(void) {
     char *line = lines[j];
     char *s = line;
 
-    Sv_DrawConsole_Color(j ? StrrColor(lines[j - 1]) : ESC_COLOR_DEFAULT);
+    Sv_DrawConsole_Color(j ? q_strrcolor(lines[j - 1]) : ESC_COLOR_DEFAULT);
 
     size_t col = 1;
     while (*s) {
-      if (StrIsColor(s)) {
+      if (q_striscolor(s)) {
         Sv_DrawConsole_Color(*(s + 1) - '0');
         s++;
       } else if (isascii(*s)) {
@@ -214,7 +214,7 @@ static void Sv_DrawConsole_Buffer(void) {
       s++;
     }
 
-    g_free(line);
+    Mem_Free(line);
     row--;
   }
 
@@ -232,7 +232,7 @@ static void Sv_DrawConsole_Input(void) {
 
   const char *s = &in->buffer[(in->pos / sv_console.width) * sv_console.width];
 
-  const size_t len = strlen(s);
+  const size_t len = q_strlen(s);
   const size_t pos = in->pos - (s - in->buffer);
 
   int32_t col = 2;

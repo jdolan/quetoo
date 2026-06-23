@@ -38,7 +38,7 @@ void Sys_InstallDesktopEntry(void);
 void Sys_InstallLocalBin(void);
 #endif
 
-GString *Sys_Backtrace(uint32_t start, uint32_t max_count);
+char *Sys_Backtrace(uint32_t start, uint32_t max_count);
 void Sys_Raise(const char *msg);
 void Sys_Signal(int32_t s);
 void Sys_InitCrashSignals(void);

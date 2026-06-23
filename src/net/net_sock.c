@@ -102,7 +102,7 @@ bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b) {
 const char *Net_NetaddrToString(const net_addr_t *a) {
   static char s[64];
 
-  g_snprintf(s, sizeof(s), "%s:%i", inet_ntoa(*(const struct in_addr *) &a->addr), ntohs(a->port));
+  q_snprintf(s, sizeof(s), "%s:%i", inet_ntoa(*(const struct in_addr *) &a->addr), ntohs(a->port));
 
   return s;
 }
@@ -114,7 +114,7 @@ const char *Net_NetaddrToString(const net_addr_t *a) {
 const char *Net_NetaddrToIpString(const net_addr_t *a) {
   static char s[INET_ADDRSTRLEN];
 
-  g_strlcpy(s, inet_ntoa(*(const struct in_addr *) &a->addr), sizeof(s));
+  q_strlcpy(s, inet_ntoa(*(const struct in_addr *) &a->addr), sizeof(s));
 
   return s;
 }
@@ -132,12 +132,12 @@ bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr) {
 
   memset(saddr, 0, sizeof(*saddr));
 
-  char *node = g_strdup(s);
+  char *node = q_strdup(s);
 
-  char *service = strchr(node, ':');
+  char *service = q_strchr(node, ':');
   if (service) {
     *service++ = '\0';
-    char *slash = strchr(service, '/'); // strip trailing slash from URL-style addresses
+    char *slash = q_strchr(service, '/'); // strip trailing slash from URL-style addresses
     if (slash) {
       *slash = '\0';
     }
@@ -154,7 +154,7 @@ bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr) {
     freeaddrinfo(info);
   }
 
-  g_free(node);
+  free(node);
 
   return saddr->sin_addr.s_addr != 0;
 }
@@ -171,7 +171,7 @@ bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 
   a->addr = saddr.sin_addr.s_addr;
 
-  if (g_strcmp0(s, "localhost") == 0) {
+  if (q_strcmp(s, "localhost") == 0) {
     a->port = 0;
     a->type = NA_LOOP;
   } else {

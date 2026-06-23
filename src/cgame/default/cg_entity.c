@@ -22,7 +22,7 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-GArray *cg_entities = NULL;
+Vector *cg_entities = NULL;
 
 /**
  * @brief The `Cg_EntityPredicate` type for `Cg_FindEntity`.
@@ -61,14 +61,14 @@ static const cm_entity_t *Cg_FindEntity(const cm_entity_t *from, const Cg_Entity
  * @brief Predicate function testing whether an entity's targetname matches the given string.
  */
 static bool Cg_EntityTarget_Predicate(const cm_entity_t *e, void *data) {
-  return !g_strcmp0(cgi.EntityValue(e, "targetname")->nullable_string, data);
+  return !q_strcmp(cgi.EntityValue(e, "targetname")->nullable_string, data);
 }
 
 /**
  * @brief Predicate function testing whether an entity's team key matches the given string.
  */
 static bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
-  return !g_strcmp0(cgi.EntityValue(e, "team")->nullable_string, data);
+  return !q_strcmp(cgi.EntityValue(e, "team")->nullable_string, data);
 }
 
 /**
@@ -77,8 +77,8 @@ static bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
 cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e) {
 
   if (e) {
-    for (guint i = 0; i < cg_entities->len; i++) {
-      cg_entity_t *ent = &g_array_index(cg_entities, cg_entity_t, i);
+    for (uint32_t i = 0; i < cg_entities->count; i++) {
+      cg_entity_t *ent = VectorElement(cg_entities, cg_entity_t, i);
       if (ent->def == e) {
         return ent;
       }
@@ -109,7 +109,7 @@ void Cg_LoadEntities(void) {
 
   Cg_FreeEntities();
 
-  cg_entities = g_array_new(false, false, sizeof(cg_entity_t));
+  cg_entities = $(alloc(Vector), initWithSize, sizeof(cg_entity_t));
 
   const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
   for (int32_t i = 0; i < bsp->num_entities; i++) {
@@ -120,10 +120,10 @@ void Cg_LoadEntities(void) {
     const cg_entity_class_t **clazz = cg_entity_classes;
     for (size_t j = 0; j < cg_num_entity_classes; j++, clazz++) {
 
-      if (!g_strcmp0(classname, (*clazz)->classname)) {
+      if (!q_strcmp(classname, (*clazz)->classname)) {
 
         cg_entity_t e = {
-          .id = MAX_ENTITIES + cg_entities->len,
+          .id = MAX_ENTITIES + (int32_t) cg_entities->count,
           .clazz = *clazz,
           .def = def
         };
@@ -156,7 +156,7 @@ void Cg_LoadEntities(void) {
           e.next_think += interval * Randomf();
         }
 
-        cg_entities = g_array_append_val(cg_entities, e);
+        $(cg_entities, add, &e);
       }
     }
   }
@@ -168,7 +168,7 @@ void Cg_LoadEntities(void) {
 void Cg_FreeEntities(void) {
 
   if (cg_entities) {
-    g_array_free(cg_entities, true);
+    release(cg_entities);
     cg_entities = NULL;
   }
 }
@@ -332,8 +332,8 @@ void Cg_AddEntities(const cl_frame_t *frame) {
   }
 
   // and client side entities too
-  cg_entity_t *e = (cg_entity_t *) cg_entities->data;
-  for (guint i = 0; i < cg_entities->len; i++, e++) {
+  cg_entity_t *e = cg_entities->elements;
+  for (uint32_t i = 0; i < cg_entities->count; i++, e++) {
 
     if (e->next_think > cgi.client->unclamped_time) {
       continue;

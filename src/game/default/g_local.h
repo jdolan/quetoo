@@ -53,3 +53,4 @@
 #include "g_types.h"
 #include "g_util.h"
 #include "g_weapon.h"
+#include <Objectively/Vector.h>

@@ -81,7 +81,7 @@ static void Sv_HttpHandleRequest(sv_http_client_t *http) {
 		return;
 	}
 
-	if (strcmp(method, "GET") != 0) {
+	if (q_strcmp(method, "GET") != 0) {
 		Sv_HttpSendError(http, 405, "Method Not Allowed");
 		return;
 	}
@@ -181,7 +181,7 @@ static void Sv_HttpClientThink(sv_http_client_t *http) {
 			http->request_len += (int32_t) received;
 
 			// check for end of HTTP request
-			if (strstr(http->request, "\r\n\r\n")) {
+			if (q_strstr(http->request, "\r\n\r\n")) {
 				Sv_HttpHandleRequest(http);
 			} else if (http->request_len >= (int32_t) sizeof(http->request) - 1) {
 				Sv_HttpSendError(http, 400, "Bad Request");

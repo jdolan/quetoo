@@ -84,7 +84,7 @@ void Net_WriteString(mem_buf_t *msg, const char *s) {
   if (!s) {
     Mem_WriteBuffer(msg, "", 1);
   } else {
-    Mem_WriteBuffer(msg, s, strlen(s) + 1);
+    Mem_WriteBuffer(msg, s, q_strlen(s) + 1);
   }
 }
 

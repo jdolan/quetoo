@@ -64,6 +64,13 @@ static void didClickNavigateViewController(Button *button) {
 }
 
 /**
+ * @brief Opens the releases page.
+ */
+static void openReleasesPage(ident data) {
+  SDL_OpenURL(QUETOO_RELEASES_URL);
+}
+
+/**
  * @brief Quit the game.
  */
 static void quit(ident data) {
@@ -211,6 +218,20 @@ static void viewWillAppear(ViewController *self) {
       $(this, navigateToViewController, _TeamsViewController());
     }
   }
+
+  if (this->updateAvailable) {
+    this->updateAvailable = false;
+
+    const Dialog dialog = {
+      .message = "A new version of Quetoo is available. Download now?",
+      .ok = "Yes",
+      .cancel = "No",
+      .okFunction = openReleasesPage
+    };
+
+    ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
+    $(self, addChildViewController, viewController);
+  }
 }
 
 #pragma mark - MainViewController
@@ -260,7 +281,7 @@ static void primaryButton(MainViewController *self, const char *title, const But
   Button *button = $(alloc(Button), initWithTitle, title);
   assert(button);
 
-  button->control.view.identifier = strdup(title);
+  button->control.view.identifier = q_strdup(title);
   assert(button->control.view.identifier);
 
   button->delegate = *delegate;

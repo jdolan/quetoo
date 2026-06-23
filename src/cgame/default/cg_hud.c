@@ -420,9 +420,9 @@ static void Cg_DrawChase(const player_state_t *ps) {
 
   cgi.BindFont("small", NULL, &ch);
 
-  g_snprintf(string, sizeof(string), "Chasing ^7%s", ci->name);
+  q_snprintf(string, sizeof(string), "Chasing ^7%s", ci->name);
 
-  if ((s = strchr(string, '\\'))) {
+  if ((s = q_strchr(string, '\\'))) {
     *s = '\0';
   }
 
@@ -547,7 +547,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
     color_t color = color_white;
 
-    if (g_strcmp0(cg_draw_crosshair_color->string, "default")) {
+    if (q_strcmp(cg_draw_crosshair_color->string, "default")) {
       if (!Color_Parse(cg_draw_crosshair_color->string, &color)) {
         color = color_white;
       }
@@ -1154,7 +1154,7 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 
       const cg_client_info_t *client = &cg_state.clients[ent->current.client];
 
-      g_strlcpy(name, client->name, sizeof(name));
+      q_strlcpy(name, client->name, sizeof(name));
       time = cgi.client->unclamped_time;
     }
   }

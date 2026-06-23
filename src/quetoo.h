@@ -25,14 +25,16 @@
 
 #include <assert.h>
 #include <ctype.h>
-#include <glib.h>
+#include <float.h>
 #include <inttypes.h>
 #include <math.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #if HAVE_UNISTD_H
   #include <unistd.h>

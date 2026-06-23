@@ -122,13 +122,13 @@ void Cl_WriteEntityInfoCommand(int16_t number, const cm_entity_t *entity) {
  * @brief Pumps the command cycle, sending the most recently gathered movement to the server.
  * @details Commands must meet a certain duration, in milliseconds, in order to be sent. This
  * prevents saturating the network channel with very small movement commands, which are also
- * problematic for the physics and prediction code.
+ * problematic for the physics and prediction code. This holds regardless of vsync (#866).
  */
 void Cl_SendCommands(void) {
 
   const uint32_t delta = quetoo.ticks - cls.net_chan.last_sent;
 
-  if (delta < 8 && !r_swap_interval->value) {
+  if (delta < 8) {
     return;
   }
 

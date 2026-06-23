@@ -22,8 +22,8 @@
 #include "cg_local.h"
 
 #include <SDL3_image/SDL_image.h>
+#include <Objectively/PointerArray.h>
 
-#include "DialogViewController.h"
 #include "UpdateViewController.h"
 
 #define _Class _UpdateViewController
@@ -32,13 +32,6 @@
 #define QUETOO_HERO_LIST_URL  "https://quetoo.s3.amazonaws.com/?prefix=hero-images/&delimiter=/"
 
 #pragma mark - Delegates
-
-/**
- * @brief Dialog::okFunction for opening the releases page.
- */
-static void openReleasesPage(ident data) {
-  SDL_OpenURL(QUETOO_RELEASES_URL);
-}
 
 /**
  * @brief `ThreadRunFunc` that pre-fetches all hero images synchronously.
@@ -58,40 +51,48 @@ static void fetchHeroImages(void *data) {
 	static const char prefix[] = "<Key>hero-images/";
 	static const char suffix[] = "</Key>";
 
-	GPtrArray *urls = g_ptr_array_new_with_free_func(g_free);
+	PointerArray *urls = $(alloc(PointerArray), initWithDestroy, free);
 
 	char *p = (char *) list_data->bytes;
-	while ((p = strstr(p, prefix)) != NULL) {
+	while ((p = q_strstr(p, prefix)) != NULL) {
 
-		p += strlen(prefix);
-		char *s = strstr(p, suffix);
+		p += q_strlen(prefix);
+		char *s = q_strstr(p, suffix);
 		assert(s);
 		*s = '\0';
 
-		char url[MAX_STRING_CHARS];
-		const int url_len = g_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
-		if (url_len < 0 || (size_t) url_len >= sizeof(url)) {
-			Cg_Warn("Failed to build hero image URL: %s", p);
-			p = s + strlen(suffix);
+		if (*p == '\0') {
+			p = s + q_strlen(suffix);
 			continue;
 		}
 
-		g_ptr_array_add(urls, g_strdup(url));
-		p = s + strlen(suffix);
+		char url[MAX_STRING_CHARS];
+		const int url_len = q_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
+		if (url_len < 0 || (size_t) url_len >= sizeof(url)) {
+			Cg_Warn("Failed to build hero image URL: %s", p);
+			p = s + q_strlen(suffix);
+			continue;
+		}
+
+		$(urls, add, q_strdup(url));
+		p = s + q_strlen(suffix);
 	}
 
 	release(list_data);
 
-	for (guint i = urls->len - 1; i > 0; i--) {
-		const guint j = (guint) rand() % (i + 1);
-		gpointer tmp = urls->pdata[i];
-		urls->pdata[i] = urls->pdata[j];
-		urls->pdata[j] = tmp;
+	if (urls->count > 1) {
+		for (size_t i = urls->count - 1; i > 0; i--) {
+			const size_t j = Randomu() % (i + 1);
+			void *tmp = urls->elements[i];
+			urls->elements[i] = urls->elements[j];
+			urls->elements[j] = tmp;
+		}
 	}
 
-	for (guint i = 0; i < urls->len; i++) {
+	for (size_t i = 0; i < urls->count; i++) {
 		image_data = NULL;
-		if ($(cgi.restClient, get, urls->pdata[i], &image_data) == 200 && image_data) {
+		const char *url_str = urls->elements[i];
+		if ($(cgi.restClient, get, url_str, &image_data) == 200 && image_data) {
 			Image *image = NULL;
 
       SDL_Surface *surf = cgi.LoadSurfaceFromData(image_data->bytes, image_data->length);
@@ -112,12 +113,12 @@ static void fetchHeroImages(void *data) {
 			}
 			release(image);
 		} else {
-			Cg_Warn("Failed to fetch hero image: %s", (char *) urls->pdata[i]);
+			Cg_Warn("Failed to fetch hero image: %s", url_str);
 		}
 		release(image_data);
 	}
 
-	g_ptr_array_free(urls, true);
+	urls = release(urls);
 }
 
 #pragma mark - Object
@@ -203,17 +204,9 @@ static void setStatus(UpdateViewController *self, const installer_status_t *in) 
       $(self->progressBar, setLabelFormat, "Checking for binary updates\u2026");
       $(self->progressBar, setValue, 0.0);
       break;
-    case INSTALLER_UPDATE_AVAILABLE: {
-      const Dialog dialog = {
-        .message = "A new version of Quetoo is available. Download now?",
-        .ok = "Yes",
-        .cancel = "No",
-        .okFunction = openReleasesPage
-      };
-
-      ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
-      $((ViewController *) self, addChildViewController, viewController);
-    }
+    case INSTALLER_UPDATE_AVAILABLE:
+      $(self->progressBar, setLabelFormat, "Update available.");
+      $(self->progressBar, setValue, 100.0);
       break;
 		case INSTALLER_COMPARING:
 			$(self->progressBar, setLabelFormat, "Comparing data files\u2026");

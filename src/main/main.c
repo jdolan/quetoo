@@ -31,6 +31,7 @@
 #include "config.h"
 #include "client/client.h"
 #include "server/server.h"
+#include <Objectively/Vector.h>
 
 static jmp_buf env;
 
@@ -247,15 +248,15 @@ static const char *mem_tag_names[MEM_TAG_TOTAL] = {
  */
 static void MemStats_f(void) {
 
-  GArray *stats = Mem_Stats();
+  Vector *stats = Mem_Stats();
 
   Com_Print("Memory stats:\n");
 
   size_t sum = 0, reported_total = 0;
 
-  for (size_t i = 0; i < stats->len; i++) {
+  for (size_t i = 0; i < stats->count; i++) {
 
-    mem_stat_t *stat_i = &g_array_index(stats, mem_stat_t, i);
+    mem_stat_t *stat_i = VectorElement(stats, mem_stat_t, i);
     const char *tag_name;
 
     if (stat_i->tag == -1) {
@@ -276,9 +277,9 @@ static void MemStats_f(void) {
     Com_Print("WARNING: %" PRIuPTR " bytes summed vs %" PRIuPTR " bytes reported!\n", sum, reported_total);
   }
 
-  Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %" PRIu32 " blocks\n", console_state.size, console_state.strings.length);
+  Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %zu blocks\n", console_state.size, (size_t) console_state.strings->count);
 
-  g_array_free(stats, true);
+  release(stats);
 }
 
 /**
@@ -300,7 +301,7 @@ static void Init(void) {
   build = Cvar_Add("build", BUILD, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
   dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
-  if (strstr(Sys_ExecutablePath(), "-dedicated")) {
+  if (q_strstr(Sys_ExecutablePath(), "-dedicated")) {
     Cvar_ForceSetInteger(dedicated->name, 1);
   }
 
@@ -308,7 +309,7 @@ static void Init(void) {
   editor = Cvar_Add("editor", "0", CVAR_LATCH | CVAR_SERVER_INFO, "Enables the in-game editor.");
 
   game = Cvar_Add("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
-  game->modified = g_strcmp0(game->string, DEFAULT_GAME);
+  game->modified = q_strcmp(game->string, DEFAULT_GAME);
 
   rcon_address = Cvar_Add("rcon_address", "", 0, "The remote console server address (defaults to current server)");
   rcon_password = Cvar_Add("rcon_password", "", CVAR_ARCHIVE, "The remote console password. "
@@ -466,7 +467,7 @@ int32_t main(int32_t argc, char *argv[]) {
     if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo", 0, NULL,
                        REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &key, NULL) == ERROR_SUCCESS) {
       const char *url_proto = "URL:Quetoo Protocol";
-      RegSetValueEx(key, NULL, 0, REG_SZ, (const BYTE *) url_proto, (DWORD) strlen(url_proto) + 1);
+      RegSetValueEx(key, NULL, 0, REG_SZ, (const BYTE *) url_proto, (DWORD) q_strlen(url_proto) + 1);
       RegSetValueEx(key, "URL Protocol", 0, REG_SZ, (const BYTE *) "", 1);
       RegCloseKey(key);
     }
@@ -475,8 +476,8 @@ int32_t main(int32_t argc, char *argv[]) {
     if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo\\shell\\open\\command", 0, NULL,
                        REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &cmd_key, NULL) == ERROR_SUCCESS) {
       char cmd[MAX_PATH + 8];
-      g_snprintf(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exe_path);
-      RegSetValueEx(cmd_key, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) strlen(cmd) + 1);
+      q_snprintf(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exe_path);
+      RegSetValueEx(cmd_key, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) q_strlen(cmd) + 1);
       RegCloseKey(cmd_key);
     }
   }
@@ -484,8 +485,8 @@ int32_t main(int32_t argc, char *argv[]) {
 
   // Handle quetoo:// URI scheme launch (Linux / Windows pass the URL as argv).
   for (int32_t i = 1; i < argc; i++) {
-    if (g_str_has_prefix(argv[i], "quetoo://")) {
-      Cbuf_AddText(va("connect %s\n", argv[i] + strlen("quetoo://")));
+    if (!q_strncmp(argv[i], "quetoo://", 9)) {
+      Cbuf_AddText(va("connect %s\n", argv[i] + q_strlen("quetoo://")));
       break;
     }
   }

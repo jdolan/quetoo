@@ -37,7 +37,10 @@ void Cg_InitUi(void) {
   stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common/common.css");
   assert(stylesheet);
 
-  $(cgi.Theme(), addStylesheet, stylesheet);
+  Theme *theme = cgi.Theme();
+  assert(theme);
+
+  $(theme, addStylesheet, stylesheet);
 
   mainViewController = $(alloc(MainViewController), init);
   assert(mainViewController);
@@ -53,16 +56,11 @@ void Cg_ShutdownUi(void) {
   cgi.PopAllViewControllers();
   cgi.PopViewController();
 
-  release(updateViewController);
-  updateViewController = NULL;
-
-  release(mainViewController);
-  mainViewController = NULL;
-
   $(cgi.Theme(), removeStylesheet, stylesheet);
 
-  release(stylesheet);
-  stylesheet = NULL;
+  updateViewController = release(updateViewController);
+  mainViewController = release(mainViewController);
+  stylesheet = release(stylesheet);
 }
 
 /**
@@ -106,6 +104,14 @@ int32_t Cg_UpdateInstaller(const installer_status_t *in) {
   }
 
   $(updateViewController, setStatus, in);
+
+  if (in->state == INSTALLER_UPDATE_AVAILABLE) {
+    mainViewController->updateAvailable = true;
+    cgi.PopViewController();
+    release(updateViewController);
+    updateViewController = NULL;
+    return 1;
+  }
 
   if (in->state == INSTALLER_DONE || in->state == INSTALLER_ERROR) {
     static uint64_t done_at = 0;

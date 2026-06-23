@@ -67,11 +67,11 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
 
   if (view == this->add) {
 
-    if (!strlen(def->key) || !strlen(def->string)) {
+    if (!q_strlen(def->key) || !q_strlen(def->string)) {
       return;
     }
 
-    if (isBrushEntity(this->entity) && !g_strcmp0(def->key, "origin")) {
+    if (isBrushEntity(this->entity) && !q_strcmp(def->key, "origin")) {
       Cg_Warn("Skipping origin on %s\n", cgi.EntityValue(this->entity->def, "classname")->string);
     } else {
       cgi.SetEntityKeyValue(this->entity->def, def->key, ENTITY_STRING, def->string);
@@ -93,7 +93,7 @@ static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
 
   if (view == this->teamAdd) {
 
-    if (!strlen(def->key) || !strlen(def->string)) {
+    if (!q_strlen(def->key) || !q_strlen(def->string)) {
       return;
     }
 
@@ -341,7 +341,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         } else if (this->teamEntity && number == this->teamEntity->number) {
           // Preserve the selected light while refreshing team-level fields.
           $(this, setEntity, this->entity);
-        } else if (!g_strcmp0(this->created, info)) {
+        } else if (!q_strcmp(this->created, info)) {
           $(this, setEntity, entity);
         }
       }
@@ -437,19 +437,19 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
     // and gates the Team Master box (lights only).
     const char *classname = cgi.EntityValue(self->entity->def, "classname")->string;
     $(self->entityBox->label->text, setText, *classname ? classname : "Entity");
-    ((View *) self->teamMasterBox)->hidden = g_strcmp0(classname, "light") != 0;
+    ((View *) self->teamMasterBox)->hidden = q_strcmp(classname, "light") != 0;
 
     for (cm_entity_t *e = self->entity->def; e; e = e->next) {
 
-      if (g_str_has_prefix(e->key, "_tb_")) {
+      if (!q_strncmp(e->key, "_tb_", 4)) {
         continue;
       }
 
-      if (!g_strcmp0(e->key, "classname")) {
+      if (!q_strcmp(e->key, "classname")) {
         continue;
       }
 
-      if (isBrushEntity(self->entity) && !g_strcmp0(e->key, "origin")) {
+      if (isBrushEntity(self->entity) && !q_strcmp(e->key, "origin")) {
         continue;
       }
 
@@ -463,7 +463,7 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
       release(view);
     }
 
-    if (!g_strcmp0(classname, "light")) {
+    if (!q_strcmp(classname, "light")) {
 
       const char *team = cgi.EntityValue(self->entity->def, "team")->nullable_string;
       const int32_t teamMaster = Cg_FindTeamMaster(classname, team);
@@ -473,11 +473,11 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
 
         for (cm_entity_t *e = self->teamEntity->def; e; e = e->next) {
 
-          if (g_str_has_prefix(e->key, "_tb_")
-              || !g_strcmp0(e->key, "classname")
-              || !g_strcmp0(e->key, "origin")
-              || !g_strcmp0(e->key, "team")
-              || !g_strcmp0(e->key, "team_master")) {
+          if (!q_strncmp(e->key, "_tb_", 4)
+              || !q_strcmp(e->key, "classname")
+              || !q_strcmp(e->key, "origin")
+              || !q_strcmp(e->key, "team")
+              || !q_strcmp(e->key, "team_master")) {
             continue;
           }
 

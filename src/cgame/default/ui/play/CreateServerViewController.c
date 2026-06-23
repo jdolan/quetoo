@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <Objectively/Value.h>
-
 #include "cg_local.h"
 
 #include "CreateServerViewController.h"
@@ -59,7 +57,7 @@ static void createServer(Button *button) {
 
   CreateServerViewController *this = button->delegate.self;
 
-  Array *selectedMaps = $(this->mapList, selectedMaps);
+  PointerArray *selectedMaps = $(this->mapList, selectedMaps);
   if (selectedMaps->count) {
 
     file_t *file = cgi.OpenFileWrite(MAP_LIST_UI);
@@ -69,9 +67,7 @@ static void createServer(Button *button) {
       assert(string);
 
       for (size_t i = 0; i < selectedMaps->count; i++) {
-
-        const Value *value = $(selectedMaps, objectAtIndex, i);
-        const MapListItemInfo *info = (MapListItemInfo *) value->value;
+        const MapListItemInfo *info = (MapListItemInfo *) $(selectedMaps, get, i);
 
         char name[MAX_QPATH];
         StripExtension(Basename(info->mapname), name);

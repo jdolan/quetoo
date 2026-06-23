@@ -26,9 +26,10 @@
  */
 static void R_FreeAtlas(r_media_t *media) {
   r_atlas_t *atlas = (r_atlas_t *) media;
+  Vector *nodes = atlas->atlas->nodes;
 
-  for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
-    atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
+  for (size_t i = 0; i < nodes->count; i++) {
+    atlas_node_t *node = VectorValue(nodes, atlas_node_t *, i);
 
     for (int32_t layer = 0; layer < atlas->atlas->layers; layer++) {
       SDL_DestroySurface(node->surfaces[layer]);
@@ -70,12 +71,13 @@ r_atlas_t *R_LoadAtlas(const char *name) {
  * not available for rendering until the atlas is recompiled.
  */
 r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_type_t type) {
+  Vector *nodes = atlas->atlas->nodes;
 
-  for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
-    atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
+  for (size_t i = 0; i < nodes->count; i++) {
+    atlas_node_t *node = VectorValue(nodes, atlas_node_t *, i);
 
     r_atlas_image_t *atlas_image = node->data;
-    if (!strcmp(name, atlas_image->image.media.name)) {
+    if (!q_strcmp(name, atlas_image->image.media.name)) {
       R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas_image);
       return atlas_image;
     }
@@ -110,12 +112,9 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 }
 
 /**
- * @brief GFunc for atlas node compilation.
+ * @brief Updates atlas image texture coordinates for the compiled node.
  */
-static void R_CompileAtlas_Node(gpointer data, gpointer user_data) {
-
-  const atlas_node_t *node = data;
-  const r_atlas_t *atlas = user_data;
+static void R_CompileAtlas_Node(const atlas_node_t *node, const r_atlas_t *atlas) {
 
   r_atlas_image_t *atlas_image = node->data;
 
@@ -134,6 +133,7 @@ static void R_CompileAtlas_Node(gpointer data, gpointer user_data) {
  * @brief Compiles the specified atlas.
  */
 void R_CompileAtlas(r_atlas_t *atlas) {
+  Vector *nodes = atlas->atlas->nodes;
 
   if (!atlas->dirty) {
     return;
@@ -144,8 +144,8 @@ void R_CompileAtlas(r_atlas_t *atlas) {
   atlas->image->target = GL_TEXTURE_2D;
   atlas->image->levels = INT32_MAX;
 
-  for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
-    const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
+  for (size_t i = 0; i < nodes->count; i++) {
+    const atlas_node_t *node = VectorValue(nodes, atlas_node_t *, i);
     atlas->image->levels = Mini(atlas->image->levels, floorf(log2f(Maxi(node->w, node->h)) + 1));
   }
 
@@ -181,7 +181,9 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
       R_GetError(NULL);
 
-      g_ptr_array_foreach(atlas->atlas->nodes, R_CompileAtlas_Node, atlas);
+      for (size_t i = 0; i < nodes->count; i++) {
+        R_CompileAtlas_Node(VectorValue(nodes, atlas_node_t *, i), atlas);
+      }
     }
 
     SDL_DestroySurface(surf);

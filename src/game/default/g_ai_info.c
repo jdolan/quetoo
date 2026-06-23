@@ -59,7 +59,7 @@ static _Bool G_Ai_NameInUse(const g_client_t *cl, const char *name) {
       continue;
     }
     const char *other_name = InfoString_Get(other->user_info, "name");
-    if (other_name && strcmp(other_name, name) == 0) {
+    if (other_name && q_strcmp(other_name, name) == 0) {
       return true;
     }
   });
@@ -79,7 +79,7 @@ const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
 
   g_ai_roster_index = (g_ai_roster_index + 1) % g_ai_roster_count;
 
-  g_strlcpy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
+  q_strlcpy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
 
   InfoString_Set(info, "skin", entry->skin);
   InfoString_Set(info, "guid", entry->guid);
@@ -90,9 +90,9 @@ const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
   InfoString_Set(info, "pants", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
 
   char name[MAX_INFO_STRING_VALUE];
-  g_snprintf(name, sizeof(name), "%s%s", g_ai_name_prefix->string, entry->name);
+  q_snprintf(name, sizeof(name), "%s%s", g_ai_name_prefix->string, entry->name);
   for (uint32_t suffix = 1; G_Ai_NameInUse(cl, name); suffix++) {
-    g_snprintf(name, sizeof(name), "%s%s %u", g_ai_name_prefix->string, entry->name, suffix);
+    q_snprintf(name, sizeof(name), "%s%s %u", g_ai_name_prefix->string, entry->name, suffix);
   }
 
   InfoString_Set(info, "name", name);

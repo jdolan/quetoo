@@ -43,11 +43,11 @@ static MapListCollectionItemView *initWithFrame(MapListCollectionItemView *self,
 }
 
 /**
- * @fn void MapListCollectionItemView::setMapListItemInfo(MapListCollectionItemView *self, MapListItemInfo *info);
+ * @fn void MapListCollectionItemView::setMapListItemInfo(MapListCollectionItemView *self, const MapListItemInfo *info);
  *
  * @memberof MapListCollectionItemView
  */
-static void setMapListItemInfo(MapListCollectionItemView *self, MapListItemInfo *info) {
+static void setMapListItemInfo(MapListCollectionItemView *self, const MapListItemInfo *info) {
 
   CollectionItemView *item = (CollectionItemView *) self;
 
