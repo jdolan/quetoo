@@ -67,8 +67,7 @@ static void createServer(Button *button) {
       assert(string);
 
       for (size_t i = 0; i < selectedMaps->count; i++) {
-
-        const MapListItemInfo *info = (MapListItemInfo *) $(selectedMaps, pointerAtIndex, i);
+        const MapListItemInfo *info = (MapListItemInfo *) $(selectedMaps, get, i);
 
         char name[MAX_QPATH];
         StripExtension(Basename(info->mapname), name);

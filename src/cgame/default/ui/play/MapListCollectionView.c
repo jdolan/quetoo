@@ -60,7 +60,7 @@ static ident objectForItemAtIndexPath(const CollectionView *collectionView, cons
 
   const size_t index = $(indexPath, indexAtPosition, 0);
 
-  return $(this->maps, pointerAtIndex, $(indexPath, indexAtPosition, 0));
+  return $(this->maps, get, index);
 }
 
 #pragma mark - CollectionViewDelegate
@@ -73,7 +73,7 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
   const MapListCollectionView *this = (const MapListCollectionView *) collectionView;
   const size_t index = $(indexPath, indexAtPosition, 0);
 
-  const MapListItemInfo *info = $(this->maps, pointerAtIndex, index);
+  const MapListItemInfo *info = $(this->maps, get, index);
 
   MapListCollectionItemView *item = $(alloc(MapListCollectionItemView), initWithFrame, NULL);
   assert(item);
@@ -107,7 +107,7 @@ static void enumerateMaps(const char *path, void *data) {
   MapListCollectionView *this = (MapListCollectionView *) data;
 
   for (size_t i = 0; i < this->maps->count; i++) {
-    const MapListItemInfo *info = $(this->maps, pointerAtIndex, i);
+    const MapListItemInfo *info = $(this->maps, get, i);
     if (q_strcmp(info->mapname, path) == 0) {
       return;
     }
@@ -201,7 +201,7 @@ static void enumerateMaps(const char *path, void *data) {
       release(mapshots);
 
       synchronized(this->lock, {
-        $(this->maps, addPointer, info);
+        $(this->maps, add, info);
         $(this->maps, sort, sortMaps);
       });
     }
@@ -304,7 +304,7 @@ static PointerArray *selectedMaps(const MapListCollectionView *self) {
   Array *selection = $(this, selectionIndexPaths);
   for (size_t i = 0; i < selection->count; i++) {
     const IndexPath *indexPath = $(selection, objectAtIndex, i);
-    $(selected, addPointer, this->dataSource.objectForItemAtIndexPath(this, indexPath));
+    $(selected, add, this->dataSource.objectForItemAtIndexPath(this, indexPath));
   }
 
   release(selection);
