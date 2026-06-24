@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+uniform float modulate_mesh;
 uniform vec4 tint_colors[3];
 
 in common_vertex_t vertex;

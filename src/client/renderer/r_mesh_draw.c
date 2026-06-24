@@ -36,6 +36,8 @@ static struct {
 
   GLint lerp;
 
+  GLint modulate_mesh;
+
   GLint texture_material;
   GLint texture_stage;
   GLint texture_stage_next;
@@ -350,6 +352,9 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
   glUniform1f(r_mesh_program.lerp, e->lerp);
 
+  const float modulate_mesh = (e->effects & EF_WEAPON) ? 1.f : r_modulate_mesh->value;
+  glUniform1f(r_mesh_program.modulate_mesh, modulate_mesh);
+
   R_ActiveLights(view, e->abs_model_bounds, r_mesh_program.active_lights);
 
   glEnable(GL_DEPTH_TEST);
@@ -460,6 +465,8 @@ void R_InitMeshProgram(void) {
   r_mesh_program.model = glGetUniformLocation(r_mesh_program.name, "model");
 
   r_mesh_program.lerp = glGetUniformLocation(r_mesh_program.name, "lerp");
+
+  r_mesh_program.modulate_mesh = glGetUniformLocation(r_mesh_program.name, "modulate_mesh");
 
   r_mesh_program.texture_material = glGetUniformLocation(r_mesh_program.name, "texture_material");
   r_mesh_program.texture_stage = glGetUniformLocation(r_mesh_program.name, "texture_stage");
