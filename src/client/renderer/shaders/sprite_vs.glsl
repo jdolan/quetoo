@@ -49,23 +49,71 @@ vec3 sprite_lighting_light(in int index) {
 }
 
 /**
- * @brief Dynamic lighting for sprites
+ * @brief Per-channel darkening from a "dark" light (negative intensity), matching dark_light()
+ * in light.glsl. Lets a dark light absorb sprites -- including emissive ones such as projectiles
+ * and weapon glows -- so they fade through the light's color to black inside a void.
+ */
+vec3 sprite_dark_light(in int index) {
+
+  light_t light = lights[index];
+
+  float dist = distance(light.origin.xyz, in_position);
+  float atten = clamp(1.0 - dist / light.origin.w, 0.0, 1.0);
+
+  float k = clamp(1.0 - atten * (-light.color.a), 0.0, 1.0);
+  return k * (k + (1.0 - k) * light.color.rgb);
+}
+
+/**
+ * @brief Dynamic lighting for sprites.
+ * @details Positive lights only modulate lit sprites (in_lighting > 0), but dark lights absorb
+ * every sprite, emissive ones included, so projectiles and glows fade inside a void.
  */
 void sprite_lighting(void) {
 
-  if (in_lighting == 0.0) {
+  // Common path: no dark lights. Emissive sprites (in_lighting == 0) skip lighting entirely,
+  // exactly as before -- no per-sprite light loop.
+  if (num_dark_lights == 0) {
+
+    if (in_lighting == 0.0) {
+      return;
+    }
+
+    vec3 diffuse = vec3(0.0);
+
+    if (editor == 0) {
+      ivec2 data = voxel_light_data(voxel_xyz(in_position));
+      for (int i = 0; i < data.y; i++) {
+        diffuse += sprite_lighting_light(voxel_light_index(data.x + i));
+      }
+    }
+
+    for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
+      int index = active_lights[i];
+      if (index == -1) {
+        break;
+      }
+      diffuse += sprite_lighting_light(index);
+    }
+
+    vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
     return;
   }
 
+  // Dark lights present: positive lights still only modulate lit sprites, but dark lights absorb
+  // every sprite -- emissive ones (projectiles, glows) included -- so they fade inside a void.
   vec3 diffuse = vec3(0.0);
+  vec3 darkness = vec3(1.0);
 
   if (editor == 0) {
-    ivec3 voxel = voxel_xyz(in_position);
-    ivec2 data = voxel_light_data(voxel);
-
+    ivec2 data = voxel_light_data(voxel_xyz(in_position));
     for (int i = 0; i < data.y; i++) {
       int index = voxel_light_index(data.x + i);
-      diffuse += sprite_lighting_light(index);
+      if (lights[index].color.a < 0.0) {
+        darkness *= sprite_dark_light(index);
+      } else {
+        diffuse += sprite_lighting_light(index);
+      }
     }
   }
 
@@ -74,11 +122,18 @@ void sprite_lighting(void) {
     if (index == -1) {
       break;
     }
-
-    diffuse += sprite_lighting_light(index);
+    if (lights[index].color.a < 0.0) {
+      darkness *= sprite_dark_light(index);
+    } else {
+      diffuse += sprite_lighting_light(index);
+    }
   }
 
-  vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
+  if (in_lighting != 0.0) {
+    vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
+  }
+
+  vertex.color.rgb *= darkness;
 }
 
 /**

@@ -54,12 +54,18 @@ void R_UpdateLights(r_view_t *view) {
 
   const float inv_layer = r_shadow_atlas.layer_size > 0 ? 1.f / (float) r_shadow_atlas.layer_size : 0.f;
 
+  int32_t num_dark_lights = 0;
+
   r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
     r_light_uniform_t *out = &block->lights[i];
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
     out->shadow = Vec4(0.f, 0.f, 0.f, 0.f);
+
+    if (l->intensity < 0.f) {
+      num_dark_lights++;
+    }
 
     if (l->query) {
       l->occluded = l->query->result == 0;
@@ -90,6 +96,14 @@ void R_UpdateLights(r_view_t *view) {
 
   glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
   glBufferSubData(GL_UNIFORM_BUFFER, 0, size, block);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+  // Publish the dark-light count into the uniforms block so the shaders can gate the absorption
+  // path. This must happen here, not in R_UpdateUniforms: the lights are added on a worker thread
+  // that only completes (Thread_Wait) after R_UpdateUniforms has already run for the frame.
+  r_uniforms.block.num_dark_lights = num_dark_lights;
+  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
   R_GetError(NULL);

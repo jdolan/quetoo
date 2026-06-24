@@ -189,6 +189,35 @@ vec3 blinn_phong(in vec3 light_color, in vec3 light_dir, in common_fragment_t f)
 }
 
 /**
+ * @brief Calculate the per-channel multiplicative darkening from a single "dark" light
+ * (a light with negative intensity). Rather than adding light, a dark light scales all
+ * accumulated lighting toward zero as the fragment approaches it, so it absorbs other
+ * lights (ambient, diffuse, specular) instead of merely subtracting from them. This lets
+ * it produce a true void that brighter lights cannot override.
+ *
+ * A scalar term `k` drives every channel toward black as the fragment approaches the light
+ * (|intensity| >= 1 gives a true black core), while the surviving light is tinted toward the
+ * light's color as it darkens. So all lighting -- ambient, other lights' diffuse/specular
+ * (e.g. a weapon glow) -- fades THROUGH the light's color to black. The named color is what
+ * the gradient fades through (set green -> green-to-black), not what is removed.
+ *
+ * @return A per-channel factor in [0, 1]^3: (1,1,1) at/beyond the radius, approaching 0 near the center.
+ */
+vec3 dark_light(in common_vertex_t v, in int index) {
+  light_t light = lights[index];
+
+  float dist = length(light.origin.xyz - v.model_position);
+  float atten = clamp(1.0 - dist / light.origin.w, 0.0, 1.0);
+
+  // brightness multiplier: 1 at/beyond the radius, 0 at the center (intensity color.a is negative)
+  float k = clamp(1.0 - atten * (-light.color.a), 0.0, 1.0);
+
+  // tint the surviving light toward the light's color as it darkens; every channel still
+  // reaches 0 at k == 0, so the core is true black regardless of color
+  return k * (k + (1.0 - k) * light.color.rgb);
+}
+
+/**
  * @brief Calculate vertex lighting contribution from a single light (unshadowed diffuse only).
  * @param v Vertex data.
  * @param index The light index.
@@ -234,22 +263,55 @@ void vertex_lighting(inout common_vertex_t v) {
   v.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
   v.diffuse = vec3(0.0);
 
+  // Sample static voxel lights (none in editor mode, where all lights use active_lights)
+  ivec2 data = ivec2(0);
   if (editor == 0) {
-    ivec3 voxel_coord = voxel_xyz(v.model_position);
-    ivec2 data = voxel_light_data(voxel_coord);
+    data = voxel_light_data(voxel_xyz(v.model_position));
+  }
+
+  if (num_dark_lights == 0) {
+
+    // Common path: no dark lights. Identical to plain additive lighting.
+    for (int i = 0; i < data.y; i++) {
+      v.diffuse += vertex_light(v, voxel_light_index(data.x + i));
+    }
+
+    for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
+      int index = active_lights[i];
+      if (index == -1) {
+        break;
+      }
+      v.diffuse += vertex_light(v, index);
+    }
+
+  } else {
+
+    // Dark lights present: split additive vs. absorptive, then scale all lighting toward black.
+    vec3 darkness = vec3(1.0);
 
     for (int i = 0; i < data.y; i++) {
       int index = voxel_light_index(data.x + i);
-      v.diffuse += vertex_light(v, index);
+      if (lights[index].color.a < 0.0) {
+        darkness *= dark_light(v, index);
+      } else {
+        v.diffuse += vertex_light(v, index);
+      }
     }
-  }
 
-  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
-    int index = active_lights[i];
-    if (index == -1) {
-      break;
+    for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
+      int index = active_lights[i];
+      if (index == -1) {
+        break;
+      }
+      if (lights[index].color.a < 0.0) {
+        darkness *= dark_light(v, index);
+      } else {
+        v.diffuse += vertex_light(v, index);
+      }
     }
-    v.diffuse += vertex_light(v, index);
+
+    v.ambient *= darkness;
+    v.diffuse *= darkness;
   }
 
   vertex_caustics(v);
@@ -391,24 +453,56 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
   f.diffuse = vec3(0.0);
   f.specular = vec3(0.0);
 
+  // Sample static voxel lights (none in editor mode, where all lights use active_lights)
+  ivec2 data = ivec2(0);
   if (editor == 0) {
-    // Sample static voxel lights
-    ivec3 voxel_coord = voxel_xyz(v.model_position);
-    ivec2 data = voxel_light_data(voxel_coord);
+    data = voxel_light_data(voxel_xyz(v.model_position));
+  }
+
+  if (num_dark_lights == 0) {
+
+    // Common path: no dark lights. Identical to plain additive lighting.
+    for (int i = 0; i < data.y; i++) {
+      fragment_light(v, f, voxel_light_index(data.x + i));
+    }
+
+    for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
+      int index = active_lights[i];
+      if (index == -1) {
+        break;
+      }
+      fragment_light(v, f, index);
+    }
+
+  } else {
+
+    // Dark lights present: split additive vs. absorptive, then scale all lighting toward black.
+    vec3 darkness = vec3(1.0);
 
     for (int i = 0; i < data.y; i++) {
       int index = voxel_light_index(data.x + i);
-      fragment_light(v, f, index);
+      if (lights[index].color.a < 0.0) {
+        darkness *= dark_light(v, index);
+      } else {
+        fragment_light(v, f, index);
+      }
     }
-  }
 
-  // Sample dynamic lights
-  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
-    int index = active_lights[i];
-    if (index == -1) {
-      break;
+    for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
+      int index = active_lights[i];
+      if (index == -1) {
+        break;
+      }
+      if (lights[index].color.a < 0.0) {
+        darkness *= dark_light(v, index);
+      } else {
+        fragment_light(v, f, index);
+      }
     }
-    fragment_light(v, f, index);
+
+    f.ambient *= darkness;
+    f.diffuse *= darkness;
+    f.specular *= darkness;
   }
 
   fragment_caustics(v, f);
