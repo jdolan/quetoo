@@ -212,11 +212,6 @@ typedef struct {
     float modulate;
 
     /**
-     * @brief The light modulation scalar for mesh models (multiplies `modulate` just for mesh models).
-     */
-    float modulate_mesh;
-
-    /**
      * @brief The saturation scalar.
      */
     float saturation;

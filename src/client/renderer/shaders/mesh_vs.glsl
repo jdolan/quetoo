@@ -32,6 +32,7 @@ layout (location = 8) in vec3 in_next_bitangent;
 
 uniform mat4 model;
 uniform float lerp;
+uniform float modulate_mesh;
 uniform vec4 color;
 
 out common_vertex_t vertex;

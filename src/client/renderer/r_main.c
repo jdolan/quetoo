@@ -145,7 +145,6 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->ticks = view->ticks;
     out->ambient = r_ambient->value * view->ambient;
     out->modulate = r_modulate->value;
-    out->modulate_mesh = r_modulate_mesh->value;
     out->saturation = r_saturation->value;
     out->caustics = r_caustics->value;
     out->ambient_occlusion = r_ambient_occlusion->value;
