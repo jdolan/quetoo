@@ -44,7 +44,13 @@ static void Cg_UpdateFov(void) {
     }
 
     if (time == 0) {
-      prev = cgi.view->fov.x * 2.f;
+      // Reconstruct the previous cg_fov (the horizontal reference FOV) from the
+      // current view, the inverse of the per-mode derivation below. In Hor+ mode
+      // fov.x is the aspect-expanded horizontal, so derive it from the locked
+      // 16:9 vertical instead.
+      prev = cg_fov_scale->integer
+        ? 2.f * Degrees(atanf(tanf(Radians(cgi.view->fov.y)) * (16.f / 9.f)))
+        : cgi.view->fov.x * 2.f;
       next = cg_fov->value;
       time = cgi.client->unclamped_time;
     }
@@ -61,12 +67,25 @@ static void Cg_UpdateFov(void) {
     cg_fov->modified = false;
   }
 
-  cgi.view->fov.x = fov / 2.f;
-
   const float width = cgi.view->viewport.z;
   const float height = cgi.view->viewport.w;
 
-  cgi.view->fov.y = Degrees(atanf(tanf(Radians(fov / 2.f)) * height / width));
+  if (cg_fov_scale->integer) {
+    // Hor+ (horizontal-plus) widescreen scaling. cg_fov is the horizontal FOV at
+    // a 16:9 reference; lock the vertical FOV to that 16:9 value and widen the
+    // horizontal FOV for the actual aspect ratio. Wide / ultrawide displays then
+    // show more at the sides while keeping the vertical extent (and the
+    // first-person weapon) intact. fov.x/fov.y are half-angles, in degrees.
+    const float fov_y = atanf(tanf(Radians(fov / 2.f)) * (9.f / 16.f));
+    cgi.view->fov.y = Degrees(fov_y);
+    cgi.view->fov.x = Degrees(atanf(tanf(fov_y) * width / height));
+  } else {
+    // Classic behavior: cg_fov is the literal horizontal FOV and the vertical FOV
+    // is derived from the aspect ratio (vertical-minus), which shrinks the
+    // vertical FOV on wide displays.
+    cgi.view->fov.x = fov / 2.f;
+    cgi.view->fov.y = Degrees(atanf(tanf(Radians(fov / 2.f)) * height / width));
+  }
 }
 
 /**
