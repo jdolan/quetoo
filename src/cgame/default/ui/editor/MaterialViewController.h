@@ -24,6 +24,12 @@
 #include "cgame/cgame.h"
 
 #include <ObjectivelyMVC/ViewController.h>
+#include <ObjectivelyMVC/StackView.h>
+#include <ObjectivelyMVC/ScrollView.h>
+#include <ObjectivelyMVC/Button.h>
+#include <ObjectivelyMVC/Box.h>
+
+#include "StageView.h"
 
 /**
  * @file
@@ -57,9 +63,19 @@ struct MaterialViewController {
   r_material_t *material;
 
   /**
-   * @brief The material name text field.
+   * @brief The content container (boxes), reparented into a ScrollView at load.
    */
-  TextView *name;
+  StackView *content;
+
+  /**
+   * @brief The scroll view wrapping the tab content.
+   */
+  ScrollView *scrollView;
+
+  /**
+   * @brief The Material group box, whose title shows the material name.
+   */
+  Box *materialBox;
 
   /**
    * @brief The diffusemap texture name text field.
@@ -105,6 +121,21 @@ struct MaterialViewController {
    * @brief The alpha test threshold slider.
    */
   Slider *alphaTest;
+
+  /**
+   * @brief The container holding the per-stage StageViews.
+   */
+  StackView *stages;
+
+  /**
+   * @brief The Add Stage button.
+   */
+  Button *addStage;
+
+  /**
+   * @brief The currently selected stage panel, or `NULL`.
+   */
+  StageView *selectedStage;
 };
 
 /**

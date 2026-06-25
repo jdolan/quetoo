@@ -69,6 +69,7 @@
     <ClInclude Include="..\src\cgame\default\ui\editor\EntityViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\editor\MaterialViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\editor\MeshViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\editor\StageView.h" />
     <ClInclude Include="..\src\cgame\default\ui\credits\CreditsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\home\HomeViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\home\LeaderboardViewController.h" />
@@ -136,6 +137,7 @@
     <ClCompile Include="..\src\cgame\default\ui\editor\EntityViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\editor\MaterialViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\editor\MeshViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\editor\StageView.c" />
     <ClCompile Include="..\src\cgame\default\ui\credits\CreditsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\home\HomeViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\home\LeaderboardViewController.c" />

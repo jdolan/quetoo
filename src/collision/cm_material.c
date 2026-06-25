@@ -554,29 +554,7 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
 
     if (*token == '}') {
 
-      // a texture or envmap mean draw it
-      if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_SHELL)) {
-        s->flags |= STAGE_DRAW;
-
-        // terrain and dirtmapping use lighting
-        if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
-          s->flags |= STAGE_LIGHTING;
-        }
-
-        if (s->flags & STAGE_ENVMAP) {
-          s->flags |= STAGE_LIGHTING_FLAT;
-          s->lighting.mode = STAGE_LIGHTING_MODE_FLAT;
-        }
-      }
-
-      // ensure appropriate blend function defaults
-      if (s->blend.src == 0) {
-        s->blend.src = GL_SRC_ALPHA;
-      }
-
-      if (s->blend.dest == 0) {
-        s->blend.dest = GL_ONE_MINUS_SRC_ALPHA;
-      }
+      Cm_FinalizeStage(s);
 
       Com_Debug(DEBUG_COLLISION,
                 "Parsed stage\n"
@@ -643,6 +621,91 @@ static void Cm_AppendStage(cm_material_t *m, cm_stage_t *s) {
     }
     ss->next = s;
   }
+}
+
+/**
+ * @brief Recomputes a stage's derived flags and blend defaults. Safe to call
+ * repeatedly (e.g. after the editor toggles a stage flag), unlike the additive
+ * parse-time logic: `STAGE_DRAW` is cleared and recomputed so that disabling a
+ * stage's texture/envmap/shell correctly stops it from drawing.
+ */
+void Cm_FinalizeStage(cm_stage_t *s) {
+
+  // a texture, envmap or shell means draw it
+  s->flags &= ~STAGE_DRAW;
+  if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_SHELL)) {
+    s->flags |= STAGE_DRAW;
+
+    // terrain and dirtmapping use lighting
+    if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
+      s->flags |= STAGE_LIGHTING;
+    }
+
+    if (s->flags & STAGE_ENVMAP) {
+      s->flags |= STAGE_LIGHTING_FLAT;
+      s->lighting.mode = STAGE_LIGHTING_MODE_FLAT;
+    }
+  }
+
+  // ensure appropriate blend function defaults
+  if (s->blend.src == 0) {
+    s->blend.src = GL_SRC_ALPHA;
+  }
+
+  if (s->blend.dest == 0) {
+    s->blend.dest = GL_ONE_MINUS_SRC_ALPHA;
+  }
+}
+
+/**
+ * @brief Allocates a new stage, seeds sensible defaults, and appends it to the
+ * material. The stage defaults to a textured copy of the material's diffusemap
+ * so that it renders immediately. Marks the material dirty.
+ * @return The new stage.
+ */
+cm_stage_t *Cm_AddStage(cm_material_t *m) {
+
+  cm_stage_t *s = (cm_stage_t *) Mem_LinkMalloc(sizeof(*s), m);
+
+  s->asset = m->diffusemap;
+  s->color = color_white;
+  s->flags |= STAGE_TEXTURE;
+
+  Cm_FinalizeStage(s);
+
+  Cm_AppendStage(m, s);
+
+  m->stage_flags |= s->flags;
+  m->dirty = true;
+
+  return s;
+}
+
+/**
+ * @brief Unlinks and frees a stage from the material, recomputing the material's
+ * aggregate stage flags. Marks the material dirty.
+ */
+void Cm_RemoveStage(cm_material_t *m, cm_stage_t *s) {
+
+  if (m->stages == s) {
+    m->stages = s->next;
+  } else {
+    for (cm_stage_t *ss = m->stages; ss; ss = ss->next) {
+      if (ss->next == s) {
+        ss->next = s->next;
+        break;
+      }
+    }
+  }
+
+  Mem_Free(s);
+
+  m->stage_flags = STAGE_NONE;
+  for (const cm_stage_t *ss = m->stages; ss; ss = ss->next) {
+    m->stage_flags |= ss->flags;
+  }
+
+  m->dirty = true;
 }
 
 /**

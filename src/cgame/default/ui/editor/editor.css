@@ -1,12 +1,41 @@
+/* Top menu strip, mirroring the main-menu strip (height/style). */
+#editorMenu {
+  autoresizing-mask: width;
+  axis: horizontal;
+  background-color: #222222aa;
+  distribution: fill-equally;
+  padding: 4;
+  spacing: 12;
+}
+
+#editorMenu Button {
+  background-color: #08151a;
+  border-color: #ffffff;
+  border-width: 1;
+  bevel: none;
+  min-height: 36;
+}
+
+#editorMenu Button > Text {
+  font-style: bold;
+}
+
+/* Content area below the strip; padding-top reserves the strip height. */
+#editorContent {
+  autoresizing-mask: fill;
+  padding-top: 44;
+}
+
+/* Panel dock, drag and resize are set in EditorViewController loadView. */
 Panel.editor {
-  alignment: middle-right;
-  draggable: true;
+  min-width: 420;
 }
 
 Panel.editor .tabPageView {
   autoresizing-mask: none;
   width: 420;
-  height: 720;
+  /* height is set per-resolution in EditorViewController::fitContentHeight
+     (window_bounds.h - strip - chrome) so the panel fills the viewport. */
 }
 
 #entity {

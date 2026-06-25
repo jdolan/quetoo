@@ -1,28 +1,39 @@
 {
   "identifier": "entity",
-  "classNames": [
-    "container"
-  ],
   "subviews": [
     {
+      "identifier": "entityContent",
       "class": "StackView",
       "classNames": [
         "container"
       ],
       "subviews": [
         {
-          "identifier": "pairs",
-          "class": "StackView",
-          "classNames": [
-            "container"
-          ],
-          "subviews": [
-            
-          ]
-        },
-        {
-          "identifier": "add",
-          "class": "EntityView"
+          "identifier": "entityBox",
+          "class": "Box",
+          "label": {
+            "text": {
+              "text": "Entity"
+            }
+          },
+          "contentView": {
+            "subviews": [
+              {
+                "identifier": "pairs",
+                "class": "StackView",
+                "classNames": [
+                  "container"
+                ],
+                "subviews": [
+
+                ]
+              },
+              {
+                "identifier": "add",
+                "class": "EntityView"
+              }
+            ]
+          }
         },
         {
           "identifier": "teamEntity",
@@ -41,7 +52,7 @@
                   "container"
                 ],
                 "subviews": [
-                  
+
                 ]
               },
               {
@@ -49,6 +60,26 @@
                 "class": "EntityView"
               }
             ]
+          }
+        }
+      ]
+    },
+    {
+      "identifier": "createDelete",
+      "class": "StackView",
+      "subviews": [
+        {
+          "identifier": "createEntity",
+          "class": "Button",
+          "title": {
+            "text": "Create Entity"
+          }
+        },
+        {
+          "identifier": "deleteEntity",
+          "class": "Button",
+          "title": {
+            "text": "Delete Entity"
           }
         }
       ]

@@ -15,7 +15,8 @@ noinst_HEADERS = \
 	EntityView.h \
 	EntityViewController.h \
 	MaterialViewController.h \
-	MeshViewController.h
+	MeshViewController.h \
+	StageView.h
 
 noinst_LTLIBRARIES = \
 	libcguieditor.la
@@ -25,13 +26,17 @@ libcguieditor_la_SOURCES = \
 	EntityView.c \
 	EntityViewController.c \
 	MaterialViewController.c \
-	MeshViewController.c
+	MeshViewController.c \
+	StageView.c
 
 libcguieditor_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/cgame \
 	-I$(top_srcdir)/src/cgame/default \
 	-I$(top_srcdir)/src/cgame/default/ui \
+	-I$(top_srcdir)/src/cgame/default/ui/common \
+	-I$(top_srcdir)/src/cgame/default/ui/controls \
+	-I$(top_srcdir)/src/cgame/default/ui/settings \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \

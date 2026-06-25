@@ -106,6 +106,20 @@ static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
   cgi.WriteEntityInfoCommand(this->teamEntity->number, this->teamEntity->def);
 }
 
+/**
+ * @brief ButtonDelegate for Create Entity (lives on the Entity tab).
+ */
+static void didClickCreateEntity(Button *button) {
+  $((EntityViewController *) button->delegate.self, createEntity);
+}
+
+/**
+ * @brief ButtonDelegate for Delete Entity (lives on the Entity tab).
+ */
+static void didClickDeleteEntity(Button *button) {
+  $((EntityViewController *) button->delegate.self, deleteEntity);
+}
+
 #pragma mark - Object
 
 /**
@@ -130,8 +144,12 @@ static void loadView(ViewController *self) {
   EntityViewController *this = (EntityViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
+    MakeOutlet("entityBox", &this->entityBox),
+    MakeOutlet("createEntity", &this->createEntity),
+    MakeOutlet("deleteEntity", &this->deleteEntity),
     MakeOutlet("pairs", &this->pairs),
     MakeOutlet("add", &this->add),
+    MakeOutlet("teamEntity", &this->teamMasterBox),
     MakeOutlet("teamPairs", &this->teamPairs),
     MakeOutlet("teamAdd", &this->teamAdd)
   );
@@ -147,6 +165,24 @@ static void loadView(ViewController *self) {
 
   this->teamAdd->delegate.self = this;
   this->teamAdd->delegate.didEditEntity = didEditTeamEntity;
+
+  this->createEntity->delegate.self = this;
+  this->createEntity->delegate.didClick = didClickCreateEntity;
+
+  this->deleteEntity->delegate.self = this;
+  this->deleteEntity->delegate.didClick = didClickDeleteEntity;
+
+  // The Create/Delete bar is pinned to the bottom-left of the tab. For bottom
+  // alignment to reach the bottom of the viewport (not just the bottom of the
+  // content), the page must fill the tab page; set in C since a per-view
+  // stylesheet does not reliably style this controller's own views.
+  self->view->autoresizingMask = ViewAutoresizingFill;
+
+  StackView *createDelete = (StackView *) $(self->view, descendantWithIdentifier, "createDelete");
+  assert(createDelete);
+  createDelete->axis = StackViewAxisHorizontal;
+  createDelete->spacing = 4;
+  ((View *) createDelete)->alignment = ViewAlignmentBottomLeft;
 }
 
 /**
@@ -366,7 +402,8 @@ static void deleteEntity(EntityViewController *self) {
 
   if (self->entity && self->entity->number) {
     cgi.WriteEntityInfoCommand(self->entity->number, NULL);
-    $(self, setEntity, NULL);
+    // Fall back to worldspawn (entity 0) rather than clearing the selection.
+    $(self, setEntity, &cg_editor.entities[0]);
   }
 }
 
@@ -396,9 +433,19 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
     self->entity = entity;
     self->teamEntity = entity;
 
+    // The classname is shown as the group-box title (not as an editable pair),
+    // and gates the Team Master box (lights only).
+    const char *classname = cgi.EntityValue(self->entity->def, "classname")->string;
+    $(self->entityBox->label->text, setText, *classname ? classname : "Entity");
+    ((View *) self->teamMasterBox)->hidden = q_strcmp(classname, "light") != 0;
+
     for (cm_entity_t *e = self->entity->def; e; e = e->next) {
 
       if (!q_strncmp(e->key, "_tb_", 4)) {
+        continue;
+      }
+
+      if (!q_strcmp(e->key, "classname")) {
         continue;
       }
 
@@ -416,7 +463,6 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
       release(view);
     }
 
-    const char *classname = cgi.EntityValue(self->entity->def, "classname")->string;
     if (!q_strcmp(classname, "light")) {
 
       const char *team = cgi.EntityValue(self->entity->def, "team")->nullable_string;
@@ -450,12 +496,33 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
   } else {
     self->entity = NULL;
     self->teamEntity = NULL;
+
+    $(self->entityBox->label->text, setText, "Entity");
+    ((View *) self->teamMasterBox)->hidden = true;
   }
 
   cg_editor.selected = self->entity ? self->entity->number : -1;
 
+  // Delete is invalid for nothing-selected and for worldspawn (number 0).
+  Control *deleteEntity = (Control *) self->deleteEntity;
+  if (cg_editor.selected <= 0) {
+    deleteEntity->state |= ControlStateDisabled;
+  } else {
+    deleteEntity->state &= ~ControlStateDisabled;
+  }
+  $(deleteEntity, stateDidChange);
+
   $((View *) self->pairs, sizeToFit);
   $((View *) self->teamPairs, sizeToFit);
+
+  // The Team Master box toggles hidden<->visible and the boxes' contents change
+  // on each selection; mark both boxes and their container StackView for layout
+  // so the container re-arranges in the next (pre-draw) pass. Without this a
+  // freshly Created entity renders with the boxes overlapping at the top until
+  // the next selection forces a re-layout.
+  ((View *) self->entityBox)->needsLayout = true;
+  ((View *) self->teamMasterBox)->needsLayout = true;
+  ((View *) self->entityBox)->superview->needsLayout = true;
 
   SDL_PushEvent(&(SDL_Event) {
     .user.type = MVC_NOTIFICATION_EVENT,

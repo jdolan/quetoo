@@ -21,32 +21,40 @@
 
 #include "cg_local.h"
 
+#include <ObjectivelyMVC/Panel.h>
+
 #include "EditorViewController.h"
 #include "EntityViewController.h"
 #include "MaterialViewController.h"
 #include "MeshViewController.h"
 
+#include "ControlsViewController.h"
+#include "SettingsViewController.h"
+#include "DialogViewController.h"
+
+/**
+ * @brief Height of the top menu strip, in pixels. The content area is inset by
+ * this much at the top so the docked panel / sub-views sit below the strip.
+ */
+#define EDITOR_MENU_HEIGHT 44
+
+/**
+ * @brief Width of the docked editor panel, in pixels. Defined on the panel; its
+ * content (tabs/pages) conforms to it.
+ */
+#define EDITOR_PANEL_WIDTH 420
+
+/**
+ * @brief Non-page chrome of the docked panel, in UI (window_bounds) units: the
+ * tab selection bar + the action-button bar + the panel's paddings/spacings.
+ * Used to size the tab page so the panel spans from below the strip to the
+ * window bottom: tabPage.h = window_bounds.h - EDITOR_MENU_HEIGHT - this.
+ * Roughly constant across resolutions (UI elements are fixed-unit); tune if the
+ * action bar doesn't sit flush at the window bottom.
+ */
+#define EDITOR_PANEL_CHROME 130
+
 #pragma mark - Delegates
-
-/**
- * @brief ButtonDelegate for Create Entity.
- */
-static void didClickCreateEntity(Button *button) {
-
-  EditorViewController *this = button->delegate.self;
-
-  $(this->entityViewController, createEntity);
-}
-
-/**
- * @brief ButtonDelegate for Delete Entity.
- */
-static void didClickDeleteEntity(Button *button) {
-
-  EditorViewController *this = button->delegate.self;
-
-  $(this->entityViewController, deleteEntity);
-}
 
 /**
  * @brief ButtonDelegate for Save .map, .mat, and mesh configs.
@@ -59,6 +67,129 @@ static void didClickSave(Button *button) {
   cgi.Cbuf("r_save_materials\n");
 
   $(this->meshViewController, save);
+}
+
+/**
+ * @brief Presents `clazz` (a Settings/Controls view controller) in the content
+ * area below the menu strip, hiding the editor panel. Pass NULL to return to
+ * the Editor tab (tear down any presented controller and re-show the panel).
+ */
+static void selectContent(EditorViewController *this, Class *clazz) {
+
+  if (this->contentViewController) {
+    $(this->contentViewController, removeFromParentViewController);
+    this->contentViewController = NULL;
+  }
+
+  if (clazz) {
+    ((View *) this->panel)->hidden = true;
+
+    ViewController *viewController = $((ViewController *) _alloc(clazz), init);
+    assert(viewController);
+
+    $((ViewController *) this, addChildViewController, viewController);
+    $((View *) this->content, addSubview, viewController->view);
+
+    // Center the panel in the content area (below the strip), at its natural
+    // size — mirroring how the main menu centers Settings/Controls via
+    // `#contentView > View > * { alignment: middle-center; }`.
+    viewController->view->alignment = ViewAlignmentMiddleCenter;
+    viewController->view->needsLayout = true;
+
+    release(viewController);
+    this->contentViewController = viewController;
+  } else {
+    ((View *) this->panel)->hidden = false;
+  }
+}
+
+/**
+ * @brief ButtonDelegate for the Editor tab: re-show the editor panel.
+ */
+static void didClickEditorTab(Button *button) {
+  selectContent(button->delegate.self, NULL);
+}
+
+/**
+ * @brief ButtonDelegate for the Settings tab.
+ */
+static void didClickSettings(Button *button) {
+  selectContent(button->delegate.self, _SettingsViewController());
+}
+
+/**
+ * @brief ButtonDelegate for the Controls tab.
+ */
+static void didClickControls(Button *button) {
+  selectContent(button->delegate.self, _ControlsViewController());
+}
+
+/**
+ * @brief ButtonDelegate to leave edit mode and reload the current map fresh
+ * (discarding unsaved edits — Save first to keep them). `editor` is a CVAR_LATCH
+ * server cvar, so it only takes effect on a map (re)start; `reconnect` keeps the
+ * same running server, so the latch would never apply. Restart the current map
+ * instead — CS_BSP holds "maps/<name>.bsp".
+ */
+static void didClickDisableEditor(Button *button) {
+
+  const char *bsp = cgi.ConfigString(CS_BSP);
+
+  if (bsp && *bsp) {
+    char name[MAX_QPATH];
+    StripExtension(Basename(bsp), name);
+    cgi.Cbuf(va("set editor 0; map %s\n", name));
+  } else {
+    cgi.Cbuf("set editor 0\n");
+  }
+}
+
+/**
+ * @brief Quit the game.
+ */
+static void quit(ident data) {
+  cgi.Cbuf("quit\n");
+}
+
+/**
+ * @brief ButtonDelegate for Quit.
+ */
+static void didClickQuit(Button *button) {
+
+  EditorViewController *this = button->delegate.self;
+
+  const Dialog dialog = {
+    .message = "Are you sure you want to quit?",
+    .ok = "Yes",
+    .cancel = "No",
+    .okFunction = quit
+  };
+
+  ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
+  $((ViewController *) this, addChildViewController, viewController);
+}
+
+/**
+ * @brief Appends a button to the top menu strip.
+ */
+static void menuButton(EditorViewController *this, const char *title, void (*didClick)(Button *)) {
+
+  Button *button = $(alloc(Button), initWithTitle, title);
+  assert(button);
+
+  button->control.view.identifier = strdup(title);
+  button->delegate.self = this;
+  button->delegate.didClick = didClick;
+
+  // Style in C (editor.css's #editorMenu rules don't reliably apply to this
+  // controller's view tree), mirroring the main-menu strip buttons.
+  View *buttonView = (View *) button;
+  buttonView->backgroundColor = (SDL_Color) { 8, 21, 26, 255 };
+  buttonView->borderColor = (SDL_Color) { 255, 255, 255, 255 };
+  buttonView->borderWidth = 1;
+
+  $((View *) this->menu, addSubview, (View *) button);
+  release(button);
 }
 
 #define _Class _EditorViewController
@@ -75,6 +206,27 @@ static void dealloc(Object *self) {
   release(this->meshViewController);
 
   super(Object, self, dealloc);
+}
+
+/**
+ * @brief TabView delegate: re-fit the docked panel to the newly selected tab.
+ * @details The panel is content-sized (Panel `autoresizing-mask: contain`), but a
+ * PageView height change on tab switch does not reliably propagate up to the
+ * panel in a single pass, so the panel stays sized to the first (entity) tab and
+ * taller tabs (material/mesh) overflow -- their content runs past the panel and
+ * the action bar overlaps the middle of the form. Marking the chain from the new
+ * page up to and including the panel dirty forces the next layout pass (this same
+ * KEY_UI frame, depth-first) to re-fit each view to the selected tab.
+ */
+static void didSelectTab(TabView *tabView, TabViewItem *tab) {
+
+  // Intentionally a no-op. The tab page is a FIXED height (editor.css
+  // `.tabPageView { height: 600 }`), so the panel never needs to re-fit when the
+  // active tab changes -- the action bar stays put and shorter tabs simply have
+  // empty space below their content. Per-tab auto-fit (sizeToContain here) was
+  // both unreliable in MVC and crashed on teardown, so it was removed.
+  (void) tabView;
+  (void) tab;
 }
 
 #pragma mark - ViewController
@@ -97,6 +249,51 @@ static void loadView(ViewController *self) {
   $(self, setView, view);
   release(view);
 
+  // The root container fills the window. This is set here, not in editor.css:
+  // a per-view stylesheet does not style its own root view, so a `#editor` rule
+  // would no-op. (Its descendants editorMenu/editorContent ARE styled by CSS.)
+  self->view->autoresizingMask = ViewAutoresizingFill;
+
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("editorMenu", &this->menu),
+    MakeOutlet("editorContent", &this->content),
+    MakeOutlet("editorPanel", &this->panel),
+    MakeOutlet("save", &this->save)
+  );
+
+  $(self->view, resolve, outlets);
+
+  // Editor chrome layout is driven here, not in editor.css: the per-view
+  // stylesheet's #editorMenu / #editorContent ID rules don't reliably reach this
+  // controller's view tree, so set the essentials directly.
+
+  // Top menu strip: horizontal, full width, docked at the top of the window.
+  this->menu->axis = StackViewAxisHorizontal;
+  this->menu->distribution = StackViewDistributionFillEqually;
+  this->menu->spacing = 8;
+  ((View *) this->menu)->autoresizingMask = ViewAutoresizingWidth;
+  ((View *) this->menu)->padding = MakePadding(4, 4, 4, 4);
+  ((View *) this->menu)->backgroundColor = (SDL_Color) { 34, 34, 34, 170 };
+  // Force a real height: a horizontal StackView's sizeThatFits collapses its
+  // height (children measure 0 before layout), leaving the strip's frame empty
+  // so hitTest skips it and clicks fall through. minSize keeps it hittable.
+  ((View *) this->menu)->minSize.h = EDITOR_MENU_HEIGHT;
+
+  // Content area fills the window; its top inset reserves the strip's height so
+  // the panel (and any Settings/Controls sub-view) sit below the strip.
+  ((View *) this->content)->autoresizingMask = ViewAutoresizingFill;
+  ((View *) this->content)->padding = MakePadding(EDITOR_MENU_HEIGHT, 0, 0, 0);
+
+  // The editor Panel is a docked, fixed child (not a free window): disable drag
+  // and resize, dock it top-left below the strip. Width is defined here on the
+  // panel (its content conforms via autoresizing); height is filled per-frame by
+  // fitContentHeight.
+  this->panel->isDraggable = false;
+  this->panel->isResizable = false;
+  ((View *) this->panel)->alignment = ViewAlignmentTopLeft;
+  ((View *) this->panel)->minSize.w = EDITOR_PANEL_WIDTH;
+
+  // Editor tabs (entity/material/mesh) live inside the panel's content view.
   this->tabViewController = $(alloc(TabViewController), init);
   assert(this->tabViewController);
 
@@ -116,24 +313,30 @@ static void loadView(ViewController *self) {
   $(tabViewController, addChildViewController, (ViewController *) this->meshViewController);
 
   $(self, addChildViewController, tabViewController);
-  $((View *) ((Panel *) self->view)->contentView, addSubview, tabViewController->view);
 
-  Outlet outlets[] = MakeOutlets(
-    MakeOutlet("createEntity", &this->createEntity),
-    MakeOutlet("deleteEntity", &this->deleteEntity),
-    MakeOutlet("save", &this->save)
-  );
+  // Re-fit the panel when the active tab changes (taller tabs otherwise overflow
+  // the entity-tab-sized panel; see didSelectTab).
+  this->tabViewController->tabView->delegate.self = this;
+  this->tabViewController->tabView->delegate.didSelectTab = didSelectTab;
 
-  $(self->view, resolve, outlets);
-
-  this->createEntity->delegate.self = this;
-  this->createEntity->delegate.didClick = didClickCreateEntity;
-
-  this->deleteEntity->delegate.self = this;
-  this->deleteEntity->delegate.didClick = didClickDeleteEntity;
+  // Match the working menu panels (Settings/CreateServer): the action buttons
+  // live in a `.accessoryView` StackView INSIDE the panel's contentView (not the
+  // Panel's built-in accessoryView property, whose contentSize math undersizes
+  // the content and floats/pushes the bar). The tab view goes ABOVE that bar.
+  View *editorAccessory = $(self->view, descendantWithIdentifier, "editorAccessory");
+  assert(editorAccessory);
+  $((View *) this->panel->contentView, addSubviewRelativeTo, tabViewController->view,
+    editorAccessory, ViewPositionBefore);
 
   this->save->delegate.self = this;
   this->save->delegate.didClick = didClickSave;
+
+  // Top menu strip (mirrors the main-menu strip).
+  menuButton(this, "Editor", didClickEditorTab);
+  menuButton(this, "Settings", didClickSettings);
+  menuButton(this, "Controls", didClickControls);
+  menuButton(this, "Disable editor and reload map", didClickDisableEditor);
+  menuButton(this, "Quit", didClickQuit);
 }
 
 /**
@@ -147,14 +350,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
     switch (event->user.code) {
       case NOTIFICATION_ENTITY_SELECTED: {
-        Control *deleteEntity = (Control *) this->deleteEntity;
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
-        if (number <= 0) {
-          deleteEntity->state |= ControlStateDisabled;
-        } else {
-          deleteEntity->state &= ~ControlStateDisabled;
-        }
-        $(deleteEntity, stateDidChange);
 
         r_model_t *model = NULL;
         if (number > 0) {
@@ -172,6 +368,44 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
   super(ViewController, self, respondToEvent, event);
 }
 
+#pragma mark - EditorViewController
+
+/**
+ * @fn void EditorViewController::showEditorTab(EditorViewController *self)
+ * @memberof EditorViewController
+ */
+static void showEditorTab(EditorViewController *self) {
+  selectContent(self, NULL);
+}
+
+/**
+ * @fn void EditorViewController::fitContentHeight(EditorViewController *self)
+ * @memberof EditorViewController
+ */
+static void fitContentHeight(EditorViewController *self) {
+
+  View *tabPage = (View *) self->tabViewController->tabView->tabPageView;
+
+  // Size the (fixed, autoresizing:none) tab page so the panel spans from below
+  // the strip to the window bottom -- resolution-adaptive, unlike a hardcoded
+  // height. window_bounds is the UI's coordinate space (raw SDL_GetWindowSize,
+  // NOT r_draw_scale-divided), so the chrome constant is stable across displays.
+  //
+  // This only assigns a frame value + needsLayout flags; it does NOT force a
+  // layout or touch any ancestor/root frame. That distinction is the whole
+  // ballgame: the earlier full-height attempts broke hit-testing / crashed
+  // precisely because they forced layout from this (KEY_GAME) tick. MVC applies
+  // the new height on its next KEY_UI layout, and `autoresizing-mask: none`
+  // keeps it (the parent does not override it).
+  const int target = cgi.context->window_bounds.h - EDITOR_MENU_HEIGHT - EDITOR_PANEL_CHROME;
+
+  if (target > 0 && tabPage->frame.h != target) {
+    tabPage->frame.h = target;
+    tabPage->needsLayout = true;
+    ((View *) self->panel)->needsLayout = true;
+  }
+}
+
 #pragma mark - Class lifecycle
 
 /**
@@ -183,6 +417,9 @@ static void initialize(Class *clazz) {
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
   ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
+
+  ((EditorViewControllerInterface *) clazz->interface)->showEditorTab = showEditorTab;
+  ((EditorViewControllerInterface *) clazz->interface)->fitContentHeight = fitContentHeight;
 }
 
 /**

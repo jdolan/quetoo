@@ -11,6 +11,10 @@ Box > Label {
   background-color: #0c1f27;
 }
 
+Box > Label > Text {
+  font-size: 17;
+}
+
 Box > .contentView > Input > Label {
   min-width: 200;
 }

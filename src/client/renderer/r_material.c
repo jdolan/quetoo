@@ -212,6 +212,25 @@ static void R_ResolveMaterialStages(r_material_t *material) {
 }
 
 /**
+ * @brief Rebuilds a material's render stage list from its collision stages,
+ * reloading stage media. Called by the in-game editor after a stage is added,
+ * removed, or has a draw-affecting flag toggled. Editing a parameter or flag of
+ * an existing stage needs no rebuild, since the draw path reads `stage->cm`
+ * fields live.
+ */
+void R_UpdateMaterialStages(r_material_t *material) {
+
+  for (r_stage_t *stage = material->stages; stage; ) {
+    r_stage_t *next = stage->next;
+    Mem_Free(stage);
+    stage = next;
+  }
+  material->stages = NULL;
+
+  R_ResolveMaterialStages(material);
+}
+
+/**
  * @brief Resolves all asset references in the specified collision material, yielding a usable
  * renderer material.
  */
