@@ -129,11 +129,6 @@ PKG_CHECK_MODULES([CURSES], [ncurses >= 5.0],, [
 	)
 ])
 
-dnl --------------
-dnl Check for GLib
-dnl --------------
-PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.0.0])
-
 dnl --------------------------
 dnl Check for SDL3, SDL3_image
 dnl --------------------------
@@ -150,7 +145,7 @@ dnl ------------------------
 dnl Check for Objectively
 dnl ------------------------
 
-PKG_CHECK_MODULES([OBJECTIVELY], [Objectively])
+PKG_CHECK_MODULES([OBJECTIVELY], [Objectively >= 2.0.0])
 
 dnl ------------------------
 dnl Check for ObjectivelyMVC

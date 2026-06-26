@@ -34,7 +34,7 @@ Looking for a game? Join the official [Quetoo Discord](https://discord.gg/unb9U4
 
 ## Compiling
 
-Compiling _Quetoo_ is only recommended for developers and mappers. Supported platforms and targets include GNU Linux, BSD, macOS, and Microsoft Visual Studio.
+Compiling _Quetoo_ is only recommended for developers and modders. Supported platforms and targets include GNU Linux, BSD, macOS, and Microsoft Visual Studio.
 
 The following dependencies are required:
 
@@ -42,14 +42,13 @@ The following dependencies are required:
  * [PhysicsFS](https://icculus.org/physfs/)
  * [OpenAL](https://www.openal.org/)
  * [libsndfile](http://mega-nerd.com/libsndfile/)
- * [glib2](https://developer.gnome.org/glib/)
  * [ncurses](https://www.gnu.org/software/ncurses/)
 
 Quetoo builds with GNU Autotools. To build it, run the following:
 
     autoreconf -i
     ./configure [--with-tests --with-master]
-    make && sudo make install
+    make -j8 && sudo make install
 
 ## Installing
 

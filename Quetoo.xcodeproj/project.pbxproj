@@ -5352,7 +5352,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5365,7 +5364,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5378,7 +5376,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5391,7 +5388,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5438,9 +5434,7 @@
 					"$(WORKSPACE_PREFIX)/Objectively/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyMVC/Sources",
 					"$(HOMEBREW_PREFIX)/include",
-					"$(HOMEBREW_PREFIX)/include/glib-2.0",
 					"$(HOMEBREW_PREFIX)/include/SDL3",
-					"$(HOMEBREW_PREFIX)/lib/glib-2.0/include",
 					"$(HOMEBREW_PREFIX)/opt/ncurses/include",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/include",
 				);
@@ -5487,9 +5481,7 @@
 					"$(WORKSPACE_PREFIX)/Objectively/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyMVC/Sources",
 					"$(HOMEBREW_PREFIX)/include",
-					"$(HOMEBREW_PREFIX)/include/glib-2.0",
 					"$(HOMEBREW_PREFIX)/include/SDL3",
-					"$(HOMEBREW_PREFIX)/lib/glib-2.0/include",
 					"$(HOMEBREW_PREFIX)/opt/ncurses/include",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/include",
 				);
@@ -5518,8 +5510,7 @@
 					"$(HOMEBREW_PREFIX)/lib",
 				);
 				OTHER_LDFLAGS = (
-					"-lcurl",
-					"-lglib-2.0",
+					"-lSDL3",
 					"-lncurses",
 					"-lopenal",
 					"-lphysfs",
@@ -5537,8 +5528,7 @@
 					"$(HOMEBREW_PREFIX)/lib",
 				);
 				OTHER_LDFLAGS = (
-					"-lcurl",
-					"-lglib-2.0",
+					"-lSDL3",
 					"-lncurses",
 					"-lopenal",
 					"-lphysfs",
@@ -5553,7 +5543,6 @@
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = "-lglib-2.0";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5563,7 +5552,6 @@
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = "-lglib-2.0";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5573,10 +5561,7 @@
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = (
-					"-all_load",
-					"-lglib-2.0",
-				);
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5586,10 +5571,7 @@
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = (
-					"-all_load",
-					"-lglib-2.0",
-				);
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5628,7 +5610,6 @@
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
 					"-lSDL3",
-					"-lglib-2.0",
 					"-lncurses",
 					"-lphysfs",
 				);
@@ -5642,7 +5623,6 @@
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
 					"-lSDL3",
-					"-lglib-2.0",
 					"-lncurses",
 					"-lphysfs",
 				);
@@ -5690,7 +5670,6 @@
 					"-lSDL3",
 					"-lSDL3_image",
 					"-lcheck",
-					"-lglib-2.0",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5704,7 +5683,6 @@
 					"-lSDL3",
 					"-lSDL3_image",
 					"-lcheck",
-					"-lglib-2.0",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5717,7 +5695,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5731,7 +5708,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5745,7 +5721,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5758,7 +5733,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5771,7 +5745,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5785,7 +5758,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5799,7 +5771,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5813,7 +5784,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5827,7 +5797,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5841,7 +5810,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5855,7 +5823,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5869,7 +5836,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5922,7 +5888,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lSDL3_image",
-					"-lglib-2.0",
 					"-lphysfs",
 					"-lxml2",
 					"-lz",
@@ -5941,7 +5906,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lSDL3_image",
-					"-lglib-2.0",
 					"-lphysfs",
 					"-lxml2",
 					"-lz",
@@ -6083,7 +6047,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -6096,7 +6059,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -6106,10 +6068,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = (
-					"-lcheck",
-					"-lglib-2.0",
-				);
+				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -6118,10 +6077,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = (
-					"-lcheck",
-					"-lglib-2.0",
-				);
+				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -6130,10 +6086,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = (
-					"-lcheck",
-					"-lglib-2.0",
-				);
+				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -6142,10 +6095,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = (
-					"-lcheck",
-					"-lglib-2.0",
-				);
+				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -6170,7 +6120,6 @@
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
 					"-lSDL3",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6183,7 +6132,6 @@
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
 					"-lSDL3",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6197,7 +6145,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6211,7 +6158,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6225,7 +6171,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6239,7 +6184,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6253,7 +6197,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6267,7 +6210,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6278,10 +6220,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = (
-					"-lcheck",
-					"-lglib-2.0",
-				);
+				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -6290,10 +6229,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = (
-					"-lcheck",
-					"-lglib-2.0",
-				);
+				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -6341,7 +6277,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6355,7 +6290,6 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lcheck",
-					"-lglib-2.0",
 					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
