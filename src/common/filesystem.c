@@ -159,7 +159,7 @@ bool Fs_Mkdir(const char *dir) {
  * @brief Opens the specified file for appending.
  */
 file_t *Fs_OpenAppend(const char *filename) {
-  char dir[MAX_QPATH];
+  char dir[MAX_OS_PATH];
   PHYSFS_File *file;
 
   Dirname(filename, dir);
@@ -193,7 +193,7 @@ file_t *Fs_OpenRead(const char *filename) {
  * @brief Opens the specified file for writing.
  */
 file_t *Fs_OpenWrite(const char *filename) {
-  char dir[MAX_QPATH];
+  char dir[MAX_OS_PATH];
   PHYSFS_File *file;
 
   if (PHYSFS_isInit() == 0) {
