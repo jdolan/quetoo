@@ -211,7 +211,6 @@
 		CE41019C242CE0D900BF482F /* version.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE41019B242CE0B200BF482F /* version.glsl */; };
 		CE45F4F425733768004DEFED /* uniforms.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE45F4C625728264004DEFED /* uniforms.glsl */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
-		CE4A1B022FE9A000000B0003 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4A1B002FE9A000000B0001 /* SDL3.xcframework */; };
 		CE4A255C1FA2032700A539E7 /* draw_2d_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */; };
 		CE4A255D1FA2032700A539E7 /* draw_2d_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */; };
 		CE4DCF06256DCCA100FECAFC /* cg_weapon.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4DCF04256DCCA100FECAFC /* cg_weapon.h */; };
@@ -1607,7 +1606,6 @@
 		CE42657621C3EF0500F768DD /* csg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = csg.h; sourceTree = "<group>"; };
 		CE42657721C3EF7500F768DD /* portal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = portal.h; sourceTree = "<group>"; };
 		CE45F4C625728264004DEFED /* uniforms.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = uniforms.glsl; sourceTree = "<group>"; };
-		CE4A1B002FE9A000000B0001 /* SDL3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3.xcframework; path = "$(WORKSPACE_PREFIX)/ObjectivelyMVC/Frameworks/SDL3.xcframework"; sourceTree = "<group>"; };
 		CE4DCF04256DCCA100FECAFC /* cg_weapon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_weapon.h; sourceTree = "<group>"; };
 		CE4DCF05256DCCA100FECAFC /* cg_weapon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_weapon.c; sourceTree = "<group>"; };
 		CE4DCF9F256F0DAD00FECAFC /* check_cm_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_test; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2000,7 +1998,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CEF601BC2FE60835005C680C /* Objectively.framework in Frameworks */,
-				CE4A1B022FE9A000000B0003 /* SDL3.xcframework in Frameworks */,
 				CEF601BE2FE6083F005C680C /* ObjectivelyMVC.framework in Frameworks */,
 				CE82F2962D0F9FBE004EE5DF /* libc++.1.tbd in Frameworks */,
 				CE27E42927AC8F24003D56AC /* libdiscord-rpc.a in Frameworks */,
@@ -3040,7 +3037,6 @@
 				CEF601C62FE711B7005C680C /* SDL3_ttf.xcframework */,
 				CEF601BD2FE6083F005C680C /* ObjectivelyMVC.framework */,
 				CEF601BA2FE60508005C680C /* Objectively.framework */,
-				CE4A1B002FE9A000000B0001 /* SDL3.xcframework */,
 				CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */,
 				CE12D8191C5C614B00CD0B13 /* AppKit.framework */,
 				CE12D8171C5C614600CD0B13 /* GLUT.framework */,

@@ -5,6 +5,9 @@
       location = "container:../Objectively/Objectively.xcodeproj">
    </FileRef>
    <FileRef
+      location = "container:../ObjectivelyGPU/ObjectivelyGPU.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "container:../ObjectivelyMVC/ObjectivelyMVC.xcodeproj">
    </FileRef>
    <FileRef

@@ -33,7 +33,6 @@
  * @brief Allocates a new face.
  */
 face_t *AllocFace(void) {
-
   return Mem_TagMalloc(sizeof(face_t), (mem_tag_t) MEM_TAG_FACE);
 }
 
@@ -134,7 +133,11 @@ void ClearWeldingSpatialHash(void) {
     welding_spatial_hash = release(welding_spatial_hash);
   }
 
-  welding_spatial_hash = $(alloc(HashTable), init, WeldingSpatialHashFunc, WeldingSpatialHashEqualFunc);
+  welding_spatial_hash = $(alloc(HashTable), initWithCapacity,
+                           WeldingSpatialHashFunc,
+                           WeldingSpatialHashEqualFunc,
+                           8192);
+
   welding_spatial_hash->destroyKey = Mem_Free;
   welding_spatial_hash->destroyValue = WeldingSpatialHashValueDestroyFunc;
 }
