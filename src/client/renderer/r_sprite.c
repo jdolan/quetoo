@@ -49,6 +49,9 @@ static struct {
 
   GLint texture_voxel_light_data;
   GLint texture_voxel_light_indices;
+  GLint texture_voxel_occlusion;
+  GLint texture_voxel_caustics;
+  GLint texture_sky;
 
   GLint texture_depth_attachment_copy;
 
@@ -480,7 +483,7 @@ static void R_InitSpriteProgram(void) {
   memset(&r_sprite_program, 0, sizeof(r_sprite_program));
 
   r_sprite_program.name = R_LoadProgram(
-      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "voxel.glsl", "sprite_vs.glsl", NULL),
+      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "voxel.glsl", "light.glsl", "sprite_vs.glsl", NULL),
       R_ShaderDescriptor(GL_FRAGMENT_SHADER, "soften_fs.glsl", "sprite_fs.glsl", NULL),
       NULL);
   
@@ -498,12 +501,18 @@ static void R_InitSpriteProgram(void) {
   r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
   r_sprite_program.texture_voxel_light_data = glGetUniformLocation(r_sprite_program.name, "texture_voxel_light_data");
   r_sprite_program.texture_voxel_light_indices = glGetUniformLocation(r_sprite_program.name, "texture_voxel_light_indices");
+  r_sprite_program.texture_voxel_occlusion = glGetUniformLocation(r_sprite_program.name, "texture_voxel_occlusion");
+  r_sprite_program.texture_voxel_caustics = glGetUniformLocation(r_sprite_program.name, "texture_voxel_caustics");
+  r_sprite_program.texture_sky = glGetUniformLocation(r_sprite_program.name, "texture_sky");
   r_sprite_program.texture_depth_attachment_copy = glGetUniformLocation(r_sprite_program.name, "texture_depth_attachment_copy");
 
   glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
   glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
   glUniform1i(r_sprite_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
   glUniform1i(r_sprite_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
+  glUniform1i(r_sprite_program.texture_voxel_occlusion, TEXTURE_VOXEL_OCCLUSION);
+  glUniform1i(r_sprite_program.texture_voxel_caustics, TEXTURE_VOXEL_CAUSTICS);
+  glUniform1i(r_sprite_program.texture_sky, TEXTURE_SKY);
   glUniform1i(r_sprite_program.texture_depth_attachment_copy, TEXTURE_DEPTH_ATTACHMENT_COPY);
 
   glUseProgram(0);

@@ -35,21 +35,10 @@ out vertex_data {
 } vertex;
 
 /**
- * @brief
- */
-vec3 sprite_lighting_light(in int index) {
-
-  light_t light = lights[index];
-
-  float dist = distance(light.origin.xyz, in_position);
-  float radius = light.origin.w;
-  float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
-
-  return light_color(light) * atten;
-}
-
-/**
- * @brief Dynamic lighting for sprites
+ * @brief Lights the sprite using the shared voxel lighting model from light.glsl
+ * (ambient + occlusion + exposure + per-light diffuse + caustics), blended by the
+ * sprite's lighting weight. Billboards have no surface normal, so a camera-facing
+ * normal is synthesized for `vertex_light`'s lambert term and the sky sample.
  */
 void sprite_lighting(void) {
 
@@ -57,28 +46,22 @@ void sprite_lighting(void) {
     return;
   }
 
-  vec3 diffuse = vec3(0.0);
+  common_vertex_t v;
+  v.model_position = in_position;
 
-  if (editor == 0) {
-    ivec3 voxel = voxel_xyz(in_position);
-    ivec2 data = voxel_light_data(voxel);
+  // camera world position = -R^T * t from the (orthonormal) view matrix
+  vec3 camera = -transpose(mat3(view)) * view[3].xyz;
+  v.model_normal = normalize(camera - in_position);
 
-    for (int i = 0; i < data.y; i++) {
-      int index = voxel_light_index(data.x + i);
-      diffuse += sprite_lighting_light(index);
-    }
-  }
+  v.voxel = voxel_uvw(in_position);
+  v.ambient = vec3(0.0);
+  v.diffuse = vec3(0.0);
+  v.caustics = 0.0;
 
-  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
-    int index = active_lights[i];
-    if (index == -1) {
-      break;
-    }
+  vertex_lighting(v);
 
-    diffuse += sprite_lighting_light(index);
-  }
-
-  vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
+  vec3 lit = vertex.color * (v.ambient + v.diffuse);
+  vertex.color = mix(vertex.color, lit, in_lighting);
 }
 
 /**
@@ -93,8 +76,6 @@ void main(void) {
   vertex.next_diffusemap = in_next_diffusemap;
   vertex.color = in_color;
   vertex.lerp = in_lerp;
-
-  vec3 texcoord = voxel_uvw(in_position);
 
   sprite_lighting();
 
