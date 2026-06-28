@@ -192,7 +192,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
       .origin = e->origin,
       .radius = ent->current.termination.x,
       .color = Color32_Color(ent->current.color).vec3,
-      .intensity = 1.f,
+      .intensity = ent->current.termination.y ?: 1.f,
       .source = ent
     });
   }

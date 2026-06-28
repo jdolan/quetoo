@@ -532,8 +532,9 @@ static int32_t FaceCmp(const void * a, const void * b) {
     order = a_surface - b_surface;
     if (order == 0) {
 
-      if (a_surface & SURF_MATERIAL) {
-        // Brush side faces with SURF_MATERIAL are unique per brush side
+      if (a_surface & (SURF_MATERIAL | SURF_TOGGLE)) {
+        // SURF_MATERIAL and SURF_TOGGLE faces are unique per brush side, so that
+        // each switchable surface is an independently addressable draw element.
         return a_face->brush_side - b_face->brush_side;
       }
     }

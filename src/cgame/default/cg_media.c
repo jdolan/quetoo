@@ -337,6 +337,10 @@ void Cg_LoadMedia(void) {
 
   Cg_LoadFlares();
 
+  Cg_LoadMaterialToggles();
+
+  Cg_LoadLightPulses();
+
   cgi.LoadingProgress(-1, "entities");
 
   Cg_LoadEntities();
@@ -375,6 +379,8 @@ void Cg_FreeMedia(void) {
   Cg_FreeEditorEntities();
 
   Cg_FreeFlares();
+
+  Cg_FreeMaterialToggles();
 
   Cg_FreeSprites();
 

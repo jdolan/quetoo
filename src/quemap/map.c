@@ -445,6 +445,15 @@ static void SetMaterialFlags(brush_side_t *side) {
   if (side->contents & CONTENTS_MASK_LIQUID) {
     side->surface |= SURF_LIQUID;
   }
+
+  // a `toggle` surface switches its material's drawable stages and flares with a light;
+  // if the material has neither, there is nothing to switch. Warn so mappers aren't left
+  // wondering why a target_light does nothing. (A `toggle` stage keyword is optional - it
+  // only restricts which stages are driven when several are present.)
+  if ((side->surface & SURF_TOGGLE) && !(material->cm->stage_flags & (STAGE_DRAW | STAGE_FLARE))) {
+    Com_Warn("Material \"%s\" has the toggle surface flag but no drawable or flare stages "
+             "to switch\n", side->texture);
+  }
 }
 
 /**

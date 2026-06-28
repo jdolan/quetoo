@@ -104,6 +104,7 @@ static cm_dictionary_t cm_surfaceList[] = {
   { .keyword = "alpha_test", .flag = SURF_ALPHA_TEST },
   { .keyword = "phong", .flag = SURF_PHONG },
   { .keyword = "material", .flag = SURF_MATERIAL },
+  { .keyword = "toggle", .flag = SURF_TOGGLE },
 };
 
 /**
@@ -549,6 +550,11 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
       }
 
       s->flags |= STAGE_FLARE;
+      continue;
+    }
+
+    if (!q_strcmp(token, "toggle")) {
+      s->flags |= STAGE_TOGGLE;
       continue;
     }
 
@@ -1233,6 +1239,10 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 
   if (stage->flags & STAGE_SHELL) {
     Fs_Print(file, "\t\tshell %0.2f\n", stage->shell.radius);
+  }
+
+  if (stage->flags & STAGE_TOGGLE) {
+    Fs_Print(file, "\t\ttoggle\n");
   }
 
   Fs_Print(file, "\t}\n");

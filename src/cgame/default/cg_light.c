@@ -123,6 +123,93 @@ float Cg_AnimateLight(float intensity, const char *style, float drift) {
 }
 
 /**
+ * @brief Stable pseudo-random phase for a stage instance. Mirrors the renderer's
+ * `R_StageDriftHash` (same pointer mix) so a pulse-driven light stays in phase with the
+ * glow stage on the same draw element.
+ */
+static float Cg_StageDriftHash(const void *a, const void *b) {
+  uint32_t h = (uint32_t) ((uintptr_t) a >> 4) ^ (uint32_t) ((uintptr_t) b >> 4);
+  h ^= h >> 16;
+  h *= 0x7feb352dU;
+  h ^= h >> 15;
+  h *= 0x846ca68bU;
+  h ^= h >> 16;
+  return h / (float) UINT32_MAX;
+}
+
+/**
+ * @brief Returns the material's first `pulse` stage, or `NULL` if it has none.
+ */
+static const r_stage_t *Cg_MaterialPulseStage(const r_material_t *material) {
+
+  for (const r_stage_t *stage = material->stages; stage; stage = stage->next) {
+    if (stage->cm->flags & STAGE_PULSE) {
+      return stage;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Drives static, styleless `light` entities from a controlling material's `pulse`
+ * stage, so a pulsing glow (e.g. a jump pad) makes the light it casts breathe in sync.
+ * @details A light opts in with a `material` key; it then binds to the nearest draw element
+ * using that material that has a `pulse` stage, and inherits that stage's frequency and
+ * (per-panel) phase. Lights with a `style` are skipped - their style already animates them.
+ * The match is by material name only (no `SURF_TOGGLE` needed: such glows are always-on).
+ */
+void Cg_LoadLightPulses(void) {
+
+  r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
+
+  r_bsp_light_t *l = bsp->lights;
+  for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
+
+    l->pulse_hz = 0.f;
+    l->pulse_drift = 0.f;
+
+    if (!l->entity || *l->style) {
+      continue;
+    }
+
+    const char *material = cgi.EntityValue(l->entity, "material")->nullable_string;
+    if (!material) {
+      continue;
+    }
+
+    float best = FLT_MAX;
+    const r_bsp_draw_elements_t *best_draw = NULL;
+    const r_stage_t *best_stage = NULL;
+
+    for (int32_t j = 0; j < bsp->num_draw_elements; j++) {
+      const r_bsp_draw_elements_t *draw = &bsp->draw_elements[j];
+
+      if (q_strcmp(draw->material->cm->name, material)) {
+        continue;
+      }
+
+      const r_stage_t *stage = Cg_MaterialPulseStage(draw->material);
+      if (!stage) {
+        continue;
+      }
+
+      const float d = Vec3_Distance(l->origin, Box3_Center(draw->bounds));
+      if (d < best) {
+        best = d;
+        best_draw = draw;
+        best_stage = stage;
+      }
+    }
+
+    if (best_draw) {
+      l->pulse_hz = best_stage->cm->pulse.hz;
+      l->pulse_drift = best_stage->cm->pulse.drift * Cg_StageDriftHash(best_draw, best_stage);
+    }
+  }
+}
+
+/**
  * @brief Resolves the model1 index for a BSP inline model string (e.g. "*3").
  * @return The model1 index, or -1 if not found.
  */
@@ -147,7 +234,14 @@ static void Cg_AddBspLights(void) {
   r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
   for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
 
-    const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, l->drift);
+    float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, l->drift);
+
+    // a pulse-driven light breathes in sync with its controlling glow stage; this is the
+    // same sine the shader applies to the stage (shared clock via cgi.view->ticks)
+    if (l->pulse_hz) {
+      const float t = cgi.view->ticks * .001f;
+      intensity *= (sinf((t + l->pulse_drift) * l->pulse_hz * (float) M_PI) + 1.f) * .5f;
+    }
 
     if (l->target_entity) {
       // Resolve the inline model string and find the matching cl_entity_t each frame.
