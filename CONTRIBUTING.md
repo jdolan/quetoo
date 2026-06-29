@@ -23,7 +23,6 @@ Install these libraries via your system package manager or Homebrew:
 - [PhysicsFS](https://icculus.org/physfs/)
 - [OpenAL](https://www.openal.org/)
 - [libsndfile](http://mega-nerd.com/libsndfile/)
-- [glib2](https://developer.gnome.org/glib/)
 - [ncurses](https://www.gnu.org/software/ncurses/)
 - [SDL2](https://www.libsdl.org/)
 - [libcurl](https://curl.se/libcurl/)
@@ -113,7 +112,7 @@ Each subsystem uses a consistent file and function prefix:
 - Comment code that needs clarification; don't over-comment obvious logic.
 - Keep functions short and focused on one task.
 - Use `Mem_Malloc()` / `Mem_Free()` rather than `malloc()` / `free()` directly.
-- Use `g_snprintf()` instead of `snprintf()` for internal string formatting.
+- Use `q_snprintf()` instead of `snprintf()` for internal string formatting.
 
 ### Vector Math
 

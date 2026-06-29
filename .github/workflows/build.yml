@@ -35,7 +35,6 @@ jobs:
           build-essential autoconf automake libtool pkg-config \
           g++-12 \
           libncurses-dev \
-          libpcre2-dev libffi-dev \
           libsndfile1-dev libphysfs-dev zlib1g-dev \
           libcurl4-openssl-dev \
           libgl-dev \
@@ -44,10 +43,9 @@ jobs:
           libdrm-dev libgbm-dev libdecor-0-dev libasound2-dev \
           libfreetype-dev libharfbuzz-dev \
           check \
-          cmake ninja-build python3-pip \
+          cmake \
           imagemagick \
           ruby ruby-dev rubygems rpm
-        sudo pip3 install meson
         sudo gem install fpm --no-document
 
     - name: Build OpenAL Soft
@@ -62,19 +60,6 @@ jobs:
           -DALSOFT_UTILS=OFF
         cmake --build openal-soft/build -j$(nproc)
         sudo cmake --install openal-soft/build
-
-    - name: Build GLib
-      run: |
-        curl -fsSL -o glib-2.88.0.tar.xz https://download.gnome.org/sources/glib/2.88/glib-2.88.0.tar.xz
-        tar -xf glib-2.88.0.tar.xz
-        meson setup glib-2.88.0/_build glib-2.88.0 \
-          --prefix=/usr/local \
-          --buildtype=release \
-          -Dtests=false \
-          -Dintrospection=disabled \
-          -Ddocumentation=false
-        ninja -C glib-2.88.0/_build -j$(nproc)
-        sudo ninja -C glib-2.88.0/_build install
 
     - name: Build SDL3
       run: |
@@ -191,6 +176,14 @@ jobs:
         repository: jdolan/Objectively
         path: Objectively
 
+    # ObjectivelyMVC's sdl3.targets imports ObjectivelyGPU's for the SDL3 core
+    # dependency, so GPU must be checked out alongside.
+    - name: Checkout ObjectivelyGPU
+      uses: actions/checkout@v6
+      with:
+        repository: jdolan/ObjectivelyGPU
+        path: ObjectivelyGPU
+
     - name: Checkout ObjectivelyMVC
       uses: actions/checkout@v6
       with:
@@ -205,17 +198,6 @@ jobs:
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v3
-
-    - name: Cache vcpkg installed packages
-      id: cache-vcpkg
-      uses: actions/cache@v5
-      with:
-        path: C:\vcpkg\installed
-        key: vcpkg-x64-windows-glib-2.88.0
-
-    - name: Install vcpkg packages
-      if: steps.cache-vcpkg.outputs.cache-hit != 'true'
-      run: vcpkg install glib:x64-windows
 
     - name: Restore NuGet packages
       working-directory: ${{ github.workspace }}/quetoo
@@ -261,15 +243,12 @@ jobs:
         Copy-Item "..\Objectively\Objectively.vs15\libs\dlfcn\x64\dlfcn.dll" "$staging\bin\"
         Copy-Item "Quetoo.vs15\libs\openal\bin\x64\OpenAL32.dll" "$staging\bin\"
 
-        # GLib and its dependencies from vcpkg
-        $vcpkgBin = "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin"
-        Copy-Item "$vcpkgBin\glib-2.0-0.dll" "$staging\bin\"
-        Copy-Item "$vcpkgBin\intl-8.dll" "$staging\bin\"
-        Copy-Item "$vcpkgBin\iconv-2.dll" "$staging\bin\"
-        Copy-Item "$vcpkgBin\pcre2-8.dll" "$staging\bin\"
-
-        # SDL3 DLLs
-        Get-ChildItem "..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\x64\*.dll" -ErrorAction SilentlyContinue |
+        # SDL3 DLLs: core from ObjectivelyGPU, image/ttf from ObjectivelyMVC,
+        # fetched on demand into their libs/ during the build.
+        Get-ChildItem `
+          "..\ObjectivelyGPU\ObjectivelyGPU.vs15\libs\SDL3-*\lib\x64\*.dll", `
+          "..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\SDL3_image-*\lib\x64\*.dll", `
+          "..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\SDL3_ttf-*\lib\x64\*.dll" |
           Copy-Item -Destination "$staging\bin\"
 
         # Shaders

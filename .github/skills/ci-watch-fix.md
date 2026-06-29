@@ -60,7 +60,6 @@ gh run view <RUN_ID> | head -20
 gh run view <RUN_ID> --log-failed 2>&1 \
   | grep "build-linux" \
   | grep -E ":[0-9]+:[0-9]+: error:" \
-  | grep -v "glib/\|gobject/\|girep\|gvariant\|gkeyfile\|gtypemodule\|gsignal\|girepository" \
   | head -30
 ```
 
@@ -154,15 +153,6 @@ gh run watch <NEW_RUN_ID>
 
 ## Noise-filter reference
 
-The Linux build compiles glib as a subproject, which emits many
-`-Wnull-dereference` warnings in glib/gobject source. **Always filter these
-out** when scanning for real errors:
-
-```bash
-# Exclude known glib noise paths:
-grep -v "glib/\|gobject/\|girepository/\|gvariant\|gkeyfile\|gtypemodule\|gsignal"
-```
-
 The Windows build emits many `-Wc++-keyword` warnings for `this` identifiers
 in Objectively/MVC C source. These are harmless warnings, not errors.
 
@@ -178,10 +168,8 @@ for line in sys.stdin:
     # Linux: file.c:line:col: error:
     # Windows: file.c(line,col): error :
     if re.search(r':[0-9]+:[0-9]+: error:|[^)]\([0-9]+,[0-9]+\): error :', line):
-        # strip glib noise
-        if not re.search(r'glib/|gobject/|girepository|gvariant|gkeyfile|gtypemodule|gsignal', line):
-            # trim the log prefix (timestamp etc.) — last ~200 chars
-            print(line.rstrip()[-220:])
+        # trim the log prefix (timestamp etc.) — last ~200 chars
+        print(line.rstrip()[-220:])
 " | sort -u | head -40
 ```
 
