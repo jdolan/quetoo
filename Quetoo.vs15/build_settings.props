@@ -10,6 +10,16 @@
        defines $(SDL3Dir), $(SDL3ImageDir), $(SDL3TtfDir) and $(SDL3LibArch). -->
   <Import Project="..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\sdl3.targets" />
 
+  <!-- This props file is imported before Microsoft.Cpp.props, which only sets
+       the default Include/LibraryPath (Windows SDK + CRT dirs) when they are
+       empty.  sdl3.targets prepends SDL3 to those paths, which would suppress
+       the toolset defaults, so clear them here; the toolset then repopulates
+       them and Quetoo adds SDL3 via $(QuetooFull*Path) below. -->
+  <PropertyGroup>
+    <IncludePath></IncludePath>
+    <LibraryPath></LibraryPath>
+  </PropertyGroup>
+
   <PropertyGroup Label="Configuration">
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
