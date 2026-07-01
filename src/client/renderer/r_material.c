@@ -309,7 +309,16 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
       memcpy(data + 2 * layer_size, specularmap->pixels, layer_size);
       memcpy(data + 3 * layer_size, tintmap->pixels, layer_size);
 
-      R_UploadImage(material->texture, data);
+      // TODO(#864): level 0 only; material mip generation deferred.
+      material->texture->texture = $(r_device.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+        .type = SDL_GPU_TEXTURETYPE_2D_ARRAY,
+        .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+        .width = w,
+        .height = h,
+        .layer_count_or_depth = material->texture->depth,
+        .num_levels = 1,
+        .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+      }, data);
 
       free(data);
 
@@ -320,7 +329,15 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
       break;
 
     default:
-      R_UploadImage(material->texture, diffusemap->pixels);
+      material->texture->texture = $(r_device.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+        .type = SDL_GPU_TEXTURETYPE_2D,
+        .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+        .width = w,
+        .height = h,
+        .layer_count_or_depth = 1,
+        .num_levels = 1,
+        .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+      }, diffusemap->pixels);
       break;
   }
 
