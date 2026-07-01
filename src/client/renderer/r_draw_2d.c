@@ -129,6 +129,8 @@ static struct {
  */
 void R_SetDraw2DProjection(r_draw_2d_projection_t projection) {
 
+  return; // TODO(#864): r_draw_2d (console/HUD) stubbed during SDL_gpu bring-up
+
   switch (projection) {
     case PROJECTION_GAME:
       r_draw_2d.active = &r_draw_2d.game;
@@ -243,6 +245,8 @@ static void R_Draw2DChar_(GLint x, GLint y, char c, const color_t color) {
  */
 void R_Draw2DChar(GLint x, GLint y, char c, const color_t color) {
 
+  return; // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up
+
   if (isspace(c) && c != 0x0b) {
     return;
   }
@@ -263,6 +267,8 @@ void R_Draw2DChar(GLint x, GLint y, char c, const color_t color) {
  * on the currently bound font. Color escapes are omitted.
  */
 GLint R_StringWidth(const char *s) {
+
+  return 0; // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up
 
   size_t len = 0;
 
@@ -289,6 +295,8 @@ GLint R_StringWidth(const char *s) {
  * @brief Draws a null-terminated string at the specified screen position.
  */
 size_t R_Draw2DString(GLint x, GLint y, const char *s, const color_t color) {
+
+  return 0; // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up
   return R_Draw2DSizedString(x, y, s, UINT16_MAX, UINT16_MAX, color);
 }
 
@@ -296,6 +304,8 @@ size_t R_Draw2DString(GLint x, GLint y, const char *s, const color_t color) {
  * @brief Draws up to `size` bytes of a string at the specified screen position.
  */
 size_t R_Draw2DBytes(GLint x, GLint y, const char *s, size_t size, const color_t color) {
+
+  return 0; // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up
   return R_Draw2DSizedString(x, y, s, size, size, color);
 }
 
@@ -304,6 +314,8 @@ size_t R_Draw2DBytes(GLint x, GLint y, const char *s, size_t size, const color_t
  * sequences are not visible chars. Returns the number of chars drawn.
  */
 size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t size, const color_t color) {
+
+  return 0; // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up
   size_t i, j;
 
   r_draw_2d_arrays_t draw = {
@@ -367,6 +379,10 @@ size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t s
  */
 void R_BindFont(const char *name, GLint *cw, GLint *ch) {
 
+  if (cw) { *cw = 0; }
+  if (ch) { *ch = 0; }
+  return; // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up
+
   if (name == NULL) {
     name = "medium";
   }
@@ -403,6 +419,8 @@ void R_BindFont(const char *name, GLint *cw, GLint *ch) {
  */
 void R_SetClippingFrame(GLint x, GLint y, GLint w, GLint h) {
 
+  return; // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up
+
   r_draw_2d.clipping_frame.x = x;
   r_draw_2d.clipping_frame.y = y;
   r_draw_2d.clipping_frame.w = w;
@@ -413,6 +431,8 @@ void R_SetClippingFrame(GLint x, GLint y, GLint w, GLint h) {
  * @brief Draws a 2D image or atlas image at the specified screen rectangle.
  */
 void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, const color_t color) {
+
+  return; // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up
 
   if (image == NULL) {
     Com_Warn("NULL image\n");
@@ -462,6 +482,8 @@ void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, c
  */
 void R_Draw2DFramebuffer(GLint x, GLint y, GLint w, GLint h, const r_framebuffer_t *framebuffer, const color_t color) {
 
+  return; // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up
+
   if (framebuffer == NULL) {
     Com_Warn("NULL framebuffer\n");
     return;
@@ -504,6 +526,8 @@ void R_Draw2DFramebuffer(GLint x, GLint y, GLint w, GLint h, const r_framebuffer
  */
 void R_Draw2DFill(GLint x, GLint y, GLint w, GLint h, const color_t color) {
 
+  return; // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up
+
   r_draw_2d_arrays_t draw = {
     .mode = GL_TRIANGLES,
     .texture = r_draw_2d.null_texture->texnum,
@@ -533,6 +557,8 @@ void R_Draw2DFill(GLint x, GLint y, GLint w, GLint h, const color_t color) {
  * @brief Draws a polyline through the given screen-space point list.
  */
 void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
+
+  return; // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up
 
   r_draw_2d_arrays_t draw = {
     .mode = GL_LINE_STRIP,
@@ -574,6 +600,8 @@ void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
  * @brief Draw all 2D geometry accumulated for the current frame.
  */
 void R_Draw2D(void) {
+
+  return; // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up
 
   r_stats.draw_arrays = r_draw_2d.game.num_draw_arrays + r_draw_2d.ui.num_draw_arrays;
 
