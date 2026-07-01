@@ -79,8 +79,11 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
  */
 r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachments) {
 
-  // TODO(#864): stubbed during SDL_gpu bring-up; returns a dimensioned, GL-less framebuffer.
-  return (r_framebuffer_t) { .width = width, .height = height, .attachments = attachments };
+  // TODO(#864): stubbed during SDL_gpu bring-up; returns a dimensioned, GL-less
+  // framebuffer. `name` is a non-zero sentinel so consumers that assert/guard on
+  // it (e.g. the cgame's cg_framebuffer) keep working while the 3D scene renders
+  // directly into the device present framebuffer. The GL FBO name is unused now.
+  return (r_framebuffer_t) { .name = 1, .width = width, .height = height, .attachments = attachments };
 
   const float scale = Clampf(r_framebuffer_scale->value, 0.125f, 4.f);
 
