@@ -21,7 +21,30 @@
 
 #include "r_local.h"
 
+#include <Objectively/Resource.h>
+
 r_device_t r_device;
+
+/**
+ * @brief Objectively `ResourceProvider` bridging the GPU library's Resource
+ * lookups (e.g. `loadShader`) to Quetoo's virtual filesystem. This lets
+ * `RenderDevice::loadShader` resolve compiled shader blobs (`shaders/*.metal`,
+ * `shaders/*.spv`) via `Fs_Load` and the game's search paths.
+ */
+static Data *R_ResourceProvider(const char *name) {
+
+  void *buffer;
+  const int64_t length = Fs_Load(name, &buffer);
+  if (length == -1) {
+    return NULL;
+  }
+
+  Data *data = $(alloc(Data), initWithBytes, buffer, (size_t) length);
+
+  Fs_Free(buffer);
+
+  return data;
+}
 
 /**
  * @brief Loads and sets the application window icon from `icons/quetoo`.
@@ -158,6 +181,9 @@ void R_InitDevice(void) {
 
   Com_Verbose("   GPU driver: %s\n", SDL_GetGPUDeviceDriver(r_device.device->device));
 
+  // Bridge the GPU library's Resource lookups (loadShader, ...) to Quetoo's filesystem.
+  $$(Resource, addResourceProvider, R_ResourceProvider);
+
   R_UpdateDevice();
 
   // The present-target framebuffer. The UI (and, later, the resolved 3D scene)
@@ -168,7 +194,7 @@ void R_InitDevice(void) {
     .size = MakeSize(r_device.viewport.w, r_device.viewport.h),
     .colorFormats = { format },
     .numColorTargets = 1,
-    .depthFormat = SDL_GPU_TEXTUREFORMAT_INVALID,
+    .depthFormat = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .sampleCount = SDL_GPU_SAMPLECOUNT_1,
   });
 

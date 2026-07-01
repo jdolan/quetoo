@@ -1099,22 +1099,24 @@ typedef struct {
 
   /**
    * @brief The vertex array (VAO) name.
+   * @remarks Unused under SDL_gpu; vertex layout lives in the GraphicsPipeline.
    */
   GLuint vertex_array;
 
   /**
-   * @brief The vertex array buffer (VBO) name.
+   * @brief The vertex buffer.
    */
-  GLuint vertex_buffer;
+  Buffer *vertex_buffer;
 
   /**
-   * @brief The elements array buffer (VBO) name.
+   * @brief The elements (index) buffer.
    */
-  GLuint elements_buffer;
+  Buffer *elements_buffer;
   struct {
 
     /**
      * @brief The depth pass vertex array (VAO) name.
+     * @remarks Unused under SDL_gpu; retained pending the depth pre-pass port.
      */
     GLuint vertex_array;
 

@@ -40,6 +40,13 @@ shaders_DATA = \
 GPU_VERT_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs
 GPU_FRAG_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs
 
+# Install the compiled blobs alongside the GLSL sources so the renderer's
+# ResourceProvider (Fs_Load) can resolve them at runtime, e.g.
+# loadShader("shaders/depth_pass_vs") -> shaders/depth_pass_vs.metal|.spv.
+shaders_DATA += \
+	$(GPU_VERT_SHADERS:=.spv) $(GPU_VERT_SHADERS:=.metal) \
+	$(GPU_FRAG_SHADERS:=.spv) $(GPU_FRAG_SHADERS:=.metal)
+
 EXTRA_DIST = \
 	$(GPU_VERT_SHADERS:=.spv) $(GPU_VERT_SHADERS:=.metal) \
 	$(GPU_FRAG_SHADERS:=.spv) $(GPU_FRAG_SHADERS:=.metal)

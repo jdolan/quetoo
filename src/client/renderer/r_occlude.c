@@ -138,7 +138,8 @@ r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
   r_occlusion_query_t *query = R_PopOcclusionQuery(r_occlusion_queries.free);
   if (query == NULL) {
     query = Mem_TagMalloc(sizeof(r_occlusion_query_t), MEM_TAG_RENDERER);
-    glGenQueries(1, &query->name);
+    // TODO(#864): occlusion queries retired during SDL_gpu bring-up; ported in Phase 7 (Hi-Z).
+    // glGenQueries(1, &query->name);
   }
 
   query->bounds = bounds;

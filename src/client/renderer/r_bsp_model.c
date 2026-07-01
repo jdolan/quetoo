@@ -302,28 +302,7 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 
     decals->triangles = $(alloc(Vector), initWithSize, sizeof(r_decal_triangle_t));
 
-    glGenVertexArrays(1, &decals->vertex_array);
-    glBindVertexArray(decals->vertex_array);
-
-    glGenBuffers(1, &decals->vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, decals->vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, MAX_BSP_BLOCK_DECALS * sizeof(r_decal_triangle_t), NULL, GL_DYNAMIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, position));
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, normal));
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, texcoord));
-    glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, color));
-    glVertexAttribIPointer(4, 1, GL_UNSIGNED_INT, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, time));
-    glVertexAttribIPointer(5, 1, GL_UNSIGNED_INT, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, lifetime));
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-    glEnableVertexAttribArray(3);
-    glEnableVertexAttribArray(4);
-    glEnableVertexAttribArray(5);
-
-    glBindVertexArray(0);
+    // TODO(#864): port per-block decal geometry to a dynamic Buffer (deferred; decals not yet drawn).
   }
 
   const bsp_face_t *in_face = bsp->cm->file->faces;
@@ -429,7 +408,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->caustics->format = GL_RGB;
   out->caustics->pixel_type = GL_UNSIGNED_BYTE;
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_CAUSTICS);
   R_UploadImage(out->caustics, caustics_data);
 
   const int32_t *light_data = (const int32_t *) data;
@@ -448,16 +426,12 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->light_data->format = GL_RG_INTEGER;
   out->light_data->pixel_type = GL_INT;
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_DATA);
   R_UploadImage(out->light_data, (const byte *) light_data);
 
   const int32_t *light_indices_data = (const int32_t *) data;
   data += out->num_light_indices * sizeof(int32_t);
 
-  glGenBuffers(1, &out->light_indices_buffer);
-  glBindBuffer(GL_TEXTURE_BUFFER, out->light_indices_buffer);
-  glBufferData(GL_TEXTURE_BUFFER, out->num_light_indices * sizeof(int32_t), light_indices_data, GL_STATIC_DRAW);
-  glBindBuffer(GL_TEXTURE_BUFFER, 0);
+  // TODO(#864): port voxel light indices to a STORAGE Buffer (deferred; voxel lighting not yet drawn).
 
   out->light_indices = (r_image_t *) R_AllocMedia("voxel_light_indices", sizeof(r_image_t), R_MEDIA_IMAGE);
   out->light_indices->media.Free = R_FreeImage;
@@ -466,7 +440,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->light_indices->internal_format = GL_R32I;
   out->light_indices->buffer = out->light_indices_buffer;
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_INDICES);
   R_SetupImage(out->light_indices);
 
   const byte *occlusion_data = data;
@@ -485,7 +458,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->occlusion->format = GL_RG;
   out->occlusion->pixel_type = GL_UNSIGNED_BYTE;
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_OCCLUSION);
   R_UploadImage(out->occlusion, occlusion_data);
 
   if (r_draw_bsp_voxels->value) {
@@ -532,8 +504,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
     }
   }
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-
   R_GetError(NULL);
 }
 
@@ -542,56 +512,22 @@ static void R_LoadBspVoxels(r_model_t *mod) {
  */
 static void R_LoadBspVertexArray(r_model_t *mod) {
 
-  glGenBuffers(1, &mod->bsp->vertex_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, mod->bsp->vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, mod->bsp->num_vertexes * sizeof(r_bsp_vertex_t), mod->bsp->vertexes, GL_STATIC_DRAW);
+  r_bsp_model_t *bsp = mod->bsp;
 
-  glGenBuffers(1, &mod->bsp->elements_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->elements_buffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->num_elements * sizeof(GLuint), mod->bsp->elements, GL_STATIC_DRAW);
+  bsp->vertex_buffer = $(r_device.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX,
+                         bsp->vertexes, bsp->num_vertexes * sizeof(r_bsp_vertex_t));
 
-  glGenVertexArrays(1, &mod->bsp->vertex_array);
-  glBindVertexArray(mod->bsp->vertex_array);
-
-  glBindBuffer(GL_ARRAY_BUFFER, mod->bsp->vertex_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->elements_buffer);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
-  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
-  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, bitangent));
-  glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
-  glVertexAttribPointer(5, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
-
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
-  glEnableVertexAttribArray(3);
-  glEnableVertexAttribArray(4);
-  glEnableVertexAttribArray(5);
-
-  glBindVertexArray(0);
-
-  R_GetError(mod->media.name);
+  bsp->elements_buffer = $(r_device.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_INDEX,
+                           bsp->elements, bsp->num_elements * sizeof(GLuint));
 }
 
 /**
  * @brief Creates a position-only VAO for the BSP depth pre-pass.
+ * @remarks Under SDL_gpu the depth pre-pass reuses the world vertex/index
+ * buffers directly; vertex layout is described by the GraphicsPipeline, so no
+ * separate GPU object is required here.
  */
 static void R_LoadBspDepthPassVertexArray(r_model_t *mod) {
-
-  glGenVertexArrays(1, &mod->bsp->depth_pass.vertex_array);
-  glBindVertexArray(mod->bsp->depth_pass.vertex_array);
-
-  glBindBuffer(GL_ARRAY_BUFFER, mod->bsp->vertex_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->elements_buffer);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
-  glEnableVertexAttribArray(0);
-
-  glBindVertexArray(0);
-
-  R_GetError(mod->media.name);
 }
 
 /**
@@ -736,19 +672,15 @@ static void R_FreeBspModel(r_media_t *self) {
 
   r_bsp_model_t *bsp = mod->bsp;
 
-  glDeleteBuffers(1, &bsp->vertex_buffer);
-  glDeleteBuffers(1, &bsp->elements_buffer);
-
-  glDeleteVertexArrays(1, &bsp->vertex_array);
-  glDeleteVertexArrays(1, &bsp->depth_pass.vertex_array);
+  bsp->vertex_buffer = release(bsp->vertex_buffer);
+  bsp->elements_buffer = release(bsp->elements_buffer);
 
   r_bsp_block_t *block = bsp->blocks;
   for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
 
     release(block->decals.triangles);
 
-    glDeleteBuffers(1, &block->decals.vertex_buffer);
-    glDeleteVertexArrays(1, &block->decals.vertex_array);
+    // TODO(#864): release per-block decal Buffer once decals are ported.
 
     R_FreeOcclusionQuery(block->query);
   }
@@ -758,7 +690,7 @@ static void R_FreeBspModel(r_media_t *self) {
     R_FreeOcclusionQuery(light->query);
   }
 
-  glDeleteBuffers(1, &bsp->voxels.light_indices_buffer);
+  // TODO(#864): release voxel light-indices Buffer once voxel lighting is ported.
 
   R_GetError(NULL);
 }

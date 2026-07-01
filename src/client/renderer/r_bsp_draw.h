@@ -28,4 +28,7 @@ void R_InitBspProgram(void);
 void R_ShutdownBspProgram(void);
 void R_DrawOpaqueBspEntities(const r_view_t *view);
 void R_DrawBlendBspEntities(const r_view_t *view);
+void R_InitWorldPipeline(void);
+void R_ShutdownWorldPipeline(void);
+void R_DrawWorld(const r_view_t *view);
 #endif

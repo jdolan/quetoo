@@ -684,3 +684,122 @@ void R_ShutdownBspProgram(void) {
 
   r_bsp_program.name = 0;
 }
+
+/**
+ * @brief The minimal BSP world pipeline for the SDL_gpu bring-up. It renders
+ * world geometry with the already-ported depth_pass shaders (position + MVP ->
+ * flat color), proving geometry upload, uniforms, and pipeline before the full
+ * material/lighting BSP program is ported.
+ * @remarks TODO(#864): replace with the bsp_vs/bsp_fs program (materials, lights).
+ */
+static GraphicsPipeline *r_world_pipeline;
+
+/**
+ * @brief Builds the bring-up world pipeline from the depth_pass shaders.
+ */
+void R_InitWorldPipeline(void) {
+
+  Shader *vertexShader = $(r_device.device, loadShader, "shaders/depth_pass_vs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    .num_uniform_buffers = 2, // globals (binding 0) + locals/model (binding 1)
+  });
+
+  Shader *fragmentShader = $(r_device.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+  });
+
+  const Framebuffer *framebuffer = r_device.device->framebuffer;
+
+  SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
+  info.vertex_shader = vertexShader->shader;
+  info.fragment_shader = fragmentShader->shader;
+
+  // Bring-up: draw all faces regardless of winding so first pixels are guaranteed.
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+
+  info.vertex_input_state = (SDL_GPUVertexInputState) {
+    .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
+      .slot = 0,
+      .pitch = sizeof(r_bsp_vertex_t),
+      .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+    },
+    .num_vertex_buffers = 1,
+    .vertex_attributes = &(SDL_GPUVertexAttribute) {
+      .location = 0,
+      .buffer_slot = 0,
+      .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+      .offset = offsetof(r_bsp_vertex_t, position),
+    },
+    .num_vertex_attributes = 1,
+  };
+
+  info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
+    .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
+      .format = framebuffer->colorFormats[0],
+      .blend_state = GPU_BlendStateOpaque,
+    },
+    .num_color_targets = 1,
+    .depth_stencil_format = framebuffer->depthFormat,
+    .has_depth_stencil_target = true,
+  };
+
+  r_world_pipeline = $(r_device.device, createGraphicsPipeline, &info);
+
+  release(vertexShader);
+  release(fragmentShader);
+}
+
+/**
+ * @brief Releases the bring-up world pipeline.
+ */
+void R_ShutdownWorldPipeline(void) {
+  r_world_pipeline = release(r_world_pipeline);
+}
+
+/**
+ * @brief Renders all world BSP geometry with the bring-up pipeline into the
+ * present framebuffer. Uniforms are pushed per frame; the world model matrix is
+ * identity.
+ */
+void R_DrawWorld(const r_view_t *view) {
+
+  if (!r_models.world || !r_world_pipeline) {
+    return;
+  }
+
+  CommandBuffer *commands = r_device.device->commandBuffer;
+  if (!commands) {
+    return;
+  }
+
+  const r_bsp_model_t *bsp = r_models.world->bsp;
+  Framebuffer *framebuffer = r_device.device->framebuffer;
+
+  const SDL_GPUColorTargetInfo color =
+      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
+  const SDL_GPUDepthStencilTargetInfo depth =
+      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, 1.f);
+
+  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
+
+  $(pass, setViewport, &(SDL_GPUViewport) {
+    .x = 0.f, .y = 0.f,
+    .w = (float) framebuffer->size.w, .h = (float) framebuffer->size.h,
+    .min_depth = 0.f, .max_depth = 1.f,
+  });
+
+  // Vertex uniform slot 0 = per-frame globals; slot 1 = per-draw locals (model).
+  const mat4_t model = Mat4_Identity();
+  $(commands, pushVertexUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushVertexUniformData, 1, model.array, sizeof(model));
+
+  $(pass, bindPipeline, r_world_pipeline);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
+  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+  $(pass, drawIndexedPrimitives, bsp->num_elements, 1, 0, 0, 0);
+
+  r_stats.bsp_triangles += bsp->num_elements / 3;
+
+  pass = release(pass);
+}

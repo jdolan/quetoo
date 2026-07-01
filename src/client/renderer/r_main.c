@@ -169,11 +169,7 @@ void R_UpdateUniforms(const r_view_t *view) {
     }
   }
 
-  if (r_uniforms.buffer) {
-    glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-  }
+  // The block is pushed per-pass via CommandBuffer::pushVertexUniformData/pushFragmentUniformData.
 }
 
 /**
@@ -275,57 +271,18 @@ void R_DrawViewDepth(r_view_t *view) {
  */
 void R_DrawMainView(r_view_t *view) {
 
-  return; // TODO(#864): 3D main pass stubbed during SDL_gpu bring-up
-
   assert(view);
-  assert(view->framebuffer);
 
-  R_UpdateEntities(view);
+  // TODO(#864): bring-up vertical slice — render the world BSP into the present
+  // framebuffer with the depth_pass pipeline (flat color). Entities, sprites,
+  // shadows, materials/lighting, and the dedicated scene framebuffer + post
+  // pipeline are ported in later Phase 5 steps.
 
-  thread_t *sprites = Thread_Create((ThreadRunFunc) R_UpdateSprites, view, THREAD_NONE);
+  R_UpdateFrustum(view);
 
-  R_UpdateLights(view);
+  R_UpdateUniforms(view);
 
-  R_DrawShadows(view);
-
-  const GLuint render_fbo = view->framebuffer->msaa.fbo ?: view->framebuffer->name;
-
-  glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-
-  glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
-
-  if (r_draw_wireframe->integer) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  }
-
-  R_DrawEntities(view);
-
-  Thread_Wait(sprites);
-
-  if (view->framebuffer->msaa.fbo) {
-    R_ResolveFramebufferDepth(view->framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-    glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-  }
-
-  R_DrawSprites(view);
-
-  if (r_draw_wireframe->integer) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  }
-
-  R_Draw3D();
-
-  if (view->framebuffer->msaa.fbo) {
-    R_ResolveFramebuffer(view->framebuffer);
-  }
-
-  const SDL_Rect viewport = r_device.viewport;
-  glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
-
-  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  R_DrawWorld(view);
 }
 
 /**
@@ -514,6 +471,7 @@ void R_Init(void) {
   // R_InitUniforms();
   // R_InitOcclusionQueries();
   R_InitMedia();
+  R_InitWorldPipeline();
   // R_InitImages();
   // R_InitDepthPass();
   // R_InitShadows();
@@ -554,6 +512,8 @@ void R_Shutdown(void) {
   // R_ShutdownDepthPass();
   // R_ShutdownOcclusionQueries();
   // R_ShutdownUniforms();
+
+  R_ShutdownWorldPipeline();
 
   R_ShutdownMedia();
 
