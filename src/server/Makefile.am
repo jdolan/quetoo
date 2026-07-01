@@ -3,6 +3,7 @@ noinst_HEADERS = \
 	sv_admin.h \
 	sv_client.h \
 	sv_console.h \
+	sv_demo.h \
  	sv_editor.h \
 	sv_entity.h \
 	sv_game.h \
@@ -23,6 +24,7 @@ libserver_la_SOURCES = \
 	sv_admin.c \
 	sv_client.c \
 	sv_console.c \
+	sv_demo.c \
  	sv_editor.c \
 	sv_entity.c \
 	sv_game.c \

@@ -3,6 +3,7 @@ SUBDIRS = \
 
 noinst_HEADERS = \
 	cg_client.h \
+	cg_demo.h \
 	cg_editor.h \
 	cg_effect.h \
 	cg_entity.h \
@@ -37,6 +38,7 @@ cgamelib_LTLIBRARIES = \
 
 cgame_la_SOURCES = \
 	cg_client.c \
+	cg_demo.c \
 	cg_discord.c \
 	cg_editor.c \
 	cg_effect.c \
