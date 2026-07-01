@@ -396,33 +396,21 @@ static void R_InitConfig(void) {
 
   memset(&r_config, 0, sizeof(r_config));
 
-  r_config.renderer = (const char *) glGetString(GL_RENDERER);
-  r_config.vendor = (const char *) glGetString(GL_VENDOR);
-  r_config.version = (const char *) glGetString(GL_VERSION);
+  r_config.renderer = SDL_GetGPUDeviceDriver(r_device.device->device);
+  r_config.vendor = "SDL_gpu";
+  r_config.version = SDL_GetGPUDeviceDriver(r_device.device->device);
 
-  GLint num_extensions;
-  glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-
-  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
-  glGetIntegerv(GL_MAX_TEXTURE_SIZE, &r_config.max_texture_size);
-  glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &r_config.max_3d_texture_size);
-  glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &r_config.max_uniform_block_size);
+  // TODO(#864): SDL_gpu does not expose device limits directly; use conservative
+  // defaults that hold across the Metal/Vulkan/D3D12 backends we target. Revisit
+  // if a backend reports smaller limits (e.g. via SDL properties when available).
+  r_config.max_texunits = 16;
+  r_config.max_texture_size = 16384;
+  r_config.max_3d_texture_size = 2048;
+  r_config.max_uniform_block_size = 65536;
 
   Com_Print(  "  Renderer:   ^2%s^7\n", r_config.renderer);
   Com_Print(  "  Vendor:     ^2%s^7\n", r_config.vendor);
   Com_Print(  "  Version:    ^2%s^7\n", r_config.version);
-
-  for (int32_t i = 0; i < num_extensions; i++) {
-    const char *c = (const char *) glGetStringi(GL_EXTENSIONS, i);
-
-    if (i == 0) {
-      Com_Verbose("  Extensions: ^2%s^7\n", c);
-    } else {
-      Com_Verbose("              ^2%s^7\n", c);
-    }
-  }
-
-  R_GetError(NULL);
 }
 
 /**
@@ -467,7 +455,7 @@ void R_Init(void) {
   // The UI renders through ObjectivelyGPU on r_device.device; the 3D scene, 2D
   // console, media/images and shaders are ported back in Phase 4/5.
   //
-  // R_InitConfig();
+  R_InitConfig();
   // R_InitUniforms();
   // R_InitOcclusionQueries();
   R_InitMedia();
