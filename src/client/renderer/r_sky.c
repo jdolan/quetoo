@@ -296,8 +296,7 @@ void R_ShutdownSky(void) {
  */
 void R_LoadSky(void) {
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
-
+  // TODO(#864): texture-unit binding retired during SDL_gpu bring-up.
   const char *name = Cm_EntityValue(Cm_Worldspawn(), "sky")->nullable_string;
   if (name) {
     r_sky.image = R_LoadImage(va("sky/%s", name), IMG_CUBEMAP);
@@ -317,6 +316,4 @@ void R_LoadSky(void) {
       Com_Error(ERROR_DROP, "Failed to load default sky\n");
     }
   }
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 }

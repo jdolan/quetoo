@@ -232,6 +232,8 @@ void R_ResolveFramebufferDepth(const r_framebuffer_t *framebuffer) {
  */
 void R_DrawPost(const r_view_t *view) {
 
+  return; // TODO(#864): post-processing (bloom, tonemap) stubbed during SDL_gpu bring-up
+
   assert(view->framebuffer);
   assert(view->framebuffer->post_attachment);
 
