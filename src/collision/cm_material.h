@@ -260,6 +260,8 @@ typedef enum {
   STAGE_FLARE         = (1 << 19),
   STAGE_SHELL         = (1 << 20),
 
+  STAGE_TOGGLE        = (1 << 21),
+
   STAGE_DRAW          = (1 << 30),
 } cm_stage_flags_t;
 

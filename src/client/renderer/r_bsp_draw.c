@@ -180,12 +180,22 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
                                                const r_entity_t *entity,
                                                const r_bsp_draw_elements_t *draw,
                                                const r_material_t *material,
-                                               const r_stage_t *stage) {
+                                               const r_stage_t *stage,
+                                               float modulate) {
 
-  glUniform1i(r_bsp_program.stage.flags, stage->cm->flags);
-
-  if (stage->cm->flags & STAGE_COLOR) {
-    glUniform4fv(r_bsp_program.stage.color, 1, stage->cm->color.rgba);
+  if (modulate < 1.f) {
+    // a controlling light dims this stage: scale its alpha so the emissive
+    // contribution tracks the light's brightness. Force STAGE_COLOR so the
+    // shader applies the (possibly synthesized) color even for plain stages.
+    color_t color = (stage->cm->flags & STAGE_COLOR) ? stage->cm->color : color_white;
+    color.a *= modulate;
+    glUniform1i(r_bsp_program.stage.flags, stage->cm->flags | STAGE_COLOR);
+    glUniform4fv(r_bsp_program.stage.color, 1, color.rgba);
+  } else {
+    glUniform1i(r_bsp_program.stage.flags, stage->cm->flags);
+    if (stage->cm->flags & STAGE_COLOR) {
+      glUniform4fv(r_bsp_program.stage.color, 1, stage->cm->color.rgba);
+    }
   }
 
   if (stage->cm->flags & STAGE_PULSE) {
@@ -310,13 +320,29 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
 
+  // On a SURF_TOGGLE draw element, a controlling light scales the light-driven stages
+  // by draw->toggle_alpha (the cgame writes the light's brightness each frame). If the
+  // material marks specific stages with the `toggle` keyword, only those are driven;
+  // otherwise every drawable stage is. The base diffuse is a separate pass, so it is
+  // never affected. toggle_alpha defaults to 1, so unbound surfaces render normally.
+  const _Bool light_driven = (draw->surface & SURF_TOGGLE);
+  const _Bool driven_stages_only = (material->cm->stage_flags & STAGE_TOGGLE);
+
   for (r_stage_t *stage = material->stages; stage; stage = stage->next) {
 
     if (!(stage->cm->flags & STAGE_DRAW)) {
       continue;
     }
 
-    R_DrawBspDrawElementsMaterialStage(view, entity, draw, material, stage);
+    float modulate = 1.f;
+    if (light_driven && (!driven_stages_only || (stage->cm->flags & STAGE_TOGGLE))) {
+      modulate = draw->toggle_alpha;
+      if (modulate <= 0.f) {
+        continue; // fully off; nothing to draw
+      }
+    }
+
+    R_DrawBspDrawElementsMaterialStage(view, entity, draw, material, stage, modulate);
   }
 
   glUniform1i(r_bsp_program.stage.flags, STAGE_NONE);

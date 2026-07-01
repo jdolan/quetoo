@@ -21,29 +21,69 @@
 
 #include "g_local.h"
 
-#define LIGHT_START_ON 1
+#define LIGHT_START_ON       1
+#define LIGHT_BACK_AND_FORTH 2
 
 /**
- * @brief For singular lights, simply toggle them. For teamed lights,
- * advance through the team, toggling two at a time.
+ * @brief Returns the team member immediately preceding `node`, or the master
+ * itself if `node` is the first member. The team is a singly-linked list, so we
+ * simply walk it from the head; chains are short, so this is cheap.
+ */
+static g_entity_t *G_target_light_Prev(g_entity_t *master, const g_entity_t *node) {
+
+  g_entity_t *prev = master;
+  while (prev->team_next && prev->team_next != node) {
+    prev = prev->team_next;
+  }
+  return prev;
+}
+
+/**
+ * @brief For singular lights, simply toggle them. For teamed lights, advance the
+ * lit member through the team, one lit at a time. By default the chase wraps from
+ * the tail back to the master; with the `back_and_forth` flag it instead reverses
+ * direction at each end, bouncing the lit member back and forth. The direction is
+ * stored on the master in `count` (0 = forward, 1 = backward).
  */
 static void G_target_light_Cycle(g_entity_t *ent) {
 
   g_entity_t *master = ent->team_master;
-  if (master) {
-    G_Debug("Cycling %s\n", etos(master->enemy));
+  if (!master || master->team_next == NULL) {
+    // no team, or a team of one: just toggle
+    ent->s.effects ^= EF_LIGHT;
+    return;
+  }
 
-    master->enemy->s.effects ^= EF_LIGHT;
+  G_Debug("Cycling %s\n", etos(master->enemy));
+
+  master->enemy->s.effects ^= EF_LIGHT;
+
+  if (master->spawn_flags & LIGHT_BACK_AND_FORTH) {
+
+    if (master->count == 0) { // forward
+      if (master->enemy->team_next) {
+        master->enemy = master->enemy->team_next;
+      } else { // reached the tail, reverse
+        master->count = 1;
+        master->enemy = G_target_light_Prev(master, master->enemy);
+      }
+    } else { // backward
+      if (master->enemy != master) {
+        master->enemy = G_target_light_Prev(master, master->enemy);
+      } else { // reached the head, reverse
+        master->count = 0;
+        master->enemy = master->team_next;
+      }
+    }
+  } else {
+
     master->enemy = master->enemy->team_next;
-
     if (master->enemy == NULL) {
       master->enemy = master;
     }
-
-    master->enemy->s.effects ^= EF_LIGHT;
-  } else {
-    ent->s.effects ^= EF_LIGHT;
   }
+
+  master->enemy->s.effects ^= EF_LIGHT;
 }
 
 /**
@@ -64,12 +104,15 @@ static void G_target_light_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *a
   }
 }
 
-/*QUAKED target_light (1 1 1) (-4 -4 -4) (4 4 4) start_on
+/*QUAKED target_light (1 1 1) (-4 -4 -4) (4 4 4) start_on back_and_forth
  Emits a user-defined light when used. Lights can be chained with teams.
 
  -------- Keys --------
  color : The light color (default 1.0 1.0 1.0).
  radius : The radius of the light in units (default 300).
+ intensity : The light brightness multiplier, matching point lights (default 1.0).
+ material : The name of a material whose `toggle` stages (and flares) switch with this
+            light, e.g. quake2/ceil2_base. Apply the `toggle` surface flag to the faces.
  delay : The delay before activating, in seconds (default 0).
  targetname : The target name of this entity.
  team : The team name for alternating lights.
@@ -77,6 +120,8 @@ static void G_target_light_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *a
 
  -------- Spawn flags --------
  start_on : The light will start on.
+ back_and_forth : Teamed lights bounce the lit member back and forth instead of
+                  wrapping from the tail back to the master. Set on the master.
 
  -------- Notes --------
  Use this entity to add switched lights. Use the wait key to synchronize
@@ -92,8 +137,12 @@ void G_target_light(g_entity_t *ent) {
   float radius = gi.EntityValue(ent->def, "radius")->value;
   radius = radius ?: 300.f;
 
+  float intensity = gi.EntityValue(ent->def, "intensity")->value;
+  intensity = intensity ?: 1.f;
+
   ent->s.color = Color_Color32(Color3fv(color));
   ent->s.termination.x = radius;
+  ent->s.termination.y = intensity;
 
   if (ent->spawn_flags & LIGHT_START_ON) {
     ent->s.effects |= EF_LIGHT;

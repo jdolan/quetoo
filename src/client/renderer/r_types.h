@@ -563,6 +563,15 @@ typedef struct {
    * @brief Texture coordinate origin for stage transforms (scale, stretch, rotate).
    */
   vec2_t st_origin;
+
+  /**
+   * @brief Runtime brightness for `SURF_TOGGLE` draw elements, in `[0, 1]`. The controlling
+   * light's current brightness (a `target_light`'s on/off state and/or a light style's `a`-`z`
+   * animation) scales the element's light-driven material stages. `0` suppresses them entirely
+   * (equivalent to the old off state), `1` is full. Defaults to `1` (rendered normally until a
+   * controlling light drives it); driven each frame by the cgame.
+   */
+  float toggle_alpha;
 } r_bsp_draw_elements_t;
 
 /**
@@ -850,6 +859,15 @@ typedef struct {
    * @brief Phase offset (0-1 fraction of style cycle) to desynchronize instances with the same style.
    */
   float drift;
+
+  /**
+   * @brief Runtime drive (set by the cgame at load): when non-zero, this light's intensity is
+   * modulated by a `pulse` sine matching a controlling material's glow stage on a `SURF_TOGGLE`
+   * surface, so the cast light breathes in sync with the glow. `pulse_hz` 0 = no pulse drive;
+   * `pulse_drift` is the matching phase offset (already multiplied by the stage drift hash).
+   */
+  float pulse_hz;
+  float pulse_drift;
 
   /**
    * @brief True if this light's shadowmap can be reused from the previous frame.

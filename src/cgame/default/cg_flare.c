@@ -22,6 +22,37 @@
 #include "cg_local.h"
 
 /**
+ * @brief A binding from a `SURF_TOGGLE` surface (material stage or flare) to the
+ * `target_light` or styled `light` that controls its brightness.
+ */
+typedef struct {
+
+  /**
+   * @brief True if a controlling light was resolved. Unbound surfaces render normally.
+   */
+  _Bool found;
+
+  /**
+   * @brief True if the controller is a `target_light` (switched on/off at runtime via
+   * `EF_LIGHT`); false for a static `light` (always on, brightness from its style).
+   */
+  _Bool switchable;
+
+  /**
+   * @brief The controlling light's origin, used to resolve its live entity for the
+   * `EF_LIGHT` switch state (switchable lights only).
+   */
+  vec3_t origin;
+
+  /**
+   * @brief The controlling light's `a`-`z` style string (may be empty) and phase offset,
+   * driving the animated brightness via `Cg_AnimateLight`.
+   */
+  char style[MAX_BSP_ENTITY_VALUE];
+  float drift;
+} cg_light_binding_t;
+
+/**
  * @brief The flare type.
  */
 typedef struct {
@@ -50,11 +81,132 @@ typedef struct {
    * @brief The entity referencing the model containin this flare, if any.
    */
   const cl_entity_t *entity;
+
+  /**
+   * @brief Binding to a controlling light for `SURF_TOGGLE` flares. The flare's alpha is
+   * scaled by the light's brightness (on/off and/or style). Unbound if `light.found` is false.
+   */
+  cg_light_binding_t light;
 } cg_flare_t;
 
 static Vector *cg_flares;
 
 #define FLARE_ALPHA_RAMP 0.01
+
+/**
+ * @brief Returns true if a live `target_light` at the given origin is currently lit.
+ */
+static _Bool Cg_ToggleLightLit(const vec3_t origin) {
+
+  const cl_entity_t *e = cgi.client->entities;
+  for (int32_t i = 0; i < MAX_ENTITIES; i++, e++) {
+
+    // a target_light that has switched off is culled from the snapshot, but its
+    // last-seen state lingers in the persistent entities array. Only trust an
+    // entity that was actually transmitted in the current frame, matching how the
+    // renderer adds the dynamic light (Cg_AddEntities iterates the frame only).
+    if (e->frame_num != cgi.client->frame.frame_num) {
+      continue;
+    }
+
+    if (!(e->current.effects & EF_LIGHT)) {
+      continue;
+    }
+
+    if (Vec3_Distance(e->current.origin, origin) < 1.f) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @brief Binds a `SURF_TOGGLE` surface to the nearest light controlling the given material.
+ * @details Both switched `target_light` entities (matched in the entity list, animated by their
+ * live `EF_LIGHT` state) and static styled `light` entities (matched in the baked BSP lights,
+ * which carry the team-resolved, phase-correct style) are candidates; the nearest match wins.
+ * @param material The material name to match against light `material` keys.
+ * @param pos The surface position to measure proximity from.
+ * @param b Filled with the resolved binding; `b->found` is false if no controlling light exists.
+ */
+static void Cg_BindToggleLight(const char *material, const vec3_t pos, cg_light_binding_t *b) {
+
+  memset(b, 0, sizeof(*b));
+
+  const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
+  const cm_bsp_t *cm = bsp->cm;
+
+  float best = FLT_MAX;
+
+  // switched lights: target_light entities, animated at runtime by EF_LIGHT
+  for (int32_t i = 0; i < cm->num_entities; i++) {
+    const cm_entity_t *e = cm->entities[i];
+
+    const char *classname = cgi.EntityValue(e, "classname")->nullable_string;
+    if (!classname || q_strcmp(classname, "target_light")) {
+      continue;
+    }
+
+    const char *m = cgi.EntityValue(e, "material")->nullable_string;
+    if (!m || q_strcmp(m, material)) {
+      continue;
+    }
+
+    const vec3_t o = cgi.EntityValue(e, "origin")->vec3;
+    const float d = Vec3_Distance(o, pos);
+    if (d < best) {
+      best = d;
+      b->found = true;
+      b->switchable = true;
+      b->origin = o;
+      const char *style = cgi.EntityValue(e, "style")->nullable_string;
+      q_strlcpy(b->style, style ?: "", sizeof(b->style));
+      b->drift = cgi.EntityValue(e, "drift")->value;
+    }
+  }
+
+  // static styled lights: baked BSP lights carry the resolved style/drift (target_lights
+  // are not baked, so there is no overlap with the loop above)
+  const r_bsp_light_t *l = bsp->lights;
+  for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
+
+    if (!l->entity) {
+      continue;
+    }
+
+    const char *m = cgi.EntityValue(l->entity, "material")->nullable_string;
+    if (!m || q_strcmp(m, material)) {
+      continue;
+    }
+
+    const float d = Vec3_Distance(l->origin, pos);
+    if (d < best) {
+      best = d;
+      b->found = true;
+      b->switchable = false;
+      b->origin = l->origin;
+      q_strlcpy(b->style, l->style, sizeof(b->style));
+      b->drift = l->drift;
+    }
+  }
+}
+
+/**
+ * @brief Returns the current brightness `[0, 1]` of a toggle light binding: a switched
+ * `target_light` contributes its on/off state, and any light style modulates on top, so a
+ * plain switched light is binary and a styled light flickers. Unbound bindings return 1.
+ */
+static float Cg_ToggleLightAlpha(const cg_light_binding_t *b) {
+
+  if (!b->found) {
+    return 1.f;
+  }
+
+  const float base = b->switchable ? (Cg_ToggleLightLit(b->origin) ? 1.f : 0.f) : 1.f;
+
+  return base * Cg_AnimateLight(1.f, b->style, b->drift);
+}
 
 /**
  * @brief Adds all loaded flare sprites to the view, attenuated by their surface angle to the camera.
@@ -67,6 +219,13 @@ void Cg_AddFlares(void) {
 
   for (size_t i = 0; i < cg_flares->count; i++) {
     cg_flare_t *flare = VectorValue(cg_flares, cg_flare_t *, i);
+
+    // a toggle flare's brightness tracks its controlling light (on/off and/or style);
+    // unbound flares return 1 and are unaffected
+    const float toggle_alpha = Cg_ToggleLightAlpha(&flare->light);
+    if (toggle_alpha <= 0.f) {
+      continue;
+    }
 
     mat4_t matrix = Mat4_Identity();
     flare->entity = NULL;
@@ -114,7 +273,7 @@ void Cg_AddFlares(void) {
     // Dot product gives us facing: positive=front, negative=back
     const float dot = Vec3_Dot(Vec3_Direction(cgi.view->origin, flare->out.origin), plane.normal);
     // Use absolute value to allow sprites from behind, but abs(dot) reduces visibility for grazing angles
-    const float alpha = Clampf01(Maxf(fabsf(dot), 0.25f) * cg_add_flares->value);
+    const float alpha = Clampf01(Maxf(fabsf(dot), 0.25f) * cg_add_flares->value) * toggle_alpha;
 
     if (alpha == 0.f) {
       continue;
@@ -246,6 +405,18 @@ void Cg_LoadFlares(void) {
 
   Cg_MergeFlares();
 
+  // bind flares on SURF_TOGGLE faces to their nearest controlling light; the flare then
+  // tracks that light's brightness. Scoping is by the face flag alone (not the `toggle`
+  // stage keyword), so unrelated faces using the same material keep their always-on flares.
+  for (size_t i = 0; i < cg_flares->count; i++) {
+    cg_flare_t *flare = VectorValue(cg_flares, cg_flare_t *, i);
+
+    if (flare->face->brush_side->surface & SURF_TOGGLE) {
+      const char *material = flare->face->brush_side->material->cm->name;
+      Cg_BindToggleLight(material, flare->in.origin, &flare->light);
+    }
+  }
+
   Cg_Debug("Loaded %zu flares\n", cg_flares->count);
 }
 
@@ -257,5 +428,89 @@ void Cg_FreeFlares(void) {
   if (cg_flares) {
     release(cg_flares);
     cg_flares = NULL;
+  }
+}
+
+/**
+ * @brief A `SURF_TOGGLE` draw element driven by a controlling light.
+ */
+typedef struct {
+
+  /**
+   * @brief The controlled draw element. The renderer reads `draw->toggle_alpha`.
+   */
+  r_bsp_draw_elements_t *draw;
+
+  /**
+   * @brief The binding to the controlling light, resolved at load.
+   */
+  cg_light_binding_t light;
+} cg_material_toggle_t;
+
+static Vector *cg_material_toggles;
+
+/**
+ * @brief Binds each `SURF_TOGGLE` draw element to the nearest light whose `material` key
+ * matches the element's material. Each element is driven independently, so panels sharing
+ * one material can chase or flicker individually. Elements default to fully on (`toggle_alpha`
+ * 1); only bound elements are dimmed.
+ */
+void Cg_LoadMaterialToggles(void) {
+
+  cg_material_toggles = $(alloc(Vector), initWithSize, sizeof(cg_material_toggle_t));
+
+  r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
+
+  for (int32_t i = 0; i < bsp->num_draw_elements; i++) {
+    r_bsp_draw_elements_t *draw = &bsp->draw_elements[i];
+
+    draw->toggle_alpha = 1.f;
+
+    if (!(draw->surface & SURF_TOGGLE)) {
+      continue;
+    }
+
+    cg_material_toggle_t toggle = { .draw = draw };
+    Cg_BindToggleLight(draw->material->cm->name, Box3_Center(draw->bounds), &toggle.light);
+    if (!toggle.light.found) {
+      continue;
+    }
+
+    $(cg_material_toggles, add, &toggle);
+  }
+
+  Cg_Debug("Loaded %zu material toggles\n", cg_material_toggles->count);
+}
+
+/**
+ * @brief Frees the material toggle controller list.
+ */
+void Cg_FreeMaterialToggles(void) {
+
+  if (cg_material_toggles) {
+    release(cg_material_toggles);
+    cg_material_toggles = NULL;
+  }
+}
+
+/**
+ * @brief Refreshes each controlled draw element's `toggle_alpha` from its controlling
+ * light's current brightness (on/off state and/or light style).
+ */
+void Cg_UpdateMaterialToggles(void) {
+
+  if (!cg_material_toggles) {
+    return;
+  }
+
+  // nothing reads toggle_alpha while material stages aren't being drawn, so don't
+  // bother resolving controlling lights (the flare path is gated by cg_add_flares)
+  if (!cgi.GetCvarValue("r_draw_material_stages")) {
+    return;
+  }
+
+  for (size_t i = 0; i < cg_material_toggles->count; i++) {
+    cg_material_toggle_t *toggle = VectorElement(cg_material_toggles, cg_material_toggle_t, i);
+    toggle->draw->toggle_alpha = Cg_ToggleLightAlpha(&toggle->light);
   }
 }

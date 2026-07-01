@@ -393,6 +393,8 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 
   Cg_AddEffects();
 
+  Cg_UpdateMaterialToggles();
+
   Cg_AddFlares();
 
   Cg_AddSprites();
