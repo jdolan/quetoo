@@ -184,31 +184,6 @@ AC_CHECK_HEADER(physfs.h,
 AC_SUBST(PHYSFS_LIBS)
 
 dnl -----------------------------------
-dnl Sort out OpenGL flags and libraries
-dnl -----------------------------------
-
-HOST_OPENGL_CFLAGS=""
-HOST_OPENGL_LIBS=""
-
-case "$host" in
-	*-apple-*)
-		HOST_OPENGL_LIBS="-framework OpenGL"
-		;;
-	*)
-		HOST_OPENGL_LIBS="-lGL"
-		;;
-esac
-
-AC_SUBST(HOST_OPENGL_CFLAGS)
-AC_SUBST(HOST_OPENGL_LIBS)
-
-OPENGL_CFLAGS="$OPENGL_CFLAGS $HOST_OPENGL_CFLAGS"
-AC_SUBST(OPENGL_CFLAGS)
-
-OPENGL_LIBS="$OPENGL_LIBS $HOST_OPENGL_LIBS"
-AC_SUBST(OPENGL_LIBS)
-
-dnl -----------------------------------
 dnl Sort out OpenAL flags and libraries
 dnl -----------------------------------
 

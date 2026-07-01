@@ -33,17 +33,17 @@ typedef struct {
   /**
    * @brief The program object name.
    */
-  GLuint name;
+  uint32_t name;
 
   /**
    * @brief The uniforms UBO binding.
    */
-  GLuint uniforms_block;
+  uint32_t uniforms_block;
 
   /**
    * @brief The model matrix uniform location.
    */
-  GLint model;
+  int32_t model;
 } r_depth_pass_program_t;
 
 extern r_depth_pass_program_t r_depth_pass_program;

@@ -36,22 +36,22 @@ typedef struct {
   /**
    * @brief The 2D array depth texture atlas.
    */
-  GLuint texture;
+  uint32_t texture;
 
   /**
    * @brief The depth pass framebuffer.
    */
-  GLuint framebuffer;
+  uint32_t framebuffer;
 
   /**
    * @brief Per-layer dimensions in pixels (square: `layer_size` × `layer_size`).
    */
-  GLsizei layer_size;
+  int32_t layer_size;
 
   /**
    * @brief The tile size in pixels.
    */
-  GLsizei tile_size;
+  int32_t tile_size;
 
   /**
    * @brief The number of lights per row in each layer's grid.

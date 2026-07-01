@@ -141,7 +141,6 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
   R_FreeImage((r_media_t *) atlas->image);
 
-  atlas->image->target = GL_TEXTURE_2D;
   atlas->image->levels = INT32_MAX;
 
   for (size_t i = 0; i < nodes->count; i++) {
@@ -151,18 +150,13 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
   atlas->atlas->padding = atlas->image->levels > 1 ? 1 << (atlas->image->levels - 2) : 0;
 
-  atlas->image->internal_format = GL_RGBA8;
-  atlas->image->format = GL_RGBA;
-  atlas->image->pixel_type = GL_UNSIGNED_BYTE;
-  atlas->image->minify = GL_LINEAR_MIPMAP_LINEAR;
-  atlas->image->magnify = GL_LINEAR;
 
   atlas->image->width = 0;
 
   for (int32_t width = 1024; atlas->image->width == 0; width += 512) {
 
     if (width > r_config.max_texture_size) {
-      Com_Error(ERROR_DROP, "Atlas exceeds GL_MAX_TEXTURE_SIZE\n");
+      Com_Error(ERROR_DROP, "Atlas exceeds maximum texture size\n");
     }
 
     SDL_Surface *surf = SDL_CreateSurface(width, width, SDL_PIXELFORMAT_RGBA32);

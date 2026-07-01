@@ -25,7 +25,7 @@
 /**
  * @brief
  */
-void R_Draw3DLines(GLenum mode, const vec3_t *points, size_t count, const color_t color, bool depth_test) {
+void R_Draw3DLines(SDL_GPUPrimitiveType mode, const vec3_t *points, size_t count, const color_t color, bool depth_test) {
 }
 
 /**

@@ -27,9 +27,9 @@
 static struct {
   r_sprite_vertex_t vertexes[MAX_SPRITE_INSTANCES * 4];
 
-  GLuint vertex_array;
-  GLuint vertex_buffer;
-  GLuint elements_buffer;
+  uint32_t vertex_array;
+  uint32_t vertex_buffer;
+  uint32_t elements_buffer;
 
 } r_sprites;
 
@@ -37,20 +37,20 @@ static struct {
  * @brief The draw program.
  */
 static struct {
-  GLuint name;
+  uint32_t name;
 
-  GLuint uniforms_block;
-  GLuint lights_block;
+  uint32_t uniforms_block;
+  uint32_t lights_block;
 
-  GLint active_lights;
+  int32_t active_lights;
 
-  GLint texture_diffusemap;
-  GLint texture_next_diffusemap;
+  int32_t texture_diffusemap;
+  int32_t texture_next_diffusemap;
 
-  GLint texture_voxel_light_data;
-  GLint texture_voxel_light_indices;
+  int32_t texture_voxel_light_data;
+  int32_t texture_voxel_light_indices;
 
-  GLint texture_depth_attachment_copy;
+  int32_t texture_depth_attachment_copy;
 
 } r_sprite_program;
 
@@ -143,7 +143,7 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
   memset(in, 0, sizeof(*in));
 
   in->vertexes = r_sprites.vertexes + 4 * index;
-  in->elements = (GLvoid *) (sizeof(GLuint) * 6 * index);
+  in->elements = (void *) (sizeof(uint32_t) * 6 * index);
 
   return in;
 }

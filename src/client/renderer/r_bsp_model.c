@@ -130,7 +130,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 static void R_LoadBspElements(r_bsp_model_t *bsp) {
 
   bsp->num_elements = bsp->cm->file->num_elements;
-  GLuint *out = bsp->elements = Mem_LinkMalloc(bsp->num_elements * sizeof(*out), bsp);
+  uint32_t *out = bsp->elements = Mem_LinkMalloc(bsp->num_elements * sizeof(*out), bsp);
 
   const int32_t *in = bsp->cm->file->elements;
   for (int32_t i = 0; i < bsp->num_elements; i++, in++, out++) {
@@ -164,7 +164,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
     out->vertexes = bsp->vertexes + in->first_vertex;
     out->num_vertexes = in->num_vertexes;
 
-    out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
+    out->elements = (void *) (in->first_element * sizeof(uint32_t));
     out->num_elements = in->num_elements;
   }
 }
@@ -256,7 +256,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
     out->bounds = in->bounds;
 
-    out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
+    out->elements = (void *) (in->first_element * sizeof(uint32_t));
     out->num_elements = in->num_elements;
 
     if (out->material->cm->stage_flags & (STAGE_STRETCH | STAGE_ROTATE)) {
@@ -264,7 +264,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
       vec2_t st_mins = Vec2_Mins();
       vec2_t st_maxs = Vec2_Maxs();
 
-      const GLuint *e = bsp->elements + in->first_element;
+      const uint32_t *e = bsp->elements + in->first_element;
       for (int32_t j = 0; j < out->num_elements; j++, e++) {
         const r_bsp_vertex_t *v = &bsp->vertexes[*e];
 
@@ -335,7 +335,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
     out->faces = bsp->faces + in->first_face;
     out->num_faces = in->num_faces;
 
-    out->depth_pass_elements = (GLvoid *) (in->first_depth_pass_element * sizeof(GLuint));
+    out->depth_pass_elements = (void *) (in->first_depth_pass_element * sizeof(uint32_t));
     out->num_depth_pass_elements = in->num_depth_pass_elements;
 
     out->draw_elements = bsp->draw_elements + in->first_draw_elements;
@@ -368,7 +368,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
     out->bounds = in->bounds;
     q_strlcpy(out->style, in->style, sizeof(out->style));
     out->drift = in->drift;
-    out->depth_pass_elements = (GLvoid *) (in->first_depth_pass_element * sizeof(GLuint));
+    out->depth_pass_elements = (void *) (in->first_depth_pass_element * sizeof(uint32_t));
     out->num_depth_pass_elements = in->num_depth_pass_elements;
     out->target_entity = in->target_entity > 0 ? bsp->cm->entities[in->target_entity] : NULL;
   }
@@ -389,7 +389,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->num_light_indices = in->num_light_indices;
   out->bounds = in->bounds;
 
-  const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
+  const int32_t levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
 
   const byte *caustics_data = data;
   data += out->num_voxels * sizeof(byte) * 3; // RGB
@@ -400,13 +400,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->caustics->width = out->size.x;
   out->caustics->height = out->size.y;
   out->caustics->depth = out->size.z;
-  out->caustics->target = GL_TEXTURE_3D;
   out->caustics->levels = levels;
-  out->caustics->minify = GL_LINEAR_MIPMAP_LINEAR;
-  out->caustics->magnify = GL_LINEAR;
-  out->caustics->internal_format = GL_RGB8;
-  out->caustics->format = GL_RGB;
-  out->caustics->pixel_type = GL_UNSIGNED_BYTE;
 
   R_UploadImage(out->caustics, caustics_data);
 
@@ -419,12 +413,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->light_data->width = out->size.x;
   out->light_data->height = out->size.y;
   out->light_data->depth = out->size.z;
-  out->light_data->target = GL_TEXTURE_3D;
-  out->light_data->minify = GL_NEAREST;
-  out->light_data->magnify = GL_NEAREST;
-  out->light_data->internal_format = GL_RG32I;
-  out->light_data->format = GL_RG_INTEGER;
-  out->light_data->pixel_type = GL_INT;
 
   // The per-voxel (first_index, count) pairs, as a 3D RG32I texture (isampler3D).
   out->light_data->texture = $(r_device.device, createTexture, &(SDL_GPUTextureCreateInfo) {
@@ -463,13 +451,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->occlusion->width = out->size.x;
   out->occlusion->height = out->size.y;
   out->occlusion->depth = out->size.z;
-  out->occlusion->target = GL_TEXTURE_3D;
   out->occlusion->levels = levels;
-  out->occlusion->minify = GL_LINEAR_MIPMAP_LINEAR;
-  out->occlusion->magnify = GL_LINEAR;
-  out->occlusion->internal_format = GL_RG8;
-  out->occlusion->format = GL_RG;
-  out->occlusion->pixel_type = GL_UNSIGNED_BYTE;
 
   R_UploadImage(out->occlusion, occlusion_data);
 
@@ -531,7 +513,7 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
                          bsp->vertexes, bsp->num_vertexes * sizeof(r_bsp_vertex_t));
 
   bsp->elements_buffer = $(r_device.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_INDEX,
-                           bsp->elements, bsp->num_elements * sizeof(GLuint));
+                           bsp->elements, bsp->num_elements * sizeof(uint32_t));
 }
 
 /**

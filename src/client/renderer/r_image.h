@@ -28,7 +28,7 @@ void R_Screenshot(r_view_t *view);
 
 #if defined(__R_LOCAL_H__)
 void R_SetupImage(r_image_t *image);
-void R_UploadImageTarget(r_image_t *image, GLenum target, const void *data);
+void R_UploadImageTarget(r_image_t *image, uint32_t target, const void *data);
 void R_UploadImage(r_image_t *image, const void *data);
 void R_Screenshot_f(void);
 void R_DumpImages_f(void);

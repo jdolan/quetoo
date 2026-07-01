@@ -230,12 +230,6 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
 
   material->texture = (r_image_t *) R_AllocMedia(va("%s_texture", material->cm->basename), sizeof(r_image_t), R_MEDIA_IMAGE);
   material->texture->type = IMG_MATERIAL;
-  material->texture->target = GL_TEXTURE_2D;
-  material->texture->internal_format = GL_RGBA8;
-  material->texture->format = GL_RGBA;
-  material->texture->pixel_type = GL_UNSIGNED_BYTE;
-  material->texture->minify = GL_LINEAR_MIPMAP_LINEAR;
-  material->texture->magnify = GL_LINEAR;
 
   R_RegisterDependency((r_media_t *) material, (r_media_t *) material->texture);
 
@@ -300,7 +294,6 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
       }
 
       material->texture->depth = 4;
-      material->texture->target = GL_TEXTURE_2D_ARRAY;
 
       byte *data = malloc(layer_size * material->texture->depth);
 

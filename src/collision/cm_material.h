@@ -51,14 +51,29 @@ typedef struct {
 } cm_asset_t;
 
 /**
+ * @brief Blend factors for material stage blending. Renderer-agnostic; the
+ * renderer maps these to its backend equivalents (e.g. SDL_GPUBlendFactor).
+ */
+typedef enum {
+  BLEND_INVALID = -1,
+  BLEND_ZERO,
+  BLEND_ONE,
+  BLEND_SRC_COLOR,
+  BLEND_ONE_MINUS_SRC_COLOR,
+  BLEND_SRC_ALPHA,
+  BLEND_ONE_MINUS_SRC_ALPHA,
+  BLEND_DST_COLOR,
+} cm_blend_t;
+
+/**
  * @brief Blend function source and destination factors.
  */
 typedef struct {
 
   /**
-   * @brief OpenGL blend function constants (`GL_SRC_ALPHA`, etc.).
+   * @brief The blend factors (`cm_blend_t`).
    */
-  uint32_t src, dest;
+  cm_blend_t src, dest;
 } cm_stage_blend_t;
 
 /**

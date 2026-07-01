@@ -69,7 +69,7 @@ void R_UpdateLights(r_view_t *view) {
  * @details When the in-game editor is enabled, all lights use this code path.
  * @remarks The uniform must be an `int[MAX_DYNAMIC_LIGHTS]`.
  */
-void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
+void R_ActiveLights(const r_view_t *view, const box3_t bounds, int32_t name) {
 
   // TODO(#864): dynamic (active) lights not yet ported to the SDL_gpu path;
   // only static voxel-clustered BSP lights are drawn (see bsp_fs.glsl).

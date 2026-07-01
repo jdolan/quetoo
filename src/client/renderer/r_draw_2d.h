@@ -32,18 +32,18 @@ typedef enum {
 } r_draw_2d_projection_t;
 
 void R_SetDraw2DProjection(r_draw_2d_projection_t projection);
-void R_BindFont(const char *name, GLint *cw, GLint *ch);
-void R_SetClippingFrame(GLint x, GLint y, GLint w, GLint h);
-void R_Draw2DChar(GLint x, GLint y, char c, const color_t color);
-size_t R_Draw2DBytes(GLint x, GLint y, const char *s, size_t size, const color_t color);
-void R_Draw2DFill(GLint x, GLint y, GLint w, GLint h, const color_t color);
-void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, const color_t color);
-void R_Draw2DFramebuffer(GLint x, GLint y, GLint w, GLint h, const r_framebuffer_t *framebuffer, const color_t color);
-void R_Draw2DLines(const GLint *points, size_t count, const color_t color);
-size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t size, const color_t color);
-size_t R_Draw2DString(GLint x, GLint y, const char *s, const color_t color);
+void R_BindFont(const char *name, int32_t *cw, int32_t *ch);
+void R_SetClippingFrame(int32_t x, int32_t y, int32_t w, int32_t h);
+void R_Draw2DChar(int32_t x, int32_t y, char c, const color_t color);
+size_t R_Draw2DBytes(int32_t x, int32_t y, const char *s, size_t size, const color_t color);
+void R_Draw2DFill(int32_t x, int32_t y, int32_t w, int32_t h, const color_t color);
+void R_Draw2DImage(int32_t x, int32_t y, int32_t w, int32_t h, const r_image_t *image, const color_t color);
+void R_Draw2DFramebuffer(int32_t x, int32_t y, int32_t w, int32_t h, const r_framebuffer_t *framebuffer, const color_t color);
+void R_Draw2DLines(const int32_t *points, size_t count, const color_t color);
+size_t R_Draw2DSizedString(int32_t x, int32_t y, const char *s, size_t len, size_t size, const color_t color);
+size_t R_Draw2DString(int32_t x, int32_t y, const char *s, const color_t color);
 void R_Draw2D(void);
-GLint R_StringWidth(const char *s);
+int32_t R_StringWidth(const char *s);
 
 #if defined(__R_LOCAL_H__)
 void R_InitDraw2D(void);

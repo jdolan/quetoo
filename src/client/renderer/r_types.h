@@ -28,7 +28,6 @@
 #include "common/atlas.h"
 #include "collision/cm_bsp.h"
 
-#include "r_gl.h"
 
 /**
  * @brief Media types.
@@ -128,47 +127,47 @@ typedef struct {
   /**
    * @brief The image width, height and depth (or layers).
    */
-  GLint width, height, depth;
+  int32_t width, height, depth;
 
   /**
    * @brief The target to bind this texture.
    */
-  GLenum target;
+  uint32_t target;
 
   /**
    * @brief The number of mipmap levels to allocate, typically `log2(Maxi(w, h)) + 1`.
    */
-  GLsizei levels;
+  int32_t levels;
 
   /**
    * @brief The minification and magnification filters, typically `GL_LINEAR`.
    */
-  GLenum minify, magnify;
+  uint32_t minify, magnify;
 
   /**
    * @brief The internal pixel format, typically `GL_RGB` or `GL_RGBA`, but may be a sized value.
    */
-  GLenum internal_format;
+  uint32_t internal_format;
 
   /**
    * @brief The pixel format, typically `GL_RGB` or `GL_RGBA`.
    */
-  GLenum format;
+  uint32_t format;
 
   /**
    * @brief The pixel data type, typically `GL_UNSIGNED_BYTE`.
    */
-  GLenum pixel_type;
+  uint32_t pixel_type;
 
   /**
    * @brief The buffer object name, for `GL_TEXTURE_BUFFER` (TBO).
    */
-  GLuint buffer;
+  uint32_t buffer;
 
   /**
    * @brief The texture name.
    */
-  GLuint texnum;
+  uint32_t texnum;
 
   /**
    * @brief The GPU texture (ObjectivelyGPU). Owns the sampled texture.
@@ -352,7 +351,7 @@ typedef struct r_occlusion_query_s {
   /**
    * @brief The query name.
    */
-  GLuint name;
+  uint32_t name;
 
   /**
    * @brief The query bounds.
@@ -362,17 +361,17 @@ typedef struct r_occlusion_query_s {
   /**
    * @brief The base vertex in the shared vertex buffer.
    */
-  GLint base_vertex;
+  int32_t base_vertex;
 
   /**
    * @brief Non-zero if the query is available.
    */
-  GLint available;
+  int32_t available;
 
   /**
    * @brief Non-zero of the query produced visible fragments.
    */
-  GLint result;
+  int32_t result;
 } r_occlusion_query_t;
 
 /**
@@ -527,7 +526,7 @@ typedef struct r_bsp_face_s {
   /**
    * @brief The elements.
    */
-  GLvoid *elements;
+  void *elements;
 
   /**
    * @brief The count of elements.
@@ -559,7 +558,7 @@ typedef struct {
   /**
    * @brief An offset pointer (in bytes) into the BSP elements array.
    */
-  GLvoid *elements;
+  void *elements;
 
   /**
    * @brief The count of elements.
@@ -673,12 +672,12 @@ typedef struct {
   /**
    * @brief The decal vertex buffer object.
    */
-  GLuint vertex_buffer;
+  uint32_t vertex_buffer;
 
   /**
    * @brief The decal vertex array object.
    */
-  GLuint vertex_array;
+  uint32_t vertex_array;
 
   /**
    * @brief True if the containing block's decals require uploading.
@@ -764,7 +763,7 @@ typedef struct r_bsp_inline_model_s {
   /**
    * @brief The depth pass elements of this inline model.
    */
-  GLvoid *depth_pass_elements;
+  void *depth_pass_elements;
 
   /**
    * @brief The count of depth pass elements.
@@ -841,7 +840,7 @@ typedef struct {
   /**
    * @brief An offset pointer (in bytes) into the BSP elements array for shadow geometry.
    */
-  GLvoid *depth_pass_elements;
+  void *depth_pass_elements;
 
   /**
    * @brief The count of elements.
@@ -1020,7 +1019,7 @@ typedef struct {
   /**
    * @brief The elements array.
    */
-  GLuint *elements;
+  uint32_t *elements;
 
   /**
    * @brief The count of faces.
@@ -1101,7 +1100,7 @@ typedef struct {
    * @brief The vertex array (VAO) name.
    * @remarks Unused under SDL_gpu; vertex layout lives in the GraphicsPipeline.
    */
-  GLuint vertex_array;
+  uint32_t vertex_array;
 
   /**
    * @brief The vertex buffer.
@@ -1118,7 +1117,7 @@ typedef struct {
      * @brief The depth pass vertex array (VAO) name.
      * @remarks Unused under SDL_gpu; retained pending the depth pre-pass port.
      */
-    GLuint vertex_array;
+    uint32_t vertex_array;
 
   /**
    * @brief The depth pass vertex array.
@@ -1225,7 +1224,7 @@ typedef struct {
   /**
    * @brief The elements.
    */
-  GLuint *elements;
+  uint32_t *elements;
 
   /**
    * @brief The count of elements.
@@ -1235,12 +1234,12 @@ typedef struct {
   /**
    * @brief The base vertex in the shared mesh VAO.
    */
-  GLint base_vertex;
+  int32_t base_vertex;
 
   /**
    * @brief The elements pointer in the shared mesh VAO.
    */
-  GLvoid *indices;
+  void *indices;
 } r_mesh_face_t;
 
 /**
@@ -1328,7 +1327,7 @@ typedef struct {
   /**
    * @brief The elements array.
    */
-  GLuint *elements;
+  uint32_t *elements;
 
   /**
    * @brief The count of elements.
@@ -1378,12 +1377,12 @@ typedef struct {
   /**
    * @brief The base vertex in the shared mesh VAO.
    */
-  GLint base_vertex;
+  int32_t base_vertex;
 
   /**
    * @brief The indices pointer in the shared mesh VAO.
    */
-  GLvoid *indices;
+  void *indices;
 
   /**
    * @brief The transform and normalization configurations.
@@ -1503,23 +1502,23 @@ typedef struct {
     /**
      * @brief The vertex array (VAO) name.
      */
-    GLuint vertex_array;
+    uint32_t vertex_array;
 
     /**
      * @brief The vertex buffer (VBO) name.
      */
-    GLuint vertex_buffer;
+    uint32_t vertex_buffer;
 
     /**
      * @brief The elements buffer (VBO) name.
      */
-    GLuint elements_buffer;
+    uint32_t elements_buffer;
     struct {
 
       /**
        * @brief The depth pass vertex array (VAO) name.
        */
-      GLuint vertex_array;
+      uint32_t vertex_array;
 
     /**
      * @brief The depth pass vertex array.
@@ -1744,7 +1743,7 @@ typedef struct {
   /**
    * @brief An offset pointer (in bytes) in the shared array.
    */
-  GLvoid *elements;
+  void *elements;
 
   /**
    * @brief The sprite bounds.
@@ -1976,7 +1975,7 @@ typedef struct r_framebuffer_s {
   /**
    * @brief The framebuffer name.
    */
-  GLuint name;
+  uint32_t name;
 
   /**
    * @brief The attachments enabled for this framebuffer.
@@ -1986,22 +1985,22 @@ typedef struct r_framebuffer_s {
   /**
    * @brief The color attachment texture name.
    */
-  GLuint color_attachment;
+  uint32_t color_attachment;
 
   /**
    * @brief The depth attachment texture name.
    */
-  GLuint depth_attachment;
+  uint32_t depth_attachment;
 
   /**
    * @brief The depth attachment copy texture name.
    */
-  GLuint depth_attachment_copy;
+  uint32_t depth_attachment_copy;
 
   /**
    * @brief The post-processing composite attachment texture name.
    */
-  GLuint post_attachment;
+  uint32_t post_attachment;
 
   /**
    * @brief MSAA state (all zero when MSAA is disabled).
@@ -2014,7 +2013,7 @@ typedef struct r_framebuffer_s {
      * the MSAA color is resolved to @c color_attachment via R_ResolveFramebuffer,
      * and MSAA depth is resolved to @c depth_attachment via R_ResolveFramebufferDepth.
      */
-    GLuint fbo;
+    uint32_t fbo;
 
     /**
      * @brief The MSAA color attachment (GL_R11F_G11F_B10F renderbuffer, multisampled).
@@ -2022,7 +2021,7 @@ typedef struct r_framebuffer_s {
      * A renderbuffer rather than a texture since it is resolved to @c color_attachment
      * via glBlitFramebuffer rather than shader sampling.
      */
-    GLuint color_attachment;
+    uint32_t color_attachment;
 
     /**
      * @brief The MSAA depth attachment (GL_TEXTURE_2D_MULTISAMPLE, GL_DEPTH_COMPONENT32F).
@@ -2030,7 +2029,7 @@ typedef struct r_framebuffer_s {
      * A texture rather than a renderbuffer so that it can be shader-sampled during
      * the depth resolve pass.
      */
-    GLuint depth_attachment;
+    uint32_t depth_attachment;
 
     /**
      * @brief The actual sample count after clamping to GL_MAX_SAMPLES.
@@ -2041,12 +2040,12 @@ typedef struct r_framebuffer_s {
   /**
    * @brief The framebuffer width.
    */
-  GLint width;
+  int32_t width;
 
   /**
    * @brief The framebuffer height.
    */
-  GLint height;
+  int32_t height;
 
 } r_framebuffer_t;
 
@@ -2246,7 +2245,7 @@ typedef struct {
   /**
    * @brief The window size, in logical pixels.
    */
-  GLint w, h;
+  int32_t w, h;
 
   /**
    * @brief The OpenGL viewport suitable for the current window.

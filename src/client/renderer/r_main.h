@@ -93,22 +93,22 @@ typedef struct {
   /**
    * @brief The maximum number of simultaneous texture units.
    */
-  GLint max_texunits;
+  int32_t max_texunits;
 
   /**
    * @brief The maximum 2D texture dimension in texels.
    */
-  GLint max_texture_size;
+  int32_t max_texture_size;
 
   /**
    * @brief The maximum 3D texture dimension in texels.
    */
-  GLint max_3d_texture_size;
+  int32_t max_3d_texture_size;
 
   /**
    * @brief The maximum uniform block size in bytes.
    */
-  GLint max_uniform_block_size;
+  int32_t max_uniform_block_size;
 } r_config_t;
 
 extern r_config_t r_config;
@@ -148,7 +148,7 @@ typedef struct {
   /**
    * @brief The uniform buffer object name.
    */
-  GLuint buffer;
+  uint32_t buffer;
 
   /**
    * @brief The uniform block struct.

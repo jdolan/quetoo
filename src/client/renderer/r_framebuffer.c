@@ -29,7 +29,7 @@
 /**
  * @brief
  */
-r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachments) {
+r_framebuffer_t R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachments) {
   return (r_framebuffer_t) { .name = 1, .width = width, .height = height, .attachments = attachments };
 }
 
@@ -42,7 +42,7 @@ void R_ClearFramebuffer(r_framebuffer_t *framebuffer) {
 /**
  * @brief
  */
-void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, GLuint *texture) {
+void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, uint32_t *texture) {
 }
 
 /**
@@ -56,13 +56,13 @@ void R_ResolveFramebuffer(const r_framebuffer_t *framebuffer) {
  */
 void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
                  r_attachment_t attachment,
-                 GLint x, GLint y, GLint w, GLint h) {
+                 int32_t x, int32_t y, int32_t w, int32_t h) {
 }
 
 /**
  * @brief
  */
-void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h) {
+void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, int32_t x, int32_t y, int32_t w, int32_t h) {
 }
 
 /**

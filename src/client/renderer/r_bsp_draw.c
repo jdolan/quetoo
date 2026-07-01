@@ -217,7 +217,7 @@ void R_DrawBspEntities(const r_view_t *view) {
       .sampler = r_bsp_sampler->sampler,
     }, 1);
 
-    const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(GLuint));
+    const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
     $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
 

@@ -38,12 +38,12 @@ static struct {
   /**
    * @brief The maximum supported texture sampling anisotropy level.
    */
-  GLfloat max_anisotropy;
+  float max_anisotropy;
 
   /**
    * @brief The current anisotropy level, clamped to `max_anisotropy`.
    */
-  GLfloat anisotropy;
+  float anisotropy;
 
   /**
    * @brief If set, take a screenshot at the end of the frame.
@@ -156,7 +156,7 @@ void R_SetupImage(r_image_t *image) {
  * @param target The upload target, which may be different from the image's bind target.
  * @param data The pixel data.
  */
-void R_UploadImageTarget(r_image_t *image, GLenum target, const void *data) {
+void R_UploadImageTarget(r_image_t *image, uint32_t target, const void *data) {
 
   // TODO(#864): retired during SDL_gpu port (2D via createTextureFromSurface in R_LoadImage).
 }
@@ -238,12 +238,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
     image->width = surface->w / 4;
     image->height = surface->h / 3;
-    image->target = GL_TEXTURE_CUBE_MAP;
-    image->internal_format = GL_RGB8;
-    image->format = GL_RGB;
-    image->pixel_type = GL_UNSIGNED_BYTE;
-    image->magnify = GL_LINEAR;
-    image->minify = GL_LINEAR_MIPMAP_LINEAR;
     image->levels = 8;
 
     // right left front back up down
@@ -266,7 +260,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     };
 
     for (size_t i = 0; i < 6; i++) {
-      const GLenum target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + (GLenum) i;
+      const uint32_t target = (uint32_t) i;
 
       SDL_Surface *side = SDL_CreateSurface(image->width, image->height, SDL_PIXELFORMAT_RGB24);
 
@@ -300,12 +294,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
   } else {
     image->width = surface->w;
     image->height = surface->h;
-    image->target = GL_TEXTURE_2D;
-    image->internal_format = GL_RGBA8;
-    image->format = GL_RGBA;
-    image->pixel_type = GL_UNSIGNED_BYTE;
-    image->magnify = GL_LINEAR;
-    image->minify = GL_LINEAR_MIPMAP_LINEAR;
 
     image->texture = $(r_device.device, createTextureFromSurface, surface, SDL_GPU_TEXTUREUSAGE_SAMPLER);
   }

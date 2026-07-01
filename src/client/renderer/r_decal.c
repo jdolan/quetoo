@@ -25,18 +25,18 @@
  * @brief The decal shader program.
  */
 static struct {
-  GLuint name;
-  GLuint uniforms_block;
-  GLuint lights_block;
+  uint32_t name;
+  uint32_t uniforms_block;
+  uint32_t lights_block;
 
-  GLint texture_diffusemap;
-  GLint texture_voxel_caustics;
-  GLint texture_voxel_occlusion;
-  GLint texture_voxel_light_data;
-  GLint texture_voxel_light_indices;
-  GLint texture_sky;
+  int32_t texture_diffusemap;
+  int32_t texture_voxel_caustics;
+  int32_t texture_voxel_occlusion;
+  int32_t texture_voxel_light_data;
+  int32_t texture_voxel_light_indices;
+  int32_t texture_sky;
 
-  GLint model;
+  int32_t model;
 } r_decal_program;
 
 /**

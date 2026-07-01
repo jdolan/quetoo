@@ -722,7 +722,7 @@ typedef struct cg_import_s {
    * @param attachments The framebuffer attachments.
    * @return The framebuffer.
    */
-  r_framebuffer_t (*CreateFramebuffer)(GLint width, GLint height, int32_t attachments);
+  r_framebuffer_t (*CreateFramebuffer)(int32_t width, int32_t height, int32_t attachments);
 
   /**
    * @brief Destroys the specified framebuffer, releasing any OpenGL resources.
@@ -874,7 +874,7 @@ typedef struct cg_import_s {
    * @param cw The optional return pointer for the character width.
    * @param ch The optional return pointer for the character height.
    */
-  void (*BindFont)(const char *name, GLint *cw, GLint *ch);
+  void (*BindFont)(const char *name, int32_t *cw, int32_t *ch);
 
   /**
    * @brief Draws a filled rectangle in orthographic projection on the screen.
@@ -885,7 +885,7 @@ typedef struct cg_import_s {
    * @param c The color.
    * @param a The alpha component.
    */
-  void (*Draw2DFill)(GLint x, GLint y, GLint w, GLint h, const color_t color);
+  void (*Draw2DFill)(int32_t x, int32_t y, int32_t w, int32_t h, const color_t color);
 
   /**
    * @brief Draws an image in orthographic projection on the screen.
@@ -896,7 +896,7 @@ typedef struct cg_import_s {
    * @param image The image.
    * @param color The color.
    */
-  void (*Draw2DImage)(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, const color_t color);
+  void (*Draw2DImage)(int32_t x, int32_t y, int32_t w, int32_t h, const r_image_t *image, const color_t color);
 
   /**
    * @brief Draws the framebuffer color attachment in orthographic projection on the screen.
@@ -909,7 +909,7 @@ typedef struct cg_import_s {
    * @remarks This function uses deferred rendering, allowing framebuffers to be used as
    * textures in menus or on the HUD.
    */
-  void (*Draw2DFramebuffer)(GLint x, GLint y, GLint w, GLint h, const r_framebuffer_t *framebuffer, const color_t color);
+  void (*Draw2DFramebuffer)(int32_t x, int32_t y, int32_t w, int32_t h, const r_framebuffer_t *framebuffer, const color_t color);
 
   /**
    * @brief Draws the string `s` at the given coordinates.
@@ -919,22 +919,22 @@ typedef struct cg_import_s {
    * @param color The color.
    * @return The number of visible characters drawn.
    */
-  size_t (*Draw2DString)(GLint x, GLint y, const char *s, const color_t color);
+  size_t (*Draw2DString)(int32_t x, int32_t y, const char *s, const color_t color);
 
   /**
    * @return The width of the string `s` in pixels, using the currently bound font.
    */
-  GLint (*StringWidth)(const char *s);
+  int32_t (*StringWidth)(const char *s);
 
   /**
    * @brief Draw 3D lines between the given point pairs.
-   * @param mode The mode, e.g. `GL_LINE_STRIP`, `GL_LINES`, ..
+   * @param mode The mode, e.g. `SDL_GPU_PRIMITIVETYPE_LINESTRIP`, `SDL_GPU_PRIMITIVETYPE_LINELIST`, ..
    * @param points The points array, in pairs.
    * @param count The length of points.
    * @param color Color.
    * @param depth_test Depth test.
   */
-  void (*Draw3DLines)(GLenum mode, const vec3_t *points, size_t count, const color_t color, bool depth_test);
+  void (*Draw3DLines)(SDL_GPUPrimitiveType mode, const vec3_t *points, size_t count, const color_t color, bool depth_test);
 
   /**
    * @brief Draw a 3D bbox at the given coordinates.

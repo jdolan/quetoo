@@ -216,13 +216,13 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
       vec3_t points[2] = { ent->origin };
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, Vec3(1.f, 0.f, 0.f));
-      cgi.Draw3DLines(GL_LINES, points, 2, color_red, true);
+      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, color_red, true);
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, Vec3(0.f, 1.f, 0.f));
-      cgi.Draw3DLines(GL_LINES, points, 2, color_green, true);
+      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, color_green, true);
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, Vec3(0.f, 0.f, 1.f));
-      cgi.Draw3DLines(GL_LINES, points, 2, color_blue, true);
+      cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, points, 2, color_blue, true);
     }
   }
 
