@@ -161,7 +161,7 @@ void Cl_InitCgame(void) {
   import.state = &cls.state;
   import.server_name = cls.server_name;
 
-  import.context = &r_context;
+  import.context = &r_device;
 
   import.view = &cl_view;
   import.stage = &cl_stage;

@@ -231,15 +231,15 @@ float Cl_KeyState(button_t *key, uint32_t cmd_msec) {
  */
 static void Cl_UpdateMouseState(void) {
 
-  const SDL_WindowFlags flags = SDL_GetWindowFlags(r_context.window);
+  const SDL_WindowFlags flags = SDL_GetWindowFlags(r_device.window);
 
   if (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_CONSOLE ||
       (flags & (SDL_WINDOW_OCCLUDED | SDL_WINDOW_HIDDEN | SDL_WINDOW_MINIMIZED))) {
     SDL_ShowCursor();
-    SDL_SetWindowMouseGrab(r_context.window, false);
+    SDL_SetWindowMouseGrab(r_device.window, false);
   } else {
     SDL_HideCursor();
-    SDL_SetWindowMouseGrab(r_context.window, true);
+    SDL_SetWindowMouseGrab(r_device.window, true);
   }
 }
 
@@ -322,7 +322,7 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
     case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
     case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
     case SDL_EVENT_WINDOW_SAFE_AREA_CHANGED:
-      R_UpdateContext();
+      R_UpdateDevice();
       return false;
 
     case SDL_EVENT_KEY_DOWN:

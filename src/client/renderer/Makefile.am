@@ -7,7 +7,7 @@ noinst_HEADERS = \
 	r_atlas.h \
 	r_bsp_draw.h \
 	r_bsp_model.h \
-	r_context.h \
+	r_device.h \
 	r_cull.h \
 	r_decal.h \
 	r_depth_pass.h \
@@ -45,7 +45,7 @@ librenderer_la_SOURCES = \
 	r_atlas.c \
 	r_bsp_draw.c \
 	r_bsp_model.c \
-	r_context.c \
+	r_device.c \
 	r_cull.c \
 	r_decal.c \
 	r_depth_pass.c \

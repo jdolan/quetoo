@@ -403,7 +403,7 @@ void R_DrawShadows(const r_view_t *view) {
   glDisable(GL_DEPTH_CLAMP);
   glDisable(GL_DEPTH_TEST);
 
-  const SDL_Rect viewport = r_context.viewport;
+  const SDL_Rect viewport = r_device.viewport;
   glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
 
   glUseProgram(0);

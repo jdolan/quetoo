@@ -180,7 +180,7 @@ void R_UpdateUniforms(const r_view_t *view) {
 void R_BeginFrame(void) {
 
   if (r_draw_scale->modified) {
-    R_UpdateContext();
+    R_UpdateDevice();
     r_draw_scale->modified = false;
   }
 
@@ -248,7 +248,7 @@ void R_DrawViewDepth(r_view_t *view) {
 
   R_DrawOcclusionQueries(view);
 
-  const SDL_Rect viewport = r_context.viewport;
+  const SDL_Rect viewport = r_device.viewport;
   glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -305,7 +305,7 @@ void R_DrawMainView(r_view_t *view) {
     R_ResolveFramebuffer(view->framebuffer);
   }
 
-  const SDL_Rect viewport = r_context.viewport;
+  const SDL_Rect viewport = r_device.viewport;
   glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
 
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
@@ -333,7 +333,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   R_DrawMeshEntities(view);
 
-  const SDL_Rect viewport = r_context.viewport;
+  const SDL_Rect viewport = r_device.viewport;
   glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
   
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
@@ -351,7 +351,7 @@ void R_EndFrame(void) {
     glFinish();
   }
 
-  SDL_GL_SwapWindow(r_context.window);
+  SDL_GL_SwapWindow(r_device.window);
 }
 
 /**
@@ -488,7 +488,7 @@ void R_Init(void) {
 
   R_InitLocal();
 
-  R_InitContext();
+  R_InitDevice();
 
   R_InitConfig();
 
@@ -522,8 +522,8 @@ void R_Init(void) {
 
   R_GetError("Video initialization");
 
-  const SDL_Rect bounds = r_context.window_bounds;
-  const SDL_Rect viewport = r_context.viewport;
+  const SDL_Rect bounds = r_device.window_bounds;
+  const SDL_Rect viewport = r_device.viewport;
   
   Com_Print("Video initialized %dx%d (%dx%d)\n", bounds.w, bounds.h, viewport.w, viewport.h);
 }
@@ -562,7 +562,7 @@ void R_Shutdown(void) {
 
   R_ShutdownUniforms();
 
-  R_ShutdownContext();
+  R_ShutdownDevice();
 
   Mem_FreeTag(MEM_TAG_RENDERER);
 }

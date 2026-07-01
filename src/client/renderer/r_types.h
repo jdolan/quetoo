@@ -2248,7 +2248,7 @@ typedef struct {
    * @brief The OpenGL context.
    */
   SDL_GLContext context;
-} r_context_t;
+} r_device_t;
 
 /**
  * @brief Renderer statistics.

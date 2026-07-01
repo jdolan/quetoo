@@ -248,7 +248,7 @@ void Ui_Init(void) {
 
   $$(Resource, addResourceProvider, Ui_Data);
 
-  windowController = $(alloc(WindowController), initWithWindow, r_context.window);
+  windowController = $(alloc(WindowController), initWithWindow, r_device.window);
 
   Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
 

@@ -47,5 +47,5 @@ Data *Ui_Data(const char *path) {
  * @brief Creates and returns a theme for the current SDL window.
  */
 Theme *Ui_Theme(void) {
-  return $$(Theme, theme, r_context.window);
+  return $$(Theme, theme, r_device.window);
 }

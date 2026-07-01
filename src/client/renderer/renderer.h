@@ -29,7 +29,7 @@
 #include "r_animation.h"
 #include "r_bsp_draw.h"
 #include "r_bsp_model.h"
-#include "r_context.h"
+#include "r_device.h"
 #include "r_cull.h"
 #include "r_decal.h"
 #include "r_depth_pass.h"

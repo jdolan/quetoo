@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-r_context_t r_context;
+r_device_t r_device;
 
 /**
  * @brief Loads and sets the application window icon from `icons/quetoo`.
@@ -34,7 +34,7 @@ static void R_SetWindowIcon(void) {
     return;
   }
 
-  SDL_SetWindowIcon(r_context.window, surf);
+  SDL_SetWindowIcon(r_device.window, surf);
 
   SDL_DestroySurface(surf);
 }
@@ -42,36 +42,36 @@ static void R_SetWindowIcon(void) {
 /**
  * @brief Updates the renderer context to reflect the current SDL window state and size.
  */
-void R_UpdateContext(void) {
+void R_UpdateDevice(void) {
 
-  r_context.window = SDL_GL_GetCurrentWindow();
-  assert(r_context.window);
+  r_device.window = SDL_GL_GetCurrentWindow();
+  assert(r_device.window);
   
-  r_context.window_flags = SDL_GetWindowFlags(r_context.window);
+  r_device.window_flags = SDL_GetWindowFlags(r_device.window);
   
-  SDL_GetWindowPosition(r_context.window, &r_context.window_bounds.x, &r_context.window_bounds.y);
-  SDL_GetWindowSize(r_context.window, &r_context.window_bounds.w, &r_context.window_bounds.h);
+  SDL_GetWindowPosition(r_device.window, &r_device.window_bounds.x, &r_device.window_bounds.y);
+  SDL_GetWindowSize(r_device.window, &r_device.window_bounds.w, &r_device.window_bounds.h);
 
-  if (!(r_context.window_flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS))) {
-    Cvar_ForceSetInteger("r_window_width", r_context.window_bounds.w);
-    Cvar_ForceSetInteger("r_window_height", r_context.window_bounds.h);
+  if (!(r_device.window_flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS))) {
+    Cvar_ForceSetInteger("r_window_width", r_device.window_bounds.w);
+    Cvar_ForceSetInteger("r_window_height", r_device.window_bounds.h);
     r_window_width->modified = false;
     r_window_height->modified = false;
   }
 
   const float scale = Clampf(r_draw_scale->value, .5f, 4.f);
 
-  r_context.w = r_context.window_bounds.w / scale;
-  r_context.h = r_context.window_bounds.h / scale;
+  r_device.w = r_device.window_bounds.w / scale;
+  r_device.h = r_device.window_bounds.h / scale;
 
-  r_context.display = SDL_GetDisplayForWindow(r_context.window);
-  r_context.display_mode = SDL_GetCurrentDisplayMode(r_context.display);
+  r_device.display = SDL_GetDisplayForWindow(r_device.window);
+  r_device.display_mode = SDL_GetCurrentDisplayMode(r_device.display);
     
-  r_context.viewport = (SDL_Rect) {
+  r_device.viewport = (SDL_Rect) {
     0,
     0,
-    r_context.window_bounds.w * r_context.display_mode->pixel_density,
-    r_context.window_bounds.h * r_context.display_mode->pixel_density
+    r_device.window_bounds.w * r_device.display_mode->pixel_density,
+    r_device.window_bounds.h * r_device.display_mode->pixel_density
   };
     
   R_UpdateUniforms(NULL);
@@ -80,7 +80,7 @@ void R_UpdateContext(void) {
 /**
  * @brief Initialize the `SDL_Window` and OpenGL context, returning true on success, false on failure.
  */
-void R_InitContext(void) {
+void R_InitDevice(void) {
 
 #if __APPLE__
   // Stop Xcode from launching multiple instances of the application
@@ -88,7 +88,7 @@ void R_InitContext(void) {
   usleep(500000);
 #endif
 
-  memset(&r_context, 0, sizeof(r_context));
+  memset(&r_device, 0, sizeof(r_device));
 
   if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
     if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
@@ -96,10 +96,10 @@ void R_InitContext(void) {
     }
   }
 
-  r_context.display = SDL_GetPrimaryDisplay();
+  r_device.display = SDL_GetPrimaryDisplay();
 
   SDL_Rect bounds;
-  SDL_GetDisplayUsableBounds(r_context.display, &bounds);
+  SDL_GetDisplayUsableBounds(r_device.display, &bounds);
   
   int32_t w = bounds.w;
   int32_t h = bounds.h;
@@ -122,24 +122,24 @@ void R_InitContext(void) {
       break;
   }
 
-  if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, window_flags)) == NULL) {
+  if ((r_device.window = SDL_CreateWindow(PACKAGE_STRING, w, h, window_flags)) == NULL) {
     Com_Error(ERROR_FATAL, "Failed to create window: %s\n", SDL_GetError());
   }
 
   R_SetWindowIcon();
 
-  SDL_SyncWindow(r_context.window);
+  SDL_SyncWindow(r_device.window);
 
-  if (SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN) {
+  if (SDL_GetWindowFlags(r_device.window) & SDL_WINDOW_FULLSCREEN) {
 
     if (r_fullscreen_width->integer > 0 && r_fullscreen_height->integer > 0) {
 
       SDL_DisplayMode mode;
-      if (SDL_GetClosestFullscreenDisplayMode(r_context.display, w, h, 0.f, false, &mode)) {
+      if (SDL_GetClosestFullscreenDisplayMode(r_device.display, w, h, 0.f, false, &mode)) {
         Com_Print("  Setting fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);
 
-        if (SDL_SetWindowFullscreenMode(r_context.window, &mode)) {
-          SDL_SyncWindow(r_context.window);
+        if (SDL_SetWindowFullscreenMode(r_device.window, &mode)) {
+          SDL_SyncWindow(r_device.window);
           Com_Print("  Set fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);
         } else {
           Com_Warn("Failed to set fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);
@@ -163,7 +163,7 @@ void R_InitContext(void) {
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-  if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
+  if ((r_device.context = SDL_GL_CreateContext(r_device.window)) == NULL) {
     Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
   }
 
@@ -213,7 +213,7 @@ void R_InitContext(void) {
   // Drain any stale GL errors left by GLAD's loader probing
   while (glGetError() != GL_NO_ERROR) { }
 
-  R_UpdateContext();
+  R_UpdateDevice();
 
   glDepthFunc(GL_LEQUAL);
 
@@ -223,16 +223,16 @@ void R_InitContext(void) {
 /**
  * @brief Destroys the OpenGL context and SDL window.
  */
-void R_ShutdownContext(void) {
+void R_ShutdownDevice(void) {
 
-  if (r_context.context) {
-    SDL_GL_DestroyContext(r_context.context);
-    r_context.context = NULL;
+  if (r_device.context) {
+    SDL_GL_DestroyContext(r_device.context);
+    r_device.context = NULL;
   }
 
-  if (r_context.window) {
-    SDL_DestroyWindow(r_context.window);
-    r_context.window = NULL;
+  if (r_device.window) {
+    SDL_DestroyWindow(r_device.window);
+    r_device.window = NULL;
   }
 
   SDL_QuitSubSystem(SDL_INIT_VIDEO);

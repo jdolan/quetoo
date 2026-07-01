@@ -125,7 +125,7 @@ static void R_Screenshot_encode(void *data) {
  * @brief Captures a screenshot, if requested, writing it to the user's directory.
  */
 void R_Screenshot(r_view_t *view) {
-  const SDL_Rect viewport = r_context.viewport;
+  const SDL_Rect viewport = r_device.viewport;
   
   SDL_Surface *surface = NULL;
 

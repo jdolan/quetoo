@@ -173,7 +173,7 @@ static void setDrawColor(Renderer *self, const SDL_Color *color) {
 static void setClippingFrame(Renderer *self, const SDL_Rect *frame) {
 
   if (frame) {
-    const SDL_Rect clip = MVC_TransformToWindow(r_context.window, frame);
+    const SDL_Rect clip = MVC_TransformToWindow(r_device.window, frame);
     R_SetClippingFrame(clip.x, clip.y, clip.w, clip.h);
   } else {
     R_SetClippingFrame(0, 0, 0, 0);

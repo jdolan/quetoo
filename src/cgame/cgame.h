@@ -60,7 +60,7 @@ typedef struct cg_import_s {
   /**
    * @brief The renderer context.
    */
-  const r_context_t *context;
+  const r_device_t *context;
 
   /**
    * @brief The renderer view definition.

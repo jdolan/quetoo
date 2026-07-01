@@ -371,7 +371,7 @@ void R_BindFont(const char *name, GLint *cw, GLint *ch) {
     name = "medium";
   }
 
-  const bool upscale = r_context.display_mode->pixel_density > 1.f;
+  const bool upscale = r_device.display_mode->pixel_density > 1.f;
 
   int32_t i;
   for (i = 0; i < r_draw_2d.num_fonts; i++) {
@@ -474,8 +474,8 @@ void R_Draw2DFramebuffer(GLint x, GLint y, GLint w, GLint h, const r_framebuffer
     .num_vertexes = 6
   };
 
-  w = w ?: r_context.w;
-  h = h ?: r_context.h;
+  w = w ?: r_device.w;
+  h = h ?: r_device.h;
 
   r_draw_2d_vertex_t quad[4];
 
@@ -581,7 +581,7 @@ void R_Draw2D(void) {
     return;
   }
 
-  const SDL_Rect viewport = r_context.viewport;
+  const SDL_Rect viewport = r_device.viewport;
   glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
 
   glEnable(GL_BLEND);
@@ -599,7 +599,7 @@ void R_Draw2D(void) {
   glBufferSubData(GL_ARRAY_BUFFER, game_size, ui_size, r_draw_2d.ui.vertexes);
 
   {
-    const mat4_t projection2D = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
+    const mat4_t projection2D = Mat4_FromOrtho(0.f, r_device.w, r_device.h, 0.f, -1.f, 1.f);
     glUniformMatrix4fv(r_draw_2d_program.projection2D, 1, GL_FALSE, projection2D.array);
 
     const r_draw_2d_arrays_t *d = r_draw_2d.game.draw_arrays;
@@ -617,7 +617,7 @@ void R_Draw2D(void) {
   }
 
   {
-    const mat4_t projection2D = Mat4_FromOrtho(0.f, r_context.window_bounds.w, r_context.window_bounds.h, 0.f, -1.f, 1.f);
+    const mat4_t projection2D = Mat4_FromOrtho(0.f, r_device.window_bounds.w, r_device.window_bounds.h, 0.f, -1.f, 1.f);
     glUniformMatrix4fv(r_draw_2d_program.projection2D, 1, GL_FALSE, projection2D.array);
 
     const r_draw_2d_arrays_t *d = r_draw_2d.ui.draw_arrays;

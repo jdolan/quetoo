@@ -82,8 +82,8 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
   const float scale = Clampf(r_framebuffer_scale->value, 0.125f, 4.f);
 
   r_framebuffer_t framebuffer = {
-    .width = width * r_context.display_mode->pixel_density * scale,
-    .height = height * r_context.display_mode->pixel_density * scale,
+    .width = width * r_device.display_mode->pixel_density * scale,
+    .height = height * r_device.display_mode->pixel_density * scale,
     .attachments = attachments,
   };
 
@@ -250,8 +250,8 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
 
   assert(framebuffer);
 
-  w = w ?: r_context.viewport.w;
-  h = h ?: r_context.viewport.h;
+  w = w ?: r_device.viewport.w;
+  h = h ?: r_device.viewport.h;
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->name);
 

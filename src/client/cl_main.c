@@ -657,8 +657,8 @@ void Cl_Frame(const uint32_t msec) {
   } else {
     float target_fps = cl_max_fps->value;
     if (target_fps == 0.f) {
-      if (r_context.display_mode) {
-        target_fps = r_context.display_mode->refresh_rate;
+      if (r_device.display_mode) {
+        target_fps = r_device.display_mode->refresh_rate;
       }
     }
     if (target_fps > 0.f) { // cap render frame rate
