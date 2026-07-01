@@ -21,6 +21,7 @@ libui_la_CFLAGS = \
 	-I$(top_srcdir)/src/client/renderer \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@ \
+	@OBJECTIVELYGPU_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
 	@SDL3_CFLAGS@
@@ -30,4 +31,5 @@ libui_la_LDFLAGS = \
 
 libui_la_LIBADD = \
 	$(top_builddir)/src/common/libcommon.la \
+	@OBJECTIVELYGPU_LIBS@ \
 	@OBJECTIVELYMVC_LIBS@

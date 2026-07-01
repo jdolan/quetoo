@@ -148,10 +148,16 @@ dnl ------------------------
 PKG_CHECK_MODULES([OBJECTIVELY], [Objectively >= 2.0.0])
 
 dnl ------------------------
+dnl Check for ObjectivelyGPU
+dnl ------------------------
+
+PKG_CHECK_MODULES([OBJECTIVELYGPU], [ObjectivelyGPU >= 1.0.0])
+
+dnl ------------------------
 dnl Check for ObjectivelyMVC
 dnl ------------------------
 
-PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC])
+PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC >= 2.0.0])
 
 dnl ----------------
 dnl Check for OpenAL

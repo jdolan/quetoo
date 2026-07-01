@@ -77,6 +77,7 @@ librenderer_la_CFLAGS = \
 	-I$(top_srcdir)/src/client \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@ \
+	@OBJECTIVELYGPU_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
 	@SDL3_CFLAGS@
 
@@ -85,4 +86,5 @@ librenderer_la_LDFLAGS = \
 	
 librenderer_la_LIBADD = \
 	$(top_builddir)/src/common/libcommon.la \
+	@OBJECTIVELYGPU_LIBS@ \
 	@OPENGL_LIBS@
