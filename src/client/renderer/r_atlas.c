@@ -173,13 +173,9 @@ void R_CompileAtlas(r_atlas_t *atlas) {
       atlas->image->width = width;
       atlas->image->height = width;
 
-      R_SetupImage(atlas->image);
-
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, atlas->image->levels - 1);
-      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, surf->w, surf->h, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
-      glGenerateMipmap(GL_TEXTURE_2D);
-
-      R_GetError(NULL);
+      // TODO(#864): uploads level 0 only; mip generation for the atlas is
+      // deferred until the material path samples it (mips not yet ported).
+      atlas->image->texture = $(r_device.device, createTextureFromSurface, surf, SDL_GPU_TEXTUREUSAGE_SAMPLER);
 
       for (size_t i = 0; i < nodes->count; i++) {
         R_CompileAtlas_Node(VectorValue(nodes, atlas_node_t *, i), atlas);
