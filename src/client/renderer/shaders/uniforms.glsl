@@ -212,9 +212,57 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
    * @brief The wireframe mode flag.
    */
   int wireframe;
+
+  /**
+   * @brief The number of light sources in the lights storage buffer.
+   */
+  int num_lights;
 };
 
-#ifdef FRAGMENT_SHADER
+#define MAX_BSP_LIGHTS 512
+#define MAX_DYNAMIC_LIGHTS 64
+#define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
+
+/**
+ * @brief The light struct, mirroring the C `r_light_uniform_t`.
+ * @remarks This struct is vec4 aligned.
+ */
+struct light_t {
+  /**
+   * @brief The light origin in model space (xyz) and radius (w).
+   */
+  vec4 origin;
+
+  /**
+   * @brief The light color (xyz) and intensity (w).
+   */
+  vec4 color;
+
+  /**
+   * @brief The shadow atlas tile info.
+   * @details xy = normalized base UV within layer, z = tile size in UV, w = layer index.
+   * @details If z == 0, no shadow map is available for this light.
+   */
+  vec4 shadow;
+};
+
+/**
+ * @brief Returns the modulated, intensity-scaled, and saturated color for a light.
+ * @param l The light.
+ * @return The color scaled by intensity, modulate, and saturation.
+ */
+vec3 light_color(in light_t l) {
+  vec3 color = l.color.rgb * l.color.a * modulate;
+  float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
+  return mix(vec3(luma), color, saturation);
+}
+
+/*
+ * The fixed fragment sampler map below is only pulled in when a program opts
+ * into it. Bring-up programs (e.g. bsp_fs) that use a compact, self-contained
+ * binding layout define UNIFORMS_NO_SAMPLERS before including this file.
+ */
+#if defined(FRAGMENT_SHADER) && !defined(UNIFORMS_NO_SAMPLERS)
 
 /**
  * @brief The diffusemap texture, for non-material passes such as sprites.

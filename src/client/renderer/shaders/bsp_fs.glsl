@@ -19,83 +19,96 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform mat4 model;
+#version 450
 
-in common_vertex_t vertex;
+/*
+ * TODO(#864): bring-up BSP program — diffuse material + clustered per-fragment
+ * lighting. This exercises ObjectivelyGPU storage buffers AND a 3D texture:
+ *
+ *   set 2, binding 0 : texture_material         (sampled 2D array) -> sampler 0
+ *   set 2, binding 1 : texture_voxel_light_data (sampled 3D int)   -> sampler 1
+ *   set 2, binding 2 : lights_block             (read-only storage)-> storage buf 0
+ *   set 2, binding 3 : voxel_light_indices      (read-only storage)-> storage buf 1
+ *
+ * We opt out of the fixed fragment sampler map (UNIFORMS_NO_SAMPLERS) and use a
+ * compact layout; samplers precede storage buffers per SDL_gpu within-set order.
+ *
+ * Lighting follows the GL clustered-forward design (light.glsl / voxel.glsl):
+ * the fragment's voxel gives (first_index, count) into the light index buffer,
+ * which indexes the lights storage buffer. Static BSP lights occupy the leading
+ * slots of the lights buffer in BSP order (see cg_light.c Cg_AddBspLights), so
+ * the voxel indices address them directly. Shadows, specular, caustics, sky
+ * ambient, and dynamic (active) lights are deferred to later increments.
+ */
 
-out vec4 out_color;
+#define UNIFORMS_NO_SAMPLERS
+#include "uniforms.glsl"
 
-common_fragment_t fragment;
+layout (set = 2, binding = 0) uniform sampler2DArray texture_material;
+layout (set = 2, binding = 1) uniform isampler3D texture_voxel_light_data;
+
+layout (std430, set = 2, binding = 2) readonly buffer lights_block {
+  light_t lights[];
+};
+
+layout (std430, set = 2, binding = 3) readonly buffer voxel_light_indices_block {
+  int voxel_light_indices[];
+};
+
+layout (location = 0) in vec2 in_diffusemap;
+layout (location = 1) in vec3 in_model_position;
+layout (location = 2) in vec3 in_model_normal;
+
+layout (location = 0) out vec4 out_color;
 
 /**
- * @brief Calculates the augmented texcoord for parallax occlusion mapping.
- * @see https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
+ * @brief Resolves the integer voxel coordinate for a world-space position.
  */
-void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment_t fragment) {
-
-  fragment.parallax = vertex.diffusemap;
-
-  if (material.parallax == 0.0 || fragment.lod > 4.0) {
-    return;
-  }
-
-  float num_samples = mix(32.0, 8.0, min(fragment.lod * 0.25, 1.0));
-
-  vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-  vec3 dir = normalize(fragment.view_dir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
-  dir.z = max(dir.z, 0.1);
-  vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
-  vec2 delta = p / num_samples;
-
-  vec2 texcoord = vertex.diffusemap;
-  vec2 prev_texcoord = vertex.diffusemap;
-
-  float depth = 0.0;
-  float layer = 1.0 / num_samples;
-  float displacement = sample_material_displacement(texcoord, fragment.lod);
-
-  for (int i = 0; i < int(num_samples) && depth < displacement; i++) {
-    depth += layer;
-    prev_texcoord = texcoord;
-    texcoord -= delta;
-    displacement = sample_material_displacement(texcoord, fragment.lod);
-  }
-
-  float a = displacement - depth;
-  float b = sample_material_displacement(prev_texcoord, fragment.lod) - depth + layer;
-
-  fragment.parallax = mix(prev_texcoord, texcoord, a / (a - b));
+ivec3 voxel_xyz(in vec3 position) {
+  const vec3 pos = position - voxels.mins.xyz;
+  const ivec3 voxel = ivec3(floor(pos / BSP_VOXEL_SIZE));
+  return clamp(voxel, ivec3(0), ivec3(voxels.size.xyz) - ivec3(1));
 }
 
 /**
- * @brief Calculate lighting and shadows for BSP with distance-based LOD.
- * @details Handles BSP-specific ambient (sky + voxel exposure) and editor mode.
+ * @brief Unshadowed Lambert diffuse contribution from a single light.
  */
-void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
+vec3 bsp_light(in int index, in vec3 normal) {
 
-  // For distant fragments, use simple vertex lighting
-  if (fragment.view_dist >= lighting_distance) {
-    fragment.ambient = vertex.ambient;
-    fragment.diffuse = vertex.diffuse;
-    fragment.specular = vec3(0.0);
-    return;
+  const light_t light = lights[index];
+
+  const vec3 dir = light.origin.xyz - in_model_position;
+  const float dist = length(dir);
+  const float radius = light.origin.w;
+
+  const float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
+  if (atten <= 0.0) {
+    return vec3(0.0);
   }
 
-  // For fragments within range, do full per-fragment lighting
+  const float lambert = max(0.0, dot(normal, dir / dist));
 
-  if ((stage.flags & STAGE_LIGHTING_FLAT) == STAGE_LIGHTING_FLAT) {
-    fragment.normal_sample = normalize(vertex.normal);
-    fragment.specular_sample = vec4(fragment.diffuse_sample.rgb, pow(1.0 + material.specularity, 4.0));
-  } else {
-    fragment.normal_sample = sample_material_normal(fragment.parallax, mat3(vertex.tangent, vertex.bitangent, vertex.normal));
-    fragment.specular_sample = sample_material_specular(fragment.parallax);
+  return light_color(light) * atten * lambert;
+}
+
+/**
+ * @brief Accumulates the static voxel lights affecting this fragment.
+ */
+vec3 bsp_lighting(void) {
+
+  vec3 diffuse = vec3(0.0);
+
+  const vec3 normal = normalize(in_model_normal);
+
+  const ivec3 voxel = voxel_xyz(in_model_position);
+  const ivec2 data = texelFetch(texture_voxel_light_data, voxel, 0).xy;
+
+  for (int i = 0; i < data.y; i++) {
+    const int index = voxel_light_indices[data.x + i];
+    diffuse += bsp_light(index, normal);
   }
 
-  // Precompute per-pixel Poisson rotation for shadow PCF
-  float angle = random_angle(vertex.model_position);
-  fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
-
-  fragment_lighting(vertex, fragment);
+  return diffuse;
 }
 
 /**
@@ -103,58 +116,9 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
  */
 void main(void) {
 
-  if (wireframe != 0) {
-    out_color = vec4(0.8, 0.8, 0.8, 1.0);
-    return;
-  }
+  const vec4 diffuse = texture(texture_material, vec3(in_diffusemap, 0.0));
 
-  fragment.view_dir = normalize(-vertex.position);
-  fragment.view_dist = length(vertex.position);
-  fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
+  const vec3 light = vec3(ambient) + bsp_lighting();
 
-  parallax_occlusion_mapping(vertex, fragment);
-
-  if (stage.flags == STAGE_NONE) {
-
-    fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
-
-    if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
-      if (fragment.diffuse_sample.a < material.alpha_test) {
-        discard;
-      }
-    }
-
-    out_color = fragment.diffuse_sample;
-
-    out_color *= vertex.color;
-
-    bsp_fragment_lighting(vertex, fragment);
-
-    out_color.rgb *= (fragment.ambient + fragment.diffuse);
-    out_color.rgb += fragment.specular;
-
-  } else {
-
-    vec2 st = fragment.parallax;
-
-    if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
-      st += (texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy - 0.5) * stage.warp.y;
-    }
-
-    fragment.diffuse_sample = sample_material_stage(st) * vertex.color;
-
-    out_color = fragment.diffuse_sample;
-
-    if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
-
-      bsp_fragment_lighting(vertex, fragment);
-
-      out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
-      out_color.rgb += fragment.specular * stage.lighting;
-    }
-
-    if ((stage.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
-      out_color.rgb += fragment.diffuse_sample.rgb * stage.emissive;
-    }
-  }
+  out_color = vec4(diffuse.rgb * light, 1.0);
 }

@@ -67,12 +67,12 @@ typedef struct {
 typedef struct {
 
   /**
-   * @brief The uniform buffer name.
+   * @brief The GPU storage buffer backing the lights block.
    */
-  GLuint buffer;
+  Buffer *buffer;
 
   /**
-   * @brief The uniform buffer interface block.
+   * @brief The lights block, mirrored to `buffer` each frame.
    */
   r_light_uniform_block_t block;
 } r_lights_t;

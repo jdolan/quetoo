@@ -245,6 +245,11 @@ typedef struct {
      * @brief Non-zero when wireframe rendering is enabled.
      */
     int wireframe;
+
+    /**
+     * @brief The number of light sources in the lights storage buffer.
+     */
+    int num_lights;
   } block;
 
 } r_uniforms_t;

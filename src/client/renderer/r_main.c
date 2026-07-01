@@ -154,6 +154,7 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->editor = editor->integer;
     out->developer = developer->integer;
     out->wireframe = r_draw_wireframe->integer;
+    out->num_lights = view->num_lights;
 
     if (r_models.world) {
       const r_bsp_voxels_t *voxels = &r_models.world->bsp->voxels;
@@ -282,7 +283,9 @@ void R_DrawMainView(r_view_t *view) {
 
   R_UpdateUniforms(view);
 
-  R_DrawWorld(view);
+  R_UpdateLights(view);
+
+  R_DrawBspEntities(view);
 }
 
 /**
@@ -459,7 +462,8 @@ void R_Init(void) {
   // R_InitUniforms();
   // R_InitOcclusionQueries();
   R_InitMedia();
-  R_InitWorldPipeline();
+  R_InitLights();
+  R_InitBspProgram();
   // R_InitImages();
   // R_InitDepthPass();
   // R_InitShadows();
@@ -467,7 +471,6 @@ void R_Init(void) {
   // R_InitDraw3D();
   // R_InitModels();
   // R_InitSprites();
-  // R_InitLights();
   // R_InitDecals();
   // R_InitSky();
   // R_InitPost();
@@ -491,7 +494,6 @@ void R_Shutdown(void) {
   // R_ShutdownDraw2D();
   // R_ShutdownDraw3D();
   // R_ShutdownModels();
-  // R_ShutdownLights();
   // R_ShutdownDecals();
   // R_ShutdownSprites();
   // R_ShutdownSky();
@@ -501,7 +503,9 @@ void R_Shutdown(void) {
   // R_ShutdownOcclusionQueries();
   // R_ShutdownUniforms();
 
-  R_ShutdownWorldPipeline();
+  R_ShutdownBspProgram();
+
+  R_ShutdownLights();
 
   R_ShutdownMedia();
 

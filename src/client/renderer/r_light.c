@@ -39,60 +39,28 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 }
 
 /**
- * @brief Transform lights into their uniform representation and upload them.
+ * @brief Transform lights into their uniform representation and upload them to
+ * the lights storage buffer.
+ * @remarks TODO(#864): shadow atlas tiling and occlusion culling (r_shadow_atlas,
+ * l->query, r_draw_light_bounds) are deferred; every light is uploaded unshadowed.
  */
 void R_UpdateLights(r_view_t *view) {
 
   r_light_uniform_block_t *block = &r_lights.block;
   memset(block, 0, sizeof(*block));
 
-  cm_trace_t tr = { 0 };
-  if (r_draw_light_bounds->value) {
-    const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-    tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
-  }
-
-  const float inv_layer = r_shadow_atlas.layer_size > 0 ? 1.f / (float) r_shadow_atlas.layer_size : 0.f;
-
-  r_light_t *l = view->lights;
+  const r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
     r_light_uniform_t *out = &block->lights[i];
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
     out->shadow = Vec4(0.f, 0.f, 0.f, 0.f);
-
-    if (l->query) {
-      l->occluded = l->query->result == 0;
-    } else {
-      l->occluded = R_CulludeBox(view, l->bounds);
-    }
-
-    if (l->occluded) {
-      r_stats.lights_occluded++;
-    } else {
-      const int32_t local_index = i % r_shadow_atlas.lights_per_layer;
-      const int32_t light_col = local_index % r_shadow_atlas.lights_per_row;
-      const int32_t light_row = local_index / r_shadow_atlas.lights_per_row;
-      const float base_x = (float) (light_col * 3 * r_shadow_atlas.tile_size) * inv_layer;
-      const float base_y = (float) (light_row * 2 * r_shadow_atlas.tile_size) * inv_layer;
-      const float tile_uv = (float) r_shadow_atlas.tile_size * inv_layer;
-      const float layer = (float) (i / r_shadow_atlas.lights_per_layer);
-      out->shadow = Vec4(base_x, base_y, tile_uv, layer);
-      r_stats.lights_visible++;
-    }
-
-    if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
-      R_Draw3DBox(l->bounds, Color3fv(l->color), false);
-    }
   }
 
-  const GLsizei size = view->num_lights * sizeof(r_light_uniform_t);
-
-  glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, size, block);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-  R_GetError(NULL);
+  const uint32_t size = view->num_lights * sizeof(r_light_uniform_t);
+  if (size) {
+    $(r_lights.buffer, upload, block, size, 0, true);
+  }
 }
 
 /**
@@ -131,25 +99,22 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
 }
 
 /**
- * @brief Initializes the light uniform buffer object.
+ * @brief Initializes the lights storage buffer.
  */
 void R_InitLights(void) {
 
   memset(&r_lights, 0, sizeof(r_lights));
 
-  glGenBuffers(1, &r_lights.buffer);
-  glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-  glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), &r_lights.block, GL_DYNAMIC_DRAW);
-  glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-  R_GetError(NULL);
+  r_lights.buffer = $(r_device.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+    .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
+    .size = sizeof(r_lights.block),
+  });
 }
 
 /**
- * @brief Frees the light uniform buffer object.
+ * @brief Frees the lights storage buffer.
  */
 void R_ShutdownLights(void) {
 
-  glDeleteBuffers(1, &r_lights.buffer);
+  r_lights.buffer = release(r_lights.buffer);
 }

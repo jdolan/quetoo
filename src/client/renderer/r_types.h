@@ -941,9 +941,9 @@ typedef struct {
   r_image_t *light_indices;
 
   /**
-   * @brief The buffer object backing the index vector.
+   * @brief The storage buffer backing the light index vector (`R32I`).
    */
-  GLuint light_indices_buffer;
+  Buffer *light_indices_buffer;
 
   /**
    * @brief The length of `light_indices_buffer`.

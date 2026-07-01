@@ -426,21 +426,34 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->light_data->format = GL_RG_INTEGER;
   out->light_data->pixel_type = GL_INT;
 
-  R_UploadImage(out->light_data, (const byte *) light_data);
+  // The per-voxel (first_index, count) pairs, as a 3D RG32I texture (isampler3D).
+  out->light_data->texture = $(r_device.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    .type = SDL_GPU_TEXTURETYPE_3D,
+    .format = SDL_GPU_TEXTUREFORMAT_R32G32_INT,
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+    .width = (Uint32) out->size.x,
+    .height = (Uint32) out->size.y,
+    .layer_count_or_depth = (Uint32) out->size.z,
+    .num_levels = 1,
+    .sample_count = SDL_GPU_SAMPLECOUNT_1,
+  }, light_data);
 
   const int32_t *light_indices_data = (const int32_t *) data;
   data += out->num_light_indices * sizeof(int32_t);
 
-  // TODO(#864): port voxel light indices to a STORAGE Buffer (deferred; voxel lighting not yet drawn).
+  // The flat light index vector, as a read-only R32I storage buffer.
+  if (out->num_light_indices > 0) {
+    out->light_indices_buffer = $(r_device.device, createBufferWithConstMem,
+        SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
+        light_indices_data,
+        out->num_light_indices * sizeof(int32_t));
+  }
 
+  // Retained as a media placeholder for dependency registration; its GPU data
+  // now lives in out->light_indices_buffer rather than a texture.
   out->light_indices = (r_image_t *) R_AllocMedia("voxel_light_indices", sizeof(r_image_t), R_MEDIA_IMAGE);
   out->light_indices->media.Free = R_FreeImage;
   out->light_indices->type = IMG_VOXELS;
-  out->light_indices->target = GL_TEXTURE_BUFFER;
-  out->light_indices->internal_format = GL_R32I;
-  out->light_indices->buffer = out->light_indices_buffer;
-
-  R_SetupImage(out->light_indices);
 
   const byte *occlusion_data = data;
 
@@ -690,7 +703,7 @@ static void R_FreeBspModel(r_media_t *self) {
     R_FreeOcclusionQuery(light->query);
   }
 
-  // TODO(#864): release voxel light-indices Buffer once voxel lighting is ported.
+  bsp->voxels.light_indices_buffer = release(bsp->voxels.light_indices_buffer);
 
   R_GetError(NULL);
 }

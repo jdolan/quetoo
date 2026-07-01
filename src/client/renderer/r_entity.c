@@ -154,15 +154,11 @@ void R_DrawEntities(const r_view_t *view) {
 
   thread_t *decals = Thread_Create((ThreadRunFunc) R_UpdateDecals, (void *) view, THREAD_NONE);
 
-  R_DrawOpaqueBspEntities(view);
-
   R_DrawMeshEntities(view);
 
   Thread_Wait(decals);
 
   R_DrawDecals(view);
-
-  R_DrawBlendBspEntities(view);
 
   R_DrawEntitiesBounds(view);
 }

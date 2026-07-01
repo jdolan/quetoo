@@ -31,6 +31,7 @@ struct uniforms_block
     int editor;
     int developer;
     int wireframe;
+    int num_lights;
 };
 
 struct vertex_data

@@ -124,8 +124,6 @@ void R_InitModels(void) {
   glGenBuffers(1, &r_models.mesh.vertex_buffer);
   glGenBuffers(1, &r_models.mesh.elements_buffer);
 
-  R_InitBspProgram();
-
   R_InitMeshProgram();
 
   glFrontFace(GL_CW);
@@ -145,8 +143,6 @@ void R_ShutdownModels(void) {
   glDeleteBuffers(1, &r_models.mesh.elements_buffer);
 
   memset(&r_models, 0, sizeof(r_models));
-
-  R_ShutdownBspProgram();
 
   R_ShutdownMeshProgram();
 }
