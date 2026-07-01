@@ -238,7 +238,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
  */
 void R_EndFrame(void) {
 
-  // TODO(#864): R_Draw2D() (console/HUD) once the 2D path is ported to SDL_gpu.
+  R_Draw2D();
 
   if (r_device.device->commandBuffer) {
     $(r_device.device, endFrame);
@@ -351,10 +351,10 @@ void R_Init(void) {
   R_InitMedia();
   R_InitLights();
   R_InitBspProgram();
+  R_InitDraw2D();
   // R_InitImages();
   // R_InitDepthPass();
   // R_InitShadows();
-  // R_InitDraw2D();
   // R_InitDraw3D();
   // R_InitModels();
   // R_InitSprites();
@@ -388,6 +388,8 @@ void R_Shutdown(void) {
   // R_ShutdownShadows();
   // R_ShutdownDepthPass();
   // R_ShutdownOcclusionQueries();
+
+  R_ShutdownDraw2D();
 
   R_ShutdownBspProgram();
 

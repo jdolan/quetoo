@@ -14,37 +14,6 @@ struct vertex_data
     float4 color;
 };
 
-struct voxels_t
-{
-    float4 mins;
-    float4 maxs;
-    float4 view_coordinate;
-    float4 size;
-};
-
-struct uniforms_block
-{
-    int4 viewport;
-    float4x4 projection3D;
-    float4x4 view;
-    float4x4 sky_projection;
-    float4x4 light_projection;
-    voxels_t voxels;
-    float2 depth_range;
-    int view_type;
-    int ticks;
-    float ambient;
-    float modulate;
-    float saturation;
-    float caustics;
-    float ambient_occlusion;
-    float lighting_distance;
-    int editor;
-    int developer;
-    int wireframe;
-    int num_lights;
-};
-
 struct main0_out
 {
     float2 vertex0_diffusemap [[user(locn0)]];
@@ -59,7 +28,7 @@ struct main0_in
     float4 in_color [[attribute(2)]];
 };
 
-vertex main0_out main0(main0_in in [[stage_in]], constant locals_block& _19 [[buffer(1)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant locals_block& _19 [[buffer(0)]])
 {
     main0_out out = {};
     vertex_data vertex0 = {};

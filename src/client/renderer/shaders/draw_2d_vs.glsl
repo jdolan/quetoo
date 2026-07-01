@@ -21,16 +21,16 @@
 
 #version 450
 
-#include "uniforms.glsl"
+/*
+ * Self-contained 2D program (console, HUD, menus). The per-frame orthographic
+ * projection is the only uniform, pushed to vertex uniform slot 0.
+ */
 
 layout (location = 0) in vec2 in_position;
 layout (location = 1) in vec2 in_diffusemap;
 layout (location = 2) in vec4 in_color;
 
-/**
- * @brief Per-draw locals.
- */
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+layout (std140, set = 1, binding = 0) uniform locals_block {
   mat4 projection2D;
 };
 

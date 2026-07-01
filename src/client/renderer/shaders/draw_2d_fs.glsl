@@ -21,7 +21,12 @@
 
 #version 450
 
-#include "uniforms.glsl"
+/*
+ * Self-contained 2D program: modulates the diffuse sample by the vertex color.
+ * The sampler lands on fragment sampler slot 0 (set 2, binding 0).
+ */
+
+layout (set = 2, binding = 0) uniform sampler2D texture_diffusemap;
 
 layout (location = 0) in vertex_data {
   vec2 diffusemap;
@@ -34,5 +39,6 @@ layout (location = 0) out vec4 out_color;
  * @brief
  */
 void main(void) {
+
   out_color = vertex.color * texture(texture_diffusemap, vertex.diffusemap);
 }

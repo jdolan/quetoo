@@ -118,7 +118,7 @@ static void R_CompileAtlas_Node(const atlas_node_t *node, const r_atlas_t *atlas
 
   r_atlas_image_t *atlas_image = node->data;
 
-  atlas_image->image.texnum = atlas->image->texnum;
+  atlas_image->image.texture = atlas->image->texture;
 
   const float w = atlas->image->width, h = atlas->image->height;
   const float texel = (1.f / atlas->image->width) * .5f;

@@ -15,7 +15,6 @@ noinst_HEADERS = \
 	r_draw_3d.h \
 	r_entity.h \
 	r_framebuffer.h \
-	r_gl.h \
 	r_image.h \
 	r_light.h \
 	r_local.h \
