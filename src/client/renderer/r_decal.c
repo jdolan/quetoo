@@ -373,147 +373,26 @@ void R_UpdateDecals(const r_view_t *view) {
   }
 }
 
+/*
+ * TODO(#864): decal rendering (decal_vs/decal_fs) is not yet ported to SDL_gpu.
+ * These are stubs preserving the API; R_AddDecal / R_UpdateDecals stay live.
+ */
+
 /**
- * @brief Draws all decals in the view using the decal shader.
+ * @brief
  */
 void R_DrawDecals(const r_view_t *view) {
-
-  glUseProgram(r_decal_program.name);
-
-  glEnable(GL_DEPTH_TEST);
-  glDepthMask(GL_FALSE);
-
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  const r_entity_t *e = view->entities;
-  for (int32_t i = 0; i < view->num_entities; i++, e++) {
-
-    if (!IS_BSP_INLINE_MODEL(e->model)) {
-      continue;
-    }
-
-    if (R_CullEntity(view, e)) {
-      continue;
-    }
-
-    glUniformMatrix4fv(r_decal_program.model, 1, GL_FALSE, e->matrix.array);
-
-    const r_bsp_inline_model_t *in = e->model->bsp_inline;
-
-    r_bsp_block_t *block = in->blocks;
-    for (int32_t j = 0; j < in->num_blocks; j++, block++) {
-
-      if (block->query && block->query->result == 0) {
-        continue;
-      }
-
-      if (R_CulludeBox(view, block->visible_bounds)) {
-        continue;
-      }
-
-      r_bsp_block_decals_t *d = &block->decals;
-
-      if (d->triangles->count == 0) {
-        continue;
-      }
-
-      if (d->dirty) {
-        const GLsizeiptr capacity = MAX_BSP_BLOCK_DECALS * sizeof(r_decal_triangle_t);
-        const GLsizeiptr size = d->triangles->count * sizeof(r_decal_triangle_t);
-        glBindBuffer(GL_ARRAY_BUFFER, d->vertex_buffer);
-        glBufferData(GL_ARRAY_BUFFER, capacity, NULL, GL_DYNAMIC_DRAW);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, size, d->triangles->elements);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        d->dirty = false;
-      }
-
-      glBindVertexArray(d->vertex_array);
-
-      assert(d->image->texnum);
-      glBindTexture(GL_TEXTURE_2D, d->image->texnum);
-
-      glDrawArrays(GL_TRIANGLES, 0, (GLsizei) d->triangles->count * 3);
-
-      r_stats.decals += d->triangles->count;
-      r_stats.decal_draw_elements++;
-    }
-  }
-
-  glBlendFunc(GL_ONE, GL_ZERO);
-  glDisable(GL_BLEND);
-
-  glDisable(GL_DEPTH_TEST);
-  glDepthMask(GL_TRUE);
-
-  glBindVertexArray(0);
-
-  glUseProgram(0);
-
-  R_GetError(NULL);
 }
 
 /**
- * @brief Initialize the decal shader program.
- */
-static void R_InitDecalProgram(void) {
-
-  memset(&r_decal_program, 0, sizeof(r_decal_program));
-
-  r_decal_program.name = R_LoadProgram(
-       R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "voxel.glsl", "light.glsl", "decal_vs.glsl", NULL),
-       R_ShaderDescriptor(GL_FRAGMENT_SHADER, "decal_fs.glsl", NULL),
-       NULL);
-
-  glUseProgram(r_decal_program.name);
-
-  r_decal_program.uniforms_block = glGetUniformBlockIndex(r_decal_program.name, "uniforms_block");
-  glUniformBlockBinding(r_decal_program.name, r_decal_program.uniforms_block, 0);
-
-  r_decal_program.lights_block = glGetUniformBlockIndex(r_decal_program.name, "lights_block");
-  glUniformBlockBinding(r_decal_program.name, r_decal_program.lights_block, 1);
-
-  r_decal_program.model = glGetUniformLocation(r_decal_program.name, "model");
-
-  r_decal_program.texture_diffusemap = glGetUniformLocation(r_decal_program.name, "texture_diffusemap");
-  r_decal_program.texture_voxel_caustics = glGetUniformLocation(r_decal_program.name, "texture_voxel_caustics");
-  r_decal_program.texture_voxel_occlusion = glGetUniformLocation(r_decal_program.name, "texture_voxel_occlusion");
-  r_decal_program.texture_voxel_light_data = glGetUniformLocation(r_decal_program.name, "texture_voxel_light_data");
-  r_decal_program.texture_voxel_light_indices = glGetUniformLocation(r_decal_program.name, "texture_voxel_light_indices");
-  r_decal_program.texture_sky = glGetUniformLocation(r_decal_program.name, "texture_sky");
-
-  glUniform1i(r_decal_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
-  glUniform1i(r_decal_program.texture_voxel_caustics, TEXTURE_VOXEL_CAUSTICS);
-  glUniform1i(r_decal_program.texture_voxel_occlusion, TEXTURE_VOXEL_OCCLUSION);
-  glUniform1i(r_decal_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
-  glUniform1i(r_decal_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
-  glUniform1i(r_decal_program.texture_sky, TEXTURE_SKY);
-
-  R_GetError(NULL);
-}
-
-/**
- * @brief Initialize the decals subsystem.
+ * @brief
  */
 void R_InitDecals(void) {
-
-  R_InitDecalProgram();
 }
 
 /**
- * @brief Deletes the decal GLSL program object.
- */
-static void R_ShutdownDecalProgram(void) {
-
-  glDeleteProgram(r_decal_program.name);
-
-  r_decal_program.name = 0;
-}
-
-/**
- * @brief Shutdown the decals subsystem.
+ * @brief
  */
 void R_ShutdownDecals(void) {
-
-  R_ShutdownDecalProgram();
 }
+

@@ -125,26 +125,8 @@ static void R_Screenshot_encode(void *data) {
  * @brief Captures a screenshot, if requested, writing it to the user's directory.
  */
 void R_Screenshot(r_view_t *view) {
-  const SDL_Rect viewport = r_device.viewport;
-  
-  SDL_Surface *surface = NULL;
 
-  switch (r_image_state.screenshot) {
-    case SCREENSHOT_NONE:
-      return;
-    case SCREENSHOT_VIEW:
-      R_ReadFramebufferAttachment(view->framebuffer, ATTACHMENT_POST, &surface);
-      break;
-    default:
-      surface = SDL_CreateSurface(viewport.w, viewport.h, SDL_PIXELFORMAT_BGR24);
-      glReadPixels(0, 0, surface->w, surface->h, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
-      break;
-  }
-
-  assert(surface);
-
-  Thread_Create(R_Screenshot_encode, surface, THREAD_NO_WAIT);
-
+  // TODO(#864): screenshots not yet ported to SDL_gpu.
   r_image_state.screenshot = SCREENSHOT_NONE;
 }
 
@@ -165,67 +147,7 @@ void R_Screenshot_f(void) {
  */
 void R_SetupImage(r_image_t *image) {
 
-  return; // TODO(#864): retired; GPU textures are created in R_LoadImage via ObjectivelyGPU
-
-  assert(image);
-  assert(image->type);
-  assert(image->target);
-  assert(image->internal_format);
-
-  if (image->texnum == 0) {
-    glGenTextures(1, &(image->texnum));
-  }
-
-  glBindTexture(image->target, image->texnum);
-
-  if (image->target == GL_TEXTURE_BUFFER) {
-
-    assert(image->buffer);
-    glTexBuffer(GL_TEXTURE_BUFFER, image->internal_format, image->buffer);
-
-  } else {
-
-    assert(image->minify);
-    assert(image->magnify);
-    assert(image->format);
-    assert(image->pixel_type);
-
-    glTexParameteri(image->target, GL_TEXTURE_MIN_FILTER, image->minify);
-    glTexParameteri(image->target, GL_TEXTURE_MAG_FILTER, image->magnify);
-    glTexParameterf(image->target, GL_TEXTURE_MAX_ANISOTROPY, r_image_state.anisotropy);
-
-    switch (image->type) {
-      case IMG_CUBEMAP:
-      case IMG_VOXELS:
-        glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-      default:
-        break;
-    }
-
-    if (image->levels == 0) {
-      switch (image->minify) {
-        case GL_LINEAR_MIPMAP_LINEAR:
-        case GL_LINEAR_MIPMAP_NEAREST:
-          image->levels = floorf(log2f(Mini(image->width, image->height))) + 1;
-          break;
-        default:
-          image->levels = 1;
-          break;
-      }
-    }
-
-    if (image->depth) {
-      glTexStorage3D(image->target, image->levels, image->internal_format, image->width, image->height, image->depth);
-    } else {
-      glTexStorage2D(image->target, image->levels, image->internal_format, image->width, image->height);
-    }
-  }
-
-  R_RegisterMedia((r_media_t *) image);
-
-  R_GetError(image->media.name);
+  // TODO(#864): retired; GPU textures are created in R_LoadImage via ObjectivelyGPU.
 }
 
 /**
@@ -236,30 +158,7 @@ void R_SetupImage(r_image_t *image) {
  */
 void R_UploadImageTarget(r_image_t *image, GLenum target, const void *data) {
 
-  return; // TODO(#864): retired during SDL_gpu port (2D via createTextureFromSurface in R_LoadImage)
-
-  assert(image);
-  assert(target);
-
-  if (image->texnum == 0) {
-    R_SetupImage(image);
-  }
-
-  glBindTexture(image->target, image->texnum);
-
-  if (data) {
-    if (image->depth > 1) {
-      glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, image->format, image->pixel_type, data);
-    } else {
-      glTexSubImage2D(target, 0, 0, 0, image->width, image->height, image->format, image->pixel_type, data);
-    }
-  }
-
-  if (image->levels > 1) {
-    glGenerateMipmap(image->target);
-  }
-
-  R_GetError(image->media.name);
+  // TODO(#864): retired during SDL_gpu port (2D via createTextureFromSurface in R_LoadImage).
 }
 
 /**
@@ -422,116 +321,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
  * @brief Dump the image to the specified output file.
  */
 static void R_DumpImage(const r_image_t *image, const char *output, bool mipmap, bool raw) {
-
-  if (image->format != GL_RGB && image->format != GL_RGBA) {
-    Com_Warn("Skipped %s due to format\n", image->media.name);
-    return;
-  }
-
-  char real_dir[MAX_OS_PATH], path_name[MAX_OS_PATH];
-  Dirname(output, real_dir);
-  Fs_Mkdir(real_dir);
-
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-  glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
-  glBindTexture(image->target, image->texnum);
-
-  int32_t width, height, depth, mips;
-
-  glGetTexLevelParameteriv(image->target, 0, GL_TEXTURE_WIDTH, &width);
-  glGetTexLevelParameteriv(image->target, 0, GL_TEXTURE_HEIGHT, &height);
-  glGetTexLevelParameteriv(image->target, 0, GL_TEXTURE_DEPTH, &depth);
-
-  if (image->type == IMG_CUBEMAP) {
-    depth = 6;
-  }
-
-  if (image->levels > 1) {
-    glGetTexParameteriv(image->target, GL_TEXTURE_MAX_LEVEL, &mips);
-  } else {
-    mips = 0;
-  }
-
-  R_GetError("");
-
-  int32_t bpp = (image->format == GL_RGBA ? 4 : 3);
-  GLubyte *pixels = Mem_Malloc(width * height * depth * bpp);
-  GLubyte *pixels_start = pixels;
-
-  for (int32_t level = 0; level <= mips; level++) {
-
-    glGetTexImage(image->target, level, image->format, GL_UNSIGNED_BYTE, pixels);
-
-    if (glGetError() != GL_NO_ERROR) {
-      break;
-    }
-
-    int32_t scaled_width, scaled_height;
-
-    glGetTexLevelParameteriv(image->target, level, GL_TEXTURE_WIDTH, &scaled_width);
-    glGetTexLevelParameteriv(image->target, level, GL_TEXTURE_HEIGHT, &scaled_height);
-
-    if (scaled_width <= 0 || scaled_height <= 0) {
-      break;
-    }
-
-    for (int32_t d = 0; d < depth; d++) {
-
-      q_strlcpy(path_name, output, sizeof(path_name));
-
-      q_strlcat(path_name, va("_%ix%i", width, height), sizeof(path_name));
-        
-      if (depth > 1) {
-        q_strlcat(path_name, va("x%i", d), sizeof(path_name));
-      }
-
-      if (mips > 0) {
-        q_strlcat(path_name, va("_%i", level), sizeof(path_name));
-      }
-        
-      if (raw) {
-      
-        file_t *f = Fs_OpenWrite(path_name);
-
-        if (!f) {
-          break;
-        }
-        
-        Fs_Write(f, pixels, bpp, scaled_width * scaled_height);
-
-        Fs_Close(f);
-      } else {
-        q_strlcat(path_name, ".png", sizeof(path_name));
-    
-        const char *real_path = Fs_RealPath(path_name);
-
-        SDL_IOStream *f = SDL_IOFromFile(real_path, "wb");
-
-        if (!f) {
-          break;
-        }
-
-        const SDL_PixelFormat format = bpp == 3 ? SDL_PIXELFORMAT_RGB24 : SDL_PIXELFORMAT_RGBA32;
-        SDL_Surface *surf = SDL_CreateSurfaceFrom(scaled_width, scaled_height, format, pixels, scaled_width * bpp);
-
-        IMG_SavePNG_IO(surf, f, 0);
-
-        SDL_DestroySurface(surf);
-
-        SDL_CloseIO(f);
-      }
-
-      pixels += scaled_width * scaled_height * bpp;
-    }
-
-    pixels = pixels_start;
-  }
-
-  Mem_Free(pixels);
 }
 
 /**
@@ -566,16 +355,7 @@ void R_DumpImages_f(void) {
  */
 void R_InitImages(void) {
 
-  // set up alignment parameters
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
   memset(&r_image_state, 0, sizeof(r_image_state));
 
-  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &r_image_state.max_anisotropy);
-  r_image_state.anisotropy = Clampf(r_anisotropy->value, 1.f, r_image_state.max_anisotropy);
-
-  R_GetError(NULL);
-  
   Fs_Mkdir("screenshots");
 }

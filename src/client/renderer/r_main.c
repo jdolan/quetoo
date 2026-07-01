@@ -72,46 +72,11 @@ cvar_t *r_window_width;
 cvar_t *r_draw_stats;
 
 /**
- * @brief Queries OpenGL for any errors and prints them as warnings.
+ * @brief No-op retained for source compatibility with the many `R_GetError()`
+ * call sites; ObjectivelyGPU / SDL_gpu report errors directly.
+ * @remarks TODO(#864): remove the R_GetError call sites and this function.
  */
 void R_GetError_(const char *function, const char *msg) {
-
-  return; // TODO(#864): GL error queries retired during SDL_gpu port
-
-  if (!r_get_error->integer) {
-    return;
-  }
-
-  while (true) {
-    const GLenum err = glGetError();
-    const char *s;
-
-    switch (err) {
-      case GL_NO_ERROR:
-        return;
-      case GL_INVALID_ENUM:
-        s = "GL_INVALID_ENUM";
-        break;
-      case GL_INVALID_VALUE:
-        s = "GL_INVALID_VALUE";
-        break;
-      case GL_INVALID_OPERATION:
-        s = "GL_INVALID_OPERATION";
-        break;
-      case GL_OUT_OF_MEMORY:
-        s = "GL_OUT_OF_MEMORY";
-        break;
-      default:
-        s = va("%" PRIx32, err);
-        break;
-    }
-
-    Com_Warn("%s threw %s: %s.\n", function, s, msg);
-
-    if (r_get_error->integer == 2) {
-      SDL_TriggerBreakpoint();
-    }
-  }
 }
 
 /**
@@ -236,35 +201,7 @@ void R_InitView(r_view_t *view) {
  */
 void R_DrawViewDepth(r_view_t *view) {
 
-  return; // TODO(#864): 3D depth pre-pass stubbed during SDL_gpu bring-up
-
-  assert(view);
-  assert(view->framebuffer);
-
-  R_UpdateFrustum(view);
-
-  R_UpdateUniforms(view);
-
-  R_UpdateOcclusionQueries(view);
-
-  R_ClearFramebuffer(view->framebuffer);
-
-  const GLuint render_fbo = view->framebuffer->msaa.fbo ?: view->framebuffer->name;
-
-  glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-
-  glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
-
-  R_DrawDepthPass(view);
-
-  R_DrawOcclusionQueries(view);
-
-  const SDL_Rect viewport = r_device.viewport;
-  glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  R_GetError(NULL);
+  // TODO(#864): 3D depth pre-pass + occlusion queries not yet ported to SDL_gpu.
 }
 
 /**
@@ -293,29 +230,7 @@ void R_DrawMainView(r_view_t *view) {
  */
 void R_DrawPlayerModelView(r_view_t *view) {
 
-  return; // TODO(#864): 3D player-model pass stubbed during SDL_gpu bring-up
-
-  assert(view);
-  assert(view->framebuffer);
-
-  R_UpdateUniforms(view);
-
-  R_UpdateEntities(view);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
-
-  R_DrawMeshEntities(view);
-
-  const SDL_Rect viewport = r_device.viewport;
-  glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
-  
-  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  // TODO(#864): player-model mesh pass not yet ported to SDL_gpu.
 }
 
 /**
@@ -417,33 +332,6 @@ static void R_InitConfig(void) {
 }
 
 /**
- * @brief Creates the global uniform buffer object and binds it to binding point 0.
- */
-static void R_InitUniforms(void) {
-
-  glGenBuffers(1, &r_uniforms.buffer);
-
-  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-  glBufferData(GL_UNIFORM_BUFFER, sizeof(r_uniforms.block), NULL, GL_DYNAMIC_DRAW);
-
-  glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
-
-  R_UpdateUniforms(NULL);
-
-  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
-}
-
-/**
- * @brief Deletes the global uniform buffer object.
- */
-static void R_ShutdownUniforms(void) {
-
-  glDeleteBuffers(1, &r_uniforms.buffer);
-}
-
-/**
  * @brief Creates the OpenGL context and initializes all GL state.
  */
 void R_Init(void) {
@@ -459,7 +347,6 @@ void R_Init(void) {
   // console, media/images and shaders are ported back in Phase 4/5.
   //
   R_InitConfig();
-  // R_InitUniforms();
   // R_InitOcclusionQueries();
   R_InitMedia();
   R_InitLights();
@@ -501,7 +388,6 @@ void R_Shutdown(void) {
   // R_ShutdownShadows();
   // R_ShutdownDepthPass();
   // R_ShutdownOcclusionQueries();
-  // R_ShutdownUniforms();
 
   R_ShutdownBspProgram();
 

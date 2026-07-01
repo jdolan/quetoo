@@ -50,7 +50,6 @@
 #include "r_model.h"
 #include "r_occlude.h"
 #include "r_post.h"
-#include "r_program.h"
 #include "r_shadow.h"
 #include "r_sky.h"
 #include "r_sprite.h"

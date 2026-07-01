@@ -118,29 +118,13 @@ void R_InitModels(void) {
 
   memset(&r_models, 0, sizeof(r_models));
 
-  glGenVertexArrays(1, &r_models.mesh.vertex_array);
-  glGenVertexArrays(1, &r_models.mesh.depth_pass.vertex_array);
-
-  glGenBuffers(1, &r_models.mesh.vertex_buffer);
-  glGenBuffers(1, &r_models.mesh.elements_buffer);
-
   R_InitMeshProgram();
-
-  glFrontFace(GL_CW);
-
-  R_GetError(NULL);
 }
 
 /**
  * @brief Shuts down the model facilities.
  */
 void R_ShutdownModels(void) {
-
-  glDeleteVertexArrays(1, &r_models.mesh.vertex_array);
-  glDeleteVertexArrays(1, &r_models.mesh.depth_pass.vertex_array);
-
-  glDeleteBuffers(1, &r_models.mesh.vertex_buffer);
-  glDeleteBuffers(1, &r_models.mesh.elements_buffer);
 
   memset(&r_models, 0, sizeof(r_models));
 

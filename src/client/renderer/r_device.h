@@ -30,5 +30,4 @@ void R_UpdateDevice(void);
 #if defined(__R_LOCAL_H__)
 void R_InitDevice(void);
 void R_ShutdownDevice(void);
-void R_Debug_GladPostCallback(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...);
 #endif

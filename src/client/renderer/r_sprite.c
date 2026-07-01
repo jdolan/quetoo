@@ -396,188 +396,23 @@ void R_UpdateSprites(r_view_t *view) {
 
 /**
  * @brief Renders all batched sprite instances to the framebuffer.
+ * @remarks TODO(#864): sprite rendering (sprite_vs/sprite_fs, soft particles)
+ * is not yet ported to SDL_gpu. The CPU-side R_AddSprite / R_AddBeam /
+ * R_UpdateSprites remain live so the view is still populated.
  */
 void R_DrawSprites(const r_view_t *view) {
-
-  assert(view->framebuffer);
-
-  glEnable(GL_DEPTH_TEST);
-  glDepthMask(GL_FALSE);
-
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_ONE, GL_ONE);
-
-  glUseProgram(r_sprite_program.name);
-
-  glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
-
-  const GLsizei count = view->num_sprite_instances * 4;
-  glBufferData(GL_ARRAY_BUFFER, sizeof(r_sprites.vertexes), NULL, GL_DYNAMIC_DRAW);
-  glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(r_sprite_vertex_t), r_sprites.vertexes);
-
-  glBindVertexArray(r_sprites.vertex_array);
-
-  R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_DEPTH, &view->framebuffer->depth_attachment_copy);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_ATTACHMENT_COPY);
-  glBindTexture(GL_TEXTURE_2D, view->framebuffer->depth_attachment_copy);
-
-  int32_t i = 0;
-  while (i < view->num_sprite_instances) {
-
-    const r_sprite_instance_t *in = view->sprite_instances + i;
-
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-    glBindTexture(GL_TEXTURE_2D, in->diffusemap->texnum);
-
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_NEXT_DIFFUSEMAP);
-    glBindTexture(GL_TEXTURE_2D, in->next_diffusemap->texnum);
-
-    GLsizei batch_size = 1;
-
-    box3_t bounds = in->bounds;
-
-    const r_sprite_instance_t *batch = in + 1;
-    for (int32_t j = i + 1; j < view->num_sprite_instances; j++, batch++) {
-
-      if (batch->diffusemap->texnum == in->diffusemap->texnum &&
-        batch->next_diffusemap->texnum == in->next_diffusemap->texnum) {
-        bounds = Box3_Union(bounds, batch->bounds);
-        batch_size++;
-      } else {
-        break;
-      }
-    }
-
-    R_ActiveLights(view, bounds, r_sprite_program.active_lights);
-
-    glDrawElements(GL_TRIANGLES, batch_size * 6, GL_UNSIGNED_INT, in->elements);
-    r_stats.sprite_draw_elements++;
-
-    i += batch_size;
-  }
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-
-  glBindVertexArray(0);
-
-  glUseProgram(0);
-
-  glBlendFunc(GL_ONE, GL_ZERO);
-  glDisable(GL_BLEND);
-
-  glDisable(GL_DEPTH_TEST);
-  glDepthMask(GL_TRUE);
-
-  R_GetError(NULL);
 }
 
 /**
- * @brief Initializes the sprite draw GLSL program and resolves its uniform locations.
- */
-static void R_InitSpriteProgram(void) {
-
-  memset(&r_sprite_program, 0, sizeof(r_sprite_program));
-
-  r_sprite_program.name = R_LoadProgram(
-      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "voxel.glsl", "sprite_vs.glsl", NULL),
-      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "soften_fs.glsl", "sprite_fs.glsl", NULL),
-      NULL);
-  
-  glUseProgram(r_sprite_program.name);
-
-  r_sprite_program.uniforms_block = glGetUniformBlockIndex(r_sprite_program.name, "uniforms_block");
-  glUniformBlockBinding(r_sprite_program.name, r_sprite_program.uniforms_block, 0);
-
-  r_sprite_program.lights_block = glGetUniformBlockIndex(r_sprite_program.name, "lights_block");
-  glUniformBlockBinding(r_sprite_program.name, r_sprite_program.lights_block, 1);
-
-  r_sprite_program.active_lights = glGetUniformLocation(r_sprite_program.name, "active_lights");
-
-  r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
-  r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
-  r_sprite_program.texture_voxel_light_data = glGetUniformLocation(r_sprite_program.name, "texture_voxel_light_data");
-  r_sprite_program.texture_voxel_light_indices = glGetUniformLocation(r_sprite_program.name, "texture_voxel_light_indices");
-  r_sprite_program.texture_depth_attachment_copy = glGetUniformLocation(r_sprite_program.name, "texture_depth_attachment_copy");
-
-  glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
-  glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
-  glUniform1i(r_sprite_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
-  glUniform1i(r_sprite_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
-  glUniform1i(r_sprite_program.texture_depth_attachment_copy, TEXTURE_DEPTH_ATTACHMENT_COPY);
-
-  glUseProgram(0);
-
-  R_GetError(NULL);
-}
-
-/**
- * @brief Initializes the sprite subsystem, allocating vertex buffers and the sprite program.
+ * @brief
  */
 void R_InitSprites(void) {
 
   memset(&r_sprites, 0, sizeof(r_sprites));
-
-  glGenVertexArrays(1, &r_sprites.vertex_array);
-  glBindVertexArray(r_sprites.vertex_array);
-
-  glGenBuffers(1, &r_sprites.vertex_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(r_sprites.vertexes), NULL, GL_DYNAMIC_DRAW);
-
-  glGenBuffers(1, &r_sprites.elements_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);
-
-  GLuint elements[MAX_SPRITE_INSTANCES * 6];
-  for (GLuint i = 0, v = 0, e = 0; i < MAX_SPRITE_INSTANCES; i++, v += 4, e += 6) {
-    elements[e + 0] = v + 0;
-    elements[e + 1] = v + 1;
-    elements[e + 2] = v + 2;
-    elements[e + 3] = v + 0;
-    elements[e + 4] = v + 2;
-    elements[e + 5] = v + 3;
-  }
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, position));
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, diffusemap));
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_diffusemap));
-  glVertexAttribPointer(3, 3, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
-  glVertexAttribPointer(4, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lerp));
-  glVertexAttribPointer(5, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lighting));
-
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
-  glEnableVertexAttribArray(3);
-  glEnableVertexAttribArray(4);
-  glEnableVertexAttribArray(5);
-
-  glBindVertexArray(0);
-
-  R_GetError(NULL);
-
-  R_InitSpriteProgram();
 }
 
 /**
- * @brief Deletes the sprite GLSL program object.
- */
-static void R_ShutdownSpriteProgram(void) {
-
-  glDeleteProgram(r_sprite_program.name);
-
-  r_sprite_program.name = 0;
-}
-
-/**
- * @brief Shuts down the sprite subsystem, releasing GPU buffers and the sprite program.
+ * @brief
  */
 void R_ShutdownSprites(void) {
-
-  glDeleteVertexArrays(1, &r_sprites.vertex_array);
-  glDeleteBuffers(1, &r_sprites.vertex_buffer);
-  glDeleteBuffers(1, &r_sprites.elements_buffer);
-
-  R_ShutdownSpriteProgram();
 }

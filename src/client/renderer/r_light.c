@@ -71,31 +71,8 @@ void R_UpdateLights(r_view_t *view) {
  */
 void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
 
-  GLint active_lights[MAX_DYNAMIC_LIGHTS];
-  GLint len = 0;
-
-  const r_light_t *l = view->lights;
-  for (int32_t i = 0; i < view->num_lights; i++, l++) {
-
-    if (l->bsp_light) {
-      continue;
-    }
-
-    if (Box3_Intersects(l->bounds, bounds)) {
-      active_lights[len++] = i;
-
-      if (len == MAX_DYNAMIC_LIGHTS) {
-        break;
-      }
-    }
-  }
-
-  if (len < MAX_DYNAMIC_LIGHTS) {
-    active_lights[len++] = -1;
-  }
-
-  glUniform1iv(name, len, active_lights);
-  R_GetError(NULL);
+  // TODO(#864): dynamic (active) lights not yet ported to the SDL_gpu path;
+  // only static voxel-clustered BSP lights are drawn (see bsp_fs.glsl).
 }
 
 /**

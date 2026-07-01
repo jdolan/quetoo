@@ -30,7 +30,6 @@ noinst_HEADERS = \
 	r_model.h \
 	r_occlude.h \
 	r_post.h \
-	r_program.h \
 	r_shadow.h \
 	r_sky.h \
 	r_sprite.h \
@@ -53,7 +52,6 @@ librenderer_la_SOURCES = \
 	r_draw_3d.c \
 	r_entity.c \
 	r_framebuffer.c \
-	r_gl.c \
 	r_image.c \
 	r_light.c \
 	r_main.c \
@@ -67,7 +65,6 @@ librenderer_la_SOURCES = \
 	r_model.c \
 	r_occlude.c \
 	r_post.c \
-	r_program.c \
 	r_shadow.c \
 	r_sky.c \
 	r_sprite.c
