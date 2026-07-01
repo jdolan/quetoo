@@ -19,6 +19,63 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#ifndef _UNIFORMS_GLSL_
+#define _UNIFORMS_GLSL_
+
+/*
+ * SDL_gpu descriptor set / binding slot map.
+ *
+ * The offline build (Makefile.am) defines exactly one of VERTEX_SHADER or
+ * FRAGMENT_SHADER via glslc -D, selecting the descriptor sets SDL_gpu expects:
+ *
+ *   Stage     | Sampled textures / storage | Uniform buffers
+ *   ----------+----------------------------+----------------
+ *   vertex    | set 0                      | set 1
+ *   fragment  | set 2                      | set 3
+ *
+ * Within a set, bindings are assigned in declaration order. We use a fixed,
+ * named binding map (below) so the C side binds one consistent table; a program
+ * declares only the resources it uses and shadercross preserves the indices.
+ */
+#if defined(VERTEX_SHADER)
+  #define SAMPLER_SET 0
+  #define UNIFORM_SET 1
+#elif defined(FRAGMENT_SHADER)
+  #define SAMPLER_SET 2
+  #define UNIFORM_SET 3
+#else
+  #error "Define VERTEX_SHADER or FRAGMENT_SHADER when compiling shaders."
+#endif
+
+/*
+ * Uniform-buffer bindings (within UNIFORM_SET). Binding 0 is the per-frame
+ * globals block, present in every program. Per-program per-draw blocks
+ * ("locals": model matrix, lerp, colors, ...) use BINDING_LOCALS.
+ */
+#define BINDING_UNIFORMS 0
+#define BINDING_LOCALS   1
+
+/*
+ * Fragment sampler bindings (within SAMPLER_SET). All sampling is fragment-side.
+ * Fixed global map: shadercross preserves these as the MSL [[texture(n)]] index.
+ */
+#define BINDING_DIFFUSEMAP            0
+#define BINDING_NEXT_DIFFUSEMAP       1
+#define BINDING_MATERIAL              2
+#define BINDING_STAGE                 3
+#define BINDING_STAGE_NEXT            4
+#define BINDING_WARP                  5
+#define BINDING_VOXEL_CAUSTICS        6
+#define BINDING_VOXEL_OCCLUSION       7
+#define BINDING_VOXEL_LIGHT_DATA      8
+#define BINDING_VOXEL_LIGHT_INDICES   9
+#define BINDING_SKY                   10
+#define BINDING_SHADOW_ATLAS          11
+#define BINDING_COLOR_ATTACHMENT      12
+#define BINDING_POST_ATTACHMENT       13
+#define BINDING_DEPTH_ATTACHMENT_COPY 14
+#define BINDING_BLOOM_ATTACHMENT      15
+
 #define VIEW_UNKNOWN        0
 #define VIEW_MAIN           1
 #define VIEW_PLAYER_MODEL   2
@@ -63,9 +120,9 @@ struct voxels_t {
 };
 
 /**
- * @brief The uniforms block.
+ * @brief The uniforms block (per-frame globals, shared by all programs).
  */
-layout (std140) uniform uniforms_block {
+layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_block {
   /**
    * @brief The viewport (x, y, w, h) in device pixels.
    */
@@ -157,108 +214,56 @@ layout (std140) uniform uniforms_block {
   int wireframe;
 };
 
-/**
- * @brief The light struct.
- */
-struct light_t {
-  /**
-   * @brief The light origin in model space, and radius.
-   */
-  vec4 origin;
-
-  /**
-   * @brief The light color and intensity.
-   */
-  vec4 color;
-
-  /**
-   * @brief The shadow atlas tile info.
-   * @details xy = normalized base UV within layer, z = tile size in UV (square layers), w = layer index.
-   * @details If z == 0, no shadow map is available for this light.
-   */
-  vec4 shadow;
-};
-
-/**
- * @brief Returns the modulated, intensity-scaled, and saturated color for a light.
- * @param l The light.
- * @return The color scaled by intensity, modulate, and saturation.
- */
-vec3 light_color(in light_t l) {
-  vec3 color = l.color.rgb * l.color.a * modulate;
-  float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
-  return mix(vec3(luma), color, saturation);
-}
-
-#define MAX_BSP_LIGHTS 512
-#define MAX_DYNAMIC_LIGHTS 64
-#define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
-
-/**
- * @brief The lights uniform block.
- */
-layout (std140) uniform lights_block {
-  /**
-   * @brief The light sources for the current frame.
-   */
-  light_t lights[MAX_LIGHTS];
-};
-
-/**
- * @brief The -1 terminated array of active light indexes for the current render operation.
- * @details Sized to MAX_DYNAMIC_LIGHTS rather than MAX_LIGHTS because all consumers only
- * iterate the first MAX_DYNAMIC_LIGHTS entries, and a larger default-block uniform array
- * exceeds the vertex program parameter limits of older GL drivers (#842).
- */
-uniform int active_lights[MAX_DYNAMIC_LIGHTS];
+#ifdef FRAGMENT_SHADER
 
 /**
  * @brief The diffusemap texture, for non-material passes such as sprites.
  */
-uniform sampler2D texture_diffusemap;
-uniform sampler2D texture_next_diffusemap;
+layout (set = SAMPLER_SET, binding = BINDING_DIFFUSEMAP)      uniform sampler2D texture_diffusemap;
+layout (set = SAMPLER_SET, binding = BINDING_NEXT_DIFFUSEMAP) uniform sampler2D texture_next_diffusemap;
 
 /**
  * @brief The material primary texture.
  */
-uniform sampler2DArray texture_material;
+layout (set = SAMPLER_SET, binding = BINDING_MATERIAL)        uniform sampler2DArray texture_material;
 
 /**
- * @brief The material secondary texture.
+ * @brief The material secondary texture, and its next animation frame.
  */
-uniform sampler2D texture_stage;
-
-/**
- * @brief The next animation frame texture, for interpolated material stage animations.
- */
-uniform sampler2D texture_stage_next;
+layout (set = SAMPLER_SET, binding = BINDING_STAGE)           uniform sampler2D texture_stage;
+layout (set = SAMPLER_SET, binding = BINDING_STAGE_NEXT)      uniform sampler2D texture_stage_next;
 
 /**
  * @brief The warp texture, for liquids.
  */
-uniform sampler2D texture_warp;
+layout (set = SAMPLER_SET, binding = BINDING_WARP)            uniform sampler2D texture_warp;
 
 /**
  * @brief The voxel textures.
  */
-uniform sampler3D texture_voxel_caustics;
-uniform sampler3D texture_voxel_occlusion;
-uniform isampler3D texture_voxel_light_data;
-uniform isamplerBuffer texture_voxel_light_indices;
+layout (set = SAMPLER_SET, binding = BINDING_VOXEL_CAUSTICS)      uniform sampler3D     texture_voxel_caustics;
+layout (set = SAMPLER_SET, binding = BINDING_VOXEL_OCCLUSION)     uniform sampler3D     texture_voxel_occlusion;
+layout (set = SAMPLER_SET, binding = BINDING_VOXEL_LIGHT_DATA)    uniform isampler3D    texture_voxel_light_data;
+layout (set = SAMPLER_SET, binding = BINDING_VOXEL_LIGHT_INDICES) uniform isamplerBuffer texture_voxel_light_indices;
 
 /**
  * @brief The sky cubemap texture.
  */
-uniform samplerCube texture_sky;
+layout (set = SAMPLER_SET, binding = BINDING_SKY)             uniform samplerCube texture_sky;
 
 /**
  * @brief The shadow atlas texture (layered 2D array).
  */
-uniform sampler2DArrayShadow texture_shadow_atlas;
+layout (set = SAMPLER_SET, binding = BINDING_SHADOW_ATLAS)    uniform sampler2DArrayShadow texture_shadow_atlas;
 
 /**
  * @brief The framebuffer attachment textures.
  */
-uniform sampler2D texture_color_attachment;
-uniform sampler2D texture_post_attachment;
-uniform sampler2D texture_depth_attachment_copy;
+layout (set = SAMPLER_SET, binding = BINDING_COLOR_ATTACHMENT)      uniform sampler2D texture_color_attachment;
+layout (set = SAMPLER_SET, binding = BINDING_POST_ATTACHMENT)       uniform sampler2D texture_post_attachment;
+layout (set = SAMPLER_SET, binding = BINDING_DEPTH_ATTACHMENT_COPY) uniform sampler2D texture_depth_attachment_copy;
+layout (set = SAMPLER_SET, binding = BINDING_BLOOM_ATTACHMENT)      uniform sampler2D texture_bloom_attachment;
+
+#endif // FRAGMENT_SHADER
+
+#endif // _UNIFORMS_GLSL_

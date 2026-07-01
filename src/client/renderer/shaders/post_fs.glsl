@@ -19,17 +19,24 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-in vertex_data {
+#version 450
+
+#include "uniforms.glsl"
+
+layout (location = 0) in vertex_data {
   vec2 texcoord;
 } vertex;
 
-out vec4 out_color;
+layout (location = 0) out vec4 out_color;
 
-uniform sampler2D texture_bloom_attachment;
-
-uniform int post_stage;
-uniform float bloom;
-uniform float bloom_threshold;
+/**
+ * @brief Per-draw locals.
+ */
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+  int post_stage;
+  float bloom;
+  float bloom_threshold;
+};
 
 /**
  * @brief Post-processing stage selector, mirroring the r_post_stage_t C enum.

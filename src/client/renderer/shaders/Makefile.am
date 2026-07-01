@@ -29,3 +29,28 @@ shaders_DATA = \
 	uniforms.glsl \
 	version.glsl \
   voxel.glsl
+
+# --- SDL_gpu shader transpilation -------------------------------------------
+#
+# Entry-point shaders ported to SDL_gpu. The compiled blobs (.spv for Vulkan,
+# .metal for Metal) are versioned in the repository, so normal builds never
+# invoke glslc or shadercross. Run 'make shaders' after editing a .glsl to
+# regenerate them. Extend these lists as more shaders are ported (issue #864).
+
+GPU_VERT_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs
+GPU_FRAG_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs
+
+EXTRA_DIST = \
+	$(GPU_VERT_SHADERS:=.spv) $(GPU_VERT_SHADERS:=.metal) \
+	$(GPU_FRAG_SHADERS:=.spv) $(GPU_FRAG_SHADERS:=.metal)
+
+.PHONY: shaders
+shaders:
+	for s in $(GPU_VERT_SHADERS); do \
+		$(GLSLC) -DVERTEX_SHADER -I$(srcdir) -fshader-stage=vertex $(srcdir)/$$s.glsl -o $$s.spv || exit 1; \
+		$(SHADERCROSS) $$s.spv -s SPIRV -d MSL -t vertex --msl-version 2.1.0 -o $$s.metal || exit 1; \
+	done
+	for s in $(GPU_FRAG_SHADERS); do \
+		$(GLSLC) -DFRAGMENT_SHADER -I$(srcdir) -fshader-stage=fragment $(srcdir)/$$s.glsl -o $$s.spv || exit 1; \
+		$(SHADERCROSS) $$s.spv -s SPIRV -d MSL -t fragment --msl-version 2.1.0 -o $$s.metal || exit 1; \
+	done

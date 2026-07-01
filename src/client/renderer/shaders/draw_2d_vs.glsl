@@ -19,13 +19,22 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#version 450
+
+#include "uniforms.glsl"
+
 layout (location = 0) in vec2 in_position;
 layout (location = 1) in vec2 in_diffusemap;
 layout (location = 2) in vec4 in_color;
 
-uniform mat4 projection2D;
+/**
+ * @brief Per-draw locals.
+ */
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+  mat4 projection2D;
+};
 
-out vertex_data {
+layout (location = 0) out vertex_data {
   vec2 diffusemap;
   vec4 color;
 } vertex;

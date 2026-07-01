@@ -159,6 +159,15 @@ dnl ------------------------
 
 PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC >= 2.0.0])
 
+dnl ------------------------------------------------
+dnl Check for offline shader cross-compilation tools
+dnl ------------------------------------------------
+dnl glslc (shaderc) compiles GLSL to SPIR-V; shadercross (SDL_shadercross)
+dnl cross-compiles SPIR-V to MSL/DXIL. Only needed to regenerate the versioned
+dnl shader blobs via 'make shaders'; normal builds use the committed blobs.
+AC_CHECK_PROG([GLSLC], [glslc], [glslc])
+AC_CHECK_PROG([SHADERCROSS], [shadercross], [shadercross])
+
 dnl ----------------
 dnl Check for OpenAL
 dnl ----------------

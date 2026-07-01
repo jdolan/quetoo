@@ -19,7 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-out vec4 out_color;
+#version 450
+
+layout (location = 0) out vec4 out_color;
 
 /**
  * @brief

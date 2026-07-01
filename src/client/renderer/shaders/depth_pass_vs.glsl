@@ -19,9 +19,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#version 450
+
+#include "uniforms.glsl"
+
 layout (location = 0) in vec3 in_position;
 
-uniform mat4 model;
+/**
+ * @brief Per-draw locals.
+ */
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+  mat4 model;
+};
 
 invariant gl_Position;
 
