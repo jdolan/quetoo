@@ -135,11 +135,16 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
  */
 r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
 
+  // TODO(#864): occlusion queries retired during SDL_gpu bring-up (the whole
+  // subsystem is uninitialised while R_InitOcclusionQueries is bypassed).
+  // Ported in Phase 7 (compute Hi-Z occlusion). Callers store the returned NULL
+  // as block/light->query; R_FreeOcclusionQuery null-checks.
+  return NULL;
+
   r_occlusion_query_t *query = R_PopOcclusionQuery(r_occlusion_queries.free);
   if (query == NULL) {
     query = Mem_TagMalloc(sizeof(r_occlusion_query_t), MEM_TAG_RENDERER);
-    // TODO(#864): occlusion queries retired during SDL_gpu bring-up; ported in Phase 7 (Hi-Z).
-    // glGenQueries(1, &query->name);
+    glGenQueries(1, &query->name);
   }
 
   query->bounds = bounds;
