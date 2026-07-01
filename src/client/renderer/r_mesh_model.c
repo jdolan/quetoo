@@ -243,6 +243,8 @@ static void R_LoadMeshTangents(r_model_t *mod) {
  */
 void R_LoadMeshVertexArray(r_model_t *mod) {
 
+  return; // TODO(#864): mesh GPU upload stubbed during SDL_gpu bring-up; port to a Buffer in Phase 5
+
   assert(mod->mesh);
   assert(mod->mesh->num_faces);
 
