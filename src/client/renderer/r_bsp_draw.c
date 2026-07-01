@@ -686,26 +686,32 @@ void R_ShutdownBspProgram(void) {
 }
 
 /**
- * @brief The minimal BSP world pipeline for the SDL_gpu bring-up. It renders
- * world geometry with the already-ported depth_pass shaders (position + MVP ->
- * flat color), proving geometry upload, uniforms, and pipeline before the full
- * material/lighting BSP program is ported.
- * @remarks TODO(#864): replace with the bsp_vs/bsp_fs program (materials, lights).
+ * @brief The bring-up BSP world program. Renders world geometry with the
+ * material diffuse texture (world_vs/world_fs). This is the incremental first
+ * materials step toward the full bsp_vs/bsp_fs (lighting, stages, voxels,
+ * shadows).
+ * @remarks TODO(#864): grow world_vs/world_fs toward the full bsp program.
  */
 static GraphicsPipeline *r_world_pipeline;
 
 /**
- * @brief Builds the bring-up world pipeline from the depth_pass shaders.
+ * @brief The material sampler (trilinear, repeat).
+ */
+static Sampler *r_world_sampler;
+
+/**
+ * @brief Builds the bring-up world pipeline from the world_vs/world_fs shaders.
  */
 void R_InitWorldPipeline(void) {
 
-  Shader *vertexShader = $(r_device.device, loadShader, "shaders/depth_pass_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(r_device.device, loadShader, "shaders/world_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 2, // globals (binding 0) + locals/model (binding 1)
   });
 
-  Shader *fragmentShader = $(r_device.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(r_device.device, loadShader, "shaders/world_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+    .num_samplers = 1, // texture_material (2D array)
   });
 
   const Framebuffer *framebuffer = r_device.device->framebuffer;
@@ -714,7 +720,7 @@ void R_InitWorldPipeline(void) {
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
-  // Bring-up: draw all faces regardless of winding so first pixels are guaranteed.
+  // Bring-up: draw all faces regardless of winding so geometry is guaranteed visible.
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
@@ -724,13 +730,21 @@ void R_InitWorldPipeline(void) {
       .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
     },
     .num_vertex_buffers = 1,
-    .vertex_attributes = &(SDL_GPUVertexAttribute) {
-      .location = 0,
-      .buffer_slot = 0,
-      .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-      .offset = offsetof(r_bsp_vertex_t, position),
+    .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+      {
+        .location = 0,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(r_bsp_vertex_t, position),
+      },
+      {
+        .location = 4,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+        .offset = offsetof(r_bsp_vertex_t, diffusemap),
+      },
     },
-    .num_vertex_attributes = 1,
+    .num_vertex_attributes = 2,
   };
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
@@ -747,19 +761,29 @@ void R_InitWorldPipeline(void) {
 
   release(vertexShader);
   release(fragmentShader);
+
+  r_world_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+    .min_filter = SDL_GPU_FILTER_LINEAR,
+    .mag_filter = SDL_GPU_FILTER_LINEAR,
+    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
+    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+  });
 }
 
 /**
- * @brief Releases the bring-up world pipeline.
+ * @brief Releases the bring-up world pipeline and sampler.
  */
 void R_ShutdownWorldPipeline(void) {
   r_world_pipeline = release(r_world_pipeline);
+  r_world_sampler = release(r_world_sampler);
 }
 
 /**
- * @brief Renders all world BSP geometry with the bring-up pipeline into the
- * present framebuffer. Uniforms are pushed per frame; the world model matrix is
- * identity.
+ * @brief Renders all opaque world BSP draw elements with their material diffuse
+ * texture into the present framebuffer. No culling yet; the world model matrix
+ * is identity.
  */
 void R_DrawWorld(const r_view_t *view) {
 
@@ -797,9 +821,30 @@ void R_DrawWorld(const r_view_t *view) {
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  $(pass, drawIndexedPrimitives, bsp->num_elements, 1, 0, 0, 0);
+  const r_bsp_draw_elements_t *draw = bsp->draw_elements;
+  for (int32_t i = 0; i < bsp->num_draw_elements; i++, draw++) {
 
-  r_stats.bsp_triangles += bsp->num_elements / 3;
+    // TODO(#864): sky (cubemap) and blended surfaces need dedicated passes; skip for now.
+    if (draw->surface & (SURF_SKY | SURF_MASK_BLEND)) {
+      continue;
+    }
+
+    if (!draw->material || !draw->material->texture || !draw->material->texture->texture) {
+      continue;
+    }
+
+    $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
+      .texture = draw->material->texture->texture->texture,
+      .sampler = r_world_sampler->sampler,
+    }, 1);
+
+    const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(GLuint));
+
+    $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
+
+    r_stats.bsp_triangles += draw->num_elements / 3;
+    r_stats.bsp_draw_elements++;
+  }
 
   pass = release(pass);
 }
