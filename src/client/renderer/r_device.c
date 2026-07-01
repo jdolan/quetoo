@@ -103,13 +103,7 @@ void R_UpdateDevice(void) {
  * @brief Creates the `SDL_Window` and the ObjectivelyGPU `RenderDevice`.
  */
 void R_InitDevice(void) {
-
-#if __APPLE__
-  // Stop Xcode from launching multiple instances of the application
-  // https://developer.apple.com/forums/thread/765445
-  usleep(500000);
-#endif
-
+  
   memset(&r_device, 0, sizeof(r_device));
 
   if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
