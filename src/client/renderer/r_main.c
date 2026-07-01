@@ -76,6 +76,8 @@ cvar_t *r_draw_stats;
  */
 void R_GetError_(const char *function, const char *msg) {
 
+  return; // TODO(#864): GL error queries retired during SDL_gpu port
+
   if (!r_get_error->integer) {
     return;
   }
@@ -511,7 +513,7 @@ void R_Init(void) {
   // R_InitConfig();
   // R_InitUniforms();
   // R_InitOcclusionQueries();
-  // R_InitMedia();
+  R_InitMedia();
   // R_InitImages();
   // R_InitDepthPass();
   // R_InitShadows();
@@ -552,6 +554,8 @@ void R_Shutdown(void) {
   // R_ShutdownDepthPass();
   // R_ShutdownOcclusionQueries();
   // R_ShutdownUniforms();
+
+  R_ShutdownMedia();
 
   R_ShutdownDevice();
 

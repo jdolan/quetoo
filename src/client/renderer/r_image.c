@@ -164,7 +164,9 @@ void R_Screenshot_f(void) {
  * @brief Creates the base image state for the image.
  */
 void R_SetupImage(r_image_t *image) {
-  
+
+  return; // TODO(#864): retired; GPU textures are created in R_LoadImage via ObjectivelyGPU
+
   assert(image);
   assert(image->type);
   assert(image->target);
@@ -234,6 +236,8 @@ void R_SetupImage(r_image_t *image) {
  */
 void R_UploadImageTarget(r_image_t *image, GLenum target, const void *data) {
 
+  return; // TODO(#864): retired during SDL_gpu port (2D via createTextureFromSurface in R_LoadImage)
+
   assert(image);
   assert(target);
 
@@ -290,8 +294,7 @@ void R_FreeImage(r_media_t *media) {
 
   r_image_t *image = (r_image_t *) media;
 
-  glDeleteTextures(1, &image->texnum);
-
+  image->texture = release(image->texture);
   image->texnum = 0;
 }
 
@@ -405,12 +408,12 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     image->magnify = GL_LINEAR;
     image->minify = GL_LINEAR_MIPMAP_LINEAR;
 
-    R_UploadImage(image, surface->pixels);
+    image->texture = $(r_device.device, createTextureFromSurface, surface, SDL_GPU_TEXTUREUSAGE_SAMPLER);
   }
     
-  SDL_DestroySurface(surface);
+  R_RegisterMedia((r_media_t *) image);
 
-  R_GetError(name);
+  SDL_DestroySurface(surface);
 
   return image;
 }

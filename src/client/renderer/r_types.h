@@ -169,6 +169,11 @@ typedef struct {
    * @brief The texture name.
    */
   GLuint texnum;
+
+  /**
+   * @brief The GPU texture (ObjectivelyGPU). Owns the sampled texture.
+   */
+  Texture *texture;
 } r_image_t;
 
 /**
