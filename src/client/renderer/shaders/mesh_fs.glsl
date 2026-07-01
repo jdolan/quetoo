@@ -19,48 +19,89 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform float modulate_mesh;
-uniform vec4 tint_colors[3];
+#version 450
 
-in common_vertex_t vertex;
+/*
+ * TODO(#864): bring-up mesh program — diffuse material + clustered per-fragment
+ * lighting, sharing the BSP fragment layout (see bsp_fs.glsl):
+ *
+ *   set 2, binding 0 : texture_material         (sampled 2D array) -> sampler 0
+ *   set 2, binding 1 : texture_voxel_light_data (sampled 3D int)   -> sampler 1
+ *   set 2, binding 2 : lights_block             (read-only storage)-> storage buf 0
+ *   set 2, binding 3 : voxel_light_indices      (read-only storage)-> storage buf 1
+ *
+ * Stages, tint/color modulation, specular/normal mapping, and shadows are ported
+ * in later increments.
+ */
 
-out vec4 out_color;
+#define UNIFORMS_NO_SAMPLERS
+#include "uniforms.glsl"
 
-common_fragment_t fragment;
+layout (set = 2, binding = 0) uniform sampler2DArray texture_material;
+layout (set = 2, binding = 1) uniform isampler3D texture_voxel_light_data;
+
+layout (std430, set = 2, binding = 2) readonly buffer lights_block {
+  light_t lights[];
+};
+
+layout (std430, set = 2, binding = 3) readonly buffer voxel_light_indices_block {
+  int voxel_light_indices[];
+};
+
+layout (location = 0) in vec2 in_diffusemap;
+layout (location = 1) in vec3 in_model_position;
+layout (location = 2) in vec3 in_model_normal;
+
+layout (location = 0) out vec4 out_color;
 
 /**
- * @brief Calculate lighting and shadows for mesh with distance-based LOD.
+ * @brief Resolves the integer voxel coordinate for a world-space position.
  */
-void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
+ivec3 voxel_xyz(in vec3 position) {
+  const vec3 pos = position - voxels.mins.xyz;
+  const ivec3 voxel = ivec3(floor(pos / BSP_VOXEL_SIZE));
+  return clamp(voxel, ivec3(0), ivec3(voxels.size.xyz) - ivec3(1));
+}
 
-  // For distant fragments, use simple vertex lighting
-  if (fragment.view_dist >= lighting_distance || view_type == VIEW_PLAYER_MODEL) {
-    fragment.ambient = vertex.ambient;
-    fragment.diffuse = vertex.diffuse;
-    fragment.specular = vec3(0.0);
-    fragment.caustics = 0.0;
-    return;
+/**
+ * @brief Unshadowed Lambert diffuse contribution from a single light.
+ */
+vec3 mesh_light(in int index, in vec3 normal) {
+
+  const light_t light = lights[index];
+
+  const vec3 dir = light.origin.xyz - in_model_position;
+  const float dist = length(dir);
+  const float radius = light.origin.w;
+
+  const float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
+  if (atten <= 0.0) {
+    return vec3(0.0);
   }
 
-  // For fragments within range, do full per-fragment lighting
+  const float lambert = max(0.0, dot(normal, dir / dist));
 
-  if ((stage.flags & STAGE_LIGHTING_FLAT) == STAGE_LIGHTING_FLAT) {
-    fragment.normal_sample = normalize(vertex.normal);
-    fragment.specular_sample = vec4(fragment.diffuse_sample.rgb, pow(1.0 + material.specularity, 4.0));
-  } else {
-    fragment.normal_sample = sample_material_normal(vertex.diffusemap, fragment.tbn);
-    fragment.specular_sample = sample_material_specular(vertex.diffusemap);
+  return light_color(light) * atten * lambert;
+}
+
+/**
+ * @brief Accumulates the static voxel lights affecting this fragment.
+ */
+vec3 mesh_lighting(void) {
+
+  vec3 diffuse = vec3(0.0);
+
+  const vec3 normal = normalize(in_model_normal);
+
+  const ivec3 voxel = voxel_xyz(in_model_position);
+  const ivec2 data = texelFetch(texture_voxel_light_data, voxel, 0).xy;
+
+  for (int i = 0; i < data.y; i++) {
+    const int index = voxel_light_indices[data.x + i];
+    diffuse += mesh_light(index, normal);
   }
 
-  // Precompute per-pixel Poisson rotation for shadow PCF
-  float angle = random_angle(vertex.model_position);
-  fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
-
-  fragment_lighting(vertex, fragment);
-
-  fragment.ambient *= modulate_mesh;
-  fragment.diffuse *= modulate_mesh;
-  fragment.specular *= modulate_mesh;
+  return diffuse;
 }
 
 /**
@@ -68,56 +109,9 @@ void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t f
  */
 void main(void) {
 
-  if (wireframe != 0) {
-    out_color = vec4(0.8, 0.8, 0.8, 1.0);
-    return;
-  }
+  const vec4 diffuse = texture(texture_material, vec3(in_diffusemap, 0.0));
 
-  fragment.view_dir = normalize(-vertex.position);
-  fragment.view_dist = length(vertex.position);
-  fragment.tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+  const vec3 light = vec3(ambient) + mesh_lighting();
 
-  if (stage.flags == STAGE_NONE) {
-
-    fragment.diffuse_sample = sample_material_diffuse(vertex.diffusemap);
-
-    if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
-      if (fragment.diffuse_sample.a < material.alpha_test) {
-        discard;
-      }
-    }
-
-    vec4 tintmap = sample_material_tint(vertex.diffusemap);
-    fragment.diffuse_sample.rgb *= 1.0 - tintmap.a;
-    fragment.diffuse_sample.rgb += (tint_colors[0] * tintmap.r).rgb * tintmap.a;
-    fragment.diffuse_sample.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
-    fragment.diffuse_sample.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
-
-    mesh_fragment_lighting(vertex, fragment);
-
-    out_color = fragment.diffuse_sample;
-
-    out_color *= vertex.color;
-
-    out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0);
-    out_color.rgb = max(out_color.rgb + fragment.specular, 0.0);
-
-  } else {
-
-    fragment.diffuse_sample = sample_material_stage(vertex.diffusemap) * vertex.color;
-
-    out_color = fragment.diffuse_sample;
-
-    if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
-
-      mesh_fragment_lighting(vertex, fragment);
-
-      out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
-      out_color.rgb += fragment.specular * stage.lighting;
-    }
-
-    if ((stage.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
-      out_color.rgb += fragment.diffuse_sample.rgb * stage.emissive;
-    }
-  }
+  out_color = vec4(diffuse.rgb * light, 1.0);
 }

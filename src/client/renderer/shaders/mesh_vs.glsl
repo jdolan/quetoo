@@ -19,23 +19,37 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#version 450
+
+/*
+ * TODO(#864): bring-up mesh program — animated (two-frame lerp) geometry with
+ * diffuse material and clustered per-fragment lighting (see mesh_fs / bsp_fs).
+ * The two animation frames are supplied as two vertex buffer bindings (the same
+ * model buffer at two frame offsets); locations 0..4 are the old frame, 5..6
+ * the current frame. Stages, tangents/normal-mapping, shells, and tints are
+ * ported in later increments.
+ */
+
+#include "uniforms.glsl"
+
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
-layout (location = 2) in vec3 in_tangent;
-layout (location = 3) in vec3 in_bitangent;
 layout (location = 4) in vec2 in_diffusemap;
 
 layout (location = 5) in vec3 in_next_position;
 layout (location = 6) in vec3 in_next_normal;
-layout (location = 7) in vec3 in_next_tangent;
-layout (location = 8) in vec3 in_next_bitangent;
 
-uniform mat4 model;
-uniform float lerp;
-uniform float modulate_mesh;
-uniform vec4 color;
+/**
+ * @brief Per-entity locals.
+ */
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+  mat4 model;
+  float lerp;
+};
 
-out common_vertex_t vertex;
+layout (location = 0) out vec2 out_diffusemap;
+layout (location = 1) out vec3 out_model_position;
+layout (location = 2) out vec3 out_model_normal;
 
 invariant gl_Position;
 
@@ -44,40 +58,12 @@ invariant gl_Position;
  */
 void main(void) {
 
-  mat4 view_model = view * model;
+  const vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
+  const vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
 
-  vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
-  vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
-  vec4 tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
-  vec4 bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 0.0);
+  out_diffusemap = in_diffusemap;
+  out_model_position = vec3(model * position);
+  out_model_normal = normalize(vec3(model * normal));
 
-  stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
-
-  vertex.model_position = vec3(model * position);
-  vertex.model_normal = normalize(vec3(model * normal));
-  vertex.position = vec3(view_model * position);
-  vertex.normal = normalize(vec3(view_model * normal));
-  vertex.tangent = normalize(vec3(view_model * tangent));
-  vertex.bitangent = normalize(vec3(view_model * bitangent));
-  vertex.diffusemap = in_diffusemap;
-  vertex.voxel = vec3(0.0);
-  vertex.color = color;
-  vertex.ambient = vec3(0.0);
-  vertex.diffuse = vec3(0.0);
-  vertex.caustics = 0.0;
-
-  if (view_type == VIEW_PLAYER_MODEL) {
-    vertex.ambient = vec3(0.666);
-    vertex.diffuse = vec3(0.0);
-  } else {
-    vertex.voxel = voxel_uvw(vertex.model_position);
-    vertex_lighting(vertex);
-  }
-
-  vertex.ambient *= modulate_mesh;
-  vertex.diffuse *= modulate_mesh;
-
-  gl_Position = projection3D * view_model * position;
-
-  stage_vertex(stage, position.xyz, vertex);
+  gl_Position = projection3D * view * model * position;
 }

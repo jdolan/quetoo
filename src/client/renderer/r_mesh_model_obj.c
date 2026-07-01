@@ -264,4 +264,5 @@ const r_model_format_t r_obj_model_format = {
   .type = MODEL_MESH,
   .Load = R_LoadObjModel,
   .Register = R_RegisterMeshModel,
+  .Free = R_FreeMeshModel,
 };

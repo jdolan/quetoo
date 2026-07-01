@@ -239,10 +239,72 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 }
 
 /**
- * @brief Appends the given model's vertex and element arrays to the shared mesh VAO.
+ * @brief Consolidates the model's per-face vertex and element arrays into a pair
+ * of GPU buffers, one per mesh model. All animation frames of all faces live in
+ * the vertex buffer; the draw path binds it at per-frame offsets.
  */
 void R_LoadMeshVertexArray(r_model_t *mod) {
 
+  assert(mod->mesh);
+  assert(mod->mesh->num_faces);
+
+  r_mesh_model_t *mesh = mod->mesh;
+
+  {
+    const r_mesh_face_t *face = mesh->faces;
+    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+      mesh->num_vertexes += face->num_vertexes;
+      mesh->num_elements += face->num_elements;
+    }
+  }
+
+  assert(mesh->num_vertexes);
+  assert(mesh->num_elements);
+
+  mesh->vertexes = Mem_LinkMalloc(mesh->num_vertexes * mesh->num_frames * sizeof(r_mesh_vertex_t), mesh);
+  mesh->elements = Mem_LinkMalloc(mesh->num_elements * sizeof(uint32_t), mesh);
+
+  r_mesh_vertex_t *vertex = mesh->vertexes;
+  uint32_t *elements = mesh->elements;
+
+  {
+    r_mesh_face_t *face = mesh->faces;
+    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+
+      memcpy(vertex, face->vertexes, face->num_vertexes * mesh->num_frames * sizeof(r_mesh_vertex_t));
+      Mem_Free(face->vertexes);
+
+      face->vertexes = vertex;
+      vertex += face->num_vertexes * mesh->num_frames;
+
+      memcpy(elements, face->elements, face->num_elements * sizeof(uint32_t));
+      Mem_Free(face->elements);
+
+      face->elements = elements;
+      elements += face->num_elements;
+    }
+  }
+
+  R_LoadMeshTangents(mod);
+
+  // Buffer offsets are relative to this model's own buffers (base 0).
+  {
+    r_mesh_face_t *face = mesh->faces;
+    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+      face->base_vertex = (int32_t) (face->vertexes - mesh->vertexes);
+      face->indices = (void *) ((face->elements - mesh->elements) * sizeof(uint32_t));
+    }
+  }
+
+  mesh->vertex_buffer = $(r_device.device, createBufferWithConstMem,
+      SDL_GPU_BUFFERUSAGE_VERTEX,
+      mesh->vertexes,
+      mesh->num_vertexes * mesh->num_frames * sizeof(r_mesh_vertex_t));
+
+  mesh->elements_buffer = $(r_device.device, createBufferWithConstMem,
+      SDL_GPU_BUFFERUSAGE_INDEX,
+      mesh->elements,
+      mesh->num_elements * sizeof(uint32_t));
 }
 
 /**
@@ -256,5 +318,17 @@ void R_RegisterMeshModel(r_media_t *self) {
     if (face->material) {
       R_RegisterDependency(self, (r_media_t *) face->material);
     }
+  }
+}
+
+/**
+ * @brief Releases the mesh model's GPU buffers.
+ */
+void R_FreeMeshModel(r_media_t *self) {
+  r_model_t *mod = (r_model_t *) self;
+
+  if (mod->mesh) {
+    mod->mesh->vertex_buffer = release(mod->mesh->vertex_buffer);
+    mod->mesh->elements_buffer = release(mod->mesh->elements_buffer);
   }
 }

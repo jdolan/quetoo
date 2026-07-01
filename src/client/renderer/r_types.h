@@ -1367,6 +1367,16 @@ typedef struct {
    * @brief The mesh normalization configurations.
    */
   } config;
+
+  /**
+   * @brief The GPU vertex buffer holding all frames of all faces.
+   */
+  Buffer *vertex_buffer;
+
+  /**
+   * @brief The GPU elements (index) buffer.
+   */
+  Buffer *elements_buffer;
 } r_mesh_model_t;
 
 /**
@@ -1457,38 +1467,6 @@ typedef struct {
    * @brief The currently loaded world model, if any.
    */
   r_model_t *world;
-  struct {
-
-    /**
-     * @brief The vertex array (VAO) name.
-     */
-    uint32_t vertex_array;
-
-    /**
-     * @brief The vertex buffer (VBO) name.
-     */
-    uint32_t vertex_buffer;
-
-    /**
-     * @brief The elements buffer (VBO) name.
-     */
-    uint32_t elements_buffer;
-    struct {
-
-      /**
-       * @brief The depth pass vertex array (VAO) name.
-       */
-      uint32_t vertex_array;
-
-    /**
-     * @brief The depth pass vertex array.
-     */
-    } depth_pass;
-
-  /**
-   * @brief The shared vertex array for mesh models.
-   */
-  } mesh;
 
 } r_models_t;
 
