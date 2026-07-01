@@ -379,9 +379,12 @@ size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t s
  */
 void R_BindFont(const char *name, GLint *cw, GLint *ch) {
 
-  if (cw) { *cw = 0; }
-  if (ch) { *ch = 0; }
-  return; // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up
+  // TODO(#864): r_draw_2d stubbed during SDL_gpu bring-up. Report non-zero
+  // character dimensions so console/HUD layout math (which divides by these)
+  // stays sane; nothing is actually drawn until the 2D path is ported.
+  if (cw) { *cw = 8; }
+  if (ch) { *ch = 16; }
+  return;
 
   if (name == NULL) {
     name = "medium";
