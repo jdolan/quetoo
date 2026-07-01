@@ -132,8 +132,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set developer 1"
-            isEnabled = "NO">
+            argument = "+set developer 4"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set editor 1"
@@ -156,8 +156,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map fragpipe"
-            isEnabled = "NO">
+            argument = "+map edge"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set sv_map_list maps-jdolan.lst"

@@ -4502,6 +4502,7 @@
 				CED438271D9D34450052BAFA /* Sources */,
 				CED4385D1D9D34450052BAFA /* Frameworks */,
 				CED4386A1D9D34450052BAFA /* Headers */,
+				CE16439A2FF5D3BF00863996 /* Compile Shaders */,
 				CE4A25571FA2030900A539E7 /* CopyFiles */,
 			);
 			buildRules = (
@@ -4671,6 +4672,48 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_cm_polylib &&\n$BUILT_PRODUCTS_DIR/check_cm_test &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_color &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_thread &&\n$BUILT_PRODUCTS_DIR/check_vector\n";
+		};
+		CE16439A2FF5D3BF00863996 /* Compile Shaders */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/src/client/renderer/shaders/bsp_fs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/bsp_vs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/common.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/decal_fs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/decal_vs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/depth_pass_fs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/depth_pass_vs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/draw_2d_fs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/draw_2d_vs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/draw_3d_fs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/draw_3d_vs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/light.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/material.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/post_fs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/post_vs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/shadow_fs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/shadow_vs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/sky_fs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/sky_vs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/soften_fs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/sprite_fs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/sprite_vs.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/version.glsl",
+				"$(SRCROOT)/src/client/renderer/shaders/voxel.glsl",
+			);
+			name = "Compile Shaders";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /opt/homebrew/bin/bash;
+			shellScript = "PATH=/usr/local/bin:/opt/homebrew/bin:${PATH}\nmake -C src/client/renderer/shaders shaders\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
