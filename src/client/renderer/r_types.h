@@ -130,46 +130,6 @@ typedef struct {
   int32_t width, height, depth;
 
   /**
-   * @brief The target to bind this texture.
-   */
-  uint32_t target;
-
-  /**
-   * @brief The number of mipmap levels to allocate, typically `log2(Maxi(w, h)) + 1`.
-   */
-  int32_t levels;
-
-  /**
-   * @brief The minification and magnification filters, typically `GL_LINEAR`.
-   */
-  uint32_t minify, magnify;
-
-  /**
-   * @brief The internal pixel format, typically `GL_RGB` or `GL_RGBA`, but may be a sized value.
-   */
-  uint32_t internal_format;
-
-  /**
-   * @brief The pixel format, typically `GL_RGB` or `GL_RGBA`.
-   */
-  uint32_t format;
-
-  /**
-   * @brief The pixel data type, typically `GL_UNSIGNED_BYTE`.
-   */
-  uint32_t pixel_type;
-
-  /**
-   * @brief The buffer object name, for `GL_TEXTURE_BUFFER` (TBO).
-   */
-  uint32_t buffer;
-
-  /**
-   * @brief The texture name.
-   */
-  uint32_t texnum;
-
-  /**
    * @brief The GPU texture (ObjectivelyGPU). Owns the sampled texture.
    */
   Texture *texture;

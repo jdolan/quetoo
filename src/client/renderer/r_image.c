@@ -167,7 +167,7 @@ void R_UploadImageTarget(r_image_t *image, uint32_t target, const void *data) {
  * @param data The pixel data.
  */
 void R_UploadImage(r_image_t *image, const void *data) {
-  R_UploadImageTarget(image, image->target, data);
+  R_UploadImageTarget(image, 0, data);
 }
 
 
@@ -194,7 +194,6 @@ void R_FreeImage(r_media_t *media) {
   r_image_t *image = (r_image_t *) media;
 
   image->texture = release(image->texture);
-  image->texnum = 0;
 }
 
 /**
@@ -238,7 +237,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
     image->width = surface->w / 4;
     image->height = surface->h / 3;
-    image->levels = 8;
 
     // right left front back up down
     const vec2s_t offsets[] = {
@@ -320,7 +318,7 @@ static void R_DumpImages_enumerator(const r_media_t *media, void *data) {
     const r_image_t *image = (const r_image_t *) media;
     char path[MAX_OS_PATH];
 
-    q_snprintf(path, sizeof(path), "imgdmp/%i", image->texnum);
+    q_snprintf(path, sizeof(path), "imgdmp/%s", image->media.name);
 
     R_DumpImage(image, path, true, false);
   }

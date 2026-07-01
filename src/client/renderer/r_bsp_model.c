@@ -389,8 +389,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->num_light_indices = in->num_light_indices;
   out->bounds = in->bounds;
 
-  const int32_t levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
-
   const byte *caustics_data = data;
   data += out->num_voxels * sizeof(byte) * 3; // RGB
 
@@ -400,7 +398,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->caustics->width = out->size.x;
   out->caustics->height = out->size.y;
   out->caustics->depth = out->size.z;
-  out->caustics->levels = levels;
 
   R_UploadImage(out->caustics, caustics_data);
 
@@ -451,7 +448,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->occlusion->width = out->size.x;
   out->occlusion->height = out->size.y;
   out->occlusion->depth = out->size.z;
-  out->occlusion->levels = levels;
 
   R_UploadImage(out->occlusion, occlusion_data);
 

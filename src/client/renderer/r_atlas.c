@@ -141,14 +141,14 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
   R_FreeImage((r_media_t *) atlas->image);
 
-  atlas->image->levels = INT32_MAX;
+  int32_t levels = INT32_MAX;
 
   for (size_t i = 0; i < nodes->count; i++) {
     const atlas_node_t *node = VectorValue(nodes, atlas_node_t *, i);
-    atlas->image->levels = Mini(atlas->image->levels, floorf(log2f(Maxi(node->w, node->h)) + 1));
+    levels = Mini(levels, floorf(log2f(Maxi(node->w, node->h)) + 1));
   }
 
-  atlas->atlas->padding = atlas->image->levels > 1 ? 1 << (atlas->image->levels - 2) : 0;
+  atlas->atlas->padding = levels > 1 ? 1 << (levels - 2) : 0;
 
 
   atlas->image->width = 0;
