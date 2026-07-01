@@ -40,15 +40,14 @@ static void R_SetWindowIcon(void) {
 }
 
 /**
- * @brief Updates the renderer context to reflect the current SDL window state and size.
+ * @brief Updates the renderer device to reflect the current SDL window state and size.
  */
 void R_UpdateDevice(void) {
 
-  r_device.window = SDL_GL_GetCurrentWindow();
   assert(r_device.window);
-  
+
   r_device.window_flags = SDL_GetWindowFlags(r_device.window);
-  
+
   SDL_GetWindowPosition(r_device.window, &r_device.window_bounds.x, &r_device.window_bounds.y);
   SDL_GetWindowSize(r_device.window, &r_device.window_bounds.w, &r_device.window_bounds.h);
 
@@ -66,19 +65,19 @@ void R_UpdateDevice(void) {
 
   r_device.display = SDL_GetDisplayForWindow(r_device.window);
   r_device.display_mode = SDL_GetCurrentDisplayMode(r_device.display);
-    
+
   r_device.viewport = (SDL_Rect) {
     0,
     0,
     r_device.window_bounds.w * r_device.display_mode->pixel_density,
     r_device.window_bounds.h * r_device.display_mode->pixel_density
   };
-    
-  R_UpdateUniforms(NULL);
+
+  // TODO(#864): R_UpdateUniforms(NULL) once the uniforms UBO is ported to the GPU device.
 }
 
 /**
- * @brief Initialize the `SDL_Window` and OpenGL context, returning true on success, false on failure.
+ * @brief Creates the `SDL_Window` and the ObjectivelyGPU `RenderDevice`.
  */
 void R_InitDevice(void) {
 
@@ -100,11 +99,11 @@ void R_InitDevice(void) {
 
   SDL_Rect bounds;
   SDL_GetDisplayUsableBounds(r_device.display, &bounds);
-  
+
   int32_t w = bounds.w;
   int32_t h = bounds.h;
-  
-  SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+
+  SDL_WindowFlags window_flags = SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
   switch (r_fullscreen->integer) {
     case 0:
@@ -150,85 +149,39 @@ void R_InitDevice(void) {
     }
   }
 
-  Com_Print("  Setting up OpenGL context..\n");
+  Com_Print("  Creating GPU render device..\n");
 
-  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-  if ((r_device.context = SDL_GL_CreateContext(r_device.window)) == NULL) {
-    Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
+  r_device.device = $(alloc(RenderDevice), initWithWindow, r_device.window);
+  if (r_device.device == NULL) {
+    Com_Error(ERROR_FATAL, "Failed to create GPU render device: %s\n", SDL_GetError());
   }
 
-  const SDL_GLAttr attr_names[] = {
-    SDL_GL_RED_SIZE,
-    SDL_GL_GREEN_SIZE,
-    SDL_GL_BLUE_SIZE,
-    SDL_GL_ALPHA_SIZE,
-    SDL_GL_DEPTH_SIZE,
-    SDL_GL_BUFFER_SIZE,
-    SDL_GL_DOUBLEBUFFER,
-    SDL_GL_CONTEXT_MAJOR_VERSION,
-    SDL_GL_CONTEXT_MINOR_VERSION,
-    SDL_GL_CONTEXT_FLAGS,
-    SDL_GL_CONTEXT_PROFILE_MASK
-  };
-
-  int32_t attr_values[SDL_GL_EGL_PLATFORM];
-  for (size_t i = 0; i < lengthof(attr_names); i++) {
-    SDL_GL_GetAttribute(attr_names[i], &attr_values[attr_names[i]]);
-  }
-
-  Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i framebuffer %i\n",
-      attr_values[SDL_GL_RED_SIZE],
-      attr_values[SDL_GL_GREEN_SIZE],
-      attr_values[SDL_GL_BLUE_SIZE],
-      attr_values[SDL_GL_ALPHA_SIZE],
-      attr_values[SDL_GL_DEPTH_SIZE],
-      attr_values[SDL_GL_BUFFER_SIZE]);
-
-  Com_Verbose("   Double-buffered: %s\n", attr_values[SDL_GL_DOUBLEBUFFER] ? "yes" : "no");
-
-  Com_Verbose("   Version: %i.%i (%i flags, %i profile)\n",
-      attr_values[SDL_GL_CONTEXT_MAJOR_VERSION],
-      attr_values[SDL_GL_CONTEXT_MINOR_VERSION],
-      attr_values[SDL_GL_CONTEXT_FLAGS],
-      attr_values[SDL_GL_CONTEXT_PROFILE_MASK]);
-
-  if (!SDL_GL_SetSwapInterval(r_swap_interval->integer)) {
-    Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());
-  }
-
-  if (!gladLoaderLoadGL()) {
-    Com_Error(ERROR_FATAL, "Failed to load OpenGL functions\n");
-  }
-
-  // Drain any stale GL errors left by GLAD's loader probing
-  while (glGetError() != GL_NO_ERROR) { }
+  Com_Verbose("   GPU driver: %s\n", SDL_GetGPUDeviceDriver(r_device.device->device));
 
   R_UpdateDevice();
 
-  glDepthFunc(GL_LEQUAL);
+  // The present-target framebuffer. The UI (and, later, the resolved 3D scene)
+  // composite into this; RenderDevice::endFrame blits it to the swapchain.
+  const SDL_GPUTextureFormat format = $(r_device.device, getSwapchainTextureFormat);
 
-  R_GetError(NULL);
+  Framebuffer *framebuffer = $(r_device.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
+    .size = MakeSize(r_device.viewport.w, r_device.viewport.h),
+    .colorFormats = { format },
+    .numColorTargets = 1,
+    .depthFormat = SDL_GPU_TEXTUREFORMAT_INVALID,
+    .sampleCount = SDL_GPU_SAMPLECOUNT_1,
+  });
+
+  $(r_device.device, setFramebuffer, framebuffer);
+  release(framebuffer);
 }
 
 /**
- * @brief Destroys the OpenGL context and SDL window.
+ * @brief Releases the `RenderDevice` and destroys the SDL window.
  */
 void R_ShutdownDevice(void) {
 
-  if (r_device.context) {
-    SDL_GL_DestroyContext(r_device.context);
-    r_device.context = NULL;
-  }
+  r_device.device = release(r_device.device);
 
   if (r_device.window) {
     SDL_DestroyWindow(r_device.window);
@@ -236,6 +189,4 @@ void R_ShutdownDevice(void) {
   }
 
   SDL_QuitSubSystem(SDL_INIT_VIDEO);
-
-  gladLoaderUnloadGL();
 }

@@ -23,6 +23,8 @@
 
 #include <SDL3/SDL_video.h>
 
+#include <ObjectivelyGPU.h>
+
 #include "common/atlas.h"
 #include "collision/cm_bsp.h"
 
@@ -2200,7 +2202,7 @@ typedef struct {
 } r_view_t;
 
 /**
- * @brief Window and OpenGL context information.
+ * @brief Window and GPU device information.
  */
 typedef struct {
 
@@ -2245,9 +2247,9 @@ typedef struct {
   SDL_Rect viewport;
 
   /**
-   * @brief The OpenGL context.
+   * @brief The GPU render device.
    */
-  SDL_GLContext context;
+  RenderDevice *device;
 } r_device_t;
 
 /**

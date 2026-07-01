@@ -22,8 +22,6 @@
 #include "ui_local.h"
 #include "client.h"
 
-#include "QuetooRenderer.h"
-
 extern cl_static_t cls;
 
 static WindowController *windowController;
@@ -163,11 +161,9 @@ void Ui_Draw(void) {
 
   assert(windowController);
 
-  R_SetDraw2DProjection(PROJECTION_UI);
-
-  $(windowController, render);
-
-  R_SetDraw2DProjection(PROJECTION_GAME);
+  if (r_device.device->commandBuffer) {
+    $(windowController, render, r_device.device->commandBuffer, r_device.device->framebuffer);
+  }
 }
 
 /**
@@ -248,13 +244,7 @@ void Ui_Init(void) {
 
   $$(Resource, addResourceProvider, Ui_Data);
 
-  windowController = $(alloc(WindowController), initWithWindow, r_device.window);
-
-  Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
-
-  $(windowController, setRenderer, renderer);
-
-  release(renderer);
+  windowController = $(alloc(WindowController), initWithDevice, r_device.device);
 
   navigationViewController = $(alloc(NavigationViewController), init);
   $(windowController, setViewController, (ViewController *) navigationViewController);

@@ -1,7 +1,6 @@
 SUBDIRS =
 
 noinst_HEADERS = \
-	QuetooRenderer.h \
 	ui.h \
 	ui_data.h \
 	ui_local.h \
@@ -11,7 +10,6 @@ noinst_LTLIBRARIES = \
 	libui.la
 
 libui_la_SOURCES = \
-	QuetooRenderer.c \
 	ui_data.c \
 	ui_main.c
 

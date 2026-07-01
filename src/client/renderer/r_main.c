@@ -199,13 +199,23 @@ void R_BeginFrame(void) {
   }
 
   if (r_swap_interval->modified) {
-    SDL_GL_SetSwapInterval(r_swap_interval->integer);
-    r_swap_interval->modified = false;
+    r_swap_interval->modified = false; // TODO(#864): present mode via RenderDevice::setSwapchainParameters
   }
 
   memset(&r_stats, 0, sizeof(r_stats));
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // Acquire the frame and clear the present-target framebuffer. The UI (and,
+  // later, the resolved 3D scene) composite into it; R_EndFrame presents.
+  CommandBuffer *commands = $(r_device.device, beginFrame);
+  if (commands) {
+
+    const SDL_FColor clear_color = { 0.f, 0.f, 0.f, 1.f };
+    const SDL_GPUColorTargetInfo color =
+        $(r_device.device->framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color);
+
+    RenderPass *pass = $(commands, beginRenderPass, &color, 1, NULL);
+    pass = release(pass);
+  }
 }
 
 /**
@@ -226,6 +236,8 @@ void R_InitView(r_view_t *view) {
  * @brief Renders the view depth pre-pass, updating frustum and uploading uniforms.
  */
 void R_DrawViewDepth(r_view_t *view) {
+
+  return; // TODO(#864): 3D depth pre-pass stubbed during SDL_gpu bring-up
 
   assert(view);
   assert(view->framebuffer);
@@ -260,6 +272,8 @@ void R_DrawViewDepth(r_view_t *view) {
  * @brief Entry point for drawing the main view.
  */
 void R_DrawMainView(r_view_t *view) {
+
+  return; // TODO(#864): 3D main pass stubbed during SDL_gpu bring-up
 
   assert(view);
   assert(view->framebuffer);
@@ -317,6 +331,8 @@ void R_DrawMainView(r_view_t *view) {
  */
 void R_DrawPlayerModelView(r_view_t *view) {
 
+  return; // TODO(#864): 3D player-model pass stubbed during SDL_gpu bring-up
+
   assert(view);
   assert(view->framebuffer);
 
@@ -345,13 +361,11 @@ void R_DrawPlayerModelView(r_view_t *view) {
  */
 void R_EndFrame(void) {
 
-  R_Draw2D();
+  // TODO(#864): R_Draw2D() (console/HUD) once the 2D path is ported to SDL_gpu.
 
-  if (r_finish->value) {
-    glFinish();
+  if (r_device.device->commandBuffer) {
+    $(r_device.device, endFrame);
   }
-
-  SDL_GL_SwapWindow(r_device.window);
 }
 
 /**
@@ -490,37 +504,25 @@ void R_Init(void) {
 
   R_InitDevice();
 
-  R_InitConfig();
-
-  R_InitUniforms();
-
-  R_InitOcclusionQueries();
-
-  R_InitMedia();
-
-  R_InitImages();
-
-  R_InitDepthPass();
-
-  R_InitShadows();
-
-  R_InitDraw2D();
-
-  R_InitDraw3D();
-
-  R_InitModels();
-
-  R_InitSprites();
-
-  R_InitLights();
-
-  R_InitDecals();
-
-  R_InitSky();
-
-  R_InitPost();
-
-  R_GetError("Video initialization");
+  // TODO(#864): the GL subsystems below are bypassed during the SDL_gpu port.
+  // The UI renders through ObjectivelyGPU on r_device.device; the 3D scene, 2D
+  // console, media/images and shaders are ported back in Phase 4/5.
+  //
+  // R_InitConfig();
+  // R_InitUniforms();
+  // R_InitOcclusionQueries();
+  // R_InitMedia();
+  // R_InitImages();
+  // R_InitDepthPass();
+  // R_InitShadows();
+  // R_InitDraw2D();
+  // R_InitDraw3D();
+  // R_InitModels();
+  // R_InitSprites();
+  // R_InitLights();
+  // R_InitDecals();
+  // R_InitSky();
+  // R_InitPost();
 
   const SDL_Rect bounds = r_device.window_bounds;
   const SDL_Rect viewport = r_device.viewport;
@@ -536,31 +538,20 @@ void R_Shutdown(void) {
 
   Cmd_RemoveAll(CMD_RENDERER);
 
-  R_ShutdownMedia();
-
-  R_ShutdownDraw2D();
-
-  R_ShutdownDraw3D();
-
-  R_ShutdownModels();
-
-  R_ShutdownLights();
-
-  R_ShutdownDecals();
-
-  R_ShutdownSprites();
-
-  R_ShutdownSky();
-
-  R_ShutdownPost();
-
-  R_ShutdownShadows();
-
-  R_ShutdownDepthPass();
-
-  R_ShutdownOcclusionQueries();
-
-  R_ShutdownUniforms();
+  // TODO(#864): GL subsystem teardown bypassed during the SDL_gpu port (see R_Init).
+  // R_ShutdownMedia();
+  // R_ShutdownDraw2D();
+  // R_ShutdownDraw3D();
+  // R_ShutdownModels();
+  // R_ShutdownLights();
+  // R_ShutdownDecals();
+  // R_ShutdownSprites();
+  // R_ShutdownSky();
+  // R_ShutdownPost();
+  // R_ShutdownShadows();
+  // R_ShutdownDepthPass();
+  // R_ShutdownOcclusionQueries();
+  // R_ShutdownUniforms();
 
   R_ShutdownDevice();
 
