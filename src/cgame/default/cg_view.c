@@ -301,6 +301,42 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 }
 
 /**
+ * @brief While falling through a trigger_void, lock the camera at the entry point
+ * and re-aim it at the falling player each frame. Forces third person so the player
+ * model remains visible. Releases automatically once the void state clears.
+ */
+static void Cg_UpdateVoidCamera(const player_state_t *ps) {
+  static bool locked;
+  static vec3_t locked_origin;
+
+  if (!ps->stats[STAT_VOID]) {
+    locked = false;
+    return;
+  }
+
+  // snapshot the camera position at the moment we enter the void
+  if (!locked) {
+    locked_origin = cgi.view->origin;
+    locked = true;
+  }
+
+  // force third person so the falling player model is rendered
+  cgi.client->third_person = true;
+
+  // hold the camera in place
+  cgi.view->origin = locked_origin;
+
+  // track the falling player
+  const cl_entity_t *self = Cg_Self();
+  const vec3_t dir = Vec3_Subtract(self->origin, locked_origin);
+
+  if (!Vec3_Equal(dir, Vec3_Zero())) {
+    cgi.view->angles = Vec3_Euler(Vec3_Normalize(dir));
+    Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
+  }
+}
+
+/**
  * @brief Updates the view ambient light level from the worldspawn entity definition.
  */
 static void Cg_UpdateAmbient(void) {
@@ -346,6 +382,8 @@ void Cg_PrepareView(const cl_frame_t *frame) {
   Cg_UpdateFov();
 
   Cg_UpdateBob(ps1);
+
+  Cg_UpdateVoidCamera(ps1);
 
   Cg_UpdateAmbient();
 

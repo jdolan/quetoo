@@ -155,6 +155,12 @@ layout (std140) uniform uniforms_block {
    * @brief The wireframe mode flag.
    */
   int wireframe;
+
+  /**
+   * @brief The number of "dark" lights (negative intensity) in the frame's light list. Zero on
+   * the vast majority of maps; gates the dark-light absorption path so it costs nothing when unused.
+   */
+  int num_dark_lights;
 };
 
 /**

@@ -83,19 +83,40 @@ void bloom_blur(void) {
 }
 
 /**
+ * @brief Hashes a screen coordinate to a pseudo-random float in [0, 1).
+ * @see https://www.shadertoy.com/view/4djSRW (Dave Hoskins, hash12)
+ */
+float hash12(in vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+
+/**
  * @brief Tonemap and color clamp to LDR.
  *
  * Adds the blurred bloom (scaled by bloom intensity) to the HDR scene color,
  * then clamps to [0, 1] to produce the final LDR output written to post_attachment.
  * When r_bloom is 0 the bloom texture is not bound, glow evaluates to (0, 0, 0),
  * and this reduces to a plain HDR clamp.
+ *
+ * A triangular (TPDF) dither of +/- 1 LSB is added before the 8-bit write to break
+ * up banding in smooth, low-contrast gradients (e.g. dark falloffs). The noise is
+ * purely spatial so it does not shimmer on static imagery.
  */
 void tonemap(void) {
   vec3 color = texture(texture_color_attachment, vertex.texcoord).rgb;
   vec3 glow  = texture(texture_bloom_attachment, vertex.texcoord).rgb;
   color = color + glow * bloom;
 
-  out_color = vec4(clamp(color, 0.0, 1.0), 1.0);
+  color = clamp(color, 0.0, 1.0);
+
+  // TPDF dither: sum of two independent uniform samples spans [-1, 1] LSB
+  float r0 = hash12(gl_FragCoord.xy);
+  float r1 = hash12(gl_FragCoord.xy + 11.0);
+  color += (r0 + r1 - 1.0) / 255.0;
+
+  out_color = vec4(color, 1.0);
 }
 
 /**

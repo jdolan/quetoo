@@ -31,4 +31,5 @@ void G_trigger_multiple(g_entity_t *ent);
 void G_trigger_once(g_entity_t *ent);
 void G_trigger_push(g_entity_t *ent);
 void G_trigger_relay(g_entity_t *ent);
+void G_trigger_void(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */

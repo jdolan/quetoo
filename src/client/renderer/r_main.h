@@ -245,6 +245,12 @@ typedef struct {
      * @brief Non-zero when wireframe rendering is enabled.
      */
     int wireframe;
+
+    /**
+     * @brief The number of "dark" lights (negative intensity) in the frame's light list. Gates
+     * the dark-light absorption path in the shaders so it costs nothing when no dark lights exist.
+     */
+    int num_dark_lights;
   } block;
 
 } r_uniforms_t;

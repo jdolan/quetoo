@@ -153,6 +153,9 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->developer = developer->integer;
     out->wireframe = r_draw_wireframe->integer;
 
+    // num_dark_lights is published later by R_UpdateLights: the scene's lights are added on a
+    // worker thread that only completes after this runs, so they cannot be counted here.
+
     if (r_models.world) {
       const r_bsp_voxels_t *voxels = &r_models.world->bsp->voxels;
 

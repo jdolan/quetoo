@@ -437,6 +437,170 @@ static void G_trigger_exec_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
   }
 }
 
+/**
+ * @brief Handles touch events on a `trigger_void`, pulling players into the void.
+ */
+static void G_trigger_void_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+
+  if (!other->take_damage) { // handle dropped items landing in the void
+    if (other->item) {
+      if (other->item->def.type == ITEM_TYPE_FLAG) {
+        G_ResetDroppedFlag(other);
+      } else if (other->item->def.type == ITEM_TYPE_TECH) {
+        G_ResetDroppedTech(other);
+      } else {
+        G_FreeEntity(other);
+      }
+    }
+    return;
+  }
+
+  if (!other->client || other->dead) {
+    return;
+  }
+
+  g_client_t *cl = other->client;
+
+  if (!cl->in_void) {
+
+    // Only enter void from the top half of the brush (side entry is ignored)
+    const float mid_z = (ent->abs_bounds.mins.z + ent->abs_bounds.maxs.z) * 0.5f;
+    if (other->s.origin.z < mid_z) {
+      return;
+    }
+
+    if (ent->spawn_flags & 1) { // VOID_TELEPORT: warp to a spawn instead of killing
+      const g_entity_t *spawn = NULL;
+
+      if (ent->target) { // a specific destination pad was requested
+        spawn = G_Find(NULL, EOFS(target_name), ent->target);
+        if (!spawn) {
+          gi.Warn("trigger_void: target \"%s\" not found\n", ent->target);
+        }
+      }
+
+      if (!spawn) { // no target, or it was missing; pick a random spawn point
+        spawn = G_SelectSpawnPoint(cl);
+      }
+
+      if (spawn) {
+        gi.UnlinkEntity(other);
+
+        other->s.origin = spawn->s.origin;
+        other->s.origin.z += 8.0;
+
+        cl->ps.pm_state.flags &= ~PMF_TIME_MASK;
+        cl->ps.pm_state.flags |= PMF_TIME_TELEPORT;
+        cl->ps.pm_state.time = 20;
+        cl->ps.pm_state.delta_angles = Vec3_Subtract(spawn->s.angles, cl->cmd_angles);
+
+        other->velocity = Vec3_Zero();
+        cl->cmd_angles = Vec3_Zero();
+        cl->angles = Vec3_Zero();
+
+        other->s.event = EV_CLIENT_TELEPORT;
+
+        G_MulticastSound(&(const g_play_sound_t) {
+          .index = g_media.sounds.teleport,
+          .origin = &other->s.origin,
+        }, MULTICAST_PHS);
+
+        gi.LinkEntity(other);
+      }
+      return;
+    }
+
+    // Mark as falling into the void, suppress HUD, play death sound
+    cl->in_void = true;
+    cl->void_touch_time = g_level.time;
+
+    G_MulticastSound(&(const g_play_sound_t) {
+      .index = gi.SoundIndex("*death_void"),
+      .entity = other,
+    }, MULTICAST_PHS);
+
+    return;
+  }
+
+  // Still overlapping the brush; refresh the touch time so the state isn't
+  // cleared as stale (see G_ClientBeginFrame).
+  cl->void_touch_time = g_level.time;
+
+  // Already falling — kill when the player's feet reach the brush's bottom face
+  if (other->abs_bounds.mins.z > ent->abs_bounds.mins.z) {
+    return;
+  }
+
+  // Strip powerups without dropping them
+  if (cl->inventory[POWERUP_QUAD]) {
+    cl->inventory[POWERUP_QUAD] = 0;
+    cl->quad_damage_time = 0;
+    other->s.effects &= ~EF_QUAD;
+  }
+
+  if (cl->inventory[POWERUP_INVISIBILITY]) {
+    cl->inventory[POWERUP_INVISIBILITY] = 0;
+    cl->invisibility_time = 0;
+    other->s.effects &= ~EF_INVISIBILITY;
+  }
+
+  if (cl->inventory[POWERUP_INVULNERABILITY]) {
+    cl->inventory[POWERUP_INVULNERABILITY] = 0;
+    cl->invulnerability_time = 0;
+    cl->invulnerability_countdown_time = 0;
+    other->s.effects &= ~EF_INVULNERABILITY;
+  }
+
+  // Return the carried CTF flag immediately rather than dropping it
+  if (g_level.ctf) {
+    G_ReturnFlag(cl);
+  }
+
+  // Respawn any carried tech back into its pool rather than dropping it
+  if (g_level.techs) {
+    g_entity_t *tech = G_TossTech(cl);
+    if (tech) {
+      G_ResetDroppedTech(tech);
+    }
+  }
+
+  // Instant kill bypassing armor and god mode; G_ClientDie handles gibs
+  cl->in_void = false;
+  G_Damage(&(g_damage_t) {
+    .target = other,
+    .inflictor = ent,
+    .attacker = NULL,
+    .dir = Vec3_Zero(),
+    .point = other->s.origin,
+    .normal = Vec3_Zero(),
+    .damage = 999,
+    .knockback = 0,
+    .flags = DMG_NO_GOD,
+    .mod = MOD_TRIGGER_VOID
+  });
+}
+
+/*QUAKED trigger_void (.5 .5 .5) ? teleport
+ Players stepping onto the top face are pulled into the void. A special death sound plays and
+ the HUD is suppressed during the fall. Upon reaching the bottom face, the player is instantly
+ killed: powerups are removed, carried techs are respawned, and any carried CTF flag is returned.
+
+ -------- Keys --------
+ target : With the teleport flag, the target_name of a specific destination (e.g. a
+ misc_teleporter_dest) to warp to. If unset, a random spawn point is chosen.
+
+ -------- Spawn flags --------
+ teleport : Instead of killing the player, teleport them to a spawn point (see target).
+ */
+void G_trigger_void(g_entity_t *ent) {
+
+  G_Trigger_Init(ent);
+
+  ent->Touch = G_trigger_void_Touch;
+
+  gi.LinkEntity(ent);
+}
+
 /*QUAKED trigger_exec (0 1 0) ?
  Executes a console command or script file when activated.
 

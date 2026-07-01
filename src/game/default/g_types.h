@@ -95,7 +95,8 @@ typedef enum {
   STAT_TEAM,
   STAT_TECH,
   STAT_TIME,
-  STAT_WEAPON
+  STAT_WEAPON,
+  STAT_VOID // new stats must be appended at the end to preserve wire indices for mismatched servers
 } g_stat_t;
 
 /**
@@ -915,6 +916,7 @@ typedef struct {
   MOD_SUICIDE,
   MOD_EXPLOSIVE,
   MOD_TRIGGER_HURT,
+  MOD_TRIGGER_VOID,
   MOD_HANDGRENADE,
   MOD_HANDGRENADE_SPLASH,
   MOD_HANDGRENADE_SUICIDE,
@@ -1509,6 +1511,17 @@ struct g_client_s {
    * @brief Last dropped item, used for variable expansion.
    */
   const g_item_t *last_dropped;
+
+  /**
+   * @brief True while the client is falling through a trigger_void brush.
+   */
+  bool in_void;
+
+  /**
+   * @brief Last time the client touched a trigger_void; used to clear a stale
+   * in_void state if the player leaves the brush without reaching the bottom.
+   */
+  uint32_t void_touch_time;
 
   /**
    * @brief True if the scoreboard layout flag should be set.
