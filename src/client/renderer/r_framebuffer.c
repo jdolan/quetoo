@@ -79,6 +79,9 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
  */
 r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachments) {
 
+  // TODO(#864): stubbed during SDL_gpu bring-up; returns a dimensioned, GL-less framebuffer.
+  return (r_framebuffer_t) { .width = width, .height = height, .attachments = attachments };
+
   const float scale = Clampf(r_framebuffer_scale->value, 0.125f, 4.f);
 
   r_framebuffer_t framebuffer = {
@@ -158,6 +161,8 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
  */
 void R_ClearFramebuffer(r_framebuffer_t *framebuffer) {
 
+  return; // TODO(#864): stubbed during SDL_gpu bring-up
+
   if (framebuffer->msaa.fbo) {
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->msaa.fbo);
     glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
@@ -187,6 +192,8 @@ void R_ClearFramebuffer(r_framebuffer_t *framebuffer) {
  * @brief Copies the specified framebuffer attachment into a destination texture.
  */
 void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, GLuint *texture) {
+
+  return; // TODO(#864): stubbed during SDL_gpu bring-up
 
   assert(framebuffer);
   assert(texture);
@@ -224,6 +231,8 @@ void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
  */
 void R_ResolveFramebuffer(const r_framebuffer_t *framebuffer) {
 
+  return; // TODO(#864): stubbed during SDL_gpu bring-up
+
   assert(framebuffer);
   assert(framebuffer->msaa.fbo);
 
@@ -247,6 +256,8 @@ void R_ResolveFramebuffer(const r_framebuffer_t *framebuffer) {
 void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
                  r_attachment_t attachment,
                  GLint x, GLint y, GLint w, GLint h) {
+
+  return; // TODO(#864): stubbed during SDL_gpu bring-up
 
   assert(framebuffer);
 
@@ -297,6 +308,8 @@ void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLi
  */
 void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, SDL_Surface **surface) {
 
+  return; // TODO(#864): stubbed during SDL_gpu bring-up
+
   assert(framebuffer);
   assert(surface);
 
@@ -328,6 +341,8 @@ void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
  * @brief Destroys the framebuffer object and all of its GPU texture attachments.
  */
 void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
+
+  return; // TODO(#864): stubbed during SDL_gpu bring-up
 
   assert(framebuffer);
 
