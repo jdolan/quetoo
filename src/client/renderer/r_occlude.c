@@ -81,6 +81,8 @@ static r_occlusion_query_t *R_PopOcclusionQuery(List *queries) {
  */
 bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 
+  return false; // TODO(#864): occlusion queries retired during bring-up (block->query is NULL); Phase 7 Hi-Z
+
   if (!r_occlude->integer) {
     return false;
   }
