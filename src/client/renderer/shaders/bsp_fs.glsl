@@ -23,22 +23,18 @@
 
 /*
  * TODO(#864): bring-up BSP program — diffuse material + clustered per-fragment
- * lighting. This exercises ObjectivelyGPU storage buffers AND a 3D texture:
+ * lighting with point-light shadow maps:
  *
- *   set 2, binding 0 : texture_material         (sampled 2D array) -> sampler 0
- *   set 2, binding 1 : texture_voxel_light_data (sampled 3D int)   -> sampler 1
- *   set 2, binding 2 : lights_block             (read-only storage)-> storage buf 0
- *   set 2, binding 3 : voxel_light_indices      (read-only storage)-> storage buf 1
+ *   set 2, binding 0 : texture_material         (sampled 2D array)   -> sampler 0
+ *   set 2, binding 1 : texture_voxel_light_data (sampled 3D int)     -> sampler 1
+ *   set 2, binding 2 : texture_shadow_atlas     (sampled 2D array cmp)-> sampler 2
+ *   set 2, binding 3 : lights_block             (read-only storage)  -> storage 0
+ *   set 2, binding 4 : voxel_light_indices      (read-only storage)  -> storage 1
  *
- * We opt out of the fixed fragment sampler map (UNIFORMS_NO_SAMPLERS) and use a
- * compact layout; samplers precede storage buffers per SDL_gpu within-set order.
- *
- * Lighting follows the GL clustered-forward design (light.glsl / voxel.glsl):
- * the fragment's voxel gives (first_index, count) into the light index buffer,
- * which indexes the lights storage buffer. Static BSP lights occupy the leading
- * slots of the lights buffer in BSP order (see cg_light.c Cg_AddBspLights), so
- * the voxel indices address them directly. Shadows, specular, caustics, sky
- * ambient, and dynamic (active) lights are deferred to later increments.
+ * Each light's shadow tile (light.shadow: xy base, z tile UV, w layer) selects a
+ * 3x2 cube-face block in the shadow atlas; the fragment compares its radial
+ * distance-from-light against the stored occluder depth. PCF softening, specular,
+ * caustics and sky ambient are deferred.
  */
 
 #define UNIFORMS_NO_SAMPLERS
@@ -46,12 +42,13 @@
 
 layout (set = 2, binding = 0) uniform sampler2DArray texture_material;
 layout (set = 2, binding = 1) uniform isampler3D texture_voxel_light_data;
+layout (set = 2, binding = 2) uniform sampler2DShadow texture_shadow_atlas;
 
-layout (std430, set = 2, binding = 2) readonly buffer lights_block {
+layout (std430, set = 2, binding = 3) readonly buffer lights_block {
   light_t lights[];
 };
 
-layout (std430, set = 2, binding = 3) readonly buffer voxel_light_indices_block {
+layout (std430, set = 2, binding = 4) readonly buffer voxel_light_indices_block {
   int voxel_light_indices[];
 };
 
@@ -71,6 +68,77 @@ ivec3 voxel_xyz(in vec3 position) {
 }
 
 /**
+ * @brief Determine cubemap face index and face UV from a direction vector.
+ * @details Matches the light_view matrices in r_shadow.c.
+ */
+void cubemap_face_uv(in vec3 dir, out int face, out vec2 face_uv) {
+
+  const vec3 ad = abs(dir);
+  float sc, tc, ma;
+
+  if (ad.x >= ad.y && ad.x >= ad.z) {
+    ma = ad.x;
+    if (dir.x > 0.0) { face = 0; sc = -dir.z; tc = -dir.y; }
+    else             { face = 1; sc =  dir.z; tc = -dir.y; }
+  } else if (ad.y >= ad.x && ad.y >= ad.z) {
+    ma = ad.y;
+    if (dir.y > 0.0) { face = 2; sc = dir.x; tc =  dir.z; }
+    else             { face = 3; sc = dir.x; tc = -dir.z; }
+  } else {
+    ma = ad.z;
+    if (dir.z > 0.0) { face = 4; sc =  dir.x; tc = -dir.y; }
+    else             { face = 5; sc = -dir.x; tc = -dir.y; }
+  }
+
+  face_uv = vec2(sc, tc) / (2.0 * max(ma, 0.0001)) + 0.5;
+}
+
+/**
+ * @brief Resolves the shadow atlas UV for a fragment/light pair.
+ */
+vec2 shadow_atlas_uv(in light_t light, in vec3 light_to_frag) {
+
+  const float tile_uv = light.shadow.z;
+
+  int face;
+  vec2 fuv;
+  cubemap_face_uv(light_to_frag, face, fuv);
+
+  // SDL_gpu renders the atlas with a top-left texel origin; flip V within the tile.
+  fuv.y = 1.0 - fuv.y;
+
+  const int face_col = face - (face / 3) * 3;
+  const int face_row = face / 3;
+  const vec2 tile_origin = light.shadow.xy + vec2(float(face_col) * tile_uv, float(face_row) * tile_uv);
+
+  // Half-texel inset to prevent cross-tile bleeding.
+  const vec2 half_texel = 0.5 / vec2(textureSize(texture_shadow_atlas, 0).xy);
+  return clamp(tile_origin + fuv * tile_uv,
+               tile_origin + half_texel,
+               tile_origin + vec2(tile_uv) - half_texel);
+}
+
+/**
+ * @brief Samples the shadow atlas for a light. Returns 1 (lit) .. 0 (shadowed).
+ * @details Manual comparison of radial fragment distance against the stored
+ * occluder depth (both normalized by depth_range.y).
+ */
+float sample_shadow_atlas(in light_t light) {
+
+  if (light.shadow.z == 0.0) {
+    return 1.0;
+  }
+
+  const vec3 light_to_frag = in_model_position - light.origin.xyz;
+  const float current_depth = length(light_to_frag) / depth_range.y;
+
+  const vec2 uv = shadow_atlas_uv(light, light_to_frag);
+
+  // Hardware comparison (LEQUAL) with linear PCF: 1 = lit, 0 = shadowed.
+  return texture(texture_shadow_atlas, vec3(uv, current_depth));
+}
+
+/**
  * @brief Unshadowed Lambert diffuse contribution from a single light.
  */
 vec3 bsp_light(in int index, in vec3 normal) {
@@ -87,8 +155,11 @@ vec3 bsp_light(in int index, in vec3 normal) {
   }
 
   const float lambert = max(0.0, dot(normal, dir / dist));
+  if (lambert <= 0.0) {
+    return vec3(0.0);
+  }
 
-  return light_color(light) * atten * lambert;
+  return light_color(light) * atten * lambert * sample_shadow_atlas(light);
 }
 
 /**

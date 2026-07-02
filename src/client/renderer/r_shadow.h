@@ -34,14 +34,14 @@
 typedef struct {
 
   /**
-   * @brief The 2D array depth texture atlas.
+   * @brief The 2D array D16 depth atlas storing linear distance-from-light.
    */
-  uint32_t texture;
+  Texture *texture;
 
   /**
-   * @brief The depth pass framebuffer.
+   * @brief The comparison sampler for shadow atlas lookups (hardware PCF).
    */
-  uint32_t framebuffer;
+  Sampler *sampler;
 
   /**
    * @brief Per-layer dimensions in pixels (square: `layer_size` × `layer_size`).

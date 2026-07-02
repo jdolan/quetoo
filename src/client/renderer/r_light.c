@@ -41,20 +41,34 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 /**
  * @brief Transform lights into their uniform representation and upload them to
  * the lights storage buffer.
- * @remarks TODO(#864): shadow atlas tiling and occlusion culling (r_shadow_atlas,
- * l->query, r_draw_light_bounds) are deferred; every light is uploaded unshadowed.
+ * @remarks TODO(#864): occlusion culling (l->query, r_draw_light_bounds) is
+ * deferred; every light is uploaded and assigned a shadow atlas tile.
  */
 void R_UpdateLights(r_view_t *view) {
 
   r_light_uniform_block_t *block = &r_lights.block;
   memset(block, 0, sizeof(*block));
 
+  const float inv_layer = r_shadow_atlas.layer_size > 0 ? 1.f / (float) r_shadow_atlas.layer_size : 0.f;
+
   const r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
     r_light_uniform_t *out = &block->lights[i];
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
-    out->shadow = Vec4(0.f, 0.f, 0.f, 0.f);
+
+    if (inv_layer > 0.f && !(l->flags & R_LIGHT_NO_SHADOW)) {
+      const int32_t local_index = i % r_shadow_atlas.lights_per_layer;
+      const int32_t light_col = local_index % r_shadow_atlas.lights_per_row;
+      const int32_t light_row = local_index / r_shadow_atlas.lights_per_row;
+      const float base_x = (float) (light_col * 3 * r_shadow_atlas.tile_size) * inv_layer;
+      const float base_y = (float) (light_row * 2 * r_shadow_atlas.tile_size) * inv_layer;
+      const float tile_uv = (float) r_shadow_atlas.tile_size * inv_layer;
+      const float layer = (float) (i / r_shadow_atlas.lights_per_layer);
+      out->shadow = Vec4(base_x, base_y, tile_uv, layer);
+    } else {
+      out->shadow = Vec4(0.f, 0.f, 0.f, 0.f);
+    }
   }
 
   const uint32_t size = view->num_lights * sizeof(r_light_uniform_t);

@@ -19,20 +19,40 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#version 450
+
+/*
+ * Point-light shadow depth pass, one cube face per draw. light_projection and
+ * depth_range come from the shared globals; the caller pushes the current face's
+ * light_view and the light origin per light. The fragment shader stores linear
+ * distance-from-light so the atlas can be compared by radial depth. Locations
+ * 0/1 are the old and current animation frames (identical for static geometry).
+ */
+
+#include "uniforms.glsl"
+
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_next_position;
 
-uniform mat4 model;
-uniform mat4 light_view[6];
-uniform int light_index;
-uniform int face_index;
-uniform float lerp;
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+  mat4 model;
+  mat4 light_view;      // light_view matrix for the current cube face
+  vec4 light_origin;    // xyz = light origin (world space)
+  float lerp;
+};
 
-out vec4 position;
+layout (location = 0) out float out_dist;
 
-void main() {
-  position = model * vec4(mix(in_position, in_next_position, lerp), 1.0);
-  position = position - vec4(lights[light_index].origin.xyz, 0.0);
-  position = light_view[face_index] * position;
-  gl_Position = light_projection * position;
+invariant gl_Position;
+
+/**
+ * @brief
+ */
+void main(void) {
+
+  const vec3 position = vec3(model * vec4(mix(in_position, in_next_position, lerp), 1.0)) - light_origin.xyz;
+
+  out_dist = length(position) / depth_range.y;
+
+  gl_Position = light_projection * light_view * vec4(position, 1.0);
 }

@@ -37,8 +37,8 @@ shaders_DATA = \
 # invoke glslc or shadercross. Run 'make shaders' after editing a .glsl to
 # regenerate them. Extend these lists as more shaders are ported (issue #864).
 
-GPU_VERT_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs
-GPU_FRAG_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs
+GPU_VERT_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs
+GPU_FRAG_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs
 
 # Install the compiled blobs alongside the GLSL sources so the renderer's
 # ResourceProvider (Fs_Load) can resolve them at runtime, e.g.

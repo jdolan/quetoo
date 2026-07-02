@@ -51,7 +51,7 @@ void R_InitBspProgram(void) {
 
   Shader *fragmentShader = $(r_device.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = 2,         // texture_material (2D array) + texture_voxel_light_data (3D int)
+    .num_samplers = 3,         // texture_material + texture_voxel_light_data + texture_shadow_atlas
     .num_storage_buffers = 2,  // lights_block + voxel_light_indices_block (read-only storage)
     .num_uniform_buffers = 1,  // globals (binding 0)
   });
@@ -188,6 +188,12 @@ void R_DrawBspEntities(const r_view_t *view) {
   $(pass, bindFragmentSamplers, 1, &(SDL_GPUTextureSamplerBinding) {
     .texture = bsp->voxels.light_data->texture->texture,
     .sampler = r_voxel_sampler->sampler,
+  }, 1);
+
+  // Fragment sampler 2 = the point-light shadow atlas (comparison sampler).
+  $(pass, bindFragmentSamplers, 2, &(SDL_GPUTextureSamplerBinding) {
+    .texture = r_shadow_atlas.texture->texture,
+    .sampler = r_shadow_atlas.sampler->sampler,
   }, 1);
 
   // Fragment storage buffer 0 = per-frame lights; 1 = the voxel light index vector.

@@ -222,6 +222,8 @@ void R_DrawMainView(r_view_t *view) {
 
   R_UpdateLights(view);
 
+  R_DrawShadows(view);
+
   R_DrawBspEntities(view);
 
   R_DrawMeshEntities(view);
@@ -352,12 +354,12 @@ void R_Init(void) {
   // R_InitOcclusionQueries();
   R_InitMedia();
   R_InitLights();
+  R_InitShadows();
   R_InitBspProgram();
   R_InitModels();
   R_InitDraw2D();
   // R_InitImages();
   // R_InitDepthPass();
-  // R_InitShadows();
   // R_InitDraw3D();
   // R_InitSprites();
   // R_InitDecals();
@@ -386,13 +388,14 @@ void R_Shutdown(void) {
   // R_ShutdownSprites();
   // R_ShutdownSky();
   // R_ShutdownPost();
-  // R_ShutdownShadows();
   // R_ShutdownDepthPass();
   // R_ShutdownOcclusionQueries();
 
   R_ShutdownDraw2D();
 
   R_ShutdownModels();
+
+  R_ShutdownShadows();
 
   R_ShutdownBspProgram();
 
