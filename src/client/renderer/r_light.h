@@ -83,7 +83,7 @@ typedef struct {
 extern r_lights_t r_lights;
 
 void R_UpdateLights(r_view_t *view);
-void R_ActiveLights(const r_view_t *view, const box3_t bounds, int32_t name);
+void R_ActiveLights(const r_view_t *view, const box3_t bounds, uint32_t mask[4]);
 void R_InitLights(void);
 void R_ShutdownLights(void);
 #endif

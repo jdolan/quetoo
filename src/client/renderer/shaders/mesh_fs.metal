@@ -41,6 +41,7 @@ struct uniforms_block
     int developer;
     int wireframe;
     int num_lights;
+    int num_bsp_lights;
 };
 
 struct light_t_1

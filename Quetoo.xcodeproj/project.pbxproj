@@ -143,60 +143,26 @@
 		CE16434A2FF5A12100863996 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		CE16434D2FF5A16200863996 /* r_device.c in Sources */ = {isa = PBXBuildFile; fileRef = CE16434C2FF5A16200863996 /* r_device.c */; };
 		CE16434E2FF5A16200863996 /* r_device.h in Headers */ = {isa = PBXBuildFile; fileRef = CE16434B2FF5A16200863996 /* r_device.h */; };
-		CE1643632FF5A23300863996 /* bsp_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFD07F72B671DE700642169 /* bsp_fs.glsl */; };
 		CE1643642FF5A23300863996 /* bsp_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16434F2FF5A1E400863996 /* bsp_fs.metal */; };
-		CE1643652FF5A23300863996 /* bsp_fs.spv in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643502FF5A1E400863996 /* bsp_fs.spv */; };
-		CE1643662FF5A23300863996 /* bsp_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFD07F62B671DE600642169 /* bsp_vs.glsl */; };
 		CE1643672FF5A23300863996 /* bsp_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643512FF5A1E400863996 /* bsp_vs.metal */; };
-		CE1643682FF5A23300863996 /* bsp_vs.spv in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643522FF5A1E400863996 /* bsp_vs.spv */; };
-		CE1643692FF5A23300863996 /* common.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3CFD3525A29932003D6148 /* common.glsl */; };
-		CE16436A2FF5A23300863996 /* decal_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE5ABAD42F32D84000D05D09 /* decal_fs.glsl */; };
-		CE16436B2FF5A23300863996 /* decal_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE5ABAD52F32D84000D05D09 /* decal_vs.glsl */; };
-		CE16436C2FF5A23300863996 /* depth_pass_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE2CECA72585B9920001E599 /* depth_pass_fs.glsl */; };
 		CE16436D2FF5A23300863996 /* depth_pass_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643532FF5A1E400863996 /* depth_pass_fs.metal */; };
-		CE16436E2FF5A23300863996 /* depth_pass_fs.spv in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643542FF5A1E400863996 /* depth_pass_fs.spv */; };
-		CE16436F2FF5A23300863996 /* depth_pass_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE2CEC1C25852FA20001E599 /* depth_pass_vs.glsl */; };
 		CE1643702FF5A23300863996 /* depth_pass_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643552FF5A1E400863996 /* depth_pass_vs.metal */; };
-		CE1643712FF5A23300863996 /* depth_pass_vs.spv in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643562FF5A1E400863996 /* depth_pass_vs.spv */; };
-		CE1643722FF5A23300863996 /* depth_resolve_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C9C4D0367AE485BA6F40075 /* depth_resolve_fs.glsl */; };
-		CE1643732FF5A23300863996 /* draw_2d_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */; };
 		CE1643742FF5A23300863996 /* draw_2d_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643572FF5A1E400863996 /* draw_2d_fs.metal */; };
-		CE1643752FF5A23300863996 /* draw_2d_fs.spv in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643582FF5A1E400863996 /* draw_2d_fs.spv */; };
-		CE1643762FF5A23300863996 /* draw_2d_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */; };
 		CE1643772FF5A23300863996 /* draw_2d_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643592FF5A1E400863996 /* draw_2d_vs.metal */; };
-		CE1643782FF5A23300863996 /* draw_2d_vs.spv in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16435A2FF5A1E400863996 /* draw_2d_vs.spv */; };
-		CE1643792FF5A23300863996 /* draw_3d_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CED5BB182406B74300784D93 /* draw_3d_fs.glsl */; };
 		CE16437A2FF5A23300863996 /* draw_3d_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16435B2FF5A1E400863996 /* draw_3d_fs.metal */; };
-		CE16437B2FF5A23300863996 /* draw_3d_fs.spv in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16435C2FF5A1E400863996 /* draw_3d_fs.spv */; };
-		CE16437C2FF5A23300863996 /* draw_3d_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */; };
 		CE16437D2FF5A23300863996 /* draw_3d_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16435D2FF5A1E400863996 /* draw_3d_vs.metal */; };
-		CE16437E2FF5A23300863996 /* draw_3d_vs.spv in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16435E2FF5A1E400863996 /* draw_3d_vs.spv */; };
-		CE16437F2FF5A23300863996 /* light.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF3B6012F456F5A0024F4DF /* light.glsl */; };
-		CE1643802FF5A23300863996 /* material.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE57E13C246255D100F8902F /* material.glsl */; };
-		CE1643812FF5A23300863996 /* mesh_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFD07FA2B671DE700642169 /* mesh_fs.glsl */; };
-		CE1643822FF5A23300863996 /* mesh_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFD07F92B671DE700642169 /* mesh_vs.glsl */; };
-		CE1643832FF5A23300863996 /* post_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */; };
 		CE1643842FF5A23300863996 /* post_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16435F2FF5A1E400863996 /* post_fs.metal */; };
-		CE1643852FF5A23300863996 /* post_fs.spv in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643602FF5A1E400863996 /* post_fs.spv */; };
-		CE1643862FF5A23300863996 /* post_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */; };
 		CE1643872FF5A23300863996 /* post_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643612FF5A1E400863996 /* post_vs.metal */; };
-		CE1643882FF5A23300863996 /* post_vs.spv in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643622FF5A1E400863996 /* post_vs.spv */; };
-		CE1643892FF5A23300863996 /* shadow_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF7B4A52ED94FED00B551CA /* shadow_fs.glsl */; };
-		CE16438A2FF5A23300863996 /* shadow_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF7B4A62ED94FED00B551CA /* shadow_vs.glsl */; };
-		CE16438B2FF5A23300863996 /* sky_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */; };
-		CE16438C2FF5A23300863996 /* sky_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F923D70A11002FD074 /* sky_vs.glsl */; };
-		CE16438D2FF5A23300863996 /* soften_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F57902A124843E730023101D /* soften_fs.glsl */; };
-		CE16438E2FF5A23300863996 /* sprite_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAC32C0242125ED007E1253 /* sprite_fs.glsl */; };
-		CE16438F2FF5A23300863996 /* sprite_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAC32BF242125ED007E1253 /* sprite_vs.glsl */; };
-		CE1643902FF5A23300863996 /* uniforms.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE45F4C625728264004DEFED /* uniforms.glsl */; };
-		CE1643912FF5A23300863996 /* version.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE41019B242CE0B200BF482F /* version.glsl */; };
-		CE1643922FF5A23300863996 /* voxel.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF3B5FF2F455C990024F4DF /* voxel.glsl */; };
 		CE1643942FF5A65900863996 /* ObjectivelyGPU.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643932FF5A65900863996 /* ObjectivelyGPU.framework */; };
 		CE1643952FF5A68800863996 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		CE1643962FF5D11F00863996 /* SDL3_image.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C42FE711B7005C680C /* SDL3_image.xcframework */; };
 		CE1643972FF5D11F00863996 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		CE1643982FF5D13D00863996 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		CE1643992FF5D14900863996 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		CE1643A32FF69B3C00863996 /* mesh_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16439B2FF6962600863996 /* mesh_fs.metal */; };
+		CE1643A42FF69B3F00863996 /* mesh_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16439D2FF6962600863996 /* mesh_vs.metal */; };
+		CE1643A52FF69B6100863996 /* shadow_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643A12FF6962600863996 /* shadow_vs.metal */; };
+		CE1643A62FF69B6700863996 /* shadow_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16439F2FF6962600863996 /* shadow_fs.metal */; };
 		CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
 		CE1A28321F75FC1D005F62A9 /* PlayerModelView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A282E1F75FC1D005F62A9 /* PlayerModelView.h */; };
 		CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
@@ -1013,54 +979,20 @@
 			dstPath = shaders;
 			dstSubfolderSpec = 16;
 			files = (
-				CE1643632FF5A23300863996 /* bsp_fs.glsl in CopyFiles */,
 				CE1643642FF5A23300863996 /* bsp_fs.metal in CopyFiles */,
-				CE1643652FF5A23300863996 /* bsp_fs.spv in CopyFiles */,
-				CE1643662FF5A23300863996 /* bsp_vs.glsl in CopyFiles */,
 				CE1643672FF5A23300863996 /* bsp_vs.metal in CopyFiles */,
-				CE1643682FF5A23300863996 /* bsp_vs.spv in CopyFiles */,
-				CE1643692FF5A23300863996 /* common.glsl in CopyFiles */,
-				CE16436A2FF5A23300863996 /* decal_fs.glsl in CopyFiles */,
-				CE16436B2FF5A23300863996 /* decal_vs.glsl in CopyFiles */,
-				CE16436C2FF5A23300863996 /* depth_pass_fs.glsl in CopyFiles */,
 				CE16436D2FF5A23300863996 /* depth_pass_fs.metal in CopyFiles */,
-				CE16436E2FF5A23300863996 /* depth_pass_fs.spv in CopyFiles */,
-				CE16436F2FF5A23300863996 /* depth_pass_vs.glsl in CopyFiles */,
 				CE1643702FF5A23300863996 /* depth_pass_vs.metal in CopyFiles */,
-				CE1643712FF5A23300863996 /* depth_pass_vs.spv in CopyFiles */,
-				CE1643722FF5A23300863996 /* depth_resolve_fs.glsl in CopyFiles */,
-				CE1643732FF5A23300863996 /* draw_2d_fs.glsl in CopyFiles */,
 				CE1643742FF5A23300863996 /* draw_2d_fs.metal in CopyFiles */,
-				CE1643752FF5A23300863996 /* draw_2d_fs.spv in CopyFiles */,
-				CE1643762FF5A23300863996 /* draw_2d_vs.glsl in CopyFiles */,
 				CE1643772FF5A23300863996 /* draw_2d_vs.metal in CopyFiles */,
-				CE1643782FF5A23300863996 /* draw_2d_vs.spv in CopyFiles */,
-				CE1643792FF5A23300863996 /* draw_3d_fs.glsl in CopyFiles */,
 				CE16437A2FF5A23300863996 /* draw_3d_fs.metal in CopyFiles */,
-				CE16437B2FF5A23300863996 /* draw_3d_fs.spv in CopyFiles */,
-				CE16437C2FF5A23300863996 /* draw_3d_vs.glsl in CopyFiles */,
 				CE16437D2FF5A23300863996 /* draw_3d_vs.metal in CopyFiles */,
-				CE16437E2FF5A23300863996 /* draw_3d_vs.spv in CopyFiles */,
-				CE16437F2FF5A23300863996 /* light.glsl in CopyFiles */,
-				CE1643802FF5A23300863996 /* material.glsl in CopyFiles */,
-				CE1643812FF5A23300863996 /* mesh_fs.glsl in CopyFiles */,
-				CE1643822FF5A23300863996 /* mesh_vs.glsl in CopyFiles */,
-				CE1643832FF5A23300863996 /* post_fs.glsl in CopyFiles */,
+				CE1643A32FF69B3C00863996 /* mesh_fs.metal in CopyFiles */,
+				CE1643A42FF69B3F00863996 /* mesh_vs.metal in CopyFiles */,
 				CE1643842FF5A23300863996 /* post_fs.metal in CopyFiles */,
-				CE1643852FF5A23300863996 /* post_fs.spv in CopyFiles */,
-				CE1643862FF5A23300863996 /* post_vs.glsl in CopyFiles */,
 				CE1643872FF5A23300863996 /* post_vs.metal in CopyFiles */,
-				CE1643882FF5A23300863996 /* post_vs.spv in CopyFiles */,
-				CE1643892FF5A23300863996 /* shadow_fs.glsl in CopyFiles */,
-				CE16438A2FF5A23300863996 /* shadow_vs.glsl in CopyFiles */,
-				CE16438B2FF5A23300863996 /* sky_fs.glsl in CopyFiles */,
-				CE16438C2FF5A23300863996 /* sky_vs.glsl in CopyFiles */,
-				CE16438D2FF5A23300863996 /* soften_fs.glsl in CopyFiles */,
-				CE16438E2FF5A23300863996 /* sprite_fs.glsl in CopyFiles */,
-				CE16438F2FF5A23300863996 /* sprite_vs.glsl in CopyFiles */,
-				CE1643902FF5A23300863996 /* uniforms.glsl in CopyFiles */,
-				CE1643912FF5A23300863996 /* version.glsl in CopyFiles */,
-				CE1643922FF5A23300863996 /* voxel.glsl in CopyFiles */,
+				CE1643A62FF69B6700863996 /* shadow_fs.metal in CopyFiles */,
+				CE1643A52FF69B6100863996 /* shadow_vs.metal in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1553,6 +1485,14 @@
 		CE1643612FF5A1E400863996 /* post_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = post_vs.metal; sourceTree = "<group>"; };
 		CE1643622FF5A1E400863996 /* post_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = post_vs.spv; sourceTree = "<group>"; };
 		CE1643932FF5A65900863996 /* ObjectivelyGPU.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ObjectivelyGPU.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE16439B2FF6962600863996 /* mesh_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = mesh_fs.metal; sourceTree = "<group>"; };
+		CE16439C2FF6962600863996 /* mesh_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = mesh_fs.spv; sourceTree = "<group>"; };
+		CE16439D2FF6962600863996 /* mesh_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = mesh_vs.metal; sourceTree = "<group>"; };
+		CE16439E2FF6962600863996 /* mesh_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = mesh_vs.spv; sourceTree = "<group>"; };
+		CE16439F2FF6962600863996 /* shadow_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = shadow_fs.metal; sourceTree = "<group>"; };
+		CE1643A02FF6962600863996 /* shadow_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_fs.spv; sourceTree = "<group>"; };
+		CE1643A12FF6962600863996 /* shadow_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = shadow_vs.metal; sourceTree = "<group>"; };
+		CE1643A22FF6962600863996 /* shadow_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_vs.spv; sourceTree = "<group>"; };
 		CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerModelView.c; sourceTree = "<group>"; };
 		CE1A282E1F75FC1D005F62A9 /* PlayerModelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerModelView.h; sourceTree = "<group>"; };
 		CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerSetupViewController.c; sourceTree = "<group>"; };
@@ -2724,7 +2664,11 @@
 				CEF3B6012F456F5A0024F4DF /* light.glsl */,
 				CE57E13C246255D100F8902F /* material.glsl */,
 				CEFD07FA2B671DE700642169 /* mesh_fs.glsl */,
+				CE16439B2FF6962600863996 /* mesh_fs.metal */,
+				CE16439C2FF6962600863996 /* mesh_fs.spv */,
 				CEFD07F92B671DE700642169 /* mesh_vs.glsl */,
+				CE16439D2FF6962600863996 /* mesh_vs.metal */,
+				CE16439E2FF6962600863996 /* mesh_vs.spv */,
 				6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */,
 				CE16435F2FF5A1E400863996 /* post_fs.metal */,
 				CE1643602FF5A1E400863996 /* post_fs.spv */,
@@ -2732,7 +2676,11 @@
 				CE1643612FF5A1E400863996 /* post_vs.metal */,
 				CE1643622FF5A1E400863996 /* post_vs.spv */,
 				CEF7B4A52ED94FED00B551CA /* shadow_fs.glsl */,
+				CE16439F2FF6962600863996 /* shadow_fs.metal */,
+				CE1643A02FF6962600863996 /* shadow_fs.spv */,
 				CEF7B4A62ED94FED00B551CA /* shadow_vs.glsl */,
+				CE1643A12FF6962600863996 /* shadow_vs.metal */,
+				CE1643A22FF6962600863996 /* shadow_vs.spv */,
 				CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */,
 				CE8FD2F923D70A11002FD074 /* sky_vs.glsl */,
 				F57902A124843E730023101D /* soften_fs.glsl */,
@@ -4675,36 +4623,13 @@
 		};
 		CE16439A2FF5D3BF00863996 /* Compile Shaders */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
 			);
 			inputPaths = (
-				"$(SRCROOT)/src/client/renderer/shaders/bsp_fs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/bsp_vs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/common.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/decal_fs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/decal_vs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/depth_pass_fs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/depth_pass_vs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/draw_2d_fs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/draw_2d_vs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/draw_3d_fs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/draw_3d_vs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/light.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/material.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/post_fs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/post_vs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/shadow_fs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/shadow_vs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/sky_fs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/sky_vs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/soften_fs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/sprite_fs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/sprite_vs.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/version.glsl",
-				"$(SRCROOT)/src/client/renderer/shaders/voxel.glsl",
 			);
 			name = "Compile Shaders";
 			outputFileListPaths = (
@@ -4713,7 +4638,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /opt/homebrew/bin/bash;
-			shellScript = "PATH=/usr/local/bin:/opt/homebrew/bin:${PATH}\nmake -C src/client/renderer/shaders shaders\n";
+			shellScript = "make PATH=/usr/local/bin:/opt/homebrew/bin:${PATH} \\\n  -C src/client/renderer/shaders shaders\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

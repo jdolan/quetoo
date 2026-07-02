@@ -38,6 +38,7 @@
  */
 
 #define UNIFORMS_NO_SAMPLERS
+#define UNIFORMS_LIGHT_CULL
 #include "uniforms.glsl"
 
 layout (set = 2, binding = 0) uniform sampler2DArray texture_material;
@@ -177,6 +178,16 @@ vec3 bsp_lighting(void) {
   for (int i = 0; i < data.y; i++) {
     const int index = voxel_light_indices[data.x + i];
     diffuse += bsp_light(index, normal);
+  }
+
+  // Dynamic lights occupy the contiguous tail [num_bsp_lights, num_lights) and
+  // have no voxel grid; only those flagged active for this block contribute.
+  // bit j => lights[num_bsp_lights + j].
+  const int num_dynamic = num_lights - num_bsp_lights;
+  for (int j = 0; j < num_dynamic; j++) {
+    if ((active_lights[j >> 5] & (1u << (j & 31))) != 0u) {
+      diffuse += bsp_light(num_bsp_lights + j, normal);
+    }
   }
 
   return diffuse;

@@ -41,6 +41,7 @@ struct uniforms_block
     int developer;
     int wireframe;
     int num_lights;
+    int num_bsp_lights;
 };
 
 struct light_t_1
@@ -58,6 +59,11 @@ struct lights_block
 struct voxel_light_indices_block
 {
     int voxel_light_indices[1];
+};
+
+struct light_cull_block
+{
+    uint4 active_lights;
 };
 
 struct main0_out
@@ -229,7 +235,7 @@ float3 bsp_light(thread const int& index, thread const float3& normal, constant 
 }
 
 static inline __attribute__((always_inline))
-float3 bsp_lighting(constant uniforms_block& _65, depth2d<float> texture_shadow_atlas, sampler texture_shadow_atlasSmplr, thread float3& in_model_position, const device lights_block& _341, thread float3& in_model_normal, texture3d<int> texture_voxel_light_data, sampler texture_voxel_light_dataSmplr, const device voxel_light_indices_block& _436)
+float3 bsp_lighting(constant uniforms_block& _65, depth2d<float> texture_shadow_atlas, sampler texture_shadow_atlasSmplr, thread float3& in_model_position, const device lights_block& _341, thread float3& in_model_normal, texture3d<int> texture_voxel_light_data, sampler texture_voxel_light_dataSmplr, const device voxel_light_indices_block& _436, constant light_cull_block& _473)
 {
     float3 diffuse = float3(0.0);
     float3 normal = fast::normalize(in_model_normal);
@@ -243,15 +249,25 @@ float3 bsp_lighting(constant uniforms_block& _65, depth2d<float> texture_shadow_
         float3 param_2 = normal;
         diffuse += bsp_light(param_1, param_2, _65, texture_shadow_atlas, texture_shadow_atlasSmplr, in_model_position, _341);
     }
+    int num_dynamic = _65.num_lights - _65.num_bsp_lights;
+    for (int j = 0; j < num_dynamic; j++)
+    {
+        if ((_473.active_lights[j >> 5] & (1u << uint(j & 31))) != 0u)
+        {
+            int param_3 = _65.num_bsp_lights + j;
+            float3 param_4 = normal;
+            diffuse += bsp_light(param_3, param_4, _65, texture_shadow_atlas, texture_shadow_atlasSmplr, in_model_position, _341);
+        }
+    }
     return diffuse;
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _65 [[buffer(0)]], const device lights_block& _341 [[buffer(1)]], const device voxel_light_indices_block& _436 [[buffer(2)]], texture2d_array<float> texture_material [[texture(0)]], texture3d<int> texture_voxel_light_data [[texture(1)]], depth2d<float> texture_shadow_atlas [[texture(2)]], sampler texture_materialSmplr [[sampler(0)]], sampler texture_voxel_light_dataSmplr [[sampler(1)]], sampler texture_shadow_atlasSmplr [[sampler(2)]])
+fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _65 [[buffer(0)]], constant light_cull_block& _473 [[buffer(1)]], const device lights_block& _341 [[buffer(2)]], const device voxel_light_indices_block& _436 [[buffer(3)]], texture2d_array<float> texture_material [[texture(0)]], texture3d<int> texture_voxel_light_data [[texture(1)]], depth2d<float> texture_shadow_atlas [[texture(2)]], sampler texture_materialSmplr [[sampler(0)]], sampler texture_voxel_light_dataSmplr [[sampler(1)]], sampler texture_shadow_atlasSmplr [[sampler(2)]])
 {
     main0_out out = {};
-    float3 _467 = float3(in.in_diffusemap, 0.0);
-    float4 diffuse = texture_material.sample(texture_materialSmplr, _467.xy, uint(rint(_467.z)));
-    float3 light = float3(_65.ambient) + bsp_lighting(_65, texture_shadow_atlas, texture_shadow_atlasSmplr, in.in_model_position, _341, in.in_model_normal, texture_voxel_light_data, texture_voxel_light_dataSmplr, _436);
+    float3 _513 = float3(in.in_diffusemap, 0.0);
+    float4 diffuse = texture_material.sample(texture_materialSmplr, _513.xy, uint(rint(_513.z)));
+    float3 light = float3(_65.ambient) + bsp_lighting(_65, texture_shadow_atlas, texture_shadow_atlasSmplr, in.in_model_position, _341, in.in_model_normal, texture_voxel_light_data, texture_voxel_light_dataSmplr, _436, _473);
     out.out_color = float4(diffuse.xyz * light, 1.0);
     return out;
 }

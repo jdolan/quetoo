@@ -250,6 +250,13 @@ typedef struct {
      * @brief The number of light sources in the lights storage buffer.
      */
     int num_lights;
+
+    /**
+     * @brief The number of static BSP lights, which occupy the leading entries
+     * of the lights storage buffer and are lit via the voxel clusters. Lights at
+     * [num_bsp_lights, num_lights) are dynamic and lit directly.
+     */
+    int num_bsp_lights;
   } block;
 
 } r_uniforms_t;

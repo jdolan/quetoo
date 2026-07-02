@@ -57,7 +57,11 @@ void R_UpdateLights(r_view_t *view) {
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
 
-    if (inv_layer > 0.f && !(l->flags & R_LIGHT_NO_SHADOW)) {
+    // Every shadow-casting light (static or dynamic) gets an atlas tile; they
+    // are visually identical and differ only in optimization (voxel selection,
+    // tile caching). The single-layer atlas holds lights_per_layer tiles; lights
+    // beyond that get no tile (shadow.z == 0 => lit) rather than a colliding one.
+    if (inv_layer > 0.f && i < r_shadow_atlas.lights_per_layer && !(l->flags & R_LIGHT_NO_SHADOW)) {
       const int32_t local_index = i % r_shadow_atlas.lights_per_layer;
       const int32_t light_col = local_index % r_shadow_atlas.lights_per_row;
       const int32_t light_row = local_index / r_shadow_atlas.lights_per_row;
@@ -78,15 +82,31 @@ void R_UpdateLights(r_view_t *view) {
 }
 
 /**
- * @brief Writes the indexes of active lights intersecting bounds to the given uniform name.
- * @details In normal gameplay, these are dynamic light sources (rockets, explosions, etc).
- * @details When the in-game editor is enabled, all lights use this code path.
- * @remarks The uniform must be an `int[MAX_DYNAMIC_LIGHTS]`.
+ * @brief Builds the dynamic-light cull bitmask for the given bounds into `mask`.
+ * @details Dynamic light sources (rockets, explosions, etc.) occupy the tail of
+ * the lights buffer and have no voxel grid, so each draw whittles them to those
+ * intersecting its bounds. Bit `j` of the uvec4 bitmask selects dynamic light
+ * `[num_bsp_lights + j]`; the lighting shaders add `num_bsp_lights` to recover the
+ * absolute index. Static (voxel-gridded) lights are skipped.
  */
-void R_ActiveLights(const r_view_t *view, const box3_t bounds, int32_t name) {
+void R_ActiveLights(const r_view_t *view, const box3_t bounds, uint32_t mask[4]) {
 
-  // TODO(#864): dynamic (active) lights not yet ported to the SDL_gpu path;
-  // only static voxel-clustered BSP lights are drawn (see bsp_fs.glsl).
+  mask[0] = mask[1] = mask[2] = mask[3] = 0;
+
+  const int32_t first = r_uniforms.block.num_bsp_lights;
+
+  const r_light_t *l = view->lights + first;
+  for (int32_t i = first; i < view->num_lights; i++, l++) {
+
+    const int32_t j = i - first;
+    if (j >= MAX_DYNAMIC_LIGHTS) {
+      break;
+    }
+
+    if (!l->bsp_light && Box3_Intersects(l->bounds, bounds)) {
+      mask[j >> 5] |= 1u << (j & 31);
+    }
+  }
 }
 
 /**

@@ -53,7 +53,7 @@ void R_InitBspProgram(void) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = 3,         // texture_material + texture_voxel_light_data + texture_shadow_atlas
     .num_storage_buffers = 2,  // lights_block + voxel_light_indices_block (read-only storage)
-    .num_uniform_buffers = 1,  // globals (binding 0)
+    .num_uniform_buffers = 2,  // globals (binding 0) + per-block active_lights (binding 1)
   });
 
   const Framebuffer *framebuffer = r_device.device->framebuffer;
@@ -140,11 +140,12 @@ void R_ShutdownBspProgram(void) {
 }
 
 /**
- * @brief Renders all opaque world BSP draw elements with their material diffuse
- * texture and clustered per-voxel lighting into the present framebuffer.
- * @remarks TODO(#864): no culling yet; inline BSP model entities, blended
- * surfaces, sky, and material stages are drawn in later increments. The world
- * model matrix is identity.
+ * @brief Renders the opaque world BSP surfaces with their material diffuse texture,
+ * clustered per-voxel static lighting, and per-block dynamic lighting.
+ * @remarks Iterates the worldspawn inline model's blocks (the unit of culling and,
+ * later, the Hi-Z occlusion pyramid); per block, the active dynamic lights are
+ * culled to the block bounds. TODO(#864): inline BSP model entities, blended
+ * surfaces, sky, material stages, and per-block occlusion queries.
  */
 void R_DrawBspEntities(const r_view_t *view) {
 
@@ -206,29 +207,44 @@ void R_DrawBspEntities(const r_view_t *view) {
   };
   $(pass, bindFragmentStorageBuffers, 0, storage, 2);
 
-  const r_bsp_draw_elements_t *draw = bsp->draw_elements;
-  for (int32_t i = 0; i < bsp->num_draw_elements; i++, draw++) {
+  // Iterate the worldspawn inline model's blocks: the unit of light culling (and,
+  // later, of the Hi-Z occlusion pyramid). Per block, cull dynamic lights to the
+  // block bounds and push the resulting bitmask, then draw the block's elements.
+  const r_bsp_inline_model_t *world = bsp->inline_models;
+  const r_bsp_block_t *block = world->blocks;
+  for (int32_t i = 0; i < world->num_blocks; i++, block++) {
 
-    // TODO(#864): sky (cubemap) and blended surfaces need dedicated passes; skip for now.
-    if (draw->surface & (SURF_SKY | SURF_MASK_BLEND)) {
-      continue;
+    // TODO(#864): per-block occlusion cull here (block->query) once the Hi-Z
+    // depth-pyramid compute pass lands; blocks are its building blocks.
+
+    uint32_t active_lights[4];
+    R_ActiveLights(view, block->node->visible_bounds, active_lights);
+    $(commands, pushFragmentUniformData, 1, active_lights, sizeof(active_lights));
+
+    const r_bsp_draw_elements_t *draw = block->draw_elements;
+    for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+
+      // TODO(#864): sky (cubemap) and blended surfaces need dedicated passes; skip for now.
+      if (draw->surface & (SURF_SKY | SURF_MASK_BLEND)) {
+        continue;
+      }
+
+      if (!draw->material || !draw->material->texture || !draw->material->texture->texture) {
+        continue;
+      }
+
+      $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
+        .texture = draw->material->texture->texture->texture,
+        .sampler = r_bsp_sampler->sampler,
+      }, 1);
+
+      const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
+
+      $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
+
+      r_stats.bsp_triangles += draw->num_elements / 3;
+      r_stats.bsp_draw_elements++;
     }
-
-    if (!draw->material || !draw->material->texture || !draw->material->texture->texture) {
-      continue;
-    }
-
-    $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
-      .texture = draw->material->texture->texture->texture,
-      .sampler = r_bsp_sampler->sampler,
-    }, 1);
-
-    const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
-
-    $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
-
-    r_stats.bsp_triangles += draw->num_elements / 3;
-    r_stats.bsp_draw_elements++;
   }
 
   pass = release(pass);

@@ -217,6 +217,12 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
    * @brief The number of light sources in the lights storage buffer.
    */
   int num_lights;
+
+  /**
+   * @brief The number of static BSP lights (leading entries, lit via voxels).
+   * Lights at [num_bsp_lights, num_lights) are dynamic and lit directly.
+   */
+  int num_bsp_lights;
 };
 
 #define MAX_BSP_LIGHTS 512
@@ -256,6 +262,18 @@ vec3 light_color(in light_t l) {
   float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
   return mix(vec3(luma), color, saturation);
 }
+
+/*
+ * Per-block/per-draw dynamic-light cull bitmask, shared by the lighting programs
+ * (bsp, mesh, sprite). bit j selects dynamic light [num_bsp_lights + j]. Dynamic
+ * lights have no voxel grid, so this whittles them to those a draw can see. A
+ * program opts in with UNIFORMS_LIGHT_CULL and must declare num_uniform_buffers >= 2.
+ */
+#if defined(FRAGMENT_SHADER) && defined(UNIFORMS_LIGHT_CULL)
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform light_cull_block {
+  uvec4 active_lights;
+};
+#endif
 
 /*
  * The fixed fragment sampler map below is only pulled in when a program opts

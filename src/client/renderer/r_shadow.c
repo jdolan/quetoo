@@ -122,21 +122,30 @@ void R_DrawShadows(const r_view_t *view) {
         continue;
       }
 
-      // Increment 1: static BSP world casters only (per-light depth elements).
-      if (!l->bsp_light || l->bsp_light->num_depth_pass_elements == 0) {
-        continue;
-      }
-
       // Perf guard (no shadow caching yet): only render shadow maps for lights
       // whose bounds are within the view frustum.
       if (R_CullBox(view, l->bounds)) {
         continue;
       }
 
-      r_stats.lights_visible++;
+      // World shadow geometry: static BSP lights use their precomputed element
+      // subset (a compile-time optimization); dynamic lights cast the full
+      // worldspawn model. TODO(#864): inline-model + mesh-entity casters.
+      uint32_t firstIndex, count;
+      if (l->bsp_light && l->bsp_light->num_depth_pass_elements) {
+        firstIndex = (uint32_t) ((uintptr_t) l->bsp_light->depth_pass_elements / sizeof(uint32_t));
+        count = (uint32_t) l->bsp_light->num_depth_pass_elements;
+      } else {
+        const r_bsp_inline_model_t *world = bsp->inline_models;
+        firstIndex = (uint32_t) ((uintptr_t) world->depth_pass_elements / sizeof(uint32_t));
+        count = (uint32_t) world->num_depth_pass_elements;
+      }
 
-      const uint32_t firstIndex = (uint32_t) ((uintptr_t) l->bsp_light->depth_pass_elements / sizeof(uint32_t));
-      const uint32_t count = (uint32_t) l->bsp_light->num_depth_pass_elements;
+      if (count == 0) {
+        continue;
+      }
+
+      r_stats.lights_visible++;
 
       for (int32_t face = 0; face < 6; face++) {
 

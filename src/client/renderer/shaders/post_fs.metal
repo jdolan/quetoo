@@ -85,6 +85,7 @@ struct uniforms_block
     int developer;
     int wireframe;
     int num_lights;
+    int num_bsp_lights;
 };
 
 constant spvUnsafeArray<float, 3> _96 = spvUnsafeArray<float, 3>({ 0.0, 1.384615421295166015625, 3.23076915740966796875 });

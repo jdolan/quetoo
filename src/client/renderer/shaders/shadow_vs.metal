@@ -40,6 +40,7 @@ struct uniforms_block
     int developer;
     int wireframe;
     int num_lights;
+    int num_bsp_lights;
 };
 
 struct main0_out
