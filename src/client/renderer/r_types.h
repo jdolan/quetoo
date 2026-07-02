@@ -125,7 +125,7 @@ typedef struct {
   r_image_type_t type;
 
   /**
-   * @brief The image width, height and depth (or layers).
+   * @brief The image width, height and depth (or layers, faces, etc..).
    */
   int32_t width, height, depth;
 

@@ -37,8 +37,8 @@ shaders_DATA = \
 # invoke glslc or shadercross. Run 'make shaders' after editing a .glsl to
 # regenerate them. Extend these lists as more shaders are ported (issue #864).
 
-GPU_VERT_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs
-GPU_FRAG_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs
+GPU_VERT_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs sky_vs sprite_vs
+GPU_FRAG_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs sky_fs sprite_fs
 
 # Install the compiled blobs alongside the GLSL sources so the renderer's
 # ResourceProvider (Fs_Load) can resolve them at runtime, e.g.
@@ -55,9 +55,9 @@ EXTRA_DIST = \
 shaders:
 	for s in $(GPU_VERT_SHADERS); do \
 		$(GLSLC) -DVERTEX_SHADER -I$(srcdir) -fshader-stage=vertex $(srcdir)/$$s.glsl -o $$s.spv || exit 1; \
-		$(SHADERCROSS) $$s.spv -s SPIRV -d MSL -t vertex --msl-version 2.1.0 -o $$s.metal || exit 1; \
+		$(SHADERCROSS) $$s.spv -s SPIRV -d MSL -t vertex --msl-version 2.2.0 -o $$s.metal || exit 1; \
 	done
 	for s in $(GPU_FRAG_SHADERS); do \
 		$(GLSLC) -DFRAGMENT_SHADER -I$(srcdir) -fshader-stage=fragment $(srcdir)/$$s.glsl -o $$s.spv || exit 1; \
-		$(SHADERCROSS) $$s.spv -s SPIRV -d MSL -t fragment --msl-version 2.1.0 -o $$s.metal || exit 1; \
+		$(SHADERCROSS) $$s.spv -s SPIRV -d MSL -t fragment --msl-version 2.2.0 -o $$s.metal || exit 1; \
 	done

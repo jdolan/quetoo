@@ -26,6 +26,24 @@
 r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context);
 
 #if defined(__R_LOCAL_H__)
+
+/**
+ * @brief The per-draw material parameters, pushed to fragment uniform slot 2 by
+ * the lit-geometry programs. Layout mirrors material.glsl's `material_block`
+ * (std140: seven scalars padded to a 16-byte multiple).
+ */
+typedef struct {
+  int32_t surface;
+  float alpha_test;
+  float roughness;
+  float hardness;
+  float specularity;
+  float parallax;
+  float shadow;
+  float _pad;
+} r_material_uniforms_t;
+
 r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context);
 void R_SaveMaterials_f(void);
+void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_material_uniforms_t *out);
 #endif

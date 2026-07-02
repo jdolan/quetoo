@@ -66,9 +66,14 @@ const float TWO_PI = PI * 2.0;
 const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875, 1.000);
 
 /**
- * @brief The material type.
+ * @brief The material parameters (per draw), mirroring the C `r_material_block_t`.
+ * @remarks `surface` carries the draw's surface flags; the scalars are the .mat
+ * parameters pre-multiplied by their r_* cvars on the CPU.
  */
-struct material_t {
+#if defined(FRAGMENT_SHADER)
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_MATERIAL) uniform sampler2DArray texture_material;
+
+layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform material_block {
   /**
    * @brief The material surface flags (SURF_*).
    */
@@ -103,10 +108,10 @@ struct material_t {
    * @brief The material self-shadowing.
    */
   float shadow;
-};
+} material;
+#endif
 
-uniform material_t material;
-
+#if defined(MATERIAL_STAGES)
 /**
  * @brief The stage type.
  */
@@ -300,6 +305,9 @@ void stage_vertex(in stage_t stage, in vec3 in_position, inout common_vertex_t v
   }
 }
 
+#endif // MATERIAL_STAGES
+
+#if defined(FRAGMENT_SHADER)
 /**
  * @brief Sample the diffuse/albedo texture.
  * @param texcoord Texture coordinates (may be parallax-offset for BSP).
@@ -358,6 +366,7 @@ float sample_material_displacement(in vec2 texcoord, in float lod) {
   return 1.0 - sample_material_heightmap(texcoord, lod);
 }
 
+#if defined(MATERIAL_STAGES)
 /**
  * @brief Sample a material stage texture.
  * @param texcoord Texture coordinates.
@@ -369,6 +378,7 @@ vec4 sample_material_stage(in vec2 texcoord) {
   }
   return texture(texture_stage, texcoord);
 }
+#endif // MATERIAL_STAGES
 
 /**
  * @brief Sample the tint map (layer 3 of material array).
@@ -378,3 +388,4 @@ vec4 sample_material_stage(in vec2 texcoord) {
 vec4 sample_material_tint(in vec2 texcoord) {
   return texture(texture_material, vec3(texcoord, 3));
 }
+#endif // FRAGMENT_SHADER

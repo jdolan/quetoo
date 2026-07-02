@@ -19,75 +19,22 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-in common_vertex_t vertex;
+#version 450
 
-in vec3 cubemap_coord;
+#define UNIFORMS_NO_SAMPLERS
+#include "uniforms.glsl"
 
-out vec4 out_color;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SKY) uniform samplerCube texture_sky;
 
-common_fragment_t fragment;
+layout (location = 0) in vec3 cubemap_coord;
 
-/**
- * @brief Convert normalized direction to azimuthal equidistant projection.
- * Maps direction to a circular disk: center = straight up, edge = horizon.
- * Avoids pole singularities by placing them at the texture edge.
- */
-vec2 direction_to_azimuthal_equidistant(vec3 direction) {
-  vec3 n = normalize(direction);
-  
-  float theta = acos(clamp(n.z, -1.0, 1.0));  // Angle from +Z (up)
-  float phi = atan(n.y, n.x);                 // Azimuth
-  
-  float r = theta / PI;  // Radial distance (0 at center, 1 at edge)
-  
-  return 0.5 + r * vec2(cos(phi), sin(phi)) * 0.5;
-}
-
-/**
- * @brief Apply stage transforms (rotation, scroll, scale) to UV coordinates.
- */
-vec2 transform_stage_uv(vec2 uv) {
-  vec2 center = uv - 0.5;
-  
-  if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
-    float cos_a = cos(stage.rotate * ticks * 0.001);
-    float sin_a = sin(stage.rotate * ticks * 0.001);
-    center = mat2(cos_a, -sin_a, sin_a, cos_a) * center;
-  }
-  
-  uv = center + 0.5;
-  
-  uv += stage.scroll * ticks * 0.001;
-  
-  if ((stage.flags & (STAGE_SCALE_S | STAGE_SCALE_T)) > 0) {
-    center = uv - 0.5;
-    center /= stage.scale;
-    uv = center + 0.5;
-  }
-  
-  return uv;
-}
+layout (location = 0) out vec4 out_color;
 
 /**
  * @brief
+ * @remarks TODO(#864): material stages (azimuthal sky projection) are deferred.
  */
 void main(void) {
 
-  if (stage.flags == STAGE_NONE) {
-    fragment.view_dist = length(vertex.position);
-    fragment.diffuse_sample = texture(texture_sky, normalize(cubemap_coord));
-
-    out_color = fragment.diffuse_sample;
-
-  } else {
-
-    vec2 st = direction_to_azimuthal_equidistant(normalize(cubemap_coord));
-    
-    st = transform_stage_uv(st);
-    
-    fragment.diffuse_sample = sample_material_stage(st);
-
-    out_color = fragment.diffuse_sample * vertex.color;
-  }
+  out_color = texture(texture_sky, normalize(cubemap_coord));
 }
-

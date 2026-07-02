@@ -25,3 +25,6 @@
 
 #include "renderer.h"
 #include <Objectively/Vector.h>
+
+// The shared GLSL/C descriptor binding map (pure #defines).
+#include "shaders/bindings.glsl"

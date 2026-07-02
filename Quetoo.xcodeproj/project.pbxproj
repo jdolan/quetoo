@@ -163,6 +163,10 @@
 		CE1643A42FF69B3F00863996 /* mesh_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16439D2FF6962600863996 /* mesh_vs.metal */; };
 		CE1643A52FF69B6100863996 /* shadow_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643A12FF6962600863996 /* shadow_vs.metal */; };
 		CE1643A62FF69B6700863996 /* shadow_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16439F2FF6962600863996 /* shadow_fs.metal */; };
+		CE1643AC2FF6B49700863996 /* sky_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643A82FF6B48600863996 /* sky_fs.metal */; };
+		CE1643AD2FF6B49A00863996 /* sky_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643AA2FF6B48600863996 /* sky_vs.metal */; };
+		CE1643B22FF6BC0F00863996 /* sprite_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643AE2FF6BBF200863996 /* sprite_fs.metal */; };
+		CE1643B32FF6BC1800863996 /* sprite_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643B02FF6BBF200863996 /* sprite_vs.metal */; };
 		CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
 		CE1A28321F75FC1D005F62A9 /* PlayerModelView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A282E1F75FC1D005F62A9 /* PlayerModelView.h */; };
 		CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
@@ -993,6 +997,10 @@
 				CE1643872FF5A23300863996 /* post_vs.metal in CopyFiles */,
 				CE1643A62FF69B6700863996 /* shadow_fs.metal in CopyFiles */,
 				CE1643A52FF69B6100863996 /* shadow_vs.metal in CopyFiles */,
+				CE1643AC2FF6B49700863996 /* sky_fs.metal in CopyFiles */,
+				CE1643AD2FF6B49A00863996 /* sky_vs.metal in CopyFiles */,
+				CE1643B22FF6BC0F00863996 /* sprite_fs.metal in CopyFiles */,
+				CE1643B32FF6BC1800863996 /* sprite_vs.metal in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1493,6 +1501,15 @@
 		CE1643A02FF6962600863996 /* shadow_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_fs.spv; sourceTree = "<group>"; };
 		CE1643A12FF6962600863996 /* shadow_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = shadow_vs.metal; sourceTree = "<group>"; };
 		CE1643A22FF6962600863996 /* shadow_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_vs.spv; sourceTree = "<group>"; };
+		CE1643A72FF6AB4000863996 /* bindings.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bindings.glsl; sourceTree = "<group>"; };
+		CE1643A82FF6B48600863996 /* sky_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = sky_fs.metal; sourceTree = "<group>"; };
+		CE1643A92FF6B48600863996 /* sky_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = sky_fs.spv; sourceTree = "<group>"; };
+		CE1643AA2FF6B48600863996 /* sky_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = sky_vs.metal; sourceTree = "<group>"; };
+		CE1643AB2FF6B48600863996 /* sky_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = sky_vs.spv; sourceTree = "<group>"; };
+		CE1643AE2FF6BBF200863996 /* sprite_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = sprite_fs.metal; sourceTree = "<group>"; };
+		CE1643AF2FF6BBF200863996 /* sprite_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = sprite_fs.spv; sourceTree = "<group>"; };
+		CE1643B02FF6BBF200863996 /* sprite_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = sprite_vs.metal; sourceTree = "<group>"; };
+		CE1643B12FF6BBF200863996 /* sprite_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = sprite_vs.spv; sourceTree = "<group>"; };
 		CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerModelView.c; sourceTree = "<group>"; };
 		CE1A282E1F75FC1D005F62A9 /* PlayerModelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerModelView.h; sourceTree = "<group>"; };
 		CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerSetupViewController.c; sourceTree = "<group>"; };
@@ -2633,6 +2650,7 @@
 		CE12D5F31C5C58C300CD0B13 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
+				CE1643A72FF6AB4000863996 /* bindings.glsl */,
 				CEFD07F72B671DE700642169 /* bsp_fs.glsl */,
 				CE16434F2FF5A1E400863996 /* bsp_fs.metal */,
 				CE1643502FF5A1E400863996 /* bsp_fs.spv */,
@@ -2662,6 +2680,7 @@
 				CE16435D2FF5A1E400863996 /* draw_3d_vs.metal */,
 				CE16435E2FF5A1E400863996 /* draw_3d_vs.spv */,
 				CEF3B6012F456F5A0024F4DF /* light.glsl */,
+				CE12D5F61C5C58C300CD0B13 /* Makefile.am */,
 				CE57E13C246255D100F8902F /* material.glsl */,
 				CEFD07FA2B671DE700642169 /* mesh_fs.glsl */,
 				CE16439B2FF6962600863996 /* mesh_fs.metal */,
@@ -2682,14 +2701,21 @@
 				CE1643A12FF6962600863996 /* shadow_vs.metal */,
 				CE1643A22FF6962600863996 /* shadow_vs.spv */,
 				CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */,
+				CE1643A82FF6B48600863996 /* sky_fs.metal */,
+				CE1643A92FF6B48600863996 /* sky_fs.spv */,
 				CE8FD2F923D70A11002FD074 /* sky_vs.glsl */,
+				CE1643AA2FF6B48600863996 /* sky_vs.metal */,
+				CE1643AB2FF6B48600863996 /* sky_vs.spv */,
 				F57902A124843E730023101D /* soften_fs.glsl */,
 				CEAC32C0242125ED007E1253 /* sprite_fs.glsl */,
+				CE1643AE2FF6BBF200863996 /* sprite_fs.metal */,
+				CE1643AF2FF6BBF200863996 /* sprite_fs.spv */,
 				CEAC32BF242125ED007E1253 /* sprite_vs.glsl */,
+				CE1643B02FF6BBF200863996 /* sprite_vs.metal */,
+				CE1643B12FF6BBF200863996 /* sprite_vs.spv */,
 				CE45F4C625728264004DEFED /* uniforms.glsl */,
 				CE41019B242CE0B200BF482F /* version.glsl */,
 				CEF3B5FF2F455C990024F4DF /* voxel.glsl */,
-				CE12D5F61C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = shaders;
 			sourceTree = "<group>";

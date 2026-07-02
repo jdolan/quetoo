@@ -47,6 +47,8 @@
   #error "Define VERTEX_SHADER or FRAGMENT_SHADER when compiling shaders."
 #endif
 
+#include "bindings.glsl"
+
 /*
  * Uniform-buffer bindings (within UNIFORM_SET). Binding 0 is the per-frame
  * globals block, present in every program. Per-program per-draw blocks

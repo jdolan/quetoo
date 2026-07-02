@@ -22,17 +22,15 @@
 #version 450
 
 #include "uniforms.glsl"
-
-/*
- * TODO(#864): bring-up BSP program — diffuse materials + simple per-fragment
- * lighting. This is an incremental step toward the full bsp_vs/bsp_fs (clustered
- * voxel lighting, stages, shadows). Position, diffuse UV, and normal are all we
- * need for the world-space lighting done in bsp_fs.
- */
+#include "common.glsl"
+#include "voxel.glsl"
 
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
+layout (location = 2) in vec3 in_tangent;
+layout (location = 3) in vec3 in_bitangent;
 layout (location = 4) in vec2 in_diffusemap;
+layout (location = 5) in vec4 in_color;
 
 /**
  * @brief Per-draw locals.
@@ -41,22 +39,33 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_bloc
   mat4 model;
 };
 
-layout (location = 0) out vec2 out_diffusemap;
-layout (location = 1) out vec3 out_model_position;
-layout (location = 2) out vec3 out_model_normal;
+layout (location = 0) out common_vertex_t vertex;
 
 invariant gl_Position;
 
 /**
  * @brief
+ * @remarks TODO(#864): material stages and LOD vertex lighting are deferred; the
+ * fragment shader performs full per-fragment lighting for now.
  */
 void main(void) {
 
-  const vec4 position = vec4(in_position, 1.0);
+  mat4 view_model = view * model;
 
-  out_diffusemap = in_diffusemap;
-  out_model_position = vec3(model * position);
-  out_model_normal = normalize(vec3(model * vec4(in_normal, 0.0)));
+  vec4 position = vec4(in_position, 1.0);
+  vec4 normal = vec4(in_normal, 0.0);
+  vec4 tangent = vec4(in_tangent, 0.0);
+  vec4 bitangent = vec4(in_bitangent, 0.0);
 
-  gl_Position = projection3D * view * model * position;
+  vertex.model_position = vec3(model * position);
+  vertex.model_normal = normalize(vec3(model * normal));
+  vertex.position = vec3(view_model * position);
+  vertex.normal = normalize(vec3(view_model * normal));
+  vertex.tangent = normalize(vec3(view_model * tangent));
+  vertex.bitangent = normalize(vec3(view_model * bitangent));
+  vertex.diffusemap = in_diffusemap;
+  vertex.voxel = voxel_uvw(vec3(model * position));
+  vertex.color = in_color;
+
+  gl_Position = projection3D * view_model * position;
 }

@@ -346,6 +346,25 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
 /**
  * @brief Finds an existing `r_material_t` from the specified diffusemap.
  */
+/**
+ * @brief Fills `out` with the per-draw material parameters for `material` and the
+ * draw's `surface` flags, pre-multiplied by their r_* cvars. Mirrors the GL
+ * `glUniform` material uploads.
+ */
+void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_material_uniforms_t *out) {
+
+  const cm_material_t *cm = material->cm;
+
+  out->surface = surface;
+  out->alpha_test = cm->alpha_test * r_alpha_test->value;
+  out->roughness = cm->roughness * r_roughness->value;
+  out->hardness = cm->hardness * r_hardness->value;
+  out->specularity = cm->specularity * r_specularity->value;
+  out->parallax = cm->parallax * r_parallax->value;
+  out->shadow = cm->shadow * r_parallax_shadow->value;
+  out->_pad = 0.f;
+}
+
 r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
   char key[MAX_QPATH];
   char basename[MAX_QPATH];

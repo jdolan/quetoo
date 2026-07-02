@@ -18,28 +18,32 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
- 
-in vertex_data {
-  vec3 position;
-  vec2 diffusemap;
-  vec2 next_diffusemap;
-  vec3 color;
-  float lerp;
-} vertex;
 
-out vec3 out_color;
+#version 450
+
+#define UNIFORMS_NO_SAMPLERS
+#include "uniforms.glsl"
+
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_DIFFUSE)      uniform sampler2D texture_diffusemap;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_NEXT_DIFFUSE) uniform sampler2D texture_next_diffusemap;
+
+layout (location = 0) in vec2 in_diffusemap;
+layout (location = 1) in vec2 in_next_diffusemap;
+layout (location = 2) in vec3 in_color;
+layout (location = 3) in float in_lerp;
+
+layout (location = 0) out vec4 out_color;
 
 /**
  * @brief
+ * @remarks TODO(#864): soft particles (depth-attachment fade) are deferred.
  */
 void main(void) {
 
-  vec3 texture_color = mix(
-               texture(texture_diffusemap, vertex.diffusemap),
-               texture(texture_next_diffusemap, vertex.next_diffusemap),
-               vertex.lerp).rgb;
+  const vec3 texture_color = mix(
+      texture(texture_diffusemap, in_diffusemap).rgb,
+      texture(texture_next_diffusemap, in_next_diffusemap).rgb,
+      in_lerp);
 
-  out_color = texture_color * vertex.color;
-
-  out_color *= soften();
+  out_color = vec4(texture_color * in_color, 1.0);
 }

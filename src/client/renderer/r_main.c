@@ -150,9 +150,10 @@ void R_BeginFrame(void) {
   }
 
   if (r_framebuffer_scale->modified) {
-    SDL_PushEvent(&(SDL_Event) {
-      .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
-    });
+    // Render the frame at a reduced resolution and upscale on present. TODO(#864):
+    // this scales the whole present framebuffer (UI included); a 3D-only scale
+    // needs the dedicated scene framebuffer.
+    r_device.device->renderScale = Clampf(r_framebuffer_scale->value, .25f, 2.f);
     r_framebuffer_scale->modified = false;
   }
 
@@ -223,11 +224,19 @@ void R_DrawMainView(r_view_t *view) {
 
   R_UpdateLights(view);
 
+  R_UpdateSprites(view);
+
   R_DrawShadows(view);
 
   R_DrawBspEntities(view);
 
+  if (r_models.world) {
+    R_DrawSky(view, r_models.world->bsp);
+  }
+
   R_DrawMeshEntities(view);
+
+  R_DrawSprites(view);
 }
 
 /**
@@ -362,9 +371,9 @@ void R_Init(void) {
   // R_InitImages();
   // R_InitDepthPass();
   // R_InitDraw3D();
-  // R_InitSprites();
+  R_InitSprites();
   // R_InitDecals();
-  // R_InitSky();
+  R_InitSky();
   // R_InitPost();
 
   const SDL_Rect bounds = r_device.window_bounds;
@@ -397,6 +406,10 @@ void R_Shutdown(void) {
   R_ShutdownModels();
 
   R_ShutdownShadows();
+
+  R_ShutdownSky();
+
+  R_ShutdownSprites();
 
   R_ShutdownBspProgram();
 

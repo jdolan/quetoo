@@ -19,84 +19,34 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#version 450
+
+#include "uniforms.glsl"
+
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec2 in_diffusemap;
 layout (location = 2) in vec2 in_next_diffusemap;
-layout (location = 3) in vec3 in_color;
-layout (location = 4) in float in_lerp;
-layout (location = 5) in float in_lighting;
+layout (location = 3) in vec4 in_color;         // UBYTE4_NORM; .rgb is the sprite color
+layout (location = 4) in vec2 in_lerp_lighting;  // UBYTE2_NORM; .x lerp, .y lighting
 
-out vertex_data {
-  vec3 position;
-  vec2 diffusemap;
-  vec2 next_diffusemap;
-  vec3 color;
-  float lerp;
-} vertex;
+layout (location = 0) out vec2 out_diffusemap;
+layout (location = 1) out vec2 out_next_diffusemap;
+layout (location = 2) out vec3 out_color;
+layout (location = 3) out float out_lerp;
+
+invariant gl_Position;
 
 /**
- * @brief
- */
-vec3 sprite_lighting_light(in int index) {
-
-  light_t light = lights[index];
-
-  float dist = distance(light.origin.xyz, in_position);
-  float radius = light.origin.w;
-  float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
-
-  return light_color(light) * atten;
-}
-
-/**
- * @brief Dynamic lighting for sprites
- */
-void sprite_lighting(void) {
-
-  if (in_lighting == 0.0) {
-    return;
-  }
-
-  vec3 diffuse = vec3(0.0);
-
-  if (editor == 0) {
-    ivec3 voxel = voxel_xyz(in_position);
-    ivec2 data = voxel_light_data(voxel);
-
-    for (int i = 0; i < data.y; i++) {
-      int index = voxel_light_index(data.x + i);
-      diffuse += sprite_lighting_light(index);
-    }
-  }
-
-  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
-    int index = active_lights[i];
-    if (index == -1) {
-      break;
-    }
-
-    diffuse += sprite_lighting_light(index);
-  }
-
-  vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
-}
-
-/**
- * @brief
+ * @brief Billboard sprite/beam vertices are pre-oriented on the CPU.
+ * @remarks TODO(#864): dynamic vertex lighting (in_lerp_lighting.y) and soft
+ * particles are deferred; sprites render fullbright for now.
  */
 void main(void) {
 
-  vec4 position = vec4(in_position, 1.0);
+  out_diffusemap = in_diffusemap;
+  out_next_diffusemap = in_next_diffusemap;
+  out_color = in_color.rgb;
+  out_lerp = in_lerp_lighting.x;
 
-  vertex.position = vec3(view * position);
-  vertex.diffusemap = in_diffusemap;
-  vertex.next_diffusemap = in_next_diffusemap;
-  vertex.color = in_color;
-  vertex.lerp = in_lerp;
-
-  vec3 texcoord = voxel_uvw(in_position);
-
-  sprite_lighting();
-
-  gl_Position = projection3D * view * position;
+  gl_Position = projection3D * view * vec4(in_position, 1.0);
 }

@@ -53,7 +53,7 @@ void R_InitBspProgram(void) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = 3,         // texture_material + texture_voxel_light_data + texture_shadow_atlas
     .num_storage_buffers = 2,  // lights_block + voxel_light_indices_block (read-only storage)
-    .num_uniform_buffers = 2,  // globals (binding 0) + per-block active_lights (binding 1)
+    .num_uniform_buffers = 3,  // globals + per-block active_lights + per-draw material
   });
 
   const Framebuffer *framebuffer = r_device.device->framebuffer;
@@ -86,13 +86,31 @@ void R_InitBspProgram(void) {
         .offset = offsetof(r_bsp_vertex_t, normal),
       },
       {
+        .location = 2,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(r_bsp_vertex_t, tangent),
+      },
+      {
+        .location = 3,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(r_bsp_vertex_t, bitangent),
+      },
+      {
         .location = 4,
         .buffer_slot = 0,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
         .offset = offsetof(r_bsp_vertex_t, diffusemap),
       },
+      {
+        .location = 5,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
+        .offset = offsetof(r_bsp_vertex_t, color),
+      },
     },
-    .num_vertex_attributes = 3,
+    .num_vertex_attributes = 6,
   };
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
@@ -174,38 +192,39 @@ void R_DrawBspEntities(const r_view_t *view) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  // Vertex uniform slot 0 = per-frame globals; slot 1 = per-draw locals (model).
-  // Fragment uniform slot 0 = the same per-frame globals (lighting scalars).
+  // Vertex uniforms: globals + per-draw locals (the world model matrix).
+  // Fragment uniforms: the same globals (lighting scalars); active_lights and the
+  // material parameters are pushed per block / per draw below.
   const mat4_t model = Mat4_Identity();
-  $(commands, pushVertexUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
-  $(commands, pushVertexUniformData, 1, model.array, sizeof(model));
-  $(commands, pushFragmentUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
+  $(commands, pushFragmentUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   $(pass, bindPipeline, r_bsp_pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  // Fragment sampler 1 = the per-voxel light-data 3D texture (first_index, count).
-  $(pass, bindFragmentSamplers, 1, &(SDL_GPUTextureSamplerBinding) {
+  // The per-voxel light-data 3D texture (first_index, count).
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
     .texture = bsp->voxels.light_data->texture->texture,
     .sampler = r_voxel_sampler->sampler,
   }, 1);
 
-  // Fragment sampler 2 = the point-light shadow atlas (comparison sampler).
-  $(pass, bindFragmentSamplers, 2, &(SDL_GPUTextureSamplerBinding) {
+  // The point-light shadow atlas (comparison sampler).
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_SHADOW_ATLAS, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_shadow_atlas.texture->texture,
     .sampler = r_shadow_atlas.sampler->sampler,
   }, 1);
 
-  // Fragment storage buffer 0 = per-frame lights; 1 = the voxel light index vector.
-  // Fall back to the lights buffer for slot 1 on maps with no light indices (the
-  // voxel counts are then zero, so it is never read); SDL still requires a bind.
+  // Storage: per-frame lights, then the voxel light index vector. Fall back to the
+  // lights buffer for the index slot on maps with no light indices (the voxel
+  // counts are then zero, so it is never read); SDL still requires a bind.
   SDL_GPUBuffer *storage[] = {
     r_lights.buffer->buffer,
     bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
                                      : r_lights.buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, 0, storage, 2);
+  $(pass, bindFragmentStorageBuffers, SLOT_STORAGE_LIGHTS, storage, 2);
 
   // Iterate the worldspawn inline model's blocks: the unit of light culling (and,
   // later, of the Hi-Z occlusion pyramid). Per block, cull dynamic lights to the
@@ -219,7 +238,7 @@ void R_DrawBspEntities(const r_view_t *view) {
 
     uint32_t active_lights[4];
     R_ActiveLights(view, block->node->visible_bounds, active_lights);
-    $(commands, pushFragmentUniformData, 1, active_lights, sizeof(active_lights));
+    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
     for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -233,10 +252,14 @@ void R_DrawBspEntities(const r_view_t *view) {
         continue;
       }
 
-      $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
+      $(pass, bindFragmentSamplers, SLOT_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
         .texture = draw->material->texture->texture->texture,
         .sampler = r_bsp_sampler->sampler,
       }, 1);
+
+      r_material_uniforms_t material;
+      R_MaterialUniforms(draw->material, draw->surface, &material);
+      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_MATERIAL, &material, sizeof(material));
 
       const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 

@@ -257,8 +257,14 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
       2
     };
 
+    image->depth = 6;
+
+    // Assemble the six faces, layer-major, into a single RGBA buffer and upload
+    // them as one cube texture (SDL_gpu uploads all layers in one copy).
+    const size_t face_size = image->width * image->height * 4;
+    byte *data = malloc(face_size * 6);
+
     for (size_t i = 0; i < 6; i++) {
-      const uint32_t target = (uint32_t) i;
 
       SDL_Surface *side = SDL_CreateSurface(image->width, image->height, SDL_PIXELFORMAT_RGB24);
 
@@ -285,10 +291,28 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
       R_FixupCubemapFace(side);
 
-      R_UploadImageTarget(image, target, side->pixels);
+      SDL_Surface *rgba = SDL_ConvertSurface(side, SDL_PIXELFORMAT_RGBA32);
+      for (int32_t y = 0; y < image->height; y++) {
+        memcpy(data + i * face_size + y * image->width * 4,
+               (const byte *) rgba->pixels + y * rgba->pitch,
+               image->width * 4);
+      }
+      SDL_DestroySurface(rgba);
 
       SDL_DestroySurface(side);
     }
+
+    image->texture = $(r_device.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+      .type = SDL_GPU_TEXTURETYPE_CUBE,
+      .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+      .width = image->width,
+      .height = image->height,
+      .layer_count_or_depth = 6,
+      .num_levels = 1,
+      .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+    }, data);
+
+    free(data);
   } else {
     image->width = surface->w;
     image->height = surface->h;

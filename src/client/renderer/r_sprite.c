@@ -27,32 +27,19 @@
 static struct {
   r_sprite_vertex_t vertexes[MAX_SPRITE_INSTANCES * 4];
 
-  uint32_t vertex_array;
-  uint32_t vertex_buffer;
-  uint32_t elements_buffer;
+  Buffer *vertex_buffer;
+  int32_t vertex_buffer_capacity; // in vertices
 
+  Buffer *elements_buffer; // static quad indices, MAX_SPRITE_INSTANCES * 6
 } r_sprites;
 
 /**
- * @brief The draw program.
+ * @brief The sprite pipeline (sprite_vs/sprite_fs) and its diffuse sampler.
+ * @remarks TODO(#864): vertex lighting (active_lights) and soft particles
+ * (depth-attachment copy) are deferred.
  */
-static struct {
-  uint32_t name;
-
-  uint32_t uniforms_block;
-  uint32_t lights_block;
-
-  int32_t active_lights;
-
-  int32_t texture_diffusemap;
-  int32_t texture_next_diffusemap;
-
-  int32_t texture_voxel_light_data;
-  int32_t texture_voxel_light_indices;
-
-  int32_t texture_depth_attachment_copy;
-
-} r_sprite_program;
+static GraphicsPipeline *r_sprite_pipeline;
+static Sampler *r_sprite_sampler;
 
 /**
  * @brief Computes the texture coordinates for the given image, handling both atlas and regular images.
@@ -395,24 +382,225 @@ void R_UpdateSprites(r_view_t *view) {
 }
 
 /**
- * @brief Renders all batched sprite instances to the framebuffer.
- * @remarks TODO(#864): sprite rendering (sprite_vs/sprite_fs, soft particles)
- * is not yet ported to SDL_gpu. The CPU-side R_AddSprite / R_AddBeam /
- * R_UpdateSprites remain live so the view is still populated.
+ * @brief Renders all batched sprite instances to the present framebuffer, blended
+ * additively over the opaque scene and depth-tested against it.
+ * @remarks TODO(#864): dynamic vertex lighting and soft particles are deferred.
  */
 void R_DrawSprites(const r_view_t *view) {
+
+  if (!r_sprite_pipeline || view->num_sprite_instances == 0) {
+    return;
+  }
+
+  CommandBuffer *commands = r_device.device->commandBuffer;
+  if (!commands) {
+    return;
+  }
+
+  Framebuffer *framebuffer = r_device.device->framebuffer;
+
+  const uint32_t count = (uint32_t) view->num_sprite_instances * 4;
+
+  if ((int32_t) count > r_sprites.vertex_buffer_capacity) {
+    r_sprites.vertex_buffer = release(r_sprites.vertex_buffer);
+    r_sprites.vertex_buffer = $(r_device.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+      .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+      .size = count * sizeof(r_sprite_vertex_t),
+    });
+    r_sprites.vertex_buffer_capacity = (int32_t) count;
+  }
+
+  {
+    CopyPass *copyPass = $(commands, beginCopyPass);
+    $(copyPass, uploadData, r_sprites.vertex_buffer->buffer, r_sprites.vertexes,
+      count * sizeof(r_sprite_vertex_t), 0, true);
+    release(copyPass);
+  }
+
+  const SDL_GPUColorTargetInfo color =
+      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
+  const SDL_GPUDepthStencilTargetInfo depth =
+      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
+
+  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
+
+  $(pass, setViewport, &(SDL_GPUViewport) {
+    .x = 0.f, .y = 0.f,
+    .w = (float) framebuffer->size.w, .h = (float) framebuffer->size.h,
+    .min_depth = 0.f, .max_depth = 1.f,
+  });
+
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+
+  $(pass, bindPipeline, r_sprite_pipeline);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_sprites.vertex_buffer->buffer }, 1);
+  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_sprites.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+  // Draw runs of consecutive instances sharing the same diffuse/next-diffuse image.
+  int32_t i = 0;
+  while (i < view->num_sprite_instances) {
+
+    const r_sprite_instance_t *in = view->sprite_instances + i;
+
+    if (!in->diffusemap || !in->diffusemap->texture || !in->next_diffusemap || !in->next_diffusemap->texture) {
+      i++;
+      continue;
+    }
+
+    int32_t batch_size = 1;
+    for (int32_t j = i + 1; j < view->num_sprite_instances; j++) {
+      const r_sprite_instance_t *batch = view->sprite_instances + j;
+      if (batch->diffusemap != in->diffusemap || batch->next_diffusemap != in->next_diffusemap) {
+        break;
+      }
+      batch_size++;
+    }
+
+    $(pass, bindFragmentSamplers, SLOT_SAMPLER_DIFFUSE, (SDL_GPUTextureSamplerBinding[]) {
+      { .texture = in->diffusemap->texture->texture, .sampler = r_sprite_sampler->sampler },
+      { .texture = in->next_diffusemap->texture->texture, .sampler = r_sprite_sampler->sampler },
+    }, 2);
+
+    $(pass, drawIndexedPrimitives, (uint32_t) batch_size * 6, 1, (uint32_t) i * 6, 0, 0);
+
+    r_stats.sprite_draw_elements++;
+
+    i += batch_size;
+  }
+
+  pass = release(pass);
 }
 
 /**
- * @brief
+ * @brief Builds the sprite pipeline and diffuse sampler.
+ */
+static void R_InitSpriteProgram(void) {
+
+  Shader *vertexShader = $(r_device.device, loadShader, "shaders/sprite_vs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    .num_uniform_buffers = 1, // globals (binding 0)
+  });
+
+  Shader *fragmentShader = $(r_device.device, loadShader, "shaders/sprite_fs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+    .num_samplers = 2, // texture_diffusemap + texture_next_diffusemap
+  });
+
+  const Framebuffer *framebuffer = r_device.device->framebuffer;
+
+  SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
+  info.vertex_shader = vertexShader->shader;
+  info.fragment_shader = fragmentShader->shader;
+
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+
+  // Sprites blend additively over the opaque scene and never occlude it.
+  info.depth_stencil_state.enable_depth_write = false;
+
+  info.vertex_input_state = (SDL_GPUVertexInputState) {
+    .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
+      .slot = 0,
+      .pitch = sizeof(r_sprite_vertex_t),
+      .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+    },
+    .num_vertex_buffers = 1,
+    .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+      {
+        .location = 0,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(r_sprite_vertex_t, position),
+      },
+      {
+        .location = 1,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+        .offset = offsetof(r_sprite_vertex_t, diffusemap),
+      },
+      {
+        .location = 2,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+        .offset = offsetof(r_sprite_vertex_t, next_diffusemap),
+      },
+      {
+        // .rgb is the sprite color; the fourth byte (lerp) is read but unused here.
+        .location = 3,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
+        .offset = offsetof(r_sprite_vertex_t, color),
+      },
+      {
+        // .x = lerp, .y = lighting (adjacent bytes).
+        .location = 4,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE2_NORM,
+        .offset = offsetof(r_sprite_vertex_t, lerp),
+      },
+    },
+    .num_vertex_attributes = 5,
+  };
+
+  info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
+    .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
+      .format = framebuffer->colorFormats[0],
+      .blend_state = GPU_BlendStateAdditive,
+    },
+    .num_color_targets = 1,
+    .depth_stencil_format = framebuffer->depthFormat,
+    .has_depth_stencil_target = true,
+  };
+
+  r_sprite_pipeline = $(r_device.device, createGraphicsPipeline, &info);
+
+  release(vertexShader);
+  release(fragmentShader);
+
+  r_sprite_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+    .min_filter = SDL_GPU_FILTER_LINEAR,
+    .mag_filter = SDL_GPU_FILTER_LINEAR,
+    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
+    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+  });
+}
+
+/**
+ * @brief Initializes the sprite subsystem: the static quad index buffer and pipeline.
  */
 void R_InitSprites(void) {
 
   memset(&r_sprites, 0, sizeof(r_sprites));
+
+  // Two triangles per instance: (0,1,2) (0,2,3), over MAX_SPRITE_INSTANCES quads.
+  const size_t num_elements = MAX_SPRITE_INSTANCES * 6;
+  uint32_t *elements = malloc(num_elements * sizeof(uint32_t));
+
+  for (int32_t i = 0, v = 0, e = 0; i < MAX_SPRITE_INSTANCES; i++, v += 4, e += 6) {
+    elements[e + 0] = v + 0;
+    elements[e + 1] = v + 1;
+    elements[e + 2] = v + 2;
+    elements[e + 3] = v + 0;
+    elements[e + 4] = v + 2;
+    elements[e + 5] = v + 3;
+  }
+
+  r_sprites.elements_buffer = $(r_device.device, createBufferWithConstMem,
+      SDL_GPU_BUFFERUSAGE_INDEX, elements, (Uint32) (num_elements * sizeof(uint32_t)));
+
+  free(elements);
+
+  R_InitSpriteProgram();
 }
 
 /**
- * @brief
+ * @brief Shuts down the sprite subsystem, releasing the pipeline, sampler and buffers.
  */
 void R_ShutdownSprites(void) {
+
+  r_sprite_pipeline = release(r_sprite_pipeline);
+  r_sprite_sampler = release(r_sprite_sampler);
+  r_sprites.vertex_buffer = release(r_sprites.vertex_buffer);
+  r_sprites.elements_buffer = release(r_sprites.elements_buffer);
 }
