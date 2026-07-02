@@ -103,7 +103,11 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, uint32_t mask[4])
       break;
     }
 
-    if (!l->bsp_light && Box3_Intersects(l->bounds, bounds)) {
+    // The lights at [num_bsp_lights, num_lights) are the dynamic tail; none are
+    // static (voxel-gridded) BSP lights.
+    assert(!l->bsp_light);
+
+    if (Box3_Intersects(l->bounds, bounds)) {
       mask[j >> 5] |= 1u << (j & 31);
     }
   }
