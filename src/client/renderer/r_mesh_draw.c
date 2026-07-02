@@ -51,7 +51,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commandBuffer;
+  CommandBuffer *commands = r_device.device->commands;
 
   const r_mesh_locals_t locals = {
     .model = e->matrix,
@@ -114,7 +114,7 @@ void R_DrawMeshEntities(const r_view_t *view) {
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commandBuffer;
+  CommandBuffer *commands = r_device.device->commands;
   if (!commands) {
     return;
   }

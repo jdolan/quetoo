@@ -49,7 +49,7 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commandBuffer;
+  CommandBuffer *commands = r_device.device->commands;
   if (!commands) {
     return;
   }

@@ -153,7 +153,7 @@ void R_BeginFrame(void) {
     // Render the frame at a reduced resolution and upscale on present. TODO(#864):
     // this scales the whole present framebuffer (UI included); a 3D-only scale
     // needs the dedicated scene framebuffer.
-    r_device.device->renderScale = Clampf(r_framebuffer_scale->value, .25f, 2.f);
+//    r_device.device->renderScale = Clampf(r_framebuffer_scale->value, .25f, 2.f);
     r_framebuffer_scale->modified = false;
   }
 
@@ -254,7 +254,7 @@ void R_EndFrame(void) {
 
   R_Draw2D();
 
-  if (r_device.device->commandBuffer) {
+  if (r_device.device->commands) {
     $(r_device.device, endFrame);
   }
 }

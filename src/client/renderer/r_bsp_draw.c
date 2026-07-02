@@ -366,7 +366,7 @@ void R_DrawBspEntities(const r_view_t *view) {
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commandBuffer;
+  CommandBuffer *commands = r_device.device->commands;
   if (!commands) {
     return;
   }

@@ -161,8 +161,8 @@ void Ui_Draw(void) {
 
   assert(windowController);
 
-  if (r_device.device->commandBuffer) {
-    $(windowController, render, r_device.device->commandBuffer, r_device.device->framebuffer);
+  if (r_device.device->commands) {
+    $(windowController, render, r_device.device->commands, r_device.device->framebuffer);
   }
 }
 

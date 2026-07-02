@@ -196,7 +196,7 @@ void R_InitDevice(void) {
   release(framebuffer);
 
   // The initial render scale; updated live from r_framebuffer_scale in R_BeginFrame.
-  r_device.device->renderScale = Clampf(r_framebuffer_scale->value, .25f, 2.f);
+  //r_device.device->renderScale = Clampf(r_framebuffer_scale->value, .25f, 2.f);
 }
 
 /**

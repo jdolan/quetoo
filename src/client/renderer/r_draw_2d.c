@@ -538,7 +538,7 @@ void R_Draw2DLines(const int32_t *points, size_t count, const color_t color) {
 static void R_Draw2DList(RenderPass *pass, const r_draw_2d_arrays_list_t *list,
                          const mat4_t projection, int32_t offset) {
 
-  CommandBuffer *commands = r_device.device->commandBuffer;
+  CommandBuffer *commands = r_device.device->commands;
   const Framebuffer *framebuffer = r_device.device->framebuffer;
 
   $(commands, pushVertexUniformData, 0, projection.array, sizeof(projection));
@@ -587,7 +587,7 @@ void R_Draw2D(void) {
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commandBuffer;
+  CommandBuffer *commands = r_device.device->commands;
   if (!commands || !r_draw_2d.pipeline_triangles) {
     goto reset;
   }
