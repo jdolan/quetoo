@@ -37,27 +37,37 @@ shaders_DATA = \
 # invoke glslc or shadercross. Run 'make shaders' after editing a .glsl to
 # regenerate them. Extend these lists as more shaders are ported (issue #864).
 
-GPU_VERT_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs sky_vs sprite_vs
-GPU_FRAG_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs sky_fs sprite_fs
+VERTEX_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs sky_vs sprite_vs
+FRAGMENT_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs sky_fs sprite_fs
+
+# Second, MATERIAL_STAGES variant of the bsp program, used only for material stage
+# draws (bsp_vs.glsl / bsp_fs.glsl compiled with -DMATERIAL_STAGES).
+STAGE_SHADERS = bsp_stage_vs bsp_stage_fs
 
 # Install the compiled blobs alongside the GLSL sources so the renderer's
 # ResourceProvider (Fs_Load) can resolve them at runtime, e.g.
 # loadShader("shaders/depth_pass_vs") -> shaders/depth_pass_vs.metal|.spv.
 shaders_DATA += \
-	$(GPU_VERT_SHADERS:=.spv) $(GPU_VERT_SHADERS:=.metal) \
-	$(GPU_FRAG_SHADERS:=.spv) $(GPU_FRAG_SHADERS:=.metal)
+	$(VERTEX_SHADERS:=.spv) $(VERTEX_SHADERS:=.metal) \
+	$(FRAGMENT_SHADERS:=.spv) $(FRAGMENT_SHADERS:=.metal) \
+	$(STAGE_SHADERS:=.spv) $(STAGE_SHADERS:=.metal)
 
 EXTRA_DIST = \
-	$(GPU_VERT_SHADERS:=.spv) $(GPU_VERT_SHADERS:=.metal) \
-	$(GPU_FRAG_SHADERS:=.spv) $(GPU_FRAG_SHADERS:=.metal)
+	$(VERTEX_SHADERS:=.spv) $(VERTEX_SHADERS:=.metal) \
+	$(FRAGMENT_SHADERS:=.spv) $(FRAGMENT_SHADERS:=.metal) \
+	$(STAGE_SHADERS:=.spv) $(STAGE_SHADERS:=.metal)
 
 .PHONY: shaders
 shaders:
-	for s in $(GPU_VERT_SHADERS); do \
+	for s in $(VERTEX_SHADERS); do \
 		$(GLSLC) -DVERTEX_SHADER -I$(srcdir) -fshader-stage=vertex $(srcdir)/$$s.glsl -o $$s.spv || exit 1; \
 		$(SHADERCROSS) $$s.spv -s SPIRV -d MSL -t vertex --msl-version 2.2.0 -o $$s.metal || exit 1; \
 	done
-	for s in $(GPU_FRAG_SHADERS); do \
+	for s in $(FRAGMENT_SHADERS); do \
 		$(GLSLC) -DFRAGMENT_SHADER -I$(srcdir) -fshader-stage=fragment $(srcdir)/$$s.glsl -o $$s.spv || exit 1; \
 		$(SHADERCROSS) $$s.spv -s SPIRV -d MSL -t fragment --msl-version 2.2.0 -o $$s.metal || exit 1; \
 	done
+	$(GLSLC) -DVERTEX_SHADER -DMATERIAL_STAGES -I$(srcdir) -fshader-stage=vertex $(srcdir)/bsp_vs.glsl -o bsp_stage_vs.spv || exit 1
+	$(SHADERCROSS) bsp_stage_vs.spv -s SPIRV -d MSL -t vertex --msl-version 2.2.0 -o bsp_stage_vs.metal || exit 1
+	$(GLSLC) -DFRAGMENT_SHADER -DMATERIAL_STAGES -I$(srcdir) -fshader-stage=fragment $(srcdir)/bsp_fs.glsl -o bsp_stage_fs.spv || exit 1
+	$(SHADERCROSS) bsp_stage_fs.spv -s SPIRV -d MSL -t fragment --msl-version 2.2.0 -o bsp_stage_fs.metal || exit 1

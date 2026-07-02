@@ -111,6 +111,26 @@ void main(void) {
 
   parallax_occlusion_mapping(vertex, fragment);
 
+#if defined(MATERIAL_STAGES)
+
+  // Material stage pass: sample the stage texture, optionally lit and/or emissive,
+  // blended over the base surface. TODO(#864): STAGE_WARP (texture_warp) deferred.
+  fragment.diffuse_sample = sample_material_stage(fragment.parallax) * vertex.color;
+
+  out_color = fragment.diffuse_sample;
+
+  if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
+    bsp_fragment_lighting(vertex, fragment);
+    out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
+    out_color.rgb += fragment.specular * stage.lighting;
+  }
+
+  if ((stage.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
+    out_color.rgb += fragment.diffuse_sample.rgb * stage.emissive;
+  }
+
+#else
+
   fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
 
   if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
@@ -127,4 +147,6 @@ void main(void) {
 
   out_color.rgb *= (fragment.ambient + fragment.diffuse);
   out_color.rgb += fragment.specular;
+
+#endif
 }

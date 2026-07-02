@@ -365,6 +365,112 @@ void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_materia
   out->_pad = 0.f;
 }
 
+/**
+ * @brief A stable per-(draw|entity, stage) pseudo-random value in [0, 1], used to
+ * de-synchronize pulse and animation timing across surfaces sharing a material.
+ */
+static float R_StageDriftHash(const void *a, const void *b) {
+  uint32_t h = (uint32_t) ((uintptr_t) a >> 4) ^ (uint32_t) ((uintptr_t) b >> 4);
+  h ^= h >> 16;
+  h *= 0x7feb352dU;
+  h ^= h >> 15;
+  h *= 0x846ca68bU;
+  h ^= h >> 16;
+  return h / (float) UINT32_MAX;
+}
+
+/**
+ * @brief Fills `out` with the per-stage parameters for `stage` on `draw` (and
+ * `entity`, or NULL for the world), and resolves the stage's current and next
+ * animation-frame textures. Returns true if the stage has drawable media.
+ * @remarks TODO(#864): R_MEDIA_MATERIAL stage media (material-swap stages) is
+ * deferred; such stages are skipped.
+ */
+bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
+                     const r_bsp_draw_elements_t *draw, const r_stage_t *stage,
+                     r_stage_uniforms_t *out, SDL_GPUTexture **texture, SDL_GPUTexture **texture_next) {
+
+  const cm_stage_t *cm = stage->cm;
+
+  memset(out, 0, sizeof(*out));
+
+  out->flags = cm->flags;
+  out->color = cm->color.vec4;
+  out->st_origin = draw->st_origin;
+  out->stretch = Vec2(cm->stretch.amplitude, cm->stretch.hz);
+  out->scroll = Vec2(cm->scroll.s, cm->scroll.t);
+  out->scale = Vec2(cm->scale.s, cm->scale.t);
+  out->terrain = Vec2(cm->terrain.floor, cm->terrain.ceil);
+  out->warp = Vec2(cm->warp.hz, cm->warp.amplitude);
+  out->pulse = cm->pulse.hz;
+  out->drift = cm->pulse.drift * R_StageDriftHash(entity ? (const void *) entity : (const void *) draw, stage);
+  out->rotate = cm->rotate.hz;
+  out->dirtmap = cm->dirtmap.intensity;
+  out->lighting = cm->lighting.intensity;
+  out->emissive = cm->emissive;
+  out->shell = cm->shell.radius;
+
+  *texture = NULL;
+  *texture_next = NULL;
+
+  if (stage->media == NULL) {
+    return false;
+  }
+
+  switch (stage->media->type) {
+    case R_MEDIA_IMAGE:
+    case R_MEDIA_ATLAS_IMAGE: {
+      const r_image_t *image = (const r_image_t *) stage->media;
+      if (image->texture) {
+        *texture = image->texture->texture;
+        *texture_next = image->texture->texture;
+      }
+    }
+      break;
+
+    case R_MEDIA_ANIMATION: {
+      const r_animation_t *animation = (const r_animation_t *) stage->media;
+      if (animation->num_frames == 0) {
+        return false;
+      }
+
+      int32_t frame;
+      float lerp = 0.f;
+
+      if (cm->animation.fps == 0.f && entity != NULL) {
+        frame = entity->frame;
+        if (cm->flags & STAGE_ANIM_LERP) {
+          lerp = entity->lerp;
+        }
+      } else {
+        const float drift = cm->animation.drift * R_StageDriftHash(entity ? (const void *) entity : (const void *) draw, stage);
+        const float frame_f = (view->ticks / 1000.f + drift) * cm->animation.fps;
+        frame = (int32_t) frame_f;
+        if (cm->flags & STAGE_ANIM_LERP) {
+          lerp = frame_f - floorf(frame_f);
+        }
+      }
+
+      const r_image_t *cur = animation->frames[((frame % animation->num_frames) + animation->num_frames) % animation->num_frames];
+      *texture = cur->texture ? cur->texture->texture : NULL;
+
+      if (cm->flags & STAGE_ANIM_LERP) {
+        const r_image_t *next = animation->frames[(((frame + 1) % animation->num_frames) + animation->num_frames) % animation->num_frames];
+        *texture_next = next->texture ? next->texture->texture : NULL;
+        out->lerp = lerp;
+      } else {
+        *texture_next = *texture;
+      }
+    }
+      break;
+
+    default:
+      return false;
+  }
+
+  return *texture != NULL && *texture_next != NULL;
+}
+
 r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
   char key[MAX_QPATH];
   char basename[MAX_QPATH];

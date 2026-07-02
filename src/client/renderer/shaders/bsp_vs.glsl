@@ -23,6 +23,7 @@
 
 #include "uniforms.glsl"
 #include "common.glsl"
+#include "material.glsl"
 #include "voxel.glsl"
 
 layout (location = 0) in vec3 in_position;
@@ -45,8 +46,8 @@ invariant gl_Position;
 
 /**
  * @brief
- * @remarks TODO(#864): material stages and LOD vertex lighting are deferred; the
- * fragment shader performs full per-fragment lighting for now.
+ * @remarks TODO(#864): LOD vertex lighting is deferred; the fragment shader
+ * performs full per-fragment lighting for now.
  */
 void main(void) {
 
@@ -57,6 +58,10 @@ void main(void) {
   vec4 tangent = vec4(in_tangent, 0.0);
   vec4 bitangent = vec4(in_bitangent, 0.0);
 
+#if defined(MATERIAL_STAGES)
+  stage_transform(position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
+#endif
+
   vertex.model_position = vec3(model * position);
   vertex.model_normal = normalize(vec3(model * normal));
   vertex.position = vec3(view_model * position);
@@ -66,6 +71,10 @@ void main(void) {
   vertex.diffusemap = in_diffusemap;
   vertex.voxel = voxel_uvw(vec3(model * position));
   vertex.color = in_color;
+
+#if defined(MATERIAL_STAGES)
+  stage_vertex(in_position, vertex);
+#endif
 
   gl_Position = projection3D * view_model * position;
 }

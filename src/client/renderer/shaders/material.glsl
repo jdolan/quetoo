@@ -113,28 +113,15 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform 
 
 #if defined(MATERIAL_STAGES)
 /**
- * @brief The stage type.
+ * @brief The per-stage parameters, mirroring the C `r_stage_uniforms_t`.
+ * @remarks Fields are ordered vec4, then vec2, then scalars for tight std140
+ * packing that maps 1:1 to the C struct.
  */
-struct stage_t {
-  /**
-   * @brief The stage flags.
-   */
-  int flags;
-
+layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_STAGE) uniform stage_block {
   /**
    * @brief The stage color.
    */
   vec4 color;
-
-  /**
-   * @brief The stage alpha pulse.
-   */
-  float pulse;
-
-  /**
-   * @brief Per-stage pulse drift offset in seconds.
-   */
-  float drift;
 
   /**
    * @brief The stage texture coordinate origin for rotations and stretches.
@@ -145,11 +132,6 @@ struct stage_t {
    * @brief The stage stretch amplitude and frequency.
    */
   vec2 stretch;
-
-  /**
-   * @brief The stage rotation rate in radians per second.
-   */
-  float rotate;
 
   /**
    * @brief The stage scroll rate.
@@ -167,14 +149,34 @@ struct stage_t {
   vec2 terrain;
 
   /**
-   * @brief The stage dirtmap intensity.
-   */
-  float dirtmap;
-
-  /**
    * @brief The stage warp rate and intensity.
    */
   vec2 warp;
+
+  /**
+   * @brief The stage flags.
+   */
+  int flags;
+
+  /**
+   * @brief The stage alpha pulse.
+   */
+  float pulse;
+
+  /**
+   * @brief Per-stage pulse drift offset in seconds.
+   */
+  float drift;
+
+  /**
+   * @brief The stage rotation rate in radians per second.
+   */
+  float rotate;
+
+  /**
+   * @brief The stage dirtmap intensity.
+   */
+  float dirtmap;
 
   /**
    * @brief The stage lighting intensity.
@@ -195,14 +197,20 @@ struct stage_t {
    * @brief The stage shell radius.
    */
   float shell;
-};
+} stage;
 
-uniform stage_t stage;
+#if defined(FRAGMENT_SHADER)
+/**
+ * @brief The material stage texture, and its next animation frame.
+ */
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_STAGE)      uniform sampler2D texture_stage;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_STAGE_NEXT) uniform sampler2D texture_stage_next;
+#endif
 
 /**
  * @brief
  */
-void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, inout vec3 tangent, inout vec3 bitangent) {
+void stage_transform(inout vec3 position, inout vec3 normal, inout vec3 tangent, inout vec3 bitangent) {
 
   if ((stage.flags & STAGE_SHELL) == STAGE_SHELL) {
 	  position += normal * stage.shell;
@@ -212,7 +220,7 @@ void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, i
 /**
  * @brief
  */
-void stage_vertex(in stage_t stage, in vec3 in_position, inout common_vertex_t vertex) {
+void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
   int envmap = stage.flags & STAGE_ENVMAP;
 
   if (envmap != 0) {

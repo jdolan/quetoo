@@ -46,4 +46,33 @@ typedef struct {
 r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context);
 void R_SaveMaterials_f(void);
 void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_material_uniforms_t *out);
+
+/**
+ * @brief The per-stage parameters, pushed to the stage uniform slot by the
+ * MATERIAL_STAGES bsp variant. Field order mirrors material.glsl's `stage_block`
+ * (std140: vec4, then vec2s, then scalars, padded to a 16-byte multiple).
+ */
+typedef struct {
+  vec4_t color;
+  vec2_t st_origin;
+  vec2_t stretch;
+  vec2_t scroll;
+  vec2_t scale;
+  vec2_t terrain;
+  vec2_t warp;
+  int32_t flags;
+  float pulse;
+  float drift;
+  float rotate;
+  float dirtmap;
+  float lighting;
+  float emissive;
+  float lerp;
+  float shell;
+  float _pad[3];
+} r_stage_uniforms_t;
+
+bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
+                     const r_bsp_draw_elements_t *draw, const r_stage_t *stage,
+                     r_stage_uniforms_t *out, SDL_GPUTexture **texture, SDL_GPUTexture **texture_next);
 #endif

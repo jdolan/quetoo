@@ -77,10 +77,30 @@
 #define SLOT_SAMPLER_SKY                    BINDING_SAMPLER_SKY
 
 /*
- * Storage buffers, contiguous immediately after the lit-geometry samplers [0, 2].
+ * Material stage samplers (lit family, MATERIAL_STAGES variant only): the stage
+ * texture and its animation next-frame, immediately after the base lit samplers.
  */
+#if defined(MATERIAL_STAGES)
+#define BINDING_SAMPLER_STAGE               3
+#define BINDING_SAMPLER_STAGE_NEXT          4
+#endif
+
+// C-side slots are unconditional (the C renderer includes this without MATERIAL_STAGES).
+#define SLOT_SAMPLER_STAGE                  3
+#define SLOT_SAMPLER_STAGE_NEXT             4
+
+/*
+ * Storage buffers, contiguous immediately after the lit-geometry samplers: [0, 2]
+ * for the base lit programs, or [0, 4] for the MATERIAL_STAGES variant (which adds
+ * the two stage samplers). The C-side storage slot (0, 1) is unchanged either way.
+ */
+#if defined(MATERIAL_STAGES)
+#define BINDING_STORAGE_LIGHTS              5
+#define BINDING_STORAGE_VOXEL_LIGHT_INDICES 6
+#else
 #define BINDING_STORAGE_LIGHTS              3
 #define BINDING_STORAGE_VOXEL_LIGHT_INDICES 4
+#endif
 
 #define SLOT_STORAGE_LIGHTS                 0
 #define SLOT_STORAGE_VOXEL_LIGHT_INDICES    1
@@ -96,5 +116,22 @@
 #define SLOT_UNIFORMS_GLOBALS               0
 #define SLOT_UNIFORMS_LOCALS                1
 #define SLOT_UNIFORMS_MATERIAL              BINDING_UNIFORMS_MATERIAL
+
+/*
+ * Per-stage parameters (MATERIAL_STAGES variant only). Kept contiguous within each
+ * stage's uniform set: the vertex stage has no material UBO, so the stage UBO
+ * follows globals(0)+locals(1) at 2; the fragment stage follows the material UBO at 3.
+ */
+#if defined(MATERIAL_STAGES)
+#if defined(VERTEX_SHADER)
+#define BINDING_UNIFORMS_STAGE              2
+#else
+#define BINDING_UNIFORMS_STAGE              3
+#endif
+#endif
+
+// C-side push slots are unconditional (see above).
+#define SLOT_UNIFORMS_STAGE_VERTEX          2
+#define SLOT_UNIFORMS_STAGE_FRAGMENT        3
 
 #endif // _BINDINGS_GLSL_
