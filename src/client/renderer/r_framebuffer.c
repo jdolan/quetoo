@@ -22,19 +22,49 @@
 #include "r_local.h"
 
 /*
- * TODO(#864): the legacy GL framebuffer object is retired. The scene renders
- * into the device present framebuffer (ObjectivelyGPU) directly, and the
- * dedicated HDR/MSAA scene target + post chain are ported in a later step.
- * These are stubs preserving the API used by the client and cgame; the
- * `r_framebuffer_t` returned by R_CreateFramebuffer carries a non-zero `name`
- * sentinel so consumers that assert/guard on it keep working.
+ * TODO(#864): the legacy GL framebuffer object is retired. A framebuffer now
+ * wraps an ObjectivelyGPU Framebuffer (color + shared depth); the depth pre-pass
+ * and main 3D passes render into it for early-Z, and R_DrawPost composites its
+ * color into the present framebuffer. The HDR color + MSAA + post/bloom chain
+ * and the remaining Blit/Resolve/Read helpers are ported in later steps; those
+ * are still stubs.
  */
 
 /**
- * @brief
+ * @brief Creates a scene render target: a swapchain-format color attachment and
+ * a sampleable D32F depth attachment, shared by the depth pre-pass and the main
+ * passes.
  */
 r_framebuffer_t R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachments) {
-  return (r_framebuffer_t) { .name = 1, .width = width, .height = height, .attachments = attachments };
+
+  // Swapchain color format so the 3D pipelines (built against the present
+  // framebuffer's format) are compatible with this target.
+  const SDL_GPUTextureFormat format = $(r_device.device, getSwapchainTextureFormat);
+
+  // Size to the present framebuffer (device pixels) so the scene renders at full
+  // resolution and R_DrawPost composites it 1:1. The requested width/height are
+  // logical points; the present size already accounts for pixel density.
+  // TODO(#864): honor width/height for auxiliary views (player-model) via a
+  // scaled composite pass, and add r_framebuffer_scale here.
+  const SDL_Size size = r_device.device->framebuffer
+      ? r_device.device->framebuffer->size
+      : MakeSize(width, height);
+
+  Framebuffer *framebuffer = $(r_device.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
+    .size = size,
+    .colorFormats = { format },
+    .numColorTargets = 1,
+    .depthFormat = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
+    .sampleCount = SDL_GPU_SAMPLECOUNT_1,
+  });
+
+  return (r_framebuffer_t) {
+    .name = 1,
+    .framebuffer = framebuffer,
+    .width = size.w,
+    .height = size.h,
+    .attachments = attachments,
+  };
 }
 
 /**
@@ -81,6 +111,7 @@ void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
 void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 
   if (framebuffer) {
+    release(framebuffer->framebuffer);
     memset(framebuffer, 0, sizeof(*framebuffer));
   }
 }

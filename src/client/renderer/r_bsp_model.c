@@ -548,33 +548,6 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 }
 
 /**
- * @brief Allocates an occlusion query for each block node and light source in the world model.
- * @remarks Other inline models will instead allocate queries as entities.
- */
-static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
-
-  r_bsp_block_t *block = bsp->inline_models->blocks;
-  for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
-
-    /*
-     * Collectively, block node bounds cover all valid positions in the BSP with no gaps between
-     * them. However, during BSP compilation, when faces are assigned to the block node that best
-     * contains them, they may actually reside partially outside of the block, and therefore expand
-     * the block's visible bounds. For this reason, we use the union of block->node->bounds and
-     * block->visible_bounds for the occlusion query AABB.
-     */
-
-    const box3_t bounds = Box3_Union(block->node->bounds, block->visible_bounds);
-    block->query = R_AllocOcclusionQuery(bounds);
-  }
-
-  r_bsp_light_t *light = bsp->lights;
-  for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
-    light->query = R_AllocOcclusionQuery(light->bounds);
-  }
-}
-
-/**
  * @brief Extra lumps we need to load for the renderer.
  */
 #define R_BSP_LUMPS ( \
@@ -617,7 +590,6 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_SetupBspInlineModels(mod);
   R_LoadBspLights(mod->bsp);
   R_LoadBspVoxels(mod);
-  R_LoadBspOcclusionQueries(mod->bsp);
 
   Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
 
@@ -672,13 +644,6 @@ static void R_FreeBspModel(r_media_t *self) {
     release(block->decals.triangles);
 
     // TODO(#864): release per-block decal Buffer once decals are ported.
-
-    R_FreeOcclusionQuery(block->query);
-  }
-
-  r_bsp_light_t *light = bsp->lights;
-  for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
-    R_FreeOcclusionQuery(light->query);
   }
 
   bsp->voxels.light_indices_buffer = release(bsp->voxels.light_indices_buffer);

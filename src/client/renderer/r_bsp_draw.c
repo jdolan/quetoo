@@ -355,10 +355,9 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view, RenderPass
 /**
  * @brief Renders the opaque world BSP surfaces with their material diffuse texture,
  * clustered per-voxel static lighting, and per-block dynamic lighting.
- * @remarks Iterates the worldspawn inline model's blocks (the unit of culling and,
- * later, the Hi-Z occlusion pyramid); per block, the active dynamic lights are
- * culled to the block bounds. TODO(#864): inline BSP model entities, blended
- * surfaces, sky, material stages, and per-block occlusion queries.
+ * @remarks Iterates the worldspawn inline model's blocks (the unit of light
+ * culling); per block, the active dynamic lights are culled to the block bounds.
+ * TODO(#864): inline BSP model entities, blended surfaces, material stages.
  */
 void R_DrawBspEntities(const r_view_t *view) {
 
@@ -371,13 +370,21 @@ void R_DrawBspEntities(const r_view_t *view) {
     return;
   }
 
-  const r_bsp_model_t *bsp = r_models.world->bsp;
-  Framebuffer *framebuffer = r_device.device->framebuffer;
+  if (!view->framebuffer || !view->framebuffer->framebuffer) {
+    return;
+  }
 
+  const r_bsp_model_t *bsp = r_models.world->bsp;
+  Framebuffer *framebuffer = view->framebuffer->framebuffer;
+
+  // First scene pass: clear the color attachment. When the depth pre-pass ran,
+  // LOAD its depth so occluded fragments are rejected before shading (early-Z);
+  // otherwise clear depth and write it here. This makes r_depth_pass the A/B.
+  const SDL_FColor clear_color = { 0.f, 0.f, 0.f, 1.f };
   const SDL_GPUColorTargetInfo color =
-      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
+      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color);
   const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, 1.f);
+      $(framebuffer, depthTargetInfo, r_depth_pass->integer ? SDL_GPU_LOADOP_LOAD : SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, 1.f);
 
   RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
 
@@ -421,15 +428,12 @@ void R_DrawBspEntities(const r_view_t *view) {
   };
   $(pass, bindFragmentStorageBuffers, SLOT_STORAGE_LIGHTS, storage, 2);
 
-  // Iterate the worldspawn inline model's blocks: the unit of light culling (and,
-  // later, of the Hi-Z occlusion pyramid). Per block, cull dynamic lights to the
-  // block bounds and push the resulting bitmask, then draw the block's elements.
+  // Iterate the worldspawn inline model's blocks: the unit of light culling. Per
+  // block, cull dynamic lights to its bounds, push the bitmask, and draw its
+  // elements. TODO(#864): per-block occlusion cull once revisited (GPU-driven).
   const r_bsp_inline_model_t *world = bsp->inline_models;
   const r_bsp_block_t *block = world->blocks;
   for (int32_t i = 0; i < world->num_blocks; i++, block++) {
-
-    // TODO(#864): per-block occlusion cull here (block->query) once the Hi-Z
-    // depth-pyramid compute pass lands; blocks are its building blocks.
 
     uint32_t active_lights[4];
     R_ActiveLights(view, block->node->visible_bounds, active_lights);

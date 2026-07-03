@@ -53,7 +53,7 @@ bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
     return true;
   }
 
-  if (R_CulludeBox(view, e->abs_model_bounds)) {
+  if (R_CullBox(view, e->abs_model_bounds)) {
     return true;
   }
 
@@ -139,7 +139,7 @@ static void R_DrawEntitiesBounds(const r_view_t *view) {
       continue;
     }
 
-    if (R_CulludeBox(view, e->abs_model_bounds)) {
+    if (R_CullBox(view, e->abs_model_bounds)) {
       continue;
     }
 

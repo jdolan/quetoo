@@ -184,7 +184,6 @@ static void Cg_AddBspLights(void) {
         .radius = l->radius,
         .intensity = intensity,
         .bounds = l->bounds,
-        .query = l->query,
         .bsp_light = l,
         .shadow_cached = &l->shadow_cached,
       });

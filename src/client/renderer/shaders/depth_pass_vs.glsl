@@ -35,7 +35,8 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_bloc
 invariant gl_Position;
 
 /**
- * @brief
+ * @brief Position-only depth pre-pass: writes only the depth attachment, which
+ * the main passes reuse for early-Z.
  */
 void main(void) {
 

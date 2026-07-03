@@ -28,7 +28,6 @@ r_stats_t r_stats;
 cvar_t *r_alpha_test;
 cvar_t *r_cull;
 cvar_t *r_depth_pass;
-cvar_t *r_draw_occlusion_queries;
 cvar_t *r_draw_bsp_blocks;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_bsp_voxels;
@@ -37,7 +36,6 @@ cvar_t *r_draw_light_bounds;
 cvar_t *r_draw_material_stages;
 cvar_t *r_draw_wireframe;
 cvar_t *r_get_error;
-cvar_t *r_occlude;
 
 cvar_t *r_ambient;
 cvar_t *r_ambient_occlusion;
@@ -203,7 +201,14 @@ void R_InitView(r_view_t *view) {
  */
 void R_DrawViewDepth(r_view_t *view) {
 
-  // TODO(#864): 3D depth pre-pass + occlusion queries not yet ported to SDL_gpu.
+  R_UpdateFrustum(view);
+
+  R_UpdateUniforms(view);
+
+  // The opaque BSP depth pre-pass. TODO(#864): move this into a dedicated scene
+  // framebuffer shared with the main pass for early-Z, and reuse the linear-depth
+  // target for soft particles.
+  R_DrawDepthPass(view);
 }
 
 /**
@@ -218,10 +223,8 @@ void R_DrawMainView(r_view_t *view) {
   // shadows, materials/lighting, and the dedicated scene framebuffer + post
   // pipeline are ported in later Phase 5 steps.
 
-  R_UpdateFrustum(view);
-
-  R_UpdateUniforms(view);
-
+  // R_UpdateFrustum and R_UpdateUniforms ran in R_DrawViewDepth, before the
+  // depth pre-pass; the frustum and globals are already current here.
   R_UpdateLights(view);
 
   R_UpdateSprites(view);
@@ -267,7 +270,6 @@ static void R_InitLocal(void) {
   // development tools
   r_alpha_test = Cvar_Add("r_alpha_test", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool).");
   r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool).");
-  r_draw_occlusion_queries = Cvar_Add("r_draw_occlusion_queries", "0", CVAR_DEVELOPER , "Controls the rendering of occlusion queries (developer tool).");
   r_draw_bsp_blocks = Cvar_Add("r_draw_bsp_blocks", "0", CVAR_DEVELOPER, "Controls the rendering of BSP block boundaries (developer tool).");
   r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool).");
   r_draw_bsp_voxels = Cvar_Add("r_draw_bsp_voxels", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool).");
@@ -277,7 +279,6 @@ static void R_InitLocal(void) {
   r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool).");
   r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
   r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL information to the console. 2 will also cause a breakpoint for errors. (developer tool).");
-  r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
   r_draw_stats = Cvar_Add("r_draw_stats", "0", CVAR_DEVELOPER, "Draw renderer performance statistics (developer tool).");
 
   // settings and preferences
@@ -361,7 +362,6 @@ void R_Init(void) {
   // console, media/images and shaders are ported back in Phase 4/5.
   //
   R_InitConfig();
-  // R_InitOcclusionQueries();
   R_InitMedia();
   R_InitLights();
   R_InitShadows();
@@ -369,7 +369,7 @@ void R_Init(void) {
   R_InitModels();
   R_InitDraw2D();
   // R_InitImages();
-  // R_InitDepthPass();
+  R_InitDepthPass();
   // R_InitDraw3D();
   R_InitSprites();
   // R_InitDecals();
@@ -398,8 +398,7 @@ void R_Shutdown(void) {
   // R_ShutdownSprites();
   // R_ShutdownSky();
   // R_ShutdownPost();
-  // R_ShutdownDepthPass();
-  // R_ShutdownOcclusionQueries();
+  R_ShutdownDepthPass();
 
   R_ShutdownDraw2D();
 

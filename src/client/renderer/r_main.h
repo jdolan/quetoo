@@ -270,7 +270,6 @@ extern r_uniforms_t r_uniforms;
 extern cvar_t *r_alpha_test;
 extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
-extern cvar_t *r_draw_occlusion_queries;
 extern cvar_t *r_draw_bsp_blocks;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_bsp_voxels;
@@ -279,7 +278,6 @@ extern cvar_t *r_draw_light_bounds;
 extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_get_error;
-extern cvar_t *r_occlude;
 
 void R_GetError_(const char *function, const char *msg);
 

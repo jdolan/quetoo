@@ -47,7 +47,7 @@
 #include "r_mesh_model_obj.h"
 #include "r_mesh.h"
 #include "r_model.h"
-#include "r_occlude.h"
+
 #include "r_post.h"
 #include "r_shadow.h"
 #include "r_sky.h"

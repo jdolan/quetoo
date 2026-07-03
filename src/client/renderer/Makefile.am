@@ -27,7 +27,6 @@ noinst_HEADERS = \
 	r_mesh_model_obj.h \
 	r_mesh.h \
 	r_model.h \
-	r_occlude.h \
 	r_post.h \
 	r_shadow.h \
 	r_sky.h \
@@ -62,7 +61,6 @@ librenderer_la_SOURCES = \
 	r_mesh_model_obj.c \
 	r_mesh.c \
 	r_model.c \
-	r_occlude.c \
 	r_post.c \
 	r_shadow.c \
 	r_sky.c \

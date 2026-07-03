@@ -118,7 +118,7 @@ void R_DrawShadows(const r_view_t *view) {
         continue;
       }
 
-      if (l->occluded || (l->flags & R_LIGHT_NO_SHADOW)) {
+      if (l->flags & R_LIGHT_NO_SHADOW) {
         continue;
       }
 

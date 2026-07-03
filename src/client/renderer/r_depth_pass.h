@@ -26,24 +26,16 @@
 #if defined(__R_LOCAL_H__)
 
 /**
- * @brief The depth program.
+ * @brief The depth pre-pass program.
  */
 typedef struct {
 
   /**
-   * @brief The program object name.
+   * @brief The position-only, depth-only pre-pass pipeline. It renders into the
+   * view framebuffer's shared depth attachment (which the main passes reuse for
+   * early-Z), so it owns no framebuffer of its own.
    */
-  uint32_t name;
-
-  /**
-   * @brief The uniforms UBO binding.
-   */
-  uint32_t uniforms_block;
-
-  /**
-   * @brief The model matrix uniform location.
-   */
-  int32_t model;
+  GraphicsPipeline *pipeline;
 } r_depth_pass_program_t;
 
 extern r_depth_pass_program_t r_depth_pass_program;

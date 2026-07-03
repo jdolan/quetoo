@@ -304,37 +304,6 @@ typedef struct r_decal_s {
 #define MAX_DECALS 0x800
 
 /**
- * @brief OpenGL occlusion queries.
- */
-typedef struct r_occlusion_query_s {
-
-  /**
-   * @brief The query name.
-   */
-  uint32_t name;
-
-  /**
-   * @brief The query bounds.
-   */
-  box3_t bounds;
-
-  /**
-   * @brief The base vertex in the shared vertex buffer.
-   */
-  int32_t base_vertex;
-
-  /**
-   * @brief Non-zero if the query is available.
-   */
-  int32_t available;
-
-  /**
-   * @brief Non-zero of the query produced visible fragments.
-   */
-  int32_t result;
-} r_occlusion_query_t;
-
-/**
  * @brief BSP plane structure.
  */
 typedef struct {
@@ -677,11 +646,6 @@ typedef struct r_bsp_block_s {
   int32_t surface;
 
   /**
-   * @brief The occlusion query for this block.
-   */
-  r_occlusion_query_t *query;
-
-  /**
    * @brief The decals for this block.
    */
   r_bsp_block_decals_t decals;
@@ -791,11 +755,6 @@ typedef struct {
    * @brief The light bounds (sphere).
    */
   box3_t bounds;
-
-  /**
-   * @brief The light occlusion query.
-   */
-  r_occlusion_query_t *query;
 
   /**
    * @brief An offset pointer (in bytes) into the BSP elements array for shadow geometry.
@@ -1771,11 +1730,6 @@ typedef struct r_entity_s {
   mat4_t inverse_matrix;
 
   /**
-   * @brief True if this entity is occluded, false otherwise.
-   */
-  bool occluded;
-
-  /**
    * @brief The model, if any.
    */
   const r_model_t *model;
@@ -1869,16 +1823,6 @@ typedef struct {
   box3_t bounds;
 
   /**
-   * @brief The occlusion query, for lights that persist multiple frames.
-   */
-  r_occlusion_query_t *query;
-
-  /**
-   * @brief True if the light is occluded for the current frame.
-   */
-  bool occluded;
-
-  /**
    * @brief The backing BSP light, for static light sources.
    */
   const r_bsp_light_t *bsp_light;
@@ -1914,6 +1858,15 @@ typedef struct r_framebuffer_s {
    * @brief The framebuffer name.
    */
   uint32_t name;
+
+  /**
+   * @brief The backing ObjectivelyGPU render target: an HDR-or-swapchain color
+   * attachment plus a (sampleable) depth attachment. The depth pre-pass and the
+   * main 3D passes render into this shared target for early-Z; R_DrawPost
+   * composites its color into the present framebuffer. TODO(#864): slim the dead
+   * GL fields below once all framebuffer paths are ported.
+   */
+  Framebuffer *framebuffer;
 
   /**
    * @brief The attachments enabled for this framebuffer.

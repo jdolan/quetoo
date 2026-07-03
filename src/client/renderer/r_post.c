@@ -27,9 +27,42 @@
  */
 
 /**
- * @brief
+ * @brief Composites the rendered scene into the present framebuffer.
+ * @details The 3D passes render into the view's dedicated scene framebuffer; this
+ * copies its color into the present framebuffer, over which the UI is then drawn.
+ * TODO(#864): replace the 1:1 copy with a scaled/tonemapped fullscreen pass for
+ * r_framebuffer_scale and HDR bloom/tonemap.
  */
 void R_DrawPost(const r_view_t *view) {
+
+  if (!r_models.world) {
+    return; // no 3D scene this frame; the present clear shows through for the UI
+  }
+
+  if (!view->framebuffer || !view->framebuffer->framebuffer) {
+    return;
+  }
+
+  CommandBuffer *commands = r_device.device->commands;
+  if (!commands) {
+    return;
+  }
+
+  Framebuffer *scene = view->framebuffer->framebuffer;
+  Framebuffer *present = r_device.device->framebuffer;
+
+  // Sizes should match (the scene FB is created at the present size); guard against
+  // a transient mismatch during a resize rather than copying out of bounds.
+  if (scene->size.w != present->size.w || scene->size.h != present->size.h) {
+    return;
+  }
+
+  CopyPass *copy = $(commands, beginCopyPass);
+  $(copy, copyTextureToTexture,
+    &(SDL_GPUTextureLocation) { .texture = scene->colorTextures[0]->texture },
+    &(SDL_GPUTextureLocation) { .texture = present->colorTextures[0]->texture },
+    (Uint32) present->size.w, (Uint32) present->size.h, 1, false);
+  copy = release(copy);
 }
 
 /**

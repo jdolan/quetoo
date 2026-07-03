@@ -21,12 +21,10 @@
 
 #version 450
 
-layout (location = 0) out vec4 out_color;
-
 /**
- * @brief
+ * @brief Depth-only pre-pass: no color output. Depth is written by the
+ * rasterizer into the framebuffer's depth attachment for early-Z reuse.
  */
 void main(void) {
 
-  out_color = vec4(1, 0, 0, 1);
 }
