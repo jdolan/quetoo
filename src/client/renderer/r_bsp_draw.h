@@ -24,7 +24,7 @@
 #include "r_types.h"
 
 #if defined(__R_LOCAL_H__)
-void R_InitBspProgram(void);
-void R_ShutdownBspProgram(void);
+void R_InitBspPipeline(void);
+void R_ShutdownBspPipeline(void);
 void R_DrawBspEntities(const r_view_t *view);
 #endif

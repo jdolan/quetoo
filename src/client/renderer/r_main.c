@@ -355,7 +355,7 @@ void R_Init(void) {
   R_InitMedia();
   R_InitLights();
   R_InitShadows();
-  R_InitBspProgram();
+  R_InitBspPipeline();
   R_InitModels();
   R_InitDraw2D();
   // R_InitImages();
@@ -400,7 +400,7 @@ void R_Shutdown(void) {
 
   R_ShutdownSprites();
 
-  R_ShutdownBspProgram();
+  R_ShutdownBspPipeline();
 
   R_ShutdownLights();
 

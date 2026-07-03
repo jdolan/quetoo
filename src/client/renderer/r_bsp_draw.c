@@ -27,39 +27,51 @@
  * @remarks TODO(#864): grow bsp_vs/bsp_fs toward the full material/stage/shadow
  * program, and draw inline BSP model entities (not just the world model).
  */
-static GraphicsPipeline *r_bsp_pipeline;
-
-/**
- * @brief The material sampler (trilinear, repeat).
- */
-static Sampler *r_bsp_sampler;
-
-/**
- * @brief The voxel light-data sampler (nearest, clamp) for integer texelFetch.
- */
-static Sampler *r_voxel_sampler;
-
-/**
- * @brief The material stage sampler (linear, repeat) for stage textures.
- */
-static Sampler *r_stage_sampler;
-
-/**
- * @brief Cache of MATERIAL_STAGES bsp pipelines, one per unique (src, dest) blend
- * function. SDL_gpu bakes blend state into the pipeline, so stage blends can't be
- * set dynamically; they're realized lazily here (only a handful of combos occur).
- */
 #define MAX_STAGE_PIPELINES 16
+
+/**
+ * @brief The BSP program: its graphics pipeline, samplers, and the lazily-built
+ * cache of material-stage blend pipelines.
+ */
 static struct {
-  cm_blend_t src, dest;
+
+  /**
+   * @brief The BSP graphics pipeline.
+   */
   GraphicsPipeline *pipeline;
-} r_stage_pipelines[MAX_STAGE_PIPELINES];
-static int32_t r_num_stage_pipelines;
+
+  /**
+   * @brief The material sampler (trilinear, repeat).
+   */
+  Sampler *diffusemap_sampler;
+
+  /**
+   * @brief The voxel light-data sampler (nearest, clamp) for integer texelFetch.
+   */
+  Sampler *voxel_data_sampler;
+
+  /**
+   * @brief The material stage sampler (linear, repeat) for stage textures.
+   */
+  Sampler *stage_sampler;
+
+  /**
+   * @brief Cache of MATERIAL_STAGES pipelines, one per unique (src, dest) blend
+   * function. SDL_gpu bakes blend state into the pipeline, so stage blends can't
+   * be set dynamically; they're realized lazily here (only a handful of combos occur).
+   */
+  struct {
+    cm_blend_t src, dest;
+    GraphicsPipeline *pipeline;
+  } stages[MAX_STAGE_PIPELINES];
+
+  int32_t num_stages;
+} r_bsp_pipeline;
 
 /**
  * @brief Builds the BSP pipeline from the bsp_vs/bsp_fs shaders.
  */
-void R_InitBspProgram(void) {
+void R_InitBspPipeline(void) {
 
   Shader *vertexShader = $(r_device.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
@@ -140,12 +152,12 @@ void R_InitBspProgram(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_bsp_pipeline = $(r_device.device, createGraphicsPipeline, &info);
+  r_bsp_pipeline.pipeline = $(r_device.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  r_bsp_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_bsp_pipeline.diffusemap_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
     .mag_filter = SDL_GPU_FILTER_LINEAR,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
@@ -155,7 +167,7 @@ void R_InitBspProgram(void) {
   });
 
   // Nearest / clamp: the light-data texture is fetched with integer coords.
-  r_voxel_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_bsp_pipeline.voxel_data_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_NEAREST,
     .mag_filter = SDL_GPU_FILTER_NEAREST,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
@@ -164,7 +176,7 @@ void R_InitBspProgram(void) {
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
   });
 
-  r_stage_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_bsp_pipeline.stage_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
     .mag_filter = SDL_GPU_FILTER_LINEAR,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
@@ -177,16 +189,16 @@ void R_InitBspProgram(void) {
 /**
  * @brief Releases the BSP pipeline and samplers.
  */
-void R_ShutdownBspProgram(void) {
-  r_bsp_pipeline = release(r_bsp_pipeline);
-  r_bsp_sampler = release(r_bsp_sampler);
-  r_voxel_sampler = release(r_voxel_sampler);
-  r_stage_sampler = release(r_stage_sampler);
+void R_ShutdownBspPipeline(void) {
+  r_bsp_pipeline.pipeline = release(r_bsp_pipeline.pipeline);
+  r_bsp_pipeline.diffusemap_sampler = release(r_bsp_pipeline.diffusemap_sampler);
+  r_bsp_pipeline.voxel_data_sampler = release(r_bsp_pipeline.voxel_data_sampler);
+  r_bsp_pipeline.stage_sampler = release(r_bsp_pipeline.stage_sampler);
 
-  for (int32_t i = 0; i < r_num_stage_pipelines; i++) {
-    r_stage_pipelines[i].pipeline = release(r_stage_pipelines[i].pipeline);
+  for (int32_t i = 0; i < r_bsp_pipeline.num_stages; i++) {
+    r_bsp_pipeline.stages[i].pipeline = release(r_bsp_pipeline.stages[i].pipeline);
   }
-  r_num_stage_pipelines = 0;
+  r_bsp_pipeline.num_stages = 0;
 }
 
 /**
@@ -211,13 +223,13 @@ static SDL_GPUBlendFactor R_BlendFactor(cm_blend_t blend) {
  */
 static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
 
-  for (int32_t i = 0; i < r_num_stage_pipelines; i++) {
-    if (r_stage_pipelines[i].src == src && r_stage_pipelines[i].dest == dest) {
-      return r_stage_pipelines[i].pipeline;
+  for (int32_t i = 0; i < r_bsp_pipeline.num_stages; i++) {
+    if (r_bsp_pipeline.stages[i].src == src && r_bsp_pipeline.stages[i].dest == dest) {
+      return r_bsp_pipeline.stages[i].pipeline;
     }
   }
 
-  if (r_num_stage_pipelines == MAX_STAGE_PIPELINES) {
+  if (r_bsp_pipeline.num_stages == MAX_STAGE_PIPELINES) {
     return NULL;
   }
 
@@ -288,10 +300,10 @@ static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
   release(vertexShader);
   release(fragmentShader);
 
-  r_stage_pipelines[r_num_stage_pipelines] = (typeof(r_stage_pipelines[0])) {
+  r_bsp_pipeline.stages[r_bsp_pipeline.num_stages] = (typeof(r_bsp_pipeline.stages[0])) {
     .src = src, .dest = dest, .pipeline = pipeline,
   };
-  return r_stage_pipelines[r_num_stage_pipelines++].pipeline;
+  return r_bsp_pipeline.stages[r_bsp_pipeline.num_stages++].pipeline;
 }
 
 /**
@@ -315,8 +327,8 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, RenderPass 
   $(pass, bindPipeline, pipeline);
 
   $(pass, bindFragmentSamplers, SLOT_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = texture, .sampler = r_stage_sampler->sampler },
-    { .texture = texture_next, .sampler = r_stage_sampler->sampler },
+    { .texture = texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
+    { .texture = texture_next, .sampler = r_bsp_pipeline.stage_sampler->sampler },
   }, 2);
 
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_STAGE_VERTEX, &uniforms, sizeof(uniforms));
@@ -361,7 +373,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view, RenderPass
  */
 void R_DrawBspEntities(const r_view_t *view) {
 
-  if (!r_models.world || !r_bsp_pipeline) {
+  if (!r_models.world || !r_bsp_pipeline.pipeline) {
     return;
   }
 
@@ -402,14 +414,14 @@ void R_DrawBspEntities(const r_view_t *view) {
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
   $(commands, pushFragmentUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
-  $(pass, bindPipeline, r_bsp_pipeline);
+  $(pass, bindPipeline, r_bsp_pipeline.pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   // The per-voxel light-data 3D texture (first_index, count).
   $(pass, bindFragmentSamplers, SLOT_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
     .texture = bsp->voxels.light_data->texture->texture,
-    .sampler = r_voxel_sampler->sampler,
+    .sampler = r_bsp_pipeline.voxel_data_sampler->sampler,
   }, 1);
 
   // The point-light shadow atlas (comparison sampler).
@@ -453,11 +465,11 @@ void R_DrawBspEntities(const r_view_t *view) {
 
       // Re-bind the base pipeline: a preceding surface's material stages may have
       // left a stage (blend) pipeline bound.
-      $(pass, bindPipeline, r_bsp_pipeline);
+      $(pass, bindPipeline, r_bsp_pipeline.pipeline);
 
       $(pass, bindFragmentSamplers, SLOT_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
         .texture = draw->material->texture->texture->texture,
-        .sampler = r_bsp_sampler->sampler,
+        .sampler = r_bsp_pipeline.diffusemap_sampler->sampler,
       }, 1);
 
       r_material_uniforms_t material;

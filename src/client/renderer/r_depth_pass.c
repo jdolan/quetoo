@@ -100,7 +100,7 @@ void R_InitDepthPass(void) {
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
-  // Bring-up: draw all faces regardless of winding (matches R_InitBspProgram).
+  // Bring-up: draw all faces regardless of winding (matches R_InitBspPipeline).
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
