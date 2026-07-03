@@ -19,12 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\client\ui\QuetooRenderer.c" />
     <ClCompile Include="..\..\src\client\ui\ui_data.c" />
     <ClCompile Include="..\..\src\client\ui\ui_main.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\client\ui\QuetooRenderer.h" />
     <ClInclude Include="..\..\src\client\ui\ui.h" />
     <ClInclude Include="..\..\src\client\ui\ui_data.h" />
     <ClInclude Include="..\..\src\client\ui\ui_local.h" />
