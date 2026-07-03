@@ -218,6 +218,8 @@ void R_DrawMainView(r_view_t *view) {
 
   R_UpdateSprites(view);
 
+  R_UpdateDecals(view);
+
   R_DrawShadows(view);
 
   R_DrawBspEntities(view);
@@ -227,6 +229,9 @@ void R_DrawMainView(r_view_t *view) {
   }
 
   R_DrawMeshEntities(view);
+
+  // Decals project onto the opaque surfaces beneath them.
+  R_DrawDecals(view);
 
   // Translucent world surfaces composite over all opaque geometry.
   R_DrawBlendBspEntities(view);
@@ -363,7 +368,7 @@ void R_Init(void) {
   R_InitDepthPass();
   // R_InitDraw3D();
   R_InitSprites();
-  // R_InitDecals();
+  R_InitDecals();
   R_InitSky();
   // R_InitPost();
 
@@ -400,6 +405,8 @@ void R_Shutdown(void) {
   R_ShutdownSky();
 
   R_ShutdownSprites();
+
+  R_ShutdownDecals();
 
   R_ShutdownBspPipeline();
 

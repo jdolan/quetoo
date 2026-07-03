@@ -22,22 +22,21 @@
 #include "r_local.h"
 
 /**
- * @brief The decal shader program.
+ * @brief The decal pipeline (decal_vs/decal_fs) and its samplers.
  */
 static struct {
-  uint32_t name;
-  uint32_t uniforms_block;
-  uint32_t lights_block;
+  GraphicsPipeline *pipeline;
 
-  int32_t texture_diffusemap;
-  int32_t texture_voxel_caustics;
-  int32_t texture_voxel_occlusion;
-  int32_t texture_voxel_light_data;
-  int32_t texture_voxel_light_indices;
-  int32_t texture_sky;
+  /**
+   * @brief The decal atlas sampler (linear, clamp).
+   */
+  Sampler *diffusemap_sampler;
 
-  int32_t model;
-} r_decal_program;
+  /**
+   * @brief The voxel light-data sampler (nearest, clamp) for integer texelFetch.
+   */
+  Sampler *voxel_data_sampler;
+} r_decal_pipeline;
 
 /**
  * @brief Adds a decal to the view for rendering in the current frame.
@@ -373,26 +372,239 @@ void R_UpdateDecals(const r_view_t *view) {
   }
 }
 
-/*
- * TODO(#864): decal rendering (decal_vs/decal_fs) is not yet ported to SDL_gpu.
- * These are stubs preserving the API; R_AddDecal / R_UpdateDecals stay live.
+/**
+ * @brief Uploads any dirty per-block decal geometry, growing buffers on demand.
  */
+static void R_UploadDecals(const r_view_t *view) {
+
+  CommandBuffer *commands = r_context.device->commands;
+  CopyPass *copyPass = NULL;
+
+  const r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+
+    if (!IS_BSP_INLINE_MODEL(e->model)) {
+      continue;
+    }
+
+    const r_bsp_inline_model_t *in = e->model->bsp_inline;
+    r_bsp_block_t *block = in->blocks;
+    for (int32_t j = 0; j < in->num_blocks; j++, block++) {
+
+      r_bsp_block_decals_t *decals = &block->decals;
+
+      const int32_t num_vertexes = (int32_t) decals->triangles->count * 3;
+      if (num_vertexes == 0 || !decals->dirty) {
+        continue;
+      }
+
+      if (num_vertexes > decals->vertex_buffer_capacity) {
+        decals->vertex_buffer = release(decals->vertex_buffer);
+        decals->vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+          .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+          .size = num_vertexes * sizeof(r_decal_vertex_t),
+        });
+        decals->vertex_buffer_capacity = num_vertexes;
+      }
+
+      if (copyPass == NULL) {
+        copyPass = $(commands, beginCopyPass);
+      }
+
+      const void *data = VectorElement(decals->triangles, r_decal_triangle_t, 0);
+      $(copyPass, uploadData, decals->vertex_buffer->buffer, data,
+        num_vertexes * sizeof(r_decal_vertex_t), 0, true);
+
+      decals->dirty = false;
+    }
+  }
+
+  if (copyPass) {
+    release(copyPass);
+  }
+}
 
 /**
- * @brief
+ * @brief Renders decals projected onto BSP surfaces, alpha-blended and lit by the
+ * clustered voxel lights, over the opaque scene (depth-tested, no depth write).
  */
 void R_DrawDecals(const r_view_t *view) {
+
+  if (!r_decal_pipeline.pipeline || !r_models.world) {
+    return;
+  }
+
+  CommandBuffer *commands = r_context.device->commands;
+  if (!commands) {
+    return;
+  }
+
+  if (!view->framebuffer) {
+    return;
+  }
+
+  R_UploadDecals(view);
+
+  const r_bsp_model_t *bsp = r_models.world->bsp;
+  Framebuffer *framebuffer = view->framebuffer;
+
+  const SDL_GPUColorTargetInfo color =
+      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
+  const SDL_GPUDepthStencilTargetInfo depth =
+      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
+
+  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
+
+  $(pass, setViewport, &(SDL_GPUViewport) {
+    .x = 0.f, .y = 0.f,
+    .w = (float) framebuffer->size.w, .h = (float) framebuffer->size.h,
+    .min_depth = 0.f, .max_depth = 1.f,
+  });
+
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushFragmentUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+
+  $(pass, bindPipeline, r_decal_pipeline.pipeline);
+
+  // Voxel light data + the shared lights / voxel-index storage (decal family:
+  // samplers 0=atlas, 1=voxel data; storage 2=lights, 3=voxel indices).
+  $(pass, bindFragmentSamplers, 1, &(SDL_GPUTextureSamplerBinding) {
+    .texture = bsp->voxels.light_data->texture->texture,
+    .sampler = r_decal_pipeline.voxel_data_sampler->sampler,
+  }, 1);
+
+  SDL_GPUBuffer *storage[] = {
+    r_lights.buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
+                                     : r_lights.buffer->buffer,
+  };
+  $(pass, bindFragmentStorageBuffers, 0, storage, 2);
+
+  const r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+
+    if (!IS_BSP_INLINE_MODEL(e->model)) {
+      continue;
+    }
+
+    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
+
+    const r_bsp_inline_model_t *in = e->model->bsp_inline;
+    const r_bsp_block_t *block = in->blocks;
+    for (int32_t j = 0; j < in->num_blocks; j++, block++) {
+
+      const r_bsp_block_decals_t *decals = &block->decals;
+
+      const int32_t num_vertexes = (int32_t) decals->triangles->count * 3;
+      if (num_vertexes == 0 || !decals->vertex_buffer || !decals->image || !decals->image->texture) {
+        continue;
+      }
+
+      $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
+        .texture = decals->image->texture->texture,
+        .sampler = r_decal_pipeline.diffusemap_sampler->sampler,
+      }, 1);
+
+      $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = decals->vertex_buffer->buffer }, 1);
+
+      $(pass, drawPrimitives, num_vertexes, 1, 0, 0);
+    }
+  }
+
+  pass = release(pass);
 }
 
 /**
- * @brief
+ * @brief Builds the decal pipeline (decal_vs/decal_fs) and its samplers.
  */
 void R_InitDecals(void) {
+
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/decal_vs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    .num_uniform_buffers = 2, // globals (0) + locals/model (1)
+  });
+
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/decal_fs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+    .num_samplers = 2,        // texture_diffusemap (atlas) + texture_voxel_light_data
+    .num_storage_buffers = 2, // lights_block + voxel_light_indices_block
+    .num_uniform_buffers = 1, // globals (0)
+  });
+
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
+
+  SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
+  info.vertex_shader = vertexShader->shader;
+  info.fragment_shader = fragmentShader->shader;
+
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+
+  // Decals are coplanar with their surface; test against the opaque depth but do
+  // not write it, and bias slightly toward the camera so they always win LEQUAL.
+  info.depth_stencil_state.enable_depth_write = false;
+  info.rasterizer_state.enable_depth_bias = true;
+  info.rasterizer_state.depth_bias_constant_factor = -1.f;
+  info.rasterizer_state.depth_bias_slope_factor = -1.f;
+
+  info.vertex_input_state = (SDL_GPUVertexInputState) {
+    .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
+      .slot = 0,
+      .pitch = sizeof(r_decal_vertex_t),
+      .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+    },
+    .num_vertex_buffers = 1,
+    .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+      { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_decal_vertex_t, position) },
+      { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_decal_vertex_t, normal) },
+      { .location = 2, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(r_decal_vertex_t, texcoord) },
+      { .location = 3, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM, .offset = offsetof(r_decal_vertex_t, color) },
+      { .location = 4, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_UINT, .offset = offsetof(r_decal_vertex_t, time) },
+      { .location = 5, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_UINT, .offset = offsetof(r_decal_vertex_t, lifetime) },
+    },
+    .num_vertex_attributes = 6,
+  };
+
+  info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
+    .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
+      .format = framebuffer->colorFormats[0],
+      .blend_state = GPU_BlendStateAlpha,
+    },
+    .num_color_targets = 1,
+    .depth_stencil_format = framebuffer->depthFormat,
+    .has_depth_stencil_target = true,
+  };
+
+  r_decal_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
+
+  release(vertexShader);
+  release(fragmentShader);
+
+  r_decal_pipeline.diffusemap_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+    .min_filter = SDL_GPU_FILTER_LINEAR,
+    .mag_filter = SDL_GPU_FILTER_LINEAR,
+    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
+    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+  });
+
+  r_decal_pipeline.voxel_data_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+    .min_filter = SDL_GPU_FILTER_NEAREST,
+    .mag_filter = SDL_GPU_FILTER_NEAREST,
+    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
+    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+  });
 }
 
 /**
- * @brief
+ * @brief Releases the decal pipeline and samplers.
  */
 void R_ShutdownDecals(void) {
+
+  r_decal_pipeline.pipeline = release(r_decal_pipeline.pipeline);
+  r_decal_pipeline.diffusemap_sampler = release(r_decal_pipeline.diffusemap_sampler);
+  r_decal_pipeline.voxel_data_sampler = release(r_decal_pipeline.voxel_data_sampler);
 }
 

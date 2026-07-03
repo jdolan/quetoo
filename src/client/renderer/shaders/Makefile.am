@@ -23,7 +23,7 @@ shaders_DATA = \
 	shadow_vs.glsl \
 	sky_fs.glsl \
 	sky_vs.glsl \
-	soften_fs.glsl \
+	soften.glsl \
 	sprite_fs.glsl \
 	sprite_vs.glsl \
 	uniforms.glsl \
@@ -37,8 +37,8 @@ shaders_DATA = \
 # invoke glslc or shadercross. Run 'make shaders' after editing a .glsl to
 # regenerate them. Extend these lists as more shaders are ported (issue #864).
 
-VERTEX_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs sky_vs sprite_vs
-FRAGMENT_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs sky_fs sprite_fs
+VERTEX_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs sky_vs sprite_vs decal_vs
+FRAGMENT_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs sky_fs sprite_fs decal_fs
 
 # Second, MATERIAL_STAGES variant of the bsp program, used only for material stage
 # draws (bsp_vs.glsl / bsp_fs.glsl compiled with -DMATERIAL_STAGES).

@@ -599,14 +599,10 @@ typedef struct {
   Vector *triangles;
 
   /**
-   * @brief The decal vertex buffer object.
+   * @brief The decal vertex buffer, and its capacity in vertices.
    */
-  uint32_t vertex_buffer;
-
-  /**
-   * @brief The decal vertex array object.
-   */
-  uint32_t vertex_array;
+  Buffer *vertex_buffer;
+  int32_t vertex_buffer_capacity;
 
   /**
    * @brief True if the containing block's decals require uploading.

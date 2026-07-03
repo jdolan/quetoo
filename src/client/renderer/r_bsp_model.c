@@ -302,7 +302,7 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 
     decals->triangles = $(alloc(Vector), initWithSize, sizeof(r_decal_triangle_t));
 
-    // TODO(#864): port per-block decal geometry to a dynamic Buffer (deferred; decals not yet drawn).
+    // The decal vertex buffer is created lazily (grown on demand) in R_DrawDecals.
   }
 
   const bsp_face_t *in_face = bsp->cm->file->faces;
@@ -641,8 +641,7 @@ static void R_FreeBspModel(r_media_t *self) {
   for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
 
     release(block->decals.triangles);
-
-    // TODO(#864): release per-block decal Buffer once decals are ported.
+    block->decals.vertex_buffer = release(block->decals.vertex_buffer);
   }
 
   bsp->voxels.light_indices_buffer = release(bsp->voxels.light_indices_buffer);
