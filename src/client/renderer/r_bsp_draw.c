@@ -41,6 +41,12 @@ static struct {
   GraphicsPipeline *pipeline;
 
   /**
+   * @brief A line-fill variant of the pipeline, bound when r_draw_wireframe is
+   * set (SDL_gpu bakes fill mode into the pipeline, so it needs its own object).
+   */
+  GraphicsPipeline *wireframe_pipeline;
+
+  /**
    * @brief The material sampler (trilinear, repeat).
    */
   Sampler *diffusemap_sampler;
@@ -154,6 +160,12 @@ void R_InitBspPipeline(void) {
 
   r_bsp_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
+  // A line-fill variant for r_draw_wireframe (bsp_fs shades wireframe fragments
+  // flat grey). Best-effort: mappers use it to inspect quemap's brush cuts, so
+  // the wide-platform caveat around line fill on Vulkan/Android is acceptable.
+  info.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_LINE;
+  r_bsp_pipeline.wireframe_pipeline = $(r_context.device, createGraphicsPipeline, &info);
+
   release(vertexShader);
   release(fragmentShader);
 
@@ -191,6 +203,7 @@ void R_InitBspPipeline(void) {
  */
 void R_ShutdownBspPipeline(void) {
   r_bsp_pipeline.pipeline = release(r_bsp_pipeline.pipeline);
+  r_bsp_pipeline.wireframe_pipeline = release(r_bsp_pipeline.wireframe_pipeline);
   r_bsp_pipeline.diffusemap_sampler = release(r_bsp_pipeline.diffusemap_sampler);
   r_bsp_pipeline.voxel_data_sampler = release(r_bsp_pipeline.voxel_data_sampler);
   r_bsp_pipeline.stage_sampler = release(r_bsp_pipeline.stage_sampler);
@@ -414,7 +427,12 @@ void R_DrawBspEntities(const r_view_t *view) {
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
   $(commands, pushFragmentUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
-  $(pass, bindPipeline, r_bsp_pipeline.pipeline);
+  // The wireframe variant replaces the base pipeline throughout the pass; stage
+  // (blend) overlays are skipped below when it is active.
+  GraphicsPipeline *base = r_draw_wireframe->integer
+      ? r_bsp_pipeline.wireframe_pipeline : r_bsp_pipeline.pipeline;
+
+  $(pass, bindPipeline, base);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
@@ -465,7 +483,7 @@ void R_DrawBspEntities(const r_view_t *view) {
 
       // Re-bind the base pipeline: a preceding surface's material stages may have
       // left a stage (blend) pipeline bound.
-      $(pass, bindPipeline, r_bsp_pipeline.pipeline);
+      $(pass, bindPipeline, base);
 
       $(pass, bindFragmentSamplers, SLOT_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
         .texture = draw->material->texture->texture->texture,
@@ -483,7 +501,7 @@ void R_DrawBspEntities(const r_view_t *view) {
       r_stats.bsp_triangles += draw->num_elements / 3;
       r_stats.bsp_draw_elements++;
 
-      if (r_draw_material_stages->integer) {
+      if (r_draw_material_stages->integer && !r_draw_wireframe->integer) {
         R_DrawBspDrawElementsMaterialStages(view, pass, commands, draw);
       }
     }
