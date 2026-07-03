@@ -90,14 +90,11 @@ static struct {
   // the null texture
   r_image_t *null_texture;
 
-  // draw list for ui elements like menus, using raw window coordinates
-  r_draw_2d_arrays_list_t ui;
-
-  // draw list for in-game elements like console, hud, using r_draw_scale window coordinates
+  // the single draw list, holding all console and HUD geometry for the frame.
+  // MVC 2.0 renders its own menus through ObjectivelyGPU (its own pipeline and
+  // command flushing), so 2D drawing here is only the game's console/HUD -- the
+  // old UI accumulation list (MVC 1.x's pluggable backend) is gone.
   r_draw_2d_arrays_list_t game;
-
-  // active draw arrays list
-  r_draw_2d_arrays_list_t *active;
 
   // the triangle-list and line-strip pipelines
   GraphicsPipeline *pipeline_triangles;
@@ -113,26 +110,11 @@ static struct {
 } r_draw_2d;
 
 /**
- * @brief Sets the active 2D projection context (game or UI).
- */
-void R_SetDraw2DProjection(r_draw_2d_projection_t projection) {
-
-  switch (projection) {
-    case PROJECTION_GAME:
-      r_draw_2d.active = &r_draw_2d.game;
-      break;
-    case PROJECTION_UI:
-      r_draw_2d.active = &r_draw_2d.ui;
-      break;
-  }
-}
-
-/**
- * @brief Appends a draw arrays batch to the active 2D draw list, merging adjacent compatible draws.
+ * @brief Appends a draw arrays batch to the 2D draw list, merging adjacent compatible draws.
  */
 static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
 
-  r_draw_2d_arrays_list_t *list = r_draw_2d.active;
+  r_draw_2d_arrays_list_t *list = &r_draw_2d.game;
 
   if (list->num_draw_arrays == MAX_DRAW_2D_ARRAYS) {
     Com_Warn("MAX_DRAW_2D_ARRAYS\n");
@@ -169,7 +151,7 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
  */
 static void R_EmitDrawVertexes2D_Quad(const r_draw_2d_vertex_t *quad) {
 
-  r_draw_2d_arrays_list_t *list = r_draw_2d.active;
+  r_draw_2d_arrays_list_t *list = &r_draw_2d.game;
 
   if (list->num_vertexes + 6 > MAX_DRAW_2D_VERTEXES) {
     Com_Warn("MAX_DRAW_2D_VERTEXES\n");
@@ -239,7 +221,7 @@ void R_Draw2DChar(int32_t x, int32_t y, char c, const color_t color) {
   r_draw_2d_arrays_t draw = {
     .mode = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
     .texture = r_draw_2d.font->image->texture,
-    .first_vertex = r_draw_2d.active->num_vertexes,
+    .first_vertex = r_draw_2d.game.num_vertexes,
     .num_vertexes = 6
   };
 
@@ -298,7 +280,7 @@ size_t R_Draw2DSizedString(int32_t x, int32_t y, const char *s, size_t len, size
   r_draw_2d_arrays_t draw = {
     .mode = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
     .texture = r_draw_2d.font->image->texture,
-    .first_vertex = r_draw_2d.active->num_vertexes
+    .first_vertex = r_draw_2d.game.num_vertexes
   };
 
   color_t c = color;
@@ -315,7 +297,7 @@ size_t R_Draw2DSizedString(int32_t x, int32_t y, const char *s, size_t len, size
 
     if (StrIsEmoji(s)) {
 
-      draw.num_vertexes = (r_draw_2d.active->num_vertexes) - draw.first_vertex;
+      draw.num_vertexes = (r_draw_2d.game.num_vertexes) - draw.first_vertex;
       R_AddDraw2DArrays(&draw);
 
       char name[MAX_QPATH];
@@ -332,7 +314,7 @@ size_t R_Draw2DSizedString(int32_t x, int32_t y, const char *s, size_t len, size
       i += 2;
       j += q_strlen(name) + 2;
 
-      draw.first_vertex = r_draw_2d.active->num_vertexes;
+      draw.first_vertex = r_draw_2d.game.num_vertexes;
       continue;
     }
 
@@ -344,7 +326,7 @@ size_t R_Draw2DSizedString(int32_t x, int32_t y, const char *s, size_t len, size
     s++;
   }
 
-  draw.num_vertexes = (r_draw_2d.active->num_vertexes) - draw.first_vertex;
+  draw.num_vertexes = (r_draw_2d.game.num_vertexes) - draw.first_vertex;
   R_AddDraw2DArrays(&draw);
 
   return i;
@@ -410,7 +392,7 @@ void R_Draw2DImage(int32_t x, int32_t y, int32_t w, int32_t h, const r_image_t *
   r_draw_2d_arrays_t draw = {
     .mode = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
     .texture = image->texture,
-    .first_vertex = r_draw_2d.active->num_vertexes,
+    .first_vertex = r_draw_2d.game.num_vertexes,
     .num_vertexes = 6
   };
 
@@ -462,7 +444,7 @@ void R_Draw2DFill(int32_t x, int32_t y, int32_t w, int32_t h, const color_t colo
   r_draw_2d_arrays_t draw = {
     .mode = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
     .texture = r_draw_2d.null_texture->texture,
-    .first_vertex = r_draw_2d.active->num_vertexes,
+    .first_vertex = r_draw_2d.game.num_vertexes,
     .num_vertexes = 6
   };
 
@@ -497,11 +479,11 @@ void R_Draw2DLines(const int32_t *points, size_t count, const color_t color) {
   r_draw_2d_arrays_t draw = {
     .mode = SDL_GPU_PRIMITIVETYPE_LINESTRIP,
     .texture = r_draw_2d.null_texture->texture,
-    .first_vertex = r_draw_2d.active->num_vertexes,
+    .first_vertex = r_draw_2d.game.num_vertexes,
     .num_vertexes = (int32_t) count
   };
 
-  r_draw_2d_arrays_list_t *list = r_draw_2d.active;
+  r_draw_2d_arrays_list_t *list = &r_draw_2d.game;
 
   if (list->num_vertexes + (int32_t) count > MAX_DRAW_2D_VERTEXES) {
     Com_Warn("R_Draw2DLines: vertex buffer overflow; truncating %zu vertices\n", count);
@@ -532,11 +514,10 @@ void R_Draw2DLines(const int32_t *points, size_t count, const color_t color) {
 }
 
 /**
- * @brief Records the batches for a single draw list under the given projection.
- * @param offset The base vertex offset of this list within the shared vertex buffer.
+ * @brief Records the batches for the 2D draw list under the given projection.
  */
 static void R_Draw2DList(RenderPass *pass, const r_draw_2d_arrays_list_t *list,
-                         const mat4_t projection, int32_t offset) {
+                         const mat4_t projection) {
 
   CommandBuffer *commands = r_context.device->commands;
   const Framebuffer *framebuffer = r_context.device->framebuffer;
@@ -572,7 +553,7 @@ static void R_Draw2DList(RenderPass *pass, const r_draw_2d_arrays_list_t *list,
       .sampler = r_draw_2d.sampler->sampler,
     }, 1);
 
-    $(pass, drawPrimitives, d->num_vertexes, 1, d->first_vertex + offset, 0);
+    $(pass, drawPrimitives, d->num_vertexes, 1, d->first_vertex, 0);
   }
 }
 
@@ -581,7 +562,7 @@ static void R_Draw2DList(RenderPass *pass, const r_draw_2d_arrays_list_t *list,
  */
 void R_Draw2D(void) {
 
-  r_stats.draw_arrays = r_draw_2d.game.num_draw_arrays + r_draw_2d.ui.num_draw_arrays;
+  r_stats.draw_arrays = r_draw_2d.game.num_draw_arrays;
 
   if (r_stats.draw_arrays == 0) {
     return;
@@ -594,30 +575,22 @@ void R_Draw2D(void) {
 
   Framebuffer *framebuffer = r_context.device->framebuffer;
 
-  const uint32_t game_count = (uint32_t) r_draw_2d.game.num_vertexes;
-  const uint32_t ui_count = (uint32_t) r_draw_2d.ui.num_vertexes;
-  const uint32_t total = game_count + ui_count;
+  const uint32_t count = (uint32_t) r_draw_2d.game.num_vertexes;
 
-  if (total > r_draw_2d.vertex_buffer_capacity) {
+  if (count > r_draw_2d.vertex_buffer_capacity) {
     r_draw_2d.vertex_buffer = release(r_draw_2d.vertex_buffer);
     r_draw_2d.vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
       .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-      .size = total * sizeof(r_draw_2d_vertex_t),
+      .size = count * sizeof(r_draw_2d_vertex_t),
     });
-    r_draw_2d.vertex_buffer_capacity = total;
+    r_draw_2d.vertex_buffer_capacity = count;
   }
 
   {
     CopyPass *copyPass = $(commands, beginCopyPass);
 
-    if (game_count) {
-      $(copyPass, uploadData, r_draw_2d.vertex_buffer->buffer, r_draw_2d.game.vertexes,
-        game_count * sizeof(r_draw_2d_vertex_t), 0, true);
-    }
-    if (ui_count) {
-      $(copyPass, uploadData, r_draw_2d.vertex_buffer->buffer, r_draw_2d.ui.vertexes,
-        ui_count * sizeof(r_draw_2d_vertex_t), game_count * sizeof(r_draw_2d_vertex_t), game_count == 0);
-    }
+    $(copyPass, uploadData, r_draw_2d.vertex_buffer->buffer, r_draw_2d.game.vertexes,
+      count * sizeof(r_draw_2d_vertex_t), 0, true);
 
     release(copyPass);
   }
@@ -635,22 +608,15 @@ void R_Draw2D(void) {
 
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_draw_2d.vertex_buffer->buffer }, 1);
 
-  // Game elements (console, HUD) use r_context pixel coordinates.
-  const mat4_t game_projection = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
-  R_Draw2DList(pass, &r_draw_2d.game, game_projection, 0);
-
-  // UI elements (menus) use raw window coordinates.
-  const mat4_t ui_projection = Mat4_FromOrtho(0.f, r_context.window_bounds.w, r_context.window_bounds.h, 0.f, -1.f, 1.f);
-  R_Draw2DList(pass, &r_draw_2d.ui, ui_projection, (int32_t) game_count);
+  // Console and HUD use r_context pixel coordinates.
+  const mat4_t projection = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
+  R_Draw2DList(pass, &r_draw_2d.game, projection);
 
   release(pass);
 
 reset:
   r_draw_2d.game.num_vertexes = 0;
   r_draw_2d.game.num_draw_arrays = 0;
-
-  r_draw_2d.ui.num_vertexes = 0;
-  r_draw_2d.ui.num_draw_arrays = 0;
 }
 
 /**
@@ -789,8 +755,6 @@ void R_InitDraw2D(void) {
     .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
   });
-
-  R_SetDraw2DProjection(PROJECTION_GAME);
 }
 
 /**
