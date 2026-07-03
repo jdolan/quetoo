@@ -57,6 +57,12 @@
     <QuetooObjectivelyIncludePath>$(QuetooObjectivelyPath)Sources\;$(QuetooObjectivelyWinPath)Sources\;$(QuetooObjectivelyWinPath)Sources\gnu\</QuetooObjectivelyIncludePath>
     <QuetooObjectivelyLibraryPath>$(QuetooObjectivelyWinPath)bin\$(Platform)$(Configuration)\</QuetooObjectivelyLibraryPath>
 
+    <QuetooObjectivelyGPUPath>$(SolutionDir)..\..\ObjectivelyGPU\</QuetooObjectivelyGPUPath>
+    <QuetooObjectivelyGPUWinPath>$(QuetooObjectivelyGPUPath)ObjectivelyGPU.vs15\</QuetooObjectivelyGPUWinPath>
+    <QuetooObjectivelyGPULibsPath>$(QuetooObjectivelyGPUWinPath)libs\</QuetooObjectivelyGPULibsPath>
+    <QuetooObjectivelyGPUIncludePath>$(QuetooObjectivelyGPUPath)Sources\;$(QuetooObjectivelyGPUWinPath)Sources\</QuetooObjectivelyGPUIncludePath>
+    <QuetooObjectivelyGPULibraryPath>$(QuetooObjectivelyGPUWinPath)bin\$(Platform)$(Configuration)\</QuetooObjectivelyGPULibraryPath>
+
     <QuetooObjectivelyMVCPath>$(SolutionDir)..\..\ObjectivelyMVC\</QuetooObjectivelyMVCPath>
     <QuetooObjectivelyMVCWinPath>$(QuetooObjectivelyMVCPath)ObjectivelyMVC.vs15\</QuetooObjectivelyMVCWinPath>
     <QuetooObjectivelyMVCLibsPath>$(QuetooObjectivelyMVCWinPath)libs\</QuetooObjectivelyMVCLibsPath>
@@ -125,8 +131,8 @@
 
 	<DepsIncludePath>$(QuetooPath)deps\rapidjson\;$(QuetooPath)deps\discord-rpc\include\</DepsIncludePath>
 
-    <QuetooFullIncludePath>$(DepsIncludePath);$(OpenALIncludePath);$(QuetooIncludePath);$(QuetooPath)src\client\;$(QuetooPath)src\client\ui\;$(QuetooPath)src\cgame\default\;$(QuetooPath)src\cgame\default\ui\teams\;$(QuetooPath)src\cgame\default\ui\common\;$(QuetooPath)src\cgame\default\ui\credits\;$(QuetooPath)src\cgame\default\ui\home\;$(QuetooPath)src\cgame\default\ui\main\;$(QuetooPath)src\cgame\default\ui\play\;$(QuetooPath)src\cgame\default\ui\controls\;$(QuetooPath)src\cgame\default\ui\settings\;$(QuetooObjectivelyIncludePath);$(QuetooObjectivelyMVCIncludePath);$(QuetooPthreadIncludePath);$(QuetooIconvIncludePath);$(QuetooCURLIncludePath);$(QuetooLibXMLIncludePath);$(QuetooPhysFSIncludePath);$(QuetooZlibIncludePath);$(QuetooCursesIncludePath);$(QuetooFontConfigIncludePath);$(QuetooFreeTypeIncludePath);$(QuetooSDLIncludePath);$(QuetooSDLTTFIncludePath);$(QuetooSDLImageIncludePath);$(QuetoolibsndfileIncludePath);$(QuetooDLFCNIncludePath)</QuetooFullIncludePath>
-    <QuetooFullLibraryPath>$(OpenALLibraryPath);$(QuetooLibraryPath);$(QuetooObjectivelyLibraryPath);$(QuetooObjectivelyMVCLibraryPath);$(QuetooPthreadLibraryPath);$(QuetooIconvLibraryPath);$(QuetooCURLLibraryPath);$(QuetooLibXMLLibraryPath);$(QuetooPhysFSLibraryPath);$(QuetooCursesLibraryPath);$(QuetooFontConfigLibraryPath);$(QuetooFreeTypeLibraryPath);$(QuetooSDLLibraryPath);$(QuetooSDLTTFLibraryPath);$(QuetooSDLImageLibraryPath);$(QuetoolibsndfileLibraryPath);$(QuetooDLFCNLibraryPath)</QuetooFullLibraryPath>
+    <QuetooFullIncludePath>$(DepsIncludePath);$(OpenALIncludePath);$(QuetooIncludePath);$(QuetooPath)src\client\;$(QuetooPath)src\client\ui\;$(QuetooPath)src\cgame\default\;$(QuetooPath)src\cgame\default\ui\teams\;$(QuetooPath)src\cgame\default\ui\common\;$(QuetooPath)src\cgame\default\ui\credits\;$(QuetooPath)src\cgame\default\ui\home\;$(QuetooPath)src\cgame\default\ui\main\;$(QuetooPath)src\cgame\default\ui\play\;$(QuetooPath)src\cgame\default\ui\controls\;$(QuetooPath)src\cgame\default\ui\settings\;$(QuetooObjectivelyIncludePath);$(QuetooObjectivelyGPUIncludePath);$(QuetooObjectivelyMVCIncludePath);$(QuetooPthreadIncludePath);$(QuetooIconvIncludePath);$(QuetooCURLIncludePath);$(QuetooLibXMLIncludePath);$(QuetooPhysFSIncludePath);$(QuetooZlibIncludePath);$(QuetooCursesIncludePath);$(QuetooFontConfigIncludePath);$(QuetooFreeTypeIncludePath);$(QuetooSDLIncludePath);$(QuetooSDLTTFIncludePath);$(QuetooSDLImageIncludePath);$(QuetoolibsndfileIncludePath);$(QuetooDLFCNIncludePath)</QuetooFullIncludePath>
+    <QuetooFullLibraryPath>$(OpenALLibraryPath);$(QuetooLibraryPath);$(QuetooObjectivelyLibraryPath);$(QuetooObjectivelyGPULibraryPath);$(QuetooObjectivelyMVCLibraryPath);$(QuetooPthreadLibraryPath);$(QuetooIconvLibraryPath);$(QuetooCURLLibraryPath);$(QuetooLibXMLLibraryPath);$(QuetooPhysFSLibraryPath);$(QuetooCursesLibraryPath);$(QuetooFontConfigLibraryPath);$(QuetooFreeTypeLibraryPath);$(QuetooSDLLibraryPath);$(QuetooSDLTTFLibraryPath);$(QuetooSDLImageLibraryPath);$(QuetoolibsndfileLibraryPath);$(QuetooDLFCNLibraryPath)</QuetooFullLibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
