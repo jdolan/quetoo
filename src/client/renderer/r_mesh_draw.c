@@ -270,7 +270,7 @@ void R_InitMeshPipeline(void) {
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = framebuffer->colorFormats[0],
+      .format = R_SCENE_COLOR_FORMAT,
       .blend_state = GPU_BlendStateOpaque,
     },
     .num_color_targets = 1,

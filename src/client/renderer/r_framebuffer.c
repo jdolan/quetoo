@@ -29,18 +29,17 @@
  */
 
 /**
- * @brief Creates a scene render target: a swapchain-format color attachment and
- * a sampleable D32F depth attachment, shared by the depth pre-pass and the main
- * passes.
+ * @brief Creates a scene render target: an HDR color attachment and a sampleable
+ * D32F depth attachment, shared by the depth pre-pass and the main passes.
  * @remarks @p attachments is currently advisory; a color + depth target is always
- * created. Sized to the present framebuffer (device pixels) so the scene renders
- * at full resolution and R_DrawPost composites it 1:1; the requested logical
- * width/height are ignored. TODO(#864): honor them for auxiliary views
- * (player-model) via a scaled composite, and add r_framebuffer_scale here.
+ * created. The color target is R_SCENE_COLOR_FORMAT (HDR) rather than the swapchain
+ * format so lighting can exceed 1.0 and feed bloom; R_DrawPost composites and
+ * clamps it into the LDR present framebuffer. Sized to the present framebuffer
+ * (device pixels) so the scene renders at full resolution and the composite is 1:1;
+ * the requested logical width/height are ignored. TODO(#864): honor them for
+ * auxiliary views (player-model) via a scaled composite, and add r_framebuffer_scale here.
  */
 Framebuffer *R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachments) {
-
-  const SDL_GPUTextureFormat format = $(r_context.device, getSwapchainTextureFormat);
 
   const SDL_Size size = r_context.device->framebuffer
       ? r_context.device->framebuffer->size
@@ -48,7 +47,7 @@ Framebuffer *R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachme
 
   return $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
     .size = size,
-    .colorFormats = { format },
+    .colorFormats = { R_SCENE_COLOR_FORMAT },
     .numColorTargets = 1,
     .depthFormat = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .sampleCount = SDL_GPU_SAMPLECOUNT_1,

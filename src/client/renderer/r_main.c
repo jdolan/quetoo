@@ -370,7 +370,7 @@ void R_Init(void) {
   R_InitSprites();
   R_InitDecals();
   R_InitSky();
-  // R_InitPost();
+  R_InitPost();
 
   const SDL_Rect bounds = r_context.window_bounds;
   const SDL_Rect viewport = r_context.viewport;
@@ -393,7 +393,7 @@ void R_Shutdown(void) {
   // R_ShutdownDecals();
   // R_ShutdownSprites();
   // R_ShutdownSky();
-  // R_ShutdownPost();
+  R_ShutdownPost();
   R_ShutdownDepthPass();
 
   R_ShutdownDraw2D();

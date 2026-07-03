@@ -21,7 +21,14 @@
 
 #version 450
 
-#include "uniforms.glsl"
+/*
+ * Self-contained post program: the HDR scene color and the bloom texture at
+ * fragment sampler slots 0, 1 (set 2), and the per-pass locals at fragment
+ * uniform slot 0 (set 3).
+ */
+
+layout (set = 2, binding = 0) uniform sampler2D texture_color_attachment;
+layout (set = 2, binding = 1) uniform sampler2D texture_bloom_attachment;
 
 layout (location = 0) in vertex_data {
   vec2 texcoord;
@@ -30,9 +37,9 @@ layout (location = 0) in vertex_data {
 layout (location = 0) out vec4 out_color;
 
 /**
- * @brief Per-draw locals.
+ * @brief Per-pass locals.
  */
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+layout (std140, set = 3, binding = 0) uniform locals_block {
   int post_stage;
   float bloom;
   float bloom_threshold;

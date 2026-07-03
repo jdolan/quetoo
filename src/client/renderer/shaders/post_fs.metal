@@ -56,36 +56,6 @@ struct locals_block
     float bloom_threshold;
 };
 
-struct voxels_t
-{
-    float4 mins;
-    float4 maxs;
-    float4 view_coordinate;
-    float4 size;
-};
-
-struct uniforms_block
-{
-    int4 viewport;
-    float4x4 projection3D;
-    float4x4 view;
-    float4x4 sky_projection;
-    float4x4 light_projection;
-    voxels_t voxels;
-    float2 depth_range;
-    int view_type;
-    int ticks;
-    float ambient;
-    float modulate;
-    float saturation;
-    float caustics;
-    float ambient_occlusion;
-    float lighting_distance;
-    int editor;
-    int developer;
-    int wireframe;
-};
-
 constant spvUnsafeArray<float, 3> _96 = spvUnsafeArray<float, 3>({ 0.0, 1.384615421295166015625, 3.23076915740966796875 });
 constant spvUnsafeArray<float, 3> _108 = spvUnsafeArray<float, 3>({ 0.2270270287990570068359375, 0.3162162303924560546875, 0.0702702701091766357421875 });
 
@@ -138,7 +108,7 @@ void tonemap(thread float4& out_color, texture2d<float> texture_color_attachment
     out_color = float4(fast::clamp(color, float3(0.0), float3(1.0)), 1.0);
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant locals_block& _35 [[buffer(1)]], texture2d<float> texture_color_attachment [[texture(12)]], texture2d<float> texture_bloom_attachment [[texture(15)]], sampler texture_color_attachmentSmplr [[sampler(12)]], sampler texture_bloom_attachmentSmplr [[sampler(15)]])
+fragment main0_out main0(main0_in in [[stage_in]], constant locals_block& _35 [[buffer(0)]], texture2d<float> texture_color_attachment [[texture(0)]], texture2d<float> texture_bloom_attachment [[texture(1)]], sampler texture_color_attachmentSmplr [[sampler(0)]], sampler texture_bloom_attachmentSmplr [[sampler(1)]])
 {
     main0_out out = {};
     vertex_data vertex0 = {};

@@ -506,8 +506,6 @@ static void R_InitSpritePipeline(void) {
     .num_uniform_buffers = 1, // globals (viewport + depth_range, for soften())
   });
 
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
-
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
@@ -565,7 +563,7 @@ static void R_InitSpritePipeline(void) {
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = framebuffer->colorFormats[0],
+      .format = R_SCENE_COLOR_FORMAT,
       .blend_state = GPU_BlendStateAdditive,
     },
     .num_color_targets = 1,

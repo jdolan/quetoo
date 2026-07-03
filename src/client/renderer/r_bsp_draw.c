@@ -162,7 +162,7 @@ void R_InitBspPipeline(void) {
 
   // A named color target so the blend state can be varied per pipeline variant.
   SDL_GPUColorTargetDescription color_target = {
-    .format = framebuffer->colorFormats[0],
+    .format = R_SCENE_COLOR_FORMAT,
     .blend_state = GPU_BlendStateOpaque,
   };
 
@@ -336,7 +336,7 @@ static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = framebuffer->colorFormats[0],
+      .format = R_SCENE_COLOR_FORMAT,
       .blend_state = {
         .enable_blend = true,
         .src_color_blendfactor = s,

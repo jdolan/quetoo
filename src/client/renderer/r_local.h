@@ -72,3 +72,11 @@ enum {
 	SLOT_UNIFORMS_STAGE_VERTEX       = 2, // material-stage params (vertex stage)
 	SLOT_UNIFORMS_STAGE_FRAGMENT     = 3, // material-stage params (fragment stage)
 };
+
+/**
+ * @brief The scene framebuffer color format: an HDR (unsigned float) target so
+ * lighting can exceed 1.0 and feed bloom. All 3D pipelines render into it; the
+ * present framebuffer stays the swapchain (LDR) format, and R_DrawPost composites
+ * the scene into it (adding bloom, clamping to LDR).
+ */
+#define R_SCENE_COLOR_FORMAT SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT
