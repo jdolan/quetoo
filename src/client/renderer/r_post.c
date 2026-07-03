@@ -169,12 +169,9 @@ void R_DrawPost(const r_view_t *view) {
   Framebuffer *scene = view->framebuffer;
   Framebuffer *present = r_context.device->framebuffer;
 
-  // Sizes should match (the scene FB is created at the present size); guard against
-  // a transient mismatch during a resize rather than sampling out of bounds.
-  if (scene->size.w != present->size.w || scene->size.h != present->size.h) {
-    return;
-  }
-
+  // The scene may be a different size than the present framebuffer (r_framebuffer_scale);
+  // the composite samples it with a linear filter, up/downscaling into the present
+  // framebuffer at its full resolution.
   Texture *scene_color = scene->colorTextures[0];
 
   // (Re)create the half-resolution bloom targets on a viewport resize.

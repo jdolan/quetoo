@@ -35,15 +35,23 @@
  * created. The color target is R_SCENE_COLOR_FORMAT (HDR) rather than the swapchain
  * format so lighting can exceed 1.0 and feed bloom; R_DrawPost composites and
  * clamps it into the LDR present framebuffer. Sized to the present framebuffer
- * (device pixels) so the scene renders at full resolution and the composite is 1:1;
- * the requested logical width/height are ignored. TODO(#864): honor them for
- * auxiliary views (player-model) via a scaled composite, and add r_framebuffer_scale here.
+ * (device pixels) scaled by r_framebuffer_scale, so the 3D scene renders at a
+ * reduced (or increased) resolution and the composite up/downscales it while the
+ * UI stays native; the requested logical width/height are ignored. The scene FB is
+ * recreated when r_framebuffer_scale changes (R_BeginFrame pushes a pixel-size event).
  */
 Framebuffer *R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachments) {
 
-  const SDL_Size size = r_context.device->framebuffer
+  const SDL_Size present = r_context.device->framebuffer
       ? r_context.device->framebuffer->size
       : MakeSize(width, height);
+
+  const float scale = Clampf(r_framebuffer_scale->value, .125f, 4.f);
+
+  const SDL_Size size = MakeSize(
+    Maxi((int32_t) (present.w * scale), 1),
+    Maxi((int32_t) (present.h * scale), 1)
+  );
 
   return $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
     .size = size,

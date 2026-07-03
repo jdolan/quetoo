@@ -137,10 +137,13 @@ void R_BeginFrame(void) {
   }
 
   if (r_framebuffer_scale->modified) {
-    // Render the frame at a reduced resolution and upscale on present. TODO(#864):
-    // this scales the whole present framebuffer (UI included); a 3D-only scale
-    // needs the dedicated scene framebuffer.
-//    r_context.device->renderScale = Clampf(r_framebuffer_scale->value, .25f, 2.f);
+    // Recreate the scene framebuffer at the new scale (the cgame rebuilds it on a
+    // pixel-size change); R_CreateFramebuffer reads r_framebuffer_scale. The 3D
+    // scene renders at the scaled resolution and R_DrawPost up/downscales it into
+    // the present framebuffer, leaving the UI at native resolution.
+    SDL_PushEvent(&(SDL_Event) {
+      .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
+    });
     r_framebuffer_scale->modified = false;
   }
 
