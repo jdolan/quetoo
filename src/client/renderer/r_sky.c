@@ -32,8 +32,10 @@ static struct {
  * @brief The sky pipeline (sky_vs/sky_fs) and its cubemap sampler.
  * @remarks TODO(#864): material-stage skies (azimuthal projection) are deferred.
  */
-static GraphicsPipeline *r_sky_pipeline;
-static Sampler *r_sky_sampler;
+static struct {
+  GraphicsPipeline *pipeline;
+  Sampler *sampler;
+} r_sky_pipeline;
 
 /**
  * @brief Renders all sky surfaces of the world model as a window into the sky
@@ -41,7 +43,7 @@ static Sampler *r_sky_sampler;
  */
 void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 
-  if (!r_sky_pipeline || !r_sky.image || !r_sky.image->texture || !r_sky.image->texture->texture) {
+  if (!r_sky_pipeline.pipeline || !r_sky.image || !r_sky.image->texture || !r_sky.image->texture->texture) {
     return;
   }
 
@@ -77,7 +79,7 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
-  $(pass, bindPipeline, r_sky_pipeline);
+  $(pass, bindPipeline, r_sky_pipeline.pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
@@ -89,7 +91,7 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
   for (int32_t i = 0; i <= SLOT_SAMPLER_SKY; i++) {
     sky[i] = (SDL_GPUTextureSamplerBinding) {
       .texture = r_sky.image->texture->texture,
-      .sampler = r_sky_sampler->sampler,
+      .sampler = r_sky_pipeline.sampler->sampler,
     };
   }
   $(pass, bindFragmentSamplers, 0, sky, SLOT_SAMPLER_SKY + 1);
@@ -124,7 +126,7 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 /**
  * @brief Builds the sky pipeline (position-only vertex input) and cubemap sampler.
  */
-static void R_InitSkyProgram(void) {
+static void R_InitSkyPipeline(void) {
 
   Shader *vertexShader = $(r_device.device, loadShader, "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
@@ -170,12 +172,12 @@ static void R_InitSkyProgram(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_sky_pipeline = $(r_device.device, createGraphicsPipeline, &info);
+  r_sky_pipeline.pipeline = $(r_device.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  r_sky_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_sky_pipeline.sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
     .mag_filter = SDL_GPU_FILTER_LINEAR,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
@@ -192,7 +194,7 @@ void R_InitSky(void) {
 
   memset(&r_sky, 0, sizeof(r_sky));
 
-  R_InitSkyProgram();
+  R_InitSkyPipeline();
 }
 
 /**
@@ -200,8 +202,8 @@ void R_InitSky(void) {
  */
 void R_ShutdownSky(void) {
 
-  r_sky_pipeline = release(r_sky_pipeline);
-  r_sky_sampler = release(r_sky_sampler);
+  r_sky_pipeline.pipeline = release(r_sky_pipeline.pipeline);
+  r_sky_pipeline.sampler = release(r_sky_pipeline.sampler);
 }
 
 /**

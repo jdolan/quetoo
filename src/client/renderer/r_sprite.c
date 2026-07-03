@@ -38,8 +38,10 @@ static struct {
  * @remarks TODO(#864): vertex lighting (active_lights) and soft particles
  * (depth-attachment copy) are deferred.
  */
-static GraphicsPipeline *r_sprite_pipeline;
-static Sampler *r_sprite_sampler;
+static struct {
+  GraphicsPipeline *pipeline;
+  Sampler *sampler;
+} r_sprite_pipeline;
 
 /**
  * @brief Computes the texture coordinates for the given image, handling both atlas and regular images.
@@ -388,7 +390,7 @@ void R_UpdateSprites(r_view_t *view) {
  */
 void R_DrawSprites(const r_view_t *view) {
 
-  if (!r_sprite_pipeline || view->num_sprite_instances == 0) {
+  if (!r_sprite_pipeline.pipeline || view->num_sprite_instances == 0) {
     return;
   }
 
@@ -436,7 +438,7 @@ void R_DrawSprites(const r_view_t *view) {
 
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
-  $(pass, bindPipeline, r_sprite_pipeline);
+  $(pass, bindPipeline, r_sprite_pipeline.pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_sprites.vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_sprites.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
@@ -461,8 +463,8 @@ void R_DrawSprites(const r_view_t *view) {
     }
 
     $(pass, bindFragmentSamplers, SLOT_SAMPLER_DIFFUSE, (SDL_GPUTextureSamplerBinding[]) {
-      { .texture = in->diffusemap->texture->texture, .sampler = r_sprite_sampler->sampler },
-      { .texture = in->next_diffusemap->texture->texture, .sampler = r_sprite_sampler->sampler },
+      { .texture = in->diffusemap->texture->texture, .sampler = r_sprite_pipeline.sampler->sampler },
+      { .texture = in->next_diffusemap->texture->texture, .sampler = r_sprite_pipeline.sampler->sampler },
     }, 2);
 
     $(pass, drawIndexedPrimitives, (uint32_t) batch_size * 6, 1, (uint32_t) i * 6, 0, 0);
@@ -478,7 +480,7 @@ void R_DrawSprites(const r_view_t *view) {
 /**
  * @brief Builds the sprite pipeline and diffuse sampler.
  */
-static void R_InitSpriteProgram(void) {
+static void R_InitSpritePipeline(void) {
 
   Shader *vertexShader = $(r_device.device, loadShader, "shaders/sprite_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
@@ -555,12 +557,12 @@ static void R_InitSpriteProgram(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_sprite_pipeline = $(r_device.device, createGraphicsPipeline, &info);
+  r_sprite_pipeline.pipeline = $(r_device.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  r_sprite_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_sprite_pipeline.sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
     .mag_filter = SDL_GPU_FILTER_LINEAR,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
@@ -595,7 +597,7 @@ void R_InitSprites(void) {
 
   free(elements);
 
-  R_InitSpriteProgram();
+  R_InitSpritePipeline();
 }
 
 /**
@@ -603,8 +605,8 @@ void R_InitSprites(void) {
  */
 void R_ShutdownSprites(void) {
 
-  r_sprite_pipeline = release(r_sprite_pipeline);
-  r_sprite_sampler = release(r_sprite_sampler);
+  r_sprite_pipeline.pipeline = release(r_sprite_pipeline.pipeline);
+  r_sprite_pipeline.sampler = release(r_sprite_pipeline.sampler);
   r_sprites.vertex_buffer = release(r_sprites.vertex_buffer);
   r_sprites.elements_buffer = release(r_sprites.elements_buffer);
 }

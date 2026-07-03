@@ -18,18 +18,28 @@
 #include "r_local.h"
 
 /**
- * @brief The mesh program pipeline (mesh_vs/mesh_fs). Animated geometry with
- * diffuse material and clustered per-voxel lighting.
+ * @brief The mesh program (mesh_vs/mesh_fs): its graphics pipeline and samplers.
+ * Animated geometry with diffuse material and clustered per-voxel lighting.
  * @remarks TODO(#864): stages, shells, tints, color/blend, specular/normal maps,
  * and the player-model view are ported in later increments.
  */
-static GraphicsPipeline *r_mesh_pipeline;
+static struct {
 
-/**
- * @brief The material sampler (trilinear, repeat) and voxel sampler (nearest, clamp).
- */
-static Sampler *r_mesh_sampler;
-static Sampler *r_mesh_voxel_sampler;
+  /**
+   * @brief The mesh graphics pipeline.
+   */
+  GraphicsPipeline *pipeline;
+
+  /**
+   * @brief The material sampler (trilinear, repeat).
+   */
+  Sampler *diffusemap_sampler;
+
+  /**
+   * @brief The voxel light-data sampler (nearest, clamp) for integer texelFetch.
+   */
+  Sampler *voxel_data_sampler;
+} r_mesh_pipeline;
 
 /**
  * @brief Per-entity mesh locals, pushed to vertex uniform slot 1.
@@ -81,7 +91,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
     $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
       .texture = material->texture->texture->texture,
-      .sampler = r_mesh_sampler->sampler,
+      .sampler = r_mesh_pipeline.diffusemap_sampler->sampler,
     }, 1);
 
     // Two vertex buffer slots: the old frame (locations 0-4) and the current
@@ -110,7 +120,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
  */
 void R_DrawMeshEntities(const r_view_t *view) {
 
-  if (!r_mesh_pipeline || !r_models.world) {
+  if (!r_mesh_pipeline.pipeline || !r_models.world) {
     return;
   }
 
@@ -143,11 +153,11 @@ void R_DrawMeshEntities(const r_view_t *view) {
   $(commands, pushVertexUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
   $(commands, pushFragmentUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
 
-  $(pass, bindPipeline, r_mesh_pipeline);
+  $(pass, bindPipeline, r_mesh_pipeline.pipeline);
 
   $(pass, bindFragmentSamplers, 1, &(SDL_GPUTextureSamplerBinding) {
     .texture = bsp->voxels.light_data->texture->texture,
-    .sampler = r_mesh_voxel_sampler->sampler,
+    .sampler = r_mesh_pipeline.voxel_data_sampler->sampler,
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
@@ -183,7 +193,7 @@ void R_DrawMeshEntities(const r_view_t *view) {
 /**
  * @brief Builds the mesh pipeline from the mesh_vs/mesh_fs shaders.
  */
-void R_InitMeshProgram(void) {
+void R_InitMeshPipeline(void) {
 
   Shader *vertexShader = $(r_device.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
@@ -234,12 +244,12 @@ void R_InitMeshProgram(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_mesh_pipeline = $(r_device.device, createGraphicsPipeline, &info);
+  r_mesh_pipeline.pipeline = $(r_device.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  r_mesh_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_mesh_pipeline.diffusemap_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
     .mag_filter = SDL_GPU_FILTER_LINEAR,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
@@ -248,7 +258,7 @@ void R_InitMeshProgram(void) {
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
   });
 
-  r_mesh_voxel_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_mesh_pipeline.voxel_data_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_NEAREST,
     .mag_filter = SDL_GPU_FILTER_NEAREST,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
@@ -261,8 +271,8 @@ void R_InitMeshProgram(void) {
 /**
  * @brief Releases the mesh pipeline and samplers.
  */
-void R_ShutdownMeshProgram(void) {
-  r_mesh_pipeline = release(r_mesh_pipeline);
-  r_mesh_sampler = release(r_mesh_sampler);
-  r_mesh_voxel_sampler = release(r_mesh_voxel_sampler);
+void R_ShutdownMeshPipeline(void) {
+  r_mesh_pipeline.pipeline = release(r_mesh_pipeline.pipeline);
+  r_mesh_pipeline.diffusemap_sampler = release(r_mesh_pipeline.diffusemap_sampler);
+  r_mesh_pipeline.voxel_data_sampler = release(r_mesh_pipeline.voxel_data_sampler);
 }

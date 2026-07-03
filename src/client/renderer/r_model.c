@@ -118,7 +118,7 @@ void R_InitModels(void) {
 
   memset(&r_models, 0, sizeof(r_models));
 
-  R_InitMeshProgram();
+  R_InitMeshPipeline();
 }
 
 /**
@@ -128,5 +128,5 @@ void R_ShutdownModels(void) {
 
   memset(&r_models, 0, sizeof(r_models));
 
-  R_ShutdownMeshProgram();
+  R_ShutdownMeshPipeline();
 }
