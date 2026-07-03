@@ -396,6 +396,51 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view, RenderPass
 }
 
 /**
+ * @brief Draws the opaque (non-sky, non-blend) draw elements of one BSP block,
+ * with the given base pipeline. The caller has already pushed the model matrix
+ * and the active-lights bitmask for this block/entity.
+ */
+static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+                                 GraphicsPipeline *base, const r_bsp_block_t *block) {
+
+  const r_bsp_draw_elements_t *draw = block->draw_elements;
+  for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+
+    if (draw->surface & (SURF_SKY | SURF_MASK_BLEND)) {
+      continue;
+    }
+
+    if (!draw->material || !draw->material->texture || !draw->material->texture->texture) {
+      continue;
+    }
+
+    // Re-bind the base pipeline: a preceding surface's material stages may have
+    // left a stage (blend) pipeline bound.
+    $(pass, bindPipeline, base);
+
+    $(pass, bindFragmentSamplers, SLOT_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+      .texture = draw->material->texture->texture->texture,
+      .sampler = r_bsp_pipeline.diffusemap_sampler->sampler,
+    }, 1);
+
+    r_material_uniforms_t material;
+    R_MaterialUniforms(draw->material, draw->surface, &material);
+    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_MATERIAL, &material, sizeof(material));
+
+    const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
+
+    $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
+
+    r_stats.bsp_triangles += draw->num_elements / 3;
+    r_stats.bsp_draw_elements++;
+
+    if (r_draw_material_stages->integer && !r_draw_wireframe->integer) {
+      R_DrawBspDrawElementsMaterialStages(view, pass, commands, draw);
+    }
+  }
+}
+
+/**
  * @brief Renders the opaque world BSP surfaces with their material diffuse texture,
  * clustered per-voxel static lighting, and per-block dynamic lighting.
  * @remarks Iterates the worldspawn inline model's blocks (the unit of light
@@ -487,42 +532,41 @@ void R_DrawBspEntities(const r_view_t *view) {
     R_ActiveLights(view, block->node->visible_bounds, active_lights);
     $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
 
-    const r_bsp_draw_elements_t *draw = block->draw_elements;
-    for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+    R_DrawBspBlockOpaque(view, pass, commands, base, block);
+  }
 
-      // TODO(#864): sky (cubemap) and blended surfaces need dedicated passes; skip for now.
-      if (draw->surface & (SURF_SKY | SURF_MASK_BLEND)) {
-        continue;
-      }
+  // Inline BSP model entities (doors, platforms, buttons, ...): the same pass and
+  // resources, but each carries its own model matrix and is lit as a whole (its
+  // dynamic-light set culled to the entity bounds rather than per block).
+  const r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-      if (!draw->material || !draw->material->texture || !draw->material->texture->texture) {
-        continue;
-      }
-
-      // Re-bind the base pipeline: a preceding surface's material stages may have
-      // left a stage (blend) pipeline bound.
-      $(pass, bindPipeline, base);
-
-      $(pass, bindFragmentSamplers, SLOT_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
-        .texture = draw->material->texture->texture->texture,
-        .sampler = r_bsp_pipeline.diffusemap_sampler->sampler,
-      }, 1);
-
-      r_material_uniforms_t material;
-      R_MaterialUniforms(draw->material, draw->surface, &material);
-      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_MATERIAL, &material, sizeof(material));
-
-      const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
-
-      $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
-
-      r_stats.bsp_triangles += draw->num_elements / 3;
-      r_stats.bsp_draw_elements++;
-
-      if (r_draw_material_stages->integer && !r_draw_wireframe->integer) {
-        R_DrawBspDrawElementsMaterialStages(view, pass, commands, draw);
-      }
+    if (!IS_BSP_INLINE_MODEL(e->model)) {
+      continue;
     }
+
+    if (e->effects & EF_NO_DRAW) {
+      continue;
+    }
+
+    if (R_CullEntity(view, e)) {
+      r_stats.entities_occluded++;
+      continue;
+    }
+
+    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
+
+    uint32_t active_lights[4];
+    R_ActiveLights(view, e->abs_model_bounds, active_lights);
+    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
+
+    const r_bsp_inline_model_t *in = e->model->bsp_inline;
+    const r_bsp_block_t *b = in->blocks;
+    for (int32_t j = 0; j < in->num_blocks; j++, b++) {
+      R_DrawBspBlockOpaque(view, pass, commands, base, b);
+    }
+
+    r_stats.entities_visible++;
   }
 
   pass = release(pass);
