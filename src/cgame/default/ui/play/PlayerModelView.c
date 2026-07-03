@@ -86,11 +86,11 @@ static void render(View *self, Renderer *renderer) {
 
     Vec3_Vectors(this->view.angles, &this->view.forward, &this->view.right, &this->view.up);
 
-    if (this->framebuffer.name == 0) {
+    if (this->framebuffer == NULL) {
       this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h, ATTACHMENT_ALL);
     }
 
-    this->view.framebuffer = &this->framebuffer;
+    this->view.framebuffer = this->framebuffer;
 
     cgi.AddEntity(&this->view, &this->platformBase);
     cgi.AddEntity(&this->view, &this->platformCenter);
@@ -107,7 +107,7 @@ static void render(View *self, Renderer *renderer) {
     cgi.DrawPlayerModelView(&this->view);
 
     const SDL_Rect renderFrame = $(self, renderFrame);
-    cgi.Draw2DFramebuffer(renderFrame.x, renderFrame.y, renderFrame.w, renderFrame.h, &this->framebuffer, color_white);
+    cgi.Draw2DFramebuffer(renderFrame.x, renderFrame.y, renderFrame.w, renderFrame.h, this->framebuffer, color_white);
   }
 }
 
@@ -120,7 +120,8 @@ static void renderDeviceWillReset(View *self) {
 
   PlayerModelView *this = (PlayerModelView *) self;
 
-  cgi.DestroyFramebuffer(&this->framebuffer);
+  cgi.DestroyFramebuffer(this->framebuffer);
+  this->framebuffer = NULL;
 }
 
 /**

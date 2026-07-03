@@ -39,7 +39,7 @@ void R_DrawDepthPass(r_view_t *view) {
     return;
   }
 
-  if (!view->framebuffer || !view->framebuffer->framebuffer) {
+  if (!view->framebuffer) {
     return;
   }
 
@@ -49,7 +49,7 @@ void R_DrawDepthPass(r_view_t *view) {
   }
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
-  Framebuffer *framebuffer = view->framebuffer->framebuffer;
+  Framebuffer *framebuffer = view->framebuffer;
 
   // Depth-only: clear + write the shared depth attachment (no color target).
   const SDL_GPUDepthStencilTargetInfo depth =

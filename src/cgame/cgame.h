@@ -722,13 +722,13 @@ typedef struct cg_import_s {
    * @param attachments The framebuffer attachments.
    * @return The framebuffer.
    */
-  r_framebuffer_t (*CreateFramebuffer)(int32_t width, int32_t height, int32_t attachments);
+  Framebuffer *(*CreateFramebuffer)(int32_t width, int32_t height, int32_t attachments);
 
   /**
-   * @brief Destroys the specified framebuffer, releasing any OpenGL resources.
+   * @brief Destroys the specified framebuffer, releasing its resources.
    * @param framebuffer The framebuffer to destroy.
    */
-  void (*DestroyFramebuffer)(r_framebuffer_t *framebuffer);
+  void (*DestroyFramebuffer)(Framebuffer *framebuffer);
 
   /**
    * @brief Loads a surface by `name` into the `SDL_Surface` `surface`.
@@ -909,7 +909,7 @@ typedef struct cg_import_s {
    * @remarks This function uses deferred rendering, allowing framebuffers to be used as
    * textures in menus or on the HUD.
    */
-  void (*Draw2DFramebuffer)(int32_t x, int32_t y, int32_t w, int32_t h, const r_framebuffer_t *framebuffer, const color_t color);
+  void (*Draw2DFramebuffer)(int32_t x, int32_t y, int32_t w, int32_t h, const Framebuffer *framebuffer, const color_t color);
 
   /**
    * @brief Draws the string `s` at the given coordinates.

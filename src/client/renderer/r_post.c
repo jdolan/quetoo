@@ -39,7 +39,7 @@ void R_DrawPost(const r_view_t *view) {
     return; // no 3D scene this frame; the present clear shows through for the UI
   }
 
-  if (!view->framebuffer || !view->framebuffer->framebuffer) {
+  if (!view->framebuffer) {
     return;
   }
 
@@ -48,7 +48,7 @@ void R_DrawPost(const r_view_t *view) {
     return;
   }
 
-  Framebuffer *scene = view->framebuffer->framebuffer;
+  Framebuffer *scene = view->framebuffer;
   Framebuffer *present = r_device.device->framebuffer;
 
   // Sizes should match (the scene FB is created at the present size); guard against
@@ -63,12 +63,6 @@ void R_DrawPost(const r_view_t *view) {
     &(SDL_GPUTextureLocation) { .texture = present->colorTextures[0]->texture },
     (Uint32) present->size.w, (Uint32) present->size.h, 1, false);
   copy = release(copy);
-}
-
-/**
- * @brief
- */
-void R_ResolveFramebufferDepth(const r_framebuffer_t *framebuffer) {
 }
 
 /**

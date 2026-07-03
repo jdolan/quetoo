@@ -38,7 +38,7 @@ void R_Draw2DChar(int32_t x, int32_t y, char c, const color_t color);
 size_t R_Draw2DBytes(int32_t x, int32_t y, const char *s, size_t size, const color_t color);
 void R_Draw2DFill(int32_t x, int32_t y, int32_t w, int32_t h, const color_t color);
 void R_Draw2DImage(int32_t x, int32_t y, int32_t w, int32_t h, const r_image_t *image, const color_t color);
-void R_Draw2DFramebuffer(int32_t x, int32_t y, int32_t w, int32_t h, const r_framebuffer_t *framebuffer, const color_t color);
+void R_Draw2DFramebuffer(int32_t x, int32_t y, int32_t w, int32_t h, const Framebuffer *framebuffer, const color_t color);
 void R_Draw2DLines(const int32_t *points, size_t count, const color_t color);
 size_t R_Draw2DSizedString(int32_t x, int32_t y, const char *s, size_t len, size_t size, const color_t color);
 size_t R_Draw2DString(int32_t x, int32_t y, const char *s, const color_t color);

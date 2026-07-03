@@ -23,13 +23,7 @@
 
 #include "r_types.h"
 
-r_framebuffer_t R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachments);
-void R_ClearFramebuffer(r_framebuffer_t *framebuffer);
-void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, uint32_t *texture);
-void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, int32_t x, int32_t y, int32_t w, int32_t h);
-void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, int32_t x, int32_t y, int32_t w, int32_t h);
-void R_ResolveFramebuffer(const r_framebuffer_t *framebuffer);
-void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, SDL_Surface **surface);
-void R_DestroyFramebuffer(r_framebuffer_t *framebuffer);
+Framebuffer *R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachments);
+void R_DestroyFramebuffer(Framebuffer *framebuffer);
 #if defined(__R_LOCAL_H__)
 #endif

@@ -370,12 +370,12 @@ void R_DrawBspEntities(const r_view_t *view) {
     return;
   }
 
-  if (!view->framebuffer || !view->framebuffer->framebuffer) {
+  if (!view->framebuffer) {
     return;
   }
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
-  Framebuffer *framebuffer = view->framebuffer->framebuffer;
+  Framebuffer *framebuffer = view->framebuffer;
 
   // First scene pass: clear the color attachment. When the depth pre-pass ran,
   // LOAD its depth so occluded fragments are rejected before shading (early-Z);

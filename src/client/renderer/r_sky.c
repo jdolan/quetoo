@@ -54,11 +54,11 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
     return;
   }
 
-  if (!view->framebuffer || !view->framebuffer->framebuffer) {
+  if (!view->framebuffer) {
     return;
   }
 
-  Framebuffer *framebuffer = view->framebuffer->framebuffer;
+  Framebuffer *framebuffer = view->framebuffer;
 
   // Composite over the opaque scene, depth-testing against it (LOAD, no clear) so
   // sky surfaces occluded by world geometry are discarded.

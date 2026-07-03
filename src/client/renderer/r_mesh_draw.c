@@ -119,12 +119,12 @@ void R_DrawMeshEntities(const r_view_t *view) {
     return;
   }
 
-  if (!view->framebuffer || !view->framebuffer->framebuffer) {
+  if (!view->framebuffer) {
     return;
   }
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
-  Framebuffer *framebuffer = view->framebuffer->framebuffer;
+  Framebuffer *framebuffer = view->framebuffer;
 
   const SDL_GPUColorTargetInfo color =
       $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);

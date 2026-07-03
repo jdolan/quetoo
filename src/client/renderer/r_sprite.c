@@ -397,11 +397,11 @@ void R_DrawSprites(const r_view_t *view) {
     return;
   }
 
-  if (!view->framebuffer || !view->framebuffer->framebuffer) {
+  if (!view->framebuffer) {
     return;
   }
 
-  Framebuffer *framebuffer = view->framebuffer->framebuffer;
+  Framebuffer *framebuffer = view->framebuffer;
 
   const uint32_t count = (uint32_t) view->num_sprite_instances * 4;
 

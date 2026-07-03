@@ -60,7 +60,7 @@ struct PlayerModelView {
   /**
    * @brief The framebuffer to which the view is rendered.
    */
-  r_framebuffer_t framebuffer;
+  Framebuffer *framebuffer;
 
   /**
    * @brief The view to populate and pass to DrawPlayerModelView.

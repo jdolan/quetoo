@@ -1850,97 +1850,6 @@ typedef enum {
 } r_attachment_t;
 
 /**
- * @brief The framebuffer type.
- */
-typedef struct r_framebuffer_s {
-
-  /**
-   * @brief The framebuffer name.
-   */
-  uint32_t name;
-
-  /**
-   * @brief The backing ObjectivelyGPU render target: an HDR-or-swapchain color
-   * attachment plus a (sampleable) depth attachment. The depth pre-pass and the
-   * main 3D passes render into this shared target for early-Z; R_DrawPost
-   * composites its color into the present framebuffer. TODO(#864): slim the dead
-   * GL fields below once all framebuffer paths are ported.
-   */
-  Framebuffer *framebuffer;
-
-  /**
-   * @brief The attachments enabled for this framebuffer.
-   */
-  int32_t attachments;
-
-  /**
-   * @brief The color attachment texture name.
-   */
-  uint32_t color_attachment;
-
-  /**
-   * @brief The depth attachment texture name.
-   */
-  uint32_t depth_attachment;
-
-  /**
-   * @brief The depth attachment copy texture name.
-   */
-  uint32_t depth_attachment_copy;
-
-  /**
-   * @brief The post-processing composite attachment texture name.
-   */
-  uint32_t post_attachment;
-
-  /**
-   * @brief MSAA state (all zero when MSAA is disabled).
-   */
-  struct {
-    /**
-     * @brief The MSAA renderbuffer FBO.
-     *
-     * When non-zero, all 3D rendering targets this FBO. After rendering,
-     * the MSAA color is resolved to @c color_attachment via R_ResolveFramebuffer,
-     * and MSAA depth is resolved to @c depth_attachment via R_ResolveFramebufferDepth.
-     */
-    uint32_t fbo;
-
-    /**
-     * @brief The MSAA color attachment (GL_R11F_G11F_B10F renderbuffer, multisampled).
-     *
-     * A renderbuffer rather than a texture since it is resolved to @c color_attachment
-     * via glBlitFramebuffer rather than shader sampling.
-     */
-    uint32_t color_attachment;
-
-    /**
-     * @brief The MSAA depth attachment (GL_TEXTURE_2D_MULTISAMPLE, GL_DEPTH_COMPONENT32F).
-     *
-     * A texture rather than a renderbuffer so that it can be shader-sampled during
-     * the depth resolve pass.
-     */
-    uint32_t depth_attachment;
-
-    /**
-     * @brief The actual sample count after clamping to GL_MAX_SAMPLES.
-     */
-    int32_t samples;
-  } msaa;
-
-  /**
-   * @brief The framebuffer width.
-   */
-  int32_t width;
-
-  /**
-   * @brief The framebuffer height.
-   */
-  int32_t height;
-
-} r_framebuffer_t;
-
-/**
  * @brief View types.
  */
 typedef enum {
@@ -1973,9 +1882,11 @@ typedef struct {
   r_view_flags_t flags;
 
   /**
-   * @brief The target framebuffer (required).
+   * @brief The target scene framebuffer (required): the depth pre-pass and the
+   * main 3D passes render here (shared depth for early-Z), then R_DrawPost
+   * composites its color into the present framebuffer.
    */
-  r_framebuffer_t *framebuffer;
+  Framebuffer *framebuffer;
 
   /**
    * @brief The viewport, in device pixels.

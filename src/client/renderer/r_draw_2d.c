@@ -446,11 +446,11 @@ void R_Draw2DImage(int32_t x, int32_t y, int32_t w, int32_t h, const r_image_t *
 }
 
 /**
- * @brief Draws a framebuffer color attachment as a 2D image at the specified screen rectangle.
- * @remarks TODO(#864): the dedicated scene/player-model framebuffer is not yet ported to SDL_gpu,
- * so there is no attachment texture to sample; this is a no-op until it is.
+ * @brief Draws a framebuffer's color attachment as a 2D image at the specified screen rectangle.
+ * @remarks TODO(#864): used to composite the player-model view; wire it up (sample
+ * framebuffer->colorTextures[0]) when R_DrawPlayerModelView is ported.
  */
-void R_Draw2DFramebuffer(int32_t x, int32_t y, int32_t w, int32_t h, const r_framebuffer_t *framebuffer, const color_t color) {
+void R_Draw2DFramebuffer(int32_t x, int32_t y, int32_t w, int32_t h, const Framebuffer *framebuffer, const color_t color) {
 }
 
 /**
