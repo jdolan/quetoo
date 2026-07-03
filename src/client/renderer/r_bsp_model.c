@@ -495,7 +495,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
     }
   }
 
-  R_GetError(NULL);
 }
 
 /**
@@ -648,7 +647,6 @@ static void R_FreeBspModel(r_media_t *self) {
 
   bsp->voxels.light_indices_buffer = release(bsp->voxels.light_indices_buffer);
 
-  R_GetError(NULL);
 }
 
 /**

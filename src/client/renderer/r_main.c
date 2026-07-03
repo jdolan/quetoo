@@ -35,7 +35,6 @@ cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_light_bounds;
 cvar_t *r_draw_material_stages;
 cvar_t *r_draw_wireframe;
-cvar_t *r_get_error;
 
 cvar_t *r_ambient;
 cvar_t *r_ambient_occlusion;
@@ -68,14 +67,6 @@ cvar_t *r_swap_interval;
 cvar_t *r_window_height;
 cvar_t *r_window_width;
 cvar_t *r_draw_stats;
-
-/**
- * @brief No-op retained for source compatibility with the many `R_GetError()`
- * call sites; ObjectivelyGPU / SDL_gpu report errors directly.
- * @remarks TODO(#864): remove the R_GetError call sites and this function.
- */
-void R_GetError_(const char *function, const char *msg) {
-}
 
 /**
  * @brief Updates the global uniform buffer object with view and projection matrices for the current frame.
@@ -278,7 +269,6 @@ static void R_InitLocal(void) {
   r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
   r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool).");
   r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
-  r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL information to the console. 2 will also cause a breakpoint for errors. (developer tool).");
   r_draw_stats = Cvar_Add("r_draw_stats", "0", CVAR_DEVELOPER, "Draw renderer performance statistics (developer tool).");
 
   // settings and preferences

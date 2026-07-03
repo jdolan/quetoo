@@ -277,14 +277,5 @@ extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_light_bounds;
 extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
-extern cvar_t *r_get_error;
-
-void R_GetError_(const char *function, const char *msg);
-
-#define R_GetError(msg) { \
-  if (r_get_error->integer) { \
-    R_GetError_(__func__, msg); \
-  } \
-}
 
 #endif
