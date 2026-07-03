@@ -170,9 +170,16 @@ void R_InitBspPipeline(void) {
   r_bsp_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   // Translucent variant: alpha-blend over the opaque scene and depth-test but do
-  // not write depth, for SURF_MASK_BLEND surfaces (water, glass, ...).
+  // not write depth, for SURF_MASK_BLEND surfaces (water, glass, ...). Unlike the
+  // opaque bring-up pipeline (cull disabled), translucent faces MUST backface-cull
+  // or a two-sided surface blends front and back and looks near-opaque; cull BACK
+  // with a clockwise front face matches the GL path's glFrontFace(GL_CW).
+  // TODO(#864): if translucent faces vanish, the winding is inverted -> flip to
+  // SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE (and enable culling on the opaque pass too).
   color_target.blend_state = GPU_BlendStateAlpha;
   info.depth_stencil_state.enable_depth_write = false;
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
   r_bsp_pipeline.blend_pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   // A line-fill variant for r_draw_wireframe (bsp_fs shades wireframe fragments
@@ -180,6 +187,8 @@ void R_InitBspPipeline(void) {
   // the wide-platform caveat around line fill on Vulkan/Android is acceptable.
   color_target.blend_state = GPU_BlendStateOpaque;
   info.depth_stencil_state.enable_depth_write = true;
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
   info.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_LINE;
   r_bsp_pipeline.wireframe_pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
