@@ -108,8 +108,6 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->editor = editor->integer;
     out->developer = developer->integer;
     out->wireframe = r_draw_wireframe->integer;
-    out->num_lights = view->num_lights;
-    out->num_bsp_lights = r_models.world ? r_models.world->bsp->num_lights : 0;
 
     if (r_models.world) {
       const r_bsp_voxels_t *voxels = &r_models.world->bsp->voxels;

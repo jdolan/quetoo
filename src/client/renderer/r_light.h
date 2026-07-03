@@ -51,9 +51,27 @@ typedef struct {
 
 /**
  * @brief The lights uniform block struct.
- * @remarks This struct is vec4 aligned.
+ * @remarks This struct is vec4 aligned. The counts live here, with their data,
+ * mirroring the std430 `lights_block` in light.glsl (two ints then 8 bytes of
+ * padding so `lights` begins at its vec4-aligned offset).
  */
 typedef struct {
+
+  /**
+   * @brief The number of light sources in `lights`.
+   */
+  int32_t num_lights;
+
+  /**
+   * @brief The number of leading static BSP lights (lit via voxels); lights at
+   * [num_bsp_lights, num_lights) are the dynamic tail, lit directly.
+   */
+  int32_t num_bsp_lights;
+
+  /**
+   * @brief Padding to align `lights` to 16 bytes (std430).
+   */
+  int32_t _pad[2];
 
   /**
    * @brief The light sources for the current frame.

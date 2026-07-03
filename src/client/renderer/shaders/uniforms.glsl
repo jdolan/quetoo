@@ -214,17 +214,6 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
    * @brief The wireframe mode flag.
    */
   int wireframe;
-
-  /**
-   * @brief The number of light sources in the lights storage buffer.
-   */
-  int num_lights;
-
-  /**
-   * @brief The number of static BSP lights (leading entries, lit via voxels).
-   * Lights at [num_bsp_lights, num_lights) are dynamic and lit directly.
-   */
-  int num_bsp_lights;
 };
 
 #define MAX_BSP_LIGHTS 512

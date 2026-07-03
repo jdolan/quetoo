@@ -72,8 +72,6 @@ struct uniforms_block
     int editor;
     int developer;
     int wireframe;
-    int num_lights;
-    int num_bsp_lights;
 };
 
 struct locals_block

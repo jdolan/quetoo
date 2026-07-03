@@ -31,6 +31,14 @@
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS) uniform sampler2DShadow texture_shadow_atlas;
 
 layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_LIGHTS) readonly buffer lights_block {
+  /**
+   * @brief The number of light sources in `lights` (total), and the number of
+   * leading static BSP lights (lit via voxels; [num_bsp_lights, num_lights) are
+   * the dynamic tail, lit directly). These counts live with their data.
+   */
+  int num_lights;
+  int num_bsp_lights;
+
   light_t lights[];
 };
 

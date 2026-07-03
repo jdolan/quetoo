@@ -49,6 +49,9 @@ void R_UpdateLights(r_view_t *view) {
   r_light_uniform_block_t *block = &r_lights.block;
   memset(block, 0, sizeof(*block));
 
+  block->num_lights = view->num_lights;
+  block->num_bsp_lights = r_models.world ? r_models.world->bsp->num_lights : 0;
+
   const float inv_layer = r_shadow_atlas.layer_size > 0 ? 1.f / (float) r_shadow_atlas.layer_size : 0.f;
 
   const r_light_t *l = view->lights;
@@ -75,10 +78,11 @@ void R_UpdateLights(r_view_t *view) {
     }
   }
 
-  const uint32_t size = view->num_lights * sizeof(r_light_uniform_t);
-  if (size) {
-    $(r_lights.buffer, upload, block, size, 0, true);
-  }
+  // Upload the count header plus the populated lights. Always upload at least
+  // the header so num_lights reaches the shader (0 on a light-free frame).
+  const uint32_t size = offsetof(r_light_uniform_block_t, lights)
+      + view->num_lights * sizeof(r_light_uniform_t);
+  $(r_lights.buffer, upload, block, size, 0, true);
 }
 
 /**
@@ -93,7 +97,7 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, uint32_t mask[4])
 
   mask[0] = mask[1] = mask[2] = mask[3] = 0;
 
-  const int32_t first = r_uniforms.block.num_bsp_lights;
+  const int32_t first = r_lights.block.num_bsp_lights;
 
   const r_light_t *l = view->lights + first;
   for (int32_t i = first; i < view->num_lights; i++, l++) {
