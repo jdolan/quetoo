@@ -20,11 +20,18 @@
 r_shadow_atlas_t r_shadow_atlas;
 
 /**
- * @brief The shadow depth pass pipeline (shadow_vs/shadow_fs).
- * @remarks TODO(#864): BSP world casters only for now; mesh casters, temporal
- * caching, and the per-light entity culling are ported in later increments.
+ * @brief The shadow depth pass pipeline (shadow_vs/shadow_fs) for static BSP
+ * geometry (r_bsp_vertex_t layout).
+ * @remarks TODO(#864): temporal caching and per-light entity culling
+ * optimizations are ported in later increments.
  */
 static GraphicsPipeline *r_shadow_pipeline;
+
+/**
+ * @brief The shadow depth pass pipeline for animated mesh casters (r_mesh_vertex_t
+ * layout, two frame slots lerped in shadow_vs).
+ */
+static GraphicsPipeline *r_shadow_mesh_pipeline;
 
 /**
  * @brief The six cube-face view matrices (light at origin), matching r_shadow.c
@@ -41,6 +48,22 @@ typedef struct {
   vec4_t light_origin;
   float lerp;
 } r_shadow_locals_t;
+
+/**
+ * @brief Returns true if the given entity (or any of its parents) is the source
+ * of the specified light, so it should not cast a shadow from it (self-shadow).
+ */
+static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
+
+  while (e) {
+    if (light->source && light->source == e) {
+      return true;
+    }
+    e = e->parent;
+  }
+
+  return false;
+}
 
 /**
  * @brief Computes the tile origin (in atlas pixels) for a light index and face.
@@ -170,6 +193,98 @@ void R_DrawShadows(const r_view_t *view) {
       }
     }
 
+    // Mesh entity casters: same atlas layer/pass, but the mesh-layout pipeline
+    // (two animation frame slots). Render each shadow-casting mesh entity within
+    // range of each of this layer's lights, into that light's six cube faces.
+    if (r_shadow_mesh_pipeline) {
+
+      $(pass, bindPipeline, r_shadow_mesh_pipeline);
+      $(commands, pushVertexUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
+
+      const r_light_t *ml = view->lights;
+      for (int32_t i = 0; i < view->num_lights; i++, ml++) {
+
+        if (i / r_shadow_atlas.lights_per_layer != layer) {
+          continue;
+        }
+
+        if (ml->flags & R_LIGHT_NO_SHADOW) {
+          continue;
+        }
+
+        if (R_CullBox(view, ml->bounds)) {
+          continue;
+        }
+
+        const r_entity_t *e = view->entities;
+        for (int32_t ei = 0; ei < view->num_entities; ei++, e++) {
+
+          if (!IS_MESH_MODEL(e->model)) {
+            continue;
+          }
+
+          // EF_NO_DRAW entities may still cast; EF_NO_SHADOW/EF_BLEND never do.
+          if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
+            continue;
+          }
+
+          if (R_IsLightSource(ml, e)) {
+            continue;
+          }
+
+          const r_mesh_model_t *mesh = e->model->mesh;
+          if (!mesh || !mesh->vertex_buffer) {
+            continue;
+          }
+
+          if (!Box3_Intersects(ml->bounds, e->abs_model_bounds)) {
+            continue;
+          }
+
+          $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
+            .buffer = mesh->elements_buffer->buffer
+          }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+          const uint32_t stride = sizeof(r_mesh_vertex_t);
+
+          for (int32_t face = 0; face < 6; face++) {
+
+            int32_t tx, ty;
+            R_ShadowAtlasTile(i, face, &tx, &ty);
+
+            $(pass, setViewport, &(SDL_GPUViewport) {
+              .x = (float) tx, .y = (float) ty, .w = (float) ts, .h = (float) ts,
+              .min_depth = 0.f, .max_depth = 1.f,
+            });
+            $(pass, setScissor, &(SDL_Rect) { tx, ty, ts, ts });
+
+            const r_shadow_locals_t locals = {
+              .model = e->matrix,
+              .light_view = r_shadow_light_view[face],
+              .light_origin = Vec3_ToVec4(ml->origin, 0.f),
+              .lerp = e->lerp,
+            };
+            $(commands, pushVertexUniformData, 1, &locals, sizeof(locals));
+
+            const r_mesh_face_t *mf = mesh->faces;
+            for (int32_t fi = 0; fi < mesh->num_faces; fi++, mf++) {
+
+              const uint32_t old_offset = (uint32_t) (mf->base_vertex + e->old_frame * mf->num_vertexes) * stride;
+              const uint32_t cur_offset = (uint32_t) (mf->base_vertex + e->frame * mf->num_vertexes) * stride;
+
+              $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
+                { .buffer = mesh->vertex_buffer->buffer, .offset = old_offset },
+                { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
+              }, 2);
+
+              const uint32_t firstIndex = (uint32_t) ((uintptr_t) mf->indices / sizeof(uint32_t));
+              $(pass, drawIndexedPrimitives, mf->num_elements, 1, firstIndex, 0, 0);
+            }
+          }
+        }
+      }
+    }
+
     pass = release(pass);
   }
 }
@@ -283,6 +398,22 @@ void R_InitShadows(void) {
 
   r_shadow_pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
+  // A mesh-layout variant (r_mesh_vertex_t stride) for animated mesh casters.
+  info.vertex_input_state = (SDL_GPUVertexInputState) {
+    .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
+      { .slot = 0, .pitch = sizeof(r_mesh_vertex_t), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
+      { .slot = 1, .pitch = sizeof(r_mesh_vertex_t), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
+    },
+    .num_vertex_buffers = 2,
+    .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+      { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, position) },
+      { .location = 1, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, position) },
+    },
+    .num_vertex_attributes = 2,
+  };
+
+  r_shadow_mesh_pipeline = $(r_context.device, createGraphicsPipeline, &info);
+
   release(vertexShader);
   release(fragmentShader);
 
@@ -301,6 +432,7 @@ void R_InitShadows(void) {
 void R_ShutdownShadows(void) {
 
   r_shadow_pipeline = release(r_shadow_pipeline);
+  r_shadow_mesh_pipeline = release(r_shadow_mesh_pipeline);
   r_shadow_atlas.sampler = release(r_shadow_atlas.sampler);
   r_shadow_atlas.texture = release(r_shadow_atlas.texture);
 }
