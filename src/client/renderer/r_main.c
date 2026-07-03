@@ -69,6 +69,25 @@ cvar_t *r_window_width;
 cvar_t *r_draw_stats;
 
 /**
+ * @brief The MSAA sample count for the 3D scene, snapshotted from r_antialias at
+ * renderer init. The scene framebuffer and every 3D pipeline are built with this
+ * count; changing r_antialias takes effect on the next renderer restart.
+ */
+SDL_GPUSampleCount r_scene_samples = SDL_GPU_SAMPLECOUNT_1;
+
+/**
+ * @brief Maps the r_antialias cvar to an SDL_gpu sample count.
+ */
+SDL_GPUSampleCount R_SampleCount(void) {
+  switch (r_antialias->integer) {
+    case 2:  return SDL_GPU_SAMPLECOUNT_2;
+    case 4:  return SDL_GPU_SAMPLECOUNT_4;
+    case 8:  return SDL_GPU_SAMPLECOUNT_8;
+    default: return SDL_GPU_SAMPLECOUNT_1;
+  }
+}
+
+/**
  * @brief Updates the global uniform buffer object with view and projection matrices for the current frame.
  */
 void R_UpdateUniforms(const r_view_t *view) {
@@ -148,9 +167,9 @@ void R_BeginFrame(void) {
   }
 
   if (r_antialias->modified) {
-    SDL_PushEvent(&(SDL_Event) {
-      .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
-    });
+    if (R_SampleCount() != r_scene_samples) {
+      Com_Print("r_antialias will take effect on the next renderer restart\n");
+    }
     r_antialias->modified = false;
   }
 
@@ -238,6 +257,10 @@ void R_DrawMainView(r_view_t *view) {
 
   // Translucent world surfaces composite over all opaque geometry.
   R_DrawBlendBspEntities(view);
+
+  // Under MSAA, resolve the multisampled scene depth to a single-sample texture so
+  // the sprite pass can sample it for soft particles.
+  R_ResolveDepth(view);
 
   R_DrawSprites(view);
 }
@@ -355,6 +378,9 @@ void R_Init(void) {
   R_InitLocal();
 
   R_InitContext();
+
+  // Snapshot the MSAA sample count for the scene framebuffer and all 3D pipelines.
+  r_scene_samples = R_SampleCount();
 
   // TODO(#864): the GL subsystems below are bypassed during the SDL_gpu port.
   // The UI renders through ObjectivelyGPU on r_context.device; the 3D scene, 2D

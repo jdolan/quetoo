@@ -58,7 +58,7 @@ Framebuffer *R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachme
     .colorFormats = { R_SCENE_COLOR_FORMAT },
     .numColorTargets = 1,
     .depthFormat = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
-    .sampleCount = SDL_GPU_SAMPLECOUNT_1,
+    .sampleCount = r_scene_samples,
   });
 }
 

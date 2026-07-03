@@ -38,7 +38,7 @@ shaders_DATA = \
 # regenerate them. Extend these lists as more shaders are ported (issue #864).
 
 VERTEX_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs sky_vs sprite_vs decal_vs
-FRAGMENT_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs sky_fs sprite_fs decal_fs
+FRAGMENT_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs depth_resolve_fs bsp_fs mesh_fs shadow_fs sky_fs sprite_fs decal_fs
 
 # Second, MATERIAL_STAGES variants of the bsp and mesh programs, used only for
 # material stage (and mesh shell) draws, compiled with -DMATERIAL_STAGES.

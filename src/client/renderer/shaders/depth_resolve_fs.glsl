@@ -19,16 +19,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-in vertex_data {
+#version 450
+
+layout (location = 0) in vertex_data {
   vec2 texcoord;
 } vertex;
 
-uniform sampler2DMS texture_depth_ms;
+layout (set = 2, binding = 0) uniform sampler2DMS texture_depth_ms;
 
 /**
- * @brief Resolves MSAA depth to single-sample by reading sample 0.
- *
- * Sample 0 is sufficient for soft-particle depth comparisons.
+ * @brief Resolves the multisampled scene depth to single-sample by reading sample 0
+ * into gl_FragDepth (SDL_gpu has no depth store-op resolve). Sample 0 is sufficient
+ * for soft-particle depth comparisons.
  */
 void main(void) {
   gl_FragDepth = texelFetch(texture_depth_ms, ivec2(gl_FragCoord.xy), 0).r;
