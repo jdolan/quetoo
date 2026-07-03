@@ -180,8 +180,12 @@ void R_InitContext(void) {
 
   R_UpdateContext();
 
-  // The present-target framebuffer. The UI (and, later, the resolved 3D scene)
-  // composite into this; RenderDevice::endFrame blits it to the swapchain.
+  // The present-target framebuffer, sized to the full device viewport. The UI,
+  // 2D overlays, and the composited 3D scene all draw into this; endFrame blits
+  // it to the swapchain.
+  // TODO(#864): give the 3D view its own framebuffer so r_framebuffer_scale can
+  // downscale only the scene render (and upscale on composite) without affecting
+  // the crisp 2D / UI layers, which should always present at native resolution.
   const SDL_GPUTextureFormat format = $(r_context.device, getSwapchainTextureFormat);
 
   Framebuffer *framebuffer = $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
@@ -194,9 +198,6 @@ void R_InitContext(void) {
 
   $(r_context.device, setFramebuffer, framebuffer);
   release(framebuffer);
-
-  // The initial render scale; updated live from r_framebuffer_scale in R_BeginFrame.
-  //r_context.device->renderScale = Clampf(r_framebuffer_scale->value, .25f, 2.f);
 }
 
 /**
