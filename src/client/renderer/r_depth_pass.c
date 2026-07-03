@@ -103,6 +103,22 @@ void R_InitDepthPass(void) {
   // Bring-up: draw all faces regardless of winding (matches R_InitBspPipeline).
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 
+  // Nudge the pre-pass depth slightly toward the far plane. On desktop GL the
+  // shared `invariant gl_Position` made the pre-pass and main-pass depths bit
+  // identical, so the main passes' LEQUAL test always accepted the coplanar
+  // world fragments. SDL's Metal backend compiles MSL with options:nil (fast
+  // math on, invariance preservation off), so `[[position, invariant]]` is
+  // ignored and the two shaders' depths can differ by a few ULPs, causing the
+  // main pass to reject its own geometry (Z-fighting). A tiny depth bias here
+  // guarantees the stored pre-pass depth is >= the main-pass depth, restoring
+  // the LEQUAL early-Z behavior regardless of invariance support.
+  // TODO(#864): the proper fix is precompiling to .metallib with
+  // -fpreserve-invariance; revisit if/when the shader toolchain grows a
+  // METALLIB path.
+  info.rasterizer_state.enable_depth_bias = true;
+  info.rasterizer_state.depth_bias_constant_factor = 1.f;
+  info.rasterizer_state.depth_bias_slope_factor = 1.f;
+
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
       .slot = 0,
