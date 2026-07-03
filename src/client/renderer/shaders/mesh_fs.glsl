@@ -22,96 +22,91 @@
 #version 450
 
 /*
- * TODO(#864): bring-up mesh program — diffuse material + clustered per-fragment
- * lighting, sharing the BSP fragment layout (see bsp_fs.glsl):
- *
- *   set 2, binding 0 : texture_material         (sampled 2D array) -> sampler 0
- *   set 2, binding 1 : texture_voxel_light_data (sampled 3D int)   -> sampler 1
- *   set 2, binding 2 : lights_block             (read-only storage)-> storage buf 0
- *   set 2, binding 3 : voxel_light_indices      (read-only storage)-> storage buf 1
- *
- * Stages, tint/color modulation, specular/normal mapping, and shadows are ported
- * in later increments.
+ * The mesh fragment program: full per-fragment material lighting (normal maps,
+ * Blinn-Phong specular, parallax occlusion, shadows, clustered voxel + dynamic
+ * lights), sharing the BSP fragment stack and its descriptor layout (see bsp_fs).
+ * TODO(#864): material stages, shells, and tints are ported in later increments;
+ * parallax_occlusion_mapping is duplicated from bsp_fs pending a shared home.
  */
 
 #define UNIFORMS_NO_SAMPLERS
+#define UNIFORMS_LIGHT_CULL
 #include "uniforms.glsl"
+#include "common.glsl"
+#include "material.glsl"
+#include "voxel.glsl"
+#include "light.glsl"
 
-layout (set = 2, binding = 0) uniform sampler2DArray texture_material;
-layout (set = 2, binding = 1) uniform isampler3D texture_voxel_light_data;
-
-layout (std430, set = 2, binding = 2) readonly buffer lights_block {
-  light_t lights[];
-};
-
-layout (std430, set = 2, binding = 3) readonly buffer voxel_light_indices_block {
-  int voxel_light_indices[];
-};
-
-layout (location = 0) in vec2 in_diffusemap;
-layout (location = 1) in vec3 in_model_position;
-layout (location = 2) in vec3 in_model_normal;
+layout (location = 0) in common_vertex_t vertex;
 
 layout (location = 0) out vec4 out_color;
 
-/**
- * @brief Resolves the integer voxel coordinate for a world-space position.
- */
-ivec3 voxel_xyz(in vec3 position) {
-  const vec3 pos = position - voxels.mins.xyz;
-  const ivec3 voxel = ivec3(floor(pos / BSP_VOXEL_SIZE));
-  return clamp(voxel, ivec3(0), ivec3(voxels.size.xyz) - ivec3(1));
-}
+common_fragment_t fragment;
 
 /**
- * @brief Unshadowed Lambert diffuse contribution from a single light.
+ * @brief Calculates the augmented texcoord for parallax occlusion mapping.
+ * @see https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
  */
-vec3 mesh_light(in int index, in vec3 normal) {
+void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment_t fragment) {
 
-  const light_t light = lights[index];
+  fragment.parallax = vertex.diffusemap;
 
-  const vec3 dir = light.origin.xyz - in_model_position;
-  const float dist = length(dir);
-  const float radius = light.origin.w;
-
-  const float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
-  if (atten <= 0.0) {
-    return vec3(0.0);
+  if (material.parallax == 0.0 || fragment.lod > 4.0) {
+    return;
   }
 
-  const float lambert = max(0.0, dot(normal, dir / dist));
+  float num_samples = mix(32.0, 8.0, min(fragment.lod * 0.25, 1.0));
 
-  return light_color(light) * atten * lambert;
-}
+  vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
+  vec3 dir = normalize(fragment.view_dir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
+  dir.z = max(dir.z, 0.1);
+  vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
+  vec2 delta = p / num_samples;
 
-/**
- * @brief Accumulates the static voxel lights affecting this fragment.
- */
-vec3 mesh_lighting(void) {
+  vec2 texcoord = vertex.diffusemap;
+  vec2 prev_texcoord = vertex.diffusemap;
 
-  vec3 diffuse = vec3(0.0);
+  float depth = 0.0;
+  float layer = 1.0 / num_samples;
+  float displacement = sample_material_displacement(texcoord, fragment.lod);
 
-  const vec3 normal = normalize(in_model_normal);
-
-  const ivec3 voxel = voxel_xyz(in_model_position);
-  const ivec2 data = texelFetch(texture_voxel_light_data, voxel, 0).xy;
-
-  for (int i = 0; i < data.y; i++) {
-    const int index = voxel_light_indices[data.x + i];
-    diffuse += mesh_light(index, normal);
+  for (int i = 0; i < int(num_samples) && depth < displacement; i++) {
+    depth += layer;
+    prev_texcoord = texcoord;
+    texcoord -= delta;
+    displacement = sample_material_displacement(texcoord, fragment.lod);
   }
 
-  return diffuse;
+  float a = displacement - depth;
+  float b = sample_material_displacement(prev_texcoord, fragment.lod) - depth + layer;
+
+  fragment.parallax = mix(prev_texcoord, texcoord, a / (a - b));
 }
 
 /**
- * @brief
+ * @brief Animated mesh: diffuse material with full per-fragment lighting.
  */
 void main(void) {
 
-  const vec4 diffuse = texture(texture_material, vec3(in_diffusemap, 0.0));
+  fragment.view_dir = normalize(-vertex.position);
+  fragment.view_dist = length(vertex.position);
+  fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
 
-  const vec3 light = vec3(ambient) + mesh_lighting();
+  parallax_occlusion_mapping(vertex, fragment);
 
-  out_color = vec4(diffuse.rgb * light, 1.0);
+  fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
+
+  out_color = fragment.diffuse_sample * vertex.color;
+
+  fragment.normal_sample = sample_material_normal(fragment.parallax, mat3(vertex.tangent, vertex.bitangent, vertex.normal));
+  fragment.specular_sample = sample_material_specular(fragment.parallax);
+
+  // Per-pixel Poisson rotation for shadow PCF.
+  float angle = random_angle(vertex.model_position);
+  fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
+
+  fragment_lighting(vertex, fragment);
+
+  out_color.rgb *= (fragment.ambient + fragment.diffuse);
+  out_color.rgb += fragment.specular;
 }

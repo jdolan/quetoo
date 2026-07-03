@@ -67,7 +67,14 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     .model = e->matrix,
     .lerp = e->lerp,
   };
-  $(commands, pushVertexUniformData, 1, &locals, sizeof(locals));
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+
+  // The dynamic lights affecting this entity, culled to its bounds (fragment
+  // slot 1 = active_lights bitmask, the same slot the vertex stage uses for the
+  // model matrix).
+  uint32_t active_lights[4];
+  R_ActiveLights(view, e->abs_model_bounds, active_lights);
+  $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
 
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
     .buffer = mesh->elements_buffer->buffer
@@ -89,13 +96,17 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
       continue;
     }
 
-    $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
+    $(pass, bindFragmentSamplers, SLOT_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
       .texture = material->texture->texture->texture,
       .sampler = r_mesh_pipeline.diffusemap_sampler->sampler,
     }, 1);
 
+    r_material_uniforms_t material_uniforms;
+    R_MaterialUniforms(material, material->cm->surface, &material_uniforms);
+    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
+
     // Two vertex buffer slots: the old frame (locations 0-4) and the current
-    // frame (locations 5-6), the same model buffer bound at each frame offset.
+    // frame (locations 5-8), the same model buffer bound at each frame offset.
     const uint32_t old_offset = (uint32_t) (face->base_vertex + e->old_frame * face->num_vertexes) * stride;
     const uint32_t cur_offset = (uint32_t) (face->base_vertex + e->frame * face->num_vertexes) * stride;
 
@@ -155,9 +166,15 @@ void R_DrawMeshEntities(const r_view_t *view) {
 
   $(pass, bindPipeline, r_mesh_pipeline.pipeline);
 
-  $(pass, bindFragmentSamplers, 1, &(SDL_GPUTextureSamplerBinding) {
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
     .texture = bsp->voxels.light_data->texture->texture,
     .sampler = r_mesh_pipeline.voxel_data_sampler->sampler,
+  }, 1);
+
+  // The point-light shadow atlas (comparison sampler), shared with the BSP pass.
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_SHADOW_ATLAS, &(SDL_GPUTextureSamplerBinding) {
+    .texture = r_shadow_atlas.texture->texture,
+    .sampler = r_shadow_atlas.sampler->sampler,
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
@@ -202,9 +219,9 @@ void R_InitMeshPipeline(void) {
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = 2,         // texture_material + texture_voxel_light_data
+    .num_samplers = 3,         // texture_material + texture_voxel_light_data + texture_shadow_atlas
     .num_storage_buffers = 2,  // lights_block + voxel_light_indices_block
-    .num_uniform_buffers = 1,  // globals (binding 0)
+    .num_uniform_buffers = 3,  // globals (0) + active_lights (1) + material (2)
   });
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;
@@ -223,15 +240,19 @@ void R_InitMeshPipeline(void) {
     },
     .num_vertex_buffers = 2,
     .vertex_attributes = (SDL_GPUVertexAttribute[]) {
-      // old frame (slot 0)
+      // old frame (slot 0): position, normal, tangent, bitangent, diffusemap
       { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, position) },
       { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, normal) },
+      { .location = 2, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, tangent) },
+      { .location = 3, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, bitangent) },
       { .location = 4, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(r_mesh_vertex_t, diffusemap) },
-      // current frame (slot 1)
+      // current frame (slot 1): position, normal, tangent, bitangent (diffusemap shared)
       { .location = 5, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, position) },
       { .location = 6, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, normal) },
+      { .location = 7, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, tangent) },
+      { .location = 8, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, bitangent) },
     },
-    .num_vertex_attributes = 5,
+    .num_vertex_attributes = 9,
   };
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {

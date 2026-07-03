@@ -22,22 +22,31 @@
 #version 450
 
 /*
- * TODO(#864): bring-up mesh program — animated (two-frame lerp) geometry with
- * diffuse material and clustered per-fragment lighting (see mesh_fs / bsp_fs).
+ * The mesh program: animated (two-frame lerp) geometry with full per-fragment
+ * material lighting, sharing the BSP fragment stack (common/material/voxel/light).
  * The two animation frames are supplied as two vertex buffer bindings (the same
- * model buffer at two frame offsets); locations 0..4 are the old frame, 5..6
- * the current frame. Stages, tangents/normal-mapping, shells, and tints are
+ * model buffer at two frame offsets): locations 0..4 are the old frame, 5..8 the
+ * current frame; diffusemap (4) does not animate. Stages, shells, and tints are
  * ported in later increments.
  */
 
 #include "uniforms.glsl"
+#include "common.glsl"
+#include "material.glsl"
+#include "voxel.glsl"
 
+// Old animation frame.
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
+layout (location = 2) in vec3 in_tangent;
+layout (location = 3) in vec3 in_bitangent;
 layout (location = 4) in vec2 in_diffusemap;
 
+// Current animation frame (diffusemap is shared with the old frame).
 layout (location = 5) in vec3 in_next_position;
 layout (location = 6) in vec3 in_next_normal;
+layout (location = 7) in vec3 in_next_tangent;
+layout (location = 8) in vec3 in_next_bitangent;
 
 /**
  * @brief Per-entity locals.
@@ -47,23 +56,31 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_bloc
   float lerp;
 };
 
-layout (location = 0) out vec2 out_diffusemap;
-layout (location = 1) out vec3 out_model_position;
-layout (location = 2) out vec3 out_model_normal;
+layout (location = 0) out common_vertex_t vertex;
 
 invariant gl_Position;
 
 /**
- * @brief
+ * @brief Lerps the two animation frames and emits the shared common_vertex_t.
  */
 void main(void) {
 
+  mat4 view_model = view * model;
+
   const vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
   const vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
+  const vec4 tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
+  const vec4 bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 0.0);
 
-  out_diffusemap = in_diffusemap;
-  out_model_position = vec3(model * position);
-  out_model_normal = normalize(vec3(model * normal));
+  vertex.model_position = vec3(model * position);
+  vertex.model_normal = normalize(vec3(model * normal));
+  vertex.position = vec3(view_model * position);
+  vertex.normal = normalize(vec3(view_model * normal));
+  vertex.tangent = normalize(vec3(view_model * tangent));
+  vertex.bitangent = normalize(vec3(view_model * bitangent));
+  vertex.diffusemap = in_diffusemap;
+  vertex.voxel = voxel_uvw(vec3(model * position));
+  vertex.color = vec4(1.0);
 
-  gl_Position = projection3D * view * model * position;
+  gl_Position = projection3D * view_model * position;
 }
