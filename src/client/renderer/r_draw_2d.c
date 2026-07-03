@@ -96,9 +96,8 @@ static struct {
   // old UI accumulation list (MVC 1.x's pluggable backend) is gone.
   r_draw_2d_arrays_list_t game;
 
-  // the triangle-list and line-strip pipelines
-  GraphicsPipeline *pipeline_triangles;
-  GraphicsPipeline *pipeline_lines;
+  // the single triangle-list pipeline (lines are rasterized as triangles)
+  GraphicsPipeline *pipeline;
 
   // the diffuse sampler
   Sampler *sampler;
@@ -473,44 +472,59 @@ void R_Draw2DFill(int32_t x, int32_t y, int32_t w, int32_t h, const color_t colo
 
 /**
  * @brief Draws a polyline through the given screen-space point list.
+ * @details Each segment is rasterized as a 1px-wide quad (two triangles) rather
+ * than a line primitive, so all 2D geometry shares the single triangle pipeline
+ * (no per-batch pipeline switch), as ObjectivelyMVC does.
  */
 void R_Draw2DLines(const int32_t *points, size_t count, const color_t color) {
 
+  if (count < 2) {
+    return;
+  }
+
   r_draw_2d_arrays_t draw = {
-    .mode = SDL_GPU_PRIMITIVETYPE_LINESTRIP,
+    .mode = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
     .texture = r_draw_2d.null_texture->texture,
     .first_vertex = r_draw_2d.game.num_vertexes,
-    .num_vertexes = (int32_t) count
+    .num_vertexes = 0,
   };
 
-  r_draw_2d_arrays_list_t *list = &r_draw_2d.game;
-
-  if (list->num_vertexes + (int32_t) count > MAX_DRAW_2D_VERTEXES) {
-    Com_Warn("R_Draw2DLines: vertex buffer overflow; truncating %zu vertices\n", count);
-    count = (size_t) Maxi(MAX_DRAW_2D_VERTEXES - list->num_vertexes, 0);
-    if (count == 0) {
-      return;
-    }
-    draw.num_vertexes = (int32_t) count;
-  }
-
-  r_draw_2d_vertex_t *out = list->vertexes + list->num_vertexes;
+  const color32_t c = Color_Color32(color);
 
   const int32_t *in = points;
-  for (size_t i = 0; i < count; i++, in += 2, out++) {
+  for (size_t i = 0; i < count - 1; i++, in += 2) {
 
-    out->position.x = *(in + 0);
-    out->position.y = *(in + 1);
-    out->diffusemap = Vec2(0.f, 0.f);
+    const vec2_t a = Vec2((float) in[0], (float) in[1]);
+    const vec2_t b = Vec2((float) in[2], (float) in[3]);
 
-    out->color = Color_Color32(color);
+    const vec2_t delta = Vec2_Subtract(b, a);
+    const float len = Vec2_Length(delta);
+    if (len == 0.f) {
+      continue;
+    }
+
+    // Perpendicular to the segment, half a pixel to each side => 1px width.
+    const vec2_t dir = Vec2_Scale(delta, 1.f / len);
+    const vec2_t perp = Vec2_Scale(Vec2(-dir.y, dir.x), 0.5f);
+
+    r_draw_2d_vertex_t quad[4];
+    quad[0].position = Vec2_Add(a, perp);
+    quad[1].position = Vec2_Add(b, perp);
+    quad[2].position = Vec2_Subtract(b, perp);
+    quad[3].position = Vec2_Subtract(a, perp);
+
+    for (int32_t k = 0; k < 4; k++) {
+      quad[k].diffusemap = Vec2_Zero();
+      quad[k].color = c;
+    }
+
+    R_EmitDrawVertexes2D_Quad(quad);
   }
 
-  list->num_vertexes += count;
-
+  draw.num_vertexes = r_draw_2d.game.num_vertexes - draw.first_vertex;
   R_AddDraw2DArrays(&draw);
 
-  r_stats.draw_lines += count >> 1;
+  r_stats.draw_lines += count - 1;
 }
 
 /**
@@ -524,21 +538,14 @@ static void R_Draw2DList(RenderPass *pass, const r_draw_2d_arrays_list_t *list,
 
   $(commands, pushVertexUniformData, 0, projection.array, sizeof(projection));
 
-  const GraphicsPipeline *bound = NULL;
+  // All batches are triangle lists, so the pipeline binds once for the frame.
+  $(pass, bindPipeline, r_draw_2d.pipeline);
 
   const r_draw_2d_arrays_t *d = list->draw_arrays;
   for (int32_t i = 0; i < list->num_draw_arrays; i++, d++) {
 
     if (!d->texture) {
       continue;
-    }
-
-    GraphicsPipeline *pipeline = d->mode == SDL_GPU_PRIMITIVETYPE_LINESTRIP
-        ? r_draw_2d.pipeline_lines : r_draw_2d.pipeline_triangles;
-
-    if (pipeline != bound) {
-      $(pass, bindPipeline, pipeline);
-      bound = pipeline;
     }
 
     const r_draw_2d_clipping_frame_t *c = &d->clipping_frame;
@@ -569,7 +576,7 @@ void R_Draw2D(void) {
   }
 
   CommandBuffer *commands = r_context.device->commands;
-  if (!commands || !r_draw_2d.pipeline_triangles) {
+  if (!commands || !r_draw_2d.pipeline) {
     goto reset;
   }
 
@@ -645,16 +652,16 @@ static void R_InitFont(char *name) {
 }
 
 /**
- * @brief Builds a 2D pipeline (draw_2d_vs/draw_2d_fs) for the given primitive type.
+ * @brief Builds the 2D triangle-list pipeline (draw_2d_vs/draw_2d_fs).
  */
-static GraphicsPipeline *R_InitDraw2DPipeline(Shader *vertexShader, Shader *fragmentShader, SDL_GPUPrimitiveType mode) {
+static GraphicsPipeline *R_InitDraw2DPipeline(Shader *vertexShader, Shader *fragmentShader) {
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = {
     .vertex_shader = vertexShader->shader,
     .fragment_shader = fragmentShader->shader,
-    .primitive_type = mode,
+    .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
     .vertex_input_state = {
       .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
         .slot = 0,
@@ -741,8 +748,7 @@ void R_InitDraw2D(void) {
     .num_samplers = 1, // texture_diffusemap
   });
 
-  r_draw_2d.pipeline_triangles = R_InitDraw2DPipeline(vertexShader, fragmentShader, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST);
-  r_draw_2d.pipeline_lines = R_InitDraw2DPipeline(vertexShader, fragmentShader, SDL_GPU_PRIMITIVETYPE_LINESTRIP);
+  r_draw_2d.pipeline = R_InitDraw2DPipeline(vertexShader, fragmentShader);
 
   release(vertexShader);
   release(fragmentShader);
@@ -762,8 +768,7 @@ void R_InitDraw2D(void) {
  */
 void R_ShutdownDraw2D(void) {
 
-  r_draw_2d.pipeline_triangles = release(r_draw_2d.pipeline_triangles);
-  r_draw_2d.pipeline_lines = release(r_draw_2d.pipeline_lines);
+  r_draw_2d.pipeline = release(r_draw_2d.pipeline);
   r_draw_2d.sampler = release(r_draw_2d.sampler);
   r_draw_2d.vertex_buffer = release(r_draw_2d.vertex_buffer);
 }
