@@ -242,8 +242,9 @@ void Ui_Init(void) {
 
   MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
 
-  $$(Resource, addResourceProvider, Ui_Data);
-
+  // MVC asset lookups resolve through the renderer's R_ResourceProvider, which
+  // is registered for the lifetime of the device (see r_device.c); the old
+  // Ui_Data provider was a redundant second bridge to Fs_Load.
   windowController = $(alloc(WindowController), initWithDevice, r_device.device);
 
   navigationViewController = $(alloc(NavigationViewController), init);
@@ -258,8 +259,6 @@ void Ui_Init(void) {
  * @brief Shuts down the user interface.
  */
 void Ui_Shutdown(void) {
-
-  $$(Resource, removeResourceProvider, Ui_Data);
 
   Ui_PopAllViewControllers();
 
