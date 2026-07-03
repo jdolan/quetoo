@@ -171,6 +171,8 @@
 		CE1643C52FF75DDB00863996 /* r_context.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1643C22FF75DDB00863996 /* r_context.h */; };
 		CE1643CA2FF7EE9900863996 /* decal_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643C62FF7EE8B00863996 /* decal_fs.metal */; };
 		CE1643CB2FF7EEA100863996 /* decal_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643C82FF7EE8B00863996 /* decal_vs.metal */; };
+		CE1643D02FF83EC700863996 /* mesh_stage_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643CC2FF83EBB00863996 /* mesh_stage_fs.metal */; };
+		CE1643D12FF83ECF00863996 /* mesh_stage_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643CE2FF83EBB00863996 /* mesh_stage_vs.metal */; };
 		CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
 		CE1A28321F75FC1D005F62A9 /* PlayerModelView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A282E1F75FC1D005F62A9 /* PlayerModelView.h */; };
 		CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
@@ -999,6 +1001,8 @@
 				CE1643CB2FF7EEA100863996 /* decal_vs.metal in CopyFiles */,
 				CE1643A32FF69B3C00863996 /* mesh_fs.metal in CopyFiles */,
 				CE1643A42FF69B3F00863996 /* mesh_vs.metal in CopyFiles */,
+				CE1643D02FF83EC700863996 /* mesh_stage_fs.metal in CopyFiles */,
+				CE1643D12FF83ECF00863996 /* mesh_stage_vs.metal in CopyFiles */,
 				CE1643842FF5A23300863996 /* post_fs.metal in CopyFiles */,
 				CE1643872FF5A23300863996 /* post_vs.metal in CopyFiles */,
 				CE1643A62FF69B6700863996 /* shadow_fs.metal in CopyFiles */,
@@ -1524,6 +1528,10 @@
 		CE1643C72FF7EE8B00863996 /* decal_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = decal_fs.spv; sourceTree = "<group>"; };
 		CE1643C82FF7EE8B00863996 /* decal_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = decal_vs.metal; sourceTree = "<group>"; };
 		CE1643C92FF7EE8B00863996 /* decal_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = decal_vs.spv; sourceTree = "<group>"; };
+		CE1643CC2FF83EBB00863996 /* mesh_stage_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = mesh_stage_fs.metal; sourceTree = "<group>"; };
+		CE1643CD2FF83EBB00863996 /* mesh_stage_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = mesh_stage_fs.spv; sourceTree = "<group>"; };
+		CE1643CE2FF83EBB00863996 /* mesh_stage_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = mesh_stage_vs.metal; sourceTree = "<group>"; };
+		CE1643CF2FF83EBB00863996 /* mesh_stage_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = mesh_stage_vs.spv; sourceTree = "<group>"; };
 		CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerModelView.c; sourceTree = "<group>"; };
 		CE1A282E1F75FC1D005F62A9 /* PlayerModelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerModelView.h; sourceTree = "<group>"; };
 		CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerSetupViewController.c; sourceTree = "<group>"; };
@@ -2703,6 +2711,10 @@
 				CEFD07FA2B671DE700642169 /* mesh_fs.glsl */,
 				CE16439B2FF6962600863996 /* mesh_fs.metal */,
 				CE16439C2FF6962600863996 /* mesh_fs.spv */,
+				CE1643CC2FF83EBB00863996 /* mesh_stage_fs.metal */,
+				CE1643CD2FF83EBB00863996 /* mesh_stage_fs.spv */,
+				CE1643CE2FF83EBB00863996 /* mesh_stage_vs.metal */,
+				CE1643CF2FF83EBB00863996 /* mesh_stage_vs.spv */,
 				CEFD07F92B671DE700642169 /* mesh_vs.glsl */,
 				CE16439D2FF6962600863996 /* mesh_vs.metal */,
 				CE16439E2FF6962600863996 /* mesh_vs.spv */,

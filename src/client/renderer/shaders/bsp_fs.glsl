@@ -25,6 +25,7 @@
 #define UNIFORMS_LIGHT_CULL
 #define VOXEL_CAUSTICS_OCCLUSION
 #define LIGHT_SKY
+
 #include "uniforms.glsl"
 #include "common.glsl"
 #include "material.glsl"
