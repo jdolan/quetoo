@@ -628,7 +628,15 @@ reset:
 
 /**
  * @brief Initializes the specified bitmap font. The layout of the font is square,
- * 2^n (e.g. 256x256, 512x512), and 8 rows by 16 columns.
+ * 2^n (e.g. 256x256, 512x512), and 8 rows by 16 columns. See below:
+ *
+ *
+ *  !"#$%&'()*+,-./
+ * 0123456789:;<=>?
+ * @ABCDEFGHIJKLMNO
+ * `PQRSTUVWXYZ`[\]^_
+ * 'abcdefghijklmno
+ * pqrstuvwxyz{|}"
  */
 static void R_InitFont(char *name) {
 
