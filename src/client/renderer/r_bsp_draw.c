@@ -545,6 +545,12 @@ void R_DrawBspEntities(const r_view_t *view) {
       continue;
     }
 
+    // The worldspawn is itself a BSP inline model entity, but it is drawn above
+    // via bsp->inline_models[0]; skip it here to avoid drawing it twice.
+    if (IS_WORLDSPAWN(e->model)) {
+      continue;
+    }
+
     if (e->effects & EF_NO_DRAW) {
       continue;
     }
