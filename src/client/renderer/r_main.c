@@ -258,10 +258,6 @@ void R_DrawMainView(r_view_t *view) {
   // Translucent world surfaces composite over all opaque geometry.
   R_DrawBlendBspEntities(view);
 
-  // Under MSAA, resolve the multisampled scene depth to a single-sample texture so
-  // the sprite pass can sample it for soft particles.
-  R_ResolveDepth(view);
-
   R_DrawSprites(view);
 }
 

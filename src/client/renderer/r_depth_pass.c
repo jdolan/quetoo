@@ -101,8 +101,10 @@ void R_InitDepthPass(void) {
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
-  // Bring-up: draw all faces regardless of winding (matches R_InitBspPipeline).
-  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+  // Cull back faces, matching R_InitBspPipeline so the pre-pass depth agrees with
+  // the main opaque pass (front faces clockwise, per the GL renderer).
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
   // Nudge the pre-pass depth slightly toward the far plane. On desktop GL the
   // shared `invariant gl_Position` made the pre-pass and main-pass depths bit

@@ -78,13 +78,6 @@ static struct {
   GraphicsPipeline *composite_pipeline;
 
   /**
-   * @brief The depth-resolve program (post_vs/depth_resolve_fs): reads the
-   * multisampled scene depth and writes the single-sample resolve depth (used
-   * only under MSAA, so soft particles can sample the scene depth).
-   */
-  GraphicsPipeline *depth_resolve_pipeline;
-
-  /**
    * @brief A linear, clamped sampler for the scene and bloom textures.
    */
   Sampler *sampler;
@@ -297,115 +290,6 @@ static GraphicsPipeline *R_CreatePostPipeline(SDL_GPUTextureFormat format) {
 }
 
 /**
- * @brief Builds the depth-resolve pipeline (post_vs/depth_resolve_fs): a
- * fullscreen pass that writes gl_FragDepth, with no color target.
- */
-static GraphicsPipeline *R_CreateDepthResolvePipeline(void) {
-
-  Shader *vertexShader = $(r_context.device, loadShader, "shaders/post_vs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-  });
-
-  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/depth_resolve_fs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = 1, // the multisampled scene depth (sampler2DMS)
-  });
-
-  SDL_GPUGraphicsPipelineCreateInfo info = {
-    .vertex_shader = vertexShader->shader,
-    .fragment_shader = fragmentShader->shader,
-    .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-    .vertex_input_state = {
-      .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
-        .slot = 0,
-        .pitch = sizeof(r_post_vertex_t),
-        .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
-      },
-      .num_vertex_buffers = 1,
-      .vertex_attributes = (SDL_GPUVertexAttribute[]) {
-        { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(r_post_vertex_t, position) },
-        { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(r_post_vertex_t, texcoord) },
-      },
-      .num_vertex_attributes = 2,
-    },
-    .rasterizer_state = {
-      .fill_mode = SDL_GPU_FILLMODE_FILL,
-      .cull_mode = SDL_GPU_CULLMODE_NONE,
-    },
-    // Write the resolved depth unconditionally; the resolve target is single-sample.
-    .depth_stencil_state = {
-      .enable_depth_test = true,
-      .enable_depth_write = true,
-      .compare_op = SDL_GPU_COMPAREOP_ALWAYS,
-    },
-    .target_info = {
-      .num_color_targets = 0,
-      .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
-      .has_depth_stencil_target = true,
-    },
-  };
-
-  GraphicsPipeline *pipeline = $(r_context.device, createGraphicsPipeline, &info);
-
-  release(vertexShader);
-  release(fragmentShader);
-
-  return pipeline;
-}
-
-/**
- * @brief Resolves the multisampled scene depth into the single-sample resolve
- * depth texture, so the sprite pass can sample the scene depth for soft particles.
- * A no-op without MSAA (the single-sample depth attachment is sampled directly).
- */
-void R_ResolveDepth(const r_view_t *view) {
-
-  if (r_scene_samples == SDL_GPU_SAMPLECOUNT_1) {
-    return;
-  }
-
-  if (!view->framebuffer || !r_post.depth_resolve_pipeline) {
-    return;
-  }
-
-  CommandBuffer *commands = r_context.device->commands;
-  if (!commands) {
-    return;
-  }
-
-  Framebuffer *scene = view->framebuffer;
-  Texture *resolve = $(scene, resolveDepthTexture);
-
-  const SDL_GPUDepthStencilTargetInfo depth = {
-    .texture = resolve->texture,
-    .load_op = SDL_GPU_LOADOP_DONT_CARE,
-    .store_op = SDL_GPU_STOREOP_STORE,
-    .clear_depth = 1.f,
-  };
-
-  RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
-
-  $(pass, setViewport, &(SDL_GPUViewport) {
-    .x = 0.f, .y = 0.f,
-    .w = (float) scene->size.w, .h = (float) scene->size.h,
-    .min_depth = 0.f, .max_depth = 1.f,
-  });
-
-  $(pass, bindPipeline, r_post.depth_resolve_pipeline);
-  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_post.vertex_buffer->buffer }, 1);
-
-  // The multisampled scene depth, read per-sample (sample 0) by the resolve shader.
-  $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
-    .texture = scene->depthTexture->texture,
-    .sampler = r_post.sampler->sampler,
-  }, 1);
-
-  $(pass, drawPrimitives, 6, 1, 0, 0);
-
-  release(pass);
-}
-
-/**
  * @brief Initializes the post-processing subsystem: the fullscreen quad, the
  * bloom and composite pipelines, and the sampler.
  */
@@ -430,7 +314,6 @@ void R_InitPost(void) {
 
   r_post.bloom_pipeline = R_CreatePostPipeline(R_SCENE_COLOR_FORMAT);
   r_post.composite_pipeline = R_CreatePostPipeline(r_context.device->framebuffer->colorFormats[0]);
-  r_post.depth_resolve_pipeline = R_CreateDepthResolvePipeline();
 
   r_post.sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
@@ -455,6 +338,5 @@ void R_ShutdownPost(void) {
 
   r_post.bloom_pipeline = release(r_post.bloom_pipeline);
   r_post.composite_pipeline = release(r_post.composite_pipeline);
-  r_post.depth_resolve_pipeline = release(r_post.depth_resolve_pipeline);
   r_post.sampler = release(r_post.sampler);
 }

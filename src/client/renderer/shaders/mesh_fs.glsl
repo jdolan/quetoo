@@ -43,6 +43,9 @@ layout (location = 0) in common_vertex_t vertex;
 
 layout (location = 0) out vec4 out_color;
 
+// A float depth copy for the sprite pass to sample (soft particles); see r_framebuffer.c.
+layout (location = 1) out float out_depth;
+
 #if !defined(MATERIAL_STAGES)
 /**
  * @brief Per-entity tint colors for player-skin colorization, blended in via the
@@ -116,6 +119,8 @@ void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t f
  * blended material stage / shell overlay in the MATERIAL_STAGES variant.
  */
 void main(void) {
+
+  out_depth = gl_FragCoord.z;
 
   fragment.view_dir = normalize(-vertex.position);
   fragment.view_dist = length(vertex.position);

@@ -110,8 +110,10 @@ void R_InitBspPipeline(void) {
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
-  // Bring-up: draw all faces regardless of winding so geometry is guaranteed visible.
-  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+  // Cull back faces; front faces are wound clockwise (matching the GL renderer's
+  // glFrontFace(GL_CW)). If world geometry vanishes, flip to COUNTER_CLOCKWISE.
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
@@ -161,15 +163,19 @@ void R_InitBspPipeline(void) {
     .num_vertex_attributes = 6,
   };
 
-  // A named color target so the blend state can be varied per pipeline variant.
-  SDL_GPUColorTargetDescription color_target = {
-    .format = R_SCENE_COLOR_FORMAT,
-    .blend_state = GPU_BlendStateOpaque,
+  // Two color targets: the HDR scene color, and a single-sample float depth copy
+  // (gl_FragCoord.z, written by bsp_fs) that the sprite pass samples for soft
+  // particles. SDL_gpu cannot sample the real depth buffer (least of all a
+  // multisample one), so opaque geometry writes this copy instead. Named locals so
+  // the blend states can be varied per pipeline variant.
+  SDL_GPUColorTargetDescription color_targets[2] = {
+    { .format = R_SCENE_COLOR_FORMAT, .blend_state = GPU_BlendStateOpaque },
+    { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .blend_state = GPU_BlendStateOpaque },
   };
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
-    .color_target_descriptions = &color_target,
-    .num_color_targets = 1,
+    .color_target_descriptions = color_targets,
+    .num_color_targets = 2,
     .depth_stencil_format = framebuffer->depthFormat,
     .has_depth_stencil_target = true,
   };
@@ -183,7 +189,12 @@ void R_InitBspPipeline(void) {
   // with a clockwise front face matches the GL path's glFrontFace(GL_CW).
   // TODO(#864): if translucent faces vanish, the winding is inverted -> flip to
   // SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE (and enable culling on the opaque pass too).
-  color_target.blend_state = GPU_BlendStateAlpha;
+  // Mask the depth copy: a translucent surface must not overwrite the opaque depth
+  // beneath it, or sprites would soften against glass rather than through it.
+  color_targets[0].blend_state = GPU_BlendStateAlpha;
+  color_targets[1].blend_state = (SDL_GPUColorTargetBlendState) {
+    .enable_color_write_mask = true, .color_write_mask = 0,
+  };
   info.depth_stencil_state.enable_depth_write = false;
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
@@ -192,7 +203,8 @@ void R_InitBspPipeline(void) {
   // A line-fill variant for r_draw_wireframe (bsp_fs shades wireframe fragments
   // flat grey). Best-effort: mappers use it to inspect quemap's brush cuts, so
   // the wide-platform caveat around line fill on Vulkan/Android is acceptable.
-  color_target.blend_state = GPU_BlendStateOpaque;
+  color_targets[0].blend_state = GPU_BlendStateOpaque;
+  color_targets[1].blend_state = GPU_BlendStateOpaque;
   info.depth_stencil_state.enable_depth_write = true;
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
@@ -313,7 +325,8 @@ static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
-  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
   // Stages blend over the already-lit base surface; test depth but do not write it.
   info.depth_stencil_state.enable_depth_write = false;
@@ -336,20 +349,28 @@ static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
     .num_vertex_attributes = 6,
   };
 
+  // Two color targets to match the opaque pass this runs in; the depth copy
+  // (color 1) is masked, since a stage overlays the already-established surface.
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
-    .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = R_SCENE_COLOR_FORMAT,
-      .blend_state = {
-        .enable_blend = true,
-        .src_color_blendfactor = s,
-        .dst_color_blendfactor = d,
-        .color_blend_op = SDL_GPU_BLENDOP_ADD,
-        .src_alpha_blendfactor = s,
-        .dst_alpha_blendfactor = d,
-        .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+    .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
+      {
+        .format = R_SCENE_COLOR_FORMAT,
+        .blend_state = {
+          .enable_blend = true,
+          .src_color_blendfactor = s,
+          .dst_color_blendfactor = d,
+          .color_blend_op = SDL_GPU_BLENDOP_ADD,
+          .src_alpha_blendfactor = s,
+          .dst_alpha_blendfactor = d,
+          .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+        },
+      },
+      {
+        .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
+        .blend_state = { .enable_color_write_mask = true, .color_write_mask = 0 },
       },
     },
-    .num_color_targets = 1,
+    .num_color_targets = 2,
     .depth_stencil_format = framebuffer->depthFormat,
     .has_depth_stencil_target = true,
   };
@@ -493,16 +514,20 @@ void R_DrawBspEntities(const r_view_t *view) {
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
-  // First scene pass: clear the color attachment. When the depth pre-pass ran,
-  // LOAD its depth so occluded fragments are rejected before shading (early-Z);
-  // otherwise clear depth and write it here. This makes r_depth_pass the A/B.
+  // First scene pass: clear the color attachment and the depth copy (to the far
+  // plane, 1.0). When the depth pre-pass ran, LOAD its depth so occluded fragments
+  // are rejected before shading (early-Z); otherwise clear depth and write it here.
+  // This makes r_depth_pass the A/B.
   const SDL_FColor clear_color = { 0.f, 0.f, 0.f, 1.f };
-  const SDL_GPUColorTargetInfo color =
-      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color);
+  const SDL_FColor clear_depth_copy = { 1.f, 1.f, 1.f, 1.f };
+  const SDL_GPUColorTargetInfo color[] = {
+    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color),
+    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_depth_copy),
+  };
   const SDL_GPUDepthStencilTargetInfo depth =
       $(framebuffer, depthTargetInfo, r_depth_pass->integer ? SDL_GPU_LOADOP_LOAD : SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, 1.f);
 
-  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
+  RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -641,12 +666,16 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
 
   // Composite over the opaque scene: LOAD color + depth, test against the opaque
   // depth (LEQUAL) but do not write it (the blend pipeline disables depth write).
-  const SDL_GPUColorTargetInfo color =
-      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
+  // Color 1 (depth copy) is attached to match the pipeline but masked off, so
+  // translucent surfaces do not overwrite the opaque depth the sprites sample.
+  const SDL_GPUColorTargetInfo color[] = {
+    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
+    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
+  };
   const SDL_GPUDepthStencilTargetInfo depth =
       $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
 
-  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
+  RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,

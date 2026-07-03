@@ -137,7 +137,10 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
-  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+  // Cull back faces; front faces are wound clockwise (matching the GL renderer).
+  // If mesh models turn inside-out, flip to COUNTER_CLOCKWISE.
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
   // Stages blend over the already-lit base surface; test depth but do not write it.
   info.depth_stencil_state.enable_depth_write = false;
@@ -162,20 +165,28 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
     .num_vertex_attributes = 9,
   };
 
+  // Two color targets to match the opaque mesh pass; the depth copy (color 1) is
+  // masked, since a stage overlays the already-established surface.
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
-    .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = R_SCENE_COLOR_FORMAT,
-      .blend_state = {
-        .enable_blend = true,
-        .src_color_blendfactor = s,
-        .dst_color_blendfactor = d,
-        .color_blend_op = SDL_GPU_BLENDOP_ADD,
-        .src_alpha_blendfactor = s,
-        .dst_alpha_blendfactor = d,
-        .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+    .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
+      {
+        .format = R_SCENE_COLOR_FORMAT,
+        .blend_state = {
+          .enable_blend = true,
+          .src_color_blendfactor = s,
+          .dst_color_blendfactor = d,
+          .color_blend_op = SDL_GPU_BLENDOP_ADD,
+          .src_alpha_blendfactor = s,
+          .dst_alpha_blendfactor = d,
+          .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+        },
+      },
+      {
+        .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
+        .blend_state = { .enable_color_write_mask = true, .color_write_mask = 0 },
       },
     },
-    .num_color_targets = 1,
+    .num_color_targets = 2,
     .depth_stencil_format = framebuffer->depthFormat,
     .has_depth_stencil_target = true,
   };
@@ -410,12 +421,16 @@ void R_DrawMeshEntities(const r_view_t *view) {
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
-  const SDL_GPUColorTargetInfo color =
-      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
+  // LOAD both the scene color and the depth copy; mesh entities write their
+  // gl_FragCoord.z into color 1 so sprites soften against them too.
+  const SDL_GPUColorTargetInfo color[] = {
+    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
+    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
+  };
   const SDL_GPUDepthStencilTargetInfo depth =
       $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
 
-  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
+  RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -501,8 +516,9 @@ void R_InitMeshPipeline(void) {
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
-  // Bring-up: draw all faces regardless of winding so geometry is guaranteed visible.
-  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+  // Cull back faces, matching the base mesh pipeline (front faces clockwise).
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
@@ -526,12 +542,15 @@ void R_InitMeshPipeline(void) {
     .num_vertex_attributes = 9,
   };
 
+  // Two color targets: the HDR scene color and the float depth copy (mesh_fs
+  // writes gl_FragCoord.z to color 1) so mesh entities appear in the depth the
+  // sprite pass samples for soft particles.
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
-    .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = R_SCENE_COLOR_FORMAT,
-      .blend_state = GPU_BlendStateOpaque,
+    .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
+      { .format = R_SCENE_COLOR_FORMAT, .blend_state = GPU_BlendStateOpaque },
+      { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .blend_state = GPU_BlendStateOpaque },
     },
-    .num_color_targets = 1,
+    .num_color_targets = 2,
     .depth_stencil_format = framebuffer->depthFormat,
     .has_depth_stencil_target = true,
   };

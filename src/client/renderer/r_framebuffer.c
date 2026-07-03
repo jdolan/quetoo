@@ -55,8 +55,11 @@ Framebuffer *R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachme
 
   return $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
     .size = size,
-    .colorFormats = { R_SCENE_COLOR_FORMAT },
-    .numColorTargets = 1,
+    // Color 0: the HDR scene. Color 1: a float depth copy (gl_FragCoord.z, written
+    // by the opaque lit shaders) the sprite pass samples for soft particles -- the
+    // real depth buffer cannot be sampled under MSAA, but color attachments resolve.
+    .colorFormats = { R_SCENE_COLOR_FORMAT, SDL_GPU_TEXTUREFORMAT_R32_FLOAT },
+    .numColorTargets = 2,
     .depthFormat = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .sampleCount = r_scene_samples,
   });

@@ -448,8 +448,10 @@ void R_DrawSprites(const r_view_t *view) {
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_sprites.vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_sprites.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  // The scene depth attachment, sampled for the soft-particle fade.
-  Texture *depth_texture = $(framebuffer, resolveDepthTexture);
+  // The float depth copy (scene color target 1), sampled for the soft-particle
+  // fade. The opaque lit passes write gl_FragCoord.z there; unlike the real depth
+  // buffer it can be sampled (and resolves to single-sample under MSAA).
+  Texture *depth_texture = $(framebuffer, resolveColorTexture, 1);
   $(pass, bindFragmentSamplers, SLOT_SAMPLER_DEPTH_ATTACHMENT, &(SDL_GPUTextureSamplerBinding) {
     .texture = depth_texture->texture,
     .sampler = r_sprite_pipeline.depth_sampler->sampler,

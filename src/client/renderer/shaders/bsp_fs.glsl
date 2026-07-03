@@ -36,6 +36,9 @@ layout (location = 0) in common_vertex_t vertex;
 
 layout (location = 0) out vec4 out_color;
 
+// A float depth copy for the sprite pass to sample (soft particles); see r_framebuffer.c.
+layout (location = 1) out float out_depth;
+
 common_fragment_t fragment;
 
 /**
@@ -102,6 +105,8 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
  * this renders opaque diffuse surfaces with clustered + dynamic lighting.
  */
 void main(void) {
+
+  out_depth = gl_FragCoord.z;
 
   if (wireframe != 0) {
     out_color = vec4(0.8, 0.8, 0.8, 1.0);
