@@ -228,6 +228,9 @@ void R_DrawMainView(r_view_t *view) {
 
   R_DrawMeshEntities(view);
 
+  // Translucent world surfaces composite over all opaque geometry.
+  R_DrawBlendBspEntities(view);
+
   R_DrawSprites(view);
 }
 

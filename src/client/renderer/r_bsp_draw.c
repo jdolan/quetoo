@@ -47,6 +47,12 @@ static struct {
   GraphicsPipeline *wireframe_pipeline;
 
   /**
+   * @brief An alpha-blend variant (depth test, no depth write) for translucent
+   * SURF_MASK_BLEND surfaces.
+   */
+  GraphicsPipeline *blend_pipeline;
+
+  /**
    * @brief The material sampler (trilinear, repeat).
    */
   Sampler *diffusemap_sampler;
@@ -148,11 +154,14 @@ void R_InitBspPipeline(void) {
     .num_vertex_attributes = 6,
   };
 
+  // A named color target so the blend state can be varied per pipeline variant.
+  SDL_GPUColorTargetDescription color_target = {
+    .format = framebuffer->colorFormats[0],
+    .blend_state = GPU_BlendStateOpaque,
+  };
+
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
-    .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = framebuffer->colorFormats[0],
-      .blend_state = GPU_BlendStateOpaque,
-    },
+    .color_target_descriptions = &color_target,
     .num_color_targets = 1,
     .depth_stencil_format = framebuffer->depthFormat,
     .has_depth_stencil_target = true,
@@ -160,9 +169,17 @@ void R_InitBspPipeline(void) {
 
   r_bsp_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
+  // Translucent variant: alpha-blend over the opaque scene and depth-test but do
+  // not write depth, for SURF_MASK_BLEND surfaces (water, glass, ...).
+  color_target.blend_state = GPU_BlendStateAlpha;
+  info.depth_stencil_state.enable_depth_write = false;
+  r_bsp_pipeline.blend_pipeline = $(r_context.device, createGraphicsPipeline, &info);
+
   // A line-fill variant for r_draw_wireframe (bsp_fs shades wireframe fragments
   // flat grey). Best-effort: mappers use it to inspect quemap's brush cuts, so
   // the wide-platform caveat around line fill on Vulkan/Android is acceptable.
+  color_target.blend_state = GPU_BlendStateOpaque;
+  info.depth_stencil_state.enable_depth_write = true;
   info.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_LINE;
   r_bsp_pipeline.wireframe_pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
@@ -204,6 +221,7 @@ void R_InitBspPipeline(void) {
 void R_ShutdownBspPipeline(void) {
   r_bsp_pipeline.pipeline = release(r_bsp_pipeline.pipeline);
   r_bsp_pipeline.wireframe_pipeline = release(r_bsp_pipeline.wireframe_pipeline);
+  r_bsp_pipeline.blend_pipeline = release(r_bsp_pipeline.blend_pipeline);
   r_bsp_pipeline.diffusemap_sampler = release(r_bsp_pipeline.diffusemap_sampler);
   r_bsp_pipeline.voxel_data_sampler = release(r_bsp_pipeline.voxel_data_sampler);
   r_bsp_pipeline.stage_sampler = release(r_bsp_pipeline.stage_sampler);
@@ -504,6 +522,116 @@ void R_DrawBspEntities(const r_view_t *view) {
       if (r_draw_material_stages->integer && !r_draw_wireframe->integer) {
         R_DrawBspDrawElementsMaterialStages(view, pass, commands, draw);
       }
+    }
+  }
+
+  pass = release(pass);
+}
+
+/**
+ * @brief Renders the translucent (SURF_MASK_BLEND) world surfaces over the opaque
+ * scene, alpha-blended and depth-tested but without writing depth.
+ * @remarks Mirrors R_DrawBspEntities but with the blend pipeline and the inverse
+ * surface filter. TODO(#864): inline BSP model blend entities, back-to-front
+ * sorting, and material stages on blended surfaces are deferred; single-layer
+ * translucency (water, glass) is correct without sorting.
+ */
+void R_DrawBlendBspEntities(const r_view_t *view) {
+
+  if (!r_models.world || !r_bsp_pipeline.blend_pipeline) {
+    return;
+  }
+
+  CommandBuffer *commands = r_context.device->commands;
+  if (!commands) {
+    return;
+  }
+
+  if (!view->framebuffer) {
+    return;
+  }
+
+  const r_bsp_model_t *bsp = r_models.world->bsp;
+  Framebuffer *framebuffer = view->framebuffer;
+
+  // Composite over the opaque scene: LOAD color + depth, test against the opaque
+  // depth (LEQUAL) but do not write it (the blend pipeline disables depth write).
+  const SDL_GPUColorTargetInfo color =
+      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
+  const SDL_GPUDepthStencilTargetInfo depth =
+      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
+
+  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
+
+  $(pass, setViewport, &(SDL_GPUViewport) {
+    .x = 0.f, .y = 0.f,
+    .w = (float) framebuffer->size.w, .h = (float) framebuffer->size.h,
+    .min_depth = 0.f, .max_depth = 1.f,
+  });
+
+  const mat4_t model = Mat4_Identity();
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
+  $(commands, pushFragmentUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+
+  $(pass, bindPipeline, r_bsp_pipeline.blend_pipeline);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
+  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
+    .texture = bsp->voxels.light_data->texture->texture,
+    .sampler = r_bsp_pipeline.voxel_data_sampler->sampler,
+  }, 1);
+
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_SHADOW_ATLAS, &(SDL_GPUTextureSamplerBinding) {
+    .texture = r_shadow_atlas.texture->texture,
+    .sampler = r_shadow_atlas.sampler->sampler,
+  }, 1);
+
+  SDL_GPUBuffer *storage[] = {
+    r_lights.buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
+                                     : r_lights.buffer->buffer,
+  };
+  $(pass, bindFragmentStorageBuffers, SLOT_STORAGE_LIGHTS, storage, 2);
+
+  const r_bsp_inline_model_t *world = bsp->inline_models;
+  const r_bsp_block_t *block = world->blocks;
+  for (int32_t i = 0; i < world->num_blocks; i++, block++) {
+
+    if (!(block->surface & SURF_MASK_BLEND)) {
+      continue;
+    }
+
+    uint32_t active_lights[4];
+    R_ActiveLights(view, block->node->visible_bounds, active_lights);
+    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
+
+    const r_bsp_draw_elements_t *draw = block->draw_elements;
+    for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+
+      if (!(draw->surface & SURF_MASK_BLEND) || (draw->surface & SURF_SKY)) {
+        continue;
+      }
+
+      if (!draw->material || !draw->material->texture || !draw->material->texture->texture) {
+        continue;
+      }
+
+      $(pass, bindFragmentSamplers, SLOT_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+        .texture = draw->material->texture->texture->texture,
+        .sampler = r_bsp_pipeline.diffusemap_sampler->sampler,
+      }, 1);
+
+      r_material_uniforms_t material;
+      R_MaterialUniforms(draw->material, draw->surface, &material);
+      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_MATERIAL, &material, sizeof(material));
+
+      const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
+      $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
+
+      r_stats.bsp_triangles += draw->num_elements / 3;
+      r_stats.bsp_draw_elements++;
     }
   }
 
