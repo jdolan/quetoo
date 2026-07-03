@@ -108,15 +108,11 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_occlusion_queries 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "+set r_draw_bsp_voxels 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_get_error 2 +set r_draw_stats 1"
+            argument = "+set +set r_draw_stats 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -133,7 +129,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set developer 4"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set editor 1"
@@ -145,7 +141,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_ctf 1"
@@ -165,7 +161,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+give all"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+give quad damage"
@@ -177,7 +173,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+no_clip"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

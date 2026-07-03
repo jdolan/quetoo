@@ -51,6 +51,7 @@ enum {
 	SLOT_SAMPLER_STAGE_NEXT          = 4,
 	SLOT_SAMPLER_DIFFUSE             = 0, // unlit family (sprites, 2D)
 	SLOT_SAMPLER_NEXT_DIFFUSE        = 1,
+	SLOT_SAMPLER_DEPTH_ATTACHMENT    = 2, // scene depth (soft particles)
 	SLOT_SAMPLER_SKY                 = 6, // sky: lone fixed high slot
 
 	// The sky sampler's fixed GLSL layout(binding); mirrored so pipelines can

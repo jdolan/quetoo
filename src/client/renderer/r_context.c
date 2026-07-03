@@ -27,9 +27,7 @@ r_context_t r_context;
 
 /**
  * @brief Objectively `ResourceProvider` bridging the GPU library's Resource
- * lookups (e.g. `loadShader`) to Quetoo's virtual filesystem. This lets
- * `RenderDevice::loadShader` resolve compiled shader blobs (`shaders/*.metal`,
- * `shaders/*.spv`) via `Fs_Load` and the game's search paths.
+ * lookups (e.g. `loadShader`) to Quetoo's virtual filesystem.
  */
 static Data *R_ResourceProvider(const char *name) {
 

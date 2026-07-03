@@ -1,3 +1,5 @@
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+
 #include <metal_stdlib>
 #include <simd/simd.h>
 
@@ -46,11 +48,26 @@ struct main0_in
     float in_lerp [[user(locn3)]];
 };
 
-fragment main0_out main0(main0_in in [[stage_in]], texture2d<float> texture_diffusemap [[texture(0)]], texture2d<float> texture_next_diffusemap [[texture(1)]], sampler texture_diffusemapSmplr [[sampler(0)]], sampler texture_next_diffusemapSmplr [[sampler(1)]])
+static inline __attribute__((always_inline))
+float calc_depth(thread const float& z, constant uniforms_block& _24)
+{
+    return (2.0 * _24.depth_range.x) / ((_24.depth_range.y + _24.depth_range.x) - (z * (_24.depth_range.y - _24.depth_range.x)));
+}
+
+static inline __attribute__((always_inline))
+float soften(constant uniforms_block& _24, texture2d<float> texture_depth_attachment, sampler texture_depth_attachmentSmplr, thread float4& gl_FragCoord)
+{
+    float4 depth_sample = texture_depth_attachment.sample(texture_depth_attachmentSmplr, (gl_FragCoord.xy / float2(_24.viewport.zw)));
+    float param = depth_sample.x;
+    float param_1 = gl_FragCoord.z;
+    return smoothstep(0.0, 0.001599999959580600261688232421875, fast::clamp(calc_depth(param, _24) - calc_depth(param_1, _24), 0.0, 1.0));
+}
+
+fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _24 [[buffer(0)]], texture2d<float> texture_diffusemap [[texture(0)]], texture2d<float> texture_next_diffusemap [[texture(1)]], texture2d<float> texture_depth_attachment [[texture(2)]], sampler texture_diffusemapSmplr [[sampler(0)]], sampler texture_next_diffusemapSmplr [[sampler(1)]], sampler texture_depth_attachmentSmplr [[sampler(2)]], float4 gl_FragCoord [[position]])
 {
     main0_out out = {};
     float3 texture_color = mix(texture_diffusemap.sample(texture_diffusemapSmplr, in.in_diffusemap).xyz, texture_next_diffusemap.sample(texture_next_diffusemapSmplr, in.in_next_diffusemap).xyz, float3(in.in_lerp));
-    out.out_color = float4(texture_color * in.in_color, 1.0);
+    out.out_color = float4((texture_color * in.in_color) * soften(_24, texture_depth_attachment, texture_depth_attachmentSmplr, gl_FragCoord), 1.0);
     return out;
 }
 

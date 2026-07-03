@@ -41,6 +41,11 @@ static struct {
 static struct {
   GraphicsPipeline *pipeline;
   Sampler *sampler;
+
+  /**
+   * @brief Nearest/clamp sampler for the scene depth attachment (soft particles).
+   */
+  Sampler *depth_sampler;
 } r_sprite_pipeline;
 
 /**
@@ -423,12 +428,12 @@ void R_DrawSprites(const r_view_t *view) {
     release(copyPass);
   }
 
+  // No depth attachment: the soft-particle fade (sprite_fs) samples the scene
+  // depth instead, which also occludes sprites behind the world.
   const SDL_GPUColorTargetInfo color =
       $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
-  const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
 
-  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
+  RenderPass *pass = $(commands, beginRenderPass, &color, 1, NULL);
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -437,10 +442,18 @@ void R_DrawSprites(const r_view_t *view) {
   });
 
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushFragmentUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   $(pass, bindPipeline, r_sprite_pipeline.pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_sprites.vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_sprites.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+  // The scene depth attachment, sampled for the soft-particle fade.
+  Texture *depth_texture = $(framebuffer, resolveDepthTexture);
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_DEPTH_ATTACHMENT, &(SDL_GPUTextureSamplerBinding) {
+    .texture = depth_texture->texture,
+    .sampler = r_sprite_pipeline.depth_sampler->sampler,
+  }, 1);
 
   // Draw runs of consecutive instances sharing the same diffuse/next-diffuse image.
   int32_t i = 0;
@@ -489,7 +502,8 @@ static void R_InitSpritePipeline(void) {
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/sprite_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = 2, // texture_diffusemap + texture_next_diffusemap
+    .num_samplers = 3,        // texture_diffusemap + texture_next_diffusemap + texture_depth_attachment
+    .num_uniform_buffers = 1, // globals (viewport + depth_range, for soften())
   });
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;
@@ -500,8 +514,10 @@ static void R_InitSpritePipeline(void) {
 
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 
-  // Sprites blend additively over the opaque scene and never occlude it.
-  info.depth_stencil_state.enable_depth_write = false;
+  // Sprites sample the scene depth for the soft-particle fade, which also serves
+  // as the occlusion test, so the pass carries no depth attachment (and the
+  // pipeline no depth-stencil state).
+  info.depth_stencil_state = (SDL_GPUDepthStencilState) { 0 };
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
@@ -553,8 +569,6 @@ static void R_InitSpritePipeline(void) {
       .blend_state = GPU_BlendStateAdditive,
     },
     .num_color_targets = 1,
-    .depth_stencil_format = framebuffer->depthFormat,
-    .has_depth_stencil_target = true,
   };
 
   r_sprite_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
@@ -566,6 +580,16 @@ static void R_InitSpritePipeline(void) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
     .mag_filter = SDL_GPU_FILTER_LINEAR,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
+    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+  });
+
+  // Nearest: the scene depth is point-sampled (no filtering across depth edges).
+  r_sprite_pipeline.depth_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+    .min_filter = SDL_GPU_FILTER_NEAREST,
+    .mag_filter = SDL_GPU_FILTER_NEAREST,
+    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
     .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
     .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
@@ -607,6 +631,7 @@ void R_ShutdownSprites(void) {
 
   r_sprite_pipeline.pipeline = release(r_sprite_pipeline.pipeline);
   r_sprite_pipeline.sampler = release(r_sprite_pipeline.sampler);
+  r_sprite_pipeline.depth_sampler = release(r_sprite_pipeline.depth_sampler);
   r_sprites.vertex_buffer = release(r_sprites.vertex_buffer);
   r_sprites.elements_buffer = release(r_sprites.elements_buffer);
 }

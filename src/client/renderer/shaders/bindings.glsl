@@ -58,10 +58,12 @@
 #define BINDING_SAMPLER_SHADOW_ATLAS        2
 
 /*
- * Unlit textured family (sprites, 2D): diffuse and its animation next-frame.
+ * Unlit textured family (sprites, 2D): diffuse and its animation next-frame,
+ * plus the scene depth attachment (soft particles) at the following slot.
  */
 #define BINDING_SAMPLER_DIFFUSE             0
 #define BINDING_SAMPLER_NEXT_DIFFUSE        1
+#define BINDING_SAMPLER_DEPTH_ATTACHMENT    2
 
 /*
  * Sky: a lone samplerCube, at a fixed high slot to exercise the fixed-map path.
@@ -74,6 +76,7 @@
 #define SLOT_SAMPLER_SHADOW_ATLAS           BINDING_SAMPLER_SHADOW_ATLAS
 #define SLOT_SAMPLER_DIFFUSE                BINDING_SAMPLER_DIFFUSE
 #define SLOT_SAMPLER_NEXT_DIFFUSE           BINDING_SAMPLER_NEXT_DIFFUSE
+#define SLOT_SAMPLER_DEPTH_ATTACHMENT       BINDING_SAMPLER_DEPTH_ATTACHMENT
 #define SLOT_SAMPLER_SKY                    BINDING_SAMPLER_SKY
 
 /*

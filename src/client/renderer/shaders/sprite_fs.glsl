@@ -23,6 +23,7 @@
 
 #define UNIFORMS_NO_SAMPLERS
 #include "uniforms.glsl"
+#include "soften.glsl"
 
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_DIFFUSE)      uniform sampler2D texture_diffusemap;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_NEXT_DIFFUSE) uniform sampler2D texture_next_diffusemap;
@@ -35,8 +36,9 @@ layout (location = 3) in float in_lerp;
 layout (location = 0) out vec4 out_color;
 
 /**
- * @brief
- * @remarks TODO(#864): soft particles (depth-attachment fade) are deferred.
+ * @brief Additive sprite/particle shading with a soft-particle edge: the color
+ * is faded (toward black, so additive blending fades to nothing) as the fragment
+ * nears or passes the opaque scene depth behind it.
  */
 void main(void) {
 
@@ -45,5 +47,5 @@ void main(void) {
       texture(texture_next_diffusemap, in_next_diffusemap).rgb,
       in_lerp);
 
-  out_color = vec4(texture_color * in_color, 1.0);
+  out_color = vec4(texture_color * in_color * soften(), 1.0);
 }
