@@ -47,8 +47,11 @@ enum {
 	SLOT_SAMPLER_MATERIAL            = 0, // lit family (bsp, mesh)
 	SLOT_SAMPLER_VOXEL_LIGHT_DATA    = 1,
 	SLOT_SAMPLER_SHADOW_ATLAS        = 2,
-	SLOT_SAMPLER_STAGE               = 3, // material-stage texture / next-frame
-	SLOT_SAMPLER_STAGE_NEXT          = 4,
+	SLOT_SAMPLER_VOXEL_CAUSTICS      = 3, // voxel caustics / occlusion volumes
+	SLOT_SAMPLER_VOXEL_OCCLUSION     = 4,
+	SLOT_SAMPLER_SKY_AMBIENT         = 5, // sky cubemap for image-based ambient
+	SLOT_SAMPLER_STAGE               = 6, // material-stage texture / next-frame
+	SLOT_SAMPLER_STAGE_NEXT          = 7,
 	SLOT_SAMPLER_DIFFUSE             = 0, // unlit family (sprites, 2D)
 	SLOT_SAMPLER_NEXT_DIFFUSE        = 1,
 	SLOT_SAMPLER_DEPTH_ATTACHMENT    = 2, // scene depth (soft particles)

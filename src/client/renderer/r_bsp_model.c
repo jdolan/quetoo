@@ -399,7 +399,28 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->caustics->height = out->size.y;
   out->caustics->depth = out->size.z;
 
-  R_UploadImage(out->caustics, caustics_data);
+  // The encoded per-voxel caustics direction, as a 3D RGBA8 texture. The source is
+  // packed RGB; expand to RGBA (there is no 24-bit GPU format), the alpha is unused.
+  byte *caustics_rgba = Mem_Malloc(out->num_voxels * 4);
+  for (int32_t i = 0; i < out->num_voxels; i++) {
+    caustics_rgba[i * 4 + 0] = caustics_data[i * 3 + 0];
+    caustics_rgba[i * 4 + 1] = caustics_data[i * 3 + 1];
+    caustics_rgba[i * 4 + 2] = caustics_data[i * 3 + 2];
+    caustics_rgba[i * 4 + 3] = 255;
+  }
+
+  out->caustics->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    .type = SDL_GPU_TEXTURETYPE_3D,
+    .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+    .width = (Uint32) out->size.x,
+    .height = (Uint32) out->size.y,
+    .layer_count_or_depth = (Uint32) out->size.z,
+    .num_levels = 1,
+    .sample_count = SDL_GPU_SAMPLECOUNT_1,
+  }, caustics_rgba);
+
+  Mem_Free(caustics_rgba);
 
   const int32_t *light_data = (const int32_t *) data;
   data += out->num_voxels * sizeof(int32_t) * 2;
@@ -449,7 +470,17 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->occlusion->height = out->size.y;
   out->occlusion->depth = out->size.z;
 
-  R_UploadImage(out->occlusion, occlusion_data);
+  // The per-voxel spatial occlusion (R) and sky exposure (G), as a 3D RG8 texture.
+  out->occlusion->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    .type = SDL_GPU_TEXTURETYPE_3D,
+    .format = SDL_GPU_TEXTUREFORMAT_R8G8_UNORM,
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+    .width = (Uint32) out->size.x,
+    .height = (Uint32) out->size.y,
+    .layer_count_or_depth = (Uint32) out->size.z,
+    .num_levels = 1,
+    .sample_count = SDL_GPU_SAMPLECOUNT_1,
+  }, occlusion_data);
 
   if (r_draw_bsp_voxels->value) {
     

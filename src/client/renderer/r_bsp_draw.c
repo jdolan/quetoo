@@ -68,6 +68,12 @@ static struct {
   Sampler *stage_sampler;
 
   /**
+   * @brief A linear, clamped sampler shared by the voxel caustics/occlusion
+   * volumes and the sky cubemap (all sampled with normalized coordinates).
+   */
+  Sampler *ambient_sampler;
+
+  /**
    * @brief Cache of MATERIAL_STAGES pipelines, one per unique (src, dest) blend
    * function. SDL_gpu bakes blend state into the pipeline, so stage blends can't
    * be set dynamically; they're realized lazily here (only a handful of combos occur).
@@ -92,7 +98,7 @@ void R_InitBspPipeline(void) {
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = 3,         // texture_material + texture_voxel_light_data + texture_shadow_atlas
+    .num_samplers = 6,         // material + voxel_light_data + shadow_atlas + voxel_caustics + voxel_occlusion + sky
     .num_storage_buffers = 2,  // lights_block + voxel_light_indices_block (read-only storage)
     .num_uniform_buffers = 3,  // globals + per-block active_lights + per-draw material
   });
@@ -222,6 +228,16 @@ void R_InitBspPipeline(void) {
     .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
   });
+
+  // Linear / clamp: the voxel volumes and sky cubemap are sampled continuously.
+  r_bsp_pipeline.ambient_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+    .min_filter = SDL_GPU_FILTER_LINEAR,
+    .mag_filter = SDL_GPU_FILTER_LINEAR,
+    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
+    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+  });
 }
 
 /**
@@ -234,6 +250,7 @@ void R_ShutdownBspPipeline(void) {
   r_bsp_pipeline.diffusemap_sampler = release(r_bsp_pipeline.diffusemap_sampler);
   r_bsp_pipeline.voxel_data_sampler = release(r_bsp_pipeline.voxel_data_sampler);
   r_bsp_pipeline.stage_sampler = release(r_bsp_pipeline.stage_sampler);
+  r_bsp_pipeline.ambient_sampler = release(r_bsp_pipeline.ambient_sampler);
 
   for (int32_t i = 0; i < r_bsp_pipeline.num_stages; i++) {
     r_bsp_pipeline.stages[i].pipeline = release(r_bsp_pipeline.stages[i].pipeline);
@@ -280,7 +297,7 @@ static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/bsp_stage_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = 5,        // material + voxel_light_data + shadow_atlas + stage + stage_next
+    .num_samplers = 8,        // material + voxel_light_data + shadow_atlas + voxel_caustics + voxel_occlusion + sky + stage + stage_next
     .num_storage_buffers = 2, // lights + voxel_light_indices
     .num_uniform_buffers = 4, // globals (0) + active_lights (1) + material (2) + stage (3)
   });
@@ -520,6 +537,13 @@ void R_DrawBspEntities(const r_view_t *view) {
     .sampler = r_shadow_atlas.sampler->sampler,
   }, 1);
 
+  // The voxel caustics / occlusion volumes and the sky cubemap for ambient light.
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_pipeline.ambient_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_pipeline.ambient_sampler->sampler },
+    { .texture = R_SkyTexture()->texture, .sampler = r_bsp_pipeline.ambient_sampler->sampler },
+  }, 3);
+
   // Storage: per-frame lights, then the voxel light index vector. Fall back to the
   // lights buffer for the index slot on maps with no light indices (the voxel
   // counts are then zero, so it is never read); SDL still requires a bind.
@@ -646,6 +670,13 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
     .texture = r_shadow_atlas.texture->texture,
     .sampler = r_shadow_atlas.sampler->sampler,
   }, 1);
+
+  // The voxel caustics / occlusion volumes and the sky cubemap for ambient light.
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_pipeline.ambient_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_pipeline.ambient_sampler->sampler },
+    { .texture = R_SkyTexture()->texture, .sampler = r_bsp_pipeline.ambient_sampler->sampler },
+  }, 3);
 
   SDL_GPUBuffer *storage[] = {
     r_lights.buffer->buffer,

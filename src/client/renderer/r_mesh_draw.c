@@ -39,6 +39,12 @@ static struct {
    * @brief The voxel light-data sampler (nearest, clamp) for integer texelFetch.
    */
   Sampler *voxel_data_sampler;
+
+  /**
+   * @brief A linear, clamped sampler shared by the voxel caustics/occlusion
+   * volumes and the sky cubemap (all sampled with normalized coordinates).
+   */
+  Sampler *ambient_sampler;
 } r_mesh_pipeline;
 
 /**
@@ -177,6 +183,13 @@ void R_DrawMeshEntities(const r_view_t *view) {
     .sampler = r_shadow_atlas.sampler->sampler,
   }, 1);
 
+  // The voxel caustics / occlusion volumes and the sky cubemap for ambient light.
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
+    { .texture = R_SkyTexture()->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
+  }, 3);
+
   SDL_GPUBuffer *storage[] = {
     r_lights.buffer->buffer,
     bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
@@ -219,7 +232,7 @@ void R_InitMeshPipeline(void) {
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = 3,         // texture_material + texture_voxel_light_data + texture_shadow_atlas
+    .num_samplers = 6,         // material + voxel_light_data + shadow_atlas + voxel_caustics + voxel_occlusion + sky
     .num_storage_buffers = 2,  // lights_block + voxel_light_indices_block
     .num_uniform_buffers = 3,  // globals (0) + active_lights (1) + material (2)
   });
@@ -287,6 +300,16 @@ void R_InitMeshPipeline(void) {
     .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
   });
+
+  // Linear / clamp: the voxel volumes and sky cubemap are sampled continuously.
+  r_mesh_pipeline.ambient_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+    .min_filter = SDL_GPU_FILTER_LINEAR,
+    .mag_filter = SDL_GPU_FILTER_LINEAR,
+    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
+    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+  });
 }
 
 /**
@@ -296,4 +319,5 @@ void R_ShutdownMeshPipeline(void) {
   r_mesh_pipeline.pipeline = release(r_mesh_pipeline.pipeline);
   r_mesh_pipeline.diffusemap_sampler = release(r_mesh_pipeline.diffusemap_sampler);
   r_mesh_pipeline.voxel_data_sampler = release(r_mesh_pipeline.voxel_data_sampler);
+  r_mesh_pipeline.ambient_sampler = release(r_mesh_pipeline.ambient_sampler);
 }

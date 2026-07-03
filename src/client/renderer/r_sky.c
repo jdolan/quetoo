@@ -26,6 +26,12 @@ static struct {
    * @brief The sky cubemap.
    */
   r_image_t *image;
+
+  /**
+   * @brief A 1x1 black fallback cubemap, returned by R_SkyTexture when no sky is
+   * loaded, so the lit pass always has a valid cube to bind at the ambient slot.
+   */
+  Texture *fallback;
 } r_sky;
 
 /**
@@ -124,6 +130,19 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 }
 
 /**
+ * @brief Returns the sky cubemap for image-based ambient in the lit pass, or a
+ * black fallback cube when no sky is loaded, so the ambient sampler is always bound.
+ */
+Texture *R_SkyTexture(void) {
+
+  if (r_sky.image && r_sky.image->texture) {
+    return r_sky.image->texture;
+  }
+
+  return r_sky.fallback;
+}
+
+/**
  * @brief Builds the sky pipeline (position-only vertex input) and cubemap sampler.
  */
 static void R_InitSkyPipeline(void) {
@@ -195,6 +214,18 @@ void R_InitSky(void) {
   memset(&r_sky, 0, sizeof(r_sky));
 
   R_InitSkyPipeline();
+
+  // A 1x1 black fallback cube (six faces) for the lit ambient sampler.
+  const byte black[6 * 4] = { 0 };
+  r_sky.fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    .type = SDL_GPU_TEXTURETYPE_CUBE,
+    .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+    .width = 1, .height = 1,
+    .layer_count_or_depth = 6,
+    .num_levels = 1,
+    .sample_count = SDL_GPU_SAMPLECOUNT_1,
+  }, black);
 }
 
 /**
@@ -204,6 +235,8 @@ void R_ShutdownSky(void) {
 
   r_sky_pipeline.pipeline = release(r_sky_pipeline.pipeline);
   r_sky_pipeline.sampler = release(r_sky_pipeline.sampler);
+
+  r_sky.fallback = release(r_sky.fallback);
 }
 
 /**

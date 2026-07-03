@@ -24,11 +24,18 @@
  * @brief Per-fragment lighting and shadow functions.
  * @remarks Include after uniforms.glsl, common.glsl, material.glsl, voxel.glsl.
  * The shadow atlas (single 2D layer) and lights storage buffer are declared here.
- * Sky ambient is not yet wired (TODO #864); define LIGHT_SKY to enable it, else a
- * flat ambient fallback is used.
+ * Define LIGHT_SKY to enable image-based ambient from the sky cubemap (the lit
+ * fragment shaders enable it), else a flat ambient fallback is used.
  */
 
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS) uniform sampler2DShadow texture_shadow_atlas;
+
+#if defined(FRAGMENT_SHADER) && defined(LIGHT_SKY)
+/**
+ * @brief The sky cubemap, sampled at a coarse LOD for image-based ambient light.
+ */
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SKY_AMBIENT) uniform samplerCube texture_sky;
+#endif
 
 layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_LIGHTS) readonly buffer lights_block {
   /**
