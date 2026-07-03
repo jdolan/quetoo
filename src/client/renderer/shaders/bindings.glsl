@@ -127,9 +127,18 @@
  */
 #define BINDING_UNIFORMS_MATERIAL           2
 
+/*
+ * Per-entity tint colors (mesh lit family): player-skin colorization blended in
+ * via the material tint map, in the fragment stage after the material UBO. The
+ * mesh program has no material stages, so this reuses the slot the stage UBO
+ * occupies in the MATERIAL_STAGES variant.
+ */
+#define BINDING_UNIFORMS_TINTS              3
+
 #define SLOT_UNIFORMS_GLOBALS               0
 #define SLOT_UNIFORMS_LOCALS                1
 #define SLOT_UNIFORMS_MATERIAL              BINDING_UNIFORMS_MATERIAL
+#define SLOT_UNIFORMS_TINTS                 BINDING_UNIFORMS_TINTS
 
 /*
  * Per-stage parameters (MATERIAL_STAGES variant only). Kept contiguous within each

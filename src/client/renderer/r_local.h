@@ -71,6 +71,7 @@ enum {
 	SLOT_UNIFORMS_MATERIAL           = 2,
 	SLOT_UNIFORMS_STAGE_VERTEX       = 2, // material-stage params (vertex stage)
 	SLOT_UNIFORMS_STAGE_FRAGMENT     = 3, // material-stage params (fragment stage)
+	SLOT_UNIFORMS_TINTS              = 3, // per-entity mesh tint colors (fragment)
 };
 
 /**

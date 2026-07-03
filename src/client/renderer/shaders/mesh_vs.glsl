@@ -26,7 +26,7 @@
  * material lighting, sharing the BSP fragment stack (common/material/voxel/light).
  * The two animation frames are supplied as two vertex buffer bindings (the same
  * model buffer at two frame offsets): locations 0..4 are the old frame, 5..8 the
- * current frame; diffusemap (4) does not animate. Stages, shells, and tints are
+ * current frame; diffusemap (4) does not animate. Shells and material stages are
  * ported in later increments.
  */
 
@@ -54,6 +54,7 @@ layout (location = 8) in vec3 in_next_bitangent;
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
   mat4 model;
   float lerp;
+  vec4 color;
 };
 
 layout (location = 0) out common_vertex_t vertex;
@@ -80,7 +81,7 @@ void main(void) {
   vertex.bitangent = normalize(vec3(view_model * bitangent));
   vertex.diffusemap = in_diffusemap;
   vertex.voxel = voxel_uvw(vec3(model * position));
-  vertex.color = vec4(1.0);
+  vertex.color = color;
 
   gl_Position = projection3D * view_model * position;
 }

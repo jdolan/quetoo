@@ -43,6 +43,14 @@ layout (location = 0) in common_vertex_t vertex;
 
 layout (location = 0) out vec4 out_color;
 
+/**
+ * @brief Per-entity tint colors for player-skin colorization, blended in via the
+ * material tint map (layer 3).
+ */
+layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_TINTS) uniform tint_block {
+  vec4 tint_colors[3];
+};
+
 common_fragment_t fragment;
 
 /**
@@ -97,6 +105,19 @@ void main(void) {
   parallax_occlusion_mapping(vertex, fragment);
 
   fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
+
+  if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
+    if (fragment.diffuse_sample.a < material.alpha_test) {
+      discard;
+    }
+  }
+
+  // Player-skin tint: blend the entity tint colors in by the material tint map.
+  vec4 tintmap = sample_material_tint(fragment.parallax);
+  fragment.diffuse_sample.rgb *= 1.0 - tintmap.a;
+  fragment.diffuse_sample.rgb += (tint_colors[0] * tintmap.r).rgb * tintmap.a;
+  fragment.diffuse_sample.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
+  fragment.diffuse_sample.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
 
   out_color = fragment.diffuse_sample * vertex.color;
 

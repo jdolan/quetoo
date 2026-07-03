@@ -53,6 +53,8 @@ static struct {
 typedef struct {
   mat4_t model;
   float lerp;
+  float padding[3];
+  vec4_t color;
 } r_mesh_locals_t;
 
 /**
@@ -72,6 +74,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
   const r_mesh_locals_t locals = {
     .model = e->matrix,
     .lerp = e->lerp,
+    .color = e->color,
   };
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
 
@@ -81,6 +84,9 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
   uint32_t active_lights[4];
   R_ActiveLights(view, e->abs_model_bounds, active_lights);
   $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
+
+  // Per-entity tint colors for player-skin colorization (fragment slot 3).
+  $(commands, pushFragmentUniformData, SLOT_UNIFORMS_TINTS, e->tints, sizeof(e->tints));
 
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
     .buffer = mesh->elements_buffer->buffer
@@ -234,7 +240,7 @@ void R_InitMeshPipeline(void) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = 6,         // material + voxel_light_data + shadow_atlas + voxel_caustics + voxel_occlusion + sky
     .num_storage_buffers = 2,  // lights_block + voxel_light_indices_block
-    .num_uniform_buffers = 3,  // globals (0) + active_lights (1) + material (2)
+    .num_uniform_buffers = 4,  // globals (0) + active_lights (1) + material (2) + tints (3)
   });
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;

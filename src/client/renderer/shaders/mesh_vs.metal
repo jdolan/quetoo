@@ -78,6 +78,7 @@ struct locals_block
 {
     float4x4 model;
     float lerp;
+    float4 color;
 };
 
 struct common_vertex_t
@@ -96,7 +97,7 @@ struct common_vertex_t
     float caustics;
 };
 
-constant spvUnsafeArray<float, 8> _216 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
+constant spvUnsafeArray<float, 8> _217 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
 
 struct main0_out
 {
@@ -152,10 +153,10 @@ vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _22 [[
     vertex0.diffusemap = in.in_diffusemap;
     float3 param = float3((_49.model * position).xyz);
     vertex0.voxel = voxel_uvw(param, _22);
-    vertex0.color = float4(1.0);
-    float4x4 _201 = _22.projection3D * view_model;
-    float4 _203 = _201 * position;
-    out.gl_Position = _203;
+    vertex0.color = _49.color;
+    float4x4 _202 = _22.projection3D * view_model;
+    float4 _204 = _202 * position;
+    out.gl_Position = _204;
     out.vertex0_model_position = vertex0.model_position;
     out.vertex0_model_normal = vertex0.model_normal;
     out.vertex0_position = vertex0.position;
