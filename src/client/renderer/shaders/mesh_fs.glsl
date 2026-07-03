@@ -43,13 +43,16 @@ layout (location = 0) in common_vertex_t vertex;
 
 layout (location = 0) out vec4 out_color;
 
+#if !defined(MATERIAL_STAGES)
 /**
  * @brief Per-entity tint colors for player-skin colorization, blended in via the
- * material tint map (layer 3).
+ * material tint map (layer 3). Omitted in the stage variant, whose fragment slot 3
+ * carries the stage UBO instead.
  */
 layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_TINTS) uniform tint_block {
   vec4 tint_colors[3];
 };
+#endif
 
 common_fragment_t fragment;
 
@@ -94,7 +97,23 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
 }
 
 /**
- * @brief Animated mesh: diffuse material with full per-fragment lighting.
+ * @brief Samples the material normal/specular maps and computes per-fragment lighting.
+ */
+void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
+
+  fragment.normal_sample = sample_material_normal(fragment.parallax, mat3(vertex.tangent, vertex.bitangent, vertex.normal));
+  fragment.specular_sample = sample_material_specular(fragment.parallax);
+
+  // Per-pixel Poisson rotation for shadow PCF.
+  float angle = random_angle(vertex.model_position);
+  fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
+
+  fragment_lighting(vertex, fragment);
+}
+
+/**
+ * @brief Animated mesh: diffuse material with full per-fragment lighting, or a
+ * blended material stage / shell overlay in the MATERIAL_STAGES variant.
  */
 void main(void) {
 
@@ -103,6 +122,26 @@ void main(void) {
   fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
 
   parallax_occlusion_mapping(vertex, fragment);
+
+#if defined(MATERIAL_STAGES)
+
+  // Material stage / shell pass: sample the stage texture, optionally lit and/or
+  // emissive, blended over the base surface.
+  fragment.diffuse_sample = sample_material_stage(fragment.parallax) * vertex.color;
+
+  out_color = fragment.diffuse_sample;
+
+  if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
+    mesh_fragment_lighting(vertex, fragment);
+    out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
+    out_color.rgb += fragment.specular * stage.lighting;
+  }
+
+  if ((stage.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
+    out_color.rgb += fragment.diffuse_sample.rgb * stage.emissive;
+  }
+
+#else
 
   fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
 
@@ -121,15 +160,10 @@ void main(void) {
 
   out_color = fragment.diffuse_sample * vertex.color;
 
-  fragment.normal_sample = sample_material_normal(fragment.parallax, mat3(vertex.tangent, vertex.bitangent, vertex.normal));
-  fragment.specular_sample = sample_material_specular(fragment.parallax);
-
-  // Per-pixel Poisson rotation for shadow PCF.
-  float angle = random_angle(vertex.model_position);
-  fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
-
-  fragment_lighting(vertex, fragment);
+  mesh_fragment_lighting(vertex, fragment);
 
   out_color.rgb *= (fragment.ambient + fragment.diffuse);
   out_color.rgb += fragment.specular;
+
+#endif
 }

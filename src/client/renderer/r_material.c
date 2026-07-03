@@ -396,7 +396,7 @@ bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
 
   out->flags = cm->flags;
   out->color = cm->color.vec4;
-  out->st_origin = draw->st_origin;
+  out->st_origin = draw ? draw->st_origin : Vec2_Zero(); // mesh stages have no draw elements
   out->stretch = Vec2(cm->stretch.amplitude, cm->stretch.hz);
   out->scroll = Vec2(cm->scroll.s, cm->scroll.t);
   out->scale = Vec2(cm->scale.s, cm->scale.t);

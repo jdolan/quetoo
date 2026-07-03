@@ -68,10 +68,14 @@ void main(void) {
 
   mat4 view_model = view * model;
 
-  const vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
-  const vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
-  const vec4 tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
-  const vec4 bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 0.0);
+  vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
+  vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
+  vec4 tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
+  vec4 bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 0.0);
+
+#if defined(MATERIAL_STAGES)
+  stage_transform(position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
+#endif
 
   vertex.model_position = vec3(model * position);
   vertex.model_normal = normalize(vec3(model * normal));
@@ -82,6 +86,10 @@ void main(void) {
   vertex.diffusemap = in_diffusemap;
   vertex.voxel = voxel_uvw(vec3(model * position));
   vertex.color = color;
+
+#if defined(MATERIAL_STAGES)
+  stage_vertex(in_position, vertex);
+#endif
 
   gl_Position = projection3D * view_model * position;
 }

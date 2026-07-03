@@ -40,9 +40,9 @@ shaders_DATA = \
 VERTEX_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs sky_vs sprite_vs decal_vs
 FRAGMENT_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs sky_fs sprite_fs decal_fs
 
-# Second, MATERIAL_STAGES variant of the bsp program, used only for material stage
-# draws (bsp_vs.glsl / bsp_fs.glsl compiled with -DMATERIAL_STAGES).
-STAGE_SHADERS = bsp_stage_vs bsp_stage_fs
+# Second, MATERIAL_STAGES variants of the bsp and mesh programs, used only for
+# material stage (and mesh shell) draws, compiled with -DMATERIAL_STAGES.
+STAGE_SHADERS = bsp_stage_vs bsp_stage_fs mesh_stage_vs mesh_stage_fs
 
 # Install the compiled blobs alongside the GLSL sources so the renderer's
 # ResourceProvider (Fs_Load) can resolve them at runtime, e.g.
@@ -71,3 +71,7 @@ shaders:
 	$(SHADERCROSS) bsp_stage_vs.spv -s SPIRV -d MSL -t vertex --msl-version 2.2.0 -o bsp_stage_vs.metal || exit 1
 	$(GLSLC) -DFRAGMENT_SHADER -DMATERIAL_STAGES -I$(srcdir) -fshader-stage=fragment $(srcdir)/bsp_fs.glsl -o bsp_stage_fs.spv || exit 1
 	$(SHADERCROSS) bsp_stage_fs.spv -s SPIRV -d MSL -t fragment --msl-version 2.2.0 -o bsp_stage_fs.metal || exit 1
+	$(GLSLC) -DVERTEX_SHADER -DMATERIAL_STAGES -I$(srcdir) -fshader-stage=vertex $(srcdir)/mesh_vs.glsl -o mesh_stage_vs.spv || exit 1
+	$(SHADERCROSS) mesh_stage_vs.spv -s SPIRV -d MSL -t vertex --msl-version 2.2.0 -o mesh_stage_vs.metal || exit 1
+	$(GLSLC) -DFRAGMENT_SHADER -DMATERIAL_STAGES -I$(srcdir) -fshader-stage=fragment $(srcdir)/mesh_fs.glsl -o mesh_stage_fs.spv || exit 1
+	$(SHADERCROSS) mesh_stage_fs.spv -s SPIRV -d MSL -t fragment --msl-version 2.2.0 -o mesh_stage_fs.metal || exit 1
