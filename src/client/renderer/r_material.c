@@ -303,7 +303,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
       memcpy(data + 3 * layer_size, tintmap->pixels, layer_size);
 
       // TODO(#864): level 0 only; material mip generation deferred.
-      material->texture->texture = $(r_device.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+      material->texture->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
         .type = SDL_GPU_TEXTURETYPE_2D_ARRAY,
         .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
         .width = w,
@@ -322,7 +322,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
       break;
 
     default:
-      material->texture->texture = $(r_device.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+      material->texture->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
         .type = SDL_GPU_TEXTURETYPE_2D,
         .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
         .width = w,

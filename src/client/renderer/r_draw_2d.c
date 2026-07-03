@@ -359,7 +359,7 @@ void R_BindFont(const char *name, int32_t *cw, int32_t *ch) {
     name = "medium";
   }
 
-  const bool upscale = r_device.display_mode->pixel_density > 1.f;
+  const bool upscale = r_context.display_mode->pixel_density > 1.f;
 
   int32_t i;
   for (i = 0; i < r_draw_2d.num_fonts; i++) {
@@ -538,8 +538,8 @@ void R_Draw2DLines(const int32_t *points, size_t count, const color_t color) {
 static void R_Draw2DList(RenderPass *pass, const r_draw_2d_arrays_list_t *list,
                          const mat4_t projection, int32_t offset) {
 
-  CommandBuffer *commands = r_device.device->commands;
-  const Framebuffer *framebuffer = r_device.device->framebuffer;
+  CommandBuffer *commands = r_context.device->commands;
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   $(commands, pushVertexUniformData, 0, projection.array, sizeof(projection));
 
@@ -587,12 +587,12 @@ void R_Draw2D(void) {
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commands;
+  CommandBuffer *commands = r_context.device->commands;
   if (!commands || !r_draw_2d.pipeline_triangles) {
     goto reset;
   }
 
-  Framebuffer *framebuffer = r_device.device->framebuffer;
+  Framebuffer *framebuffer = r_context.device->framebuffer;
 
   const uint32_t game_count = (uint32_t) r_draw_2d.game.num_vertexes;
   const uint32_t ui_count = (uint32_t) r_draw_2d.ui.num_vertexes;
@@ -600,7 +600,7 @@ void R_Draw2D(void) {
 
   if (total > r_draw_2d.vertex_buffer_capacity) {
     r_draw_2d.vertex_buffer = release(r_draw_2d.vertex_buffer);
-    r_draw_2d.vertex_buffer = $(r_device.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+    r_draw_2d.vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
       .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
       .size = total * sizeof(r_draw_2d_vertex_t),
     });
@@ -635,12 +635,12 @@ void R_Draw2D(void) {
 
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_draw_2d.vertex_buffer->buffer }, 1);
 
-  // Game elements (console, HUD) use r_device pixel coordinates.
-  const mat4_t game_projection = Mat4_FromOrtho(0.f, r_device.w, r_device.h, 0.f, -1.f, 1.f);
+  // Game elements (console, HUD) use r_context pixel coordinates.
+  const mat4_t game_projection = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
   R_Draw2DList(pass, &r_draw_2d.game, game_projection, 0);
 
   // UI elements (menus) use raw window coordinates.
-  const mat4_t ui_projection = Mat4_FromOrtho(0.f, r_device.window_bounds.w, r_device.window_bounds.h, 0.f, -1.f, 1.f);
+  const mat4_t ui_projection = Mat4_FromOrtho(0.f, r_context.window_bounds.w, r_context.window_bounds.h, 0.f, -1.f, 1.f);
   R_Draw2DList(pass, &r_draw_2d.ui, ui_projection, (int32_t) game_count);
 
   release(pass);
@@ -670,7 +670,7 @@ static void R_InitFont(char *name) {
   font->image = R_LoadImage(va("ui/fonts/%s", name), IMG_FONT);
   assert(font->image);
 
-  const float scale = SDL_GetWindowDisplayScale(r_device.window);
+  const float scale = SDL_GetWindowDisplayScale(r_context.window);
 
   font->char_width = font->image->width / scale / 16.f;
   font->char_height = font->image->height / scale / 8.f;
@@ -683,7 +683,7 @@ static void R_InitFont(char *name) {
  */
 static GraphicsPipeline *R_InitDraw2DPipeline(Shader *vertexShader, Shader *fragmentShader, SDL_GPUPrimitiveType mode) {
 
-  const Framebuffer *framebuffer = r_device.device->framebuffer;
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = {
     .vertex_shader = vertexShader->shader,
@@ -732,7 +732,7 @@ static GraphicsPipeline *R_InitDraw2DPipeline(Shader *vertexShader, Shader *frag
     },
   };
 
-  return $(r_device.device, createGraphicsPipeline, &info);
+  return $(r_context.device, createGraphicsPipeline, &info);
 }
 
 /**
@@ -754,7 +754,7 @@ void R_InitDraw2D(void) {
   r_draw_2d.null_texture->type = IMG_PROGRAM;
   r_draw_2d.null_texture->width = 1;
   r_draw_2d.null_texture->height = 1;
-  r_draw_2d.null_texture->texture = $(r_device.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  r_draw_2d.null_texture->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_2D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
     .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -765,12 +765,12 @@ void R_InitDraw2D(void) {
   }, &(const uint32_t) { 0xffffffff });
   R_RegisterMedia((r_media_t *) r_draw_2d.null_texture);
 
-  Shader *vertexShader = $(r_device.device, loadShader, "shaders/draw_2d_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/draw_2d_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 1, // projection2D (binding 0)
   });
 
-  Shader *fragmentShader = $(r_device.device, loadShader, "shaders/draw_2d_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/draw_2d_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = 1, // texture_diffusemap
   });
@@ -781,7 +781,7 @@ void R_InitDraw2D(void) {
   release(vertexShader);
   release(fragmentShader);
 
-  r_draw_2d.sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_draw_2d.sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
     .mag_filter = SDL_GPU_FILTER_LINEAR,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,

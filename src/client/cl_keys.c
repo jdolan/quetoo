@@ -32,7 +32,7 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 
   if (dest == cls.key_state.dest) {
     if (dest == KEY_CONSOLE || dest == KEY_CHAT) {
-      SDL_StartTextInput(r_device.window);
+      SDL_StartTextInput(r_context.window);
     }
     return;
   }
@@ -51,25 +51,25 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
       }
     }
 
-    SDL_SetWindowRelativeMouseMode(r_device.window, false);
+    SDL_SetWindowRelativeMouseMode(r_context.window, false);
 
-    const int32_t cx = r_device.w * 0.5;
-    const int32_t cy = r_device.h * 0.5;
+    const int32_t cx = r_context.w * 0.5;
+    const int32_t cy = r_context.h * 0.5;
 
-    SDL_WarpMouseInWindow(r_device.window, cx, cy);
+    SDL_WarpMouseInWindow(r_context.window, cx, cy);
   }
 
   switch (dest) {
     case KEY_CONSOLE:
     case KEY_CHAT:
-      SDL_StartTextInput(r_device.window);
+      SDL_StartTextInput(r_context.window);
       break;
     case KEY_UI:
-      SDL_StopTextInput(r_device.window);
+      SDL_StopTextInput(r_context.window);
       break;
     case KEY_GAME:
-      SDL_StopTextInput(r_device.window);
-      SDL_SetWindowRelativeMouseMode(r_device.window, true);
+      SDL_StopTextInput(r_context.window);
+      SDL_SetWindowRelativeMouseMode(r_context.window, true);
       break;
   }
 

@@ -43,7 +43,7 @@ void R_DrawDepthPass(r_view_t *view) {
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commands;
+  CommandBuffer *commands = r_context.device->commands;
   if (!commands) {
     return;
   }
@@ -87,12 +87,12 @@ void R_DrawDepthPass(r_view_t *view) {
  */
 void R_InitDepthPass(void) {
 
-  Shader *vertexShader = $(r_device.device, loadShader, "shaders/depth_pass_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/depth_pass_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 2, // globals (binding 0) + locals/model (binding 1)
   });
 
-  Shader *fragmentShader = $(r_device.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
   });
 
@@ -142,7 +142,7 @@ void R_InitDepthPass(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_depth_pass_program.pipeline = $(r_device.device, createGraphicsPipeline, &info);
+  r_depth_pass_program.pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);

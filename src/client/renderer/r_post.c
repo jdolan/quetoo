@@ -43,13 +43,13 @@ void R_DrawPost(const r_view_t *view) {
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commands;
+  CommandBuffer *commands = r_context.device->commands;
   if (!commands) {
     return;
   }
 
   Framebuffer *scene = view->framebuffer;
-  Framebuffer *present = r_device.device->framebuffer;
+  Framebuffer *present = r_context.device->framebuffer;
 
   // Sizes should match (the scene FB is created at the present size); guard against
   // a transient mismatch during a resize rather than copying out of bounds.

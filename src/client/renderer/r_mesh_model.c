@@ -296,12 +296,12 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
     }
   }
 
-  mesh->vertex_buffer = $(r_device.device, createBufferWithConstMem,
+  mesh->vertex_buffer = $(r_context.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_VERTEX,
       mesh->vertexes,
       mesh->num_vertexes * mesh->num_frames * sizeof(r_mesh_vertex_t));
 
-  mesh->elements_buffer = $(r_device.device, createBufferWithConstMem,
+  mesh->elements_buffer = $(r_context.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_INDEX,
       mesh->elements,
       mesh->num_elements * sizeof(uint32_t));

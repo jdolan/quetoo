@@ -69,7 +69,7 @@ void R_DrawShadows(const r_view_t *view) {
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commands;
+  CommandBuffer *commands = r_context.device->commands;
   if (!commands) {
     return;
   }
@@ -214,7 +214,7 @@ void R_InitShadows(void) {
 
   R_InitShadowLayout();
 
-  r_shadow_atlas.texture = $(r_device.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  r_shadow_atlas.texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_2D,
     .format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
     .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -227,7 +227,7 @@ void R_InitShadows(void) {
 
   // Comparison sampler (GL_COMPARE_REF_TO_TEXTURE / LEQUAL) with linear filtering
   // for hardware PCF, matching the GL shadow atlas.
-  r_shadow_atlas.sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_shadow_atlas.sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
     .mag_filter = SDL_GPU_FILTER_LINEAR,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
@@ -238,12 +238,12 @@ void R_InitShadows(void) {
     .enable_compare = true,
   });
 
-  Shader *vertexShader = $(r_device.device, loadShader, "shaders/shadow_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/shadow_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 2, // globals (binding 0) + locals (binding 1)
   });
 
-  Shader *fragmentShader = $(r_device.device, loadShader, "shaders/shadow_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/shadow_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
   });
 
@@ -281,7 +281,7 @@ void R_InitShadows(void) {
     },
   };
 
-  r_shadow_pipeline = $(r_device.device, createGraphicsPipeline, &info);
+  r_shadow_pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);

@@ -302,7 +302,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
       SDL_DestroySurface(side);
     }
 
-    image->texture = $(r_device.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    image->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_CUBE,
       .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
       .width = image->width,
@@ -317,7 +317,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     image->width = surface->w;
     image->height = surface->h;
 
-    image->texture = $(r_device.device, createTextureFromSurface, surface, SDL_GPU_TEXTUREUSAGE_SAMPLER);
+    image->texture = $(r_context.device, createTextureFromSurface, surface, SDL_GPU_TEXTUREUSAGE_SAMPLER);
   }
     
   R_RegisterMedia((r_media_t *) image);

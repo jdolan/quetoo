@@ -120,7 +120,7 @@ void R_InitLights(void) {
 
   memset(&r_lights, 0, sizeof(r_lights));
 
-  r_lights.buffer = $(r_device.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  r_lights.buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
     .size = sizeof(r_lights.block),
   });

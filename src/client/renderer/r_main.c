@@ -134,7 +134,7 @@ void R_UpdateUniforms(const r_view_t *view) {
 void R_BeginFrame(void) {
 
   if (r_draw_scale->modified) {
-    R_UpdateDevice();
+    R_UpdateContext();
     r_draw_scale->modified = false;
   }
 
@@ -142,7 +142,7 @@ void R_BeginFrame(void) {
     // Render the frame at a reduced resolution and upscale on present. TODO(#864):
     // this scales the whole present framebuffer (UI included); a 3D-only scale
     // needs the dedicated scene framebuffer.
-//    r_device.device->renderScale = Clampf(r_framebuffer_scale->value, .25f, 2.f);
+//    r_context.device->renderScale = Clampf(r_framebuffer_scale->value, .25f, 2.f);
     r_framebuffer_scale->modified = false;
   }
 
@@ -161,12 +161,12 @@ void R_BeginFrame(void) {
 
   // Acquire the frame and clear the present-target framebuffer. The UI (and,
   // later, the resolved 3D scene) composite into it; R_EndFrame presents.
-  CommandBuffer *commands = $(r_device.device, beginFrame);
+  CommandBuffer *commands = $(r_context.device, beginFrame);
   if (commands) {
 
     const SDL_FColor clear_color = { 0.f, 0.f, 0.f, 1.f };
     const SDL_GPUColorTargetInfo color =
-        $(r_device.device->framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color);
+        $(r_context.device->framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color);
 
     RenderPass *pass = $(commands, beginRenderPass, &color, 1, NULL);
     pass = release(pass);
@@ -248,8 +248,8 @@ void R_EndFrame(void) {
 
   R_Draw2D();
 
-  if (r_device.device->commands) {
-    $(r_device.device, endFrame);
+  if (r_context.device->commands) {
+    $(r_context.device, endFrame);
   }
 }
 
@@ -319,9 +319,9 @@ static void R_InitConfig(void) {
 
   memset(&r_config, 0, sizeof(r_config));
 
-  r_config.renderer = SDL_GetGPUDeviceDriver(r_device.device->device);
+  r_config.renderer = SDL_GetGPUDeviceDriver(r_context.device->device);
   r_config.vendor = "SDL_gpu";
-  r_config.version = SDL_GetGPUDeviceDriver(r_device.device->device);
+  r_config.version = SDL_GetGPUDeviceDriver(r_context.device->device);
 
   // TODO(#864): SDL_gpu does not expose device limits directly; use conservative
   // defaults that hold across the Metal/Vulkan/D3D12 backends we target. Revisit
@@ -345,10 +345,10 @@ void R_Init(void) {
 
   R_InitLocal();
 
-  R_InitDevice();
+  R_InitContext();
 
   // TODO(#864): the GL subsystems below are bypassed during the SDL_gpu port.
-  // The UI renders through ObjectivelyGPU on r_device.device; the 3D scene, 2D
+  // The UI renders through ObjectivelyGPU on r_context.device; the 3D scene, 2D
   // console, media/images and shaders are ported back in Phase 4/5.
   //
   R_InitConfig();
@@ -366,8 +366,8 @@ void R_Init(void) {
   R_InitSky();
   // R_InitPost();
 
-  const SDL_Rect bounds = r_device.window_bounds;
-  const SDL_Rect viewport = r_device.viewport;
+  const SDL_Rect bounds = r_context.window_bounds;
+  const SDL_Rect viewport = r_context.viewport;
   
   Com_Print("Video initialized %dx%d (%dx%d)\n", bounds.w, bounds.h, viewport.w, viewport.h);
 }
@@ -406,7 +406,7 @@ void R_Shutdown(void) {
 
   R_ShutdownMedia();
 
-  R_ShutdownDevice();
+  R_ShutdownContext();
 
   Mem_FreeTag(MEM_TAG_RENDERER);
 }

@@ -412,7 +412,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->light_data->depth = out->size.z;
 
   // The per-voxel (first_index, count) pairs, as a 3D RG32I texture (isampler3D).
-  out->light_data->texture = $(r_device.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  out->light_data->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R32G32_INT,
     .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -428,7 +428,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 
   // The flat light index vector, as a read-only R32I storage buffer.
   if (out->num_light_indices > 0) {
-    out->light_indices_buffer = $(r_device.device, createBufferWithConstMem,
+    out->light_indices_buffer = $(r_context.device, createBufferWithConstMem,
         SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
         light_indices_data,
         out->num_light_indices * sizeof(int32_t));
@@ -504,10 +504,10 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 
   r_bsp_model_t *bsp = mod->bsp;
 
-  bsp->vertex_buffer = $(r_device.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX,
+  bsp->vertex_buffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX,
                          bsp->vertexes, bsp->num_vertexes * sizeof(r_bsp_vertex_t));
 
-  bsp->elements_buffer = $(r_device.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_INDEX,
+  bsp->elements_buffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_INDEX,
                            bsp->elements, bsp->num_elements * sizeof(uint32_t));
 }
 

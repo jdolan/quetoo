@@ -161,8 +161,8 @@ void Ui_Draw(void) {
 
   assert(windowController);
 
-  if (r_device.device->commands) {
-    $(windowController, render, r_device.device->commands, r_device.device->framebuffer);
+  if (r_context.device->commands) {
+    $(windowController, render, r_context.device->commands, r_context.device->framebuffer);
   }
 }
 
@@ -243,9 +243,9 @@ void Ui_Init(void) {
   MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
 
   // MVC asset lookups resolve through the renderer's R_ResourceProvider, which
-  // is registered for the lifetime of the device (see r_device.c); the old
+  // is registered for the lifetime of the device (see r_context.c); the old
   // Ui_Data provider was a redundant second bridge to Fs_Load.
-  windowController = $(alloc(WindowController), initWithDevice, r_device.device);
+  windowController = $(alloc(WindowController), initWithDevice, r_context.device);
 
   navigationViewController = $(alloc(NavigationViewController), init);
   $(windowController, setViewController, (ViewController *) navigationViewController);

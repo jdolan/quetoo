@@ -40,13 +40,13 @@
  */
 Framebuffer *R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachments) {
 
-  const SDL_GPUTextureFormat format = $(r_device.device, getSwapchainTextureFormat);
+  const SDL_GPUTextureFormat format = $(r_context.device, getSwapchainTextureFormat);
 
-  const SDL_Size size = r_device.device->framebuffer
-      ? r_device.device->framebuffer->size
+  const SDL_Size size = r_context.device->framebuffer
+      ? r_context.device->framebuffer->size
       : MakeSize(width, height);
 
-  return $(r_device.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
+  return $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
     .size = size,
     .colorFormats = { format },
     .numColorTargets = 1,

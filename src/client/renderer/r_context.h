@@ -23,11 +23,11 @@
 
 #include "r_types.h"
 
-extern r_device_t r_device;
+extern r_context_t r_context;
 
-void R_UpdateDevice(void);
+void R_UpdateContext(void);
 
 #if defined(__R_LOCAL_H__)
-void R_InitDevice(void);
-void R_ShutdownDevice(void);
+void R_InitContext(void);
+void R_ShutdownContext(void);
 #endif

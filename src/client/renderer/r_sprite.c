@@ -394,7 +394,7 @@ void R_DrawSprites(const r_view_t *view) {
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commands;
+  CommandBuffer *commands = r_context.device->commands;
   if (!commands) {
     return;
   }
@@ -409,7 +409,7 @@ void R_DrawSprites(const r_view_t *view) {
 
   if ((int32_t) count > r_sprites.vertex_buffer_capacity) {
     r_sprites.vertex_buffer = release(r_sprites.vertex_buffer);
-    r_sprites.vertex_buffer = $(r_device.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+    r_sprites.vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
       .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
       .size = count * sizeof(r_sprite_vertex_t),
     });
@@ -482,17 +482,17 @@ void R_DrawSprites(const r_view_t *view) {
  */
 static void R_InitSpritePipeline(void) {
 
-  Shader *vertexShader = $(r_device.device, loadShader, "shaders/sprite_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/sprite_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 1, // globals (binding 0)
   });
 
-  Shader *fragmentShader = $(r_device.device, loadShader, "shaders/sprite_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/sprite_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = 2, // texture_diffusemap + texture_next_diffusemap
   });
 
-  const Framebuffer *framebuffer = r_device.device->framebuffer;
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.vertex_shader = vertexShader->shader;
@@ -557,12 +557,12 @@ static void R_InitSpritePipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_sprite_pipeline.pipeline = $(r_device.device, createGraphicsPipeline, &info);
+  r_sprite_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  r_sprite_pipeline.sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_sprite_pipeline.sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
     .mag_filter = SDL_GPU_FILTER_LINEAR,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
@@ -592,7 +592,7 @@ void R_InitSprites(void) {
     elements[e + 5] = v + 3;
   }
 
-  r_sprites.elements_buffer = $(r_device.device, createBufferWithConstMem,
+  r_sprites.elements_buffer = $(r_context.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_INDEX, elements, (Uint32) (num_elements * sizeof(uint32_t)));
 
   free(elements);

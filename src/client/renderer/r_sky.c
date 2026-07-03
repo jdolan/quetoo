@@ -51,7 +51,7 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commands;
+  CommandBuffer *commands = r_context.device->commands;
   if (!commands) {
     return;
   }
@@ -128,17 +128,17 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
  */
 static void R_InitSkyPipeline(void) {
 
-  Shader *vertexShader = $(r_device.device, loadShader, "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 1, // globals (binding 0)
   });
 
-  Shader *fragmentShader = $(r_device.device, loadShader, "shaders/sky_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/sky_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = BINDING_SAMPLER_SKY + 1, // texture_sky at the fixed (sparse) sky slot
   });
 
-  const Framebuffer *framebuffer = r_device.device->framebuffer;
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.vertex_shader = vertexShader->shader;
@@ -172,12 +172,12 @@ static void R_InitSkyPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_sky_pipeline.pipeline = $(r_device.device, createGraphicsPipeline, &info);
+  r_sky_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  r_sky_pipeline.sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_sky_pipeline.sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
     .mag_filter = SDL_GPU_FILTER_LINEAR,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,

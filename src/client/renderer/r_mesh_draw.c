@@ -61,7 +61,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commands;
+  CommandBuffer *commands = r_context.device->commands;
 
   const r_mesh_locals_t locals = {
     .model = e->matrix,
@@ -124,7 +124,7 @@ void R_DrawMeshEntities(const r_view_t *view) {
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commands;
+  CommandBuffer *commands = r_context.device->commands;
   if (!commands) {
     return;
   }
@@ -195,19 +195,19 @@ void R_DrawMeshEntities(const r_view_t *view) {
  */
 void R_InitMeshPipeline(void) {
 
-  Shader *vertexShader = $(r_device.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 2, // globals (binding 0) + locals (binding 1)
   });
 
-  Shader *fragmentShader = $(r_device.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = 2,         // texture_material + texture_voxel_light_data
     .num_storage_buffers = 2,  // lights_block + voxel_light_indices_block
     .num_uniform_buffers = 1,  // globals (binding 0)
   });
 
-  const Framebuffer *framebuffer = r_device.device->framebuffer;
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.vertex_shader = vertexShader->shader;
@@ -244,12 +244,12 @@ void R_InitMeshPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_mesh_pipeline.pipeline = $(r_device.device, createGraphicsPipeline, &info);
+  r_mesh_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  r_mesh_pipeline.diffusemap_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_mesh_pipeline.diffusemap_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
     .mag_filter = SDL_GPU_FILTER_LINEAR,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
@@ -258,7 +258,7 @@ void R_InitMeshPipeline(void) {
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
   });
 
-  r_mesh_pipeline.voxel_data_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_mesh_pipeline.voxel_data_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_NEAREST,
     .mag_filter = SDL_GPU_FILTER_NEAREST,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,

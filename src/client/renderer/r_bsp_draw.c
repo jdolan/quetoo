@@ -73,19 +73,19 @@ static struct {
  */
 void R_InitBspPipeline(void) {
 
-  Shader *vertexShader = $(r_device.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 2, // globals (binding 0) + locals/model (binding 1)
   });
 
-  Shader *fragmentShader = $(r_device.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = 3,         // texture_material + texture_voxel_light_data + texture_shadow_atlas
     .num_storage_buffers = 2,  // lights_block + voxel_light_indices_block (read-only storage)
     .num_uniform_buffers = 3,  // globals + per-block active_lights + per-draw material
   });
 
-  const Framebuffer *framebuffer = r_device.device->framebuffer;
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.vertex_shader = vertexShader->shader;
@@ -152,12 +152,12 @@ void R_InitBspPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_bsp_pipeline.pipeline = $(r_device.device, createGraphicsPipeline, &info);
+  r_bsp_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  r_bsp_pipeline.diffusemap_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_bsp_pipeline.diffusemap_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
     .mag_filter = SDL_GPU_FILTER_LINEAR,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
@@ -167,7 +167,7 @@ void R_InitBspPipeline(void) {
   });
 
   // Nearest / clamp: the light-data texture is fetched with integer coords.
-  r_bsp_pipeline.voxel_data_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_bsp_pipeline.voxel_data_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_NEAREST,
     .mag_filter = SDL_GPU_FILTER_NEAREST,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
@@ -176,7 +176,7 @@ void R_InitBspPipeline(void) {
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
   });
 
-  r_bsp_pipeline.stage_sampler = $(r_device.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
+  r_bsp_pipeline.stage_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
     .mag_filter = SDL_GPU_FILTER_LINEAR,
     .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
@@ -233,19 +233,19 @@ static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
     return NULL;
   }
 
-  Shader *vertexShader = $(r_device.device, loadShader, "shaders/bsp_stage_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/bsp_stage_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_uniform_buffers = 3, // globals (0) + model (1) + stage (2)
   });
 
-  Shader *fragmentShader = $(r_device.device, loadShader, "shaders/bsp_stage_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/bsp_stage_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = 5,        // material + voxel_light_data + shadow_atlas + stage + stage_next
     .num_storage_buffers = 2, // lights + voxel_light_indices
     .num_uniform_buffers = 4, // globals (0) + active_lights (1) + material (2) + stage (3)
   });
 
-  const Framebuffer *framebuffer = r_device.device->framebuffer;
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   const SDL_GPUBlendFactor s = R_BlendFactor(src);
   const SDL_GPUBlendFactor d = R_BlendFactor(dest);
@@ -295,7 +295,7 @@ static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
     .has_depth_stencil_target = true,
   };
 
-  GraphicsPipeline *pipeline = $(r_device.device, createGraphicsPipeline, &info);
+  GraphicsPipeline *pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
@@ -377,7 +377,7 @@ void R_DrawBspEntities(const r_view_t *view) {
     return;
   }
 
-  CommandBuffer *commands = r_device.device->commands;
+  CommandBuffer *commands = r_context.device->commands;
   if (!commands) {
     return;
   }

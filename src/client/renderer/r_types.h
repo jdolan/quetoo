@@ -2058,7 +2058,7 @@ typedef struct {
    * @brief The GPU render device.
    */
   RenderDevice *device;
-} r_device_t;
+} r_context_t;
 
 /**
  * @brief Renderer statistics.
