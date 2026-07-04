@@ -259,6 +259,10 @@ void R_DrawMainView(r_view_t *view) {
   R_DrawBlendBspEntities(view);
 
   R_DrawSprites(view);
+
+  R_DrawEntitiesBounds(view);
+
+  R_Draw3D(view);
 }
 
 /**
@@ -391,7 +395,7 @@ void R_Init(void) {
   R_InitDraw2D();
   // R_InitImages();
   R_InitDepthPass();
-  // R_InitDraw3D();
+  R_InitDraw3D();
   R_InitSprites();
   R_InitDecals();
   R_InitSky();
@@ -414,7 +418,7 @@ void R_Shutdown(void) {
   // TODO(#864): GL subsystem teardown bypassed during the SDL_gpu port (see R_Init).
   // R_ShutdownMedia();
   // R_ShutdownDraw2D();
-  // R_ShutdownDraw3D();
+  R_ShutdownDraw3D();
   // R_ShutdownDecals();
   // R_ShutdownSprites();
   // R_ShutdownSky();

@@ -118,7 +118,7 @@ static void R_DrawEntityBounds(const r_entity_t *e) {
 /**
  * @brief Draws debug bounding boxes for all entities in the view.
  */
-static void R_DrawEntitiesBounds(const r_view_t *view) {
+void R_DrawEntitiesBounds(const r_view_t *view) {
 
   if (!r_draw_entity_bounds->value) {
     return;
