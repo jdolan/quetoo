@@ -41,8 +41,8 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 /**
  * @brief Transform lights into their uniform representation and upload them to
  * the lights storage buffer.
- * @remarks TODO(#864): occlusion culling (l->query, r_draw_light_bounds) is
- * deferred; every light is uploaded and assigned a shadow atlas tile.
+ * @remarks TODO(#864): occlusion culling (l->query) is deferred; every light is
+ * uploaded and assigned a shadow atlas tile.
  */
 void R_UpdateLights(r_view_t *view) {
 
@@ -52,6 +52,12 @@ void R_UpdateLights(r_view_t *view) {
   block->num_lights = view->num_lights;
   block->num_bsp_lights = r_models.world ? r_models.world->bsp->num_lights : 0;
 
+  cm_trace_t tr = { 0 };
+  if (r_draw_light_bounds->value) {
+    const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
+    tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
+  }
+
   const float inv_layer = r_shadow_atlas.layer_size > 0 ? 1.f / (float) r_shadow_atlas.layer_size : 0.f;
 
   const r_light_t *l = view->lights;
@@ -59,6 +65,10 @@ void R_UpdateLights(r_view_t *view) {
     r_light_uniform_t *out = &block->lights[i];
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
+
+    if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
+      R_Draw3DBox(l->bounds, Color3fv(l->color), false);
+    }
 
     // Every shadow-casting light (static or dynamic) gets an atlas tile; they
     // are visually identical and differ only in optimization (voxel selection,
