@@ -383,8 +383,6 @@ static float R_StageDriftHash(const void *a, const void *b) {
  * @brief Fills `out` with the per-stage parameters for `stage` on `draw` (and
  * `entity`, or NULL for the world), and resolves the stage's current and next
  * animation-frame textures. Returns true if the stage has drawable media.
- * @remarks TODO(#864): R_MEDIA_MATERIAL stage media (material-swap stages) is
- * deferred; such stages are skipped.
  */
 bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
                      const r_bsp_draw_elements_t *draw, const r_stage_t *stage,
