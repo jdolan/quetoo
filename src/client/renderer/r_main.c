@@ -363,13 +363,13 @@ void R_Init(void) {
   // console, media/images and shaders are ported back in Phase 4/5.
   //
   R_InitConfig();
+  R_InitImages();
   R_InitMedia();
   R_InitLights();
   R_InitShadows();
   R_InitBspPipeline();
   R_InitModels();
   R_InitDraw2D();
-  // R_InitImages();
   R_InitDepthPass();
   R_InitDraw3D();
   R_InitSprites();

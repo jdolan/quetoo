@@ -601,6 +601,8 @@ static void R_InitSpritePipeline(void) {
     .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
     .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    .enable_anisotropy = true,
+    .max_anisotropy = R_Anisotropy(),
   });
 
   // Nearest: the scene depth is point-sampled (no filtering across depth edges).

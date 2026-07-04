@@ -33,6 +33,7 @@ void R_UploadImage(r_image_t *image, const void *data);
 void R_Screenshot_f(void);
 void R_DumpImages_f(void);
 void R_InitImages(void);
+float R_Anisotropy(void);
 
 void R_FreeImage(r_media_t *media);
 bool R_RetainImage(r_media_t *self);

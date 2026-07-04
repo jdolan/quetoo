@@ -738,6 +738,8 @@ void R_InitMeshPipeline(void) {
     .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
     .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+    .enable_anisotropy = true,
+    .max_anisotropy = R_Anisotropy(),
   });
 
   r_mesh_pipeline.voxel_data_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
@@ -766,6 +768,8 @@ void R_InitMeshPipeline(void) {
     .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
     .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+    .enable_anisotropy = true,
+    .max_anisotropy = R_Anisotropy(),
   });
 
   // 1x1x1 fallback voxel textures for the player-model preview (see the struct

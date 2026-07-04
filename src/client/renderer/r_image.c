@@ -383,5 +383,20 @@ void R_InitImages(void) {
 
   memset(&r_image_state, 0, sizeof(r_image_state));
 
+  // SDL_gpu has no hardware max-anisotropy query (unlike GL's
+  // GL_MAX_TEXTURE_MAX_ANISOTROPY); 16x is the practical ceiling on any
+  // current backend (Vulkan/Metal/D3D12) and matches r_anisotropy's default.
+  r_image_state.max_anisotropy = 16.f;
+  r_image_state.anisotropy = Clampf(r_anisotropy->value, 1.f, r_image_state.max_anisotropy);
+
   Fs_Mkdir("screenshots");
+}
+
+/**
+ * @brief Returns the anisotropy level to use for material/diffuse samplers,
+ * clamped to what R_InitImages established. Baked into samplers at pipeline
+ * init time; changing r_anisotropy takes effect on the next r_restart.
+ */
+float R_Anisotropy(void) {
+  return r_image_state.anisotropy;
 }

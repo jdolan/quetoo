@@ -221,6 +221,8 @@ void R_InitBspPipeline(void) {
     .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
     .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+    .enable_anisotropy = true,
+    .max_anisotropy = R_Anisotropy(),
   });
 
   // Nearest / clamp: the light-data texture is fetched with integer coords.
@@ -240,6 +242,8 @@ void R_InitBspPipeline(void) {
     .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
     .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+    .enable_anisotropy = true,
+    .max_anisotropy = R_Anisotropy(),
   });
 
   // Linear / clamp: the voxel volumes and sky cubemap are sampled continuously.
