@@ -242,12 +242,6 @@ void R_DrawMainView(r_view_t *view) {
 
   R_DrawShadows(view);
 
-  R_DrawBspEntities(view);
-
-  if (r_models.world) {
-    R_DrawSky(view, r_models.world->bsp);
-  }
-
   R_DrawEntities(view);
 
   R_DrawSprites(view);

@@ -152,6 +152,12 @@ static void R_DrawEntitiesBounds(const r_view_t *view) {
  */
 void R_DrawEntities(const r_view_t *view) {
 
+  R_DrawBspEntities(view);
+
+  if (r_models.world) {
+    R_DrawSky(view, r_models.world->bsp);
+  }
+
   thread_t *decals = Thread_Create((ThreadRunFunc) R_UpdateDecals, (void *) view, THREAD_NONE);
 
   R_DrawMeshEntities(view);
