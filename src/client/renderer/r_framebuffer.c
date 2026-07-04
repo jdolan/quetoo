@@ -22,35 +22,32 @@
 #include "r_local.h"
 
 /*
- * TODO(#864): a scene framebuffer is now a plain ObjectivelyGPU Framebuffer
- * (color + shared depth); the depth pre-pass and main 3D passes render into it
- * for early-Z, and R_DrawPost composites its color into the present framebuffer.
- * The HDR color + MSAA + post/bloom chain and depth read-back are ported later.
+ * TODO(#864): the present framebuffer (r_context.device->framebuffer, the
+ * swapchain-format target the 2D/UI pass and R_DrawPost's composite draw
+ * into) is created separately in r_context.c. This factory is for 3D render
+ * targets requested by cgame: the main game view's scene framebuffer
+ * (Cg_CreateFramebuffer, sized to the window) and the player-model preview
+ * (PlayerModelView.c, sized to its widget). Both pass ATTACHMENT_ALL and get
+ * the same shape as the main scene FB, since the shared mesh/bsp pipelines
+ * are built with that exact target count/format/sample-count baked in.
  */
 
 /**
- * @brief Creates a scene render target: an HDR color attachment and a sampleable
- * D32F depth attachment, shared by the depth pre-pass and the main passes.
- * @remarks @p attachments is currently advisory; a color + depth target is always
- * created. The color target is R_SCENE_COLOR_FORMAT (HDR) rather than the swapchain
- * format so lighting can exceed 1.0 and feed bloom; R_DrawPost composites and
- * clamps it into the LDR present framebuffer. Sized to the present framebuffer
- * (device pixels) scaled by r_framebuffer_scale, so the 3D scene renders at a
- * reduced (or increased) resolution and the composite up/downscales it while the
- * UI stays native; the requested logical width/height are ignored. The scene FB is
- * recreated when r_framebuffer_scale changes (R_BeginFrame pushes a pixel-size event).
+ * @brief Creates a 3D scene render target: an HDR color attachment, a float
+ * depth copy, and a sampleable D32F depth attachment.
+ * @remarks @p attachments is currently advisory; a full 2-color+depth target
+ * is always created (see the file comment above for why). @p width and
+ * @p height are scaled by r_framebuffer_scale, same as the main scene FB --
+ * this uniformly lets a reduced render scale also reduce the resolution of
+ * secondary 3D views like the player-model preview.
  */
 Framebuffer *R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachments) {
-
-  const SDL_Size present = r_context.device->framebuffer
-      ? r_context.device->framebuffer->size
-      : MakeSize(width, height);
 
   const float scale = Clampf(r_framebuffer_scale->value, .125f, 4.f);
 
   const SDL_Size size = MakeSize(
-    Maxi((int32_t) (present.w * scale), 1),
-    Maxi((int32_t) (present.h * scale), 1)
+    Maxi((int32_t) (width * scale), 1),
+    Maxi((int32_t) (height * scale), 1)
   );
 
   return $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
