@@ -395,7 +395,7 @@ void R_UpdateSprites(r_view_t *view) {
  */
 void R_DrawSprites(const r_view_t *view) {
 
-  if (!r_sprite_pipeline.pipeline || view->num_sprite_instances == 0) {
+  if (!r_sprite_pipeline.pipeline || view->num_sprite_instances == 0 || !r_models.world) {
     return;
   }
 
@@ -408,6 +408,7 @@ void R_DrawSprites(const r_view_t *view) {
     return;
   }
 
+  const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
   const uint32_t count = (uint32_t) view->num_sprite_instances * 4;
@@ -457,6 +458,21 @@ void R_DrawSprites(const r_view_t *view) {
     .sampler = r_sprite_pipeline.depth_sampler->sampler,
   }, 1);
 
+  // Clustered voxel lighting for absorptive sprites (sprite family: samplers 0/1
+  // diffuse+next, 2 depth, 3 voxel data; storage 0/1 lights + voxel indices).
+  // texelFetch ignores the sampler, so the nearest depth sampler is reused.
+  $(pass, bindFragmentSamplers, 3, &(SDL_GPUTextureSamplerBinding) {
+    .texture = bsp->voxels.light_data->texture->texture,
+    .sampler = r_sprite_pipeline.depth_sampler->sampler,
+  }, 1);
+
+  SDL_GPUBuffer *storage[] = {
+    r_lights.buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
+                                     : r_lights.buffer->buffer,
+  };
+  $(pass, bindFragmentStorageBuffers, 0, storage, 2);
+
   // Draw runs of consecutive instances sharing the same diffuse/next-diffuse image.
   int32_t i = 0;
   while (i < view->num_sprite_instances) {
@@ -504,7 +520,8 @@ static void R_InitSpritePipeline(void) {
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/sprite_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = 3,        // texture_diffusemap + texture_next_diffusemap + texture_depth_attachment
+    .num_samplers = 4,        // diffuse + next_diffuse + depth_attachment + voxel_light_data
+    .num_storage_buffers = 2, // lights_block + voxel_light_indices_block
     .num_uniform_buffers = 1, // globals (viewport + depth_range, for soften())
   });
 

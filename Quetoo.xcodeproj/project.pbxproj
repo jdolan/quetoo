@@ -1179,7 +1179,6 @@
 		59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_vs.glsl; sourceTree = "<group>"; };
 		6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_fs.glsl; sourceTree = "<group>"; };
 		7966EA6596003F9303BC00FA /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
-		7C9C4D0367AE485BA6F40075 /* depth_resolve_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = depth_resolve_fs.glsl; sourceTree = "<group>"; };
 		93837BFDD89832004989509B /* libgame-item.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgame-item.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		97BDA8A5C8DF41E290656B3D /* cm_voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_voxel.h; sourceTree = "<group>"; };
 		9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_manifest.h; sourceTree = "<group>"; };
@@ -2692,7 +2691,6 @@
 				CE2CEC1C25852FA20001E599 /* depth_pass_vs.glsl */,
 				CE1643552FF5A1E400863996 /* depth_pass_vs.metal */,
 				CE1643562FF5A1E400863996 /* depth_pass_vs.spv */,
-				7C9C4D0367AE485BA6F40075 /* depth_resolve_fs.glsl */,
 				CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */,
 				CE1643572FF5A1E400863996 /* draw_2d_fs.metal */,
 				CE1643582FF5A1E400863996 /* draw_2d_fs.spv */,

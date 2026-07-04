@@ -108,6 +108,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "+set r_antialias 0"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "+set r_draw_bsp_voxels 1"
             isEnabled = "NO">
          </CommandLineArgument>
