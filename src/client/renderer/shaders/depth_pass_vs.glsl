@@ -34,6 +34,17 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_bloc
 
 invariant gl_Position;
 
+// Pushes the pre-pass depth this many world units farther from the camera than
+// the true surface, so the main pass's LEQUAL test still accepts its own
+// (bit-inexact) coplanar depth. Applied in view space, before the nonlinear
+// perspective divide, so the bias is meaningful in world units at any distance
+// -- unlike a raw depth-buffer offset (SDL_GPU's native depth bias), whose
+// effective world-space size varies wildly (and unusably) with depth under a
+// far plane this large. See #864: SDL's Metal backend compiles MSL with
+// fast-math on (newLibraryWithSource:options:nil), so `invariant gl_Position`
+// is not honored and the pre-pass/main-pass depths differ by a few ULPs.
+#define DEPTH_PASS_BIAS 1.0
+
 /**
  * @brief Position-only depth pre-pass: writes only the depth attachment, which
  * the main passes reuse for early-Z.
@@ -42,5 +53,8 @@ void main(void) {
 
   mat4 view_model = view * model;
 
-  gl_Position = projection3D * view_model * vec4(in_position, 1.0);
+  vec4 view_position = view_model * vec4(in_position, 1.0);
+  view_position.z -= DEPTH_PASS_BIAS; // view space looks down -Z; more negative = farther
+
+  gl_Position = projection3D * view_position;
 }

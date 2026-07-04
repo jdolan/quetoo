@@ -52,10 +52,10 @@ vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _17 [[
 {
     main0_out out = {};
     float4x4 view_model = _17.view * _24.model;
-    float4x4 _39 = _17.projection3D * view_model;
-    float4 _48 = float4(in.in_position, 1.0);
-    float4 _49 = _39 * _48;
-    out.gl_Position = _49;
+    float4 view_position = view_model * float4(in.in_position, 1.0);
+    view_position.z -= 1.0;
+    float4 _58 = _17.projection3D * view_position;
+    out.gl_Position = _58;
     return out;
 }
 
