@@ -639,12 +639,47 @@ void R_DrawBspEntities(const r_view_t *view) {
 }
 
 /**
- * @brief Renders the translucent (SURF_MASK_BLEND) world surfaces over the opaque
- * scene, alpha-blended and depth-tested but without writing depth.
+ * @brief Draws the translucent (SURF_MASK_BLEND) draw elements of a single
+ * block, assuming its active-lights bitmask has already been pushed.
+ */
+static void R_DrawBspBlockBlend(RenderPass *pass, CommandBuffer *commands, const r_bsp_block_t *block) {
+
+  const r_bsp_draw_elements_t *draw = block->draw_elements;
+  for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+
+    if (!(draw->surface & SURF_MASK_BLEND) || (draw->surface & SURF_SKY)) {
+      continue;
+    }
+
+    if (!draw->material || !draw->material->texture || !draw->material->texture->texture) {
+      continue;
+    }
+
+    $(pass, bindFragmentSamplers, SLOT_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+      .texture = draw->material->texture->texture->texture,
+      .sampler = r_bsp_pipeline.diffusemap_sampler->sampler,
+    }, 1);
+
+    r_material_uniforms_t material;
+    R_MaterialUniforms(draw->material, draw->surface, &material);
+    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_MATERIAL, &material, sizeof(material));
+
+    const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
+    $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
+
+    r_stats.bsp_triangles += draw->num_elements / 3;
+    r_stats.bsp_draw_elements++;
+  }
+}
+
+/**
+ * @brief Renders the translucent (SURF_MASK_BLEND) world and inline BSP model
+ * surfaces over the opaque scene, alpha-blended and depth-tested but without
+ * writing depth.
  * @remarks Mirrors R_DrawBspEntities but with the blend pipeline and the inverse
- * surface filter. TODO(#864): inline BSP model blend entities, back-to-front
- * sorting, and material stages on blended surfaces are deferred; single-layer
- * translucency (water, glass) is correct without sorting.
+ * surface filter. TODO(#864): back-to-front sorting and material stages on
+ * blended surfaces are deferred; single-layer translucency (water, glass) is
+ * correct without sorting.
  */
 void R_DrawBlendBspEntities(const r_view_t *view) {
 
@@ -728,31 +763,49 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
     R_ActiveLights(view, block->node->visible_bounds, active_lights);
     $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
 
-    const r_bsp_draw_elements_t *draw = block->draw_elements;
-    for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+    R_DrawBspBlockBlend(pass, commands, block);
+  }
 
-      if (!(draw->surface & SURF_MASK_BLEND) || (draw->surface & SURF_SKY)) {
+  // Inline BSP model entities (doors, platforms, buttons, ...): the same pass and
+  // resources, but each carries its own model matrix and is lit as a whole (its
+  // dynamic-light set culled to the entity bounds rather than per block),
+  // matching R_DrawBspEntities' opaque inline-entity loop.
+  const r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+
+    if (!IS_BSP_INLINE_MODEL(e->model)) {
+      continue;
+    }
+
+    // The worldspawn is itself a BSP inline model entity, but it is drawn above
+    // via bsp->inline_models[0]; skip it here to avoid drawing it twice.
+    if (IS_WORLDSPAWN(e->model)) {
+      continue;
+    }
+
+    if (e->effects & EF_NO_DRAW) {
+      continue;
+    }
+
+    if (R_CullEntity(view, e)) {
+      continue;
+    }
+
+    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
+
+    uint32_t active_lights[4];
+    R_ActiveLights(view, e->abs_model_bounds, active_lights);
+    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
+
+    const r_bsp_inline_model_t *in = e->model->bsp_inline;
+    const r_bsp_block_t *b = in->blocks;
+    for (int32_t j = 0; j < in->num_blocks; j++, b++) {
+
+      if (!(b->surface & SURF_MASK_BLEND)) {
         continue;
       }
 
-      if (!draw->material || !draw->material->texture || !draw->material->texture->texture) {
-        continue;
-      }
-
-      $(pass, bindFragmentSamplers, SLOT_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
-        .texture = draw->material->texture->texture->texture,
-        .sampler = r_bsp_pipeline.diffusemap_sampler->sampler,
-      }, 1);
-
-      r_material_uniforms_t material;
-      R_MaterialUniforms(draw->material, draw->surface, &material);
-      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_MATERIAL, &material, sizeof(material));
-
-      const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
-      $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
-
-      r_stats.bsp_triangles += draw->num_elements / 3;
-      r_stats.bsp_draw_elements++;
+      R_DrawBspBlockBlend(pass, commands, b);
     }
   }
 

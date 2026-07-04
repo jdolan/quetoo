@@ -191,6 +191,56 @@ void R_DrawShadows(const r_view_t *view) {
 
         $(pass, drawIndexedPrimitives, count, 1, firstIndex, 0, 0);
       }
+
+      // Inline BSP model entity casters (doors, platforms, ...): the same
+      // pipeline and vertex/index buffers as the world (already bound above),
+      // but each entity carries its own transform and precomputed depth-pass
+      // element subset, matching R_DrawBspEntities' opaque inline-entity loop.
+      const r_entity_t *be = view->entities;
+      for (int32_t ei = 0; ei < view->num_entities; ei++, be++) {
+
+        if (!IS_BSP_INLINE_MODEL(be->model) || IS_WORLDSPAWN(be->model)) {
+          continue;
+        }
+
+        if (be->effects & EF_NO_DRAW) {
+          continue;
+        }
+
+        if (!Box3_Intersects(l->bounds, be->abs_model_bounds)) {
+          continue;
+        }
+
+        const r_bsp_inline_model_t *in = be->model->bsp_inline;
+        if (!in->num_depth_pass_elements) {
+          continue;
+        }
+
+        const uint32_t in_first_index = (uint32_t) ((uintptr_t) in->depth_pass_elements / sizeof(uint32_t));
+        const uint32_t in_count = (uint32_t) in->num_depth_pass_elements;
+
+        for (int32_t face = 0; face < 6; face++) {
+
+          int32_t tx, ty;
+          R_ShadowAtlasTile(i, face, &tx, &ty);
+
+          $(pass, setViewport, &(SDL_GPUViewport) {
+            .x = (float) tx, .y = (float) ty, .w = (float) ts, .h = (float) ts,
+            .min_depth = 0.f, .max_depth = 1.f,
+          });
+          $(pass, setScissor, &(SDL_Rect) { tx, ty, ts, ts });
+
+          const r_shadow_locals_t in_locals = {
+            .model = be->matrix,
+            .light_view = r_shadow_light_view[face],
+            .light_origin = Vec3_ToVec4(l->origin, 0.f),
+            .lerp = 0.f,
+          };
+          $(commands, pushVertexUniformData, 1, &in_locals, sizeof(in_locals));
+
+          $(pass, drawIndexedPrimitives, in_count, 1, in_first_index, 0, 0);
+        }
+      }
     }
 
     // Mesh entity casters: same atlas layer/pass, but the mesh-layout pipeline
