@@ -178,12 +178,10 @@ void R_InitContext(void) {
 
   R_UpdateContext();
 
-  // The present-target framebuffer, sized to the full device viewport. The UI,
-  // 2D overlays, and the composited 3D scene all draw into this; endFrame blits
-  // it to the swapchain.
-  // TODO(#864): give the 3D view its own framebuffer so r_framebuffer_scale can
-  // downscale only the scene render (and upscale on composite) without affecting
-  // the crisp 2D / UI layers, which should always present at native resolution.
+  // The present-target framebuffer, sized to the full device viewport at native
+  // resolution. The UI and 2D overlays draw directly into this; the composited
+  // 3D scene (its own, separately-scaled framebuffer -- see R_CreateFramebuffer
+  // below) is blitted in by R_DrawPost. endFrame presents this to the swapchain.
   const SDL_GPUTextureFormat format = $(r_context.device, getSwapchainTextureFormat);
 
   Framebuffer *framebuffer = $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
@@ -211,4 +209,42 @@ void R_ShutdownContext(void) {
   }
 
   SDL_QuitSubSystem(SDL_INIT_VIDEO);
+}
+
+/**
+ * @brief Creates a 3D scene render target: an HDR color attachment, a float
+ * depth copy, and a sampleable D32F depth attachment.
+ * @remarks @p attachments is currently advisory; a full 2-color+depth target
+ * is always created, since the shared mesh/bsp pipelines are built with that
+ * exact target count/format/sample-count baked in. @p width and @p height are
+ * scaled by r_framebuffer_scale, same as the main scene FB -- this uniformly
+ * lets a reduced render scale also reduce the resolution of secondary 3D
+ * views like the player-model preview.
+ */
+Framebuffer *R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachments) {
+
+  const float scale = Clampf(r_framebuffer_scale->value, .125f, 4.f);
+
+  const SDL_Size size = MakeSize(
+    Maxi((int32_t) (width * scale), 1),
+    Maxi((int32_t) (height * scale), 1)
+  );
+
+  return $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
+    .size = size,
+    // Color 0: the HDR scene. Color 1: a float depth copy (gl_FragCoord.z, written
+    // by the opaque lit shaders) the sprite pass samples for soft particles -- the
+    // real depth buffer cannot be sampled under MSAA, but color attachments resolve.
+    .colorFormats = { R_SCENE_COLOR_FORMAT, SDL_GPU_TEXTUREFORMAT_R32_FLOAT },
+    .numColorTargets = 2,
+    .depthFormat = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
+    .sampleCount = r_scene_samples,
+  });
+}
+
+/**
+ * @brief Releases the given scene framebuffer.
+ */
+void R_DestroyFramebuffer(Framebuffer *framebuffer) {
+  release(framebuffer);
 }

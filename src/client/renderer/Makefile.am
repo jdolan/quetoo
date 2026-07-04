@@ -14,7 +14,6 @@ noinst_HEADERS = \
 	r_draw_2d.h \
 	r_draw_3d.h \
 	r_entity.h \
-	r_framebuffer.h \
 	r_image.h \
 	r_light.h \
 	r_local.h \
@@ -49,7 +48,6 @@ librenderer_la_SOURCES = \
 	r_draw_2d.c \
 	r_draw_3d.c \
 	r_entity.c \
-	r_framebuffer.c \
 	r_image.c \
 	r_light.c \
 	r_main.c \
