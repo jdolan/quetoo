@@ -23,7 +23,11 @@
 
 #include "StageView.h"
 
+#include "KeyValueView.h"
+#include "KeyValueTableView.h"
+
 #include <ObjectivelyMVC/Label.h>
+#include <ObjectivelyMVC/TextView.h>
 
 #define _Class _StageView
 
@@ -41,12 +45,17 @@ typedef struct {
 
 /**
  * @brief Describes one stage effect: the flag it toggles and its parameters.
+ * @details `addable` effects may be created from the Add Effect dropdown. All
+ * effects are addable; Animation is special-cased on add (its frame count is
+ * derived from the texture, and it is skipped if the texture is not a valid
+ * numbered sequence) -- see didSelectAddEffect.
  */
 typedef struct {
   cm_stage_flags_t flag;
   const char *name;
   const stage_param_desc_t *params;
   size_t num_params;
+  bool addable;
 } stage_effect_desc_t;
 
 #define STAGE_PARAM(field, mn, mx, st) { #field, offsetof(cm_stage_t, field), mn, mx, st }
@@ -64,10 +73,12 @@ static const stage_param_desc_t stretch_params[] = {
 static const stage_param_desc_t rotate_params[] = {
   STAGE_PARAM(rotate.hz, -10.0, 10.0, 0.1),
 };
-static const stage_param_desc_t scroll_s_params[] = { STAGE_PARAM(scroll.s, -10.0, 10.0, 0.1) };
-static const stage_param_desc_t scroll_t_params[] = { STAGE_PARAM(scroll.t, -10.0, 10.0, 0.1) };
-static const stage_param_desc_t scale_s_params[] = { STAGE_PARAM(scale.s, 0.0, 16.0, 0.1) };
-static const stage_param_desc_t scale_t_params[] = { STAGE_PARAM(scale.t, 0.0, 16.0, 0.1) };
+static const stage_param_desc_t scroll_params[] = {
+  STAGE_PARAM(scroll.s, -10.0, 10.0, 0.1), STAGE_PARAM(scroll.t, -10.0, 10.0, 0.1),
+};
+static const stage_param_desc_t scale_params[] = {
+  STAGE_PARAM(scale.s, 0.0, 16.0, 0.1), STAGE_PARAM(scale.t, 0.0, 16.0, 0.1),
+};
 static const stage_param_desc_t terrain_params[] = {
   STAGE_PARAM(terrain.floor, -2048.0, 2048.0, 8.0), STAGE_PARAM(terrain.ceil, -2048.0, 2048.0, 8.0),
 };
@@ -82,20 +93,18 @@ static const stage_param_desc_t animation_params[] = {
   STAGE_PARAM(animation.fps, 0.0, 60.0, 1.0), STAGE_PARAM(animation.drift, 0.0, 10.0, 0.1),
 };
 
-#define STAGE_EFFECT(f, n, p) { f, n, p, lengthof(p) }
-#define STAGE_EFFECT_TOGGLE(f, n) { f, n, NULL, 0 }
+#define STAGE_EFFECT(f, n, p) { f, n, p, lengthof(p), true }
+#define STAGE_EFFECT_TOGGLE(f, n) { f, n, NULL, 0, true }
 
 static const stage_effect_desc_t stage_effects[] = {
+  STAGE_EFFECT_TOGGLE(STAGE_BLEND, "Blend"),
   STAGE_EFFECT(STAGE_COLOR, "Color", color_params),
   STAGE_EFFECT(STAGE_PULSE, "Pulse", pulse_params),
   STAGE_EFFECT(STAGE_STRETCH, "Stretch", stretch_params),
   STAGE_EFFECT(STAGE_ROTATE, "Rotate", rotate_params),
-  STAGE_EFFECT(STAGE_SCROLL_S, "Scroll S", scroll_s_params),
-  STAGE_EFFECT(STAGE_SCROLL_T, "Scroll T", scroll_t_params),
-  STAGE_EFFECT(STAGE_SCALE_S, "Scale S", scale_s_params),
-  STAGE_EFFECT(STAGE_SCALE_T, "Scale T", scale_t_params),
+  STAGE_EFFECT(STAGE_SCROLL_S | STAGE_SCROLL_T, "Scroll", scroll_params),
+  STAGE_EFFECT(STAGE_SCALE_S | STAGE_SCALE_T, "Scale", scale_params),
   STAGE_EFFECT(STAGE_ANIMATION, "Animation", animation_params),
-  STAGE_EFFECT_TOGGLE(STAGE_ANIM_LERP, "Anim Lerp"),
   STAGE_EFFECT(STAGE_TERRAIN, "Terrain", terrain_params),
   STAGE_EFFECT(STAGE_DIRTMAP, "Dirtmap", dirtmap_params),
   STAGE_EFFECT_TOGGLE(STAGE_ENVMAP, "Envmap"),
@@ -107,7 +116,61 @@ static const stage_effect_desc_t stage_effects[] = {
   STAGE_EFFECT(STAGE_SHELL, "Shell", shell_params),
 };
 
+/**
+ * @brief One selectable OpenGL blend factor for the Blend effect's src/dest.
+ */
+typedef struct {
+  const char *name;
+  uint32_t value;
+} stage_blend_factor_t;
+
+/**
+ * @brief The blend factors offered by the Blend effect, mirrored from the material
+ * parser's table (`cm_blendConstList` in cm_material.c). The values are the fixed
+ * OpenGL enum constants, duplicated here so this cgame view needs no GL header.
+ */
+static const stage_blend_factor_t stage_blend_factors[] = {
+  { "GL_ONE",                 0x0001 },
+  { "GL_ZERO",                0x0000 },
+  { "GL_SRC_ALPHA",           0x0302 },
+  { "GL_ONE_MINUS_SRC_ALPHA", 0x0303 },
+  { "GL_SRC_COLOR",           0x0300 },
+  { "GL_DST_COLOR",           0x0306 },
+  { "GL_ONE_MINUS_SRC_COLOR", 0x0301 },
+};
+
+/**
+ * @brief Side length, in points, of a small square icon button (the effect remove
+ * "X"). CSS width/height do not bind to these dynamically-built buttons, so their
+ * size is the one sanctioned C fallback: clamping the widget's own minSize/maxSize,
+ * which View::resize honors regardless of the stylesheet. Everything else about the
+ * effect rows -- columns, spacing, colors -- is CSS-driven (see editor.css).
+ */
+#define STAGE_ICON_BUTTON_SIZE 17
+
+/**
+ * @brief Texture-field validation feedback colors. The "valid" background matches
+ * the base `TextView` rule in common.css (#dedede10) so a resolving path looks
+ * normal; "invalid" is a translucent maroon tint applied when the typed path does
+ * not resolve to an asset on disk.
+ */
+#define TEXTURE_FIELD_BG_VALID   ((SDL_Color) { 0xde, 0xde, 0xde, 0x10 })
+#define TEXTURE_FIELD_BG_INVALID ((SDL_Color) { 0x80, 0x30, 0x30, 0x66 })
+
 #pragma mark - Internal helpers
+
+/**
+ * @brief Tints a texture input's background maroon when its text does not resolve
+ * to an asset on disk. Empty text is treated as neutral (not invalid). This is a
+ * purely visual cue; it does not change the stage.
+ */
+static void validateTextureField(StageView *this, TextView *textView) {
+
+  const char *name = textView->attributedText ? textView->attributedText->chars : "";
+  const bool ok = (*name == '\0') || cgi.MaterialAssetExists(this->material, name);
+
+  ((View *) textView)->backgroundColor = ok ? TEXTURE_FIELD_BG_VALID : TEXTURE_FIELD_BG_INVALID;
+}
 
 /**
  * @brief Returns the zero-based index of this view's stage within its material.
@@ -133,12 +196,88 @@ static StackView *row(const char *className) {
 }
 
 /**
- * @brief Adds a Label to the view.
+ * @brief Creates a small square "X" remove button (icon fills the button). The
+ * fixed size is the one sanctioned C fallback -- CSS width does not bind to these
+ * dynamically-built buttons. Caller owns the returned (retained) button.
  */
-static void addLabel(View *view, const char *text) {
-  Label *label = $(alloc(Label), initWithText, text, NULL);
-  $(view, addSubview, (View *) label);
+static Button *makeRemoveButton(StageView *this, void (*didClick)(Button *)) {
+
+  // The icon PNG is authored small (STAGE_ICON_BUTTON_SIZE), so the button sizes to
+  // it. Chrome (transparent bg, no border/padding) is styled via editor.css
+  // (#material .iconButton) -- CSS scoped by tab id binds where per-tab css does not.
+  Button *remove = $(alloc(Button), initWithFrame, NULL);
+  $((View *) remove, addClassName, "iconButton");
+  $(remove->image, setImageWithResourceName, "ui/editor/icon_delete.png");
+
+  // Size the button to the icon. Left alone, the Button's (empty) title Text
+  // inflates it to the font line-height, so it dwarfs the icon. Clamp min == max to
+  // the icon size so sizeThatFits (and any later resize) lands exactly there, and
+  // let the ImageView fill the button so the icon fully covers it. This C sizing is
+  // the one sanctioned fallback -- CSS width does not bind to a dynamically-built
+  // button.
+  const SDL_Size iconSize = MakeSize(STAGE_ICON_BUTTON_SIZE, STAGE_ICON_BUTTON_SIZE);
+  ((View *) remove)->minSize = iconSize;
+  ((View *) remove)->maxSize = iconSize;
+  ((View *) remove->image)->autoresizingMask |= ViewAutoresizingFill;
+  $((View *) remove, sizeToFit);
+
+  remove->delegate.self = this;
+  remove->delegate.didClick = didClick;
+
+  return remove;
+}
+
+/**
+ * @brief Builds a full-width header bar: a left-aligned title label and a
+ * right-aligned remove button. Uses a plain View rather than a StackView -- a
+ * horizontal StackView lays its children out left-to-right and cannot flush one
+ * to the right, whereas the base View::layoutSubviews honors each child's
+ * alignment. The Contain mask sizes the bar to its content height; the Width mask
+ * spans it across the parent so the background reaches the panel edge and the X
+ * sits flush right. Masks are set in C because a CSS-set width mask misapplies on
+ * this tree. The (retained) remove button is returned via `remove` for the caller
+ * to wire/track; it is already added as a subview of the returned header.
+ */
+static View *makeHeaderBar(StageView *this, const char *className, const char *title,
+                           void (*didClickRemove)(Button *), Button **remove) {
+
+  View *header = $(alloc(View), initWithFrame, NULL);
+  $(header, addClassName, className);
+  header->autoresizingMask = ViewAutoresizingContain | ViewAutoresizingWidth;
+
+  Label *label = $(alloc(Label), initWithText, title, NULL);
+  ((View *) label)->alignment = ViewAlignmentMiddleLeft;
+  $(header, addSubview, (View *) label);
   release(label);
+
+  *remove = makeRemoveButton(this, didClickRemove);
+  ((View *) *remove)->alignment = ViewAlignmentMiddleRight;
+  $(header, addSubview, (View *) *remove);
+
+  return header;
+}
+
+/**
+ * @brief Appends a `label -> blend-factor dropdown` row to the effect's property
+ * table, preselecting `current` and routing changes to `didSelect`.
+ */
+static void addBlendRow(StageView *this, KeyValueTableView *table, const char *label, uint32_t current,
+                        void (*didSelect)(Select *, Option *)) {
+
+  Label *lbl = $(alloc(Label), initWithText, label, NULL);
+
+  Select *select = $(alloc(Select), initWithFrame, NULL);
+  for (size_t i = 0; i < lengthof(stage_blend_factors); i++) {
+    $(select, addOption, stage_blend_factors[i].name, (ident) (intptr_t) stage_blend_factors[i].value);
+  }
+  $(select, selectOptionWithValue, (ident) (intptr_t) current);
+
+  select->delegate.self = this;
+  select->delegate.didSelectOption = didSelect;
+
+  $(table, addRow, (View *) lbl, (View *) select);
+  release(lbl);
+  release(select);
 }
 
 /**
@@ -146,7 +285,7 @@ static void addLabel(View *view, const char *text) {
  */
 static cm_stage_flags_t firstAvailableEffect(const StageView *this) {
   for (size_t i = 0; i < lengthof(stage_effects); i++) {
-    if (!(this->stage->flags & stage_effects[i].flag)) {
+    if (stage_effects[i].addable && !(this->stage->flags & stage_effects[i].flag)) {
       return stage_effects[i].flag;
     }
   }
@@ -186,36 +325,42 @@ static void didSetParam(Slider *slider, double value) {
 }
 
 /**
- * @brief SelectDelegate: change which effect an existing row represents.
+ * @brief SelectDelegate: set the blend source factor. glBlendFunc reads it live.
  */
-static void didSelectEffect(Select *select, Option *option) {
+static void didSelectBlendSrc(Select *select, Option *option) {
 
   StageView *this = (StageView *) select->delegate.self;
 
-  const cm_stage_flags_t newFlag = (cm_stage_flags_t) (intptr_t) option->value;
+  this->stage->blend.src = (uint32_t) (intptr_t) option->value;
+  this->material->cm->dirty = true;
+}
 
-  for (size_t i = 0; i < this->numEffects; i++) {
-    if (this->effects[i].select == select) {
+/**
+ * @brief SelectDelegate: set the blend destination factor. glBlendFunc reads it live.
+ */
+static void didSelectBlendDest(Select *select, Option *option) {
 
-      const cm_stage_flags_t oldFlag = this->effects[i].flag;
-      if (newFlag == oldFlag) {
-        return;
-      }
+  StageView *this = (StageView *) select->delegate.self;
 
-      // another row already owns this effect; revert the selection
-      if (this->stage->flags & newFlag) {
-        $(select, selectOptionWithValue, (ident) (intptr_t) oldFlag);
-        return;
-      }
+  this->stage->blend.dest = (uint32_t) (intptr_t) option->value;
+  this->material->cm->dirty = true;
+}
 
-      this->stage->flags &= ~oldFlag;
-      this->stage->flags |= newFlag;
-      cgi.FinalizeMaterialStage(this->material, this->stage);
+/**
+ * @brief CheckboxDelegate: toggle animation frame interpolation. The flags uniform
+ * is read live, so no rebuild is needed.
+ */
+static void didToggleAnimLerp(Checkbox *checkbox) {
 
-      requestRebuild(this);
-      return;
-    }
+  StageView *this = (StageView *) checkbox->delegate.self;
+
+  if ($((Control *) checkbox, isSelected)) {
+    this->stage->flags |= STAGE_ANIM_LERP;
+  } else {
+    this->stage->flags &= ~STAGE_ANIM_LERP;
   }
+
+  this->material->cm->dirty = true;
 }
 
 /**
@@ -236,33 +381,88 @@ static void didClickRemoveEffect(Button *button) {
 }
 
 /**
- * @brief ButtonDelegate: add the next available effect to the stage.
+ * @brief SelectDelegate: add the effect chosen from the Add Effect dropdown. The
+ * placeholder option (STAGE_NONE) is a no-op. This is the only user action that
+ * grows the stage, so it is the only one that requests a (deferred) rebuild.
  */
-static void didClickAddEffect(Button *button) {
+static void didSelectAddEffect(Select *select, Option *option) {
 
-  StageView *this = (StageView *) button->delegate.self;
+  StageView *this = (StageView *) select->delegate.self;
 
-  const cm_stage_flags_t flag = firstAvailableEffect(this);
+  const cm_stage_flags_t flag = (cm_stage_flags_t) (intptr_t) option->value;
   if (flag == STAGE_NONE) {
     return;
   }
 
   this->stage->flags |= flag;
+
+  // Animation's frame count is derived from its texture (a numbered sequence on
+  // disk). Resolve it now; if the current texture is not such a sequence, skip
+  // the effect rather than leave a 0-frame animation. The user can point the
+  // stage at a valid sequence texture first, then add Animation.
+  if (flag == STAGE_ANIMATION) {
+    if (cgi.ResolveMaterialStageAnimation(this->material, this->stage) == 0) {
+      this->stage->flags &= ~STAGE_ANIMATION;
+      Cg_Debug("Stage texture '%s' is not a numbered animation sequence; skipping\n",
+               this->stage->asset.name);
+    }
+  }
+
   cgi.FinalizeMaterialStage(this->material, this->stage);
 
   requestRebuild(this);
 }
 
 /**
- * @brief ButtonDelegate: request stage removal. Deferred (frees this view).
+ * @brief ButtonDelegate: remove this whole stage. Deferred to the MaterialView-
+ * Controller via a notification, because acting now would free this view (and the
+ * button) from inside its own click handler.
  */
-static void didClickRemove(Button *button) {
+static void didClickRemoveStage(Button *button) {
 
   StageView *this = (StageView *) button->delegate.self;
 
-  if (this->delegate.didRemoveStage) {
-    this->delegate.didRemoveStage(this);
+  SDL_PushEvent(&(SDL_Event) {
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = NOTIFICATION_MATERIAL_STAGE_REMOVED,
+    .user.data1 = this,
+  });
+}
+
+/**
+ * @brief TextViewDelegate (didEdit): validate the texture path live as the user
+ * types, tinting the field when it does not resolve. The stage is not retargeted
+ * until editing ends (and only then if the path is valid).
+ */
+static void didEditTextureLive(TextView *textView) {
+
+  StageView *this = (StageView *) textView->delegate.self;
+
+  validateTextureField(this, textView);
+}
+
+/**
+ * @brief TextViewDelegate (didEndEditing): retarget the stage's texture to the
+ * typed name, but only if it resolves -- an invalid (or empty) path is left tinted
+ * and not applied, so the stage keeps its current texture. The import re-resolves
+ * the asset and rebuilds the render stages so a valid change loads live.
+ */
+static void didEditTexture(TextView *textView) {
+
+  StageView *this = (StageView *) textView->delegate.self;
+
+  const char *name = textView->attributedText ? textView->attributedText->chars : "";
+
+  validateTextureField(this, textView);
+
+  if (!*name || !cgi.MaterialAssetExists(this->material, name)) {
+    if (*name) {
+      Cg_Debug("Texture '%s' does not resolve; not applied\n", name);
+    }
+    return;
   }
+
+  cgi.SetMaterialStageTexture(this->material, this->stage, name);
 }
 
 #pragma mark - View
@@ -288,76 +488,93 @@ static void respondToEvent(View *self, const SDL_Event *event) {
 #pragma mark - StageView
 
 /**
- * @brief Builds one effect row (a dropdown + remove button, plus the effect's
- * parameter sliders) for the given active effect.
+ * @brief Appends a `label -> slider` row for one float parameter to the effect's
+ * property table, binding the slider to the stage field it edits.
+ */
+static void addParamRow(StageView *this, KeyValueTableView *table, const stage_param_desc_t *param) {
+
+  Label *lbl = $(alloc(Label), initWithText, param->label, NULL);
+
+  Slider *slider = $(alloc(Slider), initWithFrame, NULL);
+  slider->min = param->min;
+  slider->max = param->max;
+  slider->step = param->step;
+  $(slider, setLabelFormat, "%.2f");
+
+  float *target = (float *) ((uint8_t *) this->stage + param->offset);
+  $(slider, setValue, (double) *target);
+
+  slider->delegate.self = this;
+  slider->delegate.didSetValue = didSetParam;
+
+  $(table, addRow, (View *) lbl, (View *) slider);
+  release(lbl);
+  release(slider);
+
+  assert(this->numParams < STAGE_VIEW_MAX_PARAMS);
+  this->params[this->numParams].slider = slider;
+  this->params[this->numParams].target = target;
+  this->numParams++;
+}
+
+/**
+ * @brief Builds one active effect: a header (name + small remove button) and a
+ * KeyValueTableView of the effect's property rows. The table owns its columns via
+ * CSS (`.stageEffectTable` in editor.css), so every effect's labels and value
+ * widgets line up; only the remove button's size is set in C (CSS width does not
+ * bind to a dynamically-built button).
  */
 static void addEffectGroup(StageView *this, const stage_effect_desc_t *effect) {
 
+  // each effect is a bordered box (styled via #material .stageEffect in editor.css)
   StackView *group = $(alloc(StackView), initWithFrame, NULL);
   ((StackView *) group)->axis = StackViewAxisVertical;
   $((View *) group, addClassName, "stageEffect");
 
-  // header: [ effect dropdown ][ - ]
-  StackView *header = row("stageEffectHeader");
+  // header: [ effect name ......... X ], full width with the X flush right
+  Button *remove;
+  View *header = makeHeaderBar(this, "stageEffectHeader", effect->name, didClickRemoveEffect, &remove);
 
-  Select *select = $(alloc(Select), initWithFrame, NULL);
-  for (size_t i = 0; i < lengthof(stage_effects); i++) {
-    const cm_stage_flags_t f = stage_effects[i].flag;
-    if (f == effect->flag || !(this->stage->flags & f)) {
-      $(select, addOption, stage_effects[i].name, (ident) (intptr_t) f);
-    }
-  }
-  $(select, selectOptionWithValue, (ident) (intptr_t) effect->flag);
-  select->delegate.self = this;
-  select->delegate.didSelectOption = didSelectEffect;
-  $((View *) header, addSubview, (View *) select);
-
-  Button *remove = $(alloc(Button), initWithTitle, "-");
-  remove->delegate.self = this;
-  remove->delegate.didClick = didClickRemoveEffect;
-  $((View *) header, addSubview, (View *) remove);
-
-  $((View *) group, addSubview, (View *) header);
+  $((View *) group, addSubview, header);
   release(header);
 
   assert(this->numEffects < STAGE_VIEW_MAX_EFFECTS);
-  this->effects[this->numEffects].select = select;
   this->effects[this->numEffects].removeButton = remove;
   this->effects[this->numEffects].flag = effect->flag;
   this->numEffects++;
 
-  release(select);
   release(remove);
 
-  // parameter sliders
+  // property rows, in a table whose columns are inherited (and CSS-configured)
+  KeyValueTableView *table = $(alloc(KeyValueTableView), initWithFrame, NULL);
+  $((View *) table, addClassName, "stageEffectTable");
+
   for (size_t p = 0; p < effect->num_params; p++) {
-    const stage_param_desc_t *param = &effect->params[p];
-
-    StackView *paramRow = row("stageParam");
-    addLabel((View *) paramRow, param->label);
-
-    Slider *slider = $(alloc(Slider), initWithFrame, NULL);
-    slider->min = param->min;
-    slider->max = param->max;
-    slider->step = param->step;
-    $(slider, setLabelFormat, "%.2f");
-
-    float *target = (float *) ((uint8_t *) this->stage + param->offset);
-    $(slider, setValue, (double) *target);
-
-    slider->delegate.self = this;
-    slider->delegate.didSetValue = didSetParam;
-    $((View *) paramRow, addSubview, (View *) slider);
-    release(slider);
-
-    $((View *) group, addSubview, (View *) paramRow);
-    release(paramRow);
-
-    assert(this->numParams < STAGE_VIEW_MAX_PARAMS);
-    this->params[this->numParams].slider = slider;
-    this->params[this->numParams].target = target;
-    this->numParams++;
+    addParamRow(this, table, &effect->params[p]);
   }
+
+  if (effect->flag == STAGE_BLEND) {
+    addBlendRow(this, table, "src", this->stage->blend.src, didSelectBlendSrc);
+    addBlendRow(this, table, "dest", this->stage->blend.dest, didSelectBlendDest);
+  } else if (effect->flag == STAGE_ANIMATION) {
+
+    // frame interpolation is a boolean sub-option of the animation effect
+    Label *lbl = $(alloc(Label), initWithText, "lerp", NULL);
+
+    Checkbox *lerp = $(alloc(Checkbox), initWithFrame, NULL);
+    if (this->stage->flags & STAGE_ANIM_LERP) {
+      ((Control *) lerp)->state |= ControlStateSelected;
+    }
+    lerp->delegate.self = this;
+    lerp->delegate.didToggle = didToggleAnimLerp;
+
+    $(table, addRow, (View *) lbl, (View *) lerp);
+    release(lbl);
+    release(lerp);
+  }
+
+  $((View *) group, addSubview, (View *) table);
+  release(table);
 
   $((View *) this->effectsContainer, addSubview, (View *) group);
   release(group);
@@ -377,6 +594,18 @@ static void rebuildEffects(StageView *self) {
       addEffectGroup(self, &stage_effects[e]);
     }
   }
+
+  // repopulate the Add Effect dropdown with the effects not yet on the stage.
+  // The placeholder (STAGE_NONE) keeps the control showing "+ Add Effect" and is
+  // re-selected each rebuild so the same effect can be re-picked later.
+  $(self->addEffect, removeAllOptions);
+  $(self->addEffect, addOption, "+ Add Effect", (ident) (intptr_t) STAGE_NONE);
+  for (size_t e = 0; e < lengthof(stage_effects); e++) {
+    if (stage_effects[e].addable && !(self->stage->flags & stage_effects[e].flag)) {
+      $(self->addEffect, addOption, stage_effects[e].name, (ident) (intptr_t) stage_effects[e].flag);
+    }
+  }
+  $(self->addEffect, selectOptionWithValue, (ident) (intptr_t) STAGE_NONE);
 
   // disable Add Effect when every effect is already present
   Control *add = (Control *) self->addEffect;
@@ -401,14 +630,34 @@ static void buildControls(StageView *this) {
   $(view, removeAllSubviews);
   this->numEffects = this->numParams = 0;
 
-  // header: "Stage N"
-  StackView *header = row("stageHeader");
-  addLabel((View *) header, va("Stage %d", stageIndex(this) + 1));
-  $(view, addSubview, (View *) header);
+  // header bar: "Stage N" (left) + a remove-stage X (flush right), full width
+  Button *removeStage;
+  View *header = makeHeaderBar(this, "stageHeader", va("Stage %d", stageIndex(this) + 1),
+                              didClickRemoveStage, &removeStage);
+  release(removeStage);
+  $(view, addSubview, header);
   release(header);
 
-  // read-only texture asset
-  addLabel(view, va("Texture: %s", *this->stage->asset.name ? this->stage->asset.name : "(none)"));
+  // editable texture asset row
+  KeyValueTableView *texTable = $(alloc(KeyValueTableView), initWithFrame, NULL);
+  $((View *) texTable, addClassName, "stageEffectTable");
+
+  Label *texLabel = $(alloc(Label), initWithText, "Texture", NULL);
+
+  TextView *texture = $(alloc(TextView), initWithFrame, NULL);
+  texture->isEditable = true;
+  $(texture, setAttributedText, this->stage->asset.name);
+  texture->delegate.self = this;
+  texture->delegate.didEdit = didEditTextureLive;
+  texture->delegate.didEndEditing = didEditTexture;
+  validateTextureField(this, texture);
+
+  $(texTable, addRow, (View *) texLabel, (View *) texture);
+  release(texLabel);
+  release(texture);
+
+  $(view, addSubview, (View *) texTable);
+  release(texTable);
 
   // container for the active effect rows
   this->effectsContainer = $(alloc(StackView), initWithFrame, NULL);
@@ -417,29 +666,15 @@ static void buildControls(StageView *this) {
   $(view, addSubview, (View *) this->effectsContainer);
   release(this->effectsContainer);
 
-  // Add Effect button
+  // Add Effect dropdown (options are the not-yet-active effects; filled in rebuildEffects)
   StackView *addRow = row("stageAddEffect");
-  this->addEffect = $(alloc(Button), initWithTitle, "+ Add Effect");
+  this->addEffect = $(alloc(Select), initWithFrame, NULL);
   this->addEffect->delegate.self = this;
-  this->addEffect->delegate.didClick = didClickAddEffect;
+  this->addEffect->delegate.didSelectOption = didSelectAddEffect;
   $((View *) addRow, addSubview, (View *) this->addEffect);
   release(this->addEffect);
   $(view, addSubview, (View *) addRow);
   release(addRow);
-
-  // Remove, bottom-right, shown only while the panel is selected
-  StackView *footer = row("stageFooter");
-  ((View *) footer)->alignment = ViewAlignmentBottomRight;
-
-  this->removeButton = $(alloc(Button), initWithTitle, "Remove");
-  this->removeButton->delegate.self = this;
-  this->removeButton->delegate.didClick = didClickRemove;
-  ((View *) this->removeButton)->hidden = !this->selected;
-  $((View *) footer, addSubview, (View *) this->removeButton);
-  release(this->removeButton);
-
-  $(view, addSubview, (View *) footer);
-  release(footer);
 
   rebuildEffects(this);
 }
@@ -473,16 +708,13 @@ static void setSelected(StageView *self, bool selected) {
 
   self->selected = selected;
 
-  if (self->removeButton) {
-    ((View *) self->removeButton)->hidden = !selected;
-    ((View *) self)->needsLayout = true;
-  }
-
   if (selected) {
     $((View *) self, addClassName, "selected");
   } else {
     $((View *) self, removeClassName, "selected");
   }
+
+  ((View *) self)->needsLayout = true;
 }
 
 #pragma mark - Class lifecycle

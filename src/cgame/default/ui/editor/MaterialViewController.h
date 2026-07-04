@@ -133,7 +133,7 @@ struct MaterialViewController {
   Button *addStage;
 
   /**
-   * @brief The currently selected stage panel, or `NULL`.
+   * @brief The currently selected (highlighted) stage panel, or `NULL`.
    */
   StageView *selectedStage;
 };

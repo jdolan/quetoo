@@ -64,19 +64,6 @@ static void didSetValue(Slider *slider, double value) {
 static void loadStages(MaterialViewController *this);
 
 /**
- * @brief StageViewDelegate: defer stage removal to the event queue, since it
- * fires from within the Remove button's handler and removal frees the view.
- */
-static void didRemoveStage(StageView *stageView) {
-
-  SDL_PushEvent(&(SDL_Event) {
-    .user.type = MVC_NOTIFICATION_EVENT,
-    .user.code = NOTIFICATION_MATERIAL_STAGE_REMOVED,
-    .user.data1 = stageView->stage,
-  });
-}
-
-/**
  * @brief ButtonDelegate: append a new stage and rebuild the list. Safe to rebuild
  * synchronously here — the Add Stage button is not part of the stage list.
  */
@@ -91,8 +78,9 @@ static void didClickAddStage(Button *button) {
 }
 
 /**
- * @brief StageViewDelegate: make the clicked panel the single selected stage,
- * revealing its Remove button and hiding any other's.
+ * @brief StageViewDelegate: highlight the clicked panel as the selected stage.
+ * Removal is per-stage now (each panel has its own X), so selection is purely a
+ * visual affordance.
  */
 static void didSelectStage(StageView *stageView) {
 
@@ -121,7 +109,6 @@ static void loadStages(MaterialViewController *this) {
       StageView *stageView = $(alloc(StageView), initWithStage, this->material, stage);
 
       stageView->delegate.self = this;
-      stageView->delegate.didRemoveStage = didRemoveStage;
       stageView->delegate.didSelectStage = didSelectStage;
 
       $((View *) this->stages, addSubview, (View *) stageView);
@@ -144,8 +131,12 @@ static void loadView(ViewController *self) {
 
   MaterialViewController *this = (MaterialViewController *) self;
 
+  // The material tab is built declaratively (KeyValueTableView rows in JSON). The
+  // value widgets carry identifiers, so they resolve as outlets even though they
+  // are nested inside the inlet-bound KeyValueView rows. The Material Stages box is
+  // present but intentionally empty for now (no Add Stage button / stage rows yet).
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("content", &this->content),
+    MakeOutlet("materialContent", &this->content),
     MakeOutlet("materialBox", &this->materialBox),
     MakeOutlet("diffusemap", &this->diffusemap),
     MakeOutlet("normalmap", &this->normalmap),
@@ -196,21 +187,8 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
   MaterialViewController *this = (MaterialViewController *) self;
 
   if (event->type == MVC_NOTIFICATION_EVENT
-      && event->user.code == NOTIFICATION_MATERIAL_STAGE_REMOVED
-      && this->material) {
-
-    cm_stage_t *stage = (cm_stage_t *) event->user.data1;
-
-    for (const cm_stage_t *s = this->material->cm->stages; s; s = s->next) {
-      if (s == stage) {
-        cgi.RemoveMaterialStage(this->material, stage);
-        loadStages(this);
-        break;
-      }
-    }
-  } else if (event->type == MVC_NOTIFICATION_EVENT
       && event->user.code == NOTIFICATION_MATERIAL_STAGE_EFFECTS_CHANGED
-      && this->material) {
+      && this->material && this->stages) {
 
     StageView *stageView = (StageView *) event->user.data1;
 
@@ -219,6 +197,24 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
     for (size_t i = 0; i < subviews->count; i++) {
       if ($(subviews, objectAtIndex, i) == (ident) stageView) {
         $(stageView, rebuildEffects);
+        break;
+      }
+    }
+  }
+
+  // deferred per-stage removal: a StageView's own X posts this, since removing it
+  // synchronously would free the view from inside its button handler
+  if (event->type == MVC_NOTIFICATION_EVENT
+      && event->user.code == NOTIFICATION_MATERIAL_STAGE_REMOVED
+      && this->material && this->stages) {
+
+    StageView *stageView = (StageView *) event->user.data1;
+
+    const Array *subviews = ((View *) this->stages)->subviews;
+    for (size_t i = 0; i < subviews->count; i++) {
+      if ($(subviews, objectAtIndex, i) == (ident) stageView) {
+        cgi.RemoveMaterialStage(this->material, stageView->stage);
+        loadStages(this);
         break;
       }
     }
@@ -244,7 +240,11 @@ static void viewWillAppear(ViewController *self) {
     material = cgi.LoadMaterial(tr.trace.material->name, tr.trace.material->context);
   }
 
-  $(this, setMaterial, material);
+  // Only refresh when the aimed-at material changes; avoids needless setText +
+  // re-layout on every open at the same surface.
+  if (material != this->material) {
+    $(this, setMaterial, material);
+  }
 
   super(ViewController, self, viewWillAppear);
 }

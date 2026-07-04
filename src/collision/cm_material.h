@@ -525,6 +525,28 @@ cm_stage_t *Cm_AddStage(cm_material_t *m);
 void Cm_RemoveStage(cm_material_t *m, cm_stage_t *s);
 
 /**
+ * @brief Retargets a stage's texture asset by name and re-resolves its path,
+ * marking the material dirty. The caller must rebuild the render stages to reload
+ * the media. Used by the in-game editor's editable texture field.
+ */
+void Cm_SetStageTexture(cm_material_t *m, cm_stage_t *s, const char *name);
+
+/**
+ * @brief Derives an animation stage's frame count from its (numbered) texture,
+ * resolving the frame assets. Used by the editor to add an animation without
+ * hand-authoring the frame count.
+ * @return The number of frames resolved, or 0 if the texture is not a valid
+ * animation sequence.
+ */
+int32_t Cm_ResolveStageAnimationFrames(cm_material_t *m, cm_stage_t *s);
+
+/**
+ * @brief Tests whether a texture name resolves to a file on disk in the given
+ * context. Used by the editor to validate texture-path inputs live.
+ */
+bool Cm_AssetExists(const char *name, cm_asset_context_t context);
+
+/**
  * @brief Resolves all asset paths referenced by the material.
  * @return true if the diffusemap was resolved successfully.
  */

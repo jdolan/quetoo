@@ -33,6 +33,15 @@ cg_editor_t cg_editor = {
 };
 
 /**
+ * @brief The editor's view controller, built once and reused across open/close so
+ * toggling the editor does not rebuild and tear down its entire view tree every
+ * time (which stalled the frame). It is released and rebuilt per map in
+ * Cg_FreeEditorEntities. On open it is re-pushed (the view tree is reused; only
+ * viewWillAppear runs, refreshing the tab content for the current selection).
+ */
+static EditorViewController *cg_editor_view_controller;
+
+/**
  * @brief Finds the `team_master` entity for the given classname and team.
  */
 int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
@@ -370,6 +379,18 @@ void Cg_FreeEditorEntities(void) {
   memset(cg_editor.entities, 0, sizeof(cg_editor.entities));
 
   cg_editor.selected = -1;
+
+  // Drop the cached editor view controller so the next map builds a fresh one
+  // (its tab content holds material/entity pointers tied to this map). If the
+  // editor is still open here it is popped first, so the cache reference is the
+  // last one and the tree is torn down cleanly.
+  if (cg_editor_view_controller) {
+    if (instanceof(EditorViewController, cgi.TopViewController())) {
+      cgi.PopViewController();
+    }
+    release(cg_editor_view_controller);
+    cg_editor_view_controller = NULL;
+  }
 }
 
 /**
@@ -510,9 +531,13 @@ void Cg_CheckEditor(void) {
 
   if (editor->value) {
     if (!instanceof(EditorViewController, cgi.TopViewController())) {
-      ViewController *vc = (ViewController *) alloc(EditorViewController);
-      cgi.PushViewController($(vc, init));
-      release(vc);
+      // Build the controller once; the cache owns one reference. Pushing retains
+      // it again, popping (on close) releases that, so the tree survives between
+      // toggles. Re-push reuses the loaded view and only runs viewWillAppear.
+      if (cg_editor_view_controller == NULL) {
+        cg_editor_view_controller = (EditorViewController *) $((ViewController *) alloc(EditorViewController), init);
+      }
+      cgi.PushViewController((ViewController *) cg_editor_view_controller);
     } else {
       EditorViewController *editorViewController = (EditorViewController *) cgi.TopViewController();
 

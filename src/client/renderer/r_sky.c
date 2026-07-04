@@ -318,5 +318,11 @@ void R_LoadSky(void) {
     }
   }
 
+  // Bind the cubemap to the sky texture unit. A freshly loaded image is bound as a
+  // side effect of its creation, but a cached R_LoadImage returns without binding,
+  // so a live sky change back to an already-loaded cubemap (e.g. reverting from the
+  // template) would otherwise leave the previous texture bound and never update.
+  glBindTexture(r_sky.image->target, r_sky.image->texnum);
+
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 }

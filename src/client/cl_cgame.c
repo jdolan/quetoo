@@ -172,6 +172,39 @@ static void Cl_FinalizeMaterialStage(r_material_t *material, cm_stage_t *stage) 
 }
 
 /**
+ * @brief Retargets a stage's texture by name and rebuilds the material's render
+ * stages so the new texture (or animation frames) loads immediately.
+ */
+static void Cl_SetMaterialStageTexture(r_material_t *material, cm_stage_t *stage, const char *name) {
+  Cm_SetStageTexture(material->cm, stage, name);
+  R_UpdateMaterialStages(material);
+}
+
+/**
+ * @brief Derives an animation stage's frame count from its texture (frame assets
+ * are resolved but the render stages are not rebuilt here; the caller finalizes).
+ */
+static int32_t Cl_ResolveMaterialStageAnimation(r_material_t *material, cm_stage_t *stage) {
+  return Cm_ResolveStageAnimationFrames(material->cm, stage);
+}
+
+/**
+ * @brief Tests whether a texture name resolves to a file for the material's context.
+ */
+static bool Cl_MaterialAssetExists(const r_material_t *material, const char *name) {
+  return Cm_AssetExists(name, material->cm->context);
+}
+
+/**
+ * @brief Retargets worldspawn's `sky` key and reloads the skybox live. R_LoadSky
+ * falls back to `sky/template` if the name is missing or does not resolve.
+ */
+static void Cl_SetSky(const char *name) {
+  Cm_EntitySetKeyValue((cm_entity_t *) Cm_Worldspawn(), "sky", ENTITY_STRING, name ? name : "");
+  R_LoadSky();
+}
+
+/**
  * @brief Initializes the client game subsystem
  */
 void Cl_InitCgame(void) {
@@ -321,6 +354,11 @@ void Cl_InitCgame(void) {
   import.AddMaterialStage = Cl_AddMaterialStage;
   import.RemoveMaterialStage = Cl_RemoveMaterialStage;
   import.FinalizeMaterialStage = Cl_FinalizeMaterialStage;
+  import.SetMaterialStageTexture = Cl_SetMaterialStageTexture;
+  import.ResolveMaterialStageAnimation = Cl_ResolveMaterialStageAnimation;
+  import.MaterialAssetExists = Cl_MaterialAssetExists;
+  import.AssetExists = Cm_AssetExists;
+  import.SetSky = Cl_SetSky;
   import.LoadModel = R_LoadModel;
   import.WorldModel = R_WorldModel;
 

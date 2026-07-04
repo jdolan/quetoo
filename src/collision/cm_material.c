@@ -1083,6 +1083,120 @@ static bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, cm
 }
 
 /**
+ * @brief The most animation frames the editor will probe for on disk, guarding
+ * against a runaway scan and clamping to the stage's num_frames field range.
+ */
+#define CM_STAGE_ANIMATION_MAX_FRAMES 1024
+
+/**
+ * @brief Counts how many consecutive numbered frames actually exist on disk for
+ * an animation stage, starting from the trailing number in its asset name, and
+ * stores the count in `stage->animation.num_frames`.
+ * @return The frame count. A name with no trailing digit, or whose first frame
+ * does not resolve, yields 0 -- i.e. the texture is not a valid animation
+ * sequence. The editor uses this to derive (and sanity-check) an animation, so a
+ * bad texture is skipped rather than producing a 0-frame animation that crashes
+ * the renderer.
+ */
+static int32_t Cm_CountStageAnimationFrames(cm_material_t *material, cm_stage_t *stage) {
+
+  stage->animation.num_frames = 0;
+
+  const size_t len = strlen(stage->asset.name);
+  if (len == 0 || !isdigit((unsigned char) stage->asset.name[len - 1])) {
+    return 0;
+  }
+
+  char base[MAX_QPATH];
+  q_strlcpy(base, stage->asset.name, sizeof(base));
+
+  char *c = base + strlen(base);
+  while (c > base && isdigit((unsigned char) *(c - 1))) {
+    c--;
+  }
+
+  const int32_t start = (int32_t) strtol(c, NULL, 10);
+  *c = '\0';
+
+  int32_t count = 0;
+  while (count < CM_STAGE_ANIMATION_MAX_FRAMES) {
+
+    cm_asset_t frame;
+    memset(&frame, 0, sizeof(frame));
+    q_snprintf(frame.name, sizeof(frame.name), "%s%d", base, start + count);
+
+    if (!Cm_ResolveAsset(&frame, material->context)) {
+      break;
+    }
+    count++;
+  }
+
+  stage->animation.num_frames = count;
+  return count;
+}
+
+/**
+ * @brief Derives an animation stage's frame count from its texture (a numbered
+ * sequence on disk) and resolves the frame assets, so the editor can add an
+ * animation without hand-authoring the frame count.
+ * @return The number of frames resolved, or 0 if the stage's texture is not a
+ * valid animation sequence (in which case the caller should not treat the stage
+ * as animated). Marks the material dirty; the caller rebuilds the render stages.
+ */
+int32_t Cm_ResolveStageAnimationFrames(cm_material_t *material, cm_stage_t *stage) {
+
+  const int32_t count = Cm_CountStageAnimationFrames(material, stage);
+  if (count) {
+    Cm_ResolveStageAssets(material, stage, material->context);
+  }
+
+  material->dirty = true;
+  return count;
+}
+
+/**
+ * @brief Retargets a stage's texture by name and re-resolves it, so the editor can
+ * change a stage's texture live. Clears the old resolved path first. Marks dirty;
+ * the caller rebuilds the render stages to reload media.
+ */
+void Cm_SetStageTexture(cm_material_t *material, cm_stage_t *stage, const char *name) {
+
+  q_strlcpy(stage->asset.name, name ? name : "", sizeof(stage->asset.name));
+  stage->asset.path[0] = '\0';
+
+  if (*stage->asset.name) {
+
+    // an animation stage's frame count follows its texture, so re-derive it here
+    // (the new texture may be a different-length sequence, or no sequence at all)
+    if (stage->flags & STAGE_ANIMATION) {
+      Cm_CountStageAnimationFrames(material, stage);
+    }
+
+    Cm_ResolveStageAssets(material, stage, material->context);
+  }
+
+  material->dirty = true;
+}
+
+/**
+ * @brief Tests whether a material asset (a texture name, without extension)
+ * resolves to a file on disk within the given context. Used by the editor to
+ * validate texture-path inputs as the user types.
+ */
+bool Cm_AssetExists(const char *name, cm_asset_context_t context) {
+
+  if (!name || !*name) {
+    return false;
+  }
+
+  cm_asset_t asset;
+  memset(&asset, 0, sizeof(asset));
+  q_strlcpy(asset.name, name, sizeof(asset.name));
+
+  return Cm_ResolveAsset(&asset, context);
+}
+
+/**
  * @brief Resolves the asset for the given material.
  */
 static bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset, const char **suffix) {

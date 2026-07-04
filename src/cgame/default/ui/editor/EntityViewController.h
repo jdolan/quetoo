@@ -22,6 +22,7 @@
 #pragma once
 
 #include "EntityView.h"
+#include "KeyValueTableView.h"
 
 #include <ObjectivelyMVC/Box.h>
 #include <ObjectivelyMVC/Button.h>
@@ -77,14 +78,14 @@ struct EntityViewController {
   Box *teamMasterBox;
 
   /**
-   * @brief The StackView containing the entity key-value pairs.
+   * @brief The scrollable table of the entity's key-value pairs.
    */
-  StackView *pairs;
+  KeyValueTableView *pairs;
 
   /**
-   * @brief The StackView containing the team entity key-value pairs.
+   * @brief The scrollable table of the team entity's key-value pairs.
    */
-  StackView *teamPairs;
+  KeyValueTableView *teamPairs;
 
   /**
    * @brief The EntityView for adding a new key-value pair to the current entity.

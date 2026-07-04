@@ -20,12 +20,9 @@
             "subviews": [
               {
                 "identifier": "pairs",
-                "class": "StackView",
+                "class": "KeyValueTableView",
                 "classNames": [
-                  "container"
-                ],
-                "subviews": [
-
+                  "kvTable"
                 ]
               },
               {
@@ -47,12 +44,9 @@
             "subviews": [
               {
                 "identifier": "teamPairs",
-                "class": "StackView",
+                "class": "KeyValueTableView",
                 "classNames": [
-                  "container"
-                ],
-                "subviews": [
-
+                  "kvTable"
                 ]
               },
               {

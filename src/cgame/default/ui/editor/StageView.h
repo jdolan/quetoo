@@ -26,6 +26,7 @@
 #include <ObjectivelyMVC/StackView.h>
 #include <ObjectivelyMVC/Slider.h>
 #include <ObjectivelyMVC/Select.h>
+#include <ObjectivelyMVC/Checkbox.h>
 #include <ObjectivelyMVC/Button.h>
 
 /**
@@ -51,11 +52,11 @@ typedef struct {
 } StageParamControl;
 
 /**
- * @brief One active effect on the stage: a dropdown to pick which effect it is and
- * a button to remove it.
+ * @brief One active effect on the stage: the effect it represents and the button
+ * that removes it. The effect is chosen when added (via the Add Effect dropdown),
+ * so a panel does not carry its own effect Select.
  */
 typedef struct {
-  Select *select;
   Button *removeButton;
   cm_stage_flags_t flag;
 } StageEffectControl;
@@ -131,9 +132,10 @@ struct StageView {
   StackView *effectsContainer;
 
   /**
-   * @brief The Add Effect ("+") button.
+   * @brief The Add Effect dropdown: its options are the effects not yet on the
+   * stage; picking one adds that effect.
    */
-  Button *addEffect;
+  Select *addEffect;
 
   /**
    * @brief The active effect rows.

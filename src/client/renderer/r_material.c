@@ -194,9 +194,14 @@ static void R_ResolveMaterialStages(r_material_t *material) {
     stage->cm = cs;
 
     if (*stage->cm->asset.path) {
-      if (stage->cm->flags & STAGE_ANIMATION) {
+      if ((stage->cm->flags & STAGE_ANIMATION) && stage->cm->animation.num_frames >= 1) {
         stage->media = (r_media_t *) R_LoadStageAnimation(cm, stage);
       } else {
+        // A stage flagged STAGE_ANIMATION but with no resolved frames (e.g. one
+        // just added in the editor whose texture is not a numbered sequence)
+        // would otherwise build a 0-frame animation, which the draw path indexes
+        // as frames[-1] / frame % 0 and crashes. Fall back to the static image so
+        // it renders harmlessly until a valid frame sequence is supplied.
         stage->media = (r_media_t *) R_LoadImage(stage->cm->asset.path, IMG_MATERIAL);
       }
 

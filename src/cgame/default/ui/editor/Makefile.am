@@ -8,7 +8,9 @@ cguieditor_DATA = \
 	MaterialViewController.json \
 	MeshViewController.css \
 	MeshViewController.json \
-	editor.css
+	editor.css \
+	icon_add.png \
+	icon_delete.png
 
 noinst_HEADERS = \
 	EditorViewController.h \

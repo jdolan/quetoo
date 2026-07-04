@@ -1,23 +1,13 @@
-#material Input Label {
-  max-width: 100;
-}
-
-#material Input TextView {
-  width: 250;
-}
-
-#material Input Slider {
-  width: 250;
-}
-
-/* Header row of the Material Stages box, holding the Add Stage button at the right. */
+/* Column-width rules (Input Label/TextView/Slider) live in editor.css, not
+   here: a per-view stylesheet on this controller's own root view does not
+   reliably bind to its descendants. See editor.css.
+   Header row of the Material Stages box: the Add Stage + Remove Stage buttons,
+   grouped at the top-right with a 4px gap. */
 #material .stagesHeader {
   axis: horizontal;
+  alignment: top-right;
   distribution: default;
-}
-
-#material .stagesHeader .addStage {
-  alignment: right;
+  spacing: 4;
 }
 
 /* The list of stage panels. */
@@ -45,30 +35,30 @@
   spacing: 6;
 }
 
-/* One effect: a dropdown + remove button header, then its parameter sliders. */
-#material .stageEffect {
-  spacing: 2;
-}
-
-/* Header row, parameter rows, stage header/footer all stack horizontally. */
-#material .stageEffectHeader,
-#material .stageParam,
-#material .stageHeader,
-#material .stageAddEffect,
-#material .stageFooter {
+/* Stage header bar: spans the panel width with a box-like background + padding. */
+#material .stageHeader {
   axis: horizontal;
   spacing: 6;
+  autoresizing-mask: width;
+  background-color: #1e4e6266;
+  padding: 4;
 }
 
-#material .stageParam Label {
-  min-width: 120;
+/* Each effect is wrapped in its own bordered box, a name + remove header on top
+   and a KeyValueTableView of its properties (columns from .stageEffectTable in
+   editor.css). */
+#material .stageEffect {
+  spacing: 2;
+  autoresizing-mask: width;
+  background-color: #0c1f2733;
+  border-color: #1e4e62;
+  border-width: 1;
+  padding: 4;
 }
 
-#material .stageParam Slider {
-  width: 180;
-}
-
-/* The Remove button sits at the bottom-right of its panel. */
-#material .stageFooter {
-  alignment: bottom-right;
+/* Effect header and add-effect rows stack horizontally. */
+#material .stageEffectHeader,
+#material .stageAddEffect {
+  axis: horizontal;
+  spacing: 6;
 }

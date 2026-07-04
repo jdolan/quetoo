@@ -60,6 +60,10 @@
     <ClInclude Include="..\src\cgame\default\ui\common\CvarSlider.h" />
     <ClInclude Include="..\src\cgame\default\ui\common\CvarTextView.h" />
     <ClInclude Include="..\src\cgame\default\ui\common\DialogViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\common\KeyValueTableView.h" />
+    <ClInclude Include="..\src\cgame\default\ui\common\KeyValueView.h" />
+    <ClInclude Include="..\src\cgame\default\ui\common\Scrollbar.h" />
+    <ClInclude Include="..\src\cgame\default\ui\common\ScrollThumb.h" />
     <ClInclude Include="..\src\cgame\default\ui\controls\ControlsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\controls\CrosshairView.h" />
     <ClInclude Include="..\src\cgame\default\ui\controls\MovementCombatViewController.h" />
@@ -128,6 +132,10 @@
     <ClCompile Include="..\src\cgame\default\ui\common\CvarSlider.c" />
     <ClCompile Include="..\src\cgame\default\ui\common\CvarTextView.c" />
     <ClCompile Include="..\src\cgame\default\ui\common\DialogViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\common\KeyValueTableView.c" />
+    <ClCompile Include="..\src\cgame\default\ui\common\KeyValueView.c" />
+    <ClCompile Include="..\src\cgame\default\ui\common\Scrollbar.c" />
+    <ClCompile Include="..\src\cgame\default\ui\common\ScrollThumb.c" />
     <ClCompile Include="..\src\cgame\default\ui\controls\ControlsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\controls\CrosshairView.c" />
     <ClCompile Include="..\src\cgame\default\ui\controls\MovementCombatViewController.c" />

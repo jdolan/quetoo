@@ -77,8 +77,16 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
       cgi.SetEntityKeyValue(this->entity->def, def->key, ENTITY_STRING, def->string);
     }
 
-    $(this->add->key, setAttributedText, NULL);
-    $(this->add->value, setAttributedText, NULL);
+    $((TextView *) ((KeyValueView *) this->add)->key, setAttributedText, NULL);
+    $((TextView *) ((KeyValueView *) this->add)->value, setAttributedText, NULL);
+  }
+
+  // Worldspawn's sky/message apply live. Sky reloads the skybox (R_LoadSky falls
+  // back to the default template if the path doesn't resolve); message is picked up
+  // by the game via the entity write below.
+  const char *classname = cgi.EntityValue(this->entity->def, "classname")->string;
+  if (!q_strcmp(classname, "worldspawn") && !q_strcmp(def->key, "sky")) {
+    cgi.SetSky(def->string);
   }
 
   cgi.WriteEntityInfoCommand(this->entity->number, this->entity->def);
@@ -99,8 +107,8 @@ static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
 
     cgi.SetEntityKeyValue(this->teamEntity->def, def->key, ENTITY_STRING, def->string);
 
-    $(this->teamAdd->key, setAttributedText, NULL);
-    $(this->teamAdd->value, setAttributedText, NULL);
+    $((TextView *) ((KeyValueView *) this->teamAdd)->key, setAttributedText, NULL);
+    $((TextView *) ((KeyValueView *) this->teamAdd)->value, setAttributedText, NULL);
   }
 
   cgi.WriteEntityInfoCommand(this->teamEntity->number, this->teamEntity->def);
@@ -130,6 +138,10 @@ static void dealloc(Object *self) {
   EntityViewController *this = (EntityViewController *) self;
 
   cgi.Free(this->created);
+
+  // Balance the retains taken in loadView for the reparented add-rows.
+  release(this->add);
+  release(this->teamAdd);
 
   super(Object, self, dealloc);
 }
@@ -165,6 +177,16 @@ static void loadView(ViewController *self) {
 
   this->teamAdd->delegate.self = this;
   this->teamAdd->delegate.didEditEntity = didEditTeamEntity;
+
+  // The "add new key" rows are the LAST row of their tables (flush with the data
+  // rows, inheriting the table columns), not stranded at the bottom of the box.
+  // Detach them from their JSON box and retain them, since removeAllRows clears
+  // the table on every selection; setEntity re-appends them as the last row.
+  retain(this->add);
+  $((View *) this->add, removeFromSuperview);
+
+  retain(this->teamAdd);
+  $((View *) this->teamAdd, removeFromSuperview);
 
   this->createEntity->delegate.self = this;
   this->createEntity->delegate.didClick = didClickCreateEntity;
@@ -364,7 +386,19 @@ static void viewWillAppear(ViewController *self) {
 
   const cg_editor_trace_t tr = Cg_EntitySelectionTrace(start, end);
 
-  $(this, setEntity, tr.ent);
+  // Fall back to worldspawn (entity 0) when the ray hits no point/brush entity --
+  // the selection trace skips worldspawn, so aiming at the sky or open world would
+  // otherwise select nothing. This makes worldspawn (sky, message, etc.) reachable
+  // by aiming at the sky or any world surface.
+  cg_editor_entity_t *ent = tr.ent ? tr.ent : &cg_editor.entities[0];
+
+  // Only rebuild the row widgets when the selected entity actually changes.
+  // Re-opening at the same surface otherwise destroys and recreates the whole
+  // row list, forcing a full-panel re-layout every open. Edits still refresh via
+  // the NOTIFICATION_ENTITY_PARSED -> setEntity path.
+  if (ent != this->entity) {
+    $(this, setEntity, ent);
+  }
 
   super(ViewController, self, viewWillAppear);
 }
@@ -425,8 +459,8 @@ static EntityViewController *init(EntityViewController *self) {
  */
 static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
 
-  $((View *) self->pairs, removeAllSubviews);
-  $((View *) self->teamPairs, removeAllSubviews);
+  $(self->pairs, removeAllRows);
+  $(self->teamPairs, removeAllRows);
 
   if (entity) {
 
@@ -458,7 +492,13 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
       view->delegate.self = self;
       view->delegate.didEditEntity = didEditEntity;
 
-      $((View *) self->pairs, addSubview, (View *) view);
+      // Worldspawn's sky key is a live-reloaded skybox path; validate it against
+      // sky/<name> as the user types (empty/invalid falls back to the template).
+      if (!q_strcmp(classname, "worldspawn") && !q_strcmp(e->key, "sky")) {
+        $(view, setTextureValidation, "sky/", ASSET_CONTEXT_NONE);
+      }
+
+      $(self->pairs, addRowView, (KeyValueView *) view);
 
       release(view);
     }
@@ -486,7 +526,7 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
           view->delegate.self = self;
           view->delegate.didEditEntity = didEditTeamEntity;
 
-          $((View *) self->teamPairs, addSubview, (View *) view);
+          $(self->teamPairs, addRowView, (KeyValueView *) view);
 
           release(view);
         }
@@ -501,6 +541,12 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
     ((View *) self->teamMasterBox)->hidden = true;
   }
 
+  // The persistent "add new key" rows are the last row of each table. removeAllRows
+  // (above) detached last selection's; re-append them after the data rows. They
+  // inherit the table columns via the table's layout, so no manual width is needed.
+  $(self->pairs, addRowView, (KeyValueView *) self->add);
+  $(self->teamPairs, addRowView, (KeyValueView *) self->teamAdd);
+
   cg_editor.selected = self->entity ? self->entity->number : -1;
 
   // Delete is invalid for nothing-selected and for worldspawn (number 0).
@@ -511,9 +557,6 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
     deleteEntity->state &= ~ControlStateDisabled;
   }
   $(deleteEntity, stateDidChange);
-
-  $((View *) self->pairs, sizeToFit);
-  $((View *) self->teamPairs, sizeToFit);
 
   // The Team Master box toggles hidden<->visible and the boxes' contents change
   // on each selection; mark both boxes and their container StackView for layout

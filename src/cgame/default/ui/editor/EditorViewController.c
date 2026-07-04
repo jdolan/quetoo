@@ -54,6 +54,12 @@
  */
 #define EDITOR_PANEL_CHROME 130
 
+/**
+ * @brief Gap, in UI units, between the panel and the menu strip / left edge, so
+ * the docked panel floats slightly rather than butting against the chrome.
+ */
+#define EDITOR_PANEL_MARGIN 2
+
 #pragma mark - Delegates
 
 /**
@@ -280,9 +286,10 @@ static void loadView(ViewController *self) {
   ((View *) this->menu)->minSize.h = EDITOR_MENU_HEIGHT;
 
   // Content area fills the window; its top inset reserves the strip's height so
-  // the panel (and any Settings/Controls sub-view) sit below the strip.
+  // the panel (and any Settings/Controls sub-view) sit below the strip. A small
+  // top/left margin makes the panel float clear of the strip and the left edge.
   ((View *) this->content)->autoresizingMask = ViewAutoresizingFill;
-  ((View *) this->content)->padding = MakePadding(EDITOR_MENU_HEIGHT, 0, 0, 0);
+  ((View *) this->content)->padding = MakePadding(EDITOR_MENU_HEIGHT + EDITOR_PANEL_MARGIN, 0, 0, EDITOR_PANEL_MARGIN);
 
   // The editor Panel is a docked, fixed child (not a free window): disable drag
   // and resize, dock it top-left below the strip. Width is defined here on the
@@ -310,7 +317,10 @@ static void loadView(ViewController *self) {
 
   $(tabViewController, addChildViewController, (ViewController *) this->entityViewController);
   $(tabViewController, addChildViewController, (ViewController *) this->materialViewController);
+#if 0 // TEMP: mesh tab kept off while we rebuild the material tab. The crash guard
+      // in respondToEvent skips setModel while this is disabled. Flip to 1 to restore.
   $(tabViewController, addChildViewController, (ViewController *) this->meshViewController);
+#endif
 
   $(self, addChildViewController, tabViewController);
 
@@ -359,7 +369,12 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
             model = (r_model_t *) edit->model;
           }
         }
-        $(this->meshViewController, setModel, model);
+        // Only drive the mesh tab if its view was actually loaded. When the mesh
+        // tab is not added to the tab view, its outlets are NULL and setModel
+        // would dereference them (crash on entity select).
+        if (((ViewController *) this->meshViewController)->view) {
+          $(this->meshViewController, setModel, model);
+        }
       }
         break;
     }
@@ -388,8 +403,8 @@ static void fitContentHeight(EditorViewController *self) {
 
   // Size the (fixed, autoresizing:none) tab page so the panel spans from below
   // the strip to the window bottom -- resolution-adaptive, unlike a hardcoded
-  // height. window_bounds is the UI's coordinate space (raw SDL_GetWindowSize,
-  // NOT r_draw_scale-divided), so the chrome constant is stable across displays.
+  // height. window_bounds is the MVC layout coordinate space here (matches the
+  // root view), so the chrome/strip constants are in the same units.
   //
   // This only assigns a frame value + needsLayout flags; it does NOT force a
   // layout or touch any ancestor/root frame. That distinction is the whole
@@ -397,7 +412,7 @@ static void fitContentHeight(EditorViewController *self) {
   // precisely because they forced layout from this (KEY_GAME) tick. MVC applies
   // the new height on its next KEY_UI layout, and `autoresizing-mask: none`
   // keeps it (the parent does not override it).
-  const int target = cgi.context->window_bounds.h - EDITOR_MENU_HEIGHT - EDITOR_PANEL_CHROME;
+  const int target = cgi.context->window_bounds.h - EDITOR_MENU_HEIGHT - EDITOR_PANEL_MARGIN - EDITOR_PANEL_CHROME;
 
   if (target > 0 && tabPage->frame.h != target) {
     tabPage->frame.h = target;

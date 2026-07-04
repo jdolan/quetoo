@@ -1,11 +1,4 @@
-#mesh Input Label {
-  max-width: 100;
-}
-
-#mesh Input TextView {
-  width: 250;
-}
-
-#mesh Input Slider {
-  width: 250;
-}
+/* Column-width rules for this tab live in editor.css, not here. A per-view
+   stylesheet attached to this controller's own root view does not reliably
+   bind to its descendants; editor.css (the editor root's stylesheet) does.
+   See the column-width block in editor.css. */

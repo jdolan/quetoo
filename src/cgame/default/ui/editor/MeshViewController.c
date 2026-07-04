@@ -158,7 +158,11 @@ static void viewWillAppear(ViewController *self) {
     }
   }
 
-  $(this, setModel, model);
+  // Only refresh when the model changes; avoids needless setText + re-layout on
+  // every open with the same (or no) selection.
+  if (model != this->model) {
+    $(this, setModel, model);
+  }
 
   super(ViewController, self, viewWillAppear);
 }
