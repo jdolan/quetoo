@@ -43,7 +43,7 @@ struct main0_in
     float3 cubemap_coord [[user(locn0)]];
 };
 
-fragment main0_out main0(main0_in in [[stage_in]], texturecube<float> texture_sky [[texture(6)]], sampler texture_skySmplr [[sampler(6)]])
+fragment main0_out main0(main0_in in [[stage_in]], texturecube<float> texture_sky [[texture(0)]], sampler texture_skySmplr [[sampler(0)]])
 {
     main0_out out = {};
     out.out_color = texture_sky.sample(texture_skySmplr, fast::normalize(in.cubemap_coord));
