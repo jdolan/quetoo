@@ -22,6 +22,11 @@
 #include "r_local.h"
 
 /**
+ * @brief The fixed mip level count for cubemap images (see IMG_CUBEMAP below).
+ */
+#define IMG_CUBEMAP_LEVELS 8
+
+/**
  * @brief Screenshot types.
  */
 typedef enum {
@@ -302,17 +307,28 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
       SDL_DestroySurface(side);
     }
 
+    // Mip levels are fixed at 8 (not derived from face size), matching the GL
+    // renderer: image-based ambient (light.glsl) samples a fixed LOD of 6 for a
+    // blurred irradiance approximation, so that level must always exist.
     image->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_CUBE,
       .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
       .width = image->width,
       .height = image->height,
       .layer_count_or_depth = 6,
-      .num_levels = 1,
-      .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+      .num_levels = IMG_CUBEMAP_LEVELS,
+      .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
     }, data);
 
     free(data);
+
+    // Generating mipmaps is not a copy-pass operation and must run outside any
+    // pass, so it gets its own one-shot command buffer after the base level
+    // upload (createTexture's internal copy pass) has already been submitted.
+    CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
+    $(commands, generateMipmaps, image->texture->texture);
+    $(commands, submit);
+    release(commands);
   } else {
     image->width = surface->w;
     image->height = surface->h;
