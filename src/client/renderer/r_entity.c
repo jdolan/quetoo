@@ -118,7 +118,7 @@ static void R_DrawEntityBounds(const r_entity_t *e) {
 /**
  * @brief Draws debug bounding boxes for all entities in the view.
  */
-void R_DrawEntitiesBounds(const r_view_t *view) {
+static void R_DrawEntitiesBounds(const r_view_t *view) {
 
   if (!r_draw_entity_bounds->value) {
     return;
@@ -158,7 +158,11 @@ void R_DrawEntities(const r_view_t *view) {
 
   Thread_Wait(decals);
 
+  // Decals project onto the opaque surfaces beneath them.
   R_DrawDecals(view);
+
+  // Translucent world surfaces composite over all opaque geometry.
+  R_DrawBlendBspEntities(view);
 
   R_DrawEntitiesBounds(view);
 }

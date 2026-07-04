@@ -240,8 +240,6 @@ void R_DrawMainView(r_view_t *view) {
 
   R_UpdateSprites(view);
 
-  R_UpdateDecals(view);
-
   R_DrawShadows(view);
 
   R_DrawBspEntities(view);
@@ -250,17 +248,9 @@ void R_DrawMainView(r_view_t *view) {
     R_DrawSky(view, r_models.world->bsp);
   }
 
-  R_DrawMeshEntities(view);
-
-  // Decals project onto the opaque surfaces beneath them.
-  R_DrawDecals(view);
-
-  // Translucent world surfaces composite over all opaque geometry.
-  R_DrawBlendBspEntities(view);
+  R_DrawEntities(view);
 
   R_DrawSprites(view);
-
-  R_DrawEntitiesBounds(view);
 
   R_Draw3D(view);
 }
