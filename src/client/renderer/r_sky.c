@@ -164,7 +164,11 @@ static void R_InitSkyPipeline(void) {
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
-  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+  // Sky faces share the world's BSP vertex/index buffers, so they use the same
+  // winding convention as the rest of the level (matching the GL renderer,
+  // which enables GL_CULL_FACE for R_DrawSky).
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
