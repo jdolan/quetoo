@@ -22,6 +22,7 @@
 #include "cg_local.h"
 
 static cvar_t *editor_grid_size;
+static cvar_t *editor_select_dist;
 
 #include "EntityViewController.h"
 #include "EntityView.h"
@@ -207,6 +208,8 @@ static void loadView(ViewController *self) {
   ((View *) createDelete)->alignment = ViewAlignmentBottomLeft;
 }
 
+static void cycleCandidate(EntityViewController *this, float wheel);
+
 /**
  * @brief Handles keyboard events for the EntityViewController, supporting copy/paste of entity definitions.
  */
@@ -269,6 +272,17 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
       cgi.Print("func_group entities %s\n", self->show_func_groups ? "^2shown" : "^1hidden");
     }
 
+    // PageUp/PageDown cycle the ray selection, mirroring the mouse wheel (issue
+    // #840). These were redundant aliases for vertical entity movement (Q/E and
+    // numpad 9/3 still do that), so repurposing them costs no capability.
+    if (cgi.GetKeyDest() == KEY_UI) {
+      if (key == SDLK_PAGEUP) {
+        cycleCandidate(self, 1.f);
+      } else if (key == SDLK_PAGEDOWN) {
+        cycleCandidate(self, -1.f);
+      }
+    }
+
     if (cgi.GetKeyDest() == KEY_UI && e) {
 
       vec3_t move = Vec3_Zero();
@@ -312,13 +326,11 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 
         case SDLK_Q:
         case SDLK_KP_9:
-        case SDLK_PAGEUP:
           move = Vec3_Scale(Vec3_Up(), +step);
           break;
 
         case SDLK_E:
         case SDLK_KP_3:
-        case SDLK_PAGEDOWN:
           move = Vec3_Scale(Vec3_Up(), -step);
           break;
       }
@@ -337,6 +349,43 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 }
 
 /**
+ * @brief Cycles the entity selection through the ray candidates collected at the
+ * last trace (issue #840). `wheel` is the mouse-wheel delta: scroll up selects a
+ * nearer candidate, scroll down a farther one; the ends clamp. No-op with fewer
+ * than two candidates.
+ */
+static void cycleCandidate(EntityViewController *this, float wheel) {
+
+  if (this->numCandidates < 2) {
+    return;
+  }
+
+  size_t index = this->candidateIndex;
+  if (wheel < 0.f) {
+    if (index + 1 < this->numCandidates) {
+      index++;
+    }
+  } else if (wheel > 0.f) {
+    if (index > 0) {
+      index--;
+    }
+  }
+
+  if (index == this->candidateIndex) {
+    return; // clamped at an end
+  }
+
+  this->candidateIndex = index;
+
+  cg_editor_entity_t *ent = &cg_editor.entities[this->candidates[index]];
+  $(this, setEntity, ent);
+
+  Cg_Debug("selecting %d/%d (%s)\n",
+           (int32_t) (index + 1), (int32_t) this->numCandidates,
+           cgi.EntityValue(ent->def, "classname")->string);
+}
+
+/**
  * @see ViewContrxoller::respondToEvent(ViewController *, const SDL_Event *)
  */
 static void respondToEvent(ViewController *self, const SDL_Event *event) {
@@ -351,6 +400,16 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
   if (event->type == MVC_NOTIFICATION_EVENT) {
 
     switch (event->user.code) {
+
+      // The mouse wheel cycles through the ray candidates (issue #840). It arrives
+      // as a notification from Cg_HandleEvent because MVC routes raw wheel events to
+      // the view under the cursor, not here. data1 is the direction: +1 nearer, -1
+      // farther. The captured ray is frozen while the editor UI is up, so cycling is
+      // stable.
+      case NOTIFICATION_EDITOR_SELECTION_CYCLE:
+        cycleCandidate(this, (float) (intptr_t) event->user.data1);
+        break;
+
       case NOTIFICATION_ENTITY_PARSED: {
 
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
@@ -382,15 +441,21 @@ static void viewWillAppear(ViewController *self) {
   EntityViewController *this = (EntityViewController *) self;
 
   const vec3_t start = cgi.view->origin;
-  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cgi.view->forward);
+  const vec3_t end = Vec3_Fmaf(start, editor_select_dist->value, cgi.view->forward);
 
-  const cg_editor_trace_t tr = Cg_EntitySelectionTrace(start, end);
+  // Collect every entity along the (distance-capped) ray, nearest first, so the
+  // mouse wheel can cycle through overlapping objects (issue #840). The nearest is
+  // selected now; the wheel steps to the ones behind it.
+  this->numCandidates = Cg_EntitySelectionCandidates(start, end, this->candidates, CG_EDITOR_MAX_CANDIDATES);
+  this->candidateIndex = 0;
 
   // Fall back to worldspawn (entity 0) when the ray hits no point/brush entity --
   // the selection trace skips worldspawn, so aiming at the sky or open world would
   // otherwise select nothing. This makes worldspawn (sky, message, etc.) reachable
   // by aiming at the sky or any world surface.
-  cg_editor_entity_t *ent = tr.ent ? tr.ent : &cg_editor.entities[0];
+  cg_editor_entity_t *ent = this->numCandidates
+      ? &cg_editor.entities[this->candidates[0]]
+      : &cg_editor.entities[0];
 
   // Only rebuild the row widgets when the selected entity actually changes.
   // Re-opening at the same surface otherwise destroys and recreates the whole
@@ -594,6 +659,7 @@ static void initialize(Class *clazz) {
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
 
   editor_grid_size = cgi.AddCvar("editor_grid_size", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
+  editor_select_dist = cgi.AddCvar("editor_select_dist", "512", CVAR_ARCHIVE, "The maximum distance, in world units, for editor entity selection and mouse-wheel ray cycling.");
 }
 
 /**

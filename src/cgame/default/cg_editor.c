@@ -457,6 +457,88 @@ cg_editor_trace_t Cg_EntitySelectionTrace(const vec3_t start, const vec3_t end) 
 }
 
 /**
+ * @brief Collects every editor entity whose brushes or bounds the ray hits, ordered
+ * nearest-first, into `out` (up to `max`). Mirrors Cg_EntitySelectionTrace's hit
+ * logic but keeps all hits instead of only the closest, so the editor can cycle
+ * through overlapping objects with the mouse wheel (issue #840). Worldspawn (entity
+ * 0) is skipped, as in the single trace. The ray length (its `end`) is the caller's
+ * distance cap, so anything past it is naturally excluded.
+ * @return The number of candidates written to `out`.
+ */
+size_t Cg_EntitySelectionCandidates(const vec3_t start, const vec3_t end, int16_t *out, size_t max) {
+
+  struct {
+    int16_t number;
+    float fraction;
+  } candidates[CG_EDITOR_MAX_CANDIDATES];
+
+  size_t count = 0;
+
+  cg_editor_entity_t *edit = cg_editor.entities;
+  for (int32_t i = 1; i < MAX_ENTITIES; i++, edit++) {
+
+    if (edit->def == NULL) {
+      continue;
+    }
+
+    if (!cg_editor.show_func_groups) {
+      if (!q_strcmp(cgi.EntityValue(edit->def, "classname")->string, "func_group")) {
+        continue;
+      }
+    }
+
+    // the nearest hit fraction for this entity (an entity may have many brushes)
+    float fraction = 1.f;
+    bool hit = false;
+
+    if (edit->brushes) {
+      for (uint32_t j = 0; j < edit->brushes->count; j++) {
+        const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
+
+        const cm_trace_t tr = cgi.TraceToBrush(start, end, brush);
+
+        if (tr.start_solid || tr.fraction >= fraction) {
+          continue;
+        }
+
+        fraction = tr.fraction;
+        hit = true;
+      }
+    } else {
+
+      const entity_state_t *s = &edit->ent->current;
+      const box3_t bounds = Box3_Translate(s->bounds, s->origin);
+
+      const float frac = Box3_RayFraction(start, end, bounds);
+      if (frac < fraction) {
+        fraction = frac;
+        hit = true;
+      }
+    }
+
+    if (!hit || count >= max || count >= lengthof(candidates)) {
+      continue;
+    }
+
+    // insertion-sort this hit into the (small) list by fraction, nearest first
+    size_t k = count;
+    while (k > 0 && candidates[k - 1].fraction > fraction) {
+      candidates[k] = candidates[k - 1];
+      k--;
+    }
+    candidates[k].number = edit->number;
+    candidates[k].fraction = fraction;
+    count++;
+  }
+
+  for (size_t i = 0; i < count; i++) {
+    out[i] = candidates[i].number;
+  }
+
+  return count;
+}
+
+/**
  * @brief Traces the view ray for material selection.
  */
 cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end) {

@@ -111,11 +111,18 @@ typedef struct {
 
 } cg_editor_trace_t;
 
+/**
+ * @brief The maximum number of ray-selection candidates collected for mouse-wheel
+ * cycling (issue #840). Overlapping objects beyond this are ignored.
+ */
+#define CG_EDITOR_MAX_CANDIDATES 32
+
 int32_t Cg_FindTeamMaster(const char *classname, const char *team);
 void Cg_ParseEditorEntity(int16_t number, const char *info);
 void Cg_LoadEditorEntities(void);
 void Cg_FreeEditorEntities(void);
 void Cg_PopulateEditorScene(const cl_frame_t *frame);
 cg_editor_trace_t Cg_EntitySelectionTrace(const vec3_t start, const vec3_t end);
+size_t Cg_EntitySelectionCandidates(const vec3_t start, const vec3_t end, int16_t *out, size_t max);
 cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end);
 void Cg_CheckEditor(void);
