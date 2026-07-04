@@ -428,10 +428,44 @@ void R_Draw2DImage(int32_t x, int32_t y, int32_t w, int32_t h, const r_image_t *
 
 /**
  * @brief Draws a framebuffer's color attachment as a 2D image at the specified screen rectangle.
- * @remarks TODO(#864): used to composite the player-model view; wire it up (sample
- * framebuffer->colorTextures[0]) when R_DrawPlayerModelView is ported.
+ * @remarks Used to composite the player-model preview. Unlike the GL renderer, no
+ * V-flip is needed: SDL_gpu's top-left texel origin already matches this pipeline's
+ * screen-space convention. The attachment is HDR (R_SCENE_COLOR_FORMAT) with no
+ * tonemap step, same as the GL renderer for this view -- fine in practice since the
+ * player-model view's flat ambient shortcut keeps output within [0, 1].
  */
 void R_Draw2DFramebuffer(int32_t x, int32_t y, int32_t w, int32_t h, const Framebuffer *framebuffer, const color_t color) {
+
+  if (framebuffer == NULL) {
+    Com_Warn("NULL framebuffer\n");
+    return;
+  }
+
+  Texture *texture = $(framebuffer, resolveColorTexture, 0);
+
+  r_draw_2d_arrays_t draw = {
+    .mode = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    .texture = texture,
+    .first_vertex = r_draw_2d.game.num_vertexes,
+    .num_vertexes = 6
+  };
+
+  r_draw_2d_vertex_t quad[4];
+
+  quad[0].position = Vec2(x, y);
+  quad[1].position = Vec2(x + w, y);
+  quad[2].position = Vec2(x + w, y + h);
+  quad[3].position = Vec2(x, y + h);
+
+  quad[0].diffusemap = Vec2(0.f, 0.f);
+  quad[1].diffusemap = Vec2(1.f, 0.f);
+  quad[2].diffusemap = Vec2(1.f, 1.f);
+  quad[3].diffusemap = Vec2(0.f, 1.f);
+
+  quad[0].color = quad[1].color = quad[2].color = quad[3].color = Color_Color32(color);
+
+  R_EmitDrawVertexes2D_Quad(quad);
+  R_AddDraw2DArrays(&draw);
 }
 
 /**

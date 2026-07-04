@@ -69,6 +69,17 @@ static struct {
   r_image_t *shell;
 
   /**
+   * @brief 1x1x1 fallback voxel textures for the player-model preview, which has
+   * no loaded BSP (and therefore no real voxel data) to sample. Their contents
+   * are never read: the fragment shader skips voxel/light sampling entirely for
+   * VIEW_PLAYER_MODEL, but SDL_gpu still requires every declared sampler slot to
+   * be bound at draw time.
+   */
+  Texture *voxel_light_data_fallback;
+  Texture *voxel_caustics_fallback;
+  Texture *voxel_occlusion_fallback;
+
+  /**
    * @brief Cache of MATERIAL_STAGES mesh pipelines, one per unique (src, dest)
    * blend function (SDL_gpu bakes blend state into the pipeline).
    */
@@ -558,6 +569,89 @@ void R_DrawMeshEntities(const r_view_t *view) {
 }
 
 /**
+ * @brief Renders the player-model preview (menu player setup, etc.) into its own
+ * framebuffer: mesh entities only, lit with a flat ambient since no world/voxel
+ * data is loaded for this view. No BSP, sprites, decals, or shadows are drawn.
+ */
+void R_DrawPlayerModelView(r_view_t *view) {
+
+  if (!r_mesh_pipeline.pipeline || !view->framebuffer) {
+    return;
+  }
+
+  R_UpdateUniforms(view);
+  R_UpdateEntities(view);
+
+  CommandBuffer *commands = r_context.device->commands;
+  if (!commands) {
+    return;
+  }
+
+  Framebuffer *framebuffer = view->framebuffer;
+
+  const SDL_FColor clear_color = { 0.f, 0.f, 0.f, 0.f };
+  const SDL_FColor clear_depth_copy = { 1.f, 1.f, 1.f, 1.f };
+  const SDL_GPUColorTargetInfo color[] = {
+    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color),
+    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_depth_copy),
+  };
+  const SDL_GPUDepthStencilTargetInfo depth =
+      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, 1.f);
+
+  RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
+
+  $(pass, setViewport, &(SDL_GPUViewport) {
+    .x = 0.f, .y = 0.f,
+    .w = (float) framebuffer->size.w, .h = (float) framebuffer->size.h,
+    .min_depth = 0.f, .max_depth = 1.f,
+  });
+
+  $(commands, pushVertexUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushFragmentUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
+
+  $(pass, bindPipeline, r_mesh_pipeline.pipeline);
+
+  // No world is loaded for this view, so bind the 1x1x1 fallbacks; the shader's
+  // VIEW_PLAYER_MODEL branch never actually samples them (see mesh_fs.glsl).
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
+    .texture = r_mesh_pipeline.voxel_light_data_fallback->texture,
+    .sampler = r_mesh_pipeline.voxel_data_sampler->sampler,
+  }, 1);
+
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_SHADOW_ATLAS, &(SDL_GPUTextureSamplerBinding) {
+    .texture = r_shadow_atlas.texture->texture,
+    .sampler = r_shadow_atlas.sampler->sampler,
+  }, 1);
+
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_mesh_pipeline.voxel_caustics_fallback->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
+    { .texture = r_mesh_pipeline.voxel_occlusion_fallback->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
+    { .texture = R_SkyTexture()->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
+  }, 3);
+
+  SDL_GPUBuffer *storage[] = { r_lights.buffer->buffer, r_lights.buffer->buffer };
+  $(pass, bindFragmentStorageBuffers, 0, storage, 2);
+
+  const r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+
+    if (!IS_MESH_MODEL(e->model)) {
+      continue;
+    }
+
+    if (e->effects & EF_NO_DRAW) {
+      continue;
+    }
+
+    // No culling: R_CullEntity always returns false for VIEW_PLAYER_MODEL.
+    R_DrawMeshEntity(pass, view, e);
+    r_stats.entities_visible++;
+  }
+
+  pass = release(pass);
+}
+
+/**
  * @brief Builds the mesh pipeline from the mesh_vs/mesh_fs shaders.
  */
 void R_InitMeshPipeline(void) {
@@ -673,6 +767,36 @@ void R_InitMeshPipeline(void) {
     .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
   });
+
+  // 1x1x1 fallback voxel textures for the player-model preview (see the struct
+  // field docs above). Contents are never sampled, so uninitialized (NULL) data
+  // is fine -- the branch that would read them never executes for that view.
+  r_mesh_pipeline.voxel_light_data_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    .type = SDL_GPU_TEXTURETYPE_3D,
+    .format = SDL_GPU_TEXTUREFORMAT_R32G32_INT,
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+    .width = 1, .height = 1, .layer_count_or_depth = 1,
+    .num_levels = 1,
+    .sample_count = SDL_GPU_SAMPLECOUNT_1,
+  }, NULL);
+
+  r_mesh_pipeline.voxel_caustics_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    .type = SDL_GPU_TEXTURETYPE_3D,
+    .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+    .width = 1, .height = 1, .layer_count_or_depth = 1,
+    .num_levels = 1,
+    .sample_count = SDL_GPU_SAMPLECOUNT_1,
+  }, NULL);
+
+  r_mesh_pipeline.voxel_occlusion_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    .type = SDL_GPU_TEXTURETYPE_3D,
+    .format = SDL_GPU_TEXTUREFORMAT_R8G8_UNORM,
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+    .width = 1, .height = 1, .layer_count_or_depth = 1,
+    .num_levels = 1,
+    .sample_count = SDL_GPU_SAMPLECOUNT_1,
+  }, NULL);
 }
 
 /**
@@ -685,6 +809,9 @@ void R_ShutdownMeshPipeline(void) {
   r_mesh_pipeline.voxel_data_sampler = release(r_mesh_pipeline.voxel_data_sampler);
   r_mesh_pipeline.ambient_sampler = release(r_mesh_pipeline.ambient_sampler);
   r_mesh_pipeline.stage_sampler = release(r_mesh_pipeline.stage_sampler);
+  r_mesh_pipeline.voxel_light_data_fallback = release(r_mesh_pipeline.voxel_light_data_fallback);
+  r_mesh_pipeline.voxel_caustics_fallback = release(r_mesh_pipeline.voxel_caustics_fallback);
+  r_mesh_pipeline.voxel_occlusion_fallback = release(r_mesh_pipeline.voxel_occlusion_fallback);
 
   for (int32_t i = 0; i < r_mesh_pipeline.num_stages; i++) {
     r_mesh_pipeline.stages[i].pipeline = release(r_mesh_pipeline.stages[i].pipeline);

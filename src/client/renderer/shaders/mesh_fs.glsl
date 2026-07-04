@@ -165,7 +165,16 @@ void main(void) {
 
   out_color = fragment.diffuse_sample * vertex.color;
 
-  mesh_fragment_lighting(vertex, fragment);
+  // The player-model preview (menu) has no world, so no voxel/shadow data to
+  // sample; light it with a flat, neutral ambient instead of full per-fragment
+  // lighting. Matches the GL renderer's VIEW_PLAYER_MODEL shortcut.
+  if (view_type == VIEW_PLAYER_MODEL) {
+    fragment.ambient = vec3(0.666);
+    fragment.diffuse = vec3(0.0);
+    fragment.specular = vec3(0.0);
+  } else {
+    mesh_fragment_lighting(vertex, fragment);
+  }
 
   out_color.rgb *= (fragment.ambient + fragment.diffuse);
   out_color.rgb += fragment.specular;

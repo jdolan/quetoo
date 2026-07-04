@@ -250,14 +250,6 @@ void R_DrawMainView(r_view_t *view) {
 }
 
 /**
- * @brief Entry point for drawing the player model view.
- */
-void R_DrawPlayerModelView(r_view_t *view) {
-
-  // TODO(#864): player-model mesh pass not yet ported to SDL_gpu.
-}
-
-/**
  * @brief Called at the end of each render frame.
  */
 void R_EndFrame(void) {
