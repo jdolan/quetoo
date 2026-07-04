@@ -110,8 +110,6 @@ void R_InitBspPipeline(void) {
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
-  // Cull back faces; front faces are wound clockwise (matching the GL renderer's
-  // glFrontFace(GL_CW)). If world geometry vanishes, flip to COUNTER_CLOCKWISE.
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
@@ -518,18 +516,15 @@ void R_DrawBspEntities(const r_view_t *view) {
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
-  // First scene pass: clear the color attachment and the depth copy (to the far
-  // plane, 1.0). When the depth pre-pass ran, LOAD its depth so occluded fragments
-  // are rejected before shading (early-Z); otherwise clear depth and write it here.
-  // This makes r_depth_pass the A/B.
   const SDL_FColor clear_color = { 0.f, 0.f, 0.f, 1.f };
-  const SDL_FColor clear_depth_copy = { 1.f, 1.f, 1.f, 1.f };
+  const SDL_FColor clear_depth_color = { 1.f, 1.f, 1.f, 1.f };
   const SDL_GPUColorTargetInfo color[] = {
     $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color),
-    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_depth_copy),
+    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_depth_color),
   };
-  const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, r_depth_pass->integer ? SDL_GPU_LOADOP_LOAD : SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, 1.f);
+  
+  const SDL_GPULoadOp depth_loadop = r_depth_pass->integer ? SDL_GPU_LOADOP_LOAD : SDL_GPU_LOADOP_CLEAR;
+  const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, depth_loadop, SDL_GPU_STOREOP_STORE, 1.f);
 
   RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
@@ -549,8 +544,7 @@ void R_DrawBspEntities(const r_view_t *view) {
 
   // The wireframe variant replaces the base pipeline throughout the pass; stage
   // (blend) overlays are skipped below when it is active.
-  GraphicsPipeline *base = r_draw_wireframe->integer
-      ? r_bsp_pipeline.wireframe_pipeline : r_bsp_pipeline.pipeline;
+  GraphicsPipeline *base = r_draw_wireframe->integer ? r_bsp_pipeline.wireframe_pipeline : r_bsp_pipeline.pipeline;
 
   $(pass, bindPipeline, base);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);

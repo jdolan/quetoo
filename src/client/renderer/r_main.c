@@ -216,9 +216,6 @@ void R_DrawViewDepth(r_view_t *view) {
 
   R_UpdateUniforms(view);
 
-  // The opaque BSP depth pre-pass. TODO(#864): move this into a dedicated scene
-  // framebuffer shared with the main pass for early-Z, and reuse the linear-depth
-  // target for soft particles.
   R_DrawDepthPass(view);
 }
 
@@ -229,13 +226,6 @@ void R_DrawMainView(r_view_t *view) {
 
   assert(view);
 
-  // TODO(#864): bring-up vertical slice — render the world BSP into the present
-  // framebuffer with the depth_pass pipeline (flat color). Entities, sprites,
-  // shadows, materials/lighting, and the dedicated scene framebuffer + post
-  // pipeline are ported in later Phase 5 steps.
-
-  // R_UpdateFrustum and R_UpdateUniforms ran in R_DrawViewDepth, before the
-  // depth pre-pass; the frustum and globals are already current here.
   R_UpdateLights(view);
 
   R_UpdateSprites(view);

@@ -24,13 +24,6 @@
 r_depth_pass_program_t r_depth_pass_program;
 
 /**
- * @brief World units the pre-pass geometry is pushed along the camera's
- * forward vector, so its stored depth is >= the main pass's own (bit-inexact)
- * depth for the same surface under a strict LEQUAL test. See R_DrawDepthPass.
- */
-#define DEPTH_PASS_BIAS 1.f
-
-/**
  * @brief Renders opaque world geometry into the view framebuffer's depth (depth
  * only), which the main 3D passes then LOAD for early-Z rejection.
  * @details BSP-only: occluders are world geometry. TODO(#864): the depth is
@@ -42,7 +35,7 @@ void R_DrawDepthPass(r_view_t *view) {
     return;
   }
 
-  if (!r_models.world || !r_depth_pass_program.pipeline) {
+  if (!r_models.world) {
     return;
   }
 
@@ -58,9 +51,7 @@ void R_DrawDepthPass(r_view_t *view) {
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
-  // Depth-only: clear + write the shared depth attachment (no color target).
-  const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, 1.f);
+  const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, 1.f);
 
   RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
 
@@ -70,22 +61,7 @@ void R_DrawDepthPass(r_view_t *view) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  // Position-only: the pre-pass needs globals (view/projection) and the world
-  // model matrix; no fragment uniforms. The model matrix is a small translation
-  // along the camera's forward vector (not identity) -- this is the depth bias:
-  // a uniform world-space push along `forward` adds exactly DEPTH_PASS_BIAS to
-  // every vertex's view-space Z (since the view matrix's Z axis is `forward` by
-  // construction), regardless of where that vertex sits in the frustum. Baking
-  // it into `model` (rather than editing the shader's arithmetic) keeps
-  // depth_pass_vs.glsl's gl_Position expression textually identical to
-  // bsp_vs.glsl's, so the two shaders take the exact same floating-point path
-  // through the projection -- restructuring the multiply chain (e.g. computing
-  // view_model * position as a separate step before applying projection3D) is
-  // NOT floating-point-equivalent to the chained `projection3D * view_model *
-  // position` main.c and bsp_vs.glsl use, and reintroduces the very
-  // bit-inexactness this bias is meant to paper over, just with a different
-  // (and differently distance-dependent) error term.
-  const mat4_t model = Mat4_FromTranslation(Vec3_Scale(view->forward, DEPTH_PASS_BIAS));
+  const mat4_t model = Mat4_Identity();
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
 
@@ -93,8 +69,6 @@ void R_DrawDepthPass(r_view_t *view) {
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  // The worldspawn model carries pre-consolidated opaque (non-sky) depth-pass
-  // indices into the shared elements buffer: the entire opaque world in one draw.
   const r_bsp_inline_model_t *world = bsp->inline_models;
   const Uint32 firstIndex = (Uint32) ((uintptr_t) world->depth_pass_elements / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, world->num_depth_pass_elements, 1, firstIndex, 0, 0);
@@ -121,22 +95,10 @@ void R_InitDepthPass(void) {
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
-  // Cull back faces, matching R_InitBspPipeline so the pre-pass depth agrees with
-  // the main opaque pass (front faces clockwise, per the GL renderer).
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
-
-  // No native SDL_GPU depth bias here: for a floating-point depth attachment
-  // (D32_FLOAT, below), the hardware bias's "r" constant is implementation-
-  // defined and, per the Vulkan/Metal/D3D12 spec language it shares, is
-  // typically derived from the format alone, not the fragment's actual depth --
-  // i.e. a small FIXED absolute step in NDC space. That's backwards for a
-  // nonlinear projection: it's barely enough near the camera (dense NDC depth)
-  // and nowhere near enough far away (compressed NDC depth), confirmed
-  // empirically (insufficient past ~768 units; enable_depth_bias with
-  // constant/slope factors of 1, 4, and 16 were all tried on this branch and
-  // none resolved distant Z-fighting). See R_DrawDepthPass for the world-space
-  // bias applied instead, via the model matrix.
+  info.rasterizer_state.enable_depth_bias = true;
+  info.rasterizer_state.depth_bias_slope_factor = 100.f; // 🤷🏼‍♂️
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
