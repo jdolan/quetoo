@@ -36,6 +36,13 @@ static struct {
   GraphicsPipeline *pipeline;
 
   /**
+   * @brief The mesh pipeline variant for translucent faces (SURF_MASK_BLEND or
+   * EF_BLEND): no face culling, alpha blending, matching the opaque pipeline
+   * otherwise (depth test and write remain enabled, matching the GL renderer).
+   */
+  GraphicsPipeline *blend_pipeline;
+
+  /**
    * @brief The material sampler (trilinear, repeat).
    */
   Sampler *diffusemap_sampler;
@@ -354,7 +361,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
     const r_material_t *material = e->skins[i] ?: face->material;
 
-    // TODO(#864): blended faces are drawn later.
+    // Blended faces are drawn in a second pass, below.
     if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
       continue;
     }
@@ -394,6 +401,64 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     r_stats.mesh_triangles += face->num_elements / 3;
 
     // Material stage effects and the EF_SHELL overlay, blended over this face.
+    R_DrawMeshFaceMaterialStages(view, pass, commands, e, face, material);
+  }
+
+  // Second pass: translucent faces, matching the GL renderer's per-entity
+  // opaque-then-blend draw order (not a global back-to-front sort).
+  face = mesh->faces;
+  for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+
+    const r_material_t *material = e->skins[i] ?: face->material;
+
+    if (!((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND))) {
+      continue;
+    }
+
+    if (!material->texture || !material->texture->texture) {
+      continue;
+    }
+
+    $(pass, bindPipeline, r_mesh_pipeline.blend_pipeline);
+
+    $(pass, bindFragmentSamplers, SLOT_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+      .texture = material->texture->texture->texture,
+      .sampler = r_mesh_pipeline.diffusemap_sampler->sampler,
+    }, 1);
+
+    r_material_uniforms_t material_uniforms;
+    R_MaterialUniforms(material, material->cm->surface, &material_uniforms);
+    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
+
+    // Scale entity alpha by the surface's blend amount (33/66/100%).
+    r_mesh_locals_t blend_locals = locals;
+    switch (material->cm->surface & SURF_MASK_BLEND) {
+      case SURF_BLEND_33:
+        blend_locals.color.w *= .333f;
+        break;
+      case SURF_BLEND_66:
+        blend_locals.color.w *= .666f;
+        break;
+      default:
+        break;
+    }
+    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &blend_locals, sizeof(blend_locals));
+
+    const uint32_t old_offset = (uint32_t) (face->base_vertex + e->old_frame * face->num_vertexes) * stride;
+    const uint32_t cur_offset = (uint32_t) (face->base_vertex + e->frame * face->num_vertexes) * stride;
+
+    $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
+      { .buffer = mesh->vertex_buffer->buffer, .offset = old_offset },
+      { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
+    }, 2);
+
+    const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
+
+    $(pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
+
+    r_stats.mesh_draw_elements++;
+    r_stats.mesh_triangles += face->num_elements / 3;
+
     R_DrawMeshFaceMaterialStages(view, pass, commands, e, face, material);
   }
 
@@ -545,17 +610,29 @@ void R_InitMeshPipeline(void) {
   // Two color targets: the HDR scene color and the float depth copy (mesh_fs
   // writes gl_FragCoord.z to color 1) so mesh entities appear in the depth the
   // sprite pass samples for soft particles.
+  SDL_GPUColorTargetDescription color_targets[] = {
+    { .format = R_SCENE_COLOR_FORMAT, .blend_state = GPU_BlendStateOpaque },
+    { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .blend_state = GPU_BlendStateOpaque },
+  };
+
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
-    .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
-      { .format = R_SCENE_COLOR_FORMAT, .blend_state = GPU_BlendStateOpaque },
-      { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .blend_state = GPU_BlendStateOpaque },
-    },
+    .color_target_descriptions = color_targets,
     .num_color_targets = 2,
     .depth_stencil_format = framebuffer->depthFormat,
     .has_depth_stencil_target = true,
   };
 
   r_mesh_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
+
+  // Translucent faces: no culling (matching the GL renderer, which disables
+  // GL_CULL_FACE for mesh blend faces), alpha blend on color 0. Depth test and
+  // write stay enabled -- unlike BSP blend surfaces, GL does not disable
+  // glDepthMask for mesh blend faces -- so color 1 (the depth copy) is left
+  // unmasked too, consistent with real depth being written.
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+  color_targets[0].blend_state = GPU_BlendStateAlpha;
+
+  r_mesh_pipeline.blend_pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
@@ -603,6 +680,7 @@ void R_InitMeshPipeline(void) {
  */
 void R_ShutdownMeshPipeline(void) {
   r_mesh_pipeline.pipeline = release(r_mesh_pipeline.pipeline);
+  r_mesh_pipeline.blend_pipeline = release(r_mesh_pipeline.blend_pipeline);
   r_mesh_pipeline.diffusemap_sampler = release(r_mesh_pipeline.diffusemap_sampler);
   r_mesh_pipeline.voxel_data_sampler = release(r_mesh_pipeline.voxel_data_sampler);
   r_mesh_pipeline.ambient_sampler = release(r_mesh_pipeline.ambient_sampler);
