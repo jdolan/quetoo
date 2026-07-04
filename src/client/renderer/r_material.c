@@ -362,7 +362,6 @@ void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_materia
   out->specularity = cm->specularity * r_specularity->value;
   out->parallax = cm->parallax * r_parallax->value;
   out->shadow = cm->shadow * r_parallax_shadow->value;
-  out->_pad = 0.f;
 }
 
 /**

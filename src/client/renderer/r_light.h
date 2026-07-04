@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <stdalign.h>
+
 #include "r_types.h"
 
 void R_AddLight(r_view_t *view, const r_light_t *l);
