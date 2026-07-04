@@ -89,18 +89,10 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  // texture_sky sits at the fixed global slot SLOT_SAMPLER_SKY. SDL_gpu requires
-  // every slot in [0, num_samplers) to be bound (it validates presence, not just
-  // the slots the shader samples), so fill the leading unused slots with the same
-  // binding; only slot SLOT_SAMPLER_SKY is actually sampled.
-  SDL_GPUTextureSamplerBinding sky[SLOT_SAMPLER_SKY + 1];
-  for (int32_t i = 0; i <= SLOT_SAMPLER_SKY; i++) {
-    sky[i] = (SDL_GPUTextureSamplerBinding) {
-      .texture = r_sky.image->texture->texture,
-      .sampler = r_sky_pipeline.sampler->sampler,
-    };
-  }
-  $(pass, bindFragmentSamplers, 0, sky, SLOT_SAMPLER_SKY + 1);
+  $(pass, bindFragmentSamplers, SLOT_SAMPLER_SKY, &(SDL_GPUTextureSamplerBinding) {
+    .texture = r_sky.image->texture->texture,
+    .sampler = r_sky_pipeline.sampler->sampler,
+  }, 1);
 
   const r_bsp_inline_model_t *world = bsp->inline_models;
   const r_bsp_block_t *block = world->blocks;
@@ -154,7 +146,7 @@ static void R_InitSkyPipeline(void) {
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/sky_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = BINDING_SAMPLER_SKY + 1, // texture_sky at the fixed (sparse) sky slot
+    .num_samplers = BINDING_SAMPLER_SKY + 1, // texture_sky, sky's only sampler
   });
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;

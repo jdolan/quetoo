@@ -72,10 +72,10 @@
 #define BINDING_SAMPLER_DEPTH_ATTACHMENT    2
 
 /*
- * Sky: a lone samplerCube, at a fixed high slot to exercise the fixed-map path.
- * The leading unused slots are filled with the same binding (see R_DrawSky).
+ * Sky: its own dense family of one -- a lone samplerCube, sharing no other
+ * bindings with any other pipeline, so it starts at 0 like every other family.
  */
-#define BINDING_SAMPLER_SKY                 6
+#define BINDING_SAMPLER_SKY                 0
 
 #define SLOT_SAMPLER_MATERIAL               BINDING_SAMPLER_MATERIAL
 #define SLOT_SAMPLER_VOXEL_LIGHT_DATA       BINDING_SAMPLER_VOXEL_LIGHT_DATA
