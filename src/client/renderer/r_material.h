@@ -33,17 +33,16 @@ void R_SaveMaterials_f(void);
 /**
  * @brief The per-draw material parameters, pushed to fragment uniform slot 2 by
  * the lit-geometry programs. Layout mirrors material.glsl's `material_block`
- * (std140: seven scalars padded to a 16-byte multiple).
+ * (std140: seven scalars; `alignas` pads the struct to a 16-byte multiple).
  */
 typedef struct {
-  int32_t surface;
+  alignas(16) int32_t surface;
   float alpha_test;
   float roughness;
   float hardness;
   float specularity;
   float parallax;
   float shadow;
-  float _pad;
 } r_material_uniforms_t;
 
 void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_material_uniforms_t *out);
@@ -51,10 +50,11 @@ void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_materia
 /**
  * @brief The per-stage parameters, pushed to the stage uniform slot by the
  * MATERIAL_STAGES bsp variant. Field order mirrors material.glsl's `stage_block`
- * (std140: vec4, then vec2s, then scalars, padded to a 16-byte multiple).
+ * (std140: vec4, then vec2s, then scalars; `alignas` pads the struct to a
+ * 16-byte multiple).
  */
 typedef struct {
-  vec4_t color;
+  alignas(16) vec4_t color;
   vec2_t st_origin;
   vec2_t stretch;
   vec2_t scroll;
@@ -70,7 +70,6 @@ typedef struct {
   float emissive;
   float lerp;
   float shell;
-  float _pad[3];
 } r_stage_uniforms_t;
 
 bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
