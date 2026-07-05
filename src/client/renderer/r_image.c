@@ -333,7 +333,9 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     image->width = surface->w;
     image->height = surface->h;
 
-    image->texture = $(r_context.device, createTextureFromSurface, surface, SDL_GPU_TEXTUREUSAGE_SAMPLER);
+    // Mipmapped unconditionally, matching main's GL_LINEAR_MIPMAP_LINEAR minify
+    // for every non-cubemap image type (fonts, UI, materials, ...).
+    image->texture = $(r_context.device, createTextureFromSurface, surface, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
   }
     
   R_RegisterMedia((r_media_t *) image);

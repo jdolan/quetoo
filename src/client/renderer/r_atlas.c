@@ -167,9 +167,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
       atlas->image->width = width;
       atlas->image->height = width;
 
-      // TODO(#864): uploads level 0 only; mip generation for the atlas is
-      // deferred until the material path samples it (mips not yet ported).
-      atlas->image->texture = $(r_context.device, createTextureFromSurface, surf, SDL_GPU_TEXTUREUSAGE_SAMPLER);
+      atlas->image->texture = $(r_context.device, createTextureFromSurface, surf, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
 
       for (size_t i = 0; i < nodes->count; i++) {
         R_CompileAtlas_Node(VectorValue(nodes, atlas_node_t *, i), atlas);
