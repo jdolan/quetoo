@@ -4657,7 +4657,7 @@
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /opt/homebrew/bin/bash;
+			shellPath = /bin/sh;
 			shellScript = "make PATH=/usr/local/bin:/opt/homebrew/bin:${PATH} \\\n  -C src/client/renderer/shaders shaders\n";
 		};
 /* End PBXShellScriptBuildPhase section */
