@@ -35,6 +35,7 @@ enum {
   BSP_SAMPLER_SKY_AMBIENT,
   BSP_SAMPLER_STAGE,
   BSP_SAMPLER_STAGE_NEXT,
+  BSP_SAMPLER_WARP,
   BSP_NUM_SAMPLERS,
 };
 
@@ -104,6 +105,12 @@ static struct {
   Sampler *ambient_sampler;
 
   /**
+   * @brief A small procedural noise texture, for STAGE_WARP liquid surfaces
+   * (sampled with stage_sampler). Generated once at init, matching main.
+   */
+  Texture *warp_texture;
+
+  /**
    * @brief Cache of MATERIAL_STAGES pipelines, one per unique (src, dest) blend
    * function. SDL_gpu bakes blend state into the pipeline, so stage blends can't
    * be set dynamically; they're realized lazily here (only a handful of combos occur).
@@ -129,7 +136,8 @@ void R_InitBspPipeline(void) {
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = BSP_NUM_SAMPLERS,               // material, voxel_light_data, shadow_atlas,
-                                                     // voxel_caustics, voxel_occlusion, sky, stage, stage_next
+                                                     // voxel_caustics, voxel_occlusion, sky, stage,
+                                                     // stage_next, warp
     .num_storage_buffers = BSP_NUM_STORAGE_BUFFERS, // lights + voxel_light_indices
     .num_uniform_buffers = BSP_NUM_UNIFORMS, // globals + locals/active_lights + material(+stage)
   });
@@ -285,6 +293,36 @@ void R_InitBspPipeline(void) {
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
   });
 
+  // A small procedural noise texture for STAGE_WARP liquid surfaces, mipmapped
+  // and sampled with stage_sampler (linear, repeat). Matches main's warp_image.
+  #define WARP_IMAGE_SIZE 16
+  byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
+  for (int32_t i = 0; i < WARP_IMAGE_SIZE; i++) {
+    for (int32_t j = 0; j < WARP_IMAGE_SIZE; j++) {
+      data[i][j][0] = (byte) RandomRangeu(0, 48);
+      data[i][j][1] = (byte) RandomRangeu(0, 48);
+      data[i][j][2] = 0;
+      data[i][j][3] = 255;
+    }
+  }
+
+  r_bsp_pipeline.warp_texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    .type = SDL_GPU_TEXTURETYPE_2D,
+    .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+    .width = WARP_IMAGE_SIZE,
+    .height = WARP_IMAGE_SIZE,
+    .layer_count_or_depth = 1,
+    .num_levels = 5, // log2(WARP_IMAGE_SIZE) + 1
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
+  }, data);
+  #undef WARP_IMAGE_SIZE
+
+  // Mipmap generation is not a copy-pass operation and must run outside any
+  // pass; see the identical pattern for the sky cubemap in r_image.c.
+  CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
+  $(commands, generateMipmaps, r_bsp_pipeline.warp_texture->texture);
+  $(commands, submit);
+  release(commands);
 }
 
 /**
@@ -298,6 +336,7 @@ void R_ShutdownBspPipeline(void) {
   r_bsp_pipeline.voxel_data_sampler = release(r_bsp_pipeline.voxel_data_sampler);
   r_bsp_pipeline.stage_sampler = release(r_bsp_pipeline.stage_sampler);
   r_bsp_pipeline.ambient_sampler = release(r_bsp_pipeline.ambient_sampler);
+  r_bsp_pipeline.warp_texture = release(r_bsp_pipeline.warp_texture);
 
   for (int32_t i = 0; i < r_bsp_pipeline.num_stages; i++) {
     r_bsp_pipeline.stages[i].pipeline = release(r_bsp_pipeline.stages[i].pipeline);
@@ -536,7 +575,8 @@ static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, Command
  * clustered per-voxel static lighting, and per-block dynamic lighting.
  * @remarks Iterates the worldspawn inline model's blocks (the unit of light
  * culling); per block, the active dynamic lights are culled to the block bounds.
- * TODO(#864): inline BSP model entities, blended surfaces, material stages.
+ * Also draws opaque inline BSP model entities (doors, platforms, ...) and their
+ * material stages; see R_DrawBlendBspEntities for the translucent counterpart.
  */
 void R_DrawBspEntities(const r_view_t *view) {
 
@@ -617,6 +657,12 @@ void R_DrawBspEntities(const r_view_t *view) {
     { .texture = r_context.null_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
   }, 2);
 
+  // The procedural warp noise texture, for STAGE_WARP liquid surfaces.
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
+    .texture = r_bsp_pipeline.warp_texture->texture,
+    .sampler = r_bsp_pipeline.stage_sampler->sampler,
+  }, 1);
+
   // Storage: per-frame lights, then the voxel light index vector. Fall back to the
   // lights buffer for the index slot on maps with no light indices (the voxel
   // counts are then zero, so it is never read); SDL still requires a bind.
@@ -688,7 +734,8 @@ void R_DrawBspEntities(const r_view_t *view) {
  * @brief Draws the translucent (SURF_MASK_BLEND) draw elements of a single
  * block, assuming its active-lights bitmask has already been pushed.
  */
-static void R_DrawBspBlockBlend(RenderPass *pass, CommandBuffer *commands, const r_bsp_block_t *block) {
+static void R_DrawBspBlockBlend(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+                                const r_bsp_block_t *block) {
 
   const r_bsp_draw_elements_t *draw = block->draw_elements;
   for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -700,6 +747,10 @@ static void R_DrawBspBlockBlend(RenderPass *pass, CommandBuffer *commands, const
     if (!draw->material || !draw->material->texture || !draw->material->texture->texture) {
       continue;
     }
+
+    // Re-bind the blend pipeline: a preceding surface's material stages may have
+    // left a stage (blend) pipeline bound (see R_DrawBspBlockOpaque).
+    $(pass, bindPipeline, r_bsp_pipeline.blend_pipeline);
 
     $(pass, bindFragmentSamplers, BSP_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
       .texture = draw->material->texture->texture->texture,
@@ -717,6 +768,12 @@ static void R_DrawBspBlockBlend(RenderPass *pass, CommandBuffer *commands, const
 
     r_stats.bsp_triangles += draw->num_elements / 3;
     r_stats.bsp_draw_elements++;
+
+    // Material stages on translucent surfaces (animated water/glass overlays):
+    // matches the opaque path in R_DrawBspBlockOpaque.
+    if (r_draw_material_stages->integer && !r_draw_wireframe->integer) {
+      R_DrawBspDrawElementsMaterialStages(view, pass, commands, draw);
+    }
   }
 }
 
@@ -725,9 +782,9 @@ static void R_DrawBspBlockBlend(RenderPass *pass, CommandBuffer *commands, const
  * surfaces over the opaque scene, alpha-blended and depth-tested but without
  * writing depth.
  * @remarks Mirrors R_DrawBspEntities but with the blend pipeline and the inverse
- * surface filter. TODO(#864): back-to-front sorting and material stages on
- * blended surfaces are deferred; single-layer translucency (water, glass) is
- * correct without sorting.
+ * surface filter, including its material stages (animated water/glass overlays).
+ * No back-to-front sorting, matching main -- single-layer translucency (water,
+ * glass) is correct without it.
  */
 void R_DrawBlendBspEntities(const r_view_t *view) {
 
@@ -800,6 +857,12 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
     { .texture = r_context.null_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
   }, 2);
 
+  // The procedural warp noise texture, for STAGE_WARP liquid surfaces.
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
+    .texture = r_bsp_pipeline.warp_texture->texture,
+    .sampler = r_bsp_pipeline.stage_sampler->sampler,
+  }, 1);
+
   SDL_GPUBuffer *storage[] = {
     r_lights.buffer->buffer,
     bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
@@ -819,7 +882,7 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
     R_ActiveLights(view, block->node->visible_bounds, active_lights);
     $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
 
-    R_DrawBspBlockBlend(pass, commands, block);
+    R_DrawBspBlockBlend(view, pass, commands, block);
   }
 
   // Inline BSP model entities (doors, platforms, buttons, ...): the same pass and
@@ -861,7 +924,7 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
         continue;
       }
 
-      R_DrawBspBlockBlend(pass, commands, b);
+      R_DrawBspBlockBlend(view, pass, commands, b);
     }
   }
 

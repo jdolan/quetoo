@@ -41,14 +41,22 @@
 #define BINDING_SAMPLER_SKY_AMBIENT      5
 #define BINDING_SAMPLER_STAGE            6
 #define BINDING_SAMPLER_STAGE_NEXT       7
-#define BINDING_STORAGE_LIGHTS              8
-#define BINDING_STORAGE_VOXEL_LIGHT_INDICES 9
+#define BINDING_SAMPLER_WARP             8
+#define BINDING_STORAGE_LIGHTS              9
+#define BINDING_STORAGE_VOXEL_LIGHT_INDICES 10
 #define BINDING_UNIFORMS_MATERIAL        2
 
 #include "common.glsl"
 #include "material.glsl"
 #include "voxel.glsl"
 #include "light.glsl"
+
+/**
+ * @brief The procedural warp noise texture, for STAGE_WARP liquid surfaces.
+ * @remarks BSP-only: unlike the other samplers above, this is not declared in
+ * material.glsl since mesh materials never set STAGE_WARP (matching main).
+ */
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_WARP) uniform sampler2D texture_warp;
 
 layout (location = 0) in common_vertex_t vertex;
 
@@ -123,7 +131,6 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
  * optionally lit and/or emissive, blended over the base surface. One shader,
  * one pipeline: which branch runs is a runtime uniform, not a compile-time
  * variant, so a stage draw never requires a pipeline swap.
- * @remarks TODO(#864): STAGE_WARP (texture_warp) is deferred.
  */
 void main(void) {
 
@@ -161,7 +168,13 @@ void main(void) {
 
   } else {
 
-    fragment.diffuse_sample = sample_material_stage(fragment.parallax) * vertex.color;
+    vec2 st = fragment.parallax;
+
+    if ((material.flags & STAGE_WARP) == STAGE_WARP) {
+      st += (texture(texture_warp, st + vec2(ticks * material.warp.x * 0.000125)).xy - 0.5) * material.warp.y;
+    }
+
+    fragment.diffuse_sample = sample_material_stage(st) * vertex.color;
 
     out_color = fragment.diffuse_sample;
 
