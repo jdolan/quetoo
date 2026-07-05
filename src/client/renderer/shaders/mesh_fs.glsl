@@ -113,9 +113,20 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
 }
 
 /**
- * @brief Samples the material normal/specular maps and computes per-fragment lighting.
+ * @brief Samples the material normal/specular maps and computes per-fragment
+ * lighting, with distance-based LOD: distant fragments (and the player-model
+ * preview, which has no BSP voxel data) reuse the vertex shader's cheap
+ * per-vertex ambient+diffuse instead.
  */
 void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
+
+  if (fragment.view_dist >= lighting_distance || view_type == VIEW_PLAYER_MODEL) {
+    fragment.ambient = vertex.ambient;
+    fragment.diffuse = vertex.diffuse;
+    fragment.specular = vec3(0.0);
+    fragment.caustics = 0.0;
+    return;
+  }
 
   fragment.normal_sample = sample_material_normal(fragment.parallax, mat3(vertex.tangent, vertex.bitangent, vertex.normal));
   fragment.specular_sample = sample_material_specular(fragment.parallax);

@@ -52,8 +52,6 @@ invariant gl_Position;
 
 /**
  * @brief
- * @remarks TODO(#864): LOD vertex lighting is deferred; the fragment shader
- * performs full per-fragment lighting for now.
  */
 void main(void) {
 
@@ -77,6 +75,17 @@ void main(void) {
   vertex.color = in_color;
 
   stage_vertex(in_position, vertex);
+
+  // Cheap per-vertex ambient for the fragment shader's distant-fragment LOD
+  // path (see bsp_fragment_lighting): the shared vertex_lighting()/
+  // fragment_lighting() split in light.glsl also accumulates per-light
+  // diffuse here, but that needs active_lights and the voxel light-data
+  // sampler, both fragment-only in this port's binding scheme (see
+  // BSP_UNIFORMS_LOCALS/BSP_SAMPLER_VOXEL_LIGHT_DATA) -- ambient alone still
+  // delivers the LOD path's performance win of skipping full per-fragment
+  // lighting for distant geometry.
+  vertex.ambient = vec3(ambient) * voxel_exposure(vertex.voxel) * (1.0 - voxel_occlusion(vertex.voxel) * ambient_occlusion);
+  vertex.diffuse = vec3(0.0);
 
   gl_Position = projection3D * view_model * position;
 }

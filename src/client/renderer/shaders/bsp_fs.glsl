@@ -110,10 +110,17 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
 /**
  * @brief Calculate lighting and shadows for BSP with distance-based LOD.
  * @details Handles BSP-specific ambient (sky + voxel exposure) and editor mode.
- * @remarks TODO(#864): the distant-fragment vertex-lighting LOD path is deferred;
- * full per-fragment lighting is performed at all distances for now.
+ * Distant fragments (>= lighting_distance) reuse the vertex shader's cheap
+ * per-vertex ambient+diffuse instead of full per-fragment lighting.
  */
 void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
+
+  if (fragment.view_dist >= lighting_distance) {
+    fragment.ambient = vertex.ambient;
+    fragment.diffuse = vertex.diffuse;
+    fragment.specular = vec3(0.0);
+    return;
+  }
 
   fragment.normal_sample = sample_material_normal(fragment.parallax, mat3(vertex.tangent, vertex.bitangent, vertex.normal));
   fragment.specular_sample = sample_material_specular(fragment.parallax);

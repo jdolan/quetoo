@@ -92,5 +92,11 @@ void main(void) {
 
   stage_vertex(in_position, vertex);
 
+  // Cheap per-vertex ambient for the fragment shader's distant-fragment LOD
+  // path (see mesh_fragment_lighting) -- see bsp_vs.glsl's identical comment
+  // for why this doesn't also accumulate per-light diffuse here.
+  vertex.ambient = vec3(ambient) * voxel_exposure(vertex.voxel) * (1.0 - voxel_occlusion(vertex.voxel) * ambient_occlusion);
+  vertex.diffuse = vec3(0.0);
+
   gl_Position = projection3D * view_model * position;
 }
