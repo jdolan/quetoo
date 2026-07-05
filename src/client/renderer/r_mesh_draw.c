@@ -47,8 +47,8 @@ enum {
   MESH_UNIFORMS_GLOBALS,
   MESH_UNIFORMS_LOCALS, // model/lerp/color (vertex) / active_lights bitmask (fragment)
   MESH_UNIFORMS_MATERIAL, // material + stage params (+ tints, fragment only) -- see material.glsl
+  MESH_NUM_UNIFORMS
 };
-#define MESH_NUM_UNIFORMS 3 // same count/slot for both stages
 
 /**
  * @brief The maximum number of cached material-stage pipelines (one per blend).
@@ -70,8 +70,8 @@ static struct {
   GraphicsPipeline *pipeline;
 
   /**
-   * @brief The mesh pipeline variant for translucent faces (SURF_MASK_BLEND or
-   * EF_BLEND): no face culling, alpha blending, matching the opaque pipeline
+   * @brief The mesh pipeline variant for translucent faces (@c SURF_MASK_BLEND or
+   * @c EF_BLEND): no face culling, alpha blending, matching the opaque pipeline
    * otherwise (depth test and write remain enabled, matching the GL renderer).
    */
   GraphicsPipeline *blend_pipeline;
@@ -98,7 +98,7 @@ static struct {
   Sampler *stage_sampler;
 
   /**
-   * @brief The default shell environment map, loaded lazily for EF_SHELL entities.
+   * @brief The default shell environment map, loaded lazily for @c EF_SHELL entities.
    */
   r_image_t *shell;
 
@@ -106,7 +106,7 @@ static struct {
    * @brief 1x1x1 fallback voxel textures for the player-model preview, which has
    * no loaded BSP (and therefore no real voxel data) to sample. Their contents
    * are never read: the fragment shader skips voxel/light sampling entirely for
-   * VIEW_PLAYER_MODEL, but SDL_gpu still requires every declared sampler slot to
+   * @c VIEW_PLAYER_MODEL, but @c SDL_gpu still requires every declared sampler slot to
    * be bound at draw time.
    */
   Texture *voxel_light_data_fallback;
@@ -114,8 +114,8 @@ static struct {
   Texture *voxel_occlusion_fallback;
 
   /**
-   * @brief Cache of MATERIAL_STAGES mesh pipelines, one per unique (src, dest)
-   * blend function (SDL_gpu bakes blend state into the pipeline).
+   * @brief Cache of @c MATERIAL_STAGES mesh pipelines, one per unique (src, dest)
+   * blend function (@c SDL_gpu bakes blend state into the pipeline).
    */
   struct {
     cm_blend_t src, dest;
@@ -771,14 +771,10 @@ void R_InitMeshPipeline(void) {
   release(vertexShader);
   release(fragmentShader);
 
-  r_mesh_pipeline.diffusemap_sampler = $(r_context.device, createSamplerLinearRepeat, R_Anisotropy());
-
-  r_mesh_pipeline.voxel_data_sampler = $(r_context.device, createSamplerNearestClamp);
-
-  // Linear / clamp: the voxel volumes and sky cubemap are sampled continuously.
+  r_mesh_pipeline.diffusemap_sampler = $(r_context.device, createSamplerLinearRepeat);
   r_mesh_pipeline.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
-
-  r_mesh_pipeline.stage_sampler = $(r_context.device, createSamplerLinearRepeat, R_Anisotropy());
+  r_mesh_pipeline.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
+  r_mesh_pipeline.voxel_data_sampler = $(r_context.device, createSamplerNearestClamp);
 
   // 1x1x1 fallback voxel textures for the player-model preview (see the struct
   // field docs above). Contents are never sampled, so uninitialized (NULL) data
@@ -831,4 +827,14 @@ void R_ShutdownMeshPipeline(void) {
   r_mesh_pipeline.num_stages = 0;
 
   // r_mesh_pipeline.shell is a media object owned by the media cache; not released here.
+}
+
+/**
+ * @brief Rebuilds the mesh pipeline and samplers in place, for pipeline-bound
+ * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
+ * an r_restart. See R_UpdatePipelines.
+ */
+void R_UpdateMeshPipeline(void) {
+  R_ShutdownMeshPipeline();
+  R_InitMeshPipeline();
 }

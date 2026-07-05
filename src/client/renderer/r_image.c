@@ -36,26 +36,16 @@ typedef enum {
 } r_screenshot_type_t;
 
 /**
- * @brief Image state.
+ * @brief If set, take a screenshot at the end of the frame.
  */
-static struct {
+static r_screenshot_type_t r_pending_screenshot;
 
-  /**
-   * @brief The maximum supported texture sampling anisotropy level.
-   */
-  float max_anisotropy;
-
-  /**
-   * @brief The current anisotropy level, clamped to `max_anisotropy`.
-   */
-  float anisotropy;
-
-  /**
-   * @brief If set, take a screenshot at the end of the frame.
-   */
-  r_screenshot_type_t screenshot;
-} r_image_state;
-
+/**
+ * @brief Initializes the images facilities.
+ */
+void R_InitImages(void) {
+  Fs_Mkdir("screenshots");
+}
 
 /**
  * @brief Replaces cubemap face border texels with adjacent interior texels.
@@ -94,6 +84,8 @@ static void R_FixupCubemapFace(SDL_Surface *side) {
 static void R_Screenshot_encode(void *data) {
   char path[MAX_QPATH];
   char date[MAX_QPATH];
+  
+  Fs_Mkdir("screenshots");
 
   SDL_Surface *surface = data;
   assert(surface);
@@ -176,7 +168,7 @@ static SDL_Surface *R_ReadTexture(const Texture *texture) {
  */
 void R_Screenshot(r_view_t *view) {
 
-  if (r_image_state.screenshot == SCREENSHOT_NONE) {
+  if (r_pending_screenshot == SCREENSHOT_NONE) {
     return;
   }
 
@@ -187,7 +179,7 @@ void R_Screenshot(r_view_t *view) {
     Thread_Create(R_Screenshot_encode, surface, THREAD_NO_WAIT);
   }
 
-  r_image_state.screenshot = SCREENSHOT_NONE;
+  r_pending_screenshot = SCREENSHOT_NONE;
 }
 
 /**
@@ -196,9 +188,9 @@ void R_Screenshot(r_view_t *view) {
 void R_Screenshot_f(void) {
 
   if (!q_strcmp(Cmd_Argv(1), "view")) {
-    r_image_state.screenshot = SCREENSHOT_VIEW;
+    r_pending_screenshot = SCREENSHOT_VIEW;
   } else {
-    r_image_state.screenshot = SCREENSHOT_DEFAULT;
+    r_pending_screenshot = SCREENSHOT_DEFAULT;
   }
 }
 
@@ -402,29 +394,4 @@ void R_DumpImages_f(void) {
   Fs_Mkdir("imgdmp");
 
   R_EnumerateMedia(R_DumpImages_enumerator, NULL);
-}
-
-/**
- * @brief Initializes the images facilities
- */
-void R_InitImages(void) {
-
-  memset(&r_image_state, 0, sizeof(r_image_state));
-
-  // SDL_gpu has no hardware max-anisotropy query (unlike GL's
-  // GL_MAX_TEXTURE_MAX_ANISOTROPY); 16x is the practical ceiling on any
-  // current backend (Vulkan/Metal/D3D12) and matches r_anisotropy's default.
-  r_image_state.max_anisotropy = 16.f;
-  r_image_state.anisotropy = Clampf(r_anisotropy->value, 1.f, r_image_state.max_anisotropy);
-
-  Fs_Mkdir("screenshots");
-}
-
-/**
- * @brief Returns the anisotropy level to use for material/diffuse samplers,
- * clamped to what R_InitImages established. Baked into samplers at pipeline
- * init time; changing r_anisotropy takes effect on the next r_restart.
- */
-float R_Anisotropy(void) {
-  return r_image_state.anisotropy;
 }

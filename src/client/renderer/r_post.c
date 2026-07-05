@@ -273,8 +273,8 @@ static GraphicsPipeline *R_CreatePostPipeline(SDL_GPUTextureFormat format) {
     },
     "shaders/post_fs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-      .num_samplers = 2,        // texture_color_attachment + texture_bloom_attachment
-      .num_uniform_buffers = 1, // per-pass locals
+      .num_samplers = 2,
+      .num_uniform_buffers = 1,
     },
     &info);
 }
@@ -287,9 +287,6 @@ void R_InitPost(void) {
 
   memset(&r_post, 0, sizeof(r_post));
 
-  // A fullscreen quad in clip space. Texcoords map the top-left of the screen
-  // (clip y = +1) to the top-left texel (v = 0), matching the SDL_gpu convention
-  // (framebuffer origin top-left) so the composited scene is not vertically flipped.
   const r_post_vertex_t vertexes[] = {
     { .position = Vec2(-1.f, -1.f), .texcoord = Vec2(0.f, 1.f) },
     { .position = Vec2( 1.f, -1.f), .texcoord = Vec2(1.f, 1.f) },
@@ -299,8 +296,7 @@ void R_InitPost(void) {
     { .position = Vec2(-1.f,  1.f), .texcoord = Vec2(0.f, 0.f) },
   };
 
-  r_post.vertex_buffer = $(r_context.device, createBufferWithConstMem,
-      SDL_GPU_BUFFERUSAGE_VERTEX, vertexes, sizeof(vertexes));
+  r_post.vertex_buffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX, vertexes, sizeof(vertexes));
 
   r_post.bloom_pipeline = R_CreatePostPipeline(R_SCENE_COLOR_FORMAT);
   r_post.composite_pipeline = R_CreatePostPipeline(r_context.device->framebuffer->colorFormats[0]);
@@ -322,4 +318,14 @@ void R_ShutdownPost(void) {
   r_post.bloom_pipeline = release(r_post.bloom_pipeline);
   r_post.composite_pipeline = release(r_post.composite_pipeline);
   r_post.sampler = release(r_post.sampler);
+}
+
+/**
+ * @brief Rebuilds the post-processing pipelines and sampler in place, for
+ * pipeline-bound cvar changes (r_antialias, r_anisotropy, ...) that would
+ * otherwise require an r_restart. See R_UpdatePipelines.
+ */
+void R_UpdatePostPipeline(void) {
+  R_ShutdownPost();
+  R_InitPost();
 }

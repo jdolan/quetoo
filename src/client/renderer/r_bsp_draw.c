@@ -121,195 +121,6 @@ static struct {
 } r_bsp_pipeline;
 
 /**
- * @brief Builds the BSP pipeline from the bsp_vs/bsp_fs shaders.
- */
-void R_InitBspPipeline(void) {
-
-  Shader *vertexShader = $(r_context.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = BSP_NUM_UNIFORMS, // globals + locals/active_lights + material(+stage)
-  });
-
-  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = BSP_NUM_SAMPLERS,               // material, voxel_light_data, shadow_atlas,
-                                                     // voxel_caustics, voxel_occlusion, sky, stage,
-                                                     // stage_next, warp
-    .num_storage_buffers = BSP_NUM_STORAGE_BUFFERS, // lights + voxel_light_indices
-    .num_uniform_buffers = BSP_NUM_UNIFORMS, // globals + locals/active_lights + material(+stage)
-  });
-
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
-
-  SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
-  info.multisample_state.sample_count = r_scene_samples;
-  info.vertex_shader = vertexShader->shader;
-  info.fragment_shader = fragmentShader->shader;
-
-  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
-  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
-
-  info.vertex_input_state = (SDL_GPUVertexInputState) {
-    .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
-      .slot = 0,
-      .pitch = sizeof(r_bsp_vertex_t),
-      .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
-    },
-    .num_vertex_buffers = 1,
-    .vertex_attributes = (SDL_GPUVertexAttribute[]) {
-      {
-        .location = 0,
-        .buffer_slot = 0,
-        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-        .offset = offsetof(r_bsp_vertex_t, position),
-      },
-      {
-        .location = 1,
-        .buffer_slot = 0,
-        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-        .offset = offsetof(r_bsp_vertex_t, normal),
-      },
-      {
-        .location = 2,
-        .buffer_slot = 0,
-        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-        .offset = offsetof(r_bsp_vertex_t, tangent),
-      },
-      {
-        .location = 3,
-        .buffer_slot = 0,
-        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-        .offset = offsetof(r_bsp_vertex_t, bitangent),
-      },
-      {
-        .location = 4,
-        .buffer_slot = 0,
-        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-        .offset = offsetof(r_bsp_vertex_t, diffusemap),
-      },
-      {
-        .location = 5,
-        .buffer_slot = 0,
-        .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
-        .offset = offsetof(r_bsp_vertex_t, color),
-      },
-    },
-    .num_vertex_attributes = 6,
-  };
-
-  // Two color targets: the HDR scene color, and a single-sample float depth copy
-  // (gl_FragCoord.z, written by bsp_fs) that the sprite pass samples for soft
-  // particles. SDL_gpu cannot sample the real depth buffer (least of all a
-  // multisample one), so opaque geometry writes this copy instead. Named locals so
-  // the blend states can be varied per pipeline variant.
-  SDL_GPUColorTargetDescription color_targets[2] = {
-    { .format = R_SCENE_COLOR_FORMAT, .blend_state = GPU_BlendStateOpaque },
-    { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .blend_state = GPU_BlendStateOpaque },
-  };
-
-  info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
-    .color_target_descriptions = color_targets,
-    .num_color_targets = 2,
-    .depth_stencil_format = framebuffer->depthFormat,
-    .has_depth_stencil_target = true,
-  };
-
-  r_bsp_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
-
-  // Translucent variant: alpha-blend over the opaque scene and depth-test but do
-  // not write depth, for SURF_MASK_BLEND surfaces (water, glass, ...). Unlike the
-  // opaque bring-up pipeline (cull disabled), translucent faces MUST backface-cull
-  // or a two-sided surface blends front and back and looks near-opaque; cull BACK
-  // with a clockwise front face matches the GL path's glFrontFace(GL_CW).
-  // TODO(#864): if translucent faces vanish, the winding is inverted -> flip to
-  // SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE (and enable culling on the opaque pass too).
-  // Mask the depth copy: a translucent surface must not overwrite the opaque depth
-  // beneath it, or sprites would soften against glass rather than through it.
-  color_targets[0].blend_state = GPU_BlendStateAlpha;
-  color_targets[1].blend_state = (SDL_GPUColorTargetBlendState) {
-    .enable_color_write_mask = true, .color_write_mask = 0,
-  };
-  info.depth_stencil_state.enable_depth_write = false;
-  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
-  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
-  r_bsp_pipeline.blend_pipeline = $(r_context.device, createGraphicsPipeline, &info);
-
-  // A line-fill variant for r_draw_wireframe (bsp_fs shades wireframe fragments
-  // flat grey). Best-effort: mappers use it to inspect quemap's brush cuts, so
-  // the wide-platform caveat around line fill on Vulkan/Android is acceptable.
-  color_targets[0].blend_state = GPU_BlendStateOpaque;
-  color_targets[1].blend_state = GPU_BlendStateOpaque;
-  info.depth_stencil_state.enable_depth_write = true;
-  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
-  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
-  info.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_LINE;
-  r_bsp_pipeline.wireframe_pipeline = $(r_context.device, createGraphicsPipeline, &info);
-
-  release(vertexShader);
-  release(fragmentShader);
-
-  r_bsp_pipeline.diffusemap_sampler = $(r_context.device, createSamplerLinearRepeat, R_Anisotropy());
-
-  // Nearest / clamp: the light-data texture is fetched with integer coords.
-  r_bsp_pipeline.voxel_data_sampler = $(r_context.device, createSamplerNearestClamp);
-
-  r_bsp_pipeline.stage_sampler = $(r_context.device, createSamplerLinearRepeat, R_Anisotropy());
-
-  // Linear / clamp: the voxel volumes and sky cubemap are sampled continuously.
-  r_bsp_pipeline.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
-
-  // A small procedural noise texture for STAGE_WARP liquid surfaces, mipmapped
-  // and sampled with stage_sampler (linear, repeat). Matches main's warp_image.
-  #define WARP_IMAGE_SIZE 16
-  byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
-  for (int32_t i = 0; i < WARP_IMAGE_SIZE; i++) {
-    for (int32_t j = 0; j < WARP_IMAGE_SIZE; j++) {
-      data[i][j][0] = (byte) RandomRangeu(0, 48);
-      data[i][j][1] = (byte) RandomRangeu(0, 48);
-      data[i][j][2] = 0;
-      data[i][j][3] = 255;
-    }
-  }
-
-  r_bsp_pipeline.warp_texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
-    .type = SDL_GPU_TEXTURETYPE_2D,
-    .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
-    .width = WARP_IMAGE_SIZE,
-    .height = WARP_IMAGE_SIZE,
-    .layer_count_or_depth = 1,
-    .num_levels = 5, // log2(WARP_IMAGE_SIZE) + 1
-    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
-  }, data);
-  #undef WARP_IMAGE_SIZE
-
-  // Mipmap generation is not a copy-pass operation and must run outside any
-  // pass; see the identical pattern for the sky cubemap in r_image.c.
-  CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
-  $(commands, generateMipmaps, r_bsp_pipeline.warp_texture->texture);
-  $(commands, submit);
-  release(commands);
-}
-
-/**
- * @brief Releases the BSP pipeline and samplers.
- */
-void R_ShutdownBspPipeline(void) {
-  r_bsp_pipeline.pipeline = release(r_bsp_pipeline.pipeline);
-  r_bsp_pipeline.wireframe_pipeline = release(r_bsp_pipeline.wireframe_pipeline);
-  r_bsp_pipeline.blend_pipeline = release(r_bsp_pipeline.blend_pipeline);
-  r_bsp_pipeline.diffusemap_sampler = release(r_bsp_pipeline.diffusemap_sampler);
-  r_bsp_pipeline.voxel_data_sampler = release(r_bsp_pipeline.voxel_data_sampler);
-  r_bsp_pipeline.stage_sampler = release(r_bsp_pipeline.stage_sampler);
-  r_bsp_pipeline.ambient_sampler = release(r_bsp_pipeline.ambient_sampler);
-  r_bsp_pipeline.warp_texture = release(r_bsp_pipeline.warp_texture);
-
-  for (int32_t i = 0; i < r_bsp_pipeline.num_stages; i++) {
-    r_bsp_pipeline.stages[i].pipeline = release(r_bsp_pipeline.stages[i].pipeline);
-  }
-  r_bsp_pipeline.num_stages = 0;
-}
-
-/**
  * @brief Returns the bsp pipeline for the given material-stage blend function,
  * creating and caching it on first use. Wraps the same bsp_vs/bsp_fs shader as
  * the opaque pipeline (a stage draw is a runtime branch, not a shader swap);
@@ -873,4 +684,179 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   }
 
   pass = release(pass);
+}
+
+/**
+ * @brief Builds the BSP pipeline from the @c bsp_vs / @c bsp_fs shaders.
+ */
+void R_InitBspPipeline(void) {
+
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    .num_uniform_buffers = BSP_NUM_UNIFORMS,
+  });
+
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+    .num_samplers = BSP_NUM_SAMPLERS,
+    .num_storage_buffers = BSP_NUM_STORAGE_BUFFERS,
+    .num_uniform_buffers = BSP_NUM_UNIFORMS,
+  });
+
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
+
+  SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
+  info.multisample_state.sample_count = r_scene_samples;
+  info.vertex_shader = vertexShader->shader;
+  info.fragment_shader = fragmentShader->shader;
+
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
+
+  info.vertex_input_state = (SDL_GPUVertexInputState) {
+    .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
+      .slot = 0,
+      .pitch = sizeof(r_bsp_vertex_t),
+      .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+    },
+    .num_vertex_buffers = 1,
+    .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+      {
+        .location = 0,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(r_bsp_vertex_t, position),
+      },
+      {
+        .location = 1,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(r_bsp_vertex_t, normal),
+      },
+      {
+        .location = 2,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(r_bsp_vertex_t, tangent),
+      },
+      {
+        .location = 3,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(r_bsp_vertex_t, bitangent),
+      },
+      {
+        .location = 4,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+        .offset = offsetof(r_bsp_vertex_t, diffusemap),
+      },
+      {
+        .location = 5,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
+        .offset = offsetof(r_bsp_vertex_t, color),
+      },
+    },
+    .num_vertex_attributes = 6,
+  };
+
+  SDL_GPUColorTargetDescription color_targets[2] = {
+    { .format = R_SCENE_COLOR_FORMAT, .blend_state = GPU_BlendStateOpaque },
+    { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .blend_state = GPU_BlendStateOpaque },
+  };
+
+  info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
+    .color_target_descriptions = color_targets,
+    .num_color_targets = 2,
+    .depth_stencil_format = framebuffer->depthFormat,
+    .has_depth_stencil_target = true,
+  };
+
+  r_bsp_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
+
+  color_targets[0].blend_state = GPU_BlendStateAlpha;
+  color_targets[1].blend_state = (SDL_GPUColorTargetBlendState) {
+    .enable_color_write_mask = true, .color_write_mask = 0,
+  };
+  info.depth_stencil_state.enable_depth_write = false;
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
+  r_bsp_pipeline.blend_pipeline = $(r_context.device, createGraphicsPipeline, &info);
+
+  color_targets[0].blend_state = GPU_BlendStateOpaque;
+  color_targets[1].blend_state = GPU_BlendStateOpaque;
+  info.depth_stencil_state.enable_depth_write = true;
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
+  info.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_LINE;
+  r_bsp_pipeline.wireframe_pipeline = $(r_context.device, createGraphicsPipeline, &info);
+
+  release(vertexShader);
+  release(fragmentShader);
+
+  r_bsp_pipeline.diffusemap_sampler = $(r_context.device, createSamplerLinearRepeat);
+  r_bsp_pipeline.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
+  r_bsp_pipeline.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
+  r_bsp_pipeline.voxel_data_sampler = $(r_context.device, createSamplerNearestClamp);
+
+  // A small procedural noise texture for STAGE_WARP liquid surfaces, mipmapped
+  // and sampled with stage_sampler (linear, repeat). Matches main's warp_image.
+  #define WARP_IMAGE_SIZE 16
+  byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
+  for (int32_t i = 0; i < WARP_IMAGE_SIZE; i++) {
+    for (int32_t j = 0; j < WARP_IMAGE_SIZE; j++) {
+      data[i][j][0] = (byte) RandomRangeu(0, 48);
+      data[i][j][1] = (byte) RandomRangeu(0, 48);
+      data[i][j][2] = 0;
+      data[i][j][3] = 255;
+    }
+  }
+
+  r_bsp_pipeline.warp_texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    .type = SDL_GPU_TEXTURETYPE_2D,
+    .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+    .width = WARP_IMAGE_SIZE,
+    .height = WARP_IMAGE_SIZE,
+    .layer_count_or_depth = 1,
+    .num_levels = 5, // log2(WARP_IMAGE_SIZE) + 1
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
+  }, data);
+  #undef WARP_IMAGE_SIZE
+
+  // Mipmap generation is not a copy-pass operation and must run outside any
+  // pass; see the identical pattern for the sky cubemap in r_image.c.
+  CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
+  $(commands, generateMipmaps, r_bsp_pipeline.warp_texture->texture);
+  $(commands, submit);
+  release(commands);
+}
+
+/**
+ * @brief Releases the BSP pipeline and samplers.
+ */
+void R_ShutdownBspPipeline(void) {
+  r_bsp_pipeline.pipeline = release(r_bsp_pipeline.pipeline);
+  r_bsp_pipeline.wireframe_pipeline = release(r_bsp_pipeline.wireframe_pipeline);
+  r_bsp_pipeline.blend_pipeline = release(r_bsp_pipeline.blend_pipeline);
+  r_bsp_pipeline.diffusemap_sampler = release(r_bsp_pipeline.diffusemap_sampler);
+  r_bsp_pipeline.voxel_data_sampler = release(r_bsp_pipeline.voxel_data_sampler);
+  r_bsp_pipeline.stage_sampler = release(r_bsp_pipeline.stage_sampler);
+  r_bsp_pipeline.ambient_sampler = release(r_bsp_pipeline.ambient_sampler);
+  r_bsp_pipeline.warp_texture = release(r_bsp_pipeline.warp_texture);
+
+  for (int32_t i = 0; i < r_bsp_pipeline.num_stages; i++) {
+    r_bsp_pipeline.stages[i].pipeline = release(r_bsp_pipeline.stages[i].pipeline);
+  }
+  r_bsp_pipeline.num_stages = 0;
+}
+
+/**
+ * @brief Rebuilds the BSP pipeline and samplers in place, for pipeline-bound
+ * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
+ * an r_restart. See R_UpdatePipelines.
+ */
+void R_UpdateBspPipeline(void) {
+  R_ShutdownBspPipeline();
+  R_InitBspPipeline();
 }

@@ -584,28 +584,17 @@ static void R_InitSpritePipeline(void) {
   r_sprite_pipeline.pipeline = $(r_context.device, loadGraphicsPipeline,
     "shaders/sprite_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-      .num_uniform_buffers = 1, // globals (binding 0)
+      .num_uniform_buffers = 1,
     },
     "shaders/sprite_fs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-      .num_samplers = 4,        // diffuse + next_diffuse + depth_attachment + voxel_light_data
-      .num_storage_buffers = 2, // lights_block + voxel_light_indices_block
-      .num_uniform_buffers = 1, // globals (viewport + depth_range, for soften())
+      .num_samplers = 4,
+      .num_storage_buffers = 2,
+      .num_uniform_buffers = 1,
     },
     &info);
 
-  r_sprite_pipeline.sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_LINEAR,
-    .mag_filter = SDL_GPU_FILTER_LINEAR,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .enable_anisotropy = true,
-    .max_anisotropy = R_Anisotropy(),
-  });
-
-  // Nearest: the scene depth is point-sampled (no filtering across depth edges).
+  r_sprite_pipeline.sampler = $(r_context.device, createSamplerLinearClamp);
   r_sprite_pipeline.depth_sampler = $(r_context.device, createSamplerNearestClamp);
 }
 
@@ -647,4 +636,14 @@ void R_ShutdownSprites(void) {
   r_sprite_pipeline.depth_sampler = release(r_sprite_pipeline.depth_sampler);
   r_sprites.vertex_buffer = release(r_sprites.vertex_buffer);
   r_sprites.elements_buffer = release(r_sprites.elements_buffer);
+}
+
+/**
+ * @brief Rebuilds the sprite pipeline and samplers in place, for pipeline-bound
+ * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
+ * an r_restart. See R_UpdatePipelines.
+ */
+void R_UpdateSpritePipeline(void) {
+  R_ShutdownSprites();
+  R_InitSprites();
 }

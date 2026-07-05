@@ -523,11 +523,9 @@ void R_InitDecals(void) {
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
 
-  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
-
-  // Decals are coplanar with their surface; test against the opaque depth but do
-  // not write it, and bias slightly toward the camera so they always win LEQUAL.
   info.depth_stencil_state.enable_depth_write = false;
+
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
   info.rasterizer_state.enable_depth_bias = true;
   info.rasterizer_state.depth_bias_constant_factor = -1.f;
   info.rasterizer_state.depth_bias_slope_factor = -1.f;
@@ -563,27 +561,17 @@ void R_InitDecals(void) {
   r_decal_pipeline.pipeline = $(r_context.device, loadGraphicsPipeline,
     "shaders/decal_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-      .num_uniform_buffers = 2, // globals (0) + locals/model (1)
+      .num_uniform_buffers = 2,
     },
     "shaders/decal_fs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-      .num_samplers = 2,        // texture_diffusemap (atlas) + texture_voxel_light_data
-      .num_storage_buffers = 2, // lights_block + voxel_light_indices_block
-      .num_uniform_buffers = 1, // globals (0)
+      .num_samplers = 2,
+      .num_storage_buffers = 2,
+      .num_uniform_buffers = 1,
     },
     &info);
 
-  r_decal_pipeline.diffusemap_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_LINEAR,
-    .mag_filter = SDL_GPU_FILTER_LINEAR,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .enable_anisotropy = true,
-    .max_anisotropy = R_Anisotropy(),
-  });
-
+  r_decal_pipeline.diffusemap_sampler = $(r_context.device, createSamplerLinearClamp);
   r_decal_pipeline.voxel_data_sampler = $(r_context.device, createSamplerNearestClamp);
 }
 
@@ -595,5 +583,15 @@ void R_ShutdownDecals(void) {
   r_decal_pipeline.pipeline = release(r_decal_pipeline.pipeline);
   r_decal_pipeline.diffusemap_sampler = release(r_decal_pipeline.diffusemap_sampler);
   r_decal_pipeline.voxel_data_sampler = release(r_decal_pipeline.voxel_data_sampler);
+}
+
+/**
+ * @brief Rebuilds the decal pipeline and samplers in place, for pipeline-bound
+ * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
+ * an r_restart. See R_UpdatePipelines.
+ */
+void R_UpdateDecalPipeline(void) {
+  R_ShutdownDecals();
+  R_InitDecals();
 }
 

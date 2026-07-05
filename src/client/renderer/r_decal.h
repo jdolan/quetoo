@@ -81,4 +81,5 @@ void R_UpdateDecals(const r_view_t *view);
 void R_DrawDecals(const r_view_t *view);
 void R_InitDecals(void);
 void R_ShutdownDecals(void);
+void R_UpdateDecalPipeline(void);
 #endif

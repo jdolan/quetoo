@@ -2046,11 +2046,6 @@ typedef struct {
   int32_t w, h;
 
   /**
-   * @brief The OpenGL viewport suitable for the current window.
-   */
-  SDL_Rect viewport;
-
-  /**
    * @brief The GPU render device.
    */
   RenderDevice *device;

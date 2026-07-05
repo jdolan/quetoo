@@ -31,4 +31,5 @@ void R_UpdateSprites(r_view_t *view);
 void R_DrawSprites(const r_view_t *view);
 void R_ShutdownSprites(void);
 void R_InitSprites(void);
+void R_UpdateSpritePipeline(void);
 #endif

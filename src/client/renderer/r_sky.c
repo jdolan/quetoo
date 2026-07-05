@@ -343,9 +343,6 @@ static void R_InitSkyPipeline(void) {
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
 
-  // Sky faces share the world's BSP vertex/index buffers, so they use the same
-  // winding convention as the rest of the level (matching the GL renderer,
-  // which enables GL_CULL_FACE for R_DrawSky).
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
@@ -378,18 +375,17 @@ static void R_InitSkyPipeline(void) {
   r_sky_pipeline.pipeline = $(r_context.device, loadGraphicsPipeline,
     "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-      .num_uniform_buffers = SKY_NUM_UNIFORMS, // globals + material(+stage)
+      .num_uniform_buffers = SKY_NUM_UNIFORMS,
     },
     "shaders/sky_fs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-      .num_samplers = SKY_NUM_SAMPLERS, // sky, stage, stage_next
-      .num_uniform_buffers = SKY_NUM_UNIFORMS, // globals + material(+stage)
+      .num_samplers = SKY_NUM_SAMPLERS,
+      .num_uniform_buffers = SKY_NUM_UNIFORMS,
     },
     &info);
 
   r_sky_pipeline.sampler = $(r_context.device, createSamplerLinearClamp);
-
-  r_sky_pipeline.stage_sampler = $(r_context.device, createSamplerLinearRepeat, R_Anisotropy());
+  r_sky_pipeline.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
 }
 
 /**
@@ -420,6 +416,16 @@ void R_ShutdownSky(void) {
   r_sky_pipeline.num_stages = 0;
 
   r_sky.fallback = release(r_sky.fallback);
+}
+
+/**
+ * @brief Rebuilds the sky pipeline and sampler in place, for pipeline-bound
+ * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
+ * an r_restart. See R_UpdatePipelines.
+ */
+void R_UpdateSky(void) {
+  R_ShutdownSky();
+  R_InitSky();
 }
 
 /**

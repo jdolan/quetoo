@@ -137,3 +137,13 @@ void R_InitDepthPass(void) {
 void R_ShutdownDepthPass(void) {
   r_depth_pass_program.pipeline = release(r_depth_pass_program.pipeline);
 }
+
+/**
+ * @brief Rebuilds the depth pre-pass pipeline in place, for pipeline-bound
+ * cvar changes (r_antialias, ...) that would otherwise require an r_restart.
+ * See R_UpdatePipelines.
+ */
+void R_UpdateDepthPass(void) {
+  R_ShutdownDepthPass();
+  R_InitDepthPass();
+}

@@ -30,8 +30,6 @@ void R_Screenshot(r_view_t *view);
 void R_Screenshot_f(void);
 void R_DumpImages_f(void);
 void R_InitImages(void);
-float R_Anisotropy(void);
-
 void R_FreeImage(r_media_t *media);
 bool R_RetainImage(r_media_t *self);
 

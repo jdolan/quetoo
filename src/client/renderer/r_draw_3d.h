@@ -33,4 +33,5 @@ void R_Draw3D(const r_view_t *view);
 #if defined(__R_LOCAL_H__)
 void R_InitDraw3D(void);
 void R_ShutdownDraw3D(void);
+void R_UpdateDraw3D(void);
 #endif

@@ -29,5 +29,6 @@ void R_DrawPost(const r_view_t *view);
 
 void R_InitPost(void);
 void R_ShutdownPost(void);
+void R_UpdatePostPipeline(void);
 
 #endif

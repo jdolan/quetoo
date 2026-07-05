@@ -371,3 +371,13 @@ void R_ShutdownDraw3D(void) {
 
   r_draw_3d.vertex_buffer = release(r_draw_3d.vertex_buffer);
 }
+
+/**
+ * @brief Rebuilds the 3D debug draw pipelines in place, for pipeline-bound
+ * cvar changes (r_antialias, ...) that would otherwise require an r_restart.
+ * See R_UpdatePipelines.
+ */
+void R_UpdateDraw3D(void) {
+  R_ShutdownDraw3D();
+  R_InitDraw3D();
+}

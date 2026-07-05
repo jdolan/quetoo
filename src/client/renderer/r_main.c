@@ -69,9 +69,10 @@ cvar_t *r_window_width;
 cvar_t *r_draw_stats;
 
 /**
- * @brief The MSAA sample count for the 3D scene, snapshotted from r_antialias at
- * renderer init. The scene framebuffer and every 3D pipeline are built with this
- * count; changing r_antialias takes effect on the next renderer restart.
+ * @brief The MSAA sample count for the 3D scene, driven by r_antialias. The
+ * scene framebuffer and every 3D pipeline are built with this count; see the
+ * r_antialias->modified handling in R_BeginFrame, which rebuilds them in place
+ * when it changes, no r_restart required.
  */
 SDL_GPUSampleCount r_scene_samples = SDL_GPU_SAMPLECOUNT_1;
 
@@ -167,6 +168,26 @@ static void R_UpdateSwapInterval(void) {
 }
 
 /**
+ * @brief Rebuilds every pipeline whose creation info is derived from a
+ * pipeline-bound cvar (r_antialias' sample count, r_anisotropy's max
+ * anisotropy, ...). SDL_gpu bakes both into pipeline/sampler objects at
+ * creation time (unlike GL programs and texture parameters, which read this
+ * state live), so changing either requires tearing down and recreating the
+ * affected pipelines in place. Add new pipeline-bound cvars here rather than
+ * inventing a bespoke update path per cvar.
+ */
+static void R_UpdatePipelines(void) {
+  R_UpdateBspPipeline();
+  R_UpdateMeshPipeline();
+  R_UpdateDepthPass();
+  R_UpdateDraw3D();
+  R_UpdateSky();
+  R_UpdateSpritePipeline();
+  R_UpdateDecalPipeline();
+  R_UpdatePostPipeline();
+}
+
+/**
  * @brief Called at the beginning of each render frame.
  */
 void R_BeginFrame(void) {
@@ -188,13 +209,28 @@ void R_BeginFrame(void) {
   }
 
   if (r_antialias->modified) {
-    if (R_SampleCount() != r_scene_samples) {
-      Com_Print("r_antialias will take effect on the next renderer restart\n");
+    const SDL_GPUSampleCount samples = R_SampleCount();
+    if (samples != r_scene_samples) {
+      r_scene_samples = samples;
+      R_UpdatePipelines();
+
+      // Recreate the scene framebuffer(s) at the new sample count (cgame owns them).
+      SDL_PushEvent(&(SDL_Event) {
+        .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
+      });
     }
     r_antialias->modified = false;
   }
 
+  if (r_anisotropy->modified) {
+    r_anisotropy->value = Clampf(r_anisotropy->value, 0.f, 16.f);
+    r_context.device->maxAnisotropy = r_anisotropy->value;
+    R_UpdatePipelines();
+    r_anisotropy->modified = false;
+  }
+
   if (r_swap_interval->modified) {
+    r_swap_interval->value = Clampf(r_swap_interval->value, -1.f, 2.f);
     R_UpdateSwapInterval();
     r_swap_interval->modified = false;
   }
@@ -373,6 +409,9 @@ void R_Init(void) {
   // Snapshot the MSAA sample count for the scene framebuffer and all 3D pipelines.
   r_scene_samples = R_SampleCount();
 
+  // Every createSamplerLinearRepeat/createSamplerLinearClamp call reads this.
+  r_context.device->maxAnisotropy = Clampf(r_anisotropy->value, 0.f, 16.f);
+
   R_InitConfig();
   R_InitImages();
   R_InitMedia();
@@ -389,9 +428,10 @@ void R_Init(void) {
   R_InitPost();
 
   const SDL_Rect bounds = r_context.window_bounds;
-  const SDL_Rect viewport = r_context.viewport;
-  
-  Com_Print("Video initialized %dx%d (%dx%d)\n", bounds.w, bounds.h, viewport.w, viewport.h);
+  const float density = r_context.display_mode->pixel_density;
+
+  Com_Print("Video initialized %dx%d (%dx%d)\n", bounds.w, bounds.h,
+            (int32_t) (bounds.w * density), (int32_t) (bounds.h * density));
 }
 
 /**

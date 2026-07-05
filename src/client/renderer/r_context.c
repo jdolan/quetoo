@@ -87,13 +87,6 @@ void R_UpdateContext(void) {
   r_context.display = SDL_GetDisplayForWindow(r_context.window);
   r_context.display_mode = SDL_GetCurrentDisplayMode(r_context.display);
 
-  r_context.viewport = (SDL_Rect) {
-    0,
-    0,
-    r_context.window_bounds.w * r_context.display_mode->pixel_density,
-    r_context.window_bounds.h * r_context.display_mode->pixel_density
-  };
-
   R_UpdateUniforms(NULL);
 }
 
@@ -178,14 +171,16 @@ void R_InitContext(void) {
 
   R_UpdateContext();
 
-  // The present-target framebuffer, sized to the full device viewport at native
-  // resolution. The UI and 2D overlays draw directly into this; the composited
-  // 3D scene (its own, separately-scaled framebuffer -- see R_CreateFramebuffer
-  // below) is blitted in by R_DrawPost. endFrame presents this to the swapchain.
+  // The present-target framebuffer. Its initial size is a formality -- beginFrame
+  // resizes it to the swapchain's actual dimensions every frame -- but it must be
+  // non-zero for createFramebuffer to succeed. The UI and 2D overlays draw directly
+  // into this; the composited 3D scene (its own, separately-scaled framebuffer --
+  // see R_CreateFramebuffer below) is blitted in by R_DrawPost. endFrame presents
+  // this to the swapchain.
   const SDL_GPUTextureFormat format = $(r_context.device, getSwapchainTextureFormat);
 
   Framebuffer *framebuffer = $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
-    .size = MakeSize(r_context.viewport.w, r_context.viewport.h),
+    .size = MakeSize(r_context.window_bounds.w, r_context.window_bounds.h),
     .colorFormats = { format },
     .numColorTargets = 1,
     .depthFormat = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
@@ -222,13 +217,14 @@ void R_ShutdownContext(void) {
  * @remarks @p attachments is currently advisory; a full 2-color+depth target
  * is always created, since the shared mesh/bsp pipelines are built with that
  * exact target count/format/sample-count baked in. @p width and @p height are
- * scaled by r_framebuffer_scale, same as the main scene FB -- this uniformly
- * lets a reduced render scale also reduce the resolution of secondary 3D
- * views like the player-model preview.
+ * logical (point) sizes; they're scaled by the display's pixel density and by
+ * r_framebuffer_scale, same as the main scene FB -- this uniformly lets a
+ * reduced render scale also reduce the resolution of secondary 3D views like
+ * the player-model preview.
  */
 Framebuffer *R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachments) {
 
-  const float scale = Clampf(r_framebuffer_scale->value, .125f, 4.f);
+  const float scale = Clampf(r_framebuffer_scale->value, .125f, 4.f) * r_context.display_mode->pixel_density;
 
   const SDL_Size size = MakeSize(
     Maxi((int32_t) (width * scale), 1),

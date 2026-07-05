@@ -30,4 +30,5 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp);
 Texture *R_SkyTexture(void);
 void R_InitSky(void);
 void R_ShutdownSky(void);
+void R_UpdateSky(void);
 #endif

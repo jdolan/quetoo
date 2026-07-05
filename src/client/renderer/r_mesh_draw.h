@@ -27,4 +27,5 @@
 void R_DrawMeshEntities(const r_view_t *view);
 void R_InitMeshPipeline(void);
 void R_ShutdownMeshPipeline(void);
+void R_UpdateMeshPipeline(void);
 #endif
