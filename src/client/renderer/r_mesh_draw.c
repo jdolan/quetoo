@@ -114,14 +114,6 @@ static struct {
   Texture *voxel_occlusion_fallback;
 
   /**
-   * @brief A 1x1 fallback texture for the stage/stage-next sampler slots on
-   * opaque/blend draws, which never sample them (mesh_fs's STAGE_NONE branch
-   * doesn't touch texture_stage/texture_stage_next) but SDL_gpu still requires
-   * every declared sampler slot to be bound at draw time.
-   */
-  Texture *stage_fallback;
-
-  /**
    * @brief Cache of MATERIAL_STAGES mesh pipelines, one per unique (src, dest)
    * blend function (SDL_gpu bakes blend state into the pipeline).
    */
@@ -595,8 +587,8 @@ void R_DrawMeshEntities(const r_view_t *view) {
   // STAGE_NONE branch doesn't touch them), but the shared shader declares
   // them, so SDL_gpu requires them bound regardless.
   $(pass, bindFragmentSamplers, MESH_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_mesh_pipeline.stage_fallback->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
-    { .texture = r_mesh_pipeline.stage_fallback->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
+    { .texture = r_context.white_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
+    { .texture = r_context.white_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
   }, 2);
 
   SDL_GPUBuffer *storage[] = {
@@ -692,8 +684,8 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   // Stage/stage-next: see R_DrawMeshEntities.
   $(pass, bindFragmentSamplers, MESH_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_mesh_pipeline.stage_fallback->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
-    { .texture = r_mesh_pipeline.stage_fallback->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
+    { .texture = r_context.white_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
+    { .texture = r_context.white_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
   }, 2);
 
   SDL_GPUBuffer *storage[] = { r_lights.buffer->buffer, r_lights.buffer->buffer };
@@ -869,18 +861,6 @@ void R_InitMeshPipeline(void) {
     .num_levels = 1,
     .sample_count = SDL_GPU_SAMPLECOUNT_1,
   }, NULL);
-
-  // 1x1 fallback for the stage/stage-next sampler slots on opaque/blend draws
-  // (see the struct field docs above). Contents are never sampled, so
-  // uninitialized (NULL) data is fine.
-  r_mesh_pipeline.stage_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
-    .type = SDL_GPU_TEXTURETYPE_2D,
-    .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
-    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
-    .width = 1, .height = 1, .layer_count_or_depth = 1,
-    .num_levels = 1,
-    .sample_count = SDL_GPU_SAMPLECOUNT_1,
-  }, NULL);
 }
 
 /**
@@ -896,7 +876,6 @@ void R_ShutdownMeshPipeline(void) {
   r_mesh_pipeline.voxel_light_data_fallback = release(r_mesh_pipeline.voxel_light_data_fallback);
   r_mesh_pipeline.voxel_caustics_fallback = release(r_mesh_pipeline.voxel_caustics_fallback);
   r_mesh_pipeline.voxel_occlusion_fallback = release(r_mesh_pipeline.voxel_occlusion_fallback);
-  r_mesh_pipeline.stage_fallback = release(r_mesh_pipeline.stage_fallback);
 
   for (int32_t i = 0; i < r_mesh_pipeline.num_stages; i++) {
     r_mesh_pipeline.stages[i].pipeline = release(r_mesh_pipeline.stages[i].pipeline);

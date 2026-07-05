@@ -104,14 +104,6 @@ static struct {
   Sampler *ambient_sampler;
 
   /**
-   * @brief A 1x1 fallback texture for the stage/stage-next sampler slots on
-   * opaque/blend draws, which never sample them (bsp_fs's STAGE_NONE branch
-   * doesn't touch texture_stage/texture_stage_next) but SDL_gpu still requires
-   * every declared sampler slot to be bound at draw time.
-   */
-  Texture *stage_fallback;
-
-  /**
    * @brief Cache of MATERIAL_STAGES pipelines, one per unique (src, dest) blend
    * function. SDL_gpu bakes blend state into the pipeline, so stage blends can't
    * be set dynamically; they're realized lazily here (only a handful of combos occur).
@@ -293,17 +285,6 @@ void R_InitBspPipeline(void) {
     .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
   });
 
-  // 1x1 fallback for the stage/stage-next sampler slots on opaque/blend draws
-  // (see the struct field docs above). Contents are never sampled, so
-  // uninitialized (NULL) data is fine.
-  r_bsp_pipeline.stage_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
-    .type = SDL_GPU_TEXTURETYPE_2D,
-    .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
-    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
-    .width = 1, .height = 1, .layer_count_or_depth = 1,
-    .num_levels = 1,
-    .sample_count = SDL_GPU_SAMPLECOUNT_1,
-  }, NULL);
 }
 
 /**
@@ -317,7 +298,6 @@ void R_ShutdownBspPipeline(void) {
   r_bsp_pipeline.voxel_data_sampler = release(r_bsp_pipeline.voxel_data_sampler);
   r_bsp_pipeline.stage_sampler = release(r_bsp_pipeline.stage_sampler);
   r_bsp_pipeline.ambient_sampler = release(r_bsp_pipeline.ambient_sampler);
-  r_bsp_pipeline.stage_fallback = release(r_bsp_pipeline.stage_fallback);
 
   for (int32_t i = 0; i < r_bsp_pipeline.num_stages; i++) {
     r_bsp_pipeline.stages[i].pipeline = release(r_bsp_pipeline.stages[i].pipeline);
@@ -633,8 +613,8 @@ void R_DrawBspEntities(const r_view_t *view) {
   // STAGE_NONE branch doesn't touch them), but the shared shader declares
   // them, so SDL_gpu requires them bound regardless.
   $(pass, bindFragmentSamplers, BSP_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_bsp_pipeline.stage_fallback->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
-    { .texture = r_bsp_pipeline.stage_fallback->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
+    { .texture = r_context.white_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
+    { .texture = r_context.white_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
   }, 2);
 
   // Storage: per-frame lights, then the voxel light index vector. Fall back to the
@@ -816,8 +796,8 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   // STAGE_NONE branch doesn't touch them), but the shared shader declares
   // them, so SDL_gpu requires them bound regardless.
   $(pass, bindFragmentSamplers, BSP_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_bsp_pipeline.stage_fallback->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
-    { .texture = r_bsp_pipeline.stage_fallback->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
+    { .texture = r_context.white_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
+    { .texture = r_context.white_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
   }, 2);
 
   SDL_GPUBuffer *storage[] = {
