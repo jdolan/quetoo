@@ -23,22 +23,41 @@
 
 #include "uniforms.glsl"
 
+// Sky's own binding map (vertex stage): a dense family shared with no other
+// pipeline. The fragment stage's own map is defined in sky_fs.glsl.
+#define BINDING_UNIFORMS_MATERIAL 1
+
+#include "common.glsl"
+#include "material.glsl"
+
 layout (location = 0) in vec3 in_position;
 
 layout (location = 0) out vec3 cubemap_coord;
+layout (location = 1) out vec4 stage_color;
 
 invariant gl_Position;
 
 /**
  * @brief Renders the world's sky surfaces as a window into the sky cubemap; the
  * cube lookup direction is the surface position through the sky projection.
- * @remarks TODO(#864): material stages (azimuthal sky) are deferred.
+ * @remarks Material stages (azimuthal sky, e.g. moving clouds/moons) reuse the
+ * generic stage color/pulse from material.glsl; the azimuthal projection and
+ * its own rotate/scroll/scale are computed in sky_fs.glsl, since sky surfaces
+ * have no per-vertex diffusemap texcoord to transform.
  */
 void main(void) {
 
   vec4 position = vec4(in_position, 1.0);
 
   cubemap_coord = vec3(sky_projection * position);
+
+  stage_color = vec4(1.0);
+  if ((material.flags & STAGE_COLOR) == STAGE_COLOR) {
+    stage_color = material.color;
+  }
+  if ((material.flags & STAGE_PULSE) == STAGE_PULSE) {
+    stage_color.a *= (sin((ticks * .001 + material.drift) * material.pulse * PI) + 1.0) * .5;
+  }
 
   gl_Position = projection3D * view * position;
 }

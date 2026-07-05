@@ -65,7 +65,7 @@ const float TWO_PI = PI * 2.0;
 
 const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875, 1.000);
 
-#if defined(FRAGMENT_SHADER)
+#if defined(FRAGMENT_SHADER) && !defined(MATERIAL_NO_DIFFUSE)
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_MATERIAL) uniform sampler2DArray texture_material;
 #endif
 
@@ -325,7 +325,7 @@ void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
   }
 }
 
-#if defined(FRAGMENT_SHADER)
+#if defined(FRAGMENT_SHADER) && !defined(MATERIAL_NO_DIFFUSE)
 /**
  * @brief Sample the diffuse/albedo texture.
  * @param texcoord Texture coordinates (may be parallax-offset for BSP).
@@ -383,6 +383,9 @@ float sample_material_heightmap(in vec2 texcoord, in float lod) {
 float sample_material_displacement(in vec2 texcoord, in float lod) {
   return 1.0 - sample_material_heightmap(texcoord, lod);
 }
+#endif // FRAGMENT_SHADER && !MATERIAL_NO_DIFFUSE
+
+#if defined(FRAGMENT_SHADER)
 
 /**
  * @brief Sample a material stage texture.
@@ -396,6 +399,7 @@ vec4 sample_material_stage(in vec2 texcoord) {
   return texture(texture_stage, texcoord);
 }
 
+#if !defined(MATERIAL_NO_DIFFUSE)
 /**
  * @brief Sample the tint map (layer 3 of material array).
  * @param texcoord Texture coordinates.
@@ -404,4 +408,5 @@ vec4 sample_material_stage(in vec2 texcoord) {
 vec4 sample_material_tint(in vec2 texcoord) {
   return texture(texture_material, vec3(texcoord, 3));
 }
+#endif // !MATERIAL_NO_DIFFUSE
 #endif // FRAGMENT_SHADER
