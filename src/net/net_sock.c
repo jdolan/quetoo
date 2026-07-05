@@ -191,7 +191,7 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
   switch (type) {
     case NA_BROADCAST:
     case NA_DATAGRAM:
-      if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
+      if ((sock = (int32_t) socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
         Com_Error(ERROR_DROP, "socket: %s\n", Net_GetErrorString());
       }
 
@@ -203,7 +203,7 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
       break;
 
     case NA_STREAM:
-      if ((sock = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
+      if ((sock = (int32_t) socket(PF_INET, SOCK_STREAM, 0)) == -1) {
         Com_Error(ERROR_DROP, "socket: %s\n", Net_GetErrorString());
       }
 
@@ -242,7 +242,7 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 int32_t Net_SocketListen(const char *iface, in_port_t port, int32_t backlog) {
   int32_t opt = 1;
 
-  const int32_t sock = socket(PF_INET, SOCK_STREAM, 0);
+  const int32_t sock = (int32_t) socket(PF_INET, SOCK_STREAM, 0);
   if (sock == -1) {
     Com_Warn("socket: %s\n", Net_GetErrorString());
     return -1;
@@ -289,7 +289,7 @@ int32_t Net_Accept(int32_t sock, net_addr_t *from) {
   net_sockaddr addr;
   socklen_t addr_len = sizeof(addr);
 
-  const int32_t client = accept(sock, (struct sockaddr *) &addr, &addr_len);
+  const int32_t client = (int32_t) accept(sock, (struct sockaddr *) &addr, &addr_len);
   if (client == -1) {
     return -1;
   }
@@ -310,7 +310,7 @@ int32_t Net_Accept(int32_t sock, net_addr_t *from) {
  * @return Bytes sent, or -1 on error.
  */
 ssize_t Net_Send(int32_t sock, const void *data, size_t len) {
-  return send(sock, data, len, 0);
+  return send(sock, data, (int32_t) len, 0);
 }
 
 /**
@@ -318,7 +318,7 @@ ssize_t Net_Send(int32_t sock, const void *data, size_t len) {
  * @return Bytes received, 0 on close, or -1 on error.
  */
 ssize_t Net_Recv(int32_t sock, void *data, size_t len) {
-  return recv(sock, data, len, 0);
+  return recv(sock, data, (int32_t) len, 0);
 }
 
 /**

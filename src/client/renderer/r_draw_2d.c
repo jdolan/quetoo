@@ -611,7 +611,9 @@ void R_Draw2D(void) {
 
   CommandBuffer *commands = r_context.device->commands;
   if (!commands || !r_draw_2d.pipeline) {
-    goto reset;
+    r_draw_2d.game.num_vertexes = 0;
+    r_draw_2d.game.num_draw_arrays = 0;
+    return;
   }
 
   Framebuffer *framebuffer = r_context.device->framebuffer;
@@ -655,7 +657,6 @@ void R_Draw2D(void) {
 
   release(pass);
 
-reset:
   r_draw_2d.game.num_vertexes = 0;
   r_draw_2d.game.num_draw_arrays = 0;
 }

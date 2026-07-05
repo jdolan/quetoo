@@ -639,10 +639,10 @@ cm_trace_t Cm_TraceToBrush(const vec3_t start, const vec3_t end, const cm_bsp_br
 box3_t Cm_EntityBounds(const solid_t solid, const mat4_t matrix, const box3_t bounds) {
 
   box3_t result = Mat4_TransformBounds(matrix, bounds);
-  
+
   // epsilon, so bmodels can catch riders
   if (solid == SOLID_BSP) {
-    return Box3_Expand(result, BOX_EPSILON);
+    result = Box3_Expand(result, BOX_EPSILON);
   }
 
   return result;

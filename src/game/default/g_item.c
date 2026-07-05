@@ -1550,7 +1550,6 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
 
     default:
       gi.Error("Item %s (tag %d) has an invalid type\n", def->name, def->tag);
-      break;
   }
 
   it->model_index = gi.ModelIndex(it->def.model);

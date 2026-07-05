@@ -21,7 +21,7 @@
 
 #include "cm_local.h"
 
-static const cm_entity_t null_entity;
+static const cm_entity_t null_entity = { 0 };
 
 /**
  * @brief Allocates and returns a new zeroed entity key-value pair.
