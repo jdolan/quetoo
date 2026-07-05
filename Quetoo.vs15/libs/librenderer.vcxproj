@@ -30,7 +30,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_draw_2d.c" />
     <ClCompile Include="..\..\src\client\renderer\r_draw_3d.c" />
     <ClCompile Include="..\..\src\client\renderer\r_entity.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_framebuffer.c" />
     <ClCompile Include="..\..\src\client\renderer\r_image.c" />
     <ClCompile Include="..\..\src\client\renderer\r_light.c" />
     <ClCompile Include="..\..\src\client\renderer\r_main.c" />
@@ -60,7 +59,6 @@
     <ClInclude Include="..\..\src\client\renderer\r_draw_2d.h" />
     <ClInclude Include="..\..\src\client\renderer\r_draw_3d.h" />
     <ClInclude Include="..\..\src\client\renderer\r_entity.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_framebuffer.h" />
     <ClInclude Include="..\..\src\client\renderer\r_image.h" />
     <ClInclude Include="..\..\src\client\renderer\r_light.h" />
     <ClInclude Include="..\..\src\client\renderer\r_local.h" />
