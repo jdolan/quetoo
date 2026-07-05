@@ -587,8 +587,8 @@ void R_DrawMeshEntities(const r_view_t *view) {
   // STAGE_NONE branch doesn't touch them), but the shared shader declares
   // them, so SDL_gpu requires them bound regardless.
   $(pass, bindFragmentSamplers, MESH_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.white_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
-    { .texture = r_context.white_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
   }, 2);
 
   SDL_GPUBuffer *storage[] = {
@@ -684,8 +684,8 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   // Stage/stage-next: see R_DrawMeshEntities.
   $(pass, bindFragmentSamplers, MESH_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.white_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
-    { .texture = r_context.white_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
   }, 2);
 
   SDL_GPUBuffer *storage[] = { r_lights.buffer->buffer, r_lights.buffer->buffer };

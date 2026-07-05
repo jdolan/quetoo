@@ -2062,7 +2062,7 @@ typedef struct {
    * shader branch samples). Created once, early, since r_context is the first
    * renderer subsystem initialized.
    */
-  Texture *white_texture;
+  Texture *null_texture;
 } r_context_t;
 
 /**

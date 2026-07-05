@@ -197,7 +197,7 @@ void R_InitContext(void) {
 
   // A 1x1 opaque white texture, shared by every pipeline that needs to bind
   // *something* to a sampler slot it never reads (see the r_context_t field doc).
-  r_context.white_texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  r_context.null_texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_2D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
     .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -213,7 +213,7 @@ void R_InitContext(void) {
  */
 void R_ShutdownContext(void) {
 
-  r_context.white_texture = release(r_context.white_texture);
+  r_context.null_texture = release(r_context.null_texture);
   r_context.device = release(r_context.device);
 
   if (r_context.window) {

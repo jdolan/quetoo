@@ -613,8 +613,8 @@ void R_DrawBspEntities(const r_view_t *view) {
   // STAGE_NONE branch doesn't touch them), but the shared shader declares
   // them, so SDL_gpu requires them bound regardless.
   $(pass, bindFragmentSamplers, BSP_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.white_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
-    { .texture = r_context.white_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
   }, 2);
 
   // Storage: per-frame lights, then the voxel light index vector. Fall back to the
@@ -796,8 +796,8 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   // STAGE_NONE branch doesn't touch them), but the shared shader declares
   // them, so SDL_gpu requires them bound regardless.
   $(pass, bindFragmentSamplers, BSP_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.white_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
-    { .texture = r_context.white_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_pipeline.stage_sampler->sampler },
   }, 2);
 
   SDL_GPUBuffer *storage[] = {
