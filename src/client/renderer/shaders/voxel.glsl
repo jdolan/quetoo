@@ -61,7 +61,13 @@ vec3 voxel_uvw(in vec3 position) {
  */
 ivec3 voxel_xyz(in vec3 position) {
   vec3 pos = position - voxels.mins.xyz;
-  ivec3 voxel = ivec3(floor(pos / BSP_VOXEL_SIZE));
+  // The epsilon bias makes boundary rounding deterministic across GPU/driver
+  // generations: geometry built exactly on a voxel-grid plane divides out to
+  // (near-)exact integers, and without a bias, ULP-level differences in how
+  // different compilers/hardware round that division can flip the floor()
+  // result to the neighboring voxel -- producing hardware-dependent seams
+  // where a light is in one voxel's list but not its neighbor's.
+  ivec3 voxel = ivec3(floor(pos / BSP_VOXEL_SIZE + 0.001));
   return clamp(voxel, ivec3(0), ivec3(voxels.size.xyz) - ivec3(1));
 }
 
