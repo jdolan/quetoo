@@ -543,15 +543,6 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 }
 
 /**
- * @brief Creates a position-only VAO for the BSP depth pre-pass.
- * @remarks Under SDL_gpu the depth pre-pass reuses the world vertex/index
- * buffers directly; vertex layout is described by the GraphicsPipeline, so no
- * separate GPU object is required here.
- */
-static void R_LoadBspDepthPassVertexArray(r_model_t *mod) {
-}
-
-/**
  * @brief Creates an `r_model_t` for each inline model so that entities may reference them.
  */
 static void R_SetupBspInlineModels(r_model_t *mod) {
@@ -616,7 +607,6 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_LoadBspBlocks(mod->bsp);
   R_LoadBspInlineModels(mod->bsp);
   R_LoadBspVertexArray(mod);
-  R_LoadBspDepthPassVertexArray(mod);
   R_SetupBspInlineModels(mod);
   R_LoadBspLights(mod->bsp);
   R_LoadBspVoxels(mod);

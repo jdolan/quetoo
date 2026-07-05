@@ -632,7 +632,7 @@ typedef struct r_bsp_block_s {
   int32_t num_draw_elements;
 
   /**
-   * @brief The visible bounds of this block, used for occlusion query and culling.
+   * @brief The visible bounds of this block, used for culling.
    */
   box3_t visible_bounds;
 
@@ -2071,39 +2071,9 @@ typedef struct {
 typedef struct {
 
   /**
-   * @brief The count of allocated occlusion queries.
-   */
-  int32_t queries_allocated;
-
-  /**
-   * @brief The count of visible occlusion queries.
-   */
-  int32_t queries_visible;
-
-  /**
-   * @brief The count of occluded occlusion queries.
-   */
-  int32_t queries_occluded;
-
-  /**
-   * @brief The count of visible BSP blocks.
-   */
-  int32_t blocks_visible;
-
-  /**
-   * @brief The count of occluded BSP blocks.
-   */
-  int32_t blocks_occluded;
-
-  /**
    * @brief The count of visible lights.
    */
   int32_t lights_visible;
-
-  /**
-   * @brief The count of occluded lights.
-   */
-  int32_t lights_occluded;
 
   /**
    * @brief The count of visible entities.

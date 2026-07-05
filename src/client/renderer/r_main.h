@@ -149,11 +149,6 @@ typedef struct {
 typedef struct {
 
   /**
-   * @brief The uniform buffer object name.
-   */
-  uint32_t buffer;
-
-  /**
    * @brief The uniform block struct.
    * @remarks This struct is vec4 aligned.
    */

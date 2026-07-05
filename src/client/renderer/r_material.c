@@ -302,18 +302,28 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
       memcpy(data + 2 * layer_size, specularmap->pixels, layer_size);
       memcpy(data + 3 * layer_size, tintmap->pixels, layer_size);
 
-      // TODO(#864): level 0 only; material mip generation deferred.
+      // Mip levels matching main's unconditional GL_LINEAR_MIPMAP_LINEAR for
+      // every material layer (diffuse, normal, specular, tint alike).
+      const int32_t levels = (int32_t) floorf(log2f((float) Mini(w, h))) + 1;
+
       material->texture->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
         .type = SDL_GPU_TEXTURETYPE_2D_ARRAY,
         .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
         .width = w,
         .height = h,
         .layer_count_or_depth = material->texture->depth,
-        .num_levels = 1,
-        .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+        .num_levels = levels,
+        .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
       }, data);
 
       free(data);
+
+      // Mipmap generation is not a copy-pass operation and must run outside any
+      // pass; see the identical pattern for the sky cubemap in r_image.c.
+      CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
+      $(commands, generateMipmaps, material->texture->texture->texture);
+      $(commands, submit);
+      release(commands);
 
       SDL_DestroySurface(normalmap);
       SDL_DestroySurface(specularmap);

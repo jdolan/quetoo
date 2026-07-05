@@ -135,26 +135,10 @@ static void Cl_DrawRendererStats(void) {
   R_BindFont("small", NULL, &ch);
 
   {
-    R_Draw2DString(x, y, "Occlusion queries:", color_yellow);
-    y += ch;
-
-    R_Draw2DString(x, y, va(" %d queries allocated", r_stats.queries_allocated), color_yellow);
-    y += ch;
-    R_Draw2DString(x, y, va(" %d queries visible", r_stats.queries_visible), color_yellow);
-    y += ch;
-    R_Draw2DString(x, y, va(" %d queries occluded", r_stats.queries_occluded), color_yellow);
-    y += ch;
-  }
-
-  y += ch;
-
-  {
     R_Draw2DString(x, y, "Lights:", color_yellow);
     y += ch;
 
     R_Draw2DString(x, y, va(" %d lights visible", r_stats.lights_visible), color_yellow);
-    y += ch;
-    R_Draw2DString(x, y, va(" %d lights occluded", r_stats.lights_occluded), color_yellow);
     y += ch;
   }
 
@@ -164,10 +148,6 @@ static void Cl_DrawRendererStats(void) {
     R_Draw2DString(x, y, "BSP:", color_yellow);
     y += ch;
     R_Draw2DString(x, y, va(" %d entities", r_stats.bsp_inline_models), color_yellow);
-    y += ch;
-    R_Draw2DString(x, y, va(" %d blocks visible", r_stats.blocks_visible), color_yellow);
-    y += ch;
-    R_Draw2DString(x, y, va(" %d blocks occluded", r_stats.blocks_occluded), color_yellow);
     y += ch;
     R_Draw2DString(x, y, va(" %d draw elements", r_stats.bsp_draw_elements), color_yellow);
     y += ch;

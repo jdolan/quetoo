@@ -45,8 +45,6 @@ static struct {
 
 /**
  * @brief The sprite pipeline (sprite_vs/sprite_fs) and its diffuse sampler.
- * @remarks TODO(#864): vertex lighting (active_lights) and soft particles
- * (depth-attachment copy) are deferred.
  */
 static struct {
   GraphicsPipeline *pipeline;
@@ -401,7 +399,6 @@ void R_UpdateSprites(r_view_t *view) {
 /**
  * @brief Renders all batched sprite instances to the present framebuffer, blended
  * additively over the opaque scene and depth-tested against it.
- * @remarks TODO(#864): dynamic vertex lighting and soft particles are deferred.
  */
 void R_DrawSprites(const r_view_t *view) {
 

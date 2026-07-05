@@ -26,8 +26,10 @@ r_depth_pass_program_t r_depth_pass_program;
 /**
  * @brief Renders opaque world geometry into the view framebuffer's depth (depth
  * only), which the main 3D passes then LOAD for early-Z rejection.
- * @details BSP-only: occluders are world geometry. TODO(#864): the depth is
- * sampleable (resolveDepthTexture) for soft particles once ported.
+ * @details BSP-only: occluders are world geometry. Soft particles don't sample
+ * this depth target directly -- SDL_gpu can't sample a multisample depth
+ * buffer, so r_bsp_draw.c/r_mesh_draw.c write a single-sample float depth copy
+ * as a second color attachment, which r_sprite.c samples instead.
  */
 void R_DrawDepthPass(r_view_t *view) {
 

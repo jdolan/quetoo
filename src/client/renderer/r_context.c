@@ -94,7 +94,7 @@ void R_UpdateContext(void) {
     r_context.window_bounds.h * r_context.display_mode->pixel_density
   };
 
-  // TODO(#864): R_UpdateUniforms(NULL) once the uniforms UBO is ported to the GPU device.
+  R_UpdateUniforms(NULL);
 }
 
 /**

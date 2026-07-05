@@ -203,35 +203,6 @@ void R_Screenshot_f(void) {
 }
 
 /**
- * @brief Creates the base image state for the image.
- */
-void R_SetupImage(r_image_t *image) {
-
-  // TODO(#864): retired; GPU textures are created in R_LoadImage via ObjectivelyGPU.
-}
-
-/**
- * @brief Uploads the given pixel data to the specified image and target.
- * @param image The image.
- * @param target The upload target, which may be different from the image's bind target.
- * @param data The pixel data.
- */
-void R_UploadImageTarget(r_image_t *image, uint32_t target, const void *data) {
-
-  // TODO(#864): retired during SDL_gpu port (2D via createTextureFromSurface in R_LoadImage).
-}
-
-/**
- * @brief Uploads the given pixel data to the specified image.
- * @param image The image.
- * @param data The pixel data.
- */
-void R_UploadImage(r_image_t *image, const void *data) {
-  R_UploadImageTarget(image, 0, data);
-}
-
-
-/**
  * @brief Retain event listener for images.
  */
 bool R_RetainImage(r_media_t *self) {

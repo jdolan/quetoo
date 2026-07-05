@@ -357,7 +357,7 @@ static void R_InitConfig(void) {
 }
 
 /**
- * @brief Creates the OpenGL context and initializes all GL state.
+ * @brief Creates the ObjectivelyGPU render device and initializes the renderer.
  */
 void R_Init(void) {
 
@@ -373,10 +373,6 @@ void R_Init(void) {
   // Snapshot the MSAA sample count for the scene framebuffer and all 3D pipelines.
   r_scene_samples = R_SampleCount();
 
-  // TODO(#864): the GL subsystems below are bypassed during the SDL_gpu port.
-  // The UI renders through ObjectivelyGPU on r_context.device; the 3D scene, 2D
-  // console, media/images and shaders are ported back in Phase 4/5.
-  //
   R_InitConfig();
   R_InitImages();
   R_InitMedia();
@@ -400,19 +396,13 @@ void R_Init(void) {
 
 /**
  * @brief Shuts down the renderer, freeing all resources belonging to it,
- * including the GL context.
+ * including the render device.
  */
 void R_Shutdown(void) {
 
   Cmd_RemoveAll(CMD_RENDERER);
 
-  // TODO(#864): GL subsystem teardown bypassed during the SDL_gpu port (see R_Init).
-  // R_ShutdownMedia();
-  // R_ShutdownDraw2D();
   R_ShutdownDraw3D();
-  // R_ShutdownDecals();
-  // R_ShutdownSprites();
-  // R_ShutdownSky();
   R_ShutdownPost();
   R_ShutdownDepthPass();
 

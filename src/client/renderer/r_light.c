@@ -41,8 +41,8 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 /**
  * @brief Transform lights into their uniform representation and upload them to
  * the lights storage buffer.
- * @remarks TODO(#864): occlusion culling (l->query) is deferred; every light is
- * uploaded and assigned a shadow atlas tile.
+ * @remarks TODO(#864): occlusion culling is deferred (see the broad-phase
+ * occlusion item); every light is uploaded and assigned a shadow atlas tile.
  */
 void R_UpdateLights(r_view_t *view) {
 
