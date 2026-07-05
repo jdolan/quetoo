@@ -193,6 +193,12 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
    * @brief The wireframe mode flag.
    */
   int wireframe;
+
+  /**
+   * @brief Non-zero to visualize the per-voxel static light index/count
+   * instead of lighting (developer tool, see r_draw_voxel_lights).
+   */
+  int debug_voxel_lights;
 };
 
 #define MAX_BSP_LIGHTS 512

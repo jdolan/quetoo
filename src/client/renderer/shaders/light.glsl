@@ -413,6 +413,24 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
  */
 void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
 
+  if (debug_voxel_lights != 0) {
+    // Visualizes the raw (first_index, count) texelFetch from the voxel
+    // light-data texture, bypassing all lighting/shadow math. R = hash of
+    // first_index (a hard color change marks a real change in the underlying
+    // data, not just a lighting/shadow falloff difference); G = light count;
+    // B = 1 for voxels with no lights assigned. Diagnostic for hardware-
+    // dependent seams: if this view matches across GPUs but lit output
+    // doesn't, the bug is downstream of this texture fetch.
+    ivec3 voxel_coord = voxel_xyz(v.model_position);
+    ivec2 data = voxel_light_data(voxel_coord);
+
+    float hash = fract(sin(float(data.x) * 12.9898) * 43758.5453);
+    f.ambient = vec3(hash, float(data.y) / 8.0, data.y == 0 ? 1.0 : 0.0);
+    f.diffuse = vec3(0.0);
+    f.specular = vec3(0.0);
+    return;
+  }
+
   float occlusion = voxel_occlusion(v.voxel);
   float exposure = voxel_exposure(v.voxel);
 
