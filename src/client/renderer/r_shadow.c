@@ -22,8 +22,6 @@ r_shadow_atlas_t r_shadow_atlas;
 /**
  * @brief The shadow depth pass pipeline (shadow_vs/shadow_fs) for static BSP
  * geometry (r_bsp_vertex_t layout).
- * @remarks TODO(#864): temporal caching and per-light entity culling
- * optimizations are ported in later increments.
  */
 static GraphicsPipeline *r_shadow_pipeline;
 
@@ -32,6 +30,14 @@ static GraphicsPipeline *r_shadow_pipeline;
  * layout, two frame slots lerped in shadow_vs).
  */
 static GraphicsPipeline *r_shadow_mesh_pipeline;
+
+/**
+ * @brief The shadow atlas "clear" pipeline (shadow_clear_vs/fs): draws a
+ * fullscreen triangle, no vertex buffer, that unconditionally writes the
+ * atlas's "far" value. Used to clear a single light's tile block via a
+ * scissored draw before redrawing it -- see R_DrawShadows.
+ */
+static GraphicsPipeline *r_shadow_clear_pipeline;
 
 /**
  * @brief The six cube-face view matrices (light at origin), matching r_shadow.c
@@ -63,6 +69,58 @@ static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
   }
 
   return false;
+}
+
+/**
+ * @brief Returns true if only the static world casts into this light's shadow
+ * (no inline BSP model entity or mesh entity caster intersects its bounds),
+ * matching main's `is_shadow_cacheable`. Such a shadow never changes
+ * frame-to-frame, so once rendered it can be skipped entirely until a caster
+ * enters the light's bounds. Filters mirror the draw loops in R_DrawShadows
+ * exactly, since any caster there invalidates the cache.
+ */
+static bool R_IsShadowCacheable(const r_view_t *view, const r_light_t *light) {
+
+  const r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+
+    if (IS_BSP_INLINE_MODEL(e->model) && !IS_WORLDSPAWN(e->model)) {
+
+      if (e->effects & EF_NO_DRAW) {
+        continue;
+      }
+
+      const r_bsp_inline_model_t *in = e->model->bsp_inline;
+      if (!in->num_depth_pass_elements) {
+        continue;
+      }
+
+      if (Box3_Intersects(light->bounds, e->abs_model_bounds)) {
+        return false;
+      }
+
+    } else if (IS_MESH_MODEL(e->model)) {
+
+      if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
+        continue;
+      }
+
+      if (R_IsLightSource(light, e)) {
+        continue;
+      }
+
+      const r_mesh_model_t *mesh = e->model->mesh;
+      if (!mesh || !mesh->vertex_buffer) {
+        continue;
+      }
+
+      if (Box3_Intersects(light->bounds, e->abs_model_bounds)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -108,12 +166,16 @@ void R_DrawShadows(const r_view_t *view) {
 
   for (int32_t layer = 0; layer < r_shadow_atlas.num_layers; layer++) {
 
-    // Depth-only pass: each layer stores linear distance-from-light (cleared to
-    // 1.0 = far), sampled later through a comparison sampler.
+    // Depth-only pass: each layer stores linear distance-from-light (1.0 =
+    // far/no occluder), sampled later through a comparison sampler. LOAD, not
+    // CLEAR: a layer packs multiple lights' tiles, and SDL_gpu's load_op
+    // always applies to the whole bound layer, not a scissored sub-rect --
+    // clearing here would wipe every light's shadow, defeating the temporal
+    // cache below. Each light being (re)drawn this frame instead clears just
+    // its own tile block via a scissored draw with r_shadow_clear_pipeline.
     const SDL_GPUDepthStencilTargetInfo depth = {
       .texture = r_shadow_atlas.texture->texture,
-      .clear_depth = 1.f,
-      .load_op = SDL_GPU_LOADOP_CLEAR,
+      .load_op = SDL_GPU_LOADOP_LOAD,
       .store_op = SDL_GPU_STOREOP_STORE,
       .layer = (Uint8) layer,
     };
@@ -145,15 +207,49 @@ void R_DrawShadows(const r_view_t *view) {
         continue;
       }
 
-      // Perf guard (no shadow caching yet): only render shadow maps for lights
-      // whose bounds are within the view frustum.
+      // Only render shadow maps for lights whose bounds are within the view frustum.
       if (R_CullBox(view, l->bounds)) {
         continue;
       }
 
+      // If only the static world casts into this light, its shadow never
+      // changes; skip the redraw once it's already in the atlas from a prior
+      // frame. l->shadow_cached is NULL for dynamic lights (no persistent
+      // identity across frames to cache against), so they always redraw.
+      const bool cacheable = R_IsShadowCacheable(view, l);
+      if (cacheable && l->shadow_cached && *l->shadow_cached) {
+        continue;
+      }
+
+      // Not using the cache: clear this light's whole tile block (all 6 faces)
+      // before redrawing it, since LOAD preserves whatever was there before.
+      {
+        int32_t block_x, block_y;
+        R_ShadowAtlasTile(i, 0, &block_x, &block_y);
+
+        $(pass, setViewport, &(SDL_GPUViewport) {
+          .x = (float) block_x, .y = (float) block_y,
+          .w = (float) (ts * 3), .h = (float) (ts * 2),
+          .min_depth = 0.f, .max_depth = 1.f,
+        });
+        $(pass, setScissor, &(SDL_Rect) { block_x, block_y, ts * 3, ts * 2 });
+
+        $(pass, bindPipeline, r_shadow_clear_pipeline);
+        $(pass, drawPrimitives, 3, 1, 0, 0);
+
+        $(pass, bindPipeline, r_shadow_pipeline);
+        $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
+          { .buffer = bsp->vertex_buffer->buffer },
+          { .buffer = bsp->vertex_buffer->buffer },
+        }, 2);
+        $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
+          .buffer = bsp->elements_buffer->buffer
+        }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+      }
+
       // World shadow geometry: static BSP lights use their precomputed element
       // subset (a compile-time optimization); dynamic lights cast the full
-      // worldspawn model. TODO(#864): inline-model + mesh-entity casters.
+      // worldspawn model.
       uint32_t firstIndex, count;
       if (l->bsp_light && l->bsp_light->num_depth_pass_elements) {
         firstIndex = (uint32_t) ((uintptr_t) l->bsp_light->depth_pass_elements / sizeof(uint32_t));
@@ -241,6 +337,10 @@ void R_DrawShadows(const r_view_t *view) {
           $(pass, drawIndexedPrimitives, in_count, 1, in_first_index, 0, 0);
         }
       }
+
+      if (l->shadow_cached) {
+        *l->shadow_cached = cacheable;
+      }
     }
 
     // Mesh entity casters: same atlas layer/pass, but the mesh-layout pipeline
@@ -263,6 +363,13 @@ void R_DrawShadows(const r_view_t *view) {
         }
 
         if (R_CullBox(view, ml->bounds)) {
+          continue;
+        }
+
+        // Same cache check as the world/inline-entity loop above (the whole
+        // tile was already skipped there if cacheable, so this is a no-op
+        // unless this light has a mesh caster and nothing else).
+        if (ml->shadow_cached && *ml->shadow_cached) {
           continue;
         }
 
@@ -467,6 +574,41 @@ void R_InitShadows(void) {
   release(vertexShader);
   release(fragmentShader);
 
+  // The atlas "clear" pipeline: no vertex input (a fullscreen triangle from
+  // gl_VertexIndex alone), depth test/compare disabled so the write always
+  // succeeds regardless of the scissored rect's existing contents.
+  Shader *clearVertexShader = $(r_context.device, loadShader, "shaders/shadow_clear_vs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+  });
+
+  Shader *clearFragmentShader = $(r_context.device, loadShader, "shaders/shadow_clear_fs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+  });
+
+  r_shadow_clear_pipeline = $(r_context.device, createGraphicsPipeline, &(SDL_GPUGraphicsPipelineCreateInfo) {
+    .vertex_shader = clearVertexShader->shader,
+    .fragment_shader = clearFragmentShader->shader,
+    .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    .rasterizer_state = {
+      .fill_mode = SDL_GPU_FILLMODE_FILL,
+      .cull_mode = SDL_GPU_CULLMODE_NONE,
+      .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE,
+    },
+    .depth_stencil_state = {
+      .compare_op = SDL_GPU_COMPAREOP_ALWAYS,
+      .enable_depth_test = true,
+      .enable_depth_write = true,
+    },
+    .target_info = {
+      .num_color_targets = 0,
+      .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+      .has_depth_stencil_target = true,
+    },
+  });
+
+  release(clearVertexShader);
+  release(clearFragmentShader);
+
   // Cube-face view matrices, light at the origin.
   r_shadow_light_view[0] = Mat4_LookAt(Vec3_Zero(), Vec3( 1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
   r_shadow_light_view[1] = Mat4_LookAt(Vec3_Zero(), Vec3(-1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
@@ -483,6 +625,7 @@ void R_ShutdownShadows(void) {
 
   r_shadow_pipeline = release(r_shadow_pipeline);
   r_shadow_mesh_pipeline = release(r_shadow_mesh_pipeline);
+  r_shadow_clear_pipeline = release(r_shadow_clear_pipeline);
   r_shadow_atlas.sampler = release(r_shadow_atlas.sampler);
   r_shadow_atlas.texture = release(r_shadow_atlas.texture);
 }

@@ -18,6 +18,8 @@ shaders_DATA = \
 	mesh_vs.glsl \
 	post_fs.glsl \
 	post_vs.glsl \
+	shadow_clear_fs.glsl \
+	shadow_clear_vs.glsl \
 	shadow_fs.glsl \
 	shadow_vs.glsl \
 	sky_fs.glsl \
@@ -36,8 +38,8 @@ shaders_DATA = \
 # invoke glslc or shadercross. Run 'make shaders' after editing a .glsl to
 # regenerate them. Extend these lists as more shaders are ported (issue #864).
 
-VERTEX_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs sky_vs sprite_vs decal_vs
-FRAGMENT_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs sky_fs sprite_fs decal_fs
+VERTEX_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs shadow_clear_vs sky_vs sprite_vs decal_vs
+FRAGMENT_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs shadow_clear_fs sky_fs sprite_fs decal_fs
 
 # Install the compiled blobs alongside the GLSL sources so the renderer's
 # ResourceProvider (Fs_Load) can resolve them at runtime, e.g.
