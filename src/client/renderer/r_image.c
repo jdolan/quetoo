@@ -127,11 +127,66 @@ static void R_Screenshot_encode(void *data) {
 }
 
 /**
+ * @brief Downloads the given Texture and converts it to a tightly-packed,
+ * bottom-up BGR24 SDL_Surface, matching what Img_WriteTGA/JPG/PNG expect
+ * (they were written against GL_BGR glReadPixels data, which is bottom-up).
+ * @remarks Only handles the two swapchain-typical 8-bit formats; anything
+ * else (e.g. an HDR scene texture) is not screenshot-able through this path.
+ */
+static SDL_Surface *R_ReadTexture(const Texture *texture) {
+
+  if (texture->format != SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM &&
+      texture->format != SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM) {
+    Com_Warn("Unsupported texture format %d for screenshot\n", texture->format);
+    return NULL;
+  }
+
+  const int32_t red = texture->format == SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM ? 0 : 2;
+  const int32_t blue = 2 - red;
+
+  const int32_t w = texture->size.w, h = texture->size.h;
+
+  byte *pixels = $(texture, downloadPixels);
+
+  SDL_Surface *surface = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_BGR24);
+
+  for (int32_t y = 0; y < h; y++) {
+    const byte *src = pixels + y * w * 4;
+    byte *dst = (byte *) surface->pixels + (h - y - 1) * surface->pitch; // bottom-up
+
+    for (int32_t x = 0; x < w; x++, src += 4, dst += 3) {
+      dst[0] = src[blue];
+      dst[1] = src[1];
+      dst[2] = src[red];
+    }
+  }
+
+  free(pixels);
+
+  return surface;
+}
+
+/**
  * @brief Captures a screenshot, if requested, writing it to the user's directory.
+ * @remarks SCREENSHOT_VIEW and SCREENSHOT_DEFAULT both capture the present
+ * framebuffer (SDL_gpu has no separate GL-style default framebuffer, and the UI
+ * is composited into the present framebuffer before this runs) -- unlike main,
+ * SCREENSHOT_VIEW is not yet able to omit the HUD/console. TODO(#864): a
+ * dedicated post-scene, pre-UI capture point would be needed for true parity.
  */
 void R_Screenshot(r_view_t *view) {
 
-  // TODO(#864): screenshots not yet ported to SDL_gpu.
+  if (r_image_state.screenshot == SCREENSHOT_NONE) {
+    return;
+  }
+
+  const Texture *texture = $(r_context.device->framebuffer, resolveColorTexture, 0);
+
+  SDL_Surface *surface = texture ? R_ReadTexture(texture) : NULL;
+  if (surface) {
+    Thread_Create(R_Screenshot_encode, surface, THREAD_NO_WAIT);
+  }
+
   r_image_state.screenshot = SCREENSHOT_NONE;
 }
 
