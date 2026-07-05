@@ -21,7 +21,6 @@
 
 #version 450
 
-#define UNIFORMS_NO_SAMPLERS
 #include "uniforms.glsl"
 
 /*

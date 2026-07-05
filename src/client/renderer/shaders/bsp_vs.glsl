@@ -22,6 +22,11 @@
 #version 450
 
 #include "uniforms.glsl"
+
+// The BSP program's own binding map: the stage UBO follows globals (0) and
+// locals (1); the fragment stage's own map is defined in bsp_fs.glsl.
+#define BINDING_UNIFORMS_STAGE 2
+
 #include "common.glsl"
 #include "material.glsl"
 #include "voxel.glsl"
@@ -58,9 +63,7 @@ void main(void) {
   vec4 tangent = vec4(in_tangent, 0.0);
   vec4 bitangent = vec4(in_bitangent, 0.0);
 
-#if defined(MATERIAL_STAGES)
   stage_transform(position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
-#endif
 
   vertex.model_position = vec3(model * position);
   vertex.model_normal = normalize(vec3(model * normal));
@@ -72,9 +75,7 @@ void main(void) {
   vertex.voxel = voxel_uvw(vec3(model * position));
   vertex.color = in_color;
 
-#if defined(MATERIAL_STAGES)
   stage_vertex(in_position, vertex);
-#endif
 
   gl_Position = projection3D * view_model * position;
 }

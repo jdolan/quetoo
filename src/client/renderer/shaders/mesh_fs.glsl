@@ -25,15 +25,36 @@
  * The mesh fragment program: full per-fragment material lighting (normal maps,
  * Blinn-Phong specular, parallax occlusion, shadows, clustered voxel + dynamic
  * lights), sharing the BSP fragment stack and its descriptor layout (see bsp_fs).
- * TODO(#864): material stages, shells, and tints are ported in later increments;
- * parallax_occlusion_mapping is duplicated from bsp_fs pending a shared home.
+ * Material stages and the EF_SHELL overlay share this shader with the base pass
+ * via a runtime branch on stage.flags, exactly like bsp_fs -- see main() below.
+ * TODO(#864): parallax_occlusion_mapping is duplicated from bsp_fs pending a
+ * shared home.
  */
 
-#define UNIFORMS_NO_SAMPLERS
 #define UNIFORMS_LIGHT_CULL
 #define VOXEL_CAUSTICS_OCCLUSION
 #define LIGHT_SKY
 #include "uniforms.glsl"
+
+/*
+ * The mesh program's own binding map (fragment stage), mirroring bsp_fs's
+ * shape with one addition: per-entity tint colors, which bsp has no equivalent
+ * of. The vertex stage's own map is defined in mesh_vs.glsl.
+ */
+#define BINDING_SAMPLER_MATERIAL         0
+#define BINDING_SAMPLER_VOXEL_LIGHT_DATA 1
+#define BINDING_SAMPLER_SHADOW_ATLAS     2
+#define BINDING_SAMPLER_VOXEL_CAUSTICS   3
+#define BINDING_SAMPLER_VOXEL_OCCLUSION  4
+#define BINDING_SAMPLER_SKY_AMBIENT      5
+#define BINDING_SAMPLER_STAGE            6
+#define BINDING_SAMPLER_STAGE_NEXT       7
+#define BINDING_STORAGE_LIGHTS              8
+#define BINDING_STORAGE_VOXEL_LIGHT_INDICES 9
+#define BINDING_UNIFORMS_MATERIAL        2
+#define BINDING_UNIFORMS_TINTS           3
+#define BINDING_UNIFORMS_STAGE           4
+
 #include "common.glsl"
 #include "material.glsl"
 #include "voxel.glsl"
@@ -46,16 +67,13 @@ layout (location = 0) out vec4 out_color;
 // A float depth copy for the sprite pass to sample (soft particles); see r_framebuffer.c.
 layout (location = 1) out float out_depth;
 
-#if !defined(MATERIAL_STAGES)
 /**
- * @brief Per-entity tint colors for player-skin colorization, blended in via the
- * material tint map (layer 3). Omitted in the stage variant, whose fragment slot 3
- * carries the stage UBO instead.
+ * @brief Per-entity tint colors for player-skin colorization, blended in via
+ * the material tint map (layer 3). Read only in the base (STAGE_NONE) branch.
  */
 layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_TINTS) uniform tint_block {
   vec4 tint_colors[3];
 };
-#endif
 
 common_fragment_t fragment;
 
@@ -115,8 +133,9 @@ void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t f
 }
 
 /**
- * @brief Animated mesh: diffuse material with full per-fragment lighting, or a
- * blended material stage / shell overlay in the MATERIAL_STAGES variant.
+ * @brief Animated mesh: diffuse material with full per-fragment lighting and
+ * player-skin tinting (stage.flags == STAGE_NONE), or a blended material stage
+ * / shell overlay. One shader, one pipeline: see bsp_fs's main() for why.
  */
 void main(void) {
 
@@ -128,56 +147,55 @@ void main(void) {
 
   parallax_occlusion_mapping(vertex, fragment);
 
-#if defined(MATERIAL_STAGES)
+  if (stage.flags == STAGE_NONE) {
 
-  // Material stage / shell pass: sample the stage texture, optionally lit and/or
-  // emissive, blended over the base surface.
-  fragment.diffuse_sample = sample_material_stage(fragment.parallax) * vertex.color;
+    fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
 
-  out_color = fragment.diffuse_sample;
+    if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
+      if (fragment.diffuse_sample.a < material.alpha_test) {
+        discard;
+      }
+    }
 
-  if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
-    mesh_fragment_lighting(vertex, fragment);
-    out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
-    out_color.rgb += fragment.specular * stage.lighting;
-  }
+    // Player-skin tint: blend the entity tint colors in by the material tint map.
+    vec4 tintmap = sample_material_tint(fragment.parallax);
+    fragment.diffuse_sample.rgb *= 1.0 - tintmap.a;
+    fragment.diffuse_sample.rgb += (tint_colors[0] * tintmap.r).rgb * tintmap.a;
+    fragment.diffuse_sample.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
+    fragment.diffuse_sample.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
 
-  if ((stage.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
-    out_color.rgb += fragment.diffuse_sample.rgb * stage.emissive;
-  }
+    out_color = fragment.diffuse_sample * vertex.color;
 
-#else
+    // The player-model preview (menu) has no world, so no voxel/shadow data to
+    // sample; light it with a flat, neutral ambient instead of full per-fragment
+    // lighting. Matches the GL renderer's VIEW_PLAYER_MODEL shortcut.
+    if (view_type == VIEW_PLAYER_MODEL) {
+      fragment.ambient = vec3(0.666);
+      fragment.diffuse = vec3(0.0);
+      fragment.specular = vec3(0.0);
+    } else {
+      mesh_fragment_lighting(vertex, fragment);
+    }
 
-  fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
+    out_color.rgb *= (fragment.ambient + fragment.diffuse);
+    out_color.rgb += fragment.specular;
 
-  if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
-    if (fragment.diffuse_sample.a < material.alpha_test) {
-      discard;
+  } else {
+
+    // Material stage / shell pass: sample the stage texture, optionally lit
+    // and/or emissive, blended over the base surface.
+    fragment.diffuse_sample = sample_material_stage(fragment.parallax) * vertex.color;
+
+    out_color = fragment.diffuse_sample;
+
+    if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
+      mesh_fragment_lighting(vertex, fragment);
+      out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
+      out_color.rgb += fragment.specular * stage.lighting;
+    }
+
+    if ((stage.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
+      out_color.rgb += fragment.diffuse_sample.rgb * stage.emissive;
     }
   }
-
-  // Player-skin tint: blend the entity tint colors in by the material tint map.
-  vec4 tintmap = sample_material_tint(fragment.parallax);
-  fragment.diffuse_sample.rgb *= 1.0 - tintmap.a;
-  fragment.diffuse_sample.rgb += (tint_colors[0] * tintmap.r).rgb * tintmap.a;
-  fragment.diffuse_sample.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
-  fragment.diffuse_sample.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
-
-  out_color = fragment.diffuse_sample * vertex.color;
-
-  // The player-model preview (menu) has no world, so no voxel/shadow data to
-  // sample; light it with a flat, neutral ambient instead of full per-fragment
-  // lighting. Matches the GL renderer's VIEW_PLAYER_MODEL shortcut.
-  if (view_type == VIEW_PLAYER_MODEL) {
-    fragment.ambient = vec3(0.666);
-    fragment.diffuse = vec3(0.0);
-    fragment.specular = vec3(0.0);
-  } else {
-    mesh_fragment_lighting(vertex, fragment);
-  }
-
-  out_color.rgb *= (fragment.ambient + fragment.diffuse);
-  out_color.rgb += fragment.specular;
-
-#endif
 }

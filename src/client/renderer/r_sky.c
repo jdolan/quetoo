@@ -18,6 +18,14 @@
 #include "r_local.h"
 
 /**
+ * @brief The sky program's own binding map, mirroring shaders/sky_fs.glsl: its
+ * own dense family of one, shared with no other pipeline.
+ */
+enum {
+  SKY_SAMPLER_SKY,
+};
+
+/**
  * @brief Sky state holding the cubemap image.
  */
 static struct {
@@ -89,7 +97,7 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  $(pass, bindFragmentSamplers, SLOT_SAMPLER_SKY, &(SDL_GPUTextureSamplerBinding) {
+  $(pass, bindFragmentSamplers, SKY_SAMPLER_SKY, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_sky.image->texture->texture,
     .sampler = r_sky_pipeline.sampler->sampler,
   }, 1);
@@ -146,7 +154,7 @@ static void R_InitSkyPipeline(void) {
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/sky_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = BINDING_SAMPLER_SKY + 1, // texture_sky, sky's only sampler
+    .num_samplers = SKY_SAMPLER_SKY + 1, // texture_sky, sky's only sampler
   });
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;

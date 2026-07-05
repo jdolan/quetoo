@@ -27,51 +27,16 @@
 #include <Objectively/Vector.h>
 
 /**
- * @brief The C-side descriptor slot map: the SDL_gpu bind/push slot arguments
- * the renderer passes to the bind and push-uniform calls.
- *
- * @remarks This DELIBERATELY duplicates the values in `shaders/bindings.glsl`
- * rather than #including it. C and GLSL only coincidentally share enough
- * preprocessor syntax to have shared that header, and the GLSL side carries
- * MATERIAL_STAGES / VERTEX_SHADER conditionals that have no meaning in C. Keep
- * these two declarations in sync by hand; see bindings.glsl for the full
- * rationale (fixed global sampler map, sparse-slot bind rule, storage buffers
- * kept contiguous after the samplers, C storage slots being zero-based within
- * their class). Only `BINDING_SAMPLER_SKY` (a GLSL layout binding) is mirrored
- * here, because the C side uses it to size a pipeline's `num_samplers`.
+ * @brief The only two C-side descriptor slots genuinely shared by every
+ * pipeline: the per-frame globals block, and the per-draw locals block
+ * (model matrix in the vertex stage; light-cull bitmask in the fragment
+ * stage). Every other resource's binding is local to the pipeline that uses
+ * it -- see e.g. the enum at the top of r_bsp_draw.c -- since pipelines don't
+ * actually share a descriptor layout beyond this.
  */
 enum {
-	// Sampled-texture bind slots (SAMPLER_SET). Slots repeat across pipeline
-	// families (each keeps its samplers dense from 0); a resource has one slot
-	// within its family.
-	SLOT_SAMPLER_MATERIAL            = 0, // lit family (bsp, mesh)
-	SLOT_SAMPLER_VOXEL_LIGHT_DATA    = 1,
-	SLOT_SAMPLER_SHADOW_ATLAS        = 2,
-	SLOT_SAMPLER_VOXEL_CAUSTICS      = 3, // voxel caustics / occlusion volumes
-	SLOT_SAMPLER_VOXEL_OCCLUSION     = 4,
-	SLOT_SAMPLER_SKY_AMBIENT         = 5, // sky cubemap for image-based ambient
-	SLOT_SAMPLER_STAGE               = 6, // material-stage texture / next-frame
-	SLOT_SAMPLER_STAGE_NEXT          = 7,
-	SLOT_SAMPLER_DIFFUSE             = 0, // unlit family (sprites, 2D)
-	SLOT_SAMPLER_NEXT_DIFFUSE        = 1,
-	SLOT_SAMPLER_DEPTH_ATTACHMENT    = 2, // scene depth (soft particles)
-	SLOT_SAMPLER_SKY                 = 0, // sky: its own dense family of one
-
-	// The sky sampler's GLSL layout(binding); mirrored so the pipeline can size
-	// num_samplers = BINDING_SAMPLER_SKY + 1.
-	BINDING_SAMPLER_SKY              = 0,
-
-	// Storage-buffer bind slots, zero-based within the storage class.
-	SLOT_STORAGE_LIGHTS              = 0,
-	SLOT_STORAGE_VOXEL_LIGHT_INDICES = 1,
-
-	// Uniform-buffer push slots (UNIFORM_SET).
-	SLOT_UNIFORMS_GLOBALS            = 0, // per-frame globals
-	SLOT_UNIFORMS_LOCALS             = 1, // per-draw (model matrix / light cull)
-	SLOT_UNIFORMS_MATERIAL           = 2,
-	SLOT_UNIFORMS_STAGE_VERTEX       = 2, // material-stage params (vertex stage)
-	SLOT_UNIFORMS_STAGE_FRAGMENT     = 3, // material-stage params (fragment stage)
-	SLOT_UNIFORMS_TINTS              = 3, // per-entity mesh tint colors (fragment)
+	SLOT_UNIFORMS_GLOBALS = 0, // per-frame globals
+	SLOT_UNIFORMS_LOCALS  = 1, // per-draw (model matrix / light cull)
 };
 
 /**

@@ -21,12 +21,32 @@
 
 #version 450
 
-#define UNIFORMS_NO_SAMPLERS
 #define UNIFORMS_LIGHT_CULL
 #define VOXEL_CAUSTICS_OCCLUSION
 #define LIGHT_SKY
 
 #include "uniforms.glsl"
+
+/*
+ * The BSP program's own binding map (fragment stage): samplers are dense from
+ * 0, storage buffers immediately follow the last one at 8/9 (Metal packs
+ * storage-buffer indices right after the samplers a program declares -- see
+ * material.glsl's stage_block for why this can't be made to vary/share with
+ * other programs). The vertex stage's own map is defined in bsp_vs.glsl.
+ */
+#define BINDING_SAMPLER_MATERIAL         0
+#define BINDING_SAMPLER_VOXEL_LIGHT_DATA 1
+#define BINDING_SAMPLER_SHADOW_ATLAS     2
+#define BINDING_SAMPLER_VOXEL_CAUSTICS   3
+#define BINDING_SAMPLER_VOXEL_OCCLUSION  4
+#define BINDING_SAMPLER_SKY_AMBIENT      5
+#define BINDING_SAMPLER_STAGE            6
+#define BINDING_SAMPLER_STAGE_NEXT       7
+#define BINDING_STORAGE_LIGHTS              8
+#define BINDING_STORAGE_VOXEL_LIGHT_INDICES 9
+#define BINDING_UNIFORMS_MATERIAL        2
+#define BINDING_UNIFORMS_STAGE           3
+
 #include "common.glsl"
 #include "material.glsl"
 #include "voxel.glsl"
@@ -100,9 +120,12 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
 }
 
 /**
- * @brief
- * @remarks TODO(#864): material stages, sky, and blended surfaces are deferred;
- * this renders opaque diffuse surfaces with clustered + dynamic lighting.
+ * @brief Opaque diffuse surfaces (stage.flags == STAGE_NONE) get clustered +
+ * dynamic lighting; material stages sample their own texture and are
+ * optionally lit and/or emissive, blended over the base surface. One shader,
+ * one pipeline: which branch runs is a runtime uniform, not a compile-time
+ * variant, so a stage draw never requires a pipeline swap.
+ * @remarks TODO(#864): STAGE_WARP (texture_warp) is deferred.
  */
 void main(void) {
 
@@ -119,42 +142,39 @@ void main(void) {
 
   parallax_occlusion_mapping(vertex, fragment);
 
-#if defined(MATERIAL_STAGES)
+  if (stage.flags == STAGE_NONE) {
 
-  // Material stage pass: sample the stage texture, optionally lit and/or emissive,
-  // blended over the base surface. TODO(#864): STAGE_WARP (texture_warp) deferred.
-  fragment.diffuse_sample = sample_material_stage(fragment.parallax) * vertex.color;
+    fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
 
-  out_color = fragment.diffuse_sample;
+    if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
+      if (fragment.diffuse_sample.a < material.alpha_test) {
+        discard;
+      }
+    }
 
-  if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
+    out_color = fragment.diffuse_sample;
+
+    out_color *= vertex.color;
+
     bsp_fragment_lighting(vertex, fragment);
-    out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
-    out_color.rgb += fragment.specular * stage.lighting;
-  }
 
-  if ((stage.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
-    out_color.rgb += fragment.diffuse_sample.rgb * stage.emissive;
-  }
+    out_color.rgb *= (fragment.ambient + fragment.diffuse);
+    out_color.rgb += fragment.specular;
 
-#else
+  } else {
 
-  fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
+    fragment.diffuse_sample = sample_material_stage(fragment.parallax) * vertex.color;
 
-  if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
-    if (fragment.diffuse_sample.a < material.alpha_test) {
-      discard;
+    out_color = fragment.diffuse_sample;
+
+    if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
+      bsp_fragment_lighting(vertex, fragment);
+      out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
+      out_color.rgb += fragment.specular * stage.lighting;
+    }
+
+    if ((stage.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
+      out_color.rgb += fragment.diffuse_sample.rgb * stage.emissive;
     }
   }
-
-  out_color = fragment.diffuse_sample;
-
-  out_color *= vertex.color;
-
-  bsp_fragment_lighting(vertex, fragment);
-
-  out_color.rgb *= (fragment.ambient + fragment.diffuse);
-  out_color.rgb += fragment.specular;
-
-#endif
 }

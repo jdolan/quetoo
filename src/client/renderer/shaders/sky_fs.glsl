@@ -21,8 +21,10 @@
 
 #version 450
 
-#define UNIFORMS_NO_SAMPLERS
 #include "uniforms.glsl"
+
+// Sky's own dense family of one -- shares no bindings with any other program.
+#define BINDING_SAMPLER_SKY 0
 
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SKY) uniform samplerCube texture_sky;
 

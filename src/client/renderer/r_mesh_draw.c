@@ -18,6 +18,53 @@
 #include "r_local.h"
 
 /**
+ * @brief The mesh program's own binding map, mirroring shaders/mesh_vs.glsl and
+ * mesh_fs.glsl. Not shared with any other pipeline. Mirrors the BSP shape (see
+ * r_bsp_draw.c) with one addition: per-entity tint colors, which bsp has no
+ * equivalent of, so mesh's fragment stage UBO has one more slot than bsp's.
+ */
+enum {
+  MESH_SAMPLER_MATERIAL,
+  MESH_SAMPLER_VOXEL_LIGHT_DATA,
+  MESH_SAMPLER_SHADOW_ATLAS,
+  MESH_SAMPLER_VOXEL_CAUSTICS,
+  MESH_SAMPLER_VOXEL_OCCLUSION,
+  MESH_SAMPLER_SKY_AMBIENT,
+  MESH_SAMPLER_STAGE,
+  MESH_SAMPLER_STAGE_NEXT,
+  MESH_NUM_SAMPLERS,
+};
+
+enum {
+  MESH_STORAGE_LIGHTS,
+  MESH_STORAGE_VOXEL_LIGHT_INDICES,
+  MESH_NUM_STORAGE_BUFFERS,
+};
+
+enum {
+  MESH_UNIFORMS_GLOBALS,
+  MESH_UNIFORMS_LOCALS, // model/lerp/color (vertex) / active_lights bitmask (fragment)
+  MESH_UNIFORMS_STAGE_VERTEX, // vertex only
+};
+#define MESH_NUM_UNIFORMS_VERTEX 3
+
+enum {
+  // MESH_UNIFORMS_GLOBALS = 0, MESH_UNIFORMS_LOCALS = 1, shared with the vertex stage.
+  MESH_UNIFORMS_MATERIAL = 2,
+  MESH_UNIFORMS_TINTS,
+  MESH_UNIFORMS_STAGE_FRAGMENT,
+};
+#define MESH_NUM_UNIFORMS_FRAGMENT 5
+
+/**
+ * @brief The stage uniforms for a non-stage (opaque or blend) draw: flags is
+ * STAGE_NONE, so mesh_fs's runtime branch takes the base path. Pushed before
+ * every such draw, since a preceding face's material stages may have left the
+ * fragment stage UBO with a real stage's flags still set.
+ */
+static const r_stage_uniforms_t r_mesh_stage_none = { .flags = STAGE_NONE };
+
+/**
  * @brief The maximum number of cached material-stage pipelines (one per blend).
  */
 #define MAX_STAGE_PIPELINES 16
@@ -25,8 +72,9 @@
 /**
  * @brief The mesh program (mesh_vs/mesh_fs): its graphics pipeline and samplers.
  * Animated geometry with diffuse material, clustered per-voxel lighting, entity
- * color/tint, material stages, and the EF_SHELL effect.
- * @remarks TODO(#864): color/blend faces and the player-model view are ported later.
+ * color/tint, material stages, and the EF_SHELL effect -- material stages and
+ * shells share this shader with the base pass via a runtime branch on
+ * stage.flags, not a pipeline swap: see R_DrawMeshFaceMaterialStage.
  */
 static struct {
 
@@ -118,8 +166,10 @@ static SDL_GPUBlendFactor R_BlendFactor(cm_blend_t blend) {
 }
 
 /**
- * @brief Returns the MATERIAL_STAGES mesh pipeline for the given stage blend
- * function, creating and caching it on first use.
+ * @brief Returns the mesh pipeline for the given material-stage blend function,
+ * creating and caching it on first use. Wraps the same mesh_vs/mesh_fs shader
+ * as the opaque pipeline (a stage draw is a runtime branch, not a shader
+ * swap); only the blend state differs, which SDL_gpu bakes into the pipeline.
  */
 static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
@@ -133,16 +183,16 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
     return NULL;
   }
 
-  Shader *vertexShader = $(r_context.device, loadShader, "shaders/mesh_stage_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = 3, // globals (0) + locals/model (1) + stage (2)
+    .num_uniform_buffers = MESH_NUM_UNIFORMS_VERTEX,
   });
 
-  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/mesh_stage_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = 8,        // material + voxel_light_data + shadow_atlas + voxel_caustics + voxel_occlusion + sky + stage + stage_next
-    .num_storage_buffers = 2, // lights + voxel_light_indices
-    .num_uniform_buffers = 4, // globals (0) + active_lights (1) + material (2) + stage (3)
+    .num_samplers = MESH_NUM_SAMPLERS,
+    .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS,
+    .num_uniform_buffers = MESH_NUM_UNIFORMS_FRAGMENT,
   });
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;
@@ -242,13 +292,13 @@ static void R_DrawMeshFaceMaterialStage(const r_view_t *view, RenderPass *pass, 
 
   $(pass, bindPipeline, pipeline);
 
-  $(pass, bindFragmentSamplers, SLOT_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
+  $(pass, bindFragmentSamplers, MESH_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
     { .texture = texture_next, .sampler = r_mesh_pipeline.stage_sampler->sampler },
   }, 2);
 
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_STAGE_VERTEX, &uniforms, sizeof(uniforms));
-  $(commands, pushFragmentUniformData, SLOT_UNIFORMS_STAGE_FRAGMENT, &uniforms, sizeof(uniforms));
+  $(commands, pushVertexUniformData, MESH_UNIFORMS_STAGE_VERTEX, &uniforms, sizeof(uniforms));
+  $(commands, pushFragmentUniformData, MESH_UNIFORMS_STAGE_FRAGMENT, &uniforms, sizeof(uniforms));
 
   const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
@@ -359,7 +409,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
   $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
 
   // Per-entity tint colors for player-skin colorization (fragment slot 3).
-  $(commands, pushFragmentUniformData, SLOT_UNIFORMS_TINTS, e->tints, sizeof(e->tints));
+  $(commands, pushFragmentUniformData, MESH_UNIFORMS_TINTS, e->tints, sizeof(e->tints));
 
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
     .buffer = mesh->elements_buffer->buffer
@@ -385,14 +435,18 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     // a stage (blend) pipeline bound.
     $(pass, bindPipeline, r_mesh_pipeline.pipeline);
 
-    $(pass, bindFragmentSamplers, SLOT_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+    // Reset stage.flags to STAGE_NONE: a preceding face's material stages left
+    // it set, and this draw's shader branches on it (see mesh_fs.glsl).
+    $(commands, pushFragmentUniformData, MESH_UNIFORMS_STAGE_FRAGMENT, &r_mesh_stage_none, sizeof(r_mesh_stage_none));
+
+    $(pass, bindFragmentSamplers, MESH_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
       .texture = material->texture->texture->texture,
       .sampler = r_mesh_pipeline.diffusemap_sampler->sampler,
     }, 1);
 
     r_material_uniforms_t material_uniforms;
     R_MaterialUniforms(material, material->cm->surface, &material_uniforms);
-    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
+    $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
 
     // Two vertex buffer slots: the old frame (locations 0-4) and the current
     // frame (locations 5-8), the same model buffer bound at each frame offset.
@@ -432,14 +486,17 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
     $(pass, bindPipeline, r_mesh_pipeline.blend_pipeline);
 
-    $(pass, bindFragmentSamplers, SLOT_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+    // Reset stage.flags to STAGE_NONE: see the opaque loop above.
+    $(commands, pushFragmentUniformData, MESH_UNIFORMS_STAGE_FRAGMENT, &r_mesh_stage_none, sizeof(r_mesh_stage_none));
+
+    $(pass, bindFragmentSamplers, MESH_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
       .texture = material->texture->texture->texture,
       .sampler = r_mesh_pipeline.diffusemap_sampler->sampler,
     }, 1);
 
     r_material_uniforms_t material_uniforms;
     R_MaterialUniforms(material, material->cm->surface, &material_uniforms);
-    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
+    $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
 
     // Scale entity alpha by the surface's blend amount (33/66/100%).
     r_mesh_locals_t blend_locals = locals;
@@ -520,19 +577,19 @@ void R_DrawMeshEntities(const r_view_t *view) {
 
   $(pass, bindPipeline, r_mesh_pipeline.pipeline);
 
-  $(pass, bindFragmentSamplers, SLOT_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
+  $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
     .texture = bsp->voxels.light_data->texture->texture,
     .sampler = r_mesh_pipeline.voxel_data_sampler->sampler,
   }, 1);
 
   // The point-light shadow atlas (comparison sampler), shared with the BSP pass.
-  $(pass, bindFragmentSamplers, SLOT_SAMPLER_SHADOW_ATLAS, &(SDL_GPUTextureSamplerBinding) {
+  $(pass, bindFragmentSamplers, MESH_SAMPLER_SHADOW_ATLAS, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_shadow_atlas.texture->texture,
     .sampler = r_shadow_atlas.sampler->sampler,
   }, 1);
 
   // The voxel caustics / occlusion volumes and the sky cubemap for ambient light.
-  $(pass, bindFragmentSamplers, SLOT_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
+  $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
     { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
     { .texture = R_SkyTexture()->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
@@ -543,7 +600,7 @@ void R_DrawMeshEntities(const r_view_t *view) {
     bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
                                      : r_lights.buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, 0, storage, 2);
+  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_LIGHTS, storage, 2);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -613,24 +670,24 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   // No world is loaded for this view, so bind the 1x1x1 fallbacks; the shader's
   // VIEW_PLAYER_MODEL branch never actually samples them (see mesh_fs.glsl).
-  $(pass, bindFragmentSamplers, SLOT_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
+  $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_mesh_pipeline.voxel_light_data_fallback->texture,
     .sampler = r_mesh_pipeline.voxel_data_sampler->sampler,
   }, 1);
 
-  $(pass, bindFragmentSamplers, SLOT_SAMPLER_SHADOW_ATLAS, &(SDL_GPUTextureSamplerBinding) {
+  $(pass, bindFragmentSamplers, MESH_SAMPLER_SHADOW_ATLAS, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_shadow_atlas.texture->texture,
     .sampler = r_shadow_atlas.sampler->sampler,
   }, 1);
 
-  $(pass, bindFragmentSamplers, SLOT_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
+  $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_mesh_pipeline.voxel_caustics_fallback->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
     { .texture = r_mesh_pipeline.voxel_occlusion_fallback->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
     { .texture = R_SkyTexture()->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
   }, 3);
 
   SDL_GPUBuffer *storage[] = { r_lights.buffer->buffer, r_lights.buffer->buffer };
-  $(pass, bindFragmentStorageBuffers, 0, storage, 2);
+  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_LIGHTS, storage, 2);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -658,14 +715,15 @@ void R_InitMeshPipeline(void) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = 2, // globals (binding 0) + locals (binding 1)
+    .num_uniform_buffers = MESH_NUM_UNIFORMS_VERTEX, // globals + locals + stage
   });
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = 6,         // material + voxel_light_data + shadow_atlas + voxel_caustics + voxel_occlusion + sky
-    .num_storage_buffers = 2,  // lights_block + voxel_light_indices_block
-    .num_uniform_buffers = 4,  // globals (0) + active_lights (1) + material (2) + tints (3)
+    .num_samplers = MESH_NUM_SAMPLERS,               // material, voxel_light_data, shadow_atlas,
+                                                      // voxel_caustics, voxel_occlusion, sky, stage, stage_next
+    .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS, // lights + voxel_light_indices
+    .num_uniform_buffers = MESH_NUM_UNIFORMS_FRAGMENT, // globals + active_lights + material + tints + stage
   });
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;

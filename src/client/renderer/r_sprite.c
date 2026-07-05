@@ -22,6 +22,16 @@
 #include "r_local.h"
 
 /**
+ * @brief The sprite program's own binding map, mirroring shaders/sprite_fs.glsl.
+ * Not shared with any other pipeline.
+ */
+enum {
+  SPRITE_SAMPLER_DIFFUSE,
+  SPRITE_SAMPLER_NEXT_DIFFUSE,
+  SPRITE_SAMPLER_DEPTH_ATTACHMENT,
+};
+
+/**
  * @brief Sprite vertex buffer state holding vertices and GPU buffer objects.
  */
 static struct {
@@ -453,7 +463,7 @@ void R_DrawSprites(const r_view_t *view) {
   // fade. The opaque lit passes write gl_FragCoord.z there; unlike the real depth
   // buffer it can be sampled (and resolves to single-sample under MSAA).
   Texture *depth_texture = $(framebuffer, resolveColorTexture, 1);
-  $(pass, bindFragmentSamplers, SLOT_SAMPLER_DEPTH_ATTACHMENT, &(SDL_GPUTextureSamplerBinding) {
+  $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DEPTH_ATTACHMENT, &(SDL_GPUTextureSamplerBinding) {
     .texture = depth_texture->texture,
     .sampler = r_sprite_pipeline.depth_sampler->sampler,
   }, 1);
@@ -493,7 +503,7 @@ void R_DrawSprites(const r_view_t *view) {
       batch_size++;
     }
 
-    $(pass, bindFragmentSamplers, SLOT_SAMPLER_DIFFUSE, (SDL_GPUTextureSamplerBinding[]) {
+    $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DIFFUSE, (SDL_GPUTextureSamplerBinding[]) {
       { .texture = in->diffusemap->texture->texture, .sampler = r_sprite_pipeline.sampler->sampler },
       { .texture = in->next_diffusemap->texture->texture, .sampler = r_sprite_pipeline.sampler->sampler },
     }, 2);

@@ -21,8 +21,14 @@
 
 #version 450
 
-#define UNIFORMS_NO_SAMPLERS
 #include "uniforms.glsl"
+
+// The sprite program's own binding map: diffuse and its animation next-frame,
+// then the scene depth attachment soften.glsl samples for soft particles.
+#define BINDING_SAMPLER_DIFFUSE          0
+#define BINDING_SAMPLER_NEXT_DIFFUSE     1
+#define BINDING_SAMPLER_DEPTH_ATTACHMENT 2
+
 #include "soften.glsl"
 
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_DIFFUSE)      uniform sampler2D texture_diffusemap;

@@ -33,9 +33,11 @@
  *   vertex    | set 0                      | set 1
  *   fragment  | set 2                      | set 3
  *
- * Within a set, bindings are assigned in declaration order. We use a fixed,
- * named binding map (below) so the C side binds one consistent table; a program
- * declares only the resources it uses and shadercross preserves the indices.
+ * Within a set, bindings are assigned in declaration order. BINDING_UNIFORMS /
+ * BINDING_LOCALS below are the only bindings genuinely shared by every program
+ * (the globals block and the per-draw locals block); every other resource's
+ * binding is local to the program that uses it, defined by that program's own
+ * .glsl file before it includes this one -- see e.g. bsp_fs.glsl.
  */
 #if defined(VERTEX_SHADER)
   #define SAMPLER_SET 0
@@ -47,8 +49,6 @@
   #error "Define VERTEX_SHADER or FRAGMENT_SHADER when compiling shaders."
 #endif
 
-#include "bindings.glsl"
-
 /*
  * Uniform-buffer bindings (within UNIFORM_SET). Binding 0 is the per-frame
  * globals block, present in every program. Per-program per-draw blocks
@@ -56,27 +56,6 @@
  */
 #define BINDING_UNIFORMS 0
 #define BINDING_LOCALS   1
-
-/*
- * Fragment sampler bindings (within SAMPLER_SET). All sampling is fragment-side.
- * Fixed global map: shadercross preserves these as the MSL [[texture(n)]] index.
- */
-#define BINDING_DIFFUSEMAP            0
-#define BINDING_NEXT_DIFFUSEMAP       1
-#define BINDING_MATERIAL              2
-#define BINDING_STAGE                 3
-#define BINDING_STAGE_NEXT            4
-#define BINDING_WARP                  5
-#define BINDING_VOXEL_CAUSTICS        6
-#define BINDING_VOXEL_OCCLUSION       7
-#define BINDING_VOXEL_LIGHT_DATA      8
-#define BINDING_VOXEL_LIGHT_INDICES   9
-#define BINDING_SKY                   10
-#define BINDING_SHADOW_ATLAS          11
-#define BINDING_COLOR_ATTACHMENT      12
-#define BINDING_POST_ATTACHMENT       13
-#define BINDING_DEPTH_ATTACHMENT_COPY 14
-#define BINDING_BLOOM_ATTACHMENT      15
 
 #define VIEW_UNKNOWN        0
 #define VIEW_MAIN           1
@@ -265,62 +244,5 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform light_cull_
   uvec4 active_lights;
 };
 #endif
-
-/*
- * The fixed fragment sampler map below is only pulled in when a program opts
- * into it. Bring-up programs (e.g. bsp_fs) that use a compact, self-contained
- * binding layout define UNIFORMS_NO_SAMPLERS before including this file.
- */
-#if defined(FRAGMENT_SHADER) && !defined(UNIFORMS_NO_SAMPLERS)
-
-/**
- * @brief The diffusemap texture, for non-material passes such as sprites.
- */
-layout (set = SAMPLER_SET, binding = BINDING_DIFFUSEMAP)      uniform sampler2D texture_diffusemap;
-layout (set = SAMPLER_SET, binding = BINDING_NEXT_DIFFUSEMAP) uniform sampler2D texture_next_diffusemap;
-
-/**
- * @brief The material primary texture.
- */
-layout (set = SAMPLER_SET, binding = BINDING_MATERIAL)        uniform sampler2DArray texture_material;
-
-/**
- * @brief The material secondary texture, and its next animation frame.
- */
-layout (set = SAMPLER_SET, binding = BINDING_STAGE)           uniform sampler2D texture_stage;
-layout (set = SAMPLER_SET, binding = BINDING_STAGE_NEXT)      uniform sampler2D texture_stage_next;
-
-/**
- * @brief The warp texture, for liquids.
- */
-layout (set = SAMPLER_SET, binding = BINDING_WARP)            uniform sampler2D texture_warp;
-
-/**
- * @brief The voxel textures.
- */
-layout (set = SAMPLER_SET, binding = BINDING_VOXEL_CAUSTICS)      uniform sampler3D     texture_voxel_caustics;
-layout (set = SAMPLER_SET, binding = BINDING_VOXEL_OCCLUSION)     uniform sampler3D     texture_voxel_occlusion;
-layout (set = SAMPLER_SET, binding = BINDING_VOXEL_LIGHT_DATA)    uniform isampler3D    texture_voxel_light_data;
-layout (set = SAMPLER_SET, binding = BINDING_VOXEL_LIGHT_INDICES) uniform isamplerBuffer texture_voxel_light_indices;
-
-/**
- * @brief The sky cubemap texture.
- */
-layout (set = SAMPLER_SET, binding = BINDING_SKY)             uniform samplerCube texture_sky;
-
-/**
- * @brief The shadow atlas texture (layered 2D array).
- */
-layout (set = SAMPLER_SET, binding = BINDING_SHADOW_ATLAS)    uniform sampler2DArrayShadow texture_shadow_atlas;
-
-/**
- * @brief The framebuffer attachment textures.
- */
-layout (set = SAMPLER_SET, binding = BINDING_COLOR_ATTACHMENT)      uniform sampler2D texture_color_attachment;
-layout (set = SAMPLER_SET, binding = BINDING_POST_ATTACHMENT)       uniform sampler2D texture_post_attachment;
-layout (set = SAMPLER_SET, binding = BINDING_DEPTH_ATTACHMENT_COPY) uniform sampler2D texture_depth_attachment_copy;
-layout (set = SAMPLER_SET, binding = BINDING_BLOOM_ATTACHMENT)      uniform sampler2D texture_bloom_attachment;
-
-#endif // FRAGMENT_SHADER
 
 #endif // _UNIFORMS_GLSL_

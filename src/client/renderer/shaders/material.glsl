@@ -111,7 +111,6 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform 
 } material;
 #endif
 
-#if defined(MATERIAL_STAGES)
 /**
  * @brief The per-stage parameters, mirroring the C `r_stage_uniforms_t`.
  * @remarks Fields are ordered vec4, then vec2, then scalars for tight std140
@@ -313,8 +312,6 @@ void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
   }
 }
 
-#endif // MATERIAL_STAGES
-
 #if defined(FRAGMENT_SHADER)
 /**
  * @brief Sample the diffuse/albedo texture.
@@ -374,7 +371,6 @@ float sample_material_displacement(in vec2 texcoord, in float lod) {
   return 1.0 - sample_material_heightmap(texcoord, lod);
 }
 
-#if defined(MATERIAL_STAGES)
 /**
  * @brief Sample a material stage texture.
  * @param texcoord Texture coordinates.
@@ -386,7 +382,6 @@ vec4 sample_material_stage(in vec2 texcoord) {
   }
   return texture(texture_stage, texcoord);
 }
-#endif // MATERIAL_STAGES
 
 /**
  * @brief Sample the tint map (layer 3 of material array).
