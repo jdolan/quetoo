@@ -52,17 +52,14 @@ enum {
 };
 #define BSP_NUM_UNIFORMS 3 // same count/slot for both stages
 
-/**
- * @brief The BSP program pipeline (bsp_vs/bsp_fs). Draws BSP geometry with the
- * material diffuse texture and clustered per-voxel lighting, and its material
- * stages via the same shader (a runtime branch on stage.flags, not a pipeline
- * swap): see R_DrawBspDrawElementsMaterialStage.
- */
 #define MAX_STAGE_PIPELINES 16
 
 /**
- * @brief The BSP program: its graphics pipeline, samplers, and the lazily-built
- * cache of material-stage blend pipelines.
+ * @brief The BSP program (bsp_vs/bsp_fs): its graphics pipeline, samplers, and
+ * the lazily-built cache of material-stage blend pipelines. Draws BSP geometry
+ * with the material diffuse texture and clustered per-voxel lighting, and its
+ * material stages via the same shader (a runtime branch on stage.flags, not a
+ * pipeline swap): see R_DrawBspDrawElementsMaterialStage.
  */
 static struct {
 
@@ -528,7 +525,7 @@ static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, Command
  * Also draws opaque inline BSP model entities (doors, platforms, ...) and their
  * material stages; see R_DrawBlendBspEntities for the translucent counterpart.
  */
-void R_DrawBspEntities(const r_view_t *view) {
+void R_DrawOpaqueBspEntities(const r_view_t *view) {
 
   if (!r_models.world || !r_bsp_pipeline.pipeline) {
     return;
@@ -729,7 +726,7 @@ static void R_DrawBspBlockBlend(const r_view_t *view, RenderPass *pass, CommandB
  * @brief Renders the translucent (SURF_MASK_BLEND) world and inline BSP model
  * surfaces over the opaque scene, alpha-blended and depth-tested but without
  * writing depth.
- * @remarks Mirrors R_DrawBspEntities but with the blend pipeline and the inverse
+ * @remarks Mirrors R_DrawOpaqueBspEntities but with the blend pipeline and the inverse
  * surface filter, including its material stages (animated water/glass overlays).
  * No back-to-front sorting, matching main -- single-layer translucency (water,
  * glass) is correct without it.
@@ -835,7 +832,7 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   // Inline BSP model entities (doors, platforms, buttons, ...): the same pass and
   // resources, but each carries its own model matrix and is lit as a whole (its
   // dynamic-light set culled to the entity bounds rather than per block),
-  // matching R_DrawBspEntities' opaque inline-entity loop.
+  // matching R_DrawOpaqueBspEntities' inline-entity loop.
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 

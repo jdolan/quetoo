@@ -26,11 +26,7 @@
 layout (location = 0) in vec3 in_position;
 
 /**
- * @brief Per-draw locals. The world-space bias that keeps this pre-pass depth
- * >= the main pass's own (bit-inexact) depth for the same surface is baked
- * into `model` on the C side (a translation along the camera's forward
- * vector), NOT applied here, so this expression stays textually identical to
- * bsp_vs.glsl's -- see r_depth_pass.c for why that identity matters.
+ * @brief Per-draw locals.
  */
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
   mat4 model;
@@ -40,13 +36,14 @@ invariant gl_Position;
 
 /**
  * @brief Position-only depth pre-pass: writes only the depth attachment, which
- * the main passes reuse for early-Z.
+ * the main passes reuse for early-Z. The bias that keeps this pre-pass depth
+ * >= the main pass's own (bit-inexact) depth for the same surface is applied
+ * by the rasterizer state (depth_bias_slope_factor), not here -- see
+ * r_depth_pass.c.
  */
 void main(void) {
 
   mat4 view_model = view * model;
-  
-  vec4 position = vec4(in_position, 1.0);
 
-  gl_Position = projection3D * view_model * position;
+  gl_Position = projection3D * view_model * vec4(in_position, 1.0);
 }

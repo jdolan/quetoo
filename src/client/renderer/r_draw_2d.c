@@ -77,17 +77,14 @@ typedef struct {
  */
 static struct {
 
-  // registered fonts
   int32_t num_fonts;
   r_font_t fonts[MAX_DRAW_FONTS];
 
-  // active font
   r_font_t *font;
 
   // active clipping frame, copied to each command
   r_draw_2d_clipping_frame_t clipping_frame;
 
-  // the null texture
   r_image_t *null_texture;
 
   // the single draw list, holding all console and HUD geometry for the frame.

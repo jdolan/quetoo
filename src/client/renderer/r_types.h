@@ -2056,11 +2056,7 @@ typedef struct {
   RenderDevice *device;
 
   /**
-   * @brief A 1x1 opaque white texture, shared by every pipeline that needs to
-   * bind *something* to a sampler slot it never actually reads (SDL_gpu
-   * requires every declared slot bound, regardless of which slots the active
-   * shader branch samples). Created once, early, since r_context is the first
-   * renderer subsystem initialized.
+   * @brief A 1x1 opaque white @c Texture, useful for binding to unused @c Samplers.
    */
   Texture *null_texture;
 } r_context_t;

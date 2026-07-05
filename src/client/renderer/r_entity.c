@@ -154,7 +154,7 @@ void R_DrawEntities(const r_view_t *view) {
 
   thread_t *decals = Thread_Create((ThreadRunFunc) R_UpdateDecals, (void *) view, THREAD_NONE);
 
-  R_DrawBspEntities(view);
+  R_DrawOpaqueBspEntities(view);
 
   // Sky is drawn after the opaque world, not before as in the GL renderer, so it
   // only fills the depth-tested texels the opaque pass left unoccluded, cutting
@@ -167,10 +167,8 @@ void R_DrawEntities(const r_view_t *view) {
 
   Thread_Wait(decals);
 
-  // Decals project onto the opaque surfaces beneath them.
   R_DrawDecals(view);
 
-  // Translucent world surfaces composite over all opaque geometry.
   R_DrawBlendBspEntities(view);
 
   R_DrawEntitiesBounds(view);

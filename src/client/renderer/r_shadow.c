@@ -291,7 +291,7 @@ void R_DrawShadows(const r_view_t *view) {
       // Inline BSP model entity casters (doors, platforms, ...): the same
       // pipeline and vertex/index buffers as the world (already bound above),
       // but each entity carries its own transform and precomputed depth-pass
-      // element subset, matching R_DrawBspEntities' opaque inline-entity loop.
+      // element subset, matching R_DrawOpaqueBspEntities' inline-entity loop.
       const r_entity_t *be = view->entities;
       for (int32_t ei = 0; ei < view->num_entities; ei++, be++) {
 

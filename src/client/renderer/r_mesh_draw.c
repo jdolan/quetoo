@@ -60,7 +60,7 @@ enum {
  * Animated geometry with diffuse material, clustered per-voxel lighting, entity
  * color/tint, material stages, and the EF_SHELL effect -- material stages and
  * shells share this shader with the base pass via a runtime branch on
- * material.flags, not a pipeline swap: see R_DrawMeshFaceMaterialStage.
+ * material.flags, not a pipeline swap: see R_DrawMeshEntityMaterialStage.
  */
 static struct {
 
@@ -246,7 +246,7 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
  * per-entity uniforms, and vertex buffers remain bound; this only rebinds the stage
  * pipeline, its textures, and the per-stage uniforms.
  */
-static void R_DrawMeshFaceMaterialStage(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+static void R_DrawMeshEntityMaterialStage(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                         const r_entity_t *e, const r_mesh_face_t *face,
                                         const r_material_t *material, const r_stage_t *stage) {
 
@@ -286,7 +286,7 @@ static void R_DrawMeshFaceMaterialStage(const r_view_t *view, RenderPass *pass, 
  * using a material-driven STAGE_SHELL stage if present, otherwise a synthesized
  * default shell (an environment-mapped, expanded, colored additive overlay).
  */
-static void R_DrawMeshFaceShell(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+static void R_DrawMeshEntityShellEffect(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                 const r_entity_t *e, const r_mesh_face_t *face, const r_material_t *material) {
 
   if (!(e->effects & EF_SHELL)) {
@@ -302,7 +302,7 @@ static void R_DrawMeshFaceShell(const r_view_t *view, RenderPass *pass, CommandB
 
   for (const r_stage_t *stage = material->stages; stage; stage = stage->next) {
     if (stage->cm->flags & STAGE_SHELL) {
-      R_DrawMeshFaceMaterialStage(view, pass, commands, e, face, material, stage);
+      R_DrawMeshEntityMaterialStage(view, pass, commands, e, face, material, stage);
       return;
     }
   }
@@ -328,13 +328,13 @@ static void R_DrawMeshFaceShell(const r_view_t *view, RenderPass *pass, CommandB
     .media = (r_media_t *) r_mesh_pipeline.shell,
   };
 
-  R_DrawMeshFaceMaterialStage(view, pass, commands, e, face, material, &default_shell);
+  R_DrawMeshEntityMaterialStage(view, pass, commands, e, face, material, &default_shell);
 }
 
 /**
  * @brief Draws all active material stages of a mesh face, plus the shell effect.
  */
-static void R_DrawMeshFaceMaterialStages(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+static void R_DrawMeshEntityMaterialStages(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                          const r_entity_t *e, const r_mesh_face_t *face, const r_material_t *material) {
 
   if (!r_draw_material_stages->integer) {
@@ -349,10 +349,10 @@ static void R_DrawMeshFaceMaterialStages(const r_view_t *view, RenderPass *pass,
     if (!(stage->cm->flags & STAGE_DRAW)) {
       continue;
     }
-    R_DrawMeshFaceMaterialStage(view, pass, commands, e, face, material, stage);
+    R_DrawMeshEntityMaterialStage(view, pass, commands, e, face, material, stage);
   }
 
-  R_DrawMeshFaceShell(view, pass, commands, e, face, material);
+  R_DrawMeshEntityShellEffect(view, pass, commands, e, face, material);
 }
 
 /**
@@ -393,7 +393,6 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
     const r_material_t *material = e->skins[i] ?: face->material;
 
-    // Blended faces are drawn in a second pass, below.
     if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
       continue;
     }
@@ -438,7 +437,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     r_stats.mesh_triangles += face->num_elements / 3;
 
     // Material stage effects and the EF_SHELL overlay, blended over this face.
-    R_DrawMeshFaceMaterialStages(view, pass, commands, e, face, material);
+    R_DrawMeshEntityMaterialStages(view, pass, commands, e, face, material);
   }
 
   // Second pass: translucent faces, matching the GL renderer's per-entity
@@ -470,7 +469,6 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms.material, sizeof(material_uniforms.material));
     $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
 
-    // Scale entity alpha by the surface's blend amount (33/66/100%).
     r_mesh_locals_t blend_locals = locals;
     switch (material->cm->surface & SURF_MASK_BLEND) {
       case SURF_BLEND_33:
@@ -499,7 +497,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     r_stats.mesh_draw_elements++;
     r_stats.mesh_triangles += face->num_elements / 3;
 
-    R_DrawMeshFaceMaterialStages(view, pass, commands, e, face, material);
+    R_DrawMeshEntityMaterialStages(view, pass, commands, e, face, material);
   }
 
   r_stats.mesh_models++;

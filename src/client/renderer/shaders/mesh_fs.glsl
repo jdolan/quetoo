@@ -131,7 +131,7 @@ void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t f
   fragment.normal_sample = sample_material_normal(fragment.parallax, mat3(vertex.tangent, vertex.bitangent, vertex.normal));
   fragment.specular_sample = sample_material_specular(fragment.parallax);
 
-  // Per-pixel Poisson rotation for shadow PCF.
+  // Precompute per-pixel Poisson rotation for shadow PCF
   float angle = random_angle(vertex.model_position);
   fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
 

@@ -175,7 +175,6 @@ void R_DrawPost(const r_view_t *view) {
   // color; without MSAA it is the color attachment itself.
   Texture *scene_color = $(scene, resolveColorTexture, 0);
 
-  // (Re)create the half-resolution bloom targets on a viewport resize.
   if (scene->size.w != r_post.bloom_width * 2 || scene->size.h != r_post.bloom_height * 2) {
     R_CreateBloomFramebuffers((int32_t) scene->size.w, (int32_t) scene->size.h);
   }
@@ -184,7 +183,6 @@ void R_DrawPost(const r_view_t *view) {
 
   if (bloom) {
 
-    // Extract bright regions from the scene color into the first bloom target.
     R_PostPass(r_post.bloom_framebuffers[0], r_post.bloom_pipeline,
                scene_color, scene_color,
                r_post.bloom_width, r_post.bloom_height,

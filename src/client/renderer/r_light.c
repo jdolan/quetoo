@@ -66,10 +66,6 @@ void R_UpdateLights(r_view_t *view) {
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
 
-    if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
-      R_Draw3DBox(l->bounds, Color3fv(l->color), false);
-    }
-
     // Every shadow-casting light (static or dynamic) gets an atlas tile; they
     // are visually identical and differ only in optimization (voxel selection,
     // tile caching). The single-layer atlas holds lights_per_layer tiles; lights
@@ -85,6 +81,10 @@ void R_UpdateLights(r_view_t *view) {
       out->shadow = Vec4(base_x, base_y, tile_uv, layer);
     } else {
       out->shadow = Vec4(0.f, 0.f, 0.f, 0.f);
+    }
+
+    if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
+      R_Draw3DBox(l->bounds, Color3fv(l->color), false);
     }
   }
 
