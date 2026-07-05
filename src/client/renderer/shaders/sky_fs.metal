@@ -99,7 +99,6 @@ struct uniforms_block
     int editor;
     int developer;
     int wireframe;
-    int debug_voxel_lights;
 };
 
 constant spvUnsafeArray<float, 8> _268 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });

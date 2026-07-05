@@ -123,7 +123,6 @@ struct uniforms_block
     int editor;
     int developer;
     int wireframe;
-    int debug_voxel_lights;
 };
 
 struct locals_block

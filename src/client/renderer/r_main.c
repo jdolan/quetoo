@@ -34,7 +34,6 @@ cvar_t *r_draw_bsp_voxels;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_light_bounds;
 cvar_t *r_draw_material_stages;
-cvar_t *r_draw_voxel_lights;
 cvar_t *r_draw_wireframe;
 
 cvar_t *r_ambient;
@@ -129,7 +128,6 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->editor = editor->integer;
     out->developer = developer->integer;
     out->wireframe = r_draw_wireframe->integer;
-    out->debug_voxel_lights = r_draw_voxel_lights->integer;
 
     if (r_models.world) {
       const r_bsp_voxels_t *voxels = &r_models.world->bsp->voxels;
@@ -325,7 +323,6 @@ static void R_InitLocal(void) {
   r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool).");
   r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool).");
   r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
-  r_draw_voxel_lights = Cvar_Add("r_draw_voxel_lights", "0", CVAR_DEVELOPER, "Visualizes the per-voxel static light index/count instead of lighting (developer tool).");
   r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool).");
   r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
   r_draw_stats = Cvar_Add("r_draw_stats", "0", CVAR_DEVELOPER, "Draw renderer performance statistics (developer tool).");

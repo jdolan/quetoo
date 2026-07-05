@@ -243,12 +243,6 @@ typedef struct {
      * @brief Non-zero when wireframe rendering is enabled.
      */
     int wireframe;
-
-    /**
-     * @brief Non-zero to visualize the per-voxel static light index/count
-     * instead of lighting (developer tool, see r_draw_voxel_lights).
-     */
-    int debug_voxel_lights;
   } block;
 
 } r_uniforms_t;
@@ -268,7 +262,6 @@ extern cvar_t *r_draw_bsp_voxels;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_light_bounds;
 extern cvar_t *r_draw_material_stages;
-extern cvar_t *r_draw_voxel_lights;
 extern cvar_t *r_draw_wireframe;
 
 #endif
