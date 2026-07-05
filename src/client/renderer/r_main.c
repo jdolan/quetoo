@@ -146,6 +146,27 @@ void R_UpdateUniforms(const r_view_t *view) {
 }
 
 /**
+ * @brief Applies r_swap_interval to the device's swapchain present mode.
+ * @remarks SDL_gpu has no adaptive-VSync present mode (unlike GL's
+ * EXT_swap_control_tear, which `-1` requests in main); `-1` falls back to
+ * plain VSYNC, same as `1`.
+ */
+static void R_UpdateSwapInterval(void) {
+
+  const SDL_GPUPresentMode mode = r_swap_interval->integer == 0 ? SDL_GPU_PRESENTMODE_IMMEDIATE : SDL_GPU_PRESENTMODE_VSYNC;
+
+  if (mode != SDL_GPU_PRESENTMODE_VSYNC && !$(r_context.device, supportsPresentMode, mode)) {
+    Com_Warn("Present mode %d unsupported by this device, falling back to VSYNC\n", mode);
+    $(r_context.device, setSwapchainParameters, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC);
+    return;
+  }
+
+  if (!$(r_context.device, setSwapchainParameters, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, mode)) {
+    Com_Warn("Failed to set present mode %d: %s\n", mode, SDL_GetError());
+  }
+}
+
+/**
  * @brief Called at the beginning of each render frame.
  */
 void R_BeginFrame(void) {
@@ -174,7 +195,8 @@ void R_BeginFrame(void) {
   }
 
   if (r_swap_interval->modified) {
-    r_swap_interval->modified = false; // TODO(#864): present mode via RenderDevice::setSwapchainParameters
+    R_UpdateSwapInterval();
+    r_swap_interval->modified = false;
   }
 
   memset(&r_stats, 0, sizeof(r_stats));
@@ -344,6 +366,9 @@ void R_Init(void) {
   R_InitLocal();
 
   R_InitContext();
+
+  R_UpdateSwapInterval();
+  r_swap_interval->modified = false;
 
   // Snapshot the MSAA sample count for the scene framebuffer and all 3D pipelines.
   r_scene_samples = R_SampleCount();
