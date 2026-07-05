@@ -777,15 +777,9 @@ void R_InitDraw2D(void) {
   r_draw_2d.null_texture->type = IMG_PROGRAM;
   r_draw_2d.null_texture->width = 1;
   r_draw_2d.null_texture->height = 1;
-  r_draw_2d.null_texture->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
-    .type = SDL_GPU_TEXTURETYPE_2D,
-    .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
-    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
-    .width = 1,
-    .height = 1,
-    .layer_count_or_depth = 1,
-    .num_levels = 1,
-  }, &(const uint32_t) { 0xffffffff });
+  // Same 1x1 opaque white texture r_context creates for pipelines that need to
+  // bind *something* to a sampler slot they never read; no need for a second copy.
+  r_draw_2d.null_texture->texture = retain(r_context.null_texture);
   R_RegisterMedia((r_media_t *) r_draw_2d.null_texture);
 
   r_draw_2d.pipeline = R_InitDraw2DPipeline();

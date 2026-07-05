@@ -440,8 +440,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, RenderPass 
     { .texture = texture_next, .sampler = r_bsp_pipeline.stage_sampler->sampler },
   }, 2);
 
-  $(commands, pushVertexUniformData, BSP_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
-  $(commands, pushFragmentUniformData, BSP_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
+  $(commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
 
   const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
@@ -506,8 +505,7 @@ static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, Command
     // pushed, since this draw's shader branches on material.flags (bsp_fs.glsl).
     r_material_uniforms_t material;
     R_MaterialUniforms(draw->material, draw->surface, &material);
-    $(commands, pushVertexUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
-    $(commands, pushFragmentUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
+    $(commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
 
     const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
@@ -570,9 +568,8 @@ void R_DrawBspEntities(const r_view_t *view) {
   // Fragment uniforms: the same globals (lighting scalars); active_lights and the
   // material parameters are pushed per block / per draw below.
   const mat4_t model = Mat4_Identity();
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
-  $(commands, pushFragmentUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   // The wireframe variant replaces the base pipeline throughout the pass; stage
   // (blend) overlays are skipped below when it is active.
@@ -712,8 +709,7 @@ static void R_DrawBspBlockBlend(const r_view_t *view, RenderPass *pass, CommandB
     // R_MaterialUniforms resets the stage fields to STAGE_NONE: see R_DrawBspBlockOpaque.
     r_material_uniforms_t material;
     R_MaterialUniforms(draw->material, draw->surface, &material);
-    $(commands, pushVertexUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
-    $(commands, pushFragmentUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
+    $(commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
 
     const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
     $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
@@ -776,9 +772,8 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   });
 
   const mat4_t model = Mat4_Identity();
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
-  $(commands, pushFragmentUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   $(pass, bindPipeline, r_bsp_pipeline.blend_pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);

@@ -544,8 +544,7 @@ void R_DrawMeshEntities(const r_view_t *view) {
   });
 
   // Per-frame globals to both stages; lighting resources shared with the BSP pass.
-  $(commands, pushVertexUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
-  $(commands, pushFragmentUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   $(pass, bindPipeline, r_mesh_pipeline.pipeline);
 
@@ -643,8 +642,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(commands, pushVertexUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
-  $(commands, pushFragmentUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   $(pass, bindPipeline, r_mesh_pipeline.pipeline);
 

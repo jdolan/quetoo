@@ -186,8 +186,7 @@ static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view, RenderPass 
     { .texture = texture_next, .sampler = r_sky_pipeline.stage_sampler->sampler },
   }, 2);
 
-  $(commands, pushVertexUniformData, SKY_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
-  $(commands, pushFragmentUniformData, SKY_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
+  $(commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
 
   const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
@@ -303,8 +302,7 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
       // left pushed.
       r_material_uniforms_t material;
       R_MaterialUniforms(draw->material, draw->surface, &material);
-      $(commands, pushVertexUniformData, SKY_UNIFORMS_MATERIAL, &material, sizeof(material));
-      $(commands, pushFragmentUniformData, SKY_UNIFORMS_MATERIAL, &material, sizeof(material));
+      $(commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &material, sizeof(material));
 
       const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
@@ -404,16 +402,7 @@ void R_InitSky(void) {
   R_InitSkyPipeline();
 
   // A 1x1 black fallback cube (six faces) for the lit ambient sampler.
-  const byte black[6 * 4] = { 0 };
-  r_sky.fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
-    .type = SDL_GPU_TEXTURETYPE_CUBE,
-    .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
-    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
-    .width = 1, .height = 1,
-    .layer_count_or_depth = 6,
-    .num_levels = 1,
-    .sample_count = SDL_GPU_SAMPLECOUNT_1,
-  }, black);
+  r_sky.fallback = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_CUBE, 6, 0x00000000);
 }
 
 /**
