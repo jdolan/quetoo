@@ -355,6 +355,11 @@ void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_materia
 
   const cm_material_t *cm = material->cm;
 
+  // Zero the whole struct, not just the material fields: this leaves the
+  // stage fields at their STAGE_NONE default (flags == 0) for a base/blend
+  // draw. A stage draw calls R_StageUniforms right after to overlay them.
+  memset(out, 0, sizeof(*out));
+
   out->surface = surface;
   out->alpha_test = cm->alpha_test * r_alpha_test->value;
   out->roughness = cm->roughness * r_roughness->value;
@@ -379,17 +384,19 @@ static float R_StageDriftHash(const void *a, const void *b) {
 }
 
 /**
- * @brief Fills `out` with the per-stage parameters for `stage` on `draw` (and
- * `entity`, or NULL for the world), and resolves the stage's current and next
- * animation-frame textures. Returns true if the stage has drawable media.
+ * @brief Overlays `out` with the per-stage parameters for `stage` on `draw`
+ * (and `entity`, or NULL for the world), and resolves the stage's current and
+ * next animation-frame textures. Returns true if the stage has drawable media.
+ * @remarks Callers fill the material fields via `R_MaterialUniforms` first;
+ * this only touches the stage fields, leaving those alone.
  */
 bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
                      const r_bsp_draw_elements_t *draw, const r_stage_t *stage,
-                     r_stage_uniforms_t *out, SDL_GPUTexture **texture, SDL_GPUTexture **texture_next) {
+                     r_material_uniforms_t *out, SDL_GPUTexture **texture, SDL_GPUTexture **texture_next) {
 
   const cm_stage_t *cm = stage->cm;
 
-  memset(out, 0, sizeof(*out));
+  out->lerp = 0.f; // only conditionally set below (STAGE_ANIM_LERP animations)
 
   out->flags = cm->flags;
   out->color = cm->color.vec4;

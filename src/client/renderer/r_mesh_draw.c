@@ -19,9 +19,11 @@
 
 /**
  * @brief The mesh program's own binding map, mirroring shaders/mesh_vs.glsl and
- * mesh_fs.glsl. Not shared with any other pipeline. Mirrors the BSP shape (see
- * r_bsp_draw.c) with one addition: per-entity tint colors, which bsp has no
- * equivalent of, so mesh's fragment stage UBO has one more slot than bsp's.
+ * mesh_fs.glsl. Not shared with any other pipeline; mirrors the BSP shape (see
+ * r_bsp_draw.c) exactly -- the fragment material UBO additionally carries
+ * per-entity tint colors (r_mesh_material_uniforms_t), since bsp has no
+ * equivalent, but the vertex stage's material UBO (no tint) is the same
+ * r_material_uniforms_t bsp uses.
  */
 enum {
   MESH_SAMPLER_MATERIAL,
@@ -43,28 +45,10 @@ enum {
 
 enum {
   MESH_UNIFORMS_GLOBALS,
-  MESH_UNIFORMS_LOCALS, // model/lerp/color (vertex) / active_lights + tints (fragment)
-  MESH_UNIFORMS_STAGE_VERTEX, // vertex only
+  MESH_UNIFORMS_LOCALS, // model/lerp/color (vertex) / active_lights bitmask (fragment)
+  MESH_UNIFORMS_MATERIAL, // material + stage params (+ tints, fragment only) -- see material.glsl
 };
-#define MESH_NUM_UNIFORMS_VERTEX 3
-
-enum {
-  // MESH_UNIFORMS_GLOBALS = 0, MESH_UNIFORMS_LOCALS = 1, shared with the vertex stage.
-  MESH_UNIFORMS_MATERIAL = 2,
-  MESH_UNIFORMS_STAGE_FRAGMENT,
-};
-// SDL_gpu caps a shader at 4 uniform buffers, so active_lights and tints share
-// MESH_UNIFORMS_LOCALS (one push) instead of each getting their own slot --
-// see the binding map comment in mesh_fs.glsl.
-#define MESH_NUM_UNIFORMS_FRAGMENT 4
-
-/**
- * @brief The stage uniforms for a non-stage (opaque or blend) draw: flags is
- * STAGE_NONE, so mesh_fs's runtime branch takes the base path. Pushed before
- * every such draw, since a preceding face's material stages may have left the
- * fragment stage UBO with a real stage's flags still set.
- */
-static const r_stage_uniforms_t r_mesh_stage_none = { .flags = STAGE_NONE };
+#define MESH_NUM_UNIFORMS 3 // same count/slot for both stages
 
 /**
  * @brief The maximum number of cached material-stage pipelines (one per blend).
@@ -76,7 +60,7 @@ static const r_stage_uniforms_t r_mesh_stage_none = { .flags = STAGE_NONE };
  * Animated geometry with diffuse material, clustered per-voxel lighting, entity
  * color/tint, material stages, and the EF_SHELL effect -- material stages and
  * shells share this shader with the base pass via a runtime branch on
- * stage.flags, not a pipeline swap: see R_DrawMeshFaceMaterialStage.
+ * material.flags, not a pipeline swap: see R_DrawMeshFaceMaterialStage.
  */
 static struct {
 
@@ -187,14 +171,14 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = MESH_NUM_UNIFORMS_VERTEX,
+    .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = MESH_NUM_SAMPLERS,
     .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS,
-    .num_uniform_buffers = MESH_NUM_UNIFORMS_FRAGMENT,
+    .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;
@@ -279,11 +263,16 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
  * pipeline, its textures, and the per-stage uniforms.
  */
 static void R_DrawMeshFaceMaterialStage(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
-                                        const r_entity_t *e, const r_mesh_face_t *face, const r_stage_t *stage) {
+                                        const r_entity_t *e, const r_mesh_face_t *face,
+                                        const r_material_t *material, const r_stage_t *stage) {
 
-  r_stage_uniforms_t uniforms;
+  // The tint fields are irrelevant to the stage branch (mesh_fs.glsl only
+  // reads them in the STAGE_NONE path), so leave them zeroed.
+  r_mesh_material_uniforms_t uniforms = { 0 };
+  R_MaterialUniforms(material, material->cm->surface, &uniforms.material);
+
   SDL_GPUTexture *texture, *texture_next;
-  if (!R_StageUniforms(view, e, NULL, stage, &uniforms, &texture, &texture_next)) {
+  if (!R_StageUniforms(view, e, NULL, stage, &uniforms.material, &texture, &texture_next)) {
     return;
   }
 
@@ -299,8 +288,8 @@ static void R_DrawMeshFaceMaterialStage(const r_view_t *view, RenderPass *pass, 
     { .texture = texture_next, .sampler = r_mesh_pipeline.stage_sampler->sampler },
   }, 2);
 
-  $(commands, pushVertexUniformData, MESH_UNIFORMS_STAGE_VERTEX, &uniforms, sizeof(uniforms));
-  $(commands, pushFragmentUniformData, MESH_UNIFORMS_STAGE_FRAGMENT, &uniforms, sizeof(uniforms));
+  $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &uniforms.material, sizeof(uniforms.material));
+  $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
 
   const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
@@ -329,7 +318,7 @@ static void R_DrawMeshFaceShell(const r_view_t *view, RenderPass *pass, CommandB
 
   for (const r_stage_t *stage = material->stages; stage; stage = stage->next) {
     if (stage->cm->flags & STAGE_SHELL) {
-      R_DrawMeshFaceMaterialStage(view, pass, commands, e, face, stage);
+      R_DrawMeshFaceMaterialStage(view, pass, commands, e, face, material, stage);
       return;
     }
   }
@@ -355,7 +344,7 @@ static void R_DrawMeshFaceShell(const r_view_t *view, RenderPass *pass, CommandB
     .media = (r_media_t *) r_mesh_pipeline.shell,
   };
 
-  R_DrawMeshFaceMaterialStage(view, pass, commands, e, face, &default_shell);
+  R_DrawMeshFaceMaterialStage(view, pass, commands, e, face, material, &default_shell);
 }
 
 /**
@@ -376,7 +365,7 @@ static void R_DrawMeshFaceMaterialStages(const r_view_t *view, RenderPass *pass,
     if (!(stage->cm->flags & STAGE_DRAW)) {
       continue;
     }
-    R_DrawMeshFaceMaterialStage(view, pass, commands, e, face, stage);
+    R_DrawMeshFaceMaterialStage(view, pass, commands, e, face, material, stage);
   }
 
   R_DrawMeshFaceShell(view, pass, commands, e, face, material);
@@ -403,17 +392,11 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
   };
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
 
-  // The dynamic lights affecting this entity, culled to its bounds, plus the
-  // per-entity tint colors for player-skin colorization -- combined into one
-  // push (fragment slot 1) since SDL_gpu caps a shader at 4 uniform buffers;
-  // see the binding map comment in mesh_fs.glsl.
-  struct {
-    uint32_t active_lights[4];
-    vec4_t tints[TINT_TOTAL];
-  } fragment_locals;
-  R_ActiveLights(view, e->abs_model_bounds, fragment_locals.active_lights);
-  memcpy(fragment_locals.tints, e->tints, sizeof(fragment_locals.tints));
-  $(commands, pushFragmentUniformData, MESH_UNIFORMS_LOCALS, &fragment_locals, sizeof(fragment_locals));
+  // The dynamic lights affecting this entity, culled to its bounds. Has
+  // nothing to do with the material/stage/tint UBO -- see mesh_fs.glsl.
+  uint32_t active_lights[4];
+  R_ActiveLights(view, e->abs_model_bounds, active_lights);
+  $(commands, pushFragmentUniformData, MESH_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
 
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
     .buffer = mesh->elements_buffer->buffer
@@ -439,17 +422,18 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     // a stage (blend) pipeline bound.
     $(pass, bindPipeline, r_mesh_pipeline.pipeline);
 
-    // Reset stage.flags to STAGE_NONE: a preceding face's material stages left
-    // it set, and this draw's shader branches on it (see mesh_fs.glsl).
-    $(commands, pushFragmentUniformData, MESH_UNIFORMS_STAGE_FRAGMENT, &r_mesh_stage_none, sizeof(r_mesh_stage_none));
-
     $(pass, bindFragmentSamplers, MESH_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
       .texture = material->texture->texture->texture,
       .sampler = r_mesh_pipeline.diffusemap_sampler->sampler,
     }, 1);
 
-    r_material_uniforms_t material_uniforms;
-    R_MaterialUniforms(material, material->cm->surface, &material_uniforms);
+    // R_MaterialUniforms resets the stage fields to STAGE_NONE: a preceding
+    // face's material stages left them set, and this draw's shader branches
+    // on material.flags (mesh_fs.glsl).
+    r_mesh_material_uniforms_t material_uniforms;
+    R_MaterialUniforms(material, material->cm->surface, &material_uniforms.material);
+    memcpy(material_uniforms.tint_colors, e->tints, sizeof(material_uniforms.tint_colors));
+    $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms.material, sizeof(material_uniforms.material));
     $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
 
     // Two vertex buffer slots: the old frame (locations 0-4) and the current
@@ -490,16 +474,16 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
     $(pass, bindPipeline, r_mesh_pipeline.blend_pipeline);
 
-    // Reset stage.flags to STAGE_NONE: see the opaque loop above.
-    $(commands, pushFragmentUniformData, MESH_UNIFORMS_STAGE_FRAGMENT, &r_mesh_stage_none, sizeof(r_mesh_stage_none));
-
     $(pass, bindFragmentSamplers, MESH_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
       .texture = material->texture->texture->texture,
       .sampler = r_mesh_pipeline.diffusemap_sampler->sampler,
     }, 1);
 
-    r_material_uniforms_t material_uniforms;
-    R_MaterialUniforms(material, material->cm->surface, &material_uniforms);
+    // R_MaterialUniforms resets the stage fields to STAGE_NONE: see the opaque loop above.
+    r_mesh_material_uniforms_t material_uniforms;
+    R_MaterialUniforms(material, material->cm->surface, &material_uniforms.material);
+    memcpy(material_uniforms.tint_colors, e->tints, sizeof(material_uniforms.tint_colors));
+    $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms.material, sizeof(material_uniforms.material));
     $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
 
     // Scale entity alpha by the surface's blend amount (33/66/100%).
@@ -719,7 +703,7 @@ void R_InitMeshPipeline(void) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = MESH_NUM_UNIFORMS_VERTEX, // globals + locals + stage
+    .num_uniform_buffers = MESH_NUM_UNIFORMS, // globals + locals + material(+stage)
   });
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
@@ -727,7 +711,7 @@ void R_InitMeshPipeline(void) {
     .num_samplers = MESH_NUM_SAMPLERS,               // material, voxel_light_data, shadow_atlas,
                                                       // voxel_caustics, voxel_occlusion, sky, stage, stage_next
     .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS, // lights + voxel_light_indices
-    .num_uniform_buffers = MESH_NUM_UNIFORMS_FRAGMENT, // globals + (active_lights+tints) + material + stage
+    .num_uniform_buffers = MESH_NUM_UNIFORMS, // globals + active_lights + material(+stage+tints)
   });
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;

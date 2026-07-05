@@ -33,27 +33,15 @@ r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context);
 void R_SaveMaterials_f(void);
 
 /**
- * @brief The per-draw material parameters, pushed to fragment uniform slot 2 by
- * the lit-geometry programs. Layout mirrors material.glsl's `material_block`
- * (std140: seven scalars; `alignas` pads the struct to a 16-byte multiple).
- */
-typedef struct {
-  alignas(16) int32_t surface;
-  float alpha_test;
-  float roughness;
-  float hardness;
-  float specularity;
-  float parallax;
-  float shadow;
-} r_material_uniforms_t;
-
-void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_material_uniforms_t *out);
-
-/**
- * @brief The per-stage parameters, pushed to the stage uniform slot by the
- * MATERIAL_STAGES bsp variant. Field order mirrors material.glsl's `stage_block`
+ * @brief The per-draw material AND per-stage parameters, pushed to the
+ * material uniform slot by the lit-geometry programs (bsp, mesh): they're
+ * both material-related, unlike e.g. the active-lights bitmask, which lives
+ * in its own UBO. Layout mirrors material.glsl's combined `material_block`
  * (std140: vec4, then vec2s, then scalars; `alignas` pads the struct to a
- * 16-byte multiple).
+ * 16-byte multiple). `R_MaterialUniforms` fills the material fields;
+ * `R_StageUniforms` fills the stage fields -- callers populate both for a
+ * stage draw, or just call `R_MaterialUniforms` and leave `flags` at
+ * `STAGE_NONE` (zero-initialize) for the base/blend draw.
  */
 typedef struct {
   alignas(16) vec4_t color;
@@ -63,6 +51,13 @@ typedef struct {
   vec2_t scale;
   vec2_t terrain;
   vec2_t warp;
+  int32_t surface;
+  float alpha_test;
+  float roughness;
+  float hardness;
+  float specularity;
+  float parallax;
+  float shadow;
   int32_t flags;
   float pulse;
   float drift;
@@ -72,9 +67,24 @@ typedef struct {
   float emissive;
   float lerp;
   float shell;
-} r_stage_uniforms_t;
+} r_material_uniforms_t;
+
+void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_material_uniforms_t *out);
 
 bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
                      const r_bsp_draw_elements_t *draw, const r_stage_t *stage,
-                     r_stage_uniforms_t *out, SDL_GPUTexture **texture, SDL_GPUTexture **texture_next);
+                     r_material_uniforms_t *out, SDL_GPUTexture **texture, SDL_GPUTexture **texture_next);
+
+/**
+ * @brief The mesh program's per-draw material uniforms: `r_material_uniforms_t`
+ * plus per-entity tint colors for player-skin colorization, appended so they
+ * remain std140-compatible as a trailing member (mirrors material.glsl's
+ * MATERIAL_TINTS extension of `material_block`). bsp has no equivalent, since
+ * only mesh entities are tinted.
+ */
+typedef struct {
+  r_material_uniforms_t material;
+  vec4_t tint_colors[TINT_TOTAL];
+} r_mesh_material_uniforms_t;
+
 #endif

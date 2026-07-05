@@ -26,22 +26,24 @@
  * Blinn-Phong specular, parallax occlusion, shadows, clustered voxel + dynamic
  * lights), sharing the BSP fragment stack and its descriptor layout (see bsp_fs).
  * Material stages and the EF_SHELL overlay share this shader with the base pass
- * via a runtime branch on stage.flags, exactly like bsp_fs -- see main() below.
+ * via a runtime branch on material.flags, exactly like bsp_fs -- see main()
+ * below.
  * TODO(#864): parallax_occlusion_mapping is duplicated from bsp_fs pending a
  * shared home.
  */
 
+#define UNIFORMS_LIGHT_CULL
 #define VOXEL_CAUSTICS_OCCLUSION
 #define LIGHT_SKY
+#define MATERIAL_TINTS
 #include "uniforms.glsl"
 
 /*
  * The mesh program's own binding map (fragment stage), mirroring bsp_fs's
- * shape. SDL_gpu caps a shader at 4 uniform buffers, so unlike bsp (which has
- * spare room for its own dedicated active-lights UBO via UNIFORMS_LIGHT_CULL),
- * mesh packs active_lights and the per-entity tint colors into one combined
- * "locals" UBO at the universal BINDING_LOCALS slot (below) instead of opting
- * into that shared block -- freeing a slot for the stage UBO material lacks.
+ * shape exactly -- material.glsl's material_block additionally carries the
+ * per-entity tint colors here (MATERIAL_TINTS, defined above), since they're
+ * material-related too; active_lights stays in the generic light_cull_block
+ * (uniforms.glsl, BINDING_LOCALS) it has nothing to do with tints or stages.
  * The vertex stage's own map is defined in mesh_vs.glsl.
  */
 #define BINDING_SAMPLER_MATERIAL         0
@@ -55,20 +57,6 @@
 #define BINDING_STORAGE_LIGHTS              8
 #define BINDING_STORAGE_VOXEL_LIGHT_INDICES 9
 #define BINDING_UNIFORMS_MATERIAL        2
-#define BINDING_UNIFORMS_STAGE           3
-
-/**
- * @brief The per-draw dynamic-light cull bitmask (see uniforms.glsl's
- * light_cull_block, which this does not use) plus per-entity tint colors for
- * player-skin colorization, blended in via the material tint map (layer 3)
- * and read only in the base (STAGE_NONE) branch. Combined into one UBO -- see
- * the binding map comment above. Must precede light.glsl: its lighting
- * functions reference `active_lights` directly.
- */
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
-  uvec4 active_lights;
-  vec4 tint_colors[3];
-};
 
 #include "common.glsl"
 #include "material.glsl"
@@ -141,8 +129,8 @@ void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t f
 
 /**
  * @brief Animated mesh: diffuse material with full per-fragment lighting and
- * player-skin tinting (stage.flags == STAGE_NONE), or a blended material stage
- * / shell overlay. One shader, one pipeline: see bsp_fs's main() for why.
+ * player-skin tinting (material.flags == STAGE_NONE), or a blended material
+ * stage / shell overlay. One shader, one pipeline: see bsp_fs's main() for why.
  */
 void main(void) {
 
@@ -154,7 +142,7 @@ void main(void) {
 
   parallax_occlusion_mapping(vertex, fragment);
 
-  if (stage.flags == STAGE_NONE) {
+  if (material.flags == STAGE_NONE) {
 
     fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
 
@@ -167,9 +155,9 @@ void main(void) {
     // Player-skin tint: blend the entity tint colors in by the material tint map.
     vec4 tintmap = sample_material_tint(fragment.parallax);
     fragment.diffuse_sample.rgb *= 1.0 - tintmap.a;
-    fragment.diffuse_sample.rgb += (tint_colors[0] * tintmap.r).rgb * tintmap.a;
-    fragment.diffuse_sample.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
-    fragment.diffuse_sample.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
+    fragment.diffuse_sample.rgb += (material.tint_colors[0] * tintmap.r).rgb * tintmap.a;
+    fragment.diffuse_sample.rgb += (material.tint_colors[1] * tintmap.g).rgb * tintmap.a;
+    fragment.diffuse_sample.rgb += (material.tint_colors[2] * tintmap.b).rgb * tintmap.a;
 
     out_color = fragment.diffuse_sample * vertex.color;
 
@@ -195,14 +183,14 @@ void main(void) {
 
     out_color = fragment.diffuse_sample;
 
-    if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
+    if ((material.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
       mesh_fragment_lighting(vertex, fragment);
-      out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
-      out_color.rgb += fragment.specular * stage.lighting;
+      out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, material.lighting);
+      out_color.rgb += fragment.specular * material.lighting;
     }
 
-    if ((stage.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
-      out_color.rgb += fragment.diffuse_sample.rgb * stage.emissive;
+    if ((material.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
+      out_color.rgb += fragment.diffuse_sample.rgb * material.emissive;
     }
   }
 }

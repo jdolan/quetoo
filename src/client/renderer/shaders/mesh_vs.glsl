@@ -31,9 +31,10 @@
 
 #include "uniforms.glsl"
 
-// The mesh program's own binding map: the stage UBO follows globals (0) and
-// locals (1); the fragment stage's own map is defined in mesh_fs.glsl.
-#define BINDING_UNIFORMS_STAGE 2
+// The mesh program's own binding map: the material UBO (material + stage
+// params combined -- see material.glsl) follows globals (0) and locals (1);
+// the fragment stage's own map is defined in mesh_fs.glsl.
+#define BINDING_UNIFORMS_MATERIAL 2
 
 #include "common.glsl"
 #include "material.glsl"

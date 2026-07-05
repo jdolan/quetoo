@@ -375,11 +375,7 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
 
   bool is_blend = bool(material.surface & SURF_MASK_BLEND);
   bool is_liquid = bool(material.surface & SURF_LIQUID);
-#if defined(MATERIAL_STAGES)
-  bool is_stage = bool(stage.flags != STAGE_NONE);
-#else
-  bool is_stage = false;
-#endif
+  bool is_stage = bool(material.flags != STAGE_NONE);
 
   float lambert = dot(dir, f.normal_sample);
   lambert = is_blend || is_liquid || is_stage ? abs(lambert) : max(0.0, lambert);

@@ -68,7 +68,7 @@ struct common_vertex_t
     float caustics;
 };
 
-struct stage_block
+struct material_block
 {
     float4 color;
     float2 st_origin;
@@ -77,6 +77,13 @@ struct stage_block
     float2 scale;
     float2 terrain;
     float2 warp;
+    int surface;
+    float alpha_test;
+    float roughness;
+    float hardness;
+    float specularity;
+    float parallax;
+    float shadow;
     int flags;
     float pulse;
     float drift;
@@ -158,11 +165,11 @@ struct main0_in
 };
 
 static inline __attribute__((always_inline))
-void stage_transform(thread float3& position, thread const float3& normal, thread const float3& tangent, thread const float3& bitangent, constant stage_block& stage)
+void stage_transform(thread float3& position, thread const float3& normal, thread const float3& tangent, thread const float3& bitangent, constant material_block& material)
 {
-    if ((stage.flags & 1048576) == 1048576)
+    if ((material.flags & 1048576) == 1048576)
     {
-        position += (normal * stage.shell);
+        position += (normal * material.shell);
     }
 }
 
@@ -173,33 +180,33 @@ float3 voxel_uvw(thread const float3& position, constant uniforms_block& _105)
 }
 
 static inline __attribute__((always_inline))
-void stage_vertex(thread const float3& in_position, thread common_vertex_t& vertex0, constant stage_block& stage, constant uniforms_block& _105)
+void stage_vertex(thread const float3& in_position, thread common_vertex_t& vertex0, constant material_block& material, constant uniforms_block& _105)
 {
-    int envmap = stage.flags & 16384;
+    int envmap = material.flags & 16384;
     if (envmap != 0)
     {
         float3 view_dir = fast::normalize(vertex0.position);
         float3 reflect_dir = reflect(view_dir, fast::normalize(vertex0.normal));
         vertex0.diffusemap = float2(0.5 + (reflect_dir.y * 0.5), 0.5 - (reflect_dir.z * 0.5));
     }
-    if ((stage.flags & 256) == 256)
+    if ((material.flags & 256) == 256)
     {
-        float p = 1.0 + ((sin(((float(_105.ticks) * 0.001000000047497451305389404296875) * stage.stretch.y) * 3.1415927410125732421875) * stage.stretch.x) * 0.5);
+        float p = 1.0 + ((sin(((float(_105.ticks) * 0.001000000047497451305389404296875) * material.stretch.y) * 3.1415927410125732421875) * material.stretch.x) * 0.5);
         float2x2 matrix;
         matrix[0].x = p;
         matrix[1].x = 0.0;
         float2 translate;
-        translate.x = stage.st_origin.x - (stage.st_origin.x * p);
+        translate.x = material.st_origin.x - (material.st_origin.x * p);
         matrix[0].y = 0.0;
         matrix[1].y = p;
-        translate.y = stage.st_origin.y - (stage.st_origin.y * p);
+        translate.y = material.st_origin.y - (material.st_origin.y * p);
         vertex0.diffusemap.x = ((vertex0.diffusemap.x * matrix[0].x) + (vertex0.diffusemap.y * matrix[1].x)) + translate.x;
         vertex0.diffusemap.y = ((vertex0.diffusemap.x * matrix[0].y) + (vertex0.diffusemap.y * matrix[1].y)) + translate.y;
     }
-    if ((stage.flags & 128) == 128)
+    if ((material.flags & 128) == 128)
     {
-        float theta = ((float(_105.ticks) * 0.001000000047497451305389404296875) * stage.rotate) * 6.283185482025146484375;
-        float2 st_origin = stage.st_origin;
+        float theta = ((float(_105.ticks) * 0.001000000047497451305389404296875) * material.rotate) * 6.283185482025146484375;
+        float2 st_origin = material.st_origin;
         if (envmap != 0)
         {
             st_origin = float2(0.5);
@@ -210,21 +217,21 @@ void stage_vertex(thread const float3& in_position, thread common_vertex_t& vert
     }
     if (envmap != 0)
     {
-        if ((stage.flags & 96) != 0)
+        if ((material.flags & 96) != 0)
         {
             float _252;
-            if ((stage.flags & 32) == 32)
+            if ((material.flags & 32) == 32)
             {
-                _252 = stage.scale.x;
+                _252 = material.scale.x;
             }
             else
             {
                 _252 = 1.0;
             }
             float _265;
-            if ((stage.flags & 64) == 64)
+            if ((material.flags & 64) == 64)
             {
-                _265 = stage.scale.y;
+                _265 = material.scale.y;
             }
             else
             {
@@ -235,55 +242,55 @@ void stage_vertex(thread const float3& in_position, thread common_vertex_t& vert
             centered /= fast::max(abs(scale), float2(9.9999997473787516355514526367188e-05));
             vertex0.diffusemap = centered + float2(0.5);
         }
-        if ((stage.flags & 8) == 8)
+        if ((material.flags & 8) == 8)
         {
-            vertex0.diffusemap.x += ((stage.scroll.x * float(_105.ticks)) * 0.001000000047497451305389404296875);
+            vertex0.diffusemap.x += ((material.scroll.x * float(_105.ticks)) * 0.001000000047497451305389404296875);
         }
-        if ((stage.flags & 16) == 16)
+        if ((material.flags & 16) == 16)
         {
-            vertex0.diffusemap.y += ((stage.scroll.y * float(_105.ticks)) * 0.001000000047497451305389404296875);
+            vertex0.diffusemap.y += ((material.scroll.y * float(_105.ticks)) * 0.001000000047497451305389404296875);
         }
     }
     else
     {
-        if ((stage.flags & 8) == 8)
+        if ((material.flags & 8) == 8)
         {
-            vertex0.diffusemap.x += ((stage.scroll.x * float(_105.ticks)) * 0.001000000047497451305389404296875);
+            vertex0.diffusemap.x += ((material.scroll.x * float(_105.ticks)) * 0.001000000047497451305389404296875);
         }
-        if ((stage.flags & 16) == 16)
+        if ((material.flags & 16) == 16)
         {
-            vertex0.diffusemap.y += ((stage.scroll.y * float(_105.ticks)) * 0.001000000047497451305389404296875);
+            vertex0.diffusemap.y += ((material.scroll.y * float(_105.ticks)) * 0.001000000047497451305389404296875);
         }
-        if ((stage.flags & 32) == 32)
+        if ((material.flags & 32) == 32)
         {
-            vertex0.diffusemap.x *= stage.scale.x;
+            vertex0.diffusemap.x *= material.scale.x;
         }
-        if ((stage.flags & 64) == 64)
+        if ((material.flags & 64) == 64)
         {
-            vertex0.diffusemap.y *= stage.scale.y;
+            vertex0.diffusemap.y *= material.scale.y;
         }
     }
-    if ((stage.flags & 4) == 4)
+    if ((material.flags & 4) == 4)
     {
-        vertex0.color = stage.color;
+        vertex0.color = material.color;
     }
-    if ((stage.flags & 512) == 512)
+    if ((material.flags & 512) == 512)
     {
-        vertex0.color.w *= ((sin((((float(_105.ticks) * 0.001000000047497451305389404296875) + stage.drift) * stage.pulse) * 3.1415927410125732421875) + 1.0) * 0.5);
+        vertex0.color.w *= ((sin((((float(_105.ticks) * 0.001000000047497451305389404296875) + material.drift) * material.pulse) * 3.1415927410125732421875) + 1.0) * 0.5);
     }
-    if ((stage.flags & 4096) == 4096)
+    if ((material.flags & 4096) == 4096)
     {
-        float z = fast::clamp(in_position.z, stage.terrain.x, stage.terrain.y);
-        vertex0.color.w *= ((z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x));
+        float z = fast::clamp(in_position.z, material.terrain.x, material.terrain.y);
+        vertex0.color.w *= ((z - material.terrain.x) / (material.terrain.y - material.terrain.x));
     }
-    if ((stage.flags & 8192) == 8192)
+    if ((material.flags & 8192) == 8192)
     {
         int index = (int(in_position.x) + int(in_position.y)) + int(in_position.z);
-        vertex0.color.w *= (_476[spvSMod(index, 8)] * stage.dirtmap);
+        vertex0.color.w *= (_476[spvSMod(index, 8)] * material.dirtmap);
     }
 }
 
-vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _105 [[buffer(0)]], constant locals_block& _513 [[buffer(1)]], constant stage_block& stage [[buffer(2)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _105 [[buffer(0)]], constant locals_block& _513 [[buffer(1)]], constant material_block& material [[buffer(2)]])
 {
     main0_out out = {};
     common_vertex_t vertex0 = {};
@@ -296,7 +303,7 @@ vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _105 [
     float3 param_1 = normal.xyz;
     float3 param_2 = tangent.xyz;
     float3 param_3 = bitangent.xyz;
-    stage_transform(param, param_1, param_2, param_3, stage);
+    stage_transform(param, param_1, param_2, param_3, material);
     position.x = param.x;
     position.y = param.y;
     position.z = param.z;
@@ -321,11 +328,11 @@ vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _105 [
     vertex0.color = _513.color;
     float3 param_5 = in.in_position;
     common_vertex_t param_6 = vertex0;
-    stage_vertex(param_5, param_6, stage, _105);
+    stage_vertex(param_5, param_6, material, _105);
     vertex0 = param_6;
-    float4x4 _701 = _105.projection3D * view_model;
-    float4 _703 = _701 * position;
-    out.gl_Position = _703;
+    float4x4 _702 = _105.projection3D * view_model;
+    float4 _704 = _702 * position;
+    out.gl_Position = _704;
     out.vertex0_model_position = vertex0.model_position;
     out.vertex0_model_normal = vertex0.model_normal;
     out.vertex0_position = vertex0.position;

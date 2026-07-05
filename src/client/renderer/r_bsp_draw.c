@@ -47,24 +47,9 @@ enum {
 enum {
   BSP_UNIFORMS_GLOBALS,
   BSP_UNIFORMS_LOCALS, // model matrix (vertex) / active_lights bitmask (fragment)
-  BSP_UNIFORMS_STAGE_VERTEX, // vertex only
+  BSP_UNIFORMS_MATERIAL, // material + stage params combined -- see material.glsl
 };
-#define BSP_NUM_UNIFORMS_VERTEX 3
-
-enum {
-  // BSP_UNIFORMS_GLOBALS = 0, BSP_UNIFORMS_LOCALS = 1, shared with the vertex stage.
-  BSP_UNIFORMS_MATERIAL = 2,
-  BSP_UNIFORMS_STAGE_FRAGMENT,
-};
-#define BSP_NUM_UNIFORMS_FRAGMENT 4
-
-/**
- * @brief The stage uniforms for a non-stage (opaque or blend) draw: flags is
- * STAGE_NONE, so bsp_fs's runtime branch takes the base path. Pushed before
- * every such draw, since a preceding surface's material stages may have left
- * the fragment stage UBO with a real stage's flags still set.
- */
-static const r_stage_uniforms_t r_bsp_stage_none = { .flags = STAGE_NONE };
+#define BSP_NUM_UNIFORMS 3 // same count/slot for both stages
 
 /**
  * @brief The BSP program pipeline (bsp_vs/bsp_fs). Draws BSP geometry with the
@@ -138,7 +123,7 @@ void R_InitBspPipeline(void) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = BSP_NUM_UNIFORMS_VERTEX, // globals + locals/model + stage
+    .num_uniform_buffers = BSP_NUM_UNIFORMS, // globals + locals/active_lights + material(+stage)
   });
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
@@ -146,7 +131,7 @@ void R_InitBspPipeline(void) {
     .num_samplers = BSP_NUM_SAMPLERS,               // material, voxel_light_data, shadow_atlas,
                                                      // voxel_caustics, voxel_occlusion, sky, stage, stage_next
     .num_storage_buffers = BSP_NUM_STORAGE_BUFFERS, // lights + voxel_light_indices
-    .num_uniform_buffers = BSP_NUM_UNIFORMS_FRAGMENT, // globals + active_lights + material + stage
+    .num_uniform_buffers = BSP_NUM_UNIFORMS, // globals + locals/active_lights + material(+stage)
   });
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;
@@ -355,14 +340,14 @@ static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = BSP_NUM_UNIFORMS_VERTEX,
+    .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = BSP_NUM_SAMPLERS,
     .num_storage_buffers = BSP_NUM_STORAGE_BUFFERS,
-    .num_uniform_buffers = BSP_NUM_UNIFORMS_FRAGMENT,
+    .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;
@@ -443,7 +428,9 @@ static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
 static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                                const r_bsp_draw_elements_t *draw, const r_stage_t *stage) {
 
-  r_stage_uniforms_t uniforms;
+  r_material_uniforms_t uniforms;
+  R_MaterialUniforms(draw->material, draw->surface, &uniforms);
+
   SDL_GPUTexture *texture, *texture_next;
   if (!R_StageUniforms(view, NULL, draw, stage, &uniforms, &texture, &texture_next)) {
     return;
@@ -461,8 +448,8 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, RenderPass 
     { .texture = texture_next, .sampler = r_bsp_pipeline.stage_sampler->sampler },
   }, 2);
 
-  $(commands, pushVertexUniformData, BSP_UNIFORMS_STAGE_VERTEX, &uniforms, sizeof(uniforms));
-  $(commands, pushFragmentUniformData, BSP_UNIFORMS_STAGE_FRAGMENT, &uniforms, sizeof(uniforms));
+  $(commands, pushVertexUniformData, BSP_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
+  $(commands, pushFragmentUniformData, BSP_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
 
   const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
@@ -517,17 +504,17 @@ static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, Command
     // left a stage (blend) pipeline bound.
     $(pass, bindPipeline, base);
 
-    // Reset stage.flags to STAGE_NONE: a preceding surface's material stages
-    // left it set, and this draw's shader branches on it (see bsp_fs.glsl).
-    $(commands, pushFragmentUniformData, BSP_UNIFORMS_STAGE_FRAGMENT, &r_bsp_stage_none, sizeof(r_bsp_stage_none));
-
     $(pass, bindFragmentSamplers, BSP_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
       .texture = draw->material->texture->texture->texture,
       .sampler = r_bsp_pipeline.diffusemap_sampler->sampler,
     }, 1);
 
+    // R_MaterialUniforms zeroes the whole struct, so the stage fields land at
+    // their STAGE_NONE default -- undoing any stage a preceding surface left
+    // pushed, since this draw's shader branches on material.flags (bsp_fs.glsl).
     r_material_uniforms_t material;
     R_MaterialUniforms(draw->material, draw->surface, &material);
+    $(commands, pushVertexUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
     $(commands, pushFragmentUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
 
     const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
@@ -705,16 +692,15 @@ static void R_DrawBspBlockBlend(RenderPass *pass, CommandBuffer *commands, const
       continue;
     }
 
-    // Reset stage.flags to STAGE_NONE: see R_DrawBspBlockOpaque.
-    $(commands, pushFragmentUniformData, BSP_UNIFORMS_STAGE_FRAGMENT, &r_bsp_stage_none, sizeof(r_bsp_stage_none));
-
     $(pass, bindFragmentSamplers, BSP_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
       .texture = draw->material->texture->texture->texture,
       .sampler = r_bsp_pipeline.diffusemap_sampler->sampler,
     }, 1);
 
+    // R_MaterialUniforms resets the stage fields to STAGE_NONE: see R_DrawBspBlockOpaque.
     r_material_uniforms_t material;
     R_MaterialUniforms(draw->material, draw->surface, &material);
+    $(commands, pushVertexUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
     $(commands, pushFragmentUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
 
     const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));

@@ -65,58 +65,29 @@ const float TWO_PI = PI * 2.0;
 
 const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875, 1.000);
 
-/**
- * @brief The material parameters (per draw), mirroring the C `r_material_block_t`.
- * @remarks `surface` carries the draw's surface flags; the scalars are the .mat
- * parameters pre-multiplied by their r_* cvars on the CPU.
- */
 #if defined(FRAGMENT_SHADER)
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_MATERIAL) uniform sampler2DArray texture_material;
-
-layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform material_block {
-  /**
-   * @brief The material surface flags (SURF_*).
-   */
-  int surface;
-
-  /**
-   * @brief The material alpha test threshold.
-   */
-  float alpha_test;
-
-  /**
-   * @brief The material roughness.
-   */
-  float roughness;
-
-  /**
-   * @brief The material hardness.
-   */
-  float hardness;
-
-  /**
-   * @brief The material specularity.
-   */
-  float specularity;
-
-  /**
-   * @brief The material parallax.
-   */
-  float parallax;
-
-  /**
-   * @brief The material self-shadowing.
-   */
-  float shadow;
-} material;
 #endif
 
 /**
- * @brief The per-stage parameters, mirroring the C `r_stage_uniforms_t`.
- * @remarks Fields are ordered vec4, then vec2, then scalars for tight std140
- * packing that maps 1:1 to the C struct.
+ * @brief The per-draw material AND per-stage parameters, mirroring the C
+ * `r_material_uniforms_t`, in one UBO: they're both material-related (unlike
+ * e.g. the per-draw active-lights bitmask, which has nothing to do with
+ * either). `surface` carries the draw's surface flags; the material scalars
+ * are the .mat parameters pre-multiplied by their r_* cvars on the CPU. Read
+ * by both stages: the vertex stage's stage_transform/stage_vertex below need
+ * the stage fields; only the fragment stage reads the material fields.
+ * Visible to both vertex and fragment (unlike the old fragment-only
+ * material_block) since stage_transform/stage_vertex run in the vertex stage.
+ * MESH programs additionally carry per-entity tint colors here (see
+ * MATERIAL_TINTS) -- material, stage, and tint are all "material stuff";
+ * lights and tints have little to do with each other, so tints do NOT live
+ * with the active-lights bitmask.
+ * @remarks Fields are ordered vec4, then vec2s, then scalars, for tight
+ * std140 packing that maps 1:1 to the C struct.
  */
-layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_STAGE) uniform stage_block {
+layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform material_block {
+
   /**
    * @brief The stage color.
    */
@@ -151,6 +122,41 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_STAGE) uniform sta
    * @brief The stage warp rate and intensity.
    */
   vec2 warp;
+
+  /**
+   * @brief The material surface flags (SURF_*).
+   */
+  int surface;
+
+  /**
+   * @brief The material alpha test threshold.
+   */
+  float alpha_test;
+
+  /**
+   * @brief The material roughness.
+   */
+  float roughness;
+
+  /**
+   * @brief The material hardness.
+   */
+  float hardness;
+
+  /**
+   * @brief The material specularity.
+   */
+  float specularity;
+
+  /**
+   * @brief The material parallax.
+   */
+  float parallax;
+
+  /**
+   * @brief The material self-shadowing.
+   */
+  float shadow;
 
   /**
    * @brief The stage flags.
@@ -196,7 +202,14 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_STAGE) uniform sta
    * @brief The stage shell radius.
    */
   float shell;
-} stage;
+
+#if defined(MATERIAL_TINTS)
+  /**
+   * @brief Per-entity tint colors for player-skin colorization (mesh only).
+   */
+  vec4 tint_colors[3];
+#endif
+} material;
 
 #if defined(FRAGMENT_SHADER)
 /**
@@ -211,8 +224,8 @@ layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_STAGE_NEXT) uniform sampler
  */
 void stage_transform(inout vec3 position, inout vec3 normal, inout vec3 tangent, inout vec3 bitangent) {
 
-  if ((stage.flags & STAGE_SHELL) == STAGE_SHELL) {
-	  position += normal * stage.shell;
+  if ((material.flags & STAGE_SHELL) == STAGE_SHELL) {
+	  position += normal * material.shell;
   }
 }
 
@@ -220,7 +233,7 @@ void stage_transform(inout vec3 position, inout vec3 normal, inout vec3 tangent,
  * @brief
  */
 void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
-  int envmap = stage.flags & STAGE_ENVMAP;
+  int envmap = material.flags & STAGE_ENVMAP;
 
   if (envmap != 0) {
     vec3 view_dir = normalize(vertex.position);
@@ -228,26 +241,26 @@ void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
     vertex.diffusemap = vec2(0.5 + reflect_dir.y * 0.5, 0.5 - reflect_dir.z * 0.5);
   }
 
-  if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
-	  float p = 1.0 + sin(ticks * .001 * stage.stretch.y * PI) * stage.stretch.x * .5;
+  if ((material.flags & STAGE_STRETCH) == STAGE_STRETCH) {
+	  float p = 1.0 + sin(ticks * .001 * material.stretch.y * PI) * material.stretch.x * .5;
 
 	  mat2 matrix;
 	  vec2 translate;
 	  matrix[0][0] = p;
 	  matrix[1][0] = 0;
-	  translate[0] = stage.st_origin.x - stage.st_origin.x * p;
+	  translate[0] = material.st_origin.x - material.st_origin.x * p;
 
 	  matrix[0][1] = 0;
 	  matrix[1][1] = p;
-	  translate[1] = stage.st_origin.y - stage.st_origin.y * p;
+	  translate[1] = material.st_origin.y - material.st_origin.y * p;
 
 	  vertex.diffusemap[0] = vertex.diffusemap[0] * matrix[0][0] + vertex.diffusemap[1] * matrix[1][0] + translate[0];
 	  vertex.diffusemap[1] = vertex.diffusemap[0] * matrix[0][1] + vertex.diffusemap[1] * matrix[1][1] + translate[1];
   }
 
-  if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
-	  float theta = ticks * 0.001 * stage.rotate * TWO_PI;
-    vec2 st_origin = stage.st_origin;
+  if ((material.flags & STAGE_ROTATE) == STAGE_ROTATE) {
+	  float theta = ticks * 0.001 * material.rotate * TWO_PI;
+    vec2 st_origin = material.st_origin;
     if (envmap != 0) {
       st_origin = vec2(0.5);
     }
@@ -258,57 +271,57 @@ void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
   }
 
   if (envmap != 0) {
-    if ((stage.flags & (STAGE_SCALE_S | STAGE_SCALE_T)) != 0) {
+    if ((material.flags & (STAGE_SCALE_S | STAGE_SCALE_T)) != 0) {
       vec2 scale = vec2(
-        (stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S ? stage.scale.s : 1.0,
-        (stage.flags & STAGE_SCALE_T) == STAGE_SCALE_T ? stage.scale.t : 1.0
+        (material.flags & STAGE_SCALE_S) == STAGE_SCALE_S ? material.scale.s : 1.0,
+        (material.flags & STAGE_SCALE_T) == STAGE_SCALE_T ? material.scale.t : 1.0
       );
       vec2 centered = vertex.diffusemap - vec2(0.5);
       centered /= max(abs(scale), vec2(0.0001));
       vertex.diffusemap = centered + vec2(0.5);
     }
 
-    if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
-      vertex.diffusemap.s += stage.scroll.s * ticks * 0.001;
+    if ((material.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
+      vertex.diffusemap.s += material.scroll.s * ticks * 0.001;
     }
 
-    if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
-      vertex.diffusemap.t += stage.scroll.t * ticks * 0.001;
+    if ((material.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
+      vertex.diffusemap.t += material.scroll.t * ticks * 0.001;
     }
   } else {
-    if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
-      vertex.diffusemap.s += stage.scroll.s * ticks * 0.001;
+    if ((material.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
+      vertex.diffusemap.s += material.scroll.s * ticks * 0.001;
     }
 
-    if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
-      vertex.diffusemap.t += stage.scroll.t * ticks * 0.001;
+    if ((material.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
+      vertex.diffusemap.t += material.scroll.t * ticks * 0.001;
     }
 
-    if ((stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
-      vertex.diffusemap.s *= stage.scale.s;
+    if ((material.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
+      vertex.diffusemap.s *= material.scale.s;
     }
 
-    if ((stage.flags & STAGE_SCALE_T) == STAGE_SCALE_T) {
-      vertex.diffusemap.t *= stage.scale.t;
+    if ((material.flags & STAGE_SCALE_T) == STAGE_SCALE_T) {
+      vertex.diffusemap.t *= material.scale.t;
     }
   }
 
-  if ((stage.flags & STAGE_COLOR) == STAGE_COLOR) {
-	  vertex.color = stage.color;
+  if ((material.flags & STAGE_COLOR) == STAGE_COLOR) {
+	  vertex.color = material.color;
   }
 
-  if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
-	  vertex.color.a *= (sin((ticks * .001 + stage.drift) * stage.pulse * PI) + 1.0) * .5;
+  if ((material.flags & STAGE_PULSE) == STAGE_PULSE) {
+	  vertex.color.a *= (sin((ticks * .001 + material.drift) * material.pulse * PI) + 1.0) * .5;
   }
 
-  if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
-	  float z = clamp(in_position.z, stage.terrain.x, stage.terrain.y);
-	  vertex.color.a *= (z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x);
+  if ((material.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
+	  float z = clamp(in_position.z, material.terrain.x, material.terrain.y);
+	  vertex.color.a *= (z - material.terrain.x) / (material.terrain.y - material.terrain.x);
   }
 
-  if ((stage.flags & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
+  if ((material.flags & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
 	  int index = int(in_position.x) + int(in_position.y) + int(in_position.z);
-	  vertex.color.a *= DIRTMAP[index % DIRTMAP.length()] * stage.dirtmap;
+	  vertex.color.a *= DIRTMAP[index % DIRTMAP.length()] * material.dirtmap;
   }
 }
 
@@ -377,8 +390,8 @@ float sample_material_displacement(in vec2 texcoord, in float lod) {
  * @return Stage texture color.
  */
 vec4 sample_material_stage(in vec2 texcoord) {
-  if ((stage.flags & STAGE_ANIM_LERP) == STAGE_ANIM_LERP) {
-    return mix(texture(texture_stage, texcoord), texture(texture_stage_next, texcoord), stage.lerp);
+  if ((material.flags & STAGE_ANIM_LERP) == STAGE_ANIM_LERP) {
+    return mix(texture(texture_stage, texcoord), texture(texture_stage_next, texcoord), material.lerp);
   }
   return texture(texture_stage, texcoord);
 }
