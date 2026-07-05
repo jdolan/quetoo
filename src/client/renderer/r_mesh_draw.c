@@ -43,7 +43,7 @@ enum {
 
 enum {
   MESH_UNIFORMS_GLOBALS,
-  MESH_UNIFORMS_LOCALS, // model/lerp/color (vertex) / active_lights bitmask (fragment)
+  MESH_UNIFORMS_LOCALS, // model/lerp/color (vertex) / active_lights + tints (fragment)
   MESH_UNIFORMS_STAGE_VERTEX, // vertex only
 };
 #define MESH_NUM_UNIFORMS_VERTEX 3
@@ -51,10 +51,12 @@ enum {
 enum {
   // MESH_UNIFORMS_GLOBALS = 0, MESH_UNIFORMS_LOCALS = 1, shared with the vertex stage.
   MESH_UNIFORMS_MATERIAL = 2,
-  MESH_UNIFORMS_TINTS,
   MESH_UNIFORMS_STAGE_FRAGMENT,
 };
-#define MESH_NUM_UNIFORMS_FRAGMENT 5
+// SDL_gpu caps a shader at 4 uniform buffers, so active_lights and tints share
+// MESH_UNIFORMS_LOCALS (one push) instead of each getting their own slot --
+// see the binding map comment in mesh_fs.glsl.
+#define MESH_NUM_UNIFORMS_FRAGMENT 4
 
 /**
  * @brief The stage uniforms for a non-stage (opaque or blend) draw: flags is
@@ -401,15 +403,17 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
   };
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
 
-  // The dynamic lights affecting this entity, culled to its bounds (fragment
-  // slot 1 = active_lights bitmask, the same slot the vertex stage uses for the
-  // model matrix).
-  uint32_t active_lights[4];
-  R_ActiveLights(view, e->abs_model_bounds, active_lights);
-  $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
-
-  // Per-entity tint colors for player-skin colorization (fragment slot 3).
-  $(commands, pushFragmentUniformData, MESH_UNIFORMS_TINTS, e->tints, sizeof(e->tints));
+  // The dynamic lights affecting this entity, culled to its bounds, plus the
+  // per-entity tint colors for player-skin colorization -- combined into one
+  // push (fragment slot 1) since SDL_gpu caps a shader at 4 uniform buffers;
+  // see the binding map comment in mesh_fs.glsl.
+  struct {
+    uint32_t active_lights[4];
+    vec4_t tints[TINT_TOTAL];
+  } fragment_locals;
+  R_ActiveLights(view, e->abs_model_bounds, fragment_locals.active_lights);
+  memcpy(fragment_locals.tints, e->tints, sizeof(fragment_locals.tints));
+  $(commands, pushFragmentUniformData, MESH_UNIFORMS_LOCALS, &fragment_locals, sizeof(fragment_locals));
 
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
     .buffer = mesh->elements_buffer->buffer
@@ -723,7 +727,7 @@ void R_InitMeshPipeline(void) {
     .num_samplers = MESH_NUM_SAMPLERS,               // material, voxel_light_data, shadow_atlas,
                                                       // voxel_caustics, voxel_occlusion, sky, stage, stage_next
     .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS, // lights + voxel_light_indices
-    .num_uniform_buffers = MESH_NUM_UNIFORMS_FRAGMENT, // globals + active_lights + material + tints + stage
+    .num_uniform_buffers = MESH_NUM_UNIFORMS_FRAGMENT, // globals + (active_lights+tints) + material + stage
   });
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;

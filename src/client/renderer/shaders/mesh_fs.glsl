@@ -31,15 +31,18 @@
  * shared home.
  */
 
-#define UNIFORMS_LIGHT_CULL
 #define VOXEL_CAUSTICS_OCCLUSION
 #define LIGHT_SKY
 #include "uniforms.glsl"
 
 /*
  * The mesh program's own binding map (fragment stage), mirroring bsp_fs's
- * shape with one addition: per-entity tint colors, which bsp has no equivalent
- * of. The vertex stage's own map is defined in mesh_vs.glsl.
+ * shape. SDL_gpu caps a shader at 4 uniform buffers, so unlike bsp (which has
+ * spare room for its own dedicated active-lights UBO via UNIFORMS_LIGHT_CULL),
+ * mesh packs active_lights and the per-entity tint colors into one combined
+ * "locals" UBO at the universal BINDING_LOCALS slot (below) instead of opting
+ * into that shared block -- freeing a slot for the stage UBO material lacks.
+ * The vertex stage's own map is defined in mesh_vs.glsl.
  */
 #define BINDING_SAMPLER_MATERIAL         0
 #define BINDING_SAMPLER_VOXEL_LIGHT_DATA 1
@@ -52,8 +55,20 @@
 #define BINDING_STORAGE_LIGHTS              8
 #define BINDING_STORAGE_VOXEL_LIGHT_INDICES 9
 #define BINDING_UNIFORMS_MATERIAL        2
-#define BINDING_UNIFORMS_TINTS           3
-#define BINDING_UNIFORMS_STAGE           4
+#define BINDING_UNIFORMS_STAGE           3
+
+/**
+ * @brief The per-draw dynamic-light cull bitmask (see uniforms.glsl's
+ * light_cull_block, which this does not use) plus per-entity tint colors for
+ * player-skin colorization, blended in via the material tint map (layer 3)
+ * and read only in the base (STAGE_NONE) branch. Combined into one UBO -- see
+ * the binding map comment above. Must precede light.glsl: its lighting
+ * functions reference `active_lights` directly.
+ */
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+  uvec4 active_lights;
+  vec4 tint_colors[3];
+};
 
 #include "common.glsl"
 #include "material.glsl"
@@ -66,14 +81,6 @@ layout (location = 0) out vec4 out_color;
 
 // A float depth copy for the sprite pass to sample (soft particles); see r_framebuffer.c.
 layout (location = 1) out float out_depth;
-
-/**
- * @brief Per-entity tint colors for player-skin colorization, blended in via
- * the material tint map (layer 3). Read only in the base (STAGE_NONE) branch.
- */
-layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_TINTS) uniform tint_block {
-  vec4 tint_colors[3];
-};
 
 common_fragment_t fragment;
 
