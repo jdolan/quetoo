@@ -697,13 +697,11 @@ static void R_InitFont(char *name) {
 /**
  * @brief Builds the 2D triangle-list pipeline (draw_2d_vs/draw_2d_fs).
  */
-static GraphicsPipeline *R_InitDraw2DPipeline(Shader *vertexShader, Shader *fragmentShader) {
+static GraphicsPipeline *R_InitDraw2DPipeline(void) {
 
   const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = {
-    .vertex_shader = vertexShader->shader,
-    .fragment_shader = fragmentShader->shader,
     .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
     .vertex_input_state = {
       .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
@@ -748,7 +746,16 @@ static GraphicsPipeline *R_InitDraw2DPipeline(Shader *vertexShader, Shader *frag
     },
   };
 
-  return $(r_context.device, createGraphicsPipeline, &info);
+  return $(r_context.device, loadGraphicsPipeline,
+    "shaders/draw_2d_vs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+      .num_uniform_buffers = 1, // projection2D (binding 0)
+    },
+    "shaders/draw_2d_fs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+      .num_samplers = 1, // texture_diffusemap
+    },
+    &info);
 }
 
 /**
@@ -781,29 +788,9 @@ void R_InitDraw2D(void) {
   }, &(const uint32_t) { 0xffffffff });
   R_RegisterMedia((r_media_t *) r_draw_2d.null_texture);
 
-  Shader *vertexShader = $(r_context.device, loadShader, "shaders/draw_2d_vs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = 1, // projection2D (binding 0)
-  });
+  r_draw_2d.pipeline = R_InitDraw2DPipeline();
 
-  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/draw_2d_fs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = 1, // texture_diffusemap
-  });
-
-  r_draw_2d.pipeline = R_InitDraw2DPipeline(vertexShader, fragmentShader);
-
-  release(vertexShader);
-  release(fragmentShader);
-
-  r_draw_2d.sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_LINEAR,
-    .mag_filter = SDL_GPU_FILTER_LINEAR,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-  });
+  r_draw_2d.sampler = $(r_context.device, createSamplerLinearClamp);
 }
 
 /**

@@ -519,24 +519,10 @@ void R_DrawDecals(const r_view_t *view) {
  */
 void R_InitDecals(void) {
 
-  Shader *vertexShader = $(r_context.device, loadShader, "shaders/decal_vs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = 2, // globals (0) + locals/model (1)
-  });
-
-  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/decal_fs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = 2,        // texture_diffusemap (atlas) + texture_voxel_light_data
-    .num_storage_buffers = 2, // lights_block + voxel_light_indices_block
-    .num_uniform_buffers = 1, // globals (0)
-  });
-
   const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
-  info.vertex_shader = vertexShader->shader;
-  info.fragment_shader = fragmentShader->shader;
 
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 
@@ -575,10 +561,18 @@ void R_InitDecals(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_decal_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
-
-  release(vertexShader);
-  release(fragmentShader);
+  r_decal_pipeline.pipeline = $(r_context.device, loadGraphicsPipeline,
+    "shaders/decal_vs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+      .num_uniform_buffers = 2, // globals (0) + locals/model (1)
+    },
+    "shaders/decal_fs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+      .num_samplers = 2,        // texture_diffusemap (atlas) + texture_voxel_light_data
+      .num_storage_buffers = 2, // lights_block + voxel_light_indices_block
+      .num_uniform_buffers = 1, // globals (0)
+    },
+    &info);
 
   r_decal_pipeline.diffusemap_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
     .min_filter = SDL_GPU_FILTER_LINEAR,
@@ -591,14 +585,7 @@ void R_InitDecals(void) {
     .max_anisotropy = R_Anisotropy(),
   });
 
-  r_decal_pipeline.voxel_data_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_NEAREST,
-    .mag_filter = SDL_GPU_FILTER_NEAREST,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-  });
+  r_decal_pipeline.voxel_data_sampler = $(r_context.device, createSamplerNearestClamp);
 }
 
 /**

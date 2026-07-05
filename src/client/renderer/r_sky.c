@@ -76,22 +76,6 @@ static struct {
 } r_sky_pipeline;
 
 /**
- * @brief Maps a `cm_blend_t` blend factor to its SDL_gpu equivalent.
- */
-static SDL_GPUBlendFactor R_BlendFactor(cm_blend_t blend) {
-  switch (blend) {
-    case BLEND_ZERO:                return SDL_GPU_BLENDFACTOR_ZERO;
-    case BLEND_ONE:                 return SDL_GPU_BLENDFACTOR_ONE;
-    case BLEND_SRC_COLOR:           return SDL_GPU_BLENDFACTOR_SRC_COLOR;
-    case BLEND_ONE_MINUS_SRC_COLOR: return SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR;
-    case BLEND_SRC_ALPHA:           return SDL_GPU_BLENDFACTOR_SRC_ALPHA;
-    case BLEND_ONE_MINUS_SRC_ALPHA: return SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-    case BLEND_DST_COLOR:           return SDL_GPU_BLENDFACTOR_DST_COLOR;
-    default:                        return SDL_GPU_BLENDFACTOR_ONE;
-  }
-}
-
-/**
  * @brief Returns the sky pipeline for the given material-stage blend function,
  * creating and caching it on first use. Wraps the same sky_vs/sky_fs shader as
  * the base pipeline (a stage draw is a runtime branch, not a shader swap);
@@ -109,17 +93,6 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
     return NULL;
   }
 
-  Shader *vertexShader = $(r_context.device, loadShader, "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = SKY_NUM_UNIFORMS,
-  });
-
-  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/sky_fs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = SKY_NUM_SAMPLERS,
-    .num_uniform_buffers = SKY_NUM_UNIFORMS,
-  });
-
   const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   const SDL_GPUBlendFactor s = R_BlendFactor(src);
@@ -127,8 +100,6 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
-  info.vertex_shader = vertexShader->shader;
-  info.fragment_shader = fragmentShader->shader;
 
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
@@ -170,10 +141,17 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
     .has_depth_stencil_target = true,
   };
 
-  GraphicsPipeline *pipeline = $(r_context.device, createGraphicsPipeline, &info);
-
-  release(vertexShader);
-  release(fragmentShader);
+  GraphicsPipeline *pipeline = $(r_context.device, loadGraphicsPipeline,
+    "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+      .num_uniform_buffers = SKY_NUM_UNIFORMS,
+    },
+    "shaders/sky_fs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+      .num_samplers = SKY_NUM_SAMPLERS,
+      .num_uniform_buffers = SKY_NUM_UNIFORMS,
+    },
+    &info);
 
   r_sky_pipeline.stages[r_sky_pipeline.num_stages] = (typeof(r_sky_pipeline.stages[0])) {
     .src = src, .dest = dest, .pipeline = pipeline,
@@ -362,23 +340,10 @@ Texture *R_SkyTexture(void) {
  */
 static void R_InitSkyPipeline(void) {
 
-  Shader *vertexShader = $(r_context.device, loadShader, "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = SKY_NUM_UNIFORMS, // globals + material(+stage)
-  });
-
-  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/sky_fs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = SKY_NUM_SAMPLERS, // sky, stage, stage_next
-    .num_uniform_buffers = SKY_NUM_UNIFORMS, // globals + material(+stage)
-  });
-
   const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
-  info.vertex_shader = vertexShader->shader;
-  info.fragment_shader = fragmentShader->shader;
 
   // Sky faces share the world's BSP vertex/index buffers, so they use the same
   // winding convention as the rest of the level (matching the GL renderer,
@@ -412,30 +377,21 @@ static void R_InitSkyPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_sky_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
+  r_sky_pipeline.pipeline = $(r_context.device, loadGraphicsPipeline,
+    "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+      .num_uniform_buffers = SKY_NUM_UNIFORMS, // globals + material(+stage)
+    },
+    "shaders/sky_fs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+      .num_samplers = SKY_NUM_SAMPLERS, // sky, stage, stage_next
+      .num_uniform_buffers = SKY_NUM_UNIFORMS, // globals + material(+stage)
+    },
+    &info);
 
-  release(vertexShader);
-  release(fragmentShader);
+  r_sky_pipeline.sampler = $(r_context.device, createSamplerLinearClamp);
 
-  r_sky_pipeline.sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_LINEAR,
-    .mag_filter = SDL_GPU_FILTER_LINEAR,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-  });
-
-  r_sky_pipeline.stage_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_LINEAR,
-    .mag_filter = SDL_GPU_FILTER_LINEAR,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .enable_anisotropy = true,
-    .max_anisotropy = R_Anisotropy(),
-  });
+  r_sky_pipeline.stage_sampler = $(r_context.device, createSamplerLinearRepeat, R_Anisotropy());
 }
 
 /**

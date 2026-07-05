@@ -251,47 +251,15 @@ void R_InitBspPipeline(void) {
   release(vertexShader);
   release(fragmentShader);
 
-  r_bsp_pipeline.diffusemap_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_LINEAR,
-    .mag_filter = SDL_GPU_FILTER_LINEAR,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .enable_anisotropy = true,
-    .max_anisotropy = R_Anisotropy(),
-  });
+  r_bsp_pipeline.diffusemap_sampler = $(r_context.device, createSamplerLinearRepeat, R_Anisotropy());
 
   // Nearest / clamp: the light-data texture is fetched with integer coords.
-  r_bsp_pipeline.voxel_data_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_NEAREST,
-    .mag_filter = SDL_GPU_FILTER_NEAREST,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-  });
+  r_bsp_pipeline.voxel_data_sampler = $(r_context.device, createSamplerNearestClamp);
 
-  r_bsp_pipeline.stage_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_LINEAR,
-    .mag_filter = SDL_GPU_FILTER_LINEAR,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .enable_anisotropy = true,
-    .max_anisotropy = R_Anisotropy(),
-  });
+  r_bsp_pipeline.stage_sampler = $(r_context.device, createSamplerLinearRepeat, R_Anisotropy());
 
   // Linear / clamp: the voxel volumes and sky cubemap are sampled continuously.
-  r_bsp_pipeline.ambient_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_LINEAR,
-    .mag_filter = SDL_GPU_FILTER_LINEAR,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-  });
+  r_bsp_pipeline.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
 
   // A small procedural noise texture for STAGE_WARP liquid surfaces, mipmapped
   // and sampled with stage_sampler (linear, repeat). Matches main's warp_image.
@@ -342,22 +310,6 @@ void R_ShutdownBspPipeline(void) {
     r_bsp_pipeline.stages[i].pipeline = release(r_bsp_pipeline.stages[i].pipeline);
   }
   r_bsp_pipeline.num_stages = 0;
-}
-
-/**
- * @brief Maps a `cm_blend_t` blend factor to its SDL_gpu equivalent.
- */
-static SDL_GPUBlendFactor R_BlendFactor(cm_blend_t blend) {
-  switch (blend) {
-    case BLEND_ZERO:                return SDL_GPU_BLENDFACTOR_ZERO;
-    case BLEND_ONE:                 return SDL_GPU_BLENDFACTOR_ONE;
-    case BLEND_SRC_COLOR:           return SDL_GPU_BLENDFACTOR_SRC_COLOR;
-    case BLEND_ONE_MINUS_SRC_COLOR: return SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR;
-    case BLEND_SRC_ALPHA:           return SDL_GPU_BLENDFACTOR_SRC_ALPHA;
-    case BLEND_ONE_MINUS_SRC_ALPHA: return SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-    case BLEND_DST_COLOR:           return SDL_GPU_BLENDFACTOR_DST_COLOR;
-    default:                        return SDL_GPU_BLENDFACTOR_ONE;
-  }
 }
 
 /**

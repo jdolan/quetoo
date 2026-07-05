@@ -230,19 +230,7 @@ void R_DrawPost(const r_view_t *view) {
  */
 static GraphicsPipeline *R_CreatePostPipeline(SDL_GPUTextureFormat format) {
 
-  Shader *vertexShader = $(r_context.device, loadShader, "shaders/post_vs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-  });
-
-  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/post_fs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = 2,        // texture_color_attachment + texture_bloom_attachment
-    .num_uniform_buffers = 1, // per-pass locals
-  });
-
   SDL_GPUGraphicsPipelineCreateInfo info = {
-    .vertex_shader = vertexShader->shader,
-    .fragment_shader = fragmentShader->shader,
     .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
     .vertex_input_state = {
       .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
@@ -281,12 +269,16 @@ static GraphicsPipeline *R_CreatePostPipeline(SDL_GPUTextureFormat format) {
     },
   };
 
-  GraphicsPipeline *pipeline = $(r_context.device, createGraphicsPipeline, &info);
-
-  release(vertexShader);
-  release(fragmentShader);
-
-  return pipeline;
+  return $(r_context.device, loadGraphicsPipeline,
+    "shaders/post_vs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    },
+    "shaders/post_fs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+      .num_samplers = 2,        // texture_color_attachment + texture_bloom_attachment
+      .num_uniform_buffers = 1, // per-pass locals
+    },
+    &info);
 }
 
 /**
@@ -315,14 +307,7 @@ void R_InitPost(void) {
   r_post.bloom_pipeline = R_CreatePostPipeline(R_SCENE_COLOR_FORMAT);
   r_post.composite_pipeline = R_CreatePostPipeline(r_context.device->framebuffer->colorFormats[0]);
 
-  r_post.sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_LINEAR,
-    .mag_filter = SDL_GPU_FILTER_LINEAR,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-  });
+  r_post.sampler = $(r_context.device, createSamplerLinearClamp);
 }
 
 /**

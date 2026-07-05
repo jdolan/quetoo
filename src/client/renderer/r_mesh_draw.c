@@ -136,22 +136,6 @@ typedef struct {
 } r_mesh_locals_t;
 
 /**
- * @brief Maps a `cm_blend_t` blend factor to its SDL_gpu equivalent.
- */
-static SDL_GPUBlendFactor R_BlendFactor(cm_blend_t blend) {
-  switch (blend) {
-    case BLEND_ZERO:                return SDL_GPU_BLENDFACTOR_ZERO;
-    case BLEND_ONE:                 return SDL_GPU_BLENDFACTOR_ONE;
-    case BLEND_SRC_COLOR:           return SDL_GPU_BLENDFACTOR_SRC_COLOR;
-    case BLEND_ONE_MINUS_SRC_COLOR: return SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR;
-    case BLEND_SRC_ALPHA:           return SDL_GPU_BLENDFACTOR_SRC_ALPHA;
-    case BLEND_ONE_MINUS_SRC_ALPHA: return SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-    case BLEND_DST_COLOR:           return SDL_GPU_BLENDFACTOR_DST_COLOR;
-    default:                        return SDL_GPU_BLENDFACTOR_ONE;
-  }
-}
-
-/**
  * @brief Returns the mesh pipeline for the given material-stage blend function,
  * creating and caching it on first use. Wraps the same mesh_vs/mesh_fs shader
  * as the opaque pipeline (a stage draw is a runtime branch, not a shader
@@ -791,46 +775,14 @@ void R_InitMeshPipeline(void) {
   release(vertexShader);
   release(fragmentShader);
 
-  r_mesh_pipeline.diffusemap_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_LINEAR,
-    .mag_filter = SDL_GPU_FILTER_LINEAR,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .enable_anisotropy = true,
-    .max_anisotropy = R_Anisotropy(),
-  });
+  r_mesh_pipeline.diffusemap_sampler = $(r_context.device, createSamplerLinearRepeat, R_Anisotropy());
 
-  r_mesh_pipeline.voxel_data_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_NEAREST,
-    .mag_filter = SDL_GPU_FILTER_NEAREST,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-  });
+  r_mesh_pipeline.voxel_data_sampler = $(r_context.device, createSamplerNearestClamp);
 
   // Linear / clamp: the voxel volumes and sky cubemap are sampled continuously.
-  r_mesh_pipeline.ambient_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_LINEAR,
-    .mag_filter = SDL_GPU_FILTER_LINEAR,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-  });
+  r_mesh_pipeline.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
 
-  r_mesh_pipeline.stage_sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_LINEAR,
-    .mag_filter = SDL_GPU_FILTER_LINEAR,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
-    .enable_anisotropy = true,
-    .max_anisotropy = R_Anisotropy(),
-  });
+  r_mesh_pipeline.stage_sampler = $(r_context.device, createSamplerLinearRepeat, R_Anisotropy());
 
   // 1x1x1 fallback voxel textures for the player-model preview (see the struct
   // field docs above). Contents are never sampled, so uninitialized (NULL) data

@@ -46,3 +46,21 @@ enum {
  * the scene into it (adding bloom, clamping to LDR).
  */
 #define R_SCENE_COLOR_FORMAT SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT
+
+/**
+ * @brief Maps a `cm_blend_t` blend factor to its SDL_gpu equivalent.
+ * @remarks `static inline` so every pipeline's material-stage blend cache
+ * (R_StagePipeline and friends) can use it without a shared translation unit.
+ */
+static inline SDL_GPUBlendFactor R_BlendFactor(cm_blend_t blend) {
+  switch (blend) {
+    case BLEND_ZERO:                return SDL_GPU_BLENDFACTOR_ZERO;
+    case BLEND_ONE:                 return SDL_GPU_BLENDFACTOR_ONE;
+    case BLEND_SRC_COLOR:           return SDL_GPU_BLENDFACTOR_SRC_COLOR;
+    case BLEND_ONE_MINUS_SRC_COLOR: return SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR;
+    case BLEND_SRC_ALPHA:           return SDL_GPU_BLENDFACTOR_SRC_ALPHA;
+    case BLEND_ONE_MINUS_SRC_ALPHA: return SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+    case BLEND_DST_COLOR:           return SDL_GPU_BLENDFACTOR_DST_COLOR;
+    default:                        return SDL_GPU_BLENDFACTOR_ONE;
+  }
+}

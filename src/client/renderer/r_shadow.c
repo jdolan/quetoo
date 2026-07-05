@@ -499,16 +499,7 @@ void R_InitShadows(void) {
 
   // Comparison sampler (GL_COMPARE_REF_TO_TEXTURE / LEQUAL) with linear filtering
   // for hardware PCF, matching the GL shadow atlas.
-  r_shadow_atlas.sampler = $(r_context.device, createSampler, &(SDL_GPUSamplerCreateInfo) {
-    .min_filter = SDL_GPU_FILTER_LINEAR,
-    .mag_filter = SDL_GPU_FILTER_LINEAR,
-    .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
-    .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-    .compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
-    .enable_compare = true,
-  });
+  r_shadow_atlas.sampler = $(r_context.device, createSamplerShadowCompare);
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/shadow_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
@@ -577,17 +568,7 @@ void R_InitShadows(void) {
   // The atlas "clear" pipeline: no vertex input (a fullscreen triangle from
   // gl_VertexIndex alone), depth test/compare disabled so the write always
   // succeeds regardless of the scissored rect's existing contents.
-  Shader *clearVertexShader = $(r_context.device, loadShader, "shaders/shadow_clear_vs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-  });
-
-  Shader *clearFragmentShader = $(r_context.device, loadShader, "shaders/shadow_clear_fs", &(SDL_GPUShaderCreateInfo) {
-    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-  });
-
-  r_shadow_clear_pipeline = $(r_context.device, createGraphicsPipeline, &(SDL_GPUGraphicsPipelineCreateInfo) {
-    .vertex_shader = clearVertexShader->shader,
-    .fragment_shader = clearFragmentShader->shader,
+  SDL_GPUGraphicsPipelineCreateInfo clear_info = {
     .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
     .rasterizer_state = {
       .fill_mode = SDL_GPU_FILLMODE_FILL,
@@ -604,10 +585,16 @@ void R_InitShadows(void) {
       .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
       .has_depth_stencil_target = true,
     },
-  });
+  };
 
-  release(clearVertexShader);
-  release(clearFragmentShader);
+  r_shadow_clear_pipeline = $(r_context.device, loadGraphicsPipeline,
+    "shaders/shadow_clear_vs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    },
+    "shaders/shadow_clear_fs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+    },
+    &clear_info);
 
   // Cube-face view matrices, light at the origin.
   r_shadow_light_view[0] = Mat4_LookAt(Vec3_Zero(), Vec3( 1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
