@@ -334,12 +334,45 @@ static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, Command
 }
 
 /**
+ * @brief Draws one BSP inline model entity's opaque surfaces, including the
+ * world itself (the worldspawn entity is a BSP inline model entity like any
+ * other -- see R_DrawOpaqueBspEntities). The world's dynamic lights are culled
+ * per block (the unit of light culling for a mesh this large); other inline
+ * models are small enough to light as a whole, culled to their entity bounds.
+ */
+static void R_DrawOpaqueBspEntity(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+                                  GraphicsPipeline *base, const r_entity_t *entity) {
+
+  const r_bsp_inline_model_t *in = entity->model->bsp_inline;
+
+  if (!IS_WORLDSPAWN(entity->model)) {
+    uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
+    R_ActiveLights(view, entity->abs_model_bounds, active_lights);
+    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
+  }
+
+  const r_bsp_block_t *block = in->blocks;
+  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+
+    if (IS_WORLDSPAWN(entity->model)) {
+      uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
+      R_ActiveLights(view, block->node->visible_bounds, active_lights);
+      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
+    }
+
+    R_DrawBspBlockOpaque(view, pass, commands, base, block);
+  }
+
+  r_stats.bsp_inline_models++;
+}
+
+/**
  * @brief Renders the opaque world BSP surfaces with their material diffuse texture,
  * clustered per-voxel static lighting, and per-block dynamic lighting.
- * @remarks Iterates the worldspawn inline model's blocks (the unit of light
- * culling); per block, the active dynamic lights are culled to the block bounds.
- * Also draws opaque inline BSP model entities (doors, platforms, ...) and their
- * material stages; see R_DrawBlendBspEntities for the translucent counterpart.
+ * @remarks Iterates every BSP inline model entity in the view, including the
+ * world itself (see R_DrawOpaqueBspEntity); per block for the world, or per
+ * entity bounds for inline models (doors, platforms, ...), the active dynamic
+ * lights are culled. See R_DrawBlendBspEntities for the translucent counterpart.
  */
 void R_DrawOpaqueBspEntities(const r_view_t *view) {
 
@@ -392,7 +425,6 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  // The per-voxel light-data 3D texture (first_index, count).
   $(pass, bindFragmentSamplers, BSP_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
     .texture = bsp->voxels.light_data->texture->texture,
     .sampler = r_bsp_pipeline.voxel_data_sampler->sampler,
@@ -439,23 +471,10 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   };
   $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, 2);
 
-  // Iterate the worldspawn inline model's blocks: the unit of light culling. Per
-  // block, cull dynamic lights to its bounds, push the bitmask, and draw its
-  // elements. TODO(#864): per-block occlusion cull once revisited (GPU-driven).
-  const r_bsp_inline_model_t *world = bsp->inline_models;
-  const r_bsp_block_t *block = world->blocks;
-  for (int32_t i = 0; i < world->num_blocks; i++, block++) {
-
-    uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
-    R_ActiveLights(view, block->node->visible_bounds, active_lights);
-    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
-
-    R_DrawBspBlockOpaque(view, pass, commands, base, block);
-  }
-
-  // Inline BSP model entities (doors, platforms, buttons, ...): the same pass and
-  // resources, but each carries its own model matrix and is lit as a whole (its
-  // dynamic-light set culled to the entity bounds rather than per block).
+  // Every BSP inline model entity in the view, including the world itself (the
+  // worldspawn entity is a BSP inline model entity like any other): see
+  // R_DrawOpaqueBspEntity. TODO(#864): per-block occlusion cull once revisited
+  // (GPU-driven).
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
@@ -463,34 +482,18 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
       continue;
     }
 
-    // The worldspawn is itself a BSP inline model entity, but it is drawn above
-    // via bsp->inline_models[0]; skip it here to avoid drawing it twice.
-    if (IS_WORLDSPAWN(e->model)) {
-      continue;
-    }
-
     if (e->effects & EF_NO_DRAW) {
       continue;
     }
 
-    if (R_CullEntity(view, e)) {
+    if (!IS_WORLDSPAWN(e->model) && R_CullEntity(view, e)) {
       r_stats.entities_occluded++;
       continue;
     }
 
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
 
-    uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
-    R_ActiveLights(view, e->abs_model_bounds, active_lights);
-    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
-
-    const r_bsp_inline_model_t *in = e->model->bsp_inline;
-    const r_bsp_block_t *b = in->blocks;
-    for (int32_t j = 0; j < in->num_blocks; j++, b++) {
-      R_DrawBspBlockOpaque(view, pass, commands, base, b);
-    }
-
-    r_stats.entities_visible++;
+    R_DrawOpaqueBspEntity(view, pass, commands, base, e);
   }
 
   pass = release(pass);
@@ -539,6 +542,39 @@ static void R_DrawBspBlockBlend(const r_view_t *view, RenderPass *pass, CommandB
     if (r_draw_material_stages->integer && !r_draw_wireframe->integer) {
       R_DrawBspDrawElementsMaterialStages(view, pass, commands, draw);
     }
+  }
+}
+
+/**
+ * @brief Draws one BSP inline model entity's translucent surfaces, including
+ * the world itself. Mirrors R_DrawOpaqueBspEntity's block-vs-entity light
+ * culling; see it for details.
+ */
+static void R_DrawBlendBspEntity(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+                                 const r_entity_t *entity) {
+
+  const r_bsp_inline_model_t *in = entity->model->bsp_inline;
+
+  if (!IS_WORLDSPAWN(entity->model)) {
+    uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
+    R_ActiveLights(view, entity->abs_model_bounds, active_lights);
+    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
+  }
+
+  const r_bsp_block_t *block = in->blocks;
+  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+
+    if (!(block->surface & SURF_MASK_BLEND)) {
+      continue;
+    }
+
+    if (IS_WORLDSPAWN(entity->model)) {
+      uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
+      R_ActiveLights(view, block->node->visible_bounds, active_lights);
+      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
+    }
+
+    R_DrawBspBlockBlend(view, pass, commands, block);
   }
 }
 
@@ -638,25 +674,8 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   };
   $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, 2);
 
-  const r_bsp_inline_model_t *world = bsp->inline_models;
-  const r_bsp_block_t *block = world->blocks;
-  for (int32_t i = 0; i < world->num_blocks; i++, block++) {
-
-    if (!(block->surface & SURF_MASK_BLEND)) {
-      continue;
-    }
-
-    uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
-    R_ActiveLights(view, block->node->visible_bounds, active_lights);
-    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
-
-    R_DrawBspBlockBlend(view, pass, commands, block);
-  }
-
-  // Inline BSP model entities (doors, platforms, buttons, ...): the same pass and
-  // resources, but each carries its own model matrix and is lit as a whole (its
-  // dynamic-light set culled to the entity bounds rather than per block),
-  // matching R_DrawOpaqueBspEntities' inline-entity loop.
+  // Every BSP inline model entity in the view, including the world itself; see
+  // R_DrawBlendBspEntity.
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
@@ -664,36 +683,17 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
       continue;
     }
 
-    // The worldspawn is itself a BSP inline model entity, but it is drawn above
-    // via bsp->inline_models[0]; skip it here to avoid drawing it twice.
-    if (IS_WORLDSPAWN(e->model)) {
-      continue;
-    }
-
     if (e->effects & EF_NO_DRAW) {
       continue;
     }
 
-    if (R_CullEntity(view, e)) {
+    if (!IS_WORLDSPAWN(e->model) && R_CullEntity(view, e)) {
       continue;
     }
 
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
 
-    uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
-    R_ActiveLights(view, e->abs_model_bounds, active_lights);
-    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
-
-    const r_bsp_inline_model_t *in = e->model->bsp_inline;
-    const r_bsp_block_t *b = in->blocks;
-    for (int32_t j = 0; j < in->num_blocks; j++, b++) {
-
-      if (!(b->surface & SURF_MASK_BLEND)) {
-        continue;
-      }
-
-      R_DrawBspBlockBlend(view, pass, commands, b);
-    }
+    R_DrawBlendBspEntity(view, pass, commands, e);
   }
 
   pass = release(pass);
@@ -837,8 +837,6 @@ void R_InitBspPipeline(void) {
   }, data);
   #undef WARP_IMAGE_SIZE
 
-  // Mipmap generation is not a copy-pass operation and must run outside any
-  // pass; see the identical pattern for the sky cubemap in r_image.c.
   CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
   $(commands, generateMipmaps, r_bsp_pipeline.warp_texture->texture);
   $(commands, submit);
@@ -861,6 +859,7 @@ void R_ShutdownBspPipeline(void) {
   for (int32_t i = 0; i < r_bsp_pipeline.num_stages; i++) {
     r_bsp_pipeline.stages[i].pipeline = release(r_bsp_pipeline.stages[i].pipeline);
   }
+  
   r_bsp_pipeline.num_stages = 0;
 }
 
