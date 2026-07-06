@@ -133,7 +133,7 @@ dnl --------------------------
 dnl Check for SDL3, SDL3_image
 dnl --------------------------
 
-PKG_CHECK_MODULES([SDL3], [sdl3 >= 2.0.0 sdl3-image])
+PKG_CHECK_MODULES([SDL3], [sdl3 >= 3.2.0 sdl3-image])
 
 dnl --------------------
 dnl Check for libsndfile
@@ -151,7 +151,7 @@ dnl ------------------------
 dnl Check for ObjectivelyGPU
 dnl ------------------------
 
-PKG_CHECK_MODULES([OBJECTIVELYGPU], [ObjectivelyGPU >= 1.0.0])
+PKG_CHECK_MODULES([OBJECTIVELYGPU], [ObjectivelyGPU >= 0.4.0])
 
 dnl ------------------------
 dnl Check for ObjectivelyMVC
