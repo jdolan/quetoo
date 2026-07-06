@@ -430,18 +430,15 @@ static void R_UploadDecals(const r_view_t *view) {
  */
 void R_DrawDecals(const r_view_t *view) {
 
-  if (!r_decal_pipeline.pipeline || !r_models.world) {
-    return;
-  }
-
-  CommandBuffer *commands = r_context.device->commands;
-  if (!commands) {
+  if (!r_models.world) {
     return;
   }
 
   if (!view->framebuffer) {
     return;
   }
+
+  CommandBuffer *commands = r_context.device->commands;
 
   R_UploadDecals(view);
 

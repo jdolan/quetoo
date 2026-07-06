@@ -162,7 +162,7 @@ void Ui_Draw(void) {
   assert(windowController);
 
   if (r_context.device->commands) {
-    $(windowController, render, r_context.device->commands, r_context.device->framebuffer);
+    $(windowController, render);
   }
 }
 

@@ -299,14 +299,25 @@ void R_DrawViewDepth(r_view_t *view) {
 
 /**
  * @brief Entry point for drawing the main view.
+ * @details Short-circuits the entire frame if there is no command buffer in
+ * flight (e.g. the swapchain was unavailable this frame -- see R_BeginFrame),
+ * so the functions this fans out to don't each need to recheck it.
  */
 void R_DrawMainView(r_view_t *view) {
 
   assert(view);
 
+  if (!r_context.device->commands) {
+    return;
+  }
+
   R_UpdateLights(view);
 
   R_UpdateSprites(view);
+
+  R_UpdateShadows(view);
+
+  R_ClearShadows(view);
 
   R_DrawShadows(view);
 

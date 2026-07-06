@@ -26,12 +26,19 @@
 #if defined(__R_LOCAL_H__)
 
 /**
+ * @brief The number of lights per row/column in each face texture's grid: a
+ * fixed 32x32 grid, i.e. exactly MAX_LIGHTS tiles, so every light always gets
+ * one -- only the texture's pixel dimensions vary, with `r_shadow_tile_size`.
+ */
+#define SHADOW_ATLAS_LIGHTS_PER_ROW 32
+
+/**
  * @brief The shadow atlas: one plain 2D depth texture per cube face.
  * @details SDL_gpu forbids `DEPTH_STENCIL_TARGET` on array textures, so instead
  * of a layered array, each of the six cube faces gets its own texture; a given
  * light occupies the same tile position (row/col derived from its index) in
- * all six. Each texture is a square grid of `lights_per_row` x `lights_per_row`
- * tiles.
+ * all six. Each texture is a square grid of `SHADOW_ATLAS_LIGHTS_PER_ROW` x
+ * `SHADOW_ATLAS_LIGHTS_PER_ROW` tiles.
  */
 typedef struct {
 
@@ -47,25 +54,10 @@ typedef struct {
   Sampler *sampler;
 
   /**
-   * @brief Per-face texture dimensions in pixels (square: `layer_size` × `layer_size`).
-   */
-  int32_t layer_size;
-
-  /**
-   * @brief The tile size in pixels.
+   * @brief The tile size in pixels. Per-face texture dimensions are always
+   * `SHADOW_ATLAS_LIGHTS_PER_ROW` x `tile_size` pixels, square.
    */
   int32_t tile_size;
-
-  /**
-   * @brief The number of lights per row/column in each face texture's grid.
-   */
-  int32_t lights_per_row;
-
-  /**
-   * @brief The number of lights that can have a shadow this frame
-   * (`lights_per_row` × `lights_per_row`).
-   */
-  int32_t lights_per_layer;
 
   /**
    * @brief Frame counter for temporal face amortization.
@@ -75,6 +67,8 @@ typedef struct {
 
 extern r_shadow_atlas_t r_shadow_atlas;
 
+void R_UpdateShadows(r_view_t *view);
+void R_ClearShadows(const r_view_t *view);
 void R_DrawShadows(const r_view_t *view);
 void R_InitShadows(void);
 void R_ShutdownShadows(void);

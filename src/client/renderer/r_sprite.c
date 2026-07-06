@@ -414,18 +414,15 @@ void R_UpdateSprites(r_view_t *view) {
  */
 void R_DrawSprites(const r_view_t *view) {
 
-  if (!r_sprite_draw.pipeline || view->num_sprite_instances == 0 || !r_models.world) {
-    return;
-  }
-
-  CommandBuffer *commands = r_context.device->commands;
-  if (!commands) {
+  if (view->num_sprite_instances == 0 || !r_models.world) {
     return;
   }
 
   if (!view->framebuffer) {
     return;
   }
+
+  CommandBuffer *commands = r_context.device->commands;
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;

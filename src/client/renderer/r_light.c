@@ -56,7 +56,7 @@ void R_UpdateLights(r_view_t *view) {
     tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
   }
 
-  const float inv_layer = r_shadow_atlas.layer_size > 0 ? 1.f / (float) r_shadow_atlas.layer_size : 0.f;
+  const float inv_layer = 1.f / (float) (SHADOW_ATLAS_LIGHTS_PER_ROW * r_shadow_atlas.tile_size);
 
   r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
@@ -81,12 +81,11 @@ void R_UpdateLights(r_view_t *view) {
 
     // Every shadow-casting light (static or dynamic) gets an atlas tile; they
     // are visually identical and differ only in optimization (voxel selection,
-    // tile caching). Each of the six per-face atlas textures holds lights_per_layer
-    // tiles at the same (row, col) for a given light; lights beyond that get no
-    // tile (shadow.z == 0 => lit) rather than a colliding one.
-    if (inv_layer > 0.f && i < r_shadow_atlas.lights_per_layer && !(l->flags & R_LIGHT_NO_SHADOW)) {
-      const int32_t light_col = i % r_shadow_atlas.lights_per_row;
-      const int32_t light_row = i / r_shadow_atlas.lights_per_row;
+    // tile caching). The atlas grid is a fixed SHADOW_ATLAS_LIGHTS_PER_ROW²,
+    // i.e. exactly MAX_LIGHTS tiles, so every light always gets one.
+    if (!(l->flags & R_LIGHT_NO_SHADOW)) {
+      const int32_t light_col = i % SHADOW_ATLAS_LIGHTS_PER_ROW;
+      const int32_t light_row = i / SHADOW_ATLAS_LIGHTS_PER_ROW;
       const float base_x = (float) (light_col * r_shadow_atlas.tile_size) * inv_layer;
       const float base_y = (float) (light_row * r_shadow_atlas.tile_size) * inv_layer;
       const float tile_uv = (float) r_shadow_atlas.tile_size * inv_layer;

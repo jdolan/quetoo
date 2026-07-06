@@ -371,14 +371,11 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
     return;
   }
 
-  CommandBuffer *commands = r_context.device->commands;
-  if (!commands) {
-    return;
-  }
-
   if (!view->framebuffer) {
     return;
   }
+
+  CommandBuffer *commands = r_context.device->commands;
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
@@ -561,14 +558,11 @@ static void R_DrawBlendBspEntity(const r_view_t *view, RenderPass *pass, Command
  */
 void R_DrawBlendBspEntities(const r_view_t *view) {
 
-  if (!r_models.world || !r_bsp_draw.blend_pipeline) {
+  if (!r_models.world) {
     return;
   }
 
   CommandBuffer *commands = r_context.device->commands;
-  if (!commands) {
-    return;
-  }
 
   if (!view->framebuffer) {
     return;

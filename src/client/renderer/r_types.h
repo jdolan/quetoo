@@ -1815,6 +1815,13 @@ typedef struct r_entity_s {
 #define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
 
 /**
+ * @brief The maximum number of shadow-caster entity references across all
+ * lights in a single frame (an entity may be referenced by more than one
+ * light, so this is not simply MAX_ENTITIES).
+ */
+#define MAX_SHADOW_CASTERS (MAX_ENTITIES * 4)
+
+/**
  * @brief Hardware light source flags.
  */
 #define R_LIGHT_NO_SHADOW (1 << 0)
@@ -1875,6 +1882,46 @@ typedef struct {
    * @brief The optional light source, which will not cast shadow.
    */
   const r_entity_t *source;
+
+  /**
+   * @brief True if this light's shadow needs no redraw this frame: after
+   * view-frustum pre-culling, no BSP inline model or mesh entity caster
+   * remains in `bsp_shadow_casters`/`mesh_shadow_casters`. Combined with the
+   * persistent `*shadow_cached` flag by R_UpdateShadows to decide
+   * `shadow_needs_draw`.
+   */
+  bool shadow_cacheable;
+
+  /**
+   * @brief True if this light's shadow tile must be cleared and redrawn this
+   * frame, i.e. `casts_shadow` and not (`shadow_cacheable` and
+   * `*shadow_cached`). Computed once by R_UpdateShadows.
+   */
+  bool shadow_needs_draw;
+
+  /**
+   * @brief The BSP inline model casters intersecting this light's bounds and
+   * surviving the view-frustum shadow-bounds cull, populated by
+   * R_UpdateShadows. Points into r_view_t::shadow_caster_entities.
+   */
+  const r_entity_t **bsp_entities;
+
+  /**
+   * @brief The number of entities in `bsp_shadow_casters`.
+   */
+  int32_t num_bsp_entities;
+
+  /**
+   * @brief The mesh entity casters intersecting this light's bounds and
+   * surviving the view-frustum shadow-bounds cull, populated by
+   * R_UpdateShadows. Points into r_view_t::shadow_caster_entities.
+   */
+  const r_entity_t **mesh_entities;
+
+  /**
+   * @brief The number of entities in `mesh_shadow_casters`.
+   */
+  int32_t num_mesh_entities;
 } r_light_t;
 
 /**
@@ -2031,6 +2078,18 @@ typedef struct {
    * @brief The count of lights.
    */
   int32_t num_lights;
+
+  /**
+   * @brief Flattened shadow-caster entity pointers for all lights that need
+   * their shadow redrawn this frame, populated by R_UpdateShadows. Each
+   * r_light_t::bsp_shadow_casters/mesh_shadow_casters points into this array.
+   */
+  const r_entity_t *shadow_entities[MAX_SHADOW_CASTERS];
+
+  /**
+   * @brief The number of entries used in `shadow_caster_entities` this frame.
+   */
+  int32_t num_shadow_entities;
 
   /**
    * @brief New decals added this frame, to be processed during `R_UpdateDecals`.

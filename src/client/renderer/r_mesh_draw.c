@@ -498,18 +498,15 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
  */
 void R_DrawMeshEntities(const r_view_t *view) {
 
-  if (!r_mesh_draw.pipeline || !r_models.world) {
-    return;
-  }
-
-  CommandBuffer *commands = r_context.device->commands;
-  if (!commands) {
+  if (!r_models.world) {
     return;
   }
 
   if (!view->framebuffer) {
     return;
   }
+
+  CommandBuffer *commands = r_context.device->commands;
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;

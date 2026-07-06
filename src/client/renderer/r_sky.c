@@ -235,22 +235,15 @@ static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view, RenderPass
  */
 void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 
-  if (!r_sky_draw.pipeline || !r_sky.image || !r_sky.image->texture || !r_sky.image->texture->texture) {
-    return;
-  }
-
-  if (!bsp->vertex_buffer) {
-    return;
-  }
-
-  CommandBuffer *commands = r_context.device->commands;
-  if (!commands) {
+  if (!r_sky.image || !r_sky.image->texture || !r_sky.image->texture->texture) {
     return;
   }
 
   if (!view->framebuffer) {
     return;
   }
+
+  CommandBuffer *commands = r_context.device->commands;
 
   Framebuffer *framebuffer = view->framebuffer;
 
