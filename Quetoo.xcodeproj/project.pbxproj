@@ -169,6 +169,8 @@
 		CE1643C52FF75DDB00863996 /* r_context.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1643C22FF75DDB00863996 /* r_context.h */; };
 		CE1643CA2FF7EE9900863996 /* decal_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643C62FF7EE8B00863996 /* decal_fs.metal */; };
 		CE1643CB2FF7EEA100863996 /* decal_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643C82FF7EE8B00863996 /* decal_vs.metal */; };
+		CE1643F12FFB3A7800863996 /* shadow_clear_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643EC2FFB3A0300863996 /* shadow_clear_fs.metal */; };
+		CE1643F22FFB3A8600863996 /* shadow_clear_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643EF2FFB3A0300863996 /* shadow_clear_vs.metal */; };
 		CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
 		CE1A28321F75FC1D005F62A9 /* PlayerModelView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1A282E1F75FC1D005F62A9 /* PlayerModelView.h */; };
 		CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
@@ -995,6 +997,8 @@
 				CE1643A42FF69B3F00863996 /* mesh_vs.metal in CopyFiles */,
 				CE1643842FF5A23300863996 /* post_fs.metal in CopyFiles */,
 				CE1643872FF5A23300863996 /* post_vs.metal in CopyFiles */,
+				CE1643F12FFB3A7800863996 /* shadow_clear_fs.metal in CopyFiles */,
+				CE1643F22FFB3A8600863996 /* shadow_clear_vs.metal in CopyFiles */,
 				CE1643A62FF69B6700863996 /* shadow_fs.metal in CopyFiles */,
 				CE1643A52FF69B6100863996 /* shadow_vs.metal in CopyFiles */,
 				CE1643AC2FF6B49700863996 /* sky_fs.metal in CopyFiles */,
@@ -1534,6 +1538,12 @@
 		CE1643E82FFB373000863996 /* sky_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = sky_vs.dxil; sourceTree = "<group>"; };
 		CE1643E92FFB373000863996 /* sprite_fs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = sprite_fs.dxil; sourceTree = "<group>"; };
 		CE1643EA2FFB373000863996 /* sprite_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = sprite_vs.dxil; sourceTree = "<group>"; };
+		CE1643EB2FFB3A0300863996 /* shadow_clear_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_clear_fs.glsl; sourceTree = "<group>"; };
+		CE1643EC2FFB3A0300863996 /* shadow_clear_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = shadow_clear_fs.metal; sourceTree = "<group>"; };
+		CE1643ED2FFB3A0300863996 /* shadow_clear_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_clear_fs.spv; sourceTree = "<group>"; };
+		CE1643EE2FFB3A0300863996 /* shadow_clear_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_clear_vs.glsl; sourceTree = "<group>"; };
+		CE1643EF2FFB3A0300863996 /* shadow_clear_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = shadow_clear_vs.metal; sourceTree = "<group>"; };
+		CE1643F02FFB3A0300863996 /* shadow_clear_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_clear_vs.spv; sourceTree = "<group>"; };
 		CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerModelView.c; sourceTree = "<group>"; };
 		CE1A282E1F75FC1D005F62A9 /* PlayerModelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerModelView.h; sourceTree = "<group>"; };
 		CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerSetupViewController.c; sourceTree = "<group>"; };
@@ -2725,7 +2735,13 @@
 				CE1643612FF5A1E400863996 /* post_vs.metal */,
 				CE1643622FF5A1E400863996 /* post_vs.spv */,
 				CE1643E32FFB373000863996 /* shadow_clear_fs.dxil */,
+				CE1643EB2FFB3A0300863996 /* shadow_clear_fs.glsl */,
+				CE1643EC2FFB3A0300863996 /* shadow_clear_fs.metal */,
+				CE1643ED2FFB3A0300863996 /* shadow_clear_fs.spv */,
 				CE1643E42FFB373000863996 /* shadow_clear_vs.dxil */,
+				CE1643EE2FFB3A0300863996 /* shadow_clear_vs.glsl */,
+				CE1643EF2FFB3A0300863996 /* shadow_clear_vs.metal */,
+				CE1643F02FFB3A0300863996 /* shadow_clear_vs.spv */,
 				CE1643E52FFB373000863996 /* shadow_fs.dxil */,
 				CEF7B4A52ED94FED00B551CA /* shadow_fs.glsl */,
 				CE16439F2FF6962600863996 /* shadow_fs.metal */,
