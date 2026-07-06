@@ -40,7 +40,7 @@ typedef struct {
 
 extern r_depth_pass_program_t r_depth_pass_program;
 
-void R_DrawDepthPass(r_view_t *view);
+void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands);
 void R_InitDepthPass(void);
 void R_ShutdownDepthPass(void);
 void R_UpdateDepthPass(void);

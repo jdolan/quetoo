@@ -164,13 +164,6 @@ void R_DrawShadows(const r_view_t *view) {
 
   for (int32_t face = 0; face < 6; face++) {
 
-    // Depth-only pass: this face's texture stores linear distance-from-light
-    // (1.0 = far/no occluder), sampled later through a comparison sampler.
-    // LOAD, not CLEAR: the texture packs every light's tile, and SDL_gpu's
-    // load_op always applies to the whole texture, not a scissored sub-rect --
-    // clearing here would wipe every light's shadow, defeating the temporal
-    // cache below. Each light being (re)drawn this frame instead clears just
-    // its own tile via a scissored draw with r_shadow_clear_pipeline.
     const SDL_GPUDepthStencilTargetInfo depth = {
       .texture = r_shadow_atlas.textures[face]->texture,
       .load_op = SDL_GPU_LOADOP_LOAD,
@@ -181,7 +174,6 @@ void R_DrawShadows(const r_view_t *view) {
 
     $(pass, bindPipeline, r_shadow_pipeline);
 
-    // BSP geometry is static: bind the position buffer to both frame slots.
     $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
       { .buffer = bsp->vertex_buffer->buffer },
       { .buffer = bsp->vertex_buffer->buffer },
@@ -204,21 +196,14 @@ void R_DrawShadows(const r_view_t *view) {
         continue;
       }
 
-      // Only render shadow maps for lights whose bounds are within the view frustum.
       if (R_CullBox(view, l->bounds)) {
         continue;
       }
 
-      // Set by R_UpdateLights: static lights consult their persistent
-      // occlusion query, dynamic lights are tested fresh each frame.
       if (l->occluded) {
         continue;
       }
 
-      // If only the static world casts into this light, its shadow never
-      // changes; skip the redraw once it's already in the atlas from a prior
-      // frame. l->shadow_cached is NULL for dynamic lights (no persistent
-      // identity across frames to cache against), so they always redraw.
       const bool cacheable = R_IsShadowCacheable(view, l);
       if (cacheable && l->shadow_cached && *l->shadow_cached) {
         continue;
@@ -227,8 +212,6 @@ void R_DrawShadows(const r_view_t *view) {
       int32_t tx, ty;
       R_ShadowAtlasTile(i, &tx, &ty);
 
-      // Not using the cache: clear this light's tile before redrawing it,
-      // since LOAD preserves whatever was there before.
       $(pass, setViewport, &(SDL_GPUViewport) {
         .x = (float) tx, .y = (float) ty, .w = (float) ts, .h = (float) ts,
         .min_depth = 0.f, .max_depth = 1.f,
@@ -247,16 +230,13 @@ void R_DrawShadows(const r_view_t *view) {
         .buffer = bsp->elements_buffer->buffer
       }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-      // World shadow geometry: static BSP lights use their precomputed element
-      // subset (a compile-time optimization); dynamic lights cast the full
-      // worldspawn model.
-      uint32_t firstIndex, count;
+      uint32_t first_index, count;
       if (l->bsp_light && l->bsp_light->num_depth_pass_elements) {
-        firstIndex = (uint32_t) ((uintptr_t) l->bsp_light->depth_pass_elements / sizeof(uint32_t));
+        first_index = (uint32_t) ((uintptr_t) l->bsp_light->depth_pass_elements / sizeof(uint32_t));
         count = (uint32_t) l->bsp_light->num_depth_pass_elements;
       } else {
         const r_bsp_inline_model_t *world = bsp->inline_models;
-        firstIndex = (uint32_t) ((uintptr_t) world->depth_pass_elements / sizeof(uint32_t));
+        first_index = (uint32_t) ((uintptr_t) world->depth_pass_elements / sizeof(uint32_t));
         count = (uint32_t) world->num_depth_pass_elements;
       }
 
@@ -276,12 +256,8 @@ void R_DrawShadows(const r_view_t *view) {
       };
       $(commands, pushVertexUniformData, 1, &locals, sizeof(locals));
 
-      $(pass, drawIndexedPrimitives, count, 1, firstIndex, 0, 0);
+      $(pass, drawIndexedPrimitives, count, 1, first_index, 0, 0);
 
-      // Inline BSP model entity casters (doors, platforms, ...): the same
-      // pipeline and vertex/index buffers as the world (already bound above),
-      // but each entity carries its own transform and precomputed depth-pass
-      // element subset, matching R_DrawOpaqueBspEntities' inline-entity loop.
       const r_entity_t *be = view->entities;
       for (int32_t ei = 0; ei < view->num_entities; ei++, be++) {
 
@@ -297,12 +273,6 @@ void R_DrawShadows(const r_view_t *view) {
           continue;
         }
 
-        // Expand the caster's bounds toward the light to approximate the
-        // volume its shadow could occupy, and skip drawing it if that volume
-        // itself is occluded/frustum-culled. Matches main's
-        // R_CullBspEntitiesForShadow, computed inline here rather than as a
-        // separate per-light pre-pass (this branch's face/light loop nesting
-        // means it re-runs per face; harmless given typical caster counts).
         {
           vec3_t corners[8];
           Box3_ToPoints(be->abs_model_bounds, corners);
@@ -348,119 +318,113 @@ void R_DrawShadows(const r_view_t *view) {
     // Mesh entity casters: same face pass, but the mesh-layout pipeline (two
     // animation frame slots). Render each shadow-casting mesh entity within
     // range of each visible light, into that light's tile in this face.
-    if (r_shadow_mesh_pipeline) {
 
-      $(pass, bindPipeline, r_shadow_mesh_pipeline);
-      $(commands, pushVertexUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
+    $(pass, bindPipeline, r_shadow_mesh_pipeline);
+    $(commands, pushVertexUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
 
-      const r_light_t *ml = view->lights;
-      for (int32_t i = 0; i < view->num_lights; i++, ml++) {
+    const r_light_t *ml = view->lights;
+    for (int32_t i = 0; i < view->num_lights; i++, ml++) {
 
-        if (i >= r_shadow_atlas.lights_per_layer) {
+      if (i >= r_shadow_atlas.lights_per_layer) {
+        continue;
+      }
+
+      if (ml->flags & R_LIGHT_NO_SHADOW) {
+        continue;
+      }
+
+      if (R_CullBox(view, ml->bounds)) {
+        continue;
+      }
+
+      if (ml->occluded) {
+        continue;
+      }
+
+      if (ml->shadow_cached && *ml->shadow_cached) {
+        continue;
+      }
+
+      int32_t tx, ty;
+      R_ShadowAtlasTile(i, &tx, &ty);
+
+      const r_entity_t *e = view->entities;
+      for (int32_t ei = 0; ei < view->num_entities; ei++, e++) {
+
+        if (!IS_MESH_MODEL(e->model)) {
           continue;
         }
 
-        if (ml->flags & R_LIGHT_NO_SHADOW) {
+        // EF_NO_DRAW entities may still cast; EF_NO_SHADOW/EF_BLEND never do.
+        if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
           continue;
         }
 
-        if (R_CullBox(view, ml->bounds)) {
+        if (R_IsLightSource(ml, e)) {
           continue;
         }
 
-        // Same occlusion check as the world/inline-entity loop above.
-        if (ml->occluded) {
+        const r_mesh_model_t *mesh = e->model->mesh;
+        if (!mesh || !mesh->vertex_buffer) {
           continue;
         }
 
-        // Same cache check as the world/inline-entity loop above (the whole
-        // tile was already skipped there if cacheable, so this is a no-op
-        // unless this light has a mesh caster and nothing else).
-        if (ml->shadow_cached && *ml->shadow_cached) {
+        if (!Box3_Intersects(ml->bounds, e->abs_model_bounds)) {
           continue;
         }
 
-        int32_t tx, ty;
-        R_ShadowAtlasTile(i, &tx, &ty);
+        // See the matching comment in the BSP inline entity loop above.
+        {
+          vec3_t corners[8];
+          Box3_ToPoints(e->abs_model_bounds, corners);
 
-        const r_entity_t *e = view->entities;
-        for (int32_t ei = 0; ei < view->num_entities; ei++, e++) {
+          box3_t shadow_bounds = e->abs_model_bounds;
+          for (int32_t j = 0; j < 8; j++) {
+            const vec3_t to_corner = Vec3_Subtract(corners[j], ml->origin);
+            const vec3_t dir = Vec3_Normalize(to_corner);
+            shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(ml->origin, ml->radius, dir));
+          }
 
-          if (!IS_MESH_MODEL(e->model)) {
+          shadow_bounds = Box3_Expand(shadow_bounds, 32.f);
+
+          if (R_CulludeBox(view, shadow_bounds)) {
             continue;
           }
+        }
 
-          // EF_NO_DRAW entities may still cast; EF_NO_SHADOW/EF_BLEND never do.
-          if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
-            continue;
-          }
+        $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
+          .buffer = mesh->elements_buffer->buffer
+        }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-          if (R_IsLightSource(ml, e)) {
-            continue;
-          }
+        const uint32_t stride = sizeof(r_mesh_vertex_t);
 
-          const r_mesh_model_t *mesh = e->model->mesh;
-          if (!mesh || !mesh->vertex_buffer) {
-            continue;
-          }
+        $(pass, setViewport, &(SDL_GPUViewport) {
+          .x = (float) tx, .y = (float) ty, .w = (float) ts, .h = (float) ts,
+          .min_depth = 0.f, .max_depth = 1.f,
+        });
+        $(pass, setScissor, &(SDL_Rect) { tx, ty, ts, ts });
 
-          if (!Box3_Intersects(ml->bounds, e->abs_model_bounds)) {
-            continue;
-          }
+        const r_shadow_locals_t locals = {
+          .model = e->matrix,
+          .light_view = r_shadow_light_view[face],
+          .light_origin = Vec3_ToVec4(ml->origin, 0.f),
+          .lerp = e->lerp,
+        };
+        $(commands, pushVertexUniformData, 1, &locals, sizeof(locals));
 
-          // See the matching comment in the BSP inline entity loop above.
-          {
-            vec3_t corners[8];
-            Box3_ToPoints(e->abs_model_bounds, corners);
+        const r_mesh_face_t *mf = mesh->faces;
+        for (int32_t fi = 0; fi < mesh->num_faces; fi++, mf++) {
 
-            box3_t shadow_bounds = e->abs_model_bounds;
-            for (int32_t j = 0; j < 8; j++) {
-              const vec3_t to_corner = Vec3_Subtract(corners[j], ml->origin);
-              const vec3_t dir = Vec3_Normalize(to_corner);
-              shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(ml->origin, ml->radius, dir));
-            }
+          const uint32_t old_offset = (uint32_t) (mf->base_vertex + e->old_frame * mf->num_vertexes) * stride;
+          const uint32_t cur_offset = (uint32_t) (mf->base_vertex + e->frame * mf->num_vertexes) * stride;
 
-            shadow_bounds = Box3_Expand(shadow_bounds, 32.f);
+          $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
+            { .buffer = mesh->vertex_buffer->buffer, .offset = old_offset },
+            { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
+          }, 2);
 
-            if (R_CulludeBox(view, shadow_bounds)) {
-              continue;
-            }
-          }
-
-          $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
-            .buffer = mesh->elements_buffer->buffer
-          }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
-
-          const uint32_t stride = sizeof(r_mesh_vertex_t);
-
-          $(pass, setViewport, &(SDL_GPUViewport) {
-            .x = (float) tx, .y = (float) ty, .w = (float) ts, .h = (float) ts,
-            .min_depth = 0.f, .max_depth = 1.f,
-          });
-          $(pass, setScissor, &(SDL_Rect) { tx, ty, ts, ts });
-
-          const r_shadow_locals_t locals = {
-            .model = e->matrix,
-            .light_view = r_shadow_light_view[face],
-            .light_origin = Vec3_ToVec4(ml->origin, 0.f),
-            .lerp = e->lerp,
-          };
-          $(commands, pushVertexUniformData, 1, &locals, sizeof(locals));
-
-          const r_mesh_face_t *mf = mesh->faces;
-          for (int32_t fi = 0; fi < mesh->num_faces; fi++, mf++) {
-
-            const uint32_t old_offset = (uint32_t) (mf->base_vertex + e->old_frame * mf->num_vertexes) * stride;
-            const uint32_t cur_offset = (uint32_t) (mf->base_vertex + e->frame * mf->num_vertexes) * stride;
-
-            $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
-              { .buffer = mesh->vertex_buffer->buffer, .offset = old_offset },
-              { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
-            }, 2);
-
-            const uint32_t firstIndex = (uint32_t) ((uintptr_t) mf->indices / sizeof(uint32_t));
-            $(pass, drawIndexedPrimitives, mf->num_elements, 1, firstIndex, 0, 0);
-          }
+          const uint32_t firstIndex = (uint32_t) ((uintptr_t) mf->indices / sizeof(uint32_t));
+          $(pass, drawIndexedPrimitives, mf->num_elements, 1, firstIndex, 0, 0);
         }
       }
     }

@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <Objectively/Array.h>
+
 #include "r_local.h"
 
 /**
@@ -30,41 +32,42 @@
 
 /**
  * @brief The occlusion query accounting structure.
- * @details Occlusion queries are maintained in a dynamic pool that will grow to meet the demands
- * of the scene. Lists make allocating and freeing queries a constant O(1) operation.
- * @details Unlike GL, SDL_gpu query pools are fixed-size and index-addressed rather than
- * individually created/destroyed objects, so each r_occlusion_query_t is permanently
- * assigned a slot index into the single shared QueryPool the first time it's allocated;
- * returning it to the free list for reuse keeps that index for the life of the process.
+ * @details Occlusion queries are only ever allocated in bulk at BSP load (one per block,
+ * one per light) and invalidated in bulk when the BSP model is freed -- never
+ * individually or per-frame -- so `queries` is a single pre-sized array, malloc'd once
+ * at startup, with `num_queries` acting as a bump allocator reset to 0 by
+ * `R_ResetOcclusionQueries` on BSP free. A query's position in `queries` is also its
+ * index into the shared QueryPool, so no separate index bookkeeping is needed.
  * @details SDL_gpu has no equivalent of GL_QUERY_RESULT_AVAILABLE (a non-blocking poll of
- * a single query), so results are instead downloaded for the whole active range once per
- * frame into one of two ping-ponged transfer buffers, and read back one frame later --
- * by then the GPU work that produced them has long since been submitted, giving the same
- * "effectively free" latency-hiding the original deferred-retrieval design intends,
- * without an explicit fence wait.
+ * a single query), so results are instead downloaded for the whole active range into a
+ * single transfer buffer, gated by the fence of the dedicated depth-pass command buffer
+ * that recorded the download (see `R_AddOcclusionQueryFence`, fed from `R_DrawViewDepth`
+ * via `CommandBuffer::submitAndFence`). Recording the depth pass and occlusion queries
+ * into their own command buffer, submitted immediately rather than folded into the
+ * frame's shared buffer, lets that fence signal as soon as just that GPU work completes,
+ * unblocked by the rest of the frame's rendering. Queries are only reissued -- reusing
+ * the same transfer buffer -- once that fence has signaled,
+ * so the buffer is never read while the GPU may still be writing it, and we never
+ * redundantly reissue a query whose prior result hasn't been consumed yet.
  */
 static struct {
 
   /**
-   * @brief The allocated occlusion queries.
+   * @brief The occlusion queries, pre-sized to `MAX_OCCLUSION_QUERIES`. A query's
+   * position in this array is also its index into `query_pool`.
    */
-  List *allocated;
+  r_occlusion_query_t *queries;
 
   /**
-   * @brief The free occlusion queries.
+   * @brief The number of currently allocated queries, i.e. the bump allocator cursor
+   * into `queries`. Reset to 0 by `R_ResetOcclusionQueries` on BSP free.
    */
-  List *free;
+  int32_t num_queries;
 
   /**
    * @brief If true, rebuild the vertex buffer at next frame.
    */
   bool dirty;
-
-  /**
-   * @brief The next unused slot index into `query_pool`. Only grows; freed
-   * queries are recycled by index via the `free` list, not by decrementing this.
-   */
-  int32_t next_index;
 
   /**
    * @brief The shared occlusion query pool.
@@ -87,32 +90,23 @@ static struct {
   GraphicsPipeline *pipeline;
 
   /**
-   * @brief Ping-ponged download targets for query results; see the struct's details above.
+   * @brief The download target for query results.
    */
-  SDL_GPUTransferBuffer *transfer[2];
+  TransferBuffer *transfer;
 
   /**
-   * @brief The frame counter driving which `transfer` buffer is downloaded into vs. read from.
+   * @brief True if a download into `transfer` was recorded this frame, awaiting its fence.
    */
-  int32_t frame;
+  bool download_pending;
+
+  /**
+   * @brief Fences for frames that recorded a download into `transfer`, oldest first.
+   * @details In practice this never holds more than one fence: queries are not reissued
+   * (and thus no further download recorded) until the oldest fence signals and is removed.
+   * `Array` retains each Fence on `addObject` and releases it on `removeObjectAtIndex`.
+   */
+  Array *fences;
 } r_occlusion_queries;
-
-/**
- * @brief Pops a query from the given list, if available.
- */
-static r_occlusion_query_t *R_PopOcclusionQuery(List *queries) {
-
-  if (queries == NULL || queries->head == NULL) {
-    return NULL;
-  }
-
-  ListNode *node = queries->head;
-  r_occlusion_query_t *query = node->element;
-
-  $(queries, removeNode, node);
-
-  return query;
-}
 
 /**
  * @brief Checks BSP block occlusion queries to determine if the given box is occluded.
@@ -176,13 +170,9 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
  */
 r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
 
-  r_occlusion_query_t *query = R_PopOcclusionQuery(r_occlusion_queries.free);
-  if (query == NULL) {
-    GPU_Assert(r_occlusion_queries.next_index < MAX_OCCLUSION_QUERIES, "Exceeded MAX_OCCLUSION_QUERIES (%d)", MAX_OCCLUSION_QUERIES);
+  GPU_Assert(r_occlusion_queries.num_queries < MAX_OCCLUSION_QUERIES, "Exceeded MAX_OCCLUSION_QUERIES (%d)", MAX_OCCLUSION_QUERIES);
 
-    query = Mem_TagMalloc(sizeof(r_occlusion_query_t), MEM_TAG_RENDERER);
-    query->index = r_occlusion_queries.next_index++;
-  }
+  r_occlusion_query_t *query = &r_occlusion_queries.queries[r_occlusion_queries.num_queries++];
 
   query->bounds = bounds;
   query->available = true;
@@ -190,25 +180,18 @@ r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
 
   r_occlusion_queries.dirty = true;
 
-  $(r_occlusion_queries.allocated, prepend, query);
   return query;
 }
 
 /**
- * @brief Frees the specified occlusion query.
+ * @brief Resets the occlusion query pool, invalidating all previously allocated queries.
+ * @details Occlusion queries are only ever allocated in bulk at BSP load (one per block,
+ * one per light) and invalidated in bulk when the BSP model is freed, never individually
+ * or per-frame, so resetting the allocation cursor is all that's needed here; the next
+ * R_LoadBspOcclusionQueries call reallocates from the start of the pool.
  */
-void R_FreeOcclusionQuery(r_occlusion_query_t *query) {
-
-  if (!query) {
-    return;
-  }
-
-  ListNode *node = $(r_occlusion_queries.allocated, nodeForElement, query);
-  if (node) {
-    $(r_occlusion_queries.allocated, removeNode, node);
-  }
-  $(r_occlusion_queries.free, prepend, query);
-
+void R_ResetOcclusionQueries(void) {
+  r_occlusion_queries.num_queries = 0;
   r_occlusion_queries.dirty = true;
 }
 
@@ -224,18 +207,16 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
   release(r_occlusion_queries.vertex_buffer);
   r_occlusion_queries.vertex_buffer = NULL;
 
-  const size_t num_queries = r_occlusion_queries.allocated->count;
+  const int32_t num_queries = r_occlusion_queries.num_queries;
   if (num_queries) {
 
     vec3_t *vertexes = malloc(num_queries * sizeof(vec3_t) * 8);
 
-    int32_t base_vertex = 0;
-    for (const ListNode *node = r_occlusion_queries.allocated->head; node; node = node->next) {
-      r_occlusion_query_t *query = node->element;
+    for (int32_t i = 0; i < num_queries; i++) {
+      r_occlusion_query_t *query = &r_occlusion_queries.queries[i];
 
-      query->base_vertex = base_vertex;
-      Box3_ToPoints(query->bounds, vertexes + base_vertex);
-      base_vertex += 8;
+      query->base_vertex = i * 8;
+      Box3_ToPoints(query->bounds, vertexes + i * 8);
     }
 
     r_occlusion_queries.vertex_buffer = $(r_context.device, createBufferWithConstMem,
@@ -251,37 +232,43 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
  * @brief Draws and polls all occlusion queries for the current frame.
  * @details Renders each allocated query's bounding box into the view framebuffer's depth
  * target (already populated by the real world geometry in R_DrawDepthPass, LOADed here so
- * those results persist), bracketing each box draw in a query so the next frame's
+ * those results persist), bracketing each box draw in a query so a later frame's
  * R_OccludeBox/R_OccludeSphere calls can consult `query->result`. Boxes that can be
  * trivially resolved (occlusion disabled, the view origin is inside the box, or the box is
  * already frustum-culled) skip the GPU query entirely.
+ * @details Recorded into `commands`, the same dedicated depth-pass CommandBuffer as
+ * R_DrawDepthPass (see R_DrawViewDepth); its fence, not the frame's, gates read-back.
+ * @details Queries are only reissued once the fence for the command buffer that recorded
+ * the previous download has signaled (see `R_AddOcclusionQueryFence`); until then, the
+ * shared transfer buffer may still be written by the GPU, so this is a no-op and the
+ * previous frame's `query->result` values continue to be used unchanged.
  */
-void R_DrawOcclusionQueries(const r_view_t *view) {
+void R_DrawOcclusionQueries(const r_view_t *view, CommandBuffer *commands) {
 
   if (!r_occlusion_queries.pipeline || !view->framebuffer) {
     return;
   }
 
-  CommandBuffer *commands = r_context.device->commands;
-  if (!commands) {
-    return;
-  }
-
-  // Read back last frame's downloaded results before reissuing this frame's queries.
-  if (r_occlusion_queries.frame > 0) {
-    const int32_t read = (r_occlusion_queries.frame + 1) % 2;
-    const Uint64 *results = $(r_context.device, mapTransferBuffer, r_occlusion_queries.transfer[read], false);
-
-    for (const ListNode *node = r_occlusion_queries.allocated->head; node; node = node->next) {
-      r_occlusion_query_t *query = node->element;
-      query->available = true;
-      query->result = results[query->index] != 0;
+  if (r_occlusion_queries.fences->count) {
+    Fence *fence = $(r_occlusion_queries.fences, objectAtIndex, 0);
+    if (!$(fence, query)) {
+      return;
     }
 
-    $(r_context.device, unmapTransferBuffer, r_occlusion_queries.transfer[read]);
+    const Uint64 *results = $(r_occlusion_queries.transfer, map, false);
+
+    for (int32_t i = 0; i < r_occlusion_queries.num_queries; i++) {
+      r_occlusion_query_t *query = &r_occlusion_queries.queries[i];
+      query->available = true;
+      query->result = results[i] != 0;
+    }
+
+    $(r_occlusion_queries.transfer, unmap);
+
+    $(r_occlusion_queries.fences, removeObjectAtIndex, 0);
   }
 
-  if (r_occlusion_queries.allocated->count) {
+  if (r_occlusion_queries.num_queries) {
 
     const SDL_GPUDepthStencilTargetInfo depth = $(view->framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
 
@@ -295,8 +282,8 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
 
-    for (const ListNode *node = r_occlusion_queries.allocated->head; node; node = node->next) {
-      r_occlusion_query_t *query = node->element;
+    for (int32_t i = 0; i < r_occlusion_queries.num_queries; i++) {
+      r_occlusion_query_t *query = &r_occlusion_queries.queries[i];
 
       if (!r_occlude->integer) {
         query->available = true;
@@ -316,22 +303,24 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
         continue;
       }
 
-      $(pass, beginQuery, r_occlusion_queries.query_pool, query->index);
+      $(pass, beginQuery, r_occlusion_queries.query_pool, i);
       $(pass, drawIndexedPrimitives, 36, 1, 0, query->base_vertex, 0);
-      $(pass, endQuery, r_occlusion_queries.query_pool, query->index);
+      $(pass, endQuery, r_occlusion_queries.query_pool, i);
     }
 
     release(pass);
 
     CopyPass *copyPass = $(commands, beginCopyPass);
-    $(copyPass, downloadQueryResults, r_occlusion_queries.query_pool, 0, r_occlusion_queries.next_index, &(SDL_GPUTransferBufferLocation) {
-      .transfer_buffer = r_occlusion_queries.transfer[r_occlusion_queries.frame % 2],
+    $(copyPass, downloadQueryResults, r_occlusion_queries.query_pool, 0, r_occlusion_queries.num_queries, &(SDL_GPUTransferBufferLocation) {
+      .transfer_buffer = r_occlusion_queries.transfer->buffer,
     });
     release(copyPass);
 
+    r_occlusion_queries.download_pending = true;
+
     if (r_draw_occlusion_queries->value) {
-      for (const ListNode *node = r_occlusion_queries.allocated->head; node; node = node->next) {
-        const r_occlusion_query_t *query = node->element;
+      for (int32_t i = 0; i < r_occlusion_queries.num_queries; i++) {
+        const r_occlusion_query_t *query = &r_occlusion_queries.queries[i];
         const float dist = Vec3_Distance(Box3_Center(query->bounds), view->origin);
         const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
         if (!query->result) {
@@ -356,9 +345,26 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
     }
   }
 
-  r_occlusion_queries.frame++;
+  r_stats.queries_allocated = r_occlusion_queries.num_queries;
+}
 
-  r_stats.queries_allocated = (int32_t) r_occlusion_queries.allocated->count;
+/**
+ * @brief Hands off the fence for a command buffer that may have recorded an occlusion
+ * query download.
+ * @details Called once per frame from `R_DrawViewDepth` with the fence returned by
+ * `CommandBuffer::submitAndFence` for the dedicated depth-pass command buffer. If
+ * `R_DrawOcclusionQueries` recorded a download into that buffer, the fence is retained
+ * so its completion can gate the next read-back and query reissue; otherwise it is
+ * released immediately.
+ */
+void R_AddOcclusionQueryFence(Fence *fence) {
+
+  if (r_occlusion_queries.download_pending) {
+    $(r_occlusion_queries.fences, addObject, fence);
+    r_occlusion_queries.download_pending = false;
+  }
+
+  release(fence);
 }
 
 /**
@@ -369,8 +375,8 @@ void R_InitOcclusionQueries(void) {
 
   memset(&r_occlusion_queries, 0, sizeof(r_occlusion_queries));
 
-  r_occlusion_queries.free = $(alloc(List), init);
-  r_occlusion_queries.allocated = $(alloc(List), init);
+  r_occlusion_queries.queries = Mem_TagMalloc(MAX_OCCLUSION_QUERIES * sizeof(r_occlusion_query_t), MEM_TAG_RENDERER);
+  r_occlusion_queries.fences = $(alloc(Array), init);
 
   r_occlusion_queries.query_pool = $(r_context.device, createQueryPool, &(SDL_GPUQueryPoolCreateInfo) {
     .type = SDL_GPU_QUERY_PRECISE_OCCLUSION,
@@ -395,12 +401,10 @@ void R_InitOcclusionQueries(void) {
   r_occlusion_queries.elements_buffer = $(r_context.device, createBufferWithConstMem,
     SDL_GPU_BUFFERUSAGE_INDEX, elements, sizeof(elements));
 
-  for (int32_t i = 0; i < 2; i++) {
-    r_occlusion_queries.transfer[i] = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
-      .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
-      .size = MAX_OCCLUSION_QUERIES * sizeof(Uint64),
-    });
-  }
+  r_occlusion_queries.transfer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+    .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
+    .size = MAX_OCCLUSION_QUERIES * sizeof(Uint64),
+  });
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/depth_pass_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
@@ -467,13 +471,9 @@ void R_ShutdownOcclusionQueries(void) {
   r_occlusion_queries.elements_buffer = release(r_occlusion_queries.elements_buffer);
   r_occlusion_queries.query_pool = release(r_occlusion_queries.query_pool);
 
-  for (int32_t i = 0; i < 2; i++) {
-    $(r_context.device, releaseTransferBuffer, r_occlusion_queries.transfer[i]);
-  }
+  r_occlusion_queries.transfer = release(r_occlusion_queries.transfer);
 
-  r_occlusion_queries.allocated->destroy = Mem_Free;
-  r_occlusion_queries.allocated = release(r_occlusion_queries.allocated);
+  r_occlusion_queries.fences = release(r_occlusion_queries.fences);
 
-  r_occlusion_queries.free->destroy = Mem_Free;
-  r_occlusion_queries.free = release(r_occlusion_queries.free);
+  Mem_Free(r_occlusion_queries.queries);
 }

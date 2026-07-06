@@ -125,7 +125,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_volume 0"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+debug sound"

@@ -681,14 +681,9 @@ static void R_FreeBspModel(r_media_t *self) {
 
     release(block->decals.triangles);
     block->decals.vertex_buffer = release(block->decals.vertex_buffer);
-
-    R_FreeOcclusionQuery(block->query);
   }
 
-  r_bsp_light_t *light = bsp->lights;
-  for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
-    R_FreeOcclusionQuery(light->query);
-  }
+  R_ResetOcclusionQueries();
 
   bsp->voxels.light_indices_buffer = release(bsp->voxels.light_indices_buffer);
 

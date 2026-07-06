@@ -267,6 +267,11 @@ void R_InitView(r_view_t *view) {
 
 /**
  * @brief Renders the view depth pre-pass, updating frustum and uploading uniforms.
+ * @details The depth pass and occlusion queries are recorded into their own dedicated
+ * CommandBuffer, submitted and fenced immediately, rather than the frame's shared
+ * command buffer. This lets their fence signal as soon as just that GPU work
+ * completes, so occlusion query results become available for read-back as early as
+ * possible instead of waiting on the rest of the frame's rendering.
  */
 void R_DrawViewDepth(r_view_t *view) {
 
@@ -276,9 +281,20 @@ void R_DrawViewDepth(r_view_t *view) {
 
   R_UpdateOcclusionQueries(view);
 
-  R_DrawDepthPass(view);
+  if (!r_context.device->commands) {
+    return;
+  }
 
-  R_DrawOcclusionQueries(view);
+  CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
+
+  R_DrawDepthPass(view, commands);
+
+  R_DrawOcclusionQueries(view, commands);
+
+  Fence *fence = $(commands, submitAndFence);
+  release(commands);
+
+  R_AddOcclusionQueryFence(fence);
 }
 
 /**

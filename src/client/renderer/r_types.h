@@ -314,11 +314,6 @@ typedef struct r_occlusion_query_s {
   box3_t bounds;
 
   /**
-   * @brief The index of this query within the shared QueryPool.
-   */
-  int32_t index;
-
-  /**
    * @brief The base vertex in the shared occlusion box vertex buffer.
    */
   int32_t base_vertex;

@@ -30,8 +30,13 @@ r_depth_pass_program_t r_depth_pass_program;
  * this depth target directly -- SDL_gpu can't sample a multisample depth
  * buffer, so r_bsp_draw.c/r_mesh_draw.c write a single-sample float depth copy
  * as a second color attachment, which r_sprite.c samples instead.
+ * @details Recorded into `commands`, a dedicated CommandBuffer owned by the caller
+ * (see R_DrawViewDepth) rather than the frame's shared command buffer, so it can be
+ * submitted and fenced immediately -- letting occlusion query results (which depend
+ * on this pass) become available as early as possible, unblocked by the rest of the
+ * frame's GPU work.
  */
-void R_DrawDepthPass(r_view_t *view) {
+void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands) {
 
   if (!r_depth_pass->integer) {
     return;
@@ -42,11 +47,6 @@ void R_DrawDepthPass(r_view_t *view) {
   }
 
   if (!view->framebuffer) {
-    return;
-  }
-
-  CommandBuffer *commands = r_context.device->commands;
-  if (!commands) {
     return;
   }
 
