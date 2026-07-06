@@ -23,13 +23,13 @@
 
 /*
  * The mesh fragment program: full per-fragment material lighting (normal maps,
- * Blinn-Phong specular, parallax occlusion, shadows, clustered voxel + dynamic
- * lights), sharing the BSP fragment stack and its descriptor layout (see bsp_fs).
- * Material stages and the EF_SHELL overlay share this shader with the base pass
- * via a runtime branch on material.flags, exactly like bsp_fs -- see main()
- * below.
- * TODO(#864): parallax_occlusion_mapping is duplicated from bsp_fs pending a
- * shared home.
+ * Blinn-Phong specular, shadows, clustered voxel + dynamic lights), sharing the
+ * BSP fragment stack and its descriptor layout (see bsp_fs). Unlike BSP surfaces,
+ * mesh entity normal maps never carry a heightmap, so there is no parallax
+ * occlusion mapping or parallax self-shadowing here -- fragment.parallax is
+ * always just the plain diffusemap texcoord. Material stages and the EF_SHELL
+ * overlay share this shader with the base pass via a runtime branch on
+ * material.flags, exactly like bsp_fs -- see main() below.
  */
 
 #define UNIFORMS_LIGHT_CULL
@@ -78,46 +78,6 @@ layout (location = 1) out float out_depth;
 common_fragment_t fragment;
 
 /**
- * @brief Calculates the augmented texcoord for parallax occlusion mapping.
- * @see https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
- */
-void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment_t fragment) {
-
-  fragment.parallax = vertex.diffusemap;
-
-  if (material.parallax == 0.0 || fragment.lod > 4.0) {
-    return;
-  }
-
-  float num_samples = mix(32.0, 8.0, min(fragment.lod * 0.25, 1.0));
-
-  vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-  vec3 dir = normalize(fragment.view_dir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
-  dir.z = max(dir.z, 0.1);
-  vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
-  vec2 delta = p / num_samples;
-
-  vec2 texcoord = vertex.diffusemap;
-  vec2 prev_texcoord = vertex.diffusemap;
-
-  float depth = 0.0;
-  float layer = 1.0 / num_samples;
-  float displacement = sample_material_displacement(texcoord, fragment.lod);
-
-  for (int i = 0; i < int(num_samples) && depth < displacement; i++) {
-    depth += layer;
-    prev_texcoord = texcoord;
-    texcoord -= delta;
-    displacement = sample_material_displacement(texcoord, fragment.lod);
-  }
-
-  float a = displacement - depth;
-  float b = sample_material_displacement(prev_texcoord, fragment.lod) - depth + layer;
-
-  fragment.parallax = mix(prev_texcoord, texcoord, a / (a - b));
-}
-
-/**
  * @brief Samples the material normal/specular maps and computes per-fragment
  * lighting, with distance-based LOD: distant fragments (and the player-model
  * preview, which has no BSP voxel data) reuse the vertex shader's cheap
@@ -156,7 +116,9 @@ void main(void) {
   fragment.view_dist = length(vertex.position);
   fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
 
-  parallax_occlusion_mapping(vertex, fragment);
+  // Mesh entity normal maps never carry a heightmap, so there is no parallax
+  // occlusion mapping to apply here (see bsp_fs for that).
+  fragment.parallax = vertex.diffusemap;
 
   if (material.flags == STAGE_NONE) {
 

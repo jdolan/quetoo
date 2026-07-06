@@ -361,7 +361,73 @@ static void R_DrawMeshEntityMaterialStages(const r_view_t *view, RenderPass *pas
 }
 
 /**
- * @brief Sets up per-entity uniforms and draws all opaque faces of a mesh entity.
+ * @brief Binds material and vertex attributes, then draws elements for a
+ * single mesh face. Called for both opaque and translucent faces; the caller
+ * selects the pipeline (opaque vs. blend) before calling.
+ */
+static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+                                 const r_entity_t *e, const r_mesh_model_t *mesh,
+                                 const r_mesh_face_t *face, const r_material_t *material) {
+
+  $(pass, bindFragmentSamplers, MESH_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+    .texture = material->texture->texture->texture,
+    .sampler = r_mesh_pipeline.diffusemap_sampler->sampler,
+  }, 1);
+
+  // R_MaterialUniforms resets the stage fields to STAGE_NONE: a preceding
+  // face's material stages may have left them set, and this draw's shader
+  // branches on material.flags (mesh_fs.glsl).
+  r_mesh_material_uniforms_t material_uniforms;
+  R_MaterialUniforms(material, material->cm->surface, &material_uniforms.material);
+  memcpy(material_uniforms.tint_colors, e->tints, sizeof(material_uniforms.tint_colors));
+  $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms.material, sizeof(material_uniforms.material));
+  $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
+
+  // Scale entity alpha by the surface's blend amount (33/66/100%); a no-op
+  // for opaque faces (SURF_MASK_BLEND unset falls through to the 1x default).
+  r_mesh_locals_t locals = {
+    .model = e->matrix,
+    .lerp = e->lerp,
+    .color = e->color,
+  };
+  switch (material->cm->surface & SURF_MASK_BLEND) {
+    case SURF_BLEND_33:
+      locals.color.w *= .333f;
+      break;
+    case SURF_BLEND_66:
+      locals.color.w *= .666f;
+      break;
+    default:
+      break;
+  }
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+
+  // Two vertex buffer slots: the old frame (locations 0-4) and the current
+  // frame (locations 5-8), the same model buffer bound at each frame offset.
+  const uint32_t stride = sizeof(r_mesh_vertex_t);
+  const uint32_t old_offset = (uint32_t) (face->base_vertex + e->old_frame * face->num_vertexes) * stride;
+  const uint32_t cur_offset = (uint32_t) (face->base_vertex + e->frame * face->num_vertexes) * stride;
+
+  $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
+    { .buffer = mesh->vertex_buffer->buffer, .offset = old_offset },
+    { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
+  }, 2);
+
+  const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
+
+  $(pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
+
+  r_stats.mesh_draw_elements++;
+  r_stats.mesh_triangles += face->num_elements / 3;
+
+  // Material stage effects and the EF_SHELL overlay, blended over this face.
+  R_DrawMeshEntityMaterialStages(view, pass, commands, e, face, material);
+}
+
+/**
+ * @brief Sets up per-entity uniforms and draws all faces of a mesh entity:
+ * opaque first, then translucent, matching the per-entity opaque-then-blend
+ * draw order (not a global back-to-front sort).
  */
 static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_entity_t *e) {
 
@@ -374,13 +440,6 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
   CommandBuffer *commands = r_context.device->commands;
 
-  const r_mesh_locals_t locals = {
-    .model = e->matrix,
-    .lerp = e->lerp,
-    .color = e->color,
-  };
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-
   // The dynamic lights affecting this entity, culled to its bounds. Has
   // nothing to do with the material/stage/tint UBO -- see mesh_fs.glsl.
   uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
@@ -390,8 +449,6 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
     .buffer = mesh->elements_buffer->buffer
   }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
-
-  const uint32_t stride = sizeof(r_mesh_vertex_t);
 
   const r_mesh_face_t *face = mesh->faces;
   for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
@@ -406,47 +463,13 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
       continue;
     }
 
-    // Re-bind the base pipeline: a preceding face's material stages may have left
-    // a stage (blend) pipeline bound.
+    // Re-bind the base pipeline: a preceding face's material stages may have
+    // left a stage (blend) pipeline bound.
     $(pass, bindPipeline, r_mesh_pipeline.pipeline);
 
-    $(pass, bindFragmentSamplers, MESH_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
-      .texture = material->texture->texture->texture,
-      .sampler = r_mesh_pipeline.diffusemap_sampler->sampler,
-    }, 1);
-
-    // R_MaterialUniforms resets the stage fields to STAGE_NONE: a preceding
-    // face's material stages left them set, and this draw's shader branches
-    // on material.flags (mesh_fs.glsl).
-    r_mesh_material_uniforms_t material_uniforms;
-    R_MaterialUniforms(material, material->cm->surface, &material_uniforms.material);
-    memcpy(material_uniforms.tint_colors, e->tints, sizeof(material_uniforms.tint_colors));
-    $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms.material, sizeof(material_uniforms.material));
-    $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
-
-    // Two vertex buffer slots: the old frame (locations 0-4) and the current
-    // frame (locations 5-8), the same model buffer bound at each frame offset.
-    const uint32_t old_offset = (uint32_t) (face->base_vertex + e->old_frame * face->num_vertexes) * stride;
-    const uint32_t cur_offset = (uint32_t) (face->base_vertex + e->frame * face->num_vertexes) * stride;
-
-    $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
-      { .buffer = mesh->vertex_buffer->buffer, .offset = old_offset },
-      { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
-    }, 2);
-
-    const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
-
-    $(pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
-
-    r_stats.mesh_draw_elements++;
-    r_stats.mesh_triangles += face->num_elements / 3;
-
-    // Material stage effects and the EF_SHELL overlay, blended over this face.
-    R_DrawMeshEntityMaterialStages(view, pass, commands, e, face, material);
+    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material);
   }
 
-  // Second pass: translucent faces, matching the GL renderer's per-entity
-  // opaque-then-blend draw order (not a global back-to-front sort).
   face = mesh->faces;
   for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
@@ -460,49 +483,11 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
       continue;
     }
 
+    // Re-bind the blend pipeline: a preceding face's material stages may have
+    // left a stage pipeline bound.
     $(pass, bindPipeline, r_mesh_pipeline.blend_pipeline);
 
-    $(pass, bindFragmentSamplers, MESH_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
-      .texture = material->texture->texture->texture,
-      .sampler = r_mesh_pipeline.diffusemap_sampler->sampler,
-    }, 1);
-
-    // R_MaterialUniforms resets the stage fields to STAGE_NONE: see the opaque loop above.
-    r_mesh_material_uniforms_t material_uniforms;
-    R_MaterialUniforms(material, material->cm->surface, &material_uniforms.material);
-    memcpy(material_uniforms.tint_colors, e->tints, sizeof(material_uniforms.tint_colors));
-    $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms.material, sizeof(material_uniforms.material));
-    $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
-
-    r_mesh_locals_t blend_locals = locals;
-    switch (material->cm->surface & SURF_MASK_BLEND) {
-      case SURF_BLEND_33:
-        blend_locals.color.w *= .333f;
-        break;
-      case SURF_BLEND_66:
-        blend_locals.color.w *= .666f;
-        break;
-      default:
-        break;
-    }
-    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &blend_locals, sizeof(blend_locals));
-
-    const uint32_t old_offset = (uint32_t) (face->base_vertex + e->old_frame * face->num_vertexes) * stride;
-    const uint32_t cur_offset = (uint32_t) (face->base_vertex + e->frame * face->num_vertexes) * stride;
-
-    $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
-      { .buffer = mesh->vertex_buffer->buffer, .offset = old_offset },
-      { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
-    }, 2);
-
-    const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
-
-    $(pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
-
-    r_stats.mesh_draw_elements++;
-    r_stats.mesh_triangles += face->num_elements / 3;
-
-    R_DrawMeshEntityMaterialStages(view, pass, commands, e, face, material);
+    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material);
   }
 
   r_stats.mesh_models++;
