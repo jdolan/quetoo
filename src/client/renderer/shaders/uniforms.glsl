@@ -195,8 +195,8 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
   int wireframe;
 };
 
-#define MAX_BSP_LIGHTS 512
-#define MAX_DYNAMIC_LIGHTS 64
+#define MAX_BSP_LIGHTS 768
+#define MAX_DYNAMIC_LIGHTS 256
 #define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
 
 /**
@@ -241,7 +241,7 @@ vec3 light_color(in light_t l) {
  */
 #if defined(FRAGMENT_SHADER) && defined(UNIFORMS_LIGHT_CULL)
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform light_cull_block {
-  uvec4 active_lights;
+  uvec4 active_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
 };
 #endif
 

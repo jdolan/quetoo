@@ -29,7 +29,12 @@
 enum {
   BSP_SAMPLER_MATERIAL,
   BSP_SAMPLER_VOXEL_LIGHT_DATA,
-  BSP_SAMPLER_SHADOW_ATLAS,
+  BSP_SAMPLER_SHADOW_ATLAS_0, // one sampler2DShadow per cube face (SDL_gpu forbids array depth targets)
+  BSP_SAMPLER_SHADOW_ATLAS_1,
+  BSP_SAMPLER_SHADOW_ATLAS_2,
+  BSP_SAMPLER_SHADOW_ATLAS_3,
+  BSP_SAMPLER_SHADOW_ATLAS_4,
+  BSP_SAMPLER_SHADOW_ATLAS_5,
   BSP_SAMPLER_VOXEL_CAUSTICS,
   BSP_SAMPLER_VOXEL_OCCLUSION,
   BSP_SAMPLER_SKY_AMBIENT,
@@ -338,7 +343,7 @@ static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, Command
  */
 void R_DrawOpaqueBspEntities(const r_view_t *view) {
 
-  if (!r_models.world || !r_bsp_pipeline.pipeline) {
+  if (!r_models.world) {
     return;
   }
 
@@ -394,10 +399,14 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   }, 1);
 
   // The point-light shadow atlas (comparison sampler).
-  $(pass, bindFragmentSamplers, BSP_SAMPLER_SHADOW_ATLAS, &(SDL_GPUTextureSamplerBinding) {
-    .texture = r_shadow_atlas.texture->texture,
-    .sampler = r_shadow_atlas.sampler->sampler,
-  }, 1);
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+  }, 6);
 
   // The voxel caustics / occlusion volumes and the sky cubemap for ambient light.
   $(pass, bindFragmentSamplers, BSP_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
@@ -437,7 +446,7 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   const r_bsp_block_t *block = world->blocks;
   for (int32_t i = 0; i < world->num_blocks; i++, block++) {
 
-    uint32_t active_lights[4];
+    uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
     R_ActiveLights(view, block->node->visible_bounds, active_lights);
     $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
 
@@ -471,7 +480,7 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
 
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
 
-    uint32_t active_lights[4];
+    uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
     R_ActiveLights(view, e->abs_model_bounds, active_lights);
     $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
 
@@ -592,10 +601,14 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
     .sampler = r_bsp_pipeline.voxel_data_sampler->sampler,
   }, 1);
 
-  $(pass, bindFragmentSamplers, BSP_SAMPLER_SHADOW_ATLAS, &(SDL_GPUTextureSamplerBinding) {
-    .texture = r_shadow_atlas.texture->texture,
-    .sampler = r_shadow_atlas.sampler->sampler,
-  }, 1);
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+  }, 6);
 
   // The voxel caustics / occlusion volumes and the sky cubemap for ambient light.
   $(pass, bindFragmentSamplers, BSP_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
@@ -633,7 +646,7 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
       continue;
     }
 
-    uint32_t active_lights[4];
+    uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
     R_ActiveLights(view, block->node->visible_bounds, active_lights);
     $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
 
@@ -667,7 +680,7 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
 
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
 
-    uint32_t active_lights[4];
+    uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
     R_ActiveLights(view, e->abs_model_bounds, active_lights);
     $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
 

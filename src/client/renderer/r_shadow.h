@@ -26,17 +26,20 @@
 #if defined(__R_LOCAL_H__)
 
 /**
- * @brief The shadow atlas.
- * @details Uses a layered 2D array texture (`GL_TEXTURE_2D_ARRAY`) with square layers.
- * Each layer has the same dimensions and tile layout. Lights are assigned to layers
- * sequentially: layer = `light_index` / `lights_per_layer`.
+ * @brief The shadow atlas: one plain 2D depth texture per cube face.
+ * @details SDL_gpu forbids `DEPTH_STENCIL_TARGET` on array textures, so instead
+ * of a layered array, each of the six cube faces gets its own texture; a given
+ * light occupies the same tile position (row/col derived from its index) in
+ * all six. Each texture is a square grid of `lights_per_row` x `lights_per_row`
+ * tiles.
  */
 typedef struct {
 
   /**
-   * @brief The 2D array D16 depth atlas storing linear distance-from-light.
+   * @brief The six D16 depth textures (one per cube face), storing linear
+   * distance-from-light.
    */
-  Texture *texture;
+  Texture *textures[6];
 
   /**
    * @brief The comparison sampler for shadow atlas lookups (hardware PCF).
@@ -44,7 +47,7 @@ typedef struct {
   Sampler *sampler;
 
   /**
-   * @brief Per-layer dimensions in pixels (square: `layer_size` × `layer_size`).
+   * @brief Per-face texture dimensions in pixels (square: `layer_size` × `layer_size`).
    */
   int32_t layer_size;
 
@@ -54,24 +57,15 @@ typedef struct {
   int32_t tile_size;
 
   /**
-   * @brief The number of lights per row in each layer's grid.
+   * @brief The number of lights per row/column in each face texture's grid.
    */
   int32_t lights_per_row;
 
   /**
-   * @brief The number of lights per column in each layer's grid.
-   */
-  int32_t lights_per_col;
-
-  /**
-   * @brief The number of lights per layer (`lights_per_row` × `lights_per_col`).
+   * @brief The number of lights that can have a shadow this frame
+   * (`lights_per_row` × `lights_per_row`).
    */
   int32_t lights_per_layer;
-
-  /**
-   * @brief The number of layers in the array texture.
-   */
-  int32_t num_layers;
 
   /**
    * @brief Frame counter for temporal face amortization.

@@ -23,12 +23,22 @@
  * @file light.glsl
  * @brief Per-fragment lighting and shadow functions.
  * @remarks Include after uniforms.glsl, common.glsl, material.glsl, voxel.glsl.
- * The shadow atlas (single 2D layer) and lights storage buffer are declared here.
- * Define LIGHT_SKY to enable image-based ambient from the sky cubemap (the lit
- * fragment shaders enable it), else a flat ambient fallback is used.
+ * The shadow atlas and lights storage buffer are declared here. SDL_gpu forbids
+ * DEPTH_STENCIL_TARGET on array textures, so the atlas is six separate 2D
+ * textures (one per cube face) rather than one array texture; sample_shadow_atlas
+ * selects among them with a branch on the fragment's cube face, since dynamic
+ * (non-constant) indexing into an array of distinct sampler bindings isn't
+ * reliably portable across the SPIR-V/MSL toolchain. Define LIGHT_SKY to enable
+ * image-based ambient from the sky cubemap (the lit fragment shaders enable it),
+ * else a flat ambient fallback is used.
  */
 
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS) uniform sampler2DShadow texture_shadow_atlas;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_0) uniform sampler2DShadow texture_shadow_atlas_0;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_1) uniform sampler2DShadow texture_shadow_atlas_1;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_2) uniform sampler2DShadow texture_shadow_atlas_2;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_3) uniform sampler2DShadow texture_shadow_atlas_3;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_4) uniform sampler2DShadow texture_shadow_atlas_4;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_5) uniform sampler2DShadow texture_shadow_atlas_5;
 
 #if defined(FRAGMENT_SHADER) && defined(LIGHT_SKY)
 /**
@@ -124,6 +134,28 @@ void cubemap_face_uv(in vec3 dir, out int face, out vec2 face_uv, out float ma) 
 }
 
 /**
+ * @brief Samples the shadow atlas face texture selected by @p face.
+ * @details Six separate sampler2DShadow bindings, not one array texture (see
+ * the file remark above); the branch just picks which statically-declared
+ * uniform to sample, so this compiles to ordinary, fully portable control flow.
+ */
+float sample_shadow_face(in int face, in vec3 uvw) {
+  if (face == 0) {
+    return texture(texture_shadow_atlas_0, uvw);
+  } else if (face == 1) {
+    return texture(texture_shadow_atlas_1, uvw);
+  } else if (face == 2) {
+    return texture(texture_shadow_atlas_2, uvw);
+  } else if (face == 3) {
+    return texture(texture_shadow_atlas_3, uvw);
+  } else if (face == 4) {
+    return texture(texture_shadow_atlas_4, uvw);
+  } else {
+    return texture(texture_shadow_atlas_5, uvw);
+  }
+}
+
+/**
  * @brief Sample the shadow atlas with PCF filtering.
  * @param light The light source.
  * @param index The light index.
@@ -152,14 +184,11 @@ float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, 
   // SDL_gpu renders the atlas with a top-left texel origin; flip V within the tile.
   fuv.y = 1.0 - fuv.y;
 
-  // Tile origin within the layer for this face of the light's 3×2 block
-  int face_col = face - (face / 3) * 3;
-  int face_row = face / 3;
-  vec2 tile_origin = light.shadow.xy + vec2(float(face_col) * tile_uv,
-                                             float(face_row) * tile_uv);
+  // The light's tile origin is the same in every face texture.
+  vec2 tile_origin = light.shadow.xy;
 
-  // Half-texel inset to prevent cross-tile bleeding
-  vec2 half_texel = 0.5 / vec2(textureSize(texture_shadow_atlas, 0).xy);
+  // Half-texel inset to prevent cross-tile bleeding (all six face textures share dimensions).
+  vec2 half_texel = 0.5 / vec2(textureSize(texture_shadow_atlas_0, 0).xy);
   vec2 tile_min = tile_origin + half_texel;
   vec2 tile_max = tile_origin + vec2(tile_uv) - half_texel;
 
@@ -188,8 +217,7 @@ float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, 
 
     atlas_uv = clamp(atlas_uv, tile_min, tile_max);
 
-    // Single-layer 2D shadow atlas (SDL_gpu forbids array depth targets).
-    shadow += texture(texture_shadow_atlas, vec3(atlas_uv, current_depth));
+    shadow += sample_shadow_face(face, vec3(atlas_uv, current_depth));
   }
 
   return shadow / float(num_samples);
@@ -278,7 +306,7 @@ void vertex_lighting(inout common_vertex_t v) {
   // Dynamic lights: those flagged active for this draw. bit j => lights[num_bsp_lights + j].
   int num_dynamic = num_lights - num_bsp_lights;
   for (int j = 0; j < num_dynamic; j++) {
-    if ((active_lights[j >> 5] & (1u << (j & 31))) != 0u) {
+    if ((active_lights[j >> 7][(j >> 5) & 3] & (1u << (j & 31))) != 0u) {
       v.diffuse += vertex_light(v, num_bsp_lights + j);
     }
   }
@@ -439,7 +467,7 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
   // Dynamic lights: those flagged active for this draw. bit j => lights[num_bsp_lights + j].
   int num_dynamic = num_lights - num_bsp_lights;
   for (int j = 0; j < num_dynamic; j++) {
-    if ((active_lights[j >> 5] & (1u << (j & 31))) != 0u) {
+    if ((active_lights[j >> 7][(j >> 5) & 3] & (1u << (j & 31))) != 0u) {
       fragment_light(v, f, num_bsp_lights + j);
     }
   }

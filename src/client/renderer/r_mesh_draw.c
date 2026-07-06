@@ -28,7 +28,12 @@
 enum {
   MESH_SAMPLER_MATERIAL,
   MESH_SAMPLER_VOXEL_LIGHT_DATA,
-  MESH_SAMPLER_SHADOW_ATLAS,
+  MESH_SAMPLER_SHADOW_ATLAS_0, // one sampler2DShadow per cube face (SDL_gpu forbids array depth targets)
+  MESH_SAMPLER_SHADOW_ATLAS_1,
+  MESH_SAMPLER_SHADOW_ATLAS_2,
+  MESH_SAMPLER_SHADOW_ATLAS_3,
+  MESH_SAMPLER_SHADOW_ATLAS_4,
+  MESH_SAMPLER_SHADOW_ATLAS_5,
   MESH_SAMPLER_VOXEL_CAUSTICS,
   MESH_SAMPLER_VOXEL_OCCLUSION,
   MESH_SAMPLER_SKY_AMBIENT,
@@ -378,7 +383,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
   // The dynamic lights affecting this entity, culled to its bounds. Has
   // nothing to do with the material/stage/tint UBO -- see mesh_fs.glsl.
-  uint32_t active_lights[4];
+  uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
   R_ActiveLights(view, e->abs_model_bounds, active_lights);
   $(commands, pushFragmentUniformData, MESH_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
 
@@ -552,10 +557,14 @@ void R_DrawMeshEntities(const r_view_t *view) {
   }, 1);
 
   // The point-light shadow atlas (comparison sampler), shared with the BSP pass.
-  $(pass, bindFragmentSamplers, MESH_SAMPLER_SHADOW_ATLAS, &(SDL_GPUTextureSamplerBinding) {
-    .texture = r_shadow_atlas.texture->texture,
-    .sampler = r_shadow_atlas.sampler->sampler,
-  }, 1);
+  $(pass, bindFragmentSamplers, MESH_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+  }, 6);
 
   // The voxel caustics / occlusion volumes and the sky cubemap for ambient light.
   $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
@@ -651,10 +660,14 @@ void R_DrawPlayerModelView(r_view_t *view) {
     .sampler = r_mesh_pipeline.voxel_data_sampler->sampler,
   }, 1);
 
-  $(pass, bindFragmentSamplers, MESH_SAMPLER_SHADOW_ATLAS, &(SDL_GPUTextureSamplerBinding) {
-    .texture = r_shadow_atlas.texture->texture,
-    .sampler = r_shadow_atlas.sampler->sampler,
-  }, 1);
+  $(pass, bindFragmentSamplers, MESH_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+  }, 6);
 
   $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_mesh_pipeline.voxel_caustics_fallback->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },

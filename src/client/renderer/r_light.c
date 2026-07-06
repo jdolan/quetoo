@@ -68,17 +68,16 @@ void R_UpdateLights(r_view_t *view) {
 
     // Every shadow-casting light (static or dynamic) gets an atlas tile; they
     // are visually identical and differ only in optimization (voxel selection,
-    // tile caching). The single-layer atlas holds lights_per_layer tiles; lights
-    // beyond that get no tile (shadow.z == 0 => lit) rather than a colliding one.
+    // tile caching). Each of the six per-face atlas textures holds lights_per_layer
+    // tiles at the same (row, col) for a given light; lights beyond that get no
+    // tile (shadow.z == 0 => lit) rather than a colliding one.
     if (inv_layer > 0.f && i < r_shadow_atlas.lights_per_layer && !(l->flags & R_LIGHT_NO_SHADOW)) {
-      const int32_t local_index = i % r_shadow_atlas.lights_per_layer;
-      const int32_t light_col = local_index % r_shadow_atlas.lights_per_row;
-      const int32_t light_row = local_index / r_shadow_atlas.lights_per_row;
-      const float base_x = (float) (light_col * 3 * r_shadow_atlas.tile_size) * inv_layer;
-      const float base_y = (float) (light_row * 2 * r_shadow_atlas.tile_size) * inv_layer;
+      const int32_t light_col = i % r_shadow_atlas.lights_per_row;
+      const int32_t light_row = i / r_shadow_atlas.lights_per_row;
+      const float base_x = (float) (light_col * r_shadow_atlas.tile_size) * inv_layer;
+      const float base_y = (float) (light_row * r_shadow_atlas.tile_size) * inv_layer;
       const float tile_uv = (float) r_shadow_atlas.tile_size * inv_layer;
-      const float layer = (float) (i / r_shadow_atlas.lights_per_layer);
-      out->shadow = Vec4(base_x, base_y, tile_uv, layer);
+      out->shadow = Vec4(base_x, base_y, tile_uv, 0.f);
     } else {
       out->shadow = Vec4(0.f, 0.f, 0.f, 0.f);
     }
@@ -99,13 +98,13 @@ void R_UpdateLights(r_view_t *view) {
  * @brief Builds the dynamic-light cull bitmask for the given bounds into `mask`.
  * @details Dynamic light sources (rockets, explosions, etc.) occupy the tail of
  * the lights buffer and have no voxel grid, so each draw whittles them to those
- * intersecting its bounds. Bit `j` of the uvec4 bitmask selects dynamic light
+ * intersecting its bounds. Bit `j` of the bitmask selects dynamic light
  * `[num_bsp_lights + j]`; the lighting shaders add `num_bsp_lights` to recover the
  * absolute index. Static (voxel-gridded) lights are skipped.
  */
-void R_ActiveLights(const r_view_t *view, const box3_t bounds, uint32_t mask[4]) {
+void R_ActiveLights(const r_view_t *view, const box3_t bounds, uint32_t mask[MAX_DYNAMIC_LIGHTS / 32]) {
 
-  mask[0] = mask[1] = mask[2] = mask[3] = 0;
+  memset(mask, 0, sizeof(uint32_t) * (MAX_DYNAMIC_LIGHTS / 32));
 
   const int32_t first = r_lights.block.num_bsp_lights;
 
