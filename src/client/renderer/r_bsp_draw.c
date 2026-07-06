@@ -235,6 +235,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, RenderPass 
   }
 
   GraphicsPipeline *pipeline = R_StagePipeline(stage->cm->blend.src, stage->cm->blend.dest);
+  //GraphicsPipeline *pipeline = R_StagePipeline(BLEND_SRC_ALPHA, BLEND_ONE);
   if (!pipeline) {
     return;
   }
@@ -758,6 +759,16 @@ void R_InitBspPipeline(void) {
   };
 
   r_bsp_draw.pipeline = $(r_context.device, createGraphicsPipeline, &info);
+
+  // Alpha-blend variant (depth test, no depth write) for translucent
+  // SURF_MASK_BLEND surfaces; the depth copy (color 1) stays masked off, since
+  // a translucent surface must not overwrite the opaque depth sprites sample.
+  color_targets[0].blend_state = GPU_BlendStateAlpha;
+  color_targets[1].blend_state = (SDL_GPUColorTargetBlendState) {
+    .enable_color_write_mask = true, .color_write_mask = 0,
+  };
+  info.depth_stencil_state.enable_depth_write = false;
+  r_bsp_draw.blend_pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
