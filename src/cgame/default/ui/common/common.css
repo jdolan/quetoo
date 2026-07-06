@@ -40,9 +40,9 @@ Panel.menu {
 }
 
 Panel.menu .tabPageView {
-  autoresizing-mask: contain;
+  autoresizing-mask: none;
   width: 1440;
-  /*height: 720;*/
+  height: 720;
 }
 
 Select {
@@ -64,6 +64,19 @@ TabView > .tabSelectionView > Label.selected {
 TextView {
   background-color: #dedede10;
   min-width: 200;
+}
+
+/* Scrollbar appearance. All knobs live here; the C defaults in
+   Scrollbar::initWithScrollView are only fallbacks. Width is left to each
+   instance (it is a per-gutter layout choice, set where the bar is created). */
+.scrollbar {
+  -adorner-size: 12;
+  -adorner-shade: 28;
+  -orientation: right;
+  -bgcolor: #222222c0;
+  -fgcolor: #1e4e62dd;
+  -thumb-min: 16;
+  -step: 32;
 }
 
 .options {

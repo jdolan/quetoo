@@ -27,17 +27,17 @@
                   {
                     "class": "KeyValueView",
                     "key": { "class": "Label", "text": { "text": "Diffusemap" } },
-                    "value": { "class": "TextView", "identifier": "diffusemap" }
+                    "value": { "class": "Label", "identifier": "diffusemap" }
                   },
                   {
                     "class": "KeyValueView",
                     "key": { "class": "Label", "text": { "text": "Normalmap" } },
-                    "value": { "class": "TextView", "identifier": "normalmap" }
+                    "value": { "class": "Label", "identifier": "normalmap" }
                   },
                   {
                     "class": "KeyValueView",
                     "key": { "class": "Label", "text": { "text": "Specularmap" } },
-                    "value": { "class": "TextView", "identifier": "specularmap" }
+                    "value": { "class": "Label", "identifier": "specularmap" }
                   }
                 ]
               }
@@ -103,29 +103,11 @@
           ],
           "label": {
             "text": {
-              "text": "Material Stages"
+              "text": "Material Stages [     ]"
             }
           },
           "contentView": {
             "subviews": [
-              {
-                "class": "StackView",
-                "classNames": [
-                  "stagesHeader"
-                ],
-                "subviews": [
-                  {
-                    "class": "Button",
-                    "identifier": "addStage",
-                    "classNames": [
-                      "addStage"
-                    ],
-                    "title": {
-                      "text": "+ Add Stage"
-                    }
-                  }
-                ]
-              },
               {
                 "class": "StackView",
                 "identifier": "stages",

@@ -1,13 +1,27 @@
-/* Column-width rules (Input Label/TextView/Slider) live in editor.css, not
-   here: a per-view stylesheet on this controller's own root view does not
-   reliably bind to its descendants. See editor.css.
-   Header row of the Material Stages box: the Add Stage + Remove Stage buttons,
-   grouped at the top-right with a 4px gap. */
-#material .stagesHeader {
-  axis: horizontal;
-  alignment: top-right;
-  distribution: default;
-  spacing: 4;
+/* The container only lays the boxes out -- it gets NO background of its own, so
+   the translucent per-box tint below never composites over a second layer. */
+#materialContent {
+  autoresizing-mask: contain | width;
+  spacing: 16;
+}
+
+/* Each group box carries its own tint. */
+#materialBox,
+#pbrBox,
+#stagesBox {
+  autoresizing-mask: contain | width;
+  spacing: 16;
+  background-color: #11111144;
+}
+
+.stageEffectTable {
+  -key-width: 100;
+}
+
+/*The actual header row that contains the stage name and remove button. */
+#material .stageHeader {
+  background-color: #1e4e6266;
+  padding: 4;
 }
 
 /* The list of stage panels. */
@@ -17,7 +31,6 @@
 
 /* Each stage is a self-contained panel. */
 #material .stageView {
-  autoresizing-mask: width;
   background-color: #0c1f2755;
   border-color: #1e4e62;
   border-width: 1;
@@ -25,40 +38,30 @@
   spacing: 4;
 }
 
-/* A selected stage panel is highlighted and reveals its Remove button. */
 #material .stageView.selected {
   background-color: #1e4e6244;
 }
 
-/* The container of effect rows. */
-#material .stageEffects {
-  spacing: 6;
-}
-
-/* Stage header bar: spans the panel width with a box-like background + padding. */
-#material .stageHeader {
-  axis: horizontal;
-  spacing: 6;
-  autoresizing-mask: width;
-  background-color: #1e4e6266;
-  padding: 4;
-}
-
-/* Each effect is wrapped in its own bordered box, a name + remove header on top
-   and a KeyValueTableView of its properties (columns from .stageEffectTable in
-   editor.css). */
 #material .stageEffect {
-  spacing: 2;
-  autoresizing-mask: width;
-  background-color: #0c1f2733;
+  background-color: #0c1f275a;
   border-color: #1e4e62;
   border-width: 1;
   padding: 4;
+  spacing: 6;
 }
 
-/* Effect header and add-effect rows stack horizontally. */
+#material .stageEffects {
+  spacing: 6;
+  autoresizing-mask: contain | width;
+}
+
 #material .stageEffectHeader,
 #material .stageAddEffect {
-  axis: horizontal;
   spacing: 6;
+}
+
+#material .iconButton {
+  background-color: #00000000;
+  border-width: 0;
+  padding: 1;
 }

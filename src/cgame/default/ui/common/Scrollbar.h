@@ -56,10 +56,16 @@
  * Styling (all set in CSS, read in applyStyle):
  *   width          the bar thickness (standard View attribute)
  *   -adorner-size  the height of the top and bottom caps
+ *   -adorner-shade per-channel brighten of -bgcolor for the caps (derive amount)
  *   -orientation   left | right -- which side of the content the bar occupies
  *   -bgcolor       the bar-base color; the adorners derive a calculated shade
  *                  of this so the caps read as part of the bar
  *   -fgcolor       the thumb (grabby control) color
+ *   -thumb-min     the minimum thumb height in pixels
+ *   -step          the pixels scrolled per adorner-cap click
+ *
+ * Defaults for every one of these live in common.css (`.scrollbar`); the C
+ * `initWithScrollView` values are only fallbacks if that rule is absent.
  */
 
 /**
@@ -146,6 +152,22 @@ struct Scrollbar {
    * @brief The thumb color. Attribute `-fgcolor`.
    */
   SDL_Color fgColor;
+
+  /**
+   * @brief Per-channel brighten applied to `bgColor` for the adorner caps, so
+   * they read as part of the bar. Attribute `-adorner-shade`.
+   */
+  int adornerShade;
+
+  /**
+   * @brief Minimum thumb height in pixels. Attribute `-thumb-min`.
+   */
+  int thumbMin;
+
+  /**
+   * @brief Pixels scrolled per adorner-cap click. Attribute `-step`.
+   */
+  int step;
 };
 
 /**

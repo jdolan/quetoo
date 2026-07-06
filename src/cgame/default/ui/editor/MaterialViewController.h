@@ -28,6 +28,7 @@
 #include <ObjectivelyMVC/ScrollView.h>
 #include <ObjectivelyMVC/Button.h>
 #include <ObjectivelyMVC/Box.h>
+#include <ObjectivelyMVC/Label.h>
 
 #include "StageView.h"
 
@@ -63,14 +64,36 @@ struct MaterialViewController {
   r_material_t *material;
 
   /**
-   * @brief The content container (boxes), reparented into a ScrollView at load.
+   * @brief The content container holding the group boxes (maps, PBR, stages).
    */
   StackView *content;
 
   /**
-   * @brief The scroll view wrapping the tab content.
+   * @brief The Material Stages group box; its scrollable list fills the remaining
+   * tab height (sized per-frame by fitStagesHeight).
+   */
+  Box *stagesBox;
+
+  /**
+   * @brief The fixed-height viewport (a plain View) inside the stages box that
+   * holds the scroll view + scrollbar. fitStagesHeight sizes its height so the
+   * stages list fills the rest of the tab.
+   */
+  View *stagesViewport;
+
+  /**
+   * @brief The scroll view panning the stages list (its content view is `stages`).
+   * It is inset from the viewport's right by the scrollbar gutter, so its
+   * clipsSubviews clips the list before it can reach the bar.
    */
   ScrollView *scrollView;
+
+  /**
+   * @brief The vertical scrollbar for the stages list. It lives in the gutter to
+   * the right of the (inset) scroll view; fitStagesHeight pins its x to the
+   * viewport's right edge so it is not subject to the viewport's right padding.
+   */
+  View *scrollbar;
 
   /**
    * @brief The Material group box, whose title shows the material name.
@@ -78,19 +101,19 @@ struct MaterialViewController {
   Box *materialBox;
 
   /**
-   * @brief The diffusemap texture name text field.
+   * @brief The diffusemap texture name label (read-only display).
    */
-  TextView *diffusemap;
+  Label *diffusemap;
 
   /**
-   * @brief The normalmap texture name text field.
+   * @brief The normalmap texture name label (read-only display).
    */
-  TextView *normalmap;
+  Label *normalmap;
 
   /**
-   * @brief The specularmap texture name text field.
+   * @brief The specularmap texture name label (read-only display).
    */
-  TextView *specularmap;
+  Label *specularmap;
 
   /**
    * @brief The roughness slider.
@@ -165,6 +188,17 @@ struct MaterialViewControllerInterface {
    * @memberof MaterialViewController
    */
   void (*setMaterial)(MaterialViewController *self, r_material_t *material);
+
+  /**
+   * @fn void MaterialViewController::fitStagesHeight(MaterialViewController *self, int tabPageHeight)
+   * @brief Sizes the stages scroll viewport to fill the tab height below the fixed
+   * maps + PBR section, so only the stages list scrolls. Called per-frame from
+   * EditorViewController::fitContentHeight with the current tab page height.
+   * @param self The MaterialViewController.
+   * @param tabPageHeight The tab page's content height (from window_bounds).
+   * @memberof MaterialViewController
+   */
+  void (*fitStagesHeight)(MaterialViewController *self, int tabPageHeight);
 };
 
 /**

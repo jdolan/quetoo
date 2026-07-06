@@ -86,7 +86,7 @@ static const stage_param_desc_t dirtmap_params[] = { STAGE_PARAM(dirtmap.intensi
 static const stage_param_desc_t warp_params[] = {
   STAGE_PARAM(warp.hz, 0.0, 10.0, 0.1), STAGE_PARAM(warp.amplitude, 0.0, 10.0, 0.1),
 };
-static const stage_param_desc_t lighting_params[] = { STAGE_PARAM(lighting.intensity, 0.0, 10.0, 0.1) };
+static const stage_param_desc_t lighting_params[] = { STAGE_PARAM(lighting.intensity, 0.0, 2.0, 0.1) };
 static const stage_param_desc_t emissive_params[] = { STAGE_PARAM(emissive, 0.0, 1.0, 0.01) };
 static const stage_param_desc_t shell_params[] = { STAGE_PARAM(shell.radius, 0.0, 100.0, 1.0) };
 static const stage_param_desc_t animation_params[] = {
@@ -97,23 +97,22 @@ static const stage_param_desc_t animation_params[] = {
 #define STAGE_EFFECT_TOGGLE(f, n) { f, n, NULL, 0, true }
 
 static const stage_effect_desc_t stage_effects[] = {
+  STAGE_EFFECT(STAGE_ANIMATION, "Animation", animation_params),
   STAGE_EFFECT_TOGGLE(STAGE_BLEND, "Blend"),
   STAGE_EFFECT(STAGE_COLOR, "Color", color_params),
-  STAGE_EFFECT(STAGE_PULSE, "Pulse", pulse_params),
-  STAGE_EFFECT(STAGE_STRETCH, "Stretch", stretch_params),
-  STAGE_EFFECT(STAGE_ROTATE, "Rotate", rotate_params),
-  STAGE_EFFECT(STAGE_SCROLL_S | STAGE_SCROLL_T, "Scroll", scroll_params),
-  STAGE_EFFECT(STAGE_SCALE_S | STAGE_SCALE_T, "Scale", scale_params),
-  STAGE_EFFECT(STAGE_ANIMATION, "Animation", animation_params),
-  STAGE_EFFECT(STAGE_TERRAIN, "Terrain", terrain_params),
   STAGE_EFFECT(STAGE_DIRTMAP, "Dirtmap", dirtmap_params),
+  STAGE_EFFECT(STAGE_EMISSIVE, "Emissive", emissive_params),
   STAGE_EFFECT_TOGGLE(STAGE_ENVMAP, "Envmap"),
-  STAGE_EFFECT(STAGE_WARP, "Warp", warp_params),
+  STAGE_EFFECT_TOGGLE(STAGE_FLARE, "Flare"),
   STAGE_EFFECT(STAGE_LIGHTING, "Lighting", lighting_params),
   STAGE_EFFECT_TOGGLE(STAGE_LIGHTING_FLAT, "Lighting Flat"),
-  STAGE_EFFECT(STAGE_EMISSIVE, "Emissive", emissive_params),
-  STAGE_EFFECT_TOGGLE(STAGE_FLARE, "Flare"),
-  STAGE_EFFECT(STAGE_SHELL, "Shell", shell_params),
+  STAGE_EFFECT(STAGE_PULSE, "Pulse", pulse_params),
+  STAGE_EFFECT(STAGE_ROTATE, "Rotate", rotate_params),
+  STAGE_EFFECT(STAGE_SCALE_S | STAGE_SCALE_T, "Scale", scale_params),
+  STAGE_EFFECT(STAGE_SCROLL_S | STAGE_SCROLL_T, "Scroll", scroll_params),
+  STAGE_EFFECT(STAGE_STRETCH, "Stretch", stretch_params),
+  STAGE_EFFECT(STAGE_TERRAIN, "Terrain", terrain_params),
+  STAGE_EFFECT(STAGE_WARP, "Warp", warp_params),
 };
 
 /**
@@ -157,6 +156,15 @@ static const stage_blend_factor_t stage_blend_factors[] = {
 #define TEXTURE_FIELD_BG_VALID   ((SDL_Color) { 0xde, 0xde, 0xde, 0x10 })
 #define TEXTURE_FIELD_BG_INVALID ((SDL_Color) { 0x80, 0x30, 0x30, 0x66 })
 
+/**
+ * @brief Value prefilled into a flare/envmap asset field when that effect is added,
+ * so the user only completes the name. A flare's context auto-prepends `sprites/`,
+ * so its field starts empty; an envmap's context only prepends `textures/`, so it is
+ * seeded with the conventional `envmaps/` subfolder.
+ */
+#define STAGE_FLARE_ASSET_PREFIX  ""
+#define STAGE_ENVMAP_ASSET_PREFIX "envmaps/"
+
 #pragma mark - Internal helpers
 
 /**
@@ -164,10 +172,27 @@ static const stage_blend_factor_t stage_blend_factors[] = {
  * to an asset on disk. Empty text is treated as neutral (not invalid). This is a
  * purely visual cue; it does not change the stage.
  */
+/**
+ * @brief Resolves a stage asset name in the context appropriate to the stage's
+ * type: a flare sprite under `sprites/`, an envmap texture under `textures/`, and a
+ * plain textured stage in the material's own context.
+ */
+static bool stageAssetResolves(const StageView *this, const char *name) {
+
+  if (this->stage->flags & STAGE_FLARE) {
+    return cgi.AssetExists(name, ASSET_CONTEXT_SPRITES);
+  }
+  if (this->stage->flags & STAGE_ENVMAP) {
+    return cgi.AssetExists(name, ASSET_CONTEXT_TEXTURES);
+  }
+  return cgi.MaterialAssetExists(this->material, name);
+}
+
 static void validateTextureField(StageView *this, TextView *textView) {
 
-  const char *name = textView->attributedText ? textView->attributedText->chars : "";
-  const bool ok = (*name == '\0') || cgi.MaterialAssetExists(this->material, name);
+  const char *name = (textView->attributedText && textView->attributedText->chars)
+    ? textView->attributedText->chars : "";
+  const bool ok = (*name == '\0') || stageAssetResolves(this, name);
 
   ((View *) textView)->backgroundColor = ok ? TEXTURE_FIELD_BG_VALID : TEXTURE_FIELD_BG_INVALID;
 }
@@ -225,6 +250,23 @@ static Button *makeRemoveButton(StageView *this, void (*didClick)(Button *)) {
   remove->delegate.didClick = didClick;
 
   return remove;
+}
+
+static Button* makeAddButton(StageView* this, void (*didClick)(Button*)) {
+    Button* add = $(alloc(Button), initWithFrame, NULL);
+    $((View*)add, addClassName, "iconButton");
+    $(add->image, setImageWithResourceName, "ui/editor/icon_add.png");
+
+    const SDL_Size iconSize = MakeSize(STAGE_ICON_BUTTON_SIZE, STAGE_ICON_BUTTON_SIZE);
+    ((View*)add)->minSize = iconSize;
+    ((View*)add)->maxSize = iconSize;
+    ((View*)add->image)->autoresizingMask |= ViewAutoresizingFill;
+    $((View*)add, sizeToFit);
+
+    add->delegate.self = this;
+    add->delegate.didClick = didClick;
+
+    return add;
 }
 
 /**
@@ -372,7 +414,16 @@ static void didClickRemoveEffect(Button *button) {
 
   for (size_t i = 0; i < this->numEffects; i++) {
     if (this->effects[i].removeButton == button) {
-      this->stage->flags &= ~this->effects[i].flag;
+      const cm_stage_flags_t removed = this->effects[i].flag;
+      this->stage->flags &= ~removed;
+
+      // Removing a flare/envmap leaves the stage with no asset source; return it to
+      // a plain textured stage seeded with the material's diffusemap.
+      if (removed & (STAGE_FLARE | STAGE_ENVMAP)) {
+        this->stage->flags |= STAGE_TEXTURE;
+        cgi.SetMaterialStageTexture(this->material, this->stage, this->material->cm->diffusemap.name);
+      }
+
       cgi.FinalizeMaterialStage(this->material, this->stage);
       requestRebuild(this);
       return;
@@ -395,6 +446,18 @@ static void didSelectAddEffect(Select *select, Option *option) {
   }
 
   this->stage->flags |= flag;
+
+  // Flare and envmap are stage TYPES that share the one asset slot, so adding one
+  // makes the stage that type: drop the base texture and the other type (they are
+  // mutually exclusive), and prefill the asset with its directory so the user just
+  // completes the name.
+  if (flag == STAGE_FLARE) {
+    this->stage->flags &= ~(STAGE_TEXTURE | STAGE_ENVMAP);
+    cgi.SetMaterialStageTexture(this->material, this->stage, STAGE_FLARE_ASSET_PREFIX);
+  } else if (flag == STAGE_ENVMAP) {
+    this->stage->flags &= ~(STAGE_TEXTURE | STAGE_FLARE);
+    cgi.SetMaterialStageTexture(this->material, this->stage, STAGE_ENVMAP_ASSET_PREFIX);
+  }
 
   // Animation's frame count is derived from its texture (a numbered sequence on
   // disk). Resolve it now; if the current texture is not such a sequence, skip
@@ -451,13 +514,14 @@ static void didEditTexture(TextView *textView) {
 
   StageView *this = (StageView *) textView->delegate.self;
 
-  const char *name = textView->attributedText ? textView->attributedText->chars : "";
+  const char *name = (textView->attributedText && textView->attributedText->chars)
+    ? textView->attributedText->chars : "";
 
   validateTextureField(this, textView);
 
-  if (!*name || !cgi.MaterialAssetExists(this->material, name)) {
+  if (!*name || !stageAssetResolves(this, name)) {
     if (*name) {
-      Cg_Debug("Texture '%s' does not resolve; not applied\n", name);
+      Cg_Debug("Asset '%s' does not resolve; not applied\n", name);
     }
     return;
   }
@@ -488,17 +552,45 @@ static void respondToEvent(View *self, const SDL_Event *event) {
 #pragma mark - StageView
 
 /**
+ * @brief Appends a `label -> editable asset name` row to the given table, wired to
+ * the stage's single texture slot with live path validation (in the stage's asset
+ * context). Used for the stage's Texture row and for the flare/envmap asset rows,
+ * which all edit the one `stage->asset`.
+ */
+static void addAssetRow(StageView *this, KeyValueTableView *table, const char *label) {
+
+  Label *lbl = $(alloc(Label), initWithText, label, NULL);
+
+  TextView *texture = $(alloc(TextView), initWithFrame, NULL);
+  texture->isEditable = true;
+  $(texture, setAttributedText, this->stage->asset.name);
+  texture->delegate.self = this;
+  texture->delegate.didEdit = didEditTextureLive;
+  texture->delegate.didEndEditing = didEditTexture;
+  validateTextureField(this, texture);
+
+  $(table, addRow, (View *) lbl, (View *) texture);
+  release(lbl);
+  release(texture);
+}
+
+/**
  * @brief Appends a `label -> slider` row for one float parameter to the effect's
  * property table, binding the slider to the stage field it edits.
  */
 static void addParamRow(StageView *this, KeyValueTableView *table, const stage_param_desc_t *param) {
 
-  Label *lbl = $(alloc(Label), initWithText, param->label, NULL);
+  // The descriptor label is the full struct field path (e.g. "scroll.s"); show only
+  // the leaf property ("s") in the key column to save space -- the effect box header
+  // already names the effect.
+  const char *dot = strrchr(param->label, '.');
+  Label *lbl = $(alloc(Label), initWithText, dot ? dot + 1 : param->label, NULL);
 
   Slider *slider = $(alloc(Slider), initWithFrame, NULL);
   slider->min = param->min;
   slider->max = param->max;
   slider->step = param->step;
+  slider->snapToStep = true; // quantize drag to the step, not just click/arrow keys
   $(slider, setLabelFormat, "%.2f");
 
   float *target = (float *) ((uint8_t *) this->stage + param->offset);
@@ -530,6 +622,11 @@ static void addEffectGroup(StageView *this, const stage_effect_desc_t *effect) {
   StackView *group = $(alloc(StackView), initWithFrame, NULL);
   ((StackView *) group)->axis = StackViewAxisVertical;
   $((View *) group, addClassName, "stageEffect");
+
+  // Span the effects container width so toggle-only effects (no param table, e.g.
+  // Envmap / Flare / Lighting Flat) still fill the row instead of shrinking to
+  // their header text. Set in C -- a CSS width mask misapplies on these stacks.
+  ((View *) group)->autoresizingMask = ViewAutoresizingContain | ViewAutoresizingWidth;
 
   // header: [ effect name ......... X ], full width with the X flush right
   Button *remove;
@@ -571,6 +668,15 @@ static void addEffectGroup(StageView *this, const stage_effect_desc_t *effect) {
     $(table, addRow, (View *) lbl, (View *) lerp);
     release(lbl);
     release(lerp);
+  } else if (effect->flag == STAGE_FLARE) {
+    // CAVEAT: flares are NOT live-editable. Cg_LoadFlares (cg_flare.c) bakes the
+    // flare list once at map load by scanning BSP faces, and an effect toggle does
+    // not recompute the material's stage_flags. A flare edit therefore only takes
+    // effect after saving the .mat and reloading the map. Deliberately not made
+    // live (would require a full flare-system regen per edit).
+    addAssetRow(this, table, "sprite");
+  } else if (effect->flag == STAGE_ENVMAP) {
+    addAssetRow(this, table, "texture");
   }
 
   $((View *) group, addSubview, (View *) table);
@@ -590,20 +696,35 @@ static void rebuildEffects(StageView *self) {
   self->numEffects = self->numParams = 0;
 
   for (size_t e = 0; e < lengthof(stage_effects); e++) {
-    if (self->stage->flags & stage_effects[e].flag) {
-      addEffectGroup(self, &stage_effects[e]);
+    if (!(self->stage->flags & stage_effects[e].flag)) {
+      continue;
     }
+    // Envmap mandates flat lighting (Cm_FinalizeStage couples them), so it is not an
+    // independent, removable effect on an envmap stage -- don't list it there.
+    if (stage_effects[e].flag == STAGE_LIGHTING_FLAT && (self->stage->flags & STAGE_ENVMAP)) {
+      continue;
+    }
+    addEffectGroup(self, &stage_effects[e]);
   }
 
   // repopulate the Add Effect dropdown with the effects not yet on the stage.
-  // The placeholder (STAGE_NONE) keeps the control showing "+ Add Effect" and is
+  // The placeholder (STAGE_NONE) keeps the control showing "Add Effect" and is
   // re-selected each rebuild so the same effect can be re-picked later.
   $(self->addEffect, removeAllOptions);
-  $(self->addEffect, addOption, "+ Add Effect", (ident) (intptr_t) STAGE_NONE);
+  $(self->addEffect, addOption, "Add Effect", (ident) (intptr_t) STAGE_NONE);
   for (size_t e = 0; e < lengthof(stage_effects); e++) {
-    if (stage_effects[e].addable && !(self->stage->flags & stage_effects[e].flag)) {
-      $(self->addEffect, addOption, stage_effects[e].name, (ident) (intptr_t) stage_effects[e].flag);
+    if (!stage_effects[e].addable || (self->stage->flags & stage_effects[e].flag)) {
+      continue;
     }
+    // flare and envmap are mutually exclusive stage types (one shared asset slot):
+    // don't offer one while the other is active.
+    if (stage_effects[e].flag == STAGE_FLARE && (self->stage->flags & STAGE_ENVMAP)) {
+      continue;
+    }
+    if (stage_effects[e].flag == STAGE_ENVMAP && (self->stage->flags & STAGE_FLARE)) {
+      continue;
+    }
+    $(self->addEffect, addOption, stage_effects[e].name, (ident) (intptr_t) stage_effects[e].flag);
   }
   $(self->addEffect, selectOptionWithValue, (ident) (intptr_t) STAGE_NONE);
 
@@ -638,26 +759,18 @@ static void buildControls(StageView *this) {
   $(view, addSubview, header);
   release(header);
 
-  // editable texture asset row
-  KeyValueTableView *texTable = $(alloc(KeyValueTableView), initWithFrame, NULL);
-  $((View *) texTable, addClassName, "stageEffectTable");
+  // Editable texture row -- only for a plain textured stage. A flare/envmap stage
+  // carries its single asset in its own effect box instead (see addEffectGroup), so
+  // it is not shown (and not written as `texture ...`) here.
+  if (this->stage->flags & STAGE_TEXTURE) {
+    KeyValueTableView *texTable = $(alloc(KeyValueTableView), initWithFrame, NULL);
+    $((View *) texTable, addClassName, "stageEffectTable");
 
-  Label *texLabel = $(alloc(Label), initWithText, "Texture", NULL);
+    addAssetRow(this, texTable, "Texture");
 
-  TextView *texture = $(alloc(TextView), initWithFrame, NULL);
-  texture->isEditable = true;
-  $(texture, setAttributedText, this->stage->asset.name);
-  texture->delegate.self = this;
-  texture->delegate.didEdit = didEditTextureLive;
-  texture->delegate.didEndEditing = didEditTexture;
-  validateTextureField(this, texture);
-
-  $(texTable, addRow, (View *) texLabel, (View *) texture);
-  release(texLabel);
-  release(texture);
-
-  $(view, addSubview, (View *) texTable);
-  release(texTable);
+    $(view, addSubview, (View *) texTable);
+    release(texTable);
+  }
 
   // container for the active effect rows
   this->effectsContainer = $(alloc(StackView), initWithFrame, NULL);
@@ -694,6 +807,13 @@ static StageView *initWithStage(StageView *self, r_material_t *material, cm_stag
     ((StackView *) self)->axis = StackViewAxisVertical;
     $((View *) self, addClassName, "stageView");
 
+    // Fill the stages list width so headers/rows span the panel. Contain|Width is
+    // the same combo the header bars use. This is safe (no width ratchet) only
+    // because the list carries no right padding: Contain here settles at the list
+    // bounds instead of `bounds + padding`. Set in C -- CSS mask inlets do not
+    // bind to these dynamically-built views.
+    ((View *) self)->autoresizingMask = ViewAutoresizingContain | ViewAutoresizingWidth;
+
     buildControls(self);
   }
 
@@ -729,6 +849,7 @@ static void initialize(Class *clazz) {
   ((StageViewInterface *) clazz->interface)->initWithStage = initWithStage;
   ((StageViewInterface *) clazz->interface)->setSelected = setSelected;
   ((StageViewInterface *) clazz->interface)->rebuildEffects = rebuildEffects;
+  ((StageViewInterface *) clazz->interface)->rebuild = buildControls;
 }
 
 /**

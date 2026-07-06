@@ -40,8 +40,8 @@ typedef struct StageViewInterface StageViewInterface;
 /**
  * @brief Upper bounds on the controls a StageView may hold.
  */
-#define STAGE_VIEW_MAX_EFFECTS 24
-#define STAGE_VIEW_MAX_PARAMS 48
+#define STAGE_VIEW_MAX_EFFECTS 8
+#define STAGE_VIEW_MAX_PARAMS 16
 
 /**
  * @brief Binds a Slider to the stage float field it edits.
@@ -182,6 +182,15 @@ struct StageViewInterface {
    * @memberof StageView
    */
   void (*rebuildEffects)(StageView *self);
+
+  /**
+   * @fn void StageView::rebuild(StageView *self)
+   * @brief Rebuilds the entire stage panel (fixed controls + effect rows) from the
+   * stage's current flags. Used (deferred) after an effect change that alters the
+   * fixed controls -- e.g. adding flare/envmap toggles the top Texture row.
+   * @memberof StageView
+   */
+  void (*rebuild)(StageView *self);
 };
 
 /**

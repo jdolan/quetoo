@@ -25,6 +25,10 @@
 
 #define _Class _Scrollbar
 
+// Fallback defaults, used only if the common.css `.scrollbar` rule is absent.
+// The live/tunable values are these fields bound from CSS in applyStyle.
+#define SCROLLBAR_ADORNER_SIZE 12
+#define SCROLLBAR_ADORNER_SHADE 28
 #define SCROLLBAR_STEP 32
 #define SCROLLBAR_MIN_THUMB 16
 
@@ -57,6 +61,13 @@ static void scrollBy(Scrollbar *self, const int dy) {
     offset.y += dy;
     $(self->scrollView, scrollToOffset, &offset);
     $(self, update);
+
+    // Force a full bar re-layout so the adorner frames are re-asserted. A click
+    // restyles the adorner Button (invalidateStyle + needsLayout), and the base
+    // theme's `Button { autoresizing-mask: contain }` would otherwise shrink it to
+    // its empty content on that self-layout. layoutSubviews (below) neutralizes the
+    // mask and re-frames it.
+    ((View *) self)->needsLayout = true;
   }
 }
 
@@ -88,14 +99,16 @@ static void thumbDidDrag(ScrollThumb *thumb, int delta) {
  * @brief ButtonDelegate; the top cap steps the content toward its start.
  */
 static void didClickTopAdorner(Button *button) {
-  scrollBy(button->delegate.self, SCROLLBAR_STEP);
+  Scrollbar *self = button->delegate.self;
+  scrollBy(self, self->step);
 }
 
 /**
  * @brief ButtonDelegate; the bottom cap steps the content toward its end.
  */
 static void didClickBottomAdorner(Button *button) {
-  scrollBy(button->delegate.self, -SCROLLBAR_STEP);
+  Scrollbar *self = button->delegate.self;
+  scrollBy(self, -self->step);
 }
 
 #pragma mark - Object
@@ -128,16 +141,19 @@ static void applyStyle(View *self, const Style *style) {
 
   const Inlet inlets[] = MakeInlets(
     MakeInlet("-adorner-size", InletTypeInteger, &this->adornerSize, NULL),
+    MakeInlet("-adorner-shade", InletTypeInteger, &this->adornerShade, NULL),
     MakeInlet("-orientation", InletTypeEnum, &this->orientation, (ident) ScrollbarOrientationNames),
     MakeInlet("-bgcolor", InletTypeColor, &this->bgColor, NULL),
-    MakeInlet("-fgcolor", InletTypeColor, &this->fgColor, NULL)
+    MakeInlet("-fgcolor", InletTypeColor, &this->fgColor, NULL),
+    MakeInlet("-thumb-min", InletTypeInteger, &this->thumbMin, NULL),
+    MakeInlet("-step", InletTypeInteger, &this->step, NULL)
   );
 
   $(self, bind, inlets, (Dictionary *) style->attributes);
 
   self->backgroundColor = this->bgColor;
 
-  const SDL_Color adorn = shade(this->bgColor, 28);
+  const SDL_Color adorn = shade(this->bgColor, this->adornerShade);
   ((View *) this->topAdorner)->backgroundColor = adorn;
   ((View *) this->bottomAdorner)->backgroundColor = adorn;
   ((View *) this->thumb)->backgroundColor = this->fgColor;
@@ -157,9 +173,16 @@ static View *init(View *self) {
  */
 static void layoutSubviews(View *self) {
 
-  super(View, self, layoutSubviews);
-
   Scrollbar *this = (Scrollbar *) self;
+
+  // The base theme styles our adorner Buttons with `autoresizing-mask: contain`,
+  // which makes them self-shrink to their (empty) content -- clamped to the base
+  // `min-width: 100` -- on any self-layout. We frame the adorners by hand, so
+  // neutralize that mask before the base layout pass runs it.
+  ((View *) this->topAdorner)->autoresizingMask = ViewAutoresizingNone;
+  ((View *) this->bottomAdorner)->autoresizingMask = ViewAutoresizingNone;
+
+  super(View, self, layoutSubviews);
 
   const SDL_Rect bounds = $(self, bounds);
   const int a = this->adornerSize;
@@ -178,13 +201,14 @@ static void render(View *self, Renderer *renderer) {
 
   Scrollbar *this = (Scrollbar *) self;
 
-  // The base ScrollView fires no didScroll callback, so detect wheel/drag
-  // scrolling here and re-sync the thumb on the next layout.
+  // Re-sync the thumb from the scroll view's geometry every frame. The base
+  // ScrollView fires no didScroll callback (so wheel/drag offset changes are only
+  // reflected here), and the content view's height is often not final on the
+  // Scrollbar's first layout -- so computing the thumb only in layoutSubviews left
+  // it stuck at full height until something (e.g. an adorner click) forced a
+  // re-layout. update() is cheap and idempotent.
   if (this->scrollView) {
-    const SDL_Point offset = this->scrollView->contentOffset;
-    if (offset.x != this->syncedOffset.x || offset.y != this->syncedOffset.y) {
-      self->needsLayout = true;
-    }
+    $(this, update);
   }
 
   super(View, self, render, renderer);
@@ -203,10 +227,13 @@ static Scrollbar *initWithScrollView(Scrollbar *self, ScrollView *scrollView) {
 
     $((View *) self, addClassName, "scrollbar");
 
-    self->adornerSize = 12;
+    self->adornerSize = SCROLLBAR_ADORNER_SIZE;
+    self->adornerShade = SCROLLBAR_ADORNER_SHADE;
     self->orientation = ScrollbarOrientationRight;
     self->bgColor = (SDL_Color) { 0x22, 0x22, 0x22, 0xc0 };
     self->fgColor = (SDL_Color) { 0x1e, 0x4e, 0x62, 0xdd };
+    self->thumbMin = SCROLLBAR_MIN_THUMB;
+    self->step = SCROLLBAR_STEP;
 
     self->topAdorner = $(alloc(Button), initWithFrame, NULL);
     assert(self->topAdorner);
@@ -273,7 +300,7 @@ static void update(Scrollbar *self) {
     const int scrollRange = content.h - visible.h;
 
     int thumbH = (int) ((float) panel.h * visible.h / content.h);
-    thumbH = clamp(thumbH, SCROLLBAR_MIN_THUMB, panel.h);
+    thumbH = clamp(thumbH, self->thumbMin, panel.h);
 
     const int travel = panel.h - thumbH;
     const float fraction = clamp((float) (-self->scrollView->contentOffset.y) / scrollRange, 0.f, 1.f);

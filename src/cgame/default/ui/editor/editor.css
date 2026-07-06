@@ -24,125 +24,21 @@
 #editorContent {
   autoresizing-mask: fill;
   padding-top: 44;
+  padding-left: 4;
 }
 
-/* Panel dock, drag and resize are set in EditorViewController loadView. */
 Panel.editor {
-  min-width: 470;
+  min-width: 500;
 }
 
 Panel.editor .tabPageView {
-  autoresizing-mask: none;
-  width: 470;
-  /* height is set per-resolution in EditorViewController::fitContentHeight
-     (window_bounds.h - strip - chrome) so the panel fills the viewport. */
+  width: 500;
+  padding: 16;
 }
 
-#entity {
-  padding: 4;
-}
-
-#entity .entity {
-  axis: StackViewAxisHorizontal;
-}
-
-/* The content stack and its group boxes fill the tab width so the boxes snap to
-   the parent's right edge (minus padding), matching the left, and so the table
-   gets a definite width to compute a stable value-column fill. MUST use ID
-   selectors: the `.container` class and `#entity Box` descendant-type selectors
-   do NOT bind here (the box stayed `contain` and overflowed the tab page), while
-   IDs bind reliably (proven by `#teamEntity` below). This overrides the base
-   `Box { autoresizing-mask: contain }`, which a C-side mask cannot (the stylesheet
-   is applied after loadView and clobbers it). */
-#entityContent,
-#entityBox,
-#teamEntity {
-  autoresizing-mask: contain | width;
-}
-
-#teamEntity {
-  background-color: #22222244;
-}
-
-/* The entity tab's pairs are KeyValueTableViews: the table owns the column
-   widths (enforced in C on each row's widgets, immune to min-width floors) and
-   grows with its rows (it no longer scrolls itself; an ancestor StackView with
-   scroll: true provides scrolling when needed). Material and mesh are not yet
-   converted, so keep their Input column overrides below for now. ASCII only and
-   no blank lines inside comments (a lone CRLF inside selector text crashes the
-   parser). */
 .kvTable {
   -key-width: 140;
   -value-width: 280;
-}
-
-/* Per-effect property tables inside a material stage. Narrower than the main tab
-   tables since they sit inside the (indented) stage panel. Same own-root inlet
-   mechanism as .kvTable, so it binds reliably. */
-.stageEffectTable {
-  -key-width: 100;
-  -value-width: 200;
-}
-
-/* Stage-editor chrome. These live in editor.css (scoped by the #material tab id)
-   because per-tab stylesheets do not bind to their descendants, but the editor
-   root stylesheet cascades to every tab. Testing whether background/border AND
-   alignment bind here (they do from the entity tab for axis/width). */
-#material .stagesHeader {
-  axis: horizontal;
-  alignment: top-right;
-  spacing: 4;
-}
-
-#material .stages {
-  spacing: 8;
-}
-
-#material .stageView {
-  spacing: 4;
-}
-
-#material .stageHeader {
-  axis: horizontal;
-  spacing: 6;
-  background-color: #1e4e6266;
-  padding: 4;
-}
-
-#material .stageEffects {
-  spacing: 6;
-}
-
-#material .stageEffect {
-  axis: vertical;
-  spacing: 2;
-  background-color: #0c1f275a;
-  border-color: #1e4e62;
-  border-width: 1;
-  padding: 4;
-}
-
-#material .stageEffectHeader,
-#material .stageAddEffect {
-  axis: horizontal;
-  spacing: 6;
-}
-
-#material .iconButton {
-  background-color: #00000000;
-  border-width: 0;
-  padding: 0;
-}
-
-/* The material tab is now built declaratively from KeyValueTableViews too (maps +
-   PBR rows), so its boxes fit the tab width like the entity tab's. ID selectors are
-   used because class/descendant-type selectors do not reliably bind to this
-   controller's tree (same constraint proven on the entity tab). */
-#materialContent,
-#materialBox,
-#pbrBox,
-#stagesBox {
-  autoresizing-mask: contain | width;
 }
 
 /* Mesh tab still uses the old Input rows; keep its column overrides until it is

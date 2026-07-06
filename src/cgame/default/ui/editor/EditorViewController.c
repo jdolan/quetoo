@@ -419,6 +419,14 @@ static void fitContentHeight(EditorViewController *self) {
     tabPage->needsLayout = true;
     ((View *) self->panel)->needsLayout = true;
   }
+
+  // Let the material tab size its stages scroll viewport to the same tab height
+  // (it fills the space below the fixed maps + PBR boxes). Called every frame; it
+  // self-guards and no-ops when the size is stable. Harmless when another tab is
+  // showing.
+  if (target > 0) {
+    $(self->materialViewController, fitStagesHeight, target);
+  }
 }
 
 #pragma mark - Class lifecycle

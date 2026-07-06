@@ -23,8 +23,38 @@
 
 #include "MaterialViewController.h"
 #include "StageView.h"
+#include "Scrollbar.h"
 
 #define _Class _MaterialViewController
+
+/**
+ * @brief Width of the scrollbar gutter reserved on the right of the stages list.
+ */
+#define MATERIAL_SCROLLBAR_WIDTH 14
+
+/**
+ * @brief Symmetric inset around the group boxes within the tab content.
+ */
+#define MATERIAL_CONTENT_PADDING 8
+
+/**
+ * @brief Height (window_bounds units) of the fixed section above the stages list
+ * -- the Material + PBR boxes and the stages header. The stages scroll viewport
+ * gets whatever tab height remains below this. Tuned by eye; a stable constant
+ * because the UI renders in window_bounds units and those boxes never change
+ * (always 3 map rows + 6 PBR sliders). Mirrors EDITOR_PANEL_CHROME's role.
+ */
+#define MATERIAL_TOP_SECTION_HEIGHT 500
+
+/**
+ * @brief The Add Stage icon button in the "Material Stages [  ]" box-title
+ * brackets. Size matches the stage remove "X"; x/y place it in the bracket gap,
+ * straddling the box top border like the label. Positioned in C: the stylesheet
+ * system applies NO rules to this button (verified: its computed style stays empty
+ * even when force-invalidated every frame -- it renders, but the theme pass yields
+ * nothing for it), so CSS left/top cannot drive it. Tuned by eye (font-dependent).
+ */
+#define ADD_STAGE_ICON_SIZE 17
 
 #pragma mark - Delegates
 
@@ -138,6 +168,7 @@ static void loadView(ViewController *self) {
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("materialContent", &this->content),
     MakeOutlet("materialBox", &this->materialBox),
+    MakeOutlet("stagesBox", &this->stagesBox),
     MakeOutlet("diffusemap", &this->diffusemap),
     MakeOutlet("normalmap", &this->normalmap),
     MakeOutlet("specularmap", &this->specularmap),
@@ -147,8 +178,7 @@ static void loadView(ViewController *self) {
     MakeOutlet("parallax", &this->parallax),
     MakeOutlet("shadow", &this->shadow),
     MakeOutlet("alpha_test", &this->alphaTest),
-    MakeOutlet("stages", &this->stages),
-    MakeOutlet("addStage", &this->addStage)
+    MakeOutlet("stages", &this->stages)
   );
 
   $(self->view, awakeWithResourceName, "ui/editor/MaterialViewController.json");
@@ -175,8 +205,83 @@ static void loadView(ViewController *self) {
   this->alphaTest->delegate.self = self;
   this->alphaTest->delegate.didSetValue = didSetValue;
 
+  // Add Stage is an icon button (matching the stage remove "X") overlaid on the
+  // "Material Stages [  ]" box title, sitting in the bracket gap -- there is no
+  // separate header row. It is a subview of the box itself (not the contentView),
+  // alignment-none with an explicit frame, so it floats over the title/top border.
+  // Built in C because CSS width does not bind to a dynamically-built button (same
+  // as the stage buttons).
+  this->addStage = $(alloc(Button), initWithFrame, NULL);
+  $((View *) this->addStage, addClassName, "iconButton");
+  $(this->addStage->image, setImageWithResourceName, "ui/editor/icon_add.png");
+
+  const SDL_Size addIconSize = MakeSize(ADD_STAGE_ICON_SIZE, ADD_STAGE_ICON_SIZE);
+  ((View *) this->addStage)->minSize = addIconSize;
+  ((View *) this->addStage)->maxSize = addIconSize;
+  ((View *) this->addStage->image)->autoresizingMask |= ViewAutoresizingFill;
+  $((View *) this->addStage, sizeToFit);
+
+  ((View *) this->addStage)->alignment = ViewAlignmentNone;
+  ((View *) this->addStage)->frame.x = 144;
+  ((View *) this->addStage)->frame.y = -19;
+
   this->addStage->delegate.self = self;
   this->addStage->delegate.didClick = didClickAddStage;
+
+  $((View *) this->stagesBox, addSubview, (View *) this->addStage);
+  release(this->addStage);
+
+  // Scroll ONLY the Material Stages list (not the whole tab): the maps + PBR boxes
+  // stay fixed. The stages box's contentView holds just the scroll structure (the
+  // Add Stage button lives in the box title above); that structure is
+  //   stagesViewport               [fills remaining tab height, sized per-frame]
+  //     |-- scrollView   -> contentView = `stages` (the StageView list)
+  //     `-- scrollbar    -> pinned in the right gutter
+  //
+  // The gutter is created by insetting the SCROLL VIEW, not by padding the list.
+  // This is the crux: a Contain-masked list sizes to `content + padding`, so any
+  // right padding on it forces the list wider than the scroll view -- it then
+  // bleeds under the bar and seeds a width ratchet. Instead the viewport reserves
+  // the gutter as the SCROLL VIEW's own right padding, which insets only the
+  // scrolled list (the padding shrinks the scroll view's content bounds, so the
+  // list lays out to bounds - gutter), while the scroll view itself still fills
+  // the viewport. The scrollbar is a sibling filling that full width and simply
+  // right-aligns to the viewport's right edge, landing in the gutter beyond the
+  // list. This uses only right-alignment + content padding -- no per-frame manual
+  // positioning, which did not render reliably.
+  View *stagesParent = ((View *) this->stages)->superview;
+
+  this->stagesViewport = $(alloc(View), initWithFrame, NULL);
+  assert(this->stagesViewport);
+  this->stagesViewport->autoresizingMask = ViewAutoresizingWidth;
+  this->stagesViewport->clipsSubviews = true;
+
+  this->scrollView = $(alloc(ScrollView), initWithFrame, NULL);
+  assert(this->scrollView);
+  ((View *) this->scrollView)->clipsSubviews = true;
+  // Reserve the scrollbar gutter inside the scroll view: this insets the content
+  // list (`stages`) without moving the scroll view, so nothing extends under the
+  // bar. Padding on the scroll view (fill mask) is safe -- unlike padding on the
+  // Contain-masked list, which would inflate the list past the viewport.
+  ((View *) this->scrollView)->padding.right = MATERIAL_SCROLLBAR_WIDTH + MATERIAL_CONTENT_PADDING;
+
+  retain(this->stages);
+  $((View *) this->stages, removeFromSuperview);
+  $(this->scrollView, setContentView, (View *) this->stages);
+  release(this->stages);
+
+  $(this->stagesViewport, addSubview, (View *) this->scrollView);
+
+  Scrollbar *scrollbar = $(alloc(Scrollbar), initWithScrollView, this->scrollView);
+  assert(scrollbar);
+  ((View *) scrollbar)->frame.w = MATERIAL_SCROLLBAR_WIDTH;
+  ((View *) scrollbar)->autoresizingMask = ViewAutoresizingHeight;
+  ((View *) scrollbar)->alignment = ViewAlignmentRight;
+  $(this->stagesViewport, addSubview, (View *) scrollbar);
+  this->scrollbar = (View *) scrollbar;
+  release(scrollbar);
+
+  $(stagesParent, addSubview, this->stagesViewport);
 }
 
 /**
@@ -196,7 +301,9 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
     const Array *subviews = ((View *) this->stages)->subviews;
     for (size_t i = 0; i < subviews->count; i++) {
       if ($(subviews, objectAtIndex, i) == (ident) stageView) {
-        $(stageView, rebuildEffects);
+        // full rebuild: adding/removing flare/envmap toggles the fixed Texture row,
+        // not just the effect rows.
+        $(stageView, rebuild);
         break;
       }
     }
@@ -269,9 +376,9 @@ static void setMaterial(MaterialViewController *self, r_material_t *material) {
 
   if (self->material) {
     $(self->materialBox->label->text, setText, va("Material ( %s )", self->material->cm->basename));
-    $(self->diffusemap, setDefaultText, self->material->cm->diffusemap.name);
-    $(self->normalmap, setDefaultText, self->material->cm->normalmap.name);
-    $(self->specularmap, setDefaultText, self->material->cm->specularmap.name);
+    $(self->diffusemap->text, setText, self->material->cm->diffusemap.name);
+    $(self->normalmap->text, setText, self->material->cm->normalmap.name);
+    $(self->specularmap->text, setText, self->material->cm->specularmap.name);
 
     $(self->roughness, setValue, (double) self->material->cm->roughness);
     $(self->hardness, setValue, (double) self->material->cm->hardness);
@@ -282,9 +389,9 @@ static void setMaterial(MaterialViewController *self, r_material_t *material) {
 
   } else {
     $(self->materialBox->label->text, setText, "Material");
-    $(self->diffusemap, setDefaultText, NULL);
-    $(self->normalmap, setDefaultText, NULL);
-    $(self->specularmap, setDefaultText, NULL);
+    $(self->diffusemap->text, setText, "");
+    $(self->normalmap->text, setText, "");
+    $(self->specularmap->text, setText, "");
 
     $(self->roughness, setValue, MATERIAL_ROUGHNESS);
     $(self->hardness, setValue, MATERIAL_HARDNESS);
@@ -300,6 +407,34 @@ static void setMaterial(MaterialViewController *self, r_material_t *material) {
   loadStages(self);
 }
 
+/**
+ * @fn void MaterialViewController::fitStagesHeight(MaterialViewController *self, int tabPageHeight)
+ * @memberof MaterialViewController
+ */
+static void fitStagesHeight(MaterialViewController *self, int tabPageHeight) {
+
+  if (self->stagesViewport == NULL) {
+    return;
+  }
+
+  const int h = tabPageHeight - MATERIAL_TOP_SECTION_HEIGHT;
+
+  // Guarded frame assignment + needsLayout flags only -- no forced layout. MVC
+  // applies it on the next KEY_UI pass; this is the same safe pattern as
+  // EditorViewController::fitContentHeight (forcing layout from the KEY_GAME tick
+  // desyncs frames and breaks hit-testing).
+  if (h > 0 && self->stagesViewport->frame.h != h) {
+    self->stagesViewport->frame.h = h;
+    self->stagesViewport->needsLayout = true;
+    if (self->stagesBox) {
+      ((View *) self->stagesBox)->needsLayout = true;
+    }
+    if (self->content) {
+      ((View *) self->content)->needsLayout = true;
+    }
+  }
+}
+
 #pragma mark - Class lifecycle
 
 /**
@@ -313,6 +448,7 @@ static void initialize(Class *clazz) {
 
   ((MaterialViewControllerInterface *) clazz->interface)->init = init;
   ((MaterialViewControllerInterface *) clazz->interface)->setMaterial = setMaterial;
+  ((MaterialViewControllerInterface *) clazz->interface)->fitStagesHeight = fitStagesHeight;
 }
 
 /**

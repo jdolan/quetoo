@@ -1,4 +1,10 @@
-/* Column-width rules for this tab live in editor.css, not here. A per-view
-   stylesheet attached to this controller's own root view does not reliably
-   bind to its descendants; editor.css (the editor root's stylesheet) does.
-   See the column-width block in editor.css. */
+#entityContent,
+#entityBox,
+#teamEntity {
+  autoresizing-mask: contain | width;
+  background-color: #11111144;
+}
+
+#entity .entity {
+  axis: StackViewAxisHorizontal;
+}
