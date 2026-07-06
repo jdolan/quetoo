@@ -164,7 +164,7 @@ void R_InitContext(void) {
     Com_Error(ERROR_FATAL, "Failed to create GPU render device: %s\n", SDL_GetError());
   }
 
-  Com_Verbose("   GPU driver: %s\n", SDL_GetGPUDeviceDriver(r_context.device->device));
+  r_context.device->maxAnisotropy = Clampf(r_anisotropy->value, 0.f, 16.f);
 
   // Bridge the GPU library's Resource lookups (loadShader, ...) to Quetoo's filesystem.
   $$(Resource, addResourceProvider, R_ResourceProvider);

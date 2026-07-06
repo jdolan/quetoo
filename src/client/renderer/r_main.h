@@ -238,11 +238,6 @@ typedef struct {
      * @brief Non-zero when developer mode is enabled.
      */
     int developer;
-
-    /**
-     * @brief Non-zero when wireframe rendering is enabled.
-     */
-    int wireframe;
   } block;
 
 } r_uniforms_t;
@@ -257,11 +252,12 @@ extern cvar_t *r_alpha_test;
 extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
 extern cvar_t *r_draw_bsp_blocks;
+extern cvar_t *r_draw_occlusion_queries;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_bsp_voxels;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_light_bounds;
 extern cvar_t *r_draw_material_stages;
-extern cvar_t *r_draw_wireframe;
+extern cvar_t *r_occlude;
 
 #endif

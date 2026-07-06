@@ -29,12 +29,13 @@ cvar_t *r_alpha_test;
 cvar_t *r_cull;
 cvar_t *r_depth_pass;
 cvar_t *r_draw_bsp_blocks;
+cvar_t *r_draw_occlusion_queries;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_bsp_voxels;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_light_bounds;
 cvar_t *r_draw_material_stages;
-cvar_t *r_draw_wireframe;
+cvar_t *r_occlude;
 
 cvar_t *r_ambient;
 cvar_t *r_ambient_occlusion;
@@ -127,7 +128,6 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->lighting_distance = r_lighting_distance->value;
     out->editor = editor->integer;
     out->developer = developer->integer;
-    out->wireframe = r_draw_wireframe->integer;
 
     if (r_models.world) {
       const r_bsp_voxels_t *voxels = &r_models.world->bsp->voxels;
@@ -274,7 +274,11 @@ void R_DrawViewDepth(r_view_t *view) {
 
   R_UpdateUniforms(view);
 
+  R_UpdateOcclusionQueries(view);
+
   R_DrawDepthPass(view);
+
+  R_DrawOcclusionQueries(view);
 }
 
 /**
@@ -318,14 +322,15 @@ static void R_InitLocal(void) {
   r_alpha_test = Cvar_Add("r_alpha_test", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool).");
   r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool).");
   r_draw_bsp_blocks = Cvar_Add("r_draw_bsp_blocks", "0", CVAR_DEVELOPER, "Controls the rendering of BSP block boundaries (developer tool).");
+  r_draw_occlusion_queries = Cvar_Add("r_draw_occlusion_queries", "0", CVAR_DEVELOPER, "Controls the rendering of occlusion query bounding boxes (developer tool).");
   r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool).");
   r_draw_bsp_voxels = Cvar_Add("r_draw_bsp_voxels", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool).");
   r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool).");
   r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool).");
   r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
-  r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool).");
   r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
   r_draw_stats = Cvar_Add("r_draw_stats", "0", CVAR_DEVELOPER, "Draw renderer performance statistics (developer tool).");
+  r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
 
   // settings and preferences
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
@@ -409,22 +414,34 @@ void R_Init(void) {
   // Snapshot the MSAA sample count for the scene framebuffer and all 3D pipelines.
   r_scene_samples = R_SampleCount();
 
-  // Every createSamplerLinearRepeat/createSamplerLinearClamp call reads this.
-  r_context.device->maxAnisotropy = Clampf(r_anisotropy->value, 0.f, 16.f);
-
   R_InitConfig();
+  
   R_InitImages();
+  
   R_InitMedia();
+  
   R_InitLights();
+  
   R_InitShadows();
+  
   R_InitBspPipeline();
+  
   R_InitModels();
+  
   R_InitDraw2D();
+  
   R_InitDepthPass();
+  
+  R_InitOcclusionQueries();
+  
   R_InitDraw3D();
+  
   R_InitSprites();
+  
   R_InitDecals();
+  
   R_InitSky();
+  
   R_InitPost();
 
   const SDL_Rect bounds = r_context.window_bounds;
@@ -462,7 +479,12 @@ void R_Shutdown(void) {
 
   R_ShutdownLights();
 
+  // R_ShutdownMedia frees loaded BSP models, which return their occlusion
+  // queries via R_FreeOcclusionQuery -- this must run before the pools
+  // R_ShutdownOcclusionQueries destroys.
   R_ShutdownMedia();
+
+  R_ShutdownOcclusionQueries();
 
   R_ShutdownContext();
 

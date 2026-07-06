@@ -188,11 +188,6 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
    * @brief The developer flags, used for shader development tweaking.
    */
   int developer;
-
-  /**
-   * @brief The wireframe mode flag.
-   */
-  int wireframe;
 };
 
 #define MAX_BSP_LIGHTS 768

@@ -375,6 +375,23 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 }
 
 /**
+ * @brief Allocates an occlusion query for each BSP block and BSP light.
+ */
+static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
+
+  r_bsp_block_t *block = bsp->blocks;
+  for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
+    const box3_t bounds = Box3_Union(block->node->bounds, block->visible_bounds);
+    block->query = R_AllocOcclusionQuery(bounds);
+  }
+
+  r_bsp_light_t *light = bsp->lights;
+  for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
+    light->query = R_AllocOcclusionQuery(light->bounds);
+  }
+}
+
+/**
  * @brief Loads the voxel grid and light assignment data for clustered forward lighting.
  */
 static void R_LoadBspVoxels(r_model_t *mod) {
@@ -609,6 +626,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_LoadBspVertexArray(mod);
   R_SetupBspInlineModels(mod);
   R_LoadBspLights(mod->bsp);
+  R_LoadBspOcclusionQueries(mod->bsp);
   R_LoadBspVoxels(mod);
 
   Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
@@ -663,6 +681,13 @@ static void R_FreeBspModel(r_media_t *self) {
 
     release(block->decals.triangles);
     block->decals.vertex_buffer = release(block->decals.vertex_buffer);
+
+    R_FreeOcclusionQuery(block->query);
+  }
+
+  r_bsp_light_t *light = bsp->lights;
+  for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
+    R_FreeOcclusionQuery(light->query);
   }
 
   bsp->voxels.light_indices_buffer = release(bsp->voxels.light_indices_buffer);

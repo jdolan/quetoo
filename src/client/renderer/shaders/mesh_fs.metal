@@ -114,7 +114,6 @@ struct uniforms_block
     float lighting_distance;
     int editor;
     int developer;
-    int wireframe;
 };
 
 struct material_block

@@ -486,11 +486,23 @@ void R_DrawDecals(const r_view_t *view) {
       continue;
     }
 
+    if (R_CullEntity(view, e)) {
+      continue;
+    }
+
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
 
     const r_bsp_inline_model_t *in = e->model->bsp_inline;
     const r_bsp_block_t *block = in->blocks;
     for (int32_t j = 0; j < in->num_blocks; j++, block++) {
+
+      if (block->query && !block->query->result) {
+        continue;
+      }
+
+      if (R_CulludeBox(view, block->visible_bounds)) {
+        continue;
+      }
 
       const r_bsp_block_decals_t *decals = &block->decals;
 

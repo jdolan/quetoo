@@ -63,17 +63,31 @@ static struct {
  * cubemap window, a runtime branch on material.flags, not a pipeline swap.
  */
 static struct {
+  /**
+   * @brief The pipeline.
+   */
   GraphicsPipeline *pipeline;
+  
+  /**
+   * @brief The cubemap sampler.
+   */
   Sampler *sampler;
+  
+  /**
+   * @brief The stage sampler for parallax scrolling sky effects.
+   */
   Sampler *stage_sampler;
 
+  /**
+   * @brief The stage pipelines, cached by blend operator combinations.
+   */
   struct {
     cm_blend_t src, dest;
     GraphicsPipeline *pipeline;
   } stages[MAX_STAGE_PIPELINES];
 
   int32_t num_stages;
-} r_sky_pipeline;
+} r_sky_draw;
 
 /**
  * @brief Returns the sky pipeline for the given material-stage blend function,
@@ -83,13 +97,13 @@ static struct {
  */
 static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
-  for (int32_t i = 0; i < r_sky_pipeline.num_stages; i++) {
-    if (r_sky_pipeline.stages[i].src == src && r_sky_pipeline.stages[i].dest == dest) {
-      return r_sky_pipeline.stages[i].pipeline;
+  for (int32_t i = 0; i < r_sky_draw.num_stages; i++) {
+    if (r_sky_draw.stages[i].src == src && r_sky_draw.stages[i].dest == dest) {
+      return r_sky_draw.stages[i].pipeline;
     }
   }
 
-  if (r_sky_pipeline.num_stages == MAX_STAGE_PIPELINES) {
+  if (r_sky_draw.num_stages == MAX_STAGE_PIPELINES) {
     return NULL;
   }
 
@@ -153,10 +167,10 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
     },
     &info);
 
-  r_sky_pipeline.stages[r_sky_pipeline.num_stages] = (typeof(r_sky_pipeline.stages[0])) {
+  r_sky_draw.stages[r_sky_draw.num_stages] = (typeof(r_sky_draw.stages[0])) {
     .src = src, .dest = dest, .pipeline = pipeline,
   };
-  return r_sky_pipeline.stages[r_sky_pipeline.num_stages++].pipeline;
+  return r_sky_draw.stages[r_sky_draw.num_stages++].pipeline;
 }
 
 /**
@@ -182,8 +196,8 @@ static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view, RenderPass 
   $(pass, bindPipeline, pipeline);
 
   $(pass, bindFragmentSamplers, SKY_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = texture, .sampler = r_sky_pipeline.stage_sampler->sampler },
-    { .texture = texture_next, .sampler = r_sky_pipeline.stage_sampler->sampler },
+    { .texture = texture, .sampler = r_sky_draw.stage_sampler->sampler },
+    { .texture = texture_next, .sampler = r_sky_draw.stage_sampler->sampler },
   }, 2);
 
   $(commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
@@ -221,7 +235,7 @@ static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view, RenderPass
  */
 void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 
-  if (!r_sky_pipeline.pipeline || !r_sky.image || !r_sky.image->texture || !r_sky.image->texture->texture) {
+  if (!r_sky_draw.pipeline || !r_sky.image || !r_sky.image->texture || !r_sky.image->texture->texture) {
     return;
   }
 
@@ -257,21 +271,21 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
-  $(pass, bindPipeline, r_sky_pipeline.pipeline);
+  $(pass, bindPipeline, r_sky_draw.pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   $(pass, bindFragmentSamplers, SKY_SAMPLER_SKY, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_sky.image->texture->texture,
-    .sampler = r_sky_pipeline.sampler->sampler,
+    .sampler = r_sky_draw.sampler->sampler,
   }, 1);
 
   // Stage/stage-next: the base cubemap window never samples these (sky_fs's
   // STAGE_NONE branch doesn't touch them), but the shared shader declares
   // them, so SDL_gpu requires them bound regardless.
   $(pass, bindFragmentSamplers, SKY_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_sky_pipeline.stage_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_sky_pipeline.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
   }, 2);
 
   const r_bsp_inline_model_t *world = bsp->inline_models;
@@ -295,7 +309,7 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 
       // Re-bind the base pipeline: a preceding surface's material stages may
       // have left a stage (blend) pipeline bound (see R_DrawBspBlockOpaque).
-      $(pass, bindPipeline, r_sky_pipeline.pipeline);
+      $(pass, bindPipeline, r_sky_draw.pipeline);
 
       // R_MaterialUniforms zeroes the whole struct, so the stage fields land
       // at their STAGE_NONE default, undoing any stage a preceding surface
@@ -311,7 +325,7 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
       r_stats.bsp_triangles += draw->num_elements / 3;
       r_stats.bsp_draw_elements++;
 
-      if (r_draw_material_stages->integer && !r_draw_wireframe->integer) {
+      if (r_draw_material_stages->integer) {
         R_DrawSkyDrawElementsMaterialStages(view, pass, commands, draw);
       }
     }
@@ -372,7 +386,7 @@ static void R_InitSkyPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_sky_pipeline.pipeline = $(r_context.device, loadGraphicsPipeline,
+  r_sky_draw.pipeline = $(r_context.device, loadGraphicsPipeline,
     "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
       .num_uniform_buffers = SKY_NUM_UNIFORMS,
@@ -384,8 +398,8 @@ static void R_InitSkyPipeline(void) {
     },
     &info);
 
-  r_sky_pipeline.sampler = $(r_context.device, createSamplerLinearClamp);
-  r_sky_pipeline.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
+  r_sky_draw.sampler = $(r_context.device, createSamplerLinearClamp);
+  r_sky_draw.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
 }
 
 /**
@@ -406,14 +420,14 @@ void R_InitSky(void) {
  */
 void R_ShutdownSky(void) {
 
-  r_sky_pipeline.pipeline = release(r_sky_pipeline.pipeline);
-  r_sky_pipeline.sampler = release(r_sky_pipeline.sampler);
-  r_sky_pipeline.stage_sampler = release(r_sky_pipeline.stage_sampler);
+  r_sky_draw.pipeline = release(r_sky_draw.pipeline);
+  r_sky_draw.sampler = release(r_sky_draw.sampler);
+  r_sky_draw.stage_sampler = release(r_sky_draw.stage_sampler);
 
-  for (int32_t i = 0; i < r_sky_pipeline.num_stages; i++) {
-    r_sky_pipeline.stages[i].pipeline = release(r_sky_pipeline.stages[i].pipeline);
+  for (int32_t i = 0; i < r_sky_draw.num_stages; i++) {
+    r_sky_draw.stages[i].pipeline = release(r_sky_draw.stages[i].pipeline);
   }
-  r_sky_pipeline.num_stages = 0;
+  r_sky_draw.num_stages = 0;
 
   r_sky.fallback = release(r_sky.fallback);
 }

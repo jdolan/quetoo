@@ -148,11 +148,6 @@ void main(void) {
 
   out_depth = gl_FragCoord.z;
 
-  if (wireframe != 0) {
-    out_color = vec4(0.8, 0.8, 0.8, 1.0);
-    return;
-  }
-
   fragment.view_dir = normalize(-vertex.position);
   fragment.view_dist = length(vertex.position);
   fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;

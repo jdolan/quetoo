@@ -128,7 +128,7 @@ static struct {
   } stages[MAX_STAGE_PIPELINES];
 
   int32_t num_stages;
-} r_mesh_pipeline;
+} r_mesh_draw;
 
 /**
  * @brief Per-entity mesh locals, pushed to vertex uniform slot 1.
@@ -148,13 +148,13 @@ typedef struct {
  */
 static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
-  for (int32_t i = 0; i < r_mesh_pipeline.num_stages; i++) {
-    if (r_mesh_pipeline.stages[i].src == src && r_mesh_pipeline.stages[i].dest == dest) {
-      return r_mesh_pipeline.stages[i].pipeline;
+  for (int32_t i = 0; i < r_mesh_draw.num_stages; i++) {
+    if (r_mesh_draw.stages[i].src == src && r_mesh_draw.stages[i].dest == dest) {
+      return r_mesh_draw.stages[i].pipeline;
     }
   }
 
-  if (r_mesh_pipeline.num_stages == MAX_STAGE_PIPELINES) {
+  if (r_mesh_draw.num_stages == MAX_STAGE_PIPELINES) {
     return NULL;
   }
 
@@ -239,10 +239,10 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
   release(vertexShader);
   release(fragmentShader);
 
-  r_mesh_pipeline.stages[r_mesh_pipeline.num_stages] = (typeof(r_mesh_pipeline.stages[0])) {
+  r_mesh_draw.stages[r_mesh_draw.num_stages] = (typeof(r_mesh_draw.stages[0])) {
     .src = src, .dest = dest, .pipeline = pipeline,
   };
-  return r_mesh_pipeline.stages[r_mesh_pipeline.num_stages++].pipeline;
+  return r_mesh_draw.stages[r_mesh_draw.num_stages++].pipeline;
 }
 
 /**
@@ -273,8 +273,8 @@ static void R_DrawMeshEntityMaterialStage(const r_view_t *view, RenderPass *pass
   $(pass, bindPipeline, pipeline);
 
   $(pass, bindFragmentSamplers, MESH_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
-    { .texture = texture_next, .sampler = r_mesh_pipeline.stage_sampler->sampler },
+    { .texture = texture, .sampler = r_mesh_draw.stage_sampler->sampler },
+    { .texture = texture_next, .sampler = r_mesh_draw.stage_sampler->sampler },
   }, 2);
 
   $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &uniforms.material, sizeof(uniforms.material));
@@ -298,9 +298,9 @@ static void R_DrawMeshEntityShellEffect(const r_view_t *view, RenderPass *pass, 
     return;
   }
 
-  if (!r_mesh_pipeline.shell) {
-    r_mesh_pipeline.shell = R_LoadImage("textures/envmaps/white", IMG_PROGRAM);
-    if (!r_mesh_pipeline.shell) {
+  if (!r_mesh_draw.shell) {
+    r_mesh_draw.shell = R_LoadImage("textures/envmaps/white", IMG_PROGRAM);
+    if (!r_mesh_draw.shell) {
       return;
     }
   }
@@ -330,7 +330,7 @@ static void R_DrawMeshEntityShellEffect(const r_view_t *view, RenderPass *pass, 
 
   const r_stage_t default_shell = {
     .cm = &cm,
-    .media = (r_media_t *) r_mesh_pipeline.shell,
+    .media = (r_media_t *) r_mesh_draw.shell,
   };
 
   R_DrawMeshEntityMaterialStage(view, pass, commands, e, face, material, &default_shell);
@@ -371,7 +371,7 @@ static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, Command
 
   $(pass, bindFragmentSamplers, MESH_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
     .texture = material->texture->texture->texture,
-    .sampler = r_mesh_pipeline.diffusemap_sampler->sampler,
+    .sampler = r_mesh_draw.diffusemap_sampler->sampler,
   }, 1);
 
   // R_MaterialUniforms resets the stage fields to STAGE_NONE: a preceding
@@ -465,7 +465,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
     // Re-bind the base pipeline: a preceding face's material stages may have
     // left a stage (blend) pipeline bound.
-    $(pass, bindPipeline, r_mesh_pipeline.pipeline);
+    $(pass, bindPipeline, r_mesh_draw.pipeline);
 
     R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material);
   }
@@ -485,7 +485,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
     // Re-bind the blend pipeline: a preceding face's material stages may have
     // left a stage pipeline bound.
-    $(pass, bindPipeline, r_mesh_pipeline.blend_pipeline);
+    $(pass, bindPipeline, r_mesh_draw.blend_pipeline);
 
     R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material);
   }
@@ -498,7 +498,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
  */
 void R_DrawMeshEntities(const r_view_t *view) {
 
-  if (!r_mesh_pipeline.pipeline || !r_models.world) {
+  if (!r_mesh_draw.pipeline || !r_models.world) {
     return;
   }
 
@@ -534,11 +534,11 @@ void R_DrawMeshEntities(const r_view_t *view) {
   // Per-frame globals to both stages; lighting resources shared with the BSP pass.
   $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
-  $(pass, bindPipeline, r_mesh_pipeline.pipeline);
+  $(pass, bindPipeline, r_mesh_draw.pipeline);
 
   $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
     .texture = bsp->voxels.light_data->texture->texture,
-    .sampler = r_mesh_pipeline.voxel_data_sampler->sampler,
+    .sampler = r_mesh_draw.voxel_data_sampler->sampler,
   }, 1);
 
   // The point-light shadow atlas (comparison sampler), shared with the BSP pass.
@@ -553,17 +553,17 @@ void R_DrawMeshEntities(const r_view_t *view) {
 
   // The voxel caustics / occlusion volumes and the sky cubemap for ambient light.
   $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
-    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
-    { .texture = R_SkyTexture()->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
+    { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
   }, 3);
 
   // Stage/stage-next: opaque and blend draws never sample these (mesh_fs's
   // STAGE_NONE branch doesn't touch them), but the shared shader declares
   // them, so SDL_gpu requires them bound regardless.
   $(pass, bindFragmentSamplers, MESH_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
   }, 2);
 
   SDL_GPUBuffer *storage[] = {
@@ -603,7 +603,7 @@ void R_DrawMeshEntities(const r_view_t *view) {
  */
 void R_DrawPlayerModelView(r_view_t *view) {
 
-  if (!r_mesh_pipeline.pipeline || !view->framebuffer) {
+  if (!r_mesh_draw.pipeline || !view->framebuffer) {
     return;
   }
 
@@ -636,13 +636,13 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
-  $(pass, bindPipeline, r_mesh_pipeline.pipeline);
+  $(pass, bindPipeline, r_mesh_draw.pipeline);
 
   // No world is loaded for this view, so bind the 1x1x1 fallbacks; the shader's
   // VIEW_PLAYER_MODEL branch never actually samples them (see mesh_fs.glsl).
   $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
-    .texture = r_mesh_pipeline.voxel_light_data_fallback->texture,
-    .sampler = r_mesh_pipeline.voxel_data_sampler->sampler,
+    .texture = r_mesh_draw.voxel_light_data_fallback->texture,
+    .sampler = r_mesh_draw.voxel_data_sampler->sampler,
   }, 1);
 
   $(pass, bindFragmentSamplers, MESH_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
@@ -655,15 +655,15 @@ void R_DrawPlayerModelView(r_view_t *view) {
   }, 6);
 
   $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_mesh_pipeline.voxel_caustics_fallback->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
-    { .texture = r_mesh_pipeline.voxel_occlusion_fallback->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
-    { .texture = R_SkyTexture()->texture, .sampler = r_mesh_pipeline.ambient_sampler->sampler },
+    { .texture = r_mesh_draw.voxel_caustics_fallback->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
+    { .texture = r_mesh_draw.voxel_occlusion_fallback->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
+    { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
   }, 3);
 
   // Stage/stage-next: see R_DrawMeshEntities.
   $(pass, bindFragmentSamplers, MESH_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_pipeline.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
   }, 2);
 
   SDL_GPUBuffer *storage[] = { r_lights.buffer->buffer, r_lights.buffer->buffer };
@@ -754,7 +754,7 @@ void R_InitMeshPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_mesh_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
+  r_mesh_draw.pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   // Translucent faces: no culling (matching the GL renderer, which disables
   // GL_CULL_FACE for mesh blend faces), alpha blend on color 0. Depth test and
@@ -764,20 +764,20 @@ void R_InitMeshPipeline(void) {
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
   color_targets[0].blend_state = GPU_BlendStateAlpha;
 
-  r_mesh_pipeline.blend_pipeline = $(r_context.device, createGraphicsPipeline, &info);
+  r_mesh_draw.blend_pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
 
-  r_mesh_pipeline.diffusemap_sampler = $(r_context.device, createSamplerLinearRepeat);
-  r_mesh_pipeline.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
-  r_mesh_pipeline.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
-  r_mesh_pipeline.voxel_data_sampler = $(r_context.device, createSamplerNearestClamp);
+  r_mesh_draw.diffusemap_sampler = $(r_context.device, createSamplerLinearRepeat);
+  r_mesh_draw.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
+  r_mesh_draw.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
+  r_mesh_draw.voxel_data_sampler = $(r_context.device, createSamplerNearestClamp);
 
   // 1x1x1 fallback voxel textures for the player-model preview (see the struct
   // field docs above). Contents are never sampled, so uninitialized (NULL) data
   // is fine -- the branch that would read them never executes for that view.
-  r_mesh_pipeline.voxel_light_data_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  r_mesh_draw.voxel_light_data_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R32G32_INT,
     .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -786,7 +786,7 @@ void R_InitMeshPipeline(void) {
     .sample_count = SDL_GPU_SAMPLECOUNT_1,
   }, NULL);
 
-  r_mesh_pipeline.voxel_caustics_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  r_mesh_draw.voxel_caustics_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
     .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -795,7 +795,7 @@ void R_InitMeshPipeline(void) {
     .sample_count = SDL_GPU_SAMPLECOUNT_1,
   }, NULL);
 
-  r_mesh_pipeline.voxel_occlusion_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+  r_mesh_draw.voxel_occlusion_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8_UNORM,
     .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
@@ -809,20 +809,20 @@ void R_InitMeshPipeline(void) {
  * @brief Releases the mesh pipeline and samplers.
  */
 void R_ShutdownMeshPipeline(void) {
-  r_mesh_pipeline.pipeline = release(r_mesh_pipeline.pipeline);
-  r_mesh_pipeline.blend_pipeline = release(r_mesh_pipeline.blend_pipeline);
-  r_mesh_pipeline.diffusemap_sampler = release(r_mesh_pipeline.diffusemap_sampler);
-  r_mesh_pipeline.voxel_data_sampler = release(r_mesh_pipeline.voxel_data_sampler);
-  r_mesh_pipeline.ambient_sampler = release(r_mesh_pipeline.ambient_sampler);
-  r_mesh_pipeline.stage_sampler = release(r_mesh_pipeline.stage_sampler);
-  r_mesh_pipeline.voxel_light_data_fallback = release(r_mesh_pipeline.voxel_light_data_fallback);
-  r_mesh_pipeline.voxel_caustics_fallback = release(r_mesh_pipeline.voxel_caustics_fallback);
-  r_mesh_pipeline.voxel_occlusion_fallback = release(r_mesh_pipeline.voxel_occlusion_fallback);
+  r_mesh_draw.pipeline = release(r_mesh_draw.pipeline);
+  r_mesh_draw.blend_pipeline = release(r_mesh_draw.blend_pipeline);
+  r_mesh_draw.diffusemap_sampler = release(r_mesh_draw.diffusemap_sampler);
+  r_mesh_draw.voxel_data_sampler = release(r_mesh_draw.voxel_data_sampler);
+  r_mesh_draw.ambient_sampler = release(r_mesh_draw.ambient_sampler);
+  r_mesh_draw.stage_sampler = release(r_mesh_draw.stage_sampler);
+  r_mesh_draw.voxel_light_data_fallback = release(r_mesh_draw.voxel_light_data_fallback);
+  r_mesh_draw.voxel_caustics_fallback = release(r_mesh_draw.voxel_caustics_fallback);
+  r_mesh_draw.voxel_occlusion_fallback = release(r_mesh_draw.voxel_occlusion_fallback);
 
-  for (int32_t i = 0; i < r_mesh_pipeline.num_stages; i++) {
-    r_mesh_pipeline.stages[i].pipeline = release(r_mesh_pipeline.stages[i].pipeline);
+  for (int32_t i = 0; i < r_mesh_draw.num_stages; i++) {
+    r_mesh_draw.stages[i].pipeline = release(r_mesh_draw.stages[i].pipeline);
   }
-  r_mesh_pipeline.num_stages = 0;
+  r_mesh_draw.num_stages = 0;
 
   // r_mesh_pipeline.shell is a media object owned by the media cache; not released here.
 }

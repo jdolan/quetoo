@@ -41,8 +41,6 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 /**
  * @brief Transform lights into their uniform representation and upload them to
  * the lights storage buffer.
- * @remarks TODO(#864): occlusion culling is deferred (see the broad-phase
- * occlusion item); every light is uploaded and assigned a shadow atlas tile.
  */
 void R_UpdateLights(r_view_t *view) {
 
@@ -60,11 +58,26 @@ void R_UpdateLights(r_view_t *view) {
 
   const float inv_layer = r_shadow_atlas.layer_size > 0 ? 1.f / (float) r_shadow_atlas.layer_size : 0.f;
 
-  const r_light_t *l = view->lights;
+  r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
     r_light_uniform_t *out = &block->lights[i];
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
+
+    // Static lights consult their persistent occlusion query; dynamic lights
+    // (no bsp_light) are tested fresh against the view each frame.
+    if (l->bsp_light) {
+      l->occluded = !l->bsp_light->query->result;
+    } else {
+      l->occluded = R_CulludeBox(view, l->bounds);
+    }
+
+    // r_stats.lights_visible is already incremented in r_shadow.c for lights
+    // that actually get a shadow map redrawn this frame -- a narrower count
+    // than "not occluded", so it's not duplicated here.
+    if (l->occluded) {
+      r_stats.lights_occluded++;
+    }
 
     // Every shadow-casting light (static or dynamic) gets an atlas tile; they
     // are visually identical and differ only in optimization (voxel selection,

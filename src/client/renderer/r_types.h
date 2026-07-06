@@ -304,6 +304,37 @@ typedef struct r_decal_s {
 #define MAX_DECALS 0x800
 
 /**
+ * @brief Hardware occlusion queries.
+ */
+typedef struct r_occlusion_query_s {
+
+  /**
+   * @brief The query bounds.
+   */
+  box3_t bounds;
+
+  /**
+   * @brief The index of this query within the shared QueryPool.
+   */
+  int32_t index;
+
+  /**
+   * @brief The base vertex in the shared occlusion box vertex buffer.
+   */
+  int32_t base_vertex;
+
+  /**
+   * @brief True if the query result below is available (has been downloaded).
+   */
+  bool available;
+
+  /**
+   * @brief True if the query produced visible fragments.
+   */
+  bool result;
+} r_occlusion_query_t;
+
+/**
  * @brief BSP plane structure.
  */
 typedef struct {
@@ -632,9 +663,14 @@ typedef struct r_bsp_block_s {
   int32_t num_draw_elements;
 
   /**
-   * @brief The visible bounds of this block, used for culling.
+   * @brief The visible bounds of this block, used for occlusion query and culling.
    */
   box3_t visible_bounds;
+
+  /**
+   * @brief The occlusion query for this block.
+   */
+  r_occlusion_query_t *query;
 
   /**
    * @brief The bitwise OR of all draw element surface flags for this block.
@@ -751,6 +787,11 @@ typedef struct {
    * @brief The light bounds (sphere).
    */
   box3_t bounds;
+
+  /**
+   * @brief The occlusion query for this light.
+   */
+  r_occlusion_query_t *query;
 
   /**
    * @brief An offset pointer (in bytes) into the BSP elements array for shadow geometry.
@@ -1819,6 +1860,13 @@ typedef struct {
   box3_t bounds;
 
   /**
+   * @brief True if the light is occluded for the current frame, set by
+   * R_UpdateLights. Static lights consult their backing bsp_light's
+   * persistent occlusion query; dynamic lights are tested with R_CulludeBox.
+   */
+  bool occluded;
+
+  /**
    * @brief The backing BSP light, for static light sources.
    */
   const r_bsp_light_t *bsp_light;
@@ -2067,6 +2115,11 @@ typedef struct {
   int32_t lights_visible;
 
   /**
+   * @brief The count of occluded lights.
+   */
+  int32_t lights_occluded;
+
+  /**
    * @brief The count of visible entities.
    */
   int32_t entities_visible;
@@ -2075,6 +2128,21 @@ typedef struct {
    * @brief The count of occluded entities.
    */
   int32_t entities_occluded;
+
+  /**
+   * @brief The count of visible (non-occluded) BSP blocks.
+   */
+  int32_t blocks_visible;
+
+  /**
+   * @brief The count of occluded BSP blocks.
+   */
+  int32_t blocks_occluded;
+
+  /**
+   * @brief The count of currently allocated occlusion queries.
+   */
+  int32_t queries_allocated;
 
   /**
    * @brief The count of rendered inline BSP models.

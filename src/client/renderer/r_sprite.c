@@ -32,29 +32,41 @@ enum {
 };
 
 /**
- * @brief Sprite vertex buffer state holding vertices and GPU buffer objects.
- */
-static struct {
-  r_sprite_vertex_t vertexes[MAX_SPRITE_INSTANCES * 4];
-
-  Buffer *vertex_buffer;
-  int32_t vertex_buffer_capacity; // in vertices
-
-  Buffer *elements_buffer; // static quad indices, MAX_SPRITE_INSTANCES * 6
-} r_sprites;
-
-/**
  * @brief The sprite pipeline (sprite_vs/sprite_fs) and its diffuse sampler.
  */
 static struct {
+  
+  /**
+   * @ brief The CPU-side storage for accumulated sprite vertexes.
+   */
+  r_sprite_vertex_t vertexes[MAX_SPRITE_INSTANCES * 4];
+
+  /**
+   * @ brief The vertex buffer.
+   */
+  Buffer *vertex_buffer;
+  int32_t vertex_buffer_capacity; // in vertices
+
+  /**
+   *@ brief The elements buffer, statically pre-computed for @c MAX_SPRITE_INSTANCES quads.
+   */
+  Buffer *elements_buffer;
+  
+  /**
+   * @brief The pipeline.
+   */
   GraphicsPipeline *pipeline;
+  
+  /**
+   * @brief The sampler.
+   */
   Sampler *sampler;
 
   /**
    * @brief Nearest/clamp sampler for the scene depth attachment (soft particles).
    */
   Sampler *depth_sampler;
-} r_sprite_pipeline;
+} r_sprite_draw;
 
 /**
  * @brief Computes the texture coordinates for the given image, handling both atlas and regular images.
@@ -144,7 +156,7 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
   r_sprite_instance_t *in = &view->sprite_instances[index];
   memset(in, 0, sizeof(*in));
 
-  in->vertexes = r_sprites.vertexes + 4 * index;
+  in->vertexes = r_sprite_draw.vertexes + 4 * index;
   in->elements = (void *) (sizeof(uint32_t) * 6 * index);
 
   return in;
@@ -402,7 +414,7 @@ void R_UpdateSprites(r_view_t *view) {
  */
 void R_DrawSprites(const r_view_t *view) {
 
-  if (!r_sprite_pipeline.pipeline || view->num_sprite_instances == 0 || !r_models.world) {
+  if (!r_sprite_draw.pipeline || view->num_sprite_instances == 0 || !r_models.world) {
     return;
   }
 
@@ -420,18 +432,18 @@ void R_DrawSprites(const r_view_t *view) {
 
   const uint32_t count = (uint32_t) view->num_sprite_instances * 4;
 
-  if ((int32_t) count > r_sprites.vertex_buffer_capacity) {
-    r_sprites.vertex_buffer = release(r_sprites.vertex_buffer);
-    r_sprites.vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  if ((int32_t) count > r_sprite_draw.vertex_buffer_capacity) {
+    r_sprite_draw.vertex_buffer = release(r_sprite_draw.vertex_buffer);
+    r_sprite_draw.vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
       .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
       .size = count * sizeof(r_sprite_vertex_t),
     });
-    r_sprites.vertex_buffer_capacity = (int32_t) count;
+    r_sprite_draw.vertex_buffer_capacity = (int32_t) count;
   }
 
   {
     CopyPass *copyPass = $(commands, beginCopyPass);
-    $(copyPass, uploadData, r_sprites.vertex_buffer->buffer, r_sprites.vertexes,
+    $(copyPass, uploadData, r_sprite_draw.vertex_buffer->buffer, r_sprite_draw.vertexes,
       count * sizeof(r_sprite_vertex_t), 0, true);
     release(copyPass);
   }
@@ -451,9 +463,9 @@ void R_DrawSprites(const r_view_t *view) {
 
   $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
-  $(pass, bindPipeline, r_sprite_pipeline.pipeline);
-  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_sprites.vertex_buffer->buffer }, 1);
-  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_sprites.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+  $(pass, bindPipeline, r_sprite_draw.pipeline);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.vertex_buffer->buffer }, 1);
+  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   // The float depth copy (scene color target 1), sampled for the soft-particle
   // fade. The opaque lit passes write gl_FragCoord.z there; unlike the real depth
@@ -461,7 +473,7 @@ void R_DrawSprites(const r_view_t *view) {
   Texture *depth_texture = $(framebuffer, resolveColorTexture, 1);
   $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DEPTH_ATTACHMENT, &(SDL_GPUTextureSamplerBinding) {
     .texture = depth_texture->texture,
-    .sampler = r_sprite_pipeline.depth_sampler->sampler,
+    .sampler = r_sprite_draw.depth_sampler->sampler,
   }, 1);
 
   // Clustered voxel lighting for absorptive sprites (sprite family: samplers 0/1
@@ -469,7 +481,7 @@ void R_DrawSprites(const r_view_t *view) {
   // texelFetch ignores the sampler, so the nearest depth sampler is reused.
   $(pass, bindFragmentSamplers, 3, &(SDL_GPUTextureSamplerBinding) {
     .texture = bsp->voxels.light_data->texture->texture,
-    .sampler = r_sprite_pipeline.depth_sampler->sampler,
+    .sampler = r_sprite_draw.depth_sampler->sampler,
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
@@ -500,8 +512,8 @@ void R_DrawSprites(const r_view_t *view) {
     }
 
     $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DIFFUSE, (SDL_GPUTextureSamplerBinding[]) {
-      { .texture = in->diffusemap->texture->texture, .sampler = r_sprite_pipeline.sampler->sampler },
-      { .texture = in->next_diffusemap->texture->texture, .sampler = r_sprite_pipeline.sampler->sampler },
+      { .texture = in->diffusemap->texture->texture, .sampler = r_sprite_draw.sampler->sampler },
+      { .texture = in->next_diffusemap->texture->texture, .sampler = r_sprite_draw.sampler->sampler },
     }, 2);
 
     $(pass, drawIndexedPrimitives, (uint32_t) batch_size * 6, 1, (uint32_t) i * 6, 0, 0);
@@ -581,7 +593,7 @@ static void R_InitSpritePipeline(void) {
     .num_color_targets = 1,
   };
 
-  r_sprite_pipeline.pipeline = $(r_context.device, loadGraphicsPipeline,
+  r_sprite_draw.pipeline = $(r_context.device, loadGraphicsPipeline,
     "shaders/sprite_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
       .num_uniform_buffers = 1,
@@ -594,8 +606,8 @@ static void R_InitSpritePipeline(void) {
     },
     &info);
 
-  r_sprite_pipeline.sampler = $(r_context.device, createSamplerLinearClamp);
-  r_sprite_pipeline.depth_sampler = $(r_context.device, createSamplerNearestClamp);
+  r_sprite_draw.sampler = $(r_context.device, createSamplerLinearClamp);
+  r_sprite_draw.depth_sampler = $(r_context.device, createSamplerNearestClamp);
 }
 
 /**
@@ -603,7 +615,7 @@ static void R_InitSpritePipeline(void) {
  */
 void R_InitSprites(void) {
 
-  memset(&r_sprites, 0, sizeof(r_sprites));
+  memset(&r_sprite_draw, 0, sizeof(r_sprite_draw));
 
   // Two triangles per instance: (0,1,2) (0,2,3), over MAX_SPRITE_INSTANCES quads.
   const size_t num_elements = MAX_SPRITE_INSTANCES * 6;
@@ -618,7 +630,7 @@ void R_InitSprites(void) {
     elements[e + 5] = v + 3;
   }
 
-  r_sprites.elements_buffer = $(r_context.device, createBufferWithConstMem,
+  r_sprite_draw.elements_buffer = $(r_context.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_INDEX, elements, (Uint32) (num_elements * sizeof(uint32_t)));
 
   free(elements);
@@ -631,11 +643,11 @@ void R_InitSprites(void) {
  */
 void R_ShutdownSprites(void) {
 
-  r_sprite_pipeline.pipeline = release(r_sprite_pipeline.pipeline);
-  r_sprite_pipeline.sampler = release(r_sprite_pipeline.sampler);
-  r_sprite_pipeline.depth_sampler = release(r_sprite_pipeline.depth_sampler);
-  r_sprites.vertex_buffer = release(r_sprites.vertex_buffer);
-  r_sprites.elements_buffer = release(r_sprites.elements_buffer);
+  r_sprite_draw.pipeline = release(r_sprite_draw.pipeline);
+  r_sprite_draw.sampler = release(r_sprite_draw.sampler);
+  r_sprite_draw.depth_sampler = release(r_sprite_draw.depth_sampler);
+  r_sprite_draw.vertex_buffer = release(r_sprite_draw.vertex_buffer);
+  r_sprite_draw.elements_buffer = release(r_sprite_draw.elements_buffer);
 }
 
 /**

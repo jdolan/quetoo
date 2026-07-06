@@ -209,6 +209,12 @@ void R_DrawShadows(const r_view_t *view) {
         continue;
       }
 
+      // Set by R_UpdateLights: static lights consult their persistent
+      // occlusion query, dynamic lights are tested fresh each frame.
+      if (l->occluded) {
+        continue;
+      }
+
       // If only the static world casts into this light, its shadow never
       // changes; skip the redraw once it's already in the atlas from a prior
       // frame. l->shadow_cached is NULL for dynamic lights (no persistent
@@ -291,6 +297,30 @@ void R_DrawShadows(const r_view_t *view) {
           continue;
         }
 
+        // Expand the caster's bounds toward the light to approximate the
+        // volume its shadow could occupy, and skip drawing it if that volume
+        // itself is occluded/frustum-culled. Matches main's
+        // R_CullBspEntitiesForShadow, computed inline here rather than as a
+        // separate per-light pre-pass (this branch's face/light loop nesting
+        // means it re-runs per face; harmless given typical caster counts).
+        {
+          vec3_t corners[8];
+          Box3_ToPoints(be->abs_model_bounds, corners);
+
+          box3_t shadow_bounds = be->abs_model_bounds;
+          for (int32_t j = 0; j < 8; j++) {
+            const vec3_t to_corner = Vec3_Subtract(corners[j], l->origin);
+            const vec3_t dir = Vec3_Normalize(to_corner);
+            shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(l->origin, l->radius, dir));
+          }
+
+          shadow_bounds = Box3_Expand(shadow_bounds, 32.f);
+
+          if (R_CulludeBox(view, shadow_bounds)) {
+            continue;
+          }
+        }
+
         const r_bsp_inline_model_t *in = be->model->bsp_inline;
         if (!in->num_depth_pass_elements) {
           continue;
@@ -338,6 +368,11 @@ void R_DrawShadows(const r_view_t *view) {
           continue;
         }
 
+        // Same occlusion check as the world/inline-entity loop above.
+        if (ml->occluded) {
+          continue;
+        }
+
         // Same cache check as the world/inline-entity loop above (the whole
         // tile was already skipped there if cacheable, so this is a no-op
         // unless this light has a mesh caster and nothing else).
@@ -371,6 +406,25 @@ void R_DrawShadows(const r_view_t *view) {
 
           if (!Box3_Intersects(ml->bounds, e->abs_model_bounds)) {
             continue;
+          }
+
+          // See the matching comment in the BSP inline entity loop above.
+          {
+            vec3_t corners[8];
+            Box3_ToPoints(e->abs_model_bounds, corners);
+
+            box3_t shadow_bounds = e->abs_model_bounds;
+            for (int32_t j = 0; j < 8; j++) {
+              const vec3_t to_corner = Vec3_Subtract(corners[j], ml->origin);
+              const vec3_t dir = Vec3_Normalize(to_corner);
+              shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(ml->origin, ml->radius, dir));
+            }
+
+            shadow_bounds = Box3_Expand(shadow_bounds, 32.f);
+
+            if (R_CulludeBox(view, shadow_bounds)) {
+              continue;
+            }
           }
 
           $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {

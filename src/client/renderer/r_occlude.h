@@ -21,35 +21,20 @@
 
 #pragma once
 
-#include "collision/collision.h"
-
-
-#include "r_atlas.h"
-#include "r_animation.h"
-#include "r_bsp_draw.h"
-#include "r_bsp_model.h"
-#include "r_context.h"
-#include "r_cull.h"
-#include "r_decal.h"
-#include "r_depth_pass.h"
-#include "r_draw_2d.h"
-#include "r_draw_3d.h"
-#include "r_entity.h"
-#include "r_image.h"
-#include "r_light.h"
-#include "r_main.h"
-#include "r_material.h"
-#include "r_media.h"
-#include "r_mesh_draw.h"
-#include "r_mesh_model.h"
-#include "r_mesh_model_md3.h"
-#include "r_mesh_model_obj.h"
-#include "r_mesh.h"
-#include "r_model.h"
-#include "r_occlude.h"
-
-#include "r_post.h"
-#include "r_shadow.h"
-#include "r_sky.h"
-#include "r_sprite.h"
 #include "r_types.h"
+
+bool R_CulludeBox(const r_view_t *view, const box3_t bounds);
+bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius);
+bool R_OccludeBox(const r_view_t *view, const box3_t bounds);
+bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius);
+
+#if defined(__R_LOCAL_H__)
+
+r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds);
+void R_FreeOcclusionQuery(r_occlusion_query_t *query);
+void R_UpdateOcclusionQueries(const r_view_t *view);
+void R_DrawOcclusionQueries(const r_view_t *view);
+void R_InitOcclusionQueries(void);
+void R_ShutdownOcclusionQueries(void);
+
+#endif

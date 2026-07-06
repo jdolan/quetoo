@@ -33,14 +33,14 @@ static void R_SetEntityBounds(r_entity_t *e) {
 }
 
 /**
- * @brief Returns true if the entity is outside the view frustum and should be skipped.
+ * @brief Returns true if the entity is outside the view frustum or occluded and should be skipped.
  */
 bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 
   if (view->type == VIEW_PLAYER_MODEL) {
     return false;
   }
-  
+
   if (e->parent) {
     return false;
   }
@@ -53,7 +53,7 @@ bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
     return true;
   }
 
-  if (R_CullBox(view, e->abs_model_bounds)) {
+  if (R_CulludeBox(view, e->abs_model_bounds)) {
     return true;
   }
 
@@ -139,7 +139,7 @@ static void R_DrawEntitiesBounds(const r_view_t *view) {
       continue;
     }
 
-    if (R_CullBox(view, e->abs_model_bounds)) {
+    if (R_CulludeBox(view, e->abs_model_bounds)) {
       continue;
     }
 
