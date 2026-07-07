@@ -356,6 +356,39 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, RenderPass *pass, Comman
 }
 
 /**
+ * @brief Draws per-vertex normal, tangent, and bitangent lines for nearby BSP vertices when enabled.
+ */
+static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
+
+  if (!r_draw_bsp_normals->value) {
+    return;
+  }
+
+  const r_bsp_vertex_t *v = bsp->vertexes;
+  for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
+
+    const vec3_t pos = v->position;
+    if (Vec3_Distance(pos, view->origin) > 512.f) {
+      continue;
+    }
+
+    const vec3_t normal[] = { pos, Vec3_Fmaf(pos, 8.f, v->normal) };
+    const vec3_t tangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->tangent) };
+    const vec3_t bitangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->bitangent) };
+
+    R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, normal, 2, color_red, true);
+
+    if (r_draw_bsp_normals->integer > 1) {
+      R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, tangent, 2, color_green, true);
+
+      if (r_draw_bsp_normals->integer > 2) {
+        R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, bitangent, 2, color_blue, true);
+      }
+    }
+  }
+}
+
+/**
  * @brief Renders the opaque world BSP surfaces with their material diffuse texture,
  * clustered per-voxel static lighting, and per-block dynamic lighting.
  * @remarks Iterates every BSP inline model entity in the view, including the
@@ -468,6 +501,8 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   }
 
   pass = release(pass);
+
+  R_DrawBspNormals(view, bsp);
 }
 
 /**
