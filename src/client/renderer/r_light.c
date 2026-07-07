@@ -115,9 +115,14 @@ void R_UpdateLights(r_view_t *view) {
 
   // Upload the count header plus the populated lights. Always upload at least
   // the header so num_lights reaches the shader (0 on a light-free frame).
+  // Recorded on the frame's command buffer: Buffer::upload would acquire and
+  // submit its own, an extra queue flush every frame.
   const uint32_t size = offsetof(r_light_uniform_block_t, lights)
       + block->num_lights * sizeof(r_light_uniform_t);
-  $(r_lights.buffer, upload, block, size, 0, true);
+
+  CopyPass *copyPass = $(r_context.device->commands, beginCopyPass);
+  $(copyPass, uploadData, r_lights.buffer->buffer, block, size, 0, true);
+  release(copyPass);
 }
 
 /**
