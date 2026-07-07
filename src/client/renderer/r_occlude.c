@@ -33,11 +33,12 @@
 /**
  * @brief The occlusion query accounting structure.
  * @details Occlusion queries are only ever allocated in bulk at BSP load (one per block,
- * one per light) and invalidated in bulk when the BSP model is freed -- never
+ * one per light) and invalidated in bulk at the start of the next load -- never
  * individually or per-frame -- so `queries` is a single pre-sized array, malloc'd once
  * at startup, with `num_queries` acting as a bump allocator reset to 0 by
- * `R_ResetOcclusionQueries` on BSP free. A query's position in `queries` is also its
- * index into the shared QueryPool, so no separate index bookkeeping is needed.
+ * `R_ResetOcclusionQueries` from `R_BeginLoading`; `R_LoadOcclusionQueries` then builds
+ * the shared vertex buffer once from `R_EndLoading`. A query's position in `queries` is
+ * also its index into the shared QueryPool, so no separate index bookkeeping is needed.
  * @details SDL_gpu has no equivalent of GL_QUERY_RESULT_AVAILABLE (a non-blocking poll of
  * a single query), so results are instead downloaded for the whole active range into a
  * single transfer buffer, gated by the fence of the dedicated depth-pass command buffer
@@ -60,14 +61,9 @@ static struct {
 
   /**
    * @brief The number of currently allocated queries, i.e. the bump allocator cursor
-   * into `queries`. Reset to 0 by `R_ResetOcclusionQueries` on BSP free.
+   * into `queries`. Reset to 0 by `R_ResetOcclusionQueries` at the start of loading.
    */
   int32_t num_queries;
-
-  /**
-   * @brief If true, rebuild the vertex buffer at next frame.
-   */
-  bool dirty;
 
   /**
    * @brief The shared occlusion query pool.
@@ -75,7 +71,8 @@ static struct {
   QueryPool *query_pool;
 
   /**
-   * @brief The vertex buffer of occlusion box corners, rebuilt when dirty.
+   * @brief The vertex buffer of occlusion box corners, built by
+   * `R_LoadOcclusionQueries` when loading completes.
    */
   Buffer *vertex_buffer;
 
@@ -178,34 +175,26 @@ r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
   query->available = true;
   query->result = true;
 
-  r_occlusion_queries.dirty = true;
-
   return query;
 }
 
 /**
  * @brief Resets the occlusion query pool, invalidating all previously allocated queries.
- * @details Occlusion queries are only ever allocated in bulk at BSP load (one per block,
- * one per light) and invalidated in bulk when the BSP model is freed, never individually
- * or per-frame, so resetting the allocation cursor is all that's needed here; the next
- * R_LoadBspOcclusionQueries call reallocates from the start of the pool.
+ * @details Called from R_BeginLoading. Occlusion queries are only ever allocated in bulk
+ * at BSP load (one per block, one per light), never individually or per-frame, so
+ * resetting the allocation cursor ahead of the load is all that's needed here; the
+ * load's R_LoadBspOcclusionQueries call reallocates from the start of the pool.
  */
 void R_ResetOcclusionQueries(void) {
   r_occlusion_queries.num_queries = 0;
-  r_occlusion_queries.dirty = true;
+  r_occlusion_queries.vertex_buffer = release(r_occlusion_queries.vertex_buffer);
 }
 
 /**
- * @brief Rebuilds the occlusion box vertex buffer when queries are added or removed.
+ * @brief Builds the occlusion box vertex buffer for the queries the load allocated.
+ * @details Called from R_EndLoading; the query set never changes between loads.
  */
-void R_UpdateOcclusionQueries(const r_view_t *view) {
-
-  if (!r_occlusion_queries.dirty) {
-    return;
-  }
-
-  release(r_occlusion_queries.vertex_buffer);
-  r_occlusion_queries.vertex_buffer = NULL;
+void R_LoadOcclusionQueries(void) {
 
   const int32_t num_queries = r_occlusion_queries.num_queries;
   if (num_queries) {
@@ -224,8 +213,6 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 
     free(vertexes);
   }
-
-  r_occlusion_queries.dirty = false;
 }
 
 /**

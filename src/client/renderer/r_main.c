@@ -295,8 +295,6 @@ void R_DrawViewDepth(r_view_t *view) {
 
   R_UpdateUniforms(view);
 
-  R_UpdateOcclusionQueries(view);
-
   if (!r_context.device->commands) {
     return;
   }

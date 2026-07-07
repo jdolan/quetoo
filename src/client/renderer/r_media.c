@@ -247,6 +247,8 @@ void R_BeginLoading(void) {
   } while (s == r_media_state.seed);
 
   r_media_state.seed = s;
+
+  R_ResetOcclusionQueries();
 }
 
 /**
@@ -254,6 +256,8 @@ void R_BeginLoading(void) {
  */
 void R_EndLoading(void) {
   R_FreeMediaEntries(NULL);
+
+  R_LoadOcclusionQueries();
 }
 
 /**
