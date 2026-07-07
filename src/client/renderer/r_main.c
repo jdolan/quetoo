@@ -108,13 +108,24 @@ void R_UpdateUniforms(const r_view_t *view) {
     const float xmin = ymin * aspect;
     const float xmax = ymax * aspect;
 
-    out->projection3D = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
+    // Mat4_FromFrustum produces GL clip space, where z spans [-1, 1]; SDL_gpu
+    // expects [0, 1] on every backend. Remap depth (z' = z * .5 + w * .5) so
+    // that near geometry isn't clipped and gl_FragCoord.z matches GL's window
+    // depth exactly (soften.glsl's linearization depends on this).
+    const mat4_t clip = Mat4((const float[]) {
+      1.f, 0.f, 0.f, 0.f,
+      0.f, 1.f, 0.f, 0.f,
+      0.f, 0.f, .5f, 0.f,
+      0.f, 0.f, .5f, 1.f
+    });
+
+    out->projection3D = Mat4_Concat(clip, Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST));
     out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
     out->sky_projection = Mat4_FromScale3(Vec3(-1.f, 1.f, 1.f)); // put Z going up
     out->sky_projection = Mat4_ConcatTranslation(out->sky_projection, Vec3_Negate(view->origin));
 
-    out->light_projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
+    out->light_projection = Mat4_Concat(clip, Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST));
 
     out->depth_range.x = NEAR_DIST;
     out->depth_range.y = MAX_WORLD_DIST;
