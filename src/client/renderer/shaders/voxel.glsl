@@ -29,10 +29,15 @@
  */
 
 #if defined(FRAGMENT_SHADER)
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_VOXEL_LIGHT_DATA) uniform isampler3D texture_voxel_light_data;
-
 layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES) readonly buffer voxel_light_indices_block {
   int voxel_light_indices[];
+};
+
+// The per-voxel (first_index, count) pairs, indexed by linear voxel index. A
+// storage buffer rather than an RG32I isampler3D because D3D12 cannot sample
+// integer texture formats.
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_DATA) readonly buffer voxel_light_data_block {
+  int voxel_light_data_elements[];
 };
 
 #if defined(VOXEL_CAUSTICS_OCCLUSION)
@@ -78,7 +83,8 @@ ivec3 voxel_xyz(in vec3 position) {
  * @return The offset into the voxel light index TBO, and the count of index elements (texels).
  */
 ivec2 voxel_light_data(in ivec3 voxel) {
-  return texelFetch(texture_voxel_light_data, voxel, 0).xy;
+  const int index = (voxel.z * int(voxels.size.y) + voxel.y) * int(voxels.size.x) + voxel.x;
+  return ivec2(voxel_light_data_elements[index * 2 + 0], voxel_light_data_elements[index * 2 + 1]);
 }
 
 /**

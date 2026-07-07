@@ -28,7 +28,6 @@
  */
 enum {
   BSP_SAMPLER_MATERIAL,
-  BSP_SAMPLER_VOXEL_LIGHT_DATA,
   BSP_SAMPLER_SHADOW_ATLAS_0, // one sampler2DShadow per cube face (SDL_gpu forbids array depth targets)
   BSP_SAMPLER_SHADOW_ATLAS_1,
   BSP_SAMPLER_SHADOW_ATLAS_2,
@@ -47,6 +46,8 @@ enum {
 enum {
   BSP_STORAGE_LIGHTS,
   BSP_STORAGE_VOXEL_LIGHT_INDICES,
+  BSP_STORAGE_VOXEL_LIGHT_DATA, // (first_index, count) pairs; a buffer because
+                                // D3D12 can't sample R32G32_INT 3D textures
   BSP_NUM_STORAGE_BUFFERS,
 };
 
@@ -82,11 +83,6 @@ static struct {
    * @brief The material sampler (trilinear, repeat).
    */
   Sampler *diffusemap_sampler;
-
-  /**
-   * @brief The voxel light-data sampler (nearest, clamp) for integer texelFetch.
-   */
-  Sampler *voxel_data_sampler;
 
   /**
    * @brief The material stage sampler (linear, repeat) for stage textures.
@@ -411,11 +407,6 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  $(pass, bindFragmentSamplers, BSP_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
-    .texture = bsp->voxels.light_data->texture->texture,
-    .sampler = r_bsp_draw.voxel_data_sampler->sampler,
-  }, 1);
-
   // The point-light shadow atlas (comparison sampler).
   $(pass, bindFragmentSamplers, BSP_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -451,8 +442,9 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
     r_lights.buffer->buffer,
     bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
                                      : r_lights.buffer->buffer,
+    bsp->voxels.light_data_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, 2);
+  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -602,11 +594,6 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  $(pass, bindFragmentSamplers, BSP_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
-    .texture = bsp->voxels.light_data->texture->texture,
-    .sampler = r_bsp_draw.voxel_data_sampler->sampler,
-  }, 1);
-
   $(pass, bindFragmentSamplers, BSP_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -641,8 +628,9 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
     r_lights.buffer->buffer,
     bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
                                      : r_lights.buffer->buffer,
+    bsp->voxels.light_data_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, 2);
+  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
 
   // Every BSP inline model entity in the view, including the world itself; see
   // R_DrawBlendBspEntity.
@@ -774,7 +762,6 @@ void R_InitBspPipeline(void) {
   r_bsp_draw.diffusemap_sampler = $(r_context.device, createSamplerLinearRepeat);
   r_bsp_draw.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
   r_bsp_draw.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
-  r_bsp_draw.voxel_data_sampler = $(r_context.device, createSamplerNearestClamp);
 
   #define WARP_IMAGE_SIZE 16
   byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
@@ -811,7 +798,6 @@ void R_ShutdownBspPipeline(void) {
   r_bsp_draw.pipeline = release(r_bsp_draw.pipeline);
   r_bsp_draw.blend_pipeline = release(r_bsp_draw.blend_pipeline);
   r_bsp_draw.diffusemap_sampler = release(r_bsp_draw.diffusemap_sampler);
-  r_bsp_draw.voxel_data_sampler = release(r_bsp_draw.voxel_data_sampler);
   r_bsp_draw.stage_sampler = release(r_bsp_draw.stage_sampler);
   r_bsp_draw.ambient_sampler = release(r_bsp_draw.ambient_sampler);
   r_bsp_draw.warp_texture = release(r_bsp_draw.warp_texture);

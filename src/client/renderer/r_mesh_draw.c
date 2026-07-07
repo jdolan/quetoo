@@ -27,7 +27,6 @@
  */
 enum {
   MESH_SAMPLER_MATERIAL,
-  MESH_SAMPLER_VOXEL_LIGHT_DATA,
   MESH_SAMPLER_SHADOW_ATLAS_0, // one sampler2DShadow per cube face (SDL_gpu forbids array depth targets)
   MESH_SAMPLER_SHADOW_ATLAS_1,
   MESH_SAMPLER_SHADOW_ATLAS_2,
@@ -45,6 +44,8 @@ enum {
 enum {
   MESH_STORAGE_LIGHTS,
   MESH_STORAGE_VOXEL_LIGHT_INDICES,
+  MESH_STORAGE_VOXEL_LIGHT_DATA, // (first_index, count) pairs; a buffer because
+                                 // D3D12 can't sample R32G32_INT 3D textures
   MESH_NUM_STORAGE_BUFFERS,
 };
 
@@ -87,11 +88,6 @@ static struct {
   Sampler *diffusemap_sampler;
 
   /**
-   * @brief The voxel light-data sampler (nearest, clamp) for integer texelFetch.
-   */
-  Sampler *voxel_data_sampler;
-
-  /**
    * @brief A linear, clamped sampler shared by the voxel caustics/occlusion
    * volumes and the sky cubemap (all sampled with normalized coordinates).
    */
@@ -114,7 +110,6 @@ static struct {
    * @c VIEW_PLAYER_MODEL, but @c SDL_gpu still requires every declared sampler slot to
    * be bound at draw time.
    */
-  Texture *voxel_light_data_fallback;
   Texture *voxel_caustics_fallback;
   Texture *voxel_occlusion_fallback;
 
@@ -560,11 +555,6 @@ void R_DrawMeshEntities(const r_view_t *view) {
 
   $(pass, bindPipeline, r_mesh_draw.pipeline);
 
-  $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
-    .texture = bsp->voxels.light_data->texture->texture,
-    .sampler = r_mesh_draw.voxel_data_sampler->sampler,
-  }, 1);
-
   // The point-light shadow atlas (comparison sampler), shared with the BSP pass.
   $(pass, bindFragmentSamplers, MESH_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -594,8 +584,9 @@ void R_DrawMeshEntities(const r_view_t *view) {
     r_lights.buffer->buffer,
     bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
                                      : r_lights.buffer->buffer,
+    bsp->voxels.light_data_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_LIGHTS, storage, 2);
+  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_LIGHTS, storage, MESH_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -664,11 +655,6 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   // No world is loaded for this view, so bind the 1x1x1 fallbacks; the shader's
   // VIEW_PLAYER_MODEL branch never actually samples them (see mesh_fs.glsl).
-  $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_LIGHT_DATA, &(SDL_GPUTextureSamplerBinding) {
-    .texture = r_mesh_draw.voxel_light_data_fallback->texture,
-    .sampler = r_mesh_draw.voxel_data_sampler->sampler,
-  }, 1);
-
   $(pass, bindFragmentSamplers, MESH_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -690,8 +676,8 @@ void R_DrawPlayerModelView(r_view_t *view) {
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
   }, 2);
 
-  SDL_GPUBuffer *storage[] = { r_lights.buffer->buffer, r_lights.buffer->buffer };
-  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_LIGHTS, storage, 2);
+  SDL_GPUBuffer *storage[] = { r_lights.buffer->buffer, r_lights.buffer->buffer, r_lights.buffer->buffer };
+  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_LIGHTS, storage, MESH_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -724,9 +710,9 @@ void R_InitMeshPipeline(void) {
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = MESH_NUM_SAMPLERS,               // material, voxel_light_data, shadow_atlas,
-                                                      // voxel_caustics, voxel_occlusion, sky, stage, stage_next
-    .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS, // lights + voxel_light_indices
+    .num_samplers = MESH_NUM_SAMPLERS,               // material, shadow_atlas, voxel_caustics,
+                                                      // voxel_occlusion, sky, stage, stage_next
+    .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS, // lights + voxel_light_indices + voxel_light_data
     .num_uniform_buffers = MESH_NUM_UNIFORMS, // globals + active_lights + material(+stage+tints)
   });
 
@@ -796,20 +782,10 @@ void R_InitMeshPipeline(void) {
   r_mesh_draw.diffusemap_sampler = $(r_context.device, createSamplerLinearRepeat);
   r_mesh_draw.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
   r_mesh_draw.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
-  r_mesh_draw.voxel_data_sampler = $(r_context.device, createSamplerNearestClamp);
 
   // 1x1x1 fallback voxel textures for the player-model preview (see the struct
   // field docs above). Contents are never sampled, so uninitialized (NULL) data
   // is fine -- the branch that would read them never executes for that view.
-  r_mesh_draw.voxel_light_data_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
-    .type = SDL_GPU_TEXTURETYPE_3D,
-    .format = SDL_GPU_TEXTUREFORMAT_R32G32_INT,
-    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
-    .width = 1, .height = 1, .layer_count_or_depth = 1,
-    .num_levels = 1,
-    .sample_count = SDL_GPU_SAMPLECOUNT_1,
-  }, NULL);
-
   r_mesh_draw.voxel_caustics_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
@@ -836,10 +812,8 @@ void R_ShutdownMeshPipeline(void) {
   r_mesh_draw.pipeline = release(r_mesh_draw.pipeline);
   r_mesh_draw.blend_pipeline = release(r_mesh_draw.blend_pipeline);
   r_mesh_draw.diffusemap_sampler = release(r_mesh_draw.diffusemap_sampler);
-  r_mesh_draw.voxel_data_sampler = release(r_mesh_draw.voxel_data_sampler);
   r_mesh_draw.ambient_sampler = release(r_mesh_draw.ambient_sampler);
   r_mesh_draw.stage_sampler = release(r_mesh_draw.stage_sampler);
-  r_mesh_draw.voxel_light_data_fallback = release(r_mesh_draw.voxel_light_data_fallback);
   r_mesh_draw.voxel_caustics_fallback = release(r_mesh_draw.voxel_caustics_fallback);
   r_mesh_draw.voxel_occlusion_fallback = release(r_mesh_draw.voxel_occlusion_fallback);
 

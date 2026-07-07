@@ -474,19 +474,14 @@ void R_DrawSprites(const r_view_t *view) {
   }, 1);
 
   // Clustered voxel lighting for absorptive sprites (sprite family: samplers 0/1
-  // diffuse+next, 2 depth, 3 voxel data; storage 0/1 lights + voxel indices).
-  // texelFetch ignores the sampler, so the nearest depth sampler is reused.
-  $(pass, bindFragmentSamplers, 3, &(SDL_GPUTextureSamplerBinding) {
-    .texture = bsp->voxels.light_data->texture->texture,
-    .sampler = r_sprite_draw.depth_sampler->sampler,
-  }, 1);
-
+  // diffuse+next, 2 depth; storage 0/1/2 lights + voxel indices + voxel data).
   SDL_GPUBuffer *storage[] = {
     r_lights.buffer->buffer,
     bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
                                      : r_lights.buffer->buffer,
+    bsp->voxels.light_data_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, 0, storage, 2);
+  $(pass, bindFragmentStorageBuffers, 0, storage, 3);
 
   // Draw runs of consecutive instances sharing the same diffuse/next-diffuse image.
   int32_t i = 0;
@@ -597,8 +592,8 @@ static void R_InitSpritePipeline(void) {
     },
     "shaders/sprite_fs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-      .num_samplers = 4,
-      .num_storage_buffers = 2,
+      .num_samplers = 3,
+      .num_storage_buffers = 3,
       .num_uniform_buffers = 1,
     },
     &info);

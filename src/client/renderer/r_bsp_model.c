@@ -449,17 +449,15 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->light_data->height = out->size.y;
   out->light_data->depth = out->size.z;
 
-  // The per-voxel (first_index, count) pairs, as a 3D RG32I texture (isampler3D).
-  out->light_data->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
-    .type = SDL_GPU_TEXTURETYPE_3D,
-    .format = SDL_GPU_TEXTUREFORMAT_R32G32_INT,
-    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
-    .width = (Uint32) out->size.x,
-    .height = (Uint32) out->size.y,
-    .layer_count_or_depth = (Uint32) out->size.z,
-    .num_levels = 1,
-    .sample_count = SDL_GPU_SAMPLECOUNT_1,
-  }, light_data);
+  // The per-voxel (first_index, count) pairs, as a read-only R32I storage
+  // buffer indexed by linear voxel index. This was a 3D RG32I texture
+  // (isampler3D), but D3D12 cannot sample integer formats, so
+  // SDL_CreateGPUTexture fails on that backend; the media above is retained
+  // as a placeholder for dependency registration, like light_indices below.
+  out->light_data_buffer = $(r_context.device, createBufferWithConstMem,
+      SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
+      light_data,
+      out->num_voxels * sizeof(int32_t) * 2);
 
   const int32_t *light_indices_data = (const int32_t *) data;
   data += out->num_light_indices * sizeof(int32_t);
@@ -685,6 +683,7 @@ static void R_FreeBspModel(r_media_t *self) {
 
   R_ResetOcclusionQueries();
 
+  bsp->voxels.light_data_buffer = release(bsp->voxels.light_data_buffer);
   bsp->voxels.light_indices_buffer = release(bsp->voxels.light_indices_buffer);
 
 }

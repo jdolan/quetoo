@@ -881,9 +881,15 @@ typedef struct {
   r_image_t *occlusion;
 
   /**
-   * @brief The light data 3D texture (`RG32I`) for offset and count pairs per voxel.
+   * @brief Media placeholder for the per-voxel light data (see `light_data_buffer`).
    */
   r_image_t *light_data;
+
+  /**
+   * @brief The storage buffer of per-voxel (first_index, count) pairs (`R32I`),
+   * indexed by linear voxel index.
+   */
+  Buffer *light_data_buffer;
 
   /**
    * @brief Voxel light index texture to sample the index buffer (`R32I`).

@@ -24,22 +24,27 @@
 #include "uniforms.glsl"
 
 /*
- * Decals are their own dense descriptor family: the decal atlas and voxel light
- * data at samplers 0/1, the lights and voxel light-index storage buffers at the
- * contiguous bindings 2/3 (SLOT_STORAGE_LIGHTS / _VOXEL_LIGHT_INDICES on the C
- * side). No shadows or normal maps -- decals take clustered voxel diffuse only.
+ * Decals are their own dense descriptor family: the decal atlas at sampler 0,
+ * the lights, voxel light-index and voxel light-data storage buffers at the
+ * contiguous bindings 1/2/3. The light data is a storage buffer of per-voxel
+ * (first_index, count) pairs rather than an RG32I isampler3D because D3D12
+ * cannot sample integer formats. No shadows or normal maps -- decals take
+ * clustered voxel diffuse only.
  */
 layout (set = SAMPLER_SET, binding = 0) uniform sampler2D texture_diffusemap;
-layout (set = SAMPLER_SET, binding = 1) uniform isampler3D texture_voxel_light_data;
 
-layout (std430, set = SAMPLER_SET, binding = 2) readonly buffer lights_block {
+layout (std430, set = SAMPLER_SET, binding = 1) readonly buffer lights_block {
   int num_lights;
   int num_bsp_lights;
   light_t lights[];
 };
 
-layout (std430, set = SAMPLER_SET, binding = 3) readonly buffer voxel_light_indices_block {
+layout (std430, set = SAMPLER_SET, binding = 2) readonly buffer voxel_light_indices_block {
   int voxel_light_indices[];
+};
+
+layout (std430, set = SAMPLER_SET, binding = 3) readonly buffer voxel_light_data_block {
+  int voxel_light_data_elements[];
 };
 
 layout (location = 0) in vec3 in_model_position;
@@ -94,7 +99,8 @@ void main(void) {
   vec3 light = vec3(ambient);
 
   const ivec3 voxel = decal_voxel_xyz(in_model_position);
-  const ivec2 data = texelFetch(texture_voxel_light_data, voxel, 0).xy;
+  const int voxel_index = (voxel.z * int(voxels.size.y) + voxel.y) * int(voxels.size.x) + voxel.x;
+  const ivec2 data = ivec2(voxel_light_data_elements[voxel_index * 2 + 0], voxel_light_data_elements[voxel_index * 2 + 1]);
 
   for (int i = 0; i < data.y; i++) {
     const int index = voxel_light_indices[data.x + i];

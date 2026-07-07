@@ -32,10 +32,6 @@ static struct {
    */
   Sampler *diffusemap_sampler;
 
-  /**
-   * @brief The voxel light-data sampler (nearest, clamp) for integer texelFetch.
-   */
-  Sampler *voxel_data_sampler;
 } r_decal_pipeline;
 
 /**
@@ -462,19 +458,15 @@ void R_DrawDecals(const r_view_t *view) {
 
   $(pass, bindPipeline, r_decal_pipeline.pipeline);
 
-  // Voxel light data + the shared lights / voxel-index storage (decal family:
-  // samplers 0=atlas, 1=voxel data; storage 2=lights, 3=voxel indices).
-  $(pass, bindFragmentSamplers, 1, &(SDL_GPUTextureSamplerBinding) {
-    .texture = bsp->voxels.light_data->texture->texture,
-    .sampler = r_decal_pipeline.voxel_data_sampler->sampler,
-  }, 1);
-
+  // The shared lights / voxel-index / voxel-data storage (decal family:
+  // sampler 0=atlas; storage 1=lights, 2=voxel indices, 3=voxel data).
   SDL_GPUBuffer *storage[] = {
     r_lights.buffer->buffer,
     bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
                                      : r_lights.buffer->buffer,
+    bsp->voxels.light_data_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, 0, storage, 2);
+  $(pass, bindFragmentStorageBuffers, 0, storage, 3);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -574,14 +566,13 @@ void R_InitDecals(void) {
     },
     "shaders/decal_fs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-      .num_samplers = 2,
-      .num_storage_buffers = 2,
+      .num_samplers = 1,
+      .num_storage_buffers = 3,
       .num_uniform_buffers = 1,
     },
     &info);
 
   r_decal_pipeline.diffusemap_sampler = $(r_context.device, createSamplerLinearClamp);
-  r_decal_pipeline.voxel_data_sampler = $(r_context.device, createSamplerNearestClamp);
 }
 
 /**
@@ -591,7 +582,6 @@ void R_ShutdownDecals(void) {
 
   r_decal_pipeline.pipeline = release(r_decal_pipeline.pipeline);
   r_decal_pipeline.diffusemap_sampler = release(r_decal_pipeline.diffusemap_sampler);
-  r_decal_pipeline.voxel_data_sampler = release(r_decal_pipeline.voxel_data_sampler);
 }
 
 /**

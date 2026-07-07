@@ -36,21 +36,24 @@ layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_NEXT_DIFFUSE) uniform sampl
 
 /*
  * The sprite family's own dense lighting bindings, after diffuse (0), next-diffuse
- * (1) and the soft-particle depth attachment (2): the voxel light data at sampler
- * 3, then the lights and voxel light-index storage buffers at the contiguous
- * bindings 4/5 (SLOT_STORAGE_LIGHTS / _VOXEL_LIGHT_INDICES on the C side). Sprites
+ * (1) and the soft-particle depth attachment (2): the lights, voxel light-index
+ * and voxel light-data storage buffers at the contiguous bindings 3/4/5. The
+ * light data is a storage buffer of per-voxel (first_index, count) pairs rather
+ * than an RG32I isampler3D because D3D12 cannot sample integer formats. Sprites
  * take clustered voxel diffuse only (no normal, so pure distance attenuation).
  */
-layout (set = SAMPLER_SET, binding = 3) uniform isampler3D texture_voxel_light_data;
-
-layout (std430, set = SAMPLER_SET, binding = 4) readonly buffer lights_block {
+layout (std430, set = SAMPLER_SET, binding = 3) readonly buffer lights_block {
   int num_lights;
   int num_bsp_lights;
   light_t lights[];
 };
 
-layout (std430, set = SAMPLER_SET, binding = 5) readonly buffer voxel_light_indices_block {
+layout (std430, set = SAMPLER_SET, binding = 4) readonly buffer voxel_light_indices_block {
   int voxel_light_indices[];
+};
+
+layout (std430, set = SAMPLER_SET, binding = 5) readonly buffer voxel_light_data_block {
+  int voxel_light_data_elements[];
 };
 
 layout (location = 0) in vec3 in_position;
@@ -81,7 +84,8 @@ vec3 sprite_lighting(void) {
   vec3 diffuse = vec3(0.0);
 
   const ivec3 voxel = sprite_voxel_xyz(in_position);
-  const ivec2 data = texelFetch(texture_voxel_light_data, voxel, 0).xy;
+  const int index = (voxel.z * int(voxels.size.y) + voxel.y) * int(voxels.size.x) + voxel.x;
+  const ivec2 data = ivec2(voxel_light_data_elements[index * 2 + 0], voxel_light_data_elements[index * 2 + 1]);
 
   for (int i = 0; i < data.y; i++) {
     const light_t light = lights[voxel_light_indices[data.x + i]];
