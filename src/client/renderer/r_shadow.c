@@ -62,7 +62,7 @@ typedef struct {
 static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 
   while (e) {
-    if (light->source && light->source == e) {
+    if (light->source && light->source == e->id) {
       return true;
     }
     e = e->parent;

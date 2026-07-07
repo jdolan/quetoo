@@ -1877,9 +1877,11 @@ typedef struct {
   bool *shadow_cached;
 
   /**
-   * @brief The optional light source, which will not cast shadow.
+   * @brief The optional light source entity identifier, which will not cast
+   * shadow. This is an opaque token matching r_entity_t::id (the cgame's
+   * cl_entity_t pointer), not a renderer entity pointer.
    */
-  const r_entity_t *source;
+  const void *source;
   
   /**
    * @brief True if the light is occluded for the current frame, set by
