@@ -580,7 +580,7 @@ static void R_InitSpritePipeline(void) {
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
       .format = R_SCENE_COLOR_FORMAT,
-      .blend_state = GPU_BlendStateAdditive,
+      .blend_state = GPU_BlendStateAlpha,
     },
     .num_color_targets = 1,
   };
