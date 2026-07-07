@@ -155,11 +155,11 @@ void R_UpdateShadows(r_view_t *view) {
       }
 
       l->entities[l->num_entities++] = e;
-    }    
-  }
-  
-  if (l->num_entities == 0 && l->shadow_cached && *l->shadow_cached) {
-    r_stats.lights_cached++;
+    }
+
+    if (l->num_entities == 0 && l->shadow_cached && *l->shadow_cached) {
+      r_stats.lights_cached++;
+    }
   }
 }
 
