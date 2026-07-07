@@ -47,7 +47,6 @@ void R_UpdateLights(r_view_t *view) {
   r_light_uniform_block_t *block = &r_lights.block;
   memset(block, 0, sizeof(*block));
 
-  block->num_lights = view->num_lights;
   block->num_bsp_lights = r_models.world ? r_models.world->bsp->num_lights : 0;
 
   cm_trace_t tr = { 0 };
@@ -58,9 +57,28 @@ void R_UpdateLights(r_view_t *view) {
 
   const float inv_layer = 1.f / (float) (SHADOW_ATLAS_LIGHTS_PER_ROW * r_shadow_atlas.tile_size);
 
+  int32_t num_dynamic = 0;
+
   r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
-    r_light_uniform_t *out = &block->lights[i];
+
+    // BSP lights occupy their lump position, so that the compiled voxel light
+    // indices address them correctly even when the cgame skips or re-adds lump
+    // lights as dynamic (e.g. targeted lights); dynamic lights pack the slots
+    // at [num_bsp_lights, ...) in view order, matching R_ActiveLights.
+    int32_t slot;
+    if (l->bsp_light) {
+      slot = (int32_t) (l->bsp_light - r_models.world->bsp->lights);
+      assert(slot < block->num_bsp_lights);
+    } else {
+      if (num_dynamic == MAX_DYNAMIC_LIGHTS) {
+        Com_Debug(DEBUG_RENDERER, "MAX_DYNAMIC_LIGHTS\n");
+        continue;
+      }
+      slot = block->num_bsp_lights + num_dynamic++;
+    }
+
+    r_light_uniform_t *out = &block->lights[slot];
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
 
@@ -99,42 +117,51 @@ void R_UpdateLights(r_view_t *view) {
     }
   }
 
+  // The shaders derive the dynamic count as num_lights - num_bsp_lights, so
+  // num_lights spans the occupied slots, not the view's light count (lump
+  // lights the cgame skipped leave zeroed, zero-radius gaps).
+  block->num_lights = block->num_bsp_lights + num_dynamic;
+
   // Upload the count header plus the populated lights. Always upload at least
   // the header so num_lights reaches the shader (0 on a light-free frame).
   const uint32_t size = offsetof(r_light_uniform_block_t, lights)
-      + view->num_lights * sizeof(r_light_uniform_t);
+      + block->num_lights * sizeof(r_light_uniform_t);
   $(r_lights.buffer, upload, block, size, 0, true);
 }
 
 /**
  * @brief Builds the dynamic-light cull bitmask for the given bounds into `mask`.
- * @details Dynamic light sources (rockets, explosions, etc.) occupy the tail of
- * the lights buffer and have no voxel grid, so each draw whittles them to those
- * intersecting its bounds. Bit `j` of the bitmask selects dynamic light
- * `[num_bsp_lights + j]`; the lighting shaders add `num_bsp_lights` to recover the
- * absolute index. Static (voxel-gridded) lights are skipped.
+ * @details Dynamic light sources (rockets, explosions, targeted BSP lights, etc.)
+ * occupy the buffer slots at `[num_bsp_lights, num_lights)` and have no voxel
+ * grid, so each draw whittles them to those intersecting its bounds. Bit `j` of
+ * the bitmask selects dynamic light `[num_bsp_lights + j]`; the lighting shaders
+ * add `num_bsp_lights` to recover the absolute index. Dynamic lights may be
+ * interleaved with static (voxel-gridded) BSP lights in the view, so `j` counts
+ * them in view order, matching the slot assignment in R_UpdateLights.
  */
 void R_ActiveLights(const r_view_t *view, const box3_t bounds, uint32_t mask[MAX_DYNAMIC_LIGHTS / 32]) {
 
   memset(mask, 0, sizeof(uint32_t) * (MAX_DYNAMIC_LIGHTS / 32));
 
-  const int32_t first = r_lights.block.num_bsp_lights;
+  int32_t j = 0;
 
-  const r_light_t *l = view->lights + first;
-  for (int32_t i = first; i < view->num_lights; i++, l++) {
+  const r_light_t *l = view->lights;
+  for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-    const int32_t j = i - first;
-    if (j >= MAX_DYNAMIC_LIGHTS) {
-      break;
+    // Static (voxel-gridded) BSP lights are skipped.
+    if (l->bsp_light) {
+      continue;
     }
 
-    // The lights at [num_bsp_lights, num_lights) are the dynamic tail; none are
-    // static (voxel-gridded) BSP lights.
-    assert(!l->bsp_light);
+    if (j == MAX_DYNAMIC_LIGHTS) {
+      break;
+    }
 
     if (Box3_Intersects(l->bounds, bounds)) {
       mask[j >> 5] |= 1u << (j & 31);
     }
+
+    j++;
   }
 }
 
