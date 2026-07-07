@@ -127,8 +127,13 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
     return;
   }
 
-  fragment.normal_sample = sample_material_normal(fragment.parallax, mat3(vertex.tangent, vertex.bitangent, vertex.normal));
-  fragment.specular_sample = sample_material_specular(fragment.parallax);
+  if ((material.flags & STAGE_LIGHTING_FLAT) == STAGE_LIGHTING_FLAT) {
+    fragment.normal_sample = normalize(vertex.normal);
+    fragment.specular_sample = vec4(fragment.diffuse_sample.rgb, pow(1.0 + material.specularity, 4.0));
+  } else {
+    fragment.normal_sample = sample_material_normal(fragment.parallax, mat3(vertex.tangent, vertex.bitangent, vertex.normal));
+    fragment.specular_sample = sample_material_specular(fragment.parallax);
+  }
 
   // Precompute per-pixel Poisson rotation for shadow PCF
   float angle = random_angle(vertex.model_position);
