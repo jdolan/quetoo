@@ -394,161 +394,24 @@ void Cg_FreeEditorEntities(void) {
 }
 
 /**
- * @brief Traces the view ray against each editor entity's brush list, falling back to a
- *   ray-AABB slab test for point entities that have no brushes.
+ * @brief Builds the shared, nearest-first ray-selection candidate list into
+ * `cg_editor.candidates`, resetting the cursor to the nearest hit.
+ * @details This ONE list feeds every editor tab; each reads a different facet of the
+ * same candidate -- the entity tab its def, the material tab the surface material, the
+ * mesh tab the model. It includes worldspawn and every brush, mesh, and point entity
+ * the ray crosses, so a decorative surface in front (e.g. a `common/dust` brush) no
+ * longer hides what is behind it -- the wheel simply cycles past it. Brush hits carry
+ * the struck surface's material (from the trace); a mesh hit carries its first textured
+ * face's material; point entities (lights, sprites, items) carry no material. The ray
+ * length (`end`) is the caller's distance cap, so the active tab can widen or narrow
+ * reach as appropriate. `cg_editor.selected` is set to the nearest hit (or worldspawn
+ * when the ray hits nothing).
+ * @return The number of candidates (also stored in `cg_editor.num_candidates`).
  */
-/**
- * @brief Traces the view ray for entity selection.
- * @details Skips worldspawn (it is the default fallback and has many brushes) and includes
- *   point entities via a ray-AABB slab test.
- */
-cg_editor_trace_t Cg_EntitySelectionTrace(const vec3_t start, const vec3_t end) {
+size_t Cg_BuildSelectionCandidates(const vec3_t start, const vec3_t end) {
 
-  cg_editor_trace_t out = {
-    .ent = NULL,
-    .trace = { .fraction = 1.f }
-  };
-
-  cg_editor_entity_t *edit = cg_editor.entities;
-  for (int32_t i = 1; i < MAX_ENTITIES; i++, edit++) {
-
-    if (edit->def == NULL) {
-      continue;
-    }
-
-    if (!cg_editor.show_func_groups) {
-      if (!q_strcmp(cgi.EntityValue(edit->def, "classname")->string, "func_group")) {
-        continue;
-      }
-    }
-
-    if (edit->brushes) {
-      for (uint32_t j = 0; j < edit->brushes->count; j++) {
-        const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
-
-        const cm_trace_t tr = cgi.TraceToBrush(start, end, brush);
-
-        if (tr.start_solid || tr.fraction >= out.trace.fraction) {
-          continue;
-        }
-
-        out.ent = edit;
-        out.trace = tr;
-      }
-    } else {
-
-      const entity_state_t *s = &edit->ent->current;
-      const box3_t bounds = Box3_Translate(s->bounds, s->origin);
-
-      const float frac = Box3_RayFraction(start, end, bounds);
-      if (frac >= out.trace.fraction) {
-        continue;
-      }
-
-      out.ent = edit;
-      out.trace = (cm_trace_t) {
-        .fraction = frac,
-        .end = Vec3_Mix(start, end, frac)
-      };
-    }
-  }
-
-  return out;
-}
-
-/**
- * @brief Collects every editor entity whose brushes or bounds the ray hits, ordered
- * nearest-first, into `out` (up to `max`). Mirrors Cg_EntitySelectionTrace's hit
- * logic but keeps all hits instead of only the closest, so the editor can cycle
- * through overlapping objects with the mouse wheel (issue #840). Worldspawn (entity
- * 0) is skipped, as in the single trace. The ray length (its `end`) is the caller's
- * distance cap, so anything past it is naturally excluded.
- * @return The number of candidates written to `out`.
- */
-size_t Cg_EntitySelectionCandidates(const vec3_t start, const vec3_t end, int16_t *out, size_t max) {
-
-  struct {
-    int16_t number;
-    float fraction;
-  } candidates[CG_EDITOR_MAX_CANDIDATES];
-
-  size_t count = 0;
-
-  cg_editor_entity_t *edit = cg_editor.entities;
-  for (int32_t i = 1; i < MAX_ENTITIES; i++, edit++) {
-
-    if (edit->def == NULL) {
-      continue;
-    }
-
-    if (!cg_editor.show_func_groups) {
-      if (!q_strcmp(cgi.EntityValue(edit->def, "classname")->string, "func_group")) {
-        continue;
-      }
-    }
-
-    // the nearest hit fraction for this entity (an entity may have many brushes)
-    float fraction = 1.f;
-    bool hit = false;
-
-    if (edit->brushes) {
-      for (uint32_t j = 0; j < edit->brushes->count; j++) {
-        const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
-
-        const cm_trace_t tr = cgi.TraceToBrush(start, end, brush);
-
-        if (tr.start_solid || tr.fraction >= fraction) {
-          continue;
-        }
-
-        fraction = tr.fraction;
-        hit = true;
-      }
-    } else {
-
-      const entity_state_t *s = &edit->ent->current;
-      const box3_t bounds = Box3_Translate(s->bounds, s->origin);
-
-      const float frac = Box3_RayFraction(start, end, bounds);
-      if (frac < fraction) {
-        fraction = frac;
-        hit = true;
-      }
-    }
-
-    if (!hit || count >= max || count >= lengthof(candidates)) {
-      continue;
-    }
-
-    // insertion-sort this hit into the (small) list by fraction, nearest first
-    size_t k = count;
-    while (k > 0 && candidates[k - 1].fraction > fraction) {
-      candidates[k] = candidates[k - 1];
-      k--;
-    }
-    candidates[k].number = edit->number;
-    candidates[k].fraction = fraction;
-    count++;
-  }
-
-  for (size_t i = 0; i < count; i++) {
-    out[i] = candidates[i].number;
-  }
-
-  return count;
-}
-
-/**
- * @brief Traces the view ray for material selection.
- */
-cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end) {
-
-  cg_editor_trace_t out = {
-    .ent = NULL,
-    .trace = {
-      .fraction = 1.f
-    }
-  };
+  cg_editor.num_candidates = 0;
+  cg_editor.candidate_index = 0;
 
   cg_editor_entity_t *edit = cg_editor.entities;
   for (int32_t i = 0; i < MAX_ENTITIES; i++, edit++) {
@@ -557,18 +420,28 @@ cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end
       continue;
     }
 
+    if (!cg_editor.show_func_groups) {
+      if (!q_strcmp(cgi.EntityValue(edit->def, "classname")->string, "func_group")) {
+        continue;
+      }
+    }
+
+    // the nearest hit for this entity (an entity may have many brushes / faces)
+    cm_trace_t best = { .fraction = 1.f };
+    bool hit = false;
+
     if (edit->brushes) {
       for (uint32_t j = 0; j < edit->brushes->count; j++) {
         const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
 
         const cm_trace_t tr = cgi.TraceToBrush(start, end, brush);
 
-        if (tr.start_solid || tr.fraction >= out.trace.fraction) {
+        if (tr.start_solid || tr.fraction >= best.fraction) {
           continue;
         }
 
-        out.ent = edit;
-        out.trace = tr;
+        best = tr;
+        hit = true;
       }
     } else if (IS_MESH_MODEL(edit->model)) {
 
@@ -576,26 +449,91 @@ cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end
       const box3_t bounds = Box3_Translate(s->bounds, s->origin);
 
       const float frac = Box3_RayFraction(start, end, bounds);
-      if (frac >= out.trace.fraction) {
-        continue;
-      }
+      if (frac < best.fraction) {
 
-      const r_mesh_model_t *mesh = edit->model->mesh;
-      for (int32_t j = 0; j < mesh->num_faces; j++) {
-        if (mesh->faces[j].material) {
-          out.ent = edit;
-          out.trace = (cm_trace_t) {
-            .fraction = frac,
-            .end = Vec3_Mix(start, end, frac),
-            .material = mesh->faces[j].material->cm,
-          };
-          break;
+        best = (cm_trace_t) {
+          .fraction = frac,
+          .end = Vec3_Mix(start, end, frac),
+        };
+
+        // the first textured face stands in for the mesh's surface material
+        const r_mesh_model_t *mesh = edit->model->mesh;
+        for (int32_t j = 0; j < mesh->num_faces; j++) {
+          if (mesh->faces[j].material) {
+            best.material = mesh->faces[j].material->cm;
+            break;
+          }
         }
+
+        hit = true;
       }
+    } else {
+
+      // point entity (light, misc_dust sprite, item, ...): ray-AABB, no material
+      const entity_state_t *s = &edit->ent->current;
+      const box3_t bounds = Box3_Translate(s->bounds, s->origin);
+
+      const float frac = Box3_RayFraction(start, end, bounds);
+      if (frac < best.fraction) {
+        best = (cm_trace_t) {
+          .fraction = frac,
+          .end = Vec3_Mix(start, end, frac),
+        };
+        hit = true;
+      }
+    }
+
+    if (!hit || cg_editor.num_candidates >= CG_EDITOR_MAX_CANDIDATES) {
+      continue;
+    }
+
+    // insertion-sort this hit into the (small) list by fraction, nearest first
+    size_t k = cg_editor.num_candidates;
+    while (k > 0 && cg_editor.candidates[k - 1].trace.fraction > best.fraction) {
+      cg_editor.candidates[k] = cg_editor.candidates[k - 1];
+      k--;
+    }
+    cg_editor.candidates[k] = (cg_editor_trace_t) { .ent = edit, .trace = best };
+    cg_editor.num_candidates++;
+  }
+
+  cg_editor.selected = cg_editor.num_candidates
+      ? cg_editor.candidates[0].ent->number
+      : 0;
+
+  return cg_editor.num_candidates;
+}
+
+/**
+ * @brief Steps the shared selection cursor by `dir` (+1 nearer, -1 farther), clamped
+ * to the candidate list, and updates `cg_editor.selected`. Every tab reads the new
+ * cursor, so this cycles one consistent selection regardless of the active tab.
+ * @return True if the cursor moved.
+ */
+bool Cg_CycleSelection(int32_t dir) {
+
+  if (cg_editor.num_candidates == 0) {
+    return false;
+  }
+
+  size_t index = cg_editor.candidate_index;
+  if (dir < 0) {
+    if (index + 1 < cg_editor.num_candidates) {
+      index++;
+    }
+  } else if (dir > 0) {
+    if (index > 0) {
+      index--;
     }
   }
 
-  return out;
+  if (index == cg_editor.candidate_index) {
+    return false; // clamped at an end
+  }
+
+  cg_editor.candidate_index = index;
+  cg_editor.selected = cg_editor.candidates[index].ent->number;
+  return true;
 }
 
 

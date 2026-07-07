@@ -68,31 +68,6 @@ typedef struct {
 } cg_editor_entity_t;
 
 /**
- * @brief Encapsulates all mutable editor state.
- */
-typedef struct {
-
-  /**
-   * @brief Editor entity array, indexed by entity number.
-   */
-  cg_editor_entity_t entities[MAX_ENTITIES];
-
-  /**
-   * @brief When false, `func_group` entities are excluded from editor traces and scene drawing.
-   * @details Toggled via the 'G' key in the EntityViewController.
-   */
-  bool show_func_groups;
-
-  /**
-   * @brief The entity number of the currently selected entity, or 0 if none.
-   */
-  int16_t selected;
-
-} cg_editor_t;
-
-extern cg_editor_t cg_editor;
-
-/**
  * @brief The result of a combined editor trace against all BSP models and `CONTENTS_EDITOR` entities.
  */
 typedef struct {
@@ -117,12 +92,56 @@ typedef struct {
  */
 #define CG_EDITOR_MAX_CANDIDATES 32
 
+/**
+ * @brief Encapsulates all mutable editor state.
+ */
+typedef struct {
+
+  /**
+   * @brief Editor entity array, indexed by entity number.
+   */
+  cg_editor_entity_t entities[MAX_ENTITIES];
+
+  /**
+   * @brief When false, `func_group` entities are excluded from editor traces and scene drawing.
+   * @details Toggled via the 'G' key in the EntityViewController.
+   */
+  bool show_func_groups;
+
+  /**
+   * @brief The entity number of the currently selected entity, or 0 if none.
+   */
+  int16_t selected;
+
+  /**
+   * @brief The shared ray-selection candidate list, nearest first. Built once per
+   * selection by `Cg_BuildSelectionCandidates` and read by every editor tab, each
+   * interpreting a different facet of the same hit (entity def / surface material /
+   * mesh model). Cycled with the mouse wheel to reach overlapping objects (issue
+   * #840) -- e.g. a `common/dust` brush no longer hides the material behind it.
+   */
+  cg_editor_trace_t candidates[CG_EDITOR_MAX_CANDIDATES];
+
+  /**
+   * @brief The number of valid entries in `candidates`.
+   */
+  size_t num_candidates;
+
+  /**
+   * @brief The cursor into `candidates` (0 = nearest). Shared by all tabs so the
+   * wheel cycles one consistent selection regardless of the active tab.
+   */
+  size_t candidate_index;
+
+} cg_editor_t;
+
+extern cg_editor_t cg_editor;
+
 int32_t Cg_FindTeamMaster(const char *classname, const char *team);
 void Cg_ParseEditorEntity(int16_t number, const char *info);
 void Cg_LoadEditorEntities(void);
 void Cg_FreeEditorEntities(void);
 void Cg_PopulateEditorScene(const cl_frame_t *frame);
-cg_editor_trace_t Cg_EntitySelectionTrace(const vec3_t start, const vec3_t end);
-size_t Cg_EntitySelectionCandidates(const vec3_t start, const vec3_t end, int16_t *out, size_t max);
-cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end);
+size_t Cg_BuildSelectionCandidates(const vec3_t start, const vec3_t end);
+bool Cg_CycleSelection(int32_t dir);
 void Cg_CheckEditor(void);

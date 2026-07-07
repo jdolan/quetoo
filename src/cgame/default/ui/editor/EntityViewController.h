@@ -119,22 +119,6 @@ struct EntityViewController {
    */
   bool show_func_groups;
 
-  /**
-   * @brief Entity numbers hit along the last selection ray, nearest first, cycled
-   * with the mouse wheel to reach overlapping objects (issue #840).
-   */
-  int16_t candidates[CG_EDITOR_MAX_CANDIDATES];
-
-  /**
-   * @brief The number of valid entries in `candidates`.
-   */
-  size_t numCandidates;
-
-  /**
-   * @brief The index of the currently selected candidate within `candidates`.
-   */
-  size_t candidateIndex;
-
 };
 
 /**

@@ -94,16 +94,34 @@ static void didSetValue(Slider *slider, double value) {
 static void loadStages(MaterialViewController *this);
 
 /**
- * @brief ButtonDelegate: append a new stage and rebuild the list. Safe to rebuild
- * synchronously here — the Add Stage button is not part of the stage list.
+ * @brief Applies the material of the shared selection cursor's current candidate.
+ */
+static void refreshSelection(MaterialViewController *this);
+
+/**
+ * @brief Builds one StageView for `stage` and appends it to the stages list. Shared
+ * by the progressive pump (many stages, one per frame) and single-stage add (one
+ * stage, applied immediately -- see didClickAddStage) so there is one place that
+ * knows how to construct a stage row.
+ */
+static void appendStageView(MaterialViewController *this, cm_stage_t *stage);
+
+/**
+ * @brief ButtonDelegate: append ONE new StageView for the newly added stage.
+ * Deliberately does NOT go through loadStages (which tears down and rebuilds the
+ * WHOLE list): that full rebuild used to be instant and invisible, but chunking it
+ * (for the material-swap perf fix) turned "add one stage" into a visible clear +
+ * multi-frame repopulate of every OTHER stage too, and reset the scroll position.
+ * Since only one stage actually changed, just add its one row.
  */
 static void didClickAddStage(Button *button) {
 
   MaterialViewController *this = button->delegate.self;
 
   if (this->material) {
-    cgi.AddMaterialStage(this->material);
-    loadStages(this);
+    cm_stage_t *stage = cgi.AddMaterialStage(this->material);
+    appendStageView(this, stage);
+    $((View *) this->stages, sizeToFit);
   }
 }
 
@@ -128,27 +146,148 @@ static void didSelectStage(StageView *stageView) {
   this->selectedStage = stageView;
 }
 
+static void appendStageView(MaterialViewController *this, cm_stage_t *stage) {
+
+  StageView *stageView = $(alloc(StageView), initWithStage, this->material, stage);
+
+  stageView->delegate.self = this;
+  stageView->delegate.didSelectStage = didSelectStage;
+
+  $((View *) this->stages, addSubview, (View *) stageView);
+
+  release(stageView);
+}
+
 static void loadStages(MaterialViewController *this) {
 
   $((View *) this->stages, removeAllSubviews);
   this->selectedStage = NULL;
 
-  if (this->material) {
-    for (cm_stage_t *stage = this->material->cm->stages; stage; stage = stage->next) {
+  // Seed the cursor; the pump view (below) builds one StageView per rendered frame
+  // from it instead of all of them here synchronously. A heavily-staged material
+  // (e.g. 20 stages) rebuilding in one frame is the ~3s / 20fps freeze this avoids --
+  // MVC's style pass is O(views x selectors) and a single loadStages call used to
+  // apply it to every new stage's whole subtree in the same frame.
+  this->pendingStage = this->material ? this->material->cm->stages : NULL;
 
-      StageView *stageView = $(alloc(StageView), initWithStage, this->material, stage);
+  if (this->pendingStage == NULL) {
+    $((View *) this->stages, sizeToFit);
+  }
+}
 
-      stageView->delegate.self = this;
-      stageView->delegate.didSelectStage = didSelectStage;
+#pragma mark - StagesPumpView
 
-      $((View *) this->stages, addSubview, (View *) stageView);
+/**
+ * @brief A tiny (1x1), effectively invisible View whose sole job is building one
+ * pending StageView per rendered frame (see loadStages). It draws nothing visible
+ * (no background/border ever set), but CANNOT be zero-size: Renderer::drawView only
+ * calls a view's render() when its clippingFrame has non-zero width AND height, so a
+ * genuinely zero-size view's render() is never invoked at all -- the pump would be
+ * permanently dead (this was tried first and silently never ran). Progress only
+ * happens while this view is actually drawn -- i.e. while the Material tab is the
+ * active tab, since PageView hides inactive tab pages (and hidden views are not
+ * drawn) -- which is exactly the frame cadence we want: MVC's own layout/render pass
+ * (Ui_Draw, KEY_UI only) advances the build once per frame, spreading the cost that a
+ * single synchronous rebuild used to pay all at once. A private, minimal View
+ * subclass is the only place to hook true per-frame-while-visible work in this MVC
+ * version: View has no per-instance callback, so behavior can only be added by
+ * overriding a virtual method (render) via a Class -- there is no ViewController
+ * "tick" hook.
+ */
+typedef struct StagesPumpView StagesPumpView;
+typedef struct StagesPumpViewInterface StagesPumpViewInterface;
 
-      release(stageView);
-    }
+struct StagesPumpView {
+  View view;
+  StagesPumpViewInterface *interface;
+  MaterialViewController *controller; // weak
+};
+
+struct StagesPumpViewInterface {
+  ViewInterface viewInterface;
+
+  StagesPumpView *(*initWithFrame)(StagesPumpView *self, const SDL_Rect *frame);
+};
+
+// Every other class's _ClassName(void) is forward-declared via its own public header,
+// included before its .c file's first use of super()/alloc(). StagesPumpView has no
+// header (private to this file), so it needs its own forward declaration here -- super()
+// expands to a call through _StagesPumpView(), used below before its definition.
+static Class *_StagesPumpView(void);
+
+// super() expands using the file-scoped _Class macro (#define'd to
+// _MaterialViewController above) to resolve "this class's superclass" -- so it must be
+// rebound to _StagesPumpView for exactly this class's own methods, and restored
+// immediately after, or super() here would resolve MaterialViewController's superclass
+// (ViewController) instead of View, reading garbage through a mistyped interface
+// pointer (crashed as an access violation on the very first initWithFrame call).
+#undef _Class
+#define _Class _StagesPumpView
+
+/**
+ * @see View::initWithFrame(View *, const SDL_Rect *)
+ */
+static StagesPumpView *initWithFrame(StagesPumpView *self, const SDL_Rect *frame) {
+  return (StagesPumpView *) super(View, self, initWithFrame, frame);
+}
+
+/**
+ * @see View::render(View *, Renderer *)
+ */
+static void pumpRender(View *self, Renderer *renderer) {
+
+  super(View, self, render, renderer);
+
+  MaterialViewController *controller = ((StagesPumpView *) self)->controller;
+
+  cm_stage_t *stage = controller->pendingStage;
+  if (stage == NULL) {
+    return;
   }
 
-  $((View *) this->stages, sizeToFit);
+  controller->pendingStage = stage->next;
+
+  appendStageView(controller, stage);
+
+  if (controller->pendingStage == NULL) {
+    $((View *) controller->stages, sizeToFit);
+  }
 }
+
+/**
+ * @see Class::initialize(Class *)
+ */
+static void initializeStagesPumpView(Class *clazz) {
+  ((ViewInterface *) clazz->interface)->render = pumpRender;
+  ((StagesPumpViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+}
+
+/**
+ * @brief The StagesPumpView archetype. Private to this file: nothing outside
+ * MaterialViewController.c instantiates or references this class.
+ */
+static Class *_StagesPumpView(void) {
+  static Class *clazz;
+  static Once once;
+
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "StagesPumpView",
+      .superclass = _View(),
+      .instanceSize = sizeof(StagesPumpView),
+      .interfaceOffset = offsetof(StagesPumpView, interface),
+      .interfaceSize = sizeof(StagesPumpViewInterface),
+      .initialize = initializeStagesPumpView,
+    });
+  });
+
+  return clazz;
+}
+
+// Restore _Class to the outer MaterialViewController for the rest of the file (its
+// own super() calls, e.g. in loadView/respondToEvent, must resolve ViewController).
+#undef _Class
+#define _Class _MaterialViewController
 
 #pragma mark - ViewController
 
@@ -282,6 +421,19 @@ static void loadView(ViewController *self) {
   release(scrollbar);
 
   $(stagesParent, addSubview, this->stagesViewport);
+
+  // 1x1, effectively invisible: its only job is ticking the progressive stage build
+  // once per rendered frame (see loadStages / StagesPumpView above). Must be non-zero
+  // size -- Renderer::drawView skips render() entirely for a zero-size clippingFrame,
+  // which is why NULL (a zero-size frame) here previously left the pump permanently
+  // dead. A descendant of the stages viewport so it only renders (and thus only makes
+  // progress) while the Material tab is the active tab.
+  const SDL_Rect pumpFrame = { .w = 1, .h = 1 };
+  StagesPumpView *pump = $(alloc(StagesPumpView), initWithFrame, &pumpFrame);
+  assert(pump);
+  pump->controller = this;
+  $(this->stagesViewport, addSubview, (View *) pump);
+  release(pump);
 }
 
 /**
@@ -320,14 +472,50 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
     const Array *subviews = ((View *) this->stages)->subviews;
     for (size_t i = 0; i < subviews->count; i++) {
       if ($(subviews, objectAtIndex, i) == (ident) stageView) {
+        // Remove just this one row -- not a full loadStages rebuild (same reasoning
+        // as didClickAddStage: only one stage changed, the other rows are unaffected).
         cgi.RemoveMaterialStage(this->material, stageView->stage);
-        loadStages(this);
+        if (this->selectedStage == stageView) {
+          this->selectedStage = NULL;
+        }
+        $((View *) this->stages, removeSubview, (View *) stageView);
+        $((View *) this->stages, sizeToFit);
         break;
       }
     }
   }
 
+  // The mouse wheel cycled the shared selection cursor (issue #840): show the new
+  // candidate's material. This lets the user wheel past a foreground brush (e.g. a
+  // common/dust surface) to reach the material behind it.
+  if (event->type == MVC_NOTIFICATION_EVENT
+      && event->user.code == NOTIFICATION_EDITOR_SELECTION_CYCLE) {
+    refreshSelection(this);
+  }
+
   super(ViewController, self, respondToEvent, event);
+}
+
+/**
+ * @brief Applies the material of the shared selection cursor's current candidate,
+ * loaded from the struck surface. A candidate with no material (a point entity or an
+ * untextured surface) clears the panel -- wheel past it to the next surface. Only
+ * re-applies when the material actually changes, avoiding needless setText + re-layout.
+ */
+static void refreshSelection(MaterialViewController *this) {
+
+  r_material_t *material = NULL;
+
+  if (cg_editor.num_candidates) {
+    const cm_trace_t *tr = &cg_editor.candidates[cg_editor.candidate_index].trace;
+    if (tr->material) {
+      material = cgi.LoadMaterial(tr->material->name, tr->material->context);
+    }
+  }
+
+  if (material != this->material) {
+    $(this, setMaterial, material);
+  }
 }
 
 /**
@@ -340,18 +528,12 @@ static void viewWillAppear(ViewController *self) {
   const vec3_t start = cgi.view->origin;
   const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cgi.view->forward);
 
-  r_material_t *material = NULL;
+  // The material tab reaches the full world distance (walls sit far behind entities),
+  // unlike the entity tab's capped ray. Build the shared candidate list and show the
+  // nearest surface's material; the wheel steps to surfaces behind it.
+  Cg_BuildSelectionCandidates(start, end);
 
-  const cg_editor_trace_t tr = Cg_MaterialSelectionTrace(start, end);
-  if (tr.trace.fraction < 1.f && tr.trace.material) {
-    material = cgi.LoadMaterial(tr.trace.material->name, tr.trace.material->context);
-  }
-
-  // Only refresh when the aimed-at material changes; avoids needless setText +
-  // re-layout on every open at the same surface.
-  if (material != this->material) {
-    $(this, setMaterial, material);
-  }
+  refreshSelection(this);
 
   super(ViewController, self, viewWillAppear);
 }

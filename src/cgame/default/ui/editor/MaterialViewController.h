@@ -151,6 +151,15 @@ struct MaterialViewController {
   StackView *stages;
 
   /**
+   * @brief The next collision stage to build a StageView for, or `NULL` when the
+   * list is fully built. loadStages seeds this (instead of building synchronously)
+   * so a material swap does not stall a frame per stage; a private pump view
+   * (MaterialViewController.c) builds one StageView per rendered frame from this
+   * cursor. Weak: points into `material->cm->stages`, reset on every loadStages call.
+   */
+  cm_stage_t *pendingStage;
+
+  /**
    * @brief The Add Stage button.
    */
   Button *addStage;

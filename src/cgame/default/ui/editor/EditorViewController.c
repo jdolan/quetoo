@@ -237,6 +237,8 @@ static void didSelectTab(TabView *tabView, TabViewItem *tab) {
 
 #pragma mark - ViewController
 
+static void setMeshTabEnabled(EditorViewController *this, bool enabled);
+
 /**
  * @see ViewController::loadView(ViewController *)
  */
@@ -317,10 +319,13 @@ static void loadView(ViewController *self) {
 
   $(tabViewController, addChildViewController, (ViewController *) this->entityViewController);
   $(tabViewController, addChildViewController, (ViewController *) this->materialViewController);
-#if 0 // TEMP: mesh tab kept off while we rebuild the material tab. The crash guard
-      // in respondToEvent skips setModel while this is disabled. Flip to 1 to restore.
   $(tabViewController, addChildViewController, (ViewController *) this->meshViewController);
-#endif
+
+  // The Mesh tab is always present, but starts disabled (greyed, unclickable) and is
+  // enabled only while the selected entity has a mesh model (see setMeshTabEnabled,
+  // driven by NOTIFICATION_ENTITY_SELECTED). Keeping all three tabs fixed avoids the
+  // add/remove churn (and the tab-bar width recompute) that dynamic tabs caused.
+  setMeshTabEnabled(this, false);
 
   $(self, addChildViewController, tabViewController);
 
@@ -369,12 +374,12 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
             model = (r_model_t *) edit->model;
           }
         }
-        // Only drive the mesh tab if its view was actually loaded. When the mesh
-        // tab is not added to the tab view, its outlets are NULL and setModel
-        // would dereference them (crash on entity select).
-        if (((ViewController *) this->meshViewController)->view) {
-          $(this->meshViewController, setModel, model);
-        }
+
+        // The entity selection just changed (in the UI): enable the Mesh tab iff the
+        // selection has a model (greyed + unclickable otherwise), and push the model in.
+        // The tab is always present, so its view/outlets are always valid.
+        setMeshTabEnabled(this, model != NULL);
+        $(this->meshViewController, setModel, model);
       }
         break;
     }
@@ -391,6 +396,40 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
  */
 static void showEditorTab(EditorViewController *self) {
   selectContent(self, NULL);
+}
+
+/**
+ * @brief Enables or disables the (always-present) Mesh tab. It is enabled only while the
+ * selected entity has a mesh model -- worldspawn and lights have none, misc_model and
+ * pickups do. Disabled = greyed and unclickable (TabView::respondToEvent skips a
+ * TabStateDisabled tab); the state also drives the `.disabled` label style. Driven by the
+ * NOTIFICATION_ENTITY_SELECTED handler, so it flips the instant the entity selection
+ * changes. If the Mesh tab is showing when it gets disabled, we fall back to the first
+ * tab (Entity) so the user is not left on a dead tab.
+ */
+static void setMeshTabEnabled(EditorViewController *this, bool enabled) {
+
+  TabViewItem *tab = $(this->tabViewController, tabForViewController, (ViewController *) this->meshViewController);
+  if (tab == NULL) {
+    return;
+  }
+
+  const bool disabled = (tab->state & TabStateDisabled) != 0;
+  if (enabled != disabled) {
+    return; // already in the desired state
+  }
+
+  if (!enabled && (tab->state & TabStateSelected)) {
+    $(this->tabViewController->tabView, selectTab, NULL); // leave the soon-to-be-dead tab
+  }
+
+  int state = tab->state;
+  if (enabled) {
+    state &= ~TabStateDisabled;
+  } else {
+    state |= TabStateDisabled;
+  }
+  $(tab, setState, state);
 }
 
 /**

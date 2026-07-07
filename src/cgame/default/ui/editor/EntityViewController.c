@@ -208,7 +208,7 @@ static void loadView(ViewController *self) {
   ((View *) createDelete)->alignment = ViewAlignmentBottomLeft;
 }
 
-static void cycleCandidate(EntityViewController *this, float wheel);
+static void refreshSelection(EntityViewController *this);
 
 /**
  * @brief Handles keyboard events for the EntityViewController, supporting copy/paste of entity definitions.
@@ -277,9 +277,9 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
     // numpad 9/3 still do that), so repurposing them costs no capability.
     if (cgi.GetKeyDest() == KEY_UI) {
       if (key == SDLK_PAGEUP) {
-        cycleCandidate(self, 1.f);
+        if (Cg_CycleSelection(1)) { refreshSelection(self); }
       } else if (key == SDLK_PAGEDOWN) {
-        cycleCandidate(self, -1.f);
+        if (Cg_CycleSelection(-1)) { refreshSelection(self); }
       }
     }
 
@@ -349,39 +349,21 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 }
 
 /**
- * @brief Cycles the entity selection through the ray candidates collected at the
- * last trace (issue #840). `wheel` is the mouse-wheel delta: scroll up selects a
- * nearer candidate, scroll down a farther one; the ends clamp. No-op with fewer
- * than two candidates.
+ * @brief Refreshes the entity display from the shared selection cursor after the wheel
+ * cycled it (issue #840). The cursor is advanced centrally in Cg_HandleEvent; this only
+ * reads the new candidate's entity. No-op with no candidates.
  */
-static void cycleCandidate(EntityViewController *this, float wheel) {
+static void refreshSelection(EntityViewController *this) {
 
-  if (this->numCandidates < 2) {
+  if (cg_editor.num_candidates == 0) {
     return;
   }
 
-  size_t index = this->candidateIndex;
-  if (wheel < 0.f) {
-    if (index + 1 < this->numCandidates) {
-      index++;
-    }
-  } else if (wheel > 0.f) {
-    if (index > 0) {
-      index--;
-    }
-  }
-
-  if (index == this->candidateIndex) {
-    return; // clamped at an end
-  }
-
-  this->candidateIndex = index;
-
-  cg_editor_entity_t *ent = &cg_editor.entities[this->candidates[index]];
+  cg_editor_entity_t *ent = cg_editor.candidates[cg_editor.candidate_index].ent;
   $(this, setEntity, ent);
 
   Cg_Debug("selecting %d/%d (%s)\n",
-           (int32_t) (index + 1), (int32_t) this->numCandidates,
+           (int32_t) (cg_editor.candidate_index + 1), (int32_t) cg_editor.num_candidates,
            cgi.EntityValue(ent->def, "classname")->string);
 }
 
@@ -407,7 +389,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
       // farther. The captured ray is frozen while the editor UI is up, so cycling is
       // stable.
       case NOTIFICATION_EDITOR_SELECTION_CYCLE:
-        cycleCandidate(this, (float) (intptr_t) event->user.data1);
+        refreshSelection(this);
         break;
 
       case NOTIFICATION_ENTITY_PARSED: {
@@ -443,18 +425,16 @@ static void viewWillAppear(ViewController *self) {
   const vec3_t start = cgi.view->origin;
   const vec3_t end = Vec3_Fmaf(start, editor_select_dist->value, cgi.view->forward);
 
-  // Collect every entity along the (distance-capped) ray, nearest first, so the
-  // mouse wheel can cycle through overlapping objects (issue #840). The nearest is
-  // selected now; the wheel steps to the ones behind it.
-  this->numCandidates = Cg_EntitySelectionCandidates(start, end, this->candidates, CG_EDITOR_MAX_CANDIDATES);
-  this->candidateIndex = 0;
+  // Build the shared candidate list along the (distance-capped) ray, nearest first,
+  // so the mouse wheel can cycle through overlapping objects (issue #840). The entity
+  // tab caps reach at editor_select_dist; the nearest is selected now, the wheel steps
+  // to the ones behind it. This same list is read by the material and mesh tabs.
+  Cg_BuildSelectionCandidates(start, end);
 
-  // Fall back to worldspawn (entity 0) when the ray hits no point/brush entity --
-  // the selection trace skips worldspawn, so aiming at the sky or open world would
-  // otherwise select nothing. This makes worldspawn (sky, message, etc.) reachable
-  // by aiming at the sky or any world surface.
-  cg_editor_entity_t *ent = this->numCandidates
-      ? &cg_editor.entities[this->candidates[0]]
+  // Fall back to worldspawn (entity 0) when the ray hits nothing (e.g. aiming at the
+  // sky/void), so worldspawn's sky/message remain reachable.
+  cg_editor_entity_t *ent = cg_editor.num_candidates
+      ? cg_editor.candidates[cg_editor.candidate_index].ent
       : &cg_editor.entities[0];
 
   // Only rebuild the row widgets when the selected entity actually changes.

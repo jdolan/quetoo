@@ -61,6 +61,12 @@ TabView > .tabSelectionView > Label.selected {
   background-color: #1e4e62aa;
 }
 
+/* A disabled tab (e.g. the editor's Mesh tab with no model-bearing entity selected)
+   is greyed and does not respond to clicks (TabView::respondToEvent skips it). */
+TabView > .tabSelectionView > Label.disabled > Text {
+  color: #777777;
+}
+
 TextView {
   background-color: #dedede10;
   min-width: 200;

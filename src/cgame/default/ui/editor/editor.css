@@ -31,6 +31,18 @@ Panel.editor {
   min-width: 500;
 }
 
+/* Cap the tab bar to the page width so it can't ratchet the panel wider. The bar is
+   `contain | width; distribution: fill-equally` (base theme): fill-equally stretches
+   each tab Label to an equal slice, then `contain` reports that stretched total as the
+   bar's NATURAL width (sizeThatContains uses max(current, text)) -- so with three tabs
+   the content-sized panel grew to 3 x stretched-width. max-width holds the bar at the
+   page width, so fill-equally just subdivides it (each tab narrower) and the panel keeps
+   its width. resize() clamps the bar's frame to this max, so the natural width can't
+   exceed it either -- no ratchet. */
+Panel.editor .tabSelectionView {
+  max-width: 500;
+}
+
 Panel.editor .tabPageView {
   width: 500;
   padding: 16;
@@ -39,15 +51,4 @@ Panel.editor .tabPageView {
 .kvTable {
   -key-width: 140;
   -value-width: 280;
-}
-
-/* Mesh tab still uses the old Input rows; keep its column overrides until it is
-   converted to KeyValueTableView as well. */
-#mesh Input Label {
-  min-width: 140;
-}
-
-#mesh Input TextView,
-#mesh Input Slider {
-  width: 300;
 }
