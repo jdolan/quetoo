@@ -194,6 +194,11 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
 #define MAX_DYNAMIC_LIGHTS 256
 #define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
 
+// Mirrors SHADOW_ATLAS_LIGHTS_PER_ROW in r_shadow.h: the shadow atlas is a
+// fixed 32x32 grid of tiles, so the tile size in pixels is always
+// textureSize(shadow atlas) / SHADOW_ATLAS_LIGHTS_PER_ROW.
+#define SHADOW_ATLAS_LIGHTS_PER_ROW 32
+
 /**
  * @brief The light struct, mirroring the C `r_light_uniform_t`.
  * @remarks This struct is vec4 aligned.
@@ -210,11 +215,12 @@ struct light_t {
   vec4 color;
 
   /**
-   * @brief The shadow atlas tile info.
-   * @details xy = normalized base UV within layer, z = tile size in UV, w = layer index.
-   * @details If z == 0, no shadow map is available for this light.
+   * @brief This light's shadow atlas tile origin, in pixels, or (-1, -1) if
+   * this light casts no shadow. The tile is square and the same in all six
+   * face textures; its size is derived from
+   * textureSize() / SHADOW_ATLAS_LIGHTS_PER_ROW rather than carried here.
    */
-  vec4 shadow;
+  vec2 shadow;
 };
 
 /**

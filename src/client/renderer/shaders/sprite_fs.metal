@@ -9,7 +9,7 @@ struct light_t
 {
     float4 origin;
     float4 color;
-    float4 shadow;
+    float2 shadow;
 };
 
 struct voxels_t
@@ -41,11 +41,16 @@ struct uniforms_block
     int developer;
 };
 
+struct voxel_light_data_block
+{
+    int voxel_light_data_elements[1];
+};
+
 struct light_t_1
 {
     float4 origin;
     float4 color;
-    float4 shadow;
+    float2 shadow;
 };
 
 struct lights_block
@@ -92,19 +97,20 @@ float3 light_color(thread const light_t& l, constant uniforms_block& _50)
 }
 
 static inline __attribute__((always_inline))
-float3 sprite_lighting(constant uniforms_block& _50, thread float3& in_position, texture3d<int> texture_voxel_light_data, sampler texture_voxel_light_dataSmplr, const device lights_block& _197, const device voxel_light_indices_block& _202)
+float3 sprite_lighting(constant uniforms_block& _50, thread float3& in_position, const device voxel_light_data_block& _192, const device lights_block& _222, const device voxel_light_indices_block& _226)
 {
     float3 diffuse = float3(0.0);
     float3 param = in_position;
     int3 voxel = sprite_voxel_xyz(param, _50);
-    int2 data = texture_voxel_light_data.read(uint3(voxel), 0).xy;
+    int index = (((voxel.z * int(_50.voxels.size.y)) + voxel.y) * int(_50.voxels.size.x)) + voxel.x;
+    int2 data = int2(_192.voxel_light_data_elements[(index * 2) + 0], _192.voxel_light_data_elements[(index * 2) + 1]);
     light_t light;
     for (int i = 0; i < data.y; i++)
     {
-        int _206 = data.x + i;
-        light.origin = _197.lights[_202.voxel_light_indices[_206]].origin;
-        light.color = _197.lights[_202.voxel_light_indices[_206]].color;
-        light.shadow = _197.lights[_202.voxel_light_indices[_206]].shadow;
+        int _230 = data.x + i;
+        light.origin = _222.lights[_226.voxel_light_indices[_230]].origin;
+        light.color = _222.lights[_226.voxel_light_indices[_230]].color;
+        light.shadow = _222.lights[_226.voxel_light_indices[_230]].shadow;
         float dist = distance(light.origin.xyz, in_position);
         float atten = fast::clamp(1.0 - (dist / light.origin.w), 0.0, 1.0);
         light_t param_1 = light;
@@ -128,14 +134,14 @@ float soften(constant uniforms_block& _50, texture2d<float> texture_depth_attach
     return smoothstep(0.0, 0.001599999959580600261688232421875, fast::clamp(calc_depth(param, _50) - calc_depth(param_1, _50), 0.0, 1.0));
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _50 [[buffer(0)]], const device lights_block& _197 [[buffer(1)]], const device voxel_light_indices_block& _202 [[buffer(2)]], texture2d<float> texture_diffusemap [[texture(0)]], texture2d<float> texture_next_diffusemap [[texture(1)]], texture2d<float> texture_depth_attachment [[texture(2)]], texture3d<int> texture_voxel_light_data [[texture(3)]], sampler texture_diffusemapSmplr [[sampler(0)]], sampler texture_next_diffusemapSmplr [[sampler(1)]], sampler texture_depth_attachmentSmplr [[sampler(2)]], sampler texture_voxel_light_dataSmplr [[sampler(3)]], float4 gl_FragCoord [[position]])
+fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _50 [[buffer(0)]], const device lights_block& _222 [[buffer(1)]], const device voxel_light_indices_block& _226 [[buffer(2)]], const device voxel_light_data_block& _192 [[buffer(3)]], texture2d<float> texture_diffusemap [[texture(0)]], texture2d<float> texture_next_diffusemap [[texture(1)]], texture2d<float> texture_depth_attachment [[texture(2)]], sampler texture_diffusemapSmplr [[sampler(0)]], sampler texture_next_diffusemapSmplr [[sampler(1)]], sampler texture_depth_attachmentSmplr [[sampler(2)]], float4 gl_FragCoord [[position]])
 {
     main0_out out = {};
     float3 texture_color = mix(texture_diffusemap.sample(texture_diffusemapSmplr, in.in_diffusemap).xyz, texture_next_diffusemap.sample(texture_next_diffusemapSmplr, in.in_next_diffusemap).xyz, float3(in.in_lerp));
     float3 color = in.in_color;
     if (in.in_lighting > 0.0)
     {
-        color = mix(color, color * sprite_lighting(_50, in.in_position, texture_voxel_light_data, texture_voxel_light_dataSmplr, _197, _202), float3(in.in_lighting));
+        color = mix(color, color * sprite_lighting(_50, in.in_position, _192, _222, _226), float3(in.in_lighting));
     }
     out.out_color = float4((texture_color * color) * soften(_50, texture_depth_attachment, texture_depth_attachmentSmplr, gl_FragCoord), 1.0);
     return out;

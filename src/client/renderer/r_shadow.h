@@ -54,15 +54,9 @@ typedef struct {
   Sampler *sampler;
 
   /**
-   * @brief The tile size in pixels. Per-face texture dimensions are always
-   * `SHADOW_ATLAS_LIGHTS_PER_ROW` x `tile_size` pixels, square.
+   * @brief The tile size in pixels.
    */
   int32_t tile_size;
-
-  /**
-   * @brief Frame counter for temporal face amortization.
-   */
-  uint32_t frame_count;
 } r_shadow_atlas_t;
 
 extern r_shadow_atlas_t r_shadow_atlas;

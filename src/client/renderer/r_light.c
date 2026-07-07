@@ -55,8 +55,6 @@ void R_UpdateLights(r_view_t *view) {
     tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
   }
 
-  const float inv_layer = 1.f / (float) (SHADOW_ATLAS_LIGHTS_PER_ROW * r_shadow_atlas.tile_size);
-
   int32_t num_dynamic = 0;
 
   r_light_t *l = view->lights;
@@ -90,27 +88,20 @@ void R_UpdateLights(r_view_t *view) {
       l->occluded = R_CulludeBox(view, l->bounds);
     }
 
-    // r_stats.lights_visible is already incremented in r_shadow.c for lights
-    // that actually get a shadow map redrawn this frame -- a narrower count
-    // than "not occluded", so it's not duplicated here.
     if (l->occluded) {
       r_stats.lights_occluded++;
+    } else {
+      r_stats.lights_visible++;
     }
 
-    // Every shadow-casting light (static or dynamic) gets an atlas tile; they
-    // are visually identical and differ only in optimization (voxel selection,
-    // tile caching). The atlas grid is a fixed SHADOW_ATLAS_LIGHTS_PER_ROW²,
-    // i.e. exactly MAX_LIGHTS tiles, so every light always gets one.
-    if (!(l->flags & R_LIGHT_NO_SHADOW)) {
-      const int32_t light_col = i % SHADOW_ATLAS_LIGHTS_PER_ROW;
-      const int32_t light_row = i / SHADOW_ATLAS_LIGHTS_PER_ROW;
-      const float base_x = (float) (light_col * r_shadow_atlas.tile_size) * inv_layer;
-      const float base_y = (float) (light_row * r_shadow_atlas.tile_size) * inv_layer;
-      const float tile_uv = (float) r_shadow_atlas.tile_size * inv_layer;
-      out->shadow = Vec4(base_x, base_y, tile_uv, 0.f);
-    } else {
-      out->shadow = Vec4(0.f, 0.f, 0.f, 0.f);
-    }
+    // The light's tile is the same in every atlas face texture; the shader
+    // normalizes these pixel coordinates to UV space itself via textureSize().
+    const int32_t light_col = i % SHADOW_ATLAS_LIGHTS_PER_ROW;
+    const int32_t light_row = i / SHADOW_ATLAS_LIGHTS_PER_ROW;
+    l->tile = Vec2((float) (light_col * r_shadow_atlas.tile_size),
+                   (float) (light_row * r_shadow_atlas.tile_size));
+
+    out->shadow = (l->flags & R_LIGHT_NO_SHADOW) ? Vec2(-1.f, -1.f) : l->tile;
 
     if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
       R_Draw3DBox(l->bounds, Color3fv(l->color), false);

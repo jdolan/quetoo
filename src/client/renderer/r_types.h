@@ -1836,7 +1836,6 @@ typedef struct r_entity_s {
  * @brief Hardware light sources.
  */
 typedef struct {
-
   /**
    * @brief The light flags.
    */
@@ -1868,13 +1867,6 @@ typedef struct {
   box3_t bounds;
 
   /**
-   * @brief True if the light is occluded for the current frame, set by
-   * R_UpdateLights. Static lights consult their backing bsp_light's
-   * persistent occlusion query; dynamic lights are tested with R_CulludeBox.
-   */
-  bool occluded;
-
-  /**
    * @brief The backing BSP light, for static light sources.
    */
   const r_bsp_light_t *bsp_light;
@@ -1888,46 +1880,36 @@ typedef struct {
    * @brief The optional light source, which will not cast shadow.
    */
   const r_entity_t *source;
-
+  
   /**
-   * @brief True if this light's shadow needs no redraw this frame: after
-   * view-frustum pre-culling, no BSP inline model or mesh entity caster
-   * remains in `bsp_shadow_casters`/`mesh_shadow_casters`. Combined with the
-   * persistent `*shadow_cached` flag by R_UpdateShadows to decide
-   * `shadow_needs_draw`.
+   * @brief True if the light is occluded for the current frame, set by
+   * R_UpdateLights. Static lights consult their backing bsp_light's
+   * persistent occlusion query; dynamic lights are tested with R_CulludeBox.
    */
-  bool shadow_cacheable;
+  bool occluded;
 
   /**
-   * @brief True if this light's shadow tile must be cleared and redrawn this
-   * frame, i.e. `casts_shadow` and not (`shadow_cacheable` and
-   * `*shadow_cached`). Computed once by R_UpdateShadows.
-   */
-  bool shadow_needs_draw;
-
-  /**
-   * @brief The BSP inline model casters intersecting this light's bounds and
+   * @brief The entities intersecting this light's bounds and
    * surviving the view-frustum shadow-bounds cull, populated by
-   * R_UpdateShadows. Points into r_view_t::shadow_caster_entities.
+   * @c R_UpdateShadows.
    */
-  const r_entity_t **bsp_entities;
+  const r_entity_t *entities[MAX_ENTITIES];
 
   /**
-   * @brief The number of entities in `bsp_shadow_casters`.
+   * @brief The number of entities in `entities`.
    */
-  int32_t num_bsp_entities;
+  int32_t num_entities;
 
   /**
-   * @brief The mesh entity casters intersecting this light's bounds and
-   * surviving the view-frustum shadow-bounds cull, populated by
-   * R_UpdateShadows. Points into r_view_t::shadow_caster_entities.
+   * @brief This light's tile origin in the shadow atlas, in pixels. The tile
+   * is square (`r_shadow_atlas.tile_size` on a side) and the same in all six
+   * face textures. Computed once by R_UpdateLights from the light's index (it
+   * runs first each frame and needs the value itself); consumed directly by
+   * R_ClearShadows/R_DrawShadows for viewport/scissor, and combined with
+   * `r_shadow_atlas.tile_size` into r_light_uniform_t::shadow -- the shader
+   * normalizes to UV space itself via textureSize().
    */
-  const r_entity_t **mesh_entities;
-
-  /**
-   * @brief The number of entities in `mesh_shadow_casters`.
-   */
-  int32_t num_mesh_entities;
+  vec2_t tile;
 } r_light_t;
 
 /**
@@ -2086,18 +2068,6 @@ typedef struct {
   int32_t num_lights;
 
   /**
-   * @brief Flattened shadow-caster entity pointers for all lights that need
-   * their shadow redrawn this frame, populated by R_UpdateShadows. Each
-   * r_light_t::bsp_shadow_casters/mesh_shadow_casters points into this array.
-   */
-  const r_entity_t *shadow_entities[MAX_SHADOW_CASTERS];
-
-  /**
-   * @brief The number of entries used in `shadow_caster_entities` this frame.
-   */
-  int32_t num_shadow_entities;
-
-  /**
    * @brief New decals added this frame, to be processed during `R_UpdateDecals`.
    */
   r_decal_t decals[MAX_DECALS];
@@ -2178,6 +2148,11 @@ typedef struct {
    * @brief The count of occluded lights.
    */
   int32_t lights_occluded;
+  
+  /**
+   * @brief The count of lights with cached shadowmaps.
+   */
+  int32_t lights_cached;
 
   /**
    * @brief The count of visible entities.

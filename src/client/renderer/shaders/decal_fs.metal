@@ -9,7 +9,7 @@ struct light_t
 {
     float4 origin;
     float4 color;
-    float4 shadow;
+    float2 shadow;
 };
 
 struct voxels_t
@@ -45,7 +45,7 @@ struct light_t_1
 {
     float4 origin;
     float4 color;
-    float4 shadow;
+    float2 shadow;
 };
 
 struct lights_block
@@ -53,6 +53,11 @@ struct lights_block
     int num_lights;
     int num_bsp_lights;
     light_t_1 lights[1];
+};
+
+struct voxel_light_data_block
+{
+    int voxel_light_data_elements[1];
 };
 
 struct voxel_light_indices_block
@@ -111,7 +116,7 @@ float3 decal_light(thread const int& index, thread const float3& normal, constan
     return (light_color(param, _46) * atten) * lambert;
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _46 [[buffer(0)]], const device lights_block& _103 [[buffer(1)]], const device voxel_light_indices_block& _211 [[buffer(2)]], texture2d<float> texture_diffusemap [[texture(0)]], texture3d<int> texture_voxel_light_data [[texture(1)]], sampler texture_diffusemapSmplr [[sampler(0)]], sampler texture_voxel_light_dataSmplr [[sampler(1)]])
+fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _46 [[buffer(0)]], const device lights_block& _103 [[buffer(1)]], const device voxel_light_indices_block& _238 [[buffer(2)]], const device voxel_light_data_block& _211 [[buffer(3)]], texture2d<float> texture_diffusemap [[texture(0)]], sampler texture_diffusemapSmplr [[sampler(0)]])
 {
     main0_out out = {};
     float4 diffuse = texture_diffusemap.sample(texture_diffusemapSmplr, in.in_texcoord);
@@ -119,20 +124,21 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _46 
     float3 light = float3(_46.ambient);
     float3 param = in.in_model_position;
     int3 voxel = decal_voxel_xyz(param, _46);
-    int2 data = texture_voxel_light_data.read(uint3(voxel), 0).xy;
+    int voxel_index = (((voxel.z * int(_46.voxels.size.y)) + voxel.y) * int(_46.voxels.size.x)) + voxel.x;
+    int2 data = int2(_211.voxel_light_data_elements[(voxel_index * 2) + 0], _211.voxel_light_data_elements[(voxel_index * 2) + 1]);
     for (int i = 0; i < data.y; i++)
     {
-        int index = _211.voxel_light_indices[data.x + i];
+        int index = _238.voxel_light_indices[data.x + i];
         int param_1 = index;
         float3 param_2 = normal;
         light += decal_light(param_1, param_2, _46, _103, in.in_model_position);
     }
     out.out_color = diffuse * in.in_color;
-    float4 _237 = out.out_color;
-    float3 _239 = _237.xyz * light;
-    out.out_color.x = _239.x;
-    out.out_color.y = _239.y;
-    out.out_color.z = _239.z;
+    float4 _262 = out.out_color;
+    float3 _264 = _262.xyz * light;
+    out.out_color.x = _264.x;
+    out.out_color.y = _264.y;
+    out.out_color.z = _264.z;
     if (in.in_lifetime > 0u)
     {
         float age = float(uint(_46.ticks) - in.in_time);

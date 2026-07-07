@@ -72,25 +72,11 @@ static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 }
 
 /**
- * @brief Computes the tile origin (in atlas pixels) for a light index, within
- * whichever face texture is currently bound.
- */
-static void R_ShadowAtlasTile(int32_t light_index, int32_t *x, int32_t *y) {
-
-  const int32_t light_col = light_index % SHADOW_ATLAS_LIGHTS_PER_ROW;
-  const int32_t light_row = light_index / SHADOW_ATLAS_LIGHTS_PER_ROW;
-  const int32_t ts = r_shadow_atlas.tile_size;
-
-  *x = light_col * ts;
-  *y = light_row * ts;
-}
-
-/**
  * @brief Returns true if the given entity's shadow volume from the given
  * light is entirely outside the view frustum, and thus not worth submitting
  * a depth pass draw call for this frame.
  */
-static bool R_IsShadowCasterCulled(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
+static bool R_CullLightEntity(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
 
   vec3_t corners[8];
   Box3_ToPoints(e->abs_model_bounds, corners);
@@ -108,40 +94,20 @@ static bool R_IsShadowCasterCulled(const r_view_t *view, const r_light_t *light,
 }
 
 /**
- * @brief Appends a shadow-caster entity to `view->shadow_caster_entities`.
- */
-static void R_AddShadowCaster(r_view_t *view, const r_entity_t *e) {
-
-  if (view->num_shadow_entities == MAX_SHADOW_CASTERS) {
-    Com_Warn("MAX_SHADOW_CASTERS (%d) exceeded\n", MAX_SHADOW_CASTERS);
-    return;
-  }
-
-  view->shadow_entities[view->num_shadow_entities++] = e;
-}
-
-/**
- * @brief Determines which lights cast a shadow this frame and collects their
- * BSP inline model and mesh entity casters (view-frustum pre-culled via
- * R_IsShadowCasterCulled). A light with no casters after this filtering is
- * `shadow_cacheable` -- its tile can't have changed, so once rendered it's
- * skipped until a caster appears. This does once, up front, all of the
+ * @brief Collects each shadow-casting light's BSP inline model and mesh
+ * entity casters (view-frustum pre-culled via R_CullLightEntity). A light
+ * with zero casters after this filtering can't have a changed shadow, so
+ * R_ClearShadows/R_DrawShadows skip it once `*shadow_cached` confirms it was
+ * already rendered in that state. This does once, up front, all of the
  * per-light work that R_DrawShadows used to redo redundantly for each of the
  * atlas's six cube face textures.
  */
 void R_UpdateShadows(r_view_t *view) {
 
-  view->num_shadow_entities = 0;
-
   r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-    l->shadow_cacheable = false;
-    l->shadow_needs_draw = false;
-    l->bsp_entities = NULL;
-    l->num_bsp_entities = 0;
-    l->mesh_entities = NULL;
-    l->num_mesh_entities = 0;
+    l->num_entities = 0;
 
     if (l->flags & R_LIGHT_NO_SHADOW) {
       continue;
@@ -151,73 +117,39 @@ void R_UpdateShadows(r_view_t *view) {
       continue;
     }
 
-    l->bsp_entities = &view->shadow_entities[view->num_shadow_entities];
-
     const r_entity_t *e = view->entities;
-    for (int32_t ei = 0; ei < view->num_entities; ei++, e++) {
+    for (int32_t j = 0; j < view->num_entities; j++, e++) {
 
-      if (!IS_BSP_INLINE_MODEL(e->model) || IS_WORLDSPAWN(e->model)) {
+      if (e->model == NULL) {
+        continue;
+      }
+      
+      if (IS_WORLDSPAWN((e->model))) {
         continue;
       }
 
-      if (e->effects & EF_NO_DRAW) {
-        continue;
-      }
-
-      const r_bsp_inline_model_t *in = e->model->bsp_inline;
-      if (!in->num_depth_pass_elements) {
-        continue;
-      }
-
-      if (!Box3_Intersects(l->bounds, e->abs_model_bounds)) {
-        continue;
-      }
-
-      if (R_IsShadowCasterCulled(view, l, e)) {
-        continue;
-      }
-
-      R_AddShadowCaster(view, e);
-      l->num_bsp_entities++;
-    }
-
-    l->mesh_entities = &view->shadow_entities[view->num_shadow_entities];
-
-    e = view->entities;
-    for (int32_t ei = 0; ei < view->num_entities; ei++, e++) {
-
-      if (!IS_MESH_MODEL(e->model)) {
-        continue;
-      }
-
-      // EF_NO_DRAW entities may still cast; EF_NO_SHADOW/EF_BLEND never do.
       if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
         continue;
       }
-
+      
       if (R_IsLightSource(l, e)) {
         continue;
       }
 
-      const r_mesh_model_t *mesh = e->model->mesh;
-      if (!mesh || !mesh->vertex_buffer) {
-        continue;
-      }
-
       if (!Box3_Intersects(l->bounds, e->abs_model_bounds)) {
         continue;
       }
 
-      if (R_IsShadowCasterCulled(view, l, e)) {
+      if (R_CullLightEntity(view, l, e)) {
         continue;
       }
 
-      R_AddShadowCaster(view, e);
-      l->num_mesh_entities++;
-    }
-
-    l->shadow_cacheable = !l->num_bsp_entities && !l->num_mesh_entities;
-    l->shadow_needs_draw = !(l->shadow_cacheable && l->shadow_cached && *l->shadow_cached);
+      l->entities[l->num_entities++] = e;
+    }    
+  }
+  
+  if (l->num_entities == 0 && l->shadow_cached && *l->shadow_cached) {
+    r_stats.lights_cached++;
   }
 }
 
@@ -247,18 +179,15 @@ void R_ClearShadows(const r_view_t *view) {
     const r_light_t *l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-      if (!l->shadow_needs_draw) {
+      if (l->num_entities == 0 && l->shadow_cached && *l->shadow_cached) {
         continue;
       }
 
-      int32_t tx, ty;
-      R_ShadowAtlasTile(i, &tx, &ty);
-
       $(pass, setViewport, &(SDL_GPUViewport) {
-        .x = (float) tx, .y = (float) ty, .w = (float) ts, .h = (float) ts,
+        .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
         .min_depth = 0.f, .max_depth = 1.f,
       });
-      $(pass, setScissor, &(SDL_Rect) { tx, ty, ts, ts });
+      $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
 
       $(pass, drawPrimitives, 3, 1, 0, 0);
     }
@@ -283,8 +212,6 @@ void R_DrawShadows(const r_view_t *view) {
   CommandBuffer *commands = r_context.device->commands;
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
-
-  r_shadow_atlas.frame_count++;
 
   const int32_t ts = r_shadow_atlas.tile_size;
 
@@ -314,57 +241,50 @@ void R_DrawShadows(const r_view_t *view) {
     const r_light_t *l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-      if (!l->shadow_needs_draw) {
+      if (l->num_entities == 0 && l->shadow_cached && *l->shadow_cached) {
         continue;
       }
 
-      int32_t tx, ty;
-      R_ShadowAtlasTile(i, &tx, &ty);
-
       $(pass, setViewport, &(SDL_GPUViewport) {
-        .x = (float) tx, .y = (float) ty, .w = (float) ts, .h = (float) ts,
+        .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
         .min_depth = 0.f, .max_depth = 1.f,
       });
-      $(pass, setScissor, &(SDL_Rect) { tx, ty, ts, ts });
+      $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
 
-      uint32_t first_index, count;
+      uint32_t count, first_index;
       if (l->bsp_light && l->bsp_light->num_depth_pass_elements) {
-        first_index = (uint32_t) ((uintptr_t) l->bsp_light->depth_pass_elements / sizeof(uint32_t));
         count = (uint32_t) l->bsp_light->num_depth_pass_elements;
+        first_index = (uint32_t) ((uintptr_t) l->bsp_light->depth_pass_elements / sizeof(uint32_t));
       } else {
         const r_bsp_inline_model_t *world = bsp->inline_models;
-        first_index = (uint32_t) ((uintptr_t) world->depth_pass_elements / sizeof(uint32_t));
         count = (uint32_t) world->num_depth_pass_elements;
+        first_index = (uint32_t) ((uintptr_t) world->depth_pass_elements / sizeof(uint32_t));
       }
 
-      if (count) {
+      $(commands, pushVertexUniformData, 1, &(const r_shadow_locals_t) {
+        .model = Mat4_Identity(),
+        .light_view = r_shadow_light_view[face],
+        .light_origin = Vec3_ToVec4(l->origin, 0.f),
+        .lerp = 0.f,
+      }, sizeof(r_shadow_locals_t));
 
-        if (face == 0) {
-          r_stats.lights_visible++;
+      $(pass, drawIndexedPrimitives, count, 1, first_index, 0, 0);
+
+      for (int32_t j = 0; j < l->num_entities; j++) {
+
+        const r_entity_t *e = l->entities[j];
+        
+        if (!IS_BSP_INLINE_MODEL(e->model)) {
+          continue;
         }
 
-        const r_shadow_locals_t locals = {
-          .model = Mat4_Identity(),
-          .light_view = r_shadow_light_view[face],
-          .light_origin = Vec3_ToVec4(l->origin, 0.f),
-          .lerp = 0.f,
-        };
-        $(commands, pushVertexUniformData, 1, &locals, sizeof(locals));
-
-        $(pass, drawIndexedPrimitives, count, 1, first_index, 0, 0);
-      }
-
-      const r_entity_t *const *casters = l->bsp_entities;
-      for (int32_t ci = 0; ci < l->num_bsp_entities; ci++) {
-        const r_entity_t *be = casters[ci];
-
-        const r_bsp_inline_model_t *in = be->model->bsp_inline;
+        const r_bsp_inline_model_t *in = e->model->bsp_inline;
 
         const uint32_t in_first_index = (uint32_t) ((uintptr_t) in->depth_pass_elements / sizeof(uint32_t));
         const uint32_t in_count = (uint32_t) in->num_depth_pass_elements;
 
         const r_shadow_locals_t in_locals = {
-          .model = be->matrix,
+          .model = e->matrix,
           .light_view = r_shadow_light_view[face],
           .light_origin = Vec3_ToVec4(l->origin, 0.f),
           .lerp = 0.f,
@@ -373,14 +293,7 @@ void R_DrawShadows(const r_view_t *view) {
 
         $(pass, drawIndexedPrimitives, in_count, 1, in_first_index, 0, 0);
       }
-
-      if (face == 5 && l->shadow_cached) {
-        *l->shadow_cached = l->shadow_cacheable;
-      }
     }
-
-    // Mesh entity casters: same face pass, but the mesh-layout pipeline (two
-    // animation frame slots).
 
     $(pass, bindPipeline, r_shadow_mesh_pipeline);
     $(commands, pushVertexUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
@@ -388,22 +301,22 @@ void R_DrawShadows(const r_view_t *view) {
     l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-      if (!l->shadow_needs_draw || !l->num_mesh_entities) {
+      if (l->num_entities == 0) {
         continue;
       }
 
-      int32_t tx, ty;
-      R_ShadowAtlasTile(i, &tx, &ty);
-
       $(pass, setViewport, &(SDL_GPUViewport) {
-        .x = (float) tx, .y = (float) ty, .w = (float) ts, .h = (float) ts,
+        .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
         .min_depth = 0.f, .max_depth = 1.f,
       });
-      $(pass, setScissor, &(SDL_Rect) { tx, ty, ts, ts });
+      $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
 
-      const r_entity_t *const *casters = l->mesh_entities;
-      for (int32_t ci = 0; ci < l->num_mesh_entities; ci++) {
-        const r_entity_t *e = casters[ci];
+      for (int32_t j = 0; j < l->num_entities; j++) {
+        const r_entity_t *e = l->entities[j];
+        
+        if (!IS_MESH_MODEL(e->model)) {
+          continue;
+        }
 
         const r_mesh_model_t *mesh = e->model->mesh;
 
@@ -432,13 +345,20 @@ void R_DrawShadows(const r_view_t *view) {
             { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
           }, 2);
 
-          const uint32_t firstIndex = (uint32_t) ((uintptr_t) mf->indices / sizeof(uint32_t));
-          $(pass, drawIndexedPrimitives, mf->num_elements, 1, firstIndex, 0, 0);
+          const uint32_t first_index = (uint32_t) ((uintptr_t) mf->indices / sizeof(uint32_t));
+          $(pass, drawIndexedPrimitives, mf->num_elements, 1, first_index, 0, 0);
         }
       }
     }
 
     pass = release(pass);
+  }
+  
+  const r_light_t *l = view->lights;
+  for (int32_t i = 0; i < view->num_lights; i++, l++) {
+    if (l->shadow_cached) {
+      *l->shadow_cached = l->num_entities == 0;
+    }
   }
 }
 

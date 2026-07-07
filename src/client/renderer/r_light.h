@@ -37,8 +37,10 @@ typedef struct {
 
   /**
    * @brief The light origin in model space (xyz) and radius (w).
+   * @details `alignas` pads the struct to a 16-byte multiple now that
+   * `shadow` is a trailing vec2, matching std430's forced array stride.
    */
-  vec4_t origin;
+  alignas(16) vec4_t origin;
 
   /**
    * @brief The light color (xyz) and intensity (w).
@@ -46,9 +48,12 @@ typedef struct {
   vec4_t color;
 
   /**
-   * @brief Shadow atlas tile: xy = base UV origin, z = tile UV size, w = layer index.
+   * @brief This light's shadow atlas tile origin, in pixels, or (-1, -1) if
+   * this light casts no shadow. The tile is square and the same in all six
+   * face textures; its size is derived in-shader from
+   * `textureSize() / SHADOW_ATLAS_LIGHTS_PER_ROW` rather than carried here.
    */
-  vec4_t shadow;
+  vec2_t shadow;
 } r_light_uniform_t;
 
 /**
