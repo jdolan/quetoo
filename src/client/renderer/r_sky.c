@@ -262,7 +262,9 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  // Both stages: sky_fs reads ticks from the fragment globals for stage
+  // scroll/rotate animation; without this it relied on the BSP pass's push.
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   $(pass, bindPipeline, r_sky_draw.pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
