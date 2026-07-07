@@ -111,6 +111,18 @@ static struct {
   Texture *warp_texture;
 
   /**
+   * @brief The material (and its surface flags, which the material uniforms
+   * also encode) bound by the current pass's most recent base draw. Draws are
+   * grouped per block, so consecutive draw elements frequently share both;
+   * tracking them skips their redundant pipeline binds, sampler binds, and
+   * material uniform pushes (SDL_gpu deliberately performs no such
+   * deduplication itself). Reset at pass start and invalidated by material
+   * stage draws, which disturb the pipeline and material uniforms.
+   */
+  const r_material_t *material;
+  int32_t surface;
+
+  /**
    * @brief Cache of MATERIAL_STAGES pipelines, one per unique (src, dest) blend
    * function. SDL_gpu bakes blend state into the pipeline, so stage blends can't
    * be set dynamically; they're realized lazily here (only a handful of combos occur).
@@ -247,6 +259,10 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, RenderPass 
     return;
   }
 
+  // Stage draws disturb the bound pipeline and the material uniforms; the next
+  // base draw must re-establish them (see r_bsp_draw.material).
+  r_bsp_draw.material = NULL;
+
   $(pass, bindPipeline, pipeline);
 
   $(pass, bindFragmentSamplers, BSP_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
@@ -301,16 +317,21 @@ static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, Command
       continue;
     }
 
-    $(pass, bindPipeline, r_bsp_draw.pipeline);
+    if (draw->material != r_bsp_draw.material || draw->surface != r_bsp_draw.surface) {
+      r_bsp_draw.material = draw->material;
+      r_bsp_draw.surface = draw->surface;
 
-    $(pass, bindFragmentSamplers, BSP_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
-      .texture = draw->material->texture->texture->texture,
-      .sampler = r_bsp_draw.diffusemap_sampler->sampler,
-    }, 1);
+      $(pass, bindPipeline, r_bsp_draw.pipeline);
 
-    r_material_uniforms_t material;
-    R_MaterialUniforms(draw->material, draw->surface, &material);
-    $(commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
+      $(pass, bindFragmentSamplers, BSP_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+        .texture = draw->material->texture->texture->texture,
+        .sampler = r_bsp_draw.diffusemap_sampler->sampler,
+      }, 1);
+
+      r_material_uniforms_t material;
+      R_MaterialUniforms(draw->material, draw->surface, &material);
+      $(commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
+    }
 
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
@@ -448,6 +469,8 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   // below.
   $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
+  r_bsp_draw.material = NULL;
+
   $(pass, bindPipeline, r_bsp_draw.pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
@@ -530,16 +553,21 @@ static void R_DrawBspBlockBlend(const r_view_t *view, RenderPass *pass, CommandB
       continue;
     }
 
-    $(pass, bindPipeline, r_bsp_draw.blend_pipeline);
+    if (draw->material != r_bsp_draw.material || draw->surface != r_bsp_draw.surface) {
+      r_bsp_draw.material = draw->material;
+      r_bsp_draw.surface = draw->surface;
 
-    $(pass, bindFragmentSamplers, BSP_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
-      .texture = draw->material->texture->texture->texture,
-      .sampler = r_bsp_draw.diffusemap_sampler->sampler,
-    }, 1);
+      $(pass, bindPipeline, r_bsp_draw.blend_pipeline);
 
-    r_material_uniforms_t material;
-    R_MaterialUniforms(draw->material, draw->surface, &material);
-    $(commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
+      $(pass, bindFragmentSamplers, BSP_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+        .texture = draw->material->texture->texture->texture,
+        .sampler = r_bsp_draw.diffusemap_sampler->sampler,
+      }, 1);
+
+      r_material_uniforms_t material;
+      R_MaterialUniforms(draw->material, draw->surface, &material);
+      $(commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
+    }
 
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
     $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
@@ -637,6 +665,8 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   });
 
   $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+
+  r_bsp_draw.material = NULL;
 
   $(pass, bindPipeline, r_bsp_draw.blend_pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
