@@ -131,9 +131,28 @@ static struct {
 typedef struct {
   mat4_t model;
   float lerp;
-  float padding[3];
+  float modulate;
+  float padding[2];
   vec4_t color;
 } r_mesh_locals_t;
+
+/**
+ * @brief Per-entity fragment locals (mesh_locals_block in mesh_fs.glsl): the
+ * dynamic light cull bitmask and the mesh lighting modulation.
+ */
+typedef struct {
+  uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
+  float modulate;
+  float padding[3];
+} r_mesh_fragment_locals_t;
+
+/**
+ * @brief The mesh lighting modulation for the given entity: r_modulate_mesh,
+ * except the view weapon, which is always lit at full brightness.
+ */
+static float R_MeshEntityModulate(const r_entity_t *e) {
+  return (e->effects & EF_WEAPON) ? 1.f : r_modulate_mesh->value;
+}
 
 /**
  * @brief Returns the mesh pipeline for the given material-stage blend function,
@@ -391,6 +410,7 @@ static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, Command
   r_mesh_locals_t locals = {
     .model = e->matrix,
     .lerp = e->lerp,
+    .modulate = R_MeshEntityModulate(e),
     .color = e->color,
   };
   switch (material->cm->surface & SURF_MASK_BLEND) {
@@ -453,11 +473,14 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     });
   }
 
-  // The dynamic lights affecting this entity, culled to its bounds. Has
-  // nothing to do with the material/stage/tint UBO -- see mesh_fs.glsl.
-  uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
-  R_ActiveLights(view, e->abs_model_bounds, active_lights);
-  $(commands, pushFragmentUniformData, MESH_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
+  // The dynamic lights affecting this entity, culled to its bounds, and the
+  // mesh lighting modulation. Has nothing to do with the material/stage/tint
+  // UBO -- see mesh_fs.glsl.
+  r_mesh_fragment_locals_t fragment_locals = {
+    .modulate = R_MeshEntityModulate(e),
+  };
+  R_ActiveLights(view, e->abs_model_bounds, fragment_locals.active_lights);
+  $(commands, pushFragmentUniformData, MESH_UNIFORMS_LOCALS, &fragment_locals, sizeof(fragment_locals));
 
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
     .buffer = mesh->elements_buffer->buffer
