@@ -380,6 +380,14 @@ static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, Command
   r_mesh_material_uniforms_t material_uniforms;
   R_MaterialUniforms(material, material->cm->surface, &material_uniforms.material);
   memcpy(material_uniforms.tint_colors, e->tints, sizeof(material_uniforms.tint_colors));
+
+  // Tint channels the entity does not set (alpha == 0) take the material's
+  // default tint colors; without this, untinted tintmap texels shade to black.
+  for (size_t i = 0; i < lengthof(material_uniforms.tint_colors); i++) {
+    if (!e->tints[i].w) {
+      material_uniforms.tint_colors[i] = material->cm->tintmap_defaults[i];
+    }
+  }
   $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms.material, sizeof(material_uniforms.material));
   $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
 
