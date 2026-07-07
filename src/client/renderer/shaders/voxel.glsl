@@ -28,7 +28,9 @@
  * shaders enable it); otherwise the accessors return neutral fallbacks.
  */
 
-#if defined(FRAGMENT_SHADER)
+// A program (vertex or fragment) opts into the clustered light buffers by
+// defining their binding slots before including this file.
+#if defined(BINDING_STORAGE_VOXEL_LIGHT_INDICES)
 layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES) readonly buffer voxel_light_indices_block {
   int voxel_light_indices[];
 };
@@ -39,6 +41,7 @@ layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES
 layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_DATA) readonly buffer voxel_light_data_block {
   int voxel_light_data_elements[];
 };
+#endif
 
 #if defined(VOXEL_CAUSTICS_OCCLUSION)
 /**
@@ -47,7 +50,6 @@ layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_DATA) r
  */
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_VOXEL_CAUSTICS)  uniform sampler3D texture_voxel_caustics;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_VOXEL_OCCLUSION) uniform sampler3D texture_voxel_occlusion;
-#endif
 #endif
 
 /**
@@ -76,7 +78,7 @@ ivec3 voxel_xyz(in vec3 position) {
   return clamp(voxel, ivec3(0), ivec3(voxels.size.xyz) - ivec3(1));
 }
 
-#if defined(FRAGMENT_SHADER)
+#if defined(BINDING_STORAGE_VOXEL_LIGHT_INDICES)
 /**
  * @brief Fetches the light data (index offset, index count) for the given voxel.
  * @param voxel The voxel coordinate.

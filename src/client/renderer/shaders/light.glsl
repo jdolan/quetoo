@@ -33,12 +33,20 @@
  * else a flat ambient fallback is used.
  */
 
+/**
+ * @brief The distance, beyond lighting_distance, over which full per-fragment
+ * lighting blends out to the cheap per-vertex lighting.
+ */
+#define LIGHTING_LOD_BLEND_DIST 128.0
+
+#if defined(FRAGMENT_SHADER)
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_0) uniform sampler2DShadow texture_shadow_atlas_0;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_1) uniform sampler2DShadow texture_shadow_atlas_1;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_2) uniform sampler2DShadow texture_shadow_atlas_2;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_3) uniform sampler2DShadow texture_shadow_atlas_3;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_4) uniform sampler2DShadow texture_shadow_atlas_4;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_5) uniform sampler2DShadow texture_shadow_atlas_5;
+#endif
 
 #if defined(FRAGMENT_SHADER) && defined(LIGHT_SKY)
 /**
@@ -59,6 +67,7 @@ layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_LIGHTS) readonly bu
   light_t lights[];
 };
 
+#if defined(FRAGMENT_SHADER)
 /**
  * @brief 2D Poisson disk samples for PCF soft shadows.
  */
@@ -247,6 +256,7 @@ float blinn(in vec3 light_dir, in common_fragment_t f) {
 vec3 blinn_phong(in vec3 light_color, in vec3 light_dir, in common_fragment_t f) {
   return light_color * f.specular_sample.rgb * blinn(light_dir, f);
 }
+#endif
 
 /**
  * @brief Calculate vertex lighting contribution from a single light (unshadowed diffuse only).
@@ -318,6 +328,7 @@ void vertex_lighting(inout common_vertex_t v) {
   vertex_caustics(v);
 }
 
+#if defined(FRAGMENT_SHADER)
 /**
  * @brief Calculate caustics lighting contribution.
  * @details Applies animated noise-based caustics to the diffuse lighting.
@@ -478,3 +489,4 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
 
   fragment_caustics(v, f);
 }
+#endif

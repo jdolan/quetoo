@@ -53,10 +53,19 @@ enum {
 
 enum {
   BSP_UNIFORMS_GLOBALS,
-  BSP_UNIFORMS_LOCALS, // model matrix (vertex) / active_lights bitmask (fragment)
+  BSP_UNIFORMS_LOCALS, // model matrix + active_lights (vertex) / active_lights bitmask (fragment)
   BSP_UNIFORMS_MATERIAL, // material + stage params combined -- see material.glsl
 };
 #define BSP_NUM_UNIFORMS 3 // same count/slot for both stages
+
+/**
+ * @brief Per-draw vertex locals (locals_block in bsp_vs.glsl): the model
+ * matrix and the dynamic light cull bitmask for per-vertex lighting.
+ */
+typedef struct {
+  mat4_t model;
+  uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
+} r_bsp_locals_t;
 
 #define MAX_STAGE_PIPELINES 16
 
@@ -134,6 +143,7 @@ static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    .num_storage_buffers = BSP_NUM_STORAGE_BUFFERS, // per-vertex lighting binds the same buffers
     .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
 
@@ -324,29 +334,33 @@ static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, Command
  */
 static void R_DrawOpaqueBspEntity(const r_view_t *view, RenderPass *pass, CommandBuffer *commands, const r_entity_t *entity) {
 
-  uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
+  r_bsp_locals_t locals = {
+    .model = entity->matrix,
+  };
 
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveLights(view, entity->abs_model_bounds, active_lights);
-    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
+    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
     if (IS_WORLDSPAWN(entity->model)) {
-      
+
       if (block->query->result == 0) {
         r_stats.blocks_occluded++;
         continue;
       }
-      
+
       r_stats.blocks_visible++;
 
-      R_ActiveLights(view, block->node->visible_bounds, active_lights);
-      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
+      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
     }
 
     R_DrawBspBlockOpaque(view, pass, commands, entity, block);
@@ -429,12 +443,10 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  // Vertex uniforms: globals + per-draw locals (the world model matrix).
-  // Fragment uniforms: the same globals (lighting scalars); active_lights and the
-  // material parameters are pushed per block / per draw below.
-  const mat4_t model = Mat4_Identity();
+  // Both stages: globals (lighting scalars); the per-draw locals (model matrix
+  // + active_lights) and material parameters are pushed per block / per draw
+  // below.
   $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
 
   $(pass, bindPipeline, r_bsp_draw.pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
@@ -478,6 +490,7 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
     bsp->voxels.light_data_buffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
+  $(pass, bindVertexStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -494,8 +507,6 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
       r_stats.entities_occluded++;
       continue;
     }
-
-    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
 
     R_DrawOpaqueBspEntity(view, pass, commands, e);
   }
@@ -548,13 +559,16 @@ static void R_DrawBspBlockBlend(const r_view_t *view, RenderPass *pass, CommandB
 static void R_DrawBlendBspEntity(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                  const r_entity_t *entity) {
 
-  uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
+  r_bsp_locals_t locals = {
+    .model = entity->matrix,
+  };
 
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveLights(view, entity->abs_model_bounds, active_lights);
-    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
+    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+    $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -565,13 +579,14 @@ static void R_DrawBlendBspEntity(const r_view_t *view, RenderPass *pass, Command
     }
 
     if (IS_WORLDSPAWN(entity->model)) {
-      
+
       if (block->query->result == 0) {
         continue;
       }
 
-      R_ActiveLights(view, block->node->visible_bounds, active_lights);
-      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
+      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
     }
 
     R_DrawBspBlockBlend(view, pass, commands, entity, block);
@@ -621,9 +636,7 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  const mat4_t model = Mat4_Identity();
   $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
 
   $(pass, bindPipeline, r_bsp_draw.blend_pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
@@ -666,6 +679,7 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
     bsp->voxels.light_data_buffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
+  $(pass, bindVertexStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
 
   // Every BSP inline model entity in the view, including the world itself; see
   // R_DrawBlendBspEntity.
@@ -684,8 +698,6 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
       continue;
     }
 
-    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
-
     R_DrawBlendBspEntity(view, pass, commands, e);
   }
 
@@ -699,6 +711,7 @@ void R_InitBspPipeline(void) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    .num_storage_buffers = BSP_NUM_STORAGE_BUFFERS, // per-vertex lighting binds the same buffers
     .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
 

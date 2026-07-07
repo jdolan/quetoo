@@ -25,12 +25,30 @@
 
 // The BSP program's own binding map: the material UBO (material + stage
 // params combined -- see material.glsl) follows globals (0) and locals (1);
-// the fragment stage's own map is defined in bsp_fs.glsl.
+// the fragment stage's own map is defined in bsp_fs.glsl. The vertex stage
+// has no samplers, so the storage buffers for per-vertex lighting (the same
+// buffers the fragment stage binds after its samplers) start at 0.
 #define BINDING_UNIFORMS_MATERIAL 2
+#define BINDING_STORAGE_LIGHTS              0
+#define BINDING_STORAGE_VOXEL_LIGHT_INDICES 1
+#define BINDING_STORAGE_VOXEL_LIGHT_DATA    2
 
 #include "common.glsl"
 #include "material.glsl"
 #include "voxel.glsl"
+
+/**
+ * @brief Per-draw locals: the model matrix and the dynamic light cull bitmask
+ * for per-vertex lighting (the fragment stage receives the same bitmask via
+ * its own locals block). Declared before light.glsl, whose vertex_lighting()
+ * reads active_lights.
+ */
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+  mat4 model;
+  uvec4 active_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
+};
+
+#include "light.glsl"
 
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
@@ -38,13 +56,6 @@ layout (location = 2) in vec3 in_tangent;
 layout (location = 3) in vec3 in_bitangent;
 layout (location = 4) in vec2 in_diffusemap;
 layout (location = 5) in vec4 in_color;
-
-/**
- * @brief Per-draw locals.
- */
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
-  mat4 model;
-};
 
 layout (location = 0) out common_vertex_t vertex;
 
@@ -76,16 +87,11 @@ void main(void) {
 
   stage_vertex(in_position, vertex);
 
-  // Cheap per-vertex ambient for the fragment shader's distant-fragment LOD
-  // path (see bsp_fragment_lighting): the shared vertex_lighting()/
-  // fragment_lighting() split in light.glsl also accumulates per-light
-  // diffuse here, but that needs active_lights and the voxel light-data
-  // sampler, both fragment-only in this port's binding scheme (see
-  // BSP_UNIFORMS_LOCALS/BSP_SAMPLER_VOXEL_LIGHT_DATA) -- ambient alone still
-  // delivers the LOD path's performance win of skipping full per-fragment
-  // lighting for distant geometry.
-  vertex.ambient = vec3(ambient) * voxel_exposure(vertex.voxel) * (1.0 - voxel_occlusion(vertex.voxel) * ambient_occlusion);
-  vertex.diffuse = vec3(0.0);
+  // Cheap per-vertex lighting (clustered voxel + dynamic diffuse, unshadowed)
+  // for the fragment shader's distant LOD path: bsp_fragment_lighting blends
+  // to this beyond lighting_distance instead of running full per-fragment
+  // lighting.
+  vertex_lighting(vertex);
 
   gl_Position = projection3D * view_model * position;
 }
