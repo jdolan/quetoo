@@ -185,7 +185,7 @@ r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
  * resetting the allocation cursor ahead of the load is all that's needed here; the
  * load's R_LoadBspOcclusionQueries call reallocates from the start of the pool.
  */
-void R_ResetOcclusionQueries(void) {
+void R_FreeOcclusionQueries(void) {
   r_occlusion_queries.num_queries = 0;
   r_occlusion_queries.vertex_buffer = release(r_occlusion_queries.vertex_buffer);
 }

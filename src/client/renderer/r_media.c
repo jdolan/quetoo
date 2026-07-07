@@ -248,7 +248,7 @@ void R_BeginLoading(void) {
 
   r_media_state.seed = s;
 
-  R_ResetOcclusionQueries();
+  R_FreeOcclusionQueries();
 }
 
 /**
