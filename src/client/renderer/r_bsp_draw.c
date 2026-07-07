@@ -447,7 +447,8 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
 
   SDL_GPUBuffer *storage[] = {
     r_lights.buffer->buffer,
-    bsp->voxels.light_indices_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
+                                     : r_lights.buffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, 2);
 
