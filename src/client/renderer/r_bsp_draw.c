@@ -224,13 +224,14 @@ static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
  * a BSP draw-elements batch, layered over the already-lit base surface.
  */
 static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
-                                               const r_bsp_draw_elements_t *draw, const r_stage_t *stage) {
+                                               const r_entity_t *entity, const r_bsp_draw_elements_t *draw,
+                                               const r_stage_t *stage) {
 
   r_material_uniforms_t uniforms;
   R_MaterialUniforms(draw->material, draw->surface, &uniforms);
 
   SDL_GPUTexture *texture, *texture_next;
-  if (!R_StageUniforms(view, NULL, draw, stage, &uniforms, &texture, &texture_next)) {
+  if (!R_StageUniforms(view, entity, draw, stage, &uniforms, &texture, &texture_next)) {
     return;
   }
 
@@ -262,7 +263,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, RenderPass 
  * only rebinds the stage pipeline, its textures, and the per-stage uniforms.
  */
 static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
-                                                const r_bsp_draw_elements_t *draw) {
+                                                const r_entity_t *entity, const r_bsp_draw_elements_t *draw) {
 
   const r_material_t *material = draw->material;
   if (!(material->cm->stage_flags & STAGE_DRAW)) {
@@ -275,7 +276,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view, RenderPass
       continue;
     }
 
-    R_DrawBspDrawElementsMaterialStage(view, pass, commands, draw, stage);
+    R_DrawBspDrawElementsMaterialStage(view, pass, commands, entity, draw, stage);
   }
 }
 
@@ -284,7 +285,8 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view, RenderPass
  * with the given base pipeline. The caller has already pushed the model matrix
  * and the active-lights bitmask for this block/entity.
  */
-static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, CommandBuffer *commands, const r_bsp_block_t *block) {
+static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+                                 const r_entity_t *entity, const r_bsp_block_t *block) {
 
   const r_bsp_draw_elements_t *draw = block->draw_elements;
   for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -312,7 +314,7 @@ static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, Command
     r_stats.bsp_draw_elements++;
 
     if (r_draw_material_stages->integer) {
-      R_DrawBspDrawElementsMaterialStages(view, pass, commands, draw);
+      R_DrawBspDrawElementsMaterialStages(view, pass, commands, entity, draw);
     }
   }
 }
@@ -351,7 +353,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, RenderPass *pass, Comman
       $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
     }
 
-    R_DrawBspBlockOpaque(view, pass, commands, block);
+    R_DrawBspBlockOpaque(view, pass, commands, entity, block);
   }
 
   r_stats.bsp_inline_models++;
@@ -480,7 +482,8 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
  * @brief Draws the translucent (@c SURF_MASK_BLEND) draw elements of a single
  * block, assuming its active-lights bitmask has already been pushed.
  */
-static void R_DrawBspBlockBlend(const r_view_t *view, RenderPass *pass, CommandBuffer *commands, const r_bsp_block_t *block) {
+static void R_DrawBspBlockBlend(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+                                const r_entity_t *entity, const r_bsp_block_t *block) {
 
   const r_bsp_draw_elements_t *draw = block->draw_elements;
   for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -507,7 +510,7 @@ static void R_DrawBspBlockBlend(const r_view_t *view, RenderPass *pass, CommandB
     r_stats.bsp_draw_elements++;
 
     if (r_draw_material_stages->integer) {
-      R_DrawBspDrawElementsMaterialStages(view, pass, commands, draw);
+      R_DrawBspDrawElementsMaterialStages(view, pass, commands, entity, draw);
     }
   }
 }
@@ -544,7 +547,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, RenderPass *pass, Command
       $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_lights, sizeof(active_lights));
     }
 
-    R_DrawBspBlockBlend(view, pass, commands, block);
+    R_DrawBspBlockBlend(view, pass, commands, entity, block);
   }
 }
 
