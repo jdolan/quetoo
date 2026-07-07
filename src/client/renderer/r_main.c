@@ -159,12 +159,18 @@ void R_UpdateUniforms(const r_view_t *view) {
 /**
  * @brief Applies r_swap_interval to the device's swapchain present mode.
  * @remarks SDL_gpu has no adaptive-VSync present mode (unlike GL's
- * EXT_swap_control_tear, which `-1` requests in main); `-1` falls back to
- * plain VSYNC, same as `1`.
+ * EXT_swap_control_tear, which `-1` requests in main); `-1` maps to MAILBOX,
+ * the closest analog (low latency, never tears), falling back to plain VSYNC
+ * where unsupported.
  */
 static void R_UpdateSwapInterval(void) {
 
-  const SDL_GPUPresentMode mode = r_swap_interval->integer == 0 ? SDL_GPU_PRESENTMODE_IMMEDIATE : SDL_GPU_PRESENTMODE_VSYNC;
+  SDL_GPUPresentMode mode;
+  switch (r_swap_interval->integer) {
+    case -1: mode = SDL_GPU_PRESENTMODE_MAILBOX;   break;
+    case  0: mode = SDL_GPU_PRESENTMODE_IMMEDIATE; break;
+    default: mode = SDL_GPU_PRESENTMODE_VSYNC;     break;
+  }
 
   if (mode != SDL_GPU_PRESENTMODE_VSYNC && !$(r_context.device, supportsPresentMode, mode)) {
     Com_Warn("Present mode %d unsupported by this device, falling back to VSYNC\n", mode);
@@ -240,7 +246,7 @@ void R_BeginFrame(void) {
   }
 
   if (r_swap_interval->modified) {
-    r_swap_interval->value = Clampf(r_swap_interval->value, -1.f, 2.f);
+    r_swap_interval->value = Clampf(r_swap_interval->value, -1.f, 1.f);
     R_UpdateSwapInterval();
     r_swap_interval->modified = false;
   }
@@ -396,7 +402,7 @@ static void R_InitLocal(void) {
   r_shadow_tile_size = Cvar_Add("r_shadow_tile_size", "256", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadow atlas tile resolution (128-512).");
   r_shadow_distance = Cvar_Add("r_shadow_distance", "1024", CVAR_ARCHIVE, "Controls the distance at which mesh shadows are culled.");
   r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
-  r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
+  r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables mailbox (low latency, no tearing).");
   r_window_height = Cvar_Add("r_window_height", "1080", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the window height for windowed mode.");
   r_window_width = Cvar_Add("r_window_width", "1920", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the window width for windowed mode.");
 
