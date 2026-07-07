@@ -448,6 +448,16 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
   CommandBuffer *commands = r_context.device->commands;
 
+  // Compress the view weapon into the front tenth of the depth range so that
+  // it never clips into world geometry (glDepthRange(0.0, 0.1) under GL).
+  if (e->effects & EF_WEAPON) {
+    $(pass, setViewport, &(SDL_GPUViewport) {
+      .x = 0.f, .y = 0.f,
+      .w = (float) view->framebuffer->size.w, .h = (float) view->framebuffer->size.h,
+      .min_depth = 0.f, .max_depth = .1f,
+    });
+  }
+
   // The dynamic lights affecting this entity, culled to its bounds. Has
   // nothing to do with the material/stage/tint UBO -- see mesh_fs.glsl.
   uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
@@ -496,6 +506,15 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     $(pass, bindPipeline, r_mesh_draw.blend_pipeline);
 
     R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material);
+  }
+
+  // Restore the full depth range for subsequent entities.
+  if (e->effects & EF_WEAPON) {
+    $(pass, setViewport, &(SDL_GPUViewport) {
+      .x = 0.f, .y = 0.f,
+      .w = (float) view->framebuffer->size.w, .h = (float) view->framebuffer->size.h,
+      .min_depth = 0.f, .max_depth = 1.f,
+    });
   }
 
   r_stats.mesh_models++;
