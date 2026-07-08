@@ -12,10 +12,11 @@ shaders_DATA = \
 	draw_2d_vs.glsl \
 	draw_3d_fs.glsl \
 	draw_3d_vs.glsl \
-  light.glsl \
+	light.glsl \
 	material.glsl \
 	mesh_fs.glsl \
 	mesh_vs.glsl \
+	occlude_vs.glsl \
 	post_fs.glsl \
 	post_vs.glsl \
 	shadow_clear_fs.glsl \
@@ -29,7 +30,7 @@ shaders_DATA = \
 	sprite_vs.glsl \
 	uniforms.glsl \
 	version.glsl \
-  voxel.glsl
+ 	voxel.glsl
 
 # --- SDL_gpu shader transpilation -------------------------------------------
 #
@@ -39,7 +40,7 @@ shaders_DATA = \
 # .glsl to regenerate them. Extend these lists as more shaders are ported
 # (issue #864).
 
-VERTEX_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs shadow_clear_vs sky_vs sprite_vs decal_vs
+VERTEX_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs shadow_clear_vs sky_vs sprite_vs decal_vs occlude_vs
 FRAGMENT_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs shadow_clear_fs sky_fs sprite_fs decal_fs
 
 # Install the compiled blobs alongside the GLSL sources so the renderer's
