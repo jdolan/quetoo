@@ -20,6 +20,7 @@
  */
 
 #include <Objectively/Array.h>
+#include <Objectively/Vector.h>
 
 #include "r_local.h"
 
@@ -50,6 +51,15 @@
  * the same transfer buffer -- once that fence has signaled,
  * so the buffer is never read while the GPU may still be writing it, and we never
  * redundantly reissue a query whose prior result hasn't been consumed yet.
+ * @details Each query draws its geometry as instances of a single shared unit cube: a
+ * constant 8-vertex, 36-index box (`cube_vertex_buffer` / `elements_buffer`, built once by
+ * `R_InitOcclusionQueries` and never touched again) is scaled and offset per instance by a
+ * `box3_t` pulled from `instance_buffer` (`SDL_GPU_VERTEXINPUTRATE_INSTANCE`). This lets a
+ * query be drawn as an arbitrary number of tight boxes -- e.g. one per voxel a light or BSP
+ * block touches -- in a single `drawIndexedPrimitives` call, without growing per-query
+ * vertex data. `boxes` accumulates those per-instance bounds during loading (via
+ * `R_AppendOcclusionQueryBox`); `R_LoadOcclusionQueries` flattens it into `instance_buffer`
+ * once loading completes.
  */
 static struct {
 
@@ -66,18 +76,30 @@ static struct {
   int32_t num_queries;
 
   /**
+   * @brief The per-instance box bounds appended by `R_AppendOcclusionQueryBox`, flattened
+   * into `instance_buffer` by `R_LoadOcclusionQueries`. Reset by `R_FreeOcclusionQueries`.
+   */
+  Vector *boxes;
+
+  /**
    * @brief The shared occlusion query pool.
    */
   QueryPool *query_pool;
 
   /**
-   * @brief The vertex buffer of occlusion box corners, built by
-   * `R_LoadOcclusionQueries` when loading completes.
+   * @brief The constant unit-cube vertex buffer (VERTEX rate, slot 0), shared by every
+   * occlusion box instance. Built once by `R_InitOcclusionQueries`.
    */
-  Buffer *vertex_buffer;
+  Buffer *cube_vertex_buffer;
 
   /**
-   * @brief The shared index buffer for a single box (reused for every query via base vertex).
+   * @brief The per-instance box bounds buffer (INSTANCE rate, slot 1), built from `boxes`
+   * by `R_LoadOcclusionQueries` when loading completes.
+   */
+  Buffer *instance_buffer;
+
+  /**
+   * @brief The shared index buffer for the unit cube (reused for every instance).
    */
   Buffer *elements_buffer;
 
@@ -164,6 +186,10 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
 
 /**
  * @brief Allocates an occlusion query with the specified bounds.
+ * @details `bounds` is used only for the CPU-side checks in `R_OccludeBox`/
+ * `R_OccludeSphere`; it is never drawn on the GPU. Callers must separately populate the
+ * query's GPU geometry via one or more calls to `R_AppendOcclusionQueryBox` -- even a
+ * query that simply wants to test its own `bounds` on the GPU must append it explicitly.
  */
 r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
 
@@ -172,10 +198,30 @@ r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
   r_occlusion_query_t *query = &r_occlusion_queries.queries[r_occlusion_queries.num_queries++];
 
   query->bounds = bounds;
+  query->first_instance = (int32_t) r_occlusion_queries.boxes->count;
+  query->num_boxes = 0;
   query->available = true;
   query->result = true;
 
   return query;
+}
+
+/**
+ * @brief Appends a box to the given query's GPU-drawn instance geometry.
+ * @details Purely additive: it grows the shared per-instance box buffer and bumps
+ * `query->num_boxes`, but never touches `query->bounds`. This lets a query test a loose,
+ * coarse volume on the CPU (`R_OccludeBox`/`R_OccludeSphere`) while drawing much tighter
+ * geometry -- e.g. one box per voxel the query's light or BSP block touches -- on the GPU.
+ * @details Must be called contiguously for a given query, immediately after allocating it
+ * (or after appending to it previously); appending to an older query once a newer query
+ * has started appending would corrupt both queries' `first_instance`/`num_boxes` ranges.
+ */
+void R_AppendOcclusionQueryBox(r_occlusion_query_t *query, box3_t bounds) {
+
+  assert(query->first_instance + query->num_boxes == (int32_t) r_occlusion_queries.boxes->count);
+
+  $(r_occlusion_queries.boxes, add, &bounds);
+  query->num_boxes++;
 }
 
 /**
@@ -184,34 +230,28 @@ r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
  * at BSP load (one per block, one per light), never individually or per-frame, so
  * resetting the allocation cursor ahead of the load is all that's needed here; the
  * load's R_LoadBspOcclusionQueries call reallocates from the start of the pool.
+ * @details R_InitMedia calls R_BeginLoading (and thus this) before R_InitOcclusionQueries
+ * has run, so `boxes` may still be NULL the first time this is called; guard it explicitly,
+ * since unlike `release()`, Vector methods are not NULL-safe.
  */
 void R_FreeOcclusionQueries(void) {
   r_occlusion_queries.num_queries = 0;
-  r_occlusion_queries.vertex_buffer = release(r_occlusion_queries.vertex_buffer);
+  if (r_occlusion_queries.boxes) {
+    $(r_occlusion_queries.boxes, removeAll);
+  }
+  r_occlusion_queries.instance_buffer = release(r_occlusion_queries.instance_buffer);
 }
 
 /**
- * @brief Builds the occlusion box vertex buffer for the queries the load allocated.
- * @details Called from R_EndLoading; the query set never changes between loads.
+ * @brief Builds the per-instance occlusion box buffer for the boxes the load appended.
+ * @details Called from R_EndLoading; the query and box set never change between loads.
  */
 void R_LoadOcclusionQueries(void) {
 
-  const int32_t num_queries = r_occlusion_queries.num_queries;
-  if (num_queries) {
-
-    vec3_t *vertexes = malloc(num_queries * sizeof(vec3_t) * 8);
-
-    for (int32_t i = 0; i < num_queries; i++) {
-      r_occlusion_query_t *query = &r_occlusion_queries.queries[i];
-
-      query->base_vertex = i * 8;
-      Box3_ToPoints(query->bounds, vertexes + i * 8);
-    }
-
-    r_occlusion_queries.vertex_buffer = $(r_context.device, createBufferWithConstMem,
-      SDL_GPU_BUFFERUSAGE_VERTEX, vertexes, (Uint32) (num_queries * sizeof(vec3_t) * 8));
-
-    free(vertexes);
+  const int32_t num_boxes = (int32_t) r_occlusion_queries.boxes->count;
+  if (num_boxes) {
+    r_occlusion_queries.instance_buffer = $(r_context.device, createBufferWithConstMem,
+      SDL_GPU_BUFFERUSAGE_VERTEX, r_occlusion_queries.boxes->elements, (Uint32) (num_boxes * sizeof(box3_t)));
   }
 }
 
@@ -222,13 +262,19 @@ void R_LoadOcclusionQueries(void) {
  * those results persist), bracketing each box draw in a query so a later frame's
  * R_OccludeBox/R_OccludeSphere calls can consult `query->result`. Boxes that can be
  * trivially resolved (occlusion disabled, the view origin is inside the box, or the box is
- * already frustum-culled) skip the GPU query entirely.
+ * already frustum-culled) skip the GPU query entirely, and are re-resolved every frame
+ * regardless of whether the GPU work below is reissued this frame.
  * @details Recorded into `commands`, the same dedicated depth-pass CommandBuffer as
  * R_DrawDepthPass (see R_DrawViewDepth); its fence, not the frame's, gates read-back.
  * @details Queries are only reissued once the fence for the command buffer that recorded
  * the previous download has signaled (see `R_AddOcclusionQueryFence`); until then, the
- * shared transfer buffer may still be written by the GPU, so this is a no-op and the
- * previous frame's `query->result` values continue to be used unchanged.
+ * shared transfer buffer may still be written by the GPU, so reissuing is skipped for this
+ * frame and `query->result` continues to reflect the last downloaded (or trivially
+ * resolved) value. Critically, this only skips reissuing the GPU queries -- it must not
+ * skip trivial resolution, the debug visualizations, or `r_stats`, all of which should run
+ * every frame using whatever `query->result` is currently cached, exactly as the legacy
+ * OpenGL implementation did per-query. Skipping any of those on frames where the fence
+ * hasn't yet signaled is what caused `r_draw_occlusion_queries` to flicker.
  */
 void R_DrawOcclusionQueries(const r_view_t *view, CommandBuffer *commands) {
 
@@ -236,38 +282,49 @@ void R_DrawOcclusionQueries(const r_view_t *view, CommandBuffer *commands) {
     return;
   }
 
+  bool skip_reissue = false;
+
   if (r_occlusion_queries.fences->count) {
     Fence *fence = $(r_occlusion_queries.fences, objectAtIndex, 0);
     if (!$(fence, query)) {
-      return;
+      skip_reissue = true;
+    } else {
+
+      const Uint64 *results = $(r_occlusion_queries.transfer, map, false);
+
+      for (int32_t i = 0; i < r_occlusion_queries.num_queries; i++) {
+        r_occlusion_query_t *query = &r_occlusion_queries.queries[i];
+        query->available = true;
+        query->result = results[i] != 0;
+      }
+
+      $(r_occlusion_queries.transfer, unmap);
+
+      $(r_occlusion_queries.fences, removeObjectAtIndex, 0);
     }
-
-    const Uint64 *results = $(r_occlusion_queries.transfer, map, false);
-
-    for (int32_t i = 0; i < r_occlusion_queries.num_queries; i++) {
-      r_occlusion_query_t *query = &r_occlusion_queries.queries[i];
-      query->available = true;
-      query->result = results[i] != 0;
-    }
-
-    $(r_occlusion_queries.transfer, unmap);
-
-    $(r_occlusion_queries.fences, removeObjectAtIndex, 0);
   }
 
   if (r_occlusion_queries.num_queries) {
 
-    const SDL_GPUDepthStencilTargetInfo depth = $(view->framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
+    RenderPass *pass = NULL;
 
-    RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
+    if (!skip_reissue) {
+      const SDL_GPUDepthStencilTargetInfo depth = $(view->framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
 
-    $(pass, bindPipeline, r_occlusion_queries.pipeline);
-    $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_occlusion_queries.vertex_buffer->buffer }, 1);
-    $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_occlusion_queries.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+      pass = $(commands, beginRenderPass, NULL, 0, &depth);
 
-    const mat4_t model = Mat4_Identity();
-    $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
-    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
+      $(pass, bindPipeline, r_occlusion_queries.pipeline);
+
+      if (r_occlusion_queries.instance_buffer) {
+        $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
+          { .buffer = r_occlusion_queries.cube_vertex_buffer->buffer },
+          { .buffer = r_occlusion_queries.instance_buffer->buffer },
+        }, 2);
+        $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_occlusion_queries.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+      }
+
+      $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+    }
 
     for (int32_t i = 0; i < r_occlusion_queries.num_queries; i++) {
       r_occlusion_query_t *query = &r_occlusion_queries.queries[i];
@@ -275,35 +332,59 @@ void R_DrawOcclusionQueries(const r_view_t *view, CommandBuffer *commands) {
       if (!r_occlude->integer) {
         query->available = true;
         query->result = true;
+        r_stats.queries_visible++;
         continue;
       }
 
       if (Box3_Intersects(query->bounds, Box3_FromCenterRadius(view->origin, BSP_VOXEL_SIZE))) {
         query->available = true;
         query->result = true;
+        r_stats.queries_visible++;
         continue;
       }
 
       if (R_CullBox(view, query->bounds)) {
         query->available = true;
         query->result = false;
+        r_stats.queries_occluded++;
         continue;
       }
 
-      $(pass, beginQuery, r_occlusion_queries.query_pool, i);
-      $(pass, drawIndexedPrimitives, 36, 1, 0, query->base_vertex, 0);
-      $(pass, endQuery, r_occlusion_queries.query_pool, i);
+      // A query with no GPU boxes can't be productively tested; this should be
+      // unreachable in practice (R_LoadBspOcclusionQueries always appends at least
+      // one box, falling back to the loose bounds when there's no voxel coverage),
+      // but treat it as trivially visible rather than draw nothing and report false.
+      if (!query->num_boxes) {
+        query->available = true;
+        query->result = true;
+        r_stats.queries_visible++;
+        continue;
+      }
+
+      if (query->result) {
+        r_stats.queries_visible++;
+      } else {
+        r_stats.queries_occluded++;
+      }
+
+      if (pass) {
+        $(pass, beginQuery, r_occlusion_queries.query_pool, i);
+        $(pass, drawIndexedPrimitives, 36, query->num_boxes, 0, 0, query->first_instance);
+        $(pass, endQuery, r_occlusion_queries.query_pool, i);
+      }
     }
 
-    release(pass);
+    if (pass) {
+      release(pass);
 
-    CopyPass *copyPass = $(commands, beginCopyPass);
-    $(copyPass, downloadQueryResults, r_occlusion_queries.query_pool, 0, r_occlusion_queries.num_queries, &(SDL_GPUTransferBufferLocation) {
-      .transfer_buffer = r_occlusion_queries.transfer->buffer,
-    });
-    release(copyPass);
+      CopyPass *copyPass = $(commands, beginCopyPass);
+      $(copyPass, downloadQueryResults, r_occlusion_queries.query_pool, 0, r_occlusion_queries.num_queries, &(SDL_GPUTransferBufferLocation) {
+        .transfer_buffer = r_occlusion_queries.transfer->buffer,
+      });
+      release(copyPass);
 
-    r_occlusion_queries.download_pending = true;
+      r_occlusion_queries.download_pending = true;
+    }
 
     if (r_draw_occlusion_queries->value) {
       for (int32_t i = 0; i < r_occlusion_queries.num_queries; i++) {
@@ -363,12 +444,22 @@ void R_InitOcclusionQueries(void) {
   memset(&r_occlusion_queries, 0, sizeof(r_occlusion_queries));
 
   r_occlusion_queries.queries = Mem_TagMalloc(MAX_OCCLUSION_QUERIES * sizeof(r_occlusion_query_t), MEM_TAG_RENDERER);
+  r_occlusion_queries.boxes = $(alloc(Vector), initWithSize, sizeof(box3_t));
   r_occlusion_queries.fences = $(alloc(Array), init);
 
   r_occlusion_queries.query_pool = $(r_context.device, createQueryPool, &(SDL_GPUQueryPoolCreateInfo) {
     .type = SDL_GPU_QUERY_PRECISE_OCCLUSION,
     .query_count = MAX_OCCLUSION_QUERIES,
   });
+
+  // The constant unit cube, ordered to match Box3_ToPoints (bit 0 = X, bit 1 = Y,
+  // bit 2 = Z; unset = mins, set = maxs). Scaled and offset per-instance in
+  // occlude_vs.glsl by the (mins, maxs) pulled from instance_buffer.
+  vec3_t cube[8];
+  Box3_ToPoints(Box3(Vec3(0.f, 0.f, 0.f), Vec3(1.f, 1.f, 1.f)), cube);
+
+  r_occlusion_queries.cube_vertex_buffer = $(r_context.device, createBufferWithConstMem,
+    SDL_GPU_BUFFERUSAGE_VERTEX, cube, sizeof(cube));
 
   const uint32_t elements[] = {
     // bottom
@@ -393,9 +484,9 @@ void R_InitOcclusionQueries(void) {
     .size = MAX_OCCLUSION_QUERIES * sizeof(Uint64),
   });
 
-  Shader *vertexShader = $(r_context.device, loadShader, "shaders/depth_pass_vs", &(SDL_GPUShaderCreateInfo) {
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/occlude_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = 2,
+    .num_uniform_buffers = 1,
   });
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
@@ -412,19 +503,40 @@ void R_InitOcclusionQueries(void) {
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
-    .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
-      .slot = 0,
-      .pitch = sizeof(vec3_t),
-      .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+    .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
+      {
+        .slot = 0,
+        .pitch = sizeof(vec3_t),
+        .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+      },
+      {
+        .slot = 1,
+        .pitch = sizeof(box3_t),
+        .input_rate = SDL_GPU_VERTEXINPUTRATE_INSTANCE,
+      },
     },
-    .num_vertex_buffers = 1,
-    .vertex_attributes = &(SDL_GPUVertexAttribute) {
-      .location = 0,
-      .buffer_slot = 0,
-      .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-      .offset = 0,
+    .num_vertex_buffers = 2,
+    .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+      {
+        .location = 0,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = 0,
+      },
+      {
+        .location = 1,
+        .buffer_slot = 1,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(box3_t, mins),
+      },
+      {
+        .location = 2,
+        .buffer_slot = 1,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(box3_t, maxs),
+      },
     },
-    .num_vertex_attributes = 1,
+    .num_vertex_attributes = 3,
   };
 
   // Test against the depth already written by the real scene, but never write
@@ -454,13 +566,15 @@ void R_InitOcclusionQueries(void) {
 void R_ShutdownOcclusionQueries(void) {
 
   r_occlusion_queries.pipeline = release(r_occlusion_queries.pipeline);
-  r_occlusion_queries.vertex_buffer = release(r_occlusion_queries.vertex_buffer);
+  r_occlusion_queries.cube_vertex_buffer = release(r_occlusion_queries.cube_vertex_buffer);
+  r_occlusion_queries.instance_buffer = release(r_occlusion_queries.instance_buffer);
   r_occlusion_queries.elements_buffer = release(r_occlusion_queries.elements_buffer);
   r_occlusion_queries.query_pool = release(r_occlusion_queries.query_pool);
 
   r_occlusion_queries.transfer = release(r_occlusion_queries.transfer);
 
   r_occlusion_queries.fences = release(r_occlusion_queries.fences);
+  r_occlusion_queries.boxes = release(r_occlusion_queries.boxes);
 
   Mem_Free(r_occlusion_queries.queries);
 }

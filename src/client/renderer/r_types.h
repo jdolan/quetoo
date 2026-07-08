@@ -309,14 +309,23 @@ typedef struct r_decal_s {
 typedef struct r_occlusion_query_s {
 
   /**
-   * @brief The query bounds.
+   * @brief The query bounds, used for CPU-side `R_OccludeBox`/`R_OccludeSphere` checks and
+   * view culling. Set once by `R_AllocOcclusionQuery` and never touched again -- in
+   * particular, appending GPU box geometry via `R_AppendOcclusionQueryBox` never changes
+   * this, so a query may test a loose, coarse volume on the CPU while drawing much
+   * tighter, per-voxel geometry on the GPU.
    */
   box3_t bounds;
 
   /**
-   * @brief The base vertex in the shared occlusion box vertex buffer.
+   * @brief The first instance index in the shared per-instance box buffer.
    */
-  int32_t base_vertex;
+  int32_t first_instance;
+
+  /**
+   * @brief The count of instanced boxes drawn for this query.
+   */
+  int32_t num_boxes;
 
   /**
    * @brief True if the query result below is available (has been downloaded).
@@ -2187,6 +2196,16 @@ typedef struct {
    * @brief The count of currently allocated occlusion queries.
    */
   int32_t queries_allocated;
+
+  /**
+   * @brief The count of visible occlusion queries this frame.
+   */
+  int32_t queries_visible;
+
+  /**
+   * @brief The count of occluded occlusion queries this frame.
+   */
+  int32_t queries_occluded;
 
   /**
    * @brief The count of rendered inline BSP models.

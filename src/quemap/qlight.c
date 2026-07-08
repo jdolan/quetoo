@@ -416,8 +416,14 @@ static void LightWorld(void) {
   // smooth voxel grid to reduce 32-unit grid discontinuities
   SmoothVoxels();
 
+  // resolve which voxels each world block touches, for tight occlusion query geometry
+  AssignBlockVoxels();
+
   // emit light sources to the bsp
   EmitLights();
+
+  // resolve which voxels each light touches, for tight occlusion query geometry
+  AssignLightVoxels();
 
   // emit voxels
   EmitVoxels();

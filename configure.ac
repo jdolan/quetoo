@@ -237,7 +237,7 @@ dnl -----------------
 
 AC_MSG_CHECKING(whether to abort on compiler warnings)
 
-WARN_CFLAGS="-Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas"
+WARN_CFLAGS="-Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas -Wno-format-truncation"
 
 AC_ARG_ENABLE(warn,
 	AS_HELP_STRING(

@@ -135,6 +135,20 @@ static void Cl_DrawRendererStats(void) {
   R_BindFont("small", NULL, &ch);
 
   {
+    R_Draw2DString(x, y, "Occlusion queries:", color_yellow);
+    y += ch;
+
+    R_Draw2DString(x, y, va(" %d queries allocated", r_stats.queries_allocated), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d queries visible", r_stats.queries_visible), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d queries occluded", r_stats.queries_occluded), color_yellow);
+    y += ch;
+  }
+
+  y += ch;
+
+  {
     R_Draw2DString(x, y, "Lights:", color_yellow);
     y += ch;
 

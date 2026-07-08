@@ -65,6 +65,8 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
   BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
   BSP_LUMP_NUM_STRUCT(lights, MAX_BSP_LIGHTS),
   BSP_LUMP_SIZE_STRUCT(voxels, MAX_BSP_VOXELS_SIZE),
+  BSP_LUMP_NUM_STRUCT(light_voxels, MAX_BSP_LIGHT_VOXELS),
+  BSP_LUMP_NUM_STRUCT(block_voxels, MAX_BSP_BLOCK_VOXELS),
 };
 
 /**
@@ -307,6 +309,8 @@ static void Bsp_SwapBlocks(void *lump, const int32_t num) {
     block->first_draw_element = LittleLong(block->first_draw_element);
     block->num_draw_elements = LittleLong(block->num_draw_elements);
     block->visible_bounds = LittleBounds(block->visible_bounds);
+    block->first_voxel = LittleLong(block->first_voxel);
+    block->num_voxels = LittleLong(block->num_voxels);
 
     block++;
   }
@@ -360,6 +364,8 @@ static void Bsp_SwapLights(void *lump, const int32_t num) {
     light->drift = LittleFloat(light->drift);
     light->first_depth_pass_element = LittleLong(light->first_depth_pass_element);
     light->num_depth_pass_elements = LittleLong(light->num_depth_pass_elements);
+    light->first_voxel = LittleLong(light->first_voxel);
+    light->num_voxels = LittleLong(light->num_voxels);
     light++;
   }
 }
@@ -374,6 +380,30 @@ static void Bsp_SwapVoxels(void *lump, const int32_t num) {
   voxel->size = LittleVec3i(voxel->size);
   voxel->num_light_indices = LittleLong(voxel->num_light_indices);
   voxel->bounds = LittleBounds(voxel->bounds);
+}
+
+/**
+ * @brief Swap function.
+ */
+static void Bsp_SwapLightVoxels(void *lump, const int32_t num) {
+
+  int32_t *voxel = (int32_t *) lump;
+
+  for (int32_t i = 0; i < num; i++) {
+    voxel[i] = LittleLong(voxel[i]);
+  }
+}
+
+/**
+ * @brief Swap function.
+ */
+static void Bsp_SwapBlockVoxels(void *lump, const int32_t num) {
+
+  int32_t *voxel = (int32_t *) lump;
+
+  for (int32_t i = 0; i < num; i++) {
+    voxel[i] = LittleLong(voxel[i]);
+  }
 }
 
 /**
@@ -399,6 +429,8 @@ static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count)
     Bsp_SwapModels,
     Bsp_SwapLights,
     Bsp_SwapVoxels,
+    Bsp_SwapLightVoxels,
+    Bsp_SwapBlockVoxels,
   };
 
   if (swap[lump_id]) {

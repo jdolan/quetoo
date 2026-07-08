@@ -375,19 +375,96 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Allocates an occlusion query for each BSP block and BSP light.
+ * @brief Appends the given list of voxel indices to the given occlusion query, greedily
+ * merged into as few axis-aligned world-space boxes as possible.
+ * @details Per-voxel occlusion geometry is extremely tight, but naively appending one GPU
+ * box per voxel is untenable: a single BSP block or light can touch thousands of voxels, and
+ * drawing thousands of instanced cubes to test occlusion costs far more than the geometry it
+ * is meant to cull. This converts each touched voxel to its world-space box and hands them to
+ * `Box3_Merge`, which collapses contiguous runs into a small number of boxes -- so that solid
+ * rectangular regions -- the common case for both blocks and light influence volumes --
+ * collapse to a single box instead of hundreds or thousands.
+ */
+static void R_AppendOcclusionQueryVoxels(r_occlusion_query_t *query, const bsp_voxels_t *voxels, const int32_t *indices, int32_t num_indices) {
+
+  if (!num_indices) {
+    return;
+  }
+
+  box3_t *boxes = Mem_Malloc(num_indices * sizeof(box3_t));
+
+  const int32_t xy = voxels->size.x * voxels->size.y;
+
+  for (int32_t i = 0; i < num_indices; i++) {
+    const int32_t index = indices[i];
+
+    const int32_t z = index / xy;
+    const int32_t rem = index % xy;
+    const int32_t y = rem / voxels->size.x;
+    const int32_t x = rem % voxels->size.x;
+
+    const vec3_t mins = Vec3_Add(voxels->bounds.mins, Vec3_Scale(Vec3(x, y, z), BSP_VOXEL_SIZE));
+    const vec3_t maxs = Vec3_Add(mins, Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE));
+
+    boxes[i] = Box3(mins, maxs);
+  }
+
+  box3_t *merged;
+  const size_t num_merged = Box3_Merge(boxes, num_indices, &merged);
+
+  Mem_Free(boxes);
+
+  for (size_t i = 0; i < num_merged; i++) {
+    R_AppendOcclusionQueryBox(query, merged[i]);
+  }
+
+  free(merged);
+}
+
+/**
+ * @brief Allocates an occlusion query for each BSP block and BSP light, and populates its
+ * GPU-drawn geometry from the tight per-voxel bounds baked into `BSP_LUMP_BLOCK_VOXELS` /
+ * `BSP_LUMP_LIGHT_VOXELS` by quemap, rather than the block/light's own loose bounds.
+ * @details The voxel lists are greedily merged into a small number of boxes (see
+ * `R_AppendOcclusionQueryVoxels`) rather than appended one box per voxel, since a block or
+ * light can touch thousands of voxels and per-voxel instancing would cost far more to draw
+ * than the geometry it's meant to cull. A block or light with no baked voxel coverage (e.g.
+ * an inline model's whole-model block, which the world-only voxel grid never reaches) falls
+ * back to appending its own loose bounds as a single GPU box, preserving the old,
+ * un-tightened behavior for it.
  */
 static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 
+  const bsp_file_t *file = bsp->cm->file;
+  const bsp_voxels_t *voxels = file->voxels;
+
   r_bsp_block_t *block = bsp->blocks;
-  for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
+  const bsp_block_t *in_block = file->blocks;
+  for (int32_t i = 0; i < bsp->num_blocks; i++, block++, in_block++) {
+
     const box3_t bounds = Box3_Union(block->node->bounds, block->visible_bounds);
     block->query = R_AllocOcclusionQuery(bounds);
+
+    R_AppendOcclusionQueryVoxels(block->query, voxels,
+                                 file->block_voxels + in_block->first_voxel, in_block->num_voxels);
+
+    if (!block->query->num_boxes) {
+      R_AppendOcclusionQueryBox(block->query, bounds);
+    }
   }
 
   r_bsp_light_t *light = bsp->lights;
-  for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
+  const bsp_light_t *in_light = file->lights;
+  for (int32_t i = 0; i < bsp->num_lights; i++, light++, in_light++) {
+
     light->query = R_AllocOcclusionQuery(light->bounds);
+
+    R_AppendOcclusionQueryVoxels(light->query, voxels,
+                                 file->light_voxels + in_light->first_voxel, in_light->num_voxels);
+
+    if (!light->query->num_boxes) {
+      R_AppendOcclusionQueryBox(light->query, light->bounds);
+    }
   }
 }
 
@@ -594,7 +671,9 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
   (1 << BSP_LUMP_DRAW_ELEMENTS) | \
   (1 << BSP_LUMP_BLOCKS) | \
   (1 << BSP_LUMP_LIGHTS) | \
-  (1 << BSP_LUMP_VOXELS) \
+  (1 << BSP_LUMP_VOXELS) | \
+  (1 << BSP_LUMP_LIGHT_VOXELS) | \
+  (1 << BSP_LUMP_BLOCK_VOXELS) \
 )
 
 /**
