@@ -482,6 +482,7 @@
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
 		CE89C2BA2FE56432000B6244 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = CE89C2B92FE5642D000B6244 /* md5.c */; };
+		091C43A66A7972053AD1C8E7 /* box.c in Sources */ = {isa = PBXBuildFile; fileRef = 8542813678DB3B7BECEEF939 /* box.c */; };
 		CE89C2BC2FE56440000B6244 /* md5.h in Headers */ = {isa = PBXBuildFile; fileRef = CE89C2BB2FE5643E000B6244 /* md5.h */; };
 		CE89C2BD2FE56450000B6244 /* qstring.c in Sources */ = {isa = PBXBuildFile; fileRef = CE89C2BF2FE56452000B6244 /* qstring.c */; };
 		CE89C2BE2FE56451000B6244 /* qstring.h in Headers */ = {isa = PBXBuildFile; fileRef = CE89C2C02FE56453000B6244 /* qstring.h */; };
@@ -1187,6 +1188,7 @@
 		CE052A6E214831FE003446C9 /* check_mem */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_mem; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE052A8421483255003446C9 /* check_thread */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_thread; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE0C0751260CC75700FFE27B /* box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = box.h; sourceTree = "<group>"; };
+		8542813678DB3B7BECEEF939 /* box.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = box.c; sourceTree = "<group>"; };
 		CE12D4A71C5C58C300CD0B13 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		CE12D4A81C5C58C300CD0B13 /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
 		CE12D4FF1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -2381,6 +2383,7 @@
 			isa = PBXGroup;
 			children = (
 				CE0C0751260CC75700FFE27B /* box.h */,
+				8542813678DB3B7BECEEF939 /* box.c */,
 				CE89268723EE0F7300CF3D33 /* color.h */,
 				CE12D6881C5C58C300CD0B13 /* matrix.h */,
 				CE89C2BB2FE5643E000B6244 /* md5.h */,
@@ -5002,6 +5005,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE89C2BA2FE56432000B6244 /* md5.c in Sources */,
+				091C43A66A7972053AD1C8E7 /* box.c in Sources */,
 				CE04F48C25CADFEE00C31433 /* parse.c in Sources */,
 				CE89C2BD2FE56450000B6244 /* qstring.c in Sources */,
 				CE80FDB61C5E3D4E00A21A51 /* shared-anorms.c in Sources */,

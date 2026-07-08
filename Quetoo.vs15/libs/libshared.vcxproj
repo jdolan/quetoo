@@ -31,6 +31,7 @@
     <ClInclude Include="..\src\config.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\shared\box.c" />
     <ClCompile Include="..\..\src\shared\md5.c" />
     <ClCompile Include="..\..\src\shared\parse.c" />
     <ClCompile Include="..\..\src\shared\qstring.c" />

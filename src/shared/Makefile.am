@@ -13,6 +13,7 @@ noinst_LTLIBRARIES = \
 	libshared.la
 
 libshared_la_SOURCES = \
+	box.c \
 	md5.c \
 	parse.c \
 	qstring.c \
