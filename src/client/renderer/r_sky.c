@@ -431,10 +431,19 @@ void R_ShutdownSky(void) {
  * @brief Rebuilds the sky pipeline and sampler in place, for pipeline-bound
  * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
  * an r_restart. See R_UpdatePipelines.
+ * @details R_InitSky memsets `r_sky` (including the currently loaded `image`),
+ * but `image` is only (re)loaded by R_LoadSky at map load/r_restart -- so it
+ * must be preserved across this rebuild, or the sky cubemap goes black (falls
+ * back to R_SkyTexture's solid fallback cube) until the next full media load.
  */
 void R_UpdateSky(void) {
+
+  r_image_t *image = r_sky.image;
+
   R_ShutdownSky();
   R_InitSky();
+
+  r_sky.image = image;
 }
 
 /**
