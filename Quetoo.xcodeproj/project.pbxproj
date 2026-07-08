@@ -4723,7 +4723,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "make PATH=/usr/local/bin:/opt/homebrew/bin:${PATH} \\\n  -C src/client/renderer/shaders shaders\n";
+			shellScript = "export PATH=/usr/local/bin:/opt/homebrew/bin:${PATH}\nmake -C src/client/renderer/shaders shaders\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
