@@ -100,7 +100,8 @@ void R_InitDepthPass(void) {
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
   info.rasterizer_state.enable_depth_bias = true;
-  info.rasterizer_state.depth_bias_slope_factor = 100.f; // 🤷🏼‍♂️
+  info.rasterizer_state.depth_bias_constant_factor = 10.f;
+  info.rasterizer_state.depth_bias_slope_factor = 10.f;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
