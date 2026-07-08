@@ -231,6 +231,11 @@ static void R_UpdateSpriteQuad(r_view_t *view, const r_sprite_t *s,
   in->vertexes[2].color =
   in->vertexes[3].color = Color_Color24(Color3fv(s->color));
 
+  in->vertexes[0].reserved =
+  in->vertexes[1].reserved =
+  in->vertexes[2].reserved =
+  in->vertexes[3].reserved = 0;
+
   in->vertexes[0].lighting =
   in->vertexes[1].lighting =
   in->vertexes[2].lighting =
@@ -334,6 +339,11 @@ static void R_UpdateBeamQuad(r_view_t *view, const r_beam_t *b,
     in->vertexes[1].color =
     in->vertexes[2].color =
     in->vertexes[3].color = Color_Color24(Color3fv(b->color));
+
+    in->vertexes[0].reserved =
+    in->vertexes[1].reserved =
+    in->vertexes[2].reserved =
+    in->vertexes[3].reserved = 0;
 
     in->vertexes[0].lerp =
     in->vertexes[1].lerp =
@@ -532,10 +542,8 @@ static void R_InitSpritePipeline(void) {
 
   // Sprites sample the scene depth for the soft-particle fade, which also serves
   // as the occlusion test, so the pipeline performs no hardware depth test or
-  // write of its own. It still declares the scene's depth-stencil format so the
-  // pipeline description matches every other blended pipeline targeting
-  // R_SCENE_COLOR_FORMAT; some D3D12 drivers reject blended pipelines that
-  // declare no depth-stencil attachment at all.
+  // write of its own. It still declares the scene depth-stencil target to match
+  // the other blended pipelines targeting R_SCENE_COLOR_FORMAT.
   info.depth_stencil_state = (SDL_GPUDepthStencilState) { 0 };
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
@@ -565,14 +573,14 @@ static void R_InitSpritePipeline(void) {
         .offset = offsetof(r_sprite_vertex_t, next_diffusemap),
       },
       {
-        // .rgb is the sprite color; the fourth byte (lerp) is read but unused here.
+        // .rgb is the sprite color; the fourth byte is reserved padding and unused.
         .location = 3,
         .buffer_slot = 0,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
         .offset = offsetof(r_sprite_vertex_t, color),
       },
       {
-        // .x = lerp, .y = lighting (adjacent bytes).
+        // .x = lerp, .y = lighting (adjacent aligned bytes).
         .location = 4,
         .buffer_slot = 0,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE2_NORM,
@@ -585,19 +593,7 @@ static void R_InitSpritePipeline(void) {
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
       .format = R_SCENE_COLOR_FORMAT,
-      // sprite_fs always outputs alpha = 1.0 (occlusion is baked into the RGB
-      // fade instead, see soften()), so the color blend factors reference ONE
-      // rather than *_ALPHA: functionally identical, but avoids depending on
-      // alpha blending against a target format that has no alpha channel.
-      .blend_state = {
-        .enable_blend = true,
-        .src_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
-        .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
-        .color_blend_op = SDL_GPU_BLENDOP_ADD,
-        .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
-        .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
-        .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
-      },
+      .blend_state = GPU_BlendStateAdditive,
     },
     .num_color_targets = 1,
     .depth_stencil_format = framebuffer->depthFormat,

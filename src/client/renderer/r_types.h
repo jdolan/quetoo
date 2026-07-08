@@ -1640,6 +1640,13 @@ typedef struct {
   color24_t color;
 
   /**
+   * @brief Padding: keeps @c lerp below at a 2-byte-aligned offset. @c color24_t
+   * is 3 bytes, so without this, the packed (@c lerp, @c lighting) UBYTE2_NORM
+   * attribute lands on an odd offset, which D3D12 rejects.
+   */
+  uint8_t reserved;
+
+  /**
    * @brief The animation interpolation factor.
    */
   uint8_t lerp;
