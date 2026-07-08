@@ -523,14 +523,19 @@ void R_DrawSprites(const r_view_t *view) {
  */
 static void R_InitSpritePipeline(void) {
 
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
+
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
 
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 
   // Sprites sample the scene depth for the soft-particle fade, which also serves
-  // as the occlusion test, so the pass carries no depth attachment (and the
-  // pipeline no depth-stencil state).
+  // as the occlusion test, so the pipeline performs no hardware depth test or
+  // write of its own. It still declares the scene's depth-stencil format so the
+  // pipeline description matches every other blended pipeline targeting
+  // R_SCENE_COLOR_FORMAT; some D3D12 drivers reject blended pipelines that
+  // declare no depth-stencil attachment at all.
   info.depth_stencil_state = (SDL_GPUDepthStencilState) { 0 };
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
@@ -580,9 +585,23 @@ static void R_InitSpritePipeline(void) {
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
       .format = R_SCENE_COLOR_FORMAT,
-      .blend_state = GPU_BlendStateAdditive,
+      // sprite_fs always outputs alpha = 1.0 (occlusion is baked into the RGB
+      // fade instead, see soften()), so the color blend factors reference ONE
+      // rather than *_ALPHA: functionally identical, but avoids depending on
+      // alpha blending against a target format that has no alpha channel.
+      .blend_state = {
+        .enable_blend = true,
+        .src_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
+        .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
+        .color_blend_op = SDL_GPU_BLENDOP_ADD,
+        .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
+        .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
+        .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+      },
     },
     .num_color_targets = 1,
+    .depth_stencil_format = framebuffer->depthFormat,
+    .has_depth_stencil_target = true,
   };
 
   r_sprite_draw.pipeline = $(r_context.device, loadGraphicsPipeline,
