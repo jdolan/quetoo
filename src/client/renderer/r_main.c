@@ -50,6 +50,7 @@ cvar_t *r_framebuffer_scale;
 cvar_t *r_fullscreen;
 cvar_t *r_fullscreen_width;
 cvar_t *r_fullscreen_height;
+cvar_t *r_gpu_driver;
 cvar_t *r_hardness;
 cvar_t *r_lighting_distance;
 cvar_t *r_modulate;
@@ -387,6 +388,7 @@ static void R_InitLocal(void) {
   r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
   r_fullscreen_width = Cvar_Add("r_fullscreen_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution width. 0 uses the desktop resolution.");
   r_fullscreen_height = Cvar_Add("r_fullscreen_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution height. 0 uses the desktop resolution.");
+  r_gpu_driver = Cvar_Add("r_gpu_driver", "", CVAR_NO_SET, "Forces the SDL_gpu backend driver: \"vulkan\", \"direct3d12\" or \"metal\". Empty lets SDL choose. Set via +set at the command line.");
   r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects.");
   r_lighting_distance = Cvar_Add("r_lighting_distance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex lighting.");
   r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting.");

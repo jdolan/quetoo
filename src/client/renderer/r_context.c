@@ -157,6 +157,13 @@ void R_InitContext(void) {
     }
   }
 
+  if (r_gpu_driver->string[0]) {
+    Com_Print("  Forcing GPU driver \"%s\"..\n", r_gpu_driver->string);
+    SDL_SetHint(SDL_HINT_GPU_DRIVER, r_gpu_driver->string);
+  } else {
+    SDL_ResetHint(SDL_HINT_GPU_DRIVER);
+  }
+
   Com_Print("  Creating GPU render device..\n");
 
   r_context.device = $(alloc(RenderDevice), initWithWindow, r_context.window);
