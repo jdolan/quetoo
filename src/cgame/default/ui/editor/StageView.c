@@ -124,18 +124,18 @@ typedef struct {
 } stage_blend_factor_t;
 
 /**
- * @brief The blend factors offered by the Blend effect, mirrored from the material
- * parser's table (`cm_blendConstList` in cm_material.c). The values are the fixed
- * OpenGL enum constants, duplicated here so this cgame view needs no GL header.
+ * @brief The blend factors offered by the Blend effect. `cm_blend_t` (cm_material.h)
+ * is renderer-agnostic and needs no GL header, so these reference the real enum
+ * directly rather than duplicating its values.
  */
 static const stage_blend_factor_t stage_blend_factors[] = {
-  { "GL_ONE",                 0x0001 },
-  { "GL_ZERO",                0x0000 },
-  { "GL_SRC_ALPHA",           0x0302 },
-  { "GL_ONE_MINUS_SRC_ALPHA", 0x0303 },
-  { "GL_SRC_COLOR",           0x0300 },
-  { "GL_DST_COLOR",           0x0306 },
-  { "GL_ONE_MINUS_SRC_COLOR", 0x0301 },
+  { "ONE",                 BLEND_ONE },
+  { "ZERO",                BLEND_ZERO },
+  { "SRC_ALPHA",           BLEND_SRC_ALPHA },
+  { "ONE_MINUS_SRC_ALPHA", BLEND_ONE_MINUS_SRC_ALPHA },
+  { "SRC_COLOR",           BLEND_SRC_COLOR },
+  { "DST_COLOR",           BLEND_DST_COLOR },
+  { "ONE_MINUS_SRC_COLOR", BLEND_ONE_MINUS_SRC_COLOR },
 };
 
 /**
