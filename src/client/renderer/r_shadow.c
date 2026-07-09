@@ -246,7 +246,7 @@ void R_DrawShadows(const r_view_t *view) {
       .buffer = bsp->elements_buffer->buffer
     }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-    $(commands, pushVertexUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
+    $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
     const r_light_t *l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
@@ -306,7 +306,7 @@ void R_DrawShadows(const r_view_t *view) {
     }
 
     $(pass, bindPipeline, r_shadow_mesh_pipeline);
-    $(commands, pushVertexUniformData, 0, &r_uniforms.block, sizeof(r_uniforms.block));
+    $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
     l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
@@ -414,6 +414,7 @@ void R_InitShadows(void) {
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/shadow_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+    .num_uniform_buffers = 1, // globals (binding 0), for depth_range
   });
 
   SDL_GPUGraphicsPipelineCreateInfo info = {

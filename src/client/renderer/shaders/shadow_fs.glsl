@@ -28,9 +28,14 @@
  * the fragment's radial distance against the stored nearest-occluder distance.
  */
 
-layout (location = 0) in float in_dist;
+#include "uniforms.glsl"
+
+layout (location = 0) in vec3 in_position;
 
 void main(void) {
 
-  gl_FragDepth = min(in_dist + 0.0006, 1.0);
+  const float dist = length(in_position) / depth_range.y;
+  const float bias = clamp(dist * 0.01, 1.0 / depth_range.y, 8.0 / depth_range.y);
+
+  gl_FragDepth = min(dist + bias, 1.0);
 }
