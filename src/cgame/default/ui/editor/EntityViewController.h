@@ -22,7 +22,7 @@
 #pragma once
 
 #include "EntityView.h"
-#include "KeyValueTableView.h"
+#include <ObjectivelyMVC/KeyValueTableView.h>
 
 #include <ObjectivelyMVC/Box.h>
 #include <ObjectivelyMVC/Button.h>

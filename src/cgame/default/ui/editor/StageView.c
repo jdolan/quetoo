@@ -23,8 +23,8 @@
 
 #include "StageView.h"
 
-#include "KeyValueView.h"
-#include "KeyValueTableView.h"
+#include <ObjectivelyMVC/KeyValueView.h>
+#include <ObjectivelyMVC/KeyValueTableView.h>
 
 #include <ObjectivelyMVC/Label.h>
 #include <ObjectivelyMVC/TextView.h>

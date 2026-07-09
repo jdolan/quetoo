@@ -23,7 +23,8 @@
 
 #include "MaterialViewController.h"
 #include "StageView.h"
-#include "Scrollbar.h"
+
+#include <ObjectivelyMVC/Scrollbar.h>
 
 #define _Class _MaterialViewController
 
@@ -121,7 +122,6 @@ static void didClickAddStage(Button *button) {
   if (this->material) {
     cm_stage_t *stage = cgi.AddMaterialStage(this->material);
     appendStageView(this, stage);
-    $((View *) this->stages, sizeToFit);
   }
 }
 
@@ -169,10 +169,6 @@ static void loadStages(MaterialViewController *this) {
   // MVC's style pass is O(views x selectors) and a single loadStages call used to
   // apply it to every new stage's whole subtree in the same frame.
   this->pendingStage = this->material ? this->material->cm->stages : NULL;
-
-  if (this->pendingStage == NULL) {
-    $((View *) this->stages, sizeToFit);
-  }
 }
 
 #pragma mark - StagesPumpView
@@ -248,10 +244,6 @@ static void pumpRender(View *self, Renderer *renderer) {
   controller->pendingStage = stage->next;
 
   appendStageView(controller, stage);
-
-  if (controller->pendingStage == NULL) {
-    $((View *) controller->stages, sizeToFit);
-  }
 }
 
 /**
@@ -373,21 +365,18 @@ static void loadView(ViewController *self) {
   // Scroll ONLY the Material Stages list (not the whole tab): the maps + PBR boxes
   // stay fixed. The stages box's contentView holds just the scroll structure (the
   // Add Stage button lives in the box title above); that structure is
-  //   stagesViewport               [fills remaining tab height, sized per-frame]
-  //     |-- scrollView   -> contentView = `stages` (the StageView list)
-  //     `-- scrollbar    -> pinned in the right gutter
+  //   stagesViewport   [fills remaining tab height, sized per-frame]
+  //     |-- stages     [a scrolling StackView -- opt-in via CSS `scroll: true`]
+  //     `-- scrollbar  -> pinned in the right gutter, drives `stages` directly
   //
-  // The gutter is created by insetting the SCROLL VIEW, not by padding the list.
-  // This is the crux: a Contain-masked list sizes to `content + padding`, so any
-  // right padding on it forces the list wider than the scroll view -- it then
-  // bleeds under the bar and seeds a width ratchet. Instead the viewport reserves
-  // the gutter as the SCROLL VIEW's own right padding, which insets only the
-  // scrolled list (the padding shrinks the scroll view's content bounds, so the
-  // list lays out to bounds - gutter), while the scroll view itself still fills
-  // the viewport. The scrollbar is a sibling filling that full width and simply
-  // right-aligns to the viewport's right edge, landing in the gutter beyond the
-  // list. This uses only right-alignment + content padding -- no per-frame manual
-  // positioning, which did not render reliably.
+  // StackView now scrolls itself (contentOffset/scrollToOffset -- see
+  // ObjectivelyMVC/StackView), so no ScrollView wrapper is needed; Scrollbar
+  // binds straight to `stages`. The gutter is reserved as `stages`'s own right
+  // padding: since `stages` is Fill-masked to the viewport (not Contain-sized to
+  // its content -- Fill is what makes a StackView's own bounds the fixed
+  // "viewport" its scroll offset pans within), padding it only insets its
+  // content area and can't bleed the view wider the way a Contain-masked list
+  // would.
   View *stagesParent = ((View *) this->stages)->superview;
 
   this->stagesViewport = $(alloc(View), initWithFrame, NULL);
@@ -395,23 +384,14 @@ static void loadView(ViewController *self) {
   this->stagesViewport->autoresizingMask = ViewAutoresizingWidth;
   this->stagesViewport->clipsSubviews = true;
 
-  this->scrollView = $(alloc(ScrollView), initWithFrame, NULL);
-  assert(this->scrollView);
-  ((View *) this->scrollView)->clipsSubviews = true;
-  // Reserve the scrollbar gutter inside the scroll view: this insets the content
-  // list (`stages`) without moving the scroll view, so nothing extends under the
-  // bar. Padding on the scroll view (fill mask) is safe -- unlike padding on the
-  // Contain-masked list, which would inflate the list past the viewport.
-  ((View *) this->scrollView)->padding.right = MATERIAL_SCROLLBAR_WIDTH + MATERIAL_CONTENT_PADDING;
-
   retain(this->stages);
   $((View *) this->stages, removeFromSuperview);
-  $(this->scrollView, setContentView, (View *) this->stages);
+  ((View *) this->stages)->autoresizingMask = ViewAutoresizingFill;
+  ((View *) this->stages)->padding.right = MATERIAL_SCROLLBAR_WIDTH + MATERIAL_CONTENT_PADDING;
+  $(this->stagesViewport, addSubview, (View *) this->stages);
   release(this->stages);
 
-  $(this->stagesViewport, addSubview, (View *) this->scrollView);
-
-  Scrollbar *scrollbar = $(alloc(Scrollbar), initWithScrollView, this->scrollView);
+  Scrollbar *scrollbar = $(alloc(Scrollbar), initWithStackView, this->stages);
   assert(scrollbar);
   ((View *) scrollbar)->frame.w = MATERIAL_SCROLLBAR_WIDTH;
   ((View *) scrollbar)->autoresizingMask = ViewAutoresizingHeight;
@@ -479,7 +459,6 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
           this->selectedStage = NULL;
         }
         $((View *) this->stages, removeSubview, (View *) stageView);
-        $((View *) this->stages, sizeToFit);
         break;
       }
     }

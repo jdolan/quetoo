@@ -10,11 +10,7 @@ noinst_HEADERS = \
 	CvarSelect.h \
 	CvarSlider.h \
 	CvarTextView.h \
-	DialogViewController.h \
-	KeyValueTableView.h \
-	KeyValueView.h \
-	Scrollbar.h \
-	ScrollThumb.h
+	DialogViewController.h
 
 noinst_LTLIBRARIES = \
 	libcguicommon.la
@@ -25,11 +21,7 @@ libcguicommon_la_SOURCES = \
 	CvarSelect.c \
 	CvarSlider.c \
 	CvarTextView.c \
-	DialogViewController.c \
-	KeyValueTableView.c \
-	KeyValueView.c \
-	Scrollbar.c \
-	ScrollThumb.c
+	DialogViewController.c
 
 libcguicommon_la_CFLAGS = \
 	-I$(top_srcdir)/src \

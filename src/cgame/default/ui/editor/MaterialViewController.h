@@ -25,7 +25,6 @@
 
 #include <ObjectivelyMVC/ViewController.h>
 #include <ObjectivelyMVC/StackView.h>
-#include <ObjectivelyMVC/ScrollView.h>
 #include <ObjectivelyMVC/Button.h>
 #include <ObjectivelyMVC/Box.h>
 #include <ObjectivelyMVC/Label.h>
@@ -76,22 +75,16 @@ struct MaterialViewController {
 
   /**
    * @brief The fixed-height viewport (a plain View) inside the stages box that
-   * holds the scroll view + scrollbar. fitStagesHeight sizes its height so the
+   * holds `stages` + its scrollbar. fitStagesHeight sizes its height so the
    * stages list fills the rest of the tab.
    */
   View *stagesViewport;
 
   /**
-   * @brief The scroll view panning the stages list (its content view is `stages`).
-   * It is inset from the viewport's right by the scrollbar gutter, so its
-   * clipsSubviews clips the list before it can reach the bar.
-   */
-  ScrollView *scrollView;
-
-  /**
-   * @brief The vertical scrollbar for the stages list. It lives in the gutter to
-   * the right of the (inset) scroll view; fitStagesHeight pins its x to the
-   * viewport's right edge so it is not subject to the viewport's right padding.
+   * @brief The vertical scrollbar for the stages list. It drives `stages`
+   * directly (a scrolling StackView, no ScrollView wrapper) and lives in the
+   * gutter to its right; fitStagesHeight pins its x to the viewport's right
+   * edge so it is not subject to the viewport's right padding.
    */
   View *scrollbar;
 

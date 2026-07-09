@@ -23,7 +23,7 @@
 
 #include "MeshViewController.h"
 
-#include "KeyValueTableView.h"
+#include <ObjectivelyMVC/KeyValueTableView.h>
 
 #include <ObjectivelyMVC/Label.h>
 #include <ObjectivelyMVC/TextView.h>

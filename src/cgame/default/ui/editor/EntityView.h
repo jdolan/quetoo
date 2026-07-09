@@ -24,7 +24,7 @@
 #include "cgame/cgame.h"
 #include "../../cg_editor.h"
 
-#include "KeyValueView.h"
+#include <ObjectivelyMVC/KeyValueView.h>
 
 typedef struct EntityView EntityView;
 typedef struct EntityViewInterface EntityViewInterface;
