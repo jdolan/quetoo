@@ -24,5 +24,43 @@
 #define __R_LOCAL_H__
 
 #include "renderer.h"
-#include "r_gl.h"
 #include <Objectively/Vector.h>
+
+/**
+ * @brief The only two C-side descriptor slots genuinely shared by every
+ * pipeline: the per-frame globals block, and the per-draw locals block
+ * (model matrix in the vertex stage; light-cull bitmask in the fragment
+ * stage). Every other resource's binding is local to the pipeline that uses
+ * it -- see e.g. the enum at the top of r_bsp_draw.c -- since pipelines don't
+ * actually share a descriptor layout beyond this.
+ */
+enum {
+	SLOT_UNIFORMS_GLOBALS = 0, // per-frame globals
+	SLOT_UNIFORMS_LOCALS  = 1, // per-draw (model matrix / light cull)
+};
+
+/**
+ * @brief The scene framebuffer color format: an HDR (unsigned float) target so
+ * lighting can exceed 1.0 and feed bloom. All 3D pipelines render into it; the
+ * present framebuffer stays the swapchain (LDR) format, and R_DrawPost composites
+ * the scene into it (adding bloom, clamping to LDR).
+ */
+#define R_SCENE_COLOR_FORMAT SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT
+
+/**
+ * @brief Maps a `cm_blend_t` blend factor to its SDL_gpu equivalent.
+ * @remarks `static inline` so every pipeline's material-stage blend cache
+ * (R_StagePipeline and friends) can use it without a shared translation unit.
+ */
+static inline SDL_GPUBlendFactor R_BlendFactor(cm_blend_t blend) {
+  switch (blend) {
+    case BLEND_ZERO:                return SDL_GPU_BLENDFACTOR_ZERO;
+    case BLEND_ONE:                 return SDL_GPU_BLENDFACTOR_ONE;
+    case BLEND_SRC_COLOR:           return SDL_GPU_BLENDFACTOR_SRC_COLOR;
+    case BLEND_ONE_MINUS_SRC_COLOR: return SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR;
+    case BLEND_SRC_ALPHA:           return SDL_GPU_BLENDFACTOR_SRC_ALPHA;
+    case BLEND_ONE_MINUS_SRC_ALPHA: return SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+    case BLEND_DST_COLOR:           return SDL_GPU_BLENDFACTOR_DST_COLOR;
+    default:                        return SDL_GPU_BLENDFACTOR_ONE;
+  }
+}

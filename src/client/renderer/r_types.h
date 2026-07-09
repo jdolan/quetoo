@@ -23,10 +23,11 @@
 
 #include <SDL3/SDL_video.h>
 
+#include <ObjectivelyGPU.h>
+
 #include "common/atlas.h"
 #include "collision/cm_bsp.h"
 
-#include "r_gl.h"
 
 /**
  * @brief Media types.
@@ -124,49 +125,14 @@ typedef struct {
   r_image_type_t type;
 
   /**
-   * @brief The image width, height and depth (or layers).
+   * @brief The image width, height and depth (or layers, faces, etc..).
    */
-  GLint width, height, depth;
+  int32_t width, height, depth;
 
   /**
-   * @brief The target to bind this texture.
+   * @brief The GPU texture (ObjectivelyGPU). Owns the sampled texture.
    */
-  GLenum target;
-
-  /**
-   * @brief The number of mipmap levels to allocate, typically `log2(Maxi(w, h)) + 1`.
-   */
-  GLsizei levels;
-
-  /**
-   * @brief The minification and magnification filters, typically `GL_LINEAR`.
-   */
-  GLenum minify, magnify;
-
-  /**
-   * @brief The internal pixel format, typically `GL_RGB` or `GL_RGBA`, but may be a sized value.
-   */
-  GLenum internal_format;
-
-  /**
-   * @brief The pixel format, typically `GL_RGB` or `GL_RGBA`.
-   */
-  GLenum format;
-
-  /**
-   * @brief The pixel data type, typically `GL_UNSIGNED_BYTE`.
-   */
-  GLenum pixel_type;
-
-  /**
-   * @brief The buffer object name, for `GL_TEXTURE_BUFFER` (TBO).
-   */
-  GLuint buffer;
-
-  /**
-   * @brief The texture name.
-   */
-  GLuint texnum;
+  Texture *texture;
 } r_image_t;
 
 /**
@@ -338,34 +304,38 @@ typedef struct r_decal_s {
 #define MAX_DECALS 0x800
 
 /**
- * @brief OpenGL occlusion queries.
+ * @brief Hardware occlusion queries.
  */
 typedef struct r_occlusion_query_s {
 
   /**
-   * @brief The query name.
-   */
-  GLuint name;
-
-  /**
-   * @brief The query bounds.
+   * @brief The query bounds, used for CPU-side `R_OccludeBox`/`R_OccludeSphere` checks and
+   * view culling. Set once by `R_AllocOcclusionQuery` and never touched again -- in
+   * particular, appending GPU box geometry via `R_AppendOcclusionQueryBox` never changes
+   * this, so a query may test a loose, coarse volume on the CPU while drawing much
+   * tighter, per-voxel geometry on the GPU.
    */
   box3_t bounds;
 
   /**
-   * @brief The base vertex in the shared vertex buffer.
+   * @brief The first instance index in the shared per-instance box buffer.
    */
-  GLint base_vertex;
+  int32_t first_instance;
 
   /**
-   * @brief Non-zero if the query is available.
+   * @brief The count of instanced boxes drawn for this query.
    */
-  GLint available;
+  int32_t num_boxes;
 
   /**
-   * @brief Non-zero of the query produced visible fragments.
+   * @brief True if the query result below is available (has been downloaded).
    */
-  GLint result;
+  bool available;
+
+  /**
+   * @brief True if the query produced visible fragments.
+   */
+  bool result;
 } r_occlusion_query_t;
 
 /**
@@ -520,7 +490,7 @@ typedef struct r_bsp_face_s {
   /**
    * @brief The elements.
    */
-  GLvoid *elements;
+  void *elements;
 
   /**
    * @brief The count of elements.
@@ -552,7 +522,7 @@ typedef struct {
   /**
    * @brief An offset pointer (in bytes) into the BSP elements array.
    */
-  GLvoid *elements;
+  void *elements;
 
   /**
    * @brief The count of elements.
@@ -664,14 +634,10 @@ typedef struct {
   Vector *triangles;
 
   /**
-   * @brief The decal vertex buffer object.
+   * @brief The decal vertex buffer, and its capacity in vertices.
    */
-  GLuint vertex_buffer;
-
-  /**
-   * @brief The decal vertex array object.
-   */
-  GLuint vertex_array;
+  Buffer *vertex_buffer;
+  int32_t vertex_buffer_capacity;
 
   /**
    * @brief True if the containing block's decals require uploading.
@@ -706,14 +672,14 @@ typedef struct r_bsp_block_s {
   box3_t visible_bounds;
 
   /**
-   * @brief The bitwise OR of all draw element surface flags for this block.
-   */
-  int32_t surface;
-
-  /**
    * @brief The occlusion query for this block.
    */
   r_occlusion_query_t *query;
+
+  /**
+   * @brief The bitwise OR of all draw element surface flags for this block.
+   */
+  int32_t surface;
 
   /**
    * @brief The decals for this block.
@@ -757,7 +723,7 @@ typedef struct r_bsp_inline_model_s {
   /**
    * @brief The depth pass elements of this inline model.
    */
-  GLvoid *depth_pass_elements;
+  void *depth_pass_elements;
 
   /**
    * @brief The count of depth pass elements.
@@ -827,14 +793,14 @@ typedef struct {
   box3_t bounds;
 
   /**
-   * @brief The light occlusion query.
+   * @brief The occlusion query for this light.
    */
   r_occlusion_query_t *query;
 
   /**
    * @brief An offset pointer (in bytes) into the BSP elements array for shadow geometry.
    */
-  GLvoid *depth_pass_elements;
+  void *depth_pass_elements;
 
   /**
    * @brief The count of elements.
@@ -924,9 +890,15 @@ typedef struct {
   r_image_t *occlusion;
 
   /**
-   * @brief The light data 3D texture (`RG32I`) for offset and count pairs per voxel.
+   * @brief Media placeholder for the per-voxel light data (see `light_data_buffer`).
    */
   r_image_t *light_data;
+
+  /**
+   * @brief The storage buffer of per-voxel (first_index, count) pairs (`R32I`),
+   * indexed by linear voxel index.
+   */
+  Buffer *light_data_buffer;
 
   /**
    * @brief Voxel light index texture to sample the index buffer (`R32I`).
@@ -934,9 +906,9 @@ typedef struct {
   r_image_t *light_indices;
 
   /**
-   * @brief The buffer object backing the index vector.
+   * @brief The storage buffer backing the light index vector (`R32I`).
    */
-  GLuint light_indices_buffer;
+  Buffer *light_indices_buffer;
 
   /**
    * @brief The length of `light_indices_buffer`.
@@ -1013,7 +985,7 @@ typedef struct {
   /**
    * @brief The elements array.
    */
-  GLuint *elements;
+  uint32_t *elements;
 
   /**
    * @brief The count of faces.
@@ -1092,24 +1064,26 @@ typedef struct {
 
   /**
    * @brief The vertex array (VAO) name.
+   * @remarks Unused under SDL_gpu; vertex layout lives in the GraphicsPipeline.
    */
-  GLuint vertex_array;
+  uint32_t vertex_array;
 
   /**
-   * @brief The vertex array buffer (VBO) name.
+   * @brief The vertex buffer.
    */
-  GLuint vertex_buffer;
+  Buffer *vertex_buffer;
 
   /**
-   * @brief The elements array buffer (VBO) name.
+   * @brief The elements (index) buffer.
    */
-  GLuint elements_buffer;
+  Buffer *elements_buffer;
   struct {
 
     /**
      * @brief The depth pass vertex array (VAO) name.
+     * @remarks Unused under SDL_gpu; retained pending the depth pre-pass port.
      */
-    GLuint vertex_array;
+    uint32_t vertex_array;
 
   /**
    * @brief The depth pass vertex array.
@@ -1216,7 +1190,7 @@ typedef struct {
   /**
    * @brief The elements.
    */
-  GLuint *elements;
+  uint32_t *elements;
 
   /**
    * @brief The count of elements.
@@ -1226,12 +1200,12 @@ typedef struct {
   /**
    * @brief The base vertex in the shared mesh VAO.
    */
-  GLint base_vertex;
+  int32_t base_vertex;
 
   /**
    * @brief The elements pointer in the shared mesh VAO.
    */
-  GLvoid *indices;
+  void *indices;
 } r_mesh_face_t;
 
 /**
@@ -1319,7 +1293,7 @@ typedef struct {
   /**
    * @brief The elements array.
    */
-  GLuint *elements;
+  uint32_t *elements;
 
   /**
    * @brief The count of elements.
@@ -1369,12 +1343,12 @@ typedef struct {
   /**
    * @brief The base vertex in the shared mesh VAO.
    */
-  GLint base_vertex;
+  int32_t base_vertex;
 
   /**
    * @brief The indices pointer in the shared mesh VAO.
    */
-  GLvoid *indices;
+  void *indices;
 
   /**
    * @brief The transform and normalization configurations.
@@ -1399,6 +1373,16 @@ typedef struct {
    * @brief The mesh normalization configurations.
    */
   } config;
+
+  /**
+   * @brief The GPU vertex buffer holding all frames of all faces.
+   */
+  Buffer *vertex_buffer;
+
+  /**
+   * @brief The GPU elements (index) buffer.
+   */
+  Buffer *elements_buffer;
 } r_mesh_model_t;
 
 /**
@@ -1489,38 +1473,6 @@ typedef struct {
    * @brief The currently loaded world model, if any.
    */
   r_model_t *world;
-  struct {
-
-    /**
-     * @brief The vertex array (VAO) name.
-     */
-    GLuint vertex_array;
-
-    /**
-     * @brief The vertex buffer (VBO) name.
-     */
-    GLuint vertex_buffer;
-
-    /**
-     * @brief The elements buffer (VBO) name.
-     */
-    GLuint elements_buffer;
-    struct {
-
-      /**
-       * @brief The depth pass vertex array (VAO) name.
-       */
-      GLuint vertex_array;
-
-    /**
-     * @brief The depth pass vertex array.
-     */
-    } depth_pass;
-
-  /**
-   * @brief The shared vertex array for mesh models.
-   */
-  } mesh;
 
 } r_models_t;
 
@@ -1697,6 +1649,13 @@ typedef struct {
   color24_t color;
 
   /**
+   * @brief Padding: keeps @c lerp below at a 2-byte-aligned offset. @c color24_t
+   * is 3 bytes, so without this, the packed (@c lerp, @c lighting) UBYTE2_NORM
+   * attribute lands on an odd offset, which D3D12 rejects.
+   */
+  uint8_t reserved;
+
+  /**
    * @brief The animation interpolation factor.
    */
   uint8_t lerp;
@@ -1735,7 +1694,7 @@ typedef struct {
   /**
    * @brief An offset pointer (in bytes) in the shared array.
    */
-  GLvoid *elements;
+  void *elements;
 
   /**
    * @brief The sprite bounds.
@@ -1825,11 +1784,6 @@ typedef struct r_entity_s {
   mat4_t inverse_matrix;
 
   /**
-   * @brief True if this entity is occluded, false otherwise.
-   */
-  bool occluded;
-
-  /**
    * @brief The model, if any.
    */
   const r_model_t *model;
@@ -1879,8 +1833,15 @@ typedef struct r_entity_s {
 /**
  * @brief Light sources per scene.
  */
-#define MAX_DYNAMIC_LIGHTS 64
+#define MAX_DYNAMIC_LIGHTS 256
 #define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
+
+/**
+ * @brief The maximum number of shadow-caster entity references across all
+ * lights in a single frame (an entity may be referenced by more than one
+ * light, so this is not simply MAX_ENTITIES).
+ */
+#define MAX_SHADOW_CASTERS (MAX_ENTITIES * 4)
 
 /**
  * @brief Hardware light source flags.
@@ -1891,7 +1852,6 @@ typedef struct r_entity_s {
  * @brief Hardware light sources.
  */
 typedef struct {
-
   /**
    * @brief The light flags.
    */
@@ -1923,16 +1883,6 @@ typedef struct {
   box3_t bounds;
 
   /**
-   * @brief The occlusion query, for lights that persist multiple frames.
-   */
-  r_occlusion_query_t *query;
-
-  /**
-   * @brief True if the light is occluded for the current frame.
-   */
-  bool occluded;
-
-  /**
    * @brief The backing BSP light, for static light sources.
    */
   const r_bsp_light_t *bsp_light;
@@ -1943,9 +1893,41 @@ typedef struct {
   bool *shadow_cached;
 
   /**
-   * @brief The optional light source, which will not cast shadow.
+   * @brief The optional light source entity identifier, which will not cast
+   * shadow. This is an opaque token matching r_entity_t::id (the cgame's
+   * cl_entity_t pointer), not a renderer entity pointer.
    */
-  const r_entity_t *source;
+  const void *source;
+  
+  /**
+   * @brief True if the light is occluded for the current frame, set by
+   * R_UpdateLights. Static lights consult their backing bsp_light's
+   * persistent occlusion query; dynamic lights are tested with R_CulludeBox.
+   */
+  bool occluded;
+
+  /**
+   * @brief The entities intersecting this light's bounds and
+   * surviving the view-frustum shadow-bounds cull, populated by
+   * @c R_UpdateShadows.
+   */
+  const r_entity_t *entities[MAX_ENTITIES];
+
+  /**
+   * @brief The number of entities in `entities`.
+   */
+  int32_t num_entities;
+
+  /**
+   * @brief This light's tile origin in the shadow atlas, in pixels. The tile
+   * is square (`r_shadow_atlas.tile_size` on a side) and the same in all six
+   * face textures. Computed once by R_UpdateLights from the light's index (it
+   * runs first each frame and needs the value itself); consumed directly by
+   * R_ClearShadows/R_DrawShadows for viewport/scissor, and combined with
+   * `r_shadow_atlas.tile_size` into r_light_uniform_t::shadow -- the shader
+   * normalizes to UV space itself via textureSize().
+   */
+  vec2_t tile;
 } r_light_t;
 
 /**
@@ -1958,88 +1940,6 @@ typedef enum {
   ATTACHMENT_POST       = 0x8,
   ATTACHMENT_ALL        = 0xFF
 } r_attachment_t;
-
-/**
- * @brief The framebuffer type.
- */
-typedef struct r_framebuffer_s {
-
-  /**
-   * @brief The framebuffer name.
-   */
-  GLuint name;
-
-  /**
-   * @brief The attachments enabled for this framebuffer.
-   */
-  int32_t attachments;
-
-  /**
-   * @brief The color attachment texture name.
-   */
-  GLuint color_attachment;
-
-  /**
-   * @brief The depth attachment texture name.
-   */
-  GLuint depth_attachment;
-
-  /**
-   * @brief The depth attachment copy texture name.
-   */
-  GLuint depth_attachment_copy;
-
-  /**
-   * @brief The post-processing composite attachment texture name.
-   */
-  GLuint post_attachment;
-
-  /**
-   * @brief MSAA state (all zero when MSAA is disabled).
-   */
-  struct {
-    /**
-     * @brief The MSAA renderbuffer FBO.
-     *
-     * When non-zero, all 3D rendering targets this FBO. After rendering,
-     * the MSAA color is resolved to @c color_attachment via R_ResolveFramebuffer,
-     * and MSAA depth is resolved to @c depth_attachment via R_ResolveFramebufferDepth.
-     */
-    GLuint fbo;
-
-    /**
-     * @brief The MSAA color attachment (GL_R11F_G11F_B10F renderbuffer, multisampled).
-     *
-     * A renderbuffer rather than a texture since it is resolved to @c color_attachment
-     * via glBlitFramebuffer rather than shader sampling.
-     */
-    GLuint color_attachment;
-
-    /**
-     * @brief The MSAA depth attachment (GL_TEXTURE_2D_MULTISAMPLE, GL_DEPTH_COMPONENT32F).
-     *
-     * A texture rather than a renderbuffer so that it can be shader-sampled during
-     * the depth resolve pass.
-     */
-    GLuint depth_attachment;
-
-    /**
-     * @brief The actual sample count after clamping to GL_MAX_SAMPLES.
-     */
-    int32_t samples;
-  } msaa;
-
-  /**
-   * @brief The framebuffer width.
-   */
-  GLint width;
-
-  /**
-   * @brief The framebuffer height.
-   */
-  GLint height;
-
-} r_framebuffer_t;
 
 /**
  * @brief View types.
@@ -2074,9 +1974,11 @@ typedef struct {
   r_view_flags_t flags;
 
   /**
-   * @brief The target framebuffer (required).
+   * @brief The target scene framebuffer (required): the depth pre-pass and the
+   * main 3D passes render here (shared depth for early-Z), then R_DrawPost
+   * composites its color into the present framebuffer.
    */
-  r_framebuffer_t *framebuffer;
+  Framebuffer *framebuffer;
 
   /**
    * @brief The viewport, in device pixels.
@@ -2200,7 +2102,7 @@ typedef struct {
 } r_view_t;
 
 /**
- * @brief Window and OpenGL context information.
+ * @brief Window and GPU device information.
  */
 typedef struct {
 
@@ -2237,48 +2139,23 @@ typedef struct {
   /**
    * @brief The window size, in logical pixels.
    */
-  GLint w, h;
+  int32_t w, h;
 
   /**
-   * @brief The OpenGL viewport suitable for the current window.
+   * @brief The GPU render device.
    */
-  SDL_Rect viewport;
+  RenderDevice *device;
 
   /**
-   * @brief The OpenGL context.
+   * @brief A 1x1 opaque white @c Texture, useful for binding to unused @c Samplers.
    */
-  SDL_GLContext context;
+  Texture *null_texture;
 } r_context_t;
 
 /**
  * @brief Renderer statistics.
  */
 typedef struct {
-
-  /**
-   * @brief The count of allocated occlusion queries.
-   */
-  int32_t queries_allocated;
-
-  /**
-   * @brief The count of visible occlusion queries.
-   */
-  int32_t queries_visible;
-
-  /**
-   * @brief The count of occluded occlusion queries.
-   */
-  int32_t queries_occluded;
-
-  /**
-   * @brief The count of visible BSP blocks.
-   */
-  int32_t blocks_visible;
-
-  /**
-   * @brief The count of occluded BSP blocks.
-   */
-  int32_t blocks_occluded;
 
   /**
    * @brief The count of visible lights.
@@ -2289,6 +2166,11 @@ typedef struct {
    * @brief The count of occluded lights.
    */
   int32_t lights_occluded;
+  
+  /**
+   * @brief The count of lights with cached shadowmaps.
+   */
+  int32_t lights_cached;
 
   /**
    * @brief The count of visible entities.
@@ -2299,6 +2181,31 @@ typedef struct {
    * @brief The count of occluded entities.
    */
   int32_t entities_occluded;
+
+  /**
+   * @brief The count of visible (non-occluded) BSP blocks.
+   */
+  int32_t blocks_visible;
+
+  /**
+   * @brief The count of occluded BSP blocks.
+   */
+  int32_t blocks_occluded;
+
+  /**
+   * @brief The count of currently allocated occlusion queries.
+   */
+  int32_t queries_allocated;
+
+  /**
+   * @brief The count of visible occlusion queries this frame.
+   */
+  int32_t queries_visible;
+
+  /**
+   * @brief The count of occluded occlusion queries this frame.
+   */
+  int32_t queries_occluded;
 
   /**
    * @brief The count of rendered inline BSP models.

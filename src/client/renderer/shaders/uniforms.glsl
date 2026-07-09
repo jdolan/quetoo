@@ -19,6 +19,44 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#ifndef _UNIFORMS_GLSL_
+#define _UNIFORMS_GLSL_
+
+/*
+ * SDL_gpu descriptor set / binding slot map.
+ *
+ * The offline build (Makefile.am) defines exactly one of VERTEX_SHADER or
+ * FRAGMENT_SHADER via glslc -D, selecting the descriptor sets SDL_gpu expects:
+ *
+ *   Stage     | Sampled textures / storage | Uniform buffers
+ *   ----------+----------------------------+----------------
+ *   vertex    | set 0                      | set 1
+ *   fragment  | set 2                      | set 3
+ *
+ * Within a set, bindings are assigned in declaration order. BINDING_UNIFORMS /
+ * BINDING_LOCALS below are the only bindings genuinely shared by every program
+ * (the globals block and the per-draw locals block); every other resource's
+ * binding is local to the program that uses it, defined by that program's own
+ * .glsl file before it includes this one -- see e.g. bsp_fs.glsl.
+ */
+#if defined(VERTEX_SHADER)
+  #define SAMPLER_SET 0
+  #define UNIFORM_SET 1
+#elif defined(FRAGMENT_SHADER)
+  #define SAMPLER_SET 2
+  #define UNIFORM_SET 3
+#else
+  #error "Define VERTEX_SHADER or FRAGMENT_SHADER when compiling shaders."
+#endif
+
+/*
+ * Uniform-buffer bindings (within UNIFORM_SET). Binding 0 is the per-frame
+ * globals block, present in every program. Per-program per-draw blocks
+ * ("locals": model matrix, lerp, colors, ...) use BINDING_LOCALS.
+ */
+#define BINDING_UNIFORMS 0
+#define BINDING_LOCALS   1
+
 #define VIEW_UNKNOWN        0
 #define VIEW_MAIN           1
 #define VIEW_PLAYER_MODEL   2
@@ -63,9 +101,9 @@ struct voxels_t {
 };
 
 /**
- * @brief The uniforms block.
+ * @brief The uniforms block (per-frame globals, shared by all programs).
  */
-layout (std140) uniform uniforms_block {
+layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_block {
   /**
    * @brief The viewport (x, y, w, h) in device pixels.
    */
@@ -122,11 +160,6 @@ layout (std140) uniform uniforms_block {
   float modulate;
 
   /**
-   * @Brief The additive modulate scalar for mesh entities.
-   */
-  float modulate_mesh;
-
-  /**
    * @brief The saturation scalar.
    */
   float saturation;
@@ -155,33 +188,39 @@ layout (std140) uniform uniforms_block {
    * @brief The developer flags, used for shader development tweaking.
    */
   int developer;
-
-  /**
-   * @brief The wireframe mode flag.
-   */
-  int wireframe;
 };
 
+#define MAX_BSP_LIGHTS 768
+#define MAX_DYNAMIC_LIGHTS 256
+#define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
+
+// Mirrors SHADOW_ATLAS_LIGHTS_PER_ROW in r_shadow.h: the shadow atlas is a
+// fixed 32x32 grid of tiles, so the tile size in pixels is always
+// textureSize(shadow atlas) / SHADOW_ATLAS_LIGHTS_PER_ROW.
+#define SHADOW_ATLAS_LIGHTS_PER_ROW 32
+
 /**
- * @brief The light struct.
+ * @brief The light struct, mirroring the C `r_light_uniform_t`.
+ * @remarks This struct is vec4 aligned.
  */
 struct light_t {
   /**
-   * @brief The light origin in model space, and radius.
+   * @brief The light origin in model space (xyz) and radius (w).
    */
   vec4 origin;
 
   /**
-   * @brief The light color and intensity.
+   * @brief The light color (xyz) and intensity (w).
    */
   vec4 color;
 
   /**
-   * @brief The shadow atlas tile info.
-   * @details xy = normalized base UV within layer, z = tile size in UV (square layers), w = layer index.
-   * @details If z == 0, no shadow map is available for this light.
+   * @brief This light's shadow atlas tile origin, in pixels, or (-1, -1) if
+   * this light casts no shadow. The tile is square and the same in all six
+   * face textures; its size is derived from
+   * textureSize() / SHADOW_ATLAS_LIGHTS_PER_ROW rather than carried here.
    */
-  vec4 shadow;
+  vec2 shadow;
 };
 
 /**
@@ -195,75 +234,16 @@ vec3 light_color(in light_t l) {
   return mix(vec3(luma), color, saturation);
 }
 
-#define MAX_BSP_LIGHTS 512
-#define MAX_DYNAMIC_LIGHTS 64
-#define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
-
-/**
- * @brief The lights uniform block.
+/*
+ * Per-block/per-draw dynamic-light cull bitmask, shared by the lighting programs
+ * (bsp, mesh, sprite). bit j selects dynamic light [num_bsp_lights + j]. Dynamic
+ * lights have no voxel grid, so this whittles them to those a draw can see. A
+ * program opts in with UNIFORMS_LIGHT_CULL and must declare num_uniform_buffers >= 2.
  */
-layout (std140) uniform lights_block {
-  /**
-   * @brief The light sources for the current frame.
-   */
-  light_t lights[MAX_LIGHTS];
+#if defined(FRAGMENT_SHADER) && defined(UNIFORMS_LIGHT_CULL)
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform light_cull_block {
+  uvec4 active_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
 };
+#endif
 
-/**
- * @brief The -1 terminated array of active light indexes for the current render operation.
- * @details Sized to MAX_DYNAMIC_LIGHTS rather than MAX_LIGHTS because all consumers only
- * iterate the first MAX_DYNAMIC_LIGHTS entries, and a larger default-block uniform array
- * exceeds the vertex program parameter limits of older GL drivers (#842).
- */
-uniform int active_lights[MAX_DYNAMIC_LIGHTS];
-
-/**
- * @brief The diffusemap texture, for non-material passes such as sprites.
- */
-uniform sampler2D texture_diffusemap;
-uniform sampler2D texture_next_diffusemap;
-
-/**
- * @brief The material primary texture.
- */
-uniform sampler2DArray texture_material;
-
-/**
- * @brief The material secondary texture.
- */
-uniform sampler2D texture_stage;
-
-/**
- * @brief The next animation frame texture, for interpolated material stage animations.
- */
-uniform sampler2D texture_stage_next;
-
-/**
- * @brief The warp texture, for liquids.
- */
-uniform sampler2D texture_warp;
-
-/**
- * @brief The voxel textures.
- */
-uniform sampler3D texture_voxel_caustics;
-uniform sampler3D texture_voxel_occlusion;
-uniform isampler3D texture_voxel_light_data;
-uniform isamplerBuffer texture_voxel_light_indices;
-
-/**
- * @brief The sky cubemap texture.
- */
-uniform samplerCube texture_sky;
-
-/**
- * @brief The shadow atlas texture (layered 2D array).
- */
-uniform sampler2DArrayShadow texture_shadow_atlas;
-
-/**
- * @brief The framebuffer attachment textures.
- */
-uniform sampler2D texture_color_attachment;
-uniform sampler2D texture_post_attachment;
-uniform sampler2D texture_depth_attachment_copy;
+#endif // _UNIFORMS_GLSL_

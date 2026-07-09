@@ -26,61 +26,43 @@
 #if defined(__R_LOCAL_H__)
 
 /**
- * @brief The shadow atlas.
- * @details Uses a layered 2D array texture (`GL_TEXTURE_2D_ARRAY`) with square layers.
- * Each layer has the same dimensions and tile layout. Lights are assigned to layers
- * sequentially: layer = `light_index` / `lights_per_layer`.
+ * @brief The number of lights per row/column in each face texture's grid: a
+ * fixed 32x32 grid, i.e. exactly MAX_LIGHTS tiles, so every light always gets
+ * one -- only the texture's pixel dimensions vary, with `r_shadow_tile_size`.
+ */
+#define SHADOW_ATLAS_LIGHTS_PER_ROW 32
+
+/**
+ * @brief The shadow atlas: one plain 2D depth texture per cube face.
+ * @details SDL_gpu forbids `DEPTH_STENCIL_TARGET` on array textures, so instead
+ * of a layered array, each of the six cube faces gets its own texture; a given
+ * light occupies the same tile position (row/col derived from its index) in
+ * all six. Each texture is a square grid of `SHADOW_ATLAS_LIGHTS_PER_ROW` x
+ * `SHADOW_ATLAS_LIGHTS_PER_ROW` tiles.
  */
 typedef struct {
 
   /**
-   * @brief The 2D array depth texture atlas.
+   * @brief The six D16 depth textures (one per cube face), storing linear
+   * distance-from-light.
    */
-  GLuint texture;
+  Texture *textures[6];
 
   /**
-   * @brief The depth pass framebuffer.
+   * @brief The comparison sampler for shadow atlas lookups (hardware PCF).
    */
-  GLuint framebuffer;
-
-  /**
-   * @brief Per-layer dimensions in pixels (square: `layer_size` × `layer_size`).
-   */
-  GLsizei layer_size;
+  Sampler *sampler;
 
   /**
    * @brief The tile size in pixels.
    */
-  GLsizei tile_size;
-
-  /**
-   * @brief The number of lights per row in each layer's grid.
-   */
-  int32_t lights_per_row;
-
-  /**
-   * @brief The number of lights per column in each layer's grid.
-   */
-  int32_t lights_per_col;
-
-  /**
-   * @brief The number of lights per layer (`lights_per_row` × `lights_per_col`).
-   */
-  int32_t lights_per_layer;
-
-  /**
-   * @brief The number of layers in the array texture.
-   */
-  int32_t num_layers;
-
-  /**
-   * @brief Frame counter for temporal face amortization.
-   */
-  uint32_t frame_count;
+  int32_t tile_size;
 } r_shadow_atlas_t;
 
 extern r_shadow_atlas_t r_shadow_atlas;
 
+void R_UpdateShadows(r_view_t *view);
+void R_ClearShadows(const r_view_t *view);
 void R_DrawShadows(const r_view_t *view);
 void R_InitShadows(void);
 void R_ShutdownShadows(void);

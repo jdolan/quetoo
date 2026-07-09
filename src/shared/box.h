@@ -427,3 +427,14 @@ static inline float __attribute__ ((warn_unused_result)) Box3_Volume(const box3_
   const vec3_t size =  Box3_Size(b);
   return size.x * size.y * size.z;
 }
+
+/**
+ * @brief Greedily merges the given boxes into as few axis-aligned boxes as possible.
+ * @param boxes The boxes to merge, assumed to be identically-sized cells on a common
+ * axis-aligned grid (e.g. the boxes of a uniform voxel grid).
+ * @param count The number of boxes in `boxes`.
+ * @param out A pointer to receive a newly allocated array of the merged boxes. The
+ * caller owns this array and must `free` it. Unset if `count` is `0`.
+ * @return The number of boxes written to `*out`.
+ */
+size_t Box3_Merge(const box3_t *boxes, size_t count, box3_t **out);

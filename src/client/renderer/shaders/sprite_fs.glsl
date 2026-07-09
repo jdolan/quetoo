@@ -18,28 +18,105 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
- 
-in vertex_data {
-  vec3 position;
-  vec2 diffusemap;
-  vec2 next_diffusemap;
-  vec3 color;
-  float lerp;
-} vertex;
 
-out vec3 out_color;
+#version 450
+
+#include "uniforms.glsl"
+
+// The sprite program's own binding map: diffuse and its animation next-frame,
+// then the scene depth attachment soften.glsl samples for soft particles.
+#define BINDING_SAMPLER_DIFFUSE          0
+#define BINDING_SAMPLER_NEXT_DIFFUSE     1
+#define BINDING_SAMPLER_DEPTH_ATTACHMENT 2
+
+#include "soften.glsl"
+
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_DIFFUSE)      uniform sampler2D texture_diffusemap;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_NEXT_DIFFUSE) uniform sampler2D texture_next_diffusemap;
+
+/*
+ * The sprite family's own dense lighting bindings, after diffuse (0), next-diffuse
+ * (1) and the soft-particle depth attachment (2): the lights, voxel light-index
+ * and voxel light-data storage buffers at the contiguous bindings 3/4/5. The
+ * light data is a storage buffer of per-voxel (first_index, count) pairs rather
+ * than an RG32I isampler3D because D3D12 cannot sample integer formats. Sprites
+ * take clustered voxel diffuse only (no normal, so pure distance attenuation).
+ */
+layout (std430, set = SAMPLER_SET, binding = 3) readonly buffer lights_block {
+  int num_lights;
+  int num_bsp_lights;
+  light_t lights[];
+};
+
+layout (std430, set = SAMPLER_SET, binding = 4) readonly buffer voxel_light_indices_block {
+  int voxel_light_indices[];
+};
+
+layout (std430, set = SAMPLER_SET, binding = 5) readonly buffer voxel_light_data_block {
+  int voxel_light_data_elements[];
+};
+
+layout (location = 0) in vec3 in_position;
+layout (location = 1) in vec2 in_diffusemap;
+layout (location = 2) in vec2 in_next_diffusemap;
+layout (location = 3) in vec3 in_color;
+layout (location = 4) in float in_lerp;
+layout (location = 5) in float in_lighting;
+
+layout (location = 0) out vec4 out_color;
 
 /**
- * @brief
+ * @brief Resolves the integer voxel coordinate for a world-space position.
+ */
+ivec3 sprite_voxel_xyz(in vec3 position) {
+  const vec3 pos = position - voxels.mins.xyz;
+  const ivec3 voxel = ivec3(floor(pos / BSP_VOXEL_SIZE));
+  return clamp(voxel, ivec3(0), ivec3(voxels.size.xyz) - ivec3(1));
+}
+
+/**
+ * @brief Accumulated clustered voxel light at the sprite's position. Sprites are
+ * billboards with no meaningful normal, so lighting is pure distance attenuation
+ * (no Lambert term), matching the GL renderer's sprite lighting.
+ */
+vec3 sprite_lighting(void) {
+
+  vec3 diffuse = vec3(0.0);
+
+  const ivec3 voxel = sprite_voxel_xyz(in_position);
+  const int index = (voxel.z * int(voxels.size.y) + voxel.y) * int(voxels.size.x) + voxel.x;
+  const ivec2 data = ivec2(voxel_light_data_elements[index * 2 + 0], voxel_light_data_elements[index * 2 + 1]);
+
+  for (int i = 0; i < data.y; i++) {
+    const light_t light = lights[voxel_light_indices[data.x + i]];
+
+    const float dist = distance(light.origin.xyz, in_position);
+    const float atten = clamp(1.0 - dist / light.origin.w, 0.0, 1.0);
+
+    diffuse += light_color(light) * atten;
+  }
+
+  return diffuse;
+}
+
+/**
+ * @brief Additive sprite/particle shading with a soft-particle edge: the color
+ * is faded (toward black, so additive blending fades to nothing) as the fragment
+ * nears or passes the opaque scene depth behind it. Absorptive sprites (smoke,
+ * @c in_lighting > 0) are modulated by the surrounding clustered voxel light;
+ * emissive sprites (@c in_lighting == 0, e.g. blaster particles) stay fullbright.
  */
 void main(void) {
 
-  vec3 texture_color = mix(
-               texture(texture_diffusemap, vertex.diffusemap),
-               texture(texture_next_diffusemap, vertex.next_diffusemap),
-               vertex.lerp).rgb;
+  const vec3 texture_color = mix(
+      texture(texture_diffusemap, in_diffusemap).rgb,
+      texture(texture_next_diffusemap, in_next_diffusemap).rgb,
+      in_lerp);
 
-  out_color = texture_color * vertex.color;
+  vec3 color = in_color;
+  if (in_lighting > 0.0) {
+    color = mix(color, color * sprite_lighting(), in_lighting);
+  }
 
-  out_color *= soften();
+  out_color = vec4(texture_color * color * soften(), 1.0);
 }

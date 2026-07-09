@@ -27,8 +27,10 @@ extern r_context_t r_context;
 
 void R_UpdateContext(void);
 
+Framebuffer *R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachments);
+void R_DestroyFramebuffer(Framebuffer *framebuffer);
+
 #if defined(__R_LOCAL_H__)
 void R_InitContext(void);
 void R_ShutdownContext(void);
-void R_Debug_GladPostCallback(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...);
 #endif

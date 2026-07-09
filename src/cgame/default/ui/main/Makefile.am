@@ -35,10 +35,10 @@ libcguimain_la_CFLAGS = \
 	-I$(top_srcdir)/src/cgame/default/ui/settings \
 	-I$(top_srcdir)/src/cgame/default/ui/teams \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
-	@SDL3_CFLAGS@
+	@SDL3_CFLAGS@ \
+	@SNDFILE_CFLAGS@
 
 libcguimain_la_LDFLAGS = \
 	-shared

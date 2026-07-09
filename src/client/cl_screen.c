@@ -87,10 +87,10 @@ static void Cl_DrawNetGraph(void) {
     return;
   }
 
-  GLint ch;
+  int32_t ch;
   R_BindFont("small", NULL, &ch);
 
-  const GLint netgraph_height = ch * 3;
+  const int32_t netgraph_height = ch * 3;
 
   x = r_context.w - NET_GRAPH_WIDTH;
   y = r_context.h - NET_GRAPH_Y - netgraph_height;
@@ -109,7 +109,7 @@ static void Cl_DrawNetGraph(void) {
     x = r_context.w - i;
     y = r_context.h - NET_GRAPH_Y;
 
-    const GLint points[4] = { x, y, x, y - h };
+    const int32_t points[4] = { x, y, x, y - h };
     R_Draw2DLines(points, 2, net_graph_samples[j].color);
   }
 }
@@ -118,7 +118,7 @@ static void Cl_DrawNetGraph(void) {
  * @brief Draws counters and performance information about the renderer.
  */
 static void Cl_DrawRendererStats(void) {
-  GLint ch, x = 1, y = 64;
+  int32_t ch, x = 1, y = 64;
 
   if (!r_draw_stats->value) {
     return;
@@ -154,8 +154,6 @@ static void Cl_DrawRendererStats(void) {
 
     R_Draw2DString(x, y, va(" %d lights visible", r_stats.lights_visible), color_yellow);
     y += ch;
-    R_Draw2DString(x, y, va(" %d lights occluded", r_stats.lights_occluded), color_yellow);
-    y += ch;
   }
 
   y += ch;
@@ -164,10 +162,6 @@ static void Cl_DrawRendererStats(void) {
     R_Draw2DString(x, y, "BSP:", color_yellow);
     y += ch;
     R_Draw2DString(x, y, va(" %d entities", r_stats.bsp_inline_models), color_yellow);
-    y += ch;
-    R_Draw2DString(x, y, va(" %d blocks visible", r_stats.blocks_visible), color_yellow);
-    y += ch;
-    R_Draw2DString(x, y, va(" %d blocks occluded", r_stats.blocks_occluded), color_yellow);
     y += ch;
     R_Draw2DString(x, y, va(" %d draw elements", r_stats.bsp_draw_elements), color_yellow);
     y += ch;
@@ -274,7 +268,7 @@ static void Cl_DrawRendererStats(void) {
  * @brief Draws counters and performance information about the sound subsystem.
  */
 static void Cl_DrawSoundStats(void) {
-  GLint ch, x = 1, y = r_draw_stats->value ? 600 : 64;
+  int32_t ch, x = 1, y = r_draw_stats->value ? 600 : 64;
 
   if (!s_draw_stats->value) {
     return;
@@ -379,7 +373,7 @@ static void Cl_DrawCounters(void) {
   static vec3_t velocity;
   static char ft[28], pps[28], fps[28], spd[8];
   static int32_t last_draw_time, last_speed_time;
-  GLint cw, ch;
+  int32_t cw, ch;
 
   if (!cl_draw_counters->integer) {
     return;
@@ -387,8 +381,8 @@ static void Cl_DrawCounters(void) {
 
   R_BindFont("small", &cw, &ch);
 
-  GLint x = r_context.w - 7 * cw;
-  GLint y = r_context.h - 4 * ch;
+  int32_t x = r_context.w - 7 * cw;
+  int32_t y = r_context.h - 4 * ch;
 
   cl.frame_counter[cl.sample_index]++;
 

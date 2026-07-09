@@ -26,8 +26,11 @@
  */
 const cm_entity_t *Sv_NextMap(void) {
 
-  if (q_strcmp(svs.maps.filename, sv_map_list->string)) {
-    Sv_InitMapList();
+  if (strlen(sv_map_list->string)) {
+    if (q_strcmp(svs.maps.filename, sv_map_list->string) ||
+        (Fs_LastModTime(sv_map_list->string) != svs.maps.modtime)) {
+      Sv_InitMapList();
+    }
   }
 
   if (svs.maps.list == NULL) {
@@ -47,6 +50,7 @@ const cm_entity_t *Sv_NextMap(void) {
   for (int32_t i = 0; i < svs.maps.index && node; i++) {
     node = node->next;
   }
+
   return node ? (const cm_entity_t *) node->element : NULL;
 }
 
@@ -68,6 +72,8 @@ void Sv_InitMapList(void) {
   }
 
   q_strlcpy(svs.maps.filename, sv_map_list->string, sizeof(svs.maps.filename));
+
+  svs.maps.modtime = Fs_LastModTime(sv_map_list->string);
 
   svs.maps.list = Cm_LoadEntities(buffer);
 
@@ -106,5 +112,6 @@ void Sv_ShutdownMapList(void) {
   svs.maps.list = release(svs.maps.list);
   svs.maps.length = 0;
   svs.maps.index = -1;
+  svs.maps.modtime = 0;
   svs.maps.filename[0] = '\0';
 }

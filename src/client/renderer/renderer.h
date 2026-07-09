@@ -23,7 +23,6 @@
 
 #include "collision/collision.h"
 
-#include "r_gl.h"
 
 #include "r_atlas.h"
 #include "r_animation.h"
@@ -36,7 +35,6 @@
 #include "r_draw_2d.h"
 #include "r_draw_3d.h"
 #include "r_entity.h"
-#include "r_framebuffer.h"
 #include "r_image.h"
 #include "r_light.h"
 #include "r_main.h"
@@ -49,8 +47,8 @@
 #include "r_mesh.h"
 #include "r_model.h"
 #include "r_occlude.h"
+
 #include "r_post.h"
-#include "r_program.h"
 #include "r_shadow.h"
 #include "r_sky.h"
 #include "r_sprite.h"

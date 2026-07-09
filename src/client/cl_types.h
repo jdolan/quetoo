@@ -352,7 +352,7 @@ typedef struct {
   /**
    * @brief Current write index and valid sample count for frametime counters.
    */
-  uint8_t frametime_index, frametime_count;
+  uint16_t frametime_index, frametime_count;
 
   /**
    * @brief Circular buffer of recently sent commands, enabling re-send for loss recovery and client-side prediction.

@@ -118,7 +118,7 @@ static void R_CompileAtlas_Node(const atlas_node_t *node, const r_atlas_t *atlas
 
   r_atlas_image_t *atlas_image = node->data;
 
-  atlas_image->image.texnum = atlas->image->texnum;
+  atlas_image->image.texture = atlas->image->texture;
 
   const float w = atlas->image->width, h = atlas->image->height;
   const float texel = (1.f / atlas->image->width) * .5f;
@@ -141,28 +141,22 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
   R_FreeImage((r_media_t *) atlas->image);
 
-  atlas->image->target = GL_TEXTURE_2D;
-  atlas->image->levels = INT32_MAX;
+  int32_t levels = INT32_MAX;
 
   for (size_t i = 0; i < nodes->count; i++) {
     const atlas_node_t *node = VectorValue(nodes, atlas_node_t *, i);
-    atlas->image->levels = Mini(atlas->image->levels, floorf(log2f(Maxi(node->w, node->h)) + 1));
+    levels = Mini(levels, floorf(log2f(Maxi(node->w, node->h)) + 1));
   }
 
-  atlas->atlas->padding = atlas->image->levels > 1 ? 1 << (atlas->image->levels - 2) : 0;
+  atlas->atlas->padding = levels > 1 ? 1 << (levels - 2) : 0;
 
-  atlas->image->internal_format = GL_RGBA8;
-  atlas->image->format = GL_RGBA;
-  atlas->image->pixel_type = GL_UNSIGNED_BYTE;
-  atlas->image->minify = GL_LINEAR_MIPMAP_LINEAR;
-  atlas->image->magnify = GL_LINEAR;
 
   atlas->image->width = 0;
 
   for (int32_t width = 1024; atlas->image->width == 0; width += 512) {
 
     if (width > r_config.max_texture_size) {
-      Com_Error(ERROR_DROP, "Atlas exceeds GL_MAX_TEXTURE_SIZE\n");
+      Com_Error(ERROR_DROP, "Atlas exceeds maximum texture size\n");
     }
 
     SDL_Surface *surf = SDL_CreateSurface(width, width, SDL_PIXELFORMAT_RGBA32);
@@ -173,13 +167,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
       atlas->image->width = width;
       atlas->image->height = width;
 
-      R_SetupImage(atlas->image);
-
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, atlas->image->levels - 1);
-      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, surf->w, surf->h, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
-      glGenerateMipmap(GL_TEXTURE_2D);
-
-      R_GetError(NULL);
+      atlas->image->texture = $(r_context.device, createTextureFromSurface, surf, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
 
       for (size_t i = 0; i < nodes->count; i++) {
         R_CompileAtlas_Node(VectorValue(nodes, atlas_node_t *, i), atlas);

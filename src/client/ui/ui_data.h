@@ -23,7 +23,6 @@
 
 #include "ui_types.h"
 
-Data *Ui_Data(const char *path);
 Theme *Ui_Theme(void);
 
 #if defined(__UI_LOCAL_H__)

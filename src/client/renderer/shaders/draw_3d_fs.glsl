@@ -19,11 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-in vertex_data {
+#version 450
+
+layout (location = 0) in vertex_data {
   vec4 color;
 } vertex;
 
-out vec4 out_color;
+layout (location = 0) out vec4 out_color;
 
 /**
  * @brief

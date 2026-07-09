@@ -40,10 +40,10 @@ libcguieditor_la_CFLAGS = \
 	-I$(top_srcdir)/src/cgame/default/ui/controls \
 	-I$(top_srcdir)/src/cgame/default/ui/settings \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
-	@SDL3_CFLAGS@
+	@SDL3_CFLAGS@ \
+	@SNDFILE_CFLAGS@
 
 libcguieditor_la_LDFLAGS = \
 	-shared

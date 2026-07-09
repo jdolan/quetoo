@@ -131,7 +131,7 @@ r_atlas_image_t *cg_decal_blood[4];
 r_atlas_image_t *cg_decal_burn[4];
 r_atlas_image_t *cg_decal_slug[4];
 
-r_framebuffer_t cg_framebuffer;
+Framebuffer *cg_framebuffer;
 
 /**
  * @brief Creates the client game framebuffer sized to the current window dimensions.
@@ -150,8 +150,9 @@ void Cg_CreateFramebuffer(void) {
  */
 void Cg_DestroyFramebuffer(void) {
   
-  if (cg_framebuffer.name) {
-    cgi.DestroyFramebuffer(&cg_framebuffer);
+  if (cg_framebuffer) {
+    cgi.DestroyFramebuffer(cg_framebuffer);
+    cg_framebuffer = NULL;
   }
 }
 

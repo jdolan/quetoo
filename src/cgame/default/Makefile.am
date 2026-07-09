@@ -68,7 +68,8 @@ cgame_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
-	@SDL3_CFLAGS@
+	@SDL3_CFLAGS@ \
+	@SNDFILE_CFLAGS@
 
 cgame_la_LDFLAGS = \
 	-avoid-version \

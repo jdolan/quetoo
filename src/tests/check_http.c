@@ -88,7 +88,7 @@ START_TEST(check_Net_HttpUrl_small_buffer) {
 	char buf[16];
 	const int32_t len = Net_HttpUrl(&addr, "maps/test.bsp", buf, sizeof(buf));
 
-	// g_snprintf returns the length that would have been written
+	// Net_HttpUrl returns the length that would have been written
 	ck_assert_int_gt(len, (int32_t) sizeof(buf));
 	// buffer should be truncated but null-terminated
 	ck_assert(strlen(buf) < sizeof(buf));

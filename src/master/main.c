@@ -395,7 +395,7 @@ static void Ms_Frame(void) {
           Com_Verbose("Pinging %s\n", stos(server));
 
           const char *ping = "\xFF\xFF\xFF\xFF" "ping";
-          sendto(ms_sock, ping, q_strlen(ping), 0, (struct sockaddr *) &server->addr,
+          sendto(ms_sock, ping, (int32_t) q_strlen(ping), 0, (struct sockaddr *) &server->addr,
                  sizeof(server->addr));
         }
       }
@@ -438,7 +438,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
     }
   }
 
-  if ((sendto(ms_sock, buf.data, buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1) {
+  if ((sendto(ms_sock, (const char *) buf.data, (int32_t) buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1) {
     Com_Warn("%s: %s\n", atos(from), strerror(errno));
   } else {
     Com_Verbose("Sent %d servers (protocol %d) to %s\n", i, protocol, atos(from));
@@ -609,7 +609,7 @@ int32_t quetoo_main(int32_t argc, char **argv) {
     Com_Print("Discord webhook configured\n");
   }
 
-  ms_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  ms_sock = (int32_t) socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
   struct sockaddr_in address;
   memset(&address, 0, sizeof(address));
@@ -628,7 +628,11 @@ int32_t quetoo_main(int32_t argc, char **argv) {
     fd_set set;
 
     FD_ZERO(&set);
+#if defined(_WIN32)
+    FD_SET((SOCKET) ms_sock, &set);
+#else
     FD_SET(ms_sock, &set);
+#endif
 
     struct timeval delay;
     delay.tv_sec = 1;

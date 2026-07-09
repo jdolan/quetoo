@@ -405,10 +405,10 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
       {
         out->num_elements = surface.num_triangles * 3;
-        out->elements = Mem_LinkMalloc(out->num_elements * sizeof(GLuint), mod->mesh);
+        out->elements = Mem_LinkMalloc(out->num_elements * sizeof(uint32_t), mod->mesh);
 
         const d_md3_triangle_t *in_triangle = (d_md3_triangle_t *) (surface_base + surface.ofs_triangles);
-        GLuint *out_triangle = out->elements;
+        uint32_t *out_triangle = out->elements;
 
         for (int32_t j = 0; j < surface.num_triangles; j++, in_triangle++, out_triangle += 3) {
 
@@ -454,4 +454,5 @@ const r_model_format_t r_md3_model_format = {
   .type = MODEL_MESH,
   .Load = R_LoadMd3Model,
   .Register = R_RegisterMeshModel,
+  .Free = R_FreeMeshModel,
 };

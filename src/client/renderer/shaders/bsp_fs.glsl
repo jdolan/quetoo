@@ -19,11 +19,56 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform mat4 model;
+#version 450
 
-in common_vertex_t vertex;
+#define UNIFORMS_LIGHT_CULL
+#define VOXEL_CAUSTICS_OCCLUSION
+#define LIGHT_SKY
 
-out vec4 out_color;
+#include "uniforms.glsl"
+
+/*
+ * The BSP program's own binding map (fragment stage): samplers are dense from
+ * 0, storage buffers immediately follow the last one at 8/9 (Metal packs
+ * storage-buffer indices right after the samplers a program declares). The
+ * vertex stage's own map is defined in bsp_vs.glsl.
+ */
+#define BINDING_SAMPLER_MATERIAL         0
+#define BINDING_SAMPLER_SHADOW_ATLAS_0   1 // one sampler2DShadow per cube face
+#define BINDING_SAMPLER_SHADOW_ATLAS_1   2
+#define BINDING_SAMPLER_SHADOW_ATLAS_2   3
+#define BINDING_SAMPLER_SHADOW_ATLAS_3   4
+#define BINDING_SAMPLER_SHADOW_ATLAS_4   5
+#define BINDING_SAMPLER_SHADOW_ATLAS_5   6
+#define BINDING_SAMPLER_VOXEL_CAUSTICS   7
+#define BINDING_SAMPLER_VOXEL_OCCLUSION  8
+#define BINDING_SAMPLER_SKY_AMBIENT      9
+#define BINDING_SAMPLER_STAGE            10
+#define BINDING_SAMPLER_STAGE_NEXT       11
+#define BINDING_SAMPLER_WARP             12
+#define BINDING_STORAGE_LIGHTS              13
+#define BINDING_STORAGE_VOXEL_LIGHT_INDICES 14
+#define BINDING_STORAGE_VOXEL_LIGHT_DATA    15
+#define BINDING_UNIFORMS_MATERIAL        2
+
+#include "common.glsl"
+#include "material.glsl"
+#include "voxel.glsl"
+#include "light.glsl"
+
+/**
+ * @brief The procedural warp noise texture, for STAGE_WARP liquid surfaces.
+ * @remarks BSP-only: unlike the other samplers above, this is not declared in
+ * material.glsl since mesh materials never set STAGE_WARP (matching main).
+ */
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_WARP) uniform sampler2D texture_warp;
+
+layout (location = 0) in common_vertex_t vertex;
+
+layout (location = 0) out vec4 out_color;
+
+// A float depth copy for the sprite pass to sample (soft particles); see r_framebuffer.c.
+layout (location = 1) out float out_depth;
 
 common_fragment_t fragment;
 
@@ -70,20 +115,23 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
 /**
  * @brief Calculate lighting and shadows for BSP with distance-based LOD.
  * @details Handles BSP-specific ambient (sky + voxel exposure) and editor mode.
+ * Full per-fragment lighting blends out to the vertex shader's cheap
+ * per-vertex lighting over [lighting_distance, lighting_distance +
+ * LIGHTING_LOD_BLEND_DIST]; fully distant fragments take the vertex lighting
+ * alone.
  */
 void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
 
-  // For distant fragments, use simple vertex lighting
-  if (fragment.view_dist >= lighting_distance) {
+  const float lod = clamp((fragment.view_dist - lighting_distance) / LIGHTING_LOD_BLEND_DIST, 0.0, 1.0);
+
+  if (lod >= 1.0) {
     fragment.ambient = vertex.ambient;
     fragment.diffuse = vertex.diffuse;
     fragment.specular = vec3(0.0);
     return;
   }
 
-  // For fragments within range, do full per-fragment lighting
-
-  if ((stage.flags & STAGE_LIGHTING_FLAT) == STAGE_LIGHTING_FLAT) {
+  if ((material.flags & STAGE_LIGHTING_FLAT) == STAGE_LIGHTING_FLAT) {
     fragment.normal_sample = normalize(vertex.normal);
     fragment.specular_sample = vec4(fragment.diffuse_sample.rgb, pow(1.0 + material.specularity, 4.0));
   } else {
@@ -96,17 +144,22 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
   fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
 
   fragment_lighting(vertex, fragment);
+
+  fragment.ambient = mix(fragment.ambient, vertex.ambient, lod);
+  fragment.diffuse = mix(fragment.diffuse, vertex.diffuse, lod);
+  fragment.specular *= 1.0 - lod;
 }
 
 /**
- * @brief
+ * @brief Opaque diffuse surfaces (material.flags == STAGE_NONE) get clustered +
+ * dynamic lighting; material stages sample their own texture and are
+ * optionally lit and/or emissive, blended over the base surface. One shader,
+ * one pipeline: which branch runs is a runtime uniform, not a compile-time
+ * variant, so a stage draw never requires a pipeline swap.
  */
 void main(void) {
 
-  if (wireframe != 0) {
-    out_color = vec4(0.8, 0.8, 0.8, 1.0);
-    return;
-  }
+  out_depth = gl_FragCoord.z;
 
   fragment.view_dir = normalize(-vertex.position);
   fragment.view_dist = length(vertex.position);
@@ -114,7 +167,7 @@ void main(void) {
 
   parallax_occlusion_mapping(vertex, fragment);
 
-  if (stage.flags == STAGE_NONE) {
+  if (material.flags == STAGE_NONE) {
 
     fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
 
@@ -137,24 +190,22 @@ void main(void) {
 
     vec2 st = fragment.parallax;
 
-    if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
-      st += (texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy - 0.5) * stage.warp.y;
+    if ((material.flags & STAGE_WARP) == STAGE_WARP) {
+      st += (texture(texture_warp, st + vec2(ticks * material.warp.x * 0.000125)).xy - 0.5) * material.warp.y;
     }
 
     fragment.diffuse_sample = sample_material_stage(st) * vertex.color;
 
     out_color = fragment.diffuse_sample;
 
-    if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
-
+    if ((material.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
       bsp_fragment_lighting(vertex, fragment);
-
-      out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
-      out_color.rgb += fragment.specular * stage.lighting;
+      out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, material.lighting);
+      out_color.rgb += fragment.specular * material.lighting;
     }
 
-    if ((stage.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
-      out_color.rgb += fragment.diffuse_sample.rgb * stage.emissive;
+    if ((material.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
+      out_color.rgb += fragment.diffuse_sample.rgb * material.emissive;
     }
   }
 }

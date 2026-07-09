@@ -19,14 +19,27 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#version 450
+
+#include "uniforms.glsl"
+
 layout (location = 0) in vec3 in_position;
 
-uniform mat4 model;
+/**
+ * @brief Per-draw locals.
+ */
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+  mat4 model;
+};
 
 invariant gl_Position;
 
 /**
- * @brief
+ * @brief Position-only depth pre-pass: writes only the depth attachment, which
+ * the main passes reuse for early-Z. The bias that keeps this pre-pass depth
+ * >= the main pass's own (bit-inexact) depth for the same surface is applied
+ * by the rasterizer state (depth_bias_slope_factor), not here -- see
+ * r_depth_pass.c.
  */
 void main(void) {
 

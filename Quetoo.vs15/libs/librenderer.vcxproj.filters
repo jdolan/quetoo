@@ -101,9 +101,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_post.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_program.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_shadow.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -141,12 +138,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_entity.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_framebuffer.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_gl.c">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_image.c">
@@ -193,9 +184,6 @@
     <ClInclude Include="..\..\src\client\renderer\r_post.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_program.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_shadow.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -239,12 +227,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_entity.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_framebuffer.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_gl.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_image.h">

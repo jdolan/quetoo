@@ -32,11 +32,11 @@ extern cvar_t *r_bloom_iterations;
 extern cvar_t *r_bloom_threshold;
 extern cvar_t *r_caustics;
 extern cvar_t *r_draw_scale;
-extern cvar_t *r_finish;
 extern cvar_t *r_framebuffer_scale;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_fullscreen_width;
 extern cvar_t *r_fullscreen_height;
+extern cvar_t *r_gpu_driver;
 extern cvar_t *r_hardness;
 extern cvar_t *r_lighting_distance;
 extern cvar_t *r_modulate;
@@ -57,6 +57,9 @@ extern cvar_t *r_window_width;
 extern cvar_t *r_draw_stats;
 
 extern r_stats_t r_stats;
+
+extern SDL_GPUSampleCount r_scene_samples;
+SDL_GPUSampleCount R_SampleCount(void);
 
 void R_Init(void);
 void R_Shutdown(void);
@@ -93,22 +96,22 @@ typedef struct {
   /**
    * @brief The maximum number of simultaneous texture units.
    */
-  GLint max_texunits;
+  int32_t max_texunits;
 
   /**
    * @brief The maximum 2D texture dimension in texels.
    */
-  GLint max_texture_size;
+  int32_t max_texture_size;
 
   /**
    * @brief The maximum 3D texture dimension in texels.
    */
-  GLint max_3d_texture_size;
+  int32_t max_3d_texture_size;
 
   /**
    * @brief The maximum uniform block size in bytes.
    */
-  GLint max_uniform_block_size;
+  int32_t max_uniform_block_size;
 } r_config_t;
 
 extern r_config_t r_config;
@@ -144,11 +147,6 @@ typedef struct {
  * @brief The uniforms block type.
  */
 typedef struct {
-
-  /**
-   * @brief The uniform buffer object name.
-   */
-  GLuint buffer;
 
   /**
    * @brief The uniform block struct.
@@ -212,11 +210,6 @@ typedef struct {
     float modulate;
 
     /**
-     * @brief The light modulation scalar for mesh models (multiplies `modulate` just for mesh models).
-     */
-    float modulate_mesh;
-
-    /**
      * @brief The saturation scalar.
      */
     float saturation;
@@ -245,11 +238,6 @@ typedef struct {
      * @brief Non-zero when developer mode is enabled.
      */
     int developer;
-
-    /**
-     * @brief Non-zero when wireframe rendering is enabled.
-     */
-    int wireframe;
   } block;
 
 } r_uniforms_t;
@@ -263,23 +251,13 @@ extern r_uniforms_t r_uniforms;
 extern cvar_t *r_alpha_test;
 extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
-extern cvar_t *r_draw_occlusion_queries;
 extern cvar_t *r_draw_bsp_blocks;
+extern cvar_t *r_draw_occlusion_queries;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_bsp_voxels;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_light_bounds;
 extern cvar_t *r_draw_material_stages;
-extern cvar_t *r_draw_wireframe;
-extern cvar_t *r_get_error;
 extern cvar_t *r_occlude;
-
-void R_GetError_(const char *function, const char *msg);
-
-#define R_GetError(msg) { \
-  if (r_get_error->integer) { \
-    R_GetError_(__func__, msg); \
-  } \
-}
 
 #endif

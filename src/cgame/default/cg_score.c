@@ -82,15 +82,15 @@ void Cg_ParseScores(void) {
 /**
  * @brief Returns the vertical screen coordinate where scores should be drawn.
  */
-static GLint Cg_DrawScoresHeader(void) {
-  GLint cw, ch, x, y;
+static int32_t Cg_DrawScoresHeader(void) {
+  int32_t cw, ch, x, y;
 
   cgi.BindFont("medium", &cw, &ch);
 
   y = 64 - ch - 4;
 
   const char *title = cgi.ConfigString(CS_MESSAGE);
-  const GLint sw = cgi.StringWidth(title);
+  const int32_t sw = cgi.StringWidth(title);
 
   // map title
   x = cgi.context->w / 2 - sw / 2;
@@ -130,8 +130,8 @@ static GLint Cg_DrawScoresHeader(void) {
 /**
  * @brief Draws a single player score row including icon, name, frags, deaths, and captures.
  */
-static bool Cg_DrawScore(GLint x, GLint y, const g_score_t *s) {
-  GLint cw, ch;
+static bool Cg_DrawScore(int32_t x, int32_t y, const g_score_t *s) {
+  int32_t cw, ch;
 
   const cg_client_info_t *info = &cg_state.clients[s->client];
 
@@ -149,8 +149,8 @@ static bool Cg_DrawScore(GLint x, GLint y, const g_score_t *s) {
 
   // background
   const float fa = s->client == cgi.client->frame.ps.client ? 0.3 : 0.15;
-  const GLint fw = SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
-  const GLint fh = SCORES_ROW_HEIGHT - 1;
+  const int32_t fw = SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
+  const int32_t fh = SCORES_ROW_HEIGHT - 1;
 
   if (s->color != 0) {
     color_t c = ColorHSV(s->color, 1.0, 1.0);
@@ -166,7 +166,7 @@ static bool Cg_DrawScore(GLint x, GLint y, const g_score_t *s) {
 
   // ping
   {
-    const GLint px = x + SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 6 * cw;
+    const int32_t px = x + SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 6 * cw;
     cgi.Draw2DString(px, y, va("%3dms", s->ping), color_white);
     y += ch;
   }
@@ -197,15 +197,15 @@ static bool Cg_DrawScore(GLint x, GLint y, const g_score_t *s) {
 /**
  * @brief Draws the scores screen layout arranged by team for team-based game modes.
  */
-static void Cg_DrawTeamScores(const GLint start_y) {
+static void Cg_DrawTeamScores(const int32_t start_y) {
 
   size_t rows = (cgi.context->h - (2 * start_y)) / SCORES_ROW_HEIGHT;
   rows = rows < 3 ? 3 : rows;
 
-  GLint x = cgi.context->w / 2;
+  int32_t x = cgi.context->w / 2;
   x -= SCORES_COL_WIDTH * (cg_state.num_teams / 2.0);
 
-  GLint y = start_y;
+  int32_t y = start_y;
 
   for (int32_t t = 0; t < cg_state.num_teams; t++, x += SCORES_COL_WIDTH, y = start_y) {
     for (size_t i = 0; i < cg_score_state.num_scores; i++) {
@@ -256,7 +256,7 @@ static void Cg_DrawTeamScores(const GLint start_y) {
 /**
  * @brief Draws the scores screen layout for deathmatch game modes.
  */
-static void Cg_DrawDmScores(const GLint start_y) {
+static void Cg_DrawDmScores(const int32_t start_y) {
 
   size_t rows = (cgi.context->h - (2 * start_y)) / SCORES_ROW_HEIGHT;
   rows = rows < 3 ? 3 : rows;
@@ -273,8 +273,8 @@ static void Cg_DrawDmScores(const GLint start_y) {
 
     const size_t col = i / rows;
 
-    const GLint x = (GLint) (cgi.context->w / 2 - width / 2 + col * SCORES_COL_WIDTH);
-    const GLint y = (GLint) (start_y + (i % rows) * SCORES_ROW_HEIGHT);
+    const int32_t x = (int32_t) (cgi.context->w / 2 - width / 2 + col * SCORES_COL_WIDTH);
+    const int32_t y = (int32_t) (start_y + (i % rows) * SCORES_ROW_HEIGHT);
 
     if (!Cg_DrawScore(x, y, s)) {
       i--;
@@ -295,7 +295,7 @@ void Cg_DrawScores(const player_state_t *ps) {
     return;
   }
 
-  const GLint start_y = Cg_DrawScoresHeader();
+  const int32_t start_y = Cg_DrawScoresHeader();
 
   if (cg_state.num_teams) {
     Cg_DrawTeamScores(start_y);

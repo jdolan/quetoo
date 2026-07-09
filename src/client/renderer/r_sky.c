@@ -8,10 +8,6 @@
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *
  * See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -21,12 +17,27 @@
 
 #include "r_local.h"
 
-#define SKY_DISTANCE (MAX_WORLD_COORD)
+/**
+ * @brief The sky program's own binding map, mirroring shaders/sky_vs.glsl and
+ * sky_fs.glsl. Not shared with any other pipeline.
+ */
+enum {
+  SKY_SAMPLER_SKY,
+  SKY_SAMPLER_STAGE,
+  SKY_SAMPLER_STAGE_NEXT,
+  SKY_NUM_SAMPLERS,
+};
 
-#define SKY_ST_EPSILON (0.00175)
+enum {
+  SKY_UNIFORMS_GLOBALS,
+  SKY_UNIFORMS_MATERIAL, // material + stage params combined -- see material.glsl
+};
+#define SKY_NUM_UNIFORMS 2 // same count/slot for both stages
 
-#define SKY_ST_MIN   (0.0 + SKY_ST_EPSILON)
-#define SKY_ST_MAX   (1.0 - SKY_ST_EPSILON)
+/**
+ * @brief The maximum number of cached material-stage pipelines (one per blend).
+ */
+#define MAX_STAGE_PIPELINES 16
 
 /**
  * @brief Sky state holding the cubemap image.
@@ -37,159 +48,244 @@ static struct {
    * @brief The sky cubemap.
    */
   r_image_t *image;
+
+  /**
+   * @brief A 1x1 black fallback cubemap, returned by R_SkyTexture when no sky is
+   * loaded, so the lit pass always has a valid cube to bind at the ambient slot.
+   */
+  Texture *fallback;
 } r_sky;
 
 /**
- * @brief The sky program.
+ * @brief The sky program (sky_vs/sky_fs): its graphics pipeline, samplers, and
+ * the lazily-built cache of material-stage blend pipelines (azimuthally
+ * projected clouds, moons, ...) -- drawn via the same shader as the base
+ * cubemap window, a runtime branch on material.flags, not a pipeline swap.
  */
 static struct {
-  GLuint name;
+  /**
+   * @brief The pipeline.
+   */
+  GraphicsPipeline *pipeline;
+  
+  /**
+   * @brief The cubemap sampler.
+   */
+  Sampler *sampler;
+  
+  /**
+   * @brief The stage sampler for parallax scrolling sky effects.
+   */
+  Sampler *stage_sampler;
 
-  GLuint uniforms_block;
-
-  GLint texture_sky;
-  GLint texture_stage;
-  GLint texture_stage_next;
-  GLint texture_voxel_light_data;
-  GLint texture_voxel_light_indices;
-
+  /**
+   * @brief The stage pipelines, cached by blend operator combinations.
+   */
   struct {
-    GLint flags;
-    GLint color;
-    GLint pulse;
-    GLint drift;
-    GLint rotate;
-    GLint scroll;
-    GLint scale;
-  } stage;
-} r_sky_program;
+    cm_blend_t src, dest;
+    GraphicsPipeline *pipeline;
+  } stages[MAX_STAGE_PIPELINES];
 
-static float R_StageDriftHash(const void *a, const void *b) {
-  uint32_t h = (uint32_t) ((uintptr_t) a >> 4) ^ (uint32_t) ((uintptr_t) b >> 4);
-  h ^= h >> 16;
-  h *= 0x7feb352dU;
-  h ^= h >> 15;
-  h *= 0x846ca68bU;
-  h ^= h >> 16;
-  return h / (float) UINT32_MAX;
-}
+  int32_t num_stages;
+} r_sky_draw;
 
 /**
- * @brief Binds material stage uniforms and draws elements for a single sky draw elements material stage.
+ * @brief Returns the sky pipeline for the given material-stage blend function,
+ * creating and caching it on first use. Wraps the same sky_vs/sky_fs shader as
+ * the base pipeline (a stage draw is a runtime branch, not a shader swap);
+ * only the blend state differs, which SDL_gpu bakes into the pipeline.
  */
-static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view,
-                                               const r_bsp_draw_elements_t *draw,
-                                               const r_material_t *material,
-                                               const r_stage_t *stage) {
+static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
-  glUniform1i(r_sky_program.stage.flags, stage->cm->flags);
-
-  if (stage->cm->flags & STAGE_COLOR) {
-    glUniform4fv(r_sky_program.stage.color, 1, stage->cm->color.rgba);
-  }
-
-  if (stage->cm->flags & STAGE_PULSE) {
-    glUniform1f(r_sky_program.stage.pulse, stage->cm->pulse.hz);
-    glUniform1f(r_sky_program.stage.drift, stage->cm->pulse.drift * R_StageDriftHash(draw, stage));
-  }
-
-  if (stage->cm->flags & STAGE_ROTATE) {
-    glUniform1f(r_sky_program.stage.rotate, stage->cm->rotate.hz);
-  }
-
-  if (stage->cm->flags & (STAGE_SCROLL_S | STAGE_SCROLL_T)) {
-    glUniform2f(r_sky_program.stage.scroll, stage->cm->scroll.s, stage->cm->scroll.t);
-  }
-
-  if (stage->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
-    glUniform2f(r_sky_program.stage.scale, stage->cm->scale.s, stage->cm->scale.t);
-  }
-
-  glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
-
-  if (stage->media) {
-    switch (stage->media->type) {
-      case R_MEDIA_IMAGE: {
-        const r_image_t *image = (r_image_t *) stage->media;
-        glBindTexture(GL_TEXTURE_2D, image->texnum);
-      }
-        break;
-      default:
-        Com_Warn("Unsupported stage media in material %s\n", material->media.name);
-        break;
+  for (int32_t i = 0; i < r_sky_draw.num_stages; i++) {
+    if (r_sky_draw.stages[i].src == src && r_sky_draw.stages[i].dest == dest) {
+      return r_sky_draw.stages[i].pipeline;
     }
   }
 
-  glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
+  if (r_sky_draw.num_stages == MAX_STAGE_PIPELINES) {
+    return NULL;
+  }
 
-  R_GetError(material->media.name);
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
+
+  const SDL_GPUBlendFactor s = R_BlendFactor(src);
+  const SDL_GPUBlendFactor d = R_BlendFactor(dest);
+
+  SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
+  info.multisample_state.sample_count = r_scene_samples;
+
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
+
+  // Stages blend over the already-drawn cubemap window; test depth but don't write it.
+  info.depth_stencil_state.enable_depth_write = false;
+
+  info.vertex_input_state = (SDL_GPUVertexInputState) {
+    .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
+      .slot = 0,
+      .pitch = sizeof(r_bsp_vertex_t),
+      .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+    },
+    .num_vertex_buffers = 1,
+    .vertex_attributes = &(SDL_GPUVertexAttribute) {
+      .location = 0,
+      .buffer_slot = 0,
+      .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+      .offset = offsetof(r_bsp_vertex_t, position),
+    },
+    .num_vertex_attributes = 1,
+  };
+
+  info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
+    .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
+      .format = R_SCENE_COLOR_FORMAT,
+      .blend_state = {
+        .enable_blend = true,
+        .src_color_blendfactor = s,
+        .dst_color_blendfactor = d,
+        .color_blend_op = SDL_GPU_BLENDOP_ADD,
+        .src_alpha_blendfactor = s,
+        .dst_alpha_blendfactor = d,
+        .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+      },
+    },
+    .num_color_targets = 1,
+    .depth_stencil_format = framebuffer->depthFormat,
+    .has_depth_stencil_target = true,
+  };
+
+  GraphicsPipeline *pipeline = $(r_context.device, loadGraphicsPipeline,
+    "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+      .num_uniform_buffers = SKY_NUM_UNIFORMS,
+    },
+    "shaders/sky_fs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+      .num_samplers = SKY_NUM_SAMPLERS,
+      .num_uniform_buffers = SKY_NUM_UNIFORMS,
+    },
+    &info);
+
+  r_sky_draw.stages[r_sky_draw.num_stages] = (typeof(r_sky_draw.stages[0])) {
+    .src = src, .dest = dest, .pipeline = pipeline,
+  };
+  return r_sky_draw.stages[r_sky_draw.num_stages++].pipeline;
 }
 
 /**
- * @brief Iterates and draws all active material stages for sky draw elements.
+ * @brief Binds the stage uniforms and textures and draws a single material stage
+ * of a sky draw-elements batch, layered over the already-drawn cubemap window.
  */
-static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view,
-                                                const r_bsp_draw_elements_t *draw,
-                                                const r_material_t *material) {
+static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+                                               const r_bsp_draw_elements_t *draw, const r_stage_t *stage) {
 
-  if (!r_draw_material_stages->value) {
+  r_material_uniforms_t uniforms;
+  R_MaterialUniforms(draw->material, draw->surface, &uniforms);
+
+  SDL_GPUTexture *texture, *texture_next;
+  if (!R_StageUniforms(view, NULL, draw, stage, &uniforms, &texture, &texture_next)) {
     return;
   }
 
+  GraphicsPipeline *pipeline = R_SkyStagePipeline(stage->cm->blend.src, stage->cm->blend.dest);
+  if (!pipeline) {
+    return;
+  }
+
+  $(pass, bindPipeline, pipeline);
+
+  $(pass, bindFragmentSamplers, SKY_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = texture, .sampler = r_sky_draw.stage_sampler->sampler },
+    { .texture = texture_next, .sampler = r_sky_draw.stage_sampler->sampler },
+  }, 2);
+
+  $(commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
+
+  const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
+  $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
+
+  r_stats.bsp_triangles += draw->num_elements / 3;
+}
+
+/**
+ * @brief Draws all active material stages for a sky draw-elements batch.
+ */
+static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+                                                const r_bsp_draw_elements_t *draw) {
+
+  const r_material_t *material = draw->material;
   if (!(material->cm->stage_flags & STAGE_DRAW)) {
     return;
   }
 
-  glEnable(GL_BLEND);
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
-
-  for (r_stage_t *stage = material->stages; stage; stage = stage->next) {
+  for (const r_stage_t *stage = material->stages; stage; stage = stage->next) {
 
     if (!(stage->cm->flags & STAGE_DRAW)) {
       continue;
     }
 
-    R_DrawSkyDrawElementsMaterialStage(view, draw, material, stage);
+    R_DrawSkyDrawElementsMaterialStage(view, pass, commands, draw, stage);
   }
-
-  glUniform1i(r_sky_program.stage.flags, STAGE_NONE);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
-  glDisable(GL_BLEND);
-
-  R_GetError(NULL);
 }
 
 /**
- * @brief Draws a single sky BSP draw elements group, including any material stages.
- */
-static void R_DrawSkyDrawElements(const r_view_t *view, const r_bsp_draw_elements_t *draw) {
-
-  glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
-
-  R_DrawSkyDrawElementsMaterialStages(view, draw, draw->material);
-}
-
-/**
- * @brief Renders all sky surfaces in the BSP model for the current view.
+ * @brief Renders all sky surfaces of the world model as a window into the sky
+ * cubemap. Drawn after the opaque world so it fills only unoccluded sky texels.
  */
 void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
+  if (!r_sky.image || !r_sky.image->texture || !r_sky.image->texture->texture) {
+    return;
+  }
 
-  glUseProgram(r_sky_program.name);
+  if (!view->framebuffer) {
+    return;
+  }
 
-  glBindVertexArray(bsp->vertex_array);
+  CommandBuffer *commands = r_context.device->commands;
 
-  glUniform1i(r_sky_program.stage.flags, STAGE_NONE);
+  Framebuffer *framebuffer = view->framebuffer;
 
-  const r_bsp_block_t *block = bsp->inline_models->blocks;
-  for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
+  // Composite over the opaque scene, depth-testing against it (LOAD, no clear) so
+  // sky surfaces occluded by world geometry are discarded.
+  const SDL_GPUColorTargetInfo color =
+      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
+  const SDL_GPUDepthStencilTargetInfo depth =
+      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
 
-    if (block->query->result == 0) {
-      continue;
-    }
+  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
+
+  $(pass, setViewport, &(SDL_GPUViewport) {
+    .x = 0.f, .y = 0.f,
+    .w = (float) framebuffer->size.w, .h = (float) framebuffer->size.h,
+    .min_depth = 0.f, .max_depth = 1.f,
+  });
+
+  // Both stages: sky_fs reads ticks from the fragment globals for stage
+  // scroll/rotate animation; without this it relied on the BSP pass's push.
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+
+  $(pass, bindPipeline, r_sky_draw.pipeline);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
+  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+  $(pass, bindFragmentSamplers, SKY_SAMPLER_SKY, &(SDL_GPUTextureSamplerBinding) {
+    .texture = r_sky.image->texture->texture,
+    .sampler = r_sky_draw.sampler->sampler,
+  }, 1);
+
+  // Stage/stage-next: the base cubemap window never samples these (sky_fs's
+  // STAGE_NONE branch doesn't touch them), but the shared shader declares
+  // them, so SDL_gpu requires them bound regardless.
+  $(pass, bindFragmentSamplers, SKY_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
+  }, 2);
+
+  const r_bsp_inline_model_t *world = bsp->inline_models;
+  const r_bsp_block_t *block = world->blocks;
+  for (int32_t i = 0; i < world->num_blocks; i++, block++) {
 
     if (!(block->surface & SURF_SKY)) {
       continue;
@@ -202,101 +298,158 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
         continue;
       }
 
-      R_DrawSkyDrawElements(view, draw);
+      if (!draw->material) {
+        continue;
+      }
+
+      // Re-bind the base pipeline: a preceding surface's material stages may
+      // have left a stage (blend) pipeline bound (see R_DrawBspBlockOpaque).
+      $(pass, bindPipeline, r_sky_draw.pipeline);
+
+      // R_MaterialUniforms zeroes the whole struct, so the stage fields land
+      // at their STAGE_NONE default, undoing any stage a preceding surface
+      // left pushed.
+      r_material_uniforms_t material;
+      R_MaterialUniforms(draw->material, draw->surface, &material);
+      $(commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &material, sizeof(material));
+
+      const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
+
+      $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
+
+      r_stats.bsp_triangles += draw->num_elements / 3;
+      r_stats.bsp_draw_elements++;
+
+      if (r_draw_material_stages->integer) {
+        R_DrawSkyDrawElementsMaterialStages(view, pass, commands, draw);
+      }
     }
   }
 
-  glBindVertexArray(0);
-
-  glUseProgram(0);
-
-  glDisable(GL_CULL_FACE);
-  glDisable(GL_DEPTH_TEST);
-
-  R_GetError(NULL);
+  pass = release(pass);
 }
 
 /**
- * @brief Initializes the sky GLSL program and resolves its uniform locations.
+ * @brief Returns the sky cubemap for image-based ambient in the lit pass, or a
+ * black fallback cube when no sky is loaded, so the ambient sampler is always bound.
  */
-static void R_InitSkyProgram(void) {
+Texture *R_SkyTexture(void) {
 
-  memset(&r_sky_program, 0, sizeof(r_sky_program));
+  if (r_sky.image && r_sky.image->texture) {
+    return r_sky.image->texture;
+  }
 
-  r_sky_program.name = R_LoadProgram(
-      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "voxel.glsl", "sky_vs.glsl", NULL),
-      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "voxel.glsl", "sky_fs.glsl", NULL),
-      NULL);
-
-  glUseProgram(r_sky_program.name);
-
-  r_sky_program.uniforms_block = glGetUniformBlockIndex(r_sky_program.name, "uniforms_block");
-  glUniformBlockBinding(r_sky_program.name, r_sky_program.uniforms_block, 0);
-
-  const GLuint lights_block = glGetUniformBlockIndex(r_sky_program.name, "lights_block");
-  glUniformBlockBinding(r_sky_program.name, lights_block, 1);
-
-  r_sky_program.texture_sky = glGetUniformLocation(r_sky_program.name, "texture_sky");
-  r_sky_program.texture_stage = glGetUniformLocation(r_sky_program.name, "texture_stage");
-  r_sky_program.texture_stage_next = glGetUniformLocation(r_sky_program.name, "texture_stage_next");
-  r_sky_program.texture_voxel_light_data = glGetUniformLocation(r_sky_program.name, "texture_voxel_light_data");
-  r_sky_program.texture_voxel_light_indices = glGetUniformLocation(r_sky_program.name, "texture_voxel_light_indices");
-
-  glUniform1i(r_sky_program.texture_sky, TEXTURE_SKY);
-  glUniform1i(r_sky_program.texture_stage, TEXTURE_STAGE);
-  glUniform1i(r_sky_program.texture_stage_next, TEXTURE_STAGE_NEXT);
-  glUniform1i(r_sky_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
-  glUniform1i(r_sky_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
-
-  r_sky_program.stage.flags = glGetUniformLocation(r_sky_program.name, "stage.flags");
-  r_sky_program.stage.color = glGetUniformLocation(r_sky_program.name, "stage.color");
-  r_sky_program.stage.pulse = glGetUniformLocation(r_sky_program.name, "stage.pulse");
-  r_sky_program.stage.drift = glGetUniformLocation(r_sky_program.name, "stage.drift");
-  r_sky_program.stage.rotate = glGetUniformLocation(r_sky_program.name, "stage.rotate");
-  r_sky_program.stage.scroll = glGetUniformLocation(r_sky_program.name, "stage.scroll");
-  r_sky_program.stage.scale = glGetUniformLocation(r_sky_program.name, "stage.scale");
-
-  glUniform1i(r_sky_program.stage.flags, STAGE_NONE);
-
-  glUseProgram(0);
-
-  R_GetError(NULL);
+  return r_sky.fallback;
 }
 
 /**
- * @brief Initializes the sky subsystem and sky GLSL program.
+ * @brief Builds the sky pipeline (position-only vertex input) and cubemap sampler.
+ */
+static void R_InitSkyPipeline(void) {
+
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
+
+  SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
+  info.multisample_state.sample_count = r_scene_samples;
+
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
+
+  info.vertex_input_state = (SDL_GPUVertexInputState) {
+    .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
+      .slot = 0,
+      .pitch = sizeof(r_bsp_vertex_t),
+      .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+    },
+    .num_vertex_buffers = 1,
+    .vertex_attributes = &(SDL_GPUVertexAttribute) {
+      .location = 0,
+      .buffer_slot = 0,
+      .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+      .offset = offsetof(r_bsp_vertex_t, position),
+    },
+    .num_vertex_attributes = 1,
+  };
+
+  info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
+    .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
+      .format = R_SCENE_COLOR_FORMAT,
+      .blend_state = GPU_BlendStateOpaque,
+    },
+    .num_color_targets = 1,
+    .depth_stencil_format = framebuffer->depthFormat,
+    .has_depth_stencil_target = true,
+  };
+
+  r_sky_draw.pipeline = $(r_context.device, loadGraphicsPipeline,
+    "shaders/sky_vs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+      .num_uniform_buffers = SKY_NUM_UNIFORMS,
+    },
+    "shaders/sky_fs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+      .num_samplers = SKY_NUM_SAMPLERS,
+      .num_uniform_buffers = SKY_NUM_UNIFORMS,
+    },
+    &info);
+
+  r_sky_draw.sampler = $(r_context.device, createSamplerLinearClamp);
+  r_sky_draw.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
+}
+
+/**
+ * @brief Initializes the sky subsystem and sky pipeline.
  */
 void R_InitSky(void) {
 
   memset(&r_sky, 0, sizeof(r_sky));
 
-  R_InitSkyProgram();
+  R_InitSkyPipeline();
+
+  // A 1x1 black fallback cube (six faces) for the lit ambient sampler.
+  r_sky.fallback = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_CUBE, 6, 0x00000000);
 }
 
 /**
- * @brief Deletes the sky GLSL program object.
- */
-static void R_ShutdownSkyProgram(void) {
-
-  glDeleteProgram(r_sky_program.name);
-
-  r_sky_program.name = 0;
-}
-
-/**
- * @brief Shuts down the sky subsystem, releasing the sky program.
+ * @brief Shuts down the sky subsystem, releasing the pipeline and sampler.
  */
 void R_ShutdownSky(void) {
 
-  R_ShutdownSkyProgram();
+  r_sky_draw.pipeline = release(r_sky_draw.pipeline);
+  r_sky_draw.sampler = release(r_sky_draw.sampler);
+  r_sky_draw.stage_sampler = release(r_sky_draw.stage_sampler);
+
+  for (int32_t i = 0; i < r_sky_draw.num_stages; i++) {
+    r_sky_draw.stages[i].pipeline = release(r_sky_draw.stages[i].pipeline);
+  }
+  r_sky_draw.num_stages = 0;
+
+  r_sky.fallback = release(r_sky.fallback);
+}
+
+/**
+ * @brief Rebuilds the sky pipeline and sampler in place, for pipeline-bound
+ * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
+ * an r_restart. See R_UpdatePipelines.
+ * @details R_InitSky memsets `r_sky` (including the currently loaded `image`),
+ * but `image` is only (re)loaded by R_LoadSky at map load/r_restart -- so it
+ * must be preserved across this rebuild, or the sky cubemap goes black (falls
+ * back to R_SkyTexture's solid fallback cube) until the next full media load.
+ */
+void R_UpdateSky(void) {
+
+  r_image_t *image = r_sky.image;
+
+  R_ShutdownSky();
+  R_InitSky();
+
+  r_sky.image = image;
 }
 
 /**
  * @brief Loads the sky cubemap specified in worldspawn.
  */
 void R_LoadSky(void) {
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
 
   const char *name = Cm_EntityValue(Cm_Worldspawn(), "sky")->nullable_string;
   if (name) {
@@ -317,12 +470,4 @@ void R_LoadSky(void) {
       Com_Error(ERROR_DROP, "Failed to load default sky\n");
     }
   }
-
-  // Bind the cubemap to the sky texture unit. A freshly loaded image is bound as a
-  // side effect of its creation, but a cached R_LoadImage returns without binding,
-  // so a live sky change back to an already-loaded cubemap (e.g. reverting from the
-  // template) would otherwise leave the previous texture bound and never update.
-  glBindTexture(r_sky.image->target, r_sky.image->texnum);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 }

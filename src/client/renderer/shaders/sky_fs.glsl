@@ -19,75 +19,96 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-in common_vertex_t vertex;
+#version 450
 
-in vec3 cubemap_coord;
+#include "uniforms.glsl"
 
-out vec4 out_color;
+// Sky's own binding map (fragment stage): a dense family shared with no other
+// pipeline. Sky has no base diffuse texture array, so texture_material (the
+// only sampler material.glsl would otherwise declare) is compiled out via
+// MATERIAL_NO_DIFFUSE, keeping the family dense at {sky, stage, stage_next}.
+#define BINDING_SAMPLER_SKY        0
+#define BINDING_SAMPLER_STAGE      1
+#define BINDING_SAMPLER_STAGE_NEXT 2
+#define BINDING_UNIFORMS_MATERIAL  1
 
-common_fragment_t fragment;
+#define MATERIAL_NO_DIFFUSE
+#include "common.glsl"
+#include "material.glsl"
+
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SKY) uniform samplerCube texture_sky;
+
+layout (location = 0) in vec3 cubemap_coord;
+layout (location = 1) in vec4 stage_color;
+
+layout (location = 0) out vec4 out_color;
 
 /**
- * @brief Convert normalized direction to azimuthal equidistant projection.
- * Maps direction to a circular disk: center = straight up, edge = horizon.
- * Avoids pole singularities by placing them at the texture edge.
+ * @brief Converts a normalized direction to an azimuthal equidistant
+ * projection: center = straight up, edge = horizon. Avoids pole singularities
+ * by placing them at the texture edge.
  */
-vec2 direction_to_azimuthal_equidistant(vec3 direction) {
-  vec3 n = normalize(direction);
-  
-  float theta = acos(clamp(n.z, -1.0, 1.0));  // Angle from +Z (up)
-  float phi = atan(n.y, n.x);                 // Azimuth
-  
-  float r = theta / PI;  // Radial distance (0 at center, 1 at edge)
-  
+vec2 direction_to_azimuthal_equidistant(in vec3 direction) {
+
+  float theta = acos(clamp(direction.z, -1.0, 1.0)); // angle from +Z (up)
+  float phi = atan(direction.y, direction.x); // azimuth
+
+  float r = theta / PI; // radial distance (0 at center, 1 at edge)
+
   return 0.5 + r * vec2(cos(phi), sin(phi)) * 0.5;
 }
 
 /**
- * @brief Apply stage transforms (rotation, scroll, scale) to UV coordinates.
+ * @brief Applies the stage's rotate/scroll/scale to the azimuthal-projected
+ * texcoord. Distinct from material.glsl's stage_vertex, which transforms a
+ * per-vertex diffusemap texcoord that sky surfaces don't have.
  */
-vec2 transform_stage_uv(vec2 uv) {
-  vec2 center = uv - 0.5;
-  
-  if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
-    float cos_a = cos(stage.rotate * ticks * 0.001);
-    float sin_a = sin(stage.rotate * ticks * 0.001);
-    center = mat2(cos_a, -sin_a, sin_a, cos_a) * center;
-  }
-  
-  uv = center + 0.5;
-  
-  uv += stage.scroll * ticks * 0.001;
-  
-  if ((stage.flags & (STAGE_SCALE_S | STAGE_SCALE_T)) > 0) {
-    center = uv - 0.5;
-    center /= stage.scale;
+vec2 transform_stage_uv(in vec2 uv) {
+
+  if ((material.flags & STAGE_ROTATE) == STAGE_ROTATE) {
+    vec2 center = uv - 0.5;
+    float theta = ticks * 0.001 * material.rotate * TWO_PI;
+    center = mat2(cos(theta), -sin(theta), sin(theta), cos(theta)) * center;
     uv = center + 0.5;
   }
-  
+
+  if ((material.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
+    uv.s += material.scroll.s * ticks * 0.001;
+  }
+
+  if ((material.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
+    uv.t += material.scroll.t * ticks * 0.001;
+  }
+
+  if ((material.flags & (STAGE_SCALE_S | STAGE_SCALE_T)) != 0) {
+    vec2 center = uv - 0.5;
+    center /= vec2(
+      (material.flags & STAGE_SCALE_S) == STAGE_SCALE_S ? material.scale.s : 1.0,
+      (material.flags & STAGE_SCALE_T) == STAGE_SCALE_T ? material.scale.t : 1.0
+    );
+    uv = center + 0.5;
+  }
+
   return uv;
 }
 
 /**
- * @brief
+ * @brief Windows into the sky cubemap (material.flags == STAGE_NONE), or draws
+ * an azimuthally-projected material stage (moving clouds, moons, ...) layered
+ * over it. One shader, one pipeline: which branch runs is a runtime uniform,
+ * matching the BSP/mesh material-stage pattern.
  */
 void main(void) {
 
-  if (stage.flags == STAGE_NONE) {
-    fragment.view_dist = length(vertex.position);
-    fragment.diffuse_sample = texture(texture_sky, normalize(cubemap_coord));
+  if (material.flags == STAGE_NONE) {
 
-    out_color = fragment.diffuse_sample;
+    out_color = texture(texture_sky, normalize(cubemap_coord));
 
   } else {
 
     vec2 st = direction_to_azimuthal_equidistant(normalize(cubemap_coord));
-    
     st = transform_stage_uv(st);
-    
-    fragment.diffuse_sample = sample_material_stage(st);
 
-    out_color = fragment.diffuse_sample * vertex.color;
+    out_color = sample_material_stage(st) * stage_color;
   }
 }
-

@@ -353,7 +353,7 @@ When CI fails (or after pushing a fix and needing to confirm it passed), use the
 .github/copilot/skills/ci-watch-fix.md
 ```
 
-The skill documents the full workflow: finding the failing run, extracting real errors (filtering glib noise), diagnosing by category (missing include, stale dep, linker, allocator), fixing locally, and confirming the new run goes green. Includes a one-liner that extracts all real errors from the latest run in one shot.
+The skill documents the full workflow: finding the failing run, extracting real errors, diagnosing by category (missing include, stale dep, linker, allocator), fixing locally, and confirming the new run goes green. Includes a one-liner that extracts all real errors from the latest run in one shot.
 
 ## Dependencies
 
@@ -365,7 +365,6 @@ From `README.md` and `configure.ac`:
 - **PhysicsFS**: Virtual filesystem
 - **OpenAL**: 3D audio
 - **libsndfile**: Audio format loading
-- **glib2**: Utility library
 - **ncurses**: Text-mode UI (server console)
 - **SDL2**: Window/input/context management
 - **libcurl**: HTTP downloads (updater)

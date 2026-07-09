@@ -52,7 +52,7 @@ static void Cl_DrawConsole_Background(void) {
     return;
   }
 
-  GLint ch;
+  int32_t ch;
   R_BindFont("small", NULL, &ch);
 
   const float x_scale = r_context.w / (float) conback->width;
@@ -60,16 +60,16 @@ static void Cl_DrawConsole_Background(void) {
 
   const float scale = Maxf(x_scale, y_scale);
 
-  const GLint width = ceilf(conback->width * scale);
-  const GLint height = ceilf(conback->height * scale);
+  const int32_t width = ceilf(conback->width * scale);
+  const int32_t height = ceilf(conback->height * scale);
 
   assert(width >= r_context.w);
   assert(height >= r_context.h);
 
-  const GLint x = (r_context.w / 2.f) - (width / 2.f);
-  const GLint y = (r_context.h / 2.f) - (height / 2.f);
+  const int32_t x = (r_context.w / 2.f) - (width / 2.f);
+  const int32_t y = (r_context.h / 2.f) - (height / 2.f);
 
-  const GLint offset = y + height - ((GLint) cl_console.height + 1) * ch;
+  const int32_t offset = y + height - ((int32_t) cl_console.height + 1) * ch;
 
   const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
 
@@ -80,14 +80,14 @@ static void Cl_DrawConsole_Background(void) {
  * @brief Draws the visible console text buffer lines above the input line.
  */
 static void Cl_DrawConsole_Buffer(void) {
-  GLint ch;
+  int32_t ch;
 
   R_BindFont("small", NULL, &ch);
 
   char *lines[cl_console.height];
   const size_t count = Con_Tail(&cl_console, lines, cl_console.height);
 
-  GLint y = ((GLint) cl_console.height - (GLint) count) * ch;
+  int32_t y = ((int32_t) cl_console.height - (int32_t) count) * ch;
 
   color_t color = color_white;
   for (size_t i = 0; i < count; i++) {
@@ -102,11 +102,11 @@ static void Cl_DrawConsole_Buffer(void) {
  * @brief The input line scrolls horizontally if typing goes beyond the right edge
  */
 static void Cl_DrawConsole_Input(void) {
-  GLint cw, ch;
+  int32_t cw, ch;
 
   R_BindFont("small", &cw, &ch);
 
-  GLint x = 1, y = (GLint) cl_console.height * ch;
+  int32_t x = 1, y = (int32_t) cl_console.height * ch;
 
   // draw the prompt
   R_Draw2DChar(0, y, ']', color_green);
@@ -125,13 +125,13 @@ static void Cl_DrawConsole_Input(void) {
   }
 
   // and lastly cursor
-  R_Draw2DChar((GLint) (cl_console.input.pos + 1) * cw, y, 0x0b, color_white);
+  R_Draw2DChar((int32_t) (cl_console.input.pos + 1) * cw, y, 0x0b, color_white);
 }
 
 /**
  * @brief Returns the console height in pixels based on the current window size and state.
  */
-GLint Cl_GetConsoleHeight(void) {
+int32_t Cl_GetConsoleHeight(void) {
   return r_context.h * (cls.state == CL_ACTIVE ? Clampf01(cl_console_height->value) : 1.f);
 }
 
@@ -139,9 +139,9 @@ GLint Cl_GetConsoleHeight(void) {
  * @brief Draws the full console overlay including background, buffer, and input line.
  */
 void Cl_DrawConsole(void) {
-  const GLint height = Cl_GetConsoleHeight();
+  const int32_t height = Cl_GetConsoleHeight();
 
-  GLint cw, ch;
+  int32_t cw, ch;
   R_BindFont("small", &cw, &ch);
 
   cl_console.width = r_context.w / cw;
@@ -160,7 +160,7 @@ void Cl_DrawConsole(void) {
  * @brief Draws the last few lines of console output over the game.
  */
 void Cl_DrawNotify(void) {
-  GLint cw, ch;
+  int32_t cw, ch;
 
   if (!cl_draw_notify->value) {
     return;
@@ -178,7 +178,7 @@ void Cl_DrawNotify(void) {
   char *lines[cl_notify_console.height];
   const size_t count = Con_Tail(&cl_notify_console, lines, cl_notify_console.height);
 
-  GLint y = 0;
+  int32_t y = 0;
 
   color_t color = color_white;
   for (size_t i = 0; i < count; i++) {
@@ -195,11 +195,11 @@ void Cl_DrawNotify(void) {
  * @brief Draws the chat history and, optionally, the chat input string.
  */
 void Cl_DrawChat(void) {
-  GLint cw, ch;
+  int32_t cw, ch;
 
   R_BindFont("small", &cw, &ch);
 
-  GLint x = 1, y = r_context.h * 0.66;
+  int32_t x = 1, y = r_context.h * 0.66;
 
   cl_chat_console.width = r_context.w / cw / 3;
   cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 16);

@@ -343,6 +343,247 @@ void FloodLights(void) {
   }
 }
 
+/**
+ * @brief Per-voxel enumeration callback that appends the voxel's index to every light's
+ * voxel list, inverting the voxel -> light assignments already computed by LightVoxel/FloodLights.
+ */
+typedef struct {
+  Vector **light_voxel_lists;
+  int32_t voxel_index;
+} light_voxel_data_t;
+
+static void Voxel_AppendLightVoxel(const HashTable *table, ident key, ident value, ident data) {
+
+  light_voxel_data_t *d = data;
+  const light_t *light = key;
+
+  if (light->out) {
+    const int32_t light_index = (int32_t) (light->out - bsp_file.lights);
+    $(d->light_voxel_lists[light_index], add, &d->voxel_index);
+  }
+}
+
+/**
+ * @brief Assigns each light the list of voxel indices it touches, inverting the per-voxel
+ * light assignments already computed by LightVoxel/FloodLights. This allows the renderer to
+ * draw tight, per-voxel occlusion query geometry for each light instead of a single big AABB.
+ * @remarks Must be called after EmitLights, so that `light->out` is valid.
+ */
+void AssignLightVoxels(void) {
+
+  const uint32_t start = (uint32_t) SDL_GetTicks();
+
+  if (bsp_file.num_lights == 0) {
+    return;
+  }
+
+  Vector **light_voxel_lists = Mem_TagMalloc(bsp_file.num_lights * sizeof(Vector *), (mem_tag_t) MEM_TAG_VOXEL);
+  for (int32_t i = 0; i < bsp_file.num_lights; i++) {
+    light_voxel_lists[i] = $(alloc(Vector), initWithSize, sizeof(int32_t));
+  }
+
+  for (size_t i = 0; i < voxels.num_voxels; i++) {
+
+    light_voxel_data_t data = {
+      .light_voxel_lists = light_voxel_lists,
+      .voxel_index = (int32_t) i
+    };
+
+    $(voxels.voxels[i].lights, enumerate, Voxel_AppendLightVoxel, &data);
+  }
+
+  int32_t total = 0;
+  for (int32_t i = 0; i < bsp_file.num_lights; i++) {
+    total += (int32_t) light_voxel_lists[i]->count;
+  }
+
+  Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHT_VOXELS, total);
+  bsp_file.num_light_voxels = total;
+
+  int32_t *out = bsp_file.light_voxels;
+  for (int32_t i = 0; i < bsp_file.num_lights; i++) {
+
+    bsp_file.lights[i].first_voxel = (int32_t) (out - bsp_file.light_voxels);
+    bsp_file.lights[i].num_voxels = (int32_t) light_voxel_lists[i]->count;
+
+    memcpy(out, light_voxel_lists[i]->elements, light_voxel_lists[i]->count * sizeof(int32_t));
+    out += light_voxel_lists[i]->count;
+
+    release(light_voxel_lists[i]);
+  }
+
+  Mem_Free(light_voxel_lists);
+
+  Com_Print("\r%-24s [100%%] %d ms\n", "Assigning light voxels", (uint32_t) SDL_GetTicks() - start);
+}
+
+/**
+ * @brief Builds a lookup from `CONTENTS_BLOCK` node index to the index of the block it defines
+ * within `bsp_file.blocks`, or -1 if the node is not a block.
+ */
+static int32_t *Voxel_BuildNodeToBlock(void) {
+
+  int32_t *node_to_block = Mem_TagMalloc(bsp_file.num_nodes * sizeof(int32_t), (mem_tag_t) MEM_TAG_VOXEL);
+
+  for (int32_t i = 0; i < bsp_file.num_nodes; i++) {
+    node_to_block[i] = -1;
+  }
+
+  for (int32_t i = 0; i < bsp_file.num_blocks; i++) {
+    node_to_block[bsp_file.blocks[i].node] = i;
+  }
+
+  return node_to_block;
+}
+
+/**
+ * @brief Builds parent index arrays for the BSP node tree, so that leafs and nodes may be
+ * walked upward to their enclosing `CONTENTS_BLOCK` ancestor. The flattened, on-disk BSP tree
+ * has no parent pointers, unlike quemap's transient tree-building `node_t`, so we derive them
+ * here with a single pass over the node array.
+ */
+static void Voxel_BuildParents(int32_t **node_parent, int32_t **leaf_parent) {
+
+  *node_parent = Mem_TagMalloc(bsp_file.num_nodes * sizeof(int32_t), (mem_tag_t) MEM_TAG_VOXEL);
+  *leaf_parent = Mem_TagMalloc(bsp_file.num_leafs * sizeof(int32_t), (mem_tag_t) MEM_TAG_VOXEL);
+
+  for (int32_t i = 0; i < bsp_file.num_nodes; i++) {
+    (*node_parent)[i] = -1;
+  }
+  for (int32_t i = 0; i < bsp_file.num_leafs; i++) {
+    (*leaf_parent)[i] = -1;
+  }
+
+  const bsp_node_t *node = bsp_file.nodes;
+  for (int32_t i = 0; i < bsp_file.num_nodes; i++, node++) {
+    for (int32_t c = 0; c < 2; c++) {
+      const int32_t child = node->children[c];
+      if (child >= 0) {
+        (*node_parent)[child] = i;
+      } else {
+        (*leaf_parent)[-1 - child] = i;
+      }
+    }
+  }
+}
+
+/**
+ * @brief Walks up from the given leaf to its enclosing `CONTENTS_BLOCK` ancestor, returning the
+ * index of that block within `bsp_file.blocks`, or -1 if none is found.
+ */
+static int32_t Voxel_BlockForLeaf(int32_t leaf_num, const int32_t *node_parent, const int32_t *leaf_parent,
+                                   const int32_t *node_to_block) {
+
+  int32_t node_num = leaf_parent[leaf_num];
+
+  while (node_num != -1 && bsp_file.nodes[node_num].contents != CONTENTS_BLOCK) {
+    node_num = node_parent[node_num];
+  }
+
+  if (node_num == -1) {
+    return -1;
+  }
+
+  return node_to_block[node_num];
+}
+
+/**
+ * @brief Assigns each world-space BSP block the list of voxel indices it touches, by resolving
+ * the leafs each voxel occupies up to their enclosing `CONTENTS_BLOCK` ancestor. This allows the
+ * renderer to draw tight, per-voxel occlusion query geometry for each block instead of a single
+ * big AABB, while the block's loose bounds are retained for CPU-side visibility checks.
+ * @remarks Blocks belonging to non-world (inline) models are left with zero voxels, since voxels
+ * only cover the world model's space; the renderer falls back to their loose bounds in that case.
+ */
+void AssignBlockVoxels(void) {
+
+  const uint32_t start = (uint32_t) SDL_GetTicks();
+
+  if (bsp_file.num_blocks == 0) {
+    return;
+  }
+
+  int32_t *node_parent, *leaf_parent;
+  Voxel_BuildParents(&node_parent, &leaf_parent);
+
+  int32_t *node_to_block = Voxel_BuildNodeToBlock();
+
+  Vector **block_voxel_lists = Mem_TagMalloc(bsp_file.num_blocks * sizeof(Vector *), (mem_tag_t) MEM_TAG_VOXEL);
+  for (int32_t i = 0; i < bsp_file.num_blocks; i++) {
+    block_voxel_lists[i] = $(alloc(Vector), initWithSize, sizeof(int32_t));
+  }
+
+  const int32_t head_node = bsp_file.models[0].head_node;
+
+  static int32_t leafs[MAX_BSP_LEAFS];
+
+  for (size_t i = 0; i < voxels.num_voxels; i++) {
+
+    Progress("Assigning block voxels", 100.f * i / voxels.num_voxels);
+
+    const voxel_t *voxel = &voxels.voxels[i];
+
+    const size_t num_leafs = Cm_BoxLeafnums(voxel->bounds, leafs, lengthof(leafs), NULL, head_node);
+
+    int32_t seen[64];
+    size_t num_seen = 0;
+
+    for (size_t j = 0; j < num_leafs; j++) {
+
+      const int32_t block = Voxel_BlockForLeaf(leafs[j], node_parent, leaf_parent, node_to_block);
+      if (block == -1) {
+        continue;
+      }
+
+      bool dup = false;
+      for (size_t k = 0; k < num_seen; k++) {
+        if (seen[k] == block) {
+          dup = true;
+          break;
+        }
+      }
+
+      if (dup) {
+        continue;
+      }
+
+      if (num_seen < lengthof(seen)) {
+        seen[num_seen++] = block;
+      }
+
+      int32_t voxel_index = (int32_t) i;
+      $(block_voxel_lists[block], add, &voxel_index);
+    }
+  }
+
+  int32_t total = 0;
+  for (int32_t i = 0; i < bsp_file.num_blocks; i++) {
+    total += (int32_t) block_voxel_lists[i]->count;
+  }
+
+  Bsp_AllocLump(&bsp_file, BSP_LUMP_BLOCK_VOXELS, total);
+  bsp_file.num_block_voxels = total;
+
+  int32_t *out = bsp_file.block_voxels;
+  for (int32_t i = 0; i < bsp_file.num_blocks; i++) {
+
+    bsp_file.blocks[i].first_voxel = (int32_t) (out - bsp_file.block_voxels);
+    bsp_file.blocks[i].num_voxels = (int32_t) block_voxel_lists[i]->count;
+
+    memcpy(out, block_voxel_lists[i]->elements, block_voxel_lists[i]->count * sizeof(int32_t));
+    out += block_voxel_lists[i]->count;
+
+    release(block_voxel_lists[i]);
+  }
+
+  Mem_Free(block_voxel_lists);
+  Mem_Free(node_parent);
+  Mem_Free(leaf_parent);
+  Mem_Free(node_to_block);
+
+  Com_Print("\r%-24s [100%%] %d ms\n", "Assigning block voxels", (uint32_t) SDL_GetTicks() - start);
+}
+
 #define CAUSTICS_RADIUS 256.f
 
 /**

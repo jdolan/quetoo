@@ -28,7 +28,6 @@
 							<tool errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gcc.1003729874" name="GCC C Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gcc">
 								<option id="gnu.c.compiler.option.include.paths.561620974" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/opt/local/include"/>
-									<listOptionValue builtIn="false" value="/opt/local/include/glib-2.0"/>
 									<listOptionValue builtIn="false" value="/opt/local/include/libxml2"/>
 									<listOptionValue builtIn="false" value="/opt/local/include/mysql56/mysql"/>
 								</option>
@@ -40,7 +39,6 @@
 							<tool errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gpp.1428325040" name="GCC C++ Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gpp">
 								<option id="gnu.cpp.compiler.option.include.paths.606421653" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/opt/local/include"/>
-									<listOptionValue builtIn="false" value="/opt/local/include/glib-2.0"/>
 									<listOptionValue builtIn="false" value="/opt/local/include/libxml2"/>
 									<listOptionValue builtIn="false" value="/opt/local/include/mysql5/mysql"/>
 								</option>

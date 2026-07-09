@@ -19,9 +19,23 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-in vec4 position;
+#version 450
 
-void main() {
-  float depth = length(position.xyz) / depth_range.y;
-  gl_FragDepth = min(depth + .0006, 1.0);
+/*
+ * Depth-only point-light shadow pass: writes linear radial distance-from-light
+ * (normalized by depth_range, plus a small bias) into a D16 depth atlas layer.
+ * The lighting pass samples this atlas through a comparison sampler, comparing
+ * the fragment's radial distance against the stored nearest-occluder distance.
+ */
+
+#include "uniforms.glsl"
+
+layout (location = 0) in vec3 in_position;
+
+void main(void) {
+
+  const float dist = length(in_position) / depth_range.y;
+  const float bias = clamp(dist * 0.01, 1.0 / depth_range.y, 8.0 / depth_range.y);
+
+  gl_FragDepth = min(dist + bias, 1.0);
 }

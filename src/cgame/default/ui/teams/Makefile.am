@@ -25,10 +25,10 @@ libcguiteams_la_CFLAGS = \
 	-I$(top_srcdir)/src/cgame/default/ui \
 	-I$(top_srcdir)/src/cgame/default/ui/common \
 	@BASE_CFLAGS@ \
-	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
-	@SDL3_CFLAGS@
+	@SDL3_CFLAGS@ \
+	@SNDFILE_CFLAGS@
 
 libcguiteams_la_LDFLAGS = \
 	-shared

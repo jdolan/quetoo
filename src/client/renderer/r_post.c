@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006-2011 Quetoo.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief Vertex type for fullscreen post-processing quads.
+ * @brief Vertex type for the fullscreen post-processing quad.
  */
 typedef struct {
   vec2_t position;
@@ -30,31 +30,7 @@ typedef struct {
 } r_post_vertex_t;
 
 /**
- * @brief Shared fullscreen quad geometry.
- */
-static struct {
-  GLuint vertex_array;
-  GLuint vertex_buffer;
-} r_post_data;
-
-/**
- * @brief Half-resolution bloom ping-pong framebuffers.
- *
- * `bloom_fbo`[0] receives the bloom extract pass and every second blur result.
- * `bloom_fbo`[1] receives every first blur result. They ping-pong across
- * the horizontal and vertical Gaussian passes.
- *
- * Stored dimensions let `R_DrawPost` detect viewport resizes and recreate.
- */
-static struct {
-  GLuint name;
-  GLuint color_attachment;
-} r_bloom_framebuffers[2];
-
-static GLint r_bloom_width, r_bloom_height;
-
-/**
- * @brief Post-processing stage selector, mirroring the const int values in `post_fs.glsl`.
+ * @brief Post-processing stage selector, mirroring the const int values in post_fs.glsl.
  */
 typedef enum {
   R_POST_BLOOM_EXTRACT,
@@ -64,324 +40,268 @@ typedef enum {
 } r_post_stage_t;
 
 /**
- * @brief The post-processing program (`post_vs.glsl` + `post_fs.glsl`).
- * @details Handles all post-processing stages: bloom extraction, Gaussian
- * blur, and tonemap+bloom composite.
+ * @brief Per-pass locals, pushed to fragment uniform slot 0 (std140, 16 bytes).
  */
-static struct {
-  GLuint name;
-  GLint texture_color_attachment;
-  GLint texture_bloom_attachment;
-  GLint post_stage;
-  GLint bloom;
-  GLint bloom_threshold;
-} r_post_program;
+typedef struct {
+  int32_t post_stage;
+  float bloom;
+  float bloom_threshold;
+  float padding;
+} r_post_locals_t;
 
 /**
- * @brief The depth-resolve program (`post_vs.glsl` + `depth_resolve_fs.glsl`).
- * @details Resolves the MSAA depth texture (sampler2DMS) into the single-sample
- * depth attachment by writing sample 0 to gl_FragDepth.
+ * @brief The post-processing state.
  */
 static struct {
-  GLuint name;
-  GLint texture_depth_ms;
-} r_depth_resolve_program;
+
+  /**
+   * @brief The shared fullscreen quad (position + texcoord).
+   */
+  Buffer *vertex_buffer;
+
+  /**
+   * @brief Half-resolution HDR bloom ping-pong targets. [0] receives the extract
+   * pass and every second blur; [1] receives every first blur. Their stored size
+   * (bloom_width/height) detects a viewport resize and triggers recreation.
+   */
+  Framebuffer *bloom_framebuffers[2];
+  int32_t bloom_width, bloom_height;
+
+  /**
+   * @brief The post program targeting the HDR bloom buffers (extract + blur).
+   */
+  GraphicsPipeline *bloom_pipeline;
+
+  /**
+   * @brief The post program targeting the present framebuffer (bloom composite).
+   */
+  GraphicsPipeline *composite_pipeline;
+
+  /**
+   * @brief A linear, clamped sampler for the scene and bloom textures.
+   */
+  Sampler *sampler;
+} r_post;
 
 /**
- * @brief Create or recreate the half-resolution bloom ping-pong FBOs.
+ * @brief Creates or recreates the half-resolution bloom ping-pong framebuffers.
  */
-static void R_CreateBloomFramebuffers(GLint width, GLint height) {
+static void R_CreateBloomFramebuffers(int32_t width, int32_t height) {
 
-  r_bloom_width  = width  / 2;
-  r_bloom_height = height / 2;
+  r_post.bloom_width  = width  / 2;
+  r_post.bloom_height = height / 2;
 
-  if (r_bloom_width  < 1) { r_bloom_width  = 1; }
-  if (r_bloom_height < 1) { r_bloom_height = 1; }
+  if (r_post.bloom_width  < 1) { r_post.bloom_width  = 1; }
+  if (r_post.bloom_height < 1) { r_post.bloom_height = 1; }
 
   for (int32_t i = 0; i < 2; i++) {
 
-    if (r_bloom_framebuffers[i].name) {
-      glDeleteFramebuffers(1, &r_bloom_framebuffers[i].name);
-      glDeleteTextures(1, &r_bloom_framebuffers[i].color_attachment);
-    }
+    r_post.bloom_framebuffers[i] = release(r_post.bloom_framebuffers[i]);
 
-    glGenFramebuffers(1, &r_bloom_framebuffers[i].name);
-    glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_framebuffers[i].name);
-
-    glGenTextures(1, &r_bloom_framebuffers[i].color_attachment);
-    glBindTexture(GL_TEXTURE_2D, r_bloom_framebuffers[i].color_attachment);
-
-    glTexImage2D(GL_TEXTURE_2D,
-           0,
-           GL_R11F_G11F_B10F,
-           r_bloom_width,
-           r_bloom_height,
-           0,
-           GL_RGB,
-           GL_FLOAT,
-           NULL);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, r_bloom_framebuffers[i].color_attachment, 0);
-
-    const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-      Com_Error(ERROR_FATAL, "Failed to create bloom framebuffer %d: %d\n", i, status);
-    }
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    r_post.bloom_framebuffers[i] = $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
+      .size = MakeSize(r_post.bloom_width, r_post.bloom_height),
+      .colorFormats = { R_SCENE_COLOR_FORMAT },
+      .numColorTargets = 1,
+      .depthFormat = SDL_GPU_TEXTUREFORMAT_INVALID,
+      .sampleCount = SDL_GPU_SAMPLECOUNT_1,
+    });
   }
-
-  R_GetError(NULL);
 }
 
 /**
- * @brief Destroy the half-resolution bloom ping-pong FBOs.
+ * @brief Runs one fullscreen post pass into @p target with the given pipeline,
+ * binding @p color and @p bloom at fragment sampler slots 0 and 1.
  */
-static void R_DestroyBloomFramebuffers(void) {
+static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
+                       Texture *color, Texture *bloom,
+                       int32_t width, int32_t height, const r_post_locals_t *locals) {
 
-  for (int32_t i = 0; i < 2; i++) {
-    if (r_bloom_framebuffers[i].name) {
-      glDeleteFramebuffers(1, &r_bloom_framebuffers[i].name);
-      glDeleteTextures(1, &r_bloom_framebuffers[i].color_attachment);
-      r_bloom_framebuffers[i].name = 0;
-      r_bloom_framebuffers[i].color_attachment = 0;
-    }
-  }
+  CommandBuffer *commands = r_context.device->commands;
 
-  r_bloom_width  = 0;
-  r_bloom_height = 0;
+  const SDL_GPUColorTargetInfo color_target =
+      $(target, colorTargetInfo, 0, SDL_GPU_LOADOP_DONT_CARE, SDL_GPU_STOREOP_STORE, NULL);
 
-  R_GetError(NULL);
+  RenderPass *pass = $(commands, beginRenderPass, &color_target, 1, NULL);
+
+  $(pass, setViewport, &(SDL_GPUViewport) {
+    .x = 0.f, .y = 0.f,
+    .w = (float) width, .h = (float) height,
+    .min_depth = 0.f, .max_depth = 1.f,
+  });
+
+  $(pass, bindPipeline, pipeline);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_post.vertex_buffer->buffer }, 1);
+
+  $(pass, bindFragmentSamplers, 0, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = color->texture, .sampler = r_post.sampler->sampler },
+    { .texture = bloom->texture, .sampler = r_post.sampler->sampler },
+  }, 2);
+
+  $(commands, pushFragmentUniformData, 0, locals, sizeof(*locals));
+
+  $(pass, drawPrimitives, 6, 1, 0, 0);
+
+  release(pass);
 }
 
 /**
- * @brief Resolves the MSAA depth texture into the single-sample @c depth_attachment.
- *
- * This must be called after all opaque 3D geometry is rendered and before @c R_DrawSprites,
- * so that the per-sprite depth comparison uses an up-to-date single-sample depth texture.
- *
- * The resolve is done via a fullscreen quad that reads @c sampler2DMS sample 0 and writes
- * @c gl_FragDepth, with depth test forced to @c GL_ALWAYS.
- */
-void R_ResolveFramebufferDepth(const r_framebuffer_t *framebuffer) {
-
-  assert(framebuffer);
-  assert(framebuffer->msaa.fbo);
-  assert(framebuffer->msaa.depth_attachment);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->name);
-  glDrawBuffers(1, (const GLenum []) { GL_NONE });
-  glViewport(0, 0, framebuffer->width, framebuffer->height);
-
-  glBindVertexArray(r_post_data.vertex_array);
-  glUseProgram(r_depth_resolve_program.name);
-
-  glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-  glDepthMask(GL_TRUE);
-  glDepthFunc(GL_ALWAYS);
-  glEnable(GL_DEPTH_TEST);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_ATTACHMENT);
-  glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer->msaa.depth_attachment);
-
-  glDrawArrays(GL_TRIANGLES, 0, 6);
-
-  glDepthFunc(GL_LEQUAL);
-  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-  glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-
-  glBindVertexArray(0);
-  glUseProgram(0);
-
-  R_GetError(NULL);
-}
-
-/**
- * @brief Draws the bloom pipeline: extract → blur → composite.
- *
- * The final tonemapped image is written to @c post_attachment. The caller
- * blits @c post_attachment to the screen. When MSAA is active the geometry
- * aliasing is already resolved by the hardware; no additional AA pass is needed.
- *
- * The pipeline runs entirely on the GPU using three fullscreen quad passes
- * per blur iteration:
- *
- *   1. Bloom extract (post program, `R_POST_BLOOM_EXTRACT`):
- *      Sample the full-resolution scene color attachment, apply a
- *      soft-knee quadratic threshold, and write the bright regions to
- *      the first half-resolution bloom FBO.
- *
- *   2. For each blur iteration:
- *      a. Horizontal Gaussian blur (post program, `R_POST_BLOOM_BLUR_X`):
- *         Read `bloom_fbo`[0], write `bloom_fbo`[1].
- *      b. Vertical Gaussian blur (post program, `R_POST_BLOOM_BLUR_Y`):
- *         Read `bloom_fbo`[1], write `bloom_fbo`[0].
- *
- *   3. Tonemap + bloom composite (post program, `R_POST_TONEMAP`):
- *      Add the blurred bloom (`bloom_fbo`[0]) onto the scene color and
- *      write the LDR result to the post attachment (`GL_COLOR_ATTACHMENT1`).
+ * @brief Composites the rendered scene into the present framebuffer, applying
+ * bloom. The 3D passes render into the view's HDR scene framebuffer; the bloom
+ * chain (extract -> separable Gaussian blur) runs at half resolution, and the
+ * final pass adds the blurred bloom onto the scene color, clamps to LDR, and
+ * writes the result into the present framebuffer (over which the UI is drawn).
  */
 void R_DrawPost(const r_view_t *view) {
 
-  assert(view->framebuffer);
-  assert(view->framebuffer->post_attachment);
-
-  if (view->framebuffer->width != r_bloom_width * 2 ||
-      view->framebuffer->height != r_bloom_height * 2) {
-    R_CreateBloomFramebuffers(view->framebuffer->width, view->framebuffer->height);
+  if (!r_models.world) {
+    return; // no 3D scene this frame; the present clear shows through for the UI
   }
 
-  glBindVertexArray(r_post_data.vertex_array);
-  glUseProgram(r_post_program.name);
+  if (!view->framebuffer) {
+    return;
+  }
 
-  if (r_bloom->value > 0.f) {
+  CommandBuffer *commands = r_context.device->commands;
+  if (!commands) {
+    return;
+  }
 
-    glUniform1i(r_post_program.post_stage, R_POST_BLOOM_EXTRACT);
-    glUniform1f(r_post_program.bloom_threshold, r_bloom_threshold->value);
+  Framebuffer *scene = view->framebuffer;
+  Framebuffer *present = r_context.device->framebuffer;
 
-    glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_framebuffers[0].name);
-    glViewport(0, 0, r_bloom_width, r_bloom_height);
+  // The scene may be a different size than the present framebuffer (r_framebuffer_scale);
+  // the composite samples it with a linear filter, up/downscaling into the present
+  // framebuffer at its full resolution. Under MSAA this is the resolved single-sample
+  // color; without MSAA it is the color attachment itself.
+  Texture *scene_color = $(scene, resolveColorTexture, 0);
 
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_COLOR_ATTACHMENT);
-    glBindTexture(GL_TEXTURE_2D, view->framebuffer->color_attachment);
+  if (scene->size.w != r_post.bloom_width * 2 || scene->size.h != r_post.bloom_height * 2) {
+    R_CreateBloomFramebuffers((int32_t) scene->size.w, (int32_t) scene->size.h);
+  }
 
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+  const bool bloom = r_bloom->value > 0.f;
 
+  if (bloom) {
+
+    R_PostPass(r_post.bloom_framebuffers[0], r_post.bloom_pipeline,
+               scene_color, scene_color,
+               r_post.bloom_width, r_post.bloom_height,
+               &(r_post_locals_t) {
+                 .post_stage = R_POST_BLOOM_EXTRACT,
+                 .bloom_threshold = r_bloom_threshold->value,
+               });
+
+    // Separable Gaussian blur, ping-ponging between the two bloom targets: each
+    // iteration blurs horizontally (0 -> 1) then vertically (1 -> 0).
     const int32_t iterations = Clampf(r_bloom_iterations->integer, 1, 8);
     for (int32_t i = 0; i < iterations; i++) {
 
-      glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_framebuffers[1].name);
-      glUniform1i(r_post_program.post_stage, R_POST_BLOOM_BLUR_X);
-      glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
-      glBindTexture(GL_TEXTURE_2D, r_bloom_framebuffers[0].color_attachment);
-      glDrawArrays(GL_TRIANGLES, 0, 6);
+      R_PostPass(r_post.bloom_framebuffers[1], r_post.bloom_pipeline,
+                 r_post.bloom_framebuffers[0]->colorTextures[0],
+                 r_post.bloom_framebuffers[0]->colorTextures[0],
+                 r_post.bloom_width, r_post.bloom_height,
+                 &(r_post_locals_t) { .post_stage = R_POST_BLOOM_BLUR_X });
 
-      glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_framebuffers[0].name);
-      glUniform1i(r_post_program.post_stage, R_POST_BLOOM_BLUR_Y);
-      glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
-      glBindTexture(GL_TEXTURE_2D, r_bloom_framebuffers[1].color_attachment);
-      glDrawArrays(GL_TRIANGLES, 0, 6);
+      R_PostPass(r_post.bloom_framebuffers[0], r_post.bloom_pipeline,
+                 r_post.bloom_framebuffers[1]->colorTextures[0],
+                 r_post.bloom_framebuffers[1]->colorTextures[0],
+                 r_post.bloom_width, r_post.bloom_height,
+                 &(r_post_locals_t) { .post_stage = R_POST_BLOOM_BLUR_Y });
     }
   }
 
-  glUniform1i(r_post_program.post_stage, R_POST_TONEMAP);
-  glUniform1f(r_post_program.bloom, r_bloom->value);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT1 });
-  glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_COLOR_ATTACHMENT);
-  glBindTexture(GL_TEXTURE_2D, view->framebuffer->color_attachment);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
-  glBindTexture(GL_TEXTURE_2D, r_bloom->value > 0.f ? r_bloom_framebuffers[0].color_attachment : 0);
-
-  glDrawArrays(GL_TRIANGLES, 0, 6);
-
-  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  R_BlitFramebuffer(view->framebuffer, 0, 0, 0, 0);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-
-  glBindVertexArray(0);
-  glUseProgram(0);
-
-  R_GetError(NULL);
+  // Composite: add the blurred bloom onto the scene, clamp to LDR, write present.
+  // When bloom is disabled the glow term is scaled by zero, so the bound bloom
+  // texture is irrelevant (the scene color is bound there as a placeholder).
+  R_PostPass(present, r_post.composite_pipeline,
+             scene_color,
+             bloom ? r_post.bloom_framebuffers[0]->colorTextures[0] : scene_color,
+             (int32_t) present->size.w, (int32_t) present->size.h,
+             &(r_post_locals_t) {
+               .post_stage = R_POST_TONEMAP,
+               .bloom = r_bloom->value,
+             });
 }
 
 /**
- * @brief Initializes the post-processing GLSL program and resolves its uniform locations.
+ * @brief Builds a post pipeline (post_vs/post_fs) targeting the given color format.
  */
-static void R_InitPostProgram(void) {
+static GraphicsPipeline *R_CreatePostPipeline(SDL_GPUTextureFormat format) {
 
-  r_post_program.name = R_LoadProgram(
-    R_ShaderDescriptor(GL_VERTEX_SHADER,   "post_vs.glsl", NULL),
-    R_ShaderDescriptor(GL_FRAGMENT_SHADER, "post_fs.glsl", NULL),
-    NULL);
+  SDL_GPUGraphicsPipelineCreateInfo info = {
+    .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    .vertex_input_state = {
+      .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
+        .slot = 0,
+        .pitch = sizeof(r_post_vertex_t),
+        .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+      },
+      .num_vertex_buffers = 1,
+      .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+        {
+          .location = 0,
+          .buffer_slot = 0,
+          .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+          .offset = offsetof(r_post_vertex_t, position),
+        },
+        {
+          .location = 1,
+          .buffer_slot = 0,
+          .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+          .offset = offsetof(r_post_vertex_t, texcoord),
+        },
+      },
+      .num_vertex_attributes = 2,
+    },
+    .rasterizer_state = {
+      .fill_mode = SDL_GPU_FILLMODE_FILL,
+      .cull_mode = SDL_GPU_CULLMODE_NONE,
+      .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE,
+    },
+    .target_info = {
+      .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
+        .format = format,
+        .blend_state = GPU_BlendStateOpaque,
+      },
+      .num_color_targets = 1,
+    },
+  };
 
-  glUseProgram(r_post_program.name);
-
-  r_post_program.texture_color_attachment = glGetUniformLocation(r_post_program.name, "texture_color_attachment");
-  r_post_program.texture_bloom_attachment = glGetUniformLocation(r_post_program.name, "texture_bloom_attachment");
-  r_post_program.post_stage               = glGetUniformLocation(r_post_program.name, "post_stage");
-  r_post_program.bloom                    = glGetUniformLocation(r_post_program.name, "bloom");
-  r_post_program.bloom_threshold          = glGetUniformLocation(r_post_program.name, "bloom_threshold");
-
-  glUniform1i(r_post_program.texture_color_attachment, TEXTURE_COLOR_ATTACHMENT);
-  glUniform1i(r_post_program.texture_bloom_attachment, TEXTURE_BLOOM_ATTACHMENT);
-
-  glUseProgram(0);
-
-  R_GetError(NULL);
+  return $(r_context.device, loadGraphicsPipeline,
+    "shaders/post_vs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    },
+    "shaders/post_fs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+      .num_samplers = 2,
+      .num_uniform_buffers = 1,
+    },
+    &info);
 }
 
 /**
- * @brief Initializes the post-processing subsystem, including vertex buffers, bloom framebuffers, and programs.
+ * @brief Initializes the post-processing subsystem: the fullscreen quad, the
+ * bloom and composite pipelines, and the sampler.
  */
 void R_InitPost(void) {
 
-  memset(&r_post_data,             0, sizeof(r_post_data));
-  memset(&r_post_program,          0, sizeof(r_post_program));
-  memset(&r_depth_resolve_program, 0, sizeof(r_depth_resolve_program));
-  memset(r_bloom_framebuffers,     0, sizeof(r_bloom_framebuffers));
+  memset(&r_post, 0, sizeof(r_post));
 
-  glGenVertexArrays(1, &r_post_data.vertex_array);
-  glBindVertexArray(r_post_data.vertex_array);
+  const r_post_vertex_t vertexes[] = {
+    { .position = Vec2(-1.f, -1.f), .texcoord = Vec2(0.f, 1.f) },
+    { .position = Vec2( 1.f, -1.f), .texcoord = Vec2(1.f, 1.f) },
+    { .position = Vec2( 1.f,  1.f), .texcoord = Vec2(1.f, 0.f) },
+    { .position = Vec2(-1.f, -1.f), .texcoord = Vec2(0.f, 1.f) },
+    { .position = Vec2( 1.f,  1.f), .texcoord = Vec2(1.f, 0.f) },
+    { .position = Vec2(-1.f,  1.f), .texcoord = Vec2(0.f, 0.f) },
+  };
 
-  glGenBuffers(1, &r_post_data.vertex_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, r_post_data.vertex_buffer);
+  r_post.vertex_buffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX, vertexes, sizeof(vertexes));
 
-  r_post_vertex_t quad[4];
+  r_post.bloom_pipeline = R_CreatePostPipeline(R_SCENE_COLOR_FORMAT);
+  r_post.composite_pipeline = R_CreatePostPipeline(r_context.device->framebuffer->colorFormats[0]);
 
-  quad[0].position = Vec2(-1.f, -1.f);
-  quad[1].position = Vec2( 1.f, -1.f);
-  quad[2].position = Vec2( 1.f,  1.f);
-  quad[3].position = Vec2(-1.f,  1.f);
-
-  quad[0].texcoord = Vec2(0.f, 0.f);
-  quad[1].texcoord = Vec2(1.f, 0.f);
-  quad[2].texcoord = Vec2(1.f, 1.f);
-  quad[3].texcoord = Vec2(0.f, 1.f);
-
-  const r_post_vertex_t vertexes[] = { quad[0], quad[1], quad[2], quad[0], quad[2], quad[3] };
-
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertexes), vertexes, GL_STATIC_DRAW);
-
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(r_post_vertex_t), (void *) offsetof(r_post_vertex_t, position));
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_post_vertex_t), (void *) offsetof(r_post_vertex_t, texcoord));
-
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-
-  glBindVertexArray(0);
-
-  R_GetError(NULL);
-
-  R_InitPostProgram();
-
-  r_depth_resolve_program.name = R_LoadProgram(
-    R_ShaderDescriptor(GL_VERTEX_SHADER,   "post_vs.glsl", NULL),
-    R_ShaderDescriptor(GL_FRAGMENT_SHADER, "depth_resolve_fs.glsl", NULL),
-    NULL);
-
-  glUseProgram(r_depth_resolve_program.name);
-  r_depth_resolve_program.texture_depth_ms = glGetUniformLocation(r_depth_resolve_program.name, "texture_depth_ms");
-  glUniform1i(r_depth_resolve_program.texture_depth_ms, TEXTURE_DEPTH_ATTACHMENT);
-  glUseProgram(0);
-
-  R_GetError(NULL);
+  r_post.sampler = $(r_context.device, createSamplerLinearClamp);
 }
 
 /**
@@ -389,17 +309,23 @@ void R_InitPost(void) {
  */
 void R_ShutdownPost(void) {
 
-  R_DestroyBloomFramebuffers();
+  r_post.vertex_buffer = release(r_post.vertex_buffer);
 
-  glDeleteProgram(r_post_program.name);
-  glDeleteProgram(r_depth_resolve_program.name);
+  for (int32_t i = 0; i < 2; i++) {
+    r_post.bloom_framebuffers[i] = release(r_post.bloom_framebuffers[i]);
+  }
 
-  glDeleteBuffers(1, &r_post_data.vertex_buffer);
-  glDeleteVertexArrays(1, &r_post_data.vertex_array);
+  r_post.bloom_pipeline = release(r_post.bloom_pipeline);
+  r_post.composite_pipeline = release(r_post.composite_pipeline);
+  r_post.sampler = release(r_post.sampler);
+}
 
-  R_GetError(NULL);
-
-  memset(&r_post_data,             0, sizeof(r_post_data));
-  memset(&r_post_program,          0, sizeof(r_post_program));
-  memset(&r_depth_resolve_program, 0, sizeof(r_depth_resolve_program));
+/**
+ * @brief Rebuilds the post-processing pipelines and sampler in place, for
+ * pipeline-bound cvar changes (r_antialias, r_anisotropy, ...) that would
+ * otherwise require an r_restart. See R_UpdatePipelines.
+ */
+void R_UpdatePostPipeline(void) {
+  R_ShutdownPost();
+  R_InitPost();
 }

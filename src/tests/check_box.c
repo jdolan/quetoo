@@ -21,6 +21,7 @@
 
 #include <check.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "shared/box.h"
 
@@ -63,6 +64,34 @@ START_TEST(_Box3_Intersection) {
   ck_assert(Box3_Equal(Box3_Zero(), Box3_Intersection(a, b)));
 } END_TEST
 
+START_TEST(_Box3_Merge) {
+  box3_t *out;
+
+  ck_assert_int_eq(Box3_Merge(NULL, 0, &out), 0);
+  ck_assert_ptr_eq(out, NULL);
+
+  // Two abutting unit boxes along X should merge into one.
+  const box3_t contiguous[] = {
+    Box3(Vec3(0.f, 0.f, 0.f), Vec3(1.f, 1.f, 1.f)),
+    Box3(Vec3(1.f, 0.f, 0.f), Vec3(2.f, 1.f, 1.f)),
+  };
+
+  size_t count = Box3_Merge(contiguous, 2, &out);
+  ck_assert_int_eq(count, 1);
+  ck_assert(Box3_Equal(out[0], Box3(Vec3(0.f, 0.f, 0.f), Vec3(2.f, 1.f, 1.f))));
+  free(out);
+
+  // Two disjoint unit boxes should not merge.
+  const box3_t disjoint[] = {
+    Box3(Vec3(0.f, 0.f, 0.f), Vec3(1.f, 1.f, 1.f)),
+    Box3(Vec3(5.f, 0.f, 0.f), Vec3(6.f, 1.f, 1.f)),
+  };
+
+  count = Box3_Merge(disjoint, 2, &out);
+  ck_assert_int_eq(count, 2);
+  free(out);
+} END_TEST
+
 int32_t main(int32_t argc, char **argv) {
 
   Suite *suite = suite_create("check_box"); // Get it??
@@ -73,6 +102,7 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, _Box3_IsNull);
   tcase_add_test(tcase, _Box3_Union);
   tcase_add_test(tcase, _Box3_Intersection);
+  tcase_add_test(tcase, _Box3_Merge);
 
   suite_add_tcase(suite, tcase);
 

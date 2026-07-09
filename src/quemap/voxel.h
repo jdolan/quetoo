@@ -54,6 +54,8 @@ extern voxels_t voxels;
 size_t BuildVoxels(void);
 void LightVoxel(int32_t voxel_num);
 void FloodLights(void);
+void AssignLightVoxels(void);
+void AssignBlockVoxels(void);
 void CausticsVoxel(int32_t voxel_num);
 void ExposureVoxel(int32_t voxel_num);
 void OccludeVoxel(int32_t voxel_num);

@@ -19,6 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#ifndef _COMMON_GLSL_
+#define _COMMON_GLSL_
+
 /**
  * @brief Horizontal maximum, returns the maximum component of a vector.
  */
@@ -191,3 +194,5 @@ float toksvig_gloss(in vec3 normal, in float power) {
   float len_rcp = 1.0 / saturate(length(normal));
   return 1.0 / (1.0 + power * (len_rcp - 1.0));
 }
+
+#endif // _COMMON_GLSL_

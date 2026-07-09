@@ -22,37 +22,51 @@
 #include "r_local.h"
 
 /**
- * @brief Sprite vertex buffer state holding vertices and GPU buffer objects.
+ * @brief The sprite program's own binding map, mirroring shaders/sprite_fs.glsl.
+ * Not shared with any other pipeline.
  */
-static struct {
-  r_sprite_vertex_t vertexes[MAX_SPRITE_INSTANCES * 4];
-
-  GLuint vertex_array;
-  GLuint vertex_buffer;
-  GLuint elements_buffer;
-
-} r_sprites;
+enum {
+  SPRITE_SAMPLER_DIFFUSE,
+  SPRITE_SAMPLER_NEXT_DIFFUSE,
+  SPRITE_SAMPLER_DEPTH_ATTACHMENT,
+};
 
 /**
- * @brief The draw program.
+ * @brief The sprite pipeline (sprite_vs/sprite_fs) and its diffuse sampler.
  */
 static struct {
-  GLuint name;
+  
+  /**
+   * @ brief The CPU-side storage for accumulated sprite vertexes.
+   */
+  r_sprite_vertex_t vertexes[MAX_SPRITE_INSTANCES * 4];
 
-  GLuint uniforms_block;
-  GLuint lights_block;
+  /**
+   * @ brief The vertex buffer.
+   */
+  Buffer *vertex_buffer;
+  int32_t vertex_buffer_capacity; // in vertices
 
-  GLint active_lights;
+  /**
+   *@ brief The elements buffer, statically pre-computed for @c MAX_SPRITE_INSTANCES quads.
+   */
+  Buffer *elements_buffer;
+  
+  /**
+   * @brief The pipeline.
+   */
+  GraphicsPipeline *pipeline;
+  
+  /**
+   * @brief The sampler.
+   */
+  Sampler *sampler;
 
-  GLint texture_diffusemap;
-  GLint texture_next_diffusemap;
-
-  GLint texture_voxel_light_data;
-  GLint texture_voxel_light_indices;
-
-  GLint texture_depth_attachment_copy;
-
-} r_sprite_program;
+  /**
+   * @brief Nearest/clamp sampler for the scene depth attachment (soft particles).
+   */
+  Sampler *depth_sampler;
+} r_sprite_draw;
 
 /**
  * @brief Computes the texture coordinates for the given image, handling both atlas and regular images.
@@ -142,8 +156,8 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
   r_sprite_instance_t *in = &view->sprite_instances[index];
   memset(in, 0, sizeof(*in));
 
-  in->vertexes = r_sprites.vertexes + 4 * index;
-  in->elements = (GLvoid *) (sizeof(GLuint) * 6 * index);
+  in->vertexes = r_sprite_draw.vertexes + 4 * index;
+  in->elements = (void *) (sizeof(uint32_t) * 6 * index);
 
   return in;
 }
@@ -216,6 +230,11 @@ static void R_UpdateSpriteQuad(r_view_t *view, const r_sprite_t *s,
   in->vertexes[1].color =
   in->vertexes[2].color =
   in->vertexes[3].color = Color_Color24(Color3fv(s->color));
+
+  in->vertexes[0].reserved =
+  in->vertexes[1].reserved =
+  in->vertexes[2].reserved =
+  in->vertexes[3].reserved = 0;
 
   in->vertexes[0].lighting =
   in->vertexes[1].lighting =
@@ -321,6 +340,11 @@ static void R_UpdateBeamQuad(r_view_t *view, const r_beam_t *b,
     in->vertexes[2].color =
     in->vertexes[3].color = Color_Color24(Color3fv(b->color));
 
+    in->vertexes[0].reserved =
+    in->vertexes[1].reserved =
+    in->vertexes[2].reserved =
+    in->vertexes[3].reserved = 0;
+
     in->vertexes[0].lerp =
     in->vertexes[1].lerp =
     in->vertexes[2].lerp =
@@ -395,141 +419,216 @@ void R_UpdateSprites(r_view_t *view) {
 }
 
 /**
- * @brief Renders all batched sprite instances to the framebuffer.
+ * @brief Renders all batched sprite instances to the present framebuffer, blended
+ * additively over the opaque scene and depth-tested against it.
  */
 void R_DrawSprites(const r_view_t *view) {
 
-  assert(view->framebuffer);
+  if (view->num_sprite_instances == 0 || !r_models.world) {
+    return;
+  }
 
-  glEnable(GL_DEPTH_TEST);
-  glDepthMask(GL_FALSE);
+  if (!view->framebuffer) {
+    return;
+  }
 
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_ONE, GL_ONE);
+  CommandBuffer *commands = r_context.device->commands;
 
-  glUseProgram(r_sprite_program.name);
+  const r_bsp_model_t *bsp = r_models.world->bsp;
+  Framebuffer *framebuffer = view->framebuffer;
 
-  glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
+  const uint32_t count = (uint32_t) view->num_sprite_instances * 4;
 
-  const GLsizei count = view->num_sprite_instances * 4;
-  glBufferData(GL_ARRAY_BUFFER, sizeof(r_sprites.vertexes), NULL, GL_DYNAMIC_DRAW);
-  glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(r_sprite_vertex_t), r_sprites.vertexes);
+  if ((int32_t) count > r_sprite_draw.vertex_buffer_capacity) {
+    r_sprite_draw.vertex_buffer = release(r_sprite_draw.vertex_buffer);
+    r_sprite_draw.vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+      .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+      .size = count * sizeof(r_sprite_vertex_t),
+    });
+    r_sprite_draw.vertex_buffer_capacity = (int32_t) count;
+  }
 
-  glBindVertexArray(r_sprites.vertex_array);
+  {
+    CopyPass *copyPass = $(commands, beginCopyPass);
+    $(copyPass, uploadData, r_sprite_draw.vertex_buffer->buffer, r_sprite_draw.vertexes,
+      count * sizeof(r_sprite_vertex_t), 0, true);
+    release(copyPass);
+  }
 
-  R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_DEPTH, &view->framebuffer->depth_attachment_copy);
+  // No depth attachment: the soft-particle fade (sprite_fs) samples the scene
+  // depth instead, which also occludes sprites behind the world.
+  const SDL_GPUColorTargetInfo color =
+      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_ATTACHMENT_COPY);
-  glBindTexture(GL_TEXTURE_2D, view->framebuffer->depth_attachment_copy);
+  RenderPass *pass = $(commands, beginRenderPass, &color, 1, NULL);
 
+  $(pass, setViewport, &(SDL_GPUViewport) {
+    .x = 0.f, .y = 0.f,
+    .w = (float) framebuffer->size.w, .h = (float) framebuffer->size.h,
+    .min_depth = 0.f, .max_depth = 1.f,
+  });
+
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+
+  $(pass, bindPipeline, r_sprite_draw.pipeline);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.vertex_buffer->buffer }, 1);
+  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+  // The float depth copy (scene color target 1), sampled for the soft-particle
+  // fade. The opaque lit passes write gl_FragCoord.z there; unlike the real depth
+  // buffer it can be sampled (and resolves to single-sample under MSAA).
+  Texture *depth_texture = $(framebuffer, resolveColorTexture, 1);
+  $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DEPTH_ATTACHMENT, &(SDL_GPUTextureSamplerBinding) {
+    .texture = depth_texture->texture,
+    .sampler = r_sprite_draw.depth_sampler->sampler,
+  }, 1);
+
+  // Clustered voxel lighting for absorptive sprites (sprite family: samplers 0/1
+  // diffuse+next, 2 depth; storage 0/1/2 lights + voxel indices + voxel data).
+  SDL_GPUBuffer *storage[] = {
+    r_lights.buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
+                                     : r_lights.buffer->buffer,
+    bsp->voxels.light_data_buffer->buffer,
+  };
+  $(pass, bindFragmentStorageBuffers, 0, storage, 3);
+
+  // Draw runs of consecutive instances sharing the same diffuse/next-diffuse image.
   int32_t i = 0;
   while (i < view->num_sprite_instances) {
 
     const r_sprite_instance_t *in = view->sprite_instances + i;
 
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-    glBindTexture(GL_TEXTURE_2D, in->diffusemap->texnum);
-
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_NEXT_DIFFUSEMAP);
-    glBindTexture(GL_TEXTURE_2D, in->next_diffusemap->texnum);
-
-    GLsizei batch_size = 1;
-
-    box3_t bounds = in->bounds;
-
-    const r_sprite_instance_t *batch = in + 1;
-    for (int32_t j = i + 1; j < view->num_sprite_instances; j++, batch++) {
-
-      if (batch->diffusemap->texnum == in->diffusemap->texnum &&
-        batch->next_diffusemap->texnum == in->next_diffusemap->texnum) {
-        bounds = Box3_Union(bounds, batch->bounds);
-        batch_size++;
-      } else {
-        break;
-      }
+    if (!in->diffusemap || !in->diffusemap->texture || !in->next_diffusemap || !in->next_diffusemap->texture) {
+      i++;
+      continue;
     }
 
-    R_ActiveLights(view, bounds, r_sprite_program.active_lights);
+    int32_t batch_size = 1;
+    for (int32_t j = i + 1; j < view->num_sprite_instances; j++) {
+      const r_sprite_instance_t *batch = view->sprite_instances + j;
+      if (batch->diffusemap != in->diffusemap || batch->next_diffusemap != in->next_diffusemap) {
+        break;
+      }
+      batch_size++;
+    }
 
-    glDrawElements(GL_TRIANGLES, batch_size * 6, GL_UNSIGNED_INT, in->elements);
+    $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DIFFUSE, (SDL_GPUTextureSamplerBinding[]) {
+      { .texture = in->diffusemap->texture->texture, .sampler = r_sprite_draw.sampler->sampler },
+      { .texture = in->next_diffusemap->texture->texture, .sampler = r_sprite_draw.sampler->sampler },
+    }, 2);
+
+    $(pass, drawIndexedPrimitives, (uint32_t) batch_size * 6, 1, (uint32_t) i * 6, 0, 0);
+
     r_stats.sprite_draw_elements++;
 
     i += batch_size;
   }
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-
-  glBindVertexArray(0);
-
-  glUseProgram(0);
-
-  glBlendFunc(GL_ONE, GL_ZERO);
-  glDisable(GL_BLEND);
-
-  glDisable(GL_DEPTH_TEST);
-  glDepthMask(GL_TRUE);
-
-  R_GetError(NULL);
+  pass = release(pass);
 }
 
 /**
- * @brief Initializes the sprite draw GLSL program and resolves its uniform locations.
+ * @brief Builds the sprite pipeline and diffuse sampler.
  */
-static void R_InitSpriteProgram(void) {
+static void R_InitSpritePipeline(void) {
 
-  memset(&r_sprite_program, 0, sizeof(r_sprite_program));
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
-  r_sprite_program.name = R_LoadProgram(
-      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "voxel.glsl", "sprite_vs.glsl", NULL),
-      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "soften_fs.glsl", "sprite_fs.glsl", NULL),
-      NULL);
-  
-  glUseProgram(r_sprite_program.name);
+  SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
+  info.multisample_state.sample_count = r_scene_samples;
 
-  r_sprite_program.uniforms_block = glGetUniformBlockIndex(r_sprite_program.name, "uniforms_block");
-  glUniformBlockBinding(r_sprite_program.name, r_sprite_program.uniforms_block, 0);
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 
-  r_sprite_program.lights_block = glGetUniformBlockIndex(r_sprite_program.name, "lights_block");
-  glUniformBlockBinding(r_sprite_program.name, r_sprite_program.lights_block, 1);
+  // Sprites sample the scene depth for the soft-particle fade, which also serves
+  // as the occlusion test, so the pipeline performs no hardware depth test or
+  // write of its own. It still declares the scene depth-stencil target to match
+  // the other blended pipelines targeting R_SCENE_COLOR_FORMAT.
+  info.depth_stencil_state = (SDL_GPUDepthStencilState) { 0 };
 
-  r_sprite_program.active_lights = glGetUniformLocation(r_sprite_program.name, "active_lights");
+  info.vertex_input_state = (SDL_GPUVertexInputState) {
+    .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
+      .slot = 0,
+      .pitch = sizeof(r_sprite_vertex_t),
+      .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+    },
+    .num_vertex_buffers = 1,
+    .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+      {
+        .location = 0,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(r_sprite_vertex_t, position),
+      },
+      {
+        .location = 1,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+        .offset = offsetof(r_sprite_vertex_t, diffusemap),
+      },
+      {
+        .location = 2,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+        .offset = offsetof(r_sprite_vertex_t, next_diffusemap),
+      },
+      {
+        // .rgb is the sprite color; the fourth byte is reserved padding and unused.
+        .location = 3,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
+        .offset = offsetof(r_sprite_vertex_t, color),
+      },
+      {
+        // .x = lerp, .y = lighting (adjacent aligned bytes).
+        .location = 4,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE2_NORM,
+        .offset = offsetof(r_sprite_vertex_t, lerp),
+      },
+    },
+    .num_vertex_attributes = 5,
+  };
 
-  r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
-  r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
-  r_sprite_program.texture_voxel_light_data = glGetUniformLocation(r_sprite_program.name, "texture_voxel_light_data");
-  r_sprite_program.texture_voxel_light_indices = glGetUniformLocation(r_sprite_program.name, "texture_voxel_light_indices");
-  r_sprite_program.texture_depth_attachment_copy = glGetUniformLocation(r_sprite_program.name, "texture_depth_attachment_copy");
+  info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
+    .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
+      .format = R_SCENE_COLOR_FORMAT,
+      .blend_state = GPU_BlendStateAdditive,
+    },
+    .num_color_targets = 1,
+    .depth_stencil_format = framebuffer->depthFormat,
+    .has_depth_stencil_target = true,
+  };
 
-  glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
-  glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
-  glUniform1i(r_sprite_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
-  glUniform1i(r_sprite_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
-  glUniform1i(r_sprite_program.texture_depth_attachment_copy, TEXTURE_DEPTH_ATTACHMENT_COPY);
+  r_sprite_draw.pipeline = $(r_context.device, loadGraphicsPipeline,
+    "shaders/sprite_vs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+      .num_uniform_buffers = 1,
+    },
+    "shaders/sprite_fs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+      .num_samplers = 3,
+      .num_storage_buffers = 3,
+      .num_uniform_buffers = 1,
+    },
+    &info);
 
-  glUseProgram(0);
-
-  R_GetError(NULL);
+  r_sprite_draw.sampler = $(r_context.device, createSamplerLinearClamp);
+  r_sprite_draw.depth_sampler = $(r_context.device, createSamplerNearestClamp);
 }
 
 /**
- * @brief Initializes the sprite subsystem, allocating vertex buffers and the sprite program.
+ * @brief Initializes the sprite subsystem: the static quad index buffer and pipeline.
  */
 void R_InitSprites(void) {
 
-  memset(&r_sprites, 0, sizeof(r_sprites));
+  memset(&r_sprite_draw, 0, sizeof(r_sprite_draw));
 
-  glGenVertexArrays(1, &r_sprites.vertex_array);
-  glBindVertexArray(r_sprites.vertex_array);
+  // Two triangles per instance: (0,1,2) (0,2,3), over MAX_SPRITE_INSTANCES quads.
+  const size_t num_elements = MAX_SPRITE_INSTANCES * 6;
+  uint32_t *elements = malloc(num_elements * sizeof(uint32_t));
 
-  glGenBuffers(1, &r_sprites.vertex_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(r_sprites.vertexes), NULL, GL_DYNAMIC_DRAW);
-
-  glGenBuffers(1, &r_sprites.elements_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);
-
-  GLuint elements[MAX_SPRITE_INSTANCES * 6];
-  for (GLuint i = 0, v = 0, e = 0; i < MAX_SPRITE_INSTANCES; i++, v += 4, e += 6) {
+  for (int32_t i = 0, v = 0, e = 0; i < MAX_SPRITE_INSTANCES; i++, v += 4, e += 6) {
     elements[e + 0] = v + 0;
     elements[e + 1] = v + 1;
     elements[e + 2] = v + 2;
@@ -537,47 +636,33 @@ void R_InitSprites(void) {
     elements[e + 4] = v + 2;
     elements[e + 5] = v + 3;
   }
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, position));
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, diffusemap));
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_diffusemap));
-  glVertexAttribPointer(3, 3, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
-  glVertexAttribPointer(4, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lerp));
-  glVertexAttribPointer(5, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lighting));
+  r_sprite_draw.elements_buffer = $(r_context.device, createBufferWithConstMem,
+      SDL_GPU_BUFFERUSAGE_INDEX, elements, (Uint32) (num_elements * sizeof(uint32_t)));
 
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
-  glEnableVertexAttribArray(3);
-  glEnableVertexAttribArray(4);
-  glEnableVertexAttribArray(5);
+  free(elements);
 
-  glBindVertexArray(0);
-
-  R_GetError(NULL);
-
-  R_InitSpriteProgram();
+  R_InitSpritePipeline();
 }
 
 /**
- * @brief Deletes the sprite GLSL program object.
- */
-static void R_ShutdownSpriteProgram(void) {
-
-  glDeleteProgram(r_sprite_program.name);
-
-  r_sprite_program.name = 0;
-}
-
-/**
- * @brief Shuts down the sprite subsystem, releasing GPU buffers and the sprite program.
+ * @brief Shuts down the sprite subsystem, releasing the pipeline, sampler and buffers.
  */
 void R_ShutdownSprites(void) {
 
-  glDeleteVertexArrays(1, &r_sprites.vertex_array);
-  glDeleteBuffers(1, &r_sprites.vertex_buffer);
-  glDeleteBuffers(1, &r_sprites.elements_buffer);
+  r_sprite_draw.pipeline = release(r_sprite_draw.pipeline);
+  r_sprite_draw.sampler = release(r_sprite_draw.sampler);
+  r_sprite_draw.depth_sampler = release(r_sprite_draw.depth_sampler);
+  r_sprite_draw.vertex_buffer = release(r_sprite_draw.vertex_buffer);
+  r_sprite_draw.elements_buffer = release(r_sprite_draw.elements_buffer);
+}
 
-  R_ShutdownSpriteProgram();
+/**
+ * @brief Rebuilds the sprite pipeline and samplers in place, for pipeline-bound
+ * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
+ * an r_restart. See R_UpdatePipelines.
+ */
+void R_UpdateSpritePipeline(void) {
+  R_ShutdownSprites();
+  R_InitSprites();
 }

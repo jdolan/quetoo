@@ -33,14 +33,14 @@ static void R_SetEntityBounds(r_entity_t *e) {
 }
 
 /**
- * @brief Returns true if the entity is outside the view frustum and should be skipped.
+ * @brief Returns true if the entity is outside the view frustum or occluded and should be skipped.
  */
 bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 
   if (view->type == VIEW_PLAYER_MODEL) {
     return false;
   }
-  
+
   if (e->parent) {
     return false;
   }
@@ -155,6 +155,13 @@ void R_DrawEntities(const r_view_t *view) {
   thread_t *decals = Thread_Create((ThreadRunFunc) R_UpdateDecals, (void *) view, THREAD_NONE);
 
   R_DrawOpaqueBspEntities(view);
+
+  // Sky is drawn after the opaque world, not before as in the GL renderer, so it
+  // only fills the depth-tested texels the opaque pass left unoccluded, cutting
+  // overdraw; R_UpdateDecals is pure CPU work and races neither draw call.
+  if (r_models.world) {
+    R_DrawSky(view, r_models.world->bsp);
+  }
 
   R_DrawMeshEntities(view);
 

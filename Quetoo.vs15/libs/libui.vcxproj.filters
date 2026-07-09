@@ -6,9 +6,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\client\ui\QuetooRenderer.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\client\ui\ui_data.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -17,9 +14,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\client\ui\QuetooRenderer.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\client\ui\ui.h">
       <Filter>src</Filter>
     </ClInclude>

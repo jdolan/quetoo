@@ -239,41 +239,45 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 }
 
 /**
- * @brief Appends the given model's vertex and element arrays to the shared mesh VAO.
+ * @brief Consolidates the model's per-face vertex and element arrays into a pair
+ * of GPU buffers, one per mesh model. All animation frames of all faces live in
+ * the vertex buffer; the draw path binds it at per-frame offsets.
  */
 void R_LoadMeshVertexArray(r_model_t *mod) {
 
   assert(mod->mesh);
   assert(mod->mesh->num_faces);
 
+  r_mesh_model_t *mesh = mod->mesh;
+
   {
-    const r_mesh_face_t *face = mod->mesh->faces;
-    for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
-      mod->mesh->num_vertexes += face->num_vertexes;
-      mod->mesh->num_elements += face->num_elements;
+    const r_mesh_face_t *face = mesh->faces;
+    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+      mesh->num_vertexes += face->num_vertexes;
+      mesh->num_elements += face->num_elements;
     }
   }
 
-  assert(mod->mesh->num_vertexes);
-  assert(mod->mesh->num_elements);
+  assert(mesh->num_vertexes);
+  assert(mesh->num_elements);
 
-  mod->mesh->vertexes = Mem_LinkMalloc(mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t), mod->mesh);
-  mod->mesh->elements = Mem_LinkMalloc(mod->mesh->num_elements * sizeof(GLuint), mod->mesh);
+  mesh->vertexes = Mem_LinkMalloc(mesh->num_vertexes * mesh->num_frames * sizeof(r_mesh_vertex_t), mesh);
+  mesh->elements = Mem_LinkMalloc(mesh->num_elements * sizeof(uint32_t), mesh);
 
-  r_mesh_vertex_t *vertex = mod->mesh->vertexes;
-  GLuint *elements = mod->mesh->elements;
+  r_mesh_vertex_t *vertex = mesh->vertexes;
+  uint32_t *elements = mesh->elements;
 
   {
-    r_mesh_face_t *face = mod->mesh->faces;
-    for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+    r_mesh_face_t *face = mesh->faces;
+    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-      memcpy(vertex, face->vertexes, face->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t));
+      memcpy(vertex, face->vertexes, face->num_vertexes * mesh->num_frames * sizeof(r_mesh_vertex_t));
       Mem_Free(face->vertexes);
 
       face->vertexes = vertex;
-      vertex += face->num_vertexes * mod->mesh->num_frames;
+      vertex += face->num_vertexes * mesh->num_frames;
 
-      memcpy(elements, face->elements, face->num_elements * sizeof(GLuint));
+      memcpy(elements, face->elements, face->num_elements * sizeof(uint32_t));
       Mem_Free(face->elements);
 
       face->elements = elements;
@@ -283,111 +287,24 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 
   R_LoadMeshTangents(mod);
 
+  // Buffer offsets are relative to this model's own buffers (base 0).
   {
-    GLuint vertex_buffer;
-    glGenBuffers(1, &vertex_buffer);
-
-    glBindBuffer(GL_COPY_READ_BUFFER, r_models.mesh.vertex_buffer);
-    glBindBuffer(GL_COPY_WRITE_BUFFER, vertex_buffer);
-
-    GLint old_size;
-    glGetBufferParameteriv(GL_COPY_READ_BUFFER, GL_BUFFER_SIZE, &old_size);
-
-    mod->mesh->base_vertex = old_size / sizeof(r_mesh_vertex_t);
-
-    r_mesh_face_t *face = mod->mesh->faces;
-    for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
-      face->base_vertex = mod->mesh->base_vertex + (GLint) (face->vertexes - mod->mesh->vertexes);
+    r_mesh_face_t *face = mesh->faces;
+    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+      face->base_vertex = (int32_t) (face->vertexes - mesh->vertexes);
+      face->indices = (void *) ((face->elements - mesh->elements) * sizeof(uint32_t));
     }
-
-    GLint new_size = old_size + mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t);
-
-    glBufferData(GL_COPY_WRITE_BUFFER, new_size, NULL, GL_STATIC_DRAW);
-    glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, old_size);
-
-    glBufferSubData(GL_COPY_WRITE_BUFFER,
-            old_size,
-            mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t),
-            mod->mesh->vertexes);
-
-    glBindBuffer(GL_COPY_READ_BUFFER, 0);
-    glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-
-    glDeleteBuffers(1, &r_models.mesh.vertex_buffer);
-    r_models.mesh.vertex_buffer = vertex_buffer;
   }
 
-  {
-    GLuint elements_buffer;
-    glGenBuffers(1, &elements_buffer);
+  mesh->vertex_buffer = $(r_context.device, createBufferWithConstMem,
+      SDL_GPU_BUFFERUSAGE_VERTEX,
+      mesh->vertexes,
+      mesh->num_vertexes * mesh->num_frames * sizeof(r_mesh_vertex_t));
 
-    glBindBuffer(GL_COPY_READ_BUFFER, r_models.mesh.elements_buffer);
-    glBindBuffer(GL_COPY_WRITE_BUFFER, elements_buffer);
-
-    GLint old_size;
-    glGetBufferParameteriv(GL_COPY_READ_BUFFER, GL_BUFFER_SIZE, &old_size);
-
-    mod->mesh->indices = (GLvoid *) (ptrdiff_t) old_size;
-
-    r_mesh_face_t *face = mod->mesh->faces;
-    for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
-      face->indices = mod->mesh->indices + ((face->elements - mod->mesh->elements) * sizeof(GLuint));
-    }
-
-    GLint new_size = old_size + mod->mesh->num_elements * sizeof(GLuint);
-
-    glBufferData(GL_COPY_WRITE_BUFFER, new_size, NULL, GL_STATIC_DRAW);
-    glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, old_size);
-
-    glBufferSubData(GL_COPY_WRITE_BUFFER,
-            old_size,
-            mod->mesh->num_elements * sizeof(GLuint),
-            mod->mesh->elements);
-
-    glBindBuffer(GL_COPY_READ_BUFFER, 0);
-    glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-
-    glDeleteBuffers(1, &r_models.mesh.elements_buffer);
-    r_models.mesh.elements_buffer = elements_buffer;
-  }
-
-  glBindVertexArray(r_models.mesh.vertex_array);
-  glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, normal));
-  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
-  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
-  glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, diffusemap));
-  glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-  glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, normal));
-  glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
-  glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
-
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
-  glEnableVertexAttribArray(3);
-  glEnableVertexAttribArray(4);
-  glEnableVertexAttribArray(5);
-  glEnableVertexAttribArray(6);
-  glEnableVertexAttribArray(7);
-  glEnableVertexAttribArray(8);
-
-  glBindVertexArray(r_models.mesh.depth_pass.vertex_array);
-  glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-
-  glBindVertexArray(0);
-  
-  R_GetError(mod->media.name);
+  mesh->elements_buffer = $(r_context.device, createBufferWithConstMem,
+      SDL_GPU_BUFFERUSAGE_INDEX,
+      mesh->elements,
+      mesh->num_elements * sizeof(uint32_t));
 }
 
 /**
@@ -401,5 +318,17 @@ void R_RegisterMeshModel(r_media_t *self) {
     if (face->material) {
       R_RegisterDependency(self, (r_media_t *) face->material);
     }
+  }
+}
+
+/**
+ * @brief Releases the mesh model's GPU buffers.
+ */
+void R_FreeMeshModel(r_media_t *self) {
+  r_model_t *mod = (r_model_t *) self;
+
+  if (mod->mesh) {
+    mod->mesh->vertex_buffer = release(mod->mesh->vertex_buffer);
+    mod->mesh->elements_buffer = release(mod->mesh->elements_buffer);
   }
 }

@@ -1498,7 +1498,7 @@ void Cg_ParseTempEntity(void) {
       Cg_LightningDischargeEffect(pos);
       break;
 
-    case TE_RAIL: // railgun effect
+    case TE_RAIL: { // railgun effect
       pos = cgi.ReadPosition();
       pos2 = cgi.ReadPosition();
       dir = cgi.ReadDir();
@@ -1511,6 +1511,7 @@ void Cg_ParseTempEntity(void) {
       }
       Cg_RailEffect(pos, pos2, dir, flags, hue);
       break;
+    }
 
     case TE_EXPLOSION: // rocket and grenade explosions
       pos = cgi.ReadPosition();
