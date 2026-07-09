@@ -123,9 +123,7 @@ static struct {
   int32_t surface;
 
   /**
-   * @brief Cache of MATERIAL_STAGES pipelines, one per unique (src, dest) blend
-   * function. SDL_gpu bakes blend state into the pipeline, so stage blends can't
-   * be set dynamically; they're realized lazily here (only a handful of combos occur).
+   * @brief Cache of material stages pipelines, one per unique (src, dest) blend function.
    */
   struct {
     cm_blend_t src, dest;
@@ -137,11 +135,9 @@ static struct {
 
 /**
  * @brief Returns the bsp pipeline for the given material-stage blend function,
- * creating and caching it on first use. Wraps the same bsp_vs/bsp_fs shader as
- * the opaque pipeline (a stage draw is a runtime branch, not a shader swap);
- * only the blend state differs, which SDL_gpu bakes into the pipeline.
+ * creating and caching it on first use.
  */
-static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
+static GraphicsPipeline *R_DrawBspStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
   for (int32_t i = 0; i < r_bsp_draw.num_stages; i++) {
     if (r_bsp_draw.stages[i].src == src && r_bsp_draw.stages[i].dest == dest) {
@@ -179,7 +175,6 @@ static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
-  // Stages blend over the already-lit base surface; test depth but do not write it.
   info.depth_stencil_state.enable_depth_write = false;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
@@ -200,8 +195,6 @@ static GraphicsPipeline *R_StagePipeline(cm_blend_t src, cm_blend_t dest) {
     .num_vertex_attributes = 6,
   };
 
-  // Two color targets to match the opaque pass this runs in; the depth copy
-  // (color 1) is masked, since a stage overlays the already-established surface.
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
       {
@@ -253,8 +246,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, RenderPass 
     return;
   }
 
-  GraphicsPipeline *pipeline = R_StagePipeline(stage->cm->blend.src, stage->cm->blend.dest);
-  //GraphicsPipeline *pipeline = R_StagePipeline(BLEND_SRC_ALPHA, BLEND_ONE);
+  GraphicsPipeline *pipeline = R_DrawBspStagePipeline(stage->cm->blend.src, stage->cm->blend.dest);
   if (!pipeline) {
     return;
   }
@@ -335,9 +327,11 @@ static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, Command
 
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
-    $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
+    if (!(draw->surface & SURF_MATERIAL)) {
+      $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
+      r_stats.bsp_triangles += draw->num_elements / 3;
+    }
 
-    r_stats.bsp_triangles += draw->num_elements / 3;
     r_stats.bsp_draw_elements++;
 
     if (r_draw_material_stages->integer) {
@@ -349,7 +343,7 @@ static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, Command
 /**
  * @brief Draws one BSP inline model entity's opaque surfaces, including the
  * world itself (the worldspawn entity is a BSP inline model entity like any
- * other -- see R_DrawOpaqueBspEntities). The world's dynamic lights are culled
+ * other -- see @c R_DrawOpaqueBspEntities). The world's dynamic lights are culled
  * per block (the unit of light culling for a mesh this large); other inline
  * models are small enough to light as a whole, culled to their entity bounds.
  */
@@ -426,10 +420,6 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
 /**
  * @brief Renders the opaque world BSP surfaces with their material diffuse texture,
  * clustered per-voxel static lighting, and per-block dynamic lighting.
- * @remarks Iterates every BSP inline model entity in the view, including the
- * world itself (see R_DrawOpaqueBspEntity); per block for the world, or per
- * entity bounds for inline models (doors, platforms, ...), the active dynamic
- * lights are culled. See R_DrawBlendBspEntities for the translucent counterpart.
  */
 void R_DrawOpaqueBspEntities(const r_view_t *view) {
 
@@ -464,9 +454,6 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  // Both stages: globals (lighting scalars); the per-draw locals (model matrix
-  // + active_lights) and material parameters are pushed per block / per draw
-  // below.
   $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   r_bsp_draw.material = NULL;
@@ -475,7 +462,6 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  // The point-light shadow atlas (comparison sampler).
   $(pass, bindFragmentSamplers, BSP_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -485,22 +471,17 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
     { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
   }, 6);
 
-  // The voxel caustics / occlusion volumes and the sky cubemap for ambient light.
   $(pass, bindFragmentSamplers, BSP_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
     { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
     { .texture = R_SkyTexture()->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
   }, 3);
 
-  // Stage/stage-next: opaque and blend draws never sample these (bsp_fs's
-  // STAGE_NONE branch doesn't touch them), but the shared shader declares
-  // them, so SDL_gpu requires them bound regardless.
   $(pass, bindFragmentSamplers, BSP_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
     { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
   }, 2);
 
-  // The procedural warp noise texture, for STAGE_WARP liquid surfaces.
   $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_bsp_draw.warp_texture->texture,
     .sampler = r_bsp_draw.stage_sampler->sampler,
@@ -645,10 +626,6 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
-  // Composite over the opaque scene: LOAD color + depth, test against the opaque
-  // depth (LEQUAL) but do not write it (the blend pipeline disables depth write).
-  // Color 1 (depth copy) is attached to match the pipeline but masked off, so
-  // translucent surfaces do not overwrite the opaque depth the sprites sample.
   const SDL_GPUColorTargetInfo color[] = {
     $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
     $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
@@ -681,22 +658,17 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
     { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
   }, 6);
 
-  // The voxel caustics / occlusion volumes and the sky cubemap for ambient light.
   $(pass, bindFragmentSamplers, BSP_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
     { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
     { .texture = R_SkyTexture()->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
   }, 3);
 
-  // Stage/stage-next: opaque and blend draws never sample these (bsp_fs's
-  // STAGE_NONE branch doesn't touch them), but the shared shader declares
-  // them, so SDL_gpu requires them bound regardless.
   $(pass, bindFragmentSamplers, BSP_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
     { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
   }, 2);
 
-  // The procedural warp noise texture, for STAGE_WARP liquid surfaces.
   $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_bsp_draw.warp_texture->texture,
     .sampler = r_bsp_draw.stage_sampler->sampler,
@@ -711,8 +683,6 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
   $(pass, bindVertexStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
 
-  // Every BSP inline model entity in the view, including the world itself; see
-  // R_DrawBlendBspEntity.
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
@@ -824,9 +794,6 @@ void R_InitBspPipeline(void) {
 
   r_bsp_draw.pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
-  // Alpha-blend variant (depth test, no depth write) for translucent
-  // SURF_MASK_BLEND surfaces; the depth copy (color 1) stays masked off, since
-  // a translucent surface must not overwrite the opaque depth sprites sample.
   color_targets[0].blend_state = GPU_BlendStateAlpha;
   color_targets[1].blend_state = (SDL_GPUColorTargetBlendState) {
     .enable_color_write_mask = true, .color_write_mask = 0,
