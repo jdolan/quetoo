@@ -224,7 +224,6 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
 
       if (s->blend.src == BLEND_INVALID) {
         Cm_MaterialWarn(m, parser, "Invalid blend src");
-        s->blend.src = BLEND_ZERO;
       }
 
       if (!Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token))) {
@@ -236,7 +235,6 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
 
       if (s->blend.dest == BLEND_INVALID) {
         Cm_MaterialWarn(m, parser, "Invalid blend dest");
-        s->blend.dest = BLEND_ZERO;
       }
 
       s->flags |= STAGE_BLEND;
@@ -567,12 +565,15 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
         }
       }
 
-      // ensure appropriate blend function defaults
-      if (s->blend.src == BLEND_ZERO) {
+      // ensure appropriate blend function defaults for stages that never
+      // specified a `blend` keyword at all (or gave an invalid factor name).
+      // BLEND_ZERO is a real, explicit choice (e.g. `blend one zero` for an
+      // opaque overwrite stage) and must not be mistaken for "unset".
+      if (s->blend.src == BLEND_INVALID) {
         s->blend.src = BLEND_SRC_ALPHA;
       }
 
-      if (s->blend.dest == BLEND_ZERO) {
+      if (s->blend.dest == BLEND_INVALID) {
         s->blend.dest = BLEND_ONE_MINUS_SRC_ALPHA;
       }
 

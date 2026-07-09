@@ -22,8 +22,8 @@
 #include "r_local.h"
 
 /**
- * @brief The BSP program's own binding map, mirroring shaders/bsp_vs.glsl and
- * bsp_fs.glsl. Not shared with any other pipeline: each pipeline owns its own
+ * @brief The BSP program's own binding map, mirroring @c shaders/bsp_vs.glsl and
+ * @c bsp_fs.glsl. Not shared with any other pipeline: each pipeline owns its own
  * dense-from-0 numbering instead of coordinating through a global map.
  */
 enum {
@@ -46,20 +46,19 @@ enum {
 enum {
   BSP_STORAGE_LIGHTS,
   BSP_STORAGE_VOXEL_LIGHT_INDICES,
-  BSP_STORAGE_VOXEL_LIGHT_DATA, // (first_index, count) pairs; a buffer because
-                                // D3D12 can't sample R32G32_INT 3D textures
+  BSP_STORAGE_VOXEL_LIGHT_DATA,
   BSP_NUM_STORAGE_BUFFERS,
 };
 
 enum {
   BSP_UNIFORMS_GLOBALS,
   BSP_UNIFORMS_LOCALS, // model matrix + active_lights (vertex) / active_lights bitmask (fragment)
-  BSP_UNIFORMS_MATERIAL, // material + stage params combined -- see material.glsl
+  BSP_UNIFORMS_MATERIAL, // material + stage params combined -- see material.glsl,
+  BSP_NUM_UNIFORMS
 };
-#define BSP_NUM_UNIFORMS 3 // same count/slot for both stages
 
 /**
- * @brief Per-draw vertex locals (locals_block in bsp_vs.glsl): the model
+ * @brief Per-draw vertex locals (@c locals_block in @c bsp_vs.glsl): the model
  * matrix and the dynamic light cull bitmask for per-vertex lighting.
  */
 typedef struct {
@@ -70,11 +69,11 @@ typedef struct {
 #define MAX_STAGE_PIPELINES 16
 
 /**
- * @brief The BSP program (bsp_vs/bsp_fs): its graphics pipeline, samplers, and
+ * @brief The BSP program (@c bsp_vs/ @c bsp_fs): its graphics pipeline, samplers, and
  * the lazily-built cache of material-stage blend pipelines. Draws BSP geometry
  * with the material diffuse texture and clustered per-voxel lighting, and its
  * material stages via the same shader (a runtime branch on stage.flags, not a
- * pipeline swap): see R_DrawBspDrawElementsMaterialStage.
+ * pipeline swap): see @c R_DrawBspDrawElementsMaterialStage.
  */
 static struct {
 
@@ -123,10 +122,15 @@ static struct {
   int32_t surface;
 
   /**
-   * @brief Cache of material stages pipelines, one per unique (src, dest) blend function.
+   * @brief Cache of material stage pipelines, one per unique (src, dest, depth_write)
+   * combination. depth_write is part of the key because the same stage may be drawn
+   * from the opaque bucket (SURF_MATERIAL, which writes depth like any other opaque
+   * surface) or the blend bucket (SURF_MASK_BLEND, which must not write depth, so that
+   * overlapping translucent surfaces blend against each other rather than occluding).
    */
   struct {
     cm_blend_t src, dest;
+    bool depth_write;
     GraphicsPipeline *pipeline;
   } stages[MAX_STAGE_PIPELINES];
 
@@ -134,13 +138,14 @@ static struct {
 } r_bsp_draw;
 
 /**
- * @brief Returns the bsp pipeline for the given material-stage blend function,
- * creating and caching it on first use.
+ * @brief Returns the bsp pipeline for the given material-stage blend function and
+ * depth-write policy, creating and caching it on first use.
  */
-static GraphicsPipeline *R_DrawBspStagePipeline(cm_blend_t src, cm_blend_t dest) {
+static GraphicsPipeline *R_DrawBspStagePipeline(cm_blend_t src, cm_blend_t dest, bool depth_write) {
 
   for (int32_t i = 0; i < r_bsp_draw.num_stages; i++) {
-    if (r_bsp_draw.stages[i].src == src && r_bsp_draw.stages[i].dest == dest) {
+    if (r_bsp_draw.stages[i].src == src && r_bsp_draw.stages[i].dest == dest &&
+        r_bsp_draw.stages[i].depth_write == depth_write) {
       return r_bsp_draw.stages[i].pipeline;
     }
   }
@@ -175,7 +180,7 @@ static GraphicsPipeline *R_DrawBspStagePipeline(cm_blend_t src, cm_blend_t dest)
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
-  info.depth_stencil_state.enable_depth_write = false;
+  info.depth_stencil_state.enable_depth_write = depth_write;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
@@ -225,7 +230,7 @@ static GraphicsPipeline *R_DrawBspStagePipeline(cm_blend_t src, cm_blend_t dest)
   release(fragmentShader);
 
   r_bsp_draw.stages[r_bsp_draw.num_stages] = (typeof(r_bsp_draw.stages[0])) {
-    .src = src, .dest = dest, .pipeline = pipeline,
+    .src = src, .dest = dest, .depth_write = depth_write, .pipeline = pipeline,
   };
   return r_bsp_draw.stages[r_bsp_draw.num_stages++].pipeline;
 }
@@ -233,10 +238,13 @@ static GraphicsPipeline *R_DrawBspStagePipeline(cm_blend_t src, cm_blend_t dest)
 /**
  * @brief Binds the stage uniforms and textures and draws a single material stage of
  * a BSP draw-elements batch, layered over the already-lit base surface.
+ * @param depth_write True if this stage should write depth (the opaque bucket, e.g.
+ * SURF_MATERIAL surfaces), false if it must not (the blend bucket, e.g. SURF_MASK_BLEND
+ * surfaces, which must not occlude other translucent surfaces behind them).
  */
 static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                                const r_entity_t *entity, const r_bsp_draw_elements_t *draw,
-                                               const r_stage_t *stage) {
+                                               const r_stage_t *stage, bool depth_write) {
 
   r_material_uniforms_t uniforms;
   R_MaterialUniforms(draw->material, draw->surface, &uniforms);
@@ -246,7 +254,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, RenderPass 
     return;
   }
 
-  GraphicsPipeline *pipeline = R_DrawBspStagePipeline(stage->cm->blend.src, stage->cm->blend.dest);
+  GraphicsPipeline *pipeline = R_DrawBspStagePipeline(stage->cm->blend.src, stage->cm->blend.dest, depth_write);
   if (!pipeline) {
     return;
   }
@@ -272,12 +280,15 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, RenderPass 
 
 /**
  * @brief Draws all active material stages for a BSP draw-elements batch.
+ * @param depth_write True if these stages should write depth (the opaque bucket), false
+ * if not (the blend bucket). See R_DrawBspDrawElementsMaterialStage.
  * @remarks The base draw's bindings (material/voxel/shadow samplers, storage buffers,
  * and the globals/model/material/active-lights uniforms) remain current; each stage
  * only rebinds the stage pipeline, its textures, and the per-stage uniforms.
  */
 static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
-                                                const r_entity_t *entity, const r_bsp_draw_elements_t *draw) {
+                                                const r_entity_t *entity, const r_bsp_draw_elements_t *draw,
+                                                bool depth_write) {
 
   const r_material_t *material = draw->material;
   if (!(material->cm->stage_flags & STAGE_DRAW)) {
@@ -290,7 +301,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view, RenderPass
       continue;
     }
 
-    R_DrawBspDrawElementsMaterialStage(view, pass, commands, entity, draw, stage);
+    R_DrawBspDrawElementsMaterialStage(view, pass, commands, entity, draw, stage, depth_write);
   }
 }
 
@@ -335,7 +346,7 @@ static void R_DrawBspBlockOpaque(const r_view_t *view, RenderPass *pass, Command
     r_stats.bsp_draw_elements++;
 
     if (r_draw_material_stages->integer) {
-      R_DrawBspDrawElementsMaterialStages(view, pass, commands, entity, draw);
+      R_DrawBspDrawElementsMaterialStages(view, pass, commands, entity, draw, true);
     }
   }
 }
@@ -557,7 +568,7 @@ static void R_DrawBspBlockBlend(const r_view_t *view, RenderPass *pass, CommandB
     r_stats.bsp_draw_elements++;
 
     if (r_draw_material_stages->integer) {
-      R_DrawBspDrawElementsMaterialStages(view, pass, commands, entity, draw);
+      R_DrawBspDrawElementsMaterialStages(view, pass, commands, entity, draw, false);
     }
   }
 }

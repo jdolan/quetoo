@@ -53,9 +53,14 @@ typedef struct {
 /**
  * @brief Blend factors for material stage blending. Renderer-agnostic; the
  * renderer maps these to its backend equivalents (e.g. SDL_GPUBlendFactor).
+ * @remarks BLEND_INVALID is deliberately 0, matching the zero-initialized
+ * (never parsed a `blend` keyword) state of a fresh cm_stage_t. This lets
+ * "ensure appropriate blend function defaults" (Cm_ParseStage) distinguish
+ * "never set" from an explicit, meaningful `BLEND_ZERO` factor -- e.g. a
+ * stage that explicitly sets `blend one zero` for opaque overwrite rendering.
  */
 typedef enum {
-  BLEND_INVALID = -1,
+  BLEND_INVALID,
   BLEND_ZERO,
   BLEND_ONE,
   BLEND_SRC_COLOR,
