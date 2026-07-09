@@ -703,6 +703,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_LoadBspVertexArray(mod);
   R_SetupBspInlineModels(mod);
   R_LoadBspLights(mod->bsp);
+  R_FreeOcclusionQueries();
   R_LoadBspOcclusionQueries(mod->bsp);
   R_LoadBspVoxels(mod);
 

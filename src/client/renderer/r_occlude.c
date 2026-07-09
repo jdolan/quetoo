@@ -33,13 +33,16 @@
 
 /**
  * @brief The occlusion query accounting structure.
- * @details Occlusion queries are only ever allocated in bulk at BSP load (one per block,
- * one per light) and invalidated in bulk at the start of the next load -- never
- * individually or per-frame -- so `queries` is a single pre-sized array, malloc'd once
- * at startup, with `num_queries` acting as a bump allocator reset to 0 by
- * `R_ResetOcclusionQueries` from `R_BeginLoading`; `R_LoadOcclusionQueries` then builds
- * the shared vertex buffer once from `R_EndLoading`. A query's position in `queries` is
- * also its index into the shared QueryPool, so no separate index bookkeeping is needed.
+ * @details Occlusion queries are only ever allocated in bulk when the world BSP model is
+ * actually (re)parsed (one per block, one per light) -- never individually or per-frame,
+ * and never merely because a load cycle ran (e.g. a same-map reload triggered by a
+ * latched cvar change hits the cached world model and never touches these at all) -- so
+ * `queries` is a single pre-sized array, malloc'd once at startup, with `num_queries`
+ * acting as a bump allocator reset to 0 by `R_FreeOcclusionQueries`, called immediately
+ * before `R_LoadBspOcclusionQueries` repopulates it from `R_LoadBspModel`.
+ * `R_LoadOcclusionQueries` then builds the shared vertex buffer once from `R_EndLoading`.
+ * A query's position in `queries` is also its index into the shared QueryPool, so no
+ * separate index bookkeeping is needed.
  * @details SDL_gpu has no equivalent of GL_QUERY_RESULT_AVAILABLE (a non-blocking poll of
  * a single query), so results are instead downloaded for the whole active range into a
  * single transfer buffer, gated by the fence of the dedicated depth-pass command buffer
@@ -226,13 +229,17 @@ void R_AppendOcclusionQueryBox(r_occlusion_query_t *query, box3_t bounds) {
 
 /**
  * @brief Resets the occlusion query pool, invalidating all previously allocated queries.
- * @details Called from R_BeginLoading. Occlusion queries are only ever allocated in bulk
- * at BSP load (one per block, one per light), never individually or per-frame, so
- * resetting the allocation cursor ahead of the load is all that's needed here; the
- * load's R_LoadBspOcclusionQueries call reallocates from the start of the pool.
- * @details R_InitMedia calls R_BeginLoading (and thus this) before R_InitOcclusionQueries
- * has run, so `boxes` may still be NULL the first time this is called; guard it explicitly,
- * since unlike `release()`, Vector methods are not NULL-safe.
+ * @details Called from R_LoadBspModel, immediately before R_LoadBspOcclusionQueries
+ * repopulates the pool from scratch. Deliberately *not* called from R_BeginLoading:
+ * R_LoadBspModel only runs on a cache miss (a genuinely new or changed world BSP), so
+ * calling this unconditionally on every load would also wipe the pool on a same-map
+ * reload (e.g. toggling the latched `editor` cvar), which hits the cached world model and
+ * never reaches R_LoadBspOcclusionQueries to repopulate it -- permanently freezing every
+ * block's cached query result and causing large sections of the map to render as
+ * occluded from wherever the view happened to be at the moment of the reload.
+ * @details Guards `boxes` for NULL in case this is ever reached before
+ * R_InitOcclusionQueries has run, since unlike `release()`, Vector methods are not
+ * NULL-safe.
  */
 void R_FreeOcclusionQueries(void) {
   r_occlusion_queries.num_queries = 0;
@@ -244,9 +251,14 @@ void R_FreeOcclusionQueries(void) {
 
 /**
  * @brief Builds the per-instance occlusion box buffer for the boxes the load appended.
- * @details Called from R_EndLoading; the query and box set never change between loads.
+ * @details Called from R_EndLoading, so this runs at the end of every load cycle, even
+ * one that didn't reload the world BSP (and thus didn't touch `boxes` at all); releasing
+ * any previous `instance_buffer` before rebuilding is what makes that redundant rebuild
+ * safe rather than leaking the old buffer.
  */
 void R_LoadOcclusionQueries(void) {
+
+  r_occlusion_queries.instance_buffer = release(r_occlusion_queries.instance_buffer);
 
   const int32_t num_boxes = (int32_t) r_occlusion_queries.boxes->count;
   if (num_boxes) {
