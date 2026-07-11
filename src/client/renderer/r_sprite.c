@@ -455,12 +455,18 @@ void R_DrawSprites(const r_view_t *view) {
     release(copyPass);
   }
 
-  // No depth attachment: the soft-particle fade (sprite_fs) samples the scene
-  // depth instead, which also occludes sprites behind the world.
+  // The pipeline declares the scene depth-stencil target (see
+  // R_InitSpritePipeline) but performs no hardware depth test or write of its
+  // own -- the soft-particle fade (sprite_fs) samples the scene depth copy
+  // instead, which also occludes sprites behind the world. The render pass
+  // still binds the real depth attachment (LOAD, untouched) since Metal
+  // requires it to match the pipeline's declared format.
   const SDL_GPUColorTargetInfo color =
       $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
+  const SDL_GPUDepthStencilTargetInfo depth =
+      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
 
-  RenderPass *pass = $(commands, beginRenderPass, &color, 1, NULL);
+  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -542,8 +548,9 @@ static void R_InitSpritePipeline(void) {
 
   // Sprites sample the scene depth for the soft-particle fade, which also serves
   // as the occlusion test, so the pipeline performs no hardware depth test or
-  // write of its own. It still declares the scene depth-stencil target to match
-  // the other blended pipelines targeting R_SCENE_COLOR_FORMAT.
+  // write of its own. It still declares (and R_DrawSprites still binds) the
+  // scene depth-stencil target: some D3D12 drivers reject blended pipelines
+  // that declare no depth-stencil attachment at all.
   info.depth_stencil_state = (SDL_GPUDepthStencilState) { 0 };
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {

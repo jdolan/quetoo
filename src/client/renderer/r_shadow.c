@@ -292,6 +292,10 @@ void R_DrawShadows(const r_view_t *view) {
         const uint32_t in_first_index = (uint32_t) ((uintptr_t) in->depth_pass_elements / sizeof(uint32_t));
         const uint32_t in_count = (uint32_t) in->num_depth_pass_elements;
 
+        if (!in_count) {
+          continue;
+        }
+
         const r_shadow_locals_t in_locals = {
           .model = e->matrix,
           .light_view = r_shadow_light_view[face],
