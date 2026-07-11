@@ -97,6 +97,21 @@ jobs:
         make -j$(nproc)
         sudo make install
 
+    - name: Checkout ObjectivelyGPU
+      uses: actions/checkout@v6
+      with:
+        repository: jdolan/ObjectivelyGPU
+        path: ObjectivelyGPU
+
+    - name: Build ObjectivelyGPU
+      working-directory: ObjectivelyGPU
+      run: |
+        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
+        autoreconf -i
+        ./configure
+        make -j$(nproc)
+        sudo make install
+
     - name: Checkout ObjectivelyMVC
       uses: actions/checkout@v6
       with:
@@ -236,6 +251,8 @@ jobs:
         # Objectively and ObjectivelyMVC and their PDBs
         Copy-Item "..\Objectively\Objectively.vs15\bin\x64Release\Objectively.dll" "$staging\bin\"
         Copy-Item "..\Objectively\Objectively.vs15\bin\x64Release\Objectively.pdb" "$staging\bin\"
+        Copy-Item "..\ObjectivelyGPU\ObjectivelyGPU.vs15\bin\x64Release\ObjectivelyGPU.dll" "$staging\bin\"
+        Copy-Item "..\ObjectivelyGPU\ObjectivelyGPU.vs15\bin\x64Release\ObjectivelyGPU.pdb" "$staging\bin\"
         Copy-Item "..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\x64Release\ObjectivelyMVC.dll" "$staging\bin\"
         Copy-Item "..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\x64Release\ObjectivelyMVC.pdb" "$staging\bin\"
 

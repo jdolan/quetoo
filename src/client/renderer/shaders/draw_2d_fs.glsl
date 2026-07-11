@@ -19,16 +19,26 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-in vertex_data {
+#version 450
+
+/*
+ * Self-contained 2D program: modulates the diffuse sample by the vertex color.
+ * The sampler lands on fragment sampler slot 0 (set 2, binding 0).
+ */
+
+layout (set = 2, binding = 0) uniform sampler2D texture_diffusemap;
+
+layout (location = 0) in vertex_data {
   vec2 diffusemap;
   vec4 color;
 } vertex;
 
-out vec4 out_color;
+layout (location = 0) out vec4 out_color;
 
 /**
  * @brief
  */
 void main(void) {
+
   out_color = vertex.color * texture(texture_diffusemap, vertex.diffusemap);
 }

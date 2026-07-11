@@ -28,15 +28,13 @@ r_stats_t r_stats;
 cvar_t *r_alpha_test;
 cvar_t *r_cull;
 cvar_t *r_depth_pass;
-cvar_t *r_draw_occlusion_queries;
 cvar_t *r_draw_bsp_blocks;
+cvar_t *r_draw_occlusion_queries;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_bsp_voxels;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_light_bounds;
 cvar_t *r_draw_material_stages;
-cvar_t *r_draw_wireframe;
-cvar_t *r_get_error;
 cvar_t *r_occlude;
 
 cvar_t *r_ambient;
@@ -48,11 +46,11 @@ cvar_t *r_bloom_iterations;
 cvar_t *r_bloom_threshold;
 cvar_t *r_caustics;
 cvar_t *r_draw_scale;
-cvar_t *r_finish;
 cvar_t *r_framebuffer_scale;
 cvar_t *r_fullscreen;
 cvar_t *r_fullscreen_width;
 cvar_t *r_fullscreen_height;
+cvar_t *r_gpu_driver;
 cvar_t *r_hardness;
 cvar_t *r_lighting_distance;
 cvar_t *r_modulate;
@@ -72,43 +70,22 @@ cvar_t *r_window_width;
 cvar_t *r_draw_stats;
 
 /**
- * @brief Queries OpenGL for any errors and prints them as warnings.
+ * @brief The MSAA sample count for the 3D scene, driven by r_antialias. The
+ * scene framebuffer and every 3D pipeline are built with this count; see the
+ * r_antialias->modified handling in R_BeginFrame, which rebuilds them in place
+ * when it changes, no r_restart required.
  */
-void R_GetError_(const char *function, const char *msg) {
+SDL_GPUSampleCount r_scene_samples = SDL_GPU_SAMPLECOUNT_1;
 
-  if (!r_get_error->integer) {
-    return;
-  }
-
-  while (true) {
-    const GLenum err = glGetError();
-    const char *s;
-
-    switch (err) {
-      case GL_NO_ERROR:
-        return;
-      case GL_INVALID_ENUM:
-        s = "GL_INVALID_ENUM";
-        break;
-      case GL_INVALID_VALUE:
-        s = "GL_INVALID_VALUE";
-        break;
-      case GL_INVALID_OPERATION:
-        s = "GL_INVALID_OPERATION";
-        break;
-      case GL_OUT_OF_MEMORY:
-        s = "GL_OUT_OF_MEMORY";
-        break;
-      default:
-        s = va("%" PRIx32, err);
-        break;
-    }
-
-    Com_Warn("%s threw %s: %s.\n", function, s, msg);
-
-    if (r_get_error->integer == 2) {
-      SDL_TriggerBreakpoint();
-    }
+/**
+ * @brief Maps the r_antialias cvar to an SDL_gpu sample count.
+ */
+SDL_GPUSampleCount R_SampleCount(void) {
+  switch (r_antialias->integer) {
+    case 2:  return SDL_GPU_SAMPLECOUNT_2;
+    case 4:  return SDL_GPU_SAMPLECOUNT_4;
+    case 8:  return SDL_GPU_SAMPLECOUNT_8;
+    default: return SDL_GPU_SAMPLECOUNT_1;
   }
 }
 
@@ -131,13 +108,24 @@ void R_UpdateUniforms(const r_view_t *view) {
     const float xmin = ymin * aspect;
     const float xmax = ymax * aspect;
 
-    out->projection3D = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
+    // Mat4_FromFrustum produces GL clip space, where z spans [-1, 1]; SDL_gpu
+    // expects [0, 1] on every backend. Remap depth (z' = z * .5 + w * .5) so
+    // that near geometry isn't clipped and gl_FragCoord.z matches GL's window
+    // depth exactly (soften.glsl's linearization depends on this).
+    const mat4_t clip = Mat4((const float[]) {
+      1.f, 0.f, 0.f, 0.f,
+      0.f, 1.f, 0.f, 0.f,
+      0.f, 0.f, .5f, 0.f,
+      0.f, 0.f, .5f, 1.f
+    });
+
+    out->projection3D = Mat4_Concat(clip, Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST));
     out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
     out->sky_projection = Mat4_FromScale3(Vec3(-1.f, 1.f, 1.f)); // put Z going up
     out->sky_projection = Mat4_ConcatTranslation(out->sky_projection, Vec3_Negate(view->origin));
 
-    out->light_projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
+    out->light_projection = Mat4_Concat(clip, Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST));
 
     out->depth_range.x = NEAR_DIST;
     out->depth_range.y = MAX_WORLD_DIST;
@@ -151,7 +139,6 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->lighting_distance = r_lighting_distance->value;
     out->editor = editor->integer;
     out->developer = developer->integer;
-    out->wireframe = r_draw_wireframe->integer;
 
     if (r_models.world) {
       const r_bsp_voxels_t *voxels = &r_models.world->bsp->voxels;
@@ -167,11 +154,54 @@ void R_UpdateUniforms(const r_view_t *view) {
     }
   }
 
-  if (r_uniforms.buffer) {
-    glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  // The block is pushed per-pass via CommandBuffer::pushVertexUniformData/pushFragmentUniformData.
+}
+
+/**
+ * @brief Applies r_swap_interval to the device's swapchain present mode.
+ * @remarks SDL_gpu has no adaptive-VSync present mode (unlike GL's
+ * EXT_swap_control_tear, which `-1` requests in main); `-1` maps to MAILBOX,
+ * the closest analog (low latency, never tears), falling back to plain VSYNC
+ * where unsupported.
+ */
+static void R_UpdateSwapInterval(void) {
+
+  SDL_GPUPresentMode mode;
+  switch (r_swap_interval->integer) {
+    case -1: mode = SDL_GPU_PRESENTMODE_MAILBOX;   break;
+    case  0: mode = SDL_GPU_PRESENTMODE_IMMEDIATE; break;
+    default: mode = SDL_GPU_PRESENTMODE_VSYNC;     break;
   }
+
+  if (mode != SDL_GPU_PRESENTMODE_VSYNC && !$(r_context.device, supportsPresentMode, mode)) {
+    Com_Warn("Present mode %d unsupported by this device, falling back to VSYNC\n", mode);
+    $(r_context.device, setSwapchainParameters, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC);
+    return;
+  }
+
+  if (!$(r_context.device, setSwapchainParameters, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, mode)) {
+    Com_Warn("Failed to set present mode %d: %s\n", mode, SDL_GetError());
+  }
+}
+
+/**
+ * @brief Rebuilds every pipeline whose creation info is derived from a
+ * pipeline-bound cvar (r_antialias' sample count, r_anisotropy's max
+ * anisotropy, ...). SDL_gpu bakes both into pipeline/sampler objects at
+ * creation time (unlike GL programs and texture parameters, which read this
+ * state live), so changing either requires tearing down and recreating the
+ * affected pipelines in place. Add new pipeline-bound cvars here rather than
+ * inventing a bespoke update path per cvar.
+ */
+static void R_UpdatePipelines(void) {
+  R_UpdateBspPipeline();
+  R_UpdateMeshPipeline();
+  R_UpdateDepthPass();
+  R_UpdateDraw3D();
+  R_UpdateSky();
+  R_UpdateSpritePipeline();
+  R_UpdateDecalPipeline();
+  R_UpdatePostPipeline();
 }
 
 /**
@@ -185,6 +215,10 @@ void R_BeginFrame(void) {
   }
 
   if (r_framebuffer_scale->modified) {
+    // Recreate the scene framebuffer at the new scale (the cgame rebuilds it on a
+    // pixel-size change); R_CreateFramebuffer reads r_framebuffer_scale. The 3D
+    // scene renders at the scaled resolution and R_DrawPost up/downscales it into
+    // the present framebuffer, leaving the UI at native resolution.
     SDL_PushEvent(&(SDL_Event) {
       .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
     });
@@ -192,20 +226,46 @@ void R_BeginFrame(void) {
   }
 
   if (r_antialias->modified) {
-    SDL_PushEvent(&(SDL_Event) {
-      .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
-    });
+    const SDL_GPUSampleCount samples = R_SampleCount();
+    if (samples != r_scene_samples) {
+      r_scene_samples = samples;
+      R_UpdatePipelines();
+
+      // Recreate the scene framebuffer(s) at the new sample count (cgame owns them).
+      SDL_PushEvent(&(SDL_Event) {
+        .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
+      });
+    }
     r_antialias->modified = false;
   }
 
+  if (r_anisotropy->modified) {
+    r_anisotropy->value = Clampf(r_anisotropy->value, 0.f, 16.f);
+    r_context.device->maxAnisotropy = r_anisotropy->value;
+    R_UpdatePipelines();
+    r_anisotropy->modified = false;
+  }
+
   if (r_swap_interval->modified) {
-    SDL_GL_SetSwapInterval(r_swap_interval->integer);
+    r_swap_interval->value = Clampf(r_swap_interval->value, -1.f, 1.f);
+    R_UpdateSwapInterval();
     r_swap_interval->modified = false;
   }
 
   memset(&r_stats, 0, sizeof(r_stats));
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // Acquire the frame and clear the present-target framebuffer. The UI (and,
+  // later, the resolved 3D scene) composite into it; R_EndFrame presents.
+  CommandBuffer *commands = $(r_context.device, beginFrame);
+  if (commands) {
+
+    const SDL_FColor clear_color = { 0.f, 0.f, 0.f, 1.f };
+    const SDL_GPUColorTargetInfo color =
+        $(r_context.device->framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color);
+
+    RenderPass *pass = $(commands, beginRenderPass, &color, 1, NULL);
+    pass = release(pass);
+  }
 }
 
 /**
@@ -224,120 +284,58 @@ void R_InitView(r_view_t *view) {
 
 /**
  * @brief Renders the view depth pre-pass, updating frustum and uploading uniforms.
+ * @details The depth pass and occlusion queries are recorded into their own dedicated
+ * CommandBuffer, submitted and fenced immediately, rather than the frame's shared
+ * command buffer. This lets their fence signal as soon as just that GPU work
+ * completes, so occlusion query results become available for read-back as early as
+ * possible instead of waiting on the rest of the frame's rendering.
  */
 void R_DrawViewDepth(r_view_t *view) {
-
-  assert(view);
-  assert(view->framebuffer);
 
   R_UpdateFrustum(view);
 
   R_UpdateUniforms(view);
 
-  R_UpdateOcclusionQueries(view);
+  CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
 
-  R_ClearFramebuffer(view->framebuffer);
+  R_DrawDepthPass(view, commands);
 
-  const GLuint render_fbo = view->framebuffer->msaa.fbo ?: view->framebuffer->name;
+  R_DrawOcclusionQueries(view, commands);
 
-  glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+  if (r_depth_pipeline.fence) {
+    $(commands, submit);
+  } else {
+    r_depth_pipeline.fence = $(commands, submitAndFence);
+  }
 
-  glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
-
-  R_DrawDepthPass(view);
-
-  R_DrawOcclusionQueries(view);
-
-  const SDL_Rect viewport = r_context.viewport;
-  glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  R_GetError(NULL);
+  release(commands);
 }
 
 /**
  * @brief Entry point for drawing the main view.
+ * @details Short-circuits the entire frame if there is no command buffer in
+ * flight (e.g. the swapchain was unavailable this frame -- see R_BeginFrame),
+ * so the functions this fans out to don't each need to recheck it.
  */
 void R_DrawMainView(r_view_t *view) {
 
   assert(view);
-  assert(view->framebuffer);
-
-  R_UpdateEntities(view);
-
-  thread_t *sprites = Thread_Create((ThreadRunFunc) R_UpdateSprites, view, THREAD_NONE);
 
   R_UpdateLights(view);
 
+  R_UpdateSprites(view);
+
+  R_UpdateShadows(view);
+
+  R_ClearShadows(view);
+
   R_DrawShadows(view);
-
-  const GLuint render_fbo = view->framebuffer->msaa.fbo ?: view->framebuffer->name;
-
-  glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-
-  glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
-
-  if (r_draw_wireframe->integer) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  }
 
   R_DrawEntities(view);
 
-  Thread_Wait(sprites);
-
-  if (view->framebuffer->msaa.fbo) {
-    R_ResolveFramebufferDepth(view->framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
-    glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-  }
-
   R_DrawSprites(view);
 
-  if (r_draw_wireframe->integer) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  }
-
-  R_Draw3D();
-
-  if (view->framebuffer->msaa.fbo) {
-    R_ResolveFramebuffer(view->framebuffer);
-  }
-
-  const SDL_Rect viewport = r_context.viewport;
-  glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
-
-  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-/**
- * @brief Entry point for drawing the player model view.
- */
-void R_DrawPlayerModelView(r_view_t *view) {
-
-  assert(view);
-  assert(view->framebuffer);
-
-  R_UpdateUniforms(view);
-
-  R_UpdateEntities(view);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
-
-  R_DrawMeshEntities(view);
-
-  const SDL_Rect viewport = r_context.viewport;
-  glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
-  
-  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  R_Draw3D(view);
 }
 
 /**
@@ -347,11 +345,7 @@ void R_EndFrame(void) {
 
   R_Draw2D();
 
-  if (r_finish->value) {
-    glFinish();
-  }
-
-  SDL_GL_SwapWindow(r_context.window);
+  $(r_context.device, endFrame);
 }
 
 /**
@@ -362,18 +356,16 @@ static void R_InitLocal(void) {
   // development tools
   r_alpha_test = Cvar_Add("r_alpha_test", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool).");
   r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool).");
-  r_draw_occlusion_queries = Cvar_Add("r_draw_occlusion_queries", "0", CVAR_DEVELOPER , "Controls the rendering of occlusion queries (developer tool).");
   r_draw_bsp_blocks = Cvar_Add("r_draw_bsp_blocks", "0", CVAR_DEVELOPER, "Controls the rendering of BSP block boundaries (developer tool).");
+  r_draw_occlusion_queries = Cvar_Add("r_draw_occlusion_queries", "0", CVAR_DEVELOPER, "Controls the rendering of occlusion query bounding boxes (developer tool).");
   r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool).");
   r_draw_bsp_voxels = Cvar_Add("r_draw_bsp_voxels", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool).");
   r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool).");
   r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool).");
   r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
-  r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool).");
   r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
-  r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL information to the console. 2 will also cause a breakpoint for errors. (developer tool).");
-  r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
   r_draw_stats = Cvar_Add("r_draw_stats", "0", CVAR_DEVELOPER, "Draw renderer performance statistics (developer tool).");
+  r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
 
   // settings and preferences
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
@@ -385,11 +377,11 @@ static void R_InitLocal(void) {
   r_bloom_threshold = Cvar_Add("r_bloom_threshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
   r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
-  r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
   r_framebuffer_scale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
   r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
   r_fullscreen_width = Cvar_Add("r_fullscreen_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution width. 0 uses the desktop resolution.");
   r_fullscreen_height = Cvar_Add("r_fullscreen_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution height. 0 uses the desktop resolution.");
+  r_gpu_driver = Cvar_Add("r_gpu_driver", "", CVAR_NO_SET, "Forces the SDL_gpu backend driver: \"vulkan\", \"direct3d12\" or \"metal\". Empty lets SDL choose. Set via +set at the command line.");
   r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects.");
   r_lighting_distance = Cvar_Add("r_lighting_distance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex lighting.");
   r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting.");
@@ -403,7 +395,7 @@ static void R_InitLocal(void) {
   r_shadow_tile_size = Cvar_Add("r_shadow_tile_size", "256", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadow atlas tile resolution (128-512).");
   r_shadow_distance = Cvar_Add("r_shadow_distance", "1024", CVAR_ARCHIVE, "Controls the distance at which mesh shadows are culled.");
   r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
-  r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
+  r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables mailbox (low latency, no tearing).");
   r_window_height = Cvar_Add("r_window_height", "1080", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the window height for windowed mode.");
   r_window_width = Cvar_Add("r_window_width", "1920", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls the window width for windowed mode.");
 
@@ -423,64 +415,25 @@ static void R_InitConfig(void) {
 
   memset(&r_config, 0, sizeof(r_config));
 
-  r_config.renderer = (const char *) glGetString(GL_RENDERER);
-  r_config.vendor = (const char *) glGetString(GL_VENDOR);
-  r_config.version = (const char *) glGetString(GL_VERSION);
+  r_config.renderer = SDL_GetGPUDeviceDriver(r_context.device->device);
+  r_config.vendor = "SDL_gpu";
+  r_config.version = SDL_GetGPUDeviceDriver(r_context.device->device);
 
-  GLint num_extensions;
-  glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-
-  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
-  glGetIntegerv(GL_MAX_TEXTURE_SIZE, &r_config.max_texture_size);
-  glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &r_config.max_3d_texture_size);
-  glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &r_config.max_uniform_block_size);
+  // TODO(#864): SDL_gpu does not expose device limits directly; use conservative
+  // defaults that hold across the Metal/Vulkan/D3D12 backends we target. Revisit
+  // if a backend reports smaller limits (e.g. via SDL properties when available).
+  r_config.max_texunits = 16;
+  r_config.max_texture_size = 16384;
+  r_config.max_3d_texture_size = 2048;
+  r_config.max_uniform_block_size = 65536;
 
   Com_Print(  "  Renderer:   ^2%s^7\n", r_config.renderer);
   Com_Print(  "  Vendor:     ^2%s^7\n", r_config.vendor);
   Com_Print(  "  Version:    ^2%s^7\n", r_config.version);
-
-  for (int32_t i = 0; i < num_extensions; i++) {
-    const char *c = (const char *) glGetStringi(GL_EXTENSIONS, i);
-
-    if (i == 0) {
-      Com_Verbose("  Extensions: ^2%s^7\n", c);
-    } else {
-      Com_Verbose("              ^2%s^7\n", c);
-    }
-  }
-
-  R_GetError(NULL);
 }
 
 /**
- * @brief Creates the global uniform buffer object and binds it to binding point 0.
- */
-static void R_InitUniforms(void) {
-
-  glGenBuffers(1, &r_uniforms.buffer);
-
-  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-  glBufferData(GL_UNIFORM_BUFFER, sizeof(r_uniforms.block), NULL, GL_DYNAMIC_DRAW);
-
-  glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
-
-  R_UpdateUniforms(NULL);
-
-  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
-}
-
-/**
- * @brief Deletes the global uniform buffer object.
- */
-static void R_ShutdownUniforms(void) {
-
-  glDeleteBuffers(1, &r_uniforms.buffer);
-}
-
-/**
- * @brief Creates the OpenGL context and initializes all GL state.
+ * @brief Creates the ObjectivelyGPU render device and initializes the renderer.
  */
 void R_Init(void) {
 
@@ -490,77 +443,83 @@ void R_Init(void) {
 
   R_InitContext();
 
+  R_UpdateSwapInterval();
+  r_swap_interval->modified = false;
+
+  // Snapshot the MSAA sample count for the scene framebuffer and all 3D pipelines.
+  r_scene_samples = R_SampleCount();
+
   R_InitConfig();
-
-  R_InitUniforms();
-
-  R_InitOcclusionQueries();
-
-  R_InitMedia();
-
+  
   R_InitImages();
-
-  R_InitDepthPass();
-
-  R_InitShadows();
-
-  R_InitDraw2D();
-
-  R_InitDraw3D();
-
-  R_InitModels();
-
-  R_InitSprites();
-
+  
+  R_InitMedia();
+  
   R_InitLights();
-
+  
+  R_InitShadows();
+  
+  R_InitBspPipeline();
+  
+  R_InitModels();
+  
+  R_InitDraw2D();
+  
+  R_InitDepthPass();
+  
+  R_InitOcclusionQueries();
+  
+  R_InitDraw3D();
+  
+  R_InitSprites();
+  
   R_InitDecals();
-
+  
   R_InitSky();
-
+  
   R_InitPost();
 
-  R_GetError("Video initialization");
-
   const SDL_Rect bounds = r_context.window_bounds;
-  const SDL_Rect viewport = r_context.viewport;
-  
-  Com_Print("Video initialized %dx%d (%dx%d)\n", bounds.w, bounds.h, viewport.w, viewport.h);
+  const float density = r_context.display_mode->pixel_density;
+
+  Com_Print("Video initialized %dx%d (%dx%d)\n", bounds.w, bounds.h,
+            (int32_t) (bounds.w * density), (int32_t) (bounds.h * density));
 }
 
 /**
  * @brief Shuts down the renderer, freeing all resources belonging to it,
- * including the GL context.
+ * including the render device.
  */
 void R_Shutdown(void) {
 
   Cmd_RemoveAll(CMD_RENDERER);
 
-  R_ShutdownMedia();
+  R_ShutdownDraw3D();
+  R_ShutdownPost();
+  R_ShutdownDepthPass();
 
   R_ShutdownDraw2D();
 
-  R_ShutdownDraw3D();
-
   R_ShutdownModels();
-
-  R_ShutdownLights();
-
-  R_ShutdownDecals();
-
-  R_ShutdownSprites();
-
-  R_ShutdownSky();
-
-  R_ShutdownPost();
 
   R_ShutdownShadows();
 
-  R_ShutdownDepthPass();
+  R_ShutdownSky();
+
+  R_ShutdownSprites();
+
+  R_ShutdownDecals();
+
+  R_ShutdownBspPipeline();
+
+  R_ShutdownLights();
+
+  // R_ShutdownMedia frees loaded BSP models, which return their occlusion
+  // queries via R_FreeOcclusionQuery -- this must run before the pools
+  // R_ShutdownOcclusionQueries destroys.
+  R_ShutdownMedia();
 
   R_ShutdownOcclusionQueries();
-
-  R_ShutdownUniforms();
 
   R_ShutdownContext();
 

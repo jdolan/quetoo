@@ -419,7 +419,6 @@ static List *Cmd_RemovePtr_(cmd_t *cmd) {
   ListNode *node = $(list, nodeForElement, cmd);
   if (!node) {
     Com_Error(ERROR_FATAL, "Missing command: %s\n", cmd->name);
-    return list;
   }
 
   // Disable destroy so we control when cmd is freed

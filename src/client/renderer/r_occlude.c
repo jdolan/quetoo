@@ -19,59 +19,68 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <Objectively/Array.h>
+#include <Objectively/Vector.h>
+
 #include "r_local.h"
 
 /**
+ * @brief The maximum number of occlusion queries: one per BSP block plus one per BSP light.
+ */
+#define MAX_OCCLUSION_QUERIES (MAX_BSP_BLOCKS + MAX_BSP_LIGHTS)
+
+/**
  * @brief The occlusion query accounting structure.
- * @details Occlusion queries are maintained in a dynamic pool that will grow to meet the demands
- * of the scene. Lists make allocating and freeing queries a constant O(1) operation.
  */
 static struct {
+  /**
+   * @brief The occlusion queries. A query's position in this array is also its index into `query_pool`.
+   */
+  r_occlusion_query_t queries[MAX_OCCLUSION_QUERIES];
 
   /**
-   * @brief The allocated occlusion queries.
+   * @brief The number of allocated queries.
    */
-  List *allocated;
+  int32_t num_queries;
 
   /**
-   * @brief The free occlusion queries.
+   * @brief The per-instance box bounds appended by `R_AppendOcclusionQueryBox`, flattened
+   * into `instance_buffer` by `R_LoadOcclusionQueries`. Reset by `R_FreeOcclusionQueries`.
    */
-  List *free;
+  Vector *boxes;
 
   /**
-   * @brief If true, rebuild the vertex buffer at next frame.
+   * @brief The shared occlusion query pool.
    */
-  bool dirty;
+  QueryPool *pool;
 
   /**
-   * @brief The vertex array object.
+   * @brief The per-instance box bounds buffer (INSTANCE rate, slot 1), built from `boxes`
+   * by `R_LoadOcclusionQueries` when loading completes.
    */
-  GLuint vertex_array;
+  Buffer *instanceBuffer;
 
   /**
-   * @brief The vertex buffer object.
+   * @brief The constant unit-cube vertex buffer (VERTEX rate, slot 0), shared by every
+   * occlusion box instance. Built once by `R_InitOcclusionQueries`.
    */
-  GLuint vertex_buffer;
+  Buffer *vertexBuffer;
 
   /**
-   * @brief The elements buffer object.
+   * @brief The shared index buffer for the unit cube (reused for every instance).
    */
-  GLuint elements_buffer;
-} r_occlusion_queries;
+  Buffer *elementsBuffer;
 
-static r_occlusion_query_t *R_PopOcclusionQuery(List *queries) {
+  /**
+   * @brief The position-only, depth-only pipeline used to draw occlusion boxes.
+   */
+  GraphicsPipeline *pipeline;
 
-  if (queries == NULL || queries->head == NULL) {
-    return NULL;
-  }
-
-  ListNode *node = queries->head;
-  r_occlusion_query_t *query = node->element;
-
-  $(queries, removeNode, node);
-
-  return query;
-}
+  /**
+   * @brief The download target for query results.
+   */
+  TransferBuffer *transfer;
+} r_occlusion;
 
 /**
  * @brief Checks BSP block occlusion queries to determine if the given box is occluded.
@@ -94,7 +103,7 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-    if (block->query->result == 0) {
+    if (!block->query->result) {
       if (Box3_Contains(block->query->bounds, bounds)) {
         return true;
       }
@@ -135,218 +144,199 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
  */
 r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
 
-  r_occlusion_query_t *query = R_PopOcclusionQuery(r_occlusion_queries.free);
-  if (query == NULL) {
-    query = Mem_TagMalloc(sizeof(r_occlusion_query_t), MEM_TAG_RENDERER);
-    glGenQueries(1, &query->name);
-  }
+  GPU_Assert(r_occlusion.num_queries < MAX_OCCLUSION_QUERIES, "Exceeded MAX_OCCLUSION_QUERIES (%d)", MAX_OCCLUSION_QUERIES);
+
+  r_occlusion_query_t *query = &r_occlusion.queries[r_occlusion.num_queries++];
 
   query->bounds = bounds;
-  query->available = 1;
-  query->result = 1;
+  query->first_box = (int32_t) r_occlusion.boxes->count;
+  query->num_boxes = 0;
+  query->result = true;
 
-  r_occlusion_queries.dirty = true;
-
-  $(r_occlusion_queries.allocated, prepend, query);
   return query;
 }
 
 /**
- * @brief Frees the specified occlusion query.
+ * @brief Appends a box to the given query's GPU-drawn instance geometry.
  */
-void R_FreeOcclusionQuery(r_occlusion_query_t *query) {
+void R_AppendOcclusionQueryBox(r_occlusion_query_t *query, box3_t bounds) {
 
-  if (!query) {
-    return;
-  }
+  assert(query->first_box + query->num_boxes == (int32_t) r_occlusion.boxes->count);
 
-  ListNode *node = $(r_occlusion_queries.allocated, nodeForElement, query);
-  if (node) {
-    $(r_occlusion_queries.allocated, removeNode, node);
-  }
-  $(r_occlusion_queries.free, prepend, query);
-
-  r_occlusion_queries.dirty = true;
+  $(r_occlusion.boxes, add, &bounds);
+  query->num_boxes++;
 }
 
 /**
- * @brief Polls the query for a result and executes it again if available.
- * @return True if the query is occluded (no samples passed the query).
+ * @brief Resets the occlusion query pool, invalidating all previously allocated queries.
  */
-static bool R_DrawOcclusionQuery(const r_view_t *view, r_occlusion_query_t *query) {
+void R_FreeOcclusionQueries(void) {
 
-  if (r_occlude->integer == 0) {
+  r_occlusion.num_queries = 0;
 
-    query->available = 1;
-    query->result = 1;
+  if (r_occlusion.boxes) {
+    $(r_occlusion.boxes, removeAll);
+  }
 
-  } else {
+  r_occlusion.instanceBuffer = release(r_occlusion.instanceBuffer);
+}
 
-    if (Box3_Intersects(query->bounds, Box3_FromCenterRadius(view->origin, BSP_VOXEL_SIZE))) {
+/**
+ * @brief Builds the per-instance occlusion box buffer for the boxes the load appended.
+ */
+void R_LoadOcclusionQueries(void) {
 
-      query->available = 1;
-      query->result = 1;
+  r_occlusion.instanceBuffer = release(r_occlusion.instanceBuffer);
 
+  const int32_t num_boxes = (int32_t) r_occlusion.boxes->count;
+  if (num_boxes) {
+    r_occlusion.instanceBuffer = $(r_context.device, createBufferWithConstMem,
+      SDL_GPU_BUFFERUSAGE_VERTEX, r_occlusion.boxes->elements, (Uint32) (num_boxes * sizeof(box3_t)));
+  }
+}
+
+/**
+ * @brief
+ */
+static void R_DrawOcclusionQueries_(const r_view_t *view, CommandBuffer *commands) {
+
+  const SDL_GPUDepthStencilTargetInfo depth = $(view->framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
+
+  RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
+
+  if (r_occlusion.instanceBuffer) {
+    $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
+      { .buffer = r_occlusion.vertexBuffer->buffer },
+      { .buffer = r_occlusion.instanceBuffer->buffer },
+    }, 2);
+    $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
+      .buffer = r_occlusion.elementsBuffer->buffer
+    }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+  }
+
+  $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+
+  $(pass, bindPipeline, r_occlusion.pipeline);
+
+  r_occlusion_query_t *q = r_occlusion.queries;
+  for (int32_t i = 0; i < r_occlusion.num_queries; i++, q++) {
+    $(pass, beginQuery, r_occlusion.pool, i);
+    $(pass, drawIndexedPrimitives, 36, q->num_boxes, 0, 0, q->first_box);
+    $(pass, endQuery, r_occlusion.pool, i);
+  }
+
+  release(pass);
+}
+
+/**
+ * @brief Draws and polls all occlusion queries for the current frame.
+ */
+void R_DrawOcclusionQueries(const r_view_t *view, CommandBuffer *commands) {
+
+  if (r_depth_pipeline.fence) {
+
+    if ($(r_depth_pipeline.fence, query)) {
+
+      const Uint64 *results = $(r_occlusion.transfer, map, false);
+
+      for (int32_t i = 0; i < r_occlusion.num_queries; i++) {
+        r_occlusion.queries[i].result = results[i] > 0;
+      }
+
+      $(r_occlusion.transfer, unmap);
+
+      r_depth_pipeline.fence = release(r_depth_pipeline.fence);
+
+      if (r_occlude->integer) {
+        R_DrawOcclusionQueries_(view, commands);
+      }
+
+      CopyPass *pass = $(commands, beginCopyPass);
+      $(pass, downloadQueryResults, r_occlusion.pool, 0, r_occlusion.num_queries, &(SDL_GPUTransferBufferLocation) {
+        .transfer_buffer = r_occlusion.transfer->buffer,
+      });
+      release(pass);
+    }
+  }
+
+  r_occlusion_query_t *q = r_occlusion.queries;
+  for (int32_t i = 0; i < r_occlusion.num_queries; i++, q++) {
+
+    if (!r_occlude->integer) {
+      q->result = true;
     } else {
-
-      if (R_CullBox(view, query->bounds)) {
-
-        query->available = 1;
-        query->result = 0;
-
-      } else {
-
-        if (query->available == 0) {
-          glGetQueryObjectiv(query->name, GL_QUERY_RESULT_AVAILABLE, &query->available);
-          if (query->available || r_occlude->integer == 2) {
-            glGetQueryObjectiv(query->name, GL_QUERY_RESULT, &query->result);
-            query->available = 1;
-          }
-        }
-
-        if (query->available) {
-          glBeginQuery(GL_ANY_SAMPLES_PASSED, query->name);
-          glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL, query->base_vertex);
-          glEndQuery(GL_ANY_SAMPLES_PASSED);
-          query->available = 0;
-        }
+      if (Box3_Intersects(q->bounds, Box3_FromCenterRadius(view->origin, BSP_VOXEL_SIZE))) {
+        q->result = true;
+      } else if (R_CullBox(view, q->bounds)) {
+        q->result = false;
       }
     }
   }
 
-  return query->result == 0;
-}
-
-/**
- * @brief Updates the occlusion query vertex buffer when queries are modified.
- */
-void R_UpdateOcclusionQueries(const r_view_t *view) {
-
-  if (!r_occlusion_queries.dirty) {
-    return;
-  }
-
-  const size_t num_queries = r_occlusion_queries.allocated->count;
-  vec3_t *vertexes = malloc(num_queries * sizeof(vec3_t) * 8);
-
-  GLint base_vertex = 0;
-  for (const ListNode *node = r_occlusion_queries.allocated->head; node; node = node->next) {
-    r_occlusion_query_t *query = node->element;
-
-    query->base_vertex = base_vertex;
-    Box3_ToPoints(query->bounds, vertexes + base_vertex);
-    base_vertex += 8;
-  }
-
-  glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, num_queries * sizeof(vec3_t) * 8, vertexes, GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  free(vertexes);
-
-  r_occlusion_queries.dirty = false;
-}
-
-/**
- * @brief Re-draws all occlusion queries for the current frame.
- */
-void R_DrawOcclusionQueries(const r_view_t *view) {
-
-  glUseProgram(r_depth_pass_program.name);
-
-  glBindVertexArray(r_occlusion_queries.vertex_array);
-
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
-
-  glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-  glDepthMask(GL_FALSE);
-
-  for (const ListNode *node = r_occlusion_queries.allocated->head; node; node = node->next) {
-    r_occlusion_query_t *query = node->element;
-
-    if (R_DrawOcclusionQuery(view, query)) {
-      r_stats.queries_occluded++;
-    } else {
-      r_stats.queries_visible++;
+  if (r_draw_stats->value) {
+    const r_occlusion_query_t *q = r_occlusion.queries;
+    for (int32_t i = 0; i < r_occlusion.num_queries; i++, q++) {
+      r_stats.queries_allocated++;
+      if (q->result) {
+        r_stats.queries_visible++;
+      } else {
+        r_stats.queries_occluded++;
+      }
     }
   }
 
   if (r_draw_occlusion_queries->value) {
-
-    for (const ListNode *node = r_occlusion_queries.allocated->head; node; node = node->next) {
-      r_occlusion_query_t *query = node->element;
-      const float dist = Vec3_Distance(Box3_Center(query->bounds), view->origin);
+    const r_occlusion_query_t *q = r_occlusion.queries;
+    for (int32_t i = 0; i < r_occlusion.num_queries; i++, q++) {
+      const float dist = Vec3_Distance(Box3_Center(q->bounds), view->origin);
       const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
-      if (query->result == 0) {
-        R_Draw3DBox(query->bounds, Color3f(0.f, f, 0.f), false);
+      if (!q->result) {
+        R_Draw3DBox(q->bounds, Color3f(0.f, f, 0.f), false);
       } else {
-        R_Draw3DBox(query->bounds, Color3f(f, 0.f, 0.f), false);
+        R_Draw3DBox(q->bounds, Color3f(f, 0.f, 0.f), false);
       }
     }
   }
 
   if (r_draw_bsp_blocks->value) {
-
     r_bsp_block_t *b = r_models.world->bsp->inline_models->blocks;
     for (int32_t i = 0; i < r_models.world->bsp->inline_models->num_blocks; i++, b++) {
       const float dist = Vec3_Distance(Box3_Center(b->visible_bounds), view->origin);
       const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
-      if (b->query->result == 0) {
+      if (!b->query->result) {
         R_Draw3DBox(b->visible_bounds, Color3f(0.f, f, 0.f), false);
       } else {
         R_Draw3DBox(b->visible_bounds, Color3f(f, 0.f, 0.f), false);
       }
     }
   }
-
-  glDepthMask(GL_TRUE);
-  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-
-  glDisable(GL_CULL_FACE);
-  glDisable(GL_DEPTH_TEST);
-
-  glBindVertexArray(0);
-
-  glUseProgram(0);
-
-  R_GetError(NULL);
-
-  r_stats.queries_allocated = (int32_t) r_occlusion_queries.allocated->count;
 }
 
 /**
- * @brief GDestroyNotify for deleting occlusion queries.
- */
-static void R_ShutdownOcclusionQuery(void * data) {
-
-  r_occlusion_query_t *query = data;
-
-  glDeleteQueries(1, &query->name);
-
-  Mem_Free(query);
-}
-
-/**
- * @brief Initializes occlusion query state, allocating GPU buffers for bounding box rendering.
+ * @brief Initializes occlusion query state, allocating the shared query pool, occlusion
+ * box geometry, and the pipeline used to draw it.
  */
 void R_InitOcclusionQueries(void) {
 
-  memset(&r_occlusion_queries, 0, sizeof(r_occlusion_queries));
+  memset(&r_occlusion, 0, sizeof(r_occlusion));
 
-  r_occlusion_queries.free = $(alloc(List), init);
-  r_occlusion_queries.allocated = $(alloc(List), init);
+  r_occlusion.boxes = $(alloc(Vector), initWithSize, sizeof(box3_t));
 
-  glGenVertexArrays(1, &r_occlusion_queries.vertex_array);
-  glBindVertexArray(r_occlusion_queries.vertex_array);
+  r_occlusion.pool = $(r_context.device, createQueryPool, &(SDL_GPUQueryPoolCreateInfo) {
+    .type = SDL_GPU_QUERY_PRECISE_OCCLUSION,
+    .query_count = MAX_OCCLUSION_QUERIES,
+  });
 
-  glGenBuffers(1, &r_occlusion_queries.vertex_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
+  // The constant unit cube, ordered to match Box3_ToPoints (bit 0 = X, bit 1 = Y,
+  // bit 2 = Z; unset = mins, set = maxs). Scaled and offset per-instance in
+  // occlude_vs.glsl by the (mins, maxs) pulled from instance_buffer.
+  vec3_t cube[8];
+  Box3_ToPoints(Box3(Vec3(0.f, 0.f, 0.f), Vec3(1.f, 1.f, 1.f)), cube);
 
-  glGenBuffers(1, &r_occlusion_queries.elements_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion_queries.elements_buffer);
+  r_occlusion.vertexBuffer = $(r_context.device, createBufferWithConstMem,
+    SDL_GPU_BUFFERUSAGE_VERTEX, cube, sizeof(cube));
 
-  const GLuint elements[] = {
+  const uint32_t elements[] = {
     // bottom
     0, 1, 3, 0, 3, 2,
     // top
@@ -361,28 +351,100 @@ void R_InitOcclusionQueries(void) {
     5, 7, 1, 7, 3, 1,
   };
 
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+  r_occlusion.elementsBuffer = $(r_context.device, createBufferWithConstMem,
+    SDL_GPU_BUFFERUSAGE_INDEX, elements, sizeof(elements));
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) 0);
+  r_occlusion.transfer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+    .usage = SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
+    .size = MAX_OCCLUSION_QUERIES * sizeof(Uint64),
+  });
 
-  glEnableVertexAttribArray(0);
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/occlude_vs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    .num_uniform_buffers = 1,
+  });
 
-  glBindVertexArray(0);
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+  });
+
+  SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
+  info.multisample_state.sample_count = r_scene_samples;
+  info.vertex_shader = vertexShader->shader;
+  info.fragment_shader = fragmentShader->shader;
+
+  // Occlusion boxes are synthetic geometry with no guaranteed winding; cull
+  // nothing rather than risk silently invisible (and thus useless) queries.
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+
+  info.vertex_input_state = (SDL_GPUVertexInputState) {
+    .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
+      {
+        .slot = 0,
+        .pitch = sizeof(vec3_t),
+        .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+      },
+      {
+        .slot = 1,
+        .pitch = sizeof(box3_t),
+        .input_rate = SDL_GPU_VERTEXINPUTRATE_INSTANCE,
+      },
+    },
+    .num_vertex_buffers = 2,
+    .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+      {
+        .location = 0,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = 0,
+      },
+      {
+        .location = 1,
+        .buffer_slot = 1,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(box3_t, mins),
+      },
+      {
+        .location = 2,
+        .buffer_slot = 1,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(box3_t, maxs),
+      },
+    },
+    .num_vertex_attributes = 3,
+  };
+
+  // Test against the depth already written by the real scene, but never write
+  // to it or color: the box's only purpose is to report whether it *would*
+  // have been visible.
+  info.depth_stencil_state = (SDL_GPUDepthStencilState) {
+    .compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
+    .enable_depth_test = true,
+    .enable_depth_write = false,
+  };
+
+  info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
+    .num_color_targets = 0,
+    .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
+    .has_depth_stencil_target = true,
+  };
+
+  r_occlusion.pipeline = $(r_context.device, createGraphicsPipeline, &info);
+
+  release(vertexShader);
+  release(fragmentShader);
 }
 
 /**
- * @brief Shuts down occlusion query state, freeing all GPU resources and allocated queries.
+ * @brief Shuts down occlusion query state, freeing all GPU resources.
  */
 void R_ShutdownOcclusionQueries(void) {
 
-  glDeleteBuffers(1, &r_occlusion_queries.vertex_buffer);
-  glDeleteBuffers(1, &r_occlusion_queries.elements_buffer);
-
-  glDeleteVertexArrays(1, &r_occlusion_queries.vertex_array);
-
-  r_occlusion_queries.allocated->destroy = R_ShutdownOcclusionQuery;
-  r_occlusion_queries.allocated = release(r_occlusion_queries.allocated);
-
-  r_occlusion_queries.free->destroy = R_ShutdownOcclusionQuery;
-  r_occlusion_queries.free = release(r_occlusion_queries.free);
+  r_occlusion.pipeline = release(r_occlusion.pipeline);
+  r_occlusion.vertexBuffer = release(r_occlusion.vertexBuffer);
+  r_occlusion.instanceBuffer = release(r_occlusion.instanceBuffer);
+  r_occlusion.elementsBuffer = release(r_occlusion.elementsBuffer);
+  r_occlusion.pool = release(r_occlusion.pool);
+  r_occlusion.transfer = release(r_occlusion.transfer);
+  r_occlusion.boxes = release(r_occlusion.boxes);
 }

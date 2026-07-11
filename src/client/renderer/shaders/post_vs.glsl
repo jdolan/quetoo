@@ -19,10 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#version 450
+
 layout (location = 0) in vec2 in_position;
 layout (location = 1) in vec2 in_texcoord;
 
-out vertex_data {
+layout (location = 0) out vertex_data {
   vec2 texcoord;
 } vertex;
 

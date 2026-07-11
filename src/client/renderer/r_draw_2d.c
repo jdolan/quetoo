@@ -8,10 +8,6 @@
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *
  * See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -29,27 +25,27 @@ typedef struct {
 
   r_image_t *image;
 
-  GLint char_width;
-  GLint char_height;
+  int32_t char_width;
+  int32_t char_height;
 } r_font_t;
 
 #define MAX_DRAW_FONTS 3
 
 typedef struct {
-  GLint x, y, w, h;
+  int32_t x, y, w, h;
 } r_draw_2d_clipping_frame_t;
 
 /**
- * @brief glDrawArrays commands.
+ * @brief A batch of 2D primitives sharing a texture, primitive type and clip.
  */
 typedef struct {
-  GLenum mode;
-  GLuint texture;
+  SDL_GPUPrimitiveType mode;
+  const Texture *texture;
 
   r_draw_2d_clipping_frame_t clipping_frame;
 
-  GLint first_vertex;
-  GLsizei num_vertexes;
+  int32_t first_vertex;
+  int32_t num_vertexes;
 } r_draw_2d_arrays_t;
 
 #define MAX_DRAW_2D_ARRAYS 8192
@@ -58,7 +54,7 @@ typedef struct {
  * @brief 2D vertex struct.
  */
 typedef struct {
-  vec2s_t position;
+  vec2_t position;
   vec2_t diffusemap;
   color32_t color;
 } r_draw_2d_vertex_t;
@@ -81,70 +77,40 @@ typedef struct {
  */
 static struct {
 
-  // registered fonts
   int32_t num_fonts;
   r_font_t fonts[MAX_DRAW_FONTS];
 
-  // active font
   r_font_t *font;
 
   // active clipping frame, copied to each command
   r_draw_2d_clipping_frame_t clipping_frame;
 
-  // the null texture
   r_image_t *null_texture;
 
-  // draw list for ui elements like menus, using raw window coordinates
-  r_draw_2d_arrays_list_t ui;
-
-  // draw list for in-game elements like console, hud, using r_draw_scale window coordinates
+  // the single draw list, holding all console and HUD geometry for the frame.
+  // MVC 2.0 renders its own menus through ObjectivelyGPU (its own pipeline and
+  // command flushing), so 2D drawing here is only the game's console/HUD -- the
+  // old UI accumulation list (MVC 1.x's pluggable backend) is gone.
   r_draw_2d_arrays_list_t game;
 
-  // active draw arrays list
-  r_draw_2d_arrays_list_t *active;
+  // the single triangle-list pipeline (lines are rasterized as triangles)
+  GraphicsPipeline *pipeline;
 
-  // the vertex array
-  GLuint vertex_array;
+  // the diffuse sampler
+  Sampler *sampler;
 
-  // the vertex buffer
-  GLuint vertex_buffer;
+  // the dynamic vertex buffer and its capacity, in vertexes
+  Buffer *vertex_buffer;
+  uint32_t vertex_buffer_capacity;
 
 } r_draw_2d;
 
 /**
- * @brief The draw program.
- */
-static struct {
-  GLuint name;
-
-  GLuint uniforms_block;
-
-  GLint projection2D;
-
-  GLint texture_diffusemap;
-} r_draw_2d_program;
-
-/**
- * @brief Sets the active 2D projection context (game or UI).
- */
-void R_SetDraw2DProjection(r_draw_2d_projection_t projection) {
-
-  switch (projection) {
-    case PROJECTION_GAME:
-      r_draw_2d.active = &r_draw_2d.game;
-      break;
-    case PROJECTION_UI:
-      r_draw_2d.active = &r_draw_2d.ui;
-      break;
-  }
-}
-
-/**
- * @brief Appends a draw arrays batch to the active 2D draw list, merging adjacent compatible draws.
+ * @brief Appends a draw arrays batch to the 2D draw list, merging adjacent compatible draws.
  */
 static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
 
-  r_draw_2d_arrays_list_t *list = r_draw_2d.active;
+  r_draw_2d_arrays_list_t *list = &r_draw_2d.game;
 
   if (list->num_draw_arrays == MAX_DRAW_2D_ARRAYS) {
     Com_Warn("MAX_DRAW_2D_ARRAYS\n");
@@ -155,7 +121,8 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
     return;
   }
 
-  if (list->num_draw_arrays && (draw->mode == GL_LINES || draw->mode == GL_TRIANGLES || draw->mode == GL_POINTS)) {
+  // Triangle lists concatenate; merge with the previous compatible batch.
+  if (list->num_draw_arrays && draw->mode == SDL_GPU_PRIMITIVETYPE_TRIANGLELIST) {
     r_draw_2d_arrays_t *last_draw = &list->draw_arrays[list->num_draw_arrays - 1];
     const r_draw_2d_clipping_frame_t *f = &last_draw->clipping_frame;
     if (last_draw->mode == draw->mode
@@ -176,11 +143,11 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
 }
 
 /**
- * @brief Emits `GL_TRIANGLES` data from the specified quad.
+ * @brief Emits two triangles from the specified quad.
  */
 static void R_EmitDrawVertexes2D_Quad(const r_draw_2d_vertex_t *quad) {
 
-  r_draw_2d_arrays_list_t *list = r_draw_2d.active;
+  r_draw_2d_arrays_list_t *list = &r_draw_2d.game;
 
   if (list->num_vertexes + 6 > MAX_DRAW_2D_VERTEXES) {
     Com_Warn("MAX_DRAW_2D_VERTEXES\n");
@@ -199,7 +166,7 @@ static void R_EmitDrawVertexes2D_Quad(const r_draw_2d_vertex_t *quad) {
 /**
  * @brief Emits quad vertices for the given character at the specified screen position.
  */
-static void R_Draw2DChar_(GLint x, GLint y, char c, const color_t color) {
+static void R_Draw2DChar_(int32_t x, int32_t y, char c, const color_t color) {
 
   if (isspace(c) && c != 0x0b) {
     return;
@@ -213,15 +180,15 @@ static void R_Draw2DChar_(GLint x, GLint y, char c, const color_t color) {
   const float s1 = (col + 1) * 0.0625;
   const float t1 = (row + 1) * 0.1250;
 
-  const GLint cw = r_draw_2d.font->char_width;
-  const GLint ch = r_draw_2d.font->char_height;
+  const int32_t cw = r_draw_2d.font->char_width;
+  const int32_t ch = r_draw_2d.font->char_height;
 
   r_draw_2d_vertex_t quad[4];
 
-  quad[0].position = Vec2s(x, y);
-  quad[1].position = Vec2s(x + cw, y);
-  quad[2].position = Vec2s(x + cw, y + ch);
-  quad[3].position = Vec2s(x, y + ch);
+  quad[0].position = Vec2(x, y);
+  quad[1].position = Vec2(x + cw, y);
+  quad[2].position = Vec2(x + cw, y + ch);
+  quad[3].position = Vec2(x, y + ch);
 
   quad[0].diffusemap = Vec2(s0, t0);
   quad[1].diffusemap = Vec2(s1, t0);
@@ -241,16 +208,16 @@ static void R_Draw2DChar_(GLint x, GLint y, char c, const color_t color) {
 /**
  * @brief Draws a single character at the specified screen position using the current font.
  */
-void R_Draw2DChar(GLint x, GLint y, char c, const color_t color) {
+void R_Draw2DChar(int32_t x, int32_t y, char c, const color_t color) {
 
   if (isspace(c) && c != 0x0b) {
     return;
   }
 
   r_draw_2d_arrays_t draw = {
-    .mode = GL_TRIANGLES,
-    .texture = r_draw_2d.font->image->texnum,
-    .first_vertex = r_draw_2d.active->num_vertexes,
+    .mode = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    .texture = r_draw_2d.font->image->texture,
+    .first_vertex = r_draw_2d.game.num_vertexes,
     .num_vertexes = 6
   };
 
@@ -262,7 +229,7 @@ void R_Draw2DChar(GLint x, GLint y, char c, const color_t color) {
  * @brief Return the width of the specified string in pixels. This will vary based
  * on the currently bound font. Color escapes are omitted.
  */
-GLint R_StringWidth(const char *s) {
+int32_t R_StringWidth(const char *s) {
 
   size_t len = 0;
 
@@ -282,20 +249,20 @@ GLint R_StringWidth(const char *s) {
     len++;
   }
 
-  return (GLint) (len * r_draw_2d.font->char_width);
+  return (int32_t) (len * r_draw_2d.font->char_width);
 }
 
 /**
  * @brief Draws a null-terminated string at the specified screen position.
  */
-size_t R_Draw2DString(GLint x, GLint y, const char *s, const color_t color) {
+size_t R_Draw2DString(int32_t x, int32_t y, const char *s, const color_t color) {
   return R_Draw2DSizedString(x, y, s, UINT16_MAX, UINT16_MAX, color);
 }
 
 /**
  * @brief Draws up to `size` bytes of a string at the specified screen position.
  */
-size_t R_Draw2DBytes(GLint x, GLint y, const char *s, size_t size, const color_t color) {
+size_t R_Draw2DBytes(int32_t x, int32_t y, const char *s, size_t size, const color_t color) {
   return R_Draw2DSizedString(x, y, s, size, size, color);
 }
 
@@ -303,13 +270,13 @@ size_t R_Draw2DBytes(GLint x, GLint y, const char *s, size_t size, const color_t
  * @brief Draws at most len chars or size bytes of the specified string. Color escape
  * sequences are not visible chars. Returns the number of chars drawn.
  */
-size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t size, const color_t color) {
+size_t R_Draw2DSizedString(int32_t x, int32_t y, const char *s, size_t len, size_t size, const color_t color) {
   size_t i, j;
 
   r_draw_2d_arrays_t draw = {
-    .mode = GL_TRIANGLES,
-    .texture = r_draw_2d.font->image->texnum,
-    .first_vertex = r_draw_2d.active->num_vertexes
+    .mode = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    .texture = r_draw_2d.font->image->texture,
+    .first_vertex = r_draw_2d.game.num_vertexes
   };
 
   color_t c = color;
@@ -326,7 +293,7 @@ size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t s
 
     if (StrIsEmoji(s)) {
 
-      draw.num_vertexes = (r_draw_2d.active->num_vertexes) - draw.first_vertex;
+      draw.num_vertexes = (r_draw_2d.game.num_vertexes) - draw.first_vertex;
       R_AddDraw2DArrays(&draw);
 
       char name[MAX_QPATH];
@@ -343,7 +310,7 @@ size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t s
       i += 2;
       j += q_strlen(name) + 2;
 
-      draw.first_vertex = r_draw_2d.active->num_vertexes;
+      draw.first_vertex = r_draw_2d.game.num_vertexes;
       continue;
     }
 
@@ -355,17 +322,16 @@ size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t s
     s++;
   }
 
-  draw.num_vertexes = (r_draw_2d.active->num_vertexes) - draw.first_vertex;
+  draw.num_vertexes = (r_draw_2d.game.num_vertexes) - draw.first_vertex;
   R_AddDraw2DArrays(&draw);
 
   return i;
 }
 
-
 /**
  * @brief Binds the specified font, returning the character width and height.
  */
-void R_BindFont(const char *name, GLint *cw, GLint *ch) {
+void R_BindFont(const char *name, int32_t *cw, int32_t *ch) {
 
   if (name == NULL) {
     name = "medium";
@@ -401,7 +367,7 @@ void R_BindFont(const char *name, GLint *cw, GLint *ch) {
 /**
  * @brief Sets the active 2D scissor clipping rectangle.
  */
-void R_SetClippingFrame(GLint x, GLint y, GLint w, GLint h) {
+void R_SetClippingFrame(int32_t x, int32_t y, int32_t w, int32_t h) {
 
   r_draw_2d.clipping_frame.x = x;
   r_draw_2d.clipping_frame.y = y;
@@ -412,7 +378,7 @@ void R_SetClippingFrame(GLint x, GLint y, GLint w, GLint h) {
 /**
  * @brief Draws a 2D image or atlas image at the specified screen rectangle.
  */
-void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, const color_t color) {
+void R_Draw2DImage(int32_t x, int32_t y, int32_t w, int32_t h, const r_image_t *image, const color_t color) {
 
   if (image == NULL) {
     Com_Warn("NULL image\n");
@@ -420,18 +386,18 @@ void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, c
   }
 
   r_draw_2d_arrays_t draw = {
-    .mode = GL_TRIANGLES,
-    .texture = image->texnum,
-    .first_vertex = r_draw_2d.active->num_vertexes,
+    .mode = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    .texture = image->texture,
+    .first_vertex = r_draw_2d.game.num_vertexes,
     .num_vertexes = 6
   };
 
   r_draw_2d_vertex_t quad[4];
 
-  quad[0].position = Vec2s(x, y);
-  quad[1].position = Vec2s(x + w, y);
-  quad[2].position = Vec2s(x + w, y + h);
-  quad[3].position = Vec2s(x, y + h);
+  quad[0].position = Vec2(x, y);
+  quad[1].position = Vec2(x + w, y);
+  quad[2].position = Vec2(x + w, y + h);
+  quad[3].position = Vec2(x, y + h);
 
   if (image->media.type == R_MEDIA_ATLAS_IMAGE) {
     const vec4_t st = ((r_atlas_image_t *) image)->texcoords;
@@ -458,41 +424,42 @@ void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, c
 }
 
 /**
- * @brief Draws a framebuffer color attachment as a 2D image at the specified screen rectangle.
+ * @brief Draws a framebuffer's color attachment as a 2D image at the specified screen rectangle.
+ * @remarks Used to composite the player-model preview. Unlike the GL renderer, no
+ * V-flip is needed: SDL_gpu's top-left texel origin already matches this pipeline's
+ * screen-space convention. The attachment is HDR (R_SCENE_COLOR_FORMAT) with no
+ * tonemap step, same as the GL renderer for this view -- fine in practice since the
+ * player-model view's flat ambient shortcut keeps output within [0, 1].
  */
-void R_Draw2DFramebuffer(GLint x, GLint y, GLint w, GLint h, const r_framebuffer_t *framebuffer, const color_t color) {
+void R_Draw2DFramebuffer(int32_t x, int32_t y, int32_t w, int32_t h, const Framebuffer *framebuffer, const color_t color) {
 
   if (framebuffer == NULL) {
     Com_Warn("NULL framebuffer\n");
     return;
   }
 
+  Texture *texture = $(framebuffer, resolveColorTexture, 0);
+
   r_draw_2d_arrays_t draw = {
-    .mode = GL_TRIANGLES,
-    .texture = framebuffer->color_attachment,
-    .first_vertex = r_draw_2d.active->num_vertexes,
+    .mode = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    .texture = texture,
+    .first_vertex = r_draw_2d.game.num_vertexes,
     .num_vertexes = 6
   };
 
-  w = w ?: r_context.w;
-  h = h ?: r_context.h;
-
   r_draw_2d_vertex_t quad[4];
 
-  quad[0].position = Vec2s(x, y);
-  quad[1].position = Vec2s(x + w, y);
-  quad[2].position = Vec2s(x + w, y + h);
-  quad[3].position = Vec2s(x, y + h);
+  quad[0].position = Vec2(x, y);
+  quad[1].position = Vec2(x + w, y);
+  quad[2].position = Vec2(x + w, y + h);
+  quad[3].position = Vec2(x, y + h);
 
-  quad[0].diffusemap = Vec2(0.f, 1.f);
-  quad[1].diffusemap = Vec2(1.f, 1.f);
-  quad[2].diffusemap = Vec2(1.f, 0.f);
-  quad[3].diffusemap = Vec2(0.f, 0.f);
+  quad[0].diffusemap = Vec2(0.f, 0.f);
+  quad[1].diffusemap = Vec2(1.f, 0.f);
+  quad[2].diffusemap = Vec2(1.f, 1.f);
+  quad[3].diffusemap = Vec2(0.f, 1.f);
 
-  quad[0].color = Color_Color32(color);
-  quad[1].color = Color_Color32(color);
-  quad[2].color = Color_Color32(color);
-  quad[3].color = Color_Color32(color);
+  quad[0].color = quad[1].color = quad[2].color = quad[3].color = Color_Color32(color);
 
   R_EmitDrawVertexes2D_Quad(quad);
   R_AddDraw2DArrays(&draw);
@@ -502,21 +469,26 @@ void R_Draw2DFramebuffer(GLint x, GLint y, GLint w, GLint h, const r_framebuffer
  * @brief The color can be specified as an index into the palette with positive alpha
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
  */
-void R_Draw2DFill(GLint x, GLint y, GLint w, GLint h, const color_t color) {
+void R_Draw2DFill(int32_t x, int32_t y, int32_t w, int32_t h, const color_t color) {
 
   r_draw_2d_arrays_t draw = {
-    .mode = GL_TRIANGLES,
-    .texture = r_draw_2d.null_texture->texnum,
-    .first_vertex = r_draw_2d.active->num_vertexes,
+    .mode = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    .texture = r_draw_2d.null_texture->texture,
+    .first_vertex = r_draw_2d.game.num_vertexes,
     .num_vertexes = 6
   };
 
   r_draw_2d_vertex_t quad[4];
 
-  quad[0].position = Vec2s(x, y);
-  quad[1].position = Vec2s(x + w, y);
-  quad[2].position = Vec2s(x + w, y + h);
-  quad[3].position = Vec2s(x, y + h);
+  quad[0].position = Vec2(x, y);
+  quad[1].position = Vec2(x + w, y);
+  quad[2].position = Vec2(x + w, y + h);
+  quad[3].position = Vec2(x, y + h);
+
+  quad[0].diffusemap = Vec2(0.f, 0.f);
+  quad[1].diffusemap = Vec2(1.f, 0.f);
+  quad[2].diffusemap = Vec2(1.f, 1.f);
+  quad[3].diffusemap = Vec2(0.f, 1.f);
 
   quad[0].color = Color_Color32(color);
   quad[1].color = Color_Color32(color);
@@ -531,43 +503,96 @@ void R_Draw2DFill(GLint x, GLint y, GLint w, GLint h, const color_t color) {
 
 /**
  * @brief Draws a polyline through the given screen-space point list.
+ * @details Each segment is rasterized as a 1px-wide quad (two triangles) rather
+ * than a line primitive, so all 2D geometry shares the single triangle pipeline
+ * (no per-batch pipeline switch), as ObjectivelyMVC does.
  */
-void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
+void R_Draw2DLines(const int32_t *points, size_t count, const color_t color) {
+
+  if (count < 2) {
+    return;
+  }
 
   r_draw_2d_arrays_t draw = {
-    .mode = GL_LINE_STRIP,
-    .texture = r_draw_2d.null_texture->texnum,
-    .first_vertex = r_draw_2d.active->num_vertexes,
-    .num_vertexes = (GLsizei) count
+    .mode = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    .texture = r_draw_2d.null_texture->texture,
+    .first_vertex = r_draw_2d.game.num_vertexes,
+    .num_vertexes = 0,
   };
 
-  r_draw_2d_arrays_list_t *list = r_draw_2d.active;
+  const color32_t c = Color_Color32(color);
 
-  if (list->num_vertexes + (int32_t) count > MAX_DRAW_2D_VERTEXES) {
-    Com_Warn("R_Draw2DLines: vertex buffer overflow; truncating %zu vertices\n", count);
-    count = (size_t) Maxi(MAX_DRAW_2D_VERTEXES - list->num_vertexes, 0);
-    if (count == 0) {
-      return;
+  const int32_t *in = points;
+  for (size_t i = 0; i < count - 1; i++, in += 2) {
+
+    const vec2_t a = Vec2((float) in[0], (float) in[1]);
+    const vec2_t b = Vec2((float) in[2], (float) in[3]);
+
+    const vec2_t delta = Vec2_Subtract(b, a);
+    const float len = Vec2_Length(delta);
+    if (len == 0.f) {
+      continue;
     }
-    draw.num_vertexes = (GLsizei) count;
+
+    // Perpendicular to the segment, half a pixel to each side => 1px width.
+    const vec2_t dir = Vec2_Scale(delta, 1.f / len);
+    const vec2_t perp = Vec2_Scale(Vec2(-dir.y, dir.x), 0.5f);
+
+    r_draw_2d_vertex_t quad[4];
+    quad[0].position = Vec2_Add(a, perp);
+    quad[1].position = Vec2_Add(b, perp);
+    quad[2].position = Vec2_Subtract(b, perp);
+    quad[3].position = Vec2_Subtract(a, perp);
+
+    for (int32_t k = 0; k < 4; k++) {
+      quad[k].diffusemap = Vec2_Zero();
+      quad[k].color = c;
+    }
+
+    R_EmitDrawVertexes2D_Quad(quad);
   }
 
-  r_draw_2d_vertex_t *out = list->vertexes + list->num_vertexes;
-
-  const GLint *in = points;
-  for (size_t i = 0; i < count; i++, in += 2, out++) {
-
-    out->position.x = *(in + 0);
-    out->position.y = *(in + 1);
-
-    out->color = Color_Color32(color);
-  }
-
-  list->num_vertexes += count;
-
+  draw.num_vertexes = r_draw_2d.game.num_vertexes - draw.first_vertex;
   R_AddDraw2DArrays(&draw);
 
-  r_stats.draw_lines += count >> 1;
+  r_stats.draw_lines += count - 1;
+}
+
+/**
+ * @brief Records the batches for the 2D draw list under the given projection.
+ */
+static void R_Draw2DList(RenderPass *pass, const r_draw_2d_arrays_list_t *list,
+                         const mat4_t projection) {
+
+  CommandBuffer *commands = r_context.device->commands;
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
+
+  $(commands, pushVertexUniformData, 0, projection.array, sizeof(projection));
+
+  // All batches are triangle lists, so the pipeline binds once for the frame.
+  $(pass, bindPipeline, r_draw_2d.pipeline);
+
+  const r_draw_2d_arrays_t *d = list->draw_arrays;
+  for (int32_t i = 0; i < list->num_draw_arrays; i++, d++) {
+
+    if (!d->texture) {
+      continue;
+    }
+
+    const r_draw_2d_clipping_frame_t *c = &d->clipping_frame;
+    if (c->w || c->h) {
+      $(pass, setScissor, &(SDL_Rect) { c->x, c->y, c->w, c->h });
+    } else {
+      $(pass, setScissor, &(SDL_Rect) { 0, 0, framebuffer->size.w, framebuffer->size.h });
+    }
+
+    $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
+      .texture = d->texture->texture,
+      .sampler = r_draw_2d.sampler->sampler,
+    }, 1);
+
+    $(pass, drawPrimitives, d->num_vertexes, 1, d->first_vertex, 0);
+  }
 }
 
 /**
@@ -575,81 +600,62 @@ void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
  */
 void R_Draw2D(void) {
 
-  r_stats.draw_arrays = r_draw_2d.game.num_draw_arrays + r_draw_2d.ui.num_draw_arrays;
+  r_stats.draw_arrays = r_draw_2d.game.num_draw_arrays;
 
   if (r_stats.draw_arrays == 0) {
     return;
   }
 
-  const SDL_Rect viewport = r_context.viewport;
-  glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
+  CommandBuffer *commands = r_context.device->commands;
+  if (!commands) {
+    r_draw_2d.game.num_vertexes = 0;
+    r_draw_2d.game.num_draw_arrays = 0;
+    return;
+  }
 
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  Framebuffer *framebuffer = r_context.device->framebuffer;
 
-  glUseProgram(r_draw_2d_program.name);
-  glBindVertexArray(r_draw_2d.vertex_array);
+  const uint32_t count = (uint32_t) r_draw_2d.game.num_vertexes;
 
-  const size_t game_size = r_draw_2d.game.num_vertexes * sizeof(r_draw_2d_vertex_t);
-  const size_t ui_size = r_draw_2d.ui.num_vertexes * sizeof(r_draw_2d_vertex_t);
-
-  glBindBuffer(GL_ARRAY_BUFFER, r_draw_2d.vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, game_size + ui_size, NULL, GL_DYNAMIC_DRAW);
-  glBufferSubData(GL_ARRAY_BUFFER, 0, game_size, r_draw_2d.game.vertexes);
-  glBufferSubData(GL_ARRAY_BUFFER, game_size, ui_size, r_draw_2d.ui.vertexes);
-
-  {
-    const mat4_t projection2D = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
-    glUniformMatrix4fv(r_draw_2d_program.projection2D, 1, GL_FALSE, projection2D.array);
-
-    const r_draw_2d_arrays_t *d = r_draw_2d.game.draw_arrays;
-    for (int32_t i = 0; i < r_draw_2d.game.num_draw_arrays; i++, d++) {
-      const r_draw_2d_clipping_frame_t *c = &d->clipping_frame;
-      if (c->w || c->h) {
-        glScissor(c->x, c->y, c->w, c->h);
-        glEnable(GL_SCISSOR_TEST);
-      } else {
-        glDisable(GL_SCISSOR_TEST);
-      }
-      glBindTexture(GL_TEXTURE_2D, d->texture);
-      glDrawArrays(d->mode, d->first_vertex, d->num_vertexes);
-    }
+  if (count > r_draw_2d.vertex_buffer_capacity) {
+    r_draw_2d.vertex_buffer = release(r_draw_2d.vertex_buffer);
+    r_draw_2d.vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+      .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+      .size = count * sizeof(r_draw_2d_vertex_t),
+    });
+    r_draw_2d.vertex_buffer_capacity = count;
   }
 
   {
-    const mat4_t projection2D = Mat4_FromOrtho(0.f, r_context.window_bounds.w, r_context.window_bounds.h, 0.f, -1.f, 1.f);
-    glUniformMatrix4fv(r_draw_2d_program.projection2D, 1, GL_FALSE, projection2D.array);
+    CopyPass *copyPass = $(commands, beginCopyPass);
 
-    const r_draw_2d_arrays_t *d = r_draw_2d.ui.draw_arrays;
-    for (int32_t i = 0; i < r_draw_2d.ui.num_draw_arrays; i++, d++) {
-      const r_draw_2d_clipping_frame_t *c = &d->clipping_frame;
-      if (c->w || c->h) {
-        glScissor(c->x, c->y, c->w, c->h);
-        glEnable(GL_SCISSOR_TEST);
-      } else {
-        glDisable(GL_SCISSOR_TEST);
-      }
-      glBindTexture(GL_TEXTURE_2D, d->texture);
-      glDrawArrays(d->mode, d->first_vertex + r_draw_2d.game.num_vertexes, d->num_vertexes);
-    }
+    $(copyPass, uploadData, r_draw_2d.vertex_buffer->buffer, r_draw_2d.game.vertexes,
+      count * sizeof(r_draw_2d_vertex_t), 0, true);
+
+    release(copyPass);
   }
 
-  glScissor(viewport.x, viewport.y, viewport.w, viewport.h);
-  glDisable(GL_SCISSOR_TEST);
+  const SDL_GPUColorTargetInfo color =
+      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
 
-  glBindVertexArray(0);
-  glUseProgram(0);
+  RenderPass *pass = $(commands, beginRenderPass, &color, 1, NULL);
+
+  $(pass, setViewport, &(SDL_GPUViewport) {
+    .x = 0.f, .y = 0.f,
+    .w = (float) framebuffer->size.w, .h = (float) framebuffer->size.h,
+    .min_depth = 0.f, .max_depth = 1.f,
+  });
+
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_draw_2d.vertex_buffer->buffer }, 1);
+
+  // Console and HUD use r_context pixel coordinates.
+  const mat4_t projection = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
+  R_Draw2DList(pass, &r_draw_2d.game, projection);
+
+  release(pass);
 
   r_draw_2d.game.num_vertexes = 0;
   r_draw_2d.game.num_draw_arrays = 0;
-
-  r_draw_2d.ui.num_vertexes = 0;
-  r_draw_2d.ui.num_draw_arrays = 0;
-
-  glBlendFunc(GL_ONE, GL_ZERO);
-  glDisable(GL_BLEND);
-
-  R_GetError(NULL);
 }
 
 /**
@@ -676,8 +682,8 @@ static void R_InitFont(char *name) {
 
   font->image = R_LoadImage(va("ui/fonts/%s", name), IMG_FONT);
   assert(font->image);
-  
-  const float scale = SDL_GetWindowDisplayScale(SDL_GL_GetCurrentWindow());
+
+  const float scale = SDL_GetWindowDisplayScale(r_context.window);
 
   font->char_width = font->image->width / scale / 16.f;
   font->char_height = font->image->height / scale / 8.f;
@@ -686,34 +692,71 @@ static void R_InitFont(char *name) {
 }
 
 /**
- * @brief Compiles and links the 2D draw GLSL program, binding texture and projection uniforms.
+ * @brief Builds the 2D triangle-list pipeline (draw_2d_vs/draw_2d_fs).
  */
-static void R_InitDraw2DProgram(void) {
+static GraphicsPipeline *R_InitDraw2DPipeline(void) {
 
-  memset(&r_draw_2d_program, 0, sizeof(r_draw_2d_program));
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
-  r_draw_2d_program.name = R_LoadProgram(
-      R_ShaderDescriptor(GL_VERTEX_SHADER, "draw_2d_vs.glsl", NULL),
-      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "draw_2d_fs.glsl", NULL),
-      NULL);
+  SDL_GPUGraphicsPipelineCreateInfo info = {
+    .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    .vertex_input_state = {
+      .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
+        .slot = 0,
+        .pitch = sizeof(r_draw_2d_vertex_t),
+        .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+      },
+      .num_vertex_buffers = 1,
+      .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+        {
+          .location = 0,
+          .buffer_slot = 0,
+          .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+          .offset = offsetof(r_draw_2d_vertex_t, position),
+        },
+        {
+          .location = 1,
+          .buffer_slot = 0,
+          .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+          .offset = offsetof(r_draw_2d_vertex_t, diffusemap),
+        },
+        {
+          .location = 2,
+          .buffer_slot = 0,
+          .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
+          .offset = offsetof(r_draw_2d_vertex_t, color),
+        },
+      },
+      .num_vertex_attributes = 3,
+    },
+    .rasterizer_state = {
+      .fill_mode = SDL_GPU_FILLMODE_FILL,
+      .cull_mode = SDL_GPU_CULLMODE_NONE,
+      .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE,
+    },
+    .target_info = {
+      .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
+        .format = framebuffer->colorFormats[0],
+        .blend_state = GPU_BlendStateAlpha,
+      },
+      .num_color_targets = 1,
+    },
+  };
 
-  glUseProgram(r_draw_2d_program.name);
-
-  r_draw_2d_program.uniforms_block = glGetUniformBlockIndex(r_draw_2d_program.name, "uniforms_block");
-  glUniformBlockBinding(r_draw_2d_program.name, r_draw_2d_program.uniforms_block, 0);
-
-  r_draw_2d_program.texture_diffusemap = glGetUniformLocation(r_draw_2d_program.name, "texture_diffusemap");
-  r_draw_2d_program.projection2D = glGetUniformLocation(r_draw_2d_program.name, "projection2D");
-
-  glUniform1i(r_draw_2d_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
-
-  glUseProgram(0);
-
-  R_GetError(NULL);
+  return $(r_context.device, loadGraphicsPipeline,
+    "shaders/draw_2d_vs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+      .num_uniform_buffers = 1, // projection2D (binding 0)
+    },
+    "shaders/draw_2d_fs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+      .num_samplers = 1, // texture_diffusemap
+    },
+    &info);
 }
 
 /**
- * @brief Initializes the 2D draw subsystem, loading fonts and creating GPU buffers.
+ * @brief Initializes the 2D draw subsystem, loading fonts and creating GPU resources.
  */
 void R_InitDraw2D(void) {
 
@@ -731,55 +774,22 @@ void R_InitDraw2D(void) {
   r_draw_2d.null_texture->type = IMG_PROGRAM;
   r_draw_2d.null_texture->width = 1;
   r_draw_2d.null_texture->height = 1;
-  r_draw_2d.null_texture->target = GL_TEXTURE_2D;
-  r_draw_2d.null_texture->internal_format = GL_RGBA8;
-  r_draw_2d.null_texture->format = GL_RGBA;
-  r_draw_2d.null_texture->pixel_type = GL_UNSIGNED_BYTE;
-  r_draw_2d.null_texture->magnify = GL_LINEAR;
-  r_draw_2d.null_texture->minify = GL_LINEAR;
-  r_draw_2d.null_texture->levels = 1;
-  R_UploadImage(r_draw_2d.null_texture, &(const uint32_t) { 0xffffffff });
+  // Same 1x1 opaque white texture r_context creates for pipelines that need to
+  // bind *something* to a sampler slot they never read; no need for a second copy.
+  r_draw_2d.null_texture->texture = retain(r_context.null_texture);
+  R_RegisterMedia((r_media_t *) r_draw_2d.null_texture);
 
-  glGenVertexArrays(1, &r_draw_2d.vertex_array);
-  glBindVertexArray(r_draw_2d.vertex_array);
+  r_draw_2d.pipeline = R_InitDraw2DPipeline();
 
-  glGenBuffers(1, &r_draw_2d.vertex_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, r_draw_2d.vertex_buffer);
-
-  glVertexAttribPointer(0, 2, GL_SHORT, GL_FALSE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, position));
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, diffusemap));
-  glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, color));
-
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
-
-  glBindVertexArray(0);
-
-  R_GetError(NULL);
-
-  R_InitDraw2DProgram();
-
-  R_SetDraw2DProjection(PROJECTION_GAME);
+  r_draw_2d.sampler = $(r_context.device, createSamplerLinearClamp);
 }
 
 /**
- * @brief Deletes the 2D draw GLSL program object.
- */
-static void R_ShutdownDraw2DProgram(void) {
-
-  glDeleteProgram(r_draw_2d_program.name);
-
-  r_draw_2d_program.name = 0;
-}
-
-/**
- * @brief Shuts down the 2D draw subsystem, freeing GPU buffers.
+ * @brief Shuts down the 2D draw subsystem, freeing GPU resources.
  */
 void R_ShutdownDraw2D(void) {
 
-  glDeleteVertexArrays(1, &r_draw_2d.vertex_array);
-  glDeleteBuffers(1, &r_draw_2d.vertex_buffer);
-
-  R_ShutdownDraw2DProgram();
+  r_draw_2d.pipeline = release(r_draw_2d.pipeline);
+  r_draw_2d.sampler = release(r_draw_2d.sampler);
+  r_draw_2d.vertex_buffer = release(r_draw_2d.vertex_buffer);
 }

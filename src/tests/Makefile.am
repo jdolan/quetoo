@@ -171,8 +171,7 @@ check_r_media_SOURCES = \
 	check_r_media.c
 check_r_media_CFLAGS = \
 	-I$(top_srcdir)/src/client/renderer \
-	$(TESTS_CFLAGS) \
-	@OPENGL_CFLAGS@
+	$(TESTS_CFLAGS)
 check_r_media_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/client/renderer/librenderer.la

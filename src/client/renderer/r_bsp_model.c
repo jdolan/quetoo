@@ -130,7 +130,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 static void R_LoadBspElements(r_bsp_model_t *bsp) {
 
   bsp->num_elements = bsp->cm->file->num_elements;
-  GLuint *out = bsp->elements = Mem_LinkMalloc(bsp->num_elements * sizeof(*out), bsp);
+  uint32_t *out = bsp->elements = Mem_LinkMalloc(bsp->num_elements * sizeof(*out), bsp);
 
   const int32_t *in = bsp->cm->file->elements;
   for (int32_t i = 0; i < bsp->num_elements; i++, in++, out++) {
@@ -164,7 +164,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
     out->vertexes = bsp->vertexes + in->first_vertex;
     out->num_vertexes = in->num_vertexes;
 
-    out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
+    out->elements = (void *) (in->first_element * sizeof(uint32_t));
     out->num_elements = in->num_elements;
   }
 }
@@ -256,7 +256,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
     out->bounds = in->bounds;
 
-    out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
+    out->elements = (void *) (in->first_element * sizeof(uint32_t));
     out->num_elements = in->num_elements;
 
     if (out->material->cm->stage_flags & (STAGE_STRETCH | STAGE_ROTATE)) {
@@ -264,7 +264,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
       vec2_t st_mins = Vec2_Mins();
       vec2_t st_maxs = Vec2_Maxs();
 
-      const GLuint *e = bsp->elements + in->first_element;
+      const uint32_t *e = bsp->elements + in->first_element;
       for (int32_t j = 0; j < out->num_elements; j++, e++) {
         const r_bsp_vertex_t *v = &bsp->vertexes[*e];
 
@@ -302,28 +302,7 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 
     decals->triangles = $(alloc(Vector), initWithSize, sizeof(r_decal_triangle_t));
 
-    glGenVertexArrays(1, &decals->vertex_array);
-    glBindVertexArray(decals->vertex_array);
-
-    glGenBuffers(1, &decals->vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, decals->vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, MAX_BSP_BLOCK_DECALS * sizeof(r_decal_triangle_t), NULL, GL_DYNAMIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, position));
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, normal));
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, texcoord));
-    glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, color));
-    glVertexAttribIPointer(4, 1, GL_UNSIGNED_INT, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, time));
-    glVertexAttribIPointer(5, 1, GL_UNSIGNED_INT, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, lifetime));
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-    glEnableVertexAttribArray(3);
-    glEnableVertexAttribArray(4);
-    glEnableVertexAttribArray(5);
-
-    glBindVertexArray(0);
+    // The decal vertex buffer is created lazily (grown on demand) in R_DrawDecals.
   }
 
   const bsp_face_t *in_face = bsp->cm->file->faces;
@@ -356,7 +335,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
     out->faces = bsp->faces + in->first_face;
     out->num_faces = in->num_faces;
 
-    out->depth_pass_elements = (GLvoid *) (in->first_depth_pass_element * sizeof(GLuint));
+    out->depth_pass_elements = (void *) (in->first_depth_pass_element * sizeof(uint32_t));
     out->num_depth_pass_elements = in->num_depth_pass_elements;
 
     out->draw_elements = bsp->draw_elements + in->first_draw_elements;
@@ -389,9 +368,103 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
     out->bounds = in->bounds;
     q_strlcpy(out->style, in->style, sizeof(out->style));
     out->drift = in->drift;
-    out->depth_pass_elements = (GLvoid *) (in->first_depth_pass_element * sizeof(GLuint));
+    out->depth_pass_elements = (void *) (in->first_depth_pass_element * sizeof(uint32_t));
     out->num_depth_pass_elements = in->num_depth_pass_elements;
     out->target_entity = in->target_entity > 0 ? bsp->cm->entities[in->target_entity] : NULL;
+  }
+}
+
+/**
+ * @brief Appends the given list of voxel indices to the given occlusion query, greedily
+ * merged into as few axis-aligned world-space boxes as possible.
+ * @details Per-voxel occlusion geometry is extremely tight, but naively appending one GPU
+ * box per voxel is untenable: a single BSP block or light can touch thousands of voxels, and
+ * drawing thousands of instanced cubes to test occlusion costs far more than the geometry it
+ * is meant to cull. This converts each touched voxel to its world-space box and hands them to
+ * `Box3_Merge`, which collapses contiguous runs into a small number of boxes -- so that solid
+ * rectangular regions -- the common case for both blocks and light influence volumes --
+ * collapse to a single box instead of hundreds or thousands.
+ */
+static void R_AppendOcclusionQueryVoxels(r_occlusion_query_t *query, const bsp_voxels_t *voxels, const int32_t *indices, int32_t num_indices) {
+
+  if (!num_indices) {
+    return;
+  }
+
+  box3_t *boxes = Mem_Malloc(num_indices * sizeof(box3_t));
+
+  const int32_t xy = voxels->size.x * voxels->size.y;
+
+  for (int32_t i = 0; i < num_indices; i++) {
+    const int32_t index = indices[i];
+
+    const int32_t z = index / xy;
+    const int32_t rem = index % xy;
+    const int32_t y = rem / voxels->size.x;
+    const int32_t x = rem % voxels->size.x;
+
+    const vec3_t mins = Vec3_Add(voxels->bounds.mins, Vec3_Scale(Vec3(x, y, z), BSP_VOXEL_SIZE));
+    const vec3_t maxs = Vec3_Add(mins, Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE));
+
+    boxes[i] = Box3(mins, maxs);
+  }
+
+  box3_t *merged;
+  const size_t num_merged = Box3_Merge(boxes, num_indices, &merged);
+
+  Mem_Free(boxes);
+
+  for (size_t i = 0; i < num_merged; i++) {
+    R_AppendOcclusionQueryBox(query, merged[i]);
+  }
+
+  free(merged);
+}
+
+/**
+ * @brief Allocates an occlusion query for each BSP block and BSP light, and populates its
+ * GPU-drawn geometry from the tight per-voxel bounds baked into `BSP_LUMP_BLOCK_VOXELS` /
+ * `BSP_LUMP_LIGHT_VOXELS` by quemap, rather than the block/light's own loose bounds.
+ * @details The voxel lists are greedily merged into a small number of boxes (see
+ * `R_AppendOcclusionQueryVoxels`) rather than appended one box per voxel, since a block or
+ * light can touch thousands of voxels and per-voxel instancing would cost far more to draw
+ * than the geometry it's meant to cull. A block or light with no baked voxel coverage (e.g.
+ * an inline model's whole-model block, which the world-only voxel grid never reaches) falls
+ * back to appending its own loose bounds as a single GPU box, preserving the old,
+ * un-tightened behavior for it.
+ */
+static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
+
+  const bsp_file_t *file = bsp->cm->file;
+  const bsp_voxels_t *voxels = file->voxels;
+
+  r_bsp_block_t *block = bsp->blocks;
+  const bsp_block_t *in_block = file->blocks;
+  for (int32_t i = 0; i < bsp->num_blocks; i++, block++, in_block++) {
+
+    const box3_t bounds = Box3_Union(block->node->bounds, block->visible_bounds);
+    block->query = R_AllocOcclusionQuery(bounds);
+
+    R_AppendOcclusionQueryVoxels(block->query, voxels,
+                                 file->block_voxels + in_block->first_voxel, in_block->num_voxels);
+
+    if (!block->query->num_boxes) {
+      R_AppendOcclusionQueryBox(block->query, bounds);
+    }
+  }
+
+  r_bsp_light_t *light = bsp->lights;
+  const bsp_light_t *in_light = file->lights;
+  for (int32_t i = 0; i < bsp->num_lights; i++, light++, in_light++) {
+
+    light->query = R_AllocOcclusionQuery(light->bounds);
+
+    R_AppendOcclusionQueryVoxels(light->query, voxels,
+                                 file->light_voxels + in_light->first_voxel, in_light->num_voxels);
+
+    if (!light->query->num_boxes) {
+      R_AppendOcclusionQueryBox(light->query, light->bounds);
+    }
   }
 }
 
@@ -410,8 +483,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->num_light_indices = in->num_light_indices;
   out->bounds = in->bounds;
 
-  const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
-
   const byte *caustics_data = data;
   data += out->num_voxels * sizeof(byte) * 3; // RGB
 
@@ -421,16 +492,29 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->caustics->width = out->size.x;
   out->caustics->height = out->size.y;
   out->caustics->depth = out->size.z;
-  out->caustics->target = GL_TEXTURE_3D;
-  out->caustics->levels = levels;
-  out->caustics->minify = GL_LINEAR_MIPMAP_LINEAR;
-  out->caustics->magnify = GL_LINEAR;
-  out->caustics->internal_format = GL_RGB8;
-  out->caustics->format = GL_RGB;
-  out->caustics->pixel_type = GL_UNSIGNED_BYTE;
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_CAUSTICS);
-  R_UploadImage(out->caustics, caustics_data);
+  // The encoded per-voxel caustics direction, as a 3D RGBA8 texture. The source is
+  // packed RGB; expand to RGBA (there is no 24-bit GPU format), the alpha is unused.
+  byte *caustics_rgba = Mem_Malloc(out->num_voxels * 4);
+  for (int32_t i = 0; i < out->num_voxels; i++) {
+    caustics_rgba[i * 4 + 0] = caustics_data[i * 3 + 0];
+    caustics_rgba[i * 4 + 1] = caustics_data[i * 3 + 1];
+    caustics_rgba[i * 4 + 2] = caustics_data[i * 3 + 2];
+    caustics_rgba[i * 4 + 3] = 255;
+  }
+
+  out->caustics->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    .type = SDL_GPU_TEXTURETYPE_3D,
+    .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+    .width = (Uint32) out->size.x,
+    .height = (Uint32) out->size.y,
+    .layer_count_or_depth = (Uint32) out->size.z,
+    .num_levels = 1,
+    .sample_count = SDL_GPU_SAMPLECOUNT_1,
+  }, caustics_rgba);
+
+  Mem_Free(caustics_rgba);
 
   const int32_t *light_data = (const int32_t *) data;
   data += out->num_voxels * sizeof(int32_t) * 2;
@@ -441,33 +525,33 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->light_data->width = out->size.x;
   out->light_data->height = out->size.y;
   out->light_data->depth = out->size.z;
-  out->light_data->target = GL_TEXTURE_3D;
-  out->light_data->minify = GL_NEAREST;
-  out->light_data->magnify = GL_NEAREST;
-  out->light_data->internal_format = GL_RG32I;
-  out->light_data->format = GL_RG_INTEGER;
-  out->light_data->pixel_type = GL_INT;
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_DATA);
-  R_UploadImage(out->light_data, (const byte *) light_data);
+  // The per-voxel (first_index, count) pairs, as a read-only R32I storage
+  // buffer indexed by linear voxel index. This was a 3D RG32I texture
+  // (isampler3D), but D3D12 cannot sample integer formats, so
+  // SDL_CreateGPUTexture fails on that backend; the media above is retained
+  // as a placeholder for dependency registration, like light_indices below.
+  out->light_data_buffer = $(r_context.device, createBufferWithConstMem,
+      SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
+      light_data,
+      out->num_voxels * sizeof(int32_t) * 2);
 
   const int32_t *light_indices_data = (const int32_t *) data;
   data += out->num_light_indices * sizeof(int32_t);
 
-  glGenBuffers(1, &out->light_indices_buffer);
-  glBindBuffer(GL_TEXTURE_BUFFER, out->light_indices_buffer);
-  glBufferData(GL_TEXTURE_BUFFER, out->num_light_indices * sizeof(int32_t), light_indices_data, GL_STATIC_DRAW);
-  glBindBuffer(GL_TEXTURE_BUFFER, 0);
+  // The flat light index vector, as a read-only R32I storage buffer.
+  if (out->num_light_indices > 0) {
+    out->light_indices_buffer = $(r_context.device, createBufferWithConstMem,
+        SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
+        light_indices_data,
+        out->num_light_indices * sizeof(int32_t));
+  }
 
+  // Retained as a media placeholder for dependency registration; its GPU data
+  // now lives in out->light_indices_buffer rather than a texture.
   out->light_indices = (r_image_t *) R_AllocMedia("voxel_light_indices", sizeof(r_image_t), R_MEDIA_IMAGE);
   out->light_indices->media.Free = R_FreeImage;
   out->light_indices->type = IMG_VOXELS;
-  out->light_indices->target = GL_TEXTURE_BUFFER;
-  out->light_indices->internal_format = GL_R32I;
-  out->light_indices->buffer = out->light_indices_buffer;
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_INDICES);
-  R_SetupImage(out->light_indices);
 
   const byte *occlusion_data = data;
 
@@ -477,16 +561,18 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->occlusion->width = out->size.x;
   out->occlusion->height = out->size.y;
   out->occlusion->depth = out->size.z;
-  out->occlusion->target = GL_TEXTURE_3D;
-  out->occlusion->levels = levels;
-  out->occlusion->minify = GL_LINEAR_MIPMAP_LINEAR;
-  out->occlusion->magnify = GL_LINEAR;
-  out->occlusion->internal_format = GL_RG8;
-  out->occlusion->format = GL_RG;
-  out->occlusion->pixel_type = GL_UNSIGNED_BYTE;
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_OCCLUSION);
-  R_UploadImage(out->occlusion, occlusion_data);
+  // The per-voxel spatial occlusion (R) and sky exposure (G), as a 3D RG8 texture.
+  out->occlusion->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    .type = SDL_GPU_TEXTURETYPE_3D,
+    .format = SDL_GPU_TEXTUREFORMAT_R8G8_UNORM,
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+    .width = (Uint32) out->size.x,
+    .height = (Uint32) out->size.y,
+    .layer_count_or_depth = (Uint32) out->size.z,
+    .num_levels = 1,
+    .sample_count = SDL_GPU_SAMPLECOUNT_1,
+  }, occlusion_data);
 
   if (r_draw_bsp_voxels->value) {
     
@@ -532,9 +618,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
     }
   }
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-
-  R_GetError(NULL);
 }
 
 /**
@@ -542,56 +625,13 @@ static void R_LoadBspVoxels(r_model_t *mod) {
  */
 static void R_LoadBspVertexArray(r_model_t *mod) {
 
-  glGenBuffers(1, &mod->bsp->vertex_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, mod->bsp->vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, mod->bsp->num_vertexes * sizeof(r_bsp_vertex_t), mod->bsp->vertexes, GL_STATIC_DRAW);
+  r_bsp_model_t *bsp = mod->bsp;
 
-  glGenBuffers(1, &mod->bsp->elements_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->elements_buffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->num_elements * sizeof(GLuint), mod->bsp->elements, GL_STATIC_DRAW);
+  bsp->vertex_buffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX,
+                         bsp->vertexes, bsp->num_vertexes * sizeof(r_bsp_vertex_t));
 
-  glGenVertexArrays(1, &mod->bsp->vertex_array);
-  glBindVertexArray(mod->bsp->vertex_array);
-
-  glBindBuffer(GL_ARRAY_BUFFER, mod->bsp->vertex_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->elements_buffer);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
-  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
-  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, bitangent));
-  glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
-  glVertexAttribPointer(5, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
-
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
-  glEnableVertexAttribArray(3);
-  glEnableVertexAttribArray(4);
-  glEnableVertexAttribArray(5);
-
-  glBindVertexArray(0);
-
-  R_GetError(mod->media.name);
-}
-
-/**
- * @brief Creates a position-only VAO for the BSP depth pre-pass.
- */
-static void R_LoadBspDepthPassVertexArray(r_model_t *mod) {
-
-  glGenVertexArrays(1, &mod->bsp->depth_pass.vertex_array);
-  glBindVertexArray(mod->bsp->depth_pass.vertex_array);
-
-  glBindBuffer(GL_ARRAY_BUFFER, mod->bsp->vertex_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->elements_buffer);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
-  glEnableVertexAttribArray(0);
-
-  glBindVertexArray(0);
-
-  R_GetError(mod->media.name);
+  bsp->elements_buffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_INDEX,
+                           bsp->elements, bsp->num_elements * sizeof(uint32_t));
 }
 
 /**
@@ -621,33 +661,6 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 }
 
 /**
- * @brief Allocates an occlusion query for each block node and light source in the world model.
- * @remarks Other inline models will instead allocate queries as entities.
- */
-static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
-
-  r_bsp_block_t *block = bsp->inline_models->blocks;
-  for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
-
-    /*
-     * Collectively, block node bounds cover all valid positions in the BSP with no gaps between
-     * them. However, during BSP compilation, when faces are assigned to the block node that best
-     * contains them, they may actually reside partially outside of the block, and therefore expand
-     * the block's visible bounds. For this reason, we use the union of block->node->bounds and
-     * block->visible_bounds for the occlusion query AABB.
-     */
-
-    const box3_t bounds = Box3_Union(block->node->bounds, block->visible_bounds);
-    block->query = R_AllocOcclusionQuery(bounds);
-  }
-
-  r_bsp_light_t *light = bsp->lights;
-  for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
-    light->query = R_AllocOcclusionQuery(light->bounds);
-  }
-}
-
-/**
  * @brief Extra lumps we need to load for the renderer.
  */
 #define R_BSP_LUMPS ( \
@@ -658,7 +671,9 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
   (1 << BSP_LUMP_DRAW_ELEMENTS) | \
   (1 << BSP_LUMP_BLOCKS) | \
   (1 << BSP_LUMP_LIGHTS) | \
-  (1 << BSP_LUMP_VOXELS) \
+  (1 << BSP_LUMP_VOXELS) | \
+  (1 << BSP_LUMP_LIGHT_VOXELS) | \
+  (1 << BSP_LUMP_BLOCK_VOXELS) \
 )
 
 /**
@@ -686,11 +701,11 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_LoadBspBlocks(mod->bsp);
   R_LoadBspInlineModels(mod->bsp);
   R_LoadBspVertexArray(mod);
-  R_LoadBspDepthPassVertexArray(mod);
   R_SetupBspInlineModels(mod);
   R_LoadBspLights(mod->bsp);
-  R_LoadBspVoxels(mod);
+  R_FreeOcclusionQueries();
   R_LoadBspOcclusionQueries(mod->bsp);
+  R_LoadBspVoxels(mod);
 
   Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
 
@@ -736,31 +751,19 @@ static void R_FreeBspModel(r_media_t *self) {
 
   r_bsp_model_t *bsp = mod->bsp;
 
-  glDeleteBuffers(1, &bsp->vertex_buffer);
-  glDeleteBuffers(1, &bsp->elements_buffer);
-
-  glDeleteVertexArrays(1, &bsp->vertex_array);
-  glDeleteVertexArrays(1, &bsp->depth_pass.vertex_array);
+  bsp->vertex_buffer = release(bsp->vertex_buffer);
+  bsp->elements_buffer = release(bsp->elements_buffer);
 
   r_bsp_block_t *block = bsp->blocks;
   for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
 
     release(block->decals.triangles);
-
-    glDeleteBuffers(1, &block->decals.vertex_buffer);
-    glDeleteVertexArrays(1, &block->decals.vertex_array);
-
-    R_FreeOcclusionQuery(block->query);
+    block->decals.vertex_buffer = release(block->decals.vertex_buffer);
   }
 
-  r_bsp_light_t *light = bsp->lights;
-  for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
-    R_FreeOcclusionQuery(light->query);
-  }
+  bsp->voxels.light_data_buffer = release(bsp->voxels.light_data_buffer);
+  bsp->voxels.light_indices_buffer = release(bsp->voxels.light_indices_buffer);
 
-  glDeleteBuffers(1, &bsp->voxels.light_indices_buffer);
-
-  R_GetError(NULL);
 }
 
 /**

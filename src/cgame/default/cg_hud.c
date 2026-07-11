@@ -82,7 +82,7 @@ static cvar_t *cg_select_weapon_interval;
 /**
  * @brief Draws the icon at the specified ConfigString index, relative to `CS_IMAGES`.
  */
-static void Cg_DrawIcon(const GLint x, const GLint y, const r_image_t *image, const color_t color) {
+static void Cg_DrawIcon(const int32_t x, const int32_t y, const r_image_t *image, const color_t color) {
 
   if (!image) {
     return;
@@ -94,8 +94,8 @@ static void Cg_DrawIcon(const GLint x, const GLint y, const r_image_t *image, co
 /**
  * @brief Draws the vital numeric and icon, flashing on low quantities.
  */
-static void Cg_DrawVital(GLint x, GLint ch, const int16_t value, const r_image_t *icon, int16_t med, int16_t low) {
-  GLint y = cgi.context->h - HUD_PIC_HEIGHT + (HUD_PIC_HEIGHT - ch) / 2;
+static void Cg_DrawVital(int32_t x, int32_t ch, const int16_t value, const r_image_t *icon, int16_t med, int16_t low) {
+  int32_t y = cgi.context->h - HUD_PIC_HEIGHT + (HUD_PIC_HEIGHT - ch) / 2;
 
   color_t color = HUD_COLOR_STAT;
   color_t pulse = color_white;
@@ -123,7 +123,7 @@ static void Cg_DrawVital(GLint x, GLint ch, const int16_t value, const r_image_t
  * @brief Draws health, ammo and armor numerics and icons.
  */
 static void Cg_DrawVitals(const player_state_t *ps) {
-  GLint x, cw, ch, x_offset;
+  int32_t x, cw, ch, x_offset;
 
   cgi.BindFont("large", &cw, &ch);
 
@@ -168,8 +168,8 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 /**
  * @brief Draws the powerup and the time remaining
  */
-static GLint Cg_DrawPowerup(GLint y, const int16_t value, const r_image_t *icon, const GLint ch) {
-  GLint x;
+static int32_t Cg_DrawPowerup(int32_t y, const int16_t value, const r_image_t *icon, const int32_t ch) {
+  int32_t x;
 
   color_t color = HUD_COLOR_STAT;
 
@@ -193,7 +193,7 @@ static GLint Cg_DrawPowerup(GLint y, const int16_t value, const r_image_t *icon,
  * @brief Draws health, ammo and armor numerics and icons.
  */
 static void Cg_DrawPowerups(const player_state_t *ps) {
-  GLint y, ch;
+  int32_t y, ch;
 
   cgi.BindFont("large", &ch, NULL);
 
@@ -223,7 +223,7 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
  * @brief Draws the flag you are currently holding
  */
 static void Cg_DrawHeldFlag(const player_state_t *ps) {
-  GLint x, y;
+  int32_t x, y;
 
   g_item_tag_t flag_tag = ITEM_NONE;
 
@@ -256,7 +256,7 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
  * @brief Draws the recently picked up item icon and name in the top-right corner.
  */
 static void Cg_DrawPickup(const player_state_t *ps) {
-  GLint x, y, cw, ch;
+  int32_t x, y, cw, ch;
 
   cgi.BindFont(NULL, &cw, &ch);
 
@@ -286,7 +286,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
  */
 static void Cg_DrawFrags(const player_state_t *ps) {
   const int16_t frags = ps->stats[STAT_FRAGS];
-  GLint x, y, cw, ch;
+  int32_t x, y, cw, ch;
 
   if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
     return;
@@ -314,7 +314,7 @@ static void Cg_DrawFrags(const player_state_t *ps) {
  */
 static void Cg_DrawDeaths(const player_state_t *ps) {
   const int16_t deaths = ps->stats[STAT_DEATHS];
-  GLint x, y, cw, ch;
+  int32_t x, y, cw, ch;
 
   if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
     return;
@@ -343,7 +343,7 @@ static void Cg_DrawDeaths(const player_state_t *ps) {
  */
 static void Cg_DrawCaptures(const player_state_t *ps) {
   const int16_t captures = ps->stats[STAT_CAPTURES];
-  GLint x, y, cw, ch;
+  int32_t x, y, cw, ch;
 
   if (!cg_state.ctf) {
     return;
@@ -374,7 +374,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
  * @brief Draws the "Spectating" label when the player is a spectator not in chase mode.
  */
 static void Cg_DrawSpectator(const player_state_t *ps) {
-  GLint x, y, cw;
+  int32_t x, y, cw;
 
   if (!ps->stats[STAT_SPECTATOR] || ps->stats[STAT_CHASE]) {
     return;
@@ -394,7 +394,7 @@ static void Cg_DrawSpectator(const player_state_t *ps) {
  * @brief Draws the name of the player currently being chased in chasecam mode.
  */
 static void Cg_DrawChase(const player_state_t *ps) {
-  GLint x, y, ch;
+  int32_t x, y, ch;
   char string[MAX_INFO_STRING_VALUE * 2], *s;
 
   // if we've changed chase targets, reset the HUD
@@ -438,7 +438,7 @@ static void Cg_DrawChase(const player_state_t *ps) {
  * @brief Draws the current match time string from the server config string.
  */
 static void Cg_DrawTime(const player_state_t *ps) {
-  GLint x, y, ch;
+  int32_t x, y, ch;
   const char *string = cgi.ConfigString(CS_TIME);
 
   if (!ps->stats[STAT_TIME]) {
@@ -464,7 +464,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
  */
 static void Cg_DrawTeamBanner(const player_state_t *ps) {
   const int16_t team = ps->stats[STAT_TEAM];
-  GLint x, y;
+  int32_t x, y;
 
   if (team == -1) {
     return;
@@ -488,7 +488,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
     vec4_t color;
   } crosshair;
 
-  GLint x, y, w, h;
+  int32_t x, y, w, h;
 
   if (!editor->value) {
 
@@ -700,7 +700,7 @@ void Cg_ParseCenterPrint(void) {
  * @brief Draws the current center print message centered on screen.
  */
 static void Cg_DrawCenterPrint(const player_state_t *ps) {
-  GLint cw, ch, x, y;
+  int32_t cw, ch, x, y;
   char *line = cg_state.center_print.lines[0];
 
   if (ps->stats[STAT_SCORES]) {
@@ -1080,11 +1080,11 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
   // figure out weapon.bit
   Cg_ValidateSelectedWeapon(ps);
 
-  GLint x = ((cgi.context->w / 2) - ((cg_hud_state.weapon.num * HUD_PIC_HEIGHT) / 2));
-  GLint y = cgi.context->h - (HUD_PIC_HEIGHT * 2.0) - 16;
+  int32_t x = ((cgi.context->w / 2) - ((cg_hud_state.weapon.num * HUD_PIC_HEIGHT) / 2));
+  int32_t y = cgi.context->h - (HUD_PIC_HEIGHT * 2.0) - 16;
 
   // draw the weapons inventory bar
-  GLint ch;
+  int32_t ch;
   cgi.BindFont("medium", NULL, &ch);
 
   if (cg_select_weapon_fade->modified || cg_select_weapon_interval->modified) {
@@ -1164,12 +1164,12 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
   }
 
   if (*name) {
-    GLint ch;
+    int32_t ch;
     cgi.BindFont("medium", NULL, &ch);
 
-    const GLint w = cgi.StringWidth(name);
-    const GLint x = cgi.context->w / 2 - w / 2;
-    const GLint y = cgi.context->h - 192 - ch;
+    const int32_t w = cgi.StringWidth(name);
+    const int32_t x = cgi.context->w / 2 - w / 2;
+    const int32_t y = cgi.context->h - 192 - ch;
 
     cgi.Draw2DString(x, y, name, color_green);
   }

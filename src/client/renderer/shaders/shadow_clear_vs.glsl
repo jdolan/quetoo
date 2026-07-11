@@ -19,23 +19,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#version 450
 
-#include "r_types.h"
-
-#if defined(__R_LOCAL_H__)
-
-#define MAX_SHADER_DESCRIPTOR_FILENAMES 8
-
-/**
- * @brief Shader descriptors are used to load GLSL shaders from disk.
+/*
+ * Emits one oversized triangle covering the whole viewport/scissor rect, with
+ * no vertex buffer (indexed purely by gl_VertexIndex). Paired with
+ * shadow_clear_fs.glsl to "clear" a single light's block of the shadow atlas
+ * via a scissored draw -- SDL_gpu's render-pass LOADOP_CLEAR always clears the
+ * whole bound depth layer, but the atlas packs multiple lights' tiles into one
+ * layer, so a per-light clear can't use it without wiping every other light's
+ * cached shadow too (see R_DrawShadows).
  */
-typedef struct {
-  GLenum type;
-  const char *filenames[MAX_SHADER_DESCRIPTOR_FILENAMES];
-} r_shader_descriptor_t;
 
-r_shader_descriptor_t *R_ShaderDescriptor(GLenum type, ...) __attribute__((sentinel));
-GLuint R_LoadShader(const r_shader_descriptor_t *desc);
-GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...) __attribute__((sentinel));
-#endif
+void main(void) {
+
+  const vec2 position = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
+
+  gl_Position = vec4(position * 2.0 - 1.0, 1.0, 1.0);
+}

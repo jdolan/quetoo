@@ -35,6 +35,7 @@ libcommon_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@ \
+	@PHYSFS_CFLAGS@ \
 	@SDL3_CFLAGS@
 libcommon_la_LDFLAGS = \
 	-shared

@@ -22,73 +22,503 @@
 #include "r_local.h"
 
 /**
- * @brief The BSP program.
+ * @brief The BSP program's own binding map, mirroring @c shaders/bsp_vs.glsl and
+ * @c bsp_fs.glsl. Not shared with any other pipeline: each pipeline owns its own
+ * dense-from-0 numbering instead of coordinating through a global map.
+ */
+enum {
+  BSP_SAMPLER_MATERIAL,
+  BSP_SAMPLER_SHADOW_ATLAS_0, // one sampler2DShadow per cube face (SDL_gpu forbids array depth targets)
+  BSP_SAMPLER_SHADOW_ATLAS_1,
+  BSP_SAMPLER_SHADOW_ATLAS_2,
+  BSP_SAMPLER_SHADOW_ATLAS_3,
+  BSP_SAMPLER_SHADOW_ATLAS_4,
+  BSP_SAMPLER_SHADOW_ATLAS_5,
+  BSP_SAMPLER_VOXEL_CAUSTICS,
+  BSP_SAMPLER_VOXEL_OCCLUSION,
+  BSP_SAMPLER_SKY_AMBIENT,
+  BSP_SAMPLER_STAGE,
+  BSP_SAMPLER_STAGE_NEXT,
+  BSP_SAMPLER_WARP,
+  BSP_NUM_SAMPLERS,
+};
+
+enum {
+  BSP_STORAGE_LIGHTS,
+  BSP_STORAGE_VOXEL_LIGHT_INDICES,
+  BSP_STORAGE_VOXEL_LIGHT_DATA,
+  BSP_NUM_STORAGE_BUFFERS,
+};
+
+enum {
+  BSP_UNIFORMS_GLOBALS,
+  BSP_UNIFORMS_LOCALS, // model matrix + active_lights (vertex) / active_lights bitmask (fragment)
+  BSP_UNIFORMS_MATERIAL, // material + stage params combined -- see material.glsl,
+  BSP_NUM_UNIFORMS
+};
+
+/**
+ * @brief Per-draw vertex locals (@c locals_block in @c bsp_vs.glsl): the model
+ * matrix and the dynamic light cull bitmask for per-vertex lighting.
+ */
+typedef struct {
+  mat4_t model;
+  uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
+} r_bsp_locals_t;
+
+/**
+ * @brief Cache of material stage pipelines, one per unique (src, dest, depth_write)
+ * combination. depth_write is part of the key because the same stage may be drawn
+ * from the opaque bucket (SURF_MATERIAL, which writes depth like any other opaque
+ * surface) or the blend bucket (SURF_MASK_BLEND, which must not write depth, so that
+ * overlapping translucent surfaces blend against each other rather than occluding).
+ */
+typedef struct {
+  cm_blend_t src, dest;
+  bool depth_write;
+  GraphicsPipeline *pipeline;
+} r_bsp_material_stage_pipeline_t;
+
+#define MAX_STAGE_PIPELINES 16
+
+/**
+ * @brief The BSP program (@c bsp_vs/ @c bsp_fs): its graphics pipeline, samplers, and
+ * the lazily-built cache of material-stage blend pipelines. Draws BSP geometry
+ * with the material diffuse texture and clustered per-voxel lighting, and its
+ * material stages via the same shader (a runtime branch on stage.flags, not a
+ * pipeline swap): see @c R_DrawBspDrawElementsMaterialStage.
  */
 static struct {
-  GLuint name;
 
-  GLuint uniforms_block;
-  GLuint lights_block;
+  /**
+   * @brief The BSP graphics pipeline.
+   */
+  GraphicsPipeline *pipeline;
 
-  GLint active_lights;
+  /**
+   * @brief An alpha-test variant of `pipeline`, for @c SURF_ALPHA_TEST surfaces.
+   * @details Compiled from a separate `bsp_fs_alpha_test` variant that keeps the
+   * `discard` used for alpha testing; `pipeline` itself (and every material stage
+   * pipeline, which never takes the alpha-tested branch) is compiled from a
+   * `discard`-free `bsp_fs`, so the GPU can early-Z reject the vast majority of
+   * opaque world geometry. A fragment shader containing `discard` anywhere in its
+   * source forces late (post-shader) depth testing for every invocation of that
+   * shader/pipeline -- even ones that never reach the `discard` -- so keeping the
+   * rare alpha-tested surfaces on their own pipeline preserves early-Z for
+   * everything else, restoring the intended benefit of the depth pre-pass and
+   * occlusion queries.
+   */
+  GraphicsPipeline *pipeline_alpha_test;
 
-  GLint model;
+  /**
+   * @brief An alpha-blend variant (depth test, no depth write) for translucent @c SURF_MASK_BLEND surfaces.
+   */
+  GraphicsPipeline *blend_pipeline;
 
-  GLint texture_material;
-  GLint texture_stage;
-  GLint texture_stage_next;
-  GLint texture_warp;
+  /**
+   * @brief The material sampler (trilinear, repeat).
+   */
+  Sampler *diffusemap_sampler;
 
-  GLint texture_voxel_caustics;
-  GLint texture_voxel_occlusion;
+  /**
+   * @brief The material stage sampler (linear, repeat) for stage textures.
+   */
+  Sampler *stage_sampler;
 
-  GLint texture_sky;
+  /**
+   * @brief A linear, clamped sampler shared by the voxel caustics/occlusion
+   * volumes and the sky cubemap (all sampled with normalized coordinates).
+   */
+  Sampler *ambient_sampler;
 
-  GLint texture_shadow_atlas;
+  /**
+   * @brief A small procedural noise texture, for STAGE_WARP liquid surfaces
+   * (sampled with stage_sampler). Generated once at init, matching main.
+   */
+  Texture *warp_texture;
 
-  GLint texture_voxel_light_data;
-  GLint texture_voxel_light_indices;
+  /**
+   * @brief The render pass and command buffer for the current draw call,
+   * shared by the whole family of R_DrawBsp* functions below.
+   */
+  RenderPass *pass;
+  CommandBuffer *commands;
 
+  /**
+   * @brief The currently bound material, to avoid unnecessary texture binds.
+   */
+  const r_material_t *material;
+  int32_t surface;
 
-  struct {
-    GLint surface;
-    GLint alpha_test;
-    GLint roughness;
-    GLint hardness;
-    GLint specularity;
-    GLint parallax;
-    GLint shadow;
-  } material;
+  /**
+   * @brief The cached material stage pipelines.
+   */
+  r_bsp_material_stage_pipeline_t stage_pipelines[MAX_STAGE_PIPELINES];
+  int32_t num_stage_pipelines;
+} r_bsp_draw;
 
-  struct {
-    GLint flags;
-    GLint color;
-    GLint pulse;
-    GLint drift;
-    GLint st_origin;
-    GLint stretch;
-    GLint rotate;
-    GLint scroll;
-    GLint scale;
-    GLint terrain;
-    GLint dirtmap;
-    GLint warp;
-    GLint lighting;
-    GLint emissive;
-    GLint lerp;
-  } stage;
+/**
+ * @brief Returns the bsp pipeline for the given material-stage blend function and
+ * depth-write policy, creating and caching it on first use.
+ */
+static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend_t dest, bool depth_write) {
 
-  r_image_t *warp_image;
-} r_bsp_program;
+  const r_bsp_material_stage_pipeline_t *p = r_bsp_draw.stage_pipelines;
+  for (int32_t i = 0; i < r_bsp_draw.num_stage_pipelines; i++, p++) {
+    if (p->src == src && p->dest == dest && p->depth_write == depth_write) {
+      return p->pipeline;
+    }
+  }
 
-static float R_StageDriftHash(const void *a, const void *b) {
-  uint32_t h = (uint32_t) ((uintptr_t) a >> 4) ^ (uint32_t) ((uintptr_t) b >> 4);
-  h ^= h >> 16;
-  h *= 0x7feb352dU;
-  h ^= h >> 15;
-  h *= 0x846ca68bU;
-  h ^= h >> 16;
-  return h / (float) UINT32_MAX;
+  if (r_bsp_draw.num_stage_pipelines == MAX_STAGE_PIPELINES) {
+    Com_Error(ERROR_DROP, "MAX_STAGE_PIPELINES\n");
+  }
+
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    .num_storage_buffers = BSP_NUM_STORAGE_BUFFERS, // per-vertex lighting binds the same buffers
+    .num_uniform_buffers = BSP_NUM_UNIFORMS,
+  });
+
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+    .num_samplers = BSP_NUM_SAMPLERS,
+    .num_storage_buffers = BSP_NUM_STORAGE_BUFFERS,
+    .num_uniform_buffers = BSP_NUM_UNIFORMS,
+  });
+
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
+
+  const SDL_GPUBlendFactor s = R_BlendFactor(src);
+  const SDL_GPUBlendFactor d = R_BlendFactor(dest);
+
+  SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
+  info.multisample_state.sample_count = r_scene_samples;
+  info.vertex_shader = vertexShader->shader;
+  info.fragment_shader = fragmentShader->shader;
+
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
+
+  info.depth_stencil_state.enable_depth_write = depth_write;
+
+  info.vertex_input_state = (SDL_GPUVertexInputState) {
+    .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
+      .slot = 0,
+      .pitch = sizeof(r_bsp_vertex_t),
+      .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+    },
+    .num_vertex_buffers = 1,
+    .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+      { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_bsp_vertex_t, position) },
+      { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_bsp_vertex_t, normal) },
+      { .location = 2, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_bsp_vertex_t, tangent) },
+      { .location = 3, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_bsp_vertex_t, bitangent) },
+      { .location = 4, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(r_bsp_vertex_t, diffusemap) },
+      { .location = 5, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM, .offset = offsetof(r_bsp_vertex_t, color) },
+    },
+    .num_vertex_attributes = 6,
+  };
+
+  info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
+    .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
+      {
+        .format = R_SCENE_COLOR_FORMAT,
+        .blend_state = {
+          .enable_blend = true,
+          .src_color_blendfactor = s,
+          .dst_color_blendfactor = d,
+          .color_blend_op = SDL_GPU_BLENDOP_ADD,
+          .src_alpha_blendfactor = s,
+          .dst_alpha_blendfactor = d,
+          .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+        },
+      },
+      {
+        .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
+        .blend_state = { .enable_color_write_mask = true, .color_write_mask = 0 },
+      },
+    },
+    .num_color_targets = 2,
+    .depth_stencil_format = framebuffer->depthFormat,
+    .has_depth_stencil_target = true,
+  };
+
+  GraphicsPipeline *pipeline = $(r_context.device, createGraphicsPipeline, &info);
+
+  release(vertexShader);
+  release(fragmentShader);
+
+  r_bsp_material_stage_pipeline_t *out = &r_bsp_draw.stage_pipelines[r_bsp_draw.num_stage_pipelines++];
+
+  out->src = src;
+  out->dest = dest;
+  out->depth_write = depth_write;
+  out->pipeline = pipeline;
+
+  return out->pipeline;
+}
+
+/**
+ * @brief Draws a single material stage of a BSP draw-elements batch.
+ * @param depth_write True to write depth (opaque bucket), false to skip it (blend bucket).
+ */
+static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, const r_entity_t *entity,
+                                               const r_bsp_draw_elements_t *draw,
+                                               const r_stage_t *stage, bool depth_write) {
+
+  r_material_uniforms_t uniforms;
+  R_MaterialUniforms(draw->material, draw->surface, &uniforms);
+
+  SDL_GPUTexture *texture, *texture_next;
+  if (!R_StageUniforms(view, entity, draw, stage, &uniforms, &texture, &texture_next)) {
+    return;
+  }
+
+  GraphicsPipeline *pipeline = R_DrawBspMaterialStagePipeline(stage->cm->blend.src, stage->cm->blend.dest, depth_write);
+  $(r_bsp_draw.pass, bindPipeline, pipeline);
+
+  $(r_bsp_draw.pass, bindFragmentSamplers, BSP_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = texture, .sampler = r_bsp_draw.stage_sampler->sampler },
+    { .texture = texture_next, .sampler = r_bsp_draw.stage_sampler->sampler },
+  }, 2);
+
+  $(r_bsp_draw.commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
+
+  const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
+  $(r_bsp_draw.pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
+
+  r_stats.bsp_triangles += draw->num_elements / 3;
+}
+
+/**
+ * @brief Draws all active material stages for a BSP draw-elements batch.
+ */
+static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
+                                                const r_entity_t *entity,
+                                                const r_bsp_draw_elements_t *draw,
+                                                bool depth_write) {
+
+  const r_material_t *material = draw->material;
+  if (!(material->cm->stage_flags & STAGE_DRAW)) {
+    return;
+  }
+
+  // Stages sample BSP_SAMPLER_MATERIAL too (e.g. lighting 1 stages read the
+  // normalmap). The dedicated material pass runs after the base passes, so it
+  // can't rely on their bind -- rebind here, cached like the base passes.
+  if (draw->material != r_bsp_draw.material || draw->surface != r_bsp_draw.surface) {
+    r_bsp_draw.material = draw->material;
+    r_bsp_draw.surface = draw->surface;
+
+    $(r_bsp_draw.pass, bindFragmentSamplers, BSP_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+      .texture = draw->material->texture->texture->texture,
+      .sampler = r_bsp_draw.diffusemap_sampler->sampler,
+    }, 1);
+  }
+
+  for (const r_stage_t *stage = material->stages; stage; stage = stage->next) {
+
+    if (!(stage->cm->flags & STAGE_DRAW)) {
+      continue;
+    }
+
+    R_DrawBspDrawElementsMaterialStage(view, entity, draw, stage, depth_write);
+  }
+}
+
+/**
+ * @brief Draws one BSP inline model entity's material stages (opaque and alpha-test buckets).
+ */
+static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t *entity) {
+
+  r_bsp_locals_t locals = {
+    .model = entity->matrix,
+  };
+
+  const r_bsp_inline_model_t *in = entity->model->bsp_inline;
+
+  if (!IS_WORLDSPAWN(entity->model)) {
+    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+  }
+
+  const r_bsp_block_t *block = in->blocks;
+  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+
+    if (IS_WORLDSPAWN(entity->model)) {
+
+      if (block->query->result == 0) {
+        continue;
+      }
+
+      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+    }
+
+    const r_bsp_draw_elements_t *draw = block->draw_elements;
+    for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+
+      if (draw->surface & (SURF_SKY | SURF_MASK_BLEND)) {
+        continue;
+      }
+
+      R_DrawBspDrawElementsMaterialStages(view, entity, draw, true);
+    }
+  }
+}
+
+/**
+ * @brief Draws the opaque draw elements of one BSP block.
+ */
+static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block) {
+
+  const r_bsp_draw_elements_t *draw = block->draw_elements;
+  for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+
+    if (draw->surface & (SURF_SKY | SURF_MASK_BLEND | SURF_ALPHA_TEST)) {
+      continue;
+    }
+
+    if (draw->material != r_bsp_draw.material || draw->surface != r_bsp_draw.surface) {
+      r_bsp_draw.material = draw->material;
+      r_bsp_draw.surface = draw->surface;
+
+      $(r_bsp_draw.pass, bindPipeline, r_bsp_draw.pipeline);
+
+      $(r_bsp_draw.pass, bindFragmentSamplers, BSP_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+        .texture = draw->material->texture->texture->texture,
+        .sampler = r_bsp_draw.diffusemap_sampler->sampler,
+      }, 1);
+
+      r_material_uniforms_t material;
+      R_MaterialUniforms(draw->material, draw->surface, &material);
+      $(r_bsp_draw.commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
+    }
+
+    const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
+
+    if (!(draw->surface & SURF_MATERIAL)) {
+      $(r_bsp_draw.pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
+      r_stats.bsp_triangles += draw->num_elements / 3;
+    }
+
+    r_stats.bsp_draw_elements++;
+  }
+}
+
+/**
+ * @brief Draws the alpha-tested draw elements of one BSP block.
+ */
+static void R_DrawAlphaTestBspBlock(const r_bsp_block_t *block) {
+
+  const r_bsp_draw_elements_t *draw = block->draw_elements;
+  for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+
+    if (!(draw->surface & SURF_ALPHA_TEST) || (draw->surface & SURF_MASK_BLEND)) {
+      continue;
+    }
+
+    if (draw->material != r_bsp_draw.material || draw->surface != r_bsp_draw.surface) {
+      r_bsp_draw.material = draw->material;
+      r_bsp_draw.surface = draw->surface;
+
+      $(r_bsp_draw.pass, bindFragmentSamplers, BSP_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+        .texture = draw->material->texture->texture->texture,
+        .sampler = r_bsp_draw.diffusemap_sampler->sampler,
+      }, 1);
+
+      r_material_uniforms_t material;
+      R_MaterialUniforms(draw->material, draw->surface, &material);
+      $(r_bsp_draw.commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
+    }
+
+    const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
+
+    if (!(draw->surface & SURF_MATERIAL)) {
+      $(r_bsp_draw.pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
+      r_stats.bsp_triangles += draw->num_elements / 3;
+    }
+
+    r_stats.bsp_draw_elements++;
+  }
+}
+
+/**
+ * @brief Draws opaque geometry for the given BSP inline model entity.
+ */
+static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity) {
+
+  r_bsp_locals_t locals = {
+    .model = entity->matrix,
+  };
+
+  const r_bsp_inline_model_t *in = entity->model->bsp_inline;
+
+  if (!IS_WORLDSPAWN(entity->model)) {
+    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+  }
+
+  const r_bsp_block_t *block = in->blocks;
+  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+
+    if (IS_WORLDSPAWN(entity->model)) {
+
+      if (block->query->result == 0) {
+        r_stats.blocks_occluded++;
+        continue;
+      }
+
+      r_stats.blocks_visible++;
+
+      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+    }
+
+    R_DrawOpaqueBspBlock(block);
+  }
+
+  r_stats.bsp_inline_models++;
+}
+
+/**
+ * @brief Draws alpha test geometry for the given BSP inline model entity.
+ */
+static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *entity) {
+
+  r_bsp_locals_t locals = {
+    .model = entity->matrix,
+  };
+
+  const r_bsp_inline_model_t *in = entity->model->bsp_inline;
+
+  if (!IS_WORLDSPAWN(entity->model)) {
+    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+  }
+
+  const r_bsp_block_t *block = in->blocks;
+  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+
+    if (IS_WORLDSPAWN(entity->model)) {
+
+      if (block->query->result == 0) {
+        continue;
+      }
+
+      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+    }
+
+    R_DrawAlphaTestBspBlock(block);
+  }
 }
 
 /**
@@ -112,373 +542,234 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
     const vec3_t tangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->tangent) };
     const vec3_t bitangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->bitangent) };
 
-    R_Draw3DLines(GL_LINES, normal, 2, color_red, true);
+    R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, normal, 2, color_red, true);
 
     if (r_draw_bsp_normals->integer > 1) {
-      R_Draw3DLines(GL_LINES, tangent, 2, color_green, true);
+      R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, tangent, 2, color_green, true);
 
       if (r_draw_bsp_normals->integer > 2) {
-        R_Draw3DLines(GL_LINES, bitangent, 2, color_blue, true);
+        R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, bitangent, 2, color_blue, true);
       }
     }
   }
 }
 
 /**
- * @brief Debug visualization for voxels and lights
- */
-static void R_DrawBspVoxels(const r_view_t *view, const r_bsp_model_t *bsp) {
-
-  if (!r_draw_bsp_voxels->value) {
-    return;
-  }
-
-  if (!bsp->voxels.voxels) {
-    return;
-  }
-
-  const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-  const cm_trace_t tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
-
-  if (tr.fraction < 1.0f) {
-
-    const r_bsp_voxels_t *voxels = &bsp->voxels;
-
-    const vec3_t pos = Vec3_Subtract(tr.end, voxels->bounds.mins);
-    const vec3_t xyz = Vec3_Scale(pos, 1.0f / BSP_VOXEL_SIZE);
-
-    const int32_t x = Clampf((int32_t) floorf(xyz.x), 0, (int32_t) voxels->size.x - 1);
-    const int32_t y = Clampf((int32_t) floorf(xyz.y), 0, (int32_t) voxels->size.y - 1);
-    const int32_t z = Clampf((int32_t) floorf(xyz.z), 0, (int32_t) voxels->size.z - 1);
-
-    const vec3_t voxel_pos = Vec3(x + 0.5f, y + 0.5f, z + 0.5f);
-    const vec3_t voxel_world = Vec3_Fmaf(voxels->bounds.mins, BSP_VOXEL_SIZE, voxel_pos);
-
-    const box3_t voxel_box = Box3_FromCenterRadius(voxel_world, BSP_VOXEL_SIZE * 0.5f);
-    R_Draw3DBox(voxel_box, Color3f(0.f, 1.f, 1.f), false);
-
-    const int32_t index = x + y * voxels->size.x + z * voxels->size.x * voxels->size.y;
-
-    if (index >= 0 && index < voxels->num_voxels) {
-      const r_bsp_voxel_t *voxel = &voxels->voxels[index];
-
-      for (int32_t i = 0; i < voxel->num_lights; i++) {
-        const r_bsp_light_t *light = voxel->lights[i];
-        const color_t color = Color3fv(light->color);
-
-        const vec3_t line_points[2] = { voxel_world, light->origin };
-        R_Draw3DLines(GL_LINES, line_points, 2, color, true);
-      }
-    }
-  }
-}
-
-/**
- * @brief Draws a single material stage pass for a BSP draw elements batch.
- */
-static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
-                                               const r_entity_t *entity,
-                                               const r_bsp_draw_elements_t *draw,
-                                               const r_material_t *material,
-                                               const r_stage_t *stage) {
-
-  glUniform1i(r_bsp_program.stage.flags, stage->cm->flags);
-
-  if (stage->cm->flags & STAGE_COLOR) {
-    glUniform4fv(r_bsp_program.stage.color, 1, stage->cm->color.rgba);
-  }
-
-  if (stage->cm->flags & STAGE_PULSE) {
-    glUniform1f(r_bsp_program.stage.pulse, stage->cm->pulse.hz);
-    glUniform1f(r_bsp_program.stage.drift, stage->cm->pulse.drift * R_StageDriftHash(entity ? (const void *) entity : (const void *) draw, stage));
-  }
-
-  if (stage->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
-    glUniform2fv(r_bsp_program.stage.st_origin, 1, draw->st_origin.xy);
-  }
-
-  if (stage->cm->flags & STAGE_STRETCH) {
-    glUniform2f(r_bsp_program.stage.stretch, stage->cm->stretch.amplitude, stage->cm->stretch.hz);
-  }
-
-  if (stage->cm->flags & STAGE_ROTATE) {
-    glUniform1f(r_bsp_program.stage.rotate, stage->cm->rotate.hz);
-  }
-
-  if (stage->cm->flags & (STAGE_SCROLL_S | STAGE_SCROLL_T)) {
-    glUniform2f(r_bsp_program.stage.scroll, stage->cm->scroll.s, stage->cm->scroll.t);
-  }
-
-  if (stage->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
-    glUniform2f(r_bsp_program.stage.scale, stage->cm->scale.s, stage->cm->scale.t);
-  }
-
-  if (stage->cm->flags & STAGE_TERRAIN) {
-    glUniform2f(r_bsp_program.stage.terrain, stage->cm->terrain.floor, stage->cm->terrain.ceil);
-  }
-
-  if (stage->cm->flags & STAGE_DIRTMAP) {
-    glUniform1f(r_bsp_program.stage.dirtmap, stage->cm->dirtmap.intensity);
-  }
-
-  if (stage->cm->flags & STAGE_WARP) {
-    glUniform2f(r_bsp_program.stage.warp, stage->cm->warp.hz, stage->cm->warp.amplitude);
-  }
-
-  if (stage->cm->flags & STAGE_LIGHTING) {
-    glUniform1f(r_bsp_program.stage.lighting, stage->cm->lighting.intensity);
-  }
-
-  if (stage->cm->flags & STAGE_EMISSIVE) {
-    glUniform1f(r_bsp_program.stage.emissive, stage->cm->emissive);
-  }
-
-  glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
-
-  if (stage->media) {
-    switch (stage->media->type) {
-      case R_MEDIA_IMAGE:
-      case R_MEDIA_ATLAS_IMAGE: {
-        const r_image_t *image = (r_image_t *) stage->media;
-        glBindTexture(GL_TEXTURE_2D, image->texnum);
-      }
-        break;
-      case R_MEDIA_ANIMATION: {
-        const r_animation_t *animation = (r_animation_t *) stage->media;
-        int32_t frame;
-        float lerp_frac = 0.f;
-        if (stage->cm->animation.fps == 0.f && entity != NULL) {
-          frame = entity->frame;
-          if (stage->cm->flags & STAGE_ANIM_LERP) {
-            lerp_frac = entity->lerp;
-          }
-        } else {
-          const float drift = stage->cm->animation.drift * R_StageDriftHash(entity ? (const void *) entity : (const void *) draw, stage);
-          const float frame_f = (view->ticks / 1000.f + drift) * stage->cm->animation.fps;
-          frame = (int32_t) frame_f;
-          if (stage->cm->flags & STAGE_ANIM_LERP) {
-            lerp_frac = frame_f - floorf(frame_f);
-          }
-        }
-        glBindTexture(GL_TEXTURE_2D, animation->frames[frame % animation->num_frames]->texnum);
-        if (stage->cm->flags & STAGE_ANIM_LERP) {
-          glUniform1f(r_bsp_program.stage.lerp, lerp_frac);
-          glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE_NEXT);
-          glBindTexture(GL_TEXTURE_2D, animation->frames[(frame + 1) % animation->num_frames]->texnum);
-          glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
-        }
-      }
-        break;
-      case R_MEDIA_MATERIAL: {
-        const r_material_t *material = (r_material_t *) stage->media;
-        glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
-        glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
-        glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
-      }
-        break;
-      default:
-        break;
-    }
-  }
-
-  glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
-
-  R_GetError(material->media.name);
-}
-
-/**
- * @brief Draws all active material stages for a BSP draw elements batch.
- */
-static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
-                                                const r_entity_t *entity,
-                                                const r_bsp_draw_elements_t *draw,
-                                                const r_material_t *material) {
-
-  if (!r_draw_material_stages->value) {
-    return;
-  }
-
-  if (!(material->cm->stage_flags & STAGE_DRAW)) {
-    return;
-  }
-
-  if (draw->surface & SURF_MASK_BLEND) {
-    glBlendFunc(GL_ONE, GL_ZERO);
-  } else {
-    glEnable(GL_BLEND);
-  }
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
-
-  for (r_stage_t *stage = material->stages; stage; stage = stage->next) {
-
-    if (!(stage->cm->flags & STAGE_DRAW)) {
-      continue;
-    }
-
-    R_DrawBspDrawElementsMaterialStage(view, entity, draw, material, stage);
-  }
-
-  glUniform1i(r_bsp_program.stage.flags, STAGE_NONE);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
-
-  if (draw->surface & SURF_MASK_BLEND) {
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  } else {
-    glDisable(GL_BLEND);
-  }
-
-  R_GetError(NULL);
-}
-
-/**
- * @brief The last bound material, to avoid redundant state changes.
- */
-static const r_material_t *r_bsp_bound_material;
-
-/**
- * @brief Draws the specified draw elements for the given entity.
- * @param entity The entity, or `NULL` for the world model.
- * @param draw The draw elements command.
- */
-static inline void R_DrawBspDrawElements(const r_view_t *view,
-                     const r_entity_t *entity,
-                     const r_bsp_draw_elements_t *draw) {
-
-  if (draw->material != r_bsp_bound_material) {
-    r_bsp_bound_material = draw->material;
-
-    glBindTexture(GL_TEXTURE_2D_ARRAY, draw->material->texture->texnum);
-
-    glUniform1f(r_bsp_program.material.alpha_test, draw->material->cm->alpha_test * r_alpha_test->value);
-    glUniform1f(r_bsp_program.material.roughness, draw->material->cm->roughness * r_roughness->value);
-    glUniform1f(r_bsp_program.material.hardness, draw->material->cm->hardness * r_hardness->value);
-    glUniform1f(r_bsp_program.material.specularity, draw->material->cm->specularity * r_specularity->value);
-    glUniform1f(r_bsp_program.material.parallax, draw->material->cm->parallax * r_parallax->value);
-    glUniform1f(r_bsp_program.material.shadow, draw->material->cm->shadow * r_parallax_shadow->value);
-  }
-
-  glUniform1i(r_bsp_program.material.surface, draw->surface);
-
-  if (!(draw->surface & SURF_MATERIAL)) {
-
-    glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
-    r_stats.bsp_triangles += draw->num_elements / 3;
-
-    R_GetError(draw->material->media.name);
-  }
-
-  R_DrawBspDrawElementsMaterialStages(view, entity, draw, draw->material);
-
-  r_stats.bsp_draw_elements++;
-}
-
-/**
- * @brief Draws all opaque surfaces for a BSP inline model entity.
- */
-static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity) {
-
-  const r_bsp_inline_model_t *in = entity->model->bsp_inline;
-
-  if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
-  }
-
-  const r_bsp_block_t *block = in->blocks;
-  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
-
-    if (IS_WORLDSPAWN(entity->model)) {
-
-      if (block->query->result == 0) {
-        r_stats.blocks_occluded++;
-        continue;
-      }
-
-      r_stats.blocks_visible++;
-
-      R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
-    }
-
-    const r_bsp_draw_elements_t *draw = block->draw_elements;
-    for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
-
-      if (draw->surface & (SURF_SKY | SURF_MASK_BLEND)) {
-        continue;
-      }
-
-      R_DrawBspDrawElements(view, entity, draw);
-    }
-  }
-
-  r_stats.bsp_inline_models++;
-}
-
-/**
- * @brief Draws all opaque BSP inline model entities for the current view, including the world.
+ * @brief Renders the opaque world BSP surfaces with their material diffuse texture,
+ * clustered per-voxel static lighting, and per-block dynamic lighting.
  */
 void R_DrawOpaqueBspEntities(const r_view_t *view) {
-  const r_bsp_model_t *bsp = r_models.world->bsp;
 
-  R_DrawSky(view, bsp);
-
-  glUseProgram(r_bsp_program.name);
-
-  glBindVertexArray(bsp->vertex_array);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
-
-  r_bsp_bound_material = NULL;
-
-  glUniform1i(r_bsp_program.stage.flags, STAGE_NONE);
-
-  glEnable(GL_CULL_FACE);
-
-  if (r_draw_wireframe->integer != 2) {
-    glEnable(GL_DEPTH_TEST);
+  if (!r_models.world) {
+    return;
   }
+
+  if (!view->framebuffer) {
+    return;
+  }
+
+  CommandBuffer *commands = r_context.device->commands;
+
+  const r_bsp_model_t *bsp = r_models.world->bsp;
+  Framebuffer *framebuffer = view->framebuffer;
+
+  const SDL_FColor clear_color = { 0.f, 0.f, 0.f, 1.f };
+  const SDL_FColor clear_depth_color = { 1.f, 1.f, 1.f, 1.f };
+  const SDL_GPUColorTargetInfo color[] = {
+    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color),
+    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_depth_color),
+  };
+  
+  const SDL_GPULoadOp depth_loadop = r_depth_pass->integer ? SDL_GPU_LOADOP_LOAD : SDL_GPU_LOADOP_CLEAR;
+  const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, depth_loadop, SDL_GPU_STOREOP_STORE, 1.f);
+
+  RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
+  r_bsp_draw.pass = pass;
+  r_bsp_draw.commands = commands;
+
+  $(pass, setViewport, &(SDL_GPUViewport) {
+    .x = 0.f, .y = 0.f,
+    .w = (float) framebuffer->size.w, .h = (float) framebuffer->size.h,
+    .min_depth = 0.f, .max_depth = 1.f,
+  });
+
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+
+  r_bsp_draw.material = NULL;
+
+  $(pass, bindPipeline, r_bsp_draw.pipeline);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
+  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+  }, 6);
+
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
+    { .texture = R_SkyTexture()->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
+  }, 3);
+
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
+  }, 2);
+
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
+    .texture = r_bsp_draw.warp_texture->texture,
+    .sampler = r_bsp_draw.stage_sampler->sampler,
+  }, 1);
+
+  SDL_GPUBuffer *storage[] = {
+    r_lights.buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
+                                     : r_lights.buffer->buffer,
+    bsp->voxels.light_data_buffer->buffer,
+  };
+  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
+  $(pass, bindVertexStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-    if (IS_BSP_INLINE_MODEL(e->model)) {
+    if (!IS_BSP_INLINE_MODEL(e->model)) {
+      continue;
+    }
 
-      if (R_CullEntity(view, e)) {
+    if (e->effects & EF_NO_DRAW) {
+      continue;
+    }
+
+    if (!IS_WORLDSPAWN(e->model) && R_CullEntity(view, e)) {
+      r_stats.entities_occluded++;
+      continue;
+    }
+
+    R_DrawOpaqueBspEntity(view, e);
+  }
+
+  // Alpha-tested surfaces are their own pass so pipeline_alpha_test is bound
+  // once here instead of interleaving with the discard-free opaque pipeline.
+  r_bsp_draw.material = NULL;
+
+  $(pass, bindPipeline, r_bsp_draw.pipeline_alpha_test);
+
+  e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+
+    if (!IS_BSP_INLINE_MODEL(e->model)) {
+      continue;
+    }
+
+    if (e->effects & EF_NO_DRAW) {
+      continue;
+    }
+
+    if (!IS_WORLDSPAWN(e->model) && R_CullEntity(view, e)) {
+      continue;
+    }
+
+    R_DrawAlphaTestBspEntity(view, e);
+  }
+
+  // Material stages are their own pass too, so their pipeline binds don't
+  // interleave with the opaque/alpha-test base pipelines above. Must still
+  // run before the blend pass -- see R_DrawBspBlockMaterial.
+  if (r_draw_material_stages->integer) {
+
+    r_bsp_draw.material = NULL;
+
+    e = view->entities;
+    for (int32_t i = 0; i < view->num_entities; i++, e++) {
+
+      if (!IS_BSP_INLINE_MODEL(e->model)) {
         continue;
       }
 
-      glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
+      if (e->effects & EF_NO_DRAW) {
+        continue;
+      }
 
-      R_DrawOpaqueBspEntity(view, e);
+      if (!IS_WORLDSPAWN(e->model) && R_CullEntity(view, e)) {
+        continue;
+      }
+
+      R_DrawBspEntityMaterialStages(view, e);
     }
   }
 
-  glDisable(GL_CULL_FACE);
-
-  if (r_draw_wireframe->integer != 2) {
-    glDisable(GL_DEPTH_TEST);
-  }
-
-  glBindVertexArray(0);
-
-  glUseProgram(0);
-
-  R_GetError(NULL);
+  pass = release(pass);
+  r_bsp_draw.pass = NULL;
 
   R_DrawBspNormals(view, bsp);
-
-  R_DrawBspVoxels(view, bsp);
 }
 
 /**
- * @brief Draws all blended (translucent) surfaces for a BSP inline model entity.
+ * @brief Draws the translucent (@c SURF_MASK_BLEND) draw elements of a single
+ * block, assuming its active-lights bitmask has already been pushed.
+ */
+static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, const r_bsp_block_t *block) {
+
+  const r_bsp_draw_elements_t *draw = block->draw_elements;
+  for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+
+    if (!(draw->surface & SURF_MASK_BLEND) || (draw->surface & SURF_SKY)) {
+      continue;
+    }
+
+    if (draw->material != r_bsp_draw.material || draw->surface != r_bsp_draw.surface) {
+      r_bsp_draw.material = draw->material;
+      r_bsp_draw.surface = draw->surface;
+
+      $(r_bsp_draw.pass, bindPipeline, r_bsp_draw.blend_pipeline);
+
+      $(r_bsp_draw.pass, bindFragmentSamplers, BSP_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+        .texture = draw->material->texture->texture->texture,
+        .sampler = r_bsp_draw.diffusemap_sampler->sampler,
+      }, 1);
+
+      r_material_uniforms_t material;
+      R_MaterialUniforms(draw->material, draw->surface, &material);
+      $(r_bsp_draw.commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
+    }
+
+    const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
+    $(r_bsp_draw.pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
+
+    r_stats.bsp_triangles += draw->num_elements / 3;
+    r_stats.bsp_draw_elements++;
+
+    if (r_draw_material_stages->integer) {
+      R_DrawBspDrawElementsMaterialStages(view, entity, draw, false);
+
+      // A stage left a stage pipeline bound; force the next draw element to
+      // rebind blend_pipeline even if it shares this material/surface.
+      r_bsp_draw.material = NULL;
+    }
+  }
+}
+
+/**
+ * @brief Draws one BSP inline model entity's translucent surfaces, including the world itself.
  */
 static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity) {
+
+  r_bsp_locals_t locals = {
+    .model = entity->matrix,
+  };
 
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
+    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -494,193 +785,289 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
         continue;
       }
 
-      R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
+      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
     }
 
-    const r_bsp_draw_elements_t *draw = block->draw_elements;
-    for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
-
-      if (!(draw->surface & SURF_MASK_BLEND)) {
-        continue;
-      }
-
-      R_DrawBspDrawElements(view, entity, draw);
-    }
+    R_DrawBlendBspBlock(view, entity, block);
   }
 }
 
 /**
- * @brief Draws all BSP inline model entities for the current view, including the world.
+ * @brief Renders the translucent (SURF_MASK_BLEND) world and inline BSP model
+ * surfaces over the opaque scene, alpha-blended and depth-tested but without
+ * writing depth.
+ * @remarks Mirrors R_DrawOpaqueBspEntities but with the blend pipeline and the inverse
+ * surface filter, including its material stages (animated water/glass overlays).
+ * No back-to-front sorting, matching main -- single-layer translucency (water,
+ * glass) is correct without it.
  */
 void R_DrawBlendBspEntities(const r_view_t *view) {
+
+  if (!r_models.world) {
+    return;
+  }
+
+  CommandBuffer *commands = r_context.device->commands;
+
+  if (!view->framebuffer) {
+    return;
+  }
+
   const r_bsp_model_t *bsp = r_models.world->bsp;
+  Framebuffer *framebuffer = view->framebuffer;
 
-  glUseProgram(r_bsp_program.name);
+  const SDL_GPUColorTargetInfo color[] = {
+    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
+    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
+  };
+  const SDL_GPUDepthStencilTargetInfo depth =
+      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
 
-  glBindVertexArray(bsp->vertex_array);
+  RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
+  r_bsp_draw.pass = pass;
+  r_bsp_draw.commands = commands;
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+  $(pass, setViewport, &(SDL_GPUViewport) {
+    .x = 0.f, .y = 0.f,
+    .w = (float) framebuffer->size.w, .h = (float) framebuffer->size.h,
+    .min_depth = 0.f, .max_depth = 1.f,
+  });
 
-  r_bsp_bound_material = NULL;
+  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
-  glUniform1i(r_bsp_program.stage.flags, STAGE_NONE);
+  r_bsp_draw.material = NULL;
 
-  glEnable(GL_CULL_FACE);
-  glEnable(GL_DEPTH_TEST);
+  $(pass, bindPipeline, r_bsp_draw.blend_pipeline);
+  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
+  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  glDepthMask(GL_FALSE);
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+  }, 6);
 
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
+    { .texture = R_SkyTexture()->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
+  }, 3);
+
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
+  }, 2);
+
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
+    .texture = r_bsp_draw.warp_texture->texture,
+    .sampler = r_bsp_draw.stage_sampler->sampler,
+  }, 1);
+
+  SDL_GPUBuffer *storage[] = {
+    r_lights.buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
+                                     : r_lights.buffer->buffer,
+    bsp->voxels.light_data_buffer->buffer,
+  };
+  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
+  $(pass, bindVertexStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
-    if (IS_BSP_INLINE_MODEL(e->model)) {
 
-      if (R_CullEntity(view, e)) {
-        continue;
-      }
-
-      glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
-
-      R_DrawBlendBspEntity(view, e);
+    if (!IS_BSP_INLINE_MODEL(e->model)) {
+      continue;
     }
+
+    if (e->effects & EF_NO_DRAW) {
+      continue;
+    }
+
+    if (!IS_WORLDSPAWN(e->model) && R_CullEntity(view, e)) {
+      continue;
+    }
+
+    R_DrawBlendBspEntity(view, e);
   }
 
-  glBlendFunc(GL_ONE, GL_ZERO);
-  glDisable(GL_BLEND);
-
-  glDepthMask(GL_TRUE);
-
-  glDisable(GL_CULL_FACE);
-  glDisable(GL_DEPTH_TEST);
-
-  glBindVertexArray(0);
-
-  glUseProgram(0);
-
-  R_GetError(NULL);
+  pass = release(pass);
+  r_bsp_draw.pass = NULL;
 }
 
-#define WARP_IMAGE_SIZE 16
-
 /**
- * @brief Compiles and links the BSP GLSL program, binding all uniforms and buffer blocks.
+ * @brief Builds the BSP pipeline from the @c bsp_vs / @c bsp_fs shaders.
  */
-void R_InitBspProgram(void) {
+void R_InitBspPipeline(void) {
 
-  memset(&r_bsp_program, 0, sizeof(r_bsp_program));
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    .num_storage_buffers = BSP_NUM_STORAGE_BUFFERS, // per-vertex lighting binds the same buffers
+    .num_uniform_buffers = BSP_NUM_UNIFORMS,
+  });
 
-  r_bsp_program.name = R_LoadProgram(
-      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "voxel.glsl", "light.glsl", "bsp_vs.glsl", NULL),
-      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "voxel.glsl", "light.glsl", "bsp_fs.glsl", NULL),
-      NULL);
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/bsp_fs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+    .num_samplers = BSP_NUM_SAMPLERS,
+    .num_storage_buffers = BSP_NUM_STORAGE_BUFFERS,
+    .num_uniform_buffers = BSP_NUM_UNIFORMS,
+  });
 
-  glUseProgram(r_bsp_program.name);
+  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
-  r_bsp_program.uniforms_block = glGetUniformBlockIndex(r_bsp_program.name, "uniforms_block");
-  glUniformBlockBinding(r_bsp_program.name, r_bsp_program.uniforms_block, 0);
+  SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
+  info.multisample_state.sample_count = r_scene_samples;
+  info.vertex_shader = vertexShader->shader;
+  info.fragment_shader = fragmentShader->shader;
 
-  r_bsp_program.lights_block = glGetUniformBlockIndex(r_bsp_program.name, "lights_block");
-  glUniformBlockBinding(r_bsp_program.name, r_bsp_program.lights_block, 1);
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+  info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
-  r_bsp_program.active_lights = glGetUniformLocation(r_bsp_program.name, "active_lights");
+  info.vertex_input_state = (SDL_GPUVertexInputState) {
+    .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
+      .slot = 0,
+      .pitch = sizeof(r_bsp_vertex_t),
+      .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+    },
+    .num_vertex_buffers = 1,
+    .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+      {
+        .location = 0,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(r_bsp_vertex_t, position),
+      },
+      {
+        .location = 1,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(r_bsp_vertex_t, normal),
+      },
+      {
+        .location = 2,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(r_bsp_vertex_t, tangent),
+      },
+      {
+        .location = 3,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+        .offset = offsetof(r_bsp_vertex_t, bitangent),
+      },
+      {
+        .location = 4,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+        .offset = offsetof(r_bsp_vertex_t, diffusemap),
+      },
+      {
+        .location = 5,
+        .buffer_slot = 0,
+        .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
+        .offset = offsetof(r_bsp_vertex_t, color),
+      },
+    },
+    .num_vertex_attributes = 6,
+  };
 
-  r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
+  SDL_GPUColorTargetDescription color_targets[2] = {
+    { .format = R_SCENE_COLOR_FORMAT, .blend_state = GPU_BlendStateOpaque },
+    { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .blend_state = GPU_BlendStateOpaque },
+  };
 
-  r_bsp_program.texture_material = glGetUniformLocation(r_bsp_program.name, "texture_material");
-  r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
-  r_bsp_program.texture_stage_next = glGetUniformLocation(r_bsp_program.name, "texture_stage_next");
-  r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
+  info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
+    .color_target_descriptions = color_targets,
+    .num_color_targets = 2,
+    .depth_stencil_format = framebuffer->depthFormat,
+    .has_depth_stencil_target = true,
+  };
 
-  r_bsp_program.texture_voxel_caustics = glGetUniformLocation(r_bsp_program.name, "texture_voxel_caustics");
-  r_bsp_program.texture_voxel_occlusion = glGetUniformLocation(r_bsp_program.name, "texture_voxel_occlusion");
+  r_bsp_draw.pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
-  r_bsp_program.texture_sky = glGetUniformLocation(r_bsp_program.name, "texture_sky");
+  Shader *alphaTestFragmentShader = $(r_context.device, loadShader, "shaders/bsp_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+    .num_samplers = BSP_NUM_SAMPLERS,
+    .num_storage_buffers = BSP_NUM_STORAGE_BUFFERS,
+    .num_uniform_buffers = BSP_NUM_UNIFORMS,
+  });
 
-  r_bsp_program.texture_shadow_atlas = glGetUniformLocation(r_bsp_program.name, "texture_shadow_atlas");
+  info.fragment_shader = alphaTestFragmentShader->shader;
+  r_bsp_draw.pipeline_alpha_test = $(r_context.device, createGraphicsPipeline, &info);
+  release(alphaTestFragmentShader);
 
-  r_bsp_program.texture_voxel_light_data = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_data");
-  r_bsp_program.texture_voxel_light_indices = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_indices");
+  info.fragment_shader = fragmentShader->shader;
+  color_targets[0].blend_state = GPU_BlendStateAlpha;
+  color_targets[1].blend_state = (SDL_GPUColorTargetBlendState) {
+    .enable_color_write_mask = true, .color_write_mask = 0,
+  };
+  info.depth_stencil_state.enable_depth_write = false;
+  r_bsp_draw.blend_pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
-  r_bsp_program.material.surface = glGetUniformLocation(r_bsp_program.name, "material.surface");
-  r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
-  r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
-  r_bsp_program.material.hardness = glGetUniformLocation(r_bsp_program.name, "material.hardness");
-  r_bsp_program.material.specularity = glGetUniformLocation(r_bsp_program.name, "material.specularity");
-  r_bsp_program.material.parallax = glGetUniformLocation(r_bsp_program.name, "material.parallax");
-  r_bsp_program.material.shadow = glGetUniformLocation(r_bsp_program.name, "material.shadow");
+  release(vertexShader);
+  release(fragmentShader);
 
-  r_bsp_program.stage.flags = glGetUniformLocation(r_bsp_program.name, "stage.flags");
-  r_bsp_program.stage.color = glGetUniformLocation(r_bsp_program.name, "stage.color");
-  r_bsp_program.stage.pulse = glGetUniformLocation(r_bsp_program.name, "stage.pulse");
-  r_bsp_program.stage.drift = glGetUniformLocation(r_bsp_program.name, "stage.drift");
-  r_bsp_program.stage.st_origin = glGetUniformLocation(r_bsp_program.name, "stage.st_origin");
-  r_bsp_program.stage.stretch = glGetUniformLocation(r_bsp_program.name, "stage.stretch");
-  r_bsp_program.stage.rotate = glGetUniformLocation(r_bsp_program.name, "stage.rotate");
-  r_bsp_program.stage.scroll = glGetUniformLocation(r_bsp_program.name, "stage.scroll");
-  r_bsp_program.stage.scale = glGetUniformLocation(r_bsp_program.name, "stage.scale");
-  r_bsp_program.stage.terrain = glGetUniformLocation(r_bsp_program.name, "stage.terrain");
-  r_bsp_program.stage.dirtmap = glGetUniformLocation(r_bsp_program.name, "stage.dirtmap");
-  r_bsp_program.stage.warp = glGetUniformLocation(r_bsp_program.name, "stage.warp");
-  r_bsp_program.stage.lighting = glGetUniformLocation(r_bsp_program.name, "stage.lighting");
-  r_bsp_program.stage.emissive = glGetUniformLocation(r_bsp_program.name, "stage.emissive");
-  r_bsp_program.stage.lerp = glGetUniformLocation(r_bsp_program.name, "stage.lerp");
+  r_bsp_draw.diffusemap_sampler = $(r_context.device, createSamplerLinearRepeat);
+  r_bsp_draw.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
+  r_bsp_draw.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
 
-  glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
-  glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
-  glUniform1i(r_bsp_program.texture_stage_next, TEXTURE_STAGE_NEXT);
-  glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
-
-  glUniform1i(r_bsp_program.texture_voxel_caustics, TEXTURE_VOXEL_CAUSTICS);
-  glUniform1i(r_bsp_program.texture_voxel_occlusion, TEXTURE_VOXEL_OCCLUSION);
-
-  glUniform1i(r_bsp_program.texture_sky, TEXTURE_SKY);
-
-  glUniform1i(r_bsp_program.texture_shadow_atlas, TEXTURE_SHADOW_ATLAS);
-
-  glUniform1i(r_bsp_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
-  glUniform1i(r_bsp_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
-
-  r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
-  r_bsp_program.warp_image->media.Retain = R_RetainImage;
-  r_bsp_program.warp_image->media.Free = R_FreeImage;
-
-  r_bsp_program.warp_image->width = r_bsp_program.warp_image->height = WARP_IMAGE_SIZE;
-  r_bsp_program.warp_image->type = IMG_PROGRAM;
-  r_bsp_program.warp_image->target = GL_TEXTURE_2D;
-  r_bsp_program.warp_image->internal_format = GL_RGBA8;
-  r_bsp_program.warp_image->format = GL_RGBA;
-  r_bsp_program.warp_image->pixel_type = GL_UNSIGNED_BYTE;
-  r_bsp_program.warp_image->minify = GL_LINEAR_MIPMAP_LINEAR;
-  r_bsp_program.warp_image->magnify = GL_LINEAR;
-
+  #define WARP_IMAGE_SIZE 16
   byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
-
   for (int32_t i = 0; i < WARP_IMAGE_SIZE; i++) {
     for (int32_t j = 0; j < WARP_IMAGE_SIZE; j++) {
-      data[i][j][0] = RandomRangeu(0, 48);
-      data[i][j][1] = RandomRangeu(0, 48);
+      data[i][j][0] = (byte) RandomRangeu(0, 48);
+      data[i][j][1] = (byte) RandomRangeu(0, 48);
       data[i][j][2] = 0;
       data[i][j][3] = 255;
     }
   }
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_WARP);
+  r_bsp_draw.warp_texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+    .type = SDL_GPU_TEXTURETYPE_2D,
+    .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+    .width = WARP_IMAGE_SIZE,
+    .height = WARP_IMAGE_SIZE,
+    .layer_count_or_depth = 1,
+    .num_levels = 5, // log2(WARP_IMAGE_SIZE) + 1
+    .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
+  }, data);
+  #undef WARP_IMAGE_SIZE
 
-  R_UploadImage(r_bsp_program.warp_image, (byte *) data);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-
-  R_GetError(NULL);
+  CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
+  $(commands, generateMipmaps, r_bsp_draw.warp_texture->texture);
+  $(commands, submit);
+  release(commands);
 }
 
 /**
- * @brief Deletes the BSP GLSL program object.
+ * @brief Releases the BSP pipeline and samplers.
  */
-void R_ShutdownBspProgram(void) {
+void R_ShutdownBspPipeline(void) {
+  r_bsp_draw.pipeline = release(r_bsp_draw.pipeline);
+  r_bsp_draw.pipeline_alpha_test = release(r_bsp_draw.pipeline_alpha_test);
+  r_bsp_draw.blend_pipeline = release(r_bsp_draw.blend_pipeline);
+  r_bsp_draw.diffusemap_sampler = release(r_bsp_draw.diffusemap_sampler);
+  r_bsp_draw.stage_sampler = release(r_bsp_draw.stage_sampler);
+  r_bsp_draw.ambient_sampler = release(r_bsp_draw.ambient_sampler);
+  r_bsp_draw.warp_texture = release(r_bsp_draw.warp_texture);
 
-  glDeleteProgram(r_bsp_program.name);
+  for (int32_t i = 0; i < r_bsp_draw.num_stage_pipelines; i++) {
+    r_bsp_draw.stage_pipelines[i].pipeline = release(r_bsp_draw.stage_pipelines[i].pipeline);
+  }
+  
+  r_bsp_draw.num_stage_pipelines = 0;
+}
 
-  r_bsp_program.name = 0;
+/**
+ * @brief Rebuilds the BSP pipeline and samplers in place, for pipeline-bound
+ * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
+ * an r_restart. See R_UpdatePipelines.
+ */
+void R_UpdateBspPipeline(void) {
+  R_ShutdownBspPipeline();
+  R_InitBspPipeline();
 }

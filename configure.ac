@@ -53,22 +53,14 @@ case "$host" in
 		host_cpu="arm64"
 		host_os="darwin"
 
-		HOMEBREW_PREFIX=/opt/homebrew
+		dnl openal-soft is keg-only in Homebrew (to avoid clobbering macOS's
+		dnl built-in OpenAL framework), so its .pc file lives under
+		dnl opt/openal-soft rather than anywhere pkg-config searches by
+		dnl default. Everything else we depend on (sdl3, physfs, ncurses,
+		dnl etc.) is discoverable via pkg-config's own default search path.
+		export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:/opt/homebrew/opt/openal-soft/lib/pkgconfig"
 
-		AC_ARG_WITH([homebrew],
-			[AS_HELP_STRING(
-				[--with-homebrew=/opt/homebrew],
-				[On macOS, specify the HOMEBREW_PREFIX for package dependencies]
-			)],
-			[HOMEBREW_PREFIX=$withval],
-			[]
-		)
-
-		export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${HOMEBREW_PREFIX}/lib/pkgconfig"
-		export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${HOMEBREW_PREFIX}/opt/openal-soft/lib/pkgconfig"
-
-		HOST_CFLAGS="-I${HOMEBREW_PREFIX}/include"
-		HOST_LDFLAGS="-L${HOMEBREW_PREFIX}/lib -headerpad_max_install_names"
+		HOST_LDFLAGS="-headerpad_max_install_names"
 		HOST_LIBS="-ldl -rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
 		;;
@@ -133,7 +125,7 @@ dnl --------------------------
 dnl Check for SDL3, SDL3_image
 dnl --------------------------
 
-PKG_CHECK_MODULES([SDL3], [sdl3 >= 2.0.0 sdl3-image])
+PKG_CHECK_MODULES([SDL3], [sdl3 >= 3.2.0 sdl3-image sdl3-ttf])
 
 dnl --------------------
 dnl Check for libsndfile
@@ -148,10 +140,25 @@ dnl ------------------------
 PKG_CHECK_MODULES([OBJECTIVELY], [Objectively >= 2.0.0])
 
 dnl ------------------------
+dnl Check for ObjectivelyGPU
+dnl ------------------------
+
+PKG_CHECK_MODULES([OBJECTIVELYGPU], [ObjectivelyGPU >= 0.4.0])
+
+dnl ------------------------
 dnl Check for ObjectivelyMVC
 dnl ------------------------
 
-PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC])
+PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC >= 2.0.0])
+
+dnl ------------------------------------------------
+dnl Check for offline shader cross-compilation tools
+dnl ------------------------------------------------
+dnl glslc (shaderc) compiles GLSL to SPIR-V; shadercross (SDL_shadercross)
+dnl cross-compiles SPIR-V to MSL/DXIL. Only needed to regenerate the versioned
+dnl shader blobs via 'make shaders'; normal builds use the committed blobs.
+AC_CHECK_PROG([GLSLC], [glslc], [glslc])
+AC_CHECK_PROG([SHADERCROSS], [shadercross], [shadercross])
 
 dnl ----------------
 dnl Check for OpenAL
@@ -162,36 +169,9 @@ dnl -------------------
 dnl Check for PhysicsFS
 dnl -------------------
 
-AC_CHECK_HEADER(physfs.h,
-	PHYSFS_LIBS="-lphysfs -lz",
-	[AC_MSG_ERROR([Could not find physfs.h, please install PhysFS])]
-)
-AC_SUBST(PHYSFS_LIBS)
-
-dnl -----------------------------------
-dnl Sort out OpenGL flags and libraries
-dnl -----------------------------------
-
-HOST_OPENGL_CFLAGS=""
-HOST_OPENGL_LIBS=""
-
-case "$host" in
-	*-apple-*)
-		HOST_OPENGL_LIBS="-framework OpenGL"
-		;;
-	*)
-		HOST_OPENGL_LIBS="-lGL"
-		;;
-esac
-
-AC_SUBST(HOST_OPENGL_CFLAGS)
-AC_SUBST(HOST_OPENGL_LIBS)
-
-OPENGL_CFLAGS="$OPENGL_CFLAGS $HOST_OPENGL_CFLAGS"
-AC_SUBST(OPENGL_CFLAGS)
-
-OPENGL_LIBS="$OPENGL_LIBS $HOST_OPENGL_LIBS"
-AC_SUBST(OPENGL_LIBS)
+PKG_CHECK_MODULES([PHYSFS], [physfs])
+dnl PhysicsFS itself links zlib but its .pc doesn't declare the dependency.
+PHYSFS_LIBS="$PHYSFS_LIBS -lz"
 
 dnl -----------------------------------
 dnl Sort out OpenAL flags and libraries
@@ -257,7 +237,7 @@ dnl -----------------
 
 AC_MSG_CHECKING(whether to abort on compiler warnings)
 
-WARN_CFLAGS="-Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas"
+WARN_CFLAGS="-Wall -Wextra -Wno-unused-parameter -Wno-unknown-pragmas -Wno-format-truncation"
 
 AC_ARG_ENABLE(warn,
 	AS_HELP_STRING(

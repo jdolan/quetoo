@@ -30,8 +30,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_draw_2d.c" />
     <ClCompile Include="..\..\src\client\renderer\r_draw_3d.c" />
     <ClCompile Include="..\..\src\client\renderer\r_entity.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_framebuffer.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_gl.c" />
     <ClCompile Include="..\..\src\client\renderer\r_image.c" />
     <ClCompile Include="..\..\src\client\renderer\r_light.c" />
     <ClCompile Include="..\..\src\client\renderer\r_main.c" />
@@ -45,7 +43,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_model.c" />
     <ClCompile Include="..\..\src\client\renderer\r_occlude.c" />
     <ClCompile Include="..\..\src\client\renderer\r_post.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_program.c" />
     <ClCompile Include="..\..\src\client\renderer\r_shadow.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sprite.c" />
@@ -63,8 +60,6 @@
     <ClInclude Include="..\..\src\client\renderer\r_draw_2d.h" />
     <ClInclude Include="..\..\src\client\renderer\r_draw_3d.h" />
     <ClInclude Include="..\..\src\client\renderer\r_entity.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_framebuffer.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_gl.h" />
     <ClInclude Include="..\..\src\client\renderer\r_image.h" />
     <ClInclude Include="..\..\src\client\renderer\r_light.h" />
     <ClInclude Include="..\..\src\client\renderer\r_local.h" />
@@ -79,7 +74,6 @@
     <ClInclude Include="..\..\src\client\renderer\r_model.h" />
     <ClInclude Include="..\..\src\client\renderer\r_occlude.h" />
     <ClInclude Include="..\..\src\client\renderer\r_post.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_program.h" />
     <ClInclude Include="..\..\src\client\renderer\r_shadow.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sky.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sprite.h" />

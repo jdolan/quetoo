@@ -19,12 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-out vec4 out_color;
+#version 450
 
 /**
- * @brief
+ * @brief Depth-only pre-pass: no color output. Depth is written by the
+ * rasterizer into the framebuffer's depth attachment for early-Z reuse.
  */
 void main(void) {
 
-  out_color = vec4(1, 0, 0, 1);
 }

@@ -108,7 +108,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_occlusion_queries 1"
+            argument = "+set r_antialias 0"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -116,7 +116,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_get_error 2 +set r_draw_stats 1"
+            argument = "+set +set r_draw_stats 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -132,7 +132,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set developer 1"
+            argument = "+set developer 4"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -145,7 +145,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_ctf 1"
@@ -153,10 +153,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map claustrophobopolis"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map fragpipe"
+            argument = "+map edge"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

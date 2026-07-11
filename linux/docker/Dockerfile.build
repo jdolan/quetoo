@@ -58,6 +58,18 @@ RUN git clone https://github.com/jdolan/Objectively.git \
   && make install \
   && cd .. && rm -rf Objectively
 
+RUN ldconfig
+
+RUN git clone https://github.com/jdolan/ObjectivelyGPU.git \
+  && cd ObjectivelyGPU \
+  && autoreconf -i \
+  && ./configure \
+  && make -j$(nproc) \
+  && make install \
+  && cd .. && rm -rf ObjectivelyGPU
+
+RUN ldconfig
+
 RUN git clone https://github.com/jdolan/ObjectivelyMVC.git \
   && cd ObjectivelyMVC \
   && autoreconf -i \

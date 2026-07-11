@@ -22,8 +22,6 @@
 #include "ui_local.h"
 #include "client.h"
 
-#include "QuetooRenderer.h"
-
 extern cl_static_t cls;
 
 static WindowController *windowController;
@@ -163,11 +161,7 @@ void Ui_Draw(void) {
 
   assert(windowController);
 
-  R_SetDraw2DProjection(PROJECTION_UI);
-
   $(windowController, render);
-
-  R_SetDraw2DProjection(PROJECTION_GAME);
 }
 
 /**
@@ -246,15 +240,10 @@ void Ui_Init(void) {
 
   MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
 
-  $$(Resource, addResourceProvider, Ui_Data);
-
-  windowController = $(alloc(WindowController), initWithWindow, r_context.window);
-
-  Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
-
-  $(windowController, setRenderer, renderer);
-
-  release(renderer);
+  // MVC asset lookups resolve through the renderer's R_ResourceProvider, which
+  // is registered for the lifetime of the device (see r_context.c); the old
+  // Ui_Data provider was a redundant second bridge to Fs_Load.
+  windowController = $(alloc(WindowController), initWithDevice, r_context.device);
 
   navigationViewController = $(alloc(NavigationViewController), init);
   $(windowController, setViewController, (ViewController *) navigationViewController);
@@ -268,8 +257,6 @@ void Ui_Init(void) {
  * @brief Shuts down the user interface.
  */
 void Ui_Shutdown(void) {
-
-  $$(Resource, removeResourceProvider, Ui_Data);
 
   Ui_PopAllViewControllers();
 

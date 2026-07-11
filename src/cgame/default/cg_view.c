@@ -321,10 +321,10 @@ void Cg_PrepareView(const cl_frame_t *frame) {
   cgi.view->type = VIEW_MAIN;
   cgi.view->flags = VIEW_FLAG_NONE;
 
-  assert(cg_framebuffer.name);
-  cgi.view->framebuffer = &cg_framebuffer;
+  assert(cg_framebuffer);
+  cgi.view->framebuffer = cg_framebuffer;
 
-  cgi.view->viewport = Vec4i(0, 0, cg_framebuffer.width, cg_framebuffer.height);
+  cgi.view->viewport = Vec4i(0, 0, cg_framebuffer->size.w, cg_framebuffer->size.h);
 
   const player_state_t *ps0;
 

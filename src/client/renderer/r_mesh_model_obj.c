@@ -47,7 +47,7 @@ typedef struct {
 /**
  * @brief Finds an existing vertex in the face or appends a new one, returning its index.
  */
-static GLuint R_FindOrAppendObjVertex(r_mesh_face_t *face, const r_mesh_vertex_t *v) {
+static uint32_t R_FindOrAppendObjVertex(r_mesh_face_t *face, const r_mesh_vertex_t *v) {
 
   for (int32_t i = 0; i < face->num_vertexes; i++) {
     if (!memcmp(v, face->vertexes + i, sizeof(*v))) {
@@ -65,12 +65,12 @@ static GLuint R_FindOrAppendObjVertex(r_mesh_face_t *face, const r_mesh_vertex_t
 /**
  * @brief Appends three element indices forming a triangle to the face's element list.
  */
-static void R_AppendObjElements(r_mesh_face_t *face, GLuint a, GLuint b, GLuint c) {
+static void R_AppendObjElements(r_mesh_face_t *face, uint32_t a, uint32_t b, uint32_t c) {
 
   face->num_elements += 3;
-  face->elements = Mem_Realloc(face->elements, face->num_elements * sizeof(GLuint));
+  face->elements = Mem_Realloc(face->elements, face->num_elements * sizeof(uint32_t));
 
-  GLuint *elements = ((GLuint *) face->elements) + face->num_elements - 3;
+  uint32_t *elements = ((uint32_t *) face->elements) + face->num_elements - 3;
 
   elements[0] = a;
   elements[1] = b;
@@ -264,4 +264,5 @@ const r_model_format_t r_obj_model_format = {
   .type = MODEL_MESH,
   .Load = R_LoadObjModel,
   .Register = R_RegisterMeshModel,
+  .Free = R_FreeMeshModel,
 };

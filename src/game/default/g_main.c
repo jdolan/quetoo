@@ -125,7 +125,6 @@ cvar_t *g_balance_shotgun_pellets;
 cvar_t *g_balance_shotgun_refire;
 cvar_t *g_balance_shotgun_spread_x;
 cvar_t *g_balance_shotgun_spread_y;
-cvar_t *g_balance_shotgun_pellets;
 cvar_t *g_balance_supershotgun_damage;
 cvar_t *g_balance_supershotgun_knockback;
 cvar_t *g_balance_supershotgun_pellets;

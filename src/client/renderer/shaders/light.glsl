@@ -22,8 +22,52 @@
 /**
  * @file light.glsl
  * @brief Per-fragment lighting and shadow functions.
+ * @remarks Include after uniforms.glsl, common.glsl, material.glsl, voxel.glsl.
+ * The shadow atlas and lights storage buffer are declared here. SDL_gpu forbids
+ * DEPTH_STENCIL_TARGET on array textures, so the atlas is six separate 2D
+ * textures (one per cube face) rather than one array texture; sample_shadow_atlas
+ * selects among them with a branch on the fragment's cube face, since dynamic
+ * (non-constant) indexing into an array of distinct sampler bindings isn't
+ * reliably portable across the SPIR-V/MSL toolchain. Define LIGHT_SKY to enable
+ * image-based ambient from the sky cubemap (the lit fragment shaders enable it),
+ * else a flat ambient fallback is used.
  */
 
+/**
+ * @brief The distance, beyond lighting_distance, over which full per-fragment
+ * lighting blends out to the cheap per-vertex lighting.
+ */
+#define LIGHTING_LOD_BLEND_DIST 128.0
+
+#if defined(FRAGMENT_SHADER)
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_0) uniform sampler2DShadow texture_shadow_atlas_0;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_1) uniform sampler2DShadow texture_shadow_atlas_1;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_2) uniform sampler2DShadow texture_shadow_atlas_2;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_3) uniform sampler2DShadow texture_shadow_atlas_3;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_4) uniform sampler2DShadow texture_shadow_atlas_4;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_5) uniform sampler2DShadow texture_shadow_atlas_5;
+#endif
+
+#if defined(FRAGMENT_SHADER) && defined(LIGHT_SKY)
+/**
+ * @brief The sky cubemap, sampled at a coarse LOD for image-based ambient light.
+ */
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SKY_AMBIENT) uniform samplerCube texture_sky;
+#endif
+
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_LIGHTS) readonly buffer lights_block {
+  /**
+   * @brief The number of light sources in `lights` (total), and the number of
+   * leading static BSP lights (lit via voxels; [num_bsp_lights, num_lights) are
+   * the dynamic tail, lit directly). These counts live with their data.
+   */
+  int num_lights;
+  int num_bsp_lights;
+
+  light_t lights[];
+};
+
+#if defined(FRAGMENT_SHADER)
 /**
  * @brief 2D Poisson disk samples for PCF soft shadows.
  */
@@ -99,6 +143,28 @@ void cubemap_face_uv(in vec3 dir, out int face, out vec2 face_uv, out float ma) 
 }
 
 /**
+ * @brief Samples the shadow atlas face texture selected by @p face.
+ * @details Six separate sampler2DShadow bindings, not one array texture (see
+ * the file remark above); the branch just picks which statically-declared
+ * uniform to sample, so this compiles to ordinary, fully portable control flow.
+ */
+float sample_shadow_face(in int face, in vec3 uvw) {
+  if (face == 0) {
+    return texture(texture_shadow_atlas_0, uvw);
+  } else if (face == 1) {
+    return texture(texture_shadow_atlas_1, uvw);
+  } else if (face == 2) {
+    return texture(texture_shadow_atlas_2, uvw);
+  } else if (face == 3) {
+    return texture(texture_shadow_atlas_3, uvw);
+  } else if (face == 4) {
+    return texture(texture_shadow_atlas_4, uvw);
+  } else {
+    return texture(texture_shadow_atlas_5, uvw);
+  }
+}
+
+/**
  * @brief Sample the shadow atlas with PCF filtering.
  * @param light The light source.
  * @param index The light index.
@@ -109,11 +175,18 @@ void cubemap_face_uv(in vec3 dir, out int face, out vec2 face_uv, out float ma) 
  */
 float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, in common_fragment_t f, in float atten) {
 
-  float tile_uv = light.shadow.z;
-
-  if (tile_uv == 0.0) {
+  if (light.shadow.x < 0.0) {
     return 1.0;
   }
+
+  // light.shadow is in atlas pixels (the same in every face texture); all six
+  // face textures share dimensions, so any one of them reports the true size.
+  // The atlas is a fixed SHADOW_ATLAS_LIGHTS_PER_ROW x SHADOW_ATLAS_LIGHTS_PER_ROW
+  // grid, so the tile size in pixels is always textureSize() / that constant.
+  vec2 texture_size = vec2(textureSize(texture_shadow_atlas_0, 0).xy);
+  float tile_px = texture_size.x / float(SHADOW_ATLAS_LIGHTS_PER_ROW);
+  vec2 tile_origin = light.shadow.xy / texture_size;
+  float tile_uv = tile_px / texture_size.x;
 
   vec3 light_to_frag = v.model_position - light.origin.xyz;
   float dist_to_light = length(light_to_frag);
@@ -124,14 +197,11 @@ float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, 
   float ma;
   cubemap_face_uv(light_to_frag, face, fuv, ma);
 
-  // Tile origin within the layer for this face of the light's 3×2 block
-  int face_col = face - (face / 3) * 3;
-  int face_row = face / 3;
-  vec2 tile_origin = light.shadow.xy + vec2(float(face_col) * tile_uv,
-                                             float(face_row) * tile_uv);
+  // SDL_gpu renders the atlas with a top-left texel origin; flip V within the tile.
+  fuv.y = 1.0 - fuv.y;
 
-  // Half-texel inset to prevent cross-tile bleeding
-  vec2 half_texel = 0.5 / vec2(textureSize(texture_shadow_atlas, 0).xy);
+  // Half-texel inset to prevent cross-tile bleeding (all six face textures share dimensions).
+  vec2 half_texel = 0.5 / texture_size;
   vec2 tile_min = tile_origin + half_texel;
   vec2 tile_max = tile_origin + vec2(tile_uv) - half_texel;
 
@@ -148,7 +218,6 @@ float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, 
   float s = f.shadow_sin_cos.x;
   float c = f.shadow_sin_cos.y;
 
-  float layer = light.shadow.w;
   float shadow = 0.0;
 
   for (int i = 0; i < num_samples; i++) {
@@ -161,7 +230,7 @@ float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, 
 
     atlas_uv = clamp(atlas_uv, tile_min, tile_max);
 
-    shadow += texture(texture_shadow_atlas, vec4(atlas_uv, layer, current_depth));
+    shadow += sample_shadow_face(face, vec3(atlas_uv, current_depth));
   }
 
   return shadow / float(num_samples);
@@ -187,6 +256,7 @@ float blinn(in vec3 light_dir, in common_fragment_t f) {
 vec3 blinn_phong(in vec3 light_color, in vec3 light_dir, in common_fragment_t f) {
   return light_color * f.specular_sample.rgb * blinn(light_dir, f);
 }
+#endif
 
 /**
  * @brief Calculate vertex lighting contribution from a single light (unshadowed diffuse only).
@@ -229,9 +299,12 @@ void vertex_lighting(inout common_vertex_t v) {
   float occlusion = voxel_occlusion(v.voxel);
   float exposure = voxel_exposure(v.voxel);
 
+#if defined(LIGHT_SKY)
   vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
-
   v.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
+#else
+  v.ambient = vec3(ambient) * exposure * (1.0 - occlusion * ambient_occlusion);
+#endif
   v.diffuse = vec3(0.0);
 
   if (editor == 0) {
@@ -244,17 +317,18 @@ void vertex_lighting(inout common_vertex_t v) {
     }
   }
 
-  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
-    int index = active_lights[i];
-    if (index == -1) {
-      break;
+  // Dynamic lights: those flagged active for this draw. bit j => lights[num_bsp_lights + j].
+  int num_dynamic = num_lights - num_bsp_lights;
+  for (int j = 0; j < num_dynamic; j++) {
+    if ((active_lights[j >> 7][(j >> 5) & 3] & (1u << (j & 31))) != 0u) {
+      v.diffuse += vertex_light(v, num_bsp_lights + j);
     }
-    v.diffuse += vertex_light(v, index);
   }
 
   vertex_caustics(v);
 }
 
+#if defined(FRAGMENT_SHADER)
 /**
  * @brief Calculate caustics lighting contribution.
  * @details Applies animated noise-based caustics to the diffuse lighting.
@@ -344,7 +418,7 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
 
   bool is_blend = bool(material.surface & SURF_MASK_BLEND);
   bool is_liquid = bool(material.surface & SURF_LIQUID);
-  bool is_stage = bool(stage.flags != STAGE_NONE);
+  bool is_stage = bool(material.flags != STAGE_NONE);
 
   float lambert = dot(dir, f.normal_sample);
   lambert = is_blend || is_liquid || is_stage ? abs(lambert) : max(0.0, lambert);
@@ -357,8 +431,8 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
 
   float shadow = sample_shadow_atlas(light, index, v, f, atten);
 
-  // Apply parallax self-shadowing for close, high-detail fragments
-  if (stage.flags == STAGE_NONE) {
+  // Apply parallax self-shadowing for close, high-detail fragments (no active stage).
+  if (!is_stage) {
     if (f.lod < 4.0 && material.shadow > 0.0) {
       shadow *= parallax_self_shadow(dir, v, f);
     }
@@ -385,9 +459,12 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
   float occlusion = voxel_occlusion(v.voxel);
   float exposure = voxel_exposure(v.voxel);
 
+#if defined(LIGHT_SKY)
   vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
-
   f.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
+#else
+  f.ambient = vec3(ambient) * exposure * (1.0 - occlusion * ambient_occlusion);
+#endif
   f.diffuse = vec3(0.0);
   f.specular = vec3(0.0);
 
@@ -402,14 +479,14 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
     }
   }
 
-  // Sample dynamic lights
-  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
-    int index = active_lights[i];
-    if (index == -1) {
-      break;
+  // Dynamic lights: those flagged active for this draw. bit j => lights[num_bsp_lights + j].
+  int num_dynamic = num_lights - num_bsp_lights;
+  for (int j = 0; j < num_dynamic; j++) {
+    if ((active_lights[j >> 7][(j >> 5) & 3] & (1u << (j & 31))) != 0u) {
+      fragment_light(v, f, num_bsp_lights + j);
     }
-    fragment_light(v, f, index);
   }
 
   fragment_caustics(v, f);
 }
+#endif

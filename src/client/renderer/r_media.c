@@ -254,6 +254,8 @@ void R_BeginLoading(void) {
  */
 void R_EndLoading(void) {
   R_FreeMediaEntries(NULL);
+
+  R_LoadOcclusionQueries();
 }
 
 /**

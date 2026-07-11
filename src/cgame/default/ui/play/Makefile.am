@@ -38,7 +38,8 @@ libcguiplay_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
-	@SDL3_CFLAGS@
+	@SDL3_CFLAGS@ \
+	@SNDFILE_CFLAGS@
 
 libcguiplay_la_LDFLAGS = \
 	-shared

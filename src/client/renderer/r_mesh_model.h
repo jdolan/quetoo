@@ -28,4 +28,5 @@ void R_LoadMeshConfigs(r_model_t *mod);
 void R_SaveMeshConfigs_f(void);
 void R_LoadMeshVertexArray(r_model_t *mod);
 void R_RegisterMeshModel(r_media_t *self);
+void R_FreeMeshModel(r_media_t *self);
 #endif

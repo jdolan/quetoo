@@ -39,12 +39,15 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 }
 
 /**
- * @brief Transform lights into their uniform representation and upload them.
+ * @brief Transform lights into their uniform representation and upload them to
+ * the lights storage buffer.
  */
 void R_UpdateLights(r_view_t *view) {
 
   r_light_uniform_block_t *block = &r_lights.block;
   memset(block, 0, sizeof(*block));
+
+  block->num_bsp_lights = r_models.world ? r_models.world->bsp->num_lights : 0;
 
   cm_trace_t tr = { 0 };
   if (r_draw_light_bounds->value) {
@@ -52,17 +55,35 @@ void R_UpdateLights(r_view_t *view) {
     tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
   }
 
-  const float inv_layer = r_shadow_atlas.layer_size > 0 ? 1.f / (float) r_shadow_atlas.layer_size : 0.f;
+  int32_t num_dynamic = 0;
 
   r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
-    r_light_uniform_t *out = &block->lights[i];
+
+    // BSP lights occupy their lump position, so that the compiled voxel light
+    // indices address them correctly even when the cgame skips or re-adds lump
+    // lights as dynamic (e.g. targeted lights); dynamic lights pack the slots
+    // at [num_bsp_lights, ...) in view order, matching R_ActiveLights.
+    int32_t slot;
+    if (l->bsp_light) {
+      slot = (int32_t) (l->bsp_light - r_models.world->bsp->lights);
+      assert(slot < block->num_bsp_lights);
+    } else {
+      if (num_dynamic == MAX_DYNAMIC_LIGHTS) {
+        Com_Debug(DEBUG_RENDERER, "MAX_DYNAMIC_LIGHTS\n");
+        continue;
+      }
+      slot = block->num_bsp_lights + num_dynamic++;
+    }
+
+    r_light_uniform_t *out = &block->lights[slot];
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
-    out->shadow = Vec4(0.f, 0.f, 0.f, 0.f);
 
-    if (l->query) {
-      l->occluded = l->query->result == 0;
+    // Static lights consult their persistent occlusion query; dynamic lights
+    // (no bsp_light) are tested fresh against the view each frame.
+    if (l->bsp_light) {
+      l->occluded = !l->bsp_light->query->result;
     } else {
       l->occluded = R_CulludeBox(view, l->bounds);
     }
@@ -70,86 +91,88 @@ void R_UpdateLights(r_view_t *view) {
     if (l->occluded) {
       r_stats.lights_occluded++;
     } else {
-      const int32_t local_index = i % r_shadow_atlas.lights_per_layer;
-      const int32_t light_col = local_index % r_shadow_atlas.lights_per_row;
-      const int32_t light_row = local_index / r_shadow_atlas.lights_per_row;
-      const float base_x = (float) (light_col * 3 * r_shadow_atlas.tile_size) * inv_layer;
-      const float base_y = (float) (light_row * 2 * r_shadow_atlas.tile_size) * inv_layer;
-      const float tile_uv = (float) r_shadow_atlas.tile_size * inv_layer;
-      const float layer = (float) (i / r_shadow_atlas.lights_per_layer);
-      out->shadow = Vec4(base_x, base_y, tile_uv, layer);
       r_stats.lights_visible++;
     }
+
+    // The light's tile is the same in every atlas face texture; the shader
+    // normalizes these pixel coordinates to UV space itself via textureSize().
+    const int32_t light_col = i % SHADOW_ATLAS_LIGHTS_PER_ROW;
+    const int32_t light_row = i / SHADOW_ATLAS_LIGHTS_PER_ROW;
+    l->tile = Vec2((float) (light_col * r_shadow_atlas.tile_size),
+                   (float) (light_row * r_shadow_atlas.tile_size));
+
+    out->shadow = (l->flags & R_LIGHT_NO_SHADOW) ? Vec2(-1.f, -1.f) : l->tile;
 
     if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
       R_Draw3DBox(l->bounds, Color3fv(l->color), false);
     }
   }
 
-  const GLsizei size = view->num_lights * sizeof(r_light_uniform_t);
+  // The shaders derive the dynamic count as num_lights - num_bsp_lights, so
+  // num_lights spans the occupied slots, not the view's light count (lump
+  // lights the cgame skipped leave zeroed, zero-radius gaps).
+  block->num_lights = block->num_bsp_lights + num_dynamic;
 
-  glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, size, block);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-  R_GetError(NULL);
+  // Upload the count header plus the populated lights. Always upload at least
+  // the header so num_lights reaches the shader (0 on a light-free frame).
+  const uint32_t size = offsetof(r_light_uniform_block_t, lights)
+      + block->num_lights * sizeof(r_light_uniform_t);
+  $(r_lights.buffer, upload, block, size, 0, true);
 }
 
 /**
- * @brief Writes the indexes of active lights intersecting bounds to the given uniform name.
- * @details In normal gameplay, these are dynamic light sources (rockets, explosions, etc).
- * @details When the in-game editor is enabled, all lights use this code path.
- * @remarks The uniform must be an `int[MAX_DYNAMIC_LIGHTS]`.
+ * @brief Builds the dynamic-light cull bitmask for the given bounds into `mask`.
+ * @details Dynamic light sources (rockets, explosions, targeted BSP lights, etc.)
+ * occupy the buffer slots at `[num_bsp_lights, num_lights)` and have no voxel
+ * grid, so each draw whittles them to those intersecting its bounds. Bit `j` of
+ * the bitmask selects dynamic light `[num_bsp_lights + j]`; the lighting shaders
+ * add `num_bsp_lights` to recover the absolute index. Dynamic lights may be
+ * interleaved with static (voxel-gridded) BSP lights in the view, so `j` counts
+ * them in view order, matching the slot assignment in R_UpdateLights.
  */
-void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
+void R_ActiveLights(const r_view_t *view, const box3_t bounds, uint32_t mask[MAX_DYNAMIC_LIGHTS / 32]) {
 
-  GLint active_lights[MAX_DYNAMIC_LIGHTS];
-  GLint len = 0;
+  memset(mask, 0, sizeof(uint32_t) * (MAX_DYNAMIC_LIGHTS / 32));
+
+  int32_t j = 0;
 
   const r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
+    // Static (voxel-gridded) BSP lights are skipped.
     if (l->bsp_light) {
       continue;
     }
 
-    if (Box3_Intersects(l->bounds, bounds)) {
-      active_lights[len++] = i;
-
-      if (len == MAX_DYNAMIC_LIGHTS) {
-        break;
-      }
+    if (j == MAX_DYNAMIC_LIGHTS) {
+      break;
     }
-  }
 
-  if (len < MAX_DYNAMIC_LIGHTS) {
-    active_lights[len++] = -1;
-  }
+    if (Box3_Intersects(l->bounds, bounds)) {
+      mask[j >> 5] |= 1u << (j & 31);
+    }
 
-  glUniform1iv(name, len, active_lights);
-  R_GetError(NULL);
+    j++;
+  }
 }
 
 /**
- * @brief Initializes the light uniform buffer object.
+ * @brief Initializes the lights storage buffer.
  */
 void R_InitLights(void) {
 
   memset(&r_lights, 0, sizeof(r_lights));
 
-  glGenBuffers(1, &r_lights.buffer);
-  glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-  glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), &r_lights.block, GL_DYNAMIC_DRAW);
-  glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-  R_GetError(NULL);
+  r_lights.buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+    .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
+    .size = sizeof(r_lights.block),
+  });
 }
 
 /**
- * @brief Frees the light uniform buffer object.
+ * @brief Frees the lights storage buffer.
  */
 void R_ShutdownLights(void) {
 
-  glDeleteBuffers(1, &r_lights.buffer);
+  r_lights.buffer = release(r_lights.buffer);
 }

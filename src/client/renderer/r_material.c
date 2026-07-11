@@ -230,12 +230,6 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
 
   material->texture = (r_image_t *) R_AllocMedia(va("%s_texture", material->cm->basename), sizeof(r_image_t), R_MEDIA_IMAGE);
   material->texture->type = IMG_MATERIAL;
-  material->texture->target = GL_TEXTURE_2D;
-  material->texture->internal_format = GL_RGBA8;
-  material->texture->format = GL_RGBA;
-  material->texture->pixel_type = GL_UNSIGNED_BYTE;
-  material->texture->minify = GL_LINEAR_MIPMAP_LINEAR;
-  material->texture->magnify = GL_LINEAR;
 
   R_RegisterDependency((r_media_t *) material, (r_media_t *) material->texture);
 
@@ -300,7 +294,6 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
       }
 
       material->texture->depth = 4;
-      material->texture->target = GL_TEXTURE_2D_ARRAY;
 
       byte *data = malloc(layer_size * material->texture->depth);
 
@@ -309,9 +302,28 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
       memcpy(data + 2 * layer_size, specularmap->pixels, layer_size);
       memcpy(data + 3 * layer_size, tintmap->pixels, layer_size);
 
-      R_UploadImage(material->texture, data);
+      // Mip levels matching main's unconditional GL_LINEAR_MIPMAP_LINEAR for
+      // every material layer (diffuse, normal, specular, tint alike).
+      const int32_t levels = (int32_t) floorf(log2f((float) Mini(w, h))) + 1;
+
+      material->texture->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+        .type = SDL_GPU_TEXTURETYPE_2D_ARRAY,
+        .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+        .width = w,
+        .height = h,
+        .layer_count_or_depth = material->texture->depth,
+        .num_levels = levels,
+        .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
+      }, data);
 
       free(data);
+
+      // Mipmap generation is not a copy-pass operation and must run outside any
+      // pass; see the identical pattern for the sky cubemap in r_image.c.
+      CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
+      $(commands, generateMipmaps, material->texture->texture->texture);
+      $(commands, submit);
+      release(commands);
 
       SDL_DestroySurface(normalmap);
       SDL_DestroySurface(specularmap);
@@ -320,7 +332,15 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
       break;
 
     default:
-      R_UploadImage(material->texture, diffusemap->pixels);
+      material->texture->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+        .type = SDL_GPU_TEXTURETYPE_2D,
+        .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+        .width = w,
+        .height = h,
+        .layer_count_or_depth = 1,
+        .num_levels = 1,
+        .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+      }, diffusemap->pixels);
       break;
   }
 
@@ -336,6 +356,135 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
 /**
  * @brief Finds an existing `r_material_t` from the specified diffusemap.
  */
+/**
+ * @brief Fills `out` with the per-draw material parameters for `material` and the
+ * draw's `surface` flags, pre-multiplied by their r_* cvars. Mirrors the GL
+ * `glUniform` material uploads.
+ */
+void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_material_uniforms_t *out) {
+
+  const cm_material_t *cm = material->cm;
+
+  // Zero the whole struct, not just the material fields: this leaves the
+  // stage fields at their STAGE_NONE default (flags == 0) for a base/blend
+  // draw. A stage draw calls R_StageUniforms right after to overlay them.
+  memset(out, 0, sizeof(*out));
+
+  out->surface = surface;
+  out->alpha_test = cm->alpha_test * r_alpha_test->value;
+  out->roughness = cm->roughness * r_roughness->value;
+  out->hardness = cm->hardness * r_hardness->value;
+  out->specularity = cm->specularity * r_specularity->value;
+  out->parallax = cm->parallax * r_parallax->value;
+  out->shadow = cm->shadow * r_parallax_shadow->value;
+}
+
+/**
+ * @brief A stable per-(draw|entity, stage) pseudo-random value in [0, 1], used to
+ * de-synchronize pulse and animation timing across surfaces sharing a material.
+ */
+static float R_StageDriftHash(const void *a, const void *b) {
+  uint32_t h = (uint32_t) ((uintptr_t) a >> 4) ^ (uint32_t) ((uintptr_t) b >> 4);
+  h ^= h >> 16;
+  h *= 0x7feb352dU;
+  h ^= h >> 15;
+  h *= 0x846ca68bU;
+  h ^= h >> 16;
+  return h / (float) UINT32_MAX;
+}
+
+/**
+ * @brief Overlays `out` with the per-stage parameters for `stage` on `draw`
+ * (and `entity`, or NULL for the world), and resolves the stage's current and
+ * next animation-frame textures. Returns true if the stage has drawable media.
+ * @remarks Callers fill the material fields via `R_MaterialUniforms` first;
+ * this only touches the stage fields, leaving those alone.
+ */
+bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
+                     const r_bsp_draw_elements_t *draw, const r_stage_t *stage,
+                     r_material_uniforms_t *out, SDL_GPUTexture **texture, SDL_GPUTexture **texture_next) {
+
+  const cm_stage_t *cm = stage->cm;
+
+  out->lerp = 0.f; // only conditionally set below (STAGE_ANIM_LERP animations)
+
+  out->flags = cm->flags;
+  out->color = cm->color.vec4;
+  out->st_origin = draw ? draw->st_origin : Vec2_Zero(); // mesh stages have no draw elements
+  out->stretch = Vec2(cm->stretch.amplitude, cm->stretch.hz);
+  out->scroll = Vec2(cm->scroll.s, cm->scroll.t);
+  out->scale = Vec2(cm->scale.s, cm->scale.t);
+  out->terrain = Vec2(cm->terrain.floor, cm->terrain.ceil);
+  out->warp = Vec2(cm->warp.hz, cm->warp.amplitude);
+  out->pulse = cm->pulse.hz;
+  out->drift = cm->pulse.drift * R_StageDriftHash(entity ? (const void *) entity : (const void *) draw, stage);
+  out->rotate = cm->rotate.hz;
+  out->dirtmap = cm->dirtmap.intensity;
+  out->lighting = cm->lighting.intensity;
+  out->emissive = cm->emissive;
+  out->shell = cm->shell.radius;
+
+  *texture = NULL;
+  *texture_next = NULL;
+
+  if (stage->media == NULL) {
+    return false;
+  }
+
+  switch (stage->media->type) {
+    case R_MEDIA_IMAGE:
+    case R_MEDIA_ATLAS_IMAGE: {
+      const r_image_t *image = (const r_image_t *) stage->media;
+      if (image->texture) {
+        *texture = image->texture->texture;
+        *texture_next = image->texture->texture;
+      }
+    }
+      break;
+
+    case R_MEDIA_ANIMATION: {
+      const r_animation_t *animation = (const r_animation_t *) stage->media;
+      if (animation->num_frames == 0) {
+        return false;
+      }
+
+      int32_t frame;
+      float lerp = 0.f;
+
+      if (cm->animation.fps == 0.f && entity != NULL) {
+        frame = entity->frame;
+        if (cm->flags & STAGE_ANIM_LERP) {
+          lerp = entity->lerp;
+        }
+      } else {
+        const float drift = cm->animation.drift * R_StageDriftHash(entity ? (const void *) entity : (const void *) draw, stage);
+        const float frame_f = (view->ticks / 1000.f + drift) * cm->animation.fps;
+        frame = (int32_t) frame_f;
+        if (cm->flags & STAGE_ANIM_LERP) {
+          lerp = frame_f - floorf(frame_f);
+        }
+      }
+
+      const r_image_t *cur = animation->frames[((frame % animation->num_frames) + animation->num_frames) % animation->num_frames];
+      *texture = cur->texture ? cur->texture->texture : NULL;
+
+      if (cm->flags & STAGE_ANIM_LERP) {
+        const r_image_t *next = animation->frames[(((frame + 1) % animation->num_frames) + animation->num_frames) % animation->num_frames];
+        *texture_next = next->texture ? next->texture->texture : NULL;
+        out->lerp = lerp;
+      } else {
+        *texture_next = *texture;
+      }
+    }
+      break;
+
+    default:
+      return false;
+  }
+
+  return *texture != NULL && *texture_next != NULL;
+}
+
 r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
   char key[MAX_QPATH];
   char basename[MAX_QPATH];

@@ -19,35 +19,45 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#version 450
+
+#include "uniforms.glsl"
+
+// Sky's own binding map (vertex stage): a dense family shared with no other
+// pipeline. The fragment stage's own map is defined in sky_fs.glsl.
+#define BINDING_UNIFORMS_MATERIAL 1
+
+#include "common.glsl"
+#include "material.glsl"
+
 layout (location = 0) in vec3 in_position;
 
-out common_vertex_t vertex;
-out vec3 cubemap_coord;
+layout (location = 0) out vec3 cubemap_coord;
+layout (location = 1) out vec4 stage_color;
 
 invariant gl_Position;
 
 /**
- * @brief
+ * @brief Renders the world's sky surfaces as a window into the sky cubemap; the
+ * cube lookup direction is the surface position through the sky projection.
+ * @remarks Material stages (azimuthal sky, e.g. moving clouds/moons) reuse the
+ * generic stage color/pulse from material.glsl; the azimuthal projection and
+ * its own rotate/scroll/scale are computed in sky_fs.glsl, since sky surfaces
+ * have no per-vertex diffusemap texcoord to transform.
  */
 void main(void) {
 
   vec4 position = vec4(in_position, 1.0);
+
   cubemap_coord = vec3(sky_projection * position);
 
-  vertex.model_position = in_position;
-  vertex.model_normal = normalize(in_position);
-  vertex.position = vec3(view * position);
-  vertex.normal = normalize(vec3(view * vec4(in_position, 0.0)));
-  vertex.tangent = vec3(1.0, 0.0, 0.0);
-  vertex.bitangent = vec3(0.0, 1.0, 0.0);
-  vertex.diffusemap = vec2(0.0);
-  vertex.voxel = voxel_uvw(in_position);
-  vertex.color = vec4(1.0);
-  vertex.ambient = vec3(0.0);
-  vertex.diffuse = vec3(0.0);
-  vertex.caustics = 0.0;
-
-  stage_vertex(stage, in_position, vertex);
+  stage_color = vec4(1.0);
+  if ((material.flags & STAGE_COLOR) == STAGE_COLOR) {
+    stage_color = material.color;
+  }
+  if ((material.flags & STAGE_PULSE) == STAGE_PULSE) {
+    stage_color.a *= (sin((ticks * .001 + material.drift) * material.pulse * PI) + 1.0) * .5;
+  }
 
   gl_Position = projection3D * view * position;
 }

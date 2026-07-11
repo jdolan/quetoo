@@ -27,7 +27,7 @@
  * @brief BSP file identification.
  */
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-#define BSP_VERSION 78
+#define BSP_VERSION 79
 
 /**
  * @brief BSP file format limits.
@@ -47,9 +47,11 @@
 #define MAX_BSP_DRAW_ELEMENTS 0x20000
 #define MAX_BSP_BLOCKS        0x400
 #define MAX_BSP_MODELS        0x100
-#define MAX_BSP_LIGHTS        0x200
+#define MAX_BSP_LIGHTS        0x300
 #define MAX_BSP_PATCHES       0x400
 #define MAX_BSP_VOXELS_SIZE   0x4000000
+#define MAX_BSP_LIGHT_VOXELS  0x800000
+#define MAX_BSP_BLOCK_VOXELS  0x800000
 
 /**
  * @brief The BSP block node size.
@@ -93,6 +95,8 @@ typedef enum {
   BSP_LUMP_MODELS,
   BSP_LUMP_LIGHTS,
   BSP_LUMP_VOXELS,
+  BSP_LUMP_LIGHT_VOXELS,
+  BSP_LUMP_BLOCK_VOXELS,
   BSP_LUMP_LAST
 } bsp_lump_id_t;
 
@@ -520,6 +524,16 @@ typedef struct {
    * @brief AABB of all draw elements within this block; larger than the node's own `visible_bounds`.
    */
   box3_t visible_bounds;
+
+  /**
+   * @brief The index of the first voxel touched by this block, within `BSP_LUMP_BLOCK_VOXELS`.
+   */
+  int32_t first_voxel;
+
+  /**
+   * @brief The count of voxels touched by this block.
+   */
+  int32_t num_voxels;
 } bsp_block_t;
 
 /**
@@ -654,6 +668,16 @@ typedef struct {
    * entity's initial position.
    */
   int32_t target_entity;
+
+  /**
+   * @brief The index of the first voxel touched by this light, within `BSP_LUMP_LIGHT_VOXELS`.
+   */
+  int32_t first_voxel;
+
+  /**
+   * @brief The count of voxels touched by this light.
+   */
+  int32_t num_voxels;
 } bsp_light_t;
 
 /**
@@ -852,6 +876,26 @@ typedef struct bsp_file_s {
    * @brief Voxel light grid header.
    */
   bsp_voxels_t *voxels;
+
+  /**
+   * @brief Number of light voxel indices.
+   */
+  int32_t num_light_voxels;
+
+  /**
+   * @brief Light voxel index array, sliced per-light via `bsp_light_t.first_voxel`/`num_voxels`.
+   */
+  int32_t *light_voxels;
+
+  /**
+   * @brief Number of block voxel indices.
+   */
+  int32_t num_block_voxels;
+
+  /**
+   * @brief Block voxel index array, sliced per-block via `bsp_block_t.first_voxel`/`num_voxels`.
+   */
+  int32_t *block_voxels;
 
   /**
    * @brief Bitmask of loaded lump identifiers.

@@ -14,8 +14,6 @@ noinst_HEADERS = \
 	r_draw_2d.h \
 	r_draw_3d.h \
 	r_entity.h \
-	r_framebuffer.h \
-	r_gl.h \
 	r_image.h \
 	r_light.h \
 	r_local.h \
@@ -30,7 +28,6 @@ noinst_HEADERS = \
 	r_model.h \
 	r_occlude.h \
 	r_post.h \
-	r_program.h \
 	r_shadow.h \
 	r_sky.h \
 	r_sprite.h \
@@ -52,8 +49,6 @@ librenderer_la_SOURCES = \
 	r_draw_2d.c \
 	r_draw_3d.c \
 	r_entity.c \
-	r_framebuffer.c \
-	r_gl.c \
 	r_image.c \
 	r_light.c \
 	r_main.c \
@@ -67,7 +62,6 @@ librenderer_la_SOURCES = \
 	r_model.c \
 	r_occlude.c \
 	r_post.c \
-	r_program.c \
 	r_shadow.c \
 	r_sky.c \
 	r_sprite.c
@@ -77,7 +71,7 @@ librenderer_la_CFLAGS = \
 	-I$(top_srcdir)/src/client \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@ \
-	@OPENGL_CFLAGS@ \
+	@OBJECTIVELYGPU_CFLAGS@ \
 	@SDL3_CFLAGS@
 
 librenderer_la_LDFLAGS = \
@@ -85,4 +79,4 @@ librenderer_la_LDFLAGS = \
 	
 librenderer_la_LIBADD = \
 	$(top_builddir)/src/common/libcommon.la \
-	@OPENGL_LIBS@
+	@OBJECTIVELYGPU_LIBS@

@@ -26,29 +26,28 @@
 #if defined(__R_LOCAL_H__)
 
 /**
- * @brief The depth program.
+ * @brief The depth pre-pass program.
  */
 typedef struct {
 
   /**
-   * @brief The program object name.
+   * @brief The position-only, depth-only pre-pass pipeline. It renders into the
+   * view framebuffer's shared depth attachment (which the main passes reuse for
+   * early-Z), so it owns no framebuffer of its own.
    */
-  GLuint name;
+  GraphicsPipeline *pipeline;
 
   /**
-   * @brief The uniforms UBO binding.
+   * @brief The Fence to query in subsequent frames to check if the depth pass and
+   * occlusion queries are flushed and available.
    */
-  GLuint uniforms_block;
+  Fence *fence;
+} r_depth_pipeline_t;
 
-  /**
-   * @brief The model matrix uniform location.
-   */
-  GLint model;
-} r_depth_pass_program_t;
+extern r_depth_pipeline_t r_depth_pipeline;
 
-extern r_depth_pass_program_t r_depth_pass_program;
-
-void R_DrawDepthPass(r_view_t *view);
+void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands);
 void R_InitDepthPass(void);
 void R_ShutdownDepthPass(void);
+void R_UpdateDepthPass(void);
 #endif

@@ -19,10 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#version 450
+
+#include "uniforms.glsl"
+
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec4 in_color;
 
-out vertex_data {
+layout (location = 0) out vertex_data {
   vec4 color;
 } vertex;
 
@@ -35,4 +39,3 @@ void main(void) {
 
   vertex.color = in_color;
 }
-

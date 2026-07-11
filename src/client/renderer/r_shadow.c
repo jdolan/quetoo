@@ -8,10 +8,6 @@
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *
  * See the GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
@@ -21,82 +17,47 @@
 
 #include "r_local.h"
 
-/**
- * @brief The shadow program.
- */
-static struct {
-  GLuint name;
-
-  /**
-   * @brief The uniforms UBO binding.
-   */
-  GLuint uniforms_block;
-
-  /**
-   * @brief The lights UBO binding.
-   */
-  GLuint lights_block;
-
-  /**
-   * @brief The model matrix uniform location.
-   */
-  GLint model;
-
-  /**
-   * @brief The frame interpolation fraction uniform location.
-   */
-  GLint lerp;
-
-  /**
-   * @brief The light view matrices for 6-pass rendering without geometry shader.
-   */
-  GLint light_view;
-
-  /**
-   * @brief The light index uniform location.
-   */
-  GLint light_index;
-
-  /**
-   * @brief The face index uniform location.
-   */
-  GLint face_index;
-} r_shadow_program;
-
 r_shadow_atlas_t r_shadow_atlas;
 
 /**
- * @brief Pre-culled entities for shadow rendering.
- * @details Populated once per light to avoid redundant culling tests across 6 cubemap faces.
+ * @brief The shadow depth pass pipeline (shadow_vs/shadow_fs) for static BSP
+ * geometry (r_bsp_vertex_t layout).
  */
-static struct {
-  const r_entity_t *bsp_entities[MAX_ENTITIES];
-  int32_t num_bsp_entities;
-
-  const r_entity_t *mesh_entities[MAX_ENTITIES];
-  int32_t num_mesh_entities;
-} r_shadow_entities;
+static GraphicsPipeline *r_shadow_pipeline;
 
 /**
- * @brief Computes the tile origin within a layer for a given light index and face.
- * @details Uses the local index (`light_index` % `lights_per_layer`) so that tile
- * positions repeat across layers.
+ * @brief The shadow depth pass pipeline for animated mesh casters (r_mesh_vertex_t
+ * layout, two frame slots lerped in shadow_vs).
  */
-static void R_ShadowAtlasTile(int32_t light_index, int32_t face, GLint *x, GLint *y) {
-
-  const int32_t local_index = light_index % r_shadow_atlas.lights_per_layer;
-  const int32_t light_col = local_index % r_shadow_atlas.lights_per_row;
-  const int32_t light_row = local_index / r_shadow_atlas.lights_per_row;
-  const int32_t face_col = face % 3;
-  const int32_t face_row = face / 3;
-  const GLsizei ts = r_shadow_atlas.tile_size;
-
-  *x = (light_col * 3 + face_col) * ts;
-  *y = (light_row * 2 + face_row) * ts;
-}
+static GraphicsPipeline *r_shadow_mesh_pipeline;
 
 /**
- * @brief Returns true if the given entity is the source of the specified light.
+ * @brief The shadow atlas "clear" pipeline (shadow_clear_vs/fs): draws a
+ * fullscreen triangle, no vertex buffer, that unconditionally writes the
+ * atlas's "far" value. Used to clear a single light's tile block via a
+ * scissored draw before redrawing it -- see R_DrawShadows.
+ */
+static GraphicsPipeline *r_shadow_clear_pipeline;
+
+/**
+ * @brief The six cube-face view matrices (light at origin), matching r_shadow.c
+ * on the GL path and the face UV mapping in light.glsl.
+ */
+static mat4_t r_shadow_light_view[6];
+
+/**
+ * @brief Per-face shadow locals, pushed to vertex uniform slot 1.
+ */
+typedef struct {
+  mat4_t model;
+  mat4_t light_view;
+  vec4_t light_origin;
+  float lerp;
+} r_shadow_locals_t;
+
+/**
+ * @brief Returns true if the given entity (or any of its parents) is the source
+ * of the specified light, so it should not cast a shadow from it (self-shadow).
  */
 static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 
@@ -111,525 +72,460 @@ static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 }
 
 /**
- * @brief Draws shadow geometry for a single BSP inline model entity.
+ * @brief Returns true if the given entity's shadow volume from the given
+ * light is entirely outside the view frustum, and thus not worth submitting
+ * a depth pass draw call for this frame.
  */
-static void R_DrawBspEntityShadow(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
+static bool R_CullLightEntity(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
 
-  const r_bsp_inline_model_t *in = e->model->bsp_inline;
+  vec3_t corners[8];
+  Box3_ToPoints(e->abs_model_bounds, corners);
 
-  glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
-
-  if (light->bsp_light && in == r_models.world->bsp->inline_models) {
-    glDrawElements(GL_TRIANGLES, light->bsp_light->num_depth_pass_elements, GL_UNSIGNED_INT, light->bsp_light->depth_pass_elements);
-  } else {
-    glDrawElements(GL_TRIANGLES, in->num_depth_pass_elements, GL_UNSIGNED_INT, in->depth_pass_elements);
+  box3_t shadow_bounds = e->abs_model_bounds;
+  for (int32_t i = 0; i < 8; i++) {
+    const vec3_t to_corner = Vec3_Subtract(corners[i], light->origin);
+    const vec3_t dir = Vec3_Normalize(to_corner);
+    shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, dir));
   }
+
+  shadow_bounds = Box3_Expand(shadow_bounds, 32.f);
+
+  return R_CulludeBox(view, shadow_bounds);
 }
 
 /**
- * @brief Culls BSP entities for shadow rendering against the specified light.
- * @details Performs all culling tests once and builds a list of visible entities.
- * This avoids redundant testing across all 6 cubemap faces.
+ * @brief Collects each shadow-casting light's BSP inline model and mesh
+ * entity casters (view-frustum pre-culled via R_CullLightEntity). A light
+ * with zero casters after this filtering can't have a changed shadow, so
+ * R_ClearShadows/R_DrawShadows skip it once `*shadow_cached` confirms it was
+ * already rendered in that state. This does once, up front, all of the
+ * per-light work that R_DrawShadows used to redo redundantly for each of the
+ * atlas's six cube face textures.
  */
-static void R_CullBspEntitiesForShadow(const r_view_t *view, const r_light_t *light) {
+void R_UpdateShadows(r_view_t *view) {
 
-  r_shadow_entities.num_bsp_entities = 0;
-
-  const r_entity_t *e = view->entities;
-  for (int32_t i = 0; i < view->num_entities; i++, e++) {
-
-    if (!IS_BSP_INLINE_MODEL(e->model)) {
-      continue;
-    }
-
-    if (Box3_IsNull(e->abs_model_bounds)) {
-      continue;
-    }
-
-    if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
-      continue;
-    }
-
-    vec3_t corners[8];
-    Box3_ToPoints(e->abs_model_bounds, corners);
-
-    box3_t shadow_bounds = e->abs_model_bounds;
-    for (int32_t j = 0; j < 8; j++) {
-      const vec3_t to_corner = Vec3_Subtract(corners[j], light->origin);
-      const vec3_t dir = Vec3_Normalize(to_corner);
-      shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, dir));
-    }
-
-    shadow_bounds = Box3_Expand(shadow_bounds, 32.f);
-
-    if (R_CulludeBox(view, shadow_bounds)) {
-      continue;
-    }
-
-    r_shadow_entities.bsp_entities[r_shadow_entities.num_bsp_entities++] = e;
-  }
-}
-
-/**
- * @brief Draws BSP entity shadows for the specified light.
- * @details Iterates the pre-culled list built by `R_CullBspEntitiesForShadow`.
- */
-static void R_DrawBspEntitiesShadow(const r_view_t *view, const r_light_t *light) {
-
-  const r_bsp_model_t *bsp = r_models.world->bsp;
-  glBindVertexArray(bsp->depth_pass.vertex_array);
-
-  glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
-  glUniform1f(r_shadow_program.lerp, 0.f);
-
-  for (int32_t i = 0; i < r_shadow_entities.num_bsp_entities; i++) {
-    R_DrawBspEntityShadow(view, light, r_shadow_entities.bsp_entities[i]);
-  }
-
-  glBindVertexArray(0);
-}
-
-/**
- * @brief Draws shadow geometry for a single mesh model face.
- */
-static void R_DrawMeshFaceShadow(const r_entity_t *e, const r_mesh_model_t *mesh, const r_mesh_face_t *face) {
-
-  const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
-  const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
-
-  glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
-}
-
-/**
- * @brief Draws shadow geometry for a single mesh entity, handling both static and animated meshes.
- */
-static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
-
-  const r_mesh_model_t *mesh = e->model->mesh;
-  assert(mesh);
-
-  glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
-  glUniform1f(r_shadow_program.lerp, e->lerp);
-
-  if (mesh->num_frames == 1) {
-    glDrawElementsBaseVertex(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, mesh->indices, mesh->base_vertex);
-  } else {
-
-    const r_mesh_face_t *face = mesh->faces;
-    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
-      R_DrawMeshFaceShadow(e, mesh, face);
-    }
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-  }
-}
-
-/**
- * @brief Culls mesh entities for shadow rendering against the specified light.
- * @details Performs all culling tests once and builds a list of visible entities.
- * This avoids redundant testing across all 6 cubemap faces.
- */
-static void R_CullMeshEntitiesForShadow(const r_view_t *view, const r_light_t *light) {
-
-  r_shadow_entities.num_mesh_entities = 0;
-
-  const r_entity_t *e = view->entities;
-  for (int32_t i = 0; i < view->num_entities; i++, e++) {
-
-    if (!IS_MESH_MODEL(e->model)) {
-      continue;
-    }
-
-    if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
-      continue;
-    }
-
-    if (R_IsLightSource(light, e)) {
-      continue;
-    }
-
-    if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
-      continue;
-    }
-
-    vec3_t corners[8];
-    Box3_ToPoints(e->abs_model_bounds, corners);
-
-    box3_t shadow_bounds = e->abs_model_bounds;
-    for (int32_t j = 0; j < 8; j++) {
-      const vec3_t to_corner = Vec3_Subtract(corners[j], light->origin);
-      const vec3_t dir = Vec3_Normalize(to_corner);
-      shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, dir));
-    }
-
-    shadow_bounds = Box3_Expand(shadow_bounds, 32.f);
-
-    if (R_CulludeBox(view, shadow_bounds)) {
-      continue;
-    }
-
-    r_shadow_entities.mesh_entities[r_shadow_entities.num_mesh_entities++] = e;
-  }
-}
-
-/**
- * @brief Draws mesh entity shadows for the specified light.
- * @details Iterates the pre-culled list built by `R_CullMeshEntitiesForShadow`.
- */
-static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *light) {
-
-  glBindVertexArray(r_models.mesh.depth_pass.vertex_array);
-
-  glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
-
-  for (int32_t i = 0; i < r_shadow_entities.num_mesh_entities; i++) {
-    R_DrawMeshEntityShadow(view, light, r_shadow_entities.mesh_entities[i]);
-  }
-
-  glBindVertexArray(0);
-}
-
-/**
- * @brief Renders the shadow atlas tiles for the specified light.
- */
-static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
-
-  const vec3_t closest_point = Box3_ClampPoint(light->bounds, view->origin);
-  const float dist = Vec3_Distance(closest_point, view->origin);
-
-  R_CullBspEntitiesForShadow(view, light);
-
-  if (r_shadows->value && dist <= r_shadow_distance->value) {
-    R_CullMeshEntitiesForShadow(view, light);
-  } else {
-    r_shadow_entities.num_mesh_entities = 0;
-  }
-
-  const bool is_shadow_cacheable = r_shadow_entities.num_bsp_entities <= 1
-                                && r_shadow_entities.num_mesh_entities == 0;
-
-  if (is_shadow_cacheable) {
-    if (light->shadow_cached && *light->shadow_cached) {
-      return;
-    }
-  }
-
-  const GLint index = (GLint) (light - view->lights);
-
-  if (index >= MAX_LIGHTS) {
-    return;
-  }
-
-  glUniform1i(r_shadow_program.light_index, index);
-
-  glEnable(GL_SCISSOR_TEST);
-
-  GLint block_x, block_y;
-  R_ShadowAtlasTile(index, 0, &block_x, &block_y);
-
-  glScissor(block_x, block_y, r_shadow_atlas.tile_size * 3, r_shadow_atlas.tile_size * 2);
-
-  glClear(GL_DEPTH_BUFFER_BIT);
-
-  for (GLint face = 0; face < 6; face++) {
-
-    GLint tile_x, tile_y;
-    R_ShadowAtlasTile(index, face, &tile_x, &tile_y);
-
-    glViewport(tile_x, tile_y, r_shadow_atlas.tile_size, r_shadow_atlas.tile_size);
-    glScissor(tile_x, tile_y, r_shadow_atlas.tile_size, r_shadow_atlas.tile_size);
-
-    glUniform1i(r_shadow_program.face_index, face);
-
-    if (r_shadow_entities.num_bsp_entities > 0) {
-      R_DrawBspEntitiesShadow(view, light);
-    }
-
-    if (r_shadow_entities.num_mesh_entities > 0) {
-      R_DrawMeshEntitiesShadow(view, light);
-    }
-  }
-
-  glDisable(GL_SCISSOR_TEST);
-
-  if (light->shadow_cached) {
-    *light->shadow_cached = is_shadow_cacheable;
-  }
-
-  R_GetError(NULL);
-}
-
-/**
- * @brief Renders shadow maps for all visible, non-occluded lights into the shadow atlas.
- */
-void R_DrawShadows(const r_view_t *view) {
-
-  r_shadow_atlas.frame_count++;
-
-  glBindFramebuffer(GL_FRAMEBUFFER, r_shadow_atlas.framebuffer);
-
-  glUseProgram(r_shadow_program.name);
-
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_DEPTH_CLAMP);
-
-  GLint current_layer = -1;
-
-  const r_light_t *l = view->lights;
+  r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-    if (l->occluded) {
-      continue;
-    }
+    l->num_entities = 0;
 
     if (l->flags & R_LIGHT_NO_SHADOW) {
       continue;
     }
 
-    const GLint layer = i / r_shadow_atlas.lights_per_layer;
-    if (layer != current_layer) {
-      glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadow_atlas.texture, 0, layer);
-      current_layer = layer;
+    if (l->occluded) {
+      continue;
     }
 
-    R_DrawShadow(view, l);
+    // Mesh entity shadows are optional (r_shadows) and distance-culled
+    // (r_shadow_distance); the world and BSP inline models always cast.
+    const vec3_t closest_point = Box3_ClampPoint(l->bounds, view->origin);
+    const float dist = Vec3_Distance(closest_point, view->origin);
+
+    const r_entity_t *e = view->entities;
+    for (int32_t j = 0; j < view->num_entities; j++, e++) {
+
+      if (e->model == NULL) {
+        continue;
+      }
+
+      if (IS_WORLDSPAWN((e->model))) {
+        continue;
+      }
+
+      if (!r_shadows->value || dist > r_shadow_distance->value) {
+        continue;
+      }
+
+      if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
+        continue;
+      }
+      
+      if (R_IsLightSource(l, e)) {
+        continue;
+      }
+
+      if (!Box3_Intersects(l->bounds, e->abs_model_bounds)) {
+        continue;
+      }
+
+      if (R_CullLightEntity(view, l, e)) {
+        continue;
+      }
+
+      l->entities[l->num_entities++] = e;
+    }
+
+    if (l->num_entities == 0 && l->shadow_cached && *l->shadow_cached) {
+      r_stats.lights_cached++;
+    }
   }
-
-  glDisable(GL_DEPTH_CLAMP);
-  glDisable(GL_DEPTH_TEST);
-
-  const SDL_Rect viewport = r_context.viewport;
-  glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
-
-  glUseProgram(0);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  R_GetError(NULL);
 }
 
 /**
- * @brief Initializes the shadow program with optimized shaders (no geometry shader).
+ * @brief Clears the shadow atlas tiles of every light that will be redrawn
+ * this frame (see R_UpdateShadows), one pipeline bind per cube face rather
+ * than one per light.
  */
-static void R_InitShadowProgram(void) {
+void R_ClearShadows(const r_view_t *view) {
 
-  memset(&r_shadow_program, 0, sizeof(r_shadow_program));
+  CommandBuffer *commands = r_context.device->commands;
 
-  r_shadow_program.name = R_LoadProgram(
-        R_ShaderDescriptor(GL_VERTEX_SHADER, "shadow_vs.glsl", NULL),
-        R_ShaderDescriptor(GL_FRAGMENT_SHADER, "shadow_fs.glsl", NULL),
-        NULL);
+  const int32_t ts = r_shadow_atlas.tile_size;
 
-  glUseProgram(r_shadow_program.name);
+  for (int32_t face = 0; face < 6; face++) {
 
-  r_shadow_program.uniforms_block = glGetUniformBlockIndex(r_shadow_program.name, "uniforms_block");
-  glUniformBlockBinding(r_shadow_program.name, r_shadow_program.uniforms_block, 0);
+    const SDL_GPUDepthStencilTargetInfo depth = {
+      .texture = r_shadow_atlas.textures[face]->texture,
+      .load_op = SDL_GPU_LOADOP_LOAD,
+      .store_op = SDL_GPU_STOREOP_STORE,
+    };
 
-  r_shadow_program.lights_block = glGetUniformBlockIndex(r_shadow_program.name, "lights_block");
-  glUniformBlockBinding(r_shadow_program.name, r_shadow_program.lights_block, 1);
+    RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
 
-  r_shadow_program.model = glGetUniformLocation(r_shadow_program.name, "model");
-  r_shadow_program.lerp = glGetUniformLocation(r_shadow_program.name, "lerp");
-  r_shadow_program.light_view = glGetUniformLocation(r_shadow_program.name, "light_view");
-  r_shadow_program.light_index = glGetUniformLocation(r_shadow_program.name, "light_index");
-  r_shadow_program.face_index = glGetUniformLocation(r_shadow_program.name, "face_index");
+    $(pass, bindPipeline, r_shadow_clear_pipeline);
 
-  const mat4_t light_view[6] = {
-    Mat4_LookAt(Vec3_Zero(), Vec3( 1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f)),
-    Mat4_LookAt(Vec3_Zero(), Vec3(-1.0,  0.0,  0.0), Vec3(0.0, -1.0,  0.0)),
-    Mat4_LookAt(Vec3_Zero(), Vec3( 0.0,  1.0,  0.0), Vec3(0.0,  0.0,  1.0)),
-    Mat4_LookAt(Vec3_Zero(), Vec3( 0.0, -1.0,  0.0), Vec3(0.0,  0.0, -1.0)),
-    Mat4_LookAt(Vec3_Zero(), Vec3( 0.0,  0.0,  1.0), Vec3(0.0, -1.0,  0.0)),
-    Mat4_LookAt(Vec3_Zero(), Vec3( 0.0,  0.0, -1.0), Vec3(0.0, -1.0,  0.0))
-  };
+    const r_light_t *l = view->lights;
+    for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-  glUniformMatrix4fv(r_shadow_program.light_view, 6, false, (float *) light_view);
+      if (l->num_entities == 0 && l->shadow_cached && *l->shadow_cached) {
+        continue;
+      }
 
-  glUseProgram(0);
+      $(pass, setViewport, &(SDL_GPUViewport) {
+        .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
+        .min_depth = 0.f, .max_depth = 1.f,
+      });
+      $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
 
-  R_GetError(NULL);
+      $(pass, drawPrimitives, 3, 1, 0, 0);
+    }
+
+    pass = release(pass);
+  }
 }
 
 /**
- * @brief Initializes the shadow atlas texture.
- * @details Allocates a `GL_TEXTURE_2D_ARRAY` of square 8192x8192 depth
- * layers with enough layers for `MAX_LIGHTS`. Each light occupies a 3x2
- * block of `tile_size` faces. Layers are forced square by choosing
- * `lights_per_col = lights_per_row * 3 / 2`.
- *
- * Sizing per `r_shadow_tile_size` (with `MAX_LIGHTS` = 576):
- *
- *   tile  lights/row  lights/layer  layers  layer_size  total depth mem
- *   ----  ----------  ------------  ------  ----------  ---------------
- *    128       20          600         1      7680^2     ~117 MB
- *    192       14          294         2      8064^2     ~248 MB
- *    256       10          150         4      7680^2     ~470 MB
- *    512        4           24        24      6144^2     ~1.8 GB
- *   1024        2            6        96      6144^2     ~7.2 GB
+ * @brief Renders shadow depth maps for all lights that need a redraw this
+ * frame (see R_UpdateShadows) into the shadow atlas. One depth-only render
+ * pass per cube face texture, one pipeline bind per caster type (BSP, then
+ * mesh) per face, rather than the two-pipeline thrashing of the old
+ * per-light interleaving.
  */
-static void R_InitShadowTextures(void) {
+void R_DrawShadows(const r_view_t *view) {
 
-  GLint max_array_layers;
-  glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &max_array_layers);
-
-  GLint max_texture_size;
-  glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
-
-  r_shadow_atlas.tile_size = Maxi(r_shadow_tile_size->integer, 128);
-
-  // Clamp the atlas layer dimension to what the GPU actually supports.
-  // GL 4.1 requires at least 16384 for GL_MAX_TEXTURE_SIZE, but some
-  // drivers (e.g. Intel HD 4000 on Windows) report lower values.
-  // Square constraint: lights_per_col = lights_per_row * 3/2
-  // (so lights_per_row must be even). Layer dim = lights_per_row*3*tile.
-  const GLint layer_dim = Mini(8192, max_texture_size);
-
-  r_shadow_atlas.lights_per_row = layer_dim / (3 * r_shadow_atlas.tile_size);
-  if (r_shadow_atlas.lights_per_row < 2) {
-    r_shadow_atlas.lights_per_row = 2;
-  }
-  r_shadow_atlas.lights_per_row &= ~1;
-
-  r_shadow_atlas.lights_per_col = r_shadow_atlas.lights_per_row * 3 / 2;
-  r_shadow_atlas.layer_size = r_shadow_atlas.lights_per_row * 3 * r_shadow_atlas.tile_size;
-
-  r_shadow_atlas.lights_per_layer = r_shadow_atlas.lights_per_row * r_shadow_atlas.lights_per_col;
-  r_shadow_atlas.num_layers = (MAX_LIGHTS + r_shadow_atlas.lights_per_layer - 1) / r_shadow_atlas.lights_per_layer;
-
-  if (r_shadow_atlas.num_layers > max_array_layers) {
-    Com_Error(ERROR_FATAL, "Shadow atlas needs %d layers, GPU max is %d\n",
-              r_shadow_atlas.num_layers, max_array_layers);
+  if (!r_models.world) {
+    return;
   }
 
-  Com_Verbose("   Shadow atlas: %dx%d x %d layers (%d lights/layer, %d tile size)\n",
-      r_shadow_atlas.layer_size,
-      r_shadow_atlas.layer_size,
-      r_shadow_atlas.num_layers,
-      r_shadow_atlas.lights_per_layer,
-      r_shadow_atlas.tile_size);
+  CommandBuffer *commands = r_context.device->commands;
 
-  glGenTextures(1, &r_shadow_atlas.texture);
+  const r_bsp_model_t *bsp = r_models.world->bsp;
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOW_ATLAS);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, r_shadow_atlas.texture);
+  const int32_t ts = r_shadow_atlas.tile_size;
 
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  for (int32_t face = 0; face < 6; face++) {
 
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    const SDL_GPUDepthStencilTargetInfo depth = {
+      .texture = r_shadow_atlas.textures[face]->texture,
+      .load_op = SDL_GPU_LOADOP_LOAD,
+      .store_op = SDL_GPU_STOREOP_STORE,
+    };
 
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+    RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
 
-  glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT16,
-               r_shadow_atlas.layer_size, r_shadow_atlas.layer_size,
-               r_shadow_atlas.num_layers, 0,
-               GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    $(pass, bindPipeline, r_shadow_pipeline);
 
-  if (glGetError() == GL_OUT_OF_MEMORY) {
-    const size_t mb = (size_t) r_shadow_atlas.layer_size * r_shadow_atlas.layer_size *
-                      r_shadow_atlas.num_layers * 2 / (1024 * 1024);
-    Com_Error(ERROR_DROP,
-              "Shadow atlas allocation failed: not enough GPU memory.\n"
-              "Requested %dx%d x %d layers (~%zu MB).\n"
-              "Try lowering r_shadow_tile_size (currently %d) or using a lower quality preset.\n",
-              r_shadow_atlas.layer_size, r_shadow_atlas.layer_size,
-              r_shadow_atlas.num_layers, mb,
-              r_shadow_atlas.tile_size);
+    $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
+      { .buffer = bsp->vertex_buffer->buffer },
+      { .buffer = bsp->vertex_buffer->buffer },
+    }, 2);
+
+    $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
+      .buffer = bsp->elements_buffer->buffer
+    }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+    $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+
+    const r_light_t *l = view->lights;
+    for (int32_t i = 0; i < view->num_lights; i++, l++) {
+
+      if (l->num_entities == 0 && l->shadow_cached && *l->shadow_cached) {
+        continue;
+      }
+
+      $(pass, setViewport, &(SDL_GPUViewport) {
+        .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
+        .min_depth = 0.f, .max_depth = 1.f,
+      });
+      $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
+
+      uint32_t count, first_index;
+      if (l->bsp_light && l->bsp_light->num_depth_pass_elements) {
+        count = (uint32_t) l->bsp_light->num_depth_pass_elements;
+        first_index = (uint32_t) ((uintptr_t) l->bsp_light->depth_pass_elements / sizeof(uint32_t));
+      } else {
+        const r_bsp_inline_model_t *world = bsp->inline_models;
+        count = (uint32_t) world->num_depth_pass_elements;
+        first_index = (uint32_t) ((uintptr_t) world->depth_pass_elements / sizeof(uint32_t));
+      }
+
+      $(commands, pushVertexUniformData, 1, &(const r_shadow_locals_t) {
+        .model = Mat4_Identity(),
+        .light_view = r_shadow_light_view[face],
+        .light_origin = Vec3_ToVec4(l->origin, 0.f),
+        .lerp = 0.f,
+      }, sizeof(r_shadow_locals_t));
+
+      $(pass, drawIndexedPrimitives, count, 1, first_index, 0, 0);
+
+      for (int32_t j = 0; j < l->num_entities; j++) {
+
+        const r_entity_t *e = l->entities[j];
+        
+        if (!IS_BSP_INLINE_MODEL(e->model)) {
+          continue;
+        }
+
+        const r_bsp_inline_model_t *in = e->model->bsp_inline;
+
+        const uint32_t in_first_index = (uint32_t) ((uintptr_t) in->depth_pass_elements / sizeof(uint32_t));
+        const uint32_t in_count = (uint32_t) in->num_depth_pass_elements;
+
+        if (!in_count) {
+          continue;
+        }
+
+        const r_shadow_locals_t in_locals = {
+          .model = e->matrix,
+          .light_view = r_shadow_light_view[face],
+          .light_origin = Vec3_ToVec4(l->origin, 0.f),
+          .lerp = 0.f,
+        };
+        $(commands, pushVertexUniformData, 1, &in_locals, sizeof(in_locals));
+
+        $(pass, drawIndexedPrimitives, in_count, 1, in_first_index, 0, 0);
+      }
+    }
+
+    $(pass, bindPipeline, r_shadow_mesh_pipeline);
+    $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+
+    l = view->lights;
+    for (int32_t i = 0; i < view->num_lights; i++, l++) {
+
+      if (l->num_entities == 0) {
+        continue;
+      }
+
+      $(pass, setViewport, &(SDL_GPUViewport) {
+        .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
+        .min_depth = 0.f, .max_depth = 1.f,
+      });
+      $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
+
+      for (int32_t j = 0; j < l->num_entities; j++) {
+        const r_entity_t *e = l->entities[j];
+        
+        if (!IS_MESH_MODEL(e->model)) {
+          continue;
+        }
+
+        const r_mesh_model_t *mesh = e->model->mesh;
+
+        $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
+          .buffer = mesh->elements_buffer->buffer
+        }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+        const uint32_t stride = sizeof(r_mesh_vertex_t);
+
+        const r_shadow_locals_t locals = {
+          .model = e->matrix,
+          .light_view = r_shadow_light_view[face],
+          .light_origin = Vec3_ToVec4(l->origin, 0.f),
+          .lerp = e->lerp,
+        };
+        $(commands, pushVertexUniformData, 1, &locals, sizeof(locals));
+
+        const r_mesh_face_t *mf = mesh->faces;
+        for (int32_t fi = 0; fi < mesh->num_faces; fi++, mf++) {
+
+          const uint32_t old_offset = (uint32_t) (mf->base_vertex + e->old_frame * mf->num_vertexes) * stride;
+          const uint32_t cur_offset = (uint32_t) (mf->base_vertex + e->frame * mf->num_vertexes) * stride;
+
+          $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
+            { .buffer = mesh->vertex_buffer->buffer, .offset = old_offset },
+            { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
+          }, 2);
+
+          const uint32_t first_index = (uint32_t) ((uintptr_t) mf->indices / sizeof(uint32_t));
+          $(pass, drawIndexedPrimitives, mf->num_elements, 1, first_index, 0, 0);
+        }
+      }
+    }
+
+    pass = release(pass);
   }
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-
-  R_GetError(NULL);
+  
+  const r_light_t *l = view->lights;
+  for (int32_t i = 0; i < view->num_lights; i++, l++) {
+    if (l->shadow_cached) {
+      *l->shadow_cached = l->num_entities == 0;
+    }
+  }
 }
 
 /**
- * @brief Initializes the shadow atlas framebuffer and attaches the first texture layer.
- */
-static void R_InitShadowFramebuffer(void) {
-
-  glGenFramebuffers(1, &r_shadow_atlas.framebuffer);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, r_shadow_atlas.framebuffer);
-
-  glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadow_atlas.texture, 0, 0);
-
-  glDrawBuffer(GL_NONE);
-  glReadBuffer(GL_NONE);
-
-  GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-  if (status != GL_FRAMEBUFFER_COMPLETE) {
-    Com_Error(ERROR_DROP, "Shadow atlas framebuffer incomplete (status 0x%x). "
-              "Try lowering r_shadow_tile_size or using a lower quality preset.\n", status);
-  }
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  R_GetError(NULL);
-}
-
-/**
- * @brief Initializes all shadow mapping resources: program, textures, and framebuffer.
+ * @brief Initializes all shadow mapping resources: atlas texture, comparison
+ * sampler, and the depth pass pipeline.
  */
 void R_InitShadows(void) {
 
-  R_InitShadowProgram();
+  memset(&r_shadow_atlas, 0, sizeof(r_shadow_atlas));
 
-  R_InitShadowTextures();
+  r_shadow_atlas.tile_size = Maxi(r_shadow_tile_size->integer, 128);
 
-  R_InitShadowFramebuffer();
+  const Uint32 layer_size = SHADOW_ATLAS_LIGHTS_PER_ROW * (Uint32) r_shadow_atlas.tile_size;
+
+  Com_Verbose("   Shadow atlas: 6x %dx%d (%d tile size)\n",
+      layer_size, layer_size, r_shadow_atlas.tile_size);
+
+  // One plain 2D depth texture per cube face (SDL_gpu forbids array depth
+  // targets); all six share the same tile grid, so a light's tile lands at
+  // the same (row, col) in every face.
+  for (int32_t face = 0; face < 6; face++) {
+    r_shadow_atlas.textures[face] = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
+      .type = SDL_GPU_TEXTURETYPE_2D,
+      .format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+      .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER,
+      .width = layer_size,
+      .height = layer_size,
+      .layer_count_or_depth = 1,
+      .num_levels = 1,
+      .sample_count = SDL_GPU_SAMPLECOUNT_1,
+    }, NULL);
+  }
+
+  // Comparison sampler (GL_COMPARE_REF_TO_TEXTURE / LEQUAL) with linear filtering
+  // for hardware PCF, matching the GL shadow atlas.
+  r_shadow_atlas.sampler = $(r_context.device, createSamplerShadowCompare);
+
+  Shader *vertexShader = $(r_context.device, loadShader, "shaders/shadow_vs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    .num_uniform_buffers = 2, // globals (binding 0) + locals (binding 1)
+  });
+
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/shadow_fs", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+    .num_uniform_buffers = 1, // globals (binding 0), for depth_range
+  });
+
+  SDL_GPUGraphicsPipelineCreateInfo info = {
+    .vertex_shader = vertexShader->shader,
+    .fragment_shader = fragmentShader->shader,
+    .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    .vertex_input_state = {
+      .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
+        { .slot = 0, .pitch = sizeof(r_bsp_vertex_t), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
+        { .slot = 1, .pitch = sizeof(r_bsp_vertex_t), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
+      },
+      .num_vertex_buffers = 2,
+      .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+        { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_bsp_vertex_t, position) },
+        { .location = 1, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_bsp_vertex_t, position) },
+      },
+      .num_vertex_attributes = 2,
+    },
+    .rasterizer_state = {
+      .fill_mode = SDL_GPU_FILLMODE_FILL,
+      .cull_mode = SDL_GPU_CULLMODE_NONE,
+      .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE,
+      .enable_depth_clip = false, // == GL_DEPTH_CLAMP
+    },
+    .depth_stencil_state = {
+      .compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
+      .enable_depth_test = true,
+      .enable_depth_write = true,
+    },
+    .target_info = {
+      .num_color_targets = 0,
+      .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+      .has_depth_stencil_target = true,
+    },
+  };
+
+  r_shadow_pipeline = $(r_context.device, createGraphicsPipeline, &info);
+
+  // A mesh-layout variant (r_mesh_vertex_t stride) for animated mesh casters.
+  info.vertex_input_state = (SDL_GPUVertexInputState) {
+    .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
+      { .slot = 0, .pitch = sizeof(r_mesh_vertex_t), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
+      { .slot = 1, .pitch = sizeof(r_mesh_vertex_t), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
+    },
+    .num_vertex_buffers = 2,
+    .vertex_attributes = (SDL_GPUVertexAttribute[]) {
+      { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, position) },
+      { .location = 1, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, position) },
+    },
+    .num_vertex_attributes = 2,
+  };
+
+  r_shadow_mesh_pipeline = $(r_context.device, createGraphicsPipeline, &info);
+
+  release(vertexShader);
+  release(fragmentShader);
+
+  // The atlas "clear" pipeline: no vertex input (a fullscreen triangle from
+  // gl_VertexIndex alone), depth test/compare disabled so the write always
+  // succeeds regardless of the scissored rect's existing contents.
+  SDL_GPUGraphicsPipelineCreateInfo clear_info = {
+    .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    .rasterizer_state = {
+      .fill_mode = SDL_GPU_FILLMODE_FILL,
+      .cull_mode = SDL_GPU_CULLMODE_NONE,
+      .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE,
+    },
+    .depth_stencil_state = {
+      .compare_op = SDL_GPU_COMPAREOP_ALWAYS,
+      .enable_depth_test = true,
+      .enable_depth_write = true,
+    },
+    .target_info = {
+      .num_color_targets = 0,
+      .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+      .has_depth_stencil_target = true,
+    },
+  };
+
+  r_shadow_clear_pipeline = $(r_context.device, loadGraphicsPipeline,
+    "shaders/shadow_clear_vs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    },
+    "shaders/shadow_clear_fs", &(SDL_GPUShaderCreateInfo) {
+      .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+    },
+    &clear_info);
+
+  // Cube-face view matrices, light at the origin.
+  r_shadow_light_view[0] = Mat4_LookAt(Vec3_Zero(), Vec3( 1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
+  r_shadow_light_view[1] = Mat4_LookAt(Vec3_Zero(), Vec3(-1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
+  r_shadow_light_view[2] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  1.f,  0.f), Vec3(0.f,  0.f,  1.f));
+  r_shadow_light_view[3] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f, -1.f,  0.f), Vec3(0.f,  0.f, -1.f));
+  r_shadow_light_view[4] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f,  1.f), Vec3(0.f, -1.f,  0.f));
+  r_shadow_light_view[5] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f, -1.f), Vec3(0.f, -1.f,  0.f));
 }
 
 /**
- * @brief Deletes the shadow GLSL program.
- */
-static void R_ShutdownShadowProgram(void) {
-
-  glDeleteProgram(r_shadow_program.name);
-
-  r_shadow_program.name = 0;
-
-  R_GetError(NULL);
-}
-
-/**
- * @brief Deletes the shadow atlas depth texture.
- */
-static void R_ShutdownShadowTexture(void) {
-
-  glDeleteTextures(1, &r_shadow_atlas.texture);
-
-  r_shadow_atlas.texture = 0;
-
-  R_GetError(NULL);
-}
-
-/**
- * @brief Deletes the shadow atlas framebuffer object.
- */
-static void R_ShutdownShadowFramebuffer(void) {
-
-  glDeleteFramebuffers(1, &r_shadow_atlas.framebuffer);
-
-  r_shadow_atlas.framebuffer = 0;
-
-  R_GetError(NULL);
-}
-
-/**
- * @brief Shuts down all shadow mapping resources: program, texture, and framebuffer.
+ * @brief Shuts down all shadow mapping resources.
  */
 void R_ShutdownShadows(void) {
 
-  R_ShutdownShadowProgram();
+  r_shadow_pipeline = release(r_shadow_pipeline);
+  r_shadow_mesh_pipeline = release(r_shadow_mesh_pipeline);
+  r_shadow_clear_pipeline = release(r_shadow_clear_pipeline);
+  r_shadow_atlas.sampler = release(r_shadow_atlas.sampler);
 
-  R_ShutdownShadowTexture();
-
-  R_ShutdownShadowFramebuffer();
+  for (int32_t face = 0; face < 6; face++) {
+    r_shadow_atlas.textures[face] = release(r_shadow_atlas.textures[face]);
+  }
 }

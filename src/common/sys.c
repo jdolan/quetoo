@@ -444,10 +444,12 @@ char *Sys_Backtrace(uint32_t start, uint32_t max_count) {
  */
 static char sys_crash_log_path[MAX_OS_PATH];
 
+#if !defined(_WIN32)
 /**
  * @brief Open file descriptor for the crash log, used in signal handlers.
  */
 static int sys_crash_log_fd = -1;
+#endif
 
 /**
  * @brief Ensures `sys_crash_log_path` is set and its directory exists.

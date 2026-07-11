@@ -422,17 +422,17 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
   if (cg_state.nav_edit) {
 
     if (cg_state.nav_edit == 1) {
-      GLint ch;
+      int32_t ch;
       cgi.BindFont("small", NULL, &ch);
 
-      const GLint lines = 14;
-      const GLint panel_x = 24;
-      const GLint panel_y = 32;
-      const GLint panel_w = 640;
-      const GLint panel_h = (lines + 2) * ch;
+      const int32_t lines = 14;
+      const int32_t panel_x = 24;
+      const int32_t panel_y = 32;
+      const int32_t panel_w = 640;
+      const int32_t panel_h = (lines + 2) * ch;
       cgi.Draw2DFill(panel_x, panel_y, panel_w, panel_h, ColorHSVA(0.f, 0.f, 0.f, 0.65f));
 
-      GLint y = 32;
+      int32_t y = 32;
 
       cgi.Draw2DString(32, y += ch, "NAVIGATION EDIT MODE", color_white);
       cgi.Draw2DString(32, y += ch, "You're in nav edit mode; items can't be picked up,", color_white);

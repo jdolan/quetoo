@@ -19,46 +19,48 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#version 450
+
+#include "uniforms.glsl"
+
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec2 in_texcoord;
-layout (location = 3) in vec4 in_color;
+layout (location = 3) in vec4 in_color;      // UBYTE4_NORM
 layout (location = 4) in uint in_time;
 layout (location = 5) in uint in_lifetime;
 
-out common_vertex_t vertex;
+/**
+ * @brief Per-model locals (the inline model matrix; identity for worldspawn).
+ */
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+  mat4 model;
+};
 
-out decal_data {
-  flat uint time;
-  flat uint lifetime;
-} decal;
+layout (location = 0) out vec3 out_model_position;
+layout (location = 1) out vec3 out_model_normal;
+layout (location = 2) out vec2 out_texcoord;
+layout (location = 3) out vec4 out_color;
+layout (location = 4) flat out uint out_time;
+layout (location = 5) flat out uint out_lifetime;
 
-uniform mat4 model;
+invariant gl_Position;
 
 /**
- * @brief Decal vertex shader.
+ * @brief Decal vertex shader: the decal geometry is pre-clipped to surfaces on
+ * the CPU; here it is transformed and its model-space position/normal forwarded
+ * for clustered voxel lighting in the fragment stage.
  */
 void main(void) {
 
-  mat4 view_model = view * model;
+  const vec4 position = vec4(in_position, 1.0);
 
-  vec4 position = vec4(in_position, 1.0);
-  vec4 normal = vec4(in_normal, 0.0);
-
-  vertex.model_position = vec3(model * position);
-  vertex.model_normal = normalize(vec3(model * normal));
-  vertex.position = vec3(view_model * position);
-  vertex.normal = normalize(vec3(view_model * normal));
-  vertex.tangent = vec3(1.0, 0.0, 0.0);
-  vertex.bitangent = vec3(0.0, 1.0, 0.0);
-  vertex.diffusemap = in_texcoord;
-  vertex.voxel = voxel_uvw(vec3(model * position));
-  vertex.color = in_color;
-
-  vertex_lighting(vertex);
-
-  decal.time = in_time;
-  decal.lifetime = in_lifetime;
+  out_model_position = vec3(model * position);
+  out_model_normal = normalize(vec3(model * vec4(in_normal, 0.0)));
+  out_texcoord = in_texcoord;
+  out_color = in_color;
+  out_time = in_time;
+  out_lifetime = in_lifetime;
 
   gl_Position = projection3D * view * model * position;
 }

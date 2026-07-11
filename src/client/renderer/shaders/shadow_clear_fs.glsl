@@ -19,17 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#version 450
 
-#include "r_types.h"
+/*
+ * Writes the shadow atlas's "far" value (see shadow_fs.glsl: linear
+ * radial distance normalized by depth_range, where 1.0 = no occluder found)
+ * unconditionally, clearing whatever scissored rect this draw is restricted to.
+ */
+void main(void) {
 
-r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachments);
-void R_ClearFramebuffer(r_framebuffer_t *framebuffer);
-void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, GLuint *texture);
-void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, GLint x, GLint y, GLint w, GLint h);
-void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h);
-void R_ResolveFramebuffer(const r_framebuffer_t *framebuffer);
-void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, SDL_Surface **surface);
-void R_DestroyFramebuffer(r_framebuffer_t *framebuffer);
-#if defined(__R_LOCAL_H__)
-#endif
+  gl_FragDepth = 1.0;
+}

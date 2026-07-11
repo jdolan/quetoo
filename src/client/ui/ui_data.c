@@ -23,27 +23,6 @@
 #include "client.h"
 
 /**
- * @brief Loads a file from the virtual filesystem and returns it as an ObjectivelyMVC Data object.
- */
-Data *Ui_Data(const char *path) {
-
-  Data *data = NULL;
-
-  void *buffer;
-  const int64_t length = Fs_Load(path, &buffer);
-  if (length != -1) {
-    data = $$(Data, dataWithBytes, buffer, length);
-    assert(data);
-
-    Fs_Free(buffer);
-  } else {
-    Com_Warn("Failed to load %s\n", path);
-  }
-
-  return data;
-}
-
-/**
  * @brief Creates and returns a theme for the current SDL window.
  */
 Theme *Ui_Theme(void) {

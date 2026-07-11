@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL3/SDL_opengl.h>
-
 #include "cm_local.h"
 
 /**
@@ -37,7 +35,7 @@ typedef struct {
   const char *keyword;
   union {
     const int32_t flag;
-    const GLenum enumVal;
+    const int32_t enumVal;
   };
 } cm_dictionary_t;
 
@@ -142,43 +140,43 @@ static char *Cm_UnparseSurface(int32_t surface) {
  * @brief Blend consts
  */
 static cm_dictionary_t cm_blendConstList[] = {
-  { .keyword = "GL_ONE", .enumVal = GL_ONE },
-  { .keyword = "GL_ZERO", .enumVal = GL_ZERO },
-  { .keyword = "GL_SRC_ALPHA", .enumVal = GL_SRC_ALPHA },
-  { .keyword = "GL_ONE_MINUS_SRC_ALPHA", .enumVal = GL_ONE_MINUS_SRC_ALPHA },
-  { .keyword = "GL_SRC_COLOR", .enumVal = GL_SRC_COLOR },
-  { .keyword = "GL_DST_COLOR", .enumVal = GL_DST_COLOR },
-  { .keyword = "GL_ONE_MINUS_SRC_COLOR", .enumVal = GL_ONE_MINUS_SRC_COLOR }
+  { .keyword = "one", .enumVal = BLEND_ONE },
+  { .keyword = "zero", .enumVal = BLEND_ZERO },
+  { .keyword = "src_alpha", .enumVal = BLEND_SRC_ALPHA },
+  { .keyword = "one_minus_src_alpha", .enumVal = BLEND_ONE_MINUS_SRC_ALPHA },
+  { .keyword = "src_color", .enumVal = BLEND_SRC_COLOR },
+  { .keyword = "dst_color", .enumVal = BLEND_DST_COLOR },
+  { .keyword = "one_minus_src_color", .enumVal = BLEND_ONE_MINUS_SRC_COLOR }
 };
 
 /**
- * @brief Returns the OpenGL blend constant for the given keyword string.
+ * @brief Returns the blend factor for the given keyword string.
  */
-static inline GLenum Cm_BlendConstByName(const char *c) {
-  
+static inline cm_blend_t Cm_BlendConstByName(const char *c) {
+
   for (cm_dictionary_t *list = cm_blendConstList; list < cm_blendConstList + lengthof(cm_blendConstList); list++) {
     if (!q_strcmp(c, list->keyword)) {
-      return list->enumVal;
+      return (cm_blend_t) list->enumVal;
     }
   }
 
   Com_Warn("Failed to resolve: %s\n", c);
-  return GL_INVALID_ENUM;
+  return BLEND_INVALID;
 }
 
 /**
- * @brief Returns the keyword string for the given OpenGL blend constant.
+ * @brief Returns the keyword string for the given blend factor.
  */
-static inline const char *Cm_BlendNameByConst(const GLenum c) {
-  
+static inline const char *Cm_BlendNameByConst(const cm_blend_t c) {
+
   for (cm_dictionary_t *list = cm_blendConstList; list < cm_blendConstList + lengthof(cm_blendConstList); list++) {
-    if (c == list->enumVal) {
+    if (c == (cm_blend_t) list->enumVal) {
       return list->keyword;
     }
   }
 
-  Com_Warn("Failed to resolve: %u\n", c);
-  return "GL_INVALID_ENUM";
+  Com_Warn("Failed to resolve: %d\n", c);
+  return "invalid";
 }
 
 /**
@@ -224,9 +222,8 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
 
       s->blend.src = Cm_BlendConstByName(token);
 
-      if (s->blend.src == GL_INVALID_ENUM) {
+      if (s->blend.src == BLEND_INVALID) {
         Cm_MaterialWarn(m, parser, "Invalid blend src");
-        s->blend.src = 0;
       }
 
       if (!Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token))) {
@@ -236,9 +233,8 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
 
       s->blend.dest = Cm_BlendConstByName(token);
 
-      if (s->blend.dest == GL_INVALID_ENUM) {
+      if (s->blend.dest == BLEND_INVALID) {
         Cm_MaterialWarn(m, parser, "Invalid blend dest");
-        s->blend.dest = 0;
       }
 
       s->flags |= STAGE_BLEND;
@@ -569,13 +565,16 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
         }
       }
 
-      // ensure appropriate blend function defaults
-      if (s->blend.src == 0) {
-        s->blend.src = GL_SRC_ALPHA;
+      // ensure appropriate blend function defaults for stages that never
+      // specified a `blend` keyword at all (or gave an invalid factor name).
+      // BLEND_ZERO is a real, explicit choice (e.g. `blend one zero` for an
+      // opaque overwrite stage) and must not be mistaken for "unset".
+      if (s->blend.src == BLEND_INVALID) {
+        s->blend.src = BLEND_SRC_ALPHA;
       }
 
-      if (s->blend.dest == 0) {
-        s->blend.dest = GL_ONE_MINUS_SRC_ALPHA;
+      if (s->blend.dest == BLEND_INVALID) {
+        s->blend.dest = BLEND_ONE_MINUS_SRC_ALPHA;
       }
 
       Com_Debug(DEBUG_COLLISION,

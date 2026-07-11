@@ -19,28 +19,56 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#version 450
+
+/*
+ * The mesh program: animated (two-frame lerp) geometry with full per-fragment
+ * material lighting, sharing the BSP fragment stack (common/material/voxel/light).
+ * The two animation frames are supplied as two vertex buffer bindings (the same
+ * model buffer at two frame offsets): locations 0..4 are the old frame, 5..8 the
+ * current frame; diffusemap (4) does not animate.
+ */
+
+#include "uniforms.glsl"
+
+// The mesh program's own binding map: the material UBO (material + stage
+// params combined -- see material.glsl) follows globals (0) and locals (1);
+// the fragment stage's own map is defined in mesh_fs.glsl.
+#define BINDING_UNIFORMS_MATERIAL 2
+
+#include "common.glsl"
+#include "material.glsl"
+#include "voxel.glsl"
+
+// Old animation frame.
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec3 in_tangent;
 layout (location = 3) in vec3 in_bitangent;
 layout (location = 4) in vec2 in_diffusemap;
 
+// Current animation frame (diffusemap is shared with the old frame).
 layout (location = 5) in vec3 in_next_position;
 layout (location = 6) in vec3 in_next_normal;
 layout (location = 7) in vec3 in_next_tangent;
 layout (location = 8) in vec3 in_next_bitangent;
 
-uniform mat4 model;
-uniform float lerp;
-uniform float modulate_mesh;
-uniform vec4 color;
+/**
+ * @brief Per-entity locals.
+ */
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+  mat4 model;
+  float lerp;
+  float modulate_mesh;
+  vec4 color;
+};
 
-out common_vertex_t vertex;
+layout (location = 0) out common_vertex_t vertex;
 
 invariant gl_Position;
 
 /**
- * @brief
+ * @brief Lerps the two animation frames and emits the shared common_vertex_t.
  */
 void main(void) {
 
@@ -51,7 +79,7 @@ void main(void) {
   vec4 tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
   vec4 bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 0.0);
 
-  stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
+  stage_transform(position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
   vertex.model_position = vec3(model * position);
   vertex.model_normal = normalize(vec3(model * normal));
@@ -60,24 +88,19 @@ void main(void) {
   vertex.tangent = normalize(vec3(view_model * tangent));
   vertex.bitangent = normalize(vec3(view_model * bitangent));
   vertex.diffusemap = in_diffusemap;
-  vertex.voxel = vec3(0.0);
+  vertex.voxel = voxel_uvw(vec3(model * position));
   vertex.color = color;
-  vertex.ambient = vec3(0.0);
-  vertex.diffuse = vec3(0.0);
-  vertex.caustics = 0.0;
 
-  if (view_type == VIEW_PLAYER_MODEL) {
-    vertex.ambient = vec3(0.666);
-    vertex.diffuse = vec3(0.0);
-  } else {
-    vertex.voxel = voxel_uvw(vertex.model_position);
-    vertex_lighting(vertex);
-  }
+  stage_vertex(in_position, vertex);
+
+  // Cheap per-vertex ambient for the fragment shader's distant-fragment LOD
+  // path (see mesh_fragment_lighting) -- see bsp_vs.glsl's identical comment
+  // for why this doesn't also accumulate per-light diffuse here.
+  vertex.ambient = vec3(ambient) * voxel_exposure(vertex.voxel) * (1.0 - voxel_occlusion(vertex.voxel) * ambient_occlusion);
+  vertex.diffuse = vec3(0.0);
 
   vertex.ambient *= modulate_mesh;
   vertex.diffuse *= modulate_mesh;
 
   gl_Position = projection3D * view_model * position;
-
-  stage_vertex(stage, position.xyz, vertex);
 }

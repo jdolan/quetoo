@@ -30,7 +30,8 @@ libcguicontrols_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
-	@SDL3_CFLAGS@
+	@SDL3_CFLAGS@ \
+	@SNDFILE_CFLAGS@
 
 libcguicontrols_la_LDFLAGS = \
 	-shared

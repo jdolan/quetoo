@@ -13,6 +13,7 @@ noinst_LTLIBRARIES = \
 	libshared.la
 
 libshared_la_SOURCES = \
+	box.c \
 	md5.c \
 	parse.c \
 	qstring.c \
@@ -22,9 +23,13 @@ libshared_la_SOURCES = \
 libshared_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
-	@OBJECTIVELY_CFLAGS@
+	@OBJECTIVELY_CFLAGS@ \
+	@SDL3_CFLAGS@
+
 libshared_la_LDFLAGS = \
 	-shared
+
 libshared_la_LIBADD = \
 	@BASE_LIBS@ \
-	@OBJECTIVELY_LIBS@
+	@OBJECTIVELY_LIBS@ \
+	@SDL3_LIBS@

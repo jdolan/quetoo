@@ -19,6 +19,37 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#version 450
+
+#include "uniforms.glsl"
+
+// The BSP program's own binding map: the material UBO (material + stage
+// params combined -- see material.glsl) follows globals (0) and locals (1);
+// the fragment stage's own map is defined in bsp_fs.glsl. The vertex stage
+// has no samplers, so the storage buffers for per-vertex lighting (the same
+// buffers the fragment stage binds after its samplers) start at 0.
+#define BINDING_UNIFORMS_MATERIAL 2
+#define BINDING_STORAGE_LIGHTS              0
+#define BINDING_STORAGE_VOXEL_LIGHT_INDICES 1
+#define BINDING_STORAGE_VOXEL_LIGHT_DATA    2
+
+#include "common.glsl"
+#include "material.glsl"
+#include "voxel.glsl"
+
+/**
+ * @brief Per-draw locals: the model matrix and the dynamic light cull bitmask
+ * for per-vertex lighting (the fragment stage receives the same bitmask via
+ * its own locals block). Declared before light.glsl, whose vertex_lighting()
+ * reads active_lights.
+ */
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+  mat4 model;
+  uvec4 active_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
+};
+
+#include "light.glsl"
+
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec3 in_tangent;
@@ -26,9 +57,7 @@ layout (location = 3) in vec3 in_bitangent;
 layout (location = 4) in vec2 in_diffusemap;
 layout (location = 5) in vec4 in_color;
 
-uniform mat4 model;
-
-out common_vertex_t vertex;
+layout (location = 0) out common_vertex_t vertex;
 
 invariant gl_Position;
 
@@ -44,7 +73,7 @@ void main(void) {
   vec4 tangent = vec4(in_tangent, 0.0);
   vec4 bitangent = vec4(in_bitangent, 0.0);
 
-  stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
+  stage_transform(position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
   vertex.model_position = vec3(model * position);
   vertex.model_normal = normalize(vec3(model * normal));
@@ -56,8 +85,12 @@ void main(void) {
   vertex.voxel = voxel_uvw(vec3(model * position));
   vertex.color = in_color;
 
-  stage_vertex(stage, position.xyz, vertex);
+  stage_vertex(in_position, vertex);
 
+  // Cheap per-vertex lighting (clustered voxel + dynamic diffuse, unshadowed)
+  // for the fragment shader's distant LOD path: bsp_fragment_lighting blends
+  // to this beyond lighting_distance instead of running full per-fragment
+  // lighting.
   vertex_lighting(vertex);
 
   gl_Position = projection3D * view_model * position;

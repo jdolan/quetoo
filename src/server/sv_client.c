@@ -337,7 +337,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
         break;
       }
 
-      case CL_CMD_MOVE:
+      case CL_CMD_MOVE: {
 
         if (cl->state != SV_CLIENT_ACTIVE) {
           // Stale in-flight packets from the previous map arrive during level transitions
@@ -380,6 +380,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 
         Sv_ClientThink(cl, &cmd[2]);
         break;
+      }
 
       case CL_CMD_STRING:
 
