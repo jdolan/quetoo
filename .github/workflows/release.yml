@@ -17,12 +17,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       objectively-sha: ${{ steps.resolve.outputs.objectively-sha }}
+      objectivelygpu-sha: ${{ steps.resolve.outputs.objectivelygpu-sha }}
       objectivelymvc-sha: ${{ steps.resolve.outputs.objectivelymvc-sha }}
     steps:
     - name: Resolve dependency versions
       id: resolve
       run: |
         echo "objectively-sha=$(git ls-remote https://github.com/jdolan/Objectively.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
+        echo "objectivelygpu-sha=$(git ls-remote https://github.com/jdolan/ObjectivelyGPU.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
         echo "objectivelymvc-sha=$(git ls-remote https://github.com/jdolan/ObjectivelyMVC.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
 
   build-macos:
@@ -59,7 +61,7 @@ jobs:
       uses: actions/cache@v5
       with:
         path: /usr/local
-        key: macos-deps-${{ matrix.arch }}-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
+        key: macos-deps-${{ matrix.arch }}-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelygpu-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
 
     - name: Checkout Objectively
       if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -71,6 +73,25 @@ jobs:
     - name: Build Objectively
       if: steps.cache-deps.outputs.cache-hit != 'true'
       working-directory: Objectively
+      run: |
+        export CFLAGS="-I${HOMEBREW_PREFIX}/include"
+        export LDFLAGS="-L${HOMEBREW_PREFIX}/lib"
+        export PKG_CONFIG_PATH="${HOMEBREW_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+        autoreconf -i
+        ./configure
+        make -j$(sysctl -n hw.logicalcpu)
+        sudo make install
+
+    - name: Checkout ObjectivelyGPU
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      uses: actions/checkout@v6
+      with:
+        repository: jdolan/ObjectivelyGPU
+        path: ObjectivelyGPU
+
+    - name: Build ObjectivelyGPU
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      working-directory: ObjectivelyGPU
       run: |
         export CFLAGS="-I${HOMEBREW_PREFIX}/include"
         export LDFLAGS="-L${HOMEBREW_PREFIX}/lib"
@@ -324,6 +345,21 @@ jobs:
 
     - name: Build Objectively
       working-directory: Objectively
+      run: |
+        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
+        autoreconf -i
+        ./configure
+        make -j$(nproc)
+        sudo make install
+
+    - name: Checkout ObjectivelyGPU
+      uses: actions/checkout@v6
+      with:
+        repository: jdolan/ObjectivelyGPU
+        path: ObjectivelyGPU
+
+    - name: Build ObjectivelyGPU
+      working-directory: ObjectivelyGPU
       run: |
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
         autoreconf -i
