@@ -36,9 +36,15 @@ typedef struct {
    * early-Z), so it owns no framebuffer of its own.
    */
   GraphicsPipeline *pipeline;
-} r_depth_pass_program_t;
 
-extern r_depth_pass_program_t r_depth_pass_program;
+  /**
+   * @brief The Fence to query in subsequent frames to check if the depth pass and
+   * occlusion queries are flushed and available.
+   */
+  Fence *fence;
+} r_depth_pipeline_t;
+
+extern r_depth_pipeline_t r_depth_pipeline;
 
 void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands);
 void R_InitDepthPass(void);

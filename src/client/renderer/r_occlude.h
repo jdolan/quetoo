@@ -35,7 +35,6 @@ void R_AppendOcclusionQueryBox(r_occlusion_query_t *query, box3_t bounds);
 void R_FreeOcclusionQueries(void);
 void R_LoadOcclusionQueries(void);
 void R_DrawOcclusionQueries(const r_view_t *view, CommandBuffer *commands);
-void R_AddOcclusionQueryFence(Fence *fence);
 void R_InitOcclusionQueries(void);
 void R_ShutdownOcclusionQueries(void);
 

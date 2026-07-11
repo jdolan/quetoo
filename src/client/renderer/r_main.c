@@ -296,20 +296,19 @@ void R_DrawViewDepth(r_view_t *view) {
 
   R_UpdateUniforms(view);
 
-  if (!r_context.device->commands) {
-    return;
-  }
-
   CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
 
   R_DrawDepthPass(view, commands);
 
   R_DrawOcclusionQueries(view, commands);
 
-  Fence *fence = $(commands, submitAndFence);
-  release(commands);
+  if (r_depth_pipeline.fence) {
+    $(commands, submit);
+  } else {
+    r_depth_pipeline.fence = $(commands, submitAndFence);
+  }
 
-  R_AddOcclusionQueryFence(fence);
+  release(commands);
 }
 
 /**
@@ -321,10 +320,6 @@ void R_DrawViewDepth(r_view_t *view) {
 void R_DrawMainView(r_view_t *view) {
 
   assert(view);
-
-  if (!r_context.device->commands) {
-    return;
-  }
 
   R_UpdateLights(view);
 
@@ -350,9 +345,7 @@ void R_EndFrame(void) {
 
   R_Draw2D();
 
-  if (r_context.device->commands) {
-    $(r_context.device, endFrame);
-  }
+  $(r_context.device, endFrame);
 }
 
 /**
