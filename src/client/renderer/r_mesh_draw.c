@@ -76,6 +76,14 @@ static struct {
   GraphicsPipeline *pipeline;
 
   /**
+   * @brief An alpha-test variant of `pipeline`, for @c SURF_ALPHA_TEST faces. See
+   * r_bsp_draw.c's `pipeline_alpha_test` for why this needs its own pipeline
+   * (a `discard`-carrying fragment shader defeats early-Z for every draw that
+   * shares its pipeline, not just the ones that reach the `discard`).
+   */
+  GraphicsPipeline *pipeline_alpha_test;
+
+  /**
    * @brief The mesh pipeline variant for translucent faces (@c SURF_MASK_BLEND or
    * @c EF_BLEND): no face culling, alpha blending, matching the opaque pipeline
    * otherwise (depth test and write remain enabled, matching the GL renderer).
@@ -375,35 +383,12 @@ static void R_DrawMeshEntityMaterialStages(const r_view_t *view, RenderPass *pas
 }
 
 /**
- * @brief Binds material and vertex attributes, then draws elements for a
- * single mesh face. Called for both opaque and translucent faces; the caller
- * selects the pipeline (opaque vs. blend) before calling.
+ * @brief Pushes the per-face model/lerp/color locals and binds the face's
+ * vertex buffer offsets. Shared by the base face draw and the material-stage-
+ * only pass, both of which need this before drawing the same face's geometry.
  */
-static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
-                                 const r_entity_t *e, const r_mesh_model_t *mesh,
-                                 const r_mesh_face_t *face, const r_material_t *material) {
-
-  $(pass, bindFragmentSamplers, MESH_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
-    .texture = material->texture->texture->texture,
-    .sampler = r_mesh_draw.diffusemap_sampler->sampler,
-  }, 1);
-
-  // R_MaterialUniforms resets the stage fields to STAGE_NONE: a preceding
-  // face's material stages may have left them set, and this draw's shader
-  // branches on material.flags (mesh_fs.glsl).
-  r_mesh_material_uniforms_t material_uniforms;
-  R_MaterialUniforms(material, material->cm->surface, &material_uniforms.material);
-  memcpy(material_uniforms.tint_colors, e->tints, sizeof(material_uniforms.tint_colors));
-
-  // Tint channels the entity does not set (alpha == 0) take the material's
-  // default tint colors; without this, untinted tintmap texels shade to black.
-  for (size_t i = 0; i < lengthof(material_uniforms.tint_colors); i++) {
-    if (!e->tints[i].w) {
-      material_uniforms.tint_colors[i] = material->cm->tintmap_defaults[i];
-    }
-  }
-  $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms.material, sizeof(material_uniforms.material));
-  $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
+static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, const r_entity_t *e,
+                                 const r_mesh_model_t *mesh, const r_mesh_face_t *face, const r_material_t *material) {
 
   // Scale entity alpha by the surface's blend amount (33/66/100%); a no-op
   // for opaque faces (SURF_MASK_BLEND unset falls through to the 1x default).
@@ -435,6 +420,43 @@ static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, Command
     { .buffer = mesh->vertex_buffer->buffer, .offset = old_offset },
     { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
   }, 2);
+}
+
+/**
+ * @brief Binds material and vertex attributes, then draws elements for a
+ * single mesh face. Called for both opaque and translucent faces; the caller
+ * selects the pipeline (opaque, alpha-test, or blend) before calling.
+ * @param draw_stages True to also draw this face's material stages inline
+ * (the blend bucket); false to skip them (opaque/alpha-test buckets draw
+ * their stages separately, see R_DrawMeshEntityFaceMaterialStages).
+ */
+static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+                                 const r_entity_t *e, const r_mesh_model_t *mesh,
+                                 const r_mesh_face_t *face, const r_material_t *material, bool draw_stages) {
+
+  $(pass, bindFragmentSamplers, MESH_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+    .texture = material->texture->texture->texture,
+    .sampler = r_mesh_draw.diffusemap_sampler->sampler,
+  }, 1);
+
+  // R_MaterialUniforms resets the stage fields to STAGE_NONE: a preceding
+  // face's material stages may have left them set, and this draw's shader
+  // branches on material.flags (mesh_fs.glsl).
+  r_mesh_material_uniforms_t material_uniforms;
+  R_MaterialUniforms(material, material->cm->surface, &material_uniforms.material);
+  memcpy(material_uniforms.tint_colors, e->tints, sizeof(material_uniforms.tint_colors));
+
+  // Tint channels the entity does not set (alpha == 0) take the material's
+  // default tint colors; without this, untinted tintmap texels shade to black.
+  for (size_t i = 0; i < lengthof(material_uniforms.tint_colors); i++) {
+    if (!e->tints[i].w) {
+      material_uniforms.tint_colors[i] = material->cm->tintmap_defaults[i];
+    }
+  }
+  $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms.material, sizeof(material_uniforms.material));
+  $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
+
+  R_BindMeshEntityFace(pass, commands, e, mesh, face, material);
 
   const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
 
@@ -443,7 +465,22 @@ static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, Command
   r_stats.mesh_draw_elements++;
   r_stats.mesh_triangles += face->num_elements / 3;
 
-  // Material stage effects and the EF_SHELL overlay, blended over this face.
+  if (draw_stages) {
+    R_DrawMeshEntityMaterialStages(view, pass, commands, e, face, material);
+  }
+}
+
+/**
+ * @brief Draws a single face's material stages and EF_SHELL overlay on their
+ * own, without a base draw. Used by the opaque/alpha-test buckets, which draw
+ * their stages in a dedicated pass -- see R_DrawMeshEntity.
+ */
+static void R_DrawMeshEntityFaceMaterialStages(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
+                                               const r_entity_t *e, const r_mesh_model_t *mesh,
+                                               const r_mesh_face_t *face, const r_material_t *material) {
+
+  R_BindMeshEntityFace(pass, commands, e, mesh, face, material);
+
   R_DrawMeshEntityMaterialStages(view, pass, commands, e, face, material);
 }
 
@@ -499,11 +536,56 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
       continue;
     }
 
-    // Re-bind the base pipeline: a preceding face's material stages may have
-    // left a stage (blend) pipeline bound.
+    if (material->cm->surface & SURF_ALPHA_TEST) {
+      continue;
+    }
+
     $(pass, bindPipeline, r_mesh_draw.pipeline);
 
-    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material);
+    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, false);
+  }
+
+  face = mesh->faces;
+  for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+
+    const r_material_t *material = e->skins[i] ?: face->material;
+
+    if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
+      continue;
+    }
+
+    if (!material->texture || !material->texture->texture) {
+      continue;
+    }
+
+    if (!(material->cm->surface & SURF_ALPHA_TEST)) {
+      continue;
+    }
+
+    $(pass, bindPipeline, r_mesh_draw.pipeline_alpha_test);
+
+    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, false);
+  }
+
+  // Opaque and alpha-tested faces' material stages, in their own pass so
+  // stage pipeline binds don't interleave with the base pipelines above.
+  if (r_draw_material_stages->integer) {
+
+    face = mesh->faces;
+    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+
+      const r_material_t *material = e->skins[i] ?: face->material;
+
+      if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
+        continue;
+      }
+
+      if (!material->texture || !material->texture->texture) {
+        continue;
+      }
+
+      R_DrawMeshEntityFaceMaterialStages(view, pass, commands, e, mesh, face, material);
+    }
   }
 
   face = mesh->faces;
@@ -523,7 +605,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     // left a stage pipeline bound.
     $(pass, bindPipeline, r_mesh_draw.blend_pipeline);
 
-    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material);
+    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, true);
   }
 
   // Restore the full depth range for subsequent entities.
@@ -789,6 +871,19 @@ void R_InitMeshPipeline(void) {
 
   r_mesh_draw.pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
+  Shader *alphaTestFragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
+    .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
+    .num_samplers = MESH_NUM_SAMPLERS,
+    .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS,
+    .num_uniform_buffers = MESH_NUM_UNIFORMS,
+  });
+
+  info.fragment_shader = alphaTestFragmentShader->shader;
+  r_mesh_draw.pipeline_alpha_test = $(r_context.device, createGraphicsPipeline, &info);
+  release(alphaTestFragmentShader);
+
+  info.fragment_shader = fragmentShader->shader;
+
   // Translucent faces: no culling (matching the GL renderer, which disables
   // GL_CULL_FACE for mesh blend faces), alpha blend on color 0. Depth test and
   // write stay enabled -- unlike BSP blend surfaces, GL does not disable
@@ -833,6 +928,7 @@ void R_InitMeshPipeline(void) {
  */
 void R_ShutdownMeshPipeline(void) {
   r_mesh_draw.pipeline = release(r_mesh_draw.pipeline);
+  r_mesh_draw.pipeline_alpha_test = release(r_mesh_draw.pipeline_alpha_test);
   r_mesh_draw.blend_pipeline = release(r_mesh_draw.blend_pipeline);
   r_mesh_draw.diffusemap_sampler = release(r_mesh_draw.diffusemap_sampler);
   r_mesh_draw.ambient_sampler = release(r_mesh_draw.ambient_sampler);

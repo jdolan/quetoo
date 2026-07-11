@@ -125,6 +125,9 @@ void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t f
  * @brief Animated mesh: diffuse material with full per-fragment lighting and
  * player-skin tinting (material.flags == STAGE_NONE), or a blended material
  * stage / shell overlay. One shader, one pipeline: see bsp_fs's main() for why.
+ * @details See bsp_fs.glsl for why the alpha-test `discard` below is instead a
+ * compile-time `ALPHA_TEST` variant (`mesh_fs_alpha_test`): it keeps early-Z
+ * intact for the (common) non-alpha-tested case.
  */
 void main(void) {
 
@@ -142,11 +145,13 @@ void main(void) {
 
     fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
 
+#ifdef ALPHA_TEST
     if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
       if (fragment.diffuse_sample.a < material.alpha_test) {
         discard;
       }
     }
+#endif
 
     // Player-skin tint: blend the entity tint colors in by the material tint map.
     vec4 tintmap = sample_material_tint(fragment.parallax);
@@ -157,9 +162,6 @@ void main(void) {
 
     out_color = fragment.diffuse_sample * vertex.color;
 
-    // The player-model preview (menu) has no world, so no voxel/shadow data to
-    // sample; light it with a flat, neutral ambient instead of full per-fragment
-    // lighting. Matches the GL renderer's VIEW_PLAYER_MODEL shortcut.
     if (view_type == VIEW_PLAYER_MODEL) {
       fragment.ambient = vec3(0.666);
       fragment.diffuse = vec3(0.0);
