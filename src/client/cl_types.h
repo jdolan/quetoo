@@ -345,16 +345,6 @@ typedef struct {
   uint8_t sample_index, sample_count;
 
   /**
-   * @brief Circular sample buffer of frame durations in milliseconds.
-   */
-  uint8_t frametime_counter[FRAMETIME_COUNTER_SAMPLE_COUNT];
-
-  /**
-   * @brief Current write index and valid sample count for frametime counters.
-   */
-  uint16_t frametime_index, frametime_count;
-
-  /**
    * @brief Circular buffer of recently sent commands, enabling re-send for loss recovery and client-side prediction.
    */
   cl_cmd_t cmds[CMD_BACKUP];

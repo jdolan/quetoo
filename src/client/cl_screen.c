@@ -339,39 +339,11 @@ static void Cl_DrawSampleCounter(char *buffer, size_t buffer_length, const char 
 }
 
 /**
- * @brief Formats a frame time counter string showing the current value and min/max over the sample window.
- */
-static void Cl_DrawFrameTimeSampleCounter(char *buffer, size_t buffer_length, const char *title, uint8_t *samples) {
-  uint16_t min, max;
-
-  if (!cl.sample_count) {
-    min = max = samples[cl.frametime_index];
-  } else {
-    min = UINT8_MAX;
-    max = 0;
-
-    for (uint32_t i = 0; i < cl.frametime_count; i++) {
-      int32_t index = (cl.frametime_index - i);
-
-      if (index < 0) {
-        index = FRAMETIME_COUNTER_SAMPLE_COUNT - (-index);
-      }
-
-      uint16_t sample = samples[index];
-      min = min(min, sample);
-      max = max(max, sample);
-    }
-  }
-
-  q_snprintf(buffer, buffer_length, "%3u%s (^1%3u ^2%3u^7)", samples[cl.frametime_index], title, min, max);
-}
-
-/**
  * @brief Draws the frame-time, packets-per-second, frames-per-second, and speed counters.
  */
 static void Cl_DrawCounters(void) {
   static vec3_t velocity;
-  static char ft[28], pps[28], fps[28], spd[8];
+  static char fps[28], pps[28], spd[8];
   static int32_t last_draw_time, last_speed_time;
   int32_t cw, ch;
 
@@ -382,13 +354,9 @@ static void Cl_DrawCounters(void) {
   R_BindFont("small", &cw, &ch);
 
   int32_t x = r_context.w - 7 * cw;
-  int32_t y = r_context.h - 4 * ch;
+  int32_t y = r_context.h - 3 * ch;
 
   cl.frame_counter[cl.sample_index]++;
-
-  cl.frametime_counter[cl.frametime_index] = cl.frame_msec;
-  cl.frametime_index = (cl.frametime_index + 1) % FRAMETIME_COUNTER_SAMPLE_COUNT;
-  cl.frametime_count = min(FRAMETIME_COUNTER_SAMPLE_COUNT, cl.frametime_count + 1);
 
   if (quetoo.ticks - last_speed_time >= 100) {
 
@@ -404,7 +372,6 @@ static void Cl_DrawCounters(void) {
     
     Cl_DrawSampleCounter(fps, sizeof(fps), "fps", cl.frame_counter);
     Cl_DrawSampleCounter(pps, sizeof(pps), "pps", cl.packet_counter);
-    Cl_DrawFrameTimeSampleCounter(ft, sizeof(ft), " ft", cl.frametime_counter);
 
     last_draw_time = quetoo.ticks;
 
@@ -426,9 +393,6 @@ static void Cl_DrawCounters(void) {
   y += ch;
 
   x = r_context.w - 16 * cw;
-
-  R_Draw2DString(x, y, ft, color_white);
-  y += ch;
 
   R_Draw2DString(x, y, fps, color_white);
   y += ch;
