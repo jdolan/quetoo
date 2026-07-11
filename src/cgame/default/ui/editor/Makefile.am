@@ -8,6 +8,8 @@ cguieditor_DATA = \
 	MaterialViewController.json \
 	MeshViewController.css \
 	MeshViewController.json \
+	TestScrollViewController.css \
+	TestScrollViewController.json \
 	editor.css \
 	icon_add.png \
 	icon_delete.png
@@ -18,7 +20,8 @@ noinst_HEADERS = \
 	EntityViewController.h \
 	MaterialViewController.h \
 	MeshViewController.h \
-	StageView.h
+	StageView.h \
+	TestScrollViewController.h
 
 noinst_LTLIBRARIES = \
 	libcguieditor.la
@@ -29,7 +32,8 @@ libcguieditor_la_SOURCES = \
 	EntityViewController.c \
 	MaterialViewController.c \
 	MeshViewController.c \
-	StageView.c
+	StageView.c \
+	TestScrollViewController.c
 
 libcguieditor_la_CFLAGS = \
 	-I$(top_srcdir)/src \

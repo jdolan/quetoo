@@ -1,0 +1,72 @@
+/* TEMPORARY: styling for the Scrollbar/ScrollView rework test harness. Every
+   attribute here is deliberately CSS-driven (not C-hardcoded) so this doubles
+   as a live check of per-controller CSS binding -- see TestScrollViewController.c
+   for the corresponding structure. */
+
+#testScroll {
+  alignment: middle-center;
+  autoresizing-mask: fill;
+  background-color: #00000088;
+}
+
+#testScroll .box {
+  width: 520;
+  height: 620;
+  autoresizing-mask: none;
+  background-color: #222222f0;
+  border-color: #666666;
+  border-width: 1;
+  padding: 10;
+}
+
+#testScroll .header {
+  axis: horizontal;
+  spacing: 8;
+  autoresizing-mask: contain | width;
+}
+
+#testScroll .viewport {
+  clips-subviews: true;
+}
+
+#testScroll .rows {
+  axis: vertical;
+  spacing: 10;
+  autoresizing-mask: contain | width;
+}
+
+#testScroll .row {
+  axis: horizontal;
+  spacing: 8;
+  autoresizing-mask: contain | width;
+}
+
+#testScroll .tableRow {
+  axis: vertical;
+  spacing: 4;
+  autoresizing-mask: contain | width;
+}
+
+#testScroll .key {
+  min-width: 160;
+}
+
+#testScroll .value {
+  width: 240;
+}
+
+#testScroll .kvTable {
+  min-height: 160;
+  autoresizing-mask: contain | width;
+}
+
+/* Targets the TableCellView classNames added in ObjectivelyMVC's
+   TableView::reloadData (tagged with the owning column's identifier) -- JD's
+   proposed alternative to a bespoke KeyValueTableView class. */
+#testScroll .kvTable .key {
+  width: 120;
+}
+
+#testScroll .kvTable .value {
+  width: 280;
+}

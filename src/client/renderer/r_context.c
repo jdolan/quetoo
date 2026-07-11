@@ -166,7 +166,8 @@ void R_InitContext(void) {
 
   Com_Print("  Creating GPU render device..\n");
 
-  r_context.device = $(alloc(RenderDevice), initWithWindow, r_context.window);
+  r_context.device = $(alloc(RenderDevice), initWithWindow, r_context.window,
+                       r_gpu_driver->string[0] ? r_gpu_driver->string : NULL);
   if (r_context.device == NULL) {
     Com_Error(ERROR_FATAL, "Failed to create GPU render device: %s\n", SDL_GetError());
   }

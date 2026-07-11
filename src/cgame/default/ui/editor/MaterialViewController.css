@@ -24,11 +24,10 @@
   padding: 4;
 }
 
-/* The list of stage panels. Opt-in scrolling (ObjectivelyMVC StackView), driven
-   by the Scrollbar bound to it in MaterialViewController.c. */
+/* The list of stage panels. Scrolling is on the ScrollView wrapping this
+   StackView (MaterialViewController.c), driven by the Scrollbar bound to it. */
 #material .stages {
   spacing: 8;
-  scroll: true;
 }
 
 /* Each stage is a self-contained panel. */

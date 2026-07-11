@@ -24,6 +24,7 @@
 #include "MaterialViewController.h"
 #include "StageView.h"
 
+#include <ObjectivelyMVC/ScrollView.h>
 #include <ObjectivelyMVC/Scrollbar.h>
 
 #define _Class _MaterialViewController
@@ -366,17 +367,14 @@ static void loadView(ViewController *self) {
   // stay fixed. The stages box's contentView holds just the scroll structure (the
   // Add Stage button lives in the box title above); that structure is
   //   stagesViewport   [fills remaining tab height, sized per-frame]
-  //     |-- stages     [a scrolling StackView -- opt-in via CSS `scroll: true`]
-  //     `-- scrollbar  -> pinned in the right gutter, drives `stages` directly
+  //     |-- scrollView [fills the viewport, pans `stages` -- ObjectivelyMVC/ScrollView]
+  //     |     `-- stages  [the StackView of StageViews -- Contain-sized to its content]
+  //     `-- scrollbar  -> pinned in the right gutter, drives `scrollView`
   //
-  // StackView now scrolls itself (contentOffset/scrollToOffset -- see
-  // ObjectivelyMVC/StackView), so no ScrollView wrapper is needed; Scrollbar
-  // binds straight to `stages`. The gutter is reserved as `stages`'s own right
-  // padding: since `stages` is Fill-masked to the viewport (not Contain-sized to
-  // its content -- Fill is what makes a StackView's own bounds the fixed
-  // "viewport" its scroll offset pans within), padding it only insets its
-  // content area and can't bleed the view wider the way a Contain-masked list
-  // would.
+  // Scrolling lives on ScrollView (generic, works over any contentView), not on
+  // StackView, so `stages` stays a plain Contain-sized stack and the wrapper does
+  // the panning/clipping. The gutter is reserved as the ScrollView's own right
+  // padding.
   View *stagesParent = ((View *) this->stages)->superview;
 
   this->stagesViewport = $(alloc(View), initWithFrame, NULL);
@@ -386,12 +384,18 @@ static void loadView(ViewController *self) {
 
   retain(this->stages);
   $((View *) this->stages, removeFromSuperview);
-  ((View *) this->stages)->autoresizingMask = ViewAutoresizingFill;
-  ((View *) this->stages)->padding.right = MATERIAL_SCROLLBAR_WIDTH + MATERIAL_CONTENT_PADDING;
-  $(this->stagesViewport, addSubview, (View *) this->stages);
-  release(this->stages);
+  ((View *) this->stages)->autoresizingMask = ViewAutoresizingContain | ViewAutoresizingWidth;
 
-  Scrollbar *scrollbar = $(alloc(Scrollbar), initWithStackView, this->stages);
+  ScrollView *scrollView = $(alloc(ScrollView), initWithFrame, NULL);
+  assert(scrollView);
+  ((View *) scrollView)->autoresizingMask = ViewAutoresizingFill;
+  ((View *) scrollView)->clipsSubviews = true;
+  ((View *) scrollView)->padding.right = MATERIAL_SCROLLBAR_WIDTH + MATERIAL_CONTENT_PADDING;
+  $(scrollView, setContentView, (View *) this->stages);
+  release(this->stages);
+  $(this->stagesViewport, addSubview, (View *) scrollView);
+
+  Scrollbar *scrollbar = $(alloc(Scrollbar), initWithScrollView, scrollView);
   assert(scrollbar);
   ((View *) scrollbar)->frame.w = MATERIAL_SCROLLBAR_WIDTH;
   ((View *) scrollbar)->autoresizingMask = ViewAutoresizingHeight;
@@ -399,6 +403,7 @@ static void loadView(ViewController *self) {
   $(this->stagesViewport, addSubview, (View *) scrollbar);
   this->scrollbar = (View *) scrollbar;
   release(scrollbar);
+  release(scrollView);
 
   $(stagesParent, addSubview, this->stagesViewport);
 

@@ -81,10 +81,10 @@ struct MaterialViewController {
   View *stagesViewport;
 
   /**
-   * @brief The vertical scrollbar for the stages list. It drives `stages`
-   * directly (a scrolling StackView, no ScrollView wrapper) and lives in the
-   * gutter to its right; fitStagesHeight pins its x to the viewport's right
-   * edge so it is not subject to the viewport's right padding.
+   * @brief The vertical scrollbar for the stages list. It drives the ScrollView
+   * wrapping `stages` and lives in the gutter to its right; fitStagesHeight pins
+   * its x to the viewport's right edge so it is not subject to the viewport's
+   * right padding.
    */
   View *scrollbar;
 
