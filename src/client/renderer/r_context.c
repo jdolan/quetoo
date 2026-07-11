@@ -157,17 +157,19 @@ void R_InitContext(void) {
     }
   }
 
+  const char *driver = NULL;
   if (r_gpu_driver->string[0]) {
     Com_Print("  Forcing GPU driver \"%s\"..\n", r_gpu_driver->string);
-    SDL_SetHint(SDL_HINT_GPU_DRIVER, r_gpu_driver->string);
+    driver = r_gpu_driver->string;
   } else {
-    SDL_ResetHint(SDL_HINT_GPU_DRIVER);
+#if defined (_WIN32)
+    driver = "vulkan";
+#endif
   }
 
   Com_Print("  Creating GPU render device..\n");
 
-  r_context.device = $(alloc(RenderDevice), initWithWindow, r_context.window,
-                       r_gpu_driver->string[0] ? r_gpu_driver->string : NULL);
+  r_context.device = $(alloc(RenderDevice), initWithWindow, r_context.window, driver);
   if (r_context.device == NULL) {
     Com_Error(ERROR_FATAL, "Failed to create GPU render device: %s\n", SDL_GetError());
   }

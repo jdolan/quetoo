@@ -320,17 +320,12 @@ typedef struct r_occlusion_query_s {
   /**
    * @brief The first instance index in the shared per-instance box buffer.
    */
-  int32_t first_instance;
+  int32_t first_box;
 
   /**
    * @brief The count of instanced boxes drawn for this query.
    */
   int32_t num_boxes;
-
-  /**
-   * @brief True if the query result below is available (has been downloaded).
-   */
-  bool available;
 
   /**
    * @brief True if the query produced visible fragments.

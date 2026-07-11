@@ -156,6 +156,15 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
  * optionally lit and/or emissive, blended over the base surface. One shader,
  * one pipeline: which branch runs is a runtime uniform, not a compile-time
  * variant, so a stage draw never requires a pipeline swap.
+ * @details The alpha-test `discard` below is instead a *compile-time* variant
+ * (`ALPHA_TEST`, see Makefile.am's `bsp_fs_alpha_test`), because a `discard`
+ * anywhere in a fragment shader's source forces late (post-shader) depth
+ * testing for every draw using that shader/pipeline, even ones that never
+ * reach it. Material stages (the `else` branch) never discard, and most
+ * opaque surfaces aren't alpha-tested, so those are compiled and drawn with
+ * this file's default (discard-free) variant, preserving early-Z / Hi-Z for
+ * them; only `SURF_ALPHA_TEST` surfaces pay for late-Z, via their own
+ * dedicated pipeline (r_bsp_draw.pipeline_alpha_test).
  */
 void main(void) {
 
@@ -171,11 +180,13 @@ void main(void) {
 
     fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
 
+#ifdef ALPHA_TEST
     if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
       if (fragment.diffuse_sample.a < material.alpha_test) {
         discard;
       }
     }
+#endif
 
     out_color = fragment.diffuse_sample;
 

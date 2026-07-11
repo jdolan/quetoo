@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-r_depth_pass_program_t r_depth_pass_program;
+r_depth_pipeline_t r_depth_pipeline;
 
 /**
  * @brief Renders opaque world geometry into the view framebuffer's depth (depth
@@ -42,14 +42,6 @@ void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands) {
     return;
   }
 
-  if (!r_models.world) {
-    return;
-  }
-
-  if (!view->framebuffer) {
-    return;
-  }
-
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
@@ -67,7 +59,7 @@ void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands) {
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, model.array, sizeof(model));
 
-  $(pass, bindPipeline, r_depth_pass_program.pipeline);
+  $(pass, bindPipeline, r_depth_pipeline.pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
@@ -100,8 +92,8 @@ void R_InitDepthPass(void) {
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
   info.rasterizer_state.enable_depth_bias = true;
-  info.rasterizer_state.depth_bias_constant_factor = 10.f;
-  info.rasterizer_state.depth_bias_slope_factor = 10.f;
+  info.rasterizer_state.depth_bias_constant_factor = 8.f;
+  info.rasterizer_state.depth_bias_slope_factor = 8.f;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
@@ -126,7 +118,7 @@ void R_InitDepthPass(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_depth_pass_program.pipeline = $(r_context.device, createGraphicsPipeline, &info);
+  r_depth_pipeline.pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
@@ -136,7 +128,8 @@ void R_InitDepthPass(void) {
  * @brief Releases the depth pre-pass pipeline.
  */
 void R_ShutdownDepthPass(void) {
-  r_depth_pass_program.pipeline = release(r_depth_pass_program.pipeline);
+  r_depth_pipeline.pipeline = release(r_depth_pipeline.pipeline);
+  r_depth_pipeline.fence = release(r_depth_pipeline.fence);
 }
 
 /**

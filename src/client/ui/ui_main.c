@@ -161,9 +161,7 @@ void Ui_Draw(void) {
 
   assert(windowController);
 
-  if (r_context.device->commands) {
-    $(windowController, render);
-  }
+  $(windowController, render);
 }
 
 /**
