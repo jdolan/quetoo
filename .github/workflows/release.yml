@@ -497,9 +497,11 @@ jobs:
         Copy-Item "Quetoo.vs15\bin\x64Release\game.dll" "$staging\lib\default\"
         Copy-Item "Quetoo.vs15\bin\x64Release\game.pdb" "$staging\lib\default\"
 
-        # Objectively and ObjectivelyMVC and their PDBs
+        # Objectively, ObjectivelyGPU, and ObjectivelyMVC and their PDBs
         Copy-Item "..\Objectively\Objectively.vs15\bin\x64Release\Objectively.dll" "$staging\bin\"
         Copy-Item "..\Objectively\Objectively.vs15\bin\x64Release\Objectively.pdb" "$staging\bin\"
+        Copy-Item "..\ObjectivelyGPU\ObjectivelyGPU.vs15\bin\x64Release\ObjectivelyGPU.dll" "$staging\bin\"
+        Copy-Item "..\ObjectivelyGPU\ObjectivelyGPU.vs15\bin\x64Release\ObjectivelyGPU.pdb" "$staging\bin\"
         Copy-Item "..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\x64Release\ObjectivelyMVC.dll" "$staging\bin\"
         Copy-Item "..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\x64Release\ObjectivelyMVC.pdb" "$staging\bin\"
 
