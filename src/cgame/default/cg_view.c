@@ -24,6 +24,45 @@
 
 cg_view_t cg_view;
 
+#define CG_FOV_REFERENCE_ASPECT (16.f / 9.f)
+
+/**
+ * @brief Computes the half-angle horizontal and vertical FOV, in degrees, for the
+ * given reference FOV (horizontal, at @c CG_FOV_REFERENCE_ASPECT) and viewport size.
+ */
+static vec2_t Cg_Fov(float fov_degrees, float width, float height) {
+
+  const float fov_half = Radians(fov_degrees / 2.f);
+  const float aspect = width / height;
+
+  if (aspect >= CG_FOV_REFERENCE_ASPECT) {
+    const float fov_y = atanf(tanf(fov_half) / CG_FOV_REFERENCE_ASPECT);
+    const float fov_x = atanf(tanf(fov_y) * aspect);
+    return Vec2(Degrees(fov_x), Degrees(fov_y));
+  } else {
+    const float fov_y = atanf(tanf(fov_half) / aspect);
+    return Vec2(Degrees(fov_half), Degrees(fov_y));
+  }
+}
+
+/**
+ * @brief Recovers the reference FOV value (horizontal FOV at
+ * @c CG_FOV_REFERENCE_ASPECT) that produced the given actual half-angle FOV at the
+ * given viewport size. The inverse of @c Cg_Fov, used to reconstruct the FOV we are
+ * interpolating away from when @c cg_fov changes mid-transition.
+ */
+static float Cg_FovInverse(const vec2_t fov, float width, float height) {
+
+  const float aspect = width / height;
+
+  if (aspect >= CG_FOV_REFERENCE_ASPECT) {
+    const float fov_half = atanf(tanf(Radians(fov.y)) * CG_FOV_REFERENCE_ASPECT);
+    return 2.f * Degrees(fov_half);
+  } else {
+    return 2.f * fov.x;
+  }
+}
+
 /**
  * @brief Update the field of view, which affects the view port as well as the culling
  * frustum.
@@ -32,6 +71,9 @@ static void Cg_UpdateFov(void) {
 
   cg_fov->value = Clampf(cg_fov->value, 10.f, 160.f);
   cg_fov_interpolate->value = Clampf(cg_fov_interpolate->value, 0.f, 10.f);
+
+  const float width = cgi.view->viewport.z;
+  const float height = cgi.view->viewport.w;
 
   float fov = cg_fov->value;
 
@@ -44,13 +86,7 @@ static void Cg_UpdateFov(void) {
     }
 
     if (time == 0) {
-      // Reconstruct the previous cg_fov (the horizontal reference FOV) from the
-      // current view, the inverse of the per-mode derivation below. In Hor+ mode
-      // fov.x is the aspect-expanded horizontal, so derive it from the locked
-      // 16:9 vertical instead.
-      prev = cg_fov_scale->integer
-        ? 2.f * Degrees(atanf(tanf(Radians(cgi.view->fov.y)) * (16.f / 9.f)))
-        : cgi.view->fov.x * 2.f;
+      prev = Cg_FovInverse(cgi.view->fov, width, height);
       next = cg_fov->value;
       time = cgi.client->unclamped_time;
     }
@@ -67,25 +103,7 @@ static void Cg_UpdateFov(void) {
     cg_fov->modified = false;
   }
 
-  const float width = cgi.view->viewport.z;
-  const float height = cgi.view->viewport.w;
-
-  if (cg_fov_scale->integer) {
-    // Hor+ (horizontal-plus) widescreen scaling. cg_fov is the horizontal FOV at
-    // a 16:9 reference; lock the vertical FOV to that 16:9 value and widen the
-    // horizontal FOV for the actual aspect ratio. Wide / ultrawide displays then
-    // show more at the sides while keeping the vertical extent (and the
-    // first-person weapon) intact. fov.x/fov.y are half-angles, in degrees.
-    const float fov_y = atanf(tanf(Radians(fov / 2.f)) * (9.f / 16.f));
-    cgi.view->fov.y = Degrees(fov_y);
-    cgi.view->fov.x = Degrees(atanf(tanf(fov_y) * width / height));
-  } else {
-    // Classic behavior: cg_fov is the literal horizontal FOV and the vertical FOV
-    // is derived from the aspect ratio (vertical-minus), which shrinks the
-    // vertical FOV on wide displays.
-    cgi.view->fov.x = fov / 2.f;
-    cgi.view->fov.y = Degrees(atanf(tanf(Radians(fov / 2.f)) * height / width));
-  }
+  cgi.view->fov = Cg_Fov(fov, width, height);
 }
 
 /**
