@@ -5556,8 +5556,8 @@
 					"$(WORKSPACE_PREFIX)/Objectively/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyGPU/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyMVC/Sources",
+					"$(WORKSPACE_PREFIX)/ObjectivelyGPU/Frameworks/SDL3.xcframework/macos-arm64_x86_64/SDL3.framework/Headers",
 					"$(HOMEBREW_PREFIX)/include",
-					"$(HOMEBREW_PREFIX)/include/SDL3",
 					"$(HOMEBREW_PREFIX)/opt/ncurses/include",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/include",
 				);
@@ -5604,8 +5604,8 @@
 					"$(WORKSPACE_PREFIX)/Objectively/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyGPU/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyMVC/Sources",
+					"$(WORKSPACE_PREFIX)/ObjectivelyGPU/Frameworks/SDL3.xcframework/macos-arm64_x86_64/SDL3.framework/Headers",
 					"$(HOMEBREW_PREFIX)/include",
-					"$(HOMEBREW_PREFIX)/include/SDL3",
 					"$(HOMEBREW_PREFIX)/opt/ncurses/include",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/include",
 				);
