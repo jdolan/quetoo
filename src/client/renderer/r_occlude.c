@@ -146,7 +146,9 @@ static void R_DrawOcclusionQueries_(const r_view_t *view, CommandBuffer *command
 
   SDL_GPUDepthStencilTargetInfo depth = $(view->framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
 
+#ifdef SDL_GPU_QUERY_API
   depth.queryPool = r_occlusion.pool->pool;
+#endif
 
   RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
 
