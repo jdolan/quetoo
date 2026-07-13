@@ -396,8 +396,9 @@ void Cl_Bind(SDL_Scancode key, const char *bind) {
   }
 
   // allocate for new binding and copy it in
-  cls.key_state.binds[key] = Mem_TagMalloc(q_strlen(bind) + 1, MEM_TAG_CLIENT);
-  strcpy(cls.key_state.binds[key], bind);
+  const size_t len = q_strlen(bind) + 1;
+  cls.key_state.binds[key] = Mem_TagMalloc(len, MEM_TAG_CLIENT);
+  memcpy(cls.key_state.binds[key], bind, len);
 }
 
 
@@ -486,9 +487,9 @@ static void Cl_Bind_f(void) {
   // copy the rest of the command line
   cmd[0] = 0; // start out with a null string
   for (int32_t i = 2; i < c; i++) {
-    strcat(cmd, Cmd_Argv(i));
+    q_strlcat(cmd, Cmd_Argv(i), sizeof(cmd));
     if (i != (c - 1)) {
-      strcat(cmd, " ");
+      q_strlcat(cmd, " ", sizeof(cmd));
     }
   }
 
