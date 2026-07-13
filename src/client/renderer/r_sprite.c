@@ -539,8 +539,6 @@ void R_DrawSprites(const r_view_t *view) {
  */
 static void R_InitSpritePipeline(void) {
 
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
-
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
 
@@ -599,11 +597,11 @@ static void R_InitSpritePipeline(void) {
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = R_SCENE_COLOR_FORMAT,
+      .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
       .blend_state = GPU_BlendStateAdditive,
     },
     .num_color_targets = 1,
-    .depth_stencil_format = framebuffer->depthFormat,
+    .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
 

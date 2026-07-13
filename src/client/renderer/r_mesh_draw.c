@@ -192,8 +192,6 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
     .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
-
   const SDL_GPUBlendFactor s = R_BlendFactor(src);
   const SDL_GPUBlendFactor d = R_BlendFactor(dest);
 
@@ -235,7 +233,7 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
       {
-        .format = R_SCENE_COLOR_FORMAT,
+        .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
         .blend_state = {
           .enable_blend = true,
           .src_color_blendfactor = s,
@@ -252,7 +250,7 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
       },
     },
     .num_color_targets = 2,
-    .depth_stencil_format = framebuffer->depthFormat,
+    .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
 
@@ -640,14 +638,8 @@ void R_DrawMeshEntities(const r_view_t *view) {
 
   // LOAD both the scene color and the depth copy; mesh entities write their
   // gl_FragCoord.z into color 1 so sprites soften against them too.
-  const SDL_GPUColorTargetInfo color[] = {
-    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
-    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
-  };
-  const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
-
-  RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
+  RenderPass *pass = $(commands, beginRenderPassWithFramebuffer, framebuffer,
+                        SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE);
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -795,7 +787,6 @@ void R_DrawPlayerModelView(r_view_t *view) {
       continue;
     }
 
-    // No culling: R_CullEntity always returns false for VIEW_PLAYER_MODEL.
     R_DrawMeshEntity(pass, view, e);
     r_stats.entities_visible++;
   }
@@ -810,18 +801,15 @@ void R_InitMeshPipeline(void) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = MESH_NUM_UNIFORMS, // globals + locals + material(+stage)
+    .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = MESH_NUM_SAMPLERS,               // material, shadow_atlas, voxel_caustics,
-                                                      // voxel_occlusion, sky, stage, stage_next
-    .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS, // lights + voxel_light_indices + voxel_light_data
-    .num_uniform_buffers = MESH_NUM_UNIFORMS, // globals + active_lights + material(+stage+tints)
+    .num_samplers = MESH_NUM_SAMPLERS,
+    .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS,
+    .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
-
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
@@ -854,18 +842,15 @@ void R_InitMeshPipeline(void) {
     .num_vertex_attributes = 9,
   };
 
-  // Two color targets: the HDR scene color and the float depth copy (mesh_fs
-  // writes gl_FragCoord.z to color 1) so mesh entities appear in the depth the
-  // sprite pass samples for soft particles.
   SDL_GPUColorTargetDescription color_targets[] = {
-    { .format = R_SCENE_COLOR_FORMAT, .blend_state = GPU_BlendStateOpaque },
+    { .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT, .blend_state = GPU_BlendStateOpaque },
     { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .blend_state = GPU_BlendStateOpaque },
   };
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = color_targets,
     .num_color_targets = 2,
-    .depth_stencil_format = framebuffer->depthFormat,
+    .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
 
@@ -884,11 +869,6 @@ void R_InitMeshPipeline(void) {
 
   info.fragment_shader = fragmentShader->shader;
 
-  // Translucent faces: no culling (matching the GL renderer, which disables
-  // GL_CULL_FACE for mesh blend faces), alpha blend on color 0. Depth test and
-  // write stay enabled -- unlike BSP blend surfaces, GL does not disable
-  // glDepthMask for mesh blend faces -- so color 1 (the depth copy) is left
-  // unmasked too, consistent with real depth being written.
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
   color_targets[0].blend_state = GPU_BlendStateAlpha;
 
@@ -901,9 +881,6 @@ void R_InitMeshPipeline(void) {
   r_mesh_draw.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
   r_mesh_draw.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
 
-  // 1x1x1 fallback voxel textures for the player-model preview (see the struct
-  // field docs above). Contents are never sampled, so uninitialized (NULL) data
-  // is fine -- the branch that would read them never executes for that view.
   r_mesh_draw.voxel_caustics_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
@@ -946,8 +923,8 @@ void R_ShutdownMeshPipeline(void) {
 
 /**
  * @brief Rebuilds the mesh pipeline and samplers in place, for pipeline-bound
- * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
- * an r_restart. See R_UpdatePipelines.
+ * cvar changes (@c r_antialias, @c r_anisotropy, ...) that would otherwise require
+ * an @c r_restart. See @c R_UpdatePipelines.
  */
 void R_UpdateMeshPipeline(void) {
   R_ShutdownMeshPipeline();

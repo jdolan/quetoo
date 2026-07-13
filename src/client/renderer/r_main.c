@@ -108,7 +108,7 @@ void R_UpdateUniforms(const r_view_t *view) {
     const float xmin = ymin * aspect;
     const float xmax = ymax * aspect;
 
-    // Mat4_FromFrustum produces GL clip space, where z spans [-1, 1]; SDL_gpu
+    // Mat4_FromFrustum produces GL clip s'pace, where z spans [-1, 1]; SDL_gpu
     // expects [0, 1] on every backend. Remap depth (z' = z * .5 + w * .5) so
     // that near geometry isn't clipped and gl_FragCoord.z matches GL's window
     // depth exactly (soften.glsl's linearization depends on this).
@@ -153,16 +153,10 @@ void R_UpdateUniforms(const r_view_t *view) {
       out->voxels.size = Vec3_ToVec4(Vec3i_CastVec3(voxels->size), 0.f);
     }
   }
-
-  // The block is pushed per-pass via CommandBuffer::pushVertexUniformData/pushFragmentUniformData.
 }
 
 /**
- * @brief Applies r_swap_interval to the device's swapchain present mode.
- * @remarks SDL_gpu has no adaptive-VSync present mode (unlike GL's
- * EXT_swap_control_tear, which `-1` requests in main); `-1` maps to MAILBOX,
- * the closest analog (low latency, never tears), falling back to plain VSYNC
- * where unsupported.
+ * @brief Applies @c r_swap_interval to the device's swapchain present mode.
  */
 static void R_UpdateSwapInterval(void) {
 
@@ -186,21 +180,24 @@ static void R_UpdateSwapInterval(void) {
 
 /**
  * @brief Rebuilds every pipeline whose creation info is derived from a
- * pipeline-bound cvar (r_antialias' sample count, r_anisotropy's max
- * anisotropy, ...). SDL_gpu bakes both into pipeline/sampler objects at
- * creation time (unlike GL programs and texture parameters, which read this
- * state live), so changing either requires tearing down and recreating the
- * affected pipelines in place. Add new pipeline-bound cvars here rather than
- * inventing a bespoke update path per cvar.
+ * pipeline-bound cvar (@c r_antialias, @c r_anisotropy, ...).
  */
 static void R_UpdatePipelines(void) {
+
   R_UpdateBspPipeline();
+
   R_UpdateMeshPipeline();
+
   R_UpdateDepthPass();
+
   R_UpdateDraw3D();
+
   R_UpdateSky();
+
   R_UpdateSpritePipeline();
+
   R_UpdateDecalPipeline();
+
   R_UpdatePostPipeline();
 }
 
@@ -215,10 +212,6 @@ void R_BeginFrame(void) {
   }
 
   if (r_framebuffer_scale->modified) {
-    // Recreate the scene framebuffer at the new scale (the cgame rebuilds it on a
-    // pixel-size change); R_CreateFramebuffer reads r_framebuffer_scale. The 3D
-    // scene renders at the scaled resolution and R_DrawPost up/downscales it into
-    // the present framebuffer, leaving the UI at native resolution.
     SDL_PushEvent(&(SDL_Event) {
       .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
     });
@@ -230,8 +223,6 @@ void R_BeginFrame(void) {
     if (samples != r_scene_samples) {
       r_scene_samples = samples;
       R_UpdatePipelines();
-
-      // Recreate the scene framebuffer(s) at the new sample count (cgame owns them).
       SDL_PushEvent(&(SDL_Event) {
         .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
       });
@@ -258,12 +249,8 @@ void R_BeginFrame(void) {
   // later, the resolved 3D scene) composite into it; R_EndFrame presents.
   CommandBuffer *commands = $(r_context.device, beginFrame);
   if (commands) {
-
-    const SDL_FColor clear_color = { 0.f, 0.f, 0.f, 1.f };
-    const SDL_GPUColorTargetInfo color =
-        $(r_context.device->framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color);
-
-    RenderPass *pass = $(commands, beginRenderPass, &color, 1, NULL);
+    const Framebuffer *fb = r_context.device->framebuffer;
+    RenderPass *pass = $(commands, beginRenderPassWithFramebuffer, fb, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
     pass = release(pass);
   }
 }

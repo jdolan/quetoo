@@ -187,8 +187,6 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
     .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
 
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
-
   const SDL_GPUBlendFactor s = R_BlendFactor(src);
   const SDL_GPUBlendFactor d = R_BlendFactor(dest);
 
@@ -223,7 +221,7 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
       {
-        .format = R_SCENE_COLOR_FORMAT,
+        .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
         .blend_state = {
           .enable_blend = true,
           .src_color_blendfactor = s,
@@ -240,7 +238,7 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
       },
     },
     .num_color_targets = 2,
-    .depth_stencil_format = framebuffer->depthFormat,
+    .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
 
@@ -818,14 +816,8 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
-  const SDL_GPUColorTargetInfo color[] = {
-    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
-    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
-  };
-  const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
-
-  RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
+  RenderPass *pass = $(commands, beginRenderPassWithFramebuffer, framebuffer,
+                        SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE);
   r_bsp_draw.pass = pass;
   r_bsp_draw.commands = commands;
 
@@ -917,8 +909,6 @@ void R_InitBspPipeline(void) {
     .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
 
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
-
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
   info.vertex_shader = vertexShader->shader;
@@ -976,14 +966,14 @@ void R_InitBspPipeline(void) {
   };
 
   SDL_GPUColorTargetDescription color_targets[2] = {
-    { .format = R_SCENE_COLOR_FORMAT, .blend_state = GPU_BlendStateOpaque },
+    { .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT, .blend_state = GPU_BlendStateOpaque },
     { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .blend_state = GPU_BlendStateOpaque },
   };
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = color_targets,
     .num_color_targets = 2,
-    .depth_stencil_format = framebuffer->depthFormat,
+    .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
 

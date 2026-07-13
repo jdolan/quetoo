@@ -24,63 +24,7 @@
 
 #include "r_local.h"
 
-/**
- * @brief The maximum number of occlusion queries: one per BSP block plus one per BSP light.
- */
-#define MAX_OCCLUSION_QUERIES (MAX_BSP_BLOCKS + MAX_BSP_LIGHTS)
-
-/**
- * @brief The occlusion query accounting structure.
- */
-static struct {
-  /**
-   * @brief The occlusion queries. A query's position in this array is also its index into `query_pool`.
-   */
-  r_occlusion_query_t queries[MAX_OCCLUSION_QUERIES];
-
-  /**
-   * @brief The number of allocated queries.
-   */
-  int32_t num_queries;
-
-  /**
-   * @brief The per-instance box bounds appended by `R_AppendOcclusionQueryBox`, flattened
-   * into `instance_buffer` by `R_LoadOcclusionQueries`. Reset by `R_FreeOcclusionQueries`.
-   */
-  Vector *boxes;
-
-  /**
-   * @brief The shared occlusion query pool.
-   */
-  QueryPool *pool;
-
-  /**
-   * @brief The per-instance box bounds buffer (INSTANCE rate, slot 1), built from `boxes`
-   * by `R_LoadOcclusionQueries` when loading completes.
-   */
-  Buffer *instanceBuffer;
-
-  /**
-   * @brief The constant unit-cube vertex buffer (VERTEX rate, slot 0), shared by every
-   * occlusion box instance. Built once by `R_InitOcclusionQueries`.
-   */
-  Buffer *vertexBuffer;
-
-  /**
-   * @brief The shared index buffer for the unit cube (reused for every instance).
-   */
-  Buffer *elementsBuffer;
-
-  /**
-   * @brief The position-only, depth-only pipeline used to draw occlusion boxes.
-   */
-  GraphicsPipeline *pipeline;
-
-  /**
-   * @brief The download target for query results.
-   */
-  TransferBuffer *transfer;
-} r_occlusion;
+r_occlusion_t r_occlusion;
 
 /**
  * @brief Checks BSP block occlusion queries to determine if the given box is occluded.
@@ -200,7 +144,9 @@ void R_LoadOcclusionQueries(void) {
  */
 static void R_DrawOcclusionQueries_(const r_view_t *view, CommandBuffer *commands) {
 
-  const SDL_GPUDepthStencilTargetInfo depth = $(view->framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
+  SDL_GPUDepthStencilTargetInfo depth = $(view->framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
+
+  depth.queryPool = r_occlusion.pool->pool;
 
   RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
 

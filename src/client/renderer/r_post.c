@@ -100,7 +100,7 @@ static void R_CreateBloomFramebuffers(int32_t width, int32_t height) {
 
     r_post.bloom_framebuffers[i] = $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
       .size = MakeSize(r_post.bloom_width, r_post.bloom_height),
-      .colorFormats = { R_SCENE_COLOR_FORMAT },
+      .colorFormats = { SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT },
       .numColorTargets = 1,
       .depthFormat = SDL_GPU_TEXTUREFORMAT_INVALID,
       .sampleCount = SDL_GPU_SAMPLECOUNT_1,
@@ -298,7 +298,7 @@ void R_InitPost(void) {
 
   r_post.vertex_buffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX, vertexes, sizeof(vertexes));
 
-  r_post.bloom_pipeline = R_CreatePostPipeline(R_SCENE_COLOR_FORMAT);
+  r_post.bloom_pipeline = R_CreatePostPipeline(SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT);
   r_post.composite_pipeline = R_CreatePostPipeline(r_context.device->framebuffer->colorFormats[0]);
 
   r_post.sampler = $(r_context.device, createSamplerLinearClamp);
