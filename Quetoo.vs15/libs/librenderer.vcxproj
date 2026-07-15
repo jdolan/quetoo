@@ -101,7 +101,6 @@
     <None Include="..\..\src\client\renderer\shaders\sprite_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\sprite_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\uniforms.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\version.glsl" />
     <None Include="..\..\src\client\renderer\shaders\voxel.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

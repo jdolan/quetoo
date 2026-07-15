@@ -625,8 +625,7 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
     r_lights.bsp_buffer->buffer,
     r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
-                                     : r_lights.bsp_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, BSP_STORAGE_BSP_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
   $(pass, bindVertexStorageBuffers, BSP_STORAGE_BSP_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
@@ -862,8 +861,7 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
     r_lights.bsp_buffer->buffer,
     r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
-                                     : r_lights.bsp_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, BSP_STORAGE_BSP_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
   $(pass, bindVertexStorageBuffers, BSP_STORAGE_BSP_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);

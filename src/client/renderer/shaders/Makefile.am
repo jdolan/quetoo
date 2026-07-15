@@ -30,7 +30,6 @@ shaders_DATA = \
 	sprite_fs.glsl \
 	sprite_vs.glsl \
 	uniforms.glsl \
-	version.glsl \
  	voxel.glsl
 
 # SDL_gpu shader transpilation via glslc and SDL_shadercross. The output

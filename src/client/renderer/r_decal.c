@@ -459,8 +459,7 @@ void R_DrawDecals(const r_view_t *view) {
   SDL_GPUBuffer *storage[] = {
     r_lights.bsp_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
-                                     : r_lights.bsp_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, 0, storage, 3);
 

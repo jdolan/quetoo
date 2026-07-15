@@ -72,9 +72,6 @@
     <None Include="..\..\src\client\renderer\shaders\uniforms.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\version.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
     <None Include="..\..\src\client\renderer\shaders\voxel.glsl">
       <Filter>src\shaders</Filter>
     </None>
