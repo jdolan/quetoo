@@ -17,17 +17,9 @@
 
 #include "r_local.h"
 
-/**
- * @brief The mesh program's own binding map, mirroring shaders/mesh_vs.glsl and
- * mesh_fs.glsl. Not shared with any other pipeline; mirrors the BSP shape (see
- * r_bsp_draw.c) exactly -- the fragment material UBO additionally carries
- * per-entity tint colors (r_mesh_material_uniforms_t), since bsp has no
- * equivalent, but the vertex stage's material UBO (no tint) is the same
- * r_material_uniforms_t bsp uses.
- */
 enum {
   MESH_SAMPLER_MATERIAL,
-  MESH_SAMPLER_SHADOW_ATLAS_0, // one sampler2DShadow per cube face (SDL_gpu forbids array depth targets)
+  MESH_SAMPLER_SHADOW_ATLAS_0,
   MESH_SAMPLER_SHADOW_ATLAS_1,
   MESH_SAMPLER_SHADOW_ATLAS_2,
   MESH_SAMPLER_SHADOW_ATLAS_3,
@@ -42,17 +34,17 @@ enum {
 };
 
 enum {
-  MESH_STORAGE_LIGHTS,
+  MESH_STORAGE_BSP_LIGHTS,
+  MESH_STORAGE_DYNAMIC_LIGHTS,
+  MESH_STORAGE_VOXEL_LIGHT_DATA,
   MESH_STORAGE_VOXEL_LIGHT_INDICES,
-  MESH_STORAGE_VOXEL_LIGHT_DATA, // (first_index, count) pairs; a buffer because
-                                 // D3D12 can't sample R32G32_INT 3D textures
   MESH_NUM_STORAGE_BUFFERS,
 };
 
 enum {
   MESH_UNIFORMS_GLOBALS,
-  MESH_UNIFORMS_LOCALS, // model/lerp/color (vertex) / active_lights bitmask (fragment)
-  MESH_UNIFORMS_MATERIAL, // material + stage params (+ tints, fragment only) -- see material.glsl
+  MESH_UNIFORMS_LOCALS,
+  MESH_UNIFORMS_MATERIAL,
   MESH_NUM_UNIFORMS
 };
 
@@ -62,11 +54,7 @@ enum {
 #define MAX_STAGE_PIPELINES 16
 
 /**
- * @brief The mesh program (mesh_vs/mesh_fs): its graphics pipeline and samplers.
- * Animated geometry with diffuse material, clustered per-voxel lighting, entity
- * color/tint, material stages, and the EF_SHELL effect -- material stages and
- * shells share this shader with the base pass via a runtime branch on
- * material.flags, not a pipeline swap: see R_DrawMeshEntityMaterialStage.
+ * @brief The mesh pipeline and samplers.
  */
 static struct {
 
@@ -139,28 +127,16 @@ static struct {
 typedef struct {
   mat4_t model;
   float lerp;
-  float modulate;
-  float padding[2];
+  float padding[3]; // std140 pads vec4 color to a 16-byte boundary
   vec4_t color;
 } r_mesh_locals_t;
 
 /**
- * @brief Per-entity fragment locals (mesh_locals_block in mesh_fs.glsl): the
- * dynamic light cull bitmask and the mesh lighting modulation.
+ * @brief Per-entity fragment locals.
  */
 typedef struct {
-  uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
-  float modulate;
-  float padding[3];
+  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
 } r_mesh_fragment_locals_t;
-
-/**
- * @brief The mesh lighting modulation for the given entity: r_modulate_mesh,
- * except the view weapon, which is always lit at full brightness.
- */
-static float R_MeshEntityModulate(const r_entity_t *e) {
-  return (e->effects & EF_WEAPON) ? 1.f : r_modulate_mesh->value;
-}
 
 /**
  * @brief Returns the mesh pipeline for the given material-stage blend function,
@@ -393,7 +369,6 @@ static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, cons
   r_mesh_locals_t locals = {
     .model = e->matrix,
     .lerp = e->lerp,
-    .modulate = R_MeshEntityModulate(e),
     .color = e->color,
   };
   switch (material->cm->surface & SURF_MASK_BLEND) {
@@ -508,13 +483,8 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     });
   }
 
-  // The dynamic lights affecting this entity, culled to its bounds, and the
-  // mesh lighting modulation. Has nothing to do with the material/stage/tint
-  // UBO -- see mesh_fs.glsl.
-  r_mesh_fragment_locals_t fragment_locals = {
-    .modulate = R_MeshEntityModulate(e),
-  };
-  R_ActiveLights(view, e->abs_model_bounds, fragment_locals.active_lights);
+  r_mesh_fragment_locals_t fragment_locals = { 0 };
+  R_ActiveDynamicLights(view, e->abs_model_bounds, fragment_locals.active_dynamic_lights);
   $(commands, pushFragmentUniformData, MESH_UNIFORMS_LOCALS, &fragment_locals, sizeof(fragment_locals));
 
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
@@ -678,12 +648,13 @@ void R_DrawMeshEntities(const r_view_t *view) {
   }, 2);
 
   SDL_GPUBuffer *storage[] = {
-    r_lights.buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
-                                     : r_lights.buffer->buffer,
+    r_lights.bsp_buffer->buffer,
+    r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
+                                     : r_lights.bsp_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_LIGHTS, storage, MESH_NUM_STORAGE_BUFFERS);
+  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_BSP_LIGHTS, storage, MESH_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -773,8 +744,11 @@ void R_DrawPlayerModelView(r_view_t *view) {
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
   }, 2);
 
-  SDL_GPUBuffer *storage[] = { r_lights.buffer->buffer, r_lights.buffer->buffer, r_lights.buffer->buffer };
-  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_LIGHTS, storage, MESH_NUM_STORAGE_BUFFERS);
+  SDL_GPUBuffer *storage[] = {
+    r_lights.bsp_buffer->buffer, r_lights.dynamic_buffer->buffer,
+    r_lights.bsp_buffer->buffer, r_lights.bsp_buffer->buffer,
+  };
+  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_BSP_LIGHTS, storage, MESH_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {

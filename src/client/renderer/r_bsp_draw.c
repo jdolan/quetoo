@@ -44,16 +44,17 @@ enum {
 };
 
 enum {
-  BSP_STORAGE_LIGHTS,
-  BSP_STORAGE_VOXEL_LIGHT_INDICES,
+  BSP_STORAGE_BSP_LIGHTS,
+  BSP_STORAGE_DYNAMIC_LIGHTS,
   BSP_STORAGE_VOXEL_LIGHT_DATA,
+  BSP_STORAGE_VOXEL_LIGHT_INDICES,
   BSP_NUM_STORAGE_BUFFERS,
 };
 
 enum {
   BSP_UNIFORMS_GLOBALS,
-  BSP_UNIFORMS_LOCALS, // model matrix + active_lights (vertex) / active_lights bitmask (fragment)
-  BSP_UNIFORMS_MATERIAL, // material + stage params combined -- see material.glsl,
+  BSP_UNIFORMS_LOCALS,
+  BSP_UNIFORMS_MATERIAL,
   BSP_NUM_UNIFORMS
 };
 
@@ -63,7 +64,7 @@ enum {
  */
 typedef struct {
   mat4_t model;
-  uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
+  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
 } r_bsp_locals_t;
 
 /**
@@ -337,9 +338,9 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    R_ActiveDynamicLights(view, entity->abs_model_bounds, locals.active_dynamic_lights);
     $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -351,9 +352,9 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
         continue;
       }
 
-      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      R_ActiveDynamicLights(view, block->node->visible_bounds, locals.active_dynamic_lights);
       $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
@@ -456,9 +457,9 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    R_ActiveDynamicLights(view, entity->abs_model_bounds, locals.active_dynamic_lights);
     $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -473,9 +474,9 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 
       r_stats.blocks_visible++;
 
-      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      R_ActiveDynamicLights(view, block->node->visible_bounds, locals.active_dynamic_lights);
       $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
 
     R_DrawOpaqueBspBlock(block);
@@ -496,9 +497,9 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    R_ActiveDynamicLights(view, entity->abs_model_bounds, locals.active_dynamic_lights);
     $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -510,9 +511,9 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
         continue;
       }
 
-      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      R_ActiveDynamicLights(view, block->node->visible_bounds, locals.active_dynamic_lights);
       $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
 
     R_DrawAlphaTestBspBlock(block);
@@ -625,13 +626,14 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
-    r_lights.buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
-                                     : r_lights.buffer->buffer,
+    r_lights.bsp_buffer->buffer,
+    r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
+                                     : r_lights.bsp_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
-  $(pass, bindVertexStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
+  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_BSP_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
+  $(pass, bindVertexStorageBuffers, BSP_STORAGE_BSP_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -765,9 +767,9 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    R_ActiveDynamicLights(view, entity->abs_model_bounds, locals.active_dynamic_lights);
     $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -783,9 +785,9 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
         continue;
       }
 
-      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      R_ActiveDynamicLights(view, block->node->visible_bounds, locals.active_dynamic_lights);
       $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
 
     R_DrawBlendBspBlock(view, entity, block);
@@ -793,10 +795,10 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
 }
 
 /**
- * @brief Renders the translucent (SURF_MASK_BLEND) world and inline BSP model
+ * @brief Renders the translucent (@c SURF_MASK_BLEND) world and inline BSP model
  * surfaces over the opaque scene, alpha-blended and depth-tested but without
  * writing depth.
- * @remarks Mirrors R_DrawOpaqueBspEntities but with the blend pipeline and the inverse
+ * @remarks Mirrors @c R_DrawOpaqueBspEntities but with the blend pipeline and the inverse
  * surface filter, including its material stages (animated water/glass overlays).
  * No back-to-front sorting, matching main -- single-layer translucency (water,
  * glass) is correct without it.
@@ -861,13 +863,14 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
-    r_lights.buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
-                                     : r_lights.buffer->buffer,
+    r_lights.bsp_buffer->buffer,
+    r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
+                                     : r_lights.bsp_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
-  $(pass, bindVertexStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
+  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_BSP_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
+  $(pass, bindVertexStorageBuffers, BSP_STORAGE_BSP_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {

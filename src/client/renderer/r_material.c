@@ -258,6 +258,11 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
     case ASSET_CONTEXT_MODELS:
     case ASSET_CONTEXT_PLAYERS: {
 
+      if (cm->context == ASSET_CONTEXT_MODELS
+          || cm->context == ASSET_CONTEXT_PLAYERS) {
+        cm->shadow = 0.f;
+      }
+
       SDL_Surface *normalmap = NULL;
       if (*cm->normalmap.path) {
         normalmap = R_LoadMaterialSurface(w, h, cm->normalmap.path);
@@ -302,8 +307,6 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
       memcpy(data + 2 * layer_size, specularmap->pixels, layer_size);
       memcpy(data + 3 * layer_size, tintmap->pixels, layer_size);
 
-      // Mip levels matching main's unconditional GL_LINEAR_MIPMAP_LINEAR for
-      // every material layer (diffuse, normal, specular, tint alike).
       const int32_t levels = (int32_t) floorf(log2f((float) Mini(w, h))) + 1;
 
       material->texture->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
@@ -318,8 +321,6 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
 
       free(data);
 
-      // Mipmap generation is not a copy-pass operation and must run outside any
-      // pass; see the identical pattern for the sky cubemap in r_image.c.
       CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
       $(commands, generateMipmaps, material->texture->texture->texture);
       $(commands, submit);

@@ -458,13 +458,13 @@ void R_DrawDecals(const r_view_t *view) {
 
   $(pass, bindPipeline, r_decal_pipeline.pipeline);
 
-  // The shared lights / voxel-index / voxel-data storage (decal family:
-  // sampler 0=atlas; storage 1=lights, 2=voxel indices, 3=voxel data).
+  // The shared BSP lights / voxel-data / voxel-index storage (decal family:
+  // sampler 0=atlas; storage 0=bsp lights, 1=voxel data, 2=voxel indices).
   SDL_GPUBuffer *storage[] = {
-    r_lights.buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
-                                     : r_lights.buffer->buffer,
+    r_lights.bsp_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
+                                     : r_lights.bsp_buffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, 0, storage, 3);
 

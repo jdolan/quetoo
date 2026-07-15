@@ -1922,6 +1922,7 @@
 		CEEEEEA72F9EF1BC00665A30 /* HomeViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = HomeViewController.css; sourceTree = "<group>"; };
 		CEF3B5FF2F455C990024F4DF /* voxel.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = voxel.glsl; sourceTree = "<group>"; };
 		CEF3B6012F456F5A0024F4DF /* light.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = light.glsl; sourceTree = "<group>"; };
+		BF98A24FAEEDE73A8F805F7D /* light_types.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = light_types.glsl; sourceTree = "<group>"; };
 		CEF601BA2FE60508005C680C /* Objectively.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Objectively.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEF601BD2FE6083F005C680C /* ObjectivelyMVC.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ObjectivelyMVC.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEF601C42FE711B7005C680C /* SDL3_image.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3_image.xcframework; path = ../ObjectivelyMVC/Frameworks/SDL3_image.xcframework; sourceTree = "<group>"; };
@@ -2726,6 +2727,7 @@
 				CE16435D2FF5A1E400863996 /* draw_3d_vs.metal */,
 				CE16435E2FF5A1E400863996 /* draw_3d_vs.spv */,
 				CEF3B6012F456F5A0024F4DF /* light.glsl */,
+				BF98A24FAEEDE73A8F805F7D /* light_types.glsl */,
 				CE57E13C246255D100F8902F /* material.glsl */,
 				CE1643DF2FFB373000863996 /* mesh_fs.dxil */,
 				CEFD07FA2B671DE700642169 /* mesh_fs.glsl */,

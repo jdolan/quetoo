@@ -128,7 +128,6 @@ struct locals_block
 {
     float4x4 model;
     float lerp;
-    float modulate_mesh;
     float4 color;
 };
 
@@ -346,11 +345,9 @@ vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _112 [
     float3 param_8 = vertex0.voxel;
     vertex0.ambient = (float3(_112.ambient) * voxel_exposure(param_7)) * (1.0 - (voxel_occlusion(param_8) * _112.ambient_occlusion));
     vertex0.diffuse = float3(0.0);
-    vertex0.ambient *= _524.modulate_mesh;
-    vertex0.diffuse *= _524.modulate_mesh;
-    float4x4 _748 = _112.projection3D * view_model;
-    float4 _750 = _748 * position;
-    out.gl_Position = _750;
+    float4x4 _736 = _112.projection3D * view_model;
+    float4 _738 = _736 * position;
+    out.gl_Position = _738;
     out.vertex0_model_position = vertex0.model_position;
     out.vertex0_model_normal = vertex0.model_normal;
     out.vertex0_position = vertex0.position;

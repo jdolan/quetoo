@@ -48,11 +48,10 @@ struct light_t_1
     float2 shadow;
 };
 
-struct lights_block
+struct bsp_lights_block
 {
-    int num_lights;
     int num_bsp_lights;
-    light_t_1 lights[1];
+    light_t_1 bsp_lights[1];
 };
 
 struct voxel_light_data_block
@@ -97,12 +96,12 @@ float3 light_color(thread const light_t& l, constant uniforms_block& _46)
 }
 
 static inline __attribute__((always_inline))
-float3 decal_light(thread const int& index, thread const float3& normal, constant uniforms_block& _46, const device lights_block& _103, thread float3& in_model_position)
+float3 decal_light(thread const int& index, thread const float3& normal, constant uniforms_block& _46, const device bsp_lights_block& _103, thread float3& in_model_position)
 {
     light_t light;
-    light.origin = _103.lights[index].origin;
-    light.color = _103.lights[index].color;
-    light.shadow = _103.lights[index].shadow;
+    light.origin = _103.bsp_lights[index].origin;
+    light.color = _103.bsp_lights[index].color;
+    light.shadow = _103.bsp_lights[index].shadow;
     float3 dir = light.origin.xyz - in_model_position;
     float dist = length(dir);
     float radius = light.origin.w;
@@ -116,7 +115,7 @@ float3 decal_light(thread const int& index, thread const float3& normal, constan
     return (light_color(param, _46) * atten) * lambert;
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _46 [[buffer(0)]], const device lights_block& _103 [[buffer(1)]], const device voxel_light_indices_block& _238 [[buffer(2)]], const device voxel_light_data_block& _211 [[buffer(3)]], texture2d<float> texture_diffusemap [[texture(0)]], sampler texture_diffusemapSmplr [[sampler(0)]])
+fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _46 [[buffer(0)]], const device bsp_lights_block& _103 [[buffer(1)]], const device voxel_light_data_block& _211 [[buffer(2)]], const device voxel_light_indices_block& _238 [[buffer(3)]], texture2d<float> texture_diffusemap [[texture(0)]], sampler texture_diffusemapSmplr [[sampler(0)]])
 {
     main0_out out = {};
     float4 diffuse = texture_diffusemap.sample(texture_diffusemapSmplr, in.in_texcoord);

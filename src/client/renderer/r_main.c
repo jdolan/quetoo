@@ -54,7 +54,6 @@ cvar_t *r_gpu_driver;
 cvar_t *r_hardness;
 cvar_t *r_lighting_distance;
 cvar_t *r_modulate;
-cvar_t *r_modulate_mesh;
 cvar_t *r_saturation;
 cvar_t *r_parallax;
 cvar_t *r_parallax_shadow;
@@ -372,7 +371,6 @@ static void R_InitLocal(void) {
   r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects.");
   r_lighting_distance = Cvar_Add("r_lighting_distance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex lighting.");
   r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting.");
-  r_modulate_mesh = Cvar_Add("r_modulate_mesh", "1", CVAR_ARCHIVE, "Controls the brightness of mesh model static lighting.");
   r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls the color saturation of the rendered scene. 0 = grayscale, 1 = normal, 2 = vivid.");
   r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
   r_parallax_shadow = Cvar_Add("r_parallax_shadow", "1", CVAR_ARCHIVE, "Controls the intensity of parallax self-shadow effects.");

@@ -21,9 +21,10 @@
 
 /**
  * @file light.glsl
- * @brief Per-fragment lighting and shadow functions.
+ * @brief Per-vertex and per-fragment lighting and shadow functions.
  * @remarks Include after uniforms.glsl, common.glsl, material.glsl, voxel.glsl.
- * The shadow atlas and lights storage buffer are declared here. SDL_gpu forbids
+ * Pulls in light_types.glsl for light_t itself. The shadow atlas and the
+ * BSP/dynamic lights storage buffers are declared here. SDL_gpu forbids
  * DEPTH_STENCIL_TARGET on array textures, so the atlas is six separate 2D
  * textures (one per cube face) rather than one array texture; sample_shadow_atlas
  * selects among them with a branch on the fragment's cube face, since dynamic
@@ -32,6 +33,8 @@
  * image-based ambient from the sky cubemap (the lit fragment shaders enable it),
  * else a flat ambient fallback is used.
  */
+
+#include "light_types.glsl"
 
 /**
  * @brief The distance, beyond lighting_distance, over which full per-fragment
@@ -55,16 +58,22 @@ layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_5) uniform sam
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SKY_AMBIENT) uniform samplerCube texture_sky;
 #endif
 
-layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_LIGHTS) readonly buffer lights_block {
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_BSP_LIGHTS) readonly buffer bsp_lights_block {
   /**
-   * @brief The number of light sources in `lights` (total), and the number of
-   * leading static BSP lights (lit via voxels; [num_bsp_lights, num_lights) are
-   * the dynamic tail, lit directly). These counts live with their data.
+   * @brief The number of light sources in `bsp_lights`.
    */
-  int num_lights;
   int num_bsp_lights;
 
-  light_t lights[];
+  light_t bsp_lights[];
+};
+
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_DYNAMIC_LIGHTS) readonly buffer dynamic_lights_block {
+  /**
+   * @brief The number of light sources in `dynamic_lights`.
+   */
+  int num_dynamic_lights;
+
+  light_t dynamic_lights[];
 };
 
 #if defined(FRAGMENT_SHADER)
@@ -173,7 +182,7 @@ float sample_shadow_face(in int face, in vec3 uvw) {
  * @param atten Light attenuation at this fragment (0-1).
  * @return Shadow term (0 = fully shadowed, 1 = fully lit).
  */
-float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, in common_fragment_t f, in float atten) {
+float sample_shadow_atlas(in light_t light, in common_vertex_t v, in common_fragment_t f, in float atten) {
 
   if (light.shadow.x < 0.0) {
     return 1.0;
@@ -261,11 +270,10 @@ vec3 blinn_phong(in vec3 light_color, in vec3 light_dir, in common_fragment_t f)
 /**
  * @brief Calculate vertex lighting contribution from a single light (unshadowed diffuse only).
  * @param v Vertex data.
- * @param index The light index.
+ * @param light The light source.
  * @return The diffuse lighting contribution.
  */
-vec3 vertex_light(in common_vertex_t v, in int index) {
-  light_t light = lights[index];
+vec3 vertex_light(in common_vertex_t v, in light_t light) {
 
   vec3 light_dir = light.origin.xyz - v.model_position;
   float dist = length(light_dir);
@@ -313,15 +321,14 @@ void vertex_lighting(inout common_vertex_t v) {
 
     for (int i = 0; i < data.y; i++) {
       int index = voxel_light_index(data.x + i);
-      v.diffuse += vertex_light(v, index);
+      v.diffuse += vertex_light(v, bsp_lights[index]);
     }
   }
 
-  // Dynamic lights: those flagged active for this draw. bit j => lights[num_bsp_lights + j].
-  int num_dynamic = num_lights - num_bsp_lights;
-  for (int j = 0; j < num_dynamic; j++) {
-    if ((active_lights[j >> 7][(j >> 5) & 3] & (1u << (j & 31))) != 0u) {
-      v.diffuse += vertex_light(v, num_bsp_lights + j);
+  // Dynamic lights: those flagged active for this draw.
+  for (int j = 0; j < num_dynamic_lights; j++) {
+    if (dynamic_light_active(active_dynamic_lights, j)) {
+      v.diffuse += vertex_light(v, dynamic_lights[j]);
     }
   }
 
@@ -387,7 +394,7 @@ float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fr
   vec3 texcoord = vec3(f.parallax, sample_material_heightmap(f.parallax, f.lod));
 
   float max_height = texcoord.z;
-  for (int i = 0; i < max_steps && texcoord.z < 1.0; i++) {
+  for (int i = 0; i < max_steps && texcoord.z < 1.0 && max_height < 1.0; i++) {
     texcoord += delta;
     max_height = max(max_height, sample_material_heightmap(texcoord.xy, f.lod));
   }
@@ -400,11 +407,9 @@ float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fr
  * @brief Calculate lighting and shadows for a single light source.
  * @param v Vertex data.
  * @param f Fragment data.
- * @param index The light index.
+ * @param light The light source.
  */
-void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int index) {
-
-  light_t light = lights[index];
+void fragment_light(in common_vertex_t v, inout common_fragment_t f, in light_t light) {
 
   vec3 dir = light.origin.xyz - v.model_position;
   float dist = length(dir);
@@ -429,13 +434,11 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
 
   vec3 color = light_color(light) * atten;
 
-  float shadow = sample_shadow_atlas(light, index, v, f, atten);
+  float shadow = sample_shadow_atlas(light, v, f, atten);
 
   // Apply parallax self-shadowing for close, high-detail fragments (no active stage).
-  if (!is_stage) {
-    if (f.lod < 4.0 && material.shadow > 0.0) {
-      shadow *= parallax_self_shadow(dir, v, f);
-    }
+  if (!is_stage && material.shadow > 0.0) {
+    shadow *= parallax_self_shadow(dir, v, f);
   }
 
   if (shadow <= 0.0) {
@@ -475,15 +478,14 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
 
     for (int i = 0; i < data.y; i++) {
       int index = voxel_light_index(data.x + i);
-      fragment_light(v, f, index);
+      fragment_light(v, f, bsp_lights[index]);
     }
   }
 
-  // Dynamic lights: those flagged active for this draw. bit j => lights[num_bsp_lights + j].
-  int num_dynamic = num_lights - num_bsp_lights;
-  for (int j = 0; j < num_dynamic; j++) {
-    if ((active_lights[j >> 7][(j >> 5) & 3] & (1u << (j & 31))) != 0u) {
-      fragment_light(v, f, num_bsp_lights + j);
+  // Dynamic lights: those flagged active for this draw.
+  for (int j = 0; j < num_dynamic_lights; j++) {
+    if (dynamic_light_active(active_dynamic_lights, j)) {
+      fragment_light(v, f, dynamic_lights[j]);
     }
   }
 

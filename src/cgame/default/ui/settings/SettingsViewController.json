@@ -208,20 +208,6 @@
                           "class": "Input",
                           "label": {
                             "text": {
-                              "text": "Entity brightness"
-                            }
-                          },
-                          "control": {
-                            "class": "CvarSlider",
-                            "var": "r_modulate_mesh",
-                            "min": 1.0,
-                            "max": 8.0
-                          }
-                        },
-                        {
-                          "class": "Input",
-                          "label": {
-                            "text": {
                               "text": "Saturation"
                             }
                           },

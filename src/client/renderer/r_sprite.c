@@ -32,6 +32,14 @@ enum {
 };
 
 /**
+ * @brief Per-batch vertex locals (@c sprite_locals_block in sprite_vs.glsl):
+ * the dynamic light cull bitmask for the current texture batch's union bounds.
+ */
+typedef struct {
+  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
+} r_sprite_locals_t;
+
+/**
  * @brief The sprite pipeline (sprite_vs/sprite_fs) and its diffuse sampler.
  */
 static struct {
@@ -489,15 +497,17 @@ void R_DrawSprites(const r_view_t *view) {
     .sampler = r_sprite_draw.depth_sampler->sampler,
   }, 1);
 
-  // Clustered voxel lighting for absorptive sprites (sprite family: samplers 0/1
-  // diffuse+next, 2 depth; storage 0/1/2 lights + voxel indices + voxel data).
+  // Clustered voxel lighting for absorptive sprites, evaluated per-vertex (see
+  // sprite_vs.glsl): storage 0/1/2/3 bsp lights + dynamic lights + voxel data
+  // + voxel indices.
   SDL_GPUBuffer *storage[] = {
-    r_lights.buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
-                                     : r_lights.buffer->buffer,
+    r_lights.bsp_buffer->buffer,
+    r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
+                                     : r_lights.bsp_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, 0, storage, 3);
+  $(pass, bindVertexStorageBuffers, 0, storage, 4);
 
   // Draw runs of consecutive instances sharing the same diffuse/next-diffuse image.
   int32_t i = 0;
@@ -511,13 +521,22 @@ void R_DrawSprites(const r_view_t *view) {
     }
 
     int32_t batch_size = 1;
+    box3_t batch_bounds = in->bounds;
     for (int32_t j = i + 1; j < view->num_sprite_instances; j++) {
       const r_sprite_instance_t *batch = view->sprite_instances + j;
       if (batch->diffusemap != in->diffusemap || batch->next_diffusemap != in->next_diffusemap) {
         break;
       }
+      batch_bounds = Box3_Union(batch_bounds, batch->bounds);
       batch_size++;
     }
+
+    // The dynamic light mask for this batch: the union of the batch's instance
+    // bounds is a conservative superset (a batch may span an arbitrary area),
+    // but sprite_light() still distance-attenuates each light per vertex.
+    r_sprite_locals_t locals = { 0 };
+    R_ActiveDynamicLights(view, batch_bounds, locals.active_dynamic_lights);
+    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
 
     $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DIFFUSE, (SDL_GPUTextureSamplerBinding[]) {
       { .texture = in->diffusemap->texture->texture, .sampler = r_sprite_draw.sampler->sampler },
@@ -608,12 +627,12 @@ static void R_InitSpritePipeline(void) {
   r_sprite_draw.pipeline = $(r_context.device, loadGraphicsPipeline,
     "shaders/sprite_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-      .num_uniform_buffers = 1,
+      .num_storage_buffers = 4,
+      .num_uniform_buffers = 2,
     },
     "shaders/sprite_fs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
       .num_samplers = 3,
-      .num_storage_buffers = 3,
       .num_uniform_buffers = 1,
     },
     &info);
