@@ -231,15 +231,17 @@ static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view, RenderPass
  * @brief Renders all sky surfaces of the world model as a window into the sky
  * cubemap. Drawn after the opaque world so it fills only unoccluded sky texels.
  */
-void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
+void R_DrawSky(const r_view_t *view) {
 
-  if (!r_sky.image || !r_sky.image->texture || !r_sky.image->texture->texture) {
+  if (!r_models.world) {
     return;
   }
 
-  if (!view->framebuffer) {
+  if (!r_sky.image) {
     return;
   }
+
+  const r_bsp_model_t *bsp = r_models.world->bsp;
 
   CommandBuffer *commands = r_context.device->commands;
 

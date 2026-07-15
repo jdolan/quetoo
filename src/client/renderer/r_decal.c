@@ -430,10 +430,6 @@ void R_DrawDecals(const r_view_t *view) {
     return;
   }
 
-  if (!view->framebuffer) {
-    return;
-  }
-
   CommandBuffer *commands = r_context.device->commands;
 
   R_UploadDecals(view);

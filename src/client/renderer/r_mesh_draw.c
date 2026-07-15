@@ -597,10 +597,6 @@ void R_DrawMeshEntities(const r_view_t *view) {
     return;
   }
 
-  if (!view->framebuffer) {
-    return;
-  }
-
   CommandBuffer *commands = r_context.device->commands;
 
   const r_bsp_model_t *bsp = r_models.world->bsp;

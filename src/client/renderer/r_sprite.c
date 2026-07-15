@@ -432,11 +432,11 @@ void R_UpdateSprites(r_view_t *view) {
  */
 void R_DrawSprites(const r_view_t *view) {
 
-  if (view->num_sprite_instances == 0 || !r_models.world) {
+  if (!r_models.world) {
     return;
   }
 
-  if (!view->framebuffer) {
+  if (view->num_sprite_instances == 0) {
     return;
   }
 
@@ -463,12 +463,6 @@ void R_DrawSprites(const r_view_t *view) {
     release(copyPass);
   }
 
-  // The pipeline declares the scene depth-stencil target (see
-  // R_InitSpritePipeline) but performs no hardware depth test or write of its
-  // own -- the soft-particle fade (sprite_fs) samples the scene depth copy
-  // instead, which also occludes sprites behind the world. The render pass
-  // still binds the real depth attachment (LOAD, untouched) since Metal
-  // requires it to match the pipeline's declared format.
   const SDL_GPUColorTargetInfo color =
       $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
   const SDL_GPUDepthStencilTargetInfo depth =
@@ -488,18 +482,12 @@ void R_DrawSprites(const r_view_t *view) {
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  // The float depth copy (scene color target 1), sampled for the soft-particle
-  // fade. The opaque lit passes write gl_FragCoord.z there; unlike the real depth
-  // buffer it can be sampled (and resolves to single-sample under MSAA).
   Texture *depth_texture = $(framebuffer, resolveColorTexture, 1);
   $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DEPTH_ATTACHMENT, &(SDL_GPUTextureSamplerBinding) {
     .texture = depth_texture->texture,
     .sampler = r_sprite_draw.depth_sampler->sampler,
   }, 1);
 
-  // Clustered voxel lighting for absorptive sprites, evaluated per-vertex (see
-  // sprite_vs.glsl): storage 0/1/2/3 bsp lights + dynamic lights + voxel data
-  // + voxel indices.
   SDL_GPUBuffer *storage[] = {
     r_lights.bsp_buffer->buffer,
     r_lights.dynamic_buffer->buffer,

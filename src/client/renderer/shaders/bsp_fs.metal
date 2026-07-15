@@ -225,7 +225,7 @@ void parallax_occlusion_mapping(thread const common_vertex_t& vertex0, thread co
     bool _1636;
     if (!_1629)
     {
-        _1636 = fragment0.lod > 4.0;
+        _1636 = fragment0.lod > 2.0;
     }
     else
     {

@@ -156,12 +156,7 @@ void R_DrawEntities(const r_view_t *view) {
 
   R_DrawOpaqueBspEntities(view);
 
-  // Sky is drawn after the opaque world, not before as in the GL renderer, so it
-  // only fills the depth-tested texels the opaque pass left unoccluded, cutting
-  // overdraw; R_UpdateDecals is pure CPU work and races neither draw call.
-  if (r_models.world) {
-    R_DrawSky(view, r_models.world->bsp);
-  }
+  R_DrawSky(view);
 
   R_DrawMeshEntities(view);
 

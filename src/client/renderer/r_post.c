@@ -154,10 +154,6 @@ static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
 void R_DrawPost(const r_view_t *view) {
 
   if (!r_models.world) {
-    return; // no 3D scene this frame; the present clear shows through for the UI
-  }
-
-  if (!view->framebuffer) {
     return;
   }
 

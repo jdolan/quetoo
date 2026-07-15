@@ -79,7 +79,7 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
 
   fragment.parallax = vertex.diffusemap;
 
-  if (material.parallax == 0.0 || fragment.lod > 4.0) {
+  if (material.parallax == 0.0 || fragment.lod > 2.0) {
     return;
   }
 

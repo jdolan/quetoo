@@ -63,10 +63,6 @@ void R_UpdateLights(r_view_t *view) {
   r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-    // BSP lights occupy their lump position, so that the compiled voxel light
-    // indices address them correctly even when the cgame skips or re-adds lump
-    // lights as dynamic (e.g. targeted lights); dynamic lights pack the slots
-    // of their own buffer in view order, matching R_ActiveDynamicLights.
     r_light_uniform_t *out;
     if (l->bsp_light) {
       const int32_t slot = (int32_t) (l->bsp_light - r_models.world->bsp->lights);
@@ -83,8 +79,6 @@ void R_UpdateLights(r_view_t *view) {
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
 
-    // Static lights consult their persistent occlusion query; dynamic lights
-    // (no bsp_light) are tested fresh against the view each frame.
     if (l->bsp_light) {
       l->occluded = !l->bsp_light->query->result;
     } else {
@@ -97,10 +91,6 @@ void R_UpdateLights(r_view_t *view) {
       r_stats.lights_visible++;
     }
 
-    // The light's tile is the same in every atlas face texture; the shader
-    // normalizes these pixel coordinates to UV space itself via textureSize().
-    // This is independent of the BSP/dynamic buffer split: it's keyed by the
-    // light's position in view->lights (view order), not its storage slot.
     const int32_t light_col = i % SHADOW_ATLAS_LIGHTS_PER_ROW;
     const int32_t light_row = i / SHADOW_ATLAS_LIGHTS_PER_ROW;
     l->tile = Vec2((float) (light_col * r_shadow_atlas.tile_size),
@@ -115,14 +105,10 @@ void R_UpdateLights(r_view_t *view) {
 
   dynamic_block->num_dynamic_lights = num_dynamic;
 
-  // Upload each block's count header plus its populated lights. Always upload
-  // at least the header so the counts reach the shader (0 on a light-free frame).
-  const uint32_t bsp_size = offsetof(r_bsp_lights_uniform_block_t, bsp_lights)
-      + bsp_block->num_bsp_lights * sizeof(r_light_uniform_t);
+  const uint32_t bsp_size = offsetof(r_bsp_lights_uniform_block_t, bsp_lights) + bsp_block->num_bsp_lights * sizeof(r_light_uniform_t);
   $(r_lights.bsp_buffer, upload, bsp_block, bsp_size, 0, true);
 
-  const uint32_t dynamic_size = offsetof(r_dynamic_lights_uniform_block_t, dynamic_lights)
-      + dynamic_block->num_dynamic_lights * sizeof(r_light_uniform_t);
+  const uint32_t dynamic_size = offsetof(r_dynamic_lights_uniform_block_t, dynamic_lights) + dynamic_block->num_dynamic_lights * sizeof(r_light_uniform_t);
   $(r_lights.dynamic_buffer, upload, dynamic_block, dynamic_size, 0, true);
 }
 

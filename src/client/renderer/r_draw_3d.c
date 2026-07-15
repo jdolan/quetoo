@@ -217,11 +217,6 @@ void R_Draw3D(const r_view_t *view) {
     return;
   }
 
-  if (!view->framebuffer) {
-    r_draw_3d.num_draw_arrays = r_draw_3d.num_vertexes = 0;
-    return;
-  }
-
   CommandBuffer *commands = r_context.device->commands;
 
   Framebuffer *framebuffer = view->framebuffer;
