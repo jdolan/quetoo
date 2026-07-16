@@ -307,23 +307,31 @@ void R_DrawMainView(r_view_t *view) {
 
   assert(view);
 
-  R_UpdateLights(view);
+  CommandBuffer *commands = r_context.device->commands;
 
-  R_UpdateSprites(view);
+  // Batch all of this frame's dynamic buffer uploads into a single CopyPass,
+  // rather than each subsystem opening (and submitting) its own.
+  CopyPass *copyPass = $(commands, beginCopyPass);
 
-  R_UpdateDraw3D();
+  R_UpdateLights(view, copyPass);
+
+  R_UpdateSprites(view, copyPass);
 
   R_UpdateDecals(view);
 
-  R_UploadDecals(view);
+  R_UploadDecals(view, copyPass);
+
+  // Must run last: gathers debug geometry (BSP normals, entity/light/occlusion
+  // bounds, ...) that depends on state settled by the updates above.
+  const bool draw_3d = R_UpdateDraw3D(view, copyPass);
+
+  release(copyPass);
 
   R_UpdateShadows(view);
 
   R_ClearShadows(view);
 
   R_DrawShadows(view);
-
-  CommandBuffer *commands = r_context.device->commands;
 
   Framebuffer *framebuffer = view->framebuffer;
 
@@ -344,7 +352,9 @@ void R_DrawMainView(r_view_t *view) {
 
   R_DrawSprites(pass, view);
 
-  R_Draw3D(pass, view);
+  if (draw_3d) {
+    R_Draw3D(pass, view);
+  }
 
   pass = release(pass);
 

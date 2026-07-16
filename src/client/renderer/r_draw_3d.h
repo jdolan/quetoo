@@ -27,7 +27,7 @@ void R_Draw3DLines(SDL_GPUPrimitiveType mode, const vec3_t *points, size_t count
 void R_Draw3DBox(const box3_t bounds, const color_t color, bool depth_test);
 
 #if defined(__R_LOCAL_H__)
-void R_UpdateDraw3D(void);
+bool R_UpdateDraw3D(const r_view_t *view, CopyPass *copyPass);
 void R_Draw3D(RenderPass *pass, const r_view_t *view);
 #endif
 

@@ -370,13 +370,10 @@ void R_UpdateDecals(const r_view_t *view) {
 
 /**
  * @brief Uploads any dirty per-block decal geometry, growing buffers on demand.
- * @details Must run after R_UpdateDecals completes and before the shared RenderPass
- * opens (see R_DrawMainView).
+ * @details Must run after R_UpdateDecals completes, against the shared CopyPass
+ * opened by R_DrawMainView before the RenderPass.
  */
-void R_UploadDecals(const r_view_t *view) {
-
-  CommandBuffer *commands = r_context.device->commands;
-  CopyPass *copyPass = NULL;
+void R_UploadDecals(const r_view_t *view, CopyPass *copyPass) {
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -405,20 +402,12 @@ void R_UploadDecals(const r_view_t *view) {
         decals->vertex_buffer_capacity = num_vertexes;
       }
 
-      if (copyPass == NULL) {
-        copyPass = $(commands, beginCopyPass);
-      }
-
       const void *data = VectorElement(decals->triangles, r_decal_triangle_t, 0);
       $(copyPass, uploadData, decals->vertex_buffer->buffer, data,
         num_vertexes * sizeof(r_decal_vertex_t), 0, true);
 
       decals->dirty = false;
     }
-  }
-
-  if (copyPass) {
-    release(copyPass);
   }
 }
 

@@ -208,13 +208,155 @@ void R_Draw3DBox(const box3_t bounds, const color_t color, bool depth_test) {
 }
 
 /**
- * @brief Uploads this frame's accumulated 3D debug vertexes, growing the vertex
- * buffer on demand. Must run before the shared RenderPass opens (see R_DrawMainView).
+ * @brief Accumulates per-vertex normal, tangent, and bitangent debug lines for
+ * nearby world BSP vertices when `r_draw_bsp_normals` is enabled.
  */
-void R_UpdateDraw3D(void) {
+static void R_UpdateBspNormals(const r_view_t *view) {
+
+  if (!r_draw_bsp_normals->value || !r_models.world) {
+    return;
+  }
+
+  const r_bsp_model_t *bsp = r_models.world->bsp;
+
+  const r_bsp_vertex_t *v = bsp->vertexes;
+  for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
+
+    const vec3_t pos = v->position;
+    if (Vec3_Distance(pos, view->origin) > 512.f) {
+      continue;
+    }
+
+    const vec3_t normal[] = { pos, Vec3_Fmaf(pos, 8.f, v->normal) };
+    const vec3_t tangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->tangent) };
+    const vec3_t bitangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->bitangent) };
+
+    R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, normal, 2, color_red, true);
+
+    if (r_draw_bsp_normals->integer > 1) {
+      R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, tangent, 2, color_green, true);
+
+      if (r_draw_bsp_normals->integer > 2) {
+        R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, bitangent, 2, color_blue, true);
+      }
+    }
+  }
+}
+
+/**
+ * @brief Accumulates debug bounding boxes for all entities in the view when
+ * `r_draw_entity_bounds` is enabled.
+ */
+static void R_UpdateEntityBounds(const r_view_t *view) {
+
+  if (!r_draw_entity_bounds->value) {
+    return;
+  }
+
+  const r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+
+    if (e->parent) {
+      continue;
+    }
+
+    if (e->effects & (EF_WORLD | EF_SELF | EF_WEAPON)) {
+      continue;
+    }
+
+    if (Box3_IsNull(e->abs_model_bounds)) {
+      continue;
+    }
+
+    if (R_CulludeBox(view, e->abs_model_bounds)) {
+      continue;
+    }
+
+    if (r_draw_entity_bounds->integer == 2) {
+      R_Draw3DBox(e->abs_model_bounds, Color4fv(e->color), true);
+    } else {
+      R_Draw3DBox(e->abs_bounds, Color4fv(e->color), true);
+    }
+  }
+}
+
+/**
+ * @brief Accumulates debug bounding boxes for lights near the view's forward
+ * trace when `r_draw_light_bounds` is enabled.
+ */
+static void R_UpdateLightBounds(const r_view_t *view) {
+
+  if (!r_draw_light_bounds->value) {
+    return;
+  }
+
+  const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
+  const cm_trace_t tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
+
+  const r_light_t *l = view->lights;
+  for (int32_t i = 0; i < view->num_lights; i++, l++) {
+    if (Vec3_Distance(tr.end, l->origin) < 64.f) {
+      R_Draw3DBox(l->bounds, Color3fv(l->color), false);
+    }
+  }
+}
+
+/**
+ * @brief Accumulates debug bounding boxes for occlusion queries and inline
+ * model blocks when `r_draw_occlusion_queries` / `r_draw_bsp_blocks` are
+ * enabled. Query results were already resolved this frame in R_DrawViewDepth,
+ * so they're stable by the time this runs.
+ */
+static void R_UpdateOcclusionBounds(const r_view_t *view) {
+
+  if (r_draw_occlusion_queries->value) {
+    const r_occlusion_query_t *q = r_occlusion.queries;
+    for (int32_t i = 0; i < r_occlusion.num_queries; i++, q++) {
+      const float dist = Vec3_Distance(Box3_Center(q->bounds), view->origin);
+      const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
+      if (!q->result) {
+        R_Draw3DBox(q->bounds, Color3f(0.f, f, 0.f), false);
+      } else {
+        R_Draw3DBox(q->bounds, Color3f(f, 0.f, 0.f), false);
+      }
+    }
+  }
+
+  if (r_draw_bsp_blocks->value && r_models.world) {
+    r_bsp_block_t *b = r_models.world->bsp->inline_models->blocks;
+    for (int32_t i = 0; i < r_models.world->bsp->inline_models->num_blocks; i++, b++) {
+      const float dist = Vec3_Distance(Box3_Center(b->visible_bounds), view->origin);
+      const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
+      if (!b->query->result) {
+        R_Draw3DBox(b->visible_bounds, Color3f(0.f, f, 0.f), false);
+      } else {
+        R_Draw3DBox(b->visible_bounds, Color3f(f, 0.f, 0.f), false);
+      }
+    }
+  }
+}
+
+/**
+ * @brief Accumulates this frame's debug geometry and uploads it, growing the
+ * vertex buffer on demand.
+ * @return True if there is anything to draw this frame, false otherwise.
+ * @details All debug-geometry sources (BSP normals, entity/light/occlusion
+ * bounds, ...) are gathered here rather than as side effects scattered across
+ * their respective subsystems' draw calls, so the upload below is guaranteed
+ * to see everything for the frame. Must be the last R_UpdateXYZ called in
+ * R_DrawMainView, since it depends on state settled by the others (e.g. lights
+ * added to the view). Draw3D is 0 vertexes in-game the vast majority of the
+ * time, so callers should skip its RenderPass entirely when this returns false.
+ */
+bool R_UpdateDraw3D(const r_view_t *view, CopyPass *copyPass) {
+
+  R_UpdateBspNormals(view);
+  R_UpdateEntityBounds(view);
+  R_UpdateLightBounds(view);
+  R_UpdateOcclusionBounds(view);
 
   if (r_draw_3d.num_draw_arrays == 0) {
-    return;
+    return false;
   }
 
   const uint32_t count = (uint32_t) r_draw_3d.num_vertexes;
@@ -228,12 +370,10 @@ void R_UpdateDraw3D(void) {
     r_draw_3d.vertex_buffer_capacity = (int32_t) count;
   }
 
-  CommandBuffer *commands = r_context.device->commands;
-
-  CopyPass *copyPass = $(commands, beginCopyPass);
   $(copyPass, uploadData, r_draw_3d.vertex_buffer->buffer, r_draw_3d.vertexes,
     count * sizeof(r_draw_3d_vertex_t), 0, true);
-  release(copyPass);
+
+  return true;
 }
 
 /**

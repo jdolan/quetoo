@@ -413,7 +413,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 /**
  * @brief Generate sprite instances from sprites and beams, and update the vertex array.
  */
-void R_UpdateSprites(r_view_t *view) {
+void R_UpdateSprites(r_view_t *view, CopyPass *copyPass) {
 
   const r_sprite_t *s = view->sprites;
   for (int32_t i = 0; i < view->num_sprites; i++, s++) {
@@ -440,12 +440,8 @@ void R_UpdateSprites(r_view_t *view) {
     r_sprite_draw.vertex_buffer_capacity = (int32_t) count;
   }
 
-  CommandBuffer *commands = r_context.device->commands;
-
-  CopyPass *copyPass = $(commands, beginCopyPass);
   $(copyPass, uploadData, r_sprite_draw.vertex_buffer->buffer, r_sprite_draw.vertexes,
     count * sizeof(r_sprite_vertex_t), 0, true);
-  release(copyPass);
 }
 
 /**

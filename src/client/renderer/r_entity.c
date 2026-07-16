@@ -104,50 +104,6 @@ void R_UpdateEntities(r_view_t *view) {
 }
 
 /**
- * @brief Draws debug bounding box visualization for a single entity.
- */
-static void R_DrawEntityBounds(const r_entity_t *e) {
-
-  if (r_draw_entity_bounds->integer == 2) {
-    R_Draw3DBox(e->abs_model_bounds, Color4fv(e->color), true);
-  } else {
-    R_Draw3DBox(e->abs_bounds, Color4fv(e->color), true);
-  }
-}
-
-/**
- * @brief Draws debug bounding boxes for all entities in the view.
- */
-static void R_DrawEntitiesBounds(const r_view_t *view) {
-
-  if (!r_draw_entity_bounds->value) {
-    return;
-  }
-
-  const r_entity_t *e = view->entities;
-  for (int32_t i = 0; i < view->num_entities; i++, e++) {
-
-    if (e->parent) {
-      continue;
-    }
-
-    if (e->effects & (EF_WORLD | EF_SELF | EF_WEAPON)) {
-      continue;
-    }
-
-    if (Box3_IsNull(e->abs_model_bounds)) {
-      continue;
-    }
-
-    if (R_CulludeBox(view, e->abs_model_bounds)) {
-      continue;
-    }
-
-    R_DrawEntityBounds(e);
-  }
-}
-
-/**
  * @brief Draw all entities.
  */
 void R_DrawEntities(RenderPass *pass, const r_view_t *view) {
@@ -161,6 +117,4 @@ void R_DrawEntities(RenderPass *pass, const r_view_t *view) {
   R_DrawDecals(pass, view);
 
   R_DrawBlendBspEntities(pass, view);
-
-  R_DrawEntitiesBounds(view);
 }

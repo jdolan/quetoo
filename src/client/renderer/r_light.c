@@ -42,7 +42,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
  * @brief Transform lights into their uniform representation and upload them to
  * the BSP and dynamic lights storage buffers.
  */
-void R_UpdateLights(r_view_t *view) {
+void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
 
   r_bsp_lights_uniform_block_t *bsp_block = &r_lights.bsp_block;
   r_dynamic_lights_uniform_block_t *dynamic_block = &r_lights.dynamic_block;
@@ -51,12 +51,6 @@ void R_UpdateLights(r_view_t *view) {
   memset(dynamic_block, 0, sizeof(*dynamic_block));
 
   bsp_block->num_bsp_lights = r_models.world ? r_models.world->bsp->num_lights : 0;
-
-  cm_trace_t tr = { 0 };
-  if (r_draw_light_bounds->value) {
-    const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-    tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
-  }
 
   int32_t num_dynamic = 0;
 
@@ -97,19 +91,15 @@ void R_UpdateLights(r_view_t *view) {
                    (float) (light_row * r_shadow_atlas.tile_size));
 
     out->shadow = (l->flags & R_LIGHT_NO_SHADOW) ? Vec2(-1.f, -1.f) : l->tile;
-
-    if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
-      R_Draw3DBox(l->bounds, Color3fv(l->color), false);
-    }
   }
 
   dynamic_block->num_dynamic_lights = num_dynamic;
 
   const uint32_t bsp_size = offsetof(r_bsp_lights_uniform_block_t, bsp_lights) + bsp_block->num_bsp_lights * sizeof(r_light_uniform_t);
-  $(r_lights.bsp_buffer, upload, bsp_block, bsp_size, 0, true);
+  $(r_lights.bsp_buffer, uploadWithPass, copyPass, bsp_block, bsp_size, 0, true);
 
   const uint32_t dynamic_size = offsetof(r_dynamic_lights_uniform_block_t, dynamic_lights) + dynamic_block->num_dynamic_lights * sizeof(r_light_uniform_t);
-  $(r_lights.dynamic_buffer, upload, dynamic_block, dynamic_size, 0, true);
+  $(r_lights.dynamic_buffer, uploadWithPass, copyPass, dynamic_block, dynamic_size, 0, true);
 }
 
 /**

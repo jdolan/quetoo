@@ -27,7 +27,7 @@ r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *p);
 r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *p);
 
 #if defined(__R_LOCAL_H__)
-void R_UpdateSprites(r_view_t *view);
+void R_UpdateSprites(r_view_t *view, CopyPass *copyPass);
 void R_DrawSprites(RenderPass *pass, const r_view_t *view);
 void R_ShutdownSprites(void);
 void R_InitSprites(void);
