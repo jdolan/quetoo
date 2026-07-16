@@ -309,8 +309,6 @@ void R_DrawMainView(r_view_t *view) {
 
   CommandBuffer *commands = r_context.device->commands;
 
-  // Batch all of this frame's dynamic buffer uploads into a single CopyPass,
-  // rather than each subsystem opening (and submitting) its own.
   CopyPass *copyPass = $(commands, beginCopyPass);
 
   R_UpdateLights(view, copyPass);
@@ -321,9 +319,7 @@ void R_DrawMainView(r_view_t *view) {
 
   R_UploadDecals(view, copyPass);
 
-  // Must run last: gathers debug geometry (BSP normals, entity/light/occlusion
-  // bounds, ...) that depends on state settled by the updates above.
-  const bool draw_3d = R_UpdateDraw3D(view, copyPass);
+  R_UpdateDraw3D(view, copyPass);
 
   release(copyPass);
 
@@ -335,9 +331,6 @@ void R_DrawMainView(r_view_t *view) {
 
   Framebuffer *framebuffer = view->framebuffer;
 
-  // Both color targets are always cleared; only the depth attachment's load-op
-  // varies, so that the depth pre-pass (see R_DrawViewDepth) can seed it and
-  // opaque geometry benefits from early-Z instead of overwriting it.
   const SDL_GPUColorTargetInfo color[] = {
     $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
     $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
@@ -348,13 +341,11 @@ void R_DrawMainView(r_view_t *view) {
 
   RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
-  R_DrawEntities(pass, view);
+  R_DrawEntities(view, pass);
 
-  R_DrawSprites(pass, view);
+  R_DrawSprites(view, pass);
 
-  if (draw_3d) {
-    R_Draw3D(pass, view);
-  }
+  R_Draw3D(view, pass);
 
   pass = release(pass);
 

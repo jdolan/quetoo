@@ -106,7 +106,7 @@ void R_UpdateEntities(r_view_t *view) {
 /**
  * @brief Draw all entities.
  */
-void R_DrawEntities(RenderPass *pass, const r_view_t *view) {
+void R_DrawEntities(const r_view_t *view, RenderPass *pass) {
 
   R_DrawSky(pass, view);
 

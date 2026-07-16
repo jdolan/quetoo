@@ -448,7 +448,7 @@ void R_UpdateSprites(r_view_t *view, CopyPass *copyPass) {
  * @brief Renders all batched sprite instances to the present framebuffer, blended
  * additively over the opaque scene and depth-tested against it.
  */
-void R_DrawSprites(RenderPass *pass, const r_view_t *view) {
+void R_DrawSprites(const r_view_t *view, RenderPass *pass) {
 
   if (!r_models.world) {
     return;

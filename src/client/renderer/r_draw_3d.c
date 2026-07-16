@@ -337,18 +337,10 @@ static void R_UpdateOcclusionBounds(const r_view_t *view) {
 }
 
 /**
- * @brief Accumulates this frame's debug geometry and uploads it, growing the
+ * @brief Accumulates this frame's 3D line geometry and uploads it, growing the
  * vertex buffer on demand.
- * @return True if there is anything to draw this frame, false otherwise.
- * @details All debug-geometry sources (BSP normals, entity/light/occlusion
- * bounds, ...) are gathered here rather than as side effects scattered across
- * their respective subsystems' draw calls, so the upload below is guaranteed
- * to see everything for the frame. Must be the last R_UpdateXYZ called in
- * R_DrawMainView, since it depends on state settled by the others (e.g. lights
- * added to the view). Draw3D is 0 vertexes in-game the vast majority of the
- * time, so callers should skip its RenderPass entirely when this returns false.
  */
-bool R_UpdateDraw3D(const r_view_t *view, CopyPass *copyPass) {
+void R_UpdateDraw3D(const r_view_t *view, CopyPass *copyPass) {
 
   R_UpdateBspNormals(view);
   R_UpdateEntityBounds(view);
@@ -356,7 +348,7 @@ bool R_UpdateDraw3D(const r_view_t *view, CopyPass *copyPass) {
   R_UpdateOcclusionBounds(view);
 
   if (r_draw_3d.num_draw_arrays == 0) {
-    return false;
+    return;
   }
 
   const uint32_t count = (uint32_t) r_draw_3d.num_vertexes;
@@ -372,15 +364,13 @@ bool R_UpdateDraw3D(const r_view_t *view, CopyPass *copyPass) {
 
   $(copyPass, uploadData, r_draw_3d.vertex_buffer->buffer, r_draw_3d.vertexes,
     count * sizeof(r_draw_3d_vertex_t), 0, true);
-
-  return true;
 }
 
 /**
  * @brief Draws all 3D debug geometry accumulated for the current frame, into
  * the view's scene framebuffer.
  */
-void R_Draw3D(RenderPass *pass, const r_view_t *view) {
+void R_Draw3D(const r_view_t *view, RenderPass *pass) {
 
   if (r_draw_3d.num_draw_arrays == 0) {
     return;

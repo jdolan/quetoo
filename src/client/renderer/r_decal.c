@@ -370,8 +370,6 @@ void R_UpdateDecals(const r_view_t *view) {
 
 /**
  * @brief Uploads any dirty per-block decal geometry, growing buffers on demand.
- * @details Must run after R_UpdateDecals completes, against the shared CopyPass
- * opened by R_DrawMainView before the RenderPass.
  */
 void R_UploadDecals(const r_view_t *view, CopyPass *copyPass) {
 

@@ -5693,6 +5693,7 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_COMMA = NO;
 				EXECUTABLE_PREFIX = lib;
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_CFLAGS = (
 					"-Ideps/rapidjson",
@@ -5709,6 +5710,7 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_COMMA = NO;
 				EXECUTABLE_PREFIX = lib;
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_CFLAGS = (
 					"-Ideps/rapidjson",
