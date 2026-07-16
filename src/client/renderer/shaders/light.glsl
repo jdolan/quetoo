@@ -382,8 +382,16 @@ void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
  */
 float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fragment_t f) {
 
-  // LOD-based step count: 16 close, 4 far (bounded for performance)
-  int max_steps = int(mix(16.0, 4.0, min(f.lod * 0.33, 1.0)));
+  // Beyond this LOD, parallax_occlusion_mapping (bsp_fs.glsl) no longer offsets
+  // the texcoord and texel-scale height detail is not screen-resolvable, so
+  // self-shadowing has nothing meaningful left to contribute.
+  if (f.lod > 2.0) {
+    return 1.0;
+  }
+
+  // LOD-based step count: 8 close, 2 far (bounded for performance; this runs
+  // per-light, so it must fall off faster than the once-per-fragment POM offset).
+  int max_steps = int(mix(8.0, 2.0, min(f.lod * 0.5, 1.0)));
 
   // Adaptive step size based on LOD (larger steps at distance)
   float step_scale = mix(1.0, 2.5, min(f.lod * 0.5, 1.0));
@@ -436,7 +444,6 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in light_t 
 
   float shadow = sample_shadow_atlas(light, v, f, atten);
 
-  // Apply parallax self-shadowing for close, high-detail fragments (no active stage).
   if (!is_stage && material.shadow > 0.0) {
     shadow *= parallax_self_shadow(dir, v, f);
   }
