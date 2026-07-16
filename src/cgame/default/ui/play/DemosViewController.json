@@ -1,0 +1,40 @@
+{
+  "identifier": "Demos",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "TableView",
+          "identifier": "demos"
+        },
+        {
+          "class": "StackView",
+          "classNames": [
+            "accessoryView",
+            "container"
+          ],
+          "subviews": [
+            {
+              "class": "Button",
+              "identifier": "refresh",
+              "title": {
+                "text": "Refresh"
+              }
+            },
+            {
+              "class": "Button",
+              "identifier": "play",
+              "title": {
+                "text": "Play"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

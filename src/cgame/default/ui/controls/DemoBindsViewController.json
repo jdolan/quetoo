@@ -1,0 +1,319 @@
+{
+  "identifier": "Demo",
+  "classNames": [
+    "demoBinds"
+  ],
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "StackView",
+          "classNames": [
+            "columns",
+            "container"
+          ],
+          "subviews": [
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Camera"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Toggle free camera"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_freecam"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Orbit camera"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_orbit"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Follow next player"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_follow_next"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Follow previous player"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_follow_prev"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Cinematic"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Toggle cinematic mode"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cinematic"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Toggle HUD"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "toggle cg_draw_demo_hud"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Toggle timeline bar"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "toggle cg_draw_demo_bar"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Playback"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Pause / resume"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_pause"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Skip back 5s"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_seek -5"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Skip forward 5s"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_seek +5"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Step back"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_step -1"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Step forward"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_step 1"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Slower"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_speed_down"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Faster"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_speed_up"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Camera path"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Add keyframe"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cam_add"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Play / stop path"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cam_play"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Clear path"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cam_clear"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Save path"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cam_save"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Load path"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cam_load"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

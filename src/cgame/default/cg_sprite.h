@@ -255,6 +255,9 @@ struct cg_sprite_s {
  * @brief Calculate a lifetime value that causes the animation to run at a specified framerate.
  */
 static inline uint32_t Cg_AnimationLifetime(const r_animation_t *animation, const float fps) {
+  if (animation == NULL) { // the animation sprite failed to precache
+    return 0;
+  }
   return animation->num_frames * FRAMES_TO_SECONDS(fps);
 }
 

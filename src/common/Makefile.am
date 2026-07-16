@@ -4,6 +4,7 @@ noinst_HEADERS = \
 	common.h \
 	console.h \
 	cvar.h \
+	demo.h \
 	filesystem.h \
 	image.h \
 	installer.h \
@@ -22,6 +23,7 @@ libcommon_la_SOURCES = \
 	common.c \
 	console.c \
 	cvar.c \
+	demo.c \
 	filesystem.c \
 	image.c \
 	installer.c \
