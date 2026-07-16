@@ -40,7 +40,6 @@ extern cvar_t *r_gpu_driver;
 extern cvar_t *r_hardness;
 extern cvar_t *r_lighting_distance;
 extern cvar_t *r_modulate;
-extern cvar_t *r_modulate_mesh;
 extern cvar_t *r_saturation;
 extern cvar_t *r_parallax;
 extern cvar_t *r_parallax_shadow;

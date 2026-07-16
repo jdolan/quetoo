@@ -22,29 +22,30 @@
 #version 450
 
 #include "uniforms.glsl"
+#include "light_types.glsl"
 
 /*
  * Decals are their own dense descriptor family: the decal atlas at sampler 0,
- * the lights, voxel light-index and voxel light-data storage buffers at the
- * contiguous bindings 1/2/3. The light data is a storage buffer of per-voxel
- * (first_index, count) pairs rather than an RG32I isampler3D because D3D12
- * cannot sample integer formats. No shadows or normal maps -- decals take
- * clustered voxel diffuse only.
+ * the BSP lights, voxel light-data and voxel light-index storage buffers at
+ * the contiguous bindings 1/2/3 (decals only ever take clustered voxel BSP
+ * light, never the per-draw dynamic light tail). The light data is a storage
+ * buffer of per-voxel (first_index, count) pairs rather than an RG32I
+ * isampler3D because D3D12 cannot sample integer formats. No shadows or
+ * normal maps -- decals take clustered voxel diffuse only.
  */
 layout (set = SAMPLER_SET, binding = 0) uniform sampler2D texture_diffusemap;
 
-layout (std430, set = SAMPLER_SET, binding = 1) readonly buffer lights_block {
-  int num_lights;
+layout (std430, set = SAMPLER_SET, binding = 1) readonly buffer bsp_lights_block {
   int num_bsp_lights;
-  light_t lights[];
+  light_t bsp_lights[];
 };
 
-layout (std430, set = SAMPLER_SET, binding = 2) readonly buffer voxel_light_indices_block {
-  int voxel_light_indices[];
-};
-
-layout (std430, set = SAMPLER_SET, binding = 3) readonly buffer voxel_light_data_block {
+layout (std430, set = SAMPLER_SET, binding = 2) readonly buffer voxel_light_data_block {
   int voxel_light_data_elements[];
+};
+
+layout (std430, set = SAMPLER_SET, binding = 3) readonly buffer voxel_light_indices_block {
+  int voxel_light_indices[];
 };
 
 layout (location = 0) in vec3 in_model_position;
@@ -70,7 +71,7 @@ ivec3 decal_voxel_xyz(in vec3 position) {
  */
 vec3 decal_light(in int index, in vec3 normal) {
 
-  const light_t light = lights[index];
+  const light_t light = bsp_lights[index];
 
   const vec3 dir = light.origin.xyz - in_model_position;
   const float dist = length(dir);

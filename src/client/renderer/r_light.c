@@ -40,48 +40,39 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 
 /**
  * @brief Transform lights into their uniform representation and upload them to
- * the lights storage buffer.
+ * the BSP and dynamic lights storage buffers.
  */
-void R_UpdateLights(r_view_t *view) {
+void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
 
-  r_light_uniform_block_t *block = &r_lights.block;
-  memset(block, 0, sizeof(*block));
+  r_bsp_lights_uniform_block_t *bsp_block = &r_lights.bsp_block;
+  r_dynamic_lights_uniform_block_t *dynamic_block = &r_lights.dynamic_block;
 
-  block->num_bsp_lights = r_models.world ? r_models.world->bsp->num_lights : 0;
+  memset(bsp_block, 0, sizeof(*bsp_block));
+  memset(dynamic_block, 0, sizeof(*dynamic_block));
 
-  cm_trace_t tr = { 0 };
-  if (r_draw_light_bounds->value) {
-    const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-    tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
-  }
+  bsp_block->num_bsp_lights = r_models.world ? r_models.world->bsp->num_lights : 0;
 
   int32_t num_dynamic = 0;
 
   r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-    // BSP lights occupy their lump position, so that the compiled voxel light
-    // indices address them correctly even when the cgame skips or re-adds lump
-    // lights as dynamic (e.g. targeted lights); dynamic lights pack the slots
-    // at [num_bsp_lights, ...) in view order, matching R_ActiveLights.
-    int32_t slot;
+    r_light_uniform_t *out;
     if (l->bsp_light) {
-      slot = (int32_t) (l->bsp_light - r_models.world->bsp->lights);
-      assert(slot < block->num_bsp_lights);
+      const int32_t slot = (int32_t) (l->bsp_light - r_models.world->bsp->lights);
+      assert(slot < bsp_block->num_bsp_lights);
+      out = &bsp_block->bsp_lights[slot];
     } else {
       if (num_dynamic == MAX_DYNAMIC_LIGHTS) {
         Com_Debug(DEBUG_RENDERER, "MAX_DYNAMIC_LIGHTS\n");
         continue;
       }
-      slot = block->num_bsp_lights + num_dynamic++;
+      out = &dynamic_block->dynamic_lights[num_dynamic++];
     }
 
-    r_light_uniform_t *out = &block->lights[slot];
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
 
-    // Static lights consult their persistent occlusion query; dynamic lights
-    // (no bsp_light) are tested fresh against the view each frame.
     if (l->bsp_light) {
       l->occluded = !l->bsp_light->query->result;
     } else {
@@ -94,43 +85,33 @@ void R_UpdateLights(r_view_t *view) {
       r_stats.lights_visible++;
     }
 
-    // The light's tile is the same in every atlas face texture; the shader
-    // normalizes these pixel coordinates to UV space itself via textureSize().
     const int32_t light_col = i % SHADOW_ATLAS_LIGHTS_PER_ROW;
     const int32_t light_row = i / SHADOW_ATLAS_LIGHTS_PER_ROW;
     l->tile = Vec2((float) (light_col * r_shadow_atlas.tile_size),
                    (float) (light_row * r_shadow_atlas.tile_size));
 
     out->shadow = (l->flags & R_LIGHT_NO_SHADOW) ? Vec2(-1.f, -1.f) : l->tile;
-
-    if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
-      R_Draw3DBox(l->bounds, Color3fv(l->color), false);
-    }
   }
 
-  // The shaders derive the dynamic count as num_lights - num_bsp_lights, so
-  // num_lights spans the occupied slots, not the view's light count (lump
-  // lights the cgame skipped leave zeroed, zero-radius gaps).
-  block->num_lights = block->num_bsp_lights + num_dynamic;
+  dynamic_block->num_dynamic_lights = num_dynamic;
 
-  // Upload the count header plus the populated lights. Always upload at least
-  // the header so num_lights reaches the shader (0 on a light-free frame).
-  const uint32_t size = offsetof(r_light_uniform_block_t, lights)
-      + block->num_lights * sizeof(r_light_uniform_t);
-  $(r_lights.buffer, upload, block, size, 0, true);
+  const uint32_t bsp_size = offsetof(r_bsp_lights_uniform_block_t, bsp_lights) + bsp_block->num_bsp_lights * sizeof(r_light_uniform_t);
+  $(r_lights.bsp_buffer, uploadWithPass, copyPass, bsp_block, bsp_size, 0, true);
+
+  const uint32_t dynamic_size = offsetof(r_dynamic_lights_uniform_block_t, dynamic_lights) + dynamic_block->num_dynamic_lights * sizeof(r_light_uniform_t);
+  $(r_lights.dynamic_buffer, uploadWithPass, copyPass, dynamic_block, dynamic_size, 0, true);
 }
 
 /**
- * @brief Builds the dynamic-light cull bitmask for the given bounds into `mask`.
- * @details Dynamic light sources (rockets, explosions, targeted BSP lights, etc.)
- * occupy the buffer slots at `[num_bsp_lights, num_lights)` and have no voxel
- * grid, so each draw whittles them to those intersecting its bounds. Bit `j` of
- * the bitmask selects dynamic light `[num_bsp_lights + j]`; the lighting shaders
- * add `num_bsp_lights` to recover the absolute index. Dynamic lights may be
- * interleaved with static (voxel-gridded) BSP lights in the view, so `j` counts
- * them in view order, matching the slot assignment in R_UpdateLights.
+ * @brief Builds the dynamic light bitmask for the given bounds into `mask`.
+ * @details Dynamic light sources (trails, explosions, animated BSP lights, etc.)
+ * live in the dynamic lights buffer and have no voxel grid. This function
+ * whittles the set of dynamic lights to those intersecting its bounds. Bit `j`
+ * of the bitmask selects dynamic light `dynamic_lights[j]`. Dynamic lights may
+ * be interleaved with static (voxel-gridded) BSP lights in the view, so `j`
+ * counts them in view order, matching the slot assignment in R_UpdateLights.
  */
-void R_ActiveLights(const r_view_t *view, const box3_t bounds, uint32_t mask[MAX_DYNAMIC_LIGHTS / 32]) {
+void R_ActiveDynamicLights(const r_view_t *view, const box3_t bounds, uint32_t mask[MAX_DYNAMIC_LIGHTS / 32]) {
 
   memset(mask, 0, sizeof(uint32_t) * (MAX_DYNAMIC_LIGHTS / 32));
 
@@ -157,22 +138,28 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, uint32_t mask[MAX
 }
 
 /**
- * @brief Initializes the lights storage buffer.
+ * @brief Initializes the BSP and dynamic lights storage buffers.
  */
 void R_InitLights(void) {
 
   memset(&r_lights, 0, sizeof(r_lights));
 
-  r_lights.buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+  r_lights.bsp_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
-    .size = sizeof(r_lights.block),
+    .size = sizeof(r_lights.bsp_block),
+  });
+
+  r_lights.dynamic_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+    .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
+    .size = sizeof(r_lights.dynamic_block),
   });
 }
 
 /**
- * @brief Frees the lights storage buffer.
+ * @brief Frees the BSP and dynamic lights storage buffers.
  */
 void R_ShutdownLights(void) {
 
-  r_lights.buffer = release(r_lights.buffer);
+  r_lights.bsp_buffer = release(r_lights.bsp_buffer);
+  r_lights.dynamic_buffer = release(r_lights.dynamic_buffer);
 }

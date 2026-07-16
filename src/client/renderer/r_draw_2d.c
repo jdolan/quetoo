@@ -425,11 +425,6 @@ void R_Draw2DImage(int32_t x, int32_t y, int32_t w, int32_t h, const r_image_t *
 
 /**
  * @brief Draws a framebuffer's color attachment as a 2D image at the specified screen rectangle.
- * @remarks Used to composite the player-model preview. Unlike the GL renderer, no
- * V-flip is needed: SDL_gpu's top-left texel origin already matches this pipeline's
- * screen-space convention. The attachment is HDR (R_SCENE_COLOR_FORMAT) with no
- * tonemap step, same as the GL renderer for this view -- fine in practice since the
- * player-model view's flat ambient shortcut keeps output within [0, 1].
  */
 void R_Draw2DFramebuffer(int32_t x, int32_t y, int32_t w, int32_t h, const Framebuffer *framebuffer, const color_t color) {
 
@@ -636,7 +631,7 @@ void R_Draw2D(void) {
   }
 
   const SDL_GPUColorTargetInfo color =
-      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
+      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE);
 
   RenderPass *pass = $(commands, beginRenderPass, &color, 1, NULL);
 
@@ -736,7 +731,7 @@ static GraphicsPipeline *R_InitDraw2DPipeline(void) {
     },
     .target_info = {
       .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-        .format = framebuffer->colorFormats[0],
+        .format = framebuffer->colorAttachments[0].format,
         .blend_state = GPU_BlendStateAlpha,
       },
       .num_color_targets = 1,

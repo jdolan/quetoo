@@ -63,6 +63,10 @@
 
 #define BSP_VOXEL_SIZE      32.0
 
+#define MAX_BSP_LIGHTS 768
+#define MAX_DYNAMIC_LIGHTS 256
+#define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
+
 #define CONTENTS_NONE       0x0
 #define CONTENTS_SOLID      0x1
 #define CONTENTS_WINDOW     0x2
@@ -189,61 +193,5 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
    */
   int developer;
 };
-
-#define MAX_BSP_LIGHTS 768
-#define MAX_DYNAMIC_LIGHTS 256
-#define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
-
-// Mirrors SHADOW_ATLAS_LIGHTS_PER_ROW in r_shadow.h: the shadow atlas is a
-// fixed 32x32 grid of tiles, so the tile size in pixels is always
-// textureSize(shadow atlas) / SHADOW_ATLAS_LIGHTS_PER_ROW.
-#define SHADOW_ATLAS_LIGHTS_PER_ROW 32
-
-/**
- * @brief The light struct, mirroring the C `r_light_uniform_t`.
- * @remarks This struct is vec4 aligned.
- */
-struct light_t {
-  /**
-   * @brief The light origin in model space (xyz) and radius (w).
-   */
-  vec4 origin;
-
-  /**
-   * @brief The light color (xyz) and intensity (w).
-   */
-  vec4 color;
-
-  /**
-   * @brief This light's shadow atlas tile origin, in pixels, or (-1, -1) if
-   * this light casts no shadow. The tile is square and the same in all six
-   * face textures; its size is derived from
-   * textureSize() / SHADOW_ATLAS_LIGHTS_PER_ROW rather than carried here.
-   */
-  vec2 shadow;
-};
-
-/**
- * @brief Returns the modulated, intensity-scaled, and saturated color for a light.
- * @param l The light.
- * @return The color scaled by intensity, modulate, and saturation.
- */
-vec3 light_color(in light_t l) {
-  vec3 color = l.color.rgb * l.color.a * modulate;
-  float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
-  return mix(vec3(luma), color, saturation);
-}
-
-/*
- * Per-block/per-draw dynamic-light cull bitmask, shared by the lighting programs
- * (bsp, mesh, sprite). bit j selects dynamic light [num_bsp_lights + j]. Dynamic
- * lights have no voxel grid, so this whittles them to those a draw can see. A
- * program opts in with UNIFORMS_LIGHT_CULL and must declare num_uniform_buffers >= 2.
- */
-#if defined(FRAGMENT_SHADER) && defined(UNIFORMS_LIGHT_CULL)
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform light_cull_block {
-  uvec4 active_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
-};
-#endif
 
 #endif // _UNIFORMS_GLSL_

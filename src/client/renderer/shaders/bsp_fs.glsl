@@ -21,39 +21,38 @@
 
 #version 450
 
-#define UNIFORMS_LIGHT_CULL
 #define VOXEL_CAUSTICS_OCCLUSION
 #define LIGHT_SKY
 
 #include "uniforms.glsl"
 
-/*
- * The BSP program's own binding map (fragment stage): samplers are dense from
- * 0, storage buffers immediately follow the last one at 8/9 (Metal packs
- * storage-buffer indices right after the samplers a program declares). The
- * vertex stage's own map is defined in bsp_vs.glsl.
- */
-#define BINDING_SAMPLER_MATERIAL         0
-#define BINDING_SAMPLER_SHADOW_ATLAS_0   1 // one sampler2DShadow per cube face
-#define BINDING_SAMPLER_SHADOW_ATLAS_1   2
-#define BINDING_SAMPLER_SHADOW_ATLAS_2   3
-#define BINDING_SAMPLER_SHADOW_ATLAS_3   4
-#define BINDING_SAMPLER_SHADOW_ATLAS_4   5
-#define BINDING_SAMPLER_SHADOW_ATLAS_5   6
-#define BINDING_SAMPLER_VOXEL_CAUSTICS   7
-#define BINDING_SAMPLER_VOXEL_OCCLUSION  8
-#define BINDING_SAMPLER_SKY_AMBIENT      9
-#define BINDING_SAMPLER_STAGE            10
-#define BINDING_SAMPLER_STAGE_NEXT       11
-#define BINDING_SAMPLER_WARP             12
-#define BINDING_STORAGE_LIGHTS              13
-#define BINDING_STORAGE_VOXEL_LIGHT_INDICES 14
-#define BINDING_STORAGE_VOXEL_LIGHT_DATA    15
-#define BINDING_UNIFORMS_MATERIAL        2
+#define BINDING_SAMPLER_MATERIAL             0
+#define BINDING_SAMPLER_SHADOW_ATLAS_0       1
+#define BINDING_SAMPLER_SHADOW_ATLAS_1       2
+#define BINDING_SAMPLER_SHADOW_ATLAS_2       3
+#define BINDING_SAMPLER_SHADOW_ATLAS_3       4
+#define BINDING_SAMPLER_SHADOW_ATLAS_4       5
+#define BINDING_SAMPLER_SHADOW_ATLAS_5       6
+#define BINDING_SAMPLER_VOXEL_CAUSTICS       7
+#define BINDING_SAMPLER_VOXEL_OCCLUSION      8
+#define BINDING_SAMPLER_SKY_AMBIENT          9
+#define BINDING_SAMPLER_STAGE               10
+#define BINDING_SAMPLER_STAGE_NEXT          11
+#define BINDING_SAMPLER_WARP                12
+#define BINDING_STORAGE_BSP_LIGHTS           13
+#define BINDING_STORAGE_DYNAMIC_LIGHTS       14
+#define BINDING_STORAGE_VOXEL_LIGHT_DATA     15
+#define BINDING_STORAGE_VOXEL_LIGHT_INDICES  16
+#define BINDING_UNIFORMS_MATERIAL            2
 
 #include "common.glsl"
 #include "material.glsl"
 #include "voxel.glsl"
+
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bsp_locals_block {
+  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
+};
+
 #include "light.glsl"
 
 /**
@@ -80,7 +79,7 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
 
   fragment.parallax = vertex.diffusemap;
 
-  if (material.parallax == 0.0 || fragment.lod > 4.0) {
+  if (material.parallax == 0.0 || fragment.lod > 2.0) {
     return;
   }
 

@@ -117,8 +117,6 @@ void R_UpdateShadows(r_view_t *view) {
       continue;
     }
 
-    // Mesh entity shadows are optional (r_shadows) and distance-culled
-    // (r_shadow_distance); the world and BSP inline models always cast.
     const vec3_t closest_point = Box3_ClampPoint(l->bounds, view->origin);
     const float dist = Vec3_Distance(closest_point, view->origin);
 
@@ -213,10 +211,6 @@ void R_ClearShadows(const r_view_t *view) {
  * per-light interleaving.
  */
 void R_DrawShadows(const r_view_t *view) {
-
-  if (!r_models.world) {
-    return;
-  }
 
   CommandBuffer *commands = r_context.device->commands;
 

@@ -26,8 +26,7 @@
 r_context_t r_context;
 
 /**
- * @brief Objectively `ResourceProvider` bridging the GPU library's Resource
- * lookups (e.g. `loadShader`) to Quetoo's virtual filesystem.
+ * @brief Objectively @c ResourceProvider for loading @c Shader, @c Stylesheet, etc.. from Quetoo's VFS.
  */
 static Data *R_ResourceProvider(const char *name) {
 
@@ -176,32 +175,22 @@ void R_InitContext(void) {
 
   r_context.device->maxAnisotropy = Clampf(r_anisotropy->value, 0.f, 16.f);
 
-  // Bridge the GPU library's Resource lookups (loadShader, ...) to Quetoo's filesystem.
   $$(Resource, addResourceProvider, R_ResourceProvider);
 
   R_UpdateContext();
 
-  // The present-target framebuffer. Its initial size is a formality -- beginFrame
-  // resizes it to the swapchain's actual dimensions every frame -- but it must be
-  // non-zero for createFramebuffer to succeed. The UI and 2D overlays draw directly
-  // into this; the composited 3D scene (its own, separately-scaled framebuffer --
-  // see R_CreateFramebuffer below) is blitted in by R_DrawPost. endFrame presents
-  // this to the swapchain.
   const SDL_GPUTextureFormat format = $(r_context.device, getSwapchainTextureFormat);
 
   Framebuffer *framebuffer = $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
     .size = MakeSize(r_context.window_bounds.w, r_context.window_bounds.h),
-    .colorFormats = { format },
+    .colorAttachments = { { .format = format, .clearColor = { 0.f, 0.f, 0.f, 1.f } } },
     .numColorTargets = 1,
-    .depthFormat = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .sampleCount = SDL_GPU_SAMPLECOUNT_1,
   });
 
   $(r_context.device, setFramebuffer, framebuffer);
   release(framebuffer);
 
-  // A 1x1 opaque white texture, shared by every pipeline that needs to bind
-  // *something* to a sampler slot it never reads (see the r_context_t field doc).
   r_context.null_texture = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D, 1, 0xffffffff);
 }
 
@@ -222,35 +211,31 @@ void R_ShutdownContext(void) {
 }
 
 /**
- * @brief Creates a 3D scene render target: an HDR color attachment, a float
- * depth copy, and a sampleable D32F depth attachment.
- * @remarks @p attachments is currently advisory; a full 2-color+depth target
- * is always created, since the shared mesh/bsp pipelines are built with that
- * exact target count/format/sample-count baked in. @p width and @p height are
- * logical (point) sizes; they're scaled by the display's pixel density and by
- * r_framebuffer_scale, same as the main scene FB -- this uniformly lets a
- * reduced render scale also reduce the resolution of secondary 3D views like
- * the player-model preview.
+ * @brief Creates a Framebuffer from @p info, scaled to the display and forced
+ * to the shared scene sample count.
+ * @details @p info->size is a logical (point) size; it's scaled here by the
+ * display's pixel density and by r_framebuffer_scale, same as the main scene
+ * FB -- this uniformly lets a reduced render scale also reduce the resolution
+ * of secondary 3D views like the player-model preview. @p info->sampleCount
+ * is overridden with r_scene_samples, since the shared mesh/bsp pipelines are
+ * built with that exact sample count baked in; a mismatched framebuffer would
+ * fail pipeline binding. All other fields (attachments, formats, clear
+ * values) are used as given.
  */
-Framebuffer *R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachments) {
+Framebuffer *R_CreateFramebuffer(const GPU_FramebufferCreateInfo *info) {
 
   const float scale = Clampf(r_framebuffer_scale->value, .125f, 4.f) * r_context.display_mode->pixel_density;
 
-  const SDL_Size size = MakeSize(
-    Maxi((int32_t) (width * scale), 1),
-    Maxi((int32_t) (height * scale), 1)
+  GPU_FramebufferCreateInfo create = *info;
+
+  create.size = MakeSize(
+    Maxi((int32_t) (info->size.w * scale), 1),
+    Maxi((int32_t) (info->size.h * scale), 1)
   );
 
-  return $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
-    .size = size,
-    // Color 0: the HDR scene. Color 1: a float depth copy (gl_FragCoord.z, written
-    // by the opaque lit shaders) the sprite pass samples for soft particles -- the
-    // real depth buffer cannot be sampled under MSAA, but color attachments resolve.
-    .colorFormats = { R_SCENE_COLOR_FORMAT, SDL_GPU_TEXTUREFORMAT_R32_FLOAT },
-    .numColorTargets = 2,
-    .depthFormat = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
-    .sampleCount = r_scene_samples,
-  });
+  create.sampleCount = r_scene_samples;
+
+  return $(r_context.device, createFramebuffer, &create);
 }
 
 /**

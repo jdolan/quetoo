@@ -26,7 +26,7 @@
 void R_LoadSky(void);
 
 #if defined(__R_LOCAL_H__)
-void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp);
+void R_DrawSky(RenderPass *pass, const r_view_t *view);
 Texture *R_SkyTexture(void);
 void R_InitSky(void);
 void R_ShutdownSky(void);

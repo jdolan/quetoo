@@ -32,6 +32,14 @@ enum {
 };
 
 /**
+ * @brief Per-batch vertex locals (@c sprite_locals_block in sprite_vs.glsl):
+ * the dynamic light cull bitmask for the current texture batch's union bounds.
+ */
+typedef struct {
+  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
+} r_sprite_locals_t;
+
+/**
  * @brief The sprite pipeline (sprite_vs/sprite_fs) and its diffuse sampler.
  */
 static struct {
@@ -405,7 +413,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 /**
  * @brief Generate sprite instances from sprites and beams, and update the vertex array.
  */
-void R_UpdateSprites(r_view_t *view) {
+void R_UpdateSprites(r_view_t *view, CopyPass *copyPass) {
 
   const r_sprite_t *s = view->sprites;
   for (int32_t i = 0; i < view->num_sprites; i++, s++) {
@@ -416,26 +424,10 @@ void R_UpdateSprites(r_view_t *view) {
   for (int32_t i = 0; i < view->num_beams; i++, b++) {
     R_UpdateBeam(view, b);
   }
-}
 
-/**
- * @brief Renders all batched sprite instances to the present framebuffer, blended
- * additively over the opaque scene and depth-tested against it.
- */
-void R_DrawSprites(const r_view_t *view) {
-
-  if (view->num_sprite_instances == 0 || !r_models.world) {
+  if (view->num_sprite_instances == 0) {
     return;
   }
-
-  if (!view->framebuffer) {
-    return;
-  }
-
-  CommandBuffer *commands = r_context.device->commands;
-
-  const r_bsp_model_t *bsp = r_models.world->bsp;
-  Framebuffer *framebuffer = view->framebuffer;
 
   const uint32_t count = (uint32_t) view->num_sprite_instances * 4;
 
@@ -448,25 +440,28 @@ void R_DrawSprites(const r_view_t *view) {
     r_sprite_draw.vertex_buffer_capacity = (int32_t) count;
   }
 
-  {
-    CopyPass *copyPass = $(commands, beginCopyPass);
-    $(copyPass, uploadData, r_sprite_draw.vertex_buffer->buffer, r_sprite_draw.vertexes,
-      count * sizeof(r_sprite_vertex_t), 0, true);
-    release(copyPass);
+  $(copyPass, uploadData, r_sprite_draw.vertex_buffer->buffer, r_sprite_draw.vertexes,
+    count * sizeof(r_sprite_vertex_t), 0, true);
+}
+
+/**
+ * @brief Renders all batched sprite instances to the present framebuffer, blended
+ * additively over the opaque scene and depth-tested against it.
+ */
+void R_DrawSprites(const r_view_t *view, RenderPass *pass) {
+
+  if (!r_models.world) {
+    return;
   }
 
-  // The pipeline declares the scene depth-stencil target (see
-  // R_InitSpritePipeline) but performs no hardware depth test or write of its
-  // own -- the soft-particle fade (sprite_fs) samples the scene depth copy
-  // instead, which also occludes sprites behind the world. The render pass
-  // still binds the real depth attachment (LOAD, untouched) since Metal
-  // requires it to match the pipeline's declared format.
-  const SDL_GPUColorTargetInfo color =
-      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
-  const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
+  if (view->num_sprite_instances == 0) {
+    return;
+  }
 
-  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
+  CommandBuffer *commands = r_context.device->commands;
+
+  const r_bsp_model_t *bsp = r_models.world->bsp;
+  Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -480,24 +475,22 @@ void R_DrawSprites(const r_view_t *view) {
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  // The float depth copy (scene color target 1), sampled for the soft-particle
-  // fade. The opaque lit passes write gl_FragCoord.z there; unlike the real depth
-  // buffer it can be sampled (and resolves to single-sample under MSAA).
-  Texture *depth_texture = $(framebuffer, resolveColorTexture, 1);
+  // Sample *last* frame's depth copy: this frame's copy is being concurrently
+  // written by the opaque BSP/mesh draws earlier in this same shared pass, so
+  // sampling it here would be a same-frame write-then-read hazard.
+  Texture *depth_texture = $(framebuffer, previousColorTexture, 1);
   $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DEPTH_ATTACHMENT, &(SDL_GPUTextureSamplerBinding) {
     .texture = depth_texture->texture,
     .sampler = r_sprite_draw.depth_sampler->sampler,
   }, 1);
 
-  // Clustered voxel lighting for absorptive sprites (sprite family: samplers 0/1
-  // diffuse+next, 2 depth; storage 0/1/2 lights + voxel indices + voxel data).
   SDL_GPUBuffer *storage[] = {
-    r_lights.buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
-                                     : r_lights.buffer->buffer,
+    r_lights.bsp_buffer->buffer,
+    r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, 0, storage, 3);
+  $(pass, bindVertexStorageBuffers, 0, storage, 4);
 
   // Draw runs of consecutive instances sharing the same diffuse/next-diffuse image.
   int32_t i = 0;
@@ -511,13 +504,22 @@ void R_DrawSprites(const r_view_t *view) {
     }
 
     int32_t batch_size = 1;
+    box3_t batch_bounds = in->bounds;
     for (int32_t j = i + 1; j < view->num_sprite_instances; j++) {
       const r_sprite_instance_t *batch = view->sprite_instances + j;
       if (batch->diffusemap != in->diffusemap || batch->next_diffusemap != in->next_diffusemap) {
         break;
       }
+      batch_bounds = Box3_Union(batch_bounds, batch->bounds);
       batch_size++;
     }
+
+    // The dynamic light mask for this batch: the union of the batch's instance
+    // bounds is a conservative superset (a batch may span an arbitrary area),
+    // but sprite_light() still distance-attenuates each light per vertex.
+    r_sprite_locals_t locals = { 0 };
+    R_ActiveDynamicLights(view, batch_bounds, locals.active_dynamic_lights);
+    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
 
     $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DIFFUSE, (SDL_GPUTextureSamplerBinding[]) {
       { .texture = in->diffusemap->texture->texture, .sampler = r_sprite_draw.sampler->sampler },
@@ -530,16 +532,12 @@ void R_DrawSprites(const r_view_t *view) {
 
     i += batch_size;
   }
-
-  pass = release(pass);
 }
 
 /**
  * @brief Builds the sprite pipeline and diffuse sampler.
  */
 static void R_InitSpritePipeline(void) {
-
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
@@ -599,23 +597,23 @@ static void R_InitSpritePipeline(void) {
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = R_SCENE_COLOR_FORMAT,
+      .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
       .blend_state = GPU_BlendStateAdditive,
     },
     .num_color_targets = 1,
-    .depth_stencil_format = framebuffer->depthFormat,
+    .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
 
   r_sprite_draw.pipeline = $(r_context.device, loadGraphicsPipeline,
     "shaders/sprite_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-      .num_uniform_buffers = 1,
+      .num_storage_buffers = 4,
+      .num_uniform_buffers = 2,
     },
     "shaders/sprite_fs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
       .num_samplers = 3,
-      .num_storage_buffers = 3,
       .num_uniform_buffers = 1,
     },
     &info);

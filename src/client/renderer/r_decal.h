@@ -78,7 +78,8 @@ typedef struct {
 } r_decal_triangle_t;
 
 void R_UpdateDecals(const r_view_t *view);
-void R_DrawDecals(const r_view_t *view);
+void R_UploadDecals(const r_view_t *view, CopyPass *copyPass);
+void R_DrawDecals(RenderPass *pass, const r_view_t *view);
 void R_InitDecals(void);
 void R_ShutdownDecals(void);
 void R_UpdateDecalPipeline(void);

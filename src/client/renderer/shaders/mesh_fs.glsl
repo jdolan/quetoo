@@ -35,46 +35,35 @@
 #define VOXEL_CAUSTICS_OCCLUSION
 #define LIGHT_SKY
 #define MATERIAL_TINTS
+
 #include "uniforms.glsl"
 
-/**
- * @brief Per-entity fragment locals: the mesh program's own extension of the
- * generic light_cull_block (uniforms.glsl), additionally carrying the mesh
- * lighting modulation (r_modulate_mesh; forced to 1.0 for EF_WEAPON).
- */
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform mesh_locals_block {
-  uvec4 active_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
-  float modulate_mesh;
-};
-
-/*
- * The mesh program's own binding map (fragment stage), mirroring bsp_fs's
- * shape exactly -- material.glsl's material_block additionally carries the
- * per-entity tint colors here (MATERIAL_TINTS, defined above), since they're
- * material-related too; active_lights stays in the per-entity locals block
- * above, since it has nothing to do with tints or stages.
- * The vertex stage's own map is defined in mesh_vs.glsl.
- */
-#define BINDING_SAMPLER_MATERIAL         0
-#define BINDING_SAMPLER_SHADOW_ATLAS_0   1 // one sampler2DShadow per cube face
-#define BINDING_SAMPLER_SHADOW_ATLAS_1   2
-#define BINDING_SAMPLER_SHADOW_ATLAS_2   3
-#define BINDING_SAMPLER_SHADOW_ATLAS_3   4
-#define BINDING_SAMPLER_SHADOW_ATLAS_4   5
-#define BINDING_SAMPLER_SHADOW_ATLAS_5   6
-#define BINDING_SAMPLER_VOXEL_CAUSTICS   7
-#define BINDING_SAMPLER_VOXEL_OCCLUSION  8
-#define BINDING_SAMPLER_SKY_AMBIENT      9
-#define BINDING_SAMPLER_STAGE            10
-#define BINDING_SAMPLER_STAGE_NEXT       11
-#define BINDING_STORAGE_LIGHTS              12
-#define BINDING_STORAGE_VOXEL_LIGHT_INDICES 13
-#define BINDING_STORAGE_VOXEL_LIGHT_DATA    14
-#define BINDING_UNIFORMS_MATERIAL        2
+#define BINDING_SAMPLER_MATERIAL             0
+#define BINDING_SAMPLER_SHADOW_ATLAS_0       1
+#define BINDING_SAMPLER_SHADOW_ATLAS_1       2
+#define BINDING_SAMPLER_SHADOW_ATLAS_2       3
+#define BINDING_SAMPLER_SHADOW_ATLAS_3       4
+#define BINDING_SAMPLER_SHADOW_ATLAS_4       5
+#define BINDING_SAMPLER_SHADOW_ATLAS_5       6
+#define BINDING_SAMPLER_VOXEL_CAUSTICS       7
+#define BINDING_SAMPLER_VOXEL_OCCLUSION      8
+#define BINDING_SAMPLER_SKY_AMBIENT          9
+#define BINDING_SAMPLER_STAGE               10
+#define BINDING_SAMPLER_STAGE_NEXT          11
+#define BINDING_STORAGE_BSP_LIGHTS           12
+#define BINDING_STORAGE_DYNAMIC_LIGHTS       13
+#define BINDING_STORAGE_VOXEL_LIGHT_DATA     14
+#define BINDING_STORAGE_VOXEL_LIGHT_INDICES  15
+#define BINDING_UNIFORMS_MATERIAL            2
 
 #include "common.glsl"
 #include "material.glsl"
 #include "voxel.glsl"
+
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform mesh_locals_block {
+  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
+};
+
 #include "light.glsl"
 
 layout (location = 0) in common_vertex_t vertex;
@@ -115,10 +104,6 @@ void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t f
   fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
 
   fragment_lighting(vertex, fragment);
-
-  fragment.ambient *= modulate_mesh;
-  fragment.diffuse *= modulate_mesh;
-  fragment.specular *= modulate_mesh;
 }
 
 /**

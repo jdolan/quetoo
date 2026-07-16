@@ -17,17 +17,9 @@
 
 #include "r_local.h"
 
-/**
- * @brief The mesh program's own binding map, mirroring shaders/mesh_vs.glsl and
- * mesh_fs.glsl. Not shared with any other pipeline; mirrors the BSP shape (see
- * r_bsp_draw.c) exactly -- the fragment material UBO additionally carries
- * per-entity tint colors (r_mesh_material_uniforms_t), since bsp has no
- * equivalent, but the vertex stage's material UBO (no tint) is the same
- * r_material_uniforms_t bsp uses.
- */
 enum {
   MESH_SAMPLER_MATERIAL,
-  MESH_SAMPLER_SHADOW_ATLAS_0, // one sampler2DShadow per cube face (SDL_gpu forbids array depth targets)
+  MESH_SAMPLER_SHADOW_ATLAS_0,
   MESH_SAMPLER_SHADOW_ATLAS_1,
   MESH_SAMPLER_SHADOW_ATLAS_2,
   MESH_SAMPLER_SHADOW_ATLAS_3,
@@ -42,17 +34,17 @@ enum {
 };
 
 enum {
-  MESH_STORAGE_LIGHTS,
+  MESH_STORAGE_BSP_LIGHTS,
+  MESH_STORAGE_DYNAMIC_LIGHTS,
+  MESH_STORAGE_VOXEL_LIGHT_DATA,
   MESH_STORAGE_VOXEL_LIGHT_INDICES,
-  MESH_STORAGE_VOXEL_LIGHT_DATA, // (first_index, count) pairs; a buffer because
-                                 // D3D12 can't sample R32G32_INT 3D textures
   MESH_NUM_STORAGE_BUFFERS,
 };
 
 enum {
   MESH_UNIFORMS_GLOBALS,
-  MESH_UNIFORMS_LOCALS, // model/lerp/color (vertex) / active_lights bitmask (fragment)
-  MESH_UNIFORMS_MATERIAL, // material + stage params (+ tints, fragment only) -- see material.glsl
+  MESH_UNIFORMS_LOCALS,
+  MESH_UNIFORMS_MATERIAL,
   MESH_NUM_UNIFORMS
 };
 
@@ -62,11 +54,7 @@ enum {
 #define MAX_STAGE_PIPELINES 16
 
 /**
- * @brief The mesh program (mesh_vs/mesh_fs): its graphics pipeline and samplers.
- * Animated geometry with diffuse material, clustered per-voxel lighting, entity
- * color/tint, material stages, and the EF_SHELL effect -- material stages and
- * shells share this shader with the base pass via a runtime branch on
- * material.flags, not a pipeline swap: see R_DrawMeshEntityMaterialStage.
+ * @brief The mesh pipeline and samplers.
  */
 static struct {
 
@@ -139,28 +127,16 @@ static struct {
 typedef struct {
   mat4_t model;
   float lerp;
-  float modulate;
-  float padding[2];
+  float padding[3]; // std140 pads vec4 color to a 16-byte boundary
   vec4_t color;
 } r_mesh_locals_t;
 
 /**
- * @brief Per-entity fragment locals (mesh_locals_block in mesh_fs.glsl): the
- * dynamic light cull bitmask and the mesh lighting modulation.
+ * @brief Per-entity fragment locals.
  */
 typedef struct {
-  uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
-  float modulate;
-  float padding[3];
+  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
 } r_mesh_fragment_locals_t;
-
-/**
- * @brief The mesh lighting modulation for the given entity: r_modulate_mesh,
- * except the view weapon, which is always lit at full brightness.
- */
-static float R_MeshEntityModulate(const r_entity_t *e) {
-  return (e->effects & EF_WEAPON) ? 1.f : r_modulate_mesh->value;
-}
 
 /**
  * @brief Returns the mesh pipeline for the given material-stage blend function,
@@ -191,8 +167,6 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
     .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS,
     .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
-
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   const SDL_GPUBlendFactor s = R_BlendFactor(src);
   const SDL_GPUBlendFactor d = R_BlendFactor(dest);
@@ -235,7 +209,7 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
       {
-        .format = R_SCENE_COLOR_FORMAT,
+        .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
         .blend_state = {
           .enable_blend = true,
           .src_color_blendfactor = s,
@@ -252,7 +226,7 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
       },
     },
     .num_color_targets = 2,
-    .depth_stencil_format = framebuffer->depthFormat,
+    .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
 
@@ -395,7 +369,6 @@ static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, cons
   r_mesh_locals_t locals = {
     .model = e->matrix,
     .lerp = e->lerp,
-    .modulate = R_MeshEntityModulate(e),
     .color = e->color,
   };
   switch (material->cm->surface & SURF_MASK_BLEND) {
@@ -510,13 +483,8 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     });
   }
 
-  // The dynamic lights affecting this entity, culled to its bounds, and the
-  // mesh lighting modulation. Has nothing to do with the material/stage/tint
-  // UBO -- see mesh_fs.glsl.
-  r_mesh_fragment_locals_t fragment_locals = {
-    .modulate = R_MeshEntityModulate(e),
-  };
-  R_ActiveLights(view, e->abs_model_bounds, fragment_locals.active_lights);
+  r_mesh_fragment_locals_t fragment_locals = { 0 };
+  R_ActiveDynamicLights(view, e->abs_model_bounds, fragment_locals.active_dynamic_lights);
   $(commands, pushFragmentUniformData, MESH_UNIFORMS_LOCALS, &fragment_locals, sizeof(fragment_locals));
 
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
@@ -623,13 +591,9 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 /**
  * @brief Draws mesh entities.
  */
-void R_DrawMeshEntities(const r_view_t *view) {
+void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
 
   if (!r_models.world) {
-    return;
-  }
-
-  if (!view->framebuffer) {
     return;
   }
 
@@ -637,17 +601,6 @@ void R_DrawMeshEntities(const r_view_t *view) {
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
-
-  // LOAD both the scene color and the depth copy; mesh entities write their
-  // gl_FragCoord.z into color 1 so sprites soften against them too.
-  const SDL_GPUColorTargetInfo color[] = {
-    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
-    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
-  };
-  const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
-
-  RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -677,21 +630,18 @@ void R_DrawMeshEntities(const r_view_t *view) {
     { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
   }, 3);
 
-  // Stage/stage-next: opaque and blend draws never sample these (mesh_fs's
-  // STAGE_NONE branch doesn't touch them), but the shared shader declares
-  // them, so SDL_gpu requires them bound regardless.
   $(pass, bindFragmentSamplers, MESH_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
   }, 2);
 
   SDL_GPUBuffer *storage[] = {
-    r_lights.buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
-                                     : r_lights.buffer->buffer,
+    r_lights.bsp_buffer->buffer,
+    r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_LIGHTS, storage, MESH_NUM_STORAGE_BUFFERS);
+  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_BSP_LIGHTS, storage, MESH_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -712,8 +662,6 @@ void R_DrawMeshEntities(const r_view_t *view) {
     R_DrawMeshEntity(pass, view, e);
     r_stats.entities_visible++;
   }
-
-  pass = release(pass);
 }
 
 /**
@@ -737,14 +685,12 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   Framebuffer *framebuffer = view->framebuffer;
 
-  const SDL_FColor clear_color = { 0.f, 0.f, 0.f, 0.f };
-  const SDL_FColor clear_depth_copy = { 1.f, 1.f, 1.f, 1.f };
   const SDL_GPUColorTargetInfo color[] = {
-    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color),
-    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_depth_copy),
+    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
   };
   const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, 1.f);
+      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
 
   RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
@@ -781,8 +727,11 @@ void R_DrawPlayerModelView(r_view_t *view) {
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
   }, 2);
 
-  SDL_GPUBuffer *storage[] = { r_lights.buffer->buffer, r_lights.buffer->buffer, r_lights.buffer->buffer };
-  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_LIGHTS, storage, MESH_NUM_STORAGE_BUFFERS);
+  SDL_GPUBuffer *storage[] = {
+    r_lights.bsp_buffer->buffer, r_lights.dynamic_buffer->buffer,
+    r_lights.bsp_buffer->buffer, r_lights.bsp_buffer->buffer,
+  };
+  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_BSP_LIGHTS, storage, MESH_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -795,7 +744,6 @@ void R_DrawPlayerModelView(r_view_t *view) {
       continue;
     }
 
-    // No culling: R_CullEntity always returns false for VIEW_PLAYER_MODEL.
     R_DrawMeshEntity(pass, view, e);
     r_stats.entities_visible++;
   }
@@ -810,18 +758,15 @@ void R_InitMeshPipeline(void) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = MESH_NUM_UNIFORMS, // globals + locals + material(+stage)
+    .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_samplers = MESH_NUM_SAMPLERS,               // material, shadow_atlas, voxel_caustics,
-                                                      // voxel_occlusion, sky, stage, stage_next
-    .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS, // lights + voxel_light_indices + voxel_light_data
-    .num_uniform_buffers = MESH_NUM_UNIFORMS, // globals + active_lights + material(+stage+tints)
+    .num_samplers = MESH_NUM_SAMPLERS,
+    .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS,
+    .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
-
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
@@ -854,18 +799,15 @@ void R_InitMeshPipeline(void) {
     .num_vertex_attributes = 9,
   };
 
-  // Two color targets: the HDR scene color and the float depth copy (mesh_fs
-  // writes gl_FragCoord.z to color 1) so mesh entities appear in the depth the
-  // sprite pass samples for soft particles.
   SDL_GPUColorTargetDescription color_targets[] = {
-    { .format = R_SCENE_COLOR_FORMAT, .blend_state = GPU_BlendStateOpaque },
+    { .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT, .blend_state = GPU_BlendStateOpaque },
     { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .blend_state = GPU_BlendStateOpaque },
   };
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = color_targets,
     .num_color_targets = 2,
-    .depth_stencil_format = framebuffer->depthFormat,
+    .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
 
@@ -884,11 +826,6 @@ void R_InitMeshPipeline(void) {
 
   info.fragment_shader = fragmentShader->shader;
 
-  // Translucent faces: no culling (matching the GL renderer, which disables
-  // GL_CULL_FACE for mesh blend faces), alpha blend on color 0. Depth test and
-  // write stay enabled -- unlike BSP blend surfaces, GL does not disable
-  // glDepthMask for mesh blend faces -- so color 1 (the depth copy) is left
-  // unmasked too, consistent with real depth being written.
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
   color_targets[0].blend_state = GPU_BlendStateAlpha;
 
@@ -901,9 +838,6 @@ void R_InitMeshPipeline(void) {
   r_mesh_draw.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
   r_mesh_draw.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
 
-  // 1x1x1 fallback voxel textures for the player-model preview (see the struct
-  // field docs above). Contents are never sampled, so uninitialized (NULL) data
-  // is fine -- the branch that would read them never executes for that view.
   r_mesh_draw.voxel_caustics_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
@@ -946,8 +880,8 @@ void R_ShutdownMeshPipeline(void) {
 
 /**
  * @brief Rebuilds the mesh pipeline and samplers in place, for pipeline-bound
- * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
- * an r_restart. See R_UpdatePipelines.
+ * cvar changes (@c r_antialias, @c r_anisotropy, ...) that would otherwise require
+ * an @c r_restart. See @c R_UpdatePipelines.
  */
 void R_UpdateMeshPipeline(void) {
   R_ShutdownMeshPipeline();

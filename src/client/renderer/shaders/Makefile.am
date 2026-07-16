@@ -13,6 +13,7 @@ shaders_DATA = \
 	draw_3d_fs.glsl \
 	draw_3d_vs.glsl \
 	light.glsl \
+	light_types.glsl \
 	material.glsl \
 	mesh_fs.glsl \
 	mesh_vs.glsl \
@@ -29,47 +30,31 @@ shaders_DATA = \
 	sprite_fs.glsl \
 	sprite_vs.glsl \
 	uniforms.glsl \
-	version.glsl \
  	voxel.glsl
 
-# --- SDL_gpu shader transpilation -------------------------------------------
-#
-# Entry-point shaders ported to SDL_gpu. The compiled blobs (.spv for Vulkan,
-# .metal for Metal, .dxil for D3D12) are versioned in the repository, so normal
-# builds never invoke glslc or shadercross. Run 'make shaders' after editing a
-# .glsl to regenerate them. Extend these lists as more shaders are ported
-# (issue #864).
+# SDL_gpu shader transpilation via glslc and SDL_shadercross. The output
+# (.dxil, .metal, .spv) are all versioned, so your typical build does not
+# need to worry about these. But for users who modify the .glsl sources,
+# run `make -C src/client/renderer/shaders shaders` to transpile.
 
 VERTEX_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs shadow_clear_vs sky_vs sprite_vs decal_vs occlude_vs
 FRAGMENT_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs shadow_clear_fs sky_fs sprite_fs decal_fs
 
-# Fragment shaders with an ALPHA_TEST compile-time variant: their .glsl source
-# guards a `discard` (used for SURF_ALPHA_TEST surfaces) behind #ifdef
-# ALPHA_TEST. A `discard` anywhere in a fragment shader forces late (post-
-# shader) depth testing for every draw sharing that shader/pipeline, even ones
-# that never reach it -- so the default (no-ALPHA_TEST) build of these stays
-# discard-free and keeps early-Z for the common case, while a second
-# "*_alpha_test" binary (built from the same source, with -DALPHA_TEST) is
-# used only for the rare alpha-tested draws. See r_bsp_draw.c's
-# pipeline_alpha_test / r_mesh_draw.c's pipeline_alpha_test.
+# Fragment shaders with an ALPHA_TEST compile-time variant due to the implications of discard.
 ALPHA_TEST_FRAGMENT_SHADERS = bsp_fs mesh_fs
 
-# Install the compiled blobs alongside the GLSL sources so the renderer's
-# ResourceProvider (Fs_Load) can resolve them at runtime, e.g.
-# loadShader("shaders/depth_pass_vs") -> shaders/depth_pass_vs.metal|.spv|.dxil.
 shaders_DATA += \
-	$(VERTEX_SHADERS:=.spv) $(VERTEX_SHADERS:=.metal) $(VERTEX_SHADERS:=.dxil) \
-	$(FRAGMENT_SHADERS:=.spv) $(FRAGMENT_SHADERS:=.metal) $(FRAGMENT_SHADERS:=.dxil) \
+	$(VERTEX_SHADERS:=.spv) \
+	$(VERTEX_SHADERS:=.metal) \
+	$(VERTEX_SHADERS:=.dxil) \
+	$(FRAGMENT_SHADERS:=.spv) \
+	$(FRAGMENT_SHADERS:=.metal) \
+	$(FRAGMENT_SHADERS:=.dxil) \
 	$(ALPHA_TEST_FRAGMENT_SHADERS:=_alpha_test.spv) \
 	$(ALPHA_TEST_FRAGMENT_SHADERS:=_alpha_test.metal) \
 	$(ALPHA_TEST_FRAGMENT_SHADERS:=_alpha_test.dxil)
 
-EXTRA_DIST = \
-	$(VERTEX_SHADERS:=.spv) $(VERTEX_SHADERS:=.metal) $(VERTEX_SHADERS:=.dxil) \
-	$(FRAGMENT_SHADERS:=.spv) $(FRAGMENT_SHADERS:=.metal) $(FRAGMENT_SHADERS:=.dxil) \
-	$(ALPHA_TEST_FRAGMENT_SHADERS:=_alpha_test.spv) \
-	$(ALPHA_TEST_FRAGMENT_SHADERS:=_alpha_test.metal) \
-	$(ALPHA_TEST_FRAGMENT_SHADERS:=_alpha_test.dxil)
+EXTRA_DIST = $(shaders_DATA)
 
 .PHONY: shaders
 shaders:

@@ -24,63 +24,7 @@
 
 #include "r_local.h"
 
-/**
- * @brief The maximum number of occlusion queries: one per BSP block plus one per BSP light.
- */
-#define MAX_OCCLUSION_QUERIES (MAX_BSP_BLOCKS + MAX_BSP_LIGHTS)
-
-/**
- * @brief The occlusion query accounting structure.
- */
-static struct {
-  /**
-   * @brief The occlusion queries. A query's position in this array is also its index into `query_pool`.
-   */
-  r_occlusion_query_t queries[MAX_OCCLUSION_QUERIES];
-
-  /**
-   * @brief The number of allocated queries.
-   */
-  int32_t num_queries;
-
-  /**
-   * @brief The per-instance box bounds appended by `R_AppendOcclusionQueryBox`, flattened
-   * into `instance_buffer` by `R_LoadOcclusionQueries`. Reset by `R_FreeOcclusionQueries`.
-   */
-  Vector *boxes;
-
-  /**
-   * @brief The shared occlusion query pool.
-   */
-  QueryPool *pool;
-
-  /**
-   * @brief The per-instance box bounds buffer (INSTANCE rate, slot 1), built from `boxes`
-   * by `R_LoadOcclusionQueries` when loading completes.
-   */
-  Buffer *instanceBuffer;
-
-  /**
-   * @brief The constant unit-cube vertex buffer (VERTEX rate, slot 0), shared by every
-   * occlusion box instance. Built once by `R_InitOcclusionQueries`.
-   */
-  Buffer *vertexBuffer;
-
-  /**
-   * @brief The shared index buffer for the unit cube (reused for every instance).
-   */
-  Buffer *elementsBuffer;
-
-  /**
-   * @brief The position-only, depth-only pipeline used to draw occlusion boxes.
-   */
-  GraphicsPipeline *pipeline;
-
-  /**
-   * @brief The download target for query results.
-   */
-  TransferBuffer *transfer;
-} r_occlusion;
+r_occlusion_t r_occlusion;
 
 /**
  * @brief Checks BSP block occlusion queries to determine if the given box is occluded.
@@ -178,7 +122,7 @@ void R_FreeOcclusionQueries(void) {
     $(r_occlusion.boxes, removeAll);
   }
 
-  r_occlusion.instanceBuffer = release(r_occlusion.instanceBuffer);
+  r_occlusion.instance_buffer = release(r_occlusion.instance_buffer);
 }
 
 /**
@@ -186,11 +130,11 @@ void R_FreeOcclusionQueries(void) {
  */
 void R_LoadOcclusionQueries(void) {
 
-  r_occlusion.instanceBuffer = release(r_occlusion.instanceBuffer);
+  r_occlusion.instance_buffer = release(r_occlusion.instance_buffer);
 
   const int32_t num_boxes = (int32_t) r_occlusion.boxes->count;
   if (num_boxes) {
-    r_occlusion.instanceBuffer = $(r_context.device, createBufferWithConstMem,
+    r_occlusion.instance_buffer = $(r_context.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_VERTEX, r_occlusion.boxes->elements, (Uint32) (num_boxes * sizeof(box3_t)));
   }
 }
@@ -200,17 +144,21 @@ void R_LoadOcclusionQueries(void) {
  */
 static void R_DrawOcclusionQueries_(const r_view_t *view, CommandBuffer *commands) {
 
-  const SDL_GPUDepthStencilTargetInfo depth = $(view->framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
+  SDL_GPUDepthStencilTargetInfo depth = $(view->framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE);
+
+#ifdef SDL_GPU_QUERY_API
+  depth.query_pool = r_occlusion.pool->pool;
+#endif
 
   RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
 
-  if (r_occlusion.instanceBuffer) {
+  if (r_occlusion.instance_buffer) {
     $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
-      { .buffer = r_occlusion.vertexBuffer->buffer },
-      { .buffer = r_occlusion.instanceBuffer->buffer },
+      { .buffer = r_occlusion.vertex_buffer->buffer },
+      { .buffer = r_occlusion.instance_buffer->buffer },
     }, 2);
     $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
-      .buffer = r_occlusion.elementsBuffer->buffer
+      .buffer = r_occlusion.elements_buffer->buffer
     }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
   }
 
@@ -284,32 +232,6 @@ void R_DrawOcclusionQueries(const r_view_t *view, CommandBuffer *commands) {
       }
     }
   }
-
-  if (r_draw_occlusion_queries->value) {
-    const r_occlusion_query_t *q = r_occlusion.queries;
-    for (int32_t i = 0; i < r_occlusion.num_queries; i++, q++) {
-      const float dist = Vec3_Distance(Box3_Center(q->bounds), view->origin);
-      const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
-      if (!q->result) {
-        R_Draw3DBox(q->bounds, Color3f(0.f, f, 0.f), false);
-      } else {
-        R_Draw3DBox(q->bounds, Color3f(f, 0.f, 0.f), false);
-      }
-    }
-  }
-
-  if (r_draw_bsp_blocks->value) {
-    r_bsp_block_t *b = r_models.world->bsp->inline_models->blocks;
-    for (int32_t i = 0; i < r_models.world->bsp->inline_models->num_blocks; i++, b++) {
-      const float dist = Vec3_Distance(Box3_Center(b->visible_bounds), view->origin);
-      const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
-      if (!b->query->result) {
-        R_Draw3DBox(b->visible_bounds, Color3f(0.f, f, 0.f), false);
-      } else {
-        R_Draw3DBox(b->visible_bounds, Color3f(f, 0.f, 0.f), false);
-      }
-    }
-  }
 }
 
 /**
@@ -333,7 +255,7 @@ void R_InitOcclusionQueries(void) {
   vec3_t cube[8];
   Box3_ToPoints(Box3(Vec3(0.f, 0.f, 0.f), Vec3(1.f, 1.f, 1.f)), cube);
 
-  r_occlusion.vertexBuffer = $(r_context.device, createBufferWithConstMem,
+  r_occlusion.vertex_buffer = $(r_context.device, createBufferWithConstMem,
     SDL_GPU_BUFFERUSAGE_VERTEX, cube, sizeof(cube));
 
   const uint32_t elements[] = {
@@ -351,7 +273,7 @@ void R_InitOcclusionQueries(void) {
     5, 7, 1, 7, 3, 1,
   };
 
-  r_occlusion.elementsBuffer = $(r_context.device, createBufferWithConstMem,
+  r_occlusion.elements_buffer = $(r_context.device, createBufferWithConstMem,
     SDL_GPU_BUFFERUSAGE_INDEX, elements, sizeof(elements));
 
   r_occlusion.transfer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
@@ -441,9 +363,9 @@ void R_InitOcclusionQueries(void) {
 void R_ShutdownOcclusionQueries(void) {
 
   r_occlusion.pipeline = release(r_occlusion.pipeline);
-  r_occlusion.vertexBuffer = release(r_occlusion.vertexBuffer);
-  r_occlusion.instanceBuffer = release(r_occlusion.instanceBuffer);
-  r_occlusion.elementsBuffer = release(r_occlusion.elementsBuffer);
+  r_occlusion.vertex_buffer = release(r_occlusion.vertex_buffer);
+  r_occlusion.instance_buffer = release(r_occlusion.instance_buffer);
+  r_occlusion.elements_buffer = release(r_occlusion.elements_buffer);
   r_occlusion.pool = release(r_occlusion.pool);
   r_occlusion.transfer = release(r_occlusion.transfer);
   r_occlusion.boxes = release(r_occlusion.boxes);

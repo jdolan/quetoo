@@ -100,9 +100,8 @@ static void R_CreateBloomFramebuffers(int32_t width, int32_t height) {
 
     r_post.bloom_framebuffers[i] = $(r_context.device, createFramebuffer, &(GPU_FramebufferCreateInfo) {
       .size = MakeSize(r_post.bloom_width, r_post.bloom_height),
-      .colorFormats = { R_SCENE_COLOR_FORMAT },
+      .colorAttachments = { { .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT } },
       .numColorTargets = 1,
-      .depthFormat = SDL_GPU_TEXTUREFORMAT_INVALID,
       .sampleCount = SDL_GPU_SAMPLECOUNT_1,
     });
   }
@@ -119,7 +118,7 @@ static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
   CommandBuffer *commands = r_context.device->commands;
 
   const SDL_GPUColorTargetInfo color_target =
-      $(target, colorTargetInfo, 0, SDL_GPU_LOADOP_DONT_CARE, SDL_GPU_STOREOP_STORE, NULL);
+      $(target, colorTargetInfo, 0, SDL_GPU_LOADOP_DONT_CARE, SDL_GPU_STOREOP_STORE);
 
   RenderPass *pass = $(commands, beginRenderPass, &color_target, 1, NULL);
 
@@ -154,10 +153,6 @@ static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
 void R_DrawPost(const r_view_t *view) {
 
   if (!r_models.world) {
-    return; // no 3D scene this frame; the present clear shows through for the UI
-  }
-
-  if (!view->framebuffer) {
     return;
   }
 
@@ -197,14 +192,14 @@ void R_DrawPost(const r_view_t *view) {
     for (int32_t i = 0; i < iterations; i++) {
 
       R_PostPass(r_post.bloom_framebuffers[1], r_post.bloom_pipeline,
-                 r_post.bloom_framebuffers[0]->colorTextures[0],
-                 r_post.bloom_framebuffers[0]->colorTextures[0],
+                 r_post.bloom_framebuffers[0]->colorAttachments[0].textures[0],
+                 r_post.bloom_framebuffers[0]->colorAttachments[0].textures[0],
                  r_post.bloom_width, r_post.bloom_height,
                  &(r_post_locals_t) { .post_stage = R_POST_BLOOM_BLUR_X });
 
       R_PostPass(r_post.bloom_framebuffers[0], r_post.bloom_pipeline,
-                 r_post.bloom_framebuffers[1]->colorTextures[0],
-                 r_post.bloom_framebuffers[1]->colorTextures[0],
+                 r_post.bloom_framebuffers[1]->colorAttachments[0].textures[0],
+                 r_post.bloom_framebuffers[1]->colorAttachments[0].textures[0],
                  r_post.bloom_width, r_post.bloom_height,
                  &(r_post_locals_t) { .post_stage = R_POST_BLOOM_BLUR_Y });
     }
@@ -215,7 +210,7 @@ void R_DrawPost(const r_view_t *view) {
   // texture is irrelevant (the scene color is bound there as a placeholder).
   R_PostPass(present, r_post.composite_pipeline,
              scene_color,
-             bloom ? r_post.bloom_framebuffers[0]->colorTextures[0] : scene_color,
+             bloom ? r_post.bloom_framebuffers[0]->colorAttachments[0].textures[0] : scene_color,
              (int32_t) present->size.w, (int32_t) present->size.h,
              &(r_post_locals_t) {
                .post_stage = R_POST_TONEMAP,
@@ -298,8 +293,8 @@ void R_InitPost(void) {
 
   r_post.vertex_buffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_VERTEX, vertexes, sizeof(vertexes));
 
-  r_post.bloom_pipeline = R_CreatePostPipeline(R_SCENE_COLOR_FORMAT);
-  r_post.composite_pipeline = R_CreatePostPipeline(r_context.device->framebuffer->colorFormats[0]);
+  r_post.bloom_pipeline = R_CreatePostPipeline(SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT);
+  r_post.composite_pipeline = R_CreatePostPipeline(r_context.device->framebuffer->colorAttachments[0].format);
 
   r_post.sampler = $(r_context.device, createSamplerLinearClamp);
 }

@@ -34,77 +34,22 @@
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_DIFFUSE)      uniform sampler2D texture_diffusemap;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_NEXT_DIFFUSE) uniform sampler2D texture_next_diffusemap;
 
-/*
- * The sprite family's own dense lighting bindings, after diffuse (0), next-diffuse
- * (1) and the soft-particle depth attachment (2): the lights, voxel light-index
- * and voxel light-data storage buffers at the contiguous bindings 3/4/5. The
- * light data is a storage buffer of per-voxel (first_index, count) pairs rather
- * than an RG32I isampler3D because D3D12 cannot sample integer formats. Sprites
- * take clustered voxel diffuse only (no normal, so pure distance attenuation).
- */
-layout (std430, set = SAMPLER_SET, binding = 3) readonly buffer lights_block {
-  int num_lights;
-  int num_bsp_lights;
-  light_t lights[];
-};
-
-layout (std430, set = SAMPLER_SET, binding = 4) readonly buffer voxel_light_indices_block {
-  int voxel_light_indices[];
-};
-
-layout (std430, set = SAMPLER_SET, binding = 5) readonly buffer voxel_light_data_block {
-  int voxel_light_data_elements[];
-};
-
-layout (location = 0) in vec3 in_position;
-layout (location = 1) in vec2 in_diffusemap;
-layout (location = 2) in vec2 in_next_diffusemap;
-layout (location = 3) in vec3 in_color;
-layout (location = 4) in float in_lerp;
-layout (location = 5) in float in_lighting;
+layout (location = 0) in vec2 in_diffusemap;
+layout (location = 1) in vec2 in_next_diffusemap;
+layout (location = 2) in vec3 in_color;
+layout (location = 3) in float in_lerp;
+layout (location = 4) in float in_lighting;
+layout (location = 5) in vec3 in_diffuse;
 
 layout (location = 0) out vec4 out_color;
-
-/**
- * @brief Resolves the integer voxel coordinate for a world-space position.
- */
-ivec3 sprite_voxel_xyz(in vec3 position) {
-  const vec3 pos = position - voxels.mins.xyz;
-  const ivec3 voxel = ivec3(floor(pos / BSP_VOXEL_SIZE));
-  return clamp(voxel, ivec3(0), ivec3(voxels.size.xyz) - ivec3(1));
-}
-
-/**
- * @brief Accumulated clustered voxel light at the sprite's position. Sprites are
- * billboards with no meaningful normal, so lighting is pure distance attenuation
- * (no Lambert term), matching the GL renderer's sprite lighting.
- */
-vec3 sprite_lighting(void) {
-
-  vec3 diffuse = vec3(0.0);
-
-  const ivec3 voxel = sprite_voxel_xyz(in_position);
-  const int index = (voxel.z * int(voxels.size.y) + voxel.y) * int(voxels.size.x) + voxel.x;
-  const ivec2 data = ivec2(voxel_light_data_elements[index * 2 + 0], voxel_light_data_elements[index * 2 + 1]);
-
-  for (int i = 0; i < data.y; i++) {
-    const light_t light = lights[voxel_light_indices[data.x + i]];
-
-    const float dist = distance(light.origin.xyz, in_position);
-    const float atten = clamp(1.0 - dist / light.origin.w, 0.0, 1.0);
-
-    diffuse += light_color(light) * atten;
-  }
-
-  return diffuse;
-}
 
 /**
  * @brief Additive sprite/particle shading with a soft-particle edge: the color
  * is faded (toward black, so additive blending fades to nothing) as the fragment
  * nears or passes the opaque scene depth behind it. Absorptive sprites (smoke,
- * @c in_lighting > 0) are modulated by the surrounding clustered voxel light;
- * emissive sprites (@c in_lighting == 0, e.g. blaster particles) stay fullbright.
+ * @c in_lighting > 0) are modulated by the surrounding clustered voxel light,
+ * computed per-vertex in sprite_vs.glsl and interpolated here; emissive sprites
+ * (@c in_lighting == 0, e.g. blaster particles) stay fullbright.
  */
 void main(void) {
 
@@ -115,7 +60,7 @@ void main(void) {
 
   vec3 color = in_color;
   if (in_lighting > 0.0) {
-    color = mix(color, color * sprite_lighting(), in_lighting);
+    color = mix(color, color * in_diffuse, in_lighting);
   }
 
   out_color = vec4(texture_color * color * soften(), 1.0);

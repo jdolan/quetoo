@@ -57,44 +57,67 @@ typedef struct {
 } r_light_uniform_t;
 
 /**
- * @brief The lights uniform block struct.
- * @remarks This struct is vec4 aligned. The counts live here, with their data,
- * mirroring the std430 `lights_block` in light.glsl. `alignas` on `lights`
- * forces it to begin at its required vec4-aligned offset.
+ * @brief The BSP lights uniform block: static, voxel-gridded light sources
+ * addressed by their fixed BSP lump index, mirroring the std430
+ * `bsp_lights_block` in light.glsl.
  */
 typedef struct {
 
   /**
-   * @brief The number of light sources in `lights`.
-   */
-  int32_t num_lights;
-
-  /**
-   * @brief The number of leading static BSP lights (lit via voxels); lights at
-   * [num_bsp_lights, num_lights) are the dynamic tail, lit directly.
+   * @brief The number of light sources in `bsp_lights`.
    */
   int32_t num_bsp_lights;
 
   /**
-   * @brief The light sources for the current frame.
+   * @brief The static BSP light sources, indexed by BSP lump index.
    */
-  alignas(16) r_light_uniform_t lights[MAX_LIGHTS];
-} r_light_uniform_block_t;
+  alignas(16) r_light_uniform_t bsp_lights[MAX_BSP_LIGHTS];
+} r_bsp_lights_uniform_block_t;
 
 /**
- * @brief The lights uniform block type.
+ * @brief The dynamic lights uniform block: the per-frame dynamic tail
+ * (trails, explosions, animated lights, ...), mirroring the std430
+ * `dynamic_lights_block` in light.glsl.
  */
 typedef struct {
 
   /**
-   * @brief The GPU storage buffer backing the lights block.
+   * @brief The number of light sources in `dynamic_lights`.
    */
-  Buffer *buffer;
+  int32_t num_dynamic_lights;
 
   /**
-   * @brief The lights block, mirrored to `buffer` each frame.
+   * @brief The dynamic light sources for the current frame, in view order.
    */
-  r_light_uniform_block_t block;
+  alignas(16) r_light_uniform_t dynamic_lights[MAX_DYNAMIC_LIGHTS];
+} r_dynamic_lights_uniform_block_t;
+
+/**
+ * @brief The lights uniform blocks type: two separate GPU storage buffers, one
+ * per light class, so that shaders needing only dynamic lights (e.g. sprites)
+ * don't have to reason about a combined index space.
+ */
+typedef struct {
+
+  /**
+   * @brief The GPU storage buffer backing `bsp_block`.
+   */
+  Buffer *bsp_buffer;
+
+  /**
+   * @brief The BSP lights block, mirrored to `bsp_buffer` each frame.
+   */
+  r_bsp_lights_uniform_block_t bsp_block;
+
+  /**
+   * @brief The GPU storage buffer backing `dynamic_block`.
+   */
+  Buffer *dynamic_buffer;
+
+  /**
+   * @brief The dynamic lights block, mirrored to `dynamic_buffer` each frame.
+   */
+  r_dynamic_lights_uniform_block_t dynamic_block;
 } r_lights_t;
 
 /**
@@ -102,8 +125,8 @@ typedef struct {
  */
 extern r_lights_t r_lights;
 
-void R_UpdateLights(r_view_t *view);
-void R_ActiveLights(const r_view_t *view, const box3_t bounds, uint32_t mask[MAX_DYNAMIC_LIGHTS / 32]);
+void R_UpdateLights(r_view_t *view, CopyPass *copyPass);
+void R_ActiveDynamicLights(const r_view_t *view, const box3_t bounds, uint32_t mask[MAX_DYNAMIC_LIGHTS / 32]);
 void R_InitLights(void);
 void R_ShutdownLights(void);
 #endif

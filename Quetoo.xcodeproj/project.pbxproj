@@ -53,6 +53,7 @@
 /* Begin PBXBuildFile section */
 		014684FA691B4EB0944ACDCB /* r_post.c in Sources */ = {isa = PBXBuildFile; fileRef = 26FE8732000C404A8AFA1688 /* r_post.c */; };
 		08962C395D0FB0E620F78625 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = 7966EA6596003F9303BC00FA /* bg_item.c */; };
+		091C43A66A7972053AD1C8E7 /* box.c in Sources */ = {isa = PBXBuildFile; fileRef = 8542813678DB3B7BECEEF939 /* box.c */; };
 		0975D2E7118D42B05C9F5422 /* small.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FD02F9650560087A850 /* small.png */; };
 		1384B3692A611AB241B9C51C /* bg_item.h in Headers */ = {isa = PBXBuildFile; fileRef = F7E7256984E276048C2A155E /* bg_item.h */; };
 		2C468DAAA30BB6E232FA21C3 /* large.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCC2F9650560087A850 /* large.png */; };
@@ -236,6 +237,9 @@
 		CE3CFBF825A10D9B003D6148 /* cl_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3CFBF625A10D9B003D6148 /* cl_sound.h */; };
 		CE3CFBF925A10D9B003D6148 /* cl_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3CFBF725A10D9B003D6148 /* cl_sound.c */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
+		CE49FD4730083ADD00B90D43 /* bsp_fs_alpha_test.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49FD4230083A4500B90D43 /* bsp_fs_alpha_test.metal */; };
+		CE49FD4830083B0000B90D43 /* mesh_fs_alpha_test.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49FD4330083A4500B90D43 /* mesh_fs_alpha_test.metal */; };
+		CE49FD4930083B0D00B90D43 /* occlude_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49FD4530083A4500B90D43 /* occlude_vs.metal */; };
 		CE4DCF06256DCCA100FECAFC /* cg_weapon.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4DCF04256DCCA100FECAFC /* cg_weapon.h */; };
 		CE4DCF07256DCCA100FECAFC /* cg_weapon.c in Sources */ = {isa = PBXBuildFile; fileRef = CE4DCF05256DCCA100FECAFC /* cg_weapon.c */; };
 		CE4DCF90256F0DAD00FECAFC /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
@@ -482,7 +486,6 @@
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
 		CE89C2BA2FE56432000B6244 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = CE89C2B92FE5642D000B6244 /* md5.c */; };
-		091C43A66A7972053AD1C8E7 /* box.c in Sources */ = {isa = PBXBuildFile; fileRef = 8542813678DB3B7BECEEF939 /* box.c */; };
 		CE89C2BC2FE56440000B6244 /* md5.h in Headers */ = {isa = PBXBuildFile; fileRef = CE89C2BB2FE5643E000B6244 /* md5.h */; };
 		CE89C2BD2FE56450000B6244 /* qstring.c in Sources */ = {isa = PBXBuildFile; fileRef = CE89C2BF2FE56452000B6244 /* qstring.c */; };
 		CE89C2BE2FE56451000B6244 /* qstring.h in Headers */ = {isa = PBXBuildFile; fileRef = CE89C2C02FE56453000B6244 /* qstring.h */; };
@@ -987,17 +990,20 @@
 			dstSubfolderSpec = 16;
 			files = (
 				CE1643642FF5A23300863996 /* bsp_fs.metal in CopyFiles */,
+				CE49FD4730083ADD00B90D43 /* bsp_fs_alpha_test.metal in CopyFiles */,
 				CE1643672FF5A23300863996 /* bsp_vs.metal in CopyFiles */,
+				CE1643CA2FF7EE9900863996 /* decal_fs.metal in CopyFiles */,
+				CE1643CB2FF7EEA100863996 /* decal_vs.metal in CopyFiles */,
 				CE16436D2FF5A23300863996 /* depth_pass_fs.metal in CopyFiles */,
 				CE1643702FF5A23300863996 /* depth_pass_vs.metal in CopyFiles */,
 				CE1643742FF5A23300863996 /* draw_2d_fs.metal in CopyFiles */,
 				CE1643772FF5A23300863996 /* draw_2d_vs.metal in CopyFiles */,
 				CE16437A2FF5A23300863996 /* draw_3d_fs.metal in CopyFiles */,
 				CE16437D2FF5A23300863996 /* draw_3d_vs.metal in CopyFiles */,
-				CE1643CA2FF7EE9900863996 /* decal_fs.metal in CopyFiles */,
-				CE1643CB2FF7EEA100863996 /* decal_vs.metal in CopyFiles */,
 				CE1643A32FF69B3C00863996 /* mesh_fs.metal in CopyFiles */,
+				CE49FD4830083B0000B90D43 /* mesh_fs_alpha_test.metal in CopyFiles */,
 				CE1643A42FF69B3F00863996 /* mesh_vs.metal in CopyFiles */,
+				CE49FD4930083B0D00B90D43 /* occlude_vs.metal in CopyFiles */,
 				CE1643842FF5A23300863996 /* post_fs.metal in CopyFiles */,
 				CE1643872FF5A23300863996 /* post_vs.metal in CopyFiles */,
 				CE1643F12FFB3A7800863996 /* shadow_clear_fs.metal in CopyFiles */,
@@ -1176,10 +1182,12 @@
 		59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_vs.glsl; sourceTree = "<group>"; };
 		6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_fs.glsl; sourceTree = "<group>"; };
 		7966EA6596003F9303BC00FA /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
+		8542813678DB3B7BECEEF939 /* box.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = box.c; sourceTree = "<group>"; };
 		93837BFDD89832004989509B /* libgame-item.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgame-item.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		97BDA8A5C8DF41E290656B3D /* cm_voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_voxel.h; sourceTree = "<group>"; };
 		9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_manifest.h; sourceTree = "<group>"; };
 		B80C92655F5249E48131CB95 /* r_post.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_post.h; sourceTree = "<group>"; };
+		BF98A24FAEEDE73A8F805F7D /* light_types.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = light_types.glsl; sourceTree = "<group>"; };
 		CE04EF9325CA0EE400C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE04EFC125CA0F7D00C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE04FB1725CEDCD400C31433 /* net_http_server.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_http_server.h; sourceTree = "<group>"; };
@@ -1188,7 +1196,6 @@
 		CE052A6E214831FE003446C9 /* check_mem */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_mem; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE052A8421483255003446C9 /* check_thread */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_thread; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE0C0751260CC75700FFE27B /* box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = box.h; sourceTree = "<group>"; };
-		8542813678DB3B7BECEEF939 /* box.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = box.c; sourceTree = "<group>"; };
 		CE12D4A71C5C58C300CD0B13 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		CE12D4A81C5C58C300CD0B13 /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
 		CE12D4FF1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -1478,76 +1485,36 @@
 		CE148DA7242A37BA00B589D8 /* r_animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_animation.h; sourceTree = "<group>"; };
 		CE1643492FF5A12100863996 /* SDL3.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SDL3.xcframework; path = /Users/jdolan/Coding/ObjectivelyMVC/../ObjectivelyGPU/Frameworks/SDL3.xcframework; sourceTree = "<absolute>"; };
 		CE16434F2FF5A1E400863996 /* bsp_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = bsp_fs.metal; sourceTree = "<group>"; };
-		CE1643502FF5A1E400863996 /* bsp_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = bsp_fs.spv; sourceTree = "<group>"; };
 		CE1643512FF5A1E400863996 /* bsp_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = bsp_vs.metal; sourceTree = "<group>"; };
-		CE1643522FF5A1E400863996 /* bsp_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = bsp_vs.spv; sourceTree = "<group>"; };
 		CE1643532FF5A1E400863996 /* depth_pass_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = depth_pass_fs.metal; sourceTree = "<group>"; };
-		CE1643542FF5A1E400863996 /* depth_pass_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = depth_pass_fs.spv; sourceTree = "<group>"; };
 		CE1643552FF5A1E400863996 /* depth_pass_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = depth_pass_vs.metal; sourceTree = "<group>"; };
-		CE1643562FF5A1E400863996 /* depth_pass_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = depth_pass_vs.spv; sourceTree = "<group>"; };
 		CE1643572FF5A1E400863996 /* draw_2d_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = draw_2d_fs.metal; sourceTree = "<group>"; };
-		CE1643582FF5A1E400863996 /* draw_2d_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = draw_2d_fs.spv; sourceTree = "<group>"; };
 		CE1643592FF5A1E400863996 /* draw_2d_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = draw_2d_vs.metal; sourceTree = "<group>"; };
-		CE16435A2FF5A1E400863996 /* draw_2d_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = draw_2d_vs.spv; sourceTree = "<group>"; };
 		CE16435B2FF5A1E400863996 /* draw_3d_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = draw_3d_fs.metal; sourceTree = "<group>"; };
-		CE16435C2FF5A1E400863996 /* draw_3d_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = draw_3d_fs.spv; sourceTree = "<group>"; };
 		CE16435D2FF5A1E400863996 /* draw_3d_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = draw_3d_vs.metal; sourceTree = "<group>"; };
-		CE16435E2FF5A1E400863996 /* draw_3d_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = draw_3d_vs.spv; sourceTree = "<group>"; };
 		CE16435F2FF5A1E400863996 /* post_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = post_fs.metal; sourceTree = "<group>"; };
 		CE1643602FF5A1E400863996 /* post_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = post_fs.spv; sourceTree = "<group>"; };
 		CE1643612FF5A1E400863996 /* post_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = post_vs.metal; sourceTree = "<group>"; };
 		CE1643622FF5A1E400863996 /* post_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = post_vs.spv; sourceTree = "<group>"; };
 		CE1643932FF5A65900863996 /* ObjectivelyGPU.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ObjectivelyGPU.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE16439B2FF6962600863996 /* mesh_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = mesh_fs.metal; sourceTree = "<group>"; };
-		CE16439C2FF6962600863996 /* mesh_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = mesh_fs.spv; sourceTree = "<group>"; };
 		CE16439D2FF6962600863996 /* mesh_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = mesh_vs.metal; sourceTree = "<group>"; };
-		CE16439E2FF6962600863996 /* mesh_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = mesh_vs.spv; sourceTree = "<group>"; };
 		CE16439F2FF6962600863996 /* shadow_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = shadow_fs.metal; sourceTree = "<group>"; };
-		CE1643A02FF6962600863996 /* shadow_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_fs.spv; sourceTree = "<group>"; };
 		CE1643A12FF6962600863996 /* shadow_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = shadow_vs.metal; sourceTree = "<group>"; };
-		CE1643A22FF6962600863996 /* shadow_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_vs.spv; sourceTree = "<group>"; };
 		CE1643A82FF6B48600863996 /* sky_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = sky_fs.metal; sourceTree = "<group>"; };
-		CE1643A92FF6B48600863996 /* sky_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = sky_fs.spv; sourceTree = "<group>"; };
 		CE1643AA2FF6B48600863996 /* sky_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = sky_vs.metal; sourceTree = "<group>"; };
-		CE1643AB2FF6B48600863996 /* sky_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = sky_vs.spv; sourceTree = "<group>"; };
 		CE1643AE2FF6BBF200863996 /* sprite_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = sprite_fs.metal; sourceTree = "<group>"; };
-		CE1643AF2FF6BBF200863996 /* sprite_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = sprite_fs.spv; sourceTree = "<group>"; };
 		CE1643B02FF6BBF200863996 /* sprite_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = sprite_vs.metal; sourceTree = "<group>"; };
-		CE1643B12FF6BBF200863996 /* sprite_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = sprite_vs.spv; sourceTree = "<group>"; };
 		CE1643C22FF75DDB00863996 /* r_context.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_context.h; sourceTree = "<group>"; };
 		CE1643C32FF75DDB00863996 /* r_context.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_context.c; sourceTree = "<group>"; };
 		CE1643C62FF7EE8B00863996 /* decal_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = decal_fs.metal; sourceTree = "<group>"; };
-		CE1643C72FF7EE8B00863996 /* decal_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = decal_fs.spv; sourceTree = "<group>"; };
 		CE1643C82FF7EE8B00863996 /* decal_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = decal_vs.metal; sourceTree = "<group>"; };
-		CE1643C92FF7EE8B00863996 /* decal_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = decal_vs.spv; sourceTree = "<group>"; };
-		CE1643D52FFB373000863996 /* bsp_fs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = bsp_fs.dxil; sourceTree = "<group>"; };
-		CE1643D62FFB373000863996 /* bsp_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = bsp_vs.dxil; sourceTree = "<group>"; };
-		CE1643D72FFB373000863996 /* decal_fs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = decal_fs.dxil; sourceTree = "<group>"; };
-		CE1643D82FFB373000863996 /* decal_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = decal_vs.dxil; sourceTree = "<group>"; };
-		CE1643D92FFB373000863996 /* depth_pass_fs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = depth_pass_fs.dxil; sourceTree = "<group>"; };
-		CE1643DA2FFB373000863996 /* depth_pass_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = depth_pass_vs.dxil; sourceTree = "<group>"; };
-		CE1643DB2FFB373000863996 /* draw_2d_fs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = draw_2d_fs.dxil; sourceTree = "<group>"; };
-		CE1643DC2FFB373000863996 /* draw_2d_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = draw_2d_vs.dxil; sourceTree = "<group>"; };
-		CE1643DD2FFB373000863996 /* draw_3d_fs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = draw_3d_fs.dxil; sourceTree = "<group>"; };
-		CE1643DE2FFB373000863996 /* draw_3d_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = draw_3d_vs.dxil; sourceTree = "<group>"; };
-		CE1643DF2FFB373000863996 /* mesh_fs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = mesh_fs.dxil; sourceTree = "<group>"; };
-		CE1643E02FFB373000863996 /* mesh_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = mesh_vs.dxil; sourceTree = "<group>"; };
-		CE1643E12FFB373000863996 /* post_fs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = post_fs.dxil; sourceTree = "<group>"; };
 		CE1643E22FFB373000863996 /* post_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = post_vs.dxil; sourceTree = "<group>"; };
 		CE1643E32FFB373000863996 /* shadow_clear_fs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_clear_fs.dxil; sourceTree = "<group>"; };
-		CE1643E42FFB373000863996 /* shadow_clear_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_clear_vs.dxil; sourceTree = "<group>"; };
-		CE1643E52FFB373000863996 /* shadow_fs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_fs.dxil; sourceTree = "<group>"; };
-		CE1643E62FFB373000863996 /* shadow_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_vs.dxil; sourceTree = "<group>"; };
-		CE1643E72FFB373000863996 /* sky_fs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = sky_fs.dxil; sourceTree = "<group>"; };
-		CE1643E82FFB373000863996 /* sky_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = sky_vs.dxil; sourceTree = "<group>"; };
-		CE1643E92FFB373000863996 /* sprite_fs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = sprite_fs.dxil; sourceTree = "<group>"; };
-		CE1643EA2FFB373000863996 /* sprite_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = sprite_vs.dxil; sourceTree = "<group>"; };
 		CE1643EB2FFB3A0300863996 /* shadow_clear_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_clear_fs.glsl; sourceTree = "<group>"; };
 		CE1643EC2FFB3A0300863996 /* shadow_clear_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = shadow_clear_fs.metal; sourceTree = "<group>"; };
-		CE1643ED2FFB3A0300863996 /* shadow_clear_fs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_clear_fs.spv; sourceTree = "<group>"; };
 		CE1643EE2FFB3A0300863996 /* shadow_clear_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_clear_vs.glsl; sourceTree = "<group>"; };
 		CE1643EF2FFB3A0300863996 /* shadow_clear_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = shadow_clear_vs.metal; sourceTree = "<group>"; };
-		CE1643F02FFB3A0300863996 /* shadow_clear_vs.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_clear_vs.spv; sourceTree = "<group>"; };
 		CE1643F32FFB571100863996 /* r_occlude.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_occlude.h; sourceTree = "<group>"; };
 		CE1643F42FFB571100863996 /* r_occlude.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_occlude.c; sourceTree = "<group>"; };
 		CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerModelView.c; sourceTree = "<group>"; };
@@ -1657,13 +1624,17 @@
 		CE3CFBF625A10D9B003D6148 /* cl_sound.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cl_sound.h; sourceTree = "<group>"; };
 		CE3CFBF725A10D9B003D6148 /* cl_sound.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cl_sound.c; sourceTree = "<group>"; };
 		CE3CFD3525A29932003D6148 /* common.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = common.glsl; sourceTree = "<group>"; };
-		CE41019B242CE0B200BF482F /* version.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = version.glsl; sourceTree = "<group>"; };
 		CE42657321C3CD7D00F768DD /* map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = map.h; sourceTree = "<group>"; };
 		CE42657421C3EDB400F768DD /* face.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = face.h; sourceTree = "<group>"; };
 		CE42657521C3EE3B00F768DD /* brush.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = brush.h; sourceTree = "<group>"; };
 		CE42657621C3EF0500F768DD /* csg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = csg.h; sourceTree = "<group>"; };
 		CE42657721C3EF7500F768DD /* portal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = portal.h; sourceTree = "<group>"; };
 		CE45F4C625728264004DEFED /* uniforms.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = uniforms.glsl; sourceTree = "<group>"; };
+		CE49FD4230083A4500B90D43 /* bsp_fs_alpha_test.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = bsp_fs_alpha_test.metal; sourceTree = "<group>"; };
+		CE49FD4330083A4500B90D43 /* mesh_fs_alpha_test.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = mesh_fs_alpha_test.metal; sourceTree = "<group>"; };
+		CE49FD4430083A4500B90D43 /* occlude_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = occlude_vs.glsl; sourceTree = "<group>"; };
+		CE49FD4530083A4500B90D43 /* occlude_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = occlude_vs.metal; sourceTree = "<group>"; };
+		CE49FD4630083A4500B90D43 /* soften.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = soften.glsl; sourceTree = "<group>"; };
 		CE4DCF04256DCCA100FECAFC /* cg_weapon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_weapon.h; sourceTree = "<group>"; };
 		CE4DCF05256DCCA100FECAFC /* cg_weapon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_weapon.c; sourceTree = "<group>"; };
 		CE4DCF9F256F0DAD00FECAFC /* check_cm_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_test; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2684,58 +2655,38 @@
 		CE12D5F31C5C58C300CD0B13 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
-				CE1643D52FFB373000863996 /* bsp_fs.dxil */,
 				CEFD07F72B671DE700642169 /* bsp_fs.glsl */,
 				CE16434F2FF5A1E400863996 /* bsp_fs.metal */,
-				CE1643502FF5A1E400863996 /* bsp_fs.spv */,
-				CE1643D62FFB373000863996 /* bsp_vs.dxil */,
+				CE49FD4230083A4500B90D43 /* bsp_fs_alpha_test.metal */,
 				CEFD07F62B671DE600642169 /* bsp_vs.glsl */,
 				CE1643512FF5A1E400863996 /* bsp_vs.metal */,
-				CE1643522FF5A1E400863996 /* bsp_vs.spv */,
 				CE3CFD3525A29932003D6148 /* common.glsl */,
-				CE1643D72FFB373000863996 /* decal_fs.dxil */,
 				CE5ABAD42F32D84000D05D09 /* decal_fs.glsl */,
 				CE1643C62FF7EE8B00863996 /* decal_fs.metal */,
-				CE1643C72FF7EE8B00863996 /* decal_fs.spv */,
-				CE1643D82FFB373000863996 /* decal_vs.dxil */,
 				CE5ABAD52F32D84000D05D09 /* decal_vs.glsl */,
 				CE1643C82FF7EE8B00863996 /* decal_vs.metal */,
-				CE1643C92FF7EE8B00863996 /* decal_vs.spv */,
-				CE1643D92FFB373000863996 /* depth_pass_fs.dxil */,
 				CE2CECA72585B9920001E599 /* depth_pass_fs.glsl */,
 				CE1643532FF5A1E400863996 /* depth_pass_fs.metal */,
-				CE1643542FF5A1E400863996 /* depth_pass_fs.spv */,
-				CE1643DA2FFB373000863996 /* depth_pass_vs.dxil */,
 				CE2CEC1C25852FA20001E599 /* depth_pass_vs.glsl */,
 				CE1643552FF5A1E400863996 /* depth_pass_vs.metal */,
-				CE1643562FF5A1E400863996 /* depth_pass_vs.spv */,
-				CE1643DB2FFB373000863996 /* draw_2d_fs.dxil */,
 				CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */,
 				CE1643572FF5A1E400863996 /* draw_2d_fs.metal */,
-				CE1643582FF5A1E400863996 /* draw_2d_fs.spv */,
-				CE1643DC2FFB373000863996 /* draw_2d_vs.dxil */,
 				CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */,
 				CE1643592FF5A1E400863996 /* draw_2d_vs.metal */,
-				CE16435A2FF5A1E400863996 /* draw_2d_vs.spv */,
-				CE1643DD2FFB373000863996 /* draw_3d_fs.dxil */,
 				CED5BB182406B74300784D93 /* draw_3d_fs.glsl */,
 				CE16435B2FF5A1E400863996 /* draw_3d_fs.metal */,
-				CE16435C2FF5A1E400863996 /* draw_3d_fs.spv */,
-				CE1643DE2FFB373000863996 /* draw_3d_vs.dxil */,
 				CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */,
 				CE16435D2FF5A1E400863996 /* draw_3d_vs.metal */,
-				CE16435E2FF5A1E400863996 /* draw_3d_vs.spv */,
 				CEF3B6012F456F5A0024F4DF /* light.glsl */,
+				BF98A24FAEEDE73A8F805F7D /* light_types.glsl */,
 				CE57E13C246255D100F8902F /* material.glsl */,
-				CE1643DF2FFB373000863996 /* mesh_fs.dxil */,
 				CEFD07FA2B671DE700642169 /* mesh_fs.glsl */,
 				CE16439B2FF6962600863996 /* mesh_fs.metal */,
-				CE16439C2FF6962600863996 /* mesh_fs.spv */,
-				CE1643E02FFB373000863996 /* mesh_vs.dxil */,
+				CE49FD4330083A4500B90D43 /* mesh_fs_alpha_test.metal */,
 				CEFD07F92B671DE700642169 /* mesh_vs.glsl */,
 				CE16439D2FF6962600863996 /* mesh_vs.metal */,
-				CE16439E2FF6962600863996 /* mesh_vs.spv */,
-				CE1643E12FFB373000863996 /* post_fs.dxil */,
+				CE49FD4430083A4500B90D43 /* occlude_vs.glsl */,
+				CE49FD4530083A4500B90D43 /* occlude_vs.metal */,
 				6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */,
 				CE16435F2FF5A1E400863996 /* post_fs.metal */,
 				CE1643602FF5A1E400863996 /* post_fs.spv */,
@@ -2746,37 +2697,22 @@
 				CE1643E32FFB373000863996 /* shadow_clear_fs.dxil */,
 				CE1643EB2FFB3A0300863996 /* shadow_clear_fs.glsl */,
 				CE1643EC2FFB3A0300863996 /* shadow_clear_fs.metal */,
-				CE1643ED2FFB3A0300863996 /* shadow_clear_fs.spv */,
-				CE1643E42FFB373000863996 /* shadow_clear_vs.dxil */,
 				CE1643EE2FFB3A0300863996 /* shadow_clear_vs.glsl */,
 				CE1643EF2FFB3A0300863996 /* shadow_clear_vs.metal */,
-				CE1643F02FFB3A0300863996 /* shadow_clear_vs.spv */,
-				CE1643E52FFB373000863996 /* shadow_fs.dxil */,
 				CEF7B4A52ED94FED00B551CA /* shadow_fs.glsl */,
 				CE16439F2FF6962600863996 /* shadow_fs.metal */,
-				CE1643A02FF6962600863996 /* shadow_fs.spv */,
-				CE1643E62FFB373000863996 /* shadow_vs.dxil */,
 				CEF7B4A62ED94FED00B551CA /* shadow_vs.glsl */,
 				CE1643A12FF6962600863996 /* shadow_vs.metal */,
-				CE1643A22FF6962600863996 /* shadow_vs.spv */,
-				CE1643E72FFB373000863996 /* sky_fs.dxil */,
 				CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */,
 				CE1643A82FF6B48600863996 /* sky_fs.metal */,
-				CE1643A92FF6B48600863996 /* sky_fs.spv */,
-				CE1643E82FFB373000863996 /* sky_vs.dxil */,
 				CE8FD2F923D70A11002FD074 /* sky_vs.glsl */,
 				CE1643AA2FF6B48600863996 /* sky_vs.metal */,
-				CE1643AB2FF6B48600863996 /* sky_vs.spv */,
-				CE1643E92FFB373000863996 /* sprite_fs.dxil */,
+				CE49FD4630083A4500B90D43 /* soften.glsl */,
 				CEAC32C0242125ED007E1253 /* sprite_fs.glsl */,
 				CE1643AE2FF6BBF200863996 /* sprite_fs.metal */,
-				CE1643AF2FF6BBF200863996 /* sprite_fs.spv */,
-				CE1643EA2FFB373000863996 /* sprite_vs.dxil */,
 				CEAC32BF242125ED007E1253 /* sprite_vs.glsl */,
 				CE1643B02FF6BBF200863996 /* sprite_vs.metal */,
-				CE1643B12FF6BBF200863996 /* sprite_vs.spv */,
 				CE45F4C625728264004DEFED /* uniforms.glsl */,
-				CE41019B242CE0B200BF482F /* version.glsl */,
 				CEF3B5FF2F455C990024F4DF /* voxel.glsl */,
 				CE12D5F61C5C58C300CD0B13 /* Makefile.am */,
 			);
@@ -5556,8 +5492,8 @@
 					"$(WORKSPACE_PREFIX)/Objectively/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyGPU/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyMVC/Sources",
+					"$(WORKSPACE_PREFIX)/ObjectivelyGPU/Frameworks/SDL3.xcframework/macos-arm64_x86_64/SDL3.framework/Headers",
 					"$(HOMEBREW_PREFIX)/include",
-					"$(HOMEBREW_PREFIX)/include/SDL3",
 					"$(HOMEBREW_PREFIX)/opt/ncurses/include",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/include",
 				);
@@ -5604,8 +5540,8 @@
 					"$(WORKSPACE_PREFIX)/Objectively/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyGPU/Sources",
 					"$(WORKSPACE_PREFIX)/ObjectivelyMVC/Sources",
+					"$(WORKSPACE_PREFIX)/ObjectivelyGPU/Frameworks/SDL3.xcframework/macos-arm64_x86_64/SDL3.framework/Headers",
 					"$(HOMEBREW_PREFIX)/include",
-					"$(HOMEBREW_PREFIX)/include/SDL3",
 					"$(HOMEBREW_PREFIX)/opt/ncurses/include",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/include",
 				);
@@ -5757,6 +5693,7 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_COMMA = NO;
 				EXECUTABLE_PREFIX = lib;
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_CFLAGS = (
 					"-Ideps/rapidjson",
@@ -5773,6 +5710,7 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_COMMA = NO;
 				EXECUTABLE_PREFIX = lib;
+				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_CFLAGS = (
 					"-Ideps/rapidjson",

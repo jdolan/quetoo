@@ -148,7 +148,7 @@ static void Cg_Init(void) {
   cg_entity_bob = cgi.AddCvar("cg_entity_bob", "1", CVAR_ARCHIVE, "Controls the bobbing of items");
   cg_entity_rotate = cgi.AddCvar("cg_entity_rotate", "1", CVAR_ARCHIVE, "Controls the rotation of items");
   cg_force_skin = cgi.AddCvar("cg_force_skin", "", CVAR_ARCHIVE | CVAR_R_MEDIA, "Force all other players to use this model/skin (e.g. \"qforcer/default\").");
-  cg_fov = cgi.AddCvar("cg_fov", "110", CVAR_ARCHIVE, "Horizontal field of view, in degrees");
+  cg_fov = cgi.AddCvar("cg_fov", "110", CVAR_ARCHIVE, "Horizontal field of view, in degrees, at a 16:9 reference aspect ratio. Automatically scaled for your display's actual aspect ratio.");
   cg_fov_zoom = cgi.AddCvar("cg_fov_zoom", "55", CVAR_ARCHIVE, "Zoomed in field of view");
   cg_fov_interpolate = cgi.AddCvar("cg_fov_interpolate", "1", CVAR_ARCHIVE, "Interpolate between field of view changes (default 1.0).");
   cg_hit_sound = cgi.AddCvar("cg_hit_sound", "1", CVAR_ARCHIVE, "If a hit sound is played when damaging an enemy.");

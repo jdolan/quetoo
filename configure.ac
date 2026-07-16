@@ -58,7 +58,13 @@ case "$host" in
 		dnl opt/openal-soft rather than anywhere pkg-config searches by
 		dnl default. Everything else we depend on (sdl3, physfs, ncurses,
 		dnl etc.) is discoverable via pkg-config's own default search path.
-		export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:/opt/homebrew/opt/openal-soft/lib/pkgconfig"
+		dnl Homebrew's prefix differs between Apple Silicon (/opt/homebrew)
+		dnl and Intel (/usr/local), so check both.
+		if test -d "/opt/homebrew/opt/openal-soft/lib/pkgconfig"; then
+			export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:/opt/homebrew/opt/openal-soft/lib/pkgconfig"
+		elif test -d "/usr/local/opt/openal-soft/lib/pkgconfig"; then
+			export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:/usr/local/opt/openal-soft/lib/pkgconfig"
+		fi
 
 		HOST_LDFLAGS="-headerpad_max_install_names"
 		HOST_LIBS="-ldl -rdynamic"

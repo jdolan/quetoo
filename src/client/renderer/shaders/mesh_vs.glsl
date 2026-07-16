@@ -59,7 +59,6 @@ layout (location = 8) in vec3 in_next_bitangent;
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
   mat4 model;
   float lerp;
-  float modulate_mesh;
   vec4 color;
 };
 
@@ -98,9 +97,6 @@ void main(void) {
   // for why this doesn't also accumulate per-light diffuse here.
   vertex.ambient = vec3(ambient) * voxel_exposure(vertex.voxel) * (1.0 - voxel_occlusion(vertex.voxel) * ambient_occlusion);
   vertex.diffuse = vec3(0.0);
-
-  vertex.ambient *= modulate_mesh;
-  vertex.diffuse *= modulate_mesh;
 
   gl_Position = projection3D * view_model * position;
 }

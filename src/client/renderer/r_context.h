@@ -27,7 +27,11 @@ extern r_context_t r_context;
 
 void R_UpdateContext(void);
 
-Framebuffer *R_CreateFramebuffer(int32_t width, int32_t height, int32_t attachments);
+/**
+ * @brief Creates a Framebuffer from @p info, scaled to the display and forced
+ * to the shared scene sample count. See implementation for details.
+ */
+Framebuffer *R_CreateFramebuffer(const GPU_FramebufferCreateInfo *info);
 void R_DestroyFramebuffer(Framebuffer *framebuffer);
 
 #if defined(__R_LOCAL_H__)

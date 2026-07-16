@@ -44,16 +44,17 @@ enum {
 };
 
 enum {
-  BSP_STORAGE_LIGHTS,
-  BSP_STORAGE_VOXEL_LIGHT_INDICES,
+  BSP_STORAGE_BSP_LIGHTS,
+  BSP_STORAGE_DYNAMIC_LIGHTS,
   BSP_STORAGE_VOXEL_LIGHT_DATA,
+  BSP_STORAGE_VOXEL_LIGHT_INDICES,
   BSP_NUM_STORAGE_BUFFERS,
 };
 
 enum {
   BSP_UNIFORMS_GLOBALS,
-  BSP_UNIFORMS_LOCALS, // model matrix + active_lights (vertex) / active_lights bitmask (fragment)
-  BSP_UNIFORMS_MATERIAL, // material + stage params combined -- see material.glsl,
+  BSP_UNIFORMS_LOCALS,
+  BSP_UNIFORMS_MATERIAL,
   BSP_NUM_UNIFORMS
 };
 
@@ -63,7 +64,7 @@ enum {
  */
 typedef struct {
   mat4_t model;
-  uint32_t active_lights[MAX_DYNAMIC_LIGHTS / 32];
+  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
 } r_bsp_locals_t;
 
 /**
@@ -187,8 +188,6 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
     .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
 
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
-
   const SDL_GPUBlendFactor s = R_BlendFactor(src);
   const SDL_GPUBlendFactor d = R_BlendFactor(dest);
 
@@ -223,7 +222,7 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
       {
-        .format = R_SCENE_COLOR_FORMAT,
+        .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
         .blend_state = {
           .enable_blend = true,
           .src_color_blendfactor = s,
@@ -240,7 +239,7 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
       },
     },
     .num_color_targets = 2,
-    .depth_stencil_format = framebuffer->depthFormat,
+    .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
 
@@ -339,9 +338,9 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    R_ActiveDynamicLights(view, entity->abs_model_bounds, locals.active_dynamic_lights);
     $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -353,9 +352,9 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
         continue;
       }
 
-      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      R_ActiveDynamicLights(view, block->node->visible_bounds, locals.active_dynamic_lights);
       $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
@@ -458,9 +457,9 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    R_ActiveDynamicLights(view, entity->abs_model_bounds, locals.active_dynamic_lights);
     $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -475,9 +474,9 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 
       r_stats.blocks_visible++;
 
-      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      R_ActiveDynamicLights(view, block->node->visible_bounds, locals.active_dynamic_lights);
       $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
 
     R_DrawOpaqueBspBlock(block);
@@ -498,9 +497,9 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    R_ActiveDynamicLights(view, entity->abs_model_bounds, locals.active_dynamic_lights);
     $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -512,59 +511,23 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
         continue;
       }
 
-      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      R_ActiveDynamicLights(view, block->node->visible_bounds, locals.active_dynamic_lights);
       $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
 
     R_DrawAlphaTestBspBlock(block);
   }
 }
 
-/**
- * @brief Draws per-vertex normal, tangent, and bitangent lines for nearby BSP vertices when enabled.
- */
-static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
-
-  if (!r_draw_bsp_normals->value) {
-    return;
-  }
-
-  const r_bsp_vertex_t *v = bsp->vertexes;
-  for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
-
-    const vec3_t pos = v->position;
-    if (Vec3_Distance(pos, view->origin) > 512.f) {
-      continue;
-    }
-
-    const vec3_t normal[] = { pos, Vec3_Fmaf(pos, 8.f, v->normal) };
-    const vec3_t tangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->tangent) };
-    const vec3_t bitangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->bitangent) };
-
-    R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, normal, 2, color_red, true);
-
-    if (r_draw_bsp_normals->integer > 1) {
-      R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, tangent, 2, color_green, true);
-
-      if (r_draw_bsp_normals->integer > 2) {
-        R_Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, bitangent, 2, color_blue, true);
-      }
-    }
-  }
-}
 
 /**
  * @brief Renders the opaque world BSP surfaces with their material diffuse texture,
  * clustered per-voxel static lighting, and per-block dynamic lighting.
  */
-void R_DrawOpaqueBspEntities(const r_view_t *view) {
+void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
 
   if (!r_models.world) {
-    return;
-  }
-
-  if (!view->framebuffer) {
     return;
   }
 
@@ -573,17 +536,6 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
-  const SDL_FColor clear_color = { 0.f, 0.f, 0.f, 1.f };
-  const SDL_FColor clear_depth_color = { 1.f, 1.f, 1.f, 1.f };
-  const SDL_GPUColorTargetInfo color[] = {
-    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color),
-    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_depth_color),
-  };
-  
-  const SDL_GPULoadOp depth_loadop = r_depth_pass->integer ? SDL_GPU_LOADOP_LOAD : SDL_GPU_LOADOP_CLEAR;
-  const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, depth_loadop, SDL_GPU_STOREOP_STORE, 1.f);
-
-  RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
   r_bsp_draw.pass = pass;
   r_bsp_draw.commands = commands;
 
@@ -627,13 +579,13 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
-    r_lights.buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
-                                     : r_lights.buffer->buffer,
+    r_lights.bsp_buffer->buffer,
+    r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
-  $(pass, bindVertexStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
+  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_BSP_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
+  $(pass, bindVertexStorageBuffers, BSP_STORAGE_BSP_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -704,10 +656,7 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
     }
   }
 
-  pass = release(pass);
   r_bsp_draw.pass = NULL;
-
-  R_DrawBspNormals(view, bsp);
 }
 
 /**
@@ -767,9 +716,9 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveLights(view, entity->abs_model_bounds, locals.active_lights);
+    R_ActiveDynamicLights(view, entity->abs_model_bounds, locals.active_dynamic_lights);
     $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -785,9 +734,9 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
         continue;
       }
 
-      R_ActiveLights(view, block->node->visible_bounds, locals.active_lights);
+      R_ActiveDynamicLights(view, block->node->visible_bounds, locals.active_dynamic_lights);
       $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_lights, sizeof(locals.active_lights));
+      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
 
     R_DrawBlendBspBlock(view, entity, block);
@@ -795,15 +744,15 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
 }
 
 /**
- * @brief Renders the translucent (SURF_MASK_BLEND) world and inline BSP model
+ * @brief Renders the translucent (@c SURF_MASK_BLEND) world and inline BSP model
  * surfaces over the opaque scene, alpha-blended and depth-tested but without
  * writing depth.
- * @remarks Mirrors R_DrawOpaqueBspEntities but with the blend pipeline and the inverse
+ * @remarks Mirrors @c R_DrawOpaqueBspEntities but with the blend pipeline and the inverse
  * surface filter, including its material stages (animated water/glass overlays).
  * No back-to-front sorting, matching main -- single-layer translucency (water,
  * glass) is correct without it.
  */
-void R_DrawBlendBspEntities(const r_view_t *view) {
+void R_DrawBlendBspEntities(RenderPass *pass, const r_view_t *view) {
 
   if (!r_models.world) {
     return;
@@ -818,14 +767,6 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
-  const SDL_GPUColorTargetInfo color[] = {
-    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
-    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL),
-  };
-  const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
-
-  RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
   r_bsp_draw.pass = pass;
   r_bsp_draw.commands = commands;
 
@@ -869,13 +810,13 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
-    r_lights.buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer
-                                     : r_lights.buffer->buffer,
+    r_lights.bsp_buffer->buffer,
+    r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
-  $(pass, bindVertexStorageBuffers, BSP_STORAGE_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
+  $(pass, bindFragmentStorageBuffers, BSP_STORAGE_BSP_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
+  $(pass, bindVertexStorageBuffers, BSP_STORAGE_BSP_LIGHTS, storage, BSP_NUM_STORAGE_BUFFERS);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -895,7 +836,6 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
     R_DrawBlendBspEntity(view, e);
   }
 
-  pass = release(pass);
   r_bsp_draw.pass = NULL;
 }
 
@@ -916,8 +856,6 @@ void R_InitBspPipeline(void) {
     .num_storage_buffers = BSP_NUM_STORAGE_BUFFERS,
     .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
-
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
@@ -976,14 +914,14 @@ void R_InitBspPipeline(void) {
   };
 
   SDL_GPUColorTargetDescription color_targets[2] = {
-    { .format = R_SCENE_COLOR_FORMAT, .blend_state = GPU_BlendStateOpaque },
+    { .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT, .blend_state = GPU_BlendStateOpaque },
     { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .blend_state = GPU_BlendStateOpaque },
   };
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = color_targets,
     .num_color_targets = 2,
-    .depth_stencil_format = framebuffer->depthFormat,
+    .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
 

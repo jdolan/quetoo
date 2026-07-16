@@ -31,15 +31,15 @@
 // A program (vertex or fragment) opts into the clustered light buffers by
 // defining their binding slots before including this file.
 #if defined(BINDING_STORAGE_VOXEL_LIGHT_INDICES)
-layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES) readonly buffer voxel_light_indices_block {
-  int voxel_light_indices[];
-};
-
 // The per-voxel (first_index, count) pairs, indexed by linear voxel index. A
 // storage buffer rather than an RG32I isampler3D because D3D12 cannot sample
 // integer texture formats.
 layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_DATA) readonly buffer voxel_light_data_block {
   int voxel_light_data_elements[];
+};
+
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES) readonly buffer voxel_light_indices_block {
+  int voxel_light_indices[];
 };
 #endif
 

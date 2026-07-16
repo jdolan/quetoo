@@ -23,29 +23,19 @@
 
 #include "uniforms.glsl"
 
-// The BSP program's own binding map: the material UBO (material + stage
-// params combined -- see material.glsl) follows globals (0) and locals (1);
-// the fragment stage's own map is defined in bsp_fs.glsl. The vertex stage
-// has no samplers, so the storage buffers for per-vertex lighting (the same
-// buffers the fragment stage binds after its samplers) start at 0.
-#define BINDING_UNIFORMS_MATERIAL 2
-#define BINDING_STORAGE_LIGHTS              0
-#define BINDING_STORAGE_VOXEL_LIGHT_INDICES 1
+#define BINDING_UNIFORMS_MATERIAL           2
+#define BINDING_STORAGE_BSP_LIGHTS          0
+#define BINDING_STORAGE_DYNAMIC_LIGHTS      1
 #define BINDING_STORAGE_VOXEL_LIGHT_DATA    2
+#define BINDING_STORAGE_VOXEL_LIGHT_INDICES 3
 
 #include "common.glsl"
 #include "material.glsl"
 #include "voxel.glsl"
 
-/**
- * @brief Per-draw locals: the model matrix and the dynamic light cull bitmask
- * for per-vertex lighting (the fragment stage receives the same bitmask via
- * its own locals block). Declared before light.glsl, whose vertex_lighting()
- * reads active_lights.
- */
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bsp_locals_block {
   mat4 model;
-  uvec4 active_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
+  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
 };
 
 #include "light.glsl"

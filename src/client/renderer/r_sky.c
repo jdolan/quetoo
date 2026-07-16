@@ -107,8 +107,6 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
     return NULL;
   }
 
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
-
   const SDL_GPUBlendFactor s = R_BlendFactor(src);
   const SDL_GPUBlendFactor d = R_BlendFactor(dest);
 
@@ -139,7 +137,7 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = R_SCENE_COLOR_FORMAT,
+      .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
       .blend_state = {
         .enable_blend = true,
         .src_color_blendfactor = s,
@@ -151,7 +149,7 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
       },
     },
     .num_color_targets = 1,
-    .depth_stencil_format = framebuffer->depthFormat,
+    .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
 
@@ -231,30 +229,23 @@ static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view, RenderPass
 
 /**
  * @brief Renders all sky surfaces of the world model as a window into the sky
- * cubemap. Drawn after the opaque world so it fills only unoccluded sky texels.
+ * cubemap, applied only to the BSP's sky faces (not a full-screen quad).
  */
-void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
+void R_DrawSky(RenderPass *pass, const r_view_t *view) {
 
-  if (!r_sky.image || !r_sky.image->texture || !r_sky.image->texture->texture) {
+  if (!r_models.world) {
     return;
   }
 
-  if (!view->framebuffer) {
+  if (!r_sky.image) {
     return;
   }
+
+  const r_bsp_model_t *bsp = r_models.world->bsp;
 
   CommandBuffer *commands = r_context.device->commands;
 
   Framebuffer *framebuffer = view->framebuffer;
-
-  // Composite over the opaque scene, depth-testing against it (LOAD, no clear) so
-  // sky surfaces occluded by world geometry are discarded.
-  const SDL_GPUColorTargetInfo color =
-      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
-  const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
-
-  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -325,8 +316,6 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
       }
     }
   }
-
-  pass = release(pass);
 }
 
 /**
@@ -346,8 +335,6 @@ Texture *R_SkyTexture(void) {
  * @brief Builds the sky pipeline (position-only vertex input) and cubemap sampler.
  */
 static void R_InitSkyPipeline(void) {
-
-  const Framebuffer *framebuffer = r_context.device->framebuffer;
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
@@ -373,11 +360,11 @@ static void R_InitSkyPipeline(void) {
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = R_SCENE_COLOR_FORMAT,
+      .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
       .blend_state = GPU_BlendStateOpaque,
     },
     .num_color_targets = 1,
-    .depth_stencil_format = framebuffer->depthFormat,
+    .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
 

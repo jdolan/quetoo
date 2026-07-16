@@ -64,6 +64,7 @@
       ignoresPersistentStateOnLaunch = "YES"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
+      enableGPUFrameCaptureMode = "1"
       enableGPUValidationMode = "1"
       allowLocationSimulation = "NO"
       consoleMode = "0"

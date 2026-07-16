@@ -50,11 +50,15 @@ The script auto-downloads when it can. If you need to do it manually:
 # List recent releases
 gh release list --repo jdolan/quetoo
 
-# Download symbols for the matching version (e.g. v1.0.19)
+# Since v1.0.22, PDBs are bundled inside the main Windows zip (there is no
+# separate "*windows*symbols*" asset anymore). Download that instead:
 gh release download v1.0.19 --repo jdolan/quetoo \
-    --pattern "*windows*symbols*" --dir /tmp/symbols_v1019/
+    --pattern "quetoo-x86_64-pc-windows.zip" --dir /tmp/symbols_v1019/
 
 unzip /tmp/symbols_v1019/*.zip -d /tmp/symbols_v1019/
+# PDBs land under bin/ (quetoo.pdb, quemap.pdb, quetoo-dedicated.pdb,
+# Objectively.pdb, ObjectivelyGPU.pdb, ObjectivelyMVC.pdb) and lib/default/
+# (cgame.pdb, game.pdb).
 ```
 
 Verify the GUID matches by scanning the PDB for the raw GUID bytes:

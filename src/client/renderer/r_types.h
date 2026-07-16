@@ -1926,17 +1926,6 @@ typedef struct {
 } r_light_t;
 
 /**
- * @brief Framebuffer attachments bitmask.
- */
-typedef enum {
-  ATTACHMENT_COLOR      = 0x1,
-  ATTACHMENT_DEPTH      = 0x2,
-  ATTACHMENT_DEPTH_COPY = 0x4,
-  ATTACHMENT_POST       = 0x8,
-  ATTACHMENT_ALL        = 0xFF
-} r_attachment_t;
-
-/**
  * @brief View types.
  */
 typedef enum {

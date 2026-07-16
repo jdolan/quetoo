@@ -27,25 +27,12 @@
 #include <Objectively/Vector.h>
 
 /**
- * @brief The only two C-side descriptor slots genuinely shared by every
- * pipeline: the per-frame globals block, and the per-draw locals block
- * (model matrix in the vertex stage; light-cull bitmask in the fragment
- * stage). Every other resource's binding is local to the pipeline that uses
- * it -- see e.g. the enum at the top of r_bsp_draw.c -- since pipelines don't
- * actually share a descriptor layout beyond this.
+ * @brief Common uniform slot bindings.
  */
 enum {
 	SLOT_UNIFORMS_GLOBALS = 0, // per-frame globals
-	SLOT_UNIFORMS_LOCALS  = 1, // per-draw (model matrix / light cull)
+	SLOT_UNIFORMS_LOCALS  = 1, // per-draw (model matrix / light cull, etc.)
 };
-
-/**
- * @brief The scene framebuffer color format: an HDR (unsigned float) target so
- * lighting can exceed 1.0 and feed bloom. All 3D pipelines render into it; the
- * present framebuffer stays the swapchain (LDR) format, and R_DrawPost composites
- * the scene into it (adding bloom, clamping to LDR).
- */
-#define R_SCENE_COLOR_FORMAT SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT
 
 /**
  * @brief Maps a `cm_blend_t` blend factor to its SDL_gpu equivalent.
