@@ -208,18 +208,14 @@ void R_Draw3DBox(const box3_t bounds, const color_t color, bool depth_test) {
 }
 
 /**
- * @brief Draws all 3D debug geometry accumulated for the current frame, into
- * the view's scene framebuffer.
+ * @brief Uploads this frame's accumulated 3D debug vertexes, growing the vertex
+ * buffer on demand. Must run before the shared RenderPass opens (see R_DrawMainView).
  */
-void R_Draw3D(const r_view_t *view) {
+void R_UpdateDraw3D(void) {
 
   if (r_draw_3d.num_draw_arrays == 0) {
     return;
   }
-
-  CommandBuffer *commands = r_context.device->commands;
-
-  Framebuffer *framebuffer = view->framebuffer;
 
   const uint32_t count = (uint32_t) r_draw_3d.num_vertexes;
 
@@ -232,19 +228,27 @@ void R_Draw3D(const r_view_t *view) {
     r_draw_3d.vertex_buffer_capacity = (int32_t) count;
   }
 
-  {
-    CopyPass *copyPass = $(commands, beginCopyPass);
-    $(copyPass, uploadData, r_draw_3d.vertex_buffer->buffer, r_draw_3d.vertexes,
-      count * sizeof(r_draw_3d_vertex_t), 0, true);
-    release(copyPass);
+  CommandBuffer *commands = r_context.device->commands;
+
+  CopyPass *copyPass = $(commands, beginCopyPass);
+  $(copyPass, uploadData, r_draw_3d.vertex_buffer->buffer, r_draw_3d.vertexes,
+    count * sizeof(r_draw_3d_vertex_t), 0, true);
+  release(copyPass);
+}
+
+/**
+ * @brief Draws all 3D debug geometry accumulated for the current frame, into
+ * the view's scene framebuffer.
+ */
+void R_Draw3D(RenderPass *pass, const r_view_t *view) {
+
+  if (r_draw_3d.num_draw_arrays == 0) {
+    return;
   }
 
-  const SDL_GPUColorTargetInfo color =
-      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
-  const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
+  CommandBuffer *commands = r_context.device->commands;
 
-  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
+  Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -268,8 +272,6 @@ void R_Draw3D(const r_view_t *view) {
 
     $(pass, drawPrimitives, draw->num_vertexes, 1, draw->first_vertex, 0);
   }
-
-  pass = release(pass);
 
   r_draw_3d.num_draw_arrays = 0;
   r_draw_3d.num_vertexes = 0;
@@ -373,7 +375,7 @@ void R_ShutdownDraw3D(void) {
  * cvar changes (r_antialias, ...) that would otherwise require an r_restart.
  * See R_UpdatePipelines.
  */
-void R_UpdateDraw3D(void) {
+void R_UpdateDraw3DPipeline(void) {
   R_ShutdownDraw3D();
   R_InitDraw3D();
 }

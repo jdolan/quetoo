@@ -122,7 +122,7 @@ void R_FreeOcclusionQueries(void) {
     $(r_occlusion.boxes, removeAll);
   }
 
-  r_occlusion.instanceBuffer = release(r_occlusion.instanceBuffer);
+  r_occlusion.instance_buffer = release(r_occlusion.instance_buffer);
 }
 
 /**
@@ -130,11 +130,11 @@ void R_FreeOcclusionQueries(void) {
  */
 void R_LoadOcclusionQueries(void) {
 
-  r_occlusion.instanceBuffer = release(r_occlusion.instanceBuffer);
+  r_occlusion.instance_buffer = release(r_occlusion.instance_buffer);
 
   const int32_t num_boxes = (int32_t) r_occlusion.boxes->count;
   if (num_boxes) {
-    r_occlusion.instanceBuffer = $(r_context.device, createBufferWithConstMem,
+    r_occlusion.instance_buffer = $(r_context.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_VERTEX, r_occlusion.boxes->elements, (Uint32) (num_boxes * sizeof(box3_t)));
   }
 }
@@ -144,7 +144,7 @@ void R_LoadOcclusionQueries(void) {
  */
 static void R_DrawOcclusionQueries_(const r_view_t *view, CommandBuffer *commands) {
 
-  SDL_GPUDepthStencilTargetInfo depth = $(view->framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
+  SDL_GPUDepthStencilTargetInfo depth = $(view->framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE);
 
 #ifdef SDL_GPU_QUERY_API
   depth.query_pool = r_occlusion.pool->pool;
@@ -152,13 +152,13 @@ static void R_DrawOcclusionQueries_(const r_view_t *view, CommandBuffer *command
 
   RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
 
-  if (r_occlusion.instanceBuffer) {
+  if (r_occlusion.instance_buffer) {
     $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
-      { .buffer = r_occlusion.vertexBuffer->buffer },
-      { .buffer = r_occlusion.instanceBuffer->buffer },
+      { .buffer = r_occlusion.vertex_buffer->buffer },
+      { .buffer = r_occlusion.instance_buffer->buffer },
     }, 2);
     $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
-      .buffer = r_occlusion.elementsBuffer->buffer
+      .buffer = r_occlusion.elements_buffer->buffer
     }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
   }
 
@@ -281,7 +281,7 @@ void R_InitOcclusionQueries(void) {
   vec3_t cube[8];
   Box3_ToPoints(Box3(Vec3(0.f, 0.f, 0.f), Vec3(1.f, 1.f, 1.f)), cube);
 
-  r_occlusion.vertexBuffer = $(r_context.device, createBufferWithConstMem,
+  r_occlusion.vertex_buffer = $(r_context.device, createBufferWithConstMem,
     SDL_GPU_BUFFERUSAGE_VERTEX, cube, sizeof(cube));
 
   const uint32_t elements[] = {
@@ -299,7 +299,7 @@ void R_InitOcclusionQueries(void) {
     5, 7, 1, 7, 3, 1,
   };
 
-  r_occlusion.elementsBuffer = $(r_context.device, createBufferWithConstMem,
+  r_occlusion.elements_buffer = $(r_context.device, createBufferWithConstMem,
     SDL_GPU_BUFFERUSAGE_INDEX, elements, sizeof(elements));
 
   r_occlusion.transfer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
@@ -389,9 +389,9 @@ void R_InitOcclusionQueries(void) {
 void R_ShutdownOcclusionQueries(void) {
 
   r_occlusion.pipeline = release(r_occlusion.pipeline);
-  r_occlusion.vertexBuffer = release(r_occlusion.vertexBuffer);
-  r_occlusion.instanceBuffer = release(r_occlusion.instanceBuffer);
-  r_occlusion.elementsBuffer = release(r_occlusion.elementsBuffer);
+  r_occlusion.vertex_buffer = release(r_occlusion.vertex_buffer);
+  r_occlusion.instance_buffer = release(r_occlusion.instance_buffer);
+  r_occlusion.elements_buffer = release(r_occlusion.elements_buffer);
   r_occlusion.pool = release(r_occlusion.pool);
   r_occlusion.transfer = release(r_occlusion.transfer);
   r_occlusion.boxes = release(r_occlusion.boxes);

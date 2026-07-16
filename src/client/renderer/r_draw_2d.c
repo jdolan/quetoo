@@ -631,7 +631,7 @@ void R_Draw2D(void) {
   }
 
   const SDL_GPUColorTargetInfo color =
-      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
+      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE);
 
   RenderPass *pass = $(commands, beginRenderPass, &color, 1, NULL);
 
@@ -731,7 +731,7 @@ static GraphicsPipeline *R_InitDraw2DPipeline(void) {
     },
     .target_info = {
       .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-        .format = framebuffer->colorFormats[0],
+        .format = framebuffer->colorAttachments[0].format,
         .blend_state = GPU_BlendStateAlpha,
       },
       .num_color_targets = 1,

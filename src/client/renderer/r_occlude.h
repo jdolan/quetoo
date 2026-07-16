@@ -64,18 +64,18 @@ typedef struct {
    * @brief The per-instance box bounds buffer (INSTANCE rate, slot 1), built from `boxes`
    * by `R_LoadOcclusionQueries` when loading completes.
    */
-  Buffer *instanceBuffer;
+  Buffer *instance_buffer;
 
   /**
    * @brief The constant unit-cube vertex buffer (VERTEX rate, slot 0), shared by every
    * occlusion box instance. Built once by `R_InitOcclusionQueries`.
    */
-  Buffer *vertexBuffer;
+  Buffer *vertex_buffer;
 
   /**
    * @brief The shared index buffer for the unit cube (reused for every instance).
    */
-  Buffer *elementsBuffer;
+  Buffer *elements_buffer;
 
   /**
    * @brief The position-only, depth-only pipeline used to draw occlusion boxes.

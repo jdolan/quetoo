@@ -150,21 +150,17 @@ static void R_DrawEntitiesBounds(const r_view_t *view) {
 /**
  * @brief Draw all entities.
  */
-void R_DrawEntities(const r_view_t *view) {
+void R_DrawEntities(RenderPass *pass, const r_view_t *view) {
 
-  thread_t *decals = Thread_Create((ThreadRunFunc) R_UpdateDecals, (void *) view, THREAD_NONE);
+  R_DrawSky(pass, view);
 
-  R_DrawOpaqueBspEntities(view);
+  R_DrawOpaqueBspEntities(pass, view);
 
-  R_DrawSky(view);
+  R_DrawMeshEntities(pass, view);
 
-  R_DrawMeshEntities(view);
+  R_DrawDecals(pass, view);
 
-  Thread_Wait(decals);
-
-  R_DrawDecals(view);
-
-  R_DrawBlendBspEntities(view);
+  R_DrawBlendBspEntities(pass, view);
 
   R_DrawEntitiesBounds(view);
 }

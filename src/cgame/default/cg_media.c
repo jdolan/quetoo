@@ -142,7 +142,19 @@ void Cg_CreateFramebuffer(void) {
 
   const SDL_Rect rect = cgi.context->window_bounds;
 
-  cg_framebuffer = cgi.CreateFramebuffer(rect.w, rect.h, ATTACHMENT_ALL);
+  // Color 0: the HDR scene, cleared opaque black. Color 1: a float depth copy
+  // (gl_FragCoord.z) the sprite pass samples for soft particles -- double
+  // buffered so sprites can sample *last* frame's copy in the same pass that
+  // writes this frame's, avoiding a same-frame write-then-read hazard.
+  cg_framebuffer = cgi.CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
+    .size = MakeSize(rect.w, rect.h),
+    .colorAttachments = {
+      { .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT, .clearColor = { 0.f, 0.f, 0.f, 1.f } },
+      { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .clearColor = { 1.f, 1.f, 1.f, 1.f }, .doubleBuffered = true },
+    },
+    .numColorTargets = 2,
+    .depthAttachment = { .format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT, .clearDepth = 1.f },
+  });
 }
 
 /**

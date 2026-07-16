@@ -557,7 +557,7 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
  * @brief Renders the opaque world BSP surfaces with their material diffuse texture,
  * clustered per-voxel static lighting, and per-block dynamic lighting.
  */
-void R_DrawOpaqueBspEntities(const r_view_t *view) {
+void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
 
   if (!r_models.world) {
     return;
@@ -568,17 +568,6 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
-  const SDL_FColor clear_color = { 0.f, 0.f, 0.f, 1.f };
-  const SDL_FColor clear_depth_color = { 1.f, 1.f, 1.f, 1.f };
-  const SDL_GPUColorTargetInfo color[] = {
-    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color),
-    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_depth_color),
-  };
-  
-  const SDL_GPULoadOp depth_loadop = r_depth_pass->integer ? SDL_GPU_LOADOP_LOAD : SDL_GPU_LOADOP_CLEAR;
-  const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, depth_loadop, SDL_GPU_STOREOP_STORE, 1.f);
-
-  RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
   r_bsp_draw.pass = pass;
   r_bsp_draw.commands = commands;
 
@@ -699,7 +688,6 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
     }
   }
 
-  pass = release(pass);
   r_bsp_draw.pass = NULL;
 
   R_DrawBspNormals(view, bsp);
@@ -798,7 +786,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
  * No back-to-front sorting, matching main -- single-layer translucency (water,
  * glass) is correct without it.
  */
-void R_DrawBlendBspEntities(const r_view_t *view) {
+void R_DrawBlendBspEntities(RenderPass *pass, const r_view_t *view) {
 
   if (!r_models.world) {
     return;
@@ -813,8 +801,6 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
-  RenderPass *pass = $(commands, beginRenderPassWithFramebuffer, framebuffer,
-                        SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE);
   r_bsp_draw.pass = pass;
   r_bsp_draw.commands = commands;
 
@@ -884,7 +870,6 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
     R_DrawBlendBspEntity(view, e);
   }
 
-  pass = release(pass);
   r_bsp_draw.pass = NULL;
 }
 

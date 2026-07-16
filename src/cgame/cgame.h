@@ -716,13 +716,17 @@ typedef struct cg_import_s {
   void (*AddSample)(s_stage_t *stage, const s_play_sample_t *play);
 
   /**
-   * @brief Creates an OpenGL framebuffer with color and depth attachments.
-   * @param width The framebuffer width, in pixels.
-   * @param height The framebuffer height, in pixels.
-   * @param attachments The framebuffer attachments.
+   * @brief Creates a Framebuffer from @p info, scaled to the current render
+   * scale and forced to the shared scene sample count.
+   * @param info Framebuffer creation parameters. @p info->size is a logical
+   *   (point) size; it's scaled internally by the display's pixel density and
+   *   by r_framebuffer_scale. @p info->sampleCount is overridden to match the
+   *   main scene's, since the shared mesh/bsp pipelines are built with that
+   *   exact sample count baked in. All other fields (attachments, formats,
+   *   clear values) are used as given.
    * @return The framebuffer.
    */
-  Framebuffer *(*CreateFramebuffer)(int32_t width, int32_t height, int32_t attachments);
+  Framebuffer *(*CreateFramebuffer)(const GPU_FramebufferCreateInfo *info);
 
   /**
    * @brief Destroys the specified framebuffer, releasing its resources.

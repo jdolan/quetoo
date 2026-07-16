@@ -189,7 +189,7 @@ static void R_UpdatePipelines(void) {
 
   R_UpdateDepthPass();
 
-  R_UpdateDraw3D();
+  R_UpdateDraw3DPipeline();
 
   R_UpdateSky();
 
@@ -311,17 +311,44 @@ void R_DrawMainView(r_view_t *view) {
 
   R_UpdateSprites(view);
 
+  R_UpdateDraw3D();
+
+  R_UpdateDecals(view);
+
+  R_UploadDecals(view);
+
   R_UpdateShadows(view);
 
   R_ClearShadows(view);
 
   R_DrawShadows(view);
 
-  R_DrawEntities(view);
+  CommandBuffer *commands = r_context.device->commands;
 
-  R_DrawSprites(view);
+  Framebuffer *framebuffer = view->framebuffer;
 
-  R_Draw3D(view);
+  // Both color targets are always cleared; only the depth attachment's load-op
+  // varies, so that the depth pre-pass (see R_DrawViewDepth) can seed it and
+  // opaque geometry benefits from early-Z instead of overwriting it.
+  const SDL_GPUColorTargetInfo color[] = {
+    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+  };
+
+  const SDL_GPULoadOp depth_loadop = r_depth_pass->integer ? SDL_GPU_LOADOP_LOAD : SDL_GPU_LOADOP_CLEAR;
+  const SDL_GPUDepthStencilTargetInfo depth = $(framebuffer, depthTargetInfo, depth_loadop, SDL_GPU_STOREOP_STORE);
+
+  RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
+
+  R_DrawEntities(pass, view);
+
+  R_DrawSprites(pass, view);
+
+  R_Draw3D(pass, view);
+
+  pass = release(pass);
+
+  $(framebuffer, swap);
 }
 
 /**

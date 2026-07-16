@@ -87,7 +87,18 @@ static void render(View *self, Renderer *renderer) {
     Vec3_Vectors(this->view.angles, &this->view.forward, &this->view.right, &this->view.up);
 
     if (this->framebuffer == NULL) {
-      this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h, ATTACHMENT_ALL);
+      // Color 0: the HDR scene, cleared transparent so this preview composites
+      // over the UI. Color 1: a float depth copy for the sprite pass's soft
+      // particles (double buffered, see Cg_CreateFramebuffer).
+      this->framebuffer = cgi.CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
+        .size = MakeSize(viewport.w, viewport.h),
+        .colorAttachments = {
+          { .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT, .clearColor = { 0.f, 0.f, 0.f, 0.f } },
+          { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .clearColor = { 1.f, 1.f, 1.f, 1.f }, .doubleBuffered = true },
+        },
+        .numColorTargets = 2,
+        .depthAttachment = { .format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT, .clearDepth = 1.f },
+      });
     }
 
     this->view.framebuffer = this->framebuffer;

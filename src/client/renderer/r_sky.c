@@ -229,9 +229,9 @@ static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view, RenderPass
 
 /**
  * @brief Renders all sky surfaces of the world model as a window into the sky
- * cubemap. Drawn after the opaque world so it fills only unoccluded sky texels.
+ * cubemap, applied only to the BSP's sky faces (not a full-screen quad).
  */
-void R_DrawSky(const r_view_t *view) {
+void R_DrawSky(RenderPass *pass, const r_view_t *view) {
 
   if (!r_models.world) {
     return;
@@ -246,15 +246,6 @@ void R_DrawSky(const r_view_t *view) {
   CommandBuffer *commands = r_context.device->commands;
 
   Framebuffer *framebuffer = view->framebuffer;
-
-  // Composite over the opaque scene, depth-testing against it (LOAD, no clear) so
-  // sky surfaces occluded by world geometry are discarded.
-  const SDL_GPUColorTargetInfo color =
-      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
-  const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
-
-  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -325,8 +316,6 @@ void R_DrawSky(const r_view_t *view) {
       }
     }
   }
-
-  pass = release(pass);
 }
 
 /**

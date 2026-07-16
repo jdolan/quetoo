@@ -424,13 +424,35 @@ void R_UpdateSprites(r_view_t *view) {
   for (int32_t i = 0; i < view->num_beams; i++, b++) {
     R_UpdateBeam(view, b);
   }
+
+  if (view->num_sprite_instances == 0) {
+    return;
+  }
+
+  const uint32_t count = (uint32_t) view->num_sprite_instances * 4;
+
+  if ((int32_t) count > r_sprite_draw.vertex_buffer_capacity) {
+    r_sprite_draw.vertex_buffer = release(r_sprite_draw.vertex_buffer);
+    r_sprite_draw.vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+      .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+      .size = count * sizeof(r_sprite_vertex_t),
+    });
+    r_sprite_draw.vertex_buffer_capacity = (int32_t) count;
+  }
+
+  CommandBuffer *commands = r_context.device->commands;
+
+  CopyPass *copyPass = $(commands, beginCopyPass);
+  $(copyPass, uploadData, r_sprite_draw.vertex_buffer->buffer, r_sprite_draw.vertexes,
+    count * sizeof(r_sprite_vertex_t), 0, true);
+  release(copyPass);
 }
 
 /**
  * @brief Renders all batched sprite instances to the present framebuffer, blended
  * additively over the opaque scene and depth-tested against it.
  */
-void R_DrawSprites(const r_view_t *view) {
+void R_DrawSprites(RenderPass *pass, const r_view_t *view) {
 
   if (!r_models.world) {
     return;
@@ -445,31 +467,6 @@ void R_DrawSprites(const r_view_t *view) {
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
 
-  const uint32_t count = (uint32_t) view->num_sprite_instances * 4;
-
-  if ((int32_t) count > r_sprite_draw.vertex_buffer_capacity) {
-    r_sprite_draw.vertex_buffer = release(r_sprite_draw.vertex_buffer);
-    r_sprite_draw.vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
-      .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-      .size = count * sizeof(r_sprite_vertex_t),
-    });
-    r_sprite_draw.vertex_buffer_capacity = (int32_t) count;
-  }
-
-  {
-    CopyPass *copyPass = $(commands, beginCopyPass);
-    $(copyPass, uploadData, r_sprite_draw.vertex_buffer->buffer, r_sprite_draw.vertexes,
-      count * sizeof(r_sprite_vertex_t), 0, true);
-    release(copyPass);
-  }
-
-  const SDL_GPUColorTargetInfo color =
-      $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, NULL);
-  const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE, 1.f);
-
-  RenderPass *pass = $(commands, beginRenderPass, &color, 1, &depth);
-
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
     .w = (float) framebuffer->size.w, .h = (float) framebuffer->size.h,
@@ -482,7 +479,10 @@ void R_DrawSprites(const r_view_t *view) {
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  Texture *depth_texture = $(framebuffer, resolveColorTexture, 1);
+  // Sample *last* frame's depth copy: this frame's copy is being concurrently
+  // written by the opaque BSP/mesh draws earlier in this same shared pass, so
+  // sampling it here would be a same-frame write-then-read hazard.
+  Texture *depth_texture = $(framebuffer, previousColorTexture, 1);
   $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DEPTH_ATTACHMENT, &(SDL_GPUTextureSamplerBinding) {
     .texture = depth_texture->texture,
     .sampler = r_sprite_draw.depth_sampler->sampler,
@@ -536,8 +536,6 @@ void R_DrawSprites(const r_view_t *view) {
 
     i += batch_size;
   }
-
-  pass = release(pass);
 }
 
 /**

@@ -591,7 +591,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 /**
  * @brief Draws mesh entities.
  */
-void R_DrawMeshEntities(const r_view_t *view) {
+void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
 
   if (!r_models.world) {
     return;
@@ -601,11 +601,6 @@ void R_DrawMeshEntities(const r_view_t *view) {
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
-
-  // LOAD both the scene color and the depth copy; mesh entities write their
-  // gl_FragCoord.z into color 1 so sprites soften against them too.
-  RenderPass *pass = $(commands, beginRenderPassWithFramebuffer, framebuffer,
-                        SDL_GPU_LOADOP_LOAD, SDL_GPU_STOREOP_STORE);
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -635,9 +630,6 @@ void R_DrawMeshEntities(const r_view_t *view) {
     { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
   }, 3);
 
-  // Stage/stage-next: opaque and blend draws never sample these (mesh_fs's
-  // STAGE_NONE branch doesn't touch them), but the shared shader declares
-  // them, so SDL_gpu requires them bound regardless.
   $(pass, bindFragmentSamplers, MESH_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
@@ -670,8 +662,6 @@ void R_DrawMeshEntities(const r_view_t *view) {
     R_DrawMeshEntity(pass, view, e);
     r_stats.entities_visible++;
   }
-
-  pass = release(pass);
 }
 
 /**
@@ -695,14 +685,12 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   Framebuffer *framebuffer = view->framebuffer;
 
-  const SDL_FColor clear_color = { 0.f, 0.f, 0.f, 0.f };
-  const SDL_FColor clear_depth_copy = { 1.f, 1.f, 1.f, 1.f };
   const SDL_GPUColorTargetInfo color[] = {
-    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_color),
-    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, &clear_depth_copy),
+    $(framebuffer, colorTargetInfo, 0, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+    $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
   };
   const SDL_GPUDepthStencilTargetInfo depth =
-      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE, 1.f);
+      $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
 
   RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
