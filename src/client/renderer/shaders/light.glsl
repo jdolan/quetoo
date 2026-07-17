@@ -361,12 +361,12 @@ void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
  */
 float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fragment_t f) {
 
-  // LOD-based step count: 8 close, 2 far (bounded for performance; this runs
+  // LOD-based step count: 12 close, 2 far (bounded for performance; this runs
   // per-light, so it must fall off faster than the once-per-fragment POM offset).
-  int max_steps = int(mix(8.0, 2.0, min(f.lod * 0.5, 1.0)));
+  int max_steps = int(mix(12.0, 2.0, min(f.lod * 0.5, 1.0)));
 
   // Adaptive step size based on LOD (larger steps at distance)
-  float step_scale = mix(1.0, 2.5, min(f.lod * 0.5, 1.0));
+  float step_scale = mix(1.0, 4.0, min(f.lod * 0.5, 1.0));
 
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
   vec3 dir = normalize(vec3(dot(light_dir, v.tangent), dot(light_dir, v.bitangent), dot(light_dir, v.normal)));
