@@ -949,6 +949,60 @@ typedef struct cg_import_s {
   void (*Draw3DBox)(const box3_t bounds, const color_t color, bool depth_test);
 
   /**
+   * @brief Appends a new stage to the material (in-game editor), defaulting it to a
+   * textured copy of the diffusemap, and rebuilds the material's render stages.
+   * @return The new stage.
+   */
+  cm_stage_t *(*AddMaterialStage)(r_material_t *material);
+
+  /**
+   * @brief Removes a stage from the material (in-game editor) and rebuilds its
+   * render stages.
+   */
+  void (*RemoveMaterialStage)(r_material_t *material, cm_stage_t *stage);
+
+  /**
+   * @brief Recomputes a stage's derived flags after the editor toggles one, then
+   * rebuilds the material's render stages. Use after changing a stage's flags;
+   * editing a stage parameter needs no call (the draw path reads it live).
+   */
+  void (*FinalizeMaterialStage)(r_material_t *material, cm_stage_t *stage);
+
+  /**
+   * @brief Retargets a stage's texture by name and rebuilds the material's render
+   * stages, reloading media. Used by the editor's editable texture field.
+   */
+  void (*SetMaterialStageTexture)(r_material_t *material, cm_stage_t *stage, const char *name);
+
+  /**
+   * @brief Derives an animation stage's frame count from its (numbered) texture
+   * and resolves the frame assets. Call after setting STAGE_ANIMATION so the
+   * editor can add an animation without hand-authoring the frame count.
+   * @return The number of frames resolved, or 0 if the stage's texture is not a
+   * valid animation sequence (the caller should then not treat it as animated).
+   */
+  int32_t (*ResolveMaterialStageAnimation)(r_material_t *material, cm_stage_t *stage);
+
+  /**
+   * @brief Tests whether a texture name resolves to a file on disk for the given
+   * material's context. Used by the editor to validate texture-path inputs live.
+   */
+  bool (*MaterialAssetExists)(const r_material_t *material, const char *name);
+
+  /**
+   * @brief Tests whether an asset name resolves to a file on disk in the given
+   * context. `ASSET_CONTEXT_NONE` treats the name as a full path (e.g. `sky/foo`).
+   * Used by the editor to validate texture-path inputs live outside a material.
+   */
+  bool (*AssetExists)(const char *name, cm_asset_context_t context);
+
+  /**
+   * @brief Retargets worldspawn's `sky` key and reloads the skybox cubemap live.
+   * A missing/invalid name falls back to the default `sky/template`.
+   */
+  void (*SetSky)(const char *name);
+
+  /**
    * @}
    */
 

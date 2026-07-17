@@ -1,7 +1,10 @@
-#entity TextView.key {
-  max-width: 120;
+#entityContent,
+#entityBox,
+#teamEntity {
+  autoresizing-mask: contain | width;
+  background-color: #11111144;
 }
 
-#entity TextView.value {
-  width: 220;
+#entity .entity {
+  axis: StackViewAxisHorizontal;
 }

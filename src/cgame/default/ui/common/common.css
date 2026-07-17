@@ -11,6 +11,10 @@ Box > Label {
   background-color: #0c1f27;
 }
 
+Box > Label > Text {
+  font-size: 17;
+}
+
 Box > .contentView > Input > Label {
   min-width: 200;
 }
@@ -36,9 +40,9 @@ Panel.menu {
 }
 
 Panel.menu .tabPageView {
-  autoresizing-mask: contain;
+  autoresizing-mask: none;
   width: 1440;
-  /*height: 720;*/
+  height: 720;
 }
 
 Select {
@@ -57,9 +61,28 @@ TabView > .tabSelectionView > Label.selected {
   background-color: #1e4e62aa;
 }
 
+/* A disabled tab (e.g. the editor's Mesh tab with no model-bearing entity selected)
+   is greyed and does not respond to clicks (TabView::respondToEvent skips it). */
+TabView > .tabSelectionView > Label.disabled > Text {
+  color: #777777;
+}
+
 TextView {
   background-color: #dedede10;
   min-width: 200;
+}
+
+/* Scrollbar appearance. All knobs live here; the C defaults in
+   Scrollbar::initWithScrollView are only fallbacks. Width is left to each
+   instance (it is a per-gutter layout choice, set where the bar is created). */
+.scrollbar {
+  -adorner-size: 12;
+  -adorner-shade: 28;
+  -orientation: right;
+  -bgcolor: #222222c0;
+  -fgcolor: #1e4e62dd;
+  -thumb-min: 16;
+  -step: 32;
 }
 
 .options {

@@ -3,146 +3,119 @@
   "subviews": [
     {
       "class": "StackView",
+      "identifier": "materialContent",
       "classNames": [
         "container"
       ],
       "subviews": [
         {
-          "class": "Input",
+          "class": "Box",
+          "identifier": "materialBox",
           "label": {
             "text": {
               "text": "Material"
             }
           },
-          "control": {
-            "class": "TextView",
-            "identifier": "name"
+          "contentView": {
+            "subviews": [
+              {
+                "class": "KeyValueTableView",
+                "classNames": [
+                  "kvTable"
+                ],
+                "subviews": [
+                  {
+                    "class": "KeyValueView",
+                    "key": { "class": "Label", "text": { "text": "Diffusemap" } },
+                    "value": { "class": "Label", "identifier": "diffusemap" }
+                  },
+                  {
+                    "class": "KeyValueView",
+                    "key": { "class": "Label", "text": { "text": "Normalmap" } },
+                    "value": { "class": "Label", "identifier": "normalmap" }
+                  },
+                  {
+                    "class": "KeyValueView",
+                    "key": { "class": "Label", "text": { "text": "Specularmap" } },
+                    "value": { "class": "Label", "identifier": "specularmap" }
+                  }
+                ]
+              }
+            ]
           }
         },
         {
-          "class": "Input",
+          "class": "Box",
+          "identifier": "pbrBox",
           "label": {
             "text": {
-              "text": "Diffusemap"
+              "text": "PBR Settings"
             }
           },
-          "control": {
-            "class": "TextView",
-            "identifier": "diffusemap"
+          "contentView": {
+            "subviews": [
+              {
+                "class": "KeyValueTableView",
+                "classNames": [
+                  "kvTable"
+                ],
+                "subviews": [
+                  {
+                    "class": "KeyValueView",
+                    "key": { "class": "Label", "text": { "text": "Roughness" } },
+                    "value": { "class": "Slider", "identifier": "roughness", "min": 0, "max": 8, "step": 0.125 }
+                  },
+                  {
+                    "class": "KeyValueView",
+                    "key": { "class": "Label", "text": { "text": "Parallax" } },
+                    "value": { "class": "Slider", "identifier": "parallax", "min": 0, "max": 8, "step": 0.125 }
+                  },
+                  {
+                    "class": "KeyValueView",
+                    "key": { "class": "Label", "text": { "text": "Shadow" } },
+                    "value": { "class": "Slider", "identifier": "shadow", "min": 0, "max": 8, "step": 0.125 }
+                  },
+                  {
+                    "class": "KeyValueView",
+                    "key": { "class": "Label", "text": { "text": "Hardness" } },
+                    "value": { "class": "Slider", "identifier": "hardness", "min": 0, "max": 8, "step": 0.125 }
+                  },
+                  {
+                    "class": "KeyValueView",
+                    "key": { "class": "Label", "text": { "text": "Specularity" } },
+                    "value": { "class": "Slider", "identifier": "specularity", "min": 0, "max": 8, "step": 0.125 }
+                  },
+                  {
+                    "class": "KeyValueView",
+                    "key": { "class": "Label", "text": { "text": "Alpha test" } },
+                    "value": { "class": "Slider", "identifier": "alpha_test", "min": 0, "max": 1, "step": 0.05 }
+                  }
+                ]
+              }
+            ]
           }
         },
         {
-          "class": "Input",
+          "class": "Box",
+          "identifier": "stagesBox",
+          "classNames": [
+            "stagesBox"
+          ],
           "label": {
             "text": {
-              "text": "Normalmap"
+              "text": "Material Stages [     ]"
             }
           },
-          "control": {
-            "class": "TextView",
-            "identifier": "normalmap"
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Specularmap"
-            }
-          },
-          "control": {
-            "class": "TextView",
-            "identifier": "specularmap"
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Roughness"
-            }
-          },
-          "control": {
-            "class": "Slider",
-            "identifier": "roughness",
-            "min": 0,
-            "max": 8,
-            "step": 0.125
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Parallax"
-            }
-          },
-          "control": {
-            "class": "Slider",
-            "identifier": "parallax",
-            "min": 0,
-            "max": 8,
-            "step": 0.125
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Shadow"
-            }
-          },
-          "control": {
-            "class": "Slider",
-            "identifier": "shadow",
-            "min": 0,
-            "max": 8,
-            "step": 0.125
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Hardness"
-            }
-          },
-          "control": {
-            "class": "Slider",
-            "identifier": "hardness",
-            "min": 0,
-            "max": 8,
-            "step": 0.125
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Specularity"
-            }
-          },
-          "control": {
-            "class": "Slider",
-            "identifier": "specularity",
-            "min": 0,
-            "max": 8,
-            "step": 0.125
-          }
-        },
-        {
-          "class": "Input",
-          "label": {
-            "text": {
-              "text": "Alpha test"
-            }
-          },
-          "control": {
-            "class": "Slider",
-            "identifier": "alpha_test",
-            "min": 0,
-            "max": 1,
-            "step": 0.05
+          "contentView": {
+            "subviews": [
+              {
+                "class": "StackView",
+                "identifier": "stages",
+                "classNames": [
+                  "stages"
+                ]
+              }
+            ]
           }
         }
       ]

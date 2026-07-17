@@ -22,6 +22,7 @@
 #include "cg_local.h"
 
 static cvar_t *editor_grid_size;
+static cvar_t *editor_select_dist;
 
 #include "EntityViewController.h"
 #include "EntityView.h"
@@ -77,8 +78,16 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
       cgi.SetEntityKeyValue(this->entity->def, def->key, ENTITY_STRING, def->string);
     }
 
-    $(this->add->key, setAttributedText, NULL);
-    $(this->add->value, setAttributedText, NULL);
+    $((TextView *) ((KeyValueView *) this->add)->key, setAttributedText, NULL);
+    $((TextView *) ((KeyValueView *) this->add)->value, setAttributedText, NULL);
+  }
+
+  // Worldspawn's sky/message apply live. Sky reloads the skybox (R_LoadSky falls
+  // back to the default template if the path doesn't resolve); message is picked up
+  // by the game via the entity write below.
+  const char *classname = cgi.EntityValue(this->entity->def, "classname")->string;
+  if (!q_strcmp(classname, "worldspawn") && !q_strcmp(def->key, "sky")) {
+    cgi.SetSky(def->string);
   }
 
   cgi.WriteEntityInfoCommand(this->entity->number, this->entity->def);
@@ -99,11 +108,25 @@ static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
 
     cgi.SetEntityKeyValue(this->teamEntity->def, def->key, ENTITY_STRING, def->string);
 
-    $(this->teamAdd->key, setAttributedText, NULL);
-    $(this->teamAdd->value, setAttributedText, NULL);
+    $((TextView *) ((KeyValueView *) this->teamAdd)->key, setAttributedText, NULL);
+    $((TextView *) ((KeyValueView *) this->teamAdd)->value, setAttributedText, NULL);
   }
 
   cgi.WriteEntityInfoCommand(this->teamEntity->number, this->teamEntity->def);
+}
+
+/**
+ * @brief ButtonDelegate for Create Entity (lives on the Entity tab).
+ */
+static void didClickCreateEntity(Button *button) {
+  $((EntityViewController *) button->delegate.self, createEntity);
+}
+
+/**
+ * @brief ButtonDelegate for Delete Entity (lives on the Entity tab).
+ */
+static void didClickDeleteEntity(Button *button) {
+  $((EntityViewController *) button->delegate.self, deleteEntity);
 }
 
 #pragma mark - Object
@@ -116,6 +139,10 @@ static void dealloc(Object *self) {
   EntityViewController *this = (EntityViewController *) self;
 
   cgi.Free(this->created);
+
+  // Balance the retains taken in loadView for the reparented add-rows.
+  release(this->add);
+  release(this->teamAdd);
 
   super(Object, self, dealloc);
 }
@@ -130,8 +157,12 @@ static void loadView(ViewController *self) {
   EntityViewController *this = (EntityViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
+    MakeOutlet("entityBox", &this->entityBox),
+    MakeOutlet("createEntity", &this->createEntity),
+    MakeOutlet("deleteEntity", &this->deleteEntity),
     MakeOutlet("pairs", &this->pairs),
     MakeOutlet("add", &this->add),
+    MakeOutlet("teamEntity", &this->teamMasterBox),
     MakeOutlet("teamPairs", &this->teamPairs),
     MakeOutlet("teamAdd", &this->teamAdd)
   );
@@ -147,7 +178,37 @@ static void loadView(ViewController *self) {
 
   this->teamAdd->delegate.self = this;
   this->teamAdd->delegate.didEditEntity = didEditTeamEntity;
+
+  // The "add new key" rows are the LAST row of their tables (flush with the data
+  // rows, inheriting the table columns), not stranded at the bottom of the box.
+  // Detach them from their JSON box and retain them, since removeAllRows clears
+  // the table on every selection; setEntity re-appends them as the last row.
+  retain(this->add);
+  $((View *) this->add, removeFromSuperview);
+
+  retain(this->teamAdd);
+  $((View *) this->teamAdd, removeFromSuperview);
+
+  this->createEntity->delegate.self = this;
+  this->createEntity->delegate.didClick = didClickCreateEntity;
+
+  this->deleteEntity->delegate.self = this;
+  this->deleteEntity->delegate.didClick = didClickDeleteEntity;
+
+  // The Create/Delete bar is pinned to the bottom-left of the tab. For bottom
+  // alignment to reach the bottom of the viewport (not just the bottom of the
+  // content), the page must fill the tab page; set in C since a per-view
+  // stylesheet does not reliably style this controller's own views.
+  self->view->autoresizingMask = ViewAutoresizingFill;
+
+  StackView *createDelete = (StackView *) $(self->view, descendantWithIdentifier, "createDelete");
+  assert(createDelete);
+  createDelete->axis = StackViewAxisHorizontal;
+  createDelete->spacing = 4;
+  ((View *) createDelete)->alignment = ViewAlignmentBottomLeft;
 }
+
+static void refreshSelection(EntityViewController *this);
 
 /**
  * @brief Handles keyboard events for the EntityViewController, supporting copy/paste of entity definitions.
@@ -211,6 +272,17 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
       cgi.Print("func_group entities %s\n", self->show_func_groups ? "^2shown" : "^1hidden");
     }
 
+    // PageUp/PageDown cycle the ray selection, mirroring the mouse wheel (issue
+    // #840). These were redundant aliases for vertical entity movement (Q/E and
+    // numpad 9/3 still do that), so repurposing them costs no capability.
+    if (cgi.GetKeyDest() == KEY_UI) {
+      if (key == SDLK_PAGEUP) {
+        if (Cg_CycleSelection(1)) { refreshSelection(self); }
+      } else if (key == SDLK_PAGEDOWN) {
+        if (Cg_CycleSelection(-1)) { refreshSelection(self); }
+      }
+    }
+
     if (cgi.GetKeyDest() == KEY_UI && e) {
 
       vec3_t move = Vec3_Zero();
@@ -254,13 +326,11 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 
         case SDLK_Q:
         case SDLK_KP_9:
-        case SDLK_PAGEUP:
           move = Vec3_Scale(Vec3_Up(), +step);
           break;
 
         case SDLK_E:
         case SDLK_KP_3:
-        case SDLK_PAGEDOWN:
           move = Vec3_Scale(Vec3_Up(), -step);
           break;
       }
@@ -279,6 +349,25 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 }
 
 /**
+ * @brief Refreshes the entity display from the shared selection cursor after the wheel
+ * cycled it (issue #840). The cursor is advanced centrally in Cg_HandleEvent; this only
+ * reads the new candidate's entity. No-op with no candidates.
+ */
+static void refreshSelection(EntityViewController *this) {
+
+  if (cg_editor.num_candidates == 0) {
+    return;
+  }
+
+  cg_editor_entity_t *ent = cg_editor.candidates[cg_editor.candidate_index].ent;
+  $(this, setEntity, ent);
+
+  Cg_Debug("selecting %d/%d (%s)\n",
+           (int32_t) (cg_editor.candidate_index + 1), (int32_t) cg_editor.num_candidates,
+           cgi.EntityValue(ent->def, "classname")->string);
+}
+
+/**
  * @see ViewContrxoller::respondToEvent(ViewController *, const SDL_Event *)
  */
 static void respondToEvent(ViewController *self, const SDL_Event *event) {
@@ -293,6 +382,16 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
   if (event->type == MVC_NOTIFICATION_EVENT) {
 
     switch (event->user.code) {
+
+      // The mouse wheel cycles through the ray candidates (issue #840). It arrives
+      // as a notification from Cg_HandleEvent because MVC routes raw wheel events to
+      // the view under the cursor, not here. data1 is the direction: +1 nearer, -1
+      // farther. The captured ray is frozen while the editor UI is up, so cycling is
+      // stable.
+      case NOTIFICATION_EDITOR_SELECTION_CYCLE:
+        refreshSelection(this);
+        break;
+
       case NOTIFICATION_ENTITY_PARSED: {
 
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
@@ -324,11 +423,27 @@ static void viewWillAppear(ViewController *self) {
   EntityViewController *this = (EntityViewController *) self;
 
   const vec3_t start = cgi.view->origin;
-  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cgi.view->forward);
+  const vec3_t end = Vec3_Fmaf(start, editor_select_dist->value, cgi.view->forward);
 
-  const cg_editor_trace_t tr = Cg_EntitySelectionTrace(start, end);
+  // Build the shared candidate list along the (distance-capped) ray, nearest first,
+  // so the mouse wheel can cycle through overlapping objects (issue #840). The entity
+  // tab caps reach at editor_select_dist; the nearest is selected now, the wheel steps
+  // to the ones behind it. This same list is read by the material and mesh tabs.
+  Cg_BuildSelectionCandidates(start, end);
 
-  $(this, setEntity, tr.ent);
+  // Fall back to worldspawn (entity 0) when the ray hits nothing (e.g. aiming at the
+  // sky/void), so worldspawn's sky/message remain reachable.
+  cg_editor_entity_t *ent = cg_editor.num_candidates
+      ? cg_editor.candidates[cg_editor.candidate_index].ent
+      : &cg_editor.entities[0];
+
+  // Only rebuild the row widgets when the selected entity actually changes.
+  // Re-opening at the same surface otherwise destroys and recreates the whole
+  // row list, forcing a full-panel re-layout every open. Edits still refresh via
+  // the NOTIFICATION_ENTITY_PARSED -> setEntity path.
+  if (ent != this->entity) {
+    $(this, setEntity, ent);
+  }
 
   super(ViewController, self, viewWillAppear);
 }
@@ -366,7 +481,8 @@ static void deleteEntity(EntityViewController *self) {
 
   if (self->entity && self->entity->number) {
     cgi.WriteEntityInfoCommand(self->entity->number, NULL);
-    $(self, setEntity, NULL);
+    // Fall back to worldspawn (entity 0) rather than clearing the selection.
+    $(self, setEntity, &cg_editor.entities[0]);
   }
 }
 
@@ -388,17 +504,27 @@ static EntityViewController *init(EntityViewController *self) {
  */
 static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
 
-  $((View *) self->pairs, removeAllSubviews);
-  $((View *) self->teamPairs, removeAllSubviews);
+  $(self->pairs, removeAllRows);
+  $(self->teamPairs, removeAllRows);
 
   if (entity) {
 
     self->entity = entity;
     self->teamEntity = entity;
 
+    // The classname is shown as the group-box title (not as an editable pair),
+    // and gates the Team Master box (lights only).
+    const char *classname = cgi.EntityValue(self->entity->def, "classname")->string;
+    $(self->entityBox->label->text, setText, *classname ? classname : "Entity");
+    ((View *) self->teamMasterBox)->hidden = q_strcmp(classname, "light") != 0;
+
     for (cm_entity_t *e = self->entity->def; e; e = e->next) {
 
       if (!q_strncmp(e->key, "_tb_", 4)) {
+        continue;
+      }
+
+      if (!q_strcmp(e->key, "classname")) {
         continue;
       }
 
@@ -411,12 +537,17 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
       view->delegate.self = self;
       view->delegate.didEditEntity = didEditEntity;
 
-      $((View *) self->pairs, addSubview, (View *) view);
+      // Worldspawn's sky key is a live-reloaded skybox path; validate it against
+      // sky/<name> as the user types (empty/invalid falls back to the template).
+      if (!q_strcmp(classname, "worldspawn") && !q_strcmp(e->key, "sky")) {
+        $(view, setTextureValidation, "sky/", ASSET_CONTEXT_NONE);
+      }
+
+      $(self->pairs, addRowView, (KeyValueView *) view);
 
       release(view);
     }
 
-    const char *classname = cgi.EntityValue(self->entity->def, "classname")->string;
     if (!q_strcmp(classname, "light")) {
 
       const char *team = cgi.EntityValue(self->entity->def, "team")->nullable_string;
@@ -440,7 +571,7 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
           view->delegate.self = self;
           view->delegate.didEditEntity = didEditTeamEntity;
 
-          $((View *) self->teamPairs, addSubview, (View *) view);
+          $(self->teamPairs, addRowView, (KeyValueView *) view);
 
           release(view);
         }
@@ -450,12 +581,36 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
   } else {
     self->entity = NULL;
     self->teamEntity = NULL;
+
+    $(self->entityBox->label->text, setText, "Entity");
+    ((View *) self->teamMasterBox)->hidden = true;
   }
+
+  // The persistent "add new key" rows are the last row of each table. removeAllRows
+  // (above) detached last selection's; re-append them after the data rows. They
+  // inherit the table columns via the table's layout, so no manual width is needed.
+  $(self->pairs, addRowView, (KeyValueView *) self->add);
+  $(self->teamPairs, addRowView, (KeyValueView *) self->teamAdd);
 
   cg_editor.selected = self->entity ? self->entity->number : -1;
 
-  $((View *) self->pairs, sizeToFit);
-  $((View *) self->teamPairs, sizeToFit);
+  // Delete is invalid for nothing-selected and for worldspawn (number 0).
+  Control *deleteEntity = (Control *) self->deleteEntity;
+  if (cg_editor.selected <= 0) {
+    deleteEntity->state |= ControlStateDisabled;
+  } else {
+    deleteEntity->state &= ~ControlStateDisabled;
+  }
+  $(deleteEntity, stateDidChange);
+
+  // The Team Master box toggles hidden<->visible and the boxes' contents change
+  // on each selection; mark both boxes and their container StackView for layout
+  // so the container re-arranges in the next (pre-draw) pass. Without this a
+  // freshly Created entity renders with the boxes overlapping at the top until
+  // the next selection forces a re-layout.
+  ((View *) self->entityBox)->needsLayout = true;
+  ((View *) self->teamMasterBox)->needsLayout = true;
+  ((View *) self->entityBox)->superview->needsLayout = true;
 
   SDL_PushEvent(&(SDL_Event) {
     .user.type = MVC_NOTIFICATION_EVENT,
@@ -484,6 +639,7 @@ static void initialize(Class *clazz) {
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
 
   editor_grid_size = cgi.AddCvar("editor_grid_size", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
+  editor_select_dist = cgi.AddCvar("editor_select_dist", "512", CVAR_ARCHIVE, "The maximum distance, in world units, for editor entity selection and mouse-wheel ray cycling.");
 }
 
 /**

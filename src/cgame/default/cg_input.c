@@ -38,13 +38,34 @@ static cg_kick_t cg_kick;
  * @brief Handles SDL events, recreating the framebuffer on window resize or expose.
  */
 void Cg_HandleEvent(const SDL_Event *event) {
-  
+
   switch (event->type) {
     case SDL_EVENT_WINDOW_EXPOSED:
     case SDL_EVENT_WINDOW_RESIZED:
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
       Cg_CreateFramebuffer();
       break;
+
+    case SDL_EVENT_MOUSE_WHEEL:
+      // Cycle the editor's shared ray selection with the mouse wheel (issue #840). MVC
+      // routes wheel events to the view under the cursor, not the view controller, so
+      // the editor's respondToEvent never sees them; this handler receives every event.
+      // The cursor lives in cg_editor and is shared by all tabs, so advance it HERE
+      // (once) and post a pure "refresh" notification -- letting each tab step it would
+      // double-advance when several are subscribed. Harmless outside the editor:
+      // Cg_CycleSelection no-ops when there are no candidates.
+      if (event->wheel.y != 0.f && cgi.GetKeyDest() == KEY_UI) {
+        const int32_t dir = event->wheel.y > 0.f ? 1 : -1;
+        if (Cg_CycleSelection(dir)) {
+          SDL_PushEvent(&(SDL_Event) {
+            .user.type = MVC_NOTIFICATION_EVENT,
+            .user.code = NOTIFICATION_EDITOR_SELECTION_CYCLE,
+            .user.data1 = (void *) (intptr_t) dir,
+          });
+        }
+      }
+      break;
+
     default:
       break;
   }

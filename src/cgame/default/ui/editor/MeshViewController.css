@@ -1,11 +1,15 @@
-#mesh Input Label {
-  max-width: 100;
+/* The container only lays the boxes out -- no background of its own. */
+#meshContent {
+  autoresizing-mask: contain | width;
+  spacing: 16;
 }
 
-#mesh Input TextView {
-  width: 250;
-}
-
-#mesh Input Slider {
-  width: 250;
+/* Each group box fills the page width (so its table reaches the edge padding) and
+   carries its own tint, mirroring the entity/material tabs. */
+#worldBox,
+#linkBox,
+#viewBox {
+  autoresizing-mask: contain | width;
+  spacing: 16;
+  background-color: #11111144;
 }

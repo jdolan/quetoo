@@ -2,10 +2,12 @@
   "identifier": "mesh",
   "subviews": [
     {
+      "identifier": "meshContent",
       "class": "StackView",
       "classNames": ["container"],
       "subviews": [
         {
+          "identifier": "worldBox",
           "class": "Box",
           "label": {
             "text": { "text": "World" }
@@ -13,24 +15,15 @@
           "contentView": {
             "subviews": [
               {
-                "class": "Input",
-                "label": { "text": { "text": "Translate" } },
-                "control": { "class": "TextView", "identifier": "worldTranslate" }
-              },
-              {
-                "class": "Input",
-                "label": { "text": { "text": "Rotate" } },
-                "control": { "class": "TextView", "identifier": "worldRotate" }
-              },
-              {
-                "class": "Input",
-                "label": { "text": { "text": "Scale" } },
-                "control": { "class": "TextView", "identifier": "worldScale" }
+                "identifier": "worldTable",
+                "class": "KeyValueTableView",
+                "classNames": ["kvTable"]
               }
             ]
           }
         },
         {
+          "identifier": "linkBox",
           "class": "Box",
           "label": {
             "text": { "text": "Link" }
@@ -38,24 +31,15 @@
           "contentView": {
             "subviews": [
               {
-                "class": "Input",
-                "label": { "text": { "text": "Translate" } },
-                "control": { "class": "TextView", "identifier": "linkTranslate" }
-              },
-              {
-                "class": "Input",
-                "label": { "text": { "text": "Rotate" } },
-                "control": { "class": "TextView", "identifier": "linkRotate" }
-              },
-              {
-                "class": "Input",
-                "label": { "text": { "text": "Scale" } },
-                "control": { "class": "TextView", "identifier": "linkScale" }
+                "identifier": "linkTable",
+                "class": "KeyValueTableView",
+                "classNames": ["kvTable"]
               }
             ]
           }
         },
         {
+          "identifier": "viewBox",
           "class": "Box",
           "label": {
             "text": { "text": "View" }
@@ -63,24 +47,9 @@
           "contentView": {
             "subviews": [
               {
-                "class": "Input",
-                "label": { "text": { "text": "Translate" } },
-                "control": { "class": "TextView", "identifier": "viewTranslate" }
-              },
-              {
-                "class": "Input",
-                "label": { "text": { "text": "Rotate" } },
-                "control": { "class": "TextView", "identifier": "viewRotate" }
-              },
-              {
-                "class": "Input",
-                "label": { "text": { "text": "Scale" } },
-                "control": { "class": "TextView", "identifier": "viewScale" }
-              },
-              {
-                "class": "Input",
-                "label": { "text": { "text": "Muzzle" } },
-                "control": { "class": "TextView", "identifier": "viewMuzzle" }
+                "identifier": "viewTable",
+                "class": "KeyValueTableView",
+                "classNames": ["kvTable"]
               }
             ]
           }

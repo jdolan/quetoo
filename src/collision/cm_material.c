@@ -550,32 +550,7 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
 
     if (*token == '}') {
 
-      // a texture or envmap mean draw it
-      if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_SHELL)) {
-        s->flags |= STAGE_DRAW;
-
-        // terrain and dirtmapping use lighting
-        if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
-          s->flags |= STAGE_LIGHTING;
-        }
-
-        if (s->flags & STAGE_ENVMAP) {
-          s->flags |= STAGE_LIGHTING_FLAT;
-          s->lighting.mode = STAGE_LIGHTING_MODE_FLAT;
-        }
-      }
-
-      // ensure appropriate blend function defaults for stages that never
-      // specified a `blend` keyword at all (or gave an invalid factor name).
-      // BLEND_ZERO is a real, explicit choice (e.g. `blend one zero` for an
-      // opaque overwrite stage) and must not be mistaken for "unset".
-      if (s->blend.src == BLEND_INVALID) {
-        s->blend.src = BLEND_SRC_ALPHA;
-      }
-
-      if (s->blend.dest == BLEND_INVALID) {
-        s->blend.dest = BLEND_ONE_MINUS_SRC_ALPHA;
-      }
+      Cm_FinalizeStage(s);
 
       Com_Debug(DEBUG_COLLISION,
                 "Parsed stage\n"
@@ -642,6 +617,94 @@ static void Cm_AppendStage(cm_material_t *m, cm_stage_t *s) {
     }
     ss->next = s;
   }
+}
+
+/**
+ * @brief Recomputes a stage's derived flags and blend defaults. Safe to call
+ * repeatedly (e.g. after the editor toggles a stage flag), unlike the additive
+ * parse-time logic: `STAGE_DRAW` is cleared and recomputed so that disabling a
+ * stage's texture/envmap/shell correctly stops it from drawing.
+ */
+void Cm_FinalizeStage(cm_stage_t *s) {
+
+  // a texture, envmap or shell means draw it
+  s->flags &= ~STAGE_DRAW;
+  if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_SHELL)) {
+    s->flags |= STAGE_DRAW;
+
+    // terrain and dirtmapping use lighting
+    if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
+      s->flags |= STAGE_LIGHTING;
+    }
+
+    if (s->flags & STAGE_ENVMAP) {
+      s->flags |= STAGE_LIGHTING_FLAT;
+      s->lighting.mode = STAGE_LIGHTING_MODE_FLAT;
+    }
+  }
+
+  // ensure appropriate blend function defaults for stages that never specified
+  // a `blend` keyword at all (or gave an invalid factor name). BLEND_ZERO is a
+  // real, explicit choice (e.g. `blend one zero` for an opaque overwrite
+  // stage) and must not be mistaken for "unset" -- BLEND_INVALID (0) is.
+  if (s->blend.src == BLEND_INVALID) {
+    s->blend.src = BLEND_SRC_ALPHA;
+  }
+
+  if (s->blend.dest == BLEND_INVALID) {
+    s->blend.dest = BLEND_ONE_MINUS_SRC_ALPHA;
+  }
+}
+
+/**
+ * @brief Allocates a new stage, seeds sensible defaults, and appends it to the
+ * material. The stage defaults to a textured copy of the material's diffusemap
+ * so that it renders immediately. Marks the material dirty.
+ * @return The new stage.
+ */
+cm_stage_t *Cm_AddStage(cm_material_t *m) {
+
+  cm_stage_t *s = (cm_stage_t *) Mem_LinkMalloc(sizeof(*s), m);
+
+  s->asset = m->diffusemap;
+  s->color = color_white;
+  s->flags |= STAGE_TEXTURE;
+
+  Cm_FinalizeStage(s);
+
+  Cm_AppendStage(m, s);
+
+  m->stage_flags |= s->flags;
+  m->dirty = true;
+
+  return s;
+}
+
+/**
+ * @brief Unlinks and frees a stage from the material, recomputing the material's
+ * aggregate stage flags. Marks the material dirty.
+ */
+void Cm_RemoveStage(cm_material_t *m, cm_stage_t *s) {
+
+  if (m->stages == s) {
+    m->stages = s->next;
+  } else {
+    for (cm_stage_t *ss = m->stages; ss; ss = ss->next) {
+      if (ss->next == s) {
+        ss->next = s->next;
+        break;
+      }
+    }
+  }
+
+  Mem_Free(s);
+
+  m->stage_flags = STAGE_NONE;
+  for (const cm_stage_t *ss = m->stages; ss; ss = ss->next) {
+    m->stage_flags |= ss->flags;
+  }
+
+  m->dirty = true;
 }
 
 /**
@@ -1016,6 +1079,120 @@ static bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, cm
   }
 
   return res;
+}
+
+/**
+ * @brief The most animation frames the editor will probe for on disk, guarding
+ * against a runaway scan and clamping to the stage's num_frames field range.
+ */
+#define CM_STAGE_ANIMATION_MAX_FRAMES 1024
+
+/**
+ * @brief Counts how many consecutive numbered frames actually exist on disk for
+ * an animation stage, starting from the trailing number in its asset name, and
+ * stores the count in `stage->animation.num_frames`.
+ * @return The frame count. A name with no trailing digit, or whose first frame
+ * does not resolve, yields 0 -- i.e. the texture is not a valid animation
+ * sequence. The editor uses this to derive (and sanity-check) an animation, so a
+ * bad texture is skipped rather than producing a 0-frame animation that crashes
+ * the renderer.
+ */
+static int32_t Cm_CountStageAnimationFrames(cm_material_t *material, cm_stage_t *stage) {
+
+  stage->animation.num_frames = 0;
+
+  const size_t len = strlen(stage->asset.name);
+  if (len == 0 || !isdigit((unsigned char) stage->asset.name[len - 1])) {
+    return 0;
+  }
+
+  char base[MAX_QPATH];
+  q_strlcpy(base, stage->asset.name, sizeof(base));
+
+  char *c = base + strlen(base);
+  while (c > base && isdigit((unsigned char) *(c - 1))) {
+    c--;
+  }
+
+  const int32_t start = (int32_t) strtol(c, NULL, 10);
+  *c = '\0';
+
+  int32_t count = 0;
+  while (count < CM_STAGE_ANIMATION_MAX_FRAMES) {
+
+    cm_asset_t frame;
+    memset(&frame, 0, sizeof(frame));
+    q_snprintf(frame.name, sizeof(frame.name), "%s%d", base, start + count);
+
+    if (!Cm_ResolveAsset(&frame, material->context)) {
+      break;
+    }
+    count++;
+  }
+
+  stage->animation.num_frames = count;
+  return count;
+}
+
+/**
+ * @brief Derives an animation stage's frame count from its texture (a numbered
+ * sequence on disk) and resolves the frame assets, so the editor can add an
+ * animation without hand-authoring the frame count.
+ * @return The number of frames resolved, or 0 if the stage's texture is not a
+ * valid animation sequence (in which case the caller should not treat the stage
+ * as animated). Marks the material dirty; the caller rebuilds the render stages.
+ */
+int32_t Cm_ResolveStageAnimationFrames(cm_material_t *material, cm_stage_t *stage) {
+
+  const int32_t count = Cm_CountStageAnimationFrames(material, stage);
+  if (count) {
+    Cm_ResolveStageAssets(material, stage, material->context);
+  }
+
+  material->dirty = true;
+  return count;
+}
+
+/**
+ * @brief Retargets a stage's texture by name and re-resolves it, so the editor can
+ * change a stage's texture live. Clears the old resolved path first. Marks dirty;
+ * the caller rebuilds the render stages to reload media.
+ */
+void Cm_SetStageTexture(cm_material_t *material, cm_stage_t *stage, const char *name) {
+
+  q_strlcpy(stage->asset.name, name ? name : "", sizeof(stage->asset.name));
+  stage->asset.path[0] = '\0';
+
+  if (*stage->asset.name) {
+
+    // an animation stage's frame count follows its texture, so re-derive it here
+    // (the new texture may be a different-length sequence, or no sequence at all)
+    if (stage->flags & STAGE_ANIMATION) {
+      Cm_CountStageAnimationFrames(material, stage);
+    }
+
+    Cm_ResolveStageAssets(material, stage, material->context);
+  }
+
+  material->dirty = true;
+}
+
+/**
+ * @brief Tests whether a material asset (a texture name, without extension)
+ * resolves to a file on disk within the given context. Used by the editor to
+ * validate texture-path inputs as the user types.
+ */
+bool Cm_AssetExists(const char *name, cm_asset_context_t context) {
+
+  if (!name || !*name) {
+    return false;
+  }
+
+  cm_asset_t asset;
+  memset(&asset, 0, sizeof(asset));
+  q_strlcpy(asset.name, name, sizeof(asset.name));
+
+  return Cm_ResolveAsset(&asset, context);
 }
 
 /**

@@ -24,6 +24,12 @@
 #include "cgame/cgame.h"
 
 #include <ObjectivelyMVC/ViewController.h>
+#include <ObjectivelyMVC/StackView.h>
+#include <ObjectivelyMVC/Button.h>
+#include <ObjectivelyMVC/Box.h>
+#include <ObjectivelyMVC/Label.h>
+
+#include "StageView.h"
 
 /**
  * @file
@@ -57,24 +63,50 @@ struct MaterialViewController {
   r_material_t *material;
 
   /**
-   * @brief The material name text field.
+   * @brief The content container holding the group boxes (maps, PBR, stages).
    */
-  TextView *name;
+  StackView *content;
 
   /**
-   * @brief The diffusemap texture name text field.
+   * @brief The Material Stages group box; its scrollable list fills the remaining
+   * tab height (sized per-frame by fitStagesHeight).
    */
-  TextView *diffusemap;
+  Box *stagesBox;
 
   /**
-   * @brief The normalmap texture name text field.
+   * @brief The fixed-height viewport (a plain View) inside the stages box that
+   * holds `stages` + its scrollbar. fitStagesHeight sizes its height so the
+   * stages list fills the rest of the tab.
    */
-  TextView *normalmap;
+  View *stagesViewport;
 
   /**
-   * @brief The specularmap texture name text field.
+   * @brief The vertical scrollbar for the stages list. It drives the ScrollView
+   * wrapping `stages` and lives in the gutter to its right; fitStagesHeight pins
+   * its x to the viewport's right edge so it is not subject to the viewport's
+   * right padding.
    */
-  TextView *specularmap;
+  View *scrollbar;
+
+  /**
+   * @brief The Material group box, whose title shows the material name.
+   */
+  Box *materialBox;
+
+  /**
+   * @brief The diffusemap texture name label (read-only display).
+   */
+  Label *diffusemap;
+
+  /**
+   * @brief The normalmap texture name label (read-only display).
+   */
+  Label *normalmap;
+
+  /**
+   * @brief The specularmap texture name label (read-only display).
+   */
+  Label *specularmap;
 
   /**
    * @brief The roughness slider.
@@ -105,6 +137,30 @@ struct MaterialViewController {
    * @brief The alpha test threshold slider.
    */
   Slider *alphaTest;
+
+  /**
+   * @brief The container holding the per-stage StageViews.
+   */
+  StackView *stages;
+
+  /**
+   * @brief The next collision stage to build a StageView for, or `NULL` when the
+   * list is fully built. loadStages seeds this (instead of building synchronously)
+   * so a material swap does not stall a frame per stage; a private pump view
+   * (MaterialViewController.c) builds one StageView per rendered frame from this
+   * cursor. Weak: points into `material->cm->stages`, reset on every loadStages call.
+   */
+  cm_stage_t *pendingStage;
+
+  /**
+   * @brief The Add Stage button.
+   */
+  Button *addStage;
+
+  /**
+   * @brief The currently selected (highlighted) stage panel, or `NULL`.
+   */
+  StageView *selectedStage;
 };
 
 /**
@@ -134,6 +190,17 @@ struct MaterialViewControllerInterface {
    * @memberof MaterialViewController
    */
   void (*setMaterial)(MaterialViewController *self, r_material_t *material);
+
+  /**
+   * @fn void MaterialViewController::fitStagesHeight(MaterialViewController *self, int tabPageHeight)
+   * @brief Sizes the stages scroll viewport to fill the tab height below the fixed
+   * maps + PBR section, so only the stages list scrolls. Called per-frame from
+   * EditorViewController::fitContentHeight with the current tab page height.
+   * @param self The MaterialViewController.
+   * @param tabPageHeight The tab page's content height (from window_bounds).
+   * @memberof MaterialViewController
+   */
+  void (*fitStagesHeight)(MaterialViewController *self, int tabPageHeight);
 };
 
 /**

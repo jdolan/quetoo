@@ -27,7 +27,58 @@
 
 #define _Class _EntityView
 
+/**
+ * @brief Value-field validation feedback colors. The "valid" background matches the
+ * base `TextView` rule in common.css (#dedede10); "invalid" is a translucent maroon
+ * tint, applied when a validated value does not resolve to an asset on disk.
+ */
+#define ENTITY_FIELD_BG_VALID   ((SDL_Color) { 0xde, 0xde, 0xde, 0x10 })
+#define ENTITY_FIELD_BG_INVALID ((SDL_Color) { 0x80, 0x30, 0x30, 0x66 })
+
+/**
+ * @return This row's key TextView (the inherited KeyValueView column 0).
+ */
+static TextView *keyTextView(const EntityView *self) {
+  return (TextView *) ((const KeyValueView *) self)->key;
+}
+
+/**
+ * @return This row's value TextView (the inherited KeyValueView column 1).
+ */
+static TextView *valueTextView(const EntityView *self) {
+  return (TextView *) ((const KeyValueView *) self)->value;
+}
+
+/**
+ * @brief Tints the value field maroon when validation is enabled and the value does
+ * not resolve to an asset (`validatePrefix` + value in `validateContext`). Empty
+ * value or disabled validation leaves the field neutral. Purely visual.
+ */
+static void validateValue(EntityView *self) {
+
+  if (*self->validatePrefix == '\0') {
+    return;
+  }
+
+  TextView *value = valueTextView(self);
+  const char *text = value->attributedText ? value->attributedText->chars : "";
+
+  bool ok = true;
+  if (*text) {
+    ok = cgi.AssetExists(va("%s%s", self->validatePrefix, text), self->validateContext);
+  }
+
+  ((View *) value)->backgroundColor = ok ? ENTITY_FIELD_BG_VALID : ENTITY_FIELD_BG_INVALID;
+}
+
 #pragma mark - Delegates
+
+/**
+ * @brief TextViewDelegate (didEdit): validate the value live as the user types.
+ */
+static void didEditValue(TextView *textView) {
+  validateValue((EntityView *) textView->delegate.self);
+}
 
 /**
  * @brief TextViewDelegate callback for editing an entity pair.
@@ -41,8 +92,8 @@ static void didEndEditing(TextView *textView) {
 
   cm_entity_t *e = self->pair ?: cgi.AllocEntity();
 
-  const char *key = self->key->attributedText->chars;
-  const char *value = self->value->attributedText->chars;
+  const char *key = keyTextView(self)->attributedText->chars;
+  const char *value = valueTextView(self)->attributedText->chars;
 
   q_strlcpy(e->key, key ?: "", sizeof(e->key));
   q_strlcpy(e->string, value ?: "", sizeof(e->string));
@@ -68,34 +119,20 @@ static void dealloc(Object *self) {
 
   memset(&this->delegate, 0, sizeof(this->delegate));
 
-  this->key->delegate.didEndEditing = NULL;
-  this->value->delegate.didEndEditing = NULL;
+  if (keyTextView(this)) {
+    keyTextView(this)->delegate.didEndEditing = NULL;
+  }
+  if (valueTextView(this)) {
+    valueTextView(this)->delegate.didEndEditing = NULL;
+  }
 
-  release(this->key);
-  release(this->value);
+  // The key/value TextViews are owned by the superclass as its columns and torn
+  // down with the view tree; nothing to release here.
 
   super(Object, self, dealloc);
 }
 
 #pragma mark - View
-
-/**
- * @fn void Viem::awakeWithDictionary(View *self, const Dictionary *dictionary)
- * @memberof View
- */
-static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
-
-  super(View, self, awakeWithDictionary, dictionary);
-
-  EntityView *this = (EntityView *) self;
-
-  const Inlet inlets[] = MakeInlets(
-    MakeInlet("key", InletTypeView, &this->key, NULL),
-    MakeInlet("value", InletTypeView, &this->value, NULL)
-  );
-
-  $(self, bind, inlets, dictionary);
-}
 
 /**
  * @fn View *View::init(View *self)
@@ -113,19 +150,24 @@ static View *init(View *self) {
  */
 static EntityView *initWithEntity(EntityView *self, cg_editor_entity_t *edit, cm_entity_t *pair) {
 
-  self = (EntityView *) super(StackView, self, initWithFrame, NULL);
+  self = (EntityView *) super(KeyValueView, self, initWithFrame, NULL);
   if (self) {
 
+    // The JSON's "key" and "value" become this KeyValueView's columns; the
+    // superclass parents and width-clamps them.
     $((View *) self, awakeWithResourceName, "ui/editor/EntityView.json");
 
-    $((View *) self, addSubview, (View *) self->key);
-    $((View *) self, addSubview, (View *) self->value);
+    TextView *key = keyTextView(self);
+    TextView *value = valueTextView(self);
 
-    self->key->delegate.self = self;
-    self->key->delegate.didEndEditing = didEndEditing;
+    assert(key && value);
 
-    self->value->delegate.self = self;
-    self->value->delegate.didEndEditing = didEndEditing;
+    key->delegate.self = self;
+    key->delegate.didEndEditing = didEndEditing;
+
+    value->delegate.self = self;
+    value->delegate.didEndEditing = didEndEditing;
+    value->delegate.didEdit = didEditValue;
 
     $(self, setEntity, edit, pair);
   }
@@ -142,32 +184,49 @@ static void setEntity(EntityView *self, cg_editor_entity_t *edit, cm_entity_t *p
   self->edit = edit;
   self->pair = pair;
 
-  self->key->control.state = ControlStateDefault;
-  self->value->control.state = ControlStateDefault;
+  TextView *key = keyTextView(self);
+  TextView *value = valueTextView(self);
+
+  key->control.state = ControlStateDefault;
+  value->control.state = ControlStateDefault;
 
   if (pair) {
-    $(self->key, setAttributedText, pair->key);
+    $(key, setAttributedText, pair->key);
     if (pair->parsed & ENTITY_VEC4) {
-      $(self->value, setAttributedText, va("%g %g %g %g", pair->vec4.x, pair->vec4.y, pair->vec4.z, pair->vec4.w));
+      $(value, setAttributedText, va("%g %g %g %g", pair->vec4.x, pair->vec4.y, pair->vec4.z, pair->vec4.w));
     } else if (pair->parsed & ENTITY_VEC3) {
-      $(self->value, setAttributedText, va("%g %g %g", pair->vec3.x, pair->vec3.y, pair->vec3.z));
+      $(value, setAttributedText, va("%g %g %g", pair->vec3.x, pair->vec3.y, pair->vec3.z));
     } else if (pair->parsed & ENTITY_VEC2) {
-      $(self->value, setAttributedText, va("%g %g", pair->vec2.x, pair->vec2.y));
+      $(value, setAttributedText, va("%g %g", pair->vec2.x, pair->vec2.y));
     } else if (pair->parsed & ENTITY_FLOAT) {
-      $(self->value, setAttributedText, va("%g", pair->value));
+      $(value, setAttributedText, va("%g", pair->value));
     } else {
-      $(self->value, setAttributedText, pair->string);
+      $(value, setAttributedText, pair->string);
     }
 
     if (!q_strcmp(pair->key, "classname")
         && !q_strcmp(pair->string, "worldspawn")) {
-      self->key->control.state |= ControlStateDisabled;
-      self->value->control.state |= ControlStateDisabled;
+      key->control.state |= ControlStateDisabled;
+      value->control.state |= ControlStateDisabled;
     }
   } else {
-    $(self->key, setAttributedText, "");
-    $(self->value, setAttributedText, "");
+    $(key, setAttributedText, "");
+    $(value, setAttributedText, "");
   }
+
+  validateValue(self);
+}
+
+/**
+ * @fn void EntityView::setTextureValidation(EntityView *self, const char *prefix, cm_asset_context_t context)
+ * @memberof EntityView
+ */
+static void setTextureValidation(EntityView *self, const char *prefix, cm_asset_context_t context) {
+
+  q_strlcpy(self->validatePrefix, prefix ?: "", sizeof(self->validatePrefix));
+  self->validateContext = context;
+
+  validateValue(self);
 }
 
 #pragma mark - Class lifecycle
@@ -179,11 +238,11 @@ static void initialize(Class *clazz) {
 
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-  ((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
   ((ViewInterface *) clazz->interface)->init = init;
 
   ((EntityViewInterface *) clazz->interface)->initWithEntity = initWithEntity;
   ((EntityViewInterface *) clazz->interface)->setEntity = setEntity;
+  ((EntityViewInterface *) clazz->interface)->setTextureValidation = setTextureValidation;
 }
 
 /**
@@ -197,7 +256,7 @@ Class *_EntityView(void) {
   do_once(&once, {
     clazz = _initialize(&(const ClassDef) {
       .name = "EntityView",
-      .superclass = _StackView(),
+      .superclass = _KeyValueView(),
       .instanceSize = sizeof(EntityView),
       .interfaceOffset = offsetof(EntityView, interface),
       .interfaceSize = sizeof(EntityViewInterface),

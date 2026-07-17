@@ -53,6 +53,28 @@ struct EditorViewController {
   EditorViewControllerInterface *interface;
 
   /**
+   * @brief The top menu strip (Editor / Settings / Controls / Disable / Quit).
+   */
+  StackView *menu;
+
+  /**
+   * @brief The content area below the menu strip; hosts the editor panel and,
+   * when a strip tab other than Editor is active, the Settings/Controls view.
+   */
+  View *content;
+
+  /**
+   * @brief The docked editor Panel (entity/material/mesh tabs).
+   */
+  Panel *panel;
+
+  /**
+   * @brief The currently presented strip sub-controller (Settings/Controls), or
+   * NULL when the Editor tab is active and the panel is shown.
+   */
+  ViewController *contentViewController;
+
+  /**
    * @brief TabViewController containing the editor tabs.
    */
   TabViewController *tabViewController;
@@ -73,16 +95,6 @@ struct EditorViewController {
   MeshViewController *meshViewController;
 
   /**
-   * @brief The Create Entity button.
-   */
-  Button *createEntity;
-
-  /**
-   * @brief The Delete Entity button.
-   */
-  Button *deleteEntity;
-
-  /**
    * @brief The Save button.
    */
   Button *save;
@@ -97,6 +109,22 @@ struct EditorViewControllerInterface {
    * @brief The superclass interface.
    */
   ViewControllerInterface viewControllerInterface;
+
+  /**
+   * @fn void EditorViewController::showEditorTab(EditorViewController *self)
+   * @brief Switches the menu strip back to the Editor tab (re-shows the editor
+   * panel, tearing down any Settings/Controls sub-view).
+   * @memberof EditorViewController
+   */
+  void (*showEditorTab)(EditorViewController *self);
+
+  /**
+   * @fn void EditorViewController::fitContentHeight(EditorViewController *self)
+   * @brief Stretches the docked panel to fill the viewport below the menu strip
+   * by pinning its content area's minimum height to the available space.
+   * @memberof EditorViewController
+   */
+  void (*fitContentHeight)(EditorViewController *self);
 };
 
 /**

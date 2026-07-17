@@ -22,7 +22,10 @@
 #pragma once
 
 #include "EntityView.h"
+#include <ObjectivelyMVC/KeyValueTableView.h>
 
+#include <ObjectivelyMVC/Box.h>
+#include <ObjectivelyMVC/Button.h>
 #include <ObjectivelyMVC/ViewController.h>
 
 /**
@@ -52,14 +55,37 @@ struct EntityViewController {
   EntityViewControllerInterface *interface;
 
   /**
-   * @brief The StackView containing the entity key-value pairs.
+   * @brief The Create Entity button (moved off the shared panel accessory so it
+   * lives on the Entity tab where it belongs).
    */
-  StackView *pairs;
+  Button *createEntity;
 
   /**
-   * @brief The StackView containing the team entity key-value pairs.
+   * @brief The Delete Entity button. Disabled when nothing (or worldspawn) is
+   * selected.
    */
-  StackView *teamPairs;
+  Button *deleteEntity;
+
+  /**
+   * @brief The group Box wrapping the entity's key-value pairs; its title shows
+   * the entity's classname.
+   */
+  Box *entityBox;
+
+  /**
+   * @brief The "Team Master" group Box; shown only for `light` entities.
+   */
+  Box *teamMasterBox;
+
+  /**
+   * @brief The scrollable table of the entity's key-value pairs.
+   */
+  KeyValueTableView *pairs;
+
+  /**
+   * @brief The scrollable table of the team entity's key-value pairs.
+   */
+  KeyValueTableView *teamPairs;
 
   /**
    * @brief The EntityView for adding a new key-value pair to the current entity.

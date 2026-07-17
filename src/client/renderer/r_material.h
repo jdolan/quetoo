@@ -26,6 +26,7 @@
 #include "r_types.h"
 
 r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context);
+void R_UpdateMaterialStages(r_material_t *material);
 
 #if defined(__R_LOCAL_H__)
 

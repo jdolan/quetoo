@@ -1,11 +1,68 @@
-#material Input Label {
-  max-width: 100;
+/* The container only lays the boxes out -- it gets NO background of its own, so
+   the translucent per-box tint below never composites over a second layer. */
+#materialContent {
+  autoresizing-mask: contain | width;
+  spacing: 16;
 }
 
-#material Input TextView {
-  width: 250;
+/* Each group box carries its own tint. */
+#materialBox,
+#pbrBox,
+#stagesBox {
+  autoresizing-mask: contain | width;
+  spacing: 16;
+  background-color: #11111144;
 }
 
-#material Input Slider {
-  width: 250;
+.stageEffectTable {
+  -key-width: 100;
+}
+
+/*The actual header row that contains the stage name and remove button. */
+#material .stageHeader {
+  background-color: #1e4e6266;
+  padding: 4;
+}
+
+/* The list of stage panels. Scrolling is on the ScrollView wrapping this
+   StackView (MaterialViewController.c), driven by the Scrollbar bound to it. */
+#material .stages {
+  spacing: 8;
+}
+
+/* Each stage is a self-contained panel. */
+#material .stageView {
+  background-color: #0c1f2755;
+  border-color: #1e4e62;
+  border-width: 1;
+  padding: 6;
+  spacing: 4;
+}
+
+#material .stageView.selected {
+  background-color: #1e4e6244;
+}
+
+#material .stageEffect {
+  background-color: #0c1f275a;
+  border-color: #1e4e62;
+  border-width: 1;
+  padding: 4;
+  spacing: 6;
+}
+
+#material .stageEffects {
+  spacing: 6;
+  autoresizing-mask: contain | width;
+}
+
+#material .stageEffectHeader,
+#material .stageAddEffect {
+  spacing: 6;
+}
+
+#material .iconButton {
+  background-color: #00000000;
+  border-width: 0;
+  padding: 1;
 }

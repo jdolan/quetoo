@@ -41,7 +41,7 @@ static void updateBindings(View *self) {
   this->background->view.hidden = isActive;
   this->logo->view.hidden = isActive;
   this->version->view.hidden = isActive;
-  this->secondaryMenu->view.hidden = !isActive;
+  ((View *) this->secondaryMenu)->hidden = !isActive;
 }
 
 #pragma mark - MainView

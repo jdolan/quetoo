@@ -24,14 +24,14 @@
 #include "cgame/cgame.h"
 #include "../../cg_editor.h"
 
-#include <ObjectivelyMVC/StackView.h>
+#include <ObjectivelyMVC/KeyValueView.h>
 
 typedef struct EntityView EntityView;
 typedef struct EntityViewInterface EntityViewInterface;
 
 /**
  * @file
- * @brief A View for editing `cm_entity_t`.
+ * @brief An editable key->value row for a `cm_entity_t`, with aligned columns.
  */
 
 /**
@@ -51,15 +51,18 @@ typedef struct EntityViewDelegate {
 } EntityViewDelegate;
 
 /**
- * @brief The EntityView type.
- * @extends StackView
+ * @brief An editable entity key->value row.
+ * @extends KeyValueView
+ * @details The key and value TextViews are the inherited KeyValueView::key and
+ * KeyValueView::value (cast to TextView); column widths are owned by the parent
+ * KeyValueTableView. This type adds only the entity-editing behavior.
  */
 struct EntityView {
 
   /**
    * @brief The superclass.
    */
-  StackView stackView;
+  KeyValueView keyValueView;
 
   /**
    * @brief The interface. @protected
@@ -82,14 +85,17 @@ struct EntityView {
   cm_entity_t *pair;
 
   /**
-   * @brief The entity key text field.
+   * @brief When non-empty, the value field is validated live as an asset path:
+   * `validatePrefix` + value is resolved in `validateContext`, tinting the field
+   * when it does not exist. Empty disables validation (the default). Enable via
+   * EntityView::setTextureValidation.
    */
-  TextView *key;
+  char validatePrefix[MAX_QPATH];
 
   /**
-   * @brief The entity value text field.
+   * @brief The asset context used when `validatePrefix` is set.
    */
-  TextView *value;
+  cm_asset_context_t validateContext;
 };
 
 /**
@@ -100,7 +106,7 @@ struct EntityViewInterface {
   /**
    * @brief The superclass interface.
    */
-  StackViewInterface stackViewInterface;
+  KeyValueViewInterface keyValueViewInterface;
 
   /**
    * @fn EntityView *EntityView::initWithEntity(EntityView *self, cg_editor_entity_t *edit, cm_entity_t *pair)
@@ -122,6 +128,17 @@ struct EntityViewInterface {
    * @memberof EntityView
    */
   void (*setEntity)(EntityView *self, cg_editor_entity_t *edit, cm_entity_t *pair);
+
+  /**
+   * @fn void EntityView::setTextureValidation(EntityView *self, const char *prefix, cm_asset_context_t context)
+   * @brief Enables live asset-path validation of the value field: `prefix` + value
+   * is resolved in `context`, tinting the field maroon when it does not exist.
+   * @param self The EntityView.
+   * @param prefix Path prefix prepended to the value (e.g. "sky/"), or NULL/empty to disable.
+   * @param context The asset context (e.g. `ASSET_CONTEXT_NONE` for a full path).
+   * @memberof EntityView
+   */
+  void (*setTextureValidation)(EntityView *self, const char *prefix, cm_asset_context_t context);
 };
 
 /**

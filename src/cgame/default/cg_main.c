@@ -21,6 +21,8 @@
 
 #include "cg_local.h"
 
+#include "ui/editor/TestScrollViewController.h"
+
 cg_state_t cg_state;
 
 cvar_t *cg_add_atmospheric;
@@ -82,6 +84,23 @@ cvar_t *cg_skin;
 cvar_t *editor;
 
 cg_import_t cgi;
+
+/**
+ * @brief TEMPORARY: toggles the Scrollbar/ScrollView rework test harness
+ * (TestScrollViewController), independent of the real editor. See
+ * TestScrollViewController.h. Delete this along with that class once the
+ * rework has landed for real.
+ */
+static void Cg_TestScroll_f(void) {
+
+  if (instanceof(TestScrollViewController, cgi.TopViewController())) {
+    cgi.PopViewController();
+  } else {
+    TestScrollViewController *vc = (TestScrollViewController *) $((ViewController *) alloc(TestScrollViewController), init);
+    cgi.PushViewController((ViewController *) vc);
+    release(vc);
+  }
+}
 
 /**
  * @brief Called when the client first comes up or switches game directories. Client
@@ -155,6 +174,9 @@ static void Cg_Init(void) {
   cg_skin = cgi.AddCvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE, "Your player model and skin.");
 
   editor = cgi.GetCvar("editor");
+
+  cgi.AddCmd("test_scroll", Cg_TestScroll_f, CMD_CGAME,
+         "TEMPORARY: toggle the Scrollbar/ScrollView rework test harness.");
 
   // add forward to server commands for tab completion
 

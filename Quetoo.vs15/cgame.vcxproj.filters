@@ -87,6 +87,9 @@
     <ClInclude Include="..\src\cgame\default\ui\editor\MaterialViewController.h">
       <Filter>src\default\ui\editor</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\editor\TestScrollViewController.h">
+      <Filter>src\default\ui\editor</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\default\cg_hud.h">
       <Filter>src\default</Filter>
     </ClInclude>
@@ -282,6 +285,9 @@
       <Filter>src\default\ui\editor</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\editor\MaterialViewController.c">
+      <Filter>src\default\ui\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\editor\TestScrollViewController.c">
       <Filter>src\default\ui\editor</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\cg_hud.c">

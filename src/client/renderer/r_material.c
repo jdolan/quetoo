@@ -194,9 +194,14 @@ static void R_ResolveMaterialStages(r_material_t *material) {
     stage->cm = cs;
 
     if (*stage->cm->asset.path) {
-      if (stage->cm->flags & STAGE_ANIMATION) {
+      if ((stage->cm->flags & STAGE_ANIMATION) && stage->cm->animation.num_frames >= 1) {
         stage->media = (r_media_t *) R_LoadStageAnimation(cm, stage);
       } else {
+        // A stage flagged STAGE_ANIMATION but with no resolved frames (e.g. one
+        // just added in the editor whose texture is not a numbered sequence)
+        // would otherwise build a 0-frame animation, which the draw path indexes
+        // as frames[-1] / frame % 0 and crashes. Fall back to the static image so
+        // it renders harmlessly until a valid frame sequence is supplied.
         stage->media = (r_media_t *) R_LoadImage(stage->cm->asset.path, IMG_MATERIAL);
       }
 
@@ -209,6 +214,25 @@ static void R_ResolveMaterialStages(r_material_t *material) {
   }
 
   Com_Debug(DEBUG_RENDERER, "Resolved material %s with %d stages\n", material->cm->name, num_stages);
+}
+
+/**
+ * @brief Rebuilds a material's render stage list from its collision stages,
+ * reloading stage media. Called by the in-game editor after a stage is added,
+ * removed, or has a draw-affecting flag toggled. Editing a parameter or flag of
+ * an existing stage needs no rebuild, since the draw path reads `stage->cm`
+ * fields live.
+ */
+void R_UpdateMaterialStages(r_material_t *material) {
+
+  for (r_stage_t *stage = material->stages; stage; ) {
+    r_stage_t *next = stage->next;
+    Mem_Free(stage);
+    stage = next;
+  }
+  material->stages = NULL;
+
+  R_ResolveMaterialStages(material);
 }
 
 /**
