@@ -100,14 +100,14 @@ typedef struct {
   float lerp;
   float padding[3];
   vec4_t color;
-  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
+  r_active_dynamic_lights_t active_dynamic_lights;
 } r_mesh_locals_t;
 
 /**
  * @brief Per-entity fragment locals.
  */
 typedef struct {
-  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
+  r_active_dynamic_lights_t active_dynamic_lights;
 } r_mesh_fragment_locals_t;
 
 /**
@@ -319,14 +319,14 @@ static void R_DrawMeshEntityMaterialStages(const r_view_t *view, RenderPass *pas
  */
 static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, const r_entity_t *e,
                                  const r_mesh_model_t *mesh, const r_mesh_face_t *face, const r_material_t *material,
-                                 const uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32]) {
+                                 const r_active_dynamic_lights_t *active_dynamic_lights) {
 
   r_mesh_locals_t locals = {
     .model = e->matrix,
     .lerp = e->lerp,
     .color = e->color,
   };
-  memcpy(locals.active_dynamic_lights, active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+  memcpy(&locals.active_dynamic_lights, active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   switch (material->cm->surface & SURF_MASK_BLEND) {
     case SURF_BLEND_33:
       locals.color.w *= .333f;
@@ -355,7 +355,7 @@ static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, cons
 static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                  const r_entity_t *e, const r_mesh_model_t *mesh,
                                  const r_mesh_face_t *face, const r_material_t *material, bool draw_stages,
-                                 const uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32]) {
+                                 const r_active_dynamic_lights_t *active_dynamic_lights) {
 
   $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
     .texture = material->texture->texture->texture,
@@ -394,7 +394,7 @@ static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, Command
 static void R_DrawMeshEntityFaceMaterialStages(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                                const r_entity_t *e, const r_mesh_model_t *mesh,
                                                const r_mesh_face_t *face, const r_material_t *material,
-                                               const uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32]) {
+                                               const r_active_dynamic_lights_t *active_dynamic_lights) {
 
   $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
     .texture = material->texture->texture->texture,
@@ -429,7 +429,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
   }
 
   r_mesh_fragment_locals_t fragment_locals = { 0 };
-  memcpy(fragment_locals.active_dynamic_lights, e->active_dynamic_lights, sizeof(fragment_locals.active_dynamic_lights));
+  memcpy(&fragment_locals.active_dynamic_lights, &e->active_dynamic_lights, sizeof(fragment_locals.active_dynamic_lights));
   $(commands, pushFragmentUniformData, MESH_UNIFORMS_LOCALS, &fragment_locals, sizeof(fragment_locals));
 
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
@@ -455,7 +455,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
     $(pass, bindPipeline, r_mesh_draw.pipeline);
 
-    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, false, fragment_locals.active_dynamic_lights);
+    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, false, &fragment_locals.active_dynamic_lights);
   }
 
   face = mesh->faces;
@@ -477,7 +477,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
     $(pass, bindPipeline, r_mesh_draw.pipeline_alpha_test);
 
-    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, false, fragment_locals.active_dynamic_lights);
+    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, false, &fragment_locals.active_dynamic_lights);
   }
 
   if (r_draw_material_stages->integer) {
@@ -495,7 +495,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
         continue;
       }
 
-      R_DrawMeshEntityFaceMaterialStages(view, pass, commands, e, mesh, face, material, fragment_locals.active_dynamic_lights);
+      R_DrawMeshEntityFaceMaterialStages(view, pass, commands, e, mesh, face, material, &fragment_locals.active_dynamic_lights);
     }
   }
 
@@ -514,7 +514,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
     $(pass, bindPipeline, r_mesh_draw.blend_pipeline);
 
-    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, true, fragment_locals.active_dynamic_lights);
+    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, true, &fragment_locals.active_dynamic_lights);
   }
 
   if (e->effects & EF_WEAPON) {

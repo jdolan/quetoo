@@ -34,7 +34,7 @@ enum {
  * @brief Per-batch sprite lighting data.
  */
 typedef struct {
-  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
+  r_active_dynamic_lights_t active_dynamic_lights;
 } r_sprite_locals_t;
 
 /**
@@ -501,7 +501,7 @@ void R_DrawSprites(const r_view_t *view, RenderPass *pass) {
     }
 
     r_sprite_locals_t locals = { 0 };
-    R_ActiveDynamicLights(view, batch_bounds, locals.active_dynamic_lights);
+    R_ActiveDynamicLights(view, batch_bounds, &locals.active_dynamic_lights);
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
 
     $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DIFFUSE, (SDL_GPUTextureSamplerBinding[]) {

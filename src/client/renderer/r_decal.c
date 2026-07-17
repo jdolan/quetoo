@@ -446,7 +446,7 @@ void R_DrawDecals(RenderPass *pass, const r_view_t *view) {
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
 
     if (!IS_WORLDSPAWN(e->model)) {
-      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, e->active_dynamic_lights, sizeof(e->active_dynamic_lights));
+      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &e->active_dynamic_lights, sizeof(e->active_dynamic_lights));
     }
 
     const r_bsp_inline_model_t *in = e->model->bsp_inline;
@@ -462,7 +462,7 @@ void R_DrawDecals(RenderPass *pass, const r_view_t *view) {
       }
 
       if (IS_WORLDSPAWN(e->model)) {
-        $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, block->active_dynamic_lights, sizeof(block->active_dynamic_lights));
+        $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &block->active_dynamic_lights, sizeof(block->active_dynamic_lights));
       }
 
       const r_bsp_block_decals_t *decals = &block->decals;

@@ -58,12 +58,12 @@ typedef struct {
   /**
    * @brief Number of BSP lights.
    */
-  int32_t num_bsp_lights;
+  int32_t num_lights;
 
   /**
    * @brief BSP lights indexed by BSP lump index.
    */
-  alignas(16) r_light_uniform_t bsp_lights[MAX_BSP_LIGHTS];
+  alignas(16) r_light_uniform_t lights[MAX_BSP_LIGHTS];
 } r_bsp_lights_uniform_block_t;
 
 /**
@@ -74,12 +74,12 @@ typedef struct {
   /**
    * @brief Number of dynamic lights.
    */
-  int32_t num_dynamic_lights;
+  int32_t num_lights;
 
   /**
    * @brief Dynamic lights in view order.
    */
-  alignas(16) r_light_uniform_t dynamic_lights[MAX_DYNAMIC_LIGHTS];
+  alignas(16) r_light_uniform_t lights[MAX_DYNAMIC_LIGHTS];
 } r_dynamic_lights_uniform_block_t;
 
 /**
@@ -113,8 +113,8 @@ typedef struct {
  */
 extern r_lights_t r_lights;
 
+void R_ActiveDynamicLights(const r_view_t *view, const box3_t bounds, r_active_dynamic_lights_t *out);
 void R_UpdateLights(r_view_t *view, CopyPass *copyPass);
-void R_ActiveDynamicLights(const r_view_t *view, const box3_t bounds, uint32_t mask[MAX_DYNAMIC_LIGHTS / 32]);
 void R_InitLights(void);
 void R_ShutdownLights(void);
 #endif
