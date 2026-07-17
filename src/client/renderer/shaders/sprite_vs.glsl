@@ -22,7 +22,6 @@
 #version 450
 
 #include "uniforms.glsl"
-#include "light_types.glsl"
 
 /*
  * The sprite family's own dense lighting bindings, after the vertex buffer:
@@ -41,15 +40,7 @@
 #define BINDING_STORAGE_VOXEL_LIGHT_DATA     2
 #define BINDING_STORAGE_VOXEL_LIGHT_INDICES  3
 
-layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_BSP_LIGHTS) readonly buffer bsp_lights_block {
-  int num_bsp_lights;
-  light_t bsp_lights[];
-};
-
-layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_DYNAMIC_LIGHTS) readonly buffer dynamic_lights_block {
-  int num_dynamic_lights;
-  light_t dynamic_lights[];
-};
+#include "light_types.glsl"
 
 layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_DATA) readonly buffer voxel_light_data_block {
   int voxel_light_data_elements[];
@@ -58,6 +49,7 @@ layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_DATA) r
 layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES) readonly buffer voxel_light_indices_block {
   int voxel_light_indices[];
 };
+
 
 /**
  * @brief Per-batch dynamic light cull mask (see r_sprite.c): sprite draws are

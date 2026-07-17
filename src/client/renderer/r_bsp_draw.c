@@ -330,7 +330,7 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
         continue;
       }
 
-      R_ActiveDynamicLights(view, block->node->visible_bounds, locals.active_dynamic_lights);
+      memcpy(locals.active_dynamic_lights, block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
       $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
       $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
@@ -452,7 +452,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 
       r_stats.blocks_visible++;
 
-      R_ActiveDynamicLights(view, block->node->visible_bounds, locals.active_dynamic_lights);
+      memcpy(locals.active_dynamic_lights, block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
       $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
       $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
@@ -489,7 +489,7 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
         continue;
       }
 
-      R_ActiveDynamicLights(view, block->node->visible_bounds, locals.active_dynamic_lights);
+      memcpy(locals.active_dynamic_lights, block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
       $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
       $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
@@ -727,7 +727,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
         continue;
       }
 
-      R_ActiveDynamicLights(view, block->node->visible_bounds, locals.active_dynamic_lights);
+      memcpy(locals.active_dynamic_lights, block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
       $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
       $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }

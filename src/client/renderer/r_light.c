@@ -100,6 +100,21 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
 
   const uint32_t dynamic_size = offsetof(r_dynamic_lights_uniform_block_t, dynamic_lights) + dynamic_block->num_dynamic_lights * sizeof(r_light_uniform_t);
   $(r_lights.dynamic_buffer, uploadWithPass, copyPass, dynamic_block, dynamic_size, 0, true);
+
+  // Cache each worldspawn block's dynamic light mask once per frame, so that
+  // the opaque, alpha-test, blend, material-stage and decal draw passes can
+  // all read it instead of separately recomputing it via R_ActiveDynamicLights.
+  // Movable (non-worldspawn) inline models are excluded: their bounds change
+  // per frame with the entity's transform, so they're computed per-entity,
+  // per-pass, from entity->abs_model_bounds instead.
+  if (r_models.world) {
+    const r_bsp_inline_model_t *in = &r_models.world->bsp->inline_models[0];
+
+    r_bsp_block_t *block = in->blocks;
+    for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+      R_ActiveDynamicLights(view, block->visible_bounds, block->active_dynamic_lights);
+    }
+  }
 }
 
 /**

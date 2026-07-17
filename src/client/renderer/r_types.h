@@ -614,6 +614,11 @@ typedef struct {
 #define MAX_BSP_BLOCK_DECALS 0x1000
 
 /**
+ * @brief The maximum number of dynamic lights per scene.
+ */
+#define MAX_DYNAMIC_LIGHTS 256
+
+/**
  * @brief Decals are aggregated at the BSP block level.
  */
 typedef struct {
@@ -680,6 +685,12 @@ typedef struct r_bsp_block_s {
    * @brief The decals for this block.
    */
   r_bsp_block_decals_t decals;
+
+  /**
+   * @brief The cached dynamic light bitmask for this block, updated once
+   * per frame in R_UpdateLights.
+   */
+  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
 
 } r_bsp_block_t;
 
@@ -1828,7 +1839,6 @@ typedef struct r_entity_s {
 /**
  * @brief Light sources per scene.
  */
-#define MAX_DYNAMIC_LIGHTS 256
 #define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
 
 /**

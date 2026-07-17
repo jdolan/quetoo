@@ -23,15 +23,14 @@
  * @file light.glsl
  * @brief Per-vertex and per-fragment lighting and shadow functions.
  * @remarks Include after uniforms.glsl, common.glsl, material.glsl, voxel.glsl.
- * Pulls in light_types.glsl for light_t itself. material.glsl declares the
- * shadow atlas and sky cubemap samplers (part of the canonical lit-material
- * sampler family); only the BSP/dynamic lights storage buffers are declared
- * here. SDL_gpu forbids DEPTH_STENCIL_TARGET on array textures, so the atlas
- * is six separate 2D textures (one per cube face) rather than one array
- * texture; sample_shadow_atlas selects among them with a branch on the
- * fragment's cube face, since dynamic (non-constant) indexing into an array
- * of distinct sampler bindings isn't reliably portable across the SPIR-V/MSL
- * toolchain.
+ * Pulls in light_types.glsl for light_t and the BSP/dynamic lights storage
+ * buffers. material.glsl declares the shadow atlas and sky cubemap samplers
+ * (part of the canonical lit-material sampler family). SDL_gpu forbids
+ * DEPTH_STENCIL_TARGET on array textures, so the atlas is six separate 2D
+ * textures (one per cube face) rather than one array texture;
+ * sample_shadow_atlas selects among them with a branch on the fragment's cube
+ * face, since dynamic (non-constant) indexing into an array of distinct
+ * sampler bindings isn't reliably portable across the SPIR-V/MSL toolchain.
  */
 
 #include "light_types.glsl"
@@ -41,16 +40,6 @@
  * lighting blends out to the cheap per-vertex lighting.
  */
 #define LIGHTING_LOD_BLEND_DIST 128.0
-
-layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_BSP_LIGHTS) readonly buffer bsp_lights_block {
-  int num_bsp_lights;
-  light_t bsp_lights[];
-};
-
-layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_DYNAMIC_LIGHTS) readonly buffer dynamic_lights_block {
-  int num_dynamic_lights;
-  light_t dynamic_lights[];
-};
 
 #if defined(FRAGMENT_SHADER)
 /**

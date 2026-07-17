@@ -22,30 +22,39 @@
 #version 450
 
 #include "uniforms.glsl"
-#include "light_types.glsl"
 
 /*
  * Decals are their own dense descriptor family: the decal atlas at sampler 0,
- * the BSP lights, voxel light-data and voxel light-index storage buffers at
- * the contiguous bindings 1/2/3 (decals only ever take clustered voxel BSP
- * light, never the per-draw dynamic light tail). The light data is a storage
- * buffer of per-voxel (first_index, count) pairs rather than an RG32I
- * isampler3D because D3D12 cannot sample integer formats. No shadows or
- * normal maps -- decals take clustered voxel diffuse only.
+ * the BSP lights, dynamic lights, voxel light-data and voxel light-index
+ * storage buffers at the contiguous bindings 1/2/3/4. The light data is a
+ * storage buffer of per-voxel (first_index, count) pairs rather than an
+ * RG32I isampler3D because D3D12 cannot sample integer formats. No shadows
+ * or normal maps -- decals take clustered voxel diffuse plus a per-draw
+ * dynamic light tail, both unshadowed Lambert.
  */
+#define BINDING_STORAGE_BSP_LIGHTS           1
+#define BINDING_STORAGE_DYNAMIC_LIGHTS       2
+#define BINDING_STORAGE_VOXEL_LIGHT_DATA     3
+#define BINDING_STORAGE_VOXEL_LIGHT_INDICES  4
+
+#include "light_types.glsl"
+
 layout (set = SAMPLER_SET, binding = 0) uniform sampler2D texture_diffusemap;
 
-layout (std430, set = SAMPLER_SET, binding = 1) readonly buffer bsp_lights_block {
-  int num_bsp_lights;
-  light_t bsp_lights[];
-};
-
-layout (std430, set = SAMPLER_SET, binding = 2) readonly buffer voxel_light_data_block {
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_DATA) readonly buffer voxel_light_data_block {
   int voxel_light_data_elements[];
 };
 
-layout (std430, set = SAMPLER_SET, binding = 3) readonly buffer voxel_light_indices_block {
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES) readonly buffer voxel_light_indices_block {
   int voxel_light_indices[];
+};
+
+/**
+ * @brief Per-draw dynamic light cull mask (see r_decal.c), mirroring
+ * bsp_fs.glsl's fragment locals pattern.
+ */
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform decal_locals_block {
+  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
 };
 
 layout (location = 0) in vec3 in_model_position;
@@ -69,9 +78,7 @@ ivec3 decal_voxel_xyz(in vec3 position) {
 /**
  * @brief Unshadowed Lambert diffuse contribution from a single light.
  */
-vec3 decal_light(in int index, in vec3 normal) {
-
-  const light_t light = bsp_lights[index];
+vec3 decal_light(in light_t light, in vec3 normal) {
 
   const vec3 dir = light.origin.xyz - in_model_position;
   const float dist = length(dir);
@@ -89,7 +96,8 @@ vec3 decal_light(in int index, in vec3 normal) {
 
 /**
  * @brief Decal fragment shader: the decal atlas lit by clustered voxel lights
- * (matching the surface beneath it), alpha-blended and faded over its lifetime.
+ * (matching the surface beneath it) plus a per-draw dynamic light tail,
+ * alpha-blended and faded over its lifetime.
  */
 void main(void) {
 
@@ -105,7 +113,13 @@ void main(void) {
 
   for (int i = 0; i < data.y; i++) {
     const int index = voxel_light_indices[data.x + i];
-    light += decal_light(index, normal);
+    light += decal_light(bsp_lights[index], normal);
+  }
+
+  for (int j = 0; j < num_dynamic_lights; j++) {
+    if (dynamic_light_active(active_dynamic_lights, j)) {
+      light += decal_light(dynamic_lights[j], normal);
+    }
   }
 
   out_color = diffuse * in_color;

@@ -434,14 +434,16 @@ void R_DrawDecals(RenderPass *pass, const r_view_t *view) {
 
   $(pass, bindPipeline, r_decal_pipeline.pipeline);
 
-  // The shared BSP lights / voxel-data / voxel-index storage (decal family:
-  // sampler 0=atlas; storage 0=bsp lights, 1=voxel data, 2=voxel indices).
+  // The shared BSP lights / dynamic lights / voxel-data / voxel-index
+  // storage (decal family: sampler 0=atlas; storage 0=bsp lights, 1=dynamic
+  // lights, 2=voxel data, 3=voxel indices).
   SDL_GPUBuffer *storage[] = {
     r_lights.bsp_buffer->buffer,
+    r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
     bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, 0, storage, 3);
+  $(pass, bindFragmentStorageBuffers, 0, storage, 4);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -456,6 +458,15 @@ void R_DrawDecals(RenderPass *pass, const r_view_t *view) {
 
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
 
+    // Movable (non-worldspawn) submodels: compute the mask once per entity,
+    // from its current transformed bounds. Worldspawn blocks use the mask
+    // cached per frame in R_UpdateLights (see the block loop below).
+    uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
+    if (!IS_WORLDSPAWN(e->model)) {
+      R_ActiveDynamicLights(view, e->abs_model_bounds, active_dynamic_lights);
+      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_dynamic_lights, sizeof(active_dynamic_lights));
+    }
+
     const r_bsp_inline_model_t *in = e->model->bsp_inline;
     const r_bsp_block_t *block = in->blocks;
     for (int32_t j = 0; j < in->num_blocks; j++, block++) {
@@ -466,6 +477,10 @@ void R_DrawDecals(RenderPass *pass, const r_view_t *view) {
 
       if (R_CulludeBox(view, block->visible_bounds)) {
         continue;
+      }
+
+      if (IS_WORLDSPAWN(e->model)) {
+        $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, block->active_dynamic_lights, sizeof(block->active_dynamic_lights));
       }
 
       const r_bsp_block_decals_t *decals = &block->decals;
@@ -545,8 +560,8 @@ void R_InitDecals(void) {
     "shaders/decal_fs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
       .num_samplers = 1,
-      .num_storage_buffers = 3,
-      .num_uniform_buffers = 1,
+      .num_storage_buffers = 4,
+      .num_uniform_buffers = 2,
     },
     &info);
 

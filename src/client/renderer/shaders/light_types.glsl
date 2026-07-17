@@ -21,12 +21,15 @@
 
 /**
  * @file light_types.glsl
- * @brief The light_t type and its minimal helpers, with no dependency on
- * common.glsl/material.glsl/voxel.glsl. Shared by light.glsl (bsp/mesh's full
- * shadowed/dynamic lighting) as well as lightweight consumers that only need
- * light_t itself -- decal_fs.glsl (clustered voxel BSP light only, no shadows
- * or dynamic tail) and the sprite program (distance-only attenuation, no
- * Lambert term) -- without pulling in light.glsl's heavier dependencies.
+ * @brief The light_t type, its minimal helpers, and the shared
+ * bsp_lights_block/dynamic_lights_block storage buffer declarations, with no
+ * dependency on common.glsl/material.glsl/voxel.glsl. Shared by light.glsl
+ * (bsp/mesh's full shadowed/dynamic lighting) as well as lightweight
+ * consumers -- decal_fs.glsl (clustered voxel BSP light + dynamic light tail,
+ * no shadows) and the sprite program (distance-only attenuation, no Lambert
+ * term) -- without pulling in light.glsl's heavier dependencies. Every
+ * consumer must define BINDING_STORAGE_BSP_LIGHTS and
+ * BINDING_STORAGE_DYNAMIC_LIGHTS before including this file.
  * @remarks Include after uniforms.glsl.
  */
 
@@ -79,3 +82,23 @@ vec3 light_color(in light_t l) {
 bool dynamic_light_active(in uvec4 mask[MAX_DYNAMIC_LIGHTS / 128], in int j) {
   return (mask[j >> 7][(j >> 5) & 3] & (1u << (j & 31))) != 0u;
 }
+
+/**
+ * @brief The clustered (voxel-gridded) static BSP lights.
+ * @remarks A program opts in by defining BINDING_STORAGE_BSP_LIGHTS before
+ * including this file.
+ */
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_BSP_LIGHTS) readonly buffer bsp_lights_block {
+  int num_bsp_lights;
+  light_t bsp_lights[];
+};
+
+/**
+ * @brief The per-draw dynamic lights (trails, explosions, animated BSP lights, etc.).
+ * @remarks A program opts in by defining BINDING_STORAGE_DYNAMIC_LIGHTS before
+ * including this file.
+ */
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_DYNAMIC_LIGHTS) readonly buffer dynamic_lights_block {
+  int num_dynamic_lights;
+  light_t dynamic_lights[];
+};
