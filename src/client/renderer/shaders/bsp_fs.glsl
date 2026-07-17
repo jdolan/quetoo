@@ -37,15 +37,13 @@
 #include "voxel.glsl"
 
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bsp_locals_block {
-  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
+  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
 };
 
 #include "light.glsl"
 
 /**
- * @brief The procedural warp noise texture, for STAGE_WARP liquid surfaces.
- * @remarks BSP-only: unlike the other samplers above, this is not declared in
- * material.glsl since mesh materials never set STAGE_WARP (matching main).
+ * @brief Warp texture for STAGE_WARP liquid surfaces.
  */
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_WARP) uniform sampler2D texture_warp;
 
@@ -59,8 +57,7 @@ layout (location = 1) out float out_depth;
 common_fragment_t fragment;
 
 /**
- * @brief Calculates the augmented texcoord for parallax occlusion mapping.
- * @see https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
+ * @brief Applies parallax occlusion mapping to the fragment texcoord.
  */
 void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment_t fragment) {
 
@@ -99,12 +96,7 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
 }
 
 /**
- * @brief Calculate lighting and shadows for BSP with distance-based LOD.
- * @details Handles BSP-specific ambient (sky + voxel exposure) and editor mode.
- * Full per-fragment lighting blends out to the vertex shader's cheap
- * per-vertex lighting over [lighting_distance, lighting_distance +
- * LIGHTING_LOD_BLEND_DIST]; fully distant fragments take the vertex lighting
- * alone.
+ * @brief Computes BSP fragment lighting with distance-based LOD.
  */
 void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
 
@@ -125,7 +117,6 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
     fragment.specular_sample = sample_material_specular(fragment.parallax);
   }
 
-  // Precompute per-pixel Poisson rotation for shadow PCF
   float angle = random_angle(vertex.model_position);
   fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
 
@@ -137,20 +128,7 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
 }
 
 /**
- * @brief Opaque diffuse surfaces (material.flags == STAGE_NONE) get clustered +
- * dynamic lighting; material stages sample their own texture and are
- * optionally lit and/or emissive, blended over the base surface. One shader,
- * one pipeline: which branch runs is a runtime uniform, not a compile-time
- * variant, so a stage draw never requires a pipeline swap.
- * @details The alpha-test `discard` below is instead a *compile-time* variant
- * (`ALPHA_TEST`, see Makefile.am's `bsp_fs_alpha_test`), because a `discard`
- * anywhere in a fragment shader's source forces late (post-shader) depth
- * testing for every draw using that shader/pipeline, even ones that never
- * reach it. Material stages (the `else` branch) never discard, and most
- * opaque surfaces aren't alpha-tested, so those are compiled and drawn with
- * this file's default (discard-free) variant, preserving early-Z / Hi-Z for
- * them; only `SURF_ALPHA_TEST` surfaces pay for late-Z, via their own
- * dedicated pipeline (r_bsp_draw.pipeline_alpha_test).
+ * @brief Shades BSP base surfaces and material stages.
  */
 void main(void) {
 

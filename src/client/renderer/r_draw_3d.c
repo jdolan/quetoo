@@ -18,28 +18,27 @@
 #include "r_local.h"
 
 /**
- * @brief A single draw call: a run of vertexes to rasterize with a given
- * primitive mode and depth test flag.
+ * @brief A 3D draw batch.
  */
 typedef struct {
 
   /**
-   * @brief The draw mode, e.g. `SDL_GPU_PRIMITIVETYPE_LINESTRIP`.
+   * @brief Primitive mode.
    */
   SDL_GPUPrimitiveType mode;
 
   /**
-   * @brief The depth test flag.
+   * @brief Depth-test flag.
    */
   bool depth_test;
 
   /**
-   * @brief The first vertex.
+   * @brief First vertex.
    */
   uint32_t first_vertex;
 
   /**
-   * @brief The number of vertexes.
+   * @brief Vertex count.
    */
   uint32_t num_vertexes;
 } r_draw_3d_arrays_t;
@@ -48,23 +47,23 @@ typedef struct {
 #define MAX_DRAW_3D_VERTEXES (MAX_DRAW_3D_ARRAYS * 2)
 
 /**
- * @brief 3D debug vertex type.
+ * @brief 3D debug vertex.
  */
 typedef struct {
 
   /**
-   * @brief The vertex position.
+   * @brief Vertex position.
    */
   vec3_t position;
 
   /**
-   * @brief The vertex color.
+   * @brief Vertex color.
    */
   color32_t color;
 } r_draw_3d_vertex_t;
 
 /**
- * @brief 3D debug draw state, accumulated over the frame and flushed by R_Draw3D.
+ * @brief 3D debug draw state.
  */
 static struct {
 
@@ -75,12 +74,11 @@ static struct {
   int32_t num_vertexes;
 
   Buffer *vertex_buffer;
-  int32_t vertex_buffer_capacity; // in vertexes
+  int32_t vertex_buffer_capacity;
 } r_draw_3d;
 
 /**
- * @brief The 3D debug pipelines, keyed by primitive mode and depth test flag
- * (SDL_gpu bakes both into the pipeline, unlike GL's per-draw-call state).
+ * @brief 3D debug pipelines keyed by primitive mode and depth testing.
  */
 static struct {
   GraphicsPipeline *line_list;
@@ -90,9 +88,7 @@ static struct {
 } r_draw_3d_pipeline;
 
 /**
- * @brief Resolves the pipeline for the given primitive mode and depth test flag.
- * @remarks Only LINELIST and LINESTRIP are supported; callers needing other
- * primitive types should extend the pipeline set above.
+ * @brief Returns the pipeline for the requested primitive mode and depth test.
  */
 static GraphicsPipeline *R_Draw3DPipeline(SDL_GPUPrimitiveType mode, bool depth_test) {
 
@@ -302,10 +298,7 @@ static void R_UpdateLightBounds(const r_view_t *view) {
 }
 
 /**
- * @brief Accumulates debug bounding boxes for occlusion queries and inline
- * model blocks when `r_draw_occlusion_queries` / `r_draw_bsp_blocks` are
- * enabled. Query results were already resolved this frame in R_DrawViewDepth,
- * so they're stable by the time this runs.
+ * @brief Adds debug bounds for occlusion queries and BSP blocks.
  */
 static void R_UpdateOcclusionBounds(const r_view_t *view) {
 
@@ -456,7 +449,6 @@ static GraphicsPipeline *R_InitDraw3DPipeline(SDL_GPUPrimitiveType mode, bool de
         .blend_state = GPU_BlendStateAlpha,
       },
       {
-        // Debug geometry never touches the linearized-depth target; mask writes off.
         .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
         .blend_state = { .enable_color_write_mask = true, .color_write_mask = 0 },
       },
@@ -478,7 +470,7 @@ void R_InitDraw3D(void) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/draw_3d_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = 1, // globals (binding 0)
+    .num_uniform_buffers = 1,
   });
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/draw_3d_fs", &(SDL_GPUShaderCreateInfo) {
@@ -508,9 +500,7 @@ void R_ShutdownDraw3D(void) {
 }
 
 /**
- * @brief Rebuilds the 3D debug draw pipelines in place, for pipeline-bound
- * cvar changes (r_antialias, ...) that would otherwise require an r_restart.
- * See R_UpdatePipelines.
+ * @brief Rebuilds the 3D debug draw pipelines.
  */
 void R_UpdateDraw3DPipeline(void) {
   R_ShutdownDraw3D();

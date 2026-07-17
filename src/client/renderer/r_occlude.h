@@ -31,59 +31,56 @@ bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius);
 #if defined(__R_LOCAL_H__)
 
 /**
- * @brief The maximum number of occlusion queries: one per BSP block plus one per BSP light.
+ * @brief The maximum number of occlusion queries.
  */
 #define MAX_OCCLUSION_QUERIES (MAX_BSP_BLOCKS + MAX_BSP_LIGHTS)
 
 /**
- * @brief The occlusion query accounting structure.
+ * @brief Occlusion query state.
  */
 typedef struct {
   /**
-   * @brief The occlusion queries. A query's position in this array is also its index into `query_pool`.
+   * @brief Allocated occlusion queries.
    */
   r_occlusion_query_t queries[MAX_OCCLUSION_QUERIES];
 
   /**
-   * @brief The number of allocated queries.
+   * @brief Number of allocated queries.
    */
   int32_t num_queries;
 
   /**
-   * @brief The per-instance box bounds appended by `R_AppendOcclusionQueryBox`, flattened
-   * into `instance_buffer` by `R_LoadOcclusionQueries`. Reset by `R_FreeOcclusionQueries`.
+   * @brief Per-instance occlusion box bounds.
    */
   Vector *boxes;
 
   /**
-   * @brief The shared occlusion query pool.
+   * @brief Shared occlusion query pool.
    */
   QueryPool *pool;
 
   /**
-   * @brief The per-instance box bounds buffer (INSTANCE rate, slot 1), built from `boxes`
-   * by `R_LoadOcclusionQueries` when loading completes.
+   * @brief Per-instance box buffer.
    */
   Buffer *instance_buffer;
 
   /**
-   * @brief The constant unit-cube vertex buffer (VERTEX rate, slot 0), shared by every
-   * occlusion box instance. Built once by `R_InitOcclusionQueries`.
+   * @brief Unit-cube vertex buffer.
    */
   Buffer *vertex_buffer;
 
   /**
-   * @brief The shared index buffer for the unit cube (reused for every instance).
+   * @brief Unit-cube index buffer.
    */
   Buffer *elements_buffer;
 
   /**
-   * @brief The position-only, depth-only pipeline used to draw occlusion boxes.
+   * @brief Occlusion query pipeline.
    */
   GraphicsPipeline *pipeline;
 
   /**
-   * @brief The download target for query results.
+   * @brief Query result transfer buffer.
    */
   TransferBuffer *transfer;
 } r_occlusion_t;

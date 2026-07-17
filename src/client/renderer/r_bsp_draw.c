@@ -22,8 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief BSP's extra sampler beyond the shared family (r_material.h): liquid
- * warp (bsp_fs.glsl only).
+ * @brief Additional BSP sampler slot for liquid warp textures.
  */
 enum {
   BSP_SAMPLER_WARP = R_SAMPLER_MATERIAL_TOTAL,
@@ -40,8 +39,7 @@ enum {
 };
 
 /**
- * @brief Per-draw vertex locals (@c locals_block in @c bsp_vs.glsl): the model
- * matrix and the dynamic light cull bitmask for per-vertex lighting.
+ * @brief Per-draw BSP vertex uniforms.
  */
 typedef struct {
   mat4_t model;
@@ -49,7 +47,7 @@ typedef struct {
 } r_bsp_locals_t;
 
 /**
- * @brief Cache of material stage pipelines, one per unique combination.
+ * @brief Cached BSP material-stage pipeline state.
  */
 typedef struct {
   cm_blend_t src, dest;
@@ -60,84 +58,66 @@ typedef struct {
 #define MAX_STAGE_PIPELINES 16
 
 /**
- * @brief The BSP program (@c bsp_vs/ @c bsp_fs): its graphics pipeline, samplers, and
- * the lazily-built cache of material-stage blend pipelines. Draws BSP geometry
- * with the material diffuse texture and clustered per-voxel lighting, and its
- * material stages via the same shader (a runtime branch on stage.flags, not a
- * pipeline swap): see @c R_DrawBspDrawElementsMaterialStage.
+ * @brief BSP draw pipeline state and cached material-stage pipelines.
  */
 static struct {
 
   /**
-   * @brief The BSP graphics pipeline.
+   * @brief Opaque BSP pipeline.
    */
   GraphicsPipeline *pipeline;
 
   /**
-   * @brief An alpha-test variant of `pipeline`, for @c SURF_ALPHA_TEST surfaces.
-   * @details Compiled from a separate `bsp_fs_alpha_test` variant that keeps the
-   * `discard` used for alpha testing; `pipeline` itself (and every material stage
-   * pipeline, which never takes the alpha-tested branch) is compiled from a
-   * `discard`-free `bsp_fs`, so the GPU can early-Z reject the vast majority of
-   * opaque world geometry. A fragment shader containing `discard` anywhere in its
-   * source forces late (post-shader) depth testing for every invocation of that
-   * shader/pipeline -- even ones that never reach the `discard` -- so keeping the
-   * rare alpha-tested surfaces on their own pipeline preserves early-Z for
-   * everything else, restoring the intended benefit of the depth pre-pass and
-   * occlusion queries.
+   * @brief Alpha-test BSP pipeline.
    */
   GraphicsPipeline *pipeline_alpha_test;
 
   /**
-   * @brief An alpha-blend variant (depth test, no depth write) for translucent @c SURF_MASK_BLEND surfaces.
+   * @brief Translucent BSP pipeline.
    */
   GraphicsPipeline *blend_pipeline;
 
   /**
-   * @brief The material sampler (trilinear, repeat).
+   * @brief Material sampler.
    */
   Sampler *diffusemap_sampler;
 
   /**
-   * @brief The material stage sampler (linear, repeat) for stage textures.
+   * @brief Material-stage sampler.
    */
   Sampler *stage_sampler;
 
   /**
-   * @brief A linear, clamped sampler shared by the voxel caustics/occlusion
-   * volumes and the sky cubemap (all sampled with normalized coordinates).
+   * @brief Sampler for ambient voxel and sky textures.
    */
   Sampler *ambient_sampler;
 
   /**
-   * @brief A small procedural noise texture, for STAGE_WARP liquid surfaces
-   * (sampled with stage_sampler). Generated once at init, matching main.
+   * @brief Procedural warp texture.
    */
   Texture *warp_texture;
 
   /**
-   * @brief The render pass and command buffer for the current draw call,
-   * shared by the whole family of R_DrawBsp* functions below.
+   * @brief Active render pass state.
    */
   RenderPass *pass;
   CommandBuffer *commands;
 
   /**
-   * @brief The currently bound material, to avoid unnecessary texture binds.
+   * @brief Cached bound material state.
    */
   const r_material_t *material;
   int32_t surface;
 
   /**
-   * @brief The cached material stage pipelines.
+   * @brief Cached material-stage pipelines.
    */
   r_bsp_material_stage_pipeline_t stage_pipelines[MAX_STAGE_PIPELINES];
   int32_t num_stage_pipelines;
 } r_bsp_draw;
 
 /**
- * @brief Returns the bsp pipeline for the given material-stage blend function and
- * depth-write policy, creating and caching it on first use.
+ * @brief Returns the cached BSP material-stage pipeline for the given blend state.
  */
 static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend_t dest, bool depth_write) {
 
@@ -155,7 +135,7 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_samplers = BSP_NUM_VERTEX_SAMPLERS,
-    .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL, // per-vertex lighting binds the same buffers
+    .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
     .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
 
@@ -237,8 +217,8 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
 }
 
 /**
- * @brief Draws a single material stage of a BSP draw-elements batch.
- * @param depth_write True to write depth (opaque bucket), false to skip it (blend bucket).
+ * @brief Draws one material stage for a BSP draw batch.
+ * @param depth_write True for opaque-stage depth writes and false for blended stages.
  */
 static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, const r_entity_t *entity,
                                                const r_bsp_draw_elements_t *draw,
@@ -269,7 +249,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, const r_ent
 }
 
 /**
- * @brief Draws all active material stages for a BSP draw-elements batch.
+ * @brief Draws all active material stages for a BSP draw batch.
  */
 static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
                                                 const r_entity_t *entity,
@@ -281,9 +261,6 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
     return;
   }
 
-  // Stages sample R_SAMPLER_MATERIAL too (e.g. lighting 1 stages read the
-  // normalmap). The dedicated material pass runs after the base passes, so it
-  // can't rely on their bind -- rebind here, cached like the base passes.
   if (draw->material != r_bsp_draw.material || draw->surface != r_bsp_draw.surface) {
     r_bsp_draw.material = draw->material;
     r_bsp_draw.surface = draw->surface;
@@ -305,7 +282,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 }
 
 /**
- * @brief Draws one BSP inline model entity's material stages (opaque and alpha-test buckets).
+ * @brief Draws material stages for a BSP inline model entity.
  */
 static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t *entity) {
 
@@ -348,7 +325,7 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
 }
 
 /**
- * @brief Draws the opaque draw elements of one BSP block.
+ * @brief Draws the opaque draw elements in a BSP block.
  */
 static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block) {
 
@@ -387,7 +364,7 @@ static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block) {
 }
 
 /**
- * @brief Draws the alpha-tested draw elements of one BSP block.
+ * @brief Draws the alpha-tested draw elements in a BSP block.
  */
 static void R_DrawAlphaTestBspBlock(const r_bsp_block_t *block) {
 
@@ -424,7 +401,7 @@ static void R_DrawAlphaTestBspBlock(const r_bsp_block_t *block) {
 }
 
 /**
- * @brief Draws opaque geometry for the given BSP inline model entity.
+ * @brief Draws opaque geometry for a BSP inline model entity.
  */
 static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity) {
 
@@ -464,7 +441,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 }
 
 /**
- * @brief Draws alpha test geometry for the given BSP inline model entity.
+ * @brief Draws alpha-tested geometry for a BSP inline model entity.
  */
 static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *entity) {
 
@@ -500,8 +477,7 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
 
 
 /**
- * @brief Renders the opaque world BSP surfaces with their material diffuse texture,
- * clustered per-voxel static lighting, and per-block dynamic lighting.
+ * @brief Draws opaque, alpha-tested, and material-stage BSP inline model geometry.
  */
 void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
 
@@ -532,7 +508,7 @@ void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   $(pass, bindVertexSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler }, // material (unused)
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -542,8 +518,8 @@ void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
     { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
     { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
     { .texture = R_SkyTexture()->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler }, // stage (unused)
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler }, // stage_next (unused)
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
   }, 12);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
@@ -599,8 +575,6 @@ void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
     R_DrawOpaqueBspEntity(view, e);
   }
 
-  // Alpha-tested surfaces are their own pass so pipeline_alpha_test is bound
-  // once here instead of interleaving with the discard-free opaque pipeline.
   r_bsp_draw.material = NULL;
 
   $(pass, bindPipeline, r_bsp_draw.pipeline_alpha_test);
@@ -623,9 +597,6 @@ void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
     R_DrawAlphaTestBspEntity(view, e);
   }
 
-  // Material stages are their own pass too, so their pipeline binds don't
-  // interleave with the opaque/alpha-test base pipelines above. Must still
-  // run before the blend pass -- see R_DrawBspBlockMaterial.
   if (r_draw_material_stages->integer) {
 
     r_bsp_draw.material = NULL;
@@ -653,8 +624,7 @@ void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
 }
 
 /**
- * @brief Draws the translucent (@c SURF_MASK_BLEND) draw elements of a single
- * block, assuming its active-lights bitmask has already been pushed.
+ * @brief Draws the translucent draw elements in a BSP block.
  */
 static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, const r_bsp_block_t *block) {
 
@@ -690,15 +660,13 @@ static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, 
     if (r_draw_material_stages->integer) {
       R_DrawBspDrawElementsMaterialStages(view, entity, draw, false);
 
-      // A stage left a stage pipeline bound; force the next draw element to
-      // rebind blend_pipeline even if it shares this material/surface.
       r_bsp_draw.material = NULL;
     }
   }
 }
 
 /**
- * @brief Draws one BSP inline model entity's translucent surfaces, including the world itself.
+ * @brief Draws translucent geometry for a BSP inline model entity.
  */
 static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity) {
 
@@ -737,13 +705,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
 }
 
 /**
- * @brief Renders the translucent (@c SURF_MASK_BLEND) world and inline BSP model
- * surfaces over the opaque scene, alpha-blended and depth-tested but without
- * writing depth.
- * @remarks Mirrors @c R_DrawOpaqueBspEntities but with the blend pipeline and the inverse
- * surface filter, including its material stages (animated water/glass overlays).
- * No back-to-front sorting, matching main -- single-layer translucency (water,
- * glass) is correct without it.
+ * @brief Draws translucent BSP inline model geometry.
  */
 void R_DrawBlendBspEntities(RenderPass *pass, const r_view_t *view) {
 
@@ -778,7 +740,7 @@ void R_DrawBlendBspEntities(RenderPass *pass, const r_view_t *view) {
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   $(pass, bindVertexSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler }, // material (unused)
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -788,8 +750,8 @@ void R_DrawBlendBspEntities(RenderPass *pass, const r_view_t *view) {
     { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
     { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
     { .texture = R_SkyTexture()->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler }, // stage (unused)
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler }, // stage_next (unused)
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
   }, 12);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
@@ -848,14 +810,14 @@ void R_DrawBlendBspEntities(RenderPass *pass, const r_view_t *view) {
 }
 
 /**
- * @brief Builds the BSP pipeline from the @c bsp_vs / @c bsp_fs shaders.
+ * @brief Creates the BSP draw pipelines and samplers.
  */
 void R_InitBspPipeline(void) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/bsp_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_samplers = BSP_NUM_VERTEX_SAMPLERS,
-    .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL, // per-vertex lighting binds the same buffers
+    .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
     .num_uniform_buffers = BSP_NUM_UNIFORMS,
   });
 
@@ -979,7 +941,7 @@ void R_InitBspPipeline(void) {
     .width = WARP_IMAGE_SIZE,
     .height = WARP_IMAGE_SIZE,
     .layer_count_or_depth = 1,
-    .num_levels = 5, // log2(WARP_IMAGE_SIZE) + 1
+    .num_levels = 5,
     .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
   }, data);
   #undef WARP_IMAGE_SIZE
@@ -991,7 +953,7 @@ void R_InitBspPipeline(void) {
 }
 
 /**
- * @brief Releases the BSP pipeline and samplers.
+ * @brief Releases the BSP draw pipelines and samplers.
  */
 void R_ShutdownBspPipeline(void) {
   r_bsp_draw.pipeline = release(r_bsp_draw.pipeline);
@@ -1010,9 +972,7 @@ void R_ShutdownBspPipeline(void) {
 }
 
 /**
- * @brief Rebuilds the BSP pipeline and samplers in place, for pipeline-bound
- * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
- * an r_restart. See R_UpdatePipelines.
+ * @brief Rebuilds the BSP draw pipelines and samplers.
  */
 void R_UpdateBspPipeline(void) {
   R_ShutdownBspPipeline();

@@ -38,31 +38,27 @@
 #include "material.glsl"
 #include "voxel.glsl"
 
-// Old animation frame.
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec3 in_tangent;
 layout (location = 3) in vec3 in_bitangent;
 layout (location = 4) in vec2 in_diffusemap;
 
-// Current animation frame (diffusemap is shared with the old frame).
 layout (location = 5) in vec3 in_next_position;
 layout (location = 6) in vec3 in_next_normal;
 layout (location = 7) in vec3 in_next_tangent;
 layout (location = 8) in vec3 in_next_bitangent;
 
 /**
- * @brief Per-entity locals.
+ * @brief Declares the per-entity mesh locals block.
+ * @remarks Uses scalar padding to stay std140-compatible with r_mesh_locals_t.
  */
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
   mat4 model;
   float lerp;
-  // std140 pads an *array* of scalars to a vec4 stride (12 -> 48 bytes), which
-  // would desync this block from r_mesh_locals_t's tightly packed padding[3];
-  // three discrete scalars instead get plain 4-byte packing on both sides.
   float padding0, padding1, padding2;
   vec4 color;
-  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
+  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
 };
 
 #include "light.glsl"

@@ -21,15 +21,13 @@
 
 #version 450
 
+/**
+ * @file sky_fs.glsl
+ * @brief Samples the sky cubemap or an azimuthal sky stage.
+ */
+
 #include "uniforms.glsl"
 
-// Sky's own binding map (fragment stage): material.glsl declares the
-// canonical sampler family (material, shadow atlas x6, voxel caustics/
-// occlusion, sky, stage, stage_next) unconditionally for every lit-material
-// program. Sky has no diffuse array, shadow atlas, or voxel volumes of its
-// own, so it binds small fallback resources for those slots (see r_sky.c);
-// only texture_sky, texture_stage and texture_stage_next are actually
-// sampled here.
 #define BINDING_UNIFORMS_MATERIAL  1
 
 #include "common.glsl"
@@ -41,24 +39,20 @@ layout (location = 1) in vec4 stage_color;
 layout (location = 0) out vec4 out_color;
 
 /**
- * @brief Converts a normalized direction to an azimuthal equidistant
- * projection: center = straight up, edge = horizon. Avoids pole singularities
- * by placing them at the texture edge.
+ * @brief Projects a direction into azimuthal equidistant UV space.
  */
 vec2 direction_to_azimuthal_equidistant(in vec3 direction) {
 
-  float theta = acos(clamp(direction.z, -1.0, 1.0)); // angle from +Z (up)
-  float phi = atan(direction.y, direction.x); // azimuth
+  float theta = acos(clamp(direction.z, -1.0, 1.0));
+  float phi = atan(direction.y, direction.x);
 
-  float r = theta / PI; // radial distance (0 at center, 1 at edge)
+  float r = theta / PI;
 
   return 0.5 + r * vec2(cos(phi), sin(phi)) * 0.5;
 }
 
 /**
- * @brief Applies the stage's rotate/scroll/scale to the azimuthal-projected
- * texcoord. Distinct from material.glsl's stage_vertex, which transforms a
- * per-vertex diffusemap texcoord that sky surfaces don't have.
+ * @brief Applies the material stage transform to sky UVs.
  */
 vec2 transform_stage_uv(in vec2 uv) {
 
@@ -90,10 +84,7 @@ vec2 transform_stage_uv(in vec2 uv) {
 }
 
 /**
- * @brief Windows into the sky cubemap (material.flags == STAGE_NONE), or draws
- * an azimuthally-projected material stage (moving clouds, moons, ...) layered
- * over it. One shader, one pipeline: which branch runs is a runtime uniform,
- * matching the BSP/mesh material-stage pattern.
+ * @brief Shades sky surfaces from the cubemap or the active material stage.
  */
 void main(void) {
 

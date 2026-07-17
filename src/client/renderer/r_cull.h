@@ -23,7 +23,6 @@
 
 #include "r_types.h"
 
-// Public: the cgame culls entities/sprites/etc. against the view (import.Cullude*).
 bool R_CullBox(const r_view_t *view, const box3_t bounds);
 bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius);
 

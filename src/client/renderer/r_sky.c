@@ -18,17 +18,15 @@
 #include "r_local.h"
 
 /**
- * @brief Sky has no samplers beyond the shared family (r_material.h); it only
- * actually reads sky/stage/stage_next, but must still bind a valid resource
- * for every slot since SDL_gpu binds a dense [0, num_samplers) range per stage.
+ * @brief The number of samplers used by the sky pipeline.
  */
 #define SKY_NUM_SAMPLERS R_SAMPLER_MATERIAL_TOTAL
 
 enum {
   SKY_UNIFORMS_GLOBALS,
-  SKY_UNIFORMS_MATERIAL, // material + stage params combined -- see material.glsl
+  SKY_UNIFORMS_MATERIAL,
 };
-#define SKY_NUM_UNIFORMS 2 // same count/slot for both stages
+#define SKY_NUM_UNIFORMS 2
 
 /**
  * @brief The maximum number of cached material-stage pipelines (one per blend).
@@ -46,17 +44,13 @@ static struct {
   r_image_t *image;
 
   /**
-   * @brief A 1x1 black fallback cubemap, returned by R_SkyTexture when no sky is
-   * loaded, so the lit pass always has a valid cube to bind at the ambient slot.
+   * @brief The fallback sky cubemap.
    */
   Texture *fallback;
 } r_sky;
 
 /**
- * @brief The sky program (sky_vs/sky_fs): its graphics pipeline, samplers, and
- * the lazily-built cache of material-stage blend pipelines (azimuthally
- * projected clouds, moons, ...) -- drawn via the same shader as the base
- * cubemap window, a runtime branch on material.flags, not a pipeline swap.
+ * @brief Sky rendering resources.
  */
 static struct {
   /**
@@ -86,10 +80,7 @@ static struct {
 } r_sky_draw;
 
 /**
- * @brief Returns the sky pipeline for the given material-stage blend function,
- * creating and caching it on first use. Wraps the same sky shader as
- * the base pipeline (a stage draw is a runtime branch, not a shader swap);
- * only the blend state differs, which @c SDL_gpu bakes into the pipeline.
+ * @brief Returns the cached sky stage pipeline for the given blend mode.
  */
 static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
@@ -112,7 +103,6 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
-  // Stages blend over the already-drawn cubemap window; test depth but don't write it.
   info.depth_stencil_state.enable_depth_write = false;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
@@ -175,8 +165,7 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
 }
 
 /**
- * @brief Binds the stage uniforms and textures and draws a single material stage
- * of a sky draw-elements batch, layered over the already-drawn cubemap window.
+ * @brief Draws one sky material stage.
  */
 static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                                const r_bsp_draw_elements_t *draw, const r_stage_t *stage) {
@@ -231,8 +220,7 @@ static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view, RenderPass
 }
 
 /**
- * @brief Renders all sky surfaces of the world model as a window into the sky
- * cubemap, applied only to the BSP's sky faces (not a full-screen quad).
+ * @brief Draws world sky surfaces with the active sky cubemap.
  */
 void R_DrawSky(RenderPass *pass, const r_view_t *view) {
 
@@ -263,7 +251,7 @@ void R_DrawSky(RenderPass *pass, const r_view_t *view) {
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.stage_sampler->sampler }, // material (unused)
+    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -303,8 +291,6 @@ void R_DrawSky(RenderPass *pass, const r_view_t *view) {
         continue;
       }
 
-      // Re-bind the base pipeline: a preceding surface's material stages may
-      // have left a stage (blend) pipeline bound (see R_DrawBspBlockOpaque).
       $(pass, bindPipeline, r_sky_draw.pipeline);
 
       r_material_uniforms_t material;
@@ -326,8 +312,7 @@ void R_DrawSky(RenderPass *pass, const r_view_t *view) {
 }
 
 /**
- * @brief Returns the sky cubemap for image-based ambient in the lit pass, or a
- * black fallback cube when no sky is loaded, so the ambient sampler is always bound.
+ * @brief Returns the current sky cubemap or the fallback cubemap.
  */
 Texture *R_SkyTexture(void) {
 
@@ -406,7 +391,6 @@ void R_InitSky(void) {
 
   R_InitSkyPipeline();
 
-  // A 1x1 black fallback cube (six faces) for the lit ambient sampler.
   r_sky.fallback = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_CUBE, 6, 0x00000000);
 }
 
@@ -428,13 +412,8 @@ void R_ShutdownSky(void) {
 }
 
 /**
- * @brief Rebuilds the sky pipeline and sampler in place, for pipeline-bound
- * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
- * an r_restart. See R_UpdatePipelines.
- * @details R_InitSky memsets `r_sky` (including the currently loaded `image`),
- * but `image` is only (re)loaded by R_LoadSky at map load/r_restart -- so it
- * must be preserved across this rebuild, or the sky cubemap goes black (falls
- * back to R_SkyTexture's solid fallback cube) until the next full media load.
+ * @brief Rebuilds sky pipeline resources.
+ * @remarks Preserves the loaded sky cubemap across the rebuild.
  */
 void R_UpdateSky(void) {
 

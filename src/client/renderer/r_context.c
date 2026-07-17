@@ -26,7 +26,7 @@
 r_context_t r_context;
 
 /**
- * @brief Objectively @c ResourceProvider for loading @c Shader, @c Stylesheet, etc.. from Quetoo's VFS.
+ * @brief Loads Objectively resources from the Quetoo VFS.
  */
 static Data *R_ResourceProvider(const char *name) {
 
@@ -44,7 +44,7 @@ static Data *R_ResourceProvider(const char *name) {
 }
 
 /**
- * @brief Loads and sets the application window icon from `icons/quetoo`.
+ * @brief Sets the application window icon.
  */
 static void R_SetWindowIcon(void) {
 
@@ -60,7 +60,7 @@ static void R_SetWindowIcon(void) {
 }
 
 /**
- * @brief Updates the renderer device to reflect the current SDL window state and size.
+ * @brief Updates renderer state from the SDL window.
  */
 void R_UpdateContext(void) {
 
@@ -90,7 +90,7 @@ void R_UpdateContext(void) {
 }
 
 /**
- * @brief Creates the `SDL_Window` and the ObjectivelyGPU `RenderDevice`.
+ * @brief Creates the SDL window and render device.
  */
 void R_InitContext(void) {
   
@@ -195,7 +195,7 @@ void R_InitContext(void) {
 }
 
 /**
- * @brief Releases the `RenderDevice` and destroys the SDL window.
+ * @brief Releases the render device and destroys the SDL window.
  */
 void R_ShutdownContext(void) {
 
@@ -211,16 +211,7 @@ void R_ShutdownContext(void) {
 }
 
 /**
- * @brief Creates a Framebuffer from @p info, scaled to the display and forced
- * to the shared scene sample count.
- * @details @p info->size is a logical (point) size; it's scaled here by the
- * display's pixel density and by r_framebuffer_scale, same as the main scene
- * FB -- this uniformly lets a reduced render scale also reduce the resolution
- * of secondary 3D views like the player-model preview. @p info->sampleCount
- * is overridden with r_scene_samples, since the shared mesh/bsp pipelines are
- * built with that exact sample count baked in; a mismatched framebuffer would
- * fail pipeline binding. All other fields (attachments, formats, clear
- * values) are used as given.
+ * @brief Creates a framebuffer from @p info using the renderer's scaled size and scene sample count.
  */
 Framebuffer *R_CreateFramebuffer(const GPU_FramebufferCreateInfo *info) {
 
@@ -239,7 +230,7 @@ Framebuffer *R_CreateFramebuffer(const GPU_FramebufferCreateInfo *info) {
 }
 
 /**
- * @brief Releases the given scene framebuffer.
+ * @brief Releases a framebuffer.
  */
 void R_DestroyFramebuffer(Framebuffer *framebuffer) {
   release(framebuffer);

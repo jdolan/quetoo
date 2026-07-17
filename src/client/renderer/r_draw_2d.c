@@ -18,7 +18,7 @@
 #include "r_local.h"
 
 /**
- * @brief The font type.
+ * @brief Bitmap font.
  */
 typedef struct {
   char name[MAX_QPATH];
@@ -51,7 +51,7 @@ typedef struct {
 #define MAX_DRAW_2D_ARRAYS 8192
 
 /**
- * @brief 2D vertex struct.
+ * @brief 2D vertex.
  */
 typedef struct {
   vec2_t position;
@@ -73,7 +73,7 @@ typedef struct {
 } r_draw_2d_arrays_list_t;
 
 /**
- * @brief 2D draw struct.
+ * @brief 2D draw state.
  */
 static struct {
 
@@ -82,24 +82,16 @@ static struct {
 
   r_font_t *font;
 
-  // active clipping frame, copied to each command
   r_draw_2d_clipping_frame_t clipping_frame;
 
   r_image_t *null_texture;
 
-  // the single draw list, holding all console and HUD geometry for the frame.
-  // MVC 2.0 renders its own menus through ObjectivelyGPU (its own pipeline and
-  // command flushing), so 2D drawing here is only the game's console/HUD -- the
-  // old UI accumulation list (MVC 1.x's pluggable backend) is gone.
   r_draw_2d_arrays_list_t game;
 
-  // the single triangle-list pipeline (lines are rasterized as triangles)
   GraphicsPipeline *pipeline;
 
-  // the diffuse sampler
   Sampler *sampler;
 
-  // the dynamic vertex buffer and its capacity, in vertexes
   Buffer *vertex_buffer;
   uint32_t vertex_buffer_capacity;
 
@@ -121,7 +113,6 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
     return;
   }
 
-  // Triangle lists concatenate; merge with the previous compatible batch.
   if (list->num_draw_arrays && draw->mode == SDL_GPU_PRIMITIVETYPE_TRIANGLELIST) {
     r_draw_2d_arrays_t *last_draw = &list->draw_arrays[list->num_draw_arrays - 1];
     const r_draw_2d_clipping_frame_t *f = &last_draw->clipping_frame;
@@ -226,8 +217,7 @@ void R_Draw2DChar(int32_t x, int32_t y, char c, const color_t color) {
 }
 
 /**
- * @brief Return the width of the specified string in pixels. This will vary based
- * on the currently bound font. Color escapes are omitted.
+ * @brief Returns a string's pixel width, ignoring color escapes.
  */
 int32_t R_StringWidth(const char *s) {
 
@@ -267,8 +257,7 @@ size_t R_Draw2DBytes(int32_t x, int32_t y, const char *s, size_t size, const col
 }
 
 /**
- * @brief Draws at most len chars or size bytes of the specified string. Color escape
- * sequences are not visible chars. Returns the number of chars drawn.
+ * @brief Draws a bounded string and returns the number of characters drawn.
  */
 size_t R_Draw2DSizedString(int32_t x, int32_t y, const char *s, size_t len, size_t size, const color_t color) {
   size_t i, j;
@@ -315,7 +304,7 @@ size_t R_Draw2DSizedString(int32_t x, int32_t y, const char *s, size_t len, size
     }
 
     R_Draw2DChar_(x, y, *s, c);
-    x += r_draw_2d.font->char_width; // next char position in line
+    x += r_draw_2d.font->char_width;
 
     i++;
     j++;
@@ -461,8 +450,7 @@ void R_Draw2DFramebuffer(int32_t x, int32_t y, int32_t w, int32_t h, const Frame
 }
 
 /**
- * @brief The color can be specified as an index into the palette with positive alpha
- * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
+ * @brief Draws a filled 2D rectangle.
  */
 void R_Draw2DFill(int32_t x, int32_t y, int32_t w, int32_t h, const color_t color) {
 
@@ -497,10 +485,7 @@ void R_Draw2DFill(int32_t x, int32_t y, int32_t w, int32_t h, const color_t colo
 }
 
 /**
- * @brief Draws a polyline through the given screen-space point list.
- * @details Each segment is rasterized as a 1px-wide quad (two triangles) rather
- * than a line primitive, so all 2D geometry shares the single triangle pipeline
- * (no per-batch pipeline switch), as ObjectivelyMVC does.
+ * @brief Draws a polyline through the given screen-space points.
  */
 void R_Draw2DLines(const int32_t *points, size_t count, const color_t color) {
 
@@ -529,7 +514,6 @@ void R_Draw2DLines(const int32_t *points, size_t count, const color_t color) {
       continue;
     }
 
-    // Perpendicular to the segment, half a pixel to each side => 1px width.
     const vec2_t dir = Vec2_Scale(delta, 1.f / len);
     const vec2_t perp = Vec2_Scale(Vec2(-dir.y, dir.x), 0.5f);
 
@@ -564,7 +548,6 @@ static void R_Draw2DList(RenderPass *pass, const r_draw_2d_arrays_list_t *list,
 
   $(commands, pushVertexUniformData, 0, projection.array, sizeof(projection));
 
-  // All batches are triangle lists, so the pipeline binds once for the frame.
   $(pass, bindPipeline, r_draw_2d.pipeline);
 
   const r_draw_2d_arrays_t *d = list->draw_arrays;
@@ -643,7 +626,6 @@ void R_Draw2D(void) {
 
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_draw_2d.vertex_buffer->buffer }, 1);
 
-  // Console and HUD use r_context pixel coordinates.
   const mat4_t projection = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
   R_Draw2DList(pass, &r_draw_2d.game, projection);
 
@@ -654,16 +636,7 @@ void R_Draw2D(void) {
 }
 
 /**
- * @brief Initializes the specified bitmap font. The layout of the font is square,
- * 2^n (e.g. 256x256, 512x512), and 8 rows by 16 columns. See below:
- *
- *
- *  !"#$%&'()*+,-./
- * 0123456789:;<=>?
- * @ABCDEFGHIJKLMNO
- * `PQRSTUVWXYZ`[\]^_
- * 'abcdefghijklmno
- * pqrstuvwxyz{|}"
+ * @brief Initializes a bitmap font.
  */
 static void R_InitFont(char *name) {
 
@@ -741,11 +714,11 @@ static GraphicsPipeline *R_InitDraw2DPipeline(void) {
   return $(r_context.device, loadGraphicsPipeline,
     "shaders/draw_2d_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-      .num_uniform_buffers = 1, // projection2D (binding 0)
+      .num_uniform_buffers = 1,
     },
     "shaders/draw_2d_fs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-      .num_samplers = 1, // texture_diffusemap
+      .num_samplers = 1,
     },
     &info);
 }
@@ -769,8 +742,6 @@ void R_InitDraw2D(void) {
   r_draw_2d.null_texture->type = IMG_PROGRAM;
   r_draw_2d.null_texture->width = 1;
   r_draw_2d.null_texture->height = 1;
-  // Same 1x1 opaque white texture r_context creates for pipelines that need to
-  // bind *something* to a sampler slot they never read; no need for a second copy.
   r_draw_2d.null_texture->texture = retain(r_context.null_texture);
   R_RegisterMedia((r_media_t *) r_draw_2d.null_texture);
 

@@ -27,10 +27,7 @@
 r_occlusion_t r_occlusion;
 
 /**
- * @brief Checks BSP block occlusion queries to determine if the given box is occluded.
- * @details Note that we check the node's bounds, not the query's bounds. This is because the query
- * is tightly bound to just the BSP faces within each block, but here we want to test against each
- * block's spatial partition.
+ * @brief Returns true if the box is occluded by BSP block queries.
  */
 bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 
@@ -70,14 +67,14 @@ bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
 }
 
 /**
- * @return True if the specified box is occluded *or* culled by the view frustum, false otherwise.
+ * @brief Returns true if the box is culled or occluded.
  */
 bool R_CulludeBox(const r_view_t *view, const box3_t bounds) {
   return R_CullBox(view, bounds) || R_OccludeBox(view, bounds);
 }
 
 /**
- * @return True if the specified sphere is occluded *or* culled by the view frustum, false otherwise.
+ * @brief Returns true if the sphere is culled or occluded.
  */
 bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius) {
   return R_CullSphere(view, point, radius) || R_OccludeSphere(view, point, radius);
@@ -126,7 +123,7 @@ void R_FreeOcclusionQueries(void) {
 }
 
 /**
- * @brief Builds the per-instance occlusion box buffer for the boxes the load appended.
+ * @brief Builds the instance buffer for queued occlusion boxes.
  */
 void R_LoadOcclusionQueries(void) {
 
@@ -140,7 +137,7 @@ void R_LoadOcclusionQueries(void) {
 }
 
 /**
- * @brief
+ * @brief Draws the active occlusion queries into the view depth buffer.
  */
 static void R_DrawOcclusionQueries_(const r_view_t *view, CommandBuffer *commands) {
 
@@ -235,8 +232,7 @@ void R_DrawOcclusionQueries(const r_view_t *view, CommandBuffer *commands) {
 }
 
 /**
- * @brief Initializes occlusion query state, allocating the shared query pool, occlusion
- * box geometry, and the pipeline used to draw it.
+ * @brief Initializes occlusion query state and GPU resources.
  */
 void R_InitOcclusionQueries(void) {
 
@@ -249,9 +245,6 @@ void R_InitOcclusionQueries(void) {
     .query_count = MAX_OCCLUSION_QUERIES,
   });
 
-  // The constant unit cube, ordered to match Box3_ToPoints (bit 0 = X, bit 1 = Y,
-  // bit 2 = Z; unset = mins, set = maxs). Scaled and offset per-instance in
-  // occlude_vs.glsl by the (mins, maxs) pulled from instance_buffer.
   vec3_t cube[8];
   Box3_ToPoints(Box3(Vec3(0.f, 0.f, 0.f), Vec3(1.f, 1.f, 1.f)), cube);
 
@@ -259,17 +252,11 @@ void R_InitOcclusionQueries(void) {
     SDL_GPU_BUFFERUSAGE_VERTEX, cube, sizeof(cube));
 
   const uint32_t elements[] = {
-    // bottom
     0, 1, 3, 0, 3, 2,
-    // top
     6, 7, 4, 7, 5, 4,
-    // front
     4, 5, 0, 5, 1, 0,
-    // back
     7, 6, 3, 6, 2, 3,
-    // left
     6, 4, 2, 4, 0, 2,
-    // right
     5, 7, 1, 7, 3, 1,
   };
 
@@ -295,8 +282,6 @@ void R_InitOcclusionQueries(void) {
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
-  // Occlusion boxes are synthetic geometry with no guaranteed winding; cull
-  // nothing rather than risk silently invisible (and thus useless) queries.
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
@@ -336,9 +321,6 @@ void R_InitOcclusionQueries(void) {
     .num_vertex_attributes = 3,
   };
 
-  // Test against the depth already written by the real scene, but never write
-  // to it or color: the box's only purpose is to report whether it *would*
-  // have been visible.
   info.depth_stencil_state = (SDL_GPUDepthStencilState) {
     .compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
     .enable_depth_test = true,

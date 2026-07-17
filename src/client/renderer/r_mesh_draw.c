@@ -36,7 +36,7 @@ enum {
 #define MAX_STAGE_PIPELINES 16
 
 /**
- * @brief The mesh pipeline and samplers.
+ * @brief Mesh draw pipelines, samplers, and stage cache.
  */
 static struct {
 
@@ -46,54 +46,43 @@ static struct {
   GraphicsPipeline *pipeline;
 
   /**
-   * @brief An alpha-test variant of `pipeline`, for @c SURF_ALPHA_TEST faces. See
-   * r_bsp_draw.c's `pipeline_alpha_test` for why this needs its own pipeline
-   * (a `discard`-carrying fragment shader defeats early-Z for every draw that
-   * shares its pipeline, not just the ones that reach the `discard`).
+   * @brief The alpha-test mesh pipeline.
    */
   GraphicsPipeline *pipeline_alpha_test;
 
   /**
-   * @brief The mesh pipeline variant for translucent faces (@c SURF_MASK_BLEND or
-   * @c EF_BLEND): no face culling, alpha blending, matching the opaque pipeline
-   * otherwise (depth test and write remain enabled, matching the GL renderer).
+   * @brief The translucent mesh pipeline.
    */
   GraphicsPipeline *blend_pipeline;
 
   /**
-   * @brief The material sampler (trilinear, repeat).
+   * @brief Sampler for material textures.
    */
   Sampler *diffusemap_sampler;
 
   /**
-   * @brief A linear, clamped sampler shared by the voxel caustics/occlusion
-   * volumes and the sky cubemap (all sampled with normalized coordinates).
+   * @brief Sampler for ambient voxel and sky textures.
    */
   Sampler *ambient_sampler;
 
   /**
-   * @brief The material stage sampler (linear, repeat) for stage textures.
+   * @brief Sampler for material stage textures.
    */
   Sampler *stage_sampler;
 
   /**
-   * @brief The default shell environment map, loaded lazily for @c EF_SHELL entities.
+   * @brief Default shell image.
    */
   r_image_t *shell;
 
   /**
-   * @brief 1x1x1 fallback voxel textures for the player-model preview, which has
-   * no loaded BSP (and therefore no real voxel data) to sample. Their contents
-   * are never read: the fragment shader skips voxel/light sampling entirely for
-   * @c VIEW_PLAYER_MODEL, but @c SDL_gpu still requires every declared sampler slot to
-   * be bound at draw time.
+   * @brief Fallback voxel textures for player-model views.
    */
   Texture *voxel_caustics_fallback;
   Texture *voxel_occlusion_fallback;
 
   /**
-   * @brief Cache of @c MATERIAL_STAGES mesh pipelines, one per unique (src, dest)
-   * blend function (@c SDL_gpu bakes blend state into the pipeline).
+   * @brief Cached stage pipelines keyed by blend function.
    */
   struct {
     cm_blend_t src, dest;
@@ -104,14 +93,14 @@ static struct {
 } r_mesh_draw;
 
 /**
- * @brief Per-entity mesh locals, pushed to vertex uniform slot 1.
+ * @brief Per-entity mesh vertex uniforms.
  */
 typedef struct {
   mat4_t model;
   float lerp;
-  float padding[3]; // pads color to a 16-byte boundary; see mesh_vs.glsl's matching padding0/1/2
+  float padding[3];
   vec4_t color;
-  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32]; // for vertex_lighting, see light.glsl
+  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
 } r_mesh_locals_t;
 
 /**
@@ -122,10 +111,7 @@ typedef struct {
 } r_mesh_fragment_locals_t;
 
 /**
- * @brief Returns the mesh pipeline for the given material-stage blend function,
- * creating and caching it on first use. Wraps the same mesh_vs/mesh_fs shader
- * as the opaque pipeline (a stage draw is a runtime branch, not a shader
- * swap); only the blend state differs, which SDL_gpu bakes into the pipeline.
+ * @brief Returns the cached mesh stage pipeline for the specified blend function.
  */
 static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
@@ -142,7 +128,7 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_samplers = MESH_NUM_VERTEX_SAMPLERS,
-    .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL, // per-vertex lighting binds the same buffers
+    .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
     .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
@@ -161,12 +147,9 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
-  // Cull back faces; front faces are wound clockwise (matching the GL renderer).
-  // If mesh models turn inside-out, flip to COUNTER_CLOCKWISE.
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
-  // Stages blend over the already-lit base surface; test depth but do not write it.
   info.depth_stencil_state.enable_depth_write = false;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
@@ -189,8 +172,6 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
     .num_vertex_attributes = 9,
   };
 
-  // Two color targets to match the opaque mesh pass; the depth copy (color 1) is
-  // masked, since a stage overlays the already-established surface.
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
       {
@@ -227,17 +208,12 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
 }
 
 /**
- * @brief Draws a single material stage of a mesh face, layered over the already-lit
- * base surface. The base draw's material/voxel/shadow samplers, storage buffers,
- * per-entity uniforms, and vertex buffers remain bound; this only rebinds the stage
- * pipeline, its textures, and the per-stage uniforms.
+ * @brief Draws one material stage for a mesh face.
  */
 static void R_DrawMeshEntityMaterialStage(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                         const r_entity_t *e, const r_mesh_face_t *face,
                                         const r_material_t *material, const r_stage_t *stage) {
 
-  // The tint fields are irrelevant to the stage branch (mesh_fs.glsl only
-  // reads them in the STAGE_NONE path), so leave them zeroed.
   r_mesh_material_uniforms_t uniforms = { 0 };
   R_MaterialUniforms(material, material->cm->surface, &uniforms.material);
 
@@ -268,9 +244,7 @@ static void R_DrawMeshEntityMaterialStage(const r_view_t *view, RenderPass *pass
 }
 
 /**
- * @brief Draws the shell effect on a mesh face if the entity has EF_SHELL set,
- * using a material-driven STAGE_SHELL stage if present, otherwise a synthesized
- * default shell (an environment-mapped, expanded, colored additive overlay).
+ * @brief Draws a shell stage for a mesh face.
  */
 static void R_DrawMeshEntityShellEffect(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                 const r_entity_t *e, const r_mesh_face_t *face, const r_material_t *material) {
@@ -293,7 +267,6 @@ static void R_DrawMeshEntityShellEffect(const r_view_t *view, RenderPass *pass, 
     }
   }
 
-  // No material-driven shell stage; synthesize a default one from EF_SHELL.
   const float radius = (e->effects & EF_WEAPON) ? .25f : 1.f;
 
   const cm_stage_t cm = {
@@ -318,7 +291,7 @@ static void R_DrawMeshEntityShellEffect(const r_view_t *view, RenderPass *pass, 
 }
 
 /**
- * @brief Draws all active material stages of a mesh face, plus the shell effect.
+ * @brief Draws a mesh face's material stages and shell effect.
  */
 static void R_DrawMeshEntityMaterialStages(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                          const r_entity_t *e, const r_mesh_face_t *face, const r_material_t *material) {
@@ -342,20 +315,12 @@ static void R_DrawMeshEntityMaterialStages(const r_view_t *view, RenderPass *pas
 }
 
 /**
- * @brief Pushes the per-face model/lerp/color/active_dynamic_lights locals and
- * binds the face's vertex buffer offsets. Shared by the base face draw and the
- * material-stage-only pass, both of which need this before drawing the same
- * face's geometry.
- * @param active_dynamic_lights The entity's dynamic-light cull bitmask,
- * precomputed once per entity by the caller (see R_DrawMeshEntity) -- shared
- * with the fragment stage's own locals push.
+ * @brief Binds per-face mesh uniforms and vertex buffers.
  */
 static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, const r_entity_t *e,
                                  const r_mesh_model_t *mesh, const r_mesh_face_t *face, const r_material_t *material,
                                  const uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32]) {
 
-  // Scale entity alpha by the surface's blend amount (33/66/100%); a no-op
-  // for opaque faces (SURF_MASK_BLEND unset falls through to the 1x default).
   r_mesh_locals_t locals = {
     .model = e->matrix,
     .lerp = e->lerp,
@@ -374,8 +339,6 @@ static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, cons
   }
   $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
 
-  // Two vertex buffer slots: the old frame (locations 0-4) and the current
-  // frame (locations 5-8), the same model buffer bound at each frame offset.
   const uint32_t stride = sizeof(r_mesh_vertex_t);
   const uint32_t old_offset = (uint32_t) (face->base_vertex + e->old_frame * face->num_vertexes) * stride;
   const uint32_t cur_offset = (uint32_t) (face->base_vertex + e->frame * face->num_vertexes) * stride;
@@ -387,14 +350,7 @@ static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, cons
 }
 
 /**
- * @brief Binds material and vertex attributes, then draws elements for a
- * single mesh face. Called for both opaque and translucent faces; the caller
- * selects the pipeline (opaque, alpha-test, or blend) before calling.
- * @param draw_stages True to also draw this face's material stages inline
- * (the blend bucket); false to skip them (opaque/alpha-test buckets draw
- * their stages separately, see R_DrawMeshEntityFaceMaterialStages).
- * @param active_dynamic_lights The entity's precomputed dynamic-light cull
- * bitmask, forwarded to R_BindMeshEntityFace for vertex_lighting.
+ * @brief Draws a single mesh face.
  */
 static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                  const r_entity_t *e, const r_mesh_model_t *mesh,
@@ -406,15 +362,10 @@ static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, Command
     .sampler = r_mesh_draw.diffusemap_sampler->sampler,
   }, 1);
 
-  // R_MaterialUniforms resets the stage fields to STAGE_NONE: a preceding
-  // face's material stages may have left them set, and this draw's shader
-  // branches on material.flags (mesh_fs.glsl).
   r_mesh_material_uniforms_t material_uniforms;
   R_MaterialUniforms(material, material->cm->surface, &material_uniforms.material);
   memcpy(material_uniforms.tint_colors, e->tints, sizeof(material_uniforms.tint_colors));
 
-  // Tint channels the entity does not set (alpha == 0) take the material's
-  // default tint colors; without this, untinted tintmap texels shade to black.
   for (size_t i = 0; i < lengthof(material_uniforms.tint_colors); i++) {
     if (!e->tints[i].w) {
       material_uniforms.tint_colors[i] = material->cm->tintmap_defaults[i];
@@ -438,20 +389,13 @@ static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, Command
 }
 
 /**
- * @brief Draws a single face's material stages and EF_SHELL overlay on their
- * own, without a base draw. Used by the opaque/alpha-test buckets, which draw
- * their stages in a dedicated pass -- see R_DrawMeshEntity.
+ * @brief Draws a mesh face's material stages without the base face draw.
  */
 static void R_DrawMeshEntityFaceMaterialStages(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                                const r_entity_t *e, const r_mesh_model_t *mesh,
                                                const r_mesh_face_t *face, const r_material_t *material,
                                                const uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32]) {
 
-  // Unlike R_DrawMeshEntityFace, this face has no base draw of its own to bind
-  // texture_material, but a STAGE_LIGHTING (non-flat) stage or shell still
-  // samples it (see mesh_fragment_lighting in mesh_fs.glsl). Without this, it
-  // would read whatever face's material was last bound by the base-pass loops
-  // in R_DrawMeshEntity -- a different, effectively random texture.
   $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
     .texture = material->texture->texture->texture,
     .sampler = r_mesh_draw.diffusemap_sampler->sampler,
@@ -463,9 +407,7 @@ static void R_DrawMeshEntityFaceMaterialStages(const r_view_t *view, RenderPass 
 }
 
 /**
- * @brief Sets up per-entity uniforms and draws all faces of a mesh entity:
- * opaque first, then translucent, matching the per-entity opaque-then-blend
- * draw order (not a global back-to-front sort).
+ * @brief Draws a mesh entity.
  */
 static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_entity_t *e) {
 
@@ -478,8 +420,6 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
   CommandBuffer *commands = r_context.device->commands;
 
-  // Compress the view weapon into the front tenth of the depth range so that
-  // it never clips into world geometry (glDepthRange(0.0, 0.1) under GL).
   if (e->effects & EF_WEAPON) {
     $(pass, setViewport, &(SDL_GPUViewport) {
       .x = 0.f, .y = 0.f,
@@ -540,8 +480,6 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, false, fragment_locals.active_dynamic_lights);
   }
 
-  // Opaque and alpha-tested faces' material stages, in their own pass so
-  // stage pipeline binds don't interleave with the base pipelines above.
   if (r_draw_material_stages->integer) {
 
     face = mesh->faces;
@@ -574,14 +512,11 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
       continue;
     }
 
-    // Re-bind the blend pipeline: a preceding face's material stages may have
-    // left a stage pipeline bound.
     $(pass, bindPipeline, r_mesh_draw.blend_pipeline);
 
     R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, true, fragment_locals.active_dynamic_lights);
   }
 
-  // Restore the full depth range for subsequent entities.
   if (e->effects & EF_WEAPON) {
     $(pass, setViewport, &(SDL_GPUViewport) {
       .x = 0.f, .y = 0.f,
@@ -594,7 +529,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 }
 
 /**
- * @brief Draws mesh entities.
+ * @brief Draws mesh entities for the view.
  */
 void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
 
@@ -613,12 +548,10 @@ void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  // Per-frame globals to both stages; lighting resources shared with the BSP pass.
   $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   $(pass, bindPipeline, r_mesh_draw.pipeline);
 
-  // The point-light shadow atlas (comparison sampler), shared with the BSP pass.
   $(pass, bindFragmentSamplers, R_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -628,7 +561,6 @@ void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
     { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
   }, 6);
 
-  // The voxel caustics / occlusion volumes and the sky cubemap for ambient light.
   $(pass, bindFragmentSamplers, R_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
     { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
@@ -636,7 +568,7 @@ void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
   }, 3);
 
   $(pass, bindVertexSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler }, // material (unused)
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -646,8 +578,8 @@ void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
     { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
     { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
     { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler }, // stage (unused)
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler }, // stage_next (unused)
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
   }, 12);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
@@ -686,9 +618,7 @@ void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
 }
 
 /**
- * @brief Renders the player-model preview (menu player setup, etc.) into its own
- * framebuffer: mesh entities only, lit with a flat ambient since no world/voxel
- * data is loaded for this view. No BSP, sprites, decals, or shadows are drawn.
+ * @brief Draws the player-model preview view.
  */
 void R_DrawPlayerModelView(r_view_t *view) {
 
@@ -725,8 +655,6 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   $(pass, bindPipeline, r_mesh_draw.pipeline);
 
-  // No world is loaded for this view, so bind the 1x1x1 fallbacks; the shader's
-  // VIEW_PLAYER_MODEL branch never actually samples them (see mesh_fs.glsl).
   $(pass, bindFragmentSamplers, R_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -743,7 +671,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
   }, 3);
 
   $(pass, bindVertexSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler }, // material (unused)
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -753,11 +681,10 @@ void R_DrawPlayerModelView(r_view_t *view) {
     { .texture = r_mesh_draw.voxel_caustics_fallback->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
     { .texture = r_mesh_draw.voxel_occlusion_fallback->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
     { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler }, // stage (unused)
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler }, // stage_next (unused)
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
   }, 12);
 
-  // Stage/stage-next: see R_DrawMeshEntities.
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
@@ -789,14 +716,14 @@ void R_DrawPlayerModelView(r_view_t *view) {
 }
 
 /**
- * @brief Builds the mesh pipeline from the mesh_vs/mesh_fs shaders.
+ * @brief Initializes the mesh pipelines and samplers.
  */
 void R_InitMeshPipeline(void) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
     .num_samplers = MESH_NUM_VERTEX_SAMPLERS,
-    .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL, // per-vertex lighting binds the same buffers
+    .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
     .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
@@ -812,7 +739,6 @@ void R_InitMeshPipeline(void) {
   info.vertex_shader = vertexShader->shader;
   info.fragment_shader = fragmentShader->shader;
 
-  // Cull back faces, matching the base mesh pipeline (front faces clockwise).
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
@@ -823,13 +749,11 @@ void R_InitMeshPipeline(void) {
     },
     .num_vertex_buffers = 2,
     .vertex_attributes = (SDL_GPUVertexAttribute[]) {
-      // old frame (slot 0): position, normal, tangent, bitangent, diffusemap
       { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, position) },
       { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, normal) },
       { .location = 2, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, tangent) },
       { .location = 3, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, bitangent) },
       { .location = 4, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(r_mesh_vertex_t, diffusemap) },
-      // current frame (slot 1): position, normal, tangent, bitangent (diffusemap shared)
       { .location = 5, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, position) },
       { .location = 6, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, normal) },
       { .location = 7, .buffer_slot = 1, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_mesh_vertex_t, tangent) },
@@ -897,7 +821,7 @@ void R_InitMeshPipeline(void) {
 }
 
 /**
- * @brief Releases the mesh pipeline and samplers.
+ * @brief Releases the mesh pipelines and samplers.
  */
 void R_ShutdownMeshPipeline(void) {
   r_mesh_draw.pipeline = release(r_mesh_draw.pipeline);
@@ -914,13 +838,10 @@ void R_ShutdownMeshPipeline(void) {
   }
   r_mesh_draw.num_stages = 0;
 
-  // r_mesh_pipeline.shell is a media object owned by the media cache; not released here.
 }
 
 /**
- * @brief Rebuilds the mesh pipeline and samplers in place, for pipeline-bound
- * cvar changes (@c r_antialias, @c r_anisotropy, ...) that would otherwise require
- * an @c r_restart. See @c R_UpdatePipelines.
+ * @brief Rebuilds the mesh pipelines and samplers.
  */
 void R_UpdateMeshPipeline(void) {
   R_ShutdownMeshPipeline();

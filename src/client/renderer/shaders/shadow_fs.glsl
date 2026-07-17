@@ -21,11 +21,9 @@
 
 #version 450
 
-/*
- * Depth-only point-light shadow pass: writes linear radial distance-from-light
- * (normalized by depth_range, plus a small bias) into a D16 depth atlas layer.
- * The lighting pass samples this atlas through a comparison sampler, comparing
- * the fragment's radial distance against the stored nearest-occluder distance.
+/**
+ * @file shadow_fs.glsl
+ * @brief Writes biased radial depth for point-light shadow mapping.
  */
 
 #include "uniforms.glsl"

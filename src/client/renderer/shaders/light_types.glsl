@@ -21,23 +21,14 @@
 
 /**
  * @file light_types.glsl
- * @brief The light_t type, its minimal helpers, and the shared
- * bsp_lights_block/dynamic_lights_block storage buffer declarations, with no
- * dependency on common.glsl/material.glsl/voxel.glsl. Shared by light.glsl
- * (bsp/mesh's full shadowed/dynamic lighting) as well as lightweight
- * consumers -- decal_fs.glsl (clustered voxel BSP light + dynamic light tail,
- * no shadows) and the sprite program (distance-only attenuation, no Lambert
- * term) -- without pulling in light.glsl's heavier dependencies. Every
- * consumer must define BINDING_STORAGE_BSP_LIGHTS and
- * BINDING_STORAGE_DYNAMIC_LIGHTS before including this file.
- * @remarks Include after uniforms.glsl.
+ * @brief Declares light_t, shared light helpers, and the BSP and dynamic light storage buffers.
+ * @remarks Define BINDING_STORAGE_BSP_LIGHTS and BINDING_STORAGE_DYNAMIC_LIGHTS before including this file.
  */
 
 #define SHADOW_ATLAS_LIGHTS_PER_ROW 32
 
 /**
- * @brief The light struct, mirroring the C `r_light_uniform_t`.
- * @remarks This struct is vec4 aligned.
+ * @brief Mirrors the C r_light_uniform_t light record.
  */
 struct light_t {
   /**
@@ -51,18 +42,13 @@ struct light_t {
   vec4 color;
 
   /**
-   * @brief This light's shadow atlas tile origin, in pixels, or (-1, -1) if
-   * this light casts no shadow. The tile is square and the same in all six
-   * face textures; its size is derived from
-   * textureSize() / SHADOW_ATLAS_LIGHTS_PER_ROW rather than carried here.
+   * @brief Stores the shadow atlas tile origin in pixels, or (-1, -1) if the light has no shadow.
    */
   vec2 shadow;
 };
 
 /**
- * @brief Returns the modulated, intensity-scaled, and saturated color for a light.
- * @param l The light.
- * @return The color scaled by intensity, modulate, and saturation.
+ * @brief Returns a light color scaled by intensity, modulate, and saturation.
  */
 vec3 light_color(in light_t l) {
   vec3 color = l.color.rgb * l.color.a * modulate;
@@ -71,20 +57,14 @@ vec3 light_color(in light_t l) {
 }
 
 /**
- * @brief Tests whether dynamic light `j` is flagged active in `mask`.
- * @param mask A per-draw active-dynamic-lights bitmask (e.g. `bsp_locals_block`'s
- * `active_dynamic_lights`): 256 bits packed as uvec4[2], since std140 forbids a
- * tightly-packed uint[] array (each scalar array element would still consume a
- * full 16-byte slot, wasting 4x the space/bandwidth of the equivalent uvec4[]).
- * @param j The dynamic light's index into the `dynamic_lights` storage buffer.
- * @return true if dynamic light `j` is flagged active, false otherwise.
+ * @brief Tests whether dynamic light j is enabled in the per-draw bitmask.
  */
 bool dynamic_light_active(in uvec4 mask[MAX_DYNAMIC_LIGHTS / 128], in int j) {
   return (mask[j >> 7][(j >> 5) & 3] & (1u << (j & 31))) != 0u;
 }
 
 /**
- * @brief The clustered (voxel-gridded) static BSP lights.
+ * @brief Declares the clustered static BSP light buffer.
  * @remarks A program opts in by defining BINDING_STORAGE_BSP_LIGHTS before
  * including this file.
  */
@@ -94,7 +74,7 @@ layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_BSP_LIGHTS) readonl
 };
 
 /**
- * @brief The per-draw dynamic lights (trails, explosions, animated BSP lights, etc.).
+ * @brief Declares the per-draw dynamic light buffer.
  * @remarks A program opts in by defining BINDING_STORAGE_DYNAMIC_LIGHTS before
  * including this file.
  */

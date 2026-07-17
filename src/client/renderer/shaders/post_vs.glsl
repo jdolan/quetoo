@@ -29,7 +29,7 @@ layout (location = 0) out vertex_data {
 } vertex;
 
 /**
- * @brief
+ * @brief Emits the fullscreen post-process triangle attributes.
  */
 void main(void) {
 

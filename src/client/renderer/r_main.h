@@ -73,42 +73,42 @@ void R_UpdateUniforms(const r_view_t *view);
 #if defined(__R_LOCAL_H__)
 
 /**
- * @brief OpenGL driver information.
+ * @brief Renderer driver information.
  */
 typedef struct {
 
   /**
-   * @brief The renderer string reported by the GL driver.
+   * @brief Renderer name.
    */
   const char *renderer;
 
   /**
-   * @brief The vendor string reported by the GL driver.
+   * @brief Vendor name.
    */
   const char *vendor;
 
   /**
-   * @brief The version string reported by the GL driver.
+   * @brief Driver version string.
    */
   const char *version;
 
   /**
-   * @brief The maximum number of simultaneous texture units.
+   * @brief Maximum texture unit count.
    */
   int32_t max_texunits;
 
   /**
-   * @brief The maximum 2D texture dimension in texels.
+   * @brief Maximum 2D texture size.
    */
   int32_t max_texture_size;
 
   /**
-   * @brief The maximum 3D texture dimension in texels.
+   * @brief Maximum 3D texture size.
    */
   int32_t max_3d_texture_size;
 
   /**
-   * @brief The maximum uniform block size in bytes.
+   * @brief Maximum uniform block size.
    */
   int32_t max_uniform_block_size;
 } r_config_t;
@@ -116,28 +116,27 @@ typedef struct {
 extern r_config_t r_config;
 
 /**
- * @brief The voxel uniform struct.
- * @remarks This struct is vec4 aligned.
+ * @brief Vec4-aligned voxel uniforms.
  */
 typedef struct {
 
   /**
-   * @brief The voxel grid minimum corner in world space (xyz, w unused).
+   * @brief Voxel grid minimum corner.
    */
   vec4_t mins;
 
   /**
-   * @brief The voxel grid maximum corner in world space (xyz, w unused).
+   * @brief Voxel grid maximum corner.
    */
   vec4_t maxs;
 
   /**
-   * @brief The view origin expressed in voxel-space coordinates (xyz, w unused).
+   * @brief View origin in voxel-space coordinates.
    */
   vec4_t view_coordinate;
 
   /**
-   * @brief The voxel grid dimensions in voxels (xyz, w unused).
+   * @brief Voxel grid dimensions.
    */
   vec4_t size;
 } r_voxels_t;
@@ -148,8 +147,7 @@ typedef struct {
 typedef struct {
 
   /**
-   * @brief The uniform block struct.
-   * @remarks This struct is vec4 aligned.
+   * @brief Vec4-aligned global uniform block.
    */
   struct r_uniform_block_t {
 
@@ -219,12 +217,12 @@ typedef struct {
     float caustics;
 
     /**
-     * @brief The ambient occlusion intensity scalar (0 = disabled, 1 = full).
+     * @brief Ambient occlusion scalar.
      */
     float ambient_occlusion;
 
     /**
-     * @brief Distance threshold beyond which vertex lighting is used.
+     * @brief Vertex-lighting distance threshold.
      */
     float lighting_distance;
 
@@ -242,11 +240,9 @@ typedef struct {
 } r_uniforms_t;
 
 /**
- * @brief The uniform variables block, updated once per frame and common to all programs.
+ * @brief Per-frame global uniforms.
  */
 extern r_uniforms_t r_uniforms;
-
-// developer tools
 extern cvar_t *r_alpha_test;
 extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;

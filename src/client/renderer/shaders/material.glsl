@@ -66,14 +66,7 @@ const float TWO_PI = PI * 2.0;
 const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875, 1.000);
 
 /**
- * @brief The canonical sampler bindings for the lit-material family (bsp, mesh,
- * sky): every program in this family declares -- and binds a real or dummy
- * resource for -- every slot below, in both vertex and fragment stages, so no
- * program-specific #ifdef spaghetti is needed to keep declarations in sync
- * with what's actually bound. Programs that have nothing meaningful to bind
- * (e.g. sky has no texture_material) still bind a small fallback resource of
- * the matching type -- see r_sky.c. BSP additionally declares its own
- * BINDING_SAMPLER_WARP after these (mesh/sky never set STAGE_WARP).
+ * @brief Defines the shared sampler bindings for the lit-material shader family.
  */
 #define BINDING_SAMPLER_MATERIAL        0
 #define BINDING_SAMPLER_SHADOW_ATLAS_0  1
@@ -89,11 +82,8 @@ const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875
 #define BINDING_SAMPLER_STAGE_NEXT      11
 
 /**
- * @brief Storage buffer bindings for the compiled + dynamic light lists
- * (light.glsl) and voxel cluster data (voxel.glsl). SDL_shadercross's MSL
- * backend numbers a stage's storage buffers directly after however many
- * samplers that stage actually reads, so each including file must first
- * define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS to its real count.
+ * @brief Defines the shared storage buffer bindings for lights and voxel clusters.
+ * @remarks Including files must define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS first.
  */
 #define BINDING_STORAGE_BSP_LIGHTS           (BINDING_STORAGE_NUM_ACTIVE_SAMPLERS + 0)
 #define BINDING_STORAGE_DYNAMIC_LIGHTS       (BINDING_STORAGE_NUM_ACTIVE_SAMPLERS + 1)
@@ -103,9 +93,7 @@ const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_MATERIAL) uniform sampler2DArray texture_material;
 
 /**
- * @brief The shadow atlas: one sampler2DShadow per cube face (SDL_gpu forbids
- * DEPTH_STENCIL_TARGET on array textures, so six separate 2D textures rather
- * than one array texture -- see light.glsl's sample_shadow_atlas).
+ * @brief Declares the six shadow atlas face samplers.
  */
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_0) uniform sampler2DShadow texture_shadow_atlas_0;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_1) uniform sampler2DShadow texture_shadow_atlas_1;
@@ -115,35 +103,19 @@ layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_4) uniform sam
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_5) uniform sampler2DShadow texture_shadow_atlas_5;
 
 /**
- * @brief The per-voxel caustics direction (RGB) and spatial occlusion + sky
- * exposure (RG) volumes, sampled with normalized texture coordinates -- see
- * voxel.glsl's voxel_caustics/voxel_occlusion/voxel_exposure.
+ * @brief Declares the voxel caustics and occlusion volumes.
  */
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_VOXEL_CAUSTICS)  uniform sampler3D texture_voxel_caustics;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_VOXEL_OCCLUSION) uniform sampler3D texture_voxel_occlusion;
 
 /**
- * @brief The sky cubemap: sampled directly by sky_fs's cubemap window, and at
- * a coarse LOD for image-based ambient light by light.glsl's ambient_light.
+ * @brief Declares the sky cubemap sampler.
  */
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SKY) uniform samplerCube texture_sky;
 
 /**
- * @brief The per-draw material AND per-stage parameters, mirroring the C
- * `r_material_uniforms_t`, in one UBO: they're both material-related (unlike
- * e.g. the per-draw active-lights bitmask, which has nothing to do with
- * either). `surface` carries the draw's surface flags; the material scalars
- * are the .mat parameters pre-multiplied by their r_* cvars on the CPU. Read
- * by both stages: the vertex stage's stage_transform/stage_vertex below need
- * the stage fields; only the fragment stage reads the material fields.
- * Visible to both vertex and fragment (unlike the old fragment-only
- * material_block) since stage_transform/stage_vertex run in the vertex stage.
- * MESH programs additionally carry per-entity tint colors here (see
- * MATERIAL_TINTS) -- material, stage, and tint are all "material stuff";
- * lights and tints have little to do with each other, so tints do NOT live
- * with the active-lights bitmask.
- * @remarks Fields are ordered vec4, then vec2s, then scalars, for tight
- * std140 packing that maps 1:1 to the C struct.
+ * @brief Declares the shared material and stage uniform block.
+ * @remarks Field order must stay std140-compatible with r_material_uniforms_t.
  */
 layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform material_block {
 
@@ -277,7 +249,7 @@ layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_STAGE)      uniform sampler
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_STAGE_NEXT) uniform sampler2D texture_stage_next;
 
 /**
- * @brief
+ * @brief Applies vertex-position adjustments for shell stages.
  */
 void stage_transform(inout vec3 position, inout vec3 normal, inout vec3 tangent, inout vec3 bitangent) {
 
@@ -287,7 +259,7 @@ void stage_transform(inout vec3 position, inout vec3 normal, inout vec3 tangent,
 }
 
 /**
- * @brief
+ * @brief Applies per-stage vertex color and texture coordinate transforms.
  */
 void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
   int envmap = material.flags & STAGE_ENVMAP;
@@ -383,19 +355,14 @@ void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
 }
 
 /**
- * @brief Sample the diffuse/albedo texture.
- * @param texcoord Texture coordinates (may be parallax-offset for BSP).
- * @return Diffuse color with alpha.
+ * @brief Samples the diffuse material layer.
  */
 vec4 sample_material_diffuse(in vec2 texcoord) {
   return texture(texture_material, vec3(texcoord, 0));
 }
 
 /**
- * @brief Sample and transform the normal map.
- * @param texcoord Texture coordinates (may be parallax-offset for BSP).
- * @param tbn Tangent-to-view matrix for transforming the normal.
- * @return View-space normal.
+ * @brief Samples and transforms the material normal map.
  */
 vec3 sample_material_normal(in vec2 texcoord, in mat3 tbn) {
   vec3 normalmap = texture(texture_material, vec3(texcoord, 1)).xyz * 2.0 - 1.0;
@@ -404,9 +371,7 @@ vec3 sample_material_normal(in vec2 texcoord, in mat3 tbn) {
 }
 
 /**
- * @brief Sample the specular map with Toksvig anti-aliasing.
- * @param texcoord Texture coordinates (may be parallax-offset for BSP).
- * @return Specular color (rgb) and gloss/power (a).
+ * @brief Samples the specular map with Toksvig filtering.
  */
 vec4 sample_material_specular(in vec2 texcoord) {
   vec4 specularmap;
@@ -423,27 +388,21 @@ vec4 sample_material_specular(in vec2 texcoord) {
 }
 
 /**
- * @brief Samples the heightmap at the given texture coordinate.
- * @param texcoord Texture coordinates.
- * @param lod Level of detail for texture sampling.
+ * @brief Samples the material heightmap.
  */
 float sample_material_heightmap(in vec2 texcoord, in float lod) {
   return textureLod(texture_material, vec3(texcoord, 1), lod).w;
 }
 
 /**
- * @brief Samples the displacement map at the given texture coordinate and lod.
- * @param texcoord Texture coordinates.
- * @param lod Level of detail for texture sampling.
+ * @brief Samples the material displacement map.
  */
 float sample_material_displacement(in vec2 texcoord, in float lod) {
   return 1.0 - sample_material_heightmap(texcoord, lod);
 }
 
 /**
- * @brief Sample a material stage texture.
- * @param texcoord Texture coordinates.
- * @return Stage texture color.
+ * @brief Samples the active material stage texture.
  */
 vec4 sample_material_stage(in vec2 texcoord) {
   if ((material.flags & STAGE_ANIM_LERP) == STAGE_ANIM_LERP) {
@@ -453,9 +412,7 @@ vec4 sample_material_stage(in vec2 texcoord) {
 }
 
 /**
- * @brief Sample the tint map (layer 3 of material array).
- * @param texcoord Texture coordinates.
- * @return Tint color used for player model colorization.
+ * @brief Samples the material tint map.
  */
 vec4 sample_material_tint(in vec2 texcoord) {
   return texture(texture_material, vec3(texcoord, 3));

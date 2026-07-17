@@ -50,8 +50,7 @@ layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES
 };
 
 /**
- * @brief Per-draw dynamic light cull mask (see r_decal.c), mirroring
- * bsp_fs.glsl's fragment locals pattern.
+ * @brief Per-draw dynamic light mask.
  */
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform decal_locals_block {
   uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
@@ -95,9 +94,7 @@ vec3 decal_light(in light_t light, in vec3 normal) {
 }
 
 /**
- * @brief Decal fragment shader: the decal atlas lit by clustered voxel lights
- * (matching the surface beneath it) plus a per-draw dynamic light tail,
- * alpha-blended and faded over its lifetime.
+ * @brief Shades decal fragments with voxel and dynamic lighting.
  */
 void main(void) {
 

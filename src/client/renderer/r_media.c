@@ -23,7 +23,7 @@
 
 typedef struct {
   HashTable *media;
-  int32_t seed; // for tracking stale assets
+  int32_t seed;
 } r_media_state_t;
 
 static r_media_state_t r_media_state;
@@ -44,7 +44,7 @@ static void R_EnumerateMedia_collect(const HashTable *table, ident key, ident va
 }
 
 /**
- * @brief Enumerates all media in key-alphabetical order.
+ * @brief Enumerates media in key order.
  */
 void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data) {
   R_EnumerateMedia_ctx_t ctx = {
@@ -65,22 +65,21 @@ void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data) {
 }
 
 /**
- * @brief `R_MediaEnumerator` for `R_ListMedia_f`.
+ * @brief Prints one media name for `R_ListMedia_f`.
  */
 static void R_ListMedia_enumerator(const r_media_t *media, void *data) {
   Com_Print("%s\n", media->name);
 }
 
 /**
- * @brief Prints information about all currently loaded media to the console.
+ * @brief Prints all loaded media names.
  */
 void R_ListMedia_f(void) {
   R_EnumerateMedia(R_ListMedia_enumerator, NULL);
 }
 
 /**
- * @brief Establishes a dependency from the specified dependent to the given
- * dependency. Dependencies in use by registered media are never freed.
+ * @brief Registers a dependency for a media object.
  */
 r_media_t *R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 
@@ -99,8 +98,7 @@ r_media_t *R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 }
 
 /**
- * @brief Inserts the specified media into the shared table, re-registering all
- * of its dependencies as well.
+ * @brief Registers a media object and its dependencies.
  */
 r_media_t *R_RegisterMedia(r_media_t *media) {
 
@@ -133,7 +131,7 @@ r_media_t *R_RegisterMedia(r_media_t *media) {
 }
 
 /**
- * @return The named media if it is already known, re-registering it for convenience.
+ * @brief Finds and re-registers a named media object.
  */
 r_media_t *R_FindMedia(const char *name, r_media_type_t type) {
 
@@ -152,9 +150,7 @@ r_media_t *R_FindMedia(const char *name, r_media_type_t type) {
 }
 
 /**
- * @brief Returns a newly allocated `r_media_t` with the specified name.
- * @param size The number of bytes to allocate for the media.
- * @return The newly initialized media.
+ * @brief Allocates a media object with the specified name.
  */
 r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
 
@@ -171,9 +167,7 @@ r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
 }
 
 /**
- * @brief Frees media resources. If data is non-`NULL`, then the media is
- * always freed. Otherwise, only media with stale seed values and no explicit
- * retainment are freed.
+ * @brief Frees media when forced or when it is stale and unretained.
  */
 static bool R_FreeMedia_(r_media_t *media, void *data) {
 
@@ -237,7 +231,7 @@ void R_FreeMedia(r_media_t *media) {
 }
 
 /**
- * @brief Prepares the media subsystem for loading.
+ * @brief Begins a media loading pass.
  */
 void R_BeginLoading(void) {
   int32_t s;
@@ -250,7 +244,7 @@ void R_BeginLoading(void) {
 }
 
 /**
- * @brief Frees any media that has a stale seed and is not explicitly retained.
+ * @brief Ends a media loading pass and frees stale media.
  */
 void R_EndLoading(void) {
   R_FreeMediaEntries(NULL);
@@ -286,7 +280,7 @@ static bool R_MediaEqual(const void * a, const void * b) {
 }
 
 /**
- * @brief Initializes the media pool.
+ * @brief Initializes the media cache.
  */
 void R_InitMedia(void) {
 
@@ -299,7 +293,7 @@ void R_InitMedia(void) {
 }
 
 /**
- * @brief Shuts down the media pool.
+ * @brief Shuts down the media cache.
  */
 void R_ShutdownMedia(void) {
 

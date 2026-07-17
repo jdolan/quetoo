@@ -31,7 +31,7 @@ layout (location = 0) out vertex_data {
 } vertex;
 
 /**
- * @brief
+ * @brief Transforms 3D draw vertices and forwards their color.
  */
 void main(void) {
 

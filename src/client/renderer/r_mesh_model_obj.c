@@ -45,7 +45,7 @@ typedef struct {
 } r_obj_t;
 
 /**
- * @brief Finds an existing vertex in the face or appends a new one, returning its index.
+ * @brief Finds or appends a face vertex and returns its index.
  */
 static uint32_t R_FindOrAppendObjVertex(r_mesh_face_t *face, const r_mesh_vertex_t *v) {
 
@@ -63,7 +63,7 @@ static uint32_t R_FindOrAppendObjVertex(r_mesh_face_t *face, const r_mesh_vertex
 }
 
 /**
- * @brief Appends three element indices forming a triangle to the face's element list.
+ * @brief Appends one triangle to a face's element list.
  */
 static void R_AppendObjElements(r_mesh_face_t *face, uint32_t a, uint32_t b, uint32_t c) {
 
@@ -78,7 +78,7 @@ static void R_AppendObjElements(r_mesh_face_t *face, uint32_t a, uint32_t b, uin
 }
 
 /**
- * @brief Parses and loads an OBJ model from the given buffer into the render model.
+ * @brief Loads an OBJ model into the mesh renderer format.
  */
 static void R_LoadObjModel(r_model_t *mod, void *buffer) {
   r_mesh_model_t *out;
@@ -105,7 +105,6 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
     vec3_t vec;
     if (q_strncmp("v ", line, q_strlen("v ")) == 0) {
       if (Parse_QuickPrimitive(line + q_strlen("v "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
-        // swap ordering to match Quetoo
         vec = Vec3(vec.x, vec.z, vec.y);
         mod->bounds = Box3_Append(mod->bounds, vec);
         $(obj.v, add, &vec);
@@ -117,7 +116,6 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
       }
     } else if (q_strncmp("vn ", line, q_strlen("vn ")) == 0) {
       if (Parse_QuickPrimitive(line + q_strlen("vn "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
-        // swap ordering to match Quetoo
         vec = Vec3_Normalize(Vec3(vec.x, vec.z, vec.y));
         $(obj.vn, add, &vec);
       }
@@ -234,10 +232,8 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
     release(group->f);
   }
 
-  // and configs
   R_LoadMeshConfigs(mod);
 
-  // and finally the arrays
   R_LoadMeshVertexArray(mod);
 
   release(obj.v);

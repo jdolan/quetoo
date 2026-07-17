@@ -23,24 +23,15 @@
 
 #include "uniforms.glsl"
 
-// The constant unit-cube corner (VERTEX rate, shared by every instance): one
-// of the 8 corners in {0, 1}^3, ordered to match Box3_ToPoints (bit 0 = X,
-// bit 1 = Y, bit 2 = Z; unset = mins, set = maxs).
 layout (location = 0) in vec3 in_corner;
 
-// The per-instance box bounds (INSTANCE rate), already in world space.
 layout (location = 1) in vec3 in_mins;
 layout (location = 2) in vec3 in_maxs;
 
 invariant gl_Position;
 
 /**
- * @brief Draws an occlusion query box as an instance of the shared unit cube,
- * scaled and offset to the instance's world-space bounds. This lets a single
- * query draw an arbitrary number of boxes (e.g. one per voxel a light
- * touches) in a single instanced draw call, without baking per-query vertex
- * data: only a compact (mins, maxs) pair is needed per box, and the boxes are
- * already in world space, so no model matrix is required here.
+ * @brief Expands each instanced unit-cube corner into an occlusion query box vertex.
  */
 void main(void) {
 

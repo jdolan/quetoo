@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief Register event listener for materials.
+ * @brief Registers a material's stage media dependencies.
  */
 static void R_RegisterMaterial(r_media_t *self) {
   r_material_t *material = (r_material_t *) self;
@@ -35,7 +35,7 @@ static void R_RegisterMaterial(r_media_t *self) {
 }
 
 /**
- * @brief Free event listener for materials.
+ * @brief Frees a material's collision material.
  */
 static void R_FreeMaterial(r_media_t *self) {
 
@@ -43,7 +43,7 @@ static void R_FreeMaterial(r_media_t *self) {
 }
 
 /**
- * @return The number of frames resolved, or -1 on error.
+ * @brief Loads an animation for a material stage.
  */
 static r_animation_t *R_LoadStageAnimation(const cm_material_t *material, r_stage_t *stage) {
 
@@ -65,7 +65,7 @@ static r_animation_t *R_LoadStageAnimation(const cm_material_t *material, r_stag
 }
 
 /**
- * @brief Appends a stage to the end of the material's stage list.
+ * @brief Appends a stage to a material's stage list.
  */
 static void R_AppendStage(r_material_t *m, r_stage_t *s) {
 
@@ -81,12 +81,11 @@ static void R_AppendStage(r_material_t *m, r_stage_t *s) {
 }
 
 /**
- * @brief Normalizes material names to their context, returning the unique media key for subsequent
- * material lookups.
+ * @brief Material surface loading helper.
  */
 
 /**
- * @brief Loads the material asset, ensuring it is the specified dimensions for texture layering.
+ * @brief Loads a material surface and rescales it to the requested size.
  */
 static SDL_Surface *R_LoadMaterialSurface(int32_t w, int32_t h, const char *path) {
 
@@ -109,7 +108,7 @@ static SDL_Surface *R_LoadMaterialSurface(int32_t w, int32_t h, const char *path
 }
 
 /**
- * @brief Creates a solid-color `SDL_Surface` of the given dimensions.
+ * @brief Creates a solid-color material surface.
  */
 static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t color) {
 
@@ -121,10 +120,7 @@ static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t colo
 }
 
 /**
- * @brief Normalizes the heightmap data in the normalmap's alpha channel to
- * maximize the range for parallax occlusion mapping.
- * @details Heightmap data is expected to be pre-baked into the normalmap alpha
- * channel by the offline `pack_heightmaps` tool.
+ * @brief Normalizes height data in a normalmap's alpha channel.
  */
 static void R_NormalizeMaterialHeightmap(SDL_Surface *normalmap) {
 
@@ -162,7 +158,7 @@ static void R_NormalizeMaterialHeightmap(SDL_Surface *normalmap) {
 }
 
 /**
- * @brief Derives a greyscale specularmap surface from the given diffusemap.
+ * @brief Derives a grayscale specular map from a diffuse map.
  */
 static SDL_Surface *R_CreateSpecularmap(const SDL_Surface *diffusemap) {
 
@@ -182,7 +178,7 @@ static SDL_Surface *R_CreateSpecularmap(const SDL_Surface *diffusemap) {
 }
 
 /**
- * @brief Resolves all asset references in the specified render material's stages
+ * @brief Resolves the media for a material's stages.
  */
 static void R_ResolveMaterialStages(r_material_t *material) {
   int32_t num_stages = 0;
@@ -212,8 +208,7 @@ static void R_ResolveMaterialStages(r_material_t *material) {
 }
 
 /**
- * @brief Resolves all asset references in the specified collision material, yielding a usable
- * renderer material.
+ * @brief Creates a renderer material from a collision material.
  */
 static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
   char key[MAX_QPATH];
@@ -355,20 +350,12 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
 }
 
 /**
- * @brief Finds an existing `r_material_t` from the specified diffusemap.
- */
-/**
- * @brief Fills `out` with the per-draw material parameters for `material` and the
- * draw's `surface` flags, pre-multiplied by their r_* cvars. Mirrors the GL
- * `glUniform` material uploads.
+ * @brief Populates per-draw material uniforms.
  */
 void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_material_uniforms_t *out) {
 
   const cm_material_t *cm = material->cm;
 
-  // Zero the whole struct, not just the material fields: this leaves the
-  // stage fields at their STAGE_NONE default (flags == 0) for a base/blend
-  // draw. A stage draw calls R_StageUniforms right after to overlay them.
   memset(out, 0, sizeof(*out));
 
   out->surface = surface;
@@ -381,8 +368,7 @@ void R_MaterialUniforms(const r_material_t *material, int32_t surface, r_materia
 }
 
 /**
- * @brief A stable per-(draw|entity, stage) pseudo-random value in [0, 1], used to
- * de-synchronize pulse and animation timing across surfaces sharing a material.
+ * @brief Returns a stable drift value for a draw or entity stage.
  */
 static float R_StageDriftHash(const void *a, const void *b) {
   uint32_t h = (uint32_t) ((uintptr_t) a >> 4) ^ (uint32_t) ((uintptr_t) b >> 4);
@@ -395,11 +381,7 @@ static float R_StageDriftHash(const void *a, const void *b) {
 }
 
 /**
- * @brief Overlays `out` with the per-stage parameters for `stage` on `draw`
- * (and `entity`, or NULL for the world), and resolves the stage's current and
- * next animation-frame textures. Returns true if the stage has drawable media.
- * @remarks Callers fill the material fields via `R_MaterialUniforms` first;
- * this only touches the stage fields, leaving those alone.
+ * @brief Populates stage uniforms and resolves stage textures.
  */
 bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
                      const r_bsp_draw_elements_t *draw, const r_stage_t *stage,
@@ -407,11 +389,11 @@ bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
 
   const cm_stage_t *cm = stage->cm;
 
-  out->lerp = 0.f; // only conditionally set below (STAGE_ANIM_LERP animations)
+  out->lerp = 0.f;
 
   out->flags = cm->flags;
   out->color = cm->color.vec4;
-  out->st_origin = draw ? draw->st_origin : Vec2_Zero(); // mesh stages have no draw elements
+  out->st_origin = draw ? draw->st_origin : Vec2_Zero();
   out->stretch = Vec2(cm->stretch.amplitude, cm->stretch.hz);
   out->scroll = Vec2(cm->scroll.s, cm->scroll.t);
   out->scale = Vec2(cm->scale.s, cm->scale.t);
@@ -486,6 +468,9 @@ bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
   return *texture != NULL && *texture_next != NULL;
 }
 
+/**
+ * @brief Finds an existing material for the specified name and context.
+ */
 r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
   char key[MAX_QPATH];
   char basename[MAX_QPATH];
@@ -497,7 +482,7 @@ r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
 }
 
 /**
- * @brief Loads the `r_material_t` with the specified asset name and context.
+ * @brief Loads a material for the specified asset name and context.
  */
 r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 
@@ -513,7 +498,7 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 }
 
 /**
- * @brief `R_EnumerateMedia` callback that saves dirty materials.
+ * @brief Saves one dirty material during enumeration.
  */
 static void R_SaveMaterials_enumerator(const r_media_t *media, void *data) {
 
@@ -529,7 +514,7 @@ static void R_SaveMaterials_enumerator(const r_media_t *media, void *data) {
 }
 
 /**
- * @brief Saves all dirty materials to disk and clears their dirty flags.
+ * @brief Saves all dirty materials.
  */
 void R_SaveMaterials_f(void) {
 

@@ -36,7 +36,7 @@ layout (location = 0) in vertex_data {
 layout (location = 0) out vec4 out_color;
 
 /**
- * @brief
+ * @brief Shades 2D fragments with the diffuse texture and vertex color.
  */
 void main(void) {
 

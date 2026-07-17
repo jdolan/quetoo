@@ -31,48 +31,48 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal);
 #define DECAL_TEXTURE_LAYERS 64
 
 /**
- * @brief BSP decal vertex structure.
+ * @brief Decal vertex.
  */
 typedef struct {
 
   /**
-   * @brief The vertex position.
+   * @brief Vertex position.
    */
   vec3_t position;
 
   /**
-   * @brief The vertex normal.
+   * @brief Vertex normal.
    */
   vec3_t normal;
 
   /**
-   * @brief The diffusemap texture coordinate.
+   * @brief Diffuse texture coordinate.
    */
   vec2_t texcoord;
 
   /**
-   * @brief The vertex color.
+   * @brief Vertex color.
    */
   color32_t color;
 
   /**
-   * @brief The decal creation time, for GPU decal expiration.
+   * @brief Decal creation time.
    */
   uint32_t time;
 
   /**
-   * @brief The decal lifetime, for GPU decal expiration.
+   * @brief Decal lifetime.
    */
   uint32_t lifetime;
 } r_decal_vertex_t;
 
 /**
- * @brief The decal triangle type.
+ * @brief Decal triangle.
  */
 typedef struct {
 
   /**
-   * @brief The triangle vertexes.
+   * @brief Triangle vertices.
    */
   r_decal_vertex_t vertexes[3];
 } r_decal_triangle_t;

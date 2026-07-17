@@ -20,28 +20,22 @@
 r_shadow_atlas_t r_shadow_atlas;
 
 /**
- * @brief The shadow depth pass pipeline (shadow_vs/shadow_fs) for static BSP
- * geometry (r_bsp_vertex_t layout).
+ * @brief The static-geometry shadow pipeline.
  */
 static GraphicsPipeline *r_shadow_pipeline;
 
 /**
- * @brief The shadow depth pass pipeline for animated mesh casters (r_mesh_vertex_t
- * layout, two frame slots lerped in shadow_vs).
+ * @brief The mesh shadow pipeline.
  */
 static GraphicsPipeline *r_shadow_mesh_pipeline;
 
 /**
- * @brief The shadow atlas "clear" pipeline (shadow_clear_vs/fs): draws a
- * fullscreen triangle, no vertex buffer, that unconditionally writes the
- * atlas's "far" value. Used to clear a single light's tile block via a
- * scissored draw before redrawing it -- see R_DrawShadows.
+ * @brief The shadow-atlas clear pipeline.
  */
 static GraphicsPipeline *r_shadow_clear_pipeline;
 
 /**
- * @brief The six cube-face view matrices (light at origin), matching r_shadow.c
- * on the GL path and the face UV mapping in light.glsl.
+ * @brief Cube-face view matrices for shadow lights.
  */
 static mat4_t r_shadow_light_view[6];
 
@@ -56,8 +50,7 @@ typedef struct {
 } r_shadow_locals_t;
 
 /**
- * @brief Returns true if the given entity (or any of its parents) is the source
- * of the specified light, so it should not cast a shadow from it (self-shadow).
+ * @brief Determines whether an entity hierarchy is the source of a light.
  */
 static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 
@@ -72,9 +65,7 @@ static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 }
 
 /**
- * @brief Returns true if the given entity's shadow volume from the given
- * light is entirely outside the view frustum, and thus not worth submitting
- * a depth pass draw call for this frame.
+ * @brief Tests whether an entity's shadow bounds are outside the view.
  */
 static bool R_CullLightEntity(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
 
@@ -94,13 +85,7 @@ static bool R_CullLightEntity(const r_view_t *view, const r_light_t *light, cons
 }
 
 /**
- * @brief Collects each shadow-casting light's BSP inline model and mesh
- * entity casters (view-frustum pre-culled via R_CullLightEntity). A light
- * with zero casters after this filtering can't have a changed shadow, so
- * R_ClearShadows/R_DrawShadows skip it once `*shadow_cached` confirms it was
- * already rendered in that state. This does once, up front, all of the
- * per-light work that R_DrawShadows used to redo redundantly for each of the
- * atlas's six cube face textures.
+ * @brief Collects shadow-casting entities for each visible light.
  */
 void R_UpdateShadows(r_view_t *view) {
 
@@ -161,9 +146,7 @@ void R_UpdateShadows(r_view_t *view) {
 }
 
 /**
- * @brief Clears the shadow atlas tiles of every light that will be redrawn
- * this frame (see R_UpdateShadows), one pipeline bind per cube face rather
- * than one per light.
+ * @brief Clears shadow atlas tiles for lights that will be redrawn.
  */
 void R_ClearShadows(const r_view_t *view) {
 
@@ -204,11 +187,7 @@ void R_ClearShadows(const r_view_t *view) {
 }
 
 /**
- * @brief Renders shadow depth maps for all lights that need a redraw this
- * frame (see R_UpdateShadows) into the shadow atlas. One depth-only render
- * pass per cube face texture, one pipeline bind per caster type (BSP, then
- * mesh) per face, rather than the two-pipeline thrashing of the old
- * per-light interleaving.
+ * @brief Renders shadow maps for lights that need a redraw.
  */
 void R_DrawShadows(const r_view_t *view) {
 
@@ -370,8 +349,7 @@ void R_DrawShadows(const r_view_t *view) {
 }
 
 /**
- * @brief Initializes all shadow mapping resources: atlas texture, comparison
- * sampler, and the depth pass pipeline.
+ * @brief Initializes shadow atlas textures, samplers, and pipelines.
  */
 void R_InitShadows(void) {
 
@@ -384,9 +362,6 @@ void R_InitShadows(void) {
   Com_Verbose("   Shadow atlas: 6x %dx%d (%d tile size)\n",
       layer_size, layer_size, r_shadow_atlas.tile_size);
 
-  // One plain 2D depth texture per cube face (SDL_gpu forbids array depth
-  // targets); all six share the same tile grid, so a light's tile lands at
-  // the same (row, col) in every face.
   for (int32_t face = 0; face < 6; face++) {
     r_shadow_atlas.textures[face] = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_2D,
@@ -400,18 +375,16 @@ void R_InitShadows(void) {
     }, NULL);
   }
 
-  // Comparison sampler (GL_COMPARE_REF_TO_TEXTURE / LEQUAL) with linear filtering
-  // for hardware PCF, matching the GL shadow atlas.
   r_shadow_atlas.sampler = $(r_context.device, createSamplerShadowCompare);
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/shadow_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = 2, // globals (binding 0) + locals (binding 1)
+    .num_uniform_buffers = 2,
   });
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/shadow_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
-    .num_uniform_buffers = 1, // globals (binding 0), for depth_range
+    .num_uniform_buffers = 1,
   });
 
   SDL_GPUGraphicsPipelineCreateInfo info = {
@@ -434,7 +407,7 @@ void R_InitShadows(void) {
       .fill_mode = SDL_GPU_FILLMODE_FILL,
       .cull_mode = SDL_GPU_CULLMODE_NONE,
       .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE,
-      .enable_depth_clip = false, // == GL_DEPTH_CLAMP
+      .enable_depth_clip = false,
     },
     .depth_stencil_state = {
       .compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
@@ -450,7 +423,6 @@ void R_InitShadows(void) {
 
   r_shadow_pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
-  // A mesh-layout variant (r_mesh_vertex_t stride) for animated mesh casters.
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
       { .slot = 0, .pitch = sizeof(r_mesh_vertex_t), .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX },
@@ -469,9 +441,6 @@ void R_InitShadows(void) {
   release(vertexShader);
   release(fragmentShader);
 
-  // The atlas "clear" pipeline: no vertex input (a fullscreen triangle from
-  // gl_VertexIndex alone), depth test/compare disabled so the write always
-  // succeeds regardless of the scissored rect's existing contents.
   SDL_GPUGraphicsPipelineCreateInfo clear_info = {
     .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
     .rasterizer_state = {
@@ -500,7 +469,6 @@ void R_InitShadows(void) {
     },
     &clear_info);
 
-  // Cube-face view matrices, light at the origin.
   r_shadow_light_view[0] = Mat4_LookAt(Vec3_Zero(), Vec3( 1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
   r_shadow_light_view[1] = Mat4_LookAt(Vec3_Zero(), Vec3(-1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
   r_shadow_light_view[2] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  1.f,  0.f), Vec3(0.f,  0.f,  1.f));

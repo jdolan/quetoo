@@ -23,7 +23,7 @@
 #include "r_local.h"
 
 /**
- * @brief Loads BSP plane data from the collision model into renderer plane structures.
+ * @brief Loads BSP planes into renderer plane structures.
  */
 static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
   r_bsp_plane_t *out;
@@ -39,7 +39,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads and registers all BSP materials referenced in the map file.
+ * @brief Loads and registers BSP materials.
  */
 static void R_LoadBspMaterials(r_model_t *mod) {
 
@@ -56,7 +56,7 @@ static void R_LoadBspMaterials(r_model_t *mod) {
 }
 
 /**
- * @brief Loads BSP brush side data, linking planes and materials.
+ * @brief Loads BSP brush sides.
  */
 static void R_LoadBspBrushSides(r_bsp_model_t *bsp) {
   r_bsp_brush_side_t *out;
@@ -84,7 +84,7 @@ static void R_LoadBspBrushSides(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads BSP patch (curved surface) data, linking materials.
+ * @brief Loads BSP patches.
  */
 static void R_LoadBspPatches(r_bsp_model_t *bsp) {
 
@@ -105,7 +105,7 @@ static void R_LoadBspPatches(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads BSP vertex data (positions, normals, tangents, diffuse UVs, colors).
+ * @brief Loads BSP vertex data.
  */
 static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 
@@ -125,7 +125,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads BSP triangle element (index) data.
+ * @brief Loads BSP triangle indices.
  */
 static void R_LoadBspElements(r_bsp_model_t *bsp) {
 
@@ -139,7 +139,7 @@ static void R_LoadBspElements(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads all `r_bsp_face_t` for the specified BSP model.
+ * @brief Loads BSP faces.
  */
 static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
@@ -170,7 +170,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads all `r_bsp_leaf_t` for the specified BSP model.
+ * @brief Loads BSP leafs.
  */
 static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
   r_bsp_leaf_t *out;
@@ -187,7 +187,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads all `r_bsp_node_t` for the specified BSP model.
+ * @brief Loads BSP nodes.
  */
 static void R_LoadBspNodes(r_bsp_model_t *bsp) {
   r_bsp_node_t *out;
@@ -224,7 +224,7 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Sets up in-memory relationships between node, parent and model.
+ * @brief Links a BSP node to its parent and inline model.
  */
 static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
 
@@ -240,7 +240,7 @@ static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 }
 
 /**
- * @brief Loads draw elements batches, computing texture coordinate origins for animated stages.
+ * @brief Loads BSP draw batches.
  */
 static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
   r_bsp_draw_elements_t *out;
@@ -278,7 +278,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads BSP blocks and allocates GPU buffers for per-block decal geometry.
+ * @brief Loads BSP blocks and their decal state.
  */
 static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
   r_bsp_block_t *out;
@@ -302,7 +302,6 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 
     decals->triangles = $(alloc(Vector), initWithSize, sizeof(r_decal_triangle_t));
 
-    // The decal vertex buffer is created lazily (grown on demand) in R_DrawDecals.
   }
 
   const bsp_face_t *in_face = bsp->cm->file->faces;
@@ -315,7 +314,7 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads all BSP inline (brush) models and sets up their visible bounds and draw data.
+ * @brief Loads BSP inline models.
  */
 static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
   r_bsp_inline_model_t *out;
@@ -349,7 +348,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads static BSP lights from the map file for dynamic shadow and lighting.
+ * @brief Loads BSP lights.
  */
 static void R_LoadBspLights(r_bsp_model_t *bsp) {
 
@@ -375,15 +374,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Appends the given list of voxel indices to the given occlusion query, greedily
- * merged into as few axis-aligned world-space boxes as possible.
- * @details Per-voxel occlusion geometry is extremely tight, but naively appending one GPU
- * box per voxel is untenable: a single BSP block or light can touch thousands of voxels, and
- * drawing thousands of instanced cubes to test occlusion costs far more than the geometry it
- * is meant to cull. This converts each touched voxel to its world-space box and hands them to
- * `Box3_Merge`, which collapses contiguous runs into a small number of boxes -- so that solid
- * rectangular regions -- the common case for both blocks and light influence volumes --
- * collapse to a single box instead of hundreds or thousands.
+ * @brief Appends merged voxel bounds to an occlusion query.
  */
 static void R_AppendOcclusionQueryVoxels(r_occlusion_query_t *query, const bsp_voxels_t *voxels, const int32_t *indices, int32_t num_indices) {
 
@@ -422,16 +413,7 @@ static void R_AppendOcclusionQueryVoxels(r_occlusion_query_t *query, const bsp_v
 }
 
 /**
- * @brief Allocates an occlusion query for each BSP block and BSP light, and populates its
- * GPU-drawn geometry from the tight per-voxel bounds baked into `BSP_LUMP_BLOCK_VOXELS` /
- * `BSP_LUMP_LIGHT_VOXELS` by quemap, rather than the block/light's own loose bounds.
- * @details The voxel lists are greedily merged into a small number of boxes (see
- * `R_AppendOcclusionQueryVoxels`) rather than appended one box per voxel, since a block or
- * light can touch thousands of voxels and per-voxel instancing would cost far more to draw
- * than the geometry it's meant to cull. A block or light with no baked voxel coverage (e.g.
- * an inline model's whole-model block, which the world-only voxel grid never reaches) falls
- * back to appending its own loose bounds as a single GPU box, preserving the old,
- * un-tightened behavior for it.
+ * @brief Builds BSP block and light occlusion queries from voxel coverage.
  */
 static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 
@@ -469,7 +451,7 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads the voxel grid and light assignment data for clustered forward lighting.
+ * @brief Loads BSP voxel lighting data.
  */
 static void R_LoadBspVoxels(r_model_t *mod) {
 
@@ -484,7 +466,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->bounds = in->bounds;
 
   const byte *caustics_data = data;
-  data += out->num_voxels * sizeof(byte) * 3; // RGB
+  data += out->num_voxels * sizeof(byte) * 3;
 
   out->caustics = (r_image_t *) R_AllocMedia("voxel_caustics", sizeof(r_image_t), R_MEDIA_IMAGE);
   out->caustics->media.Free = R_FreeImage;
@@ -493,8 +475,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->caustics->height = out->size.y;
   out->caustics->depth = out->size.z;
 
-  // The encoded per-voxel caustics direction, as a 3D RGBA8 texture. The source is
-  // packed RGB; expand to RGBA (there is no 24-bit GPU format), the alpha is unused.
   byte *caustics_rgba = Mem_Malloc(out->num_voxels * 4);
   for (int32_t i = 0; i < out->num_voxels; i++) {
     caustics_rgba[i * 4 + 0] = caustics_data[i * 3 + 0];
@@ -526,11 +506,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->light_data->height = out->size.y;
   out->light_data->depth = out->size.z;
 
-  // The per-voxel (first_index, count) pairs, as a read-only R32I storage
-  // buffer indexed by linear voxel index. This was a 3D RG32I texture
-  // (isampler3D), but D3D12 cannot sample integer formats, so
-  // SDL_CreateGPUTexture fails on that backend; the media above is retained
-  // as a placeholder for dependency registration, like light_indices below.
   out->light_data_buffer = $(r_context.device, createBufferWithConstMem,
       SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
       light_data,
@@ -539,7 +514,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   const int32_t *light_indices_data = (const int32_t *) data;
   data += out->num_light_indices * sizeof(int32_t);
 
-  // The flat light index vector, as a read-only R32I storage buffer.
   if (out->num_light_indices > 0) {
     out->light_indices_buffer = $(r_context.device, createBufferWithConstMem,
         SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
@@ -547,8 +521,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
         out->num_light_indices * sizeof(int32_t));
   }
 
-  // Retained as a media placeholder for dependency registration; its GPU data
-  // now lives in out->light_indices_buffer rather than a texture.
   out->light_indices = (r_image_t *) R_AllocMedia("voxel_light_indices", sizeof(r_image_t), R_MEDIA_IMAGE);
   out->light_indices->media.Free = R_FreeImage;
   out->light_indices->type = IMG_VOXELS;
@@ -562,7 +534,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->occlusion->height = out->size.y;
   out->occlusion->depth = out->size.z;
 
-  // The per-voxel spatial occlusion (R) and sky exposure (G), as a 3D RG8 texture.
   out->occlusion->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8_UNORM,
@@ -621,7 +592,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 }
 
 /**
- * @brief Creates and configures the BSP vertex array object and associated GPU buffers.
+ * @brief Creates BSP vertex and index buffers.
  */
 static void R_LoadBspVertexArray(r_model_t *mod) {
 
@@ -635,7 +606,7 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 }
 
 /**
- * @brief Creates an `r_model_t` for each inline model so that entities may reference them.
+ * @brief Creates renderer models for BSP inline models.
  */
 static void R_SetupBspInlineModels(r_model_t *mod) {
 
@@ -661,7 +632,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 }
 
 /**
- * @brief Extra lumps we need to load for the renderer.
+ * @brief BSP lumps required by the renderer.
  */
 #define R_BSP_LUMPS ( \
   (1 << BSP_LUMP_PATCHES) | \
@@ -677,7 +648,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 )
 
 /**
- * @brief Loads a BSP model from a binary file buffer, initializing all renderer structures.
+ * @brief Loads a BSP model into renderer structures.
  */
 static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
@@ -729,7 +700,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 }
 
 /**
- * @brief Registers BSP model media dependencies (voxel data and index textures).
+ * @brief Registers BSP model media dependencies.
  */
 static void R_RegisterBspModel(r_media_t *self) {
 
@@ -744,7 +715,7 @@ static void R_RegisterBspModel(r_media_t *self) {
 }
 
 /**
- * @brief Frees all GPU resources allocated for the BSP model.
+ * @brief Frees BSP model GPU resources.
  */
 static void R_FreeBspModel(r_media_t *self) {
   r_model_t *mod = (r_model_t *) self;
@@ -767,7 +738,7 @@ static void R_FreeBspModel(r_media_t *self) {
 }
 
 /**
- * @brief BSP model format descriptor registering load, register, and free callbacks.
+ * @brief BSP model format descriptor.
  */
 const r_model_format_t r_bsp_model_format = {
   .extension = "bsp",

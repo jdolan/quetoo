@@ -22,8 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief The sprite program's own binding map, mirroring shaders/sprite_fs.glsl.
- * Not shared with any other pipeline.
+ * @brief Sprite sampler bindings.
  */
 enum {
   SPRITE_SAMPLER_DIFFUSE,
@@ -32,31 +31,30 @@ enum {
 };
 
 /**
- * @brief Per-batch vertex locals (@c sprite_locals_block in sprite_vs.glsl):
- * the dynamic light cull bitmask for the current texture batch's union bounds.
+ * @brief Per-batch sprite lighting data.
  */
 typedef struct {
   uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
 } r_sprite_locals_t;
 
 /**
- * @brief The sprite pipeline (sprite_vs/sprite_fs) and its diffuse sampler.
+ * @brief Sprite rendering resources.
  */
 static struct {
   
   /**
-   * @ brief The CPU-side storage for accumulated sprite vertexes.
+   * @brief The sprite vertex cache.
    */
   r_sprite_vertex_t vertexes[MAX_SPRITE_INSTANCES * 4];
 
   /**
-   * @ brief The vertex buffer.
+   * @brief The vertex buffer.
    */
   Buffer *vertex_buffer;
-  int32_t vertex_buffer_capacity; // in vertices
+  int32_t vertex_buffer_capacity;
 
   /**
-   *@ brief The elements buffer, statically pre-computed for @c MAX_SPRITE_INSTANCES quads.
+   * @brief The index buffer.
    */
   Buffer *elements_buffer;
   
@@ -71,13 +69,13 @@ static struct {
   Sampler *sampler;
 
   /**
-   * @brief Nearest/clamp sampler for the scene depth attachment (soft particles).
+   * @brief The scene depth sampler.
    */
   Sampler *depth_sampler;
 } r_sprite_draw;
 
 /**
- * @brief Computes the texture coordinates for the given image, handling both atlas and regular images.
+ * @brief Computes texture coordinates for a sprite image.
  */
 static void R_SpriteTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2_t *tr, vec2_t *br, vec2_t *bl) {
 
@@ -96,7 +94,7 @@ static void R_SpriteTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2_
 }
 
 /**
- * @brief Resolves the image for a sprite, animating it if the media is an animation.
+ * @brief Resolves the current sprite image.
  */
 static const r_image_t *R_ResolveSpriteImage(const r_media_t *media, const float life) {
 
@@ -112,9 +110,7 @@ static const r_image_t *R_ResolveSpriteImage(const r_media_t *media, const float
 }
 
 /**
- * @brief Copies the specified sprite into the view structure, provided it
- * passes a basic visibility test, and returns a pointer to the sprite
- * slot it fills.
+ * @brief Adds a sprite to the view.
  */
 r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *s) {
 
@@ -132,9 +128,7 @@ r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *s) {
 }
 
 /**
- * @brief Copies the specified sprite into the view structure, provided it
- * passes a basic visibility test, and returns a pointer to the sprite
- * slot it fills.
+ * @brief Adds a beam to the view.
  */
 r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *b) {
 
@@ -171,7 +165,7 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
 }
 
 /**
- * @brief Builds a billboard quad sprite instance from the sprite definition, right, and up vectors.
+ * @brief Builds one sprite quad instance.
  */
 static void R_UpdateSpriteQuad(r_view_t *view, const r_sprite_t *s,
                               const vec3_t right, const vec3_t up) {
@@ -253,12 +247,11 @@ static void R_UpdateSpriteQuad(r_view_t *view, const r_sprite_t *s,
 }
 
 /**
- * @brief Computes orientation vectors and builds sprite quad instance(s) for a single sprite.
+ * @brief Builds sprite instances for a sprite.
  */
 static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 
   if (s->flags & SPRITE_AXIAL) {
-    // Two perpendicular world-space quads
     const vec3_t up1 = Vec3(0.f, 0.f, 1.f);
     const vec3_t right1 = Vec3(1.f, 0.f, 0.f);
     const vec3_t right2 = Vec3(0.f, 1.f, 0.f);
@@ -371,8 +364,7 @@ static void R_UpdateBeamQuad(r_view_t *view, const r_beam_t *b,
 }
 
 /**
- * @brief Break the beam into segments based on blend depth transitions.
- * Draws two perpendicular quads per segment for a volumetric cross section.
+ * @brief Builds sprite instances for a beam.
  */
 void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
   float length;
@@ -382,7 +374,6 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 
   const float half_size = b->size * .5f;
 
-  // Two fixed perpendicular axes for cross-quad rendering
   const vec3_t arbitrary = fabsf(up.z) < .9f ? Vec3(0.f, 0.f, 1.f) : Vec3(1.f, 0.f, 0.f);
   const vec3_t right1 = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, arbitrary)), half_size);
   const vec3_t right2 = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, right1)), half_size);
@@ -411,7 +402,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 }
 
 /**
- * @brief Generate sprite instances from sprites and beams, and update the vertex array.
+ * @brief Builds sprite instances and uploads their vertices.
  */
 void R_UpdateSprites(r_view_t *view, CopyPass *copyPass) {
 
@@ -445,8 +436,7 @@ void R_UpdateSprites(r_view_t *view, CopyPass *copyPass) {
 }
 
 /**
- * @brief Renders all batched sprite instances to the present framebuffer, blended
- * additively over the opaque scene and depth-tested against it.
+ * @brief Draws batched sprite instances.
  */
 void R_DrawSprites(const r_view_t *view, RenderPass *pass) {
 
@@ -475,9 +465,6 @@ void R_DrawSprites(const r_view_t *view, RenderPass *pass) {
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  // Sample *last* frame's depth copy: this frame's copy is being concurrently
-  // written by the opaque BSP/mesh draws earlier in this same shared pass, so
-  // sampling it here would be a same-frame write-then-read hazard.
   Texture *depth_texture = $(framebuffer, previousColorTexture, 1);
   $(pass, bindFragmentSamplers, SPRITE_SAMPLER_DEPTH_ATTACHMENT, &(SDL_GPUTextureSamplerBinding) {
     .texture = depth_texture->texture,
@@ -492,7 +479,6 @@ void R_DrawSprites(const r_view_t *view, RenderPass *pass) {
   };
   $(pass, bindVertexStorageBuffers, 0, storage, 4);
 
-  // Draw runs of consecutive instances sharing the same diffuse/next-diffuse image.
   int32_t i = 0;
   while (i < view->num_sprite_instances) {
 
@@ -514,9 +500,6 @@ void R_DrawSprites(const r_view_t *view, RenderPass *pass) {
       batch_size++;
     }
 
-    // The dynamic light mask for this batch: the union of the batch's instance
-    // bounds is a conservative superset (a batch may span an arbitrary area),
-    // but sprite_light() still distance-attenuates each light per vertex.
     r_sprite_locals_t locals = { 0 };
     R_ActiveDynamicLights(view, batch_bounds, locals.active_dynamic_lights);
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
@@ -544,11 +527,6 @@ static void R_InitSpritePipeline(void) {
 
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
 
-  // Sprites sample the scene depth for the soft-particle fade, which also serves
-  // as the occlusion test, so the pipeline performs no hardware depth test or
-  // write of its own. It still declares (and R_DrawSprites still binds) the
-  // scene depth-stencil target: some D3D12 drivers reject blended pipelines
-  // that declare no depth-stencil attachment at all.
   info.depth_stencil_state = (SDL_GPUDepthStencilState) { 0 };
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
@@ -578,14 +556,12 @@ static void R_InitSpritePipeline(void) {
         .offset = offsetof(r_sprite_vertex_t, next_diffusemap),
       },
       {
-        // .rgb is the sprite color; the fourth byte is reserved padding and unused.
         .location = 3,
         .buffer_slot = 0,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
         .offset = offsetof(r_sprite_vertex_t, color),
       },
       {
-        // .x = lerp, .y = lighting (adjacent aligned bytes).
         .location = 4,
         .buffer_slot = 0,
         .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE2_NORM,
@@ -602,7 +578,6 @@ static void R_InitSpritePipeline(void) {
         .blend_state = GPU_BlendStateAdditive,
       },
       {
-        // Sprites never touch the linearized-depth target; mask writes off.
         .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
         .blend_state = { .enable_color_write_mask = true, .color_write_mask = 0 },
       },
@@ -636,7 +611,6 @@ void R_InitSprites(void) {
 
   memset(&r_sprite_draw, 0, sizeof(r_sprite_draw));
 
-  // Two triangles per instance: (0,1,2) (0,2,3), over MAX_SPRITE_INSTANCES quads.
   const size_t num_elements = MAX_SPRITE_INSTANCES * 6;
   uint32_t *elements = malloc(num_elements * sizeof(uint32_t));
 
@@ -670,9 +644,7 @@ void R_ShutdownSprites(void) {
 }
 
 /**
- * @brief Rebuilds the sprite pipeline and samplers in place, for pipeline-bound
- * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
- * an r_restart. See R_UpdatePipelines.
+ * @brief Rebuilds sprite pipeline resources.
  */
 void R_UpdateSpritePipeline(void) {
   R_ShutdownSprites();

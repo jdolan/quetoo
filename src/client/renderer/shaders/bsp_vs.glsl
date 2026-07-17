@@ -36,7 +36,7 @@
 
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bsp_locals_block {
   mat4 model;
-  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
+  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
 };
 
 #include "light.glsl"
@@ -53,7 +53,7 @@ layout (location = 0) out common_vertex_t vertex;
 invariant gl_Position;
 
 /**
- * @brief
+ * @brief Transforms BSP vertices and prepares shared interpolants.
  */
 void main(void) {
 
@@ -78,10 +78,6 @@ void main(void) {
 
   stage_vertex(in_position, vertex);
 
-  // Cheap per-vertex lighting (clustered voxel + dynamic diffuse, unshadowed)
-  // for the fragment shader's distant LOD path: bsp_fragment_lighting blends
-  // to this beyond lighting_distance instead of running full per-fragment
-  // lighting.
   vertex_lighting(vertex);
 
   gl_Position = projection3D * view_model * position;

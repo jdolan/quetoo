@@ -30,7 +30,7 @@ typedef struct {
 } r_post_vertex_t;
 
 /**
- * @brief Post-processing stage selector, mirroring the const int values in post_fs.glsl.
+ * @brief Post-processing stage selector.
  */
 typedef enum {
   R_POST_BLOOM_EXTRACT,
@@ -40,7 +40,7 @@ typedef enum {
 } r_post_stage_t;
 
 /**
- * @brief Per-pass locals, pushed to fragment uniform slot 0 (std140, 16 bytes).
+ * @brief Per-pass post-processing uniforms.
  */
 typedef struct {
   int32_t post_stage;
@@ -55,36 +55,34 @@ typedef struct {
 static struct {
 
   /**
-   * @brief The shared fullscreen quad (position + texcoord).
+   * @brief Fullscreen quad vertex buffer.
    */
   Buffer *vertex_buffer;
 
   /**
-   * @brief Half-resolution HDR bloom ping-pong targets. [0] receives the extract
-   * pass and every second blur; [1] receives every first blur. Their stored size
-   * (bloom_width/height) detects a viewport resize and triggers recreation.
+   * @brief Half-resolution bloom ping-pong framebuffers.
    */
   Framebuffer *bloom_framebuffers[2];
   int32_t bloom_width, bloom_height;
 
   /**
-   * @brief The post program targeting the HDR bloom buffers (extract + blur).
+   * @brief Bloom pipeline.
    */
   GraphicsPipeline *bloom_pipeline;
 
   /**
-   * @brief The post program targeting the present framebuffer (bloom composite).
+   * @brief Composite pipeline.
    */
   GraphicsPipeline *composite_pipeline;
 
   /**
-   * @brief A linear, clamped sampler for the scene and bloom textures.
+   * @brief Sampler for scene and bloom textures.
    */
   Sampler *sampler;
 } r_post;
 
 /**
- * @brief Creates or recreates the half-resolution bloom ping-pong framebuffers.
+ * @brief Creates the bloom ping-pong framebuffers.
  */
 static void R_CreateBloomFramebuffers(int32_t width, int32_t height) {
 
@@ -108,8 +106,7 @@ static void R_CreateBloomFramebuffers(int32_t width, int32_t height) {
 }
 
 /**
- * @brief Runs one fullscreen post pass into @p target with the given pipeline,
- * binding @p color and @p bloom at fragment sampler slots 0 and 1.
+ * @brief Runs a fullscreen post-processing pass.
  */
 static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
                        Texture *color, Texture *bloom,
@@ -144,11 +141,7 @@ static void R_PostPass(Framebuffer *target, GraphicsPipeline *pipeline,
 }
 
 /**
- * @brief Composites the rendered scene into the present framebuffer, applying
- * bloom. The 3D passes render into the view's HDR scene framebuffer; the bloom
- * chain (extract -> separable Gaussian blur) runs at half resolution, and the
- * final pass adds the blurred bloom onto the scene color, clamps to LDR, and
- * writes the result into the present framebuffer (over which the UI is drawn).
+ * @brief Applies bloom and tonemapping to the rendered scene.
  */
 void R_DrawPost(const r_view_t *view) {
 
@@ -164,10 +157,6 @@ void R_DrawPost(const r_view_t *view) {
   Framebuffer *scene = view->framebuffer;
   Framebuffer *present = r_context.device->framebuffer;
 
-  // The scene may be a different size than the present framebuffer (r_framebuffer_scale);
-  // the composite samples it with a linear filter, up/downscaling into the present
-  // framebuffer at its full resolution. Under MSAA this is the resolved single-sample
-  // color; without MSAA it is the color attachment itself.
   Texture *scene_color = $(scene, resolveColorTexture, 0);
 
   if (scene->size.w != r_post.bloom_width * 2 || scene->size.h != r_post.bloom_height * 2) {
@@ -186,8 +175,6 @@ void R_DrawPost(const r_view_t *view) {
                  .bloom_threshold = r_bloom_threshold->value,
                });
 
-    // Separable Gaussian blur, ping-ponging between the two bloom targets: each
-    // iteration blurs horizontally (0 -> 1) then vertically (1 -> 0).
     const int32_t iterations = Clampf(r_bloom_iterations->integer, 1, 8);
     for (int32_t i = 0; i < iterations; i++) {
 
@@ -205,9 +192,6 @@ void R_DrawPost(const r_view_t *view) {
     }
   }
 
-  // Composite: add the blurred bloom onto the scene, clamp to LDR, write present.
-  // When bloom is disabled the glow term is scaled by zero, so the bound bloom
-  // texture is irrelevant (the scene color is bound there as a placeholder).
   R_PostPass(present, r_post.composite_pipeline,
              scene_color,
              bloom ? r_post.bloom_framebuffers[0]->colorAttachments[0].textures[0] : scene_color,
@@ -219,7 +203,7 @@ void R_DrawPost(const r_view_t *view) {
 }
 
 /**
- * @brief Builds a post pipeline (post_vs/post_fs) targeting the given color format.
+ * @brief Creates a post-processing pipeline for the specified color format.
  */
 static GraphicsPipeline *R_CreatePostPipeline(SDL_GPUTextureFormat format) {
 
@@ -275,8 +259,7 @@ static GraphicsPipeline *R_CreatePostPipeline(SDL_GPUTextureFormat format) {
 }
 
 /**
- * @brief Initializes the post-processing subsystem: the fullscreen quad, the
- * bloom and composite pipelines, and the sampler.
+ * @brief Initializes post-processing resources.
  */
 void R_InitPost(void) {
 
@@ -300,7 +283,7 @@ void R_InitPost(void) {
 }
 
 /**
- * @brief Shuts down the post-processing subsystem, releasing all GPU resources.
+ * @brief Shuts down post-processing resources.
  */
 void R_ShutdownPost(void) {
 
@@ -316,9 +299,7 @@ void R_ShutdownPost(void) {
 }
 
 /**
- * @brief Rebuilds the post-processing pipelines and sampler in place, for
- * pipeline-bound cvar changes (r_antialias, r_anisotropy, ...) that would
- * otherwise require an r_restart. See R_UpdatePipelines.
+ * @brief Rebuilds the post-processing pipelines and sampler.
  */
 void R_UpdatePostPipeline(void) {
   R_ShutdownPost();

@@ -21,23 +21,14 @@
 
 /**
  * @file light.glsl
- * @brief Per-vertex and per-fragment lighting and shadow functions.
- * @remarks Include after uniforms.glsl, common.glsl, material.glsl, voxel.glsl.
- * Pulls in light_types.glsl for light_t and the BSP/dynamic lights storage
- * buffers. material.glsl declares the shadow atlas and sky cubemap samplers
- * (part of the canonical lit-material sampler family). SDL_gpu forbids
- * DEPTH_STENCIL_TARGET on array textures, so the atlas is six separate 2D
- * textures (one per cube face) rather than one array texture;
- * sample_shadow_atlas selects among them with a branch on the fragment's cube
- * face, since dynamic (non-constant) indexing into an array of distinct
- * sampler bindings isn't reliably portable across the SPIR-V/MSL toolchain.
+ * @brief Implements shared vertex and fragment lighting helpers for lit materials.
+ * @remarks Include after common.glsl, material.glsl, and voxel.glsl.
  */
 
 #include "light_types.glsl"
 
 /**
- * @brief The distance, beyond lighting_distance, over which full per-fragment
- * lighting blends out to the cheap per-vertex lighting.
+ * @brief Blends full fragment lighting down to vertex lighting beyond lighting_distance.
  */
 #define LIGHTING_LOD_BLEND_DIST 128.0
 
@@ -73,17 +64,7 @@ float random_angle(vec3 seed) {
 
 /**
  * @brief Determine cubemap face index and compute face UV from direction vector.
- * @details Face UV mapping derived from the light_view matrices in r_shadow.c:
- *   Face 0 (+X): sc = -dz, tc = -dy, ma = |dx|
- *   Face 1 (-X): sc =  dz, tc = -dy, ma = |dx|
- *   Face 2 (+Y): sc =  dx, tc =  dz, ma = |dy|
- *   Face 3 (-Y): sc =  dx, tc = -dz, ma = |dy|
- *   Face 4 (+Z): sc =  dx, tc = -dy, ma = |dz|
- *   Face 5 (-Z): sc = -dx, tc = -dy, ma = |dz|
- * @param dir Direction vector from light to fragment (world space).
- * @param face Output face index (0-5).
- * @param face_uv Output UV coordinates within the face tile [0, 1].
- * @param ma Output dominant axis magnitude (for filter radius computation).
+ * @brief Computes the cubemap face and face UV for a light-to-fragment direction.
  */
 void cubemap_face_uv(in vec3 dir, out int face, out vec2 face_uv, out float ma) {
 
@@ -117,10 +98,7 @@ void cubemap_face_uv(in vec3 dir, out int face, out vec2 face_uv, out float ma) 
 }
 
 /**
- * @brief Samples the shadow atlas face texture selected by @p face.
- * @details Six separate sampler2DShadow bindings, not one array texture (see
- * the file remark above); the branch just picks which statically-declared
- * uniform to sample, so this compiles to ordinary, fully portable control flow.
+ * @brief Samples the shadow atlas face texture selected by face.
  */
 float sample_shadow_face(in int face, in vec3 uvw) {
   if (face == 0) {
@@ -139,13 +117,7 @@ float sample_shadow_face(in int face, in vec3 uvw) {
 }
 
 /**
- * @brief Sample the shadow atlas with PCF filtering.
- * @param light The light source.
- * @param index The light index.
- * @param v Vertex data.
- * @param f Fragment data.
- * @param atten Light attenuation at this fragment (0-1).
- * @return Shadow term (0 = fully shadowed, 1 = fully lit).
+ * @brief Samples the shadow atlas for a light with PCF filtering.
  */
 float sample_shadow_atlas(in light_t light, in common_vertex_t v, in common_fragment_t f, in float atten) {
 
@@ -153,10 +125,6 @@ float sample_shadow_atlas(in light_t light, in common_vertex_t v, in common_frag
     return 1.0;
   }
 
-  // light.shadow is in atlas pixels (the same in every face texture); all six
-  // face textures share dimensions, so any one of them reports the true size.
-  // The atlas is a fixed SHADOW_ATLAS_LIGHTS_PER_ROW x SHADOW_ATLAS_LIGHTS_PER_ROW
-  // grid, so the tile size in pixels is always textureSize() / that constant.
   vec2 texture_size = vec2(textureSize(texture_shadow_atlas_0, 0).xy);
   float tile_px = texture_size.x / float(SHADOW_ATLAS_LIGHTS_PER_ROW);
   vec2 tile_origin = light.shadow.xy / texture_size;
@@ -171,21 +139,16 @@ float sample_shadow_atlas(in light_t light, in common_vertex_t v, in common_frag
   float ma;
   cubemap_face_uv(light_to_frag, face, fuv, ma);
 
-  // SDL_gpu renders the atlas with a top-left texel origin; flip V within the tile.
   fuv.y = 1.0 - fuv.y;
 
-  // Half-texel inset to prevent cross-tile bleeding (all six face textures share dimensions).
   vec2 half_texel = 0.5 / texture_size;
   vec2 tile_min = tile_origin + half_texel;
   vec2 tile_max = tile_origin + vec2(tile_uv) - half_texel;
 
-  // Filter radius in face UV space
   float light_size = light.origin.w * 3.0;
   float filter_radius = light_size * (dist_to_light / light.origin.w) * 0.005;
   float filter_uv = filter_radius / (2.0 * max(ma, 0.001));
 
-  // Adaptive sample count based on screen contribution (attenuation × proximity)
-  // Strong, close lights get full samples; weak or distant lights get fewer
   float importance = atten * clamp(1.0 - f.view_dist / 2048.0, 0.0, 1.0);
   int num_samples = importance > 0.3 ? 8 : (importance > 0.1 ? 4 : 2);
 
@@ -211,21 +174,14 @@ float sample_shadow_atlas(in light_t light, in common_vertex_t v, in common_frag
 }
 
 /**
- * @brief Blinn specular term.
- * @param light_dir Light direction in view space.
- * @param f Fragment data.
- * @return Specular intensity.
+ * @brief Evaluates the Blinn specular term.
  */
 float blinn(in vec3 light_dir, in common_fragment_t f) {
   return pow(max(0.0, dot(normalize(light_dir + f.view_dir), f.normal_sample)), f.specular_sample.w);
 }
 
 /**
- * @brief Blinn-Phong specular lighting.
- * @param light_color Light color and intensity.
- * @param light_dir Light direction in view space.
- * @param f Fragment data.
- * @return Specular contribution.
+ * @brief Evaluates the Blinn-Phong specular contribution for a light.
  */
 vec3 blinn_phong(in vec3 light_color, in vec3 light_dir, in common_fragment_t f) {
   return light_color * f.specular_sample.rgb * blinn(light_dir, f);
@@ -233,7 +189,7 @@ vec3 blinn_phong(in vec3 light_color, in vec3 light_dir, in common_fragment_t f)
 #endif
 
 /**
- * @brief Calculate ambient lighting for the given (interpolated) vertex using the sky cubemap.
+ * @brief Computes ambient lighting from the sky cubemap and voxel data.
  */
 vec3 ambient_light(in common_vertex_t v) {
 
@@ -245,10 +201,7 @@ vec3 ambient_light(in common_vertex_t v) {
 }
 
 /**
- * @brief Calculate vertex lighting contribution from a single light (unshadowed diffuse only).
- * @param v Vertex data.
- * @param light The light source.
- * @return The diffuse lighting contribution.
+ * @brief Computes unshadowed diffuse vertex lighting from one light.
  */
 vec3 vertex_light(in common_vertex_t v, in light_t light) {
 
@@ -268,16 +221,14 @@ vec3 vertex_light(in common_vertex_t v, in light_t light) {
 }
 
 /**
- * @brief Calculate caustics lighting contribution.
+ * @brief Caches the vertex caustics strength.
  */
 void vertex_caustics(inout common_vertex_t v) {
   v.caustics = length(voxel_caustics(v.voxel));
 }
 
 /**
- * @brief Calculate vertex lighting from voxel lights (unshadowed diffuse only).
- * @details Used for distant geometry where per-fragment lighting is too expensive.
- * @param v Vertex data (lighting field is written).
+ * @brief Accumulates the vertex lighting fallback for a draw.
  */
 void vertex_lighting(inout common_vertex_t v) {
 
@@ -305,12 +256,7 @@ void vertex_lighting(inout common_vertex_t v) {
 
 #if defined(FRAGMENT_SHADER)
 /**
- * @brief Calculate caustics lighting contribution.
- * @details Applies animated noise-based caustics to the diffuse lighting.
- * Uses pre-calculated vertex caustics if available, otherwise samples from voxel data.
- * @param v Vertex data.
- * @param f Fragment data.
- * @return The caustics contribution to add to diffuse.
+ * @brief Applies animated caustics to the fragment diffuse lighting.
  */
 void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
 
@@ -332,7 +278,6 @@ void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
 
   float noise = noise3d(v.model_position * .05 + (ticks / 1000.0) * 0.5);
 
-  // make the inner edges stronger, clamp to 0-1
   float thickness = 0.02;
   float glow = 5.0;
 
@@ -343,18 +288,12 @@ void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
 }
 
 /**
- * @brief Parallax occlusion self-shadowing.
- * @details Raymarches along light direction through heightmap to compute shadows.
- * @param light_dir Light direction in view space.
- * @return Shadow term (0 = fully shadowed, 1 = fully lit).
+ * @brief Raymarches parallax self-shadowing along the light direction.
  */
 float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fragment_t f) {
 
-  // LOD-based step count: 12 close, 2 far (bounded for performance; this runs
-  // per-light, so it must fall off faster than the once-per-fragment POM offset).
   int max_steps = int(mix(12.0, 2.0, min(f.lod * 0.5, 1.0)));
 
-  // Adaptive step size based on LOD (larger steps at distance)
   float step_scale = mix(1.0, 4.0, min(f.lod * 0.5, 1.0));
 
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
@@ -373,10 +312,7 @@ float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fr
 }
 
 /**
- * @brief Calculate lighting and shadows for a single light source.
- * @param v Vertex data.
- * @param f Fragment data.
- * @param light The light source.
+ * @brief Accumulates diffuse, specular, and shadowing from one light.
  */
 void fragment_light(in common_vertex_t v, inout common_fragment_t f, in light_t light) {
 
@@ -418,12 +354,7 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in light_t 
 }
 
 /**
- * @brief Calculate all lighting and shadows with distance-based LOD.
- * @details For distant fragments (>= lighting_distance), uses pre-calculated vertex
- * lighting (ambient + diffuse, no shadows or specular). For close fragments, performs
- * full per-fragment lighting with shadows, specular, and caustics.
- * @param v Vertex data.
- * @param f Fragment data.
+ * @brief Accumulates full fragment lighting for the active BSP and dynamic lights.
  */
 void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
 

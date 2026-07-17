@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief Free event listener for atlases.
+ * @brief Frees an atlas media asset.
  */
 static void R_FreeAtlas(r_media_t *media) {
   r_atlas_t *atlas = (r_atlas_t *) media;
@@ -40,7 +40,7 @@ static void R_FreeAtlas(r_media_t *media) {
 }
 
 /**
- * @brief Loads an existing atlas from memory, or creates a new one.
+ * @brief Loads or creates an atlas.
  */
 r_atlas_t *R_LoadAtlas(const char *name) {
 
@@ -67,8 +67,7 @@ r_atlas_t *R_LoadAtlas(const char *name) {
 }
 
 /**
- * @brief Loads the named image through the specified atlas. The returned `r_atlas_image_t` is
- * not available for rendering until the atlas is recompiled.
+ * @brief Loads an image into an atlas. Recompile the atlas before rendering the returned image.
  */
 r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_type_t type) {
   Vector *nodes = atlas->atlas->nodes;
@@ -112,7 +111,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 }
 
 /**
- * @brief Updates atlas image texture coordinates for the compiled node.
+ * @brief Updates atlas texture coordinates for a compiled node.
  */
 static void R_CompileAtlas_Node(const atlas_node_t *node, const r_atlas_t *atlas) {
 
@@ -130,7 +129,7 @@ static void R_CompileAtlas_Node(const atlas_node_t *node, const r_atlas_t *atlas
 }
 
 /**
- * @brief Compiles the specified atlas.
+ * @brief Compiles an atlas texture and updates its images.
  */
 void R_CompileAtlas(r_atlas_t *atlas) {
   Vector *nodes = atlas->atlas->nodes;

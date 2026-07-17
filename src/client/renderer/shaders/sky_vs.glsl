@@ -21,13 +21,13 @@
 
 #version 450
 
+/**
+ * @file sky_vs.glsl
+ * @brief Outputs sky cubemap coordinates and stage color.
+ */
+
 #include "uniforms.glsl"
 
-// Sky's own binding map (vertex stage): a dense family shared with no other
-// pipeline. material.glsl now declares the canonical sampler family (0-11)
-// unconditionally for every stage; sky_vs doesn't sample any of them, but
-// the vertex-stage pipeline still binds a dummy/real resource for each (see
-// r_sky.c) since SDL_gpu requires every declared slot to be bound.
 #define BINDING_UNIFORMS_MATERIAL 1
 
 #include "common.glsl"
@@ -41,12 +41,7 @@ layout (location = 1) out vec4 stage_color;
 invariant gl_Position;
 
 /**
- * @brief Renders the world's sky surfaces as a window into the sky cubemap; the
- * cube lookup direction is the surface position through the sky projection.
- * @remarks Material stages (azimuthal sky, e.g. moving clouds/moons) reuse the
- * generic stage color/pulse from material.glsl; the azimuthal projection and
- * its own rotate/scroll/scale are computed in sky_fs.glsl, since sky surfaces
- * have no per-vertex diffusemap texcoord to transform.
+ * @brief Transforms sky vertices and prepares the stage color.
  */
 void main(void) {
 

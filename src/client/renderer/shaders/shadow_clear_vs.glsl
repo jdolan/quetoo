@@ -21,14 +21,9 @@
 
 #version 450
 
-/*
- * Emits one oversized triangle covering the whole viewport/scissor rect, with
- * no vertex buffer (indexed purely by gl_VertexIndex). Paired with
- * shadow_clear_fs.glsl to "clear" a single light's block of the shadow atlas
- * via a scissored draw -- SDL_gpu's render-pass LOADOP_CLEAR always clears the
- * whole bound depth layer, but the atlas packs multiple lights' tiles into one
- * layer, so a per-light clear can't use it without wiping every other light's
- * cached shadow too (see R_DrawShadows).
+/**
+ * @file shadow_clear_vs.glsl
+ * @brief Emits a fullscreen triangle for clearing a shadow atlas region.
  */
 
 void main(void) {

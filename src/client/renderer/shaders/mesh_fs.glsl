@@ -36,9 +36,6 @@
 
 #include "uniforms.glsl"
 
-// This stage samples all 12 canonical textures (mesh has no texture_warp),
-// so storage bindings must follow those 12 -- see material.glsl's
-// BINDING_STORAGE_NUM_ACTIVE_SAMPLERS comment.
 #define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS 12
 #define BINDING_UNIFORMS_MATERIAL           2
 
@@ -47,7 +44,7 @@
 #include "voxel.glsl"
 
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform mesh_locals_block {
-  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
+  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
 };
 
 #include "light.glsl"
@@ -56,18 +53,12 @@ layout (location = 0) in common_vertex_t vertex;
 
 layout (location = 0) out vec4 out_color;
 
-// A float depth copy for the sprite pass to sample (soft particles); see r_framebuffer.c.
 layout (location = 1) out float out_depth;
 
 common_fragment_t fragment;
 
 /**
- * @brief Samples the material normal/specular maps and computes per-fragment
- * lighting, with distance- and LOD-based fallback: distant or high-texel-LOD
- * fragments (small on screen, where per-pixel normal/specular/shadow detail
- * isn't screen-resolvable) and the player-model preview (no BSP voxel data)
- * reuse the vertex shader's cheap per-vertex lighting instead -- see
- * mesh_vs.glsl's vertex_lighting call.
+ * @brief Computes per-fragment mesh lighting with a vertex-lighting fallback.
  */
 void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
 
@@ -87,7 +78,6 @@ void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t f
     fragment.specular_sample = sample_material_specular(fragment.parallax);
   }
 
-  // Precompute per-pixel Poisson rotation for shadow PCF
   float angle = random_angle(vertex.model_position);
   fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
 
@@ -95,12 +85,7 @@ void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t f
 }
 
 /**
- * @brief Animated mesh: diffuse material with full per-fragment lighting and
- * player-skin tinting (material.flags == STAGE_NONE), or a blended material
- * stage / shell overlay. One shader, one pipeline: see bsp_fs's main() for why.
- * @details See bsp_fs.glsl for why the alpha-test `discard` below is instead a
- * compile-time `ALPHA_TEST` variant (`mesh_fs_alpha_test`): it keeps early-Z
- * intact for the (common) non-alpha-tested case.
+ * @brief Shades either the base mesh material pass or a material stage overlay.
  */
 void main(void) {
 
@@ -110,8 +95,6 @@ void main(void) {
   fragment.view_dist = length(vertex.position);
   fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
 
-  // Mesh entity normal maps never carry a heightmap, so there is no parallax
-  // occlusion mapping to apply here (see bsp_fs for that).
   fragment.parallax = vertex.diffusemap;
 
   if (material.flags == STAGE_NONE) {
@@ -126,7 +109,6 @@ void main(void) {
     }
 #endif
 
-    // Player-skin tint: blend the entity tint colors in by the material tint map.
     vec4 tintmap = sample_material_tint(fragment.parallax);
     fragment.diffuse_sample.rgb *= 1.0 - tintmap.a;
     fragment.diffuse_sample.rgb += (material.tint_colors[0] * tintmap.r).rgb * tintmap.a;
@@ -148,8 +130,6 @@ void main(void) {
 
   } else {
 
-    // Material stage / shell pass: sample the stage texture, optionally lit
-    // and/or emissive, blended over the base surface.
     fragment.diffuse_sample = sample_material_stage(fragment.parallax) * vertex.color;
 
     out_color = fragment.diffuse_sample;

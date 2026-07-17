@@ -33,13 +33,11 @@ r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context);
 void R_SaveMaterials_f(void);
 
 /**
- * @brief Shared sampler bindings for bsp/mesh/sky, mirroring material.glsl's
- * BINDING_SAMPLER_* defines. Extend with more entries after
- * R_SAMPLER_MATERIAL_TOTAL for consumer-specific samplers (e.g. BSP's warp).
+ * @brief Shared material sampler binding slots.
  */
 typedef enum {
   R_SAMPLER_MATERIAL,
-  R_SAMPLER_SHADOW_ATLAS_0, // one per cube face; SDL_gpu forbids array depth targets
+  R_SAMPLER_SHADOW_ATLAS_0,
   R_SAMPLER_SHADOW_ATLAS_1,
   R_SAMPLER_SHADOW_ATLAS_2,
   R_SAMPLER_SHADOW_ATLAS_3,
@@ -54,10 +52,7 @@ typedef enum {
 } r_material_sampler_t;
 
 /**
- * @brief Shared storage buffer bindings for bsp/mesh: the compiled + dynamic
- * light lists (light.glsl) and the voxel cluster data (voxel.glsl). Extend
- * with more entries after R_STORAGE_MATERIAL_TOTAL for consumer-specific
- * storage buffers.
+ * @brief Shared material storage buffer binding slots.
  */
 typedef enum {
   R_STORAGE_BSP_LIGHTS,
@@ -68,15 +63,7 @@ typedef enum {
 } r_material_storage_t;
 
 /**
- * @brief The per-draw material AND per-stage parameters, pushed to the
- * material uniform slot by the lit-geometry programs (bsp, mesh): they're
- * both material-related, unlike e.g. the active-lights bitmask, which lives
- * in its own UBO. Layout mirrors material.glsl's combined `material_block`
- * (std140: vec4, then vec2s, then scalars; `alignas` pads the struct to a
- * 16-byte multiple). `R_MaterialUniforms` fills the material fields;
- * `R_StageUniforms` fills the stage fields -- callers populate both for a
- * stage draw, or just call `R_MaterialUniforms` and leave `flags` at
- * `STAGE_NONE` (zero-initialize) for the base/blend draw.
+ * @brief Per-draw material and stage uniforms.
  */
 typedef struct {
   alignas(16) vec4_t color;
@@ -111,11 +98,7 @@ bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
                      r_material_uniforms_t *out, SDL_GPUTexture **texture, SDL_GPUTexture **texture_next);
 
 /**
- * @brief The mesh program's per-draw material uniforms: `r_material_uniforms_t`
- * plus per-entity tint colors for player-skin colorization, appended so they
- * remain std140-compatible as a trailing member (mirrors material.glsl's
- * MATERIAL_TINTS extension of `material_block`). bsp has no equivalent, since
- * only mesh entities are tinted.
+ * @brief Mesh material uniforms, including tint colors.
  */
 typedef struct {
   r_material_uniforms_t material;

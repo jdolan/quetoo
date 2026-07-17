@@ -26,20 +26,17 @@
 #if defined(__R_LOCAL_H__)
 
 /**
- * @brief The depth pre-pass program.
+ * @brief Depth pre-pass resources.
  */
 typedef struct {
 
   /**
-   * @brief The position-only, depth-only pre-pass pipeline. It renders into the
-   * view framebuffer's shared depth attachment (which the main passes reuse for
-   * early-Z), so it owns no framebuffer of its own.
+   * @brief Depth pre-pass pipeline.
    */
   GraphicsPipeline *pipeline;
 
   /**
-   * @brief The Fence to query in subsequent frames to check if the depth pass and
-   * occlusion queries are flushed and available.
+   * @brief Fence used to query depth-pass completion.
    */
   Fence *fence;
 } r_depth_pipeline_t;

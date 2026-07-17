@@ -30,98 +30,86 @@ void R_AddLight(r_view_t *view, const r_light_t *l);
 #if defined(__R_LOCAL_H__)
 
 /**
- * @brief The light uniform type.
- * @remarks This struct is vec4 aligned.
+ * @brief Vec4-aligned light uniform.
  */
 typedef struct {
 
   /**
-   * @brief The light origin in model space (xyz) and radius (w).
-   * @details `alignas` pads the struct to a 16-byte multiple now that
-   * `shadow` is a trailing vec2, matching std430's forced array stride.
+   * @brief Light origin and radius.
    */
   alignas(16) vec4_t origin;
 
   /**
-   * @brief The light color (xyz) and intensity (w).
+   * @brief Light color and intensity.
    */
   vec4_t color;
 
   /**
-   * @brief This light's shadow atlas tile origin, in pixels, or (-1, -1) if
-   * this light casts no shadow. The tile is square and the same in all six
-   * face textures; its size is derived in-shader from
-   * `textureSize() / SHADOW_ATLAS_LIGHTS_PER_ROW` rather than carried here.
+   * @brief Shadow atlas tile origin, or (-1, -1) if the light has no shadow.
    */
   vec2_t shadow;
 } r_light_uniform_t;
 
 /**
- * @brief The BSP lights uniform block: static, voxel-gridded light sources
- * addressed by their fixed BSP lump index, mirroring the std430
- * `bsp_lights_block` in light.glsl.
+ * @brief Static BSP light uniform block.
  */
 typedef struct {
 
   /**
-   * @brief The number of light sources in `bsp_lights`.
+   * @brief Number of BSP lights.
    */
   int32_t num_bsp_lights;
 
   /**
-   * @brief The static BSP light sources, indexed by BSP lump index.
+   * @brief BSP lights indexed by BSP lump index.
    */
   alignas(16) r_light_uniform_t bsp_lights[MAX_BSP_LIGHTS];
 } r_bsp_lights_uniform_block_t;
 
 /**
- * @brief The dynamic lights uniform block: the per-frame dynamic tail
- * (trails, explosions, animated lights, ...), mirroring the std430
- * `dynamic_lights_block` in light.glsl.
+ * @brief Per-frame dynamic light uniform block.
  */
 typedef struct {
 
   /**
-   * @brief The number of light sources in `dynamic_lights`.
+   * @brief Number of dynamic lights.
    */
   int32_t num_dynamic_lights;
 
   /**
-   * @brief The dynamic light sources for the current frame, in view order.
+   * @brief Dynamic lights in view order.
    */
   alignas(16) r_light_uniform_t dynamic_lights[MAX_DYNAMIC_LIGHTS];
 } r_dynamic_lights_uniform_block_t;
 
 /**
- * @brief The lights uniform blocks type: two separate GPU storage buffers, one
- * per light class, so that shaders needing only dynamic lights (e.g. sprites)
- * don't have to reason about a combined index space.
+ * @brief Per-frame light storage buffers and mirrored uniform blocks.
  */
 typedef struct {
 
   /**
-   * @brief The GPU storage buffer backing `bsp_block`.
+   * @brief GPU buffer for `bsp_block`.
    */
   Buffer *bsp_buffer;
 
   /**
-   * @brief The BSP lights block, mirrored to `bsp_buffer` each frame.
+   * @brief CPU copy of the BSP light block.
    */
   r_bsp_lights_uniform_block_t bsp_block;
 
   /**
-   * @brief The GPU storage buffer backing `dynamic_block`.
+   * @brief GPU buffer for `dynamic_block`.
    */
   Buffer *dynamic_buffer;
 
   /**
-   * @brief The dynamic lights block, mirrored to `dynamic_buffer` each frame.
+   * @brief CPU copy of the dynamic light block.
    */
   r_dynamic_lights_uniform_block_t dynamic_block;
 } r_lights_t;
 
 /**
- * @brief The lights uniform block, updated once per frame.
+ * @brief Per-frame light storage.
  */
 extern r_lights_t r_lights;
 

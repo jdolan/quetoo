@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief Computes and stores the entity's transformed world-space bounds.
+ * @brief Updates the entity's world-space bounds.
  */
 static void R_SetEntityBounds(r_entity_t *e) {
   if (e->model && !Box3_IsNull(e->model->bounds)) {
@@ -33,7 +33,7 @@ static void R_SetEntityBounds(r_entity_t *e) {
 }
 
 /**
- * @brief Returns true if the entity is outside the view frustum or occluded and should be skipped.
+ * @brief Tests whether the entity should be culled.
  */
 bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 
@@ -61,8 +61,7 @@ bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 }
 
 /**
- * @brief Adds an entity to the view.
- * @return The renderer copy of the entity, if any. This is to enable linked entities.
+ * @brief Adds an entity to the view and returns the copied entry.
  */
 r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 
@@ -97,14 +96,14 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 }
 
 /**
- * @brief Updates entity state each frame (currently a no-op placeholder).
+ * @brief Updates entity state for the frame.
  */
 void R_UpdateEntities(r_view_t *view) {
   
 }
 
 /**
- * @brief Draw all entities.
+ * @brief Draws the view's entities.
  */
 void R_DrawEntities(const r_view_t *view, RenderPass *pass) {
 

@@ -39,8 +39,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 }
 
 /**
- * @brief Transform lights into their uniform representation and upload them to
- * the BSP and dynamic lights storage buffers.
+ * @brief Uploads light buffers and updates per-frame dynamic light masks.
  */
 void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
 
@@ -101,12 +100,6 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
   const uint32_t dynamic_size = offsetof(r_dynamic_lights_uniform_block_t, dynamic_lights) + dynamic_block->num_dynamic_lights * sizeof(r_light_uniform_t);
   $(r_lights.dynamic_buffer, uploadWithPass, copyPass, dynamic_block, dynamic_size, 0, true);
 
-  // Cache each worldspawn block's dynamic light mask once per frame, so that
-  // the opaque, alpha-test, blend, material-stage and decal draw passes can
-  // all read it instead of separately recomputing it via R_ActiveDynamicLights.
-  // Movable (non-worldspawn) inline models are excluded: their bounds change
-  // per frame with the entity's transform, so they're computed per-entity,
-  // per-pass, from entity->abs_model_bounds instead.
   if (r_models.world) {
     const r_bsp_inline_model_t *in = &r_models.world->bsp->inline_models[0];
 
@@ -118,13 +111,7 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
 }
 
 /**
- * @brief Builds the dynamic light bitmask for the given bounds into `mask`.
- * @details Dynamic light sources (trails, explosions, animated BSP lights, etc.)
- * live in the dynamic lights buffer and have no voxel grid. This function
- * whittles the set of dynamic lights to those intersecting its bounds. Bit `j`
- * of the bitmask selects dynamic light `dynamic_lights[j]`. Dynamic lights may
- * be interleaved with static (voxel-gridded) BSP lights in the view, so `j`
- * counts them in view order, matching the slot assignment in R_UpdateLights.
+ * @brief Builds the dynamic light bitmask for the given bounds.
  */
 void R_ActiveDynamicLights(const r_view_t *view, const box3_t bounds, uint32_t mask[MAX_DYNAMIC_LIGHTS / 32]) {
 
@@ -135,7 +122,6 @@ void R_ActiveDynamicLights(const r_view_t *view, const box3_t bounds, uint32_t m
   const r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-    // Static (voxel-gridded) BSP lights are skipped.
     if (l->bsp_light) {
       continue;
     }

@@ -22,8 +22,7 @@
 #include "r_local.h"
 
 /**
- * @return True if the specified bounding box is culled by the view frustum, false otherwise.
- * @see http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-testing-boxes/
+ * @brief Tests whether a box is outside the view frustum.
  */
 bool R_CullBox(const r_view_t *view, const box3_t bounds) {
 
@@ -59,7 +58,7 @@ bool R_CullBox(const r_view_t *view, const box3_t bounds) {
 }
 
 /**
- * @return True if the specified sphere is culled by the view frustum, false otherwise.
+ * @brief Tests whether a sphere is outside the view frustum.
  */
 bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius) {
 
@@ -83,9 +82,7 @@ bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius) 
 }
 
 /**
- * @brief Updates the clipping planes for the view frustum for the current frame.
- * @details The frustum plane normals point inward (toward the visible volume).
- * A point with positive distance is inside the frustum; negative is outside.
+ * @brief Updates the view frustum planes.
  */
 void R_UpdateFrustum(r_view_t *view) {
 
@@ -95,28 +92,21 @@ void R_UpdateFrustum(r_view_t *view) {
 
   cm_bsp_plane_t *p = view->frustum;
 
-  // view->fov.x/y are half-angles (see Cg_UpdateFov).
-  // Plane normal sin(θ)*forward ∓ cos(θ)*right clips exactly at the half-FOV angle θ:
-  //   distance = sin(θ-φ), negative when φ > θ (outside frustum).
   float hs = sinf(Radians(view->fov.x));
   float hc = cosf(Radians(view->fov.x));
 
-  // Right boundary plane (clips objects beyond the right edge)
   p[0].normal = Vec3_Scale(view->forward, hs);
   p[0].normal = Vec3_Fmaf(p[0].normal, -hc, view->right);
 
-  // Left boundary plane (clips objects beyond the left edge)
   p[1].normal = Vec3_Scale(view->forward, hs);
   p[1].normal = Vec3_Fmaf(p[1].normal, hc, view->right);
 
   float vs = sinf(Radians(view->fov.y));
   float vc = cosf(Radians(view->fov.y));
 
-  // Top boundary plane (clips objects beyond the top edge)
   p[2].normal = Vec3_Scale(view->forward, vs);
   p[2].normal = Vec3_Fmaf(p[2].normal, -vc, view->up);
 
-  // Bottom boundary plane (clips objects beyond the bottom edge)
   p[3].normal = Vec3_Scale(view->forward, vs);
   p[3].normal = Vec3_Fmaf(p[3].normal, vc, view->up);
 

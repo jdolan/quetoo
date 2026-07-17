@@ -309,11 +309,7 @@ typedef struct r_decal_s {
 typedef struct r_occlusion_query_s {
 
   /**
-   * @brief The query bounds, used for CPU-side `R_OccludeBox`/`R_OccludeSphere` checks and
-   * view culling. Set once by `R_AllocOcclusionQuery` and never touched again -- in
-   * particular, appending GPU box geometry via `R_AppendOcclusionQueryBox` never changes
-   * this, so a query may test a loose, coarse volume on the CPU while drawing much
-   * tighter, per-voxel geometry on the GPU.
+   * @brief The query bounds used for CPU-side culling.
    */
   box3_t bounds;
 
@@ -494,8 +490,7 @@ typedef struct r_bsp_face_s {
 } r_bsp_face_t;
 
 /**
- * @brief BSP draw elements, which include all opaque faces of a given material
- * within a particular inline model.
+ * @brief BSP draw elements for one material within an inline model.
  */
 typedef struct {
 
@@ -582,8 +577,8 @@ typedef struct r_bsp_node_s {
 } r_bsp_node_t;
 
 /**
- * @brief BSP leafs terminate the branches of the BSP tree.
- * @remarks Leafs are truncated node structures so that they may be cast to `r_bsp_node_t`.
+ * @brief BSP leafs terminate BSP tree branches.
+ * @remarks Leafs can be cast to `r_bsp_node_t`.
  */
 typedef struct {
 
@@ -687,17 +682,14 @@ typedef struct r_bsp_block_s {
   r_bsp_block_decals_t decals;
 
   /**
-   * @brief The cached dynamic light bitmask for this block, updated once
-   * per frame in R_UpdateLights.
+   * @brief The cached dynamic light bitmask for this block.
    */
   uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
 
 } r_bsp_block_t;
 
 /**
- * @brief The BSP is organized into one or more models (trees). The first model is
- * the worldspawn model, and typically is the largest. An additional model exists
- * for each entity that contains brushes. Non-worldspawn models can move and rotate.
+ * @brief A BSP inline model.
  */
 typedef struct r_bsp_inline_model_s {
 
@@ -901,8 +893,7 @@ typedef struct {
   r_image_t *light_data;
 
   /**
-   * @brief The storage buffer of per-voxel (first_index, count) pairs (`R32I`),
-   * indexed by linear voxel index.
+   * @brief The storage buffer of per-voxel light ranges.
    */
   Buffer *light_data_buffer;
 
@@ -1070,7 +1061,6 @@ typedef struct {
 
   /**
    * @brief The vertex array (VAO) name.
-   * @remarks Unused under SDL_gpu; vertex layout lives in the GraphicsPipeline.
    */
   uint32_t vertex_array;
 
@@ -1087,7 +1077,6 @@ typedef struct {
 
     /**
      * @brief The depth pass vertex array (VAO) name.
-     * @remarks Unused under SDL_gpu; retained pending the depth pre-pass port.
      */
     uint32_t vertex_array;
 
@@ -1151,8 +1140,7 @@ typedef struct {
 } r_mesh_frame_t;
 
 /**
- * @brief The mesh tag type.
- * @details Tags are used to align submodels (e.g. weapons, CTF flags).
+ * @brief A mesh attachment tag.
  */
 typedef struct {
 
@@ -1168,8 +1156,7 @@ typedef struct {
 } r_mesh_tag_t;
 
 /**
- * @brief The mesh face type.
- * @details A mesh model is comprised of one or more faces, which may have distinct materials.
+ * @brief A mesh face.
  */
 typedef struct {
 
@@ -1265,8 +1252,7 @@ typedef struct {
   float scale;
 
   /**
-   * @brief The muzzle position in model space (Quetoo coordinate system).
-   * @remarks This field is only ever accessed via the `view` config.
+   * @brief The muzzle position in model space.
    */
   vec3_t muzzle;
 
@@ -1655,9 +1641,7 @@ typedef struct {
   color24_t color;
 
   /**
-   * @brief Padding: keeps @c lerp below at a 2-byte-aligned offset. @c color24_t
-   * is 3 bytes, so without this, the packed (@c lerp, @c lighting) UBYTE2_NORM
-   * attribute lands on an odd offset, which D3D12 rejects.
+   * @brief Padding for vertex attribute alignment.
    */
   uint8_t reserved;
 
@@ -1711,21 +1695,17 @@ typedef struct {
 #define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
 
 /**
- * @brief Renderer-specific entity effect bits. The lower 16 bits are reserved for the game and
- * client game module, and are sent over the wire as part of entity state. The higher bits are applied
- * locally by the client, client game or renderer.
+ * @brief Renderer-local entity effect bits.
  */
-#define EF_SELF      (1 << 23) // local client's entity model
-#define EF_WEAPON    (1 << 24) // view weapon
-#define EF_SHELL     (1 << 25) // colored shell
-#define EF_BLEND     (1 << 26) // preset alpha blend
-#define EF_NO_SHADOW (1 << 27) // no shadow
-#define EF_NO_DRAW   (1 << 28) // no draw (but perhaps shadow)
+#define EF_SELF      (1 << 23)
+#define EF_WEAPON    (1 << 24)
+#define EF_SHELL     (1 << 25)
+#define EF_BLEND     (1 << 26)
+#define EF_NO_SHADOW (1 << 27)
+#define EF_NO_DRAW   (1 << 28)
 
 /**
- * @brief Entities provide a means to add model instances to the view. Entity
- * lighting is cached on the client entity so that it is only recalculated
- * when an entity moves.
+ * @brief A renderable entity instance.
  */
 typedef struct r_entity_s {
 
@@ -1842,9 +1822,7 @@ typedef struct r_entity_s {
 #define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
 
 /**
- * @brief The maximum number of shadow-caster entity references across all
- * lights in a single frame (an entity may be referenced by more than one
- * light, so this is not simply MAX_ENTITIES).
+ * @brief The maximum number of shadow-caster entity references per frame.
  */
 #define MAX_SHADOW_CASTERS (MAX_ENTITIES * 4)
 
@@ -1898,23 +1876,17 @@ typedef struct {
   bool *shadow_cached;
 
   /**
-   * @brief The optional light source entity identifier, which will not cast
-   * shadow. This is an opaque token matching r_entity_t::id (the cgame's
-   * cl_entity_t pointer), not a renderer entity pointer.
+   * @brief The optional light source entity identifier.
    */
   const void *source;
   
   /**
-   * @brief True if the light is occluded for the current frame, set by
-   * R_UpdateLights. Static lights consult their backing bsp_light's
-   * persistent occlusion query; dynamic lights are tested with R_CulludeBox.
+   * @brief True if the light is occluded for the current frame.
    */
   bool occluded;
 
   /**
-   * @brief The entities intersecting this light's bounds and
-   * surviving the view-frustum shadow-bounds cull, populated by
-   * @c R_UpdateShadows.
+   * @brief The shadow-casting entities intersecting this light.
    */
   const r_entity_t *entities[MAX_ENTITIES];
 
@@ -1924,13 +1896,7 @@ typedef struct {
   int32_t num_entities;
 
   /**
-   * @brief This light's tile origin in the shadow atlas, in pixels. The tile
-   * is square (`r_shadow_atlas.tile_size` on a side) and the same in all six
-   * face textures. Computed once by R_UpdateLights from the light's index (it
-   * runs first each frame and needs the value itself); consumed directly by
-   * R_ClearShadows/R_DrawShadows for viewport/scissor, and combined with
-   * `r_shadow_atlas.tile_size` into r_light_uniform_t::shadow -- the shader
-   * normalizes to UV space itself via textureSize().
+   * @brief The shadow atlas tile origin in pixels.
    */
   vec2_t tile;
 } r_light_t;
@@ -1968,9 +1934,7 @@ typedef struct {
   r_view_flags_t flags;
 
   /**
-   * @brief The target scene framebuffer (required): the depth pre-pass and the
-   * main 3D passes render here (shared depth for early-Z), then R_DrawPost
-   * composites its color into the present framebuffer.
+   * @brief The target scene framebuffer.
    */
   Framebuffer *framebuffer;
 

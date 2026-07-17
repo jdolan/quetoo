@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief The fixed mip level count for cubemap images (see IMG_CUBEMAP below).
+ * @brief Fixed cubemap mip level count.
  */
 #define IMG_CUBEMAP_LEVELS 8
 
@@ -36,21 +36,19 @@ typedef enum {
 } r_screenshot_type_t;
 
 /**
- * @brief If set, take a screenshot at the end of the frame.
+ * @brief Pending screenshot type.
  */
 static r_screenshot_type_t r_pending_screenshot;
 
 /**
- * @brief Initializes the images facilities.
+ * @brief Initializes image output directories.
  */
 void R_InitImages(void) {
   Fs_Mkdir("screenshots");
 }
 
 /**
- * @brief Replaces cubemap face border texels with adjacent interior texels.
- * @details This removes 1px edge artifacts present in some source sky cross images and
- * helps prevent seam bleed in mip generation and filtered cubemap sampling.
+ * @brief Copies interior texels to the cubemap face border.
  */
 static void R_FixupCubemapFace(SDL_Surface *side) {
 
@@ -64,11 +62,9 @@ static void R_FixupCubemapFace(SDL_Surface *side) {
   byte *pixels = side->pixels;
   const int32_t pitch = side->pitch;
 
-  // Top row <- row 1, bottom row <- row h-2.
   memcpy(pixels, pixels + pitch, side->w * bpp);
   memcpy(pixels + (side->h - 1) * pitch, pixels + (side->h - 2) * pitch, side->w * bpp);
 
-  // Left / right columns <- adjacent interior columns.
   for (int32_t y = 0; y < side->h; y++) {
     byte *row = pixels + y * pitch;
     memcpy(row, row + bpp, bpp);
@@ -79,7 +75,7 @@ static void R_FixupCubemapFace(SDL_Surface *side) {
 }
 
 /**
- * @brief ThreadRunFunc for `R_Screenshot`.
+ * @brief Encodes and writes a screenshot surface.
  */
 static void R_Screenshot_encode(void *data) {
   char path[MAX_QPATH];
@@ -119,11 +115,7 @@ static void R_Screenshot_encode(void *data) {
 }
 
 /**
- * @brief Downloads the given Texture and converts it to a tightly-packed,
- * bottom-up BGR24 SDL_Surface, matching what Img_WriteTGA/JPG/PNG expect
- * (they were written against GL_BGR glReadPixels data, which is bottom-up).
- * @remarks Only handles the two swapchain-typical 8-bit formats; anything
- * else (e.g. an HDR scene texture) is not screenshot-able through this path.
+ * @brief Downloads a texture into a bottom-up BGR24 surface.
  */
 static SDL_Surface *R_ReadTexture(const Texture *texture) {
 
@@ -144,7 +136,7 @@ static SDL_Surface *R_ReadTexture(const Texture *texture) {
 
   for (int32_t y = 0; y < h; y++) {
     const byte *src = pixels + y * w * 4;
-    byte *dst = (byte *) surface->pixels + (h - y - 1) * surface->pitch; // bottom-up
+    byte *dst = (byte *) surface->pixels + (h - y - 1) * surface->pitch;
 
     for (int32_t x = 0; x < w; x++, src += 4, dst += 3) {
       dst[0] = src[blue];
@@ -159,12 +151,7 @@ static SDL_Surface *R_ReadTexture(const Texture *texture) {
 }
 
 /**
- * @brief Captures a screenshot, if requested, writing it to the user's directory.
- * @remarks SCREENSHOT_VIEW and SCREENSHOT_DEFAULT both capture the present
- * framebuffer (SDL_gpu has no separate GL-style default framebuffer, and the UI
- * is composited into the present framebuffer before this runs) -- unlike main,
- * SCREENSHOT_VIEW is not yet able to omit the HUD/console. TODO(#864): a
- * dedicated post-scene, pre-UI capture point would be needed for true parity.
+ * @brief Captures the resolved color buffer if a screenshot is pending.
  */
 void R_Screenshot(r_view_t *view) {
 
@@ -183,8 +170,8 @@ void R_Screenshot(r_view_t *view) {
 }
 
 /**
-* @brief Sets the screenshot type to take this frame.
-*/
+ * @brief Sets the screenshot type for this frame.
+ */
 void R_Screenshot_f(void) {
 
   if (!q_strcmp(Cmd_Argv(1), "view")) {
@@ -195,7 +182,7 @@ void R_Screenshot_f(void) {
 }
 
 /**
- * @brief Retain event listener for images.
+ * @brief Retains persistent image media.
  */
 bool R_RetainImage(r_media_t *self) {
 
@@ -210,7 +197,7 @@ bool R_RetainImage(r_media_t *self) {
 }
 
 /**
- * @brief Free event listener for images.
+ * @brief Frees an image texture.
  */
 void R_FreeImage(r_media_t *media) {
 
@@ -220,7 +207,7 @@ void R_FreeImage(r_media_t *media) {
 }
 
 /**
- * @brief Loads the image by the specified name.
+ * @brief Loads an image by name.
  */
 r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
   char key[MAX_QPATH];
@@ -261,7 +248,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     image->width = surface->w / 4;
     image->height = surface->h / 3;
 
-    // right left front back up down
     const vec2s_t offsets[] = {
       Vec2s(2, 1),
       Vec2s(0, 1),
@@ -282,8 +268,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
     image->depth = 6;
 
-    // Assemble the six faces, layer-major, into a single RGBA buffer and upload
-    // them as one cube texture (SDL_gpu uploads all layers in one copy).
     const size_t face_size = image->width * image->height * 4;
     byte *data = malloc(face_size * 6);
 
@@ -325,9 +309,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
       SDL_DestroySurface(side);
     }
 
-    // Mip levels are fixed at 8 (not derived from face size), matching the GL
-    // renderer: image-based ambient (light.glsl) samples a fixed LOD of 6 for a
-    // blurred irradiance approximation, so that level must always exist.
     image->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_CUBE,
       .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
@@ -340,9 +321,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
     free(data);
 
-    // Generating mipmaps is not a copy-pass operation and must run outside any
-    // pass, so it gets its own one-shot command buffer after the base level
-    // upload (createTexture's internal copy pass) has already been submitted.
     CommandBuffer *commands = $(r_context.device, acquireCommandBuffer);
     $(commands, generateMipmaps, image->texture->texture);
     $(commands, submit);
@@ -351,8 +329,6 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     image->width = surface->w;
     image->height = surface->h;
 
-    // Mipmapped unconditionally, matching main's GL_LINEAR_MIPMAP_LINEAR minify
-    // for every non-cubemap image type (fonts, UI, materials, ...).
     image->texture = $(r_context.device, createTextureFromSurface, surface, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
   }
     
@@ -370,7 +346,7 @@ static void R_DumpImage(const r_image_t *image, const char *output, bool mipmap,
 }
 
 /**
- * @brief `R_MediaEnumerator` for `R_DumpImages_f`.
+ * @brief Enumerates loaded images for dumping.
  */
 static void R_DumpImages_enumerator(const r_media_t *media, void *data) {
 

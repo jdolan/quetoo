@@ -24,17 +24,7 @@
 r_depth_pipeline_t r_depth_pipeline;
 
 /**
- * @brief Renders opaque world geometry into the view framebuffer's depth (depth
- * only), which the main 3D passes then LOAD for early-Z rejection.
- * @details BSP-only: occluders are world geometry. Soft particles don't sample
- * this depth target directly -- SDL_gpu can't sample a multisample depth
- * buffer, so r_bsp_draw.c/r_mesh_draw.c write a single-sample float depth copy
- * as a second color attachment, which r_sprite.c samples instead.
- * @details Recorded into `commands`, a dedicated CommandBuffer owned by the caller
- * (see R_DrawViewDepth) rather than the frame's shared command buffer, so it can be
- * submitted and fenced immediately -- letting occlusion query results (which depend
- * on this pass) become available as early as possible, unblocked by the rest of the
- * frame's GPU work.
+ * @brief Draws world geometry into the view depth buffer.
  */
 void R_DrawDepthPass(r_view_t *view, CommandBuffer *commands) {
 
@@ -77,7 +67,7 @@ void R_InitDepthPass(void) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/depth_pass_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-    .num_uniform_buffers = 2, // globals (binding 0) + locals/model (binding 1)
+    .num_uniform_buffers = 2,
   });
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
@@ -111,7 +101,6 @@ void R_InitDepthPass(void) {
     .num_vertex_attributes = 1,
   };
 
-  // Depth-only: no color targets, just the shared D32F depth attachment.
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .num_color_targets = 0,
     .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
@@ -133,9 +122,7 @@ void R_ShutdownDepthPass(void) {
 }
 
 /**
- * @brief Rebuilds the depth pre-pass pipeline in place, for pipeline-bound
- * cvar changes (r_antialias, ...) that would otherwise require an r_restart.
- * See R_UpdatePipelines.
+ * @brief Rebuilds the depth pre-pass pipeline.
  */
 void R_UpdateDepthPass(void) {
   R_ShutdownDepthPass();

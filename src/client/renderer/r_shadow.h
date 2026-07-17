@@ -26,25 +26,17 @@
 #if defined(__R_LOCAL_H__)
 
 /**
- * @brief The number of lights per row/column in each face texture's grid: a
- * fixed 32x32 grid, i.e. exactly MAX_LIGHTS tiles, so every light always gets
- * one -- only the texture's pixel dimensions vary, with `r_shadow_tile_size`.
+ * @brief The number of shadow-atlas tiles per row in each face.
  */
 #define SHADOW_ATLAS_LIGHTS_PER_ROW 32
 
 /**
- * @brief The shadow atlas: one plain 2D depth texture per cube face.
- * @details SDL_gpu forbids `DEPTH_STENCIL_TARGET` on array textures, so instead
- * of a layered array, each of the six cube faces gets its own texture; a given
- * light occupies the same tile position (row/col derived from its index) in
- * all six. Each texture is a square grid of `SHADOW_ATLAS_LIGHTS_PER_ROW` x
- * `SHADOW_ATLAS_LIGHTS_PER_ROW` tiles.
+ * @brief Shadow atlas resources.
  */
 typedef struct {
 
   /**
-   * @brief The six D16 depth textures (one per cube face), storing linear
-   * distance-from-light.
+   * @brief The per-face shadow atlas textures.
    */
   Texture *textures[6];
 

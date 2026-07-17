@@ -110,8 +110,6 @@ static void R_ClipDecalToFace(const r_view_t *view,
 
   cm_winding_t *fw;
   if (face->patch) {
-    // Patch face vertices are a row-major grid, not a polygon winding.
-    // Extract the perimeter vertices in winding order.
     const int32_t n_edge = (int32_t) sqrtf((float) face->num_vertexes);
     const int32_t perimeter = 4 * (n_edge - 1);
     fw = Cm_AllocWinding(perimeter);
@@ -131,9 +129,7 @@ static void R_ClipDecalToFace(const r_view_t *view,
       fw->points[i] = face->vertexes[i].position;
     }
   }
-
   cm_winding_t *w = Cm_ClipWindingToWinding(dw, fw, n, -1.f - ON_EPSILON);
-  //cm_winding_t *w = Cm_CopyWinding(dw);
 
   Cm_FreeWinding(dw);
   Cm_FreeWinding(fw);
@@ -193,8 +189,7 @@ static void R_ClipDecalToFace(const r_view_t *view,
 }
 
 /**
- * @brief Recurses down the tree to project the decal onto faces.
- * @details Decal geometry is accumulated on the containing `r_bsp_block_t` node.
+ * @brief Projects a decal onto the faces under a BSP node.
  */
 static void R_ClipDecalToNode(const r_view_t *view,
                               const r_bsp_node_t *node,
@@ -203,9 +198,6 @@ static void R_ClipDecalToNode(const r_view_t *view,
   if (node->contents > CONTENTS_NODE) {
     return;
   }
-
-  // Patch faces may be at any orientation relative to the node plane,
-  // so we must check them before the BSP plane early-outs below.
 
   const box3_t decal_bounds = Box3_FromCenterRadius(decal->origin, decal->radius);
 
@@ -251,8 +243,6 @@ static void R_ClipDecalToNode(const r_view_t *view,
     r_bsp_block_decals_t *decals = &face->block->decals;
     R_ClipDecalToFace(view, face, &face_projected, normal, tangent, bitangent, decals);
   }
-
-  // BSP plane recursion for brush faces
 
   const cm_bsp_plane_t *plane = node->plane->cm;
   const float dist = Cm_DistanceToPlane(decal->origin, plane);
@@ -319,7 +309,7 @@ static void R_ClipDecalToNode(const r_view_t *view,
 }
 
 /**
- * @brief Add new decals from the view and expiring the existing ones.
+ * @brief Adds new decals and expires old decal triangles.
  */
 void R_UpdateDecals(const r_view_t *view) {
 
@@ -434,9 +424,6 @@ void R_DrawDecals(RenderPass *pass, const r_view_t *view) {
 
   $(pass, bindPipeline, r_decal_pipeline.pipeline);
 
-  // The shared BSP lights / dynamic lights / voxel-data / voxel-index
-  // storage (decal family: sampler 0=atlas; storage 0=bsp lights, 1=dynamic
-  // lights, 2=voxel data, 3=voxel indices).
   SDL_GPUBuffer *storage[] = {
     r_lights.bsp_buffer->buffer,
     r_lights.dynamic_buffer->buffer,
@@ -458,9 +445,6 @@ void R_DrawDecals(RenderPass *pass, const r_view_t *view) {
 
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
 
-    // Movable (non-worldspawn) submodels: compute the mask once per entity,
-    // from its current transformed bounds. Worldspawn blocks use the mask
-    // cached per frame in R_UpdateLights (see the block loop below).
     uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
     if (!IS_WORLDSPAWN(e->model)) {
       R_ActiveDynamicLights(view, e->abs_model_bounds, active_dynamic_lights);
@@ -542,7 +526,6 @@ void R_InitDecals(void) {
         .blend_state = GPU_BlendStateAlpha,
       },
       {
-        // Decals never touch the linearized-depth target; mask writes off.
         .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
         .blend_state = { .enable_color_write_mask = true, .color_write_mask = 0 },
       },
@@ -578,12 +561,9 @@ void R_ShutdownDecals(void) {
 }
 
 /**
- * @brief Rebuilds the decal pipeline and samplers in place, for pipeline-bound
- * cvar changes (r_antialias, r_anisotropy, ...) that would otherwise require
- * an r_restart. See R_UpdatePipelines.
+ * @brief Rebuilds the decal pipeline and samplers.
  */
 void R_UpdateDecalPipeline(void) {
   R_ShutdownDecals();
   R_InitDecals();
 }
-

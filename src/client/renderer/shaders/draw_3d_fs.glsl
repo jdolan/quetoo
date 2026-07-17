@@ -28,7 +28,7 @@ layout (location = 0) in vertex_data {
 layout (location = 0) out vec4 out_color;
 
 /**
- * @brief
+ * @brief Outputs the interpolated vertex color.
  */
 void main(void) {
   out_color = vertex.color;

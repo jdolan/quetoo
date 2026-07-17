@@ -23,112 +23,110 @@
 #define _COMMON_GLSL_
 
 /**
- * @brief Horizontal maximum, returns the maximum component of a vector.
+ * @brief Returns the maximum component of a vec2.
  */
 float hmax(vec2 v) {
   return max(v.x, v.y);
 }
 
 /**
- * @brief Horizontal maximum, returns the maximum component of a vector.
+ * @brief Returns the maximum component of a vec3.
  */
 float hmax(vec3 v) {
   return max(max(v.x, v.y), v.z);
 }
 
 /**
- * @brief Horizontal maximum, returns the maximum component of a vector.
+ * @brief Returns the maximum component of a vec4.
  */
 float hmax(vec4 v) {
   return max(max(v.x, v.y), max(v.z, v.w));
 }
 
 /**
- * @brief Horizontal minimum, returns the minimum component of a vector.
+ * @brief Returns the minimum component of a vec2.
  */
 float hmin(vec2 v) {
   return min(v.x, v.y);
 }
 
 /**
- * @brief Horizontal minimum, returns the minimum component of a vector.
+ * @brief Returns the minimum component of a vec3.
  */
 float hmin(vec3 v) {
   return min(min(v.x, v.y), v.z);
 }
 
 /**
- * @brief Horizontal minimum, returns the minimum component of a vector.
+ * @brief Returns the minimum component of a vec4.
  */
 float hmin(vec4 v) {
   return min(min(v.x, v.y), min(v.z, v.w));
 }
 
 /**
- * @brief Inverse of v.
+ * @brief Returns 1.0 - v.
  */
 vec3 invert(vec3 v) {
   return vec3(1.0) - v;
 }
 
 /**
- * @brief Clamps to [0.0, 1.0], like in HLSL.
+ * @brief Clamps x to [0.0, 1.0].
  */
 float saturate(float x) {
   return clamp(x, 0.0, 1.0);
 }
 
 /**
- * @brief Common vertex data structure.
- * @details Used by both BSP and mesh shaders. Not all fields are used by all shader types.
+ * @brief Shared vertex shader data.
  */
 struct common_vertex_t {
-  vec3 model_position;   // World-space position
-  vec3 model_normal;     // World-space normal
-  vec3 position;         // View-space position
-  vec3 normal;           // View-space normal
-  vec3 tangent;          // View-space tangent
-  vec3 bitangent;        // View-space bitangent
-  vec2 diffusemap;       // Diffuse texture coordinates
-  vec3 voxel;            // Voxel texture coordinates
-  vec4 color;            // Vertex color
-  vec3 ambient;          // Ambient lighting
-  vec3 diffuse;          // Diffuse lighting
-  float caustics;        // Caustics lighting
+  vec3 model_position;
+  vec3 model_normal;
+  vec3 position;
+  vec3 normal;
+  vec3 tangent;
+  vec3 bitangent;
+  vec2 diffusemap;
+  vec3 voxel;
+  vec4 color;
+  vec3 ambient;
+  vec3 diffuse;
+  float caustics;
 };
 
 /**
- * @brief Common fragment data structure.
- * @details Used by both BSP and mesh shaders. Not all fields are used by all shader types.
+ * @brief Shared fragment shader data.
  */
 struct common_fragment_t {
-  vec3 view_dir;         // View direction (normalized, pointing toward camera)
-  float view_dist;       // Distance from camera
-  float lod;             // Texture LOD level (BSP only)
-  vec3 normal;           // View-space normal
-  vec3 tangent;          // View-space tangent
-  vec3 bitangent;        // View-space bitangent
-  mat3 tbn;              // Tangent-to-view matrix
-  vec2 parallax;         // Parallax-offset texture coordinates (BSP only)
-  vec4 diffuse_sample;   // Diffuse texture sample
-  vec3 normal_sample;    // Normal map sample (world/view space)
-  vec4 specular_sample;  // Specular texture sample (rgb = color, a = gloss)
-  vec3 ambient;          // Ambient lighting contribution
-  vec3 diffuse;          // Diffuse lighting contribution
-  vec3 specular;         // Specular lighting contribution
-  float caustics;        // Caustics contribution (BSP only)
-  vec2 shadow_sin_cos;   // Per-pixel Poisson rotation (sin, cos)
+  vec3 view_dir;
+  float view_dist;
+  float lod;
+  vec3 normal;
+  vec3 tangent;
+  vec3 bitangent;
+  mat3 tbn;
+  vec2 parallax;
+  vec4 diffuse_sample;
+  vec3 normal_sample;
+  vec4 specular_sample;
+  vec3 ambient;
+  vec3 diffuse;
+  vec3 specular;
+  float caustics;
+  vec2 shadow_sin_cos;
 };
 
 /**
- * @brief Clamp value t to range [a,b] and map [a,b] to [0,1].
+ * @brief Maps t from [a, b] to [0, 1].
  */
 float linearstep(float a, float b, float t) {
   return clamp((t - a) / (b - a), 0.0, 1.0);
 }
 
 /**
- * @brief
+ * @brief Returns a 3D hash vector.
  */
 vec3 hash33(vec3 p) {
   p = fract(p * vec3(.1031,.11369,.13787));
@@ -137,7 +135,7 @@ vec3 hash33(vec3 p) {
 }
 
 /**
- * @brief https://www.shadertoy.com/view/4sc3z2
+ * @brief Returns 3D value noise.
  */
 float noise3d(vec3 p) {
   vec3 pi = floor(p);
@@ -166,8 +164,7 @@ float noise3d(vec3 p) {
 }
 
 /**
- * @brief Calculates a lookAt matrix for the given parameters.
- * @see Mat4_LookAt
+ * @brief Builds a look-at matrix.
  */
 mat4 lookAt(vec3 eye, vec3 pos, vec3 up) {
 
@@ -184,11 +181,7 @@ mat4 lookAt(vec3 eye, vec3 pos, vec3 up) {
 }
 
 /**
- * @brief Toksvig specular anti-aliasing.
- * @details Adjusts gloss based on normal map variance to reduce specular aliasing.
- * @param normal Normal map sample (unnormalized).
- * @param power Specular power.
- * @return Adjusted gloss multiplier.
+ * @brief Returns a Toksvig-adjusted gloss factor.
  */
 float toksvig_gloss(in vec3 normal, in float power) {
   float len_rcp = 1.0 / saturate(length(normal));

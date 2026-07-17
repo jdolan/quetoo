@@ -42,12 +42,8 @@ void R_ApplyMeshConfig(r_entity_t *e) {
 }
 
 /**
- * @brief Returns the desired tag structure, or `NULL`.
- * @param mod The model to check for the specified tag.
- * @param frame The frame to fetch the tag on.
- * @param name The name of the tag.
- * @return The tag structure.
-*/
+ * @brief Returns the named mesh tag for the specified frame.
+ */
 static const r_mesh_tag_t *R_MeshTag(const r_model_t *mod, const char *name, const int32_t frame) {
 
   if (frame >= mod->mesh->num_frames) {
@@ -69,13 +65,9 @@ static const r_mesh_tag_t *R_MeshTag(const r_model_t *mod, const char *name, con
 }
 
 /**
- * @brief Applies transformation and rotation for the specified linked entity. The matrix
- * component of the parent and child must be set up already. The child's matrix will be modified
- * by this function.
+ * @brief Applies a parent mesh tag transform to a linked entity.
  */
 void R_ApplyMeshTag(r_entity_t *e) {
-
-  // interpolate the tag over the frames of the parent entity
 
   const r_mesh_tag_t *t1 = R_MeshTag(e->parent->model, e->tag, e->parent->old_frame);
   const r_mesh_tag_t *t2 = R_MeshTag(e->parent->model, e->tag, e->parent->frame);
@@ -86,20 +78,12 @@ void R_ApplyMeshTag(r_entity_t *e) {
   }
 
   mat4_t tag_transform = Mat4_Mix(t2->matrix, t1->matrix, e->parent->back_lerp);
-
-  // add local origins to the local offset
   tag_transform = Mat4_Concat(tag_transform, e->matrix);
-
-  // move by parent matrix
   e->matrix = Mat4_Concat(e->parent->matrix, tag_transform);
-
-  // calculate final origin/angles
   vec3_t forward;
   Mat4_Vectors(e->matrix, &forward, NULL, NULL, &e->origin);
 
   e->angles = Vec3_Euler(forward);
   e->scale = Mat4_ToScale(e->matrix);
-
-  // transform the bounds
   e->abs_bounds = Mat4_TransformBounds(e->matrix, e->bounds);
 }

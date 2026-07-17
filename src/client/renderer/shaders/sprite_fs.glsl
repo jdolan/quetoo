@@ -21,10 +21,13 @@
 
 #version 450
 
+/**
+ * @file sprite_fs.glsl
+ * @brief Shades sprites and particles with soft-particle fading.
+ */
+
 #include "uniforms.glsl"
 
-// The sprite program's own binding map: diffuse and its animation next-frame,
-// then the scene depth attachment soften.glsl samples for soft particles.
 #define BINDING_SAMPLER_DIFFUSE          0
 #define BINDING_SAMPLER_NEXT_DIFFUSE     1
 #define BINDING_SAMPLER_DEPTH_ATTACHMENT 2
@@ -44,12 +47,7 @@ layout (location = 5) in vec3 in_diffuse;
 layout (location = 0) out vec4 out_color;
 
 /**
- * @brief Additive sprite/particle shading with a soft-particle edge: the color
- * is faded (toward black, so additive blending fades to nothing) as the fragment
- * nears or passes the opaque scene depth behind it. Absorptive sprites (smoke,
- * @c in_lighting > 0) are modulated by the surrounding clustered voxel light,
- * computed per-vertex in sprite_vs.glsl and interpolated here; emissive sprites
- * (@c in_lighting == 0, e.g. blaster particles) stay fullbright.
+ * @brief Shades sprites with optional lighting and soft-particle fading.
  */
 void main(void) {
 

@@ -23,17 +23,9 @@
 
 #include "uniforms.glsl"
 
-/*
- * The sprite family's own dense lighting bindings, after the vertex buffer:
- * the BSP lights, dynamic lights, voxel light-data and voxel light-index
- * storage buffers at contiguous bindings 0/1/2/3. The light data is a storage
- * buffer of per-voxel (first_index, count) pairs rather than an RG32I
- * isampler3D because D3D12 cannot sample integer formats. Sprites take
- * clustered voxel BSP light plus a per-batch dynamic light tail (see
- * sprite_locals_block below), both pure distance attenuation (no normal, so
- * no Lambert term) -- computed once per vertex here rather than per fragment,
- * since sprites are flat billboards with no meaningful normal variation across
- * their surface.
+/**
+ * @file sprite_vs.glsl
+ * @brief Computes per-vertex lighting for billboard sprites and beams.
  */
 #define BINDING_STORAGE_BSP_LIGHTS           0
 #define BINDING_STORAGE_DYNAMIC_LIGHTS       1
@@ -52,34 +44,29 @@ layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES
 
 
 /**
- * @brief Per-batch dynamic light cull mask (see r_sprite.c): sprite draws are
- * batched by consecutive same-texture instances, which may span an arbitrary
- * world area, so the mask is built from the union bounds of each batch rather
- * than a single entity's bounds like bsp/mesh -- a conservative superset that
- * may include a few extra lights per batch, but each is still distance-tested
- * per vertex below.
+ * @brief Per-batch dynamic light mask for sprite draws.
  */
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform sprite_locals_block {
-  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
+  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
 };
 
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec2 in_diffusemap;
 layout (location = 2) in vec2 in_next_diffusemap;
-layout (location = 3) in vec4 in_color;         // UBYTE4_NORM; .rgb is the sprite color
-layout (location = 4) in vec2 in_lerp_lighting;  // UBYTE2_NORM; .x lerp, .y lighting
+layout (location = 3) in vec4 in_color;
+layout (location = 4) in vec2 in_lerp_lighting;
 
 layout (location = 0) out vec2 out_diffusemap;
 layout (location = 1) out vec2 out_next_diffusemap;
 layout (location = 2) out vec3 out_color;
 layout (location = 3) out float out_lerp;
-layout (location = 4) out float out_lighting;        // how much surrounding light the sprite absorbs
-layout (location = 5) out vec3 out_diffuse;          // per-vertex clustered voxel + dynamic light
+layout (location = 4) out float out_lighting;
+layout (location = 5) out vec3 out_diffuse;
 
 invariant gl_Position;
 
 /**
- * @brief Resolves the integer voxel coordinate for a world-space position.
+ * @brief Resolves the integer voxel coordinate for a sprite vertex.
  */
 ivec3 sprite_voxel_xyz(in vec3 position) {
   const vec3 pos = position - voxels.mins.xyz;
@@ -88,9 +75,7 @@ ivec3 sprite_voxel_xyz(in vec3 position) {
 }
 
 /**
- * @brief Unshadowed, distance-only attenuated diffuse contribution from a
- * single light -- sprites are billboards with no meaningful normal, so there
- * is no Lambert term, matching the GL renderer's sprite lighting.
+ * @brief Computes distance-attenuated sprite lighting from one light.
  */
 vec3 sprite_light(in light_t light, in vec3 position) {
   const float dist = distance(light.origin.xyz, position);
@@ -99,8 +84,7 @@ vec3 sprite_light(in light_t light, in vec3 position) {
 }
 
 /**
- * @brief Accumulated clustered voxel BSP light plus the per-batch dynamic
- * light tail (see sprite_locals_block) at the sprite vertex's position.
+ * @brief Accumulates voxel and dynamic sprite lighting at a position.
  */
 vec3 sprite_lighting(in vec3 position) {
 
@@ -114,7 +98,6 @@ vec3 sprite_lighting(in vec3 position) {
     diffuse += sprite_light(bsp_lights[voxel_light_indices[data.x + i]], position);
   }
 
-  // Dynamic lights: those flagged active for this batch.
   for (int j = 0; j < num_dynamic_lights; j++) {
     if (dynamic_light_active(active_dynamic_lights, j)) {
       diffuse += sprite_light(dynamic_lights[j], position);
@@ -125,10 +108,7 @@ vec3 sprite_lighting(in vec3 position) {
 }
 
 /**
- * @brief Billboard sprite/beam vertices are pre-oriented on the CPU. Clustered
- * voxel and dynamic lighting is evaluated once per vertex here (see
- * sprite_lighting) rather than per fragment, since sprites are flat billboards
- * that don't benefit from per-fragment lighting.
+ * @brief Passes sprite attributes through and evaluates per-vertex lighting.
  */
 void main(void) {
 

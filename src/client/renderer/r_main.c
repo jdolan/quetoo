@@ -69,10 +69,7 @@ cvar_t *r_window_width;
 cvar_t *r_draw_stats;
 
 /**
- * @brief The MSAA sample count for the 3D scene, driven by r_antialias. The
- * scene framebuffer and every 3D pipeline are built with this count; see the
- * r_antialias->modified handling in R_BeginFrame, which rebuilds them in place
- * when it changes, no r_restart required.
+ * @brief MSAA sample count for the 3D scene.
  */
 SDL_GPUSampleCount r_scene_samples = SDL_GPU_SAMPLECOUNT_1;
 
@@ -107,10 +104,6 @@ void R_UpdateUniforms(const r_view_t *view) {
     const float xmin = ymin * aspect;
     const float xmax = ymax * aspect;
 
-    // Mat4_FromFrustum produces GL clip s'pace, where z spans [-1, 1]; SDL_gpu
-    // expects [0, 1] on every backend. Remap depth (z' = z * .5 + w * .5) so
-    // that near geometry isn't clipped and gl_FragCoord.z matches GL's window
-    // depth exactly (soften.glsl's linearization depends on this).
     const mat4_t clip = Mat4((const float[]) {
       1.f, 0.f, 0.f, 0.f,
       0.f, 1.f, 0.f, 0.f,
@@ -121,7 +114,7 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->projection3D = Mat4_Concat(clip, Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST));
     out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
-    out->sky_projection = Mat4_FromScale3(Vec3(-1.f, 1.f, 1.f)); // put Z going up
+    out->sky_projection = Mat4_FromScale3(Vec3(-1.f, 1.f, 1.f));
     out->sky_projection = Mat4_ConcatTranslation(out->sky_projection, Vec3_Negate(view->origin));
 
     out->light_projection = Mat4_Concat(clip, Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST));
@@ -244,8 +237,6 @@ void R_BeginFrame(void) {
 
   memset(&r_stats, 0, sizeof(r_stats));
 
-  // Acquire the frame and clear the present-target framebuffer. The UI (and,
-  // later, the resolved 3D scene) composite into it; R_EndFrame presents.
   CommandBuffer *commands = $(r_context.device, beginFrame);
   if (commands) {
     const Framebuffer *fb = r_context.device->framebuffer;
@@ -269,12 +260,7 @@ void R_InitView(r_view_t *view) {
 }
 
 /**
- * @brief Renders the view depth pre-pass, updating frustum and uploading uniforms.
- * @details The depth pass and occlusion queries are recorded into their own dedicated
- * CommandBuffer, submitted and fenced immediately, rather than the frame's shared
- * command buffer. This lets their fence signal as soon as just that GPU work
- * completes, so occlusion query results become available for read-back as early as
- * possible instead of waiting on the rest of the frame's rendering.
+ * @brief Renders the depth pre-pass and occlusion queries for the view.
  */
 void R_DrawViewDepth(r_view_t *view) {
 
@@ -298,10 +284,7 @@ void R_DrawViewDepth(r_view_t *view) {
 }
 
 /**
- * @brief Entry point for drawing the main view.
- * @details Short-circuits the entire frame if there is no command buffer in
- * flight (e.g. the swapchain was unavailable this frame -- see R_BeginFrame),
- * so the functions this fans out to don't each need to recheck it.
+ * @brief Draws the main view.
  */
 void R_DrawMainView(r_view_t *view) {
 
@@ -367,7 +350,6 @@ void R_EndFrame(void) {
  */
 static void R_InitLocal(void) {
 
-  // development tools
   r_alpha_test = Cvar_Add("r_alpha_test", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool).");
   r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool).");
   r_draw_bsp_blocks = Cvar_Add("r_draw_bsp_blocks", "0", CVAR_DEVELOPER, "Controls the rendering of BSP block boundaries (developer tool).");
@@ -381,7 +363,6 @@ static void R_InitLocal(void) {
   r_draw_stats = Cvar_Add("r_draw_stats", "0", CVAR_DEVELOPER, "Draw renderer performance statistics (developer tool).");
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
 
-  // settings and preferences
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
   r_ambient_occlusion = Cvar_Add("r_ambient_occlusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");
   r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering.");
@@ -432,9 +413,6 @@ static void R_InitConfig(void) {
   r_config.vendor = "SDL_gpu";
   r_config.version = SDL_GetGPUDeviceDriver(r_context.device->device);
 
-  // TODO(#864): SDL_gpu does not expose device limits directly; use conservative
-  // defaults that hold across the Metal/Vulkan/D3D12 backends we target. Revisit
-  // if a backend reports smaller limits (e.g. via SDL properties when available).
   r_config.max_texunits = 16;
   r_config.max_texture_size = 16384;
   r_config.max_3d_texture_size = 2048;
@@ -459,7 +437,6 @@ void R_Init(void) {
   R_UpdateSwapInterval();
   r_swap_interval->modified = false;
 
-  // Snapshot the MSAA sample count for the scene framebuffer and all 3D pipelines.
   r_scene_samples = R_SampleCount();
 
   R_InitConfig();
@@ -500,8 +477,7 @@ void R_Init(void) {
 }
 
 /**
- * @brief Shuts down the renderer, freeing all resources belonging to it,
- * including the render device.
+ * @brief Shuts down the renderer and frees its resources.
  */
 void R_Shutdown(void) {
 
@@ -527,9 +503,6 @@ void R_Shutdown(void) {
 
   R_ShutdownLights();
 
-  // R_ShutdownMedia frees loaded BSP models, which return their occlusion
-  // queries via R_FreeOcclusionQuery -- this must run before the pools
-  // R_ShutdownOcclusionQueries destroys.
   R_ShutdownMedia();
 
   R_ShutdownOcclusionQueries();

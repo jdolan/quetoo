@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief Free event listener for animations.
+ * @brief Frees an animation media asset.
  */
 static void R_FreeAnimation(r_media_t *media) {
 
@@ -32,7 +32,7 @@ static void R_FreeAnimation(r_media_t *media) {
 }
 
 /**
- * @brief Load animation image with the specified base name and number of images.
+ * @brief Creates an animation from the specified image frames.
  */
 r_animation_t *R_CreateAnimation(const char *name, int32_t num_images, const r_image_t **images) {
 
@@ -51,7 +51,7 @@ r_animation_t *R_CreateAnimation(const char *name, int32_t num_images, const r_i
 }
 
 /**
- * @brief Resolve animation image for time parameter
+ * @brief Resolves an animation frame for the specified time.
  */
 const r_image_t *R_ResolveAnimation(const r_animation_t *animation, float time, int32_t offset) {
   const int32_t frame = (int32_t) (animation->num_frames * time);

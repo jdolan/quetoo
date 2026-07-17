@@ -22,8 +22,7 @@
 #version 450
 
 /**
- * @brief Depth-only pre-pass: no color output. Depth is written by the
- * rasterizer into the framebuffer's depth attachment for early-Z reuse.
+ * @brief Depth-only fragment shader.
  */
 void main(void) {
 

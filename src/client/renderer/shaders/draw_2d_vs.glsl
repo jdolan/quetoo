@@ -40,7 +40,7 @@ layout (location = 0) out vertex_data {
 } vertex;
 
 /**
- * @brief
+ * @brief Transforms 2D vertices and forwards color and texcoords.
  */
 void main(void) {
 

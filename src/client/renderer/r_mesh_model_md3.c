@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief Parses `animation.cfg`, loading the frame specifications for the given model.
+ * @brief Loads `animation.cfg` for an MD3 model.
  */
 static void R_LoadMd3Animations(r_model_t *mod) {
   char path[MAX_QPATH];
@@ -114,7 +114,6 @@ static void R_LoadMd3Animations(r_model_t *mod) {
       continue;
     }
 
-    // skip unknown directives until we reach newline
     Parse_SkipToken(&parser, PARSE_DEFAULT);
 
     while (true) {
@@ -130,7 +129,7 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 }
 
 /**
- * @brief Swap function.
+ * @brief Swaps MD3 texcoords to host endianness.
  */
 static d_md3_texcoord_t R_SwapMd3Texcoord(const d_md3_texcoord_t *in) {
 
@@ -144,7 +143,7 @@ static d_md3_texcoord_t R_SwapMd3Texcoord(const d_md3_texcoord_t *in) {
 }
 
 /**
- * @brief Swap function/
+ * @brief Swaps an MD3 vertex to host endianness.
  */
 static d_md3_vertex_t R_SwapMd3Vertex(const d_md3_vertex_t *in) {
 
@@ -159,7 +158,7 @@ static d_md3_vertex_t R_SwapMd3Vertex(const d_md3_vertex_t *in) {
 }
 
 /**
- * @brief Swap function/
+ * @brief Swaps an MD3 triangle to host endianness.
  */
 static d_md3_triangle_t R_SwapMd3Triangle(const d_md3_triangle_t *in) {
 
@@ -175,7 +174,7 @@ static d_md3_triangle_t R_SwapMd3Triangle(const d_md3_triangle_t *in) {
 }
 
 /**
- * @brief Swap function.
+ * @brief Swaps an MD3 frame to host endianness.
  */
 static d_md3_frame_t R_SwapMd3Frame(const d_md3_frame_t *in) {
 
@@ -191,7 +190,7 @@ static d_md3_frame_t R_SwapMd3Frame(const d_md3_frame_t *in) {
 }
 
 /**
- * @brief Swap function.
+ * @brief Swaps an MD3 tag to host endianness.
  */
 static d_md3_tag_t R_SwapMd3Tag(const d_md3_tag_t *in) {
 
@@ -208,7 +207,7 @@ static d_md3_tag_t R_SwapMd3Tag(const d_md3_tag_t *in) {
 }
 
 /**
- * @brief Swap function.
+ * @brief Swaps an MD3 surface to host endianness.
  */
 static d_md3_surface_t R_SwapMd3Surface(const d_md3_surface_t *in) {
 
@@ -234,7 +233,7 @@ static d_md3_surface_t R_SwapMd3Surface(const d_md3_surface_t *in) {
 }
 
 /**
- * @brief Swap function.
+ * @brief Swaps an MD3 header to host endianness.
  */
 static d_md3_t R_SwapMd3(const d_md3_t *in) {
 
@@ -260,7 +259,7 @@ static d_md3_t R_SwapMd3(const d_md3_t *in) {
 }
 
 /**
- * @brief Loads the `d_md3_t` contents of buffer to the specified model.
+ * @brief Loads an MD3 model into the mesh renderer format.
  */
 static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
@@ -424,15 +423,12 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
     }
   }
 
-  // and animations for player models
   if (q_strstr(mod->media.name, "/upper")) {
     R_LoadMd3Animations(mod);
   }
 
-  // and the configs
   R_LoadMeshConfigs(mod);
 
-  // and finally load the array
   R_LoadMeshVertexArray(mod);
 
   Com_Debug(DEBUG_RENDERER, "!================================\n");

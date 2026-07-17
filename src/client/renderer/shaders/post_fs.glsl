@@ -54,23 +54,14 @@ const int R_POST_BLOOM_BLUR_Y  = 2;
 const int R_POST_TONEMAP       = 3;
 
 /**
- * @brief Extract bright regions from the HDR scene color buffer.
- *
- * Subtracts bloom_threshold from each channel and clamps to zero, so only
- * HDR-range pixels (above the threshold) feed the blur passes.
+ * @brief Extracts bright HDR regions for the bloom passes.
  */
 void bloom_extract(void) {
   out_color = vec4(max(texture(texture_color_attachment, vertex.texcoord).rgb - bloom_threshold, 0.0), 1.0);
 }
 
 /**
- * @brief One axis of the separable Gaussian bloom blur.
- *
- * Two-pass (X then Y) Gaussian blur using the bilinear sampling trick.
- * Each pass performs a 9-tap kernel with only 5 texture fetches by exploiting
- * hardware bilinear filtering to evaluate two weighted taps per sample.
- *
- * @see https://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
+ * @brief Applies one axis of the separable bloom blur.
  */
 void bloom_blur(void) {
 
@@ -97,12 +88,7 @@ void bloom_blur(void) {
 }
 
 /**
- * @brief Tonemap and color clamp to LDR.
- *
- * Adds the blurred bloom (scaled by bloom intensity) to the HDR scene color,
- * then clamps to [0, 1] to produce the final LDR output written to post_attachment.
- * When r_bloom is 0 the bloom texture is not bound, glow evaluates to (0, 0, 0),
- * and this reduces to a plain HDR clamp.
+ * @brief Combines scene color and bloom and clamps the result to LDR.
  */
 void tonemap(void) {
   vec3 color = texture(texture_color_attachment, vertex.texcoord).rgb;
@@ -113,7 +99,7 @@ void tonemap(void) {
 }
 
 /**
- * @brief
+ * @brief Runs the selected post-processing stage.
  */
 void main(void) {
 

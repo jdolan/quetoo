@@ -30,14 +30,12 @@
  * @brief Common uniform slot bindings.
  */
 enum {
-	SLOT_UNIFORMS_GLOBALS = 0, // per-frame globals
-	SLOT_UNIFORMS_LOCALS  = 1, // per-draw (model matrix / light cull, etc.)
+	SLOT_UNIFORMS_GLOBALS = 0,
+	SLOT_UNIFORMS_LOCALS  = 1,
 };
 
 /**
  * @brief Maps a `cm_blend_t` blend factor to its SDL_gpu equivalent.
- * @remarks `static inline` so every pipeline's material-stage blend cache
- * (R_StagePipeline and friends) can use it without a shared translation unit.
  */
 static inline SDL_GPUBlendFactor R_BlendFactor(cm_blend_t blend) {
   switch (blend) {

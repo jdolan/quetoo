@@ -26,12 +26,12 @@
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec2 in_texcoord;
-layout (location = 3) in vec4 in_color;      // UBYTE4_NORM
+layout (location = 3) in vec4 in_color;
 layout (location = 4) in uint in_time;
 layout (location = 5) in uint in_lifetime;
 
 /**
- * @brief Per-model locals (the inline model matrix; identity for worldspawn).
+ * @brief Per-draw model transform.
  */
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
   mat4 model;
@@ -47,9 +47,7 @@ layout (location = 5) flat out uint out_lifetime;
 invariant gl_Position;
 
 /**
- * @brief Decal vertex shader: the decal geometry is pre-clipped to surfaces on
- * the CPU; here it is transformed and its model-space position/normal forwarded
- * for clustered voxel lighting in the fragment stage.
+ * @brief Transforms decal vertices and forwards lighting inputs.
  */
 void main(void) {
 

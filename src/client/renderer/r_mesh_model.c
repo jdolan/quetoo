@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief Loads the specified `r_mesh_config_t` from the file at path.
+ * @brief Loads a mesh config from a file.
  */
 static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
   void *buf;
@@ -97,10 +97,7 @@ static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
 }
 
 /**
- * @brief Loads all `r_mesh_config_t` for the specified `r_model_t`. These allow
- * models to be positioned and scaled relative to their own origins, which is
- * useful because artists contribute models in almost arbitrary dimensions at
- * times.
+ * @brief Loads the mesh configs for a model.
  */
 void R_LoadMeshConfigs(r_model_t *mod) {
   char path[MAX_QPATH];
@@ -123,8 +120,7 @@ static bool R_MeshConfigIsIdentity(const r_mesh_config_t *config) {
 }
 
 /**
- * @brief Saves the specified `r_mesh_config_t` to the file at path.
- * If the config is identity, deletes the file if it exists.
+ * @brief Saves a mesh config to a file, deleting the file if the config is identity.
  */
 static void R_SaveMeshConfig(const r_mesh_config_t *cfg, const char *path) {
 
@@ -205,8 +201,7 @@ void R_SaveMeshConfigs_f(void) {
 }
 
 /**
- * @brief Calculates tangent vectors for each vertex for per-pixel
- * lighting. See http://www.terathon.com/code/tangent.html.
+ * @brief Calculates tangents for each mesh vertex.
  */
 static void R_LoadMeshTangents(r_model_t *mod) {
 
@@ -239,9 +234,7 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 }
 
 /**
- * @brief Consolidates the model's per-face vertex and element arrays into a pair
- * of GPU buffers, one per mesh model. All animation frames of all faces live in
- * the vertex buffer; the draw path binds it at per-frame offsets.
+ * @brief Consolidates a mesh model's vertex and element data into GPU buffers.
  */
 void R_LoadMeshVertexArray(r_model_t *mod) {
 
@@ -287,7 +280,6 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 
   R_LoadMeshTangents(mod);
 
-  // Buffer offsets are relative to this model's own buffers (base 0).
   {
     r_mesh_face_t *face = mesh->faces;
     for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
