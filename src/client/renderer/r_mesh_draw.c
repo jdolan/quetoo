@@ -90,6 +90,19 @@ static struct {
   } stages[MAX_STAGE_PIPELINES];
 
   int32_t num_stages;
+
+  /**
+   * @brief Active render pass state.
+   */
+  RenderPass *pass;
+  CommandBuffer *commands;
+
+  /**
+   * @brief The material, stage-draw flag and dynamic light mask for the face in progress.
+   */
+  const r_material_t *material;
+  bool draw_stages;
+  const r_active_dynamic_lights_t *active_dynamic_lights;
 } r_mesh_draw;
 
 /**
@@ -210,9 +223,9 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
 /**
  * @brief Draws one material stage for a mesh face.
  */
-static void R_DrawMeshEntityMaterialStage(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
-                                        const r_entity_t *e, const r_mesh_face_t *face,
-                                        const r_material_t *material, const r_stage_t *stage) {
+static void R_DrawMeshEntityMaterialStage(const r_view_t *view, const r_entity_t *e, const r_mesh_face_t *face, const r_stage_t *stage) {
+
+  const r_material_t *material = r_mesh_draw.material;
 
   r_mesh_material_uniforms_t uniforms = { 0 };
   R_MaterialUniforms(material, material->cm->surface, &uniforms.material);
@@ -227,18 +240,18 @@ static void R_DrawMeshEntityMaterialStage(const r_view_t *view, RenderPass *pass
     return;
   }
 
-  $(pass, bindPipeline, pipeline);
+  $(r_mesh_draw.pass, bindPipeline, pipeline);
 
-  $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
+  $(r_mesh_draw.pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = texture, .sampler = r_mesh_draw.stage_sampler->sampler },
     { .texture = texture_next, .sampler = r_mesh_draw.stage_sampler->sampler },
   }, 2);
 
-  $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &uniforms.material, sizeof(uniforms.material));
-  $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
+  $(r_mesh_draw.commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &uniforms.material, sizeof(uniforms.material));
+  $(r_mesh_draw.commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
 
   const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
-  $(pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
+  $(r_mesh_draw.pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
 
   r_stats.mesh_triangles += face->num_elements / 3;
 }
@@ -246,8 +259,7 @@ static void R_DrawMeshEntityMaterialStage(const r_view_t *view, RenderPass *pass
 /**
  * @brief Draws a shell stage for a mesh face.
  */
-static void R_DrawMeshEntityShellEffect(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
-                                const r_entity_t *e, const r_mesh_face_t *face, const r_material_t *material) {
+static void R_DrawMeshEntityShellEffect(const r_view_t *view, const r_entity_t *e, const r_mesh_face_t *face) {
 
   if (!(e->effects & EF_SHELL)) {
     return;
@@ -260,9 +272,9 @@ static void R_DrawMeshEntityShellEffect(const r_view_t *view, RenderPass *pass, 
     }
   }
 
-  for (const r_stage_t *stage = material->stages; stage; stage = stage->next) {
+  for (const r_stage_t *stage = r_mesh_draw.material->stages; stage; stage = stage->next) {
     if (stage->cm->flags & STAGE_SHELL) {
-      R_DrawMeshEntityMaterialStage(view, pass, commands, e, face, material, stage);
+      R_DrawMeshEntityMaterialStage(view, e, face, stage);
       return;
     }
   }
@@ -287,14 +299,15 @@ static void R_DrawMeshEntityShellEffect(const r_view_t *view, RenderPass *pass, 
     .media = (r_media_t *) r_mesh_draw.shell,
   };
 
-  R_DrawMeshEntityMaterialStage(view, pass, commands, e, face, material, &default_shell);
+  R_DrawMeshEntityMaterialStage(view, e, face, &default_shell);
 }
 
 /**
  * @brief Draws a mesh face's material stages and shell effect.
  */
-static void R_DrawMeshEntityMaterialStages(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
-                                         const r_entity_t *e, const r_mesh_face_t *face, const r_material_t *material) {
+static void R_DrawMeshEntityMaterialStages(const r_view_t *view, const r_entity_t *e, const r_mesh_face_t *face) {
+
+  const r_material_t *material = r_mesh_draw.material;
 
   if (!r_draw_material_stages->integer) {
     return;
@@ -308,26 +321,24 @@ static void R_DrawMeshEntityMaterialStages(const r_view_t *view, RenderPass *pas
     if (!(stage->cm->flags & STAGE_DRAW)) {
       continue;
     }
-    R_DrawMeshEntityMaterialStage(view, pass, commands, e, face, material, stage);
+    R_DrawMeshEntityMaterialStage(view, e, face, stage);
   }
 
-  R_DrawMeshEntityShellEffect(view, pass, commands, e, face, material);
+  R_DrawMeshEntityShellEffect(view, e, face);
 }
 
 /**
  * @brief Binds per-face mesh uniforms and vertex buffers.
  */
-static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, const r_entity_t *e,
-                                 const r_mesh_model_t *mesh, const r_mesh_face_t *face, const r_material_t *material,
-                                 const r_active_dynamic_lights_t *active_dynamic_lights) {
+static void R_BindMeshEntityFace(const r_entity_t *e, const r_mesh_model_t *mesh, const r_mesh_face_t *face) {
 
   r_mesh_locals_t locals = {
     .model = e->matrix,
     .lerp = e->lerp,
     .color = e->color,
   };
-  memcpy(&locals.active_dynamic_lights, active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-  switch (material->cm->surface & SURF_MASK_BLEND) {
+  memcpy(&locals.active_dynamic_lights, r_mesh_draw.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+  switch (r_mesh_draw.material->cm->surface & SURF_MASK_BLEND) {
     case SURF_BLEND_33:
       locals.color.w *= .333f;
       break;
@@ -337,13 +348,13 @@ static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, cons
     default:
       break;
   }
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+  $(r_mesh_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
 
   const uint32_t stride = sizeof(r_mesh_vertex_t);
   const uint32_t old_offset = (uint32_t) (face->base_vertex + e->old_frame * face->num_vertexes) * stride;
   const uint32_t cur_offset = (uint32_t) (face->base_vertex + e->frame * face->num_vertexes) * stride;
 
-  $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
+  $(r_mesh_draw.pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
     { .buffer = mesh->vertex_buffer->buffer, .offset = old_offset },
     { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
   }, 2);
@@ -352,12 +363,12 @@ static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, cons
 /**
  * @brief Draws a single mesh face.
  */
-static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
-                                 const r_entity_t *e, const r_mesh_model_t *mesh,
-                                 const r_mesh_face_t *face, const r_material_t *material, bool draw_stages,
-                                 const r_active_dynamic_lights_t *active_dynamic_lights) {
+static void R_DrawMeshEntityFace(const r_view_t *view, const r_entity_t *e, const r_mesh_model_t *mesh,
+                                 const r_mesh_face_t *face) {
 
-  $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+  const r_material_t *material = r_mesh_draw.material;
+
+  $(r_mesh_draw.pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
     .texture = material->texture->texture->texture,
     .sampler = r_mesh_draw.diffusemap_sampler->sampler,
   }, 1);
@@ -371,45 +382,45 @@ static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, Command
       material_uniforms.tint_colors[i] = material->cm->tintmap_defaults[i];
     }
   }
-  $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms.material, sizeof(material_uniforms.material));
-  $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
+  $(r_mesh_draw.commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms.material, sizeof(material_uniforms.material));
+  $(r_mesh_draw.commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
 
-  R_BindMeshEntityFace(pass, commands, e, mesh, face, material, active_dynamic_lights);
+  R_BindMeshEntityFace(e, mesh, face);
 
   const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
 
-  $(pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
+  $(r_mesh_draw.pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
 
   r_stats.mesh_draw_elements++;
   r_stats.mesh_triangles += face->num_elements / 3;
 
-  if (draw_stages) {
-    R_DrawMeshEntityMaterialStages(view, pass, commands, e, face, material);
+  if (r_mesh_draw.draw_stages) {
+    R_DrawMeshEntityMaterialStages(view, e, face);
   }
 }
 
 /**
  * @brief Draws a mesh face's material stages without the base face draw.
  */
-static void R_DrawMeshEntityFaceMaterialStages(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
-                                               const r_entity_t *e, const r_mesh_model_t *mesh,
-                                               const r_mesh_face_t *face, const r_material_t *material,
-                                               const r_active_dynamic_lights_t *active_dynamic_lights) {
+static void R_DrawMeshEntityFaceMaterialStages(const r_view_t *view, const r_entity_t *e,
+                                               const r_mesh_model_t *mesh, const r_mesh_face_t *face) {
 
-  $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+  const r_material_t *material = r_mesh_draw.material;
+
+  $(r_mesh_draw.pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
     .texture = material->texture->texture->texture,
     .sampler = r_mesh_draw.diffusemap_sampler->sampler,
   }, 1);
 
-  R_BindMeshEntityFace(pass, commands, e, mesh, face, material, active_dynamic_lights);
+  R_BindMeshEntityFace(e, mesh, face);
 
-  R_DrawMeshEntityMaterialStages(view, pass, commands, e, face, material);
+  R_DrawMeshEntityMaterialStages(view, e, face);
 }
 
 /**
  * @brief Draws a mesh entity.
  */
-static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_entity_t *e) {
+static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
   const r_mesh_model_t *mesh = e->model->mesh;
   assert(mesh);
@@ -418,10 +429,8 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     return;
   }
 
-  CommandBuffer *commands = r_context.device->commands;
-
   if (e->effects & EF_WEAPON) {
-    $(pass, setViewport, &(SDL_GPUViewport) {
+    $(r_mesh_draw.pass, setViewport, &(SDL_GPUViewport) {
       .x = 0.f, .y = 0.f,
       .w = (float) view->framebuffer->size.w, .h = (float) view->framebuffer->size.h,
       .min_depth = 0.f, .max_depth = .1f,
@@ -430,9 +439,11 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
   r_mesh_fragment_locals_t fragment_locals = { 0 };
   memcpy(&fragment_locals.active_dynamic_lights, &e->active_dynamic_lights, sizeof(fragment_locals.active_dynamic_lights));
-  $(commands, pushFragmentUniformData, MESH_UNIFORMS_LOCALS, &fragment_locals, sizeof(fragment_locals));
+  $(r_mesh_draw.commands, pushFragmentUniformData, MESH_UNIFORMS_LOCALS, &fragment_locals, sizeof(fragment_locals));
 
-  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
+  r_mesh_draw.active_dynamic_lights = &fragment_locals.active_dynamic_lights;
+
+  $(r_mesh_draw.pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
     .buffer = mesh->elements_buffer->buffer
   }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
@@ -453,9 +464,11 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
       continue;
     }
 
-    $(pass, bindPipeline, r_mesh_draw.pipeline);
+    $(r_mesh_draw.pass, bindPipeline, r_mesh_draw.pipeline);
 
-    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, false, &fragment_locals.active_dynamic_lights);
+    r_mesh_draw.material = material;
+    r_mesh_draw.draw_stages = false;
+    R_DrawMeshEntityFace(view, e, mesh, face);
   }
 
   face = mesh->faces;
@@ -475,9 +488,11 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
       continue;
     }
 
-    $(pass, bindPipeline, r_mesh_draw.pipeline_alpha_test);
+    $(r_mesh_draw.pass, bindPipeline, r_mesh_draw.pipeline_alpha_test);
 
-    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, false, &fragment_locals.active_dynamic_lights);
+    r_mesh_draw.material = material;
+    r_mesh_draw.draw_stages = false;
+    R_DrawMeshEntityFace(view, e, mesh, face);
   }
 
   if (r_draw_material_stages->integer) {
@@ -495,7 +510,8 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
         continue;
       }
 
-      R_DrawMeshEntityFaceMaterialStages(view, pass, commands, e, mesh, face, material, &fragment_locals.active_dynamic_lights);
+      r_mesh_draw.material = material;
+      R_DrawMeshEntityFaceMaterialStages(view, e, mesh, face);
     }
   }
 
@@ -512,13 +528,15 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
       continue;
     }
 
-    $(pass, bindPipeline, r_mesh_draw.blend_pipeline);
+    $(r_mesh_draw.pass, bindPipeline, r_mesh_draw.blend_pipeline);
 
-    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, true, &fragment_locals.active_dynamic_lights);
+    r_mesh_draw.material = material;
+    r_mesh_draw.draw_stages = true;
+    R_DrawMeshEntityFace(view, e, mesh, face);
   }
 
   if (e->effects & EF_WEAPON) {
-    $(pass, setViewport, &(SDL_GPUViewport) {
+    $(r_mesh_draw.pass, setViewport, &(SDL_GPUViewport) {
       .x = 0.f, .y = 0.f,
       .w = (float) view->framebuffer->size.w, .h = (float) view->framebuffer->size.h,
       .min_depth = 0.f, .max_depth = 1.f,
@@ -538,6 +556,9 @@ void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
   }
 
   CommandBuffer *commands = r_context.device->commands;
+
+  r_mesh_draw.pass = pass;
+  r_mesh_draw.commands = commands;
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
@@ -612,9 +633,11 @@ void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
       continue;
     }
 
-    R_DrawMeshEntity(pass, view, e);
+    R_DrawMeshEntity(view, e);
     r_stats.entities_visible++;
   }
+
+  r_mesh_draw.pass = NULL;
 }
 
 /**
@@ -644,6 +667,9 @@ void R_DrawPlayerModelView(r_view_t *view) {
       $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
 
   RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
+
+  r_mesh_draw.pass = pass;
+  r_mesh_draw.commands = commands;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -708,9 +734,11 @@ void R_DrawPlayerModelView(r_view_t *view) {
       continue;
     }
 
-    R_DrawMeshEntity(pass, view, e);
+    R_DrawMeshEntity(view, e);
     r_stats.entities_visible++;
   }
+
+  r_mesh_draw.pass = NULL;
 
   pass = release(pass);
 }

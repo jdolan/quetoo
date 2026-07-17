@@ -383,8 +383,7 @@ static float R_StageDriftHash(const void *a, const void *b) {
 /**
  * @brief Populates stage uniforms and resolves stage textures.
  */
-bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity,
-                     const r_bsp_draw_elements_t *draw, const r_stage_t *stage,
+bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity, const r_bsp_draw_elements_t *draw, const r_stage_t *stage,
                      r_material_uniforms_t *out, SDL_GPUTexture **texture, SDL_GPUTexture **texture_next) {
 
   const cm_stage_t *cm = stage->cm;
