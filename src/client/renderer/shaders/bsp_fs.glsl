@@ -69,11 +69,11 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
 
   fragment.parallax = vertex.diffusemap;
 
-  if (material.parallax == 0.0 || fragment.lod > 2.0) {
+  if (material.parallax == 0.0 || fragment.texture_lod > 2.0) {
     return;
   }
 
-  float num_samples = mix(32.0, 8.0, min(fragment.lod * 0.25, 1.0));
+  float num_samples = mix(32.0, 8.0, min(fragment.texture_lod * 0.25, 1.0));
 
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
   vec3 dir = normalize(fragment.view_dir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
@@ -86,17 +86,17 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
 
   float depth = 0.0;
   float layer = 1.0 / num_samples;
-  float displacement = sample_material_displacement(texcoord, fragment.lod);
+  float displacement = sample_material_displacement(texcoord, fragment.texture_lod);
 
   for (int i = 0; i < int(num_samples) && depth < displacement; i++) {
     depth += layer;
     prev_texcoord = texcoord;
     texcoord -= delta;
-    displacement = sample_material_displacement(texcoord, fragment.lod);
+    displacement = sample_material_displacement(texcoord, fragment.texture_lod);
   }
 
   float a = displacement - depth;
-  float b = sample_material_displacement(prev_texcoord, fragment.lod) - depth + layer;
+  float b = sample_material_displacement(prev_texcoord, fragment.texture_lod) - depth + layer;
 
   fragment.parallax = mix(prev_texcoord, texcoord, a / (a - b));
 }
@@ -110,7 +110,7 @@ void main(void) {
 
   fragment.view_dir = normalize(-vertex.position);
   fragment.view_dist = length(vertex.position);
-  fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
+  fragment.texture_lod = textureQueryLod(texture_material, vertex.diffusemap).x;
 
   parallax_occlusion_mapping(vertex, fragment);
 

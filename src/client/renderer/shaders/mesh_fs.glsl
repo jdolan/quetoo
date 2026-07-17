@@ -62,7 +62,7 @@ common_fragment_t fragment;
  */
 void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
 
-  if (fragment.lod > 1.0 || view_type == VIEW_PLAYER_MODEL) {
+  if (view_type == VIEW_PLAYER_MODEL) {
     fragment.ambient = vertex.ambient;
     fragment.diffuse = vertex.diffuse;
     fragment.specular = vec3(0.0);
@@ -81,7 +81,6 @@ void main(void) {
 
   fragment.view_dir = normalize(-vertex.position);
   fragment.view_dist = length(vertex.position);
-  fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
 
   fragment.parallax = vertex.diffusemap;
 

@@ -102,7 +102,7 @@ struct common_vertex_t {
 struct common_fragment_t {
   vec3 view_dir;
   float view_dist;
-  float lod;
+  float texture_lod;
   vec3 normal;
   vec3 tangent;
   vec3 bitangent;

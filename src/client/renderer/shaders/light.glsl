@@ -293,19 +293,19 @@ void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
 #if defined(PARALLAX_SELF_SHADOW)
 float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fragment_t f) {
 
-  int max_steps = int(mix(12.0, 2.0, min(f.lod * 0.5, 1.0)));
+  int max_steps = int(mix(12.0, 2.0, min(f.texture_lod * 0.5, 1.0)));
 
-  float step_scale = mix(1.0, 4.0, min(f.lod * 0.5, 1.0));
+  float step_scale = mix(1.0, 4.0, min(f.texture_lod * 0.5, 1.0));
 
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
   vec3 dir = normalize(vec3(dot(light_dir, v.tangent), dot(light_dir, v.bitangent), dot(light_dir, v.normal)));
   vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01)) * step_scale;
-  vec3 texcoord = vec3(f.parallax, sample_material_heightmap(f.parallax, f.lod));
+  vec3 texcoord = vec3(f.parallax, sample_material_heightmap(f.parallax, f.texture_lod));
 
   float max_height = texcoord.z;
   for (int i = 0; i < max_steps && texcoord.z < 1.0 && max_height < 1.0; i++) {
     texcoord += delta;
-    max_height = max(max_height, sample_material_heightmap(texcoord.xy, f.lod));
+    max_height = max(max_height, sample_material_heightmap(texcoord.xy, f.texture_lod));
   }
 
   float shadow = 1.0 - (max_height - texcoord.z) * material.shadow;
@@ -344,7 +344,7 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in light_t 
   float shadow = sample_shadow_atlas(light, v, f, atten);
 
 #if defined(PARALLAX_SELF_SHADOW)
-  if (!is_stage && material.shadow > 0.0 && f.lod < 2.0) {
+  if (!is_stage && material.shadow > 0.0 && f.texture_lod < 2.0) {
     shadow *= parallax_self_shadow(dir, v, f);
   }
 #endif
@@ -391,9 +391,9 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
  */
 void fragment_lighting_lod(in common_vertex_t v, inout common_fragment_t f) {
 
-  const float lod = clamp((f.view_dist - lighting_distance) / LIGHTING_LOD_BLEND_DIST, 0.0, 1.0);
+  const float lighting_lod = clamp((f.view_dist - lighting_distance) / LIGHTING_LOD_BLEND_DIST, 0.0, 1.0);
 
-  if (lod >= 1.0) {
+  if (lighting_lod >= 1.0) {
     f.ambient = v.ambient;
     f.diffuse = v.diffuse;
     f.specular = vec3(0.0);
@@ -413,8 +413,8 @@ void fragment_lighting_lod(in common_vertex_t v, inout common_fragment_t f) {
 
   fragment_lighting(v, f);
 
-  f.ambient = mix(f.ambient, v.ambient, lod);
-  f.diffuse = mix(f.diffuse, v.diffuse, lod);
-  f.specular *= 1.0 - lod;
+  f.ambient = mix(f.ambient, v.ambient, lighting_lod);
+  f.diffuse = mix(f.diffuse, v.diffuse, lighting_lod);
+  f.specular *= 1.0 - lighting_lod;
 }
 #endif
