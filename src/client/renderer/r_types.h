@@ -617,6 +617,12 @@ typedef struct {
 } r_active_dynamic_lights_t;
 
 /**
+ * @brief The width of the lighting LOD blend zone beyond r_lighting_distance.
+ * @remarks Must match LIGHTING_LOD_BLEND_DIST in shaders/light.glsl.
+ */
+#define LIGHTING_LOD_BLEND_DIST 128.f
+
+/**
  * @brief Decals are aggregated at the BSP block level.
  */
 typedef struct {

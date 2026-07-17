@@ -51,7 +51,6 @@
 typedef struct {
   int32_t shadows;
   int32_t shadowTileSize;
-  int32_t shadowDistance;
   int32_t lightingDistance;
   int32_t parallax;
   int32_t parallaxShadow;
@@ -64,7 +63,6 @@ static const QualityPreset qualityPresets[] = {
   [0] = { // Low
     .shadows                = 0,
     .shadowTileSize         = 128,
-    .shadowDistance         = 0,
     .lightingDistance       = 1024,
     .parallax               = 0,
     .parallaxShadow         = 0,
@@ -75,7 +73,6 @@ static const QualityPreset qualityPresets[] = {
   [1] = { // Medium
     .shadows                = 1,
     .shadowTileSize         = 128,
-    .shadowDistance         = 512,
     .lightingDistance       = 2048,
     .parallax               = 0,
     .parallaxShadow         = 0,
@@ -86,7 +83,6 @@ static const QualityPreset qualityPresets[] = {
   [2] = { // High
     .shadows                = 1,
     .shadowTileSize         = 256,
-    .shadowDistance         = 1024,
     .lightingDistance       = 4096,
     .parallax               = 1,
     .parallaxShadow         = 0,
@@ -97,7 +93,6 @@ static const QualityPreset qualityPresets[] = {
   [3] = { // Highest
     .shadows                = 1,
     .shadowTileSize         = 512,
-    .shadowDistance         = 2048,
     .lightingDistance       = 8192,
     .parallax               = 1,
     .parallaxShadow         = 1,
@@ -113,7 +108,6 @@ static const QualityPreset qualityPresets[] = {
 static void applyQualityPreset(const QualityPreset *p) {
   cgi.SetCvarInteger("r_shadows",           p->shadows);
   cgi.SetCvarInteger("r_shadow_tile_size",  p->shadowTileSize);
-  cgi.SetCvarInteger("r_shadow_distance",   p->shadowDistance);
   cgi.SetCvarInteger("r_lighting_distance", p->lightingDistance);
   cgi.SetCvarInteger("r_parallax",          p->parallax);
   cgi.SetCvarInteger("r_parallax_shadow",   p->parallaxShadow);
@@ -129,7 +123,6 @@ static intptr_t detectQualityPreset(void) {
   const QualityPreset current = {
     .shadows          = cgi.GetCvarInteger("r_shadows"),
     .shadowTileSize   = cgi.GetCvarInteger("r_shadow_tile_size"),
-    .shadowDistance   = cgi.GetCvarInteger("r_shadow_distance"),
     .lightingDistance = cgi.GetCvarInteger("r_lighting_distance"),
     .parallax         = cgi.GetCvarInteger("r_parallax"),
     .parallaxShadow   = cgi.GetCvarInteger("r_parallax_shadow"),

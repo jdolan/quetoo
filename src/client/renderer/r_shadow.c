@@ -105,6 +105,12 @@ void R_UpdateShadows(r_view_t *view) {
     const vec3_t closest_point = Box3_ClampPoint(l->bounds, view->origin);
     const float dist = Vec3_Distance(closest_point, view->origin);
 
+    // If the light's nearest bound is beyond the lighting LOD cutoff, no
+    // fragment this frame will be close enough to sample its shadow at all.
+    if (!r_shadows->value || dist > r_lighting_distance->value + LIGHTING_LOD_BLEND_DIST) {
+      continue;
+    }
+
     const r_entity_t *e = view->entities;
     for (int32_t j = 0; j < view->num_entities; j++, e++) {
 
@@ -113,10 +119,6 @@ void R_UpdateShadows(r_view_t *view) {
       }
 
       if (IS_WORLDSPAWN((e->model))) {
-        continue;
-      }
-
-      if (!r_shadows->value || dist > r_shadow_distance->value) {
         continue;
       }
 
