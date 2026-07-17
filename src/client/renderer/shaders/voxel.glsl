@@ -22,10 +22,11 @@
 /**
  * @file voxel.glsl
  * @brief Voxel grid functions for lighting and caustics.
- * @remarks Include after uniforms.glsl. The light-data texture and light-index
- * storage buffer are declared here (fragment set 2). The caustics and occlusion
- * volumes are declared when VOXEL_CAUSTICS_OCCLUSION is defined (the lit fragment
- * shaders enable it); otherwise the accessors return neutral fallbacks.
+ * @remarks Include after uniforms.glsl and material.glsl (which declares
+ * texture_voxel_caustics/texture_voxel_occlusion, part of the canonical
+ * lit-material sampler family). The light-data storage buffers are opt-in,
+ * declared only when a caller pre-defines BINDING_STORAGE_VOXEL_LIGHT_INDICES
+ * (not every consumer of this file does clustered per-voxel light lookups).
  */
 
 // A program (vertex or fragment) opts into the clustered light buffers by
@@ -41,15 +42,6 @@ layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_DATA) r
 layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_VOXEL_LIGHT_INDICES) readonly buffer voxel_light_indices_block {
   int voxel_light_indices[];
 };
-#endif
-
-#if defined(VOXEL_CAUSTICS_OCCLUSION)
-/**
- * @brief The per-voxel caustics direction (RGB) and spatial occlusion + sky
- * exposure (RG) volumes, sampled with normalized texture coordinates.
- */
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_VOXEL_CAUSTICS)  uniform sampler3D texture_voxel_caustics;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_VOXEL_OCCLUSION) uniform sampler3D texture_voxel_occlusion;
 #endif
 
 /**
@@ -103,41 +95,26 @@ int voxel_light_index(in int index) {
  * @brief Samples the encoded caustics vector at the given voxel texture coordinate.
  * @param texcoord The voxel texture coordinate (0-1 range).
  * @return Signed direction vector with length as intensity (scaled by uniform caustics).
- * @remarks Returns none unless VOXEL_CAUSTICS_OCCLUSION is defined.
  */
 vec3 voxel_caustics(in vec3 texcoord) {
-#if defined(VOXEL_CAUSTICS_OCCLUSION)
   vec3 encoded = texture(texture_voxel_caustics, texcoord).rgb;
   return ((encoded * 2.0) - 1.0) * caustics;
-#else
-  return vec3(0.0);
-#endif
 }
 
 /**
  * @brief Samples the spatial occlusion at the given voxel texture coordinate.
  * @param texcoord The voxel texture coordinate (0-1 range).
  * @return The occlusion (R channel, 0=open, 1=fully enclosed).
- * @remarks Returns open unless VOXEL_CAUSTICS_OCCLUSION is defined.
  */
 float voxel_occlusion(in vec3 texcoord) {
-#if defined(VOXEL_CAUSTICS_OCCLUSION)
   return texture(texture_voxel_occlusion, texcoord).r;
-#else
-  return 0.0;
-#endif
 }
 
 /**
  * @brief Samples the exposure at the given voxel texture coordinate.
  * @param texcoord The voxel texture coordinate (0-1 range).
  * @return The sky exposure (G channel, 0-1), floored at 0.25.
- * @remarks Returns full unless VOXEL_CAUSTICS_OCCLUSION is defined.
  */
 float voxel_exposure(in vec3 texcoord) {
-#if defined(VOXEL_CAUSTICS_OCCLUSION)
   return max(0.25, texture(texture_voxel_occlusion, texcoord).g);
-#else
-  return 1.0;
-#endif
 }

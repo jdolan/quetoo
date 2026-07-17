@@ -18,15 +18,11 @@
 #include "r_local.h"
 
 /**
- * @brief The sky program's own binding map, mirroring shaders/sky_vs.glsl and
- * sky_fs.glsl. Not shared with any other pipeline.
+ * @brief Sky has no samplers beyond the shared family (r_material.h); it only
+ * actually reads sky/stage/stage_next, but must still bind a valid resource
+ * for every slot since SDL_gpu binds a dense [0, num_samplers) range per stage.
  */
-enum {
-  SKY_SAMPLER_SKY,
-  SKY_SAMPLER_STAGE,
-  SKY_SAMPLER_STAGE_NEXT,
-  SKY_NUM_SAMPLERS,
-};
+#define SKY_NUM_SAMPLERS R_SAMPLER_MATERIAL_TOTAL
 
 enum {
   SKY_UNIFORMS_GLOBALS,
@@ -84,26 +80,26 @@ static struct {
   struct {
     cm_blend_t src, dest;
     GraphicsPipeline *pipeline;
-  } stages[MAX_STAGE_PIPELINES];
+  } stage_pipelines[MAX_STAGE_PIPELINES];
 
-  int32_t num_stages;
+  int32_t num_stage_pipelines;
 } r_sky_draw;
 
 /**
  * @brief Returns the sky pipeline for the given material-stage blend function,
- * creating and caching it on first use. Wraps the same sky_vs/sky_fs shader as
+ * creating and caching it on first use. Wraps the same sky shader as
  * the base pipeline (a stage draw is a runtime branch, not a shader swap);
- * only the blend state differs, which SDL_gpu bakes into the pipeline.
+ * only the blend state differs, which @c SDL_gpu bakes into the pipeline.
  */
 static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
-  for (int32_t i = 0; i < r_sky_draw.num_stages; i++) {
-    if (r_sky_draw.stages[i].src == src && r_sky_draw.stages[i].dest == dest) {
-      return r_sky_draw.stages[i].pipeline;
+  for (int32_t i = 0; i < r_sky_draw.num_stage_pipelines; i++) {
+    if (r_sky_draw.stage_pipelines[i].src == src && r_sky_draw.stage_pipelines[i].dest == dest) {
+      return r_sky_draw.stage_pipelines[i].pipeline;
     }
   }
 
-  if (r_sky_draw.num_stages == MAX_STAGE_PIPELINES) {
+  if (r_sky_draw.num_stage_pipelines == MAX_STAGE_PIPELINES) {
     return NULL;
   }
 
@@ -136,19 +132,25 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
   };
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
-    .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
-      .blend_state = {
-        .enable_blend = true,
-        .src_color_blendfactor = s,
-        .dst_color_blendfactor = d,
-        .color_blend_op = SDL_GPU_BLENDOP_ADD,
-        .src_alpha_blendfactor = s,
-        .dst_alpha_blendfactor = d,
-        .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+    .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
+      {
+        .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
+        .blend_state = {
+          .enable_blend = true,
+          .src_color_blendfactor = s,
+          .dst_color_blendfactor = d,
+          .color_blend_op = SDL_GPU_BLENDOP_ADD,
+          .src_alpha_blendfactor = s,
+          .dst_alpha_blendfactor = d,
+          .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+        },
+      },
+      {
+        .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
+        .blend_state = { .enable_color_write_mask = true, .color_write_mask = 0 },
       },
     },
-    .num_color_targets = 1,
+    .num_color_targets = 2,
     .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
@@ -165,10 +167,11 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
     },
     &info);
 
-  r_sky_draw.stages[r_sky_draw.num_stages] = (typeof(r_sky_draw.stages[0])) {
+  r_sky_draw.stage_pipelines[r_sky_draw.num_stage_pipelines] = (typeof(r_sky_draw.stage_pipelines[0])) {
     .src = src, .dest = dest, .pipeline = pipeline,
   };
-  return r_sky_draw.stages[r_sky_draw.num_stages++].pipeline;
+
+  return r_sky_draw.stage_pipelines[r_sky_draw.num_stage_pipelines++].pipeline;
 }
 
 /**
@@ -193,7 +196,7 @@ static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view, RenderPass 
 
   $(pass, bindPipeline, pipeline);
 
-  $(pass, bindFragmentSamplers, SKY_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
+  $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = texture, .sampler = r_sky_draw.stage_sampler->sampler },
     { .texture = texture_next, .sampler = r_sky_draw.stage_sampler->sampler },
   }, 2);
@@ -253,23 +256,30 @@ void R_DrawSky(RenderPass *pass, const r_view_t *view) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  // Both stages: sky_fs reads ticks from the fragment globals for stage
-  // scroll/rotate animation; without this it relied on the BSP pass's push.
   $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   $(pass, bindPipeline, r_sky_draw.pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-  $(pass, bindFragmentSamplers, SKY_SAMPLER_SKY, &(SDL_GPUTextureSamplerBinding) {
+  $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.stage_sampler->sampler }, // material (unused)
+    { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
+  }, 9);
+
+  $(pass, bindFragmentSamplers, R_SAMPLER_SKY, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_sky.image->texture->texture,
     .sampler = r_sky_draw.sampler->sampler,
   }, 1);
 
-  // Stage/stage-next: the base cubemap window never samples these (sky_fs's
-  // STAGE_NONE branch doesn't touch them), but the shared shader declares
-  // them, so SDL_gpu requires them bound regardless.
-  $(pass, bindFragmentSamplers, SKY_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
+  $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
     { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
   }, 2);
@@ -297,9 +307,6 @@ void R_DrawSky(RenderPass *pass, const r_view_t *view) {
       // have left a stage (blend) pipeline bound (see R_DrawBspBlockOpaque).
       $(pass, bindPipeline, r_sky_draw.pipeline);
 
-      // R_MaterialUniforms zeroes the whole struct, so the stage fields land
-      // at their STAGE_NONE default, undoing any stage a preceding surface
-      // left pushed.
       r_material_uniforms_t material;
       R_MaterialUniforms(draw->material, draw->surface, &material);
       $(commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &material, sizeof(material));
@@ -359,11 +366,17 @@ static void R_InitSkyPipeline(void) {
   };
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
-    .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
-      .blend_state = GPU_BlendStateOpaque,
+    .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
+      {
+        .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
+        .blend_state = GPU_BlendStateOpaque,
+      },
+      {
+        .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
+        .blend_state = GPU_BlendStateOpaque,
+      },
     },
-    .num_color_targets = 1,
+    .num_color_targets = 2,
     .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };
@@ -406,10 +419,10 @@ void R_ShutdownSky(void) {
   r_sky_draw.sampler = release(r_sky_draw.sampler);
   r_sky_draw.stage_sampler = release(r_sky_draw.stage_sampler);
 
-  for (int32_t i = 0; i < r_sky_draw.num_stages; i++) {
-    r_sky_draw.stages[i].pipeline = release(r_sky_draw.stages[i].pipeline);
+  for (int32_t i = 0; i < r_sky_draw.num_stage_pipelines; i++) {
+    r_sky_draw.stage_pipelines[i].pipeline = release(r_sky_draw.stage_pipelines[i].pipeline);
   }
-  r_sky_draw.num_stages = 0;
+  r_sky_draw.num_stage_pipelines = 0;
 
   r_sky.fallback = release(r_sky.fallback);
 }

@@ -177,8 +177,8 @@ struct bsp_locals_block
     uint4 active_dynamic_lights[2];
 };
 
-constant spvUnsafeArray<float2, 16> _1034 = spvUnsafeArray<float2, 16>({ float2(0.2770744860172271728515625, 0.69514548778533935546875), float2(-0.59327852725982666015625, -0.1203283965587615966796875), float2(0.449474990367889404296875, 0.246909797191619873046875), float2(-0.1460638940334320068359375, -0.5679666996002197265625), float2(0.64004981517791748046875, -0.407194793224334716796875), float2(-0.3631913959980010986328125, 0.79357779026031494140625), float2(0.124885700643062591552734375, -0.897523820400238037109375), float2(-0.7720317840576171875, 0.443845808506011962890625), float2(0.88518059253692626953125, 0.1653372943401336669921875), float2(-0.52380120754241943359375, -0.726029574871063232421875), float2(0.3642682135105133056640625, 0.596805393695831298828125), float2(-0.833170115947723388671875, -0.33283460140228271484375), float2(0.552725970745086669921875, -0.698580920696258544921875), float2(-0.24071229994297027587890625, 0.3153156936168670654296875), float2(0.72694051265716552734375, -0.14306400716304779052734375), float2(-0.64446747303009033203125, 0.64446747303009033203125) });
-constant spvUnsafeArray<float, 8> _2114 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
+constant spvUnsafeArray<float2, 16> _1038 = spvUnsafeArray<float2, 16>({ float2(0.2770744860172271728515625, 0.69514548778533935546875), float2(-0.59327852725982666015625, -0.1203283965587615966796875), float2(0.449474990367889404296875, 0.246909797191619873046875), float2(-0.1460638940334320068359375, -0.5679666996002197265625), float2(0.64004981517791748046875, -0.407194793224334716796875), float2(-0.3631913959980010986328125, 0.79357779026031494140625), float2(0.124885700643062591552734375, -0.897523820400238037109375), float2(-0.7720317840576171875, 0.443845808506011962890625), float2(0.88518059253692626953125, 0.1653372943401336669921875), float2(-0.52380120754241943359375, -0.726029574871063232421875), float2(0.3642682135105133056640625, 0.596805393695831298828125), float2(-0.833170115947723388671875, -0.33283460140228271484375), float2(0.552725970745086669921875, -0.698580920696258544921875), float2(-0.24071229994297027587890625, 0.3153156936168670654296875), float2(0.72694051265716552734375, -0.14306400716304779052734375), float2(-0.64446747303009033203125, 0.64446747303009033203125) });
+constant spvUnsafeArray<float, 8> _2123 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
 
 struct main0_out
 {
@@ -205,8 +205,8 @@ struct main0_in
 static inline __attribute__((always_inline))
 float sample_material_heightmap(thread const float2& texcoord, thread const float& lod, texture2d_array<float> texture_material, sampler texture_materialSmplr)
 {
-    float3 _465 = float3(texcoord, 1.0);
-    return texture_material.sample(texture_materialSmplr, _465.xy, uint(rint(_465.z)), level(lod)).w;
+    float3 _469 = float3(texcoord, 1.0);
+    return texture_material.sample(texture_materialSmplr, _469.xy, uint(rint(_469.z)), level(lod)).w;
 }
 
 static inline __attribute__((always_inline))
@@ -221,17 +221,17 @@ static inline __attribute__((always_inline))
 void parallax_occlusion_mapping(thread const common_vertex_t& vertex0, thread common_fragment_t& fragment0, texture2d_array<float> texture_material, sampler texture_materialSmplr, constant material_block& material)
 {
     fragment0.parallax = vertex0.diffusemap;
-    bool _1634 = material.parallax == 0.0;
-    bool _1641;
-    if (!_1634)
+    bool _1643 = material.parallax == 0.0;
+    bool _1650;
+    if (!_1643)
     {
-        _1641 = fragment0.lod > 2.0;
+        _1650 = fragment0.lod > 2.0;
     }
     else
     {
-        _1641 = _1634;
+        _1650 = _1643;
     }
-    if (_1641)
+    if (_1650)
     {
         return;
     }
@@ -267,15 +267,15 @@ void parallax_occlusion_mapping(thread const common_vertex_t& vertex0, thread co
 static inline __attribute__((always_inline))
 float4 sample_material_diffuse(thread const float2& texcoord, texture2d_array<float> texture_material, sampler texture_materialSmplr)
 {
-    float3 _349 = float3(texcoord, 0.0);
-    return texture_material.sample(texture_materialSmplr, _349.xy, uint(rint(_349.z)));
+    float3 _353 = float3(texcoord, 0.0);
+    return texture_material.sample(texture_materialSmplr, _353.xy, uint(rint(_353.z)));
 }
 
 static inline __attribute__((always_inline))
 float3 sample_material_normal(thread const float2& texcoord, thread const float3x3& tbn, texture2d_array<float> texture_material, sampler texture_materialSmplr, constant material_block& material)
 {
-    float3 _358 = float3(texcoord, 1.0);
-    float3 normalmap = (texture_material.sample(texture_materialSmplr, _358.xy, uint(rint(_358.z))).xyz * 2.0) - float3(1.0);
+    float3 _362 = float3(texcoord, 1.0);
+    float3 normalmap = (texture_material.sample(texture_materialSmplr, _362.xy, uint(rint(_362.z))).xyz * 2.0) - float3(1.0);
     float3 roughness = float3(float2(material.roughness), 1.0);
     return fast::normalize(tbn * (normalmap * roughness));
 }
@@ -297,17 +297,17 @@ float toksvig_gloss(thread const float3& normal, thread const float& power)
 static inline __attribute__((always_inline))
 float4 sample_material_specular(thread const float2& texcoord, texture2d_array<float> texture_material, sampler texture_materialSmplr, constant material_block& material)
 {
-    float3 _390 = float3(texcoord, 2.0);
-    float3 _396 = texture_material.sample(texture_materialSmplr, _390.xy, uint(rint(_390.z))).xyz * material.hardness;
+    float3 _394 = float3(texcoord, 2.0);
+    float3 _400 = texture_material.sample(texture_materialSmplr, _394.xy, uint(rint(_394.z))).xyz * material.hardness;
     float4 specularmap;
-    specularmap.x = _396.x;
-    specularmap.y = _396.y;
-    specularmap.z = _396.z;
+    specularmap.x = _400.x;
+    specularmap.y = _400.y;
+    specularmap.z = _400.z;
     float3 roughness = float3(float2(material.roughness), 1.0);
-    float3 _415 = float3(texcoord, 1.0);
-    float3 normalmap0 = ((texture_material.sample(texture_materialSmplr, _415.xy, uint(rint(_415.z)), level(0.0)).xyz * 2.0) - float3(1.0)) * roughness;
-    float3 _428 = float3(texcoord, 1.0);
-    float3 normalmap1 = ((texture_material.sample(texture_materialSmplr, _428.xy, uint(rint(_428.z)), level(1.0)).xyz * 2.0) - float3(1.0)) * roughness;
+    float3 _419 = float3(texcoord, 1.0);
+    float3 normalmap0 = ((texture_material.sample(texture_materialSmplr, _419.xy, uint(rint(_419.z)), level(0.0)).xyz * 2.0) - float3(1.0)) * roughness;
+    float3 _432 = float3(texcoord, 1.0);
+    float3 normalmap1 = ((texture_material.sample(texture_materialSmplr, _432.xy, uint(rint(_432.z)), level(1.0)).xyz * 2.0) - float3(1.0)) * roughness;
     float power = powr(1.0 + material.specularity, 4.0);
     float3 param = normalmap0;
     float param_1 = power;
@@ -336,51 +336,62 @@ float voxel_exposure(thread const float3& texcoord, texture3d<float> texture_vox
 }
 
 static inline __attribute__((always_inline))
-int3 voxel_xyz(thread const float3& position, constant uniforms_block& _517)
+float3 ambient_light(thread const common_vertex_t& v, constant uniforms_block& _521, texture3d<float> texture_voxel_occlusion, sampler texture_voxel_occlusionSmplr, texturecube<float> texture_sky, sampler texture_skySmplr)
 {
-    float3 pos = position - _517.voxels.mins.xyz;
+    float3 param = v.voxel;
+    float occlusion = voxel_occlusion(param, texture_voxel_occlusion, texture_voxel_occlusionSmplr);
+    float3 param_1 = v.voxel;
+    float exposure = voxel_exposure(param_1, texture_voxel_occlusion, texture_voxel_occlusionSmplr);
+    float3 sky = texture_sky.sample(texture_skySmplr, fast::normalize(v.model_normal), level(6.0)).xyz;
+    return ((powr(float3(2.0) + sky, float3(2.0)) * exposure) * (1.0 - (occlusion * _521.ambient_occlusion))) * _521.ambient;
+}
+
+static inline __attribute__((always_inline))
+int3 voxel_xyz(thread const float3& position, constant uniforms_block& _521)
+{
+    float3 pos = position - _521.voxels.mins.xyz;
     int3 voxel = int3(floor((pos / float3(32.0)) + float3(0.001000000047497451305389404296875)));
-    return clamp(voxel, int3(0), int3(_517.voxels.size.xyz) - int3(1));
+    return clamp(voxel, int3(0), int3(_521.voxels.size.xyz) - int3(1));
 }
 
 static inline __attribute__((always_inline))
-int2 voxel_light_data(thread const int3& voxel, constant uniforms_block& _517, const device voxel_light_data_block& _568)
+int2 voxel_light_data(thread const int3& voxel, constant uniforms_block& _521, const device voxel_light_data_block& _572)
 {
-    int index = (((voxel.z * int(_517.voxels.size.y)) + voxel.y) * int(_517.voxels.size.x)) + voxel.x;
-    return int2(_568.voxel_light_data_elements[(index * 2) + 0], _568.voxel_light_data_elements[(index * 2) + 1]);
+    int index = (((voxel.z * int(_521.voxels.size.y)) + voxel.y) * int(_521.voxels.size.x)) + voxel.x;
+    return int2(_572.voxel_light_data_elements[(index * 2) + 0], _572.voxel_light_data_elements[(index * 2) + 1]);
 }
 
 static inline __attribute__((always_inline))
-int voxel_light_index(thread const int& index, const device voxel_light_indices_block& _586)
+int voxel_light_index(thread const int& index, const device voxel_light_indices_block& _590)
 {
-    return _586.voxel_light_indices[index];
+    return _590.voxel_light_indices[index];
 }
 
 static inline __attribute__((always_inline))
-float3 light_color(thread const light_t& l, constant uniforms_block& _517)
+float3 light_color(thread const light_t& l, constant uniforms_block& _521)
 {
-    float3 color = (l.color.xyz * l.color.w) * _517.modulate;
+    float3 color = (l.color.xyz * l.color.w) * _521.modulate;
     float luma = dot(color, float3(0.2125999927520751953125, 0.715200006961822509765625, 0.072200000286102294921875));
-    return mix(float3(luma), color, float3(_517.saturation));
+    return mix(float3(luma), color, float3(_521.saturation));
 }
 
 static inline __attribute__((always_inline))
 void cubemap_face_uv(thread const float3& dir, thread int& face, thread float2& face_uv, thread float& ma)
 {
     float3 ad = abs(dir);
-    bool _690 = ad.x >= ad.y;
-    bool _698;
-    if (_690)
+    bool _694 = ad.x >= ad.y;
+    bool _702;
+    if (_694)
     {
-        _698 = ad.x >= ad.z;
+        _702 = ad.x >= ad.z;
     }
     else
     {
-        _698 = _690;
+        _702 = _694;
     }
     float sc;
     float tc;
-    if (_698)
+    if (_702)
     {
         ma = ad.x;
         if (dir.x > 0.0)
@@ -398,17 +409,17 @@ void cubemap_face_uv(thread const float3& dir, thread int& face, thread float2& 
     }
     else
     {
-        bool _727 = ad.y >= ad.x;
-        bool _735;
-        if (_727)
+        bool _731 = ad.y >= ad.x;
+        bool _739;
+        if (_731)
         {
-            _735 = ad.y >= ad.z;
+            _739 = ad.y >= ad.z;
         }
         else
         {
-            _735 = _727;
+            _739 = _731;
         }
-        if (_735)
+        if (_739)
         {
             ma = ad.y;
             if (dir.y > 0.0)
@@ -486,7 +497,7 @@ float sample_shadow_face(thread const int& face, thread const float3& uvw, depth
 }
 
 static inline __attribute__((always_inline))
-float sample_shadow_atlas(thread const light_t& light, thread const common_vertex_t& v, thread const common_fragment_t& f, thread const float& atten, constant uniforms_block& _517, depth2d<float> texture_shadow_atlas_0, sampler texture_shadow_atlas_0Smplr, depth2d<float> texture_shadow_atlas_1, sampler texture_shadow_atlas_1Smplr, depth2d<float> texture_shadow_atlas_2, sampler texture_shadow_atlas_2Smplr, depth2d<float> texture_shadow_atlas_3, sampler texture_shadow_atlas_3Smplr, depth2d<float> texture_shadow_atlas_4, sampler texture_shadow_atlas_4Smplr, depth2d<float> texture_shadow_atlas_5, sampler texture_shadow_atlas_5Smplr)
+float sample_shadow_atlas(thread const light_t& light, thread const common_vertex_t& v, thread const common_fragment_t& f, thread const float& atten, constant uniforms_block& _521, depth2d<float> texture_shadow_atlas_0, sampler texture_shadow_atlas_0Smplr, depth2d<float> texture_shadow_atlas_1, sampler texture_shadow_atlas_1Smplr, depth2d<float> texture_shadow_atlas_2, sampler texture_shadow_atlas_2Smplr, depth2d<float> texture_shadow_atlas_3, sampler texture_shadow_atlas_3Smplr, depth2d<float> texture_shadow_atlas_4, sampler texture_shadow_atlas_4Smplr, depth2d<float> texture_shadow_atlas_5, sampler texture_shadow_atlas_5Smplr)
 {
     if (light.shadow.x < 0.0)
     {
@@ -498,7 +509,7 @@ float sample_shadow_atlas(thread const light_t& light, thread const common_verte
     float tile_uv = tile_px / texture_size.x;
     float3 light_to_frag = v.model_position - light.origin.xyz;
     float dist_to_light = length(light_to_frag);
-    float current_depth = dist_to_light / _517.depth_range.y;
+    float current_depth = dist_to_light / _521.depth_range.y;
     float3 param = light_to_frag;
     int param_1;
     float2 param_2;
@@ -515,22 +526,22 @@ float sample_shadow_atlas(thread const light_t& light, thread const common_verte
     float filter_radius = (light_size * (dist_to_light / light.origin.w)) * 0.004999999888241291046142578125;
     float filter_uv = filter_radius / (2.0 * fast::max(ma, 0.001000000047497451305389404296875));
     float importance = atten * fast::clamp(1.0 - (f.view_dist / 2048.0), 0.0, 1.0);
-    int _955;
+    int _959;
     if (importance > 0.300000011920928955078125)
     {
-        _955 = 8;
+        _959 = 8;
     }
     else
     {
-        _955 = (importance > 0.100000001490116119384765625) ? 4 : 2;
+        _959 = (importance > 0.100000001490116119384765625) ? 4 : 2;
     }
-    int num_samples = _955;
+    int num_samples = _959;
     float s = f.shadow_sin_cos.x;
     float c = f.shadow_sin_cos.y;
     float shadow = 0.0;
     for (int i = 0; i < num_samples; i++)
     {
-        float2 rotated = float2((c * _1034[i].x) - (s * _1034[i].y), (s * _1034[i].x) + (c * _1034[i].y));
+        float2 rotated = float2((c * _1038[i].x) - (s * _1038[i].y), (s * _1038[i].x) + (c * _1038[i].y));
         float2 sample_fuv = fuv + (rotated * filter_uv);
         float2 atlas_uv = tile_origin + (sample_fuv * float2(tile_uv));
         atlas_uv = fast::clamp(atlas_uv, tile_min, tile_max);
@@ -544,10 +555,6 @@ float sample_shadow_atlas(thread const light_t& light, thread const common_verte
 static inline __attribute__((always_inline))
 float parallax_self_shadow(thread const float3& light_dir, thread const common_vertex_t& v, thread const common_fragment_t& f, texture2d_array<float> texture_material, sampler texture_materialSmplr, constant material_block& material)
 {
-    if (f.lod > 2.0)
-    {
-        return 1.0;
-    }
     int max_steps = int(mix(8.0, 2.0, fast::min(f.lod * 0.5, 1.0)));
     float step_scale = mix(1.0, 2.5, fast::min(f.lod * 0.5, 1.0));
     float2 texel = float2(1.0) / float2(int3(texture_material.get_width(), texture_material.get_height(), texture_material.get_array_size()).xy);
@@ -560,17 +567,17 @@ float parallax_self_shadow(thread const float3& light_dir, thread const common_v
     int i = 0;
     for (;;)
     {
-        bool _1301 = i < max_steps;
-        bool _1307;
-        if (_1301)
+        bool _1339 = i < max_steps;
+        bool _1345;
+        if (_1339)
         {
-            _1307 = texcoord.z < 1.0;
+            _1345 = texcoord.z < 1.0;
         }
         else
         {
-            _1307 = _1301;
+            _1345 = _1339;
         }
-        if (_1307 && (max_height < 1.0))
+        if (_1345 && (max_height < 1.0))
         {
             texcoord += delta;
             float2 param_2 = texcoord.xy;
@@ -603,7 +610,7 @@ float3 blinn_phong(thread const float3& light_color_1, thread const float3& ligh
 }
 
 static inline __attribute__((always_inline))
-void fragment_light(thread const common_vertex_t& v, thread common_fragment_t& f, thread const light_t& light, texture2d_array<float> texture_material, sampler texture_materialSmplr, constant material_block& material, constant uniforms_block& _517, depth2d<float> texture_shadow_atlas_0, sampler texture_shadow_atlas_0Smplr, depth2d<float> texture_shadow_atlas_1, sampler texture_shadow_atlas_1Smplr, depth2d<float> texture_shadow_atlas_2, sampler texture_shadow_atlas_2Smplr, depth2d<float> texture_shadow_atlas_3, sampler texture_shadow_atlas_3Smplr, depth2d<float> texture_shadow_atlas_4, sampler texture_shadow_atlas_4Smplr, depth2d<float> texture_shadow_atlas_5, sampler texture_shadow_atlas_5Smplr)
+void fragment_light(thread const common_vertex_t& v, thread common_fragment_t& f, thread const light_t& light, texture2d_array<float> texture_material, sampler texture_materialSmplr, constant material_block& material, constant uniforms_block& _521, depth2d<float> texture_shadow_atlas_0, sampler texture_shadow_atlas_0Smplr, depth2d<float> texture_shadow_atlas_1, sampler texture_shadow_atlas_1Smplr, depth2d<float> texture_shadow_atlas_2, sampler texture_shadow_atlas_2Smplr, depth2d<float> texture_shadow_atlas_3, sampler texture_shadow_atlas_3Smplr, depth2d<float> texture_shadow_atlas_4, sampler texture_shadow_atlas_4Smplr, depth2d<float> texture_shadow_atlas_5, sampler texture_shadow_atlas_5Smplr)
 {
     float3 dir = light.origin.xyz - v.model_position;
     float dist = length(dir);
@@ -613,43 +620,52 @@ void fragment_light(thread const common_vertex_t& v, thread common_fragment_t& f
     {
         return;
     }
-    dir = fast::normalize(_517.view * float4(dir, 0.0)).xyz;
+    dir = fast::normalize(_521.view * float4(dir, 0.0)).xyz;
     bool is_blend = (material.surface & 112) != int(0u);
     bool is_liquid = (material.surface & 8) != int(0u);
     bool is_stage = material.flags != 0;
     float lambert = dot(dir, f.normal_sample);
-    float _1399;
+    float _1436;
     if ((is_blend || is_liquid) || is_stage)
     {
-        _1399 = abs(lambert);
+        _1436 = abs(lambert);
     }
     else
     {
-        _1399 = fast::max(0.0, lambert);
+        _1436 = fast::max(0.0, lambert);
     }
-    lambert = _1399;
+    lambert = _1436;
     if ((atten * lambert) <= 0.0)
     {
         return;
     }
     light_t param = light;
-    float3 color = light_color(param, _517) * atten;
+    float3 color = light_color(param, _521) * atten;
     light_t param_1 = light;
     common_vertex_t param_2 = v;
     common_fragment_t param_3 = f;
     float param_4 = atten;
-    float shadow = sample_shadow_atlas(param_1, param_2, param_3, param_4, _517, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr);
-    bool _1432 = !is_stage;
-    bool _1438;
-    if (_1432)
+    float shadow = sample_shadow_atlas(param_1, param_2, param_3, param_4, _521, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr);
+    bool _1469 = !is_stage;
+    bool _1475;
+    if (_1469)
     {
-        _1438 = material.shadow > 0.0;
+        _1475 = material.shadow > 0.0;
     }
     else
     {
-        _1438 = _1432;
+        _1475 = _1469;
     }
-    if (_1438)
+    bool _1481;
+    if (_1475)
+    {
+        _1481 = f.lod < 2.0;
+    }
+    else
+    {
+        _1481 = _1475;
+    }
+    if (_1481)
     {
         float3 param_5 = dir;
         common_vertex_t param_6 = v;
@@ -674,10 +690,10 @@ bool dynamic_light_active(thread const spvUnsafeArray<uint4, 2>& mask, thread co
 }
 
 static inline __attribute__((always_inline))
-float3 voxel_caustics(thread const float3& texcoord, constant uniforms_block& _517, texture3d<float> texture_voxel_caustics, sampler texture_voxel_causticsSmplr)
+float3 voxel_caustics(thread const float3& texcoord, constant uniforms_block& _521, texture3d<float> texture_voxel_caustics, sampler texture_voxel_causticsSmplr)
 {
     float3 encoded = texture_voxel_caustics.sample(texture_voxel_causticsSmplr, texcoord).xyz;
-    return ((encoded * 2.0) - float3(1.0)) * _517.caustics;
+    return ((encoded * 2.0) - float3(1.0)) * _521.caustics;
 }
 
 static inline __attribute__((always_inline))
@@ -695,35 +711,35 @@ float noise3d(thread const float3& p)
     float3 pf = p - pi;
     float3 w = (pf * pf) * (float3(3.0) - (pf * 2.0));
     float3 param = pi + float3(0.0);
-    float3 _246 = hash33(param);
+    float3 _250 = hash33(param);
     float3 param_1 = pi + float3(1.0, 0.0, 0.0);
-    float3 _254 = hash33(param_1);
+    float3 _258 = hash33(param_1);
     float3 param_2 = pi + float3(0.0, 0.0, 1.0);
-    float3 _265 = hash33(param_2);
+    float3 _269 = hash33(param_2);
     float3 param_3 = pi + float3(1.0, 0.0, 1.0);
-    float3 _273 = hash33(param_3);
+    float3 _277 = hash33(param_3);
     float3 param_4 = pi + float3(0.0, 1.0, 0.0);
-    float3 _287 = hash33(param_4);
+    float3 _291 = hash33(param_4);
     float3 param_5 = pi + float3(1.0, 1.0, 0.0);
-    float3 _295 = hash33(param_5);
+    float3 _299 = hash33(param_5);
     float3 param_6 = pi + float3(0.0, 1.0, 1.0);
-    float3 _306 = hash33(param_6);
+    float3 _310 = hash33(param_6);
     float3 param_7 = pi + float3(1.0);
-    float3 _314 = hash33(param_7);
-    return mix(mix(mix(dot(pf - float3(0.0), _246), dot(pf - float3(1.0, 0.0, 0.0), _254), w.x), mix(dot(pf - float3(0.0, 0.0, 1.0), _265), dot(pf - float3(1.0, 0.0, 1.0), _273), w.x), w.z), mix(mix(dot(pf - float3(0.0, 1.0, 0.0), _287), dot(pf - float3(1.0, 1.0, 0.0), _295), w.x), mix(dot(pf - float3(0.0, 1.0, 1.0), _306), dot(pf - float3(1.0), _314), w.x), w.z), w.y);
+    float3 _318 = hash33(param_7);
+    return mix(mix(mix(dot(pf - float3(0.0), _250), dot(pf - float3(1.0, 0.0, 0.0), _258), w.x), mix(dot(pf - float3(0.0, 0.0, 1.0), _269), dot(pf - float3(1.0, 0.0, 1.0), _277), w.x), w.z), mix(mix(dot(pf - float3(0.0, 1.0, 0.0), _291), dot(pf - float3(1.0, 1.0, 0.0), _299), w.x), mix(dot(pf - float3(0.0, 1.0, 1.0), _310), dot(pf - float3(1.0), _318), w.x), w.z), w.y);
 }
 
 static inline __attribute__((always_inline))
-void fragment_caustics(thread const common_vertex_t& v, thread common_fragment_t& f, constant uniforms_block& _517, texture3d<float> texture_voxel_caustics, sampler texture_voxel_causticsSmplr)
+void fragment_caustics(thread const common_vertex_t& v, thread common_fragment_t& f, constant uniforms_block& _521, texture3d<float> texture_voxel_caustics, sampler texture_voxel_causticsSmplr)
 {
     float3 param = v.voxel;
-    float3 caustics_sample = voxel_caustics(param, _517, texture_voxel_caustics, texture_voxel_causticsSmplr);
+    float3 caustics_sample = voxel_caustics(param, _521, texture_voxel_caustics, texture_voxel_causticsSmplr);
     float caustics_strength = length(caustics_sample);
     if (caustics_strength == 0.0)
     {
         return;
     }
-    float3 caustics_dir = fast::normalize(float3x3(_517.view[0].xyz, _517.view[1].xyz, _517.view[2].xyz) * caustics_sample);
+    float3 caustics_dir = fast::normalize(float3x3(_521.view[0].xyz, _521.view[1].xyz, _521.view[2].xyz) * caustics_sample);
     float facing = dot(v.normal, caustics_dir);
     float backface = (facing < (-0.25)) ? 0.25 : 1.0;
     f.caustics = caustics_strength * backface;
@@ -731,7 +747,7 @@ void fragment_caustics(thread const common_vertex_t& v, thread common_fragment_t
     {
         return;
     }
-    float3 param_1 = (v.model_position * 0.0500000007450580596923828125) + float3((float(_517.ticks) / 1000.0) * 0.5);
+    float3 param_1 = (v.model_position * 0.0500000007450580596923828125) + float3((float(_521.ticks) / 1000.0) * 0.5);
     float _noise = noise3d(param_1);
     float thickness = 0.0199999995529651641845703125;
     float glow = 5.0;
@@ -741,64 +757,60 @@ void fragment_caustics(thread const common_vertex_t& v, thread common_fragment_t
 }
 
 static inline __attribute__((always_inline))
-void fragment_lighting(thread const common_vertex_t& v, thread common_fragment_t& f, texture2d_array<float> texture_material, sampler texture_materialSmplr, constant material_block& material, constant uniforms_block& _517, const device voxel_light_data_block& _568, const device voxel_light_indices_block& _586, texture3d<float> texture_voxel_caustics, sampler texture_voxel_causticsSmplr, texture3d<float> texture_voxel_occlusion, sampler texture_voxel_occlusionSmplr, depth2d<float> texture_shadow_atlas_0, sampler texture_shadow_atlas_0Smplr, depth2d<float> texture_shadow_atlas_1, sampler texture_shadow_atlas_1Smplr, depth2d<float> texture_shadow_atlas_2, sampler texture_shadow_atlas_2Smplr, depth2d<float> texture_shadow_atlas_3, sampler texture_shadow_atlas_3Smplr, depth2d<float> texture_shadow_atlas_4, sampler texture_shadow_atlas_4Smplr, depth2d<float> texture_shadow_atlas_5, sampler texture_shadow_atlas_5Smplr, texturecube<float> texture_sky, sampler texture_skySmplr, const device bsp_lights_block& _1553, const device dynamic_lights_block& _1583, constant bsp_locals_block& _1590)
+void fragment_lighting(thread const common_vertex_t& v, thread common_fragment_t& f, texture2d_array<float> texture_material, sampler texture_materialSmplr, constant material_block& material, constant uniforms_block& _521, const device voxel_light_data_block& _572, const device voxel_light_indices_block& _590, texture3d<float> texture_voxel_caustics, sampler texture_voxel_causticsSmplr, texture3d<float> texture_voxel_occlusion, sampler texture_voxel_occlusionSmplr, depth2d<float> texture_shadow_atlas_0, sampler texture_shadow_atlas_0Smplr, depth2d<float> texture_shadow_atlas_1, sampler texture_shadow_atlas_1Smplr, depth2d<float> texture_shadow_atlas_2, sampler texture_shadow_atlas_2Smplr, depth2d<float> texture_shadow_atlas_3, sampler texture_shadow_atlas_3Smplr, depth2d<float> texture_shadow_atlas_4, sampler texture_shadow_atlas_4Smplr, depth2d<float> texture_shadow_atlas_5, sampler texture_shadow_atlas_5Smplr, texturecube<float> texture_sky, sampler texture_skySmplr, const device bsp_lights_block& _1562, const device dynamic_lights_block& _1592, constant bsp_locals_block& _1599)
 {
-    float3 param = v.voxel;
-    float occlusion = voxel_occlusion(param, texture_voxel_occlusion, texture_voxel_occlusionSmplr);
-    float3 param_1 = v.voxel;
-    float exposure = voxel_exposure(param_1, texture_voxel_occlusion, texture_voxel_occlusionSmplr);
-    float3 sky = texture_sky.sample(texture_skySmplr, fast::normalize(v.model_normal), level(6.0)).xyz;
-    f.ambient = ((powr(float3(2.0) + sky, float3(2.0)) * exposure) * (1.0 - (occlusion * _517.ambient_occlusion))) * _517.ambient;
+    common_vertex_t param = v;
+    f.ambient = ambient_light(param, _521, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_sky, texture_skySmplr);
     f.diffuse = float3(0.0);
     f.specular = float3(0.0);
-    if (_517.editor == 0)
+    if (_521.editor == 0)
     {
-        float3 param_2 = v.model_position;
-        int3 voxel_coord = voxel_xyz(param_2, _517);
-        int3 param_3 = voxel_coord;
-        int2 data = voxel_light_data(param_3, _517, _568);
-        light_t param_7;
+        float3 param_1 = v.model_position;
+        int3 voxel_coord = voxel_xyz(param_1, _521);
+        int3 param_2 = voxel_coord;
+        int2 data = voxel_light_data(param_2, _521, _572);
+        light_t param_6;
         for (int i = 0; i < data.y; i++)
         {
-            int param_4 = data.x + i;
-            int index = voxel_light_index(param_4, _586);
-            common_vertex_t param_5 = v;
-            common_fragment_t param_6 = f;
-            param_7.origin = _1553.bsp_lights[index].origin;
-            param_7.color = _1553.bsp_lights[index].color;
-            param_7.shadow = _1553.bsp_lights[index].shadow;
-            fragment_light(param_5, param_6, param_7, texture_material, texture_materialSmplr, material, _517, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr);
-            f = param_6;
+            int param_3 = data.x + i;
+            int index = voxel_light_index(param_3, _590);
+            common_vertex_t param_4 = v;
+            common_fragment_t param_5 = f;
+            param_6.origin = _1562.bsp_lights[index].origin;
+            param_6.color = _1562.bsp_lights[index].color;
+            param_6.shadow = _1562.bsp_lights[index].shadow;
+            fragment_light(param_4, param_5, param_6, texture_material, texture_materialSmplr, material, _521, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr);
+            f = param_5;
         }
     }
-    spvUnsafeArray<uint4, 2> param_8;
-    light_t param_12;
-    for (int j = 0; j < _1583.num_dynamic_lights; j++)
+    spvUnsafeArray<uint4, 2> param_7;
+    light_t param_11;
+    for (int j = 0; j < _1592.num_dynamic_lights; j++)
     {
-        param_8[0] = _1590.active_dynamic_lights[0];
-        param_8[1] = _1590.active_dynamic_lights[1];
-        int param_9 = j;
-        if (dynamic_light_active(param_8, param_9))
+        param_7[0] = _1599.active_dynamic_lights[0];
+        param_7[1] = _1599.active_dynamic_lights[1];
+        int param_8 = j;
+        if (dynamic_light_active(param_7, param_8))
         {
-            common_vertex_t param_10 = v;
-            common_fragment_t param_11 = f;
-            param_12.origin = _1583.dynamic_lights[j].origin;
-            param_12.color = _1583.dynamic_lights[j].color;
-            param_12.shadow = _1583.dynamic_lights[j].shadow;
-            fragment_light(param_10, param_11, param_12, texture_material, texture_materialSmplr, material, _517, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr);
-            f = param_11;
+            common_vertex_t param_9 = v;
+            common_fragment_t param_10 = f;
+            param_11.origin = _1592.dynamic_lights[j].origin;
+            param_11.color = _1592.dynamic_lights[j].color;
+            param_11.shadow = _1592.dynamic_lights[j].shadow;
+            fragment_light(param_9, param_10, param_11, texture_material, texture_materialSmplr, material, _521, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr);
+            f = param_10;
         }
     }
-    common_vertex_t param_13 = v;
-    common_fragment_t param_14 = f;
-    fragment_caustics(param_13, param_14, _517, texture_voxel_caustics, texture_voxel_causticsSmplr);
-    f = param_14;
+    common_vertex_t param_12 = v;
+    common_fragment_t param_13 = f;
+    fragment_caustics(param_12, param_13, _521, texture_voxel_caustics, texture_voxel_causticsSmplr);
+    f = param_13;
 }
 
 static inline __attribute__((always_inline))
-void bsp_fragment_lighting(thread const common_vertex_t& vertex0, thread common_fragment_t& fragment0, texture2d_array<float> texture_material, sampler texture_materialSmplr, constant material_block& material, constant uniforms_block& _517, const device voxel_light_data_block& _568, const device voxel_light_indices_block& _586, texture3d<float> texture_voxel_caustics, sampler texture_voxel_causticsSmplr, texture3d<float> texture_voxel_occlusion, sampler texture_voxel_occlusionSmplr, depth2d<float> texture_shadow_atlas_0, sampler texture_shadow_atlas_0Smplr, depth2d<float> texture_shadow_atlas_1, sampler texture_shadow_atlas_1Smplr, depth2d<float> texture_shadow_atlas_2, sampler texture_shadow_atlas_2Smplr, depth2d<float> texture_shadow_atlas_3, sampler texture_shadow_atlas_3Smplr, depth2d<float> texture_shadow_atlas_4, sampler texture_shadow_atlas_4Smplr, depth2d<float> texture_shadow_atlas_5, sampler texture_shadow_atlas_5Smplr, texturecube<float> texture_sky, sampler texture_skySmplr, const device bsp_lights_block& _1553, const device dynamic_lights_block& _1583, constant bsp_locals_block& _1590)
+void bsp_fragment_lighting(thread const common_vertex_t& vertex0, thread common_fragment_t& fragment0, texture2d_array<float> texture_material, sampler texture_materialSmplr, constant material_block& material, constant uniforms_block& _521, const device voxel_light_data_block& _572, const device voxel_light_indices_block& _590, texture3d<float> texture_voxel_caustics, sampler texture_voxel_causticsSmplr, texture3d<float> texture_voxel_occlusion, sampler texture_voxel_occlusionSmplr, depth2d<float> texture_shadow_atlas_0, sampler texture_shadow_atlas_0Smplr, depth2d<float> texture_shadow_atlas_1, sampler texture_shadow_atlas_1Smplr, depth2d<float> texture_shadow_atlas_2, sampler texture_shadow_atlas_2Smplr, depth2d<float> texture_shadow_atlas_3, sampler texture_shadow_atlas_3Smplr, depth2d<float> texture_shadow_atlas_4, sampler texture_shadow_atlas_4Smplr, depth2d<float> texture_shadow_atlas_5, sampler texture_shadow_atlas_5Smplr, texturecube<float> texture_sky, sampler texture_skySmplr, const device bsp_lights_block& _1562, const device dynamic_lights_block& _1592, constant bsp_locals_block& _1599)
 {
-    float lod = fast::clamp((fragment0.view_dist - _517.lighting_distance) / 128.0, 0.0, 1.0);
+    float lod = fast::clamp((fragment0.view_dist - _521.lighting_distance) / 128.0, 0.0, 1.0);
     if (lod >= 1.0)
     {
         fragment0.ambient = vertex0.ambient;
@@ -824,7 +836,7 @@ void bsp_fragment_lighting(thread const common_vertex_t& vertex0, thread common_
     fragment0.shadow_sin_cos = float2(sin(angle), cos(angle));
     common_vertex_t param_4 = vertex0;
     common_fragment_t param_5 = fragment0;
-    fragment_lighting(param_4, param_5, texture_material, texture_materialSmplr, material, _517, _568, _586, texture_voxel_caustics, texture_voxel_causticsSmplr, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr, texture_sky, texture_skySmplr, _1553, _1583, _1590);
+    fragment_lighting(param_4, param_5, texture_material, texture_materialSmplr, material, _521, _572, _590, texture_voxel_caustics, texture_voxel_causticsSmplr, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr, texture_sky, texture_skySmplr, _1562, _1592, _1599);
     fragment0 = param_5;
     fragment0.ambient = mix(fragment0.ambient, vertex0.ambient, float3(lod));
     fragment0.diffuse = mix(fragment0.diffuse, vertex0.diffuse, float3(lod));
@@ -841,7 +853,7 @@ float4 sample_material_stage(thread const float2& texcoord, constant material_bl
     return texture_stage.sample(texture_stageSmplr, texcoord);
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _517 [[buffer(0)]], constant bsp_locals_block& _1590 [[buffer(1)]], constant material_block& material [[buffer(2)]], const device bsp_lights_block& _1553 [[buffer(3)]], const device dynamic_lights_block& _1583 [[buffer(4)]], const device voxel_light_data_block& _568 [[buffer(5)]], const device voxel_light_indices_block& _586 [[buffer(6)]], texture2d_array<float> texture_material [[texture(0)]], depth2d<float> texture_shadow_atlas_0 [[texture(1)]], depth2d<float> texture_shadow_atlas_1 [[texture(2)]], depth2d<float> texture_shadow_atlas_2 [[texture(3)]], depth2d<float> texture_shadow_atlas_3 [[texture(4)]], depth2d<float> texture_shadow_atlas_4 [[texture(5)]], depth2d<float> texture_shadow_atlas_5 [[texture(6)]], texture3d<float> texture_voxel_caustics [[texture(7)]], texture3d<float> texture_voxel_occlusion [[texture(8)]], texturecube<float> texture_sky [[texture(9)]], texture2d<float> texture_stage [[texture(10)]], texture2d<float> texture_stage_next [[texture(11)]], texture2d<float> texture_warp [[texture(12)]], sampler texture_materialSmplr [[sampler(0)]], sampler texture_shadow_atlas_0Smplr [[sampler(1)]], sampler texture_shadow_atlas_1Smplr [[sampler(2)]], sampler texture_shadow_atlas_2Smplr [[sampler(3)]], sampler texture_shadow_atlas_3Smplr [[sampler(4)]], sampler texture_shadow_atlas_4Smplr [[sampler(5)]], sampler texture_shadow_atlas_5Smplr [[sampler(6)]], sampler texture_voxel_causticsSmplr [[sampler(7)]], sampler texture_voxel_occlusionSmplr [[sampler(8)]], sampler texture_skySmplr [[sampler(9)]], sampler texture_stageSmplr [[sampler(10)]], sampler texture_stage_nextSmplr [[sampler(11)]], sampler texture_warpSmplr [[sampler(12)]], float4 gl_FragCoord [[position]])
+fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _521 [[buffer(0)]], constant bsp_locals_block& _1599 [[buffer(1)]], constant material_block& material [[buffer(2)]], const device bsp_lights_block& _1562 [[buffer(3)]], const device dynamic_lights_block& _1592 [[buffer(4)]], const device voxel_light_data_block& _572 [[buffer(5)]], const device voxel_light_indices_block& _590 [[buffer(6)]], texture2d_array<float> texture_material [[texture(0)]], depth2d<float> texture_shadow_atlas_0 [[texture(1)]], depth2d<float> texture_shadow_atlas_1 [[texture(2)]], depth2d<float> texture_shadow_atlas_2 [[texture(3)]], depth2d<float> texture_shadow_atlas_3 [[texture(4)]], depth2d<float> texture_shadow_atlas_4 [[texture(5)]], depth2d<float> texture_shadow_atlas_5 [[texture(6)]], texture3d<float> texture_voxel_caustics [[texture(7)]], texture3d<float> texture_voxel_occlusion [[texture(8)]], texturecube<float> texture_sky [[texture(9)]], texture2d<float> texture_stage [[texture(10)]], texture2d<float> texture_stage_next [[texture(11)]], texture2d<float> texture_warp [[texture(12)]], sampler texture_materialSmplr [[sampler(0)]], sampler texture_shadow_atlas_0Smplr [[sampler(1)]], sampler texture_shadow_atlas_1Smplr [[sampler(2)]], sampler texture_shadow_atlas_2Smplr [[sampler(3)]], sampler texture_shadow_atlas_3Smplr [[sampler(4)]], sampler texture_shadow_atlas_4Smplr [[sampler(5)]], sampler texture_shadow_atlas_5Smplr [[sampler(6)]], sampler texture_voxel_causticsSmplr [[sampler(7)]], sampler texture_voxel_occlusionSmplr [[sampler(8)]], sampler texture_skySmplr [[sampler(9)]], sampler texture_stageSmplr [[sampler(10)]], sampler texture_stage_nextSmplr [[sampler(11)]], sampler texture_warpSmplr [[sampler(12)]], float4 gl_FragCoord [[position]])
 {
     main0_out out = {};
     common_vertex_t vertex0 = {};
@@ -861,10 +873,10 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _517
     common_fragment_t fragment0;
     fragment0.view_dir = fast::normalize(-vertex0.position);
     fragment0.view_dist = length(vertex0.position);
-    float2 _1919;
-    _1919.x = texture_material.calculate_clamped_lod(texture_materialSmplr, vertex0.diffusemap);
-    _1919.y = texture_material.calculate_unclamped_lod(texture_materialSmplr, vertex0.diffusemap);
-    fragment0.lod = _1919.x;
+    float2 _1928;
+    _1928.x = texture_material.calculate_clamped_lod(texture_materialSmplr, vertex0.diffusemap);
+    _1928.y = texture_material.calculate_unclamped_lod(texture_materialSmplr, vertex0.diffusemap);
+    fragment0.lod = _1928.x;
     common_vertex_t param = vertex0;
     common_fragment_t param_1 = fragment0;
     parallax_occlusion_mapping(param, param_1, texture_material, texture_materialSmplr, material);
@@ -884,25 +896,25 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _517
         out.out_color *= vertex0.color;
         common_vertex_t param_3 = vertex0;
         common_fragment_t param_4 = fragment0;
-        bsp_fragment_lighting(param_3, param_4, texture_material, texture_materialSmplr, material, _517, _568, _586, texture_voxel_caustics, texture_voxel_causticsSmplr, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr, texture_sky, texture_skySmplr, _1553, _1583, _1590);
+        bsp_fragment_lighting(param_3, param_4, texture_material, texture_materialSmplr, material, _521, _572, _590, texture_voxel_caustics, texture_voxel_causticsSmplr, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr, texture_sky, texture_skySmplr, _1562, _1592, _1599);
         fragment0 = param_4;
-        float4 _1974 = out.out_color;
-        float3 _1976 = _1974.xyz * (fragment0.ambient + fragment0.diffuse);
-        out.out_color.x = _1976.x;
-        out.out_color.y = _1976.y;
-        out.out_color.z = _1976.z;
-        float4 _1985 = out.out_color;
-        float3 _1987 = _1985.xyz + fragment0.specular;
-        out.out_color.x = _1987.x;
-        out.out_color.y = _1987.y;
-        out.out_color.z = _1987.z;
+        float4 _1983 = out.out_color;
+        float3 _1985 = _1983.xyz * (fragment0.ambient + fragment0.diffuse);
+        out.out_color.x = _1985.x;
+        out.out_color.y = _1985.y;
+        out.out_color.z = _1985.z;
+        float4 _1994 = out.out_color;
+        float3 _1996 = _1994.xyz + fragment0.specular;
+        out.out_color.x = _1996.x;
+        out.out_color.y = _1996.y;
+        out.out_color.z = _1996.z;
     }
     else
     {
         float2 st = fragment0.parallax;
         if ((material.flags & 32768) == 32768)
         {
-            st += ((texture_warp.sample(texture_warpSmplr, (st + float2((float(_517.ticks) * material.warp.x) * 0.00012500000593718141317367553710938))).xy - float2(0.5)) * material.warp.y);
+            st += ((texture_warp.sample(texture_warpSmplr, (st + float2((float(_521.ticks) * material.warp.x) * 0.00012500000593718141317367553710938))).xy - float2(0.5)) * material.warp.y);
         }
         float2 param_5 = st;
         fragment0.diffuse_sample = sample_material_stage(param_5, material, texture_stage, texture_stageSmplr, texture_stage_next, texture_stage_nextSmplr) * vertex0.color;
@@ -911,26 +923,26 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _517
         {
             common_vertex_t param_6 = vertex0;
             common_fragment_t param_7 = fragment0;
-            bsp_fragment_lighting(param_6, param_7, texture_material, texture_materialSmplr, material, _517, _568, _586, texture_voxel_caustics, texture_voxel_causticsSmplr, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr, texture_sky, texture_skySmplr, _1553, _1583, _1590);
+            bsp_fragment_lighting(param_6, param_7, texture_material, texture_materialSmplr, material, _521, _572, _590, texture_voxel_caustics, texture_voxel_causticsSmplr, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr, texture_sky, texture_skySmplr, _1562, _1592, _1599);
             fragment0 = param_7;
-            float4 _2059 = out.out_color;
-            float3 _2061 = _2059.xyz * mix(float3(1.0), fragment0.ambient + fragment0.diffuse, float3(material.lighting));
-            out.out_color.x = _2061.x;
-            out.out_color.y = _2061.y;
-            out.out_color.z = _2061.z;
-            float4 _2073 = out.out_color;
-            float3 _2075 = _2073.xyz + (fragment0.specular * material.lighting);
-            out.out_color.x = _2075.x;
-            out.out_color.y = _2075.y;
-            out.out_color.z = _2075.z;
+            float4 _2068 = out.out_color;
+            float3 _2070 = _2068.xyz * mix(float3(1.0), fragment0.ambient + fragment0.diffuse, float3(material.lighting));
+            out.out_color.x = _2070.x;
+            out.out_color.y = _2070.y;
+            out.out_color.z = _2070.z;
+            float4 _2082 = out.out_color;
+            float3 _2084 = _2082.xyz + (fragment0.specular * material.lighting);
+            out.out_color.x = _2084.x;
+            out.out_color.y = _2084.y;
+            out.out_color.z = _2084.z;
         }
         if ((material.flags & 262144) == 262144)
         {
-            float4 _2096 = out.out_color;
-            float3 _2098 = _2096.xyz + (fragment0.diffuse_sample.xyz * material.emissive);
-            out.out_color.x = _2098.x;
-            out.out_color.y = _2098.y;
-            out.out_color.z = _2098.z;
+            float4 _2105 = out.out_color;
+            float3 _2107 = _2105.xyz + (fragment0.diffuse_sample.xyz * material.emissive);
+            out.out_color.x = _2107.x;
+            out.out_color.y = _2107.y;
+            out.out_color.z = _2107.z;
         }
     }
     return out;

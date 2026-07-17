@@ -33,6 +33,41 @@ r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context);
 void R_SaveMaterials_f(void);
 
 /**
+ * @brief Shared sampler bindings for bsp/mesh/sky, mirroring material.glsl's
+ * BINDING_SAMPLER_* defines. Extend with more entries after
+ * R_SAMPLER_MATERIAL_TOTAL for consumer-specific samplers (e.g. BSP's warp).
+ */
+typedef enum {
+  R_SAMPLER_MATERIAL,
+  R_SAMPLER_SHADOW_ATLAS_0, // one per cube face; SDL_gpu forbids array depth targets
+  R_SAMPLER_SHADOW_ATLAS_1,
+  R_SAMPLER_SHADOW_ATLAS_2,
+  R_SAMPLER_SHADOW_ATLAS_3,
+  R_SAMPLER_SHADOW_ATLAS_4,
+  R_SAMPLER_SHADOW_ATLAS_5,
+  R_SAMPLER_VOXEL_CAUSTICS,
+  R_SAMPLER_VOXEL_OCCLUSION,
+  R_SAMPLER_SKY,
+  R_SAMPLER_STAGE,
+  R_SAMPLER_STAGE_NEXT,
+  R_SAMPLER_MATERIAL_TOTAL,
+} r_material_sampler_t;
+
+/**
+ * @brief Shared storage buffer bindings for bsp/mesh: the compiled + dynamic
+ * light lists (light.glsl) and the voxel cluster data (voxel.glsl). Extend
+ * with more entries after R_STORAGE_MATERIAL_TOTAL for consumer-specific
+ * storage buffers.
+ */
+typedef enum {
+  R_STORAGE_BSP_LIGHTS,
+  R_STORAGE_DYNAMIC_LIGHTS,
+  R_STORAGE_VOXEL_LIGHT_DATA,
+  R_STORAGE_VOXEL_LIGHT_INDICES,
+  R_STORAGE_MATERIAL_TOTAL,
+} r_material_storage_t;
+
+/**
  * @brief The per-draw material AND per-stage parameters, pushed to the
  * material uniform slot by the lit-geometry programs (bsp, mesh): they're
  * both material-related, unlike e.g. the active-lights bitmask, which lives

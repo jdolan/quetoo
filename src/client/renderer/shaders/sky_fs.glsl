@@ -23,20 +23,17 @@
 
 #include "uniforms.glsl"
 
-// Sky's own binding map (fragment stage): a dense family shared with no other
-// pipeline. Sky has no base diffuse texture array, so texture_material (the
-// only sampler material.glsl would otherwise declare) is compiled out via
-// MATERIAL_NO_DIFFUSE, keeping the family dense at {sky, stage, stage_next}.
-#define BINDING_SAMPLER_SKY        0
-#define BINDING_SAMPLER_STAGE      1
-#define BINDING_SAMPLER_STAGE_NEXT 2
+// Sky's own binding map (fragment stage): material.glsl declares the
+// canonical sampler family (material, shadow atlas x6, voxel caustics/
+// occlusion, sky, stage, stage_next) unconditionally for every lit-material
+// program. Sky has no diffuse array, shadow atlas, or voxel volumes of its
+// own, so it binds small fallback resources for those slots (see r_sky.c);
+// only texture_sky, texture_stage and texture_stage_next are actually
+// sampled here.
 #define BINDING_UNIFORMS_MATERIAL  1
 
-#define MATERIAL_NO_DIFFUSE
 #include "common.glsl"
 #include "material.glsl"
-
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SKY) uniform samplerCube texture_sky;
 
 layout (location = 0) in vec3 cubemap_coord;
 layout (location = 1) in vec4 stage_color;

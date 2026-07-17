@@ -21,28 +21,15 @@
 
 #version 450
 
-#define VOXEL_CAUSTICS_OCCLUSION
-#define LIGHT_SKY
-
 #include "uniforms.glsl"
 
-#define BINDING_SAMPLER_MATERIAL             0
-#define BINDING_SAMPLER_SHADOW_ATLAS_0       1
-#define BINDING_SAMPLER_SHADOW_ATLAS_1       2
-#define BINDING_SAMPLER_SHADOW_ATLAS_2       3
-#define BINDING_SAMPLER_SHADOW_ATLAS_3       4
-#define BINDING_SAMPLER_SHADOW_ATLAS_4       5
-#define BINDING_SAMPLER_SHADOW_ATLAS_5       6
-#define BINDING_SAMPLER_VOXEL_CAUSTICS       7
-#define BINDING_SAMPLER_VOXEL_OCCLUSION      8
-#define BINDING_SAMPLER_SKY_AMBIENT          9
-#define BINDING_SAMPLER_STAGE               10
-#define BINDING_SAMPLER_STAGE_NEXT          11
-#define BINDING_SAMPLER_WARP                12
-#define BINDING_STORAGE_BSP_LIGHTS           13
-#define BINDING_STORAGE_DYNAMIC_LIGHTS       14
-#define BINDING_STORAGE_VOXEL_LIGHT_DATA     15
-#define BINDING_STORAGE_VOXEL_LIGHT_INDICES  16
+// material.glsl declares the canonical BINDING_SAMPLER_MATERIAL..STAGE_NEXT
+// family unconditionally; BSP additionally has its own liquid-warp sampler
+// after them (mesh/sky never set STAGE_WARP). This stage samples all 12 plus
+// warp (13 total), so storage bindings must follow those 13 -- see
+// material.glsl's BINDING_STORAGE_NUM_ACTIVE_SAMPLERS comment.
+#define BINDING_SAMPLER_WARP                 12
+#define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS  13
 #define BINDING_UNIFORMS_MATERIAL            2
 
 #include "common.glsl"

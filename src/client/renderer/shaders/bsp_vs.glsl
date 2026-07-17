@@ -24,10 +24,11 @@
 #include "uniforms.glsl"
 
 #define BINDING_UNIFORMS_MATERIAL           2
-#define BINDING_STORAGE_BSP_LIGHTS          0
-#define BINDING_STORAGE_DYNAMIC_LIGHTS      1
-#define BINDING_STORAGE_VOXEL_LIGHT_DATA    2
-#define BINDING_STORAGE_VOXEL_LIGHT_INDICES 3
+
+// This stage only samples 3 of material.glsl's textures (voxel
+// caustics/occlusion, sky), so storage bindings must follow those 3 -- see
+// material.glsl's BINDING_STORAGE_NUM_ACTIVE_SAMPLERS comment.
+#define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS 3
 
 #include "common.glsl"
 #include "material.glsl"

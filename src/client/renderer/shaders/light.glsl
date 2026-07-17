@@ -23,15 +23,15 @@
  * @file light.glsl
  * @brief Per-vertex and per-fragment lighting and shadow functions.
  * @remarks Include after uniforms.glsl, common.glsl, material.glsl, voxel.glsl.
- * Pulls in light_types.glsl for light_t itself. The shadow atlas and the
- * BSP/dynamic lights storage buffers are declared here. SDL_gpu forbids
- * DEPTH_STENCIL_TARGET on array textures, so the atlas is six separate 2D
- * textures (one per cube face) rather than one array texture; sample_shadow_atlas
- * selects among them with a branch on the fragment's cube face, since dynamic
- * (non-constant) indexing into an array of distinct sampler bindings isn't
- * reliably portable across the SPIR-V/MSL toolchain. Define LIGHT_SKY to enable
- * image-based ambient from the sky cubemap (the lit fragment shaders enable it),
- * else a flat ambient fallback is used.
+ * Pulls in light_types.glsl for light_t itself. material.glsl declares the
+ * shadow atlas and sky cubemap samplers (part of the canonical lit-material
+ * sampler family); only the BSP/dynamic lights storage buffers are declared
+ * here. SDL_gpu forbids DEPTH_STENCIL_TARGET on array textures, so the atlas
+ * is six separate 2D textures (one per cube face) rather than one array
+ * texture; sample_shadow_atlas selects among them with a branch on the
+ * fragment's cube face, since dynamic (non-constant) indexing into an array
+ * of distinct sampler bindings isn't reliably portable across the SPIR-V/MSL
+ * toolchain.
  */
 
 #include "light_types.glsl"
@@ -42,37 +42,13 @@
  */
 #define LIGHTING_LOD_BLEND_DIST 128.0
 
-#if defined(FRAGMENT_SHADER)
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_0) uniform sampler2DShadow texture_shadow_atlas_0;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_1) uniform sampler2DShadow texture_shadow_atlas_1;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_2) uniform sampler2DShadow texture_shadow_atlas_2;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_3) uniform sampler2DShadow texture_shadow_atlas_3;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_4) uniform sampler2DShadow texture_shadow_atlas_4;
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_5) uniform sampler2DShadow texture_shadow_atlas_5;
-#endif
-
-#if defined(FRAGMENT_SHADER) && defined(LIGHT_SKY)
-/**
- * @brief The sky cubemap, sampled at a coarse LOD for image-based ambient light.
- */
-layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SKY_AMBIENT) uniform samplerCube texture_sky;
-#endif
-
 layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_BSP_LIGHTS) readonly buffer bsp_lights_block {
-  /**
-   * @brief The number of light sources in `bsp_lights`.
-   */
   int num_bsp_lights;
-
   light_t bsp_lights[];
 };
 
 layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_DYNAMIC_LIGHTS) readonly buffer dynamic_lights_block {
-  /**
-   * @brief The number of light sources in `dynamic_lights`.
-   */
   int num_dynamic_lights;
-
   light_t dynamic_lights[];
 };
 
@@ -268,6 +244,18 @@ vec3 blinn_phong(in vec3 light_color, in vec3 light_dir, in common_fragment_t f)
 #endif
 
 /**
+ * @brief Calculate ambient lighting for the given (interpolated) vertex using the sky cubemap.
+ */
+vec3 ambient_light(in common_vertex_t v) {
+
+  float occlusion = voxel_occlusion(v.voxel);
+  float exposure = voxel_exposure(v.voxel);
+
+  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
+  return pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
+}
+
+/**
  * @brief Calculate vertex lighting contribution from a single light (unshadowed diffuse only).
  * @param v Vertex data.
  * @param light The light source.
@@ -304,15 +292,7 @@ void vertex_caustics(inout common_vertex_t v) {
  */
 void vertex_lighting(inout common_vertex_t v) {
 
-  float occlusion = voxel_occlusion(v.voxel);
-  float exposure = voxel_exposure(v.voxel);
-
-#if defined(LIGHT_SKY)
-  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
-  v.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
-#else
-  v.ambient = vec3(ambient) * exposure * (1.0 - occlusion * ambient_occlusion);
-#endif
+  v.ambient = ambient_light(v);
   v.diffuse = vec3(0.0);
 
   if (editor == 0) {
@@ -325,7 +305,6 @@ void vertex_lighting(inout common_vertex_t v) {
     }
   }
 
-  // Dynamic lights: those flagged active for this draw.
   for (int j = 0; j < num_dynamic_lights; j++) {
     if (dynamic_light_active(active_dynamic_lights, j)) {
       v.diffuse += vertex_light(v, dynamic_lights[j]);
@@ -382,13 +361,6 @@ void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
  */
 float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fragment_t f) {
 
-  // Beyond this LOD, parallax_occlusion_mapping (bsp_fs.glsl) no longer offsets
-  // the texcoord and texel-scale height detail is not screen-resolvable, so
-  // self-shadowing has nothing meaningful left to contribute.
-  if (f.lod > 2.0) {
-    return 1.0;
-  }
-
   // LOD-based step count: 8 close, 2 far (bounded for performance; this runs
   // per-light, so it must fall off faster than the once-per-fragment POM offset).
   int max_steps = int(mix(8.0, 2.0, min(f.lod * 0.5, 1.0)));
@@ -444,7 +416,7 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in light_t 
 
   float shadow = sample_shadow_atlas(light, v, f, atten);
 
-  if (!is_stage && material.shadow > 0.0) {
+  if (!is_stage && material.shadow > 0.0 && f.lod < 2.0) {
     shadow *= parallax_self_shadow(dir, v, f);
   }
 
@@ -466,20 +438,11 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in light_t 
  */
 void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
 
-  float occlusion = voxel_occlusion(v.voxel);
-  float exposure = voxel_exposure(v.voxel);
-
-#if defined(LIGHT_SKY)
-  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
-  f.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
-#else
-  f.ambient = vec3(ambient) * exposure * (1.0 - occlusion * ambient_occlusion);
-#endif
+  f.ambient = ambient_light(v);
   f.diffuse = vec3(0.0);
   f.specular = vec3(0.0);
 
   if (editor == 0) {
-    // Sample static voxel lights
     ivec3 voxel_coord = voxel_xyz(v.model_position);
     ivec2 data = voxel_light_data(voxel_coord);
 
@@ -489,7 +452,6 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
     }
   }
 
-  // Dynamic lights: those flagged active for this draw.
   for (int j = 0; j < num_dynamic_lights; j++) {
     if (dynamic_light_active(active_dynamic_lights, j)) {
       fragment_light(v, f, dynamic_lights[j]);

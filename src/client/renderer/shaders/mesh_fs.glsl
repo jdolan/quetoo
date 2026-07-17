@@ -32,29 +32,15 @@
  * material.flags, exactly like bsp_fs -- see main() below.
  */
 
-#define VOXEL_CAUSTICS_OCCLUSION
-#define LIGHT_SKY
 #define MATERIAL_TINTS
 
 #include "uniforms.glsl"
 
-#define BINDING_SAMPLER_MATERIAL             0
-#define BINDING_SAMPLER_SHADOW_ATLAS_0       1
-#define BINDING_SAMPLER_SHADOW_ATLAS_1       2
-#define BINDING_SAMPLER_SHADOW_ATLAS_2       3
-#define BINDING_SAMPLER_SHADOW_ATLAS_3       4
-#define BINDING_SAMPLER_SHADOW_ATLAS_4       5
-#define BINDING_SAMPLER_SHADOW_ATLAS_5       6
-#define BINDING_SAMPLER_VOXEL_CAUSTICS       7
-#define BINDING_SAMPLER_VOXEL_OCCLUSION      8
-#define BINDING_SAMPLER_SKY_AMBIENT          9
-#define BINDING_SAMPLER_STAGE               10
-#define BINDING_SAMPLER_STAGE_NEXT          11
-#define BINDING_STORAGE_BSP_LIGHTS           12
-#define BINDING_STORAGE_DYNAMIC_LIGHTS       13
-#define BINDING_STORAGE_VOXEL_LIGHT_DATA     14
-#define BINDING_STORAGE_VOXEL_LIGHT_INDICES  15
-#define BINDING_UNIFORMS_MATERIAL            2
+// This stage samples all 12 canonical textures (mesh has no texture_warp),
+// so storage bindings must follow those 12 -- see material.glsl's
+// BINDING_STORAGE_NUM_ACTIVE_SAMPLERS comment.
+#define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS 12
+#define BINDING_UNIFORMS_MATERIAL           2
 
 #include "common.glsl"
 #include "material.glsl"
@@ -77,13 +63,15 @@ common_fragment_t fragment;
 
 /**
  * @brief Samples the material normal/specular maps and computes per-fragment
- * lighting, with distance-based LOD: distant fragments (and the player-model
- * preview, which has no BSP voxel data) reuse the vertex shader's cheap
- * per-vertex ambient+diffuse instead.
+ * lighting, with distance- and LOD-based fallback: distant or high-texel-LOD
+ * fragments (small on screen, where per-pixel normal/specular/shadow detail
+ * isn't screen-resolvable) and the player-model preview (no BSP voxel data)
+ * reuse the vertex shader's cheap per-vertex lighting instead -- see
+ * mesh_vs.glsl's vertex_lighting call.
  */
 void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
 
-  if (fragment.view_dist >= lighting_distance || view_type == VIEW_PLAYER_MODEL) {
+  if (fragment.view_dist >= lighting_distance || fragment.lod > 1.0 || view_type == VIEW_PLAYER_MODEL) {
     fragment.ambient = vertex.ambient;
     fragment.diffuse = vertex.diffuse;
     fragment.specular = vec3(0.0);

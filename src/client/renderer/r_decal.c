@@ -521,11 +521,18 @@ void R_InitDecals(void) {
   };
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
-    .color_target_descriptions = &(SDL_GPUColorTargetDescription) {
-      .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
-      .blend_state = GPU_BlendStateAlpha,
+    .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
+      {
+        .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
+        .blend_state = GPU_BlendStateAlpha,
+      },
+      {
+        // Decals never touch the linearized-depth target; mask writes off.
+        .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
+        .blend_state = { .enable_color_write_mask = true, .color_write_mask = 0 },
+      },
     },
-    .num_color_targets = 1,
+    .num_color_targets = 2,
     .depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT,
     .has_depth_stencil_target = true,
   };

@@ -65,9 +65,68 @@ const float TWO_PI = PI * 2.0;
 
 const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875, 1.000);
 
-#if defined(FRAGMENT_SHADER) && !defined(MATERIAL_NO_DIFFUSE)
+/**
+ * @brief The canonical sampler bindings for the lit-material family (bsp, mesh,
+ * sky): every program in this family declares -- and binds a real or dummy
+ * resource for -- every slot below, in both vertex and fragment stages, so no
+ * program-specific #ifdef spaghetti is needed to keep declarations in sync
+ * with what's actually bound. Programs that have nothing meaningful to bind
+ * (e.g. sky has no texture_material) still bind a small fallback resource of
+ * the matching type -- see r_sky.c. BSP additionally declares its own
+ * BINDING_SAMPLER_WARP after these (mesh/sky never set STAGE_WARP).
+ */
+#define BINDING_SAMPLER_MATERIAL        0
+#define BINDING_SAMPLER_SHADOW_ATLAS_0  1
+#define BINDING_SAMPLER_SHADOW_ATLAS_1  2
+#define BINDING_SAMPLER_SHADOW_ATLAS_2  3
+#define BINDING_SAMPLER_SHADOW_ATLAS_3  4
+#define BINDING_SAMPLER_SHADOW_ATLAS_4  5
+#define BINDING_SAMPLER_SHADOW_ATLAS_5  6
+#define BINDING_SAMPLER_VOXEL_CAUSTICS  7
+#define BINDING_SAMPLER_VOXEL_OCCLUSION 8
+#define BINDING_SAMPLER_SKY             9
+#define BINDING_SAMPLER_STAGE           10
+#define BINDING_SAMPLER_STAGE_NEXT      11
+
+/**
+ * @brief Storage buffer bindings for the compiled + dynamic light lists
+ * (light.glsl) and voxel cluster data (voxel.glsl). SDL_shadercross's MSL
+ * backend numbers a stage's storage buffers directly after however many
+ * samplers that stage actually reads, so each including file must first
+ * define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS to its real count.
+ */
+#define BINDING_STORAGE_BSP_LIGHTS           (BINDING_STORAGE_NUM_ACTIVE_SAMPLERS + 0)
+#define BINDING_STORAGE_DYNAMIC_LIGHTS       (BINDING_STORAGE_NUM_ACTIVE_SAMPLERS + 1)
+#define BINDING_STORAGE_VOXEL_LIGHT_DATA     (BINDING_STORAGE_NUM_ACTIVE_SAMPLERS + 2)
+#define BINDING_STORAGE_VOXEL_LIGHT_INDICES  (BINDING_STORAGE_NUM_ACTIVE_SAMPLERS + 3)
+
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_MATERIAL) uniform sampler2DArray texture_material;
-#endif
+
+/**
+ * @brief The shadow atlas: one sampler2DShadow per cube face (SDL_gpu forbids
+ * DEPTH_STENCIL_TARGET on array textures, so six separate 2D textures rather
+ * than one array texture -- see light.glsl's sample_shadow_atlas).
+ */
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_0) uniform sampler2DShadow texture_shadow_atlas_0;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_1) uniform sampler2DShadow texture_shadow_atlas_1;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_2) uniform sampler2DShadow texture_shadow_atlas_2;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_3) uniform sampler2DShadow texture_shadow_atlas_3;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_4) uniform sampler2DShadow texture_shadow_atlas_4;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_5) uniform sampler2DShadow texture_shadow_atlas_5;
+
+/**
+ * @brief The per-voxel caustics direction (RGB) and spatial occlusion + sky
+ * exposure (RG) volumes, sampled with normalized texture coordinates -- see
+ * voxel.glsl's voxel_caustics/voxel_occlusion/voxel_exposure.
+ */
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_VOXEL_CAUSTICS)  uniform sampler3D texture_voxel_caustics;
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_VOXEL_OCCLUSION) uniform sampler3D texture_voxel_occlusion;
+
+/**
+ * @brief The sky cubemap: sampled directly by sky_fs's cubemap window, and at
+ * a coarse LOD for image-based ambient light by light.glsl's ambient_light.
+ */
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SKY) uniform samplerCube texture_sky;
 
 /**
  * @brief The per-draw material AND per-stage parameters, mirroring the C
@@ -211,13 +270,11 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform 
 #endif
 } material;
 
-#if defined(FRAGMENT_SHADER)
 /**
  * @brief The material stage texture, and its next animation frame.
  */
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_STAGE)      uniform sampler2D texture_stage;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_STAGE_NEXT) uniform sampler2D texture_stage_next;
-#endif
 
 /**
  * @brief
@@ -325,7 +382,6 @@ void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
   }
 }
 
-#if defined(FRAGMENT_SHADER) && !defined(MATERIAL_NO_DIFFUSE)
 /**
  * @brief Sample the diffuse/albedo texture.
  * @param texcoord Texture coordinates (may be parallax-offset for BSP).
@@ -383,9 +439,6 @@ float sample_material_heightmap(in vec2 texcoord, in float lod) {
 float sample_material_displacement(in vec2 texcoord, in float lod) {
   return 1.0 - sample_material_heightmap(texcoord, lod);
 }
-#endif // FRAGMENT_SHADER && !MATERIAL_NO_DIFFUSE
-
-#if defined(FRAGMENT_SHADER)
 
 /**
  * @brief Sample a material stage texture.
@@ -399,7 +452,6 @@ vec4 sample_material_stage(in vec2 texcoord) {
   return texture(texture_stage, texcoord);
 }
 
-#if !defined(MATERIAL_NO_DIFFUSE)
 /**
  * @brief Sample the tint map (layer 3 of material array).
  * @param texcoord Texture coordinates.
@@ -408,5 +460,3 @@ vec4 sample_material_stage(in vec2 texcoord) {
 vec4 sample_material_tint(in vec2 texcoord) {
   return texture(texture_material, vec3(texcoord, 3));
 }
-#endif // !MATERIAL_NO_DIFFUSE
-#endif // FRAGMENT_SHADER

@@ -177,7 +177,7 @@ float4 sample_material_stage(thread const float2& texcoord, constant material_bl
     return texture_stage.sample(texture_stageSmplr, texcoord);
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _113 [[buffer(0)]], constant material_block& material [[buffer(1)]], texturecube<float> texture_sky [[texture(0)]], texture2d<float> texture_stage [[texture(1)]], texture2d<float> texture_stage_next [[texture(2)]], sampler texture_skySmplr [[sampler(0)]], sampler texture_stageSmplr [[sampler(1)]], sampler texture_stage_nextSmplr [[sampler(2)]])
+fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _113 [[buffer(0)]], constant material_block& material [[buffer(1)]], texturecube<float> texture_sky [[texture(9)]], texture2d<float> texture_stage [[texture(10)]], texture2d<float> texture_stage_next [[texture(11)]], sampler texture_skySmplr [[sampler(9)]], sampler texture_stageSmplr [[sampler(10)]], sampler texture_stage_nextSmplr [[sampler(11)]])
 {
     main0_out out = {};
     if (material.flags == 0)

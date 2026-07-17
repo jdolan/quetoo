@@ -31,10 +31,8 @@
 
 #include "uniforms.glsl"
 
-// The mesh program's own binding map: the material UBO (material + stage
-// params combined -- see material.glsl) follows globals (0) and locals (1);
-// the fragment stage's own map is defined in mesh_fs.glsl.
-#define BINDING_UNIFORMS_MATERIAL 2
+#define BINDING_UNIFORMS_MATERIAL           2
+#define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS 3
 
 #include "common.glsl"
 #include "material.glsl"
@@ -59,8 +57,15 @@ layout (location = 8) in vec3 in_next_bitangent;
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
   mat4 model;
   float lerp;
+  // std140 pads an *array* of scalars to a vec4 stride (12 -> 48 bytes), which
+  // would desync this block from r_mesh_locals_t's tightly packed padding[3];
+  // three discrete scalars instead get plain 4-byte packing on both sides.
+  float padding0, padding1, padding2;
   vec4 color;
+  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128]; // 128 bits (4 x uint32) per uvec4
 };
+
+#include "light.glsl"
 
 layout (location = 0) out common_vertex_t vertex;
 
@@ -92,11 +97,7 @@ void main(void) {
 
   stage_vertex(in_position, vertex);
 
-  // Cheap per-vertex ambient for the fragment shader's distant-fragment LOD
-  // path (see mesh_fragment_lighting) -- see bsp_vs.glsl's identical comment
-  // for why this doesn't also accumulate per-light diffuse here.
-  vertex.ambient = vec3(ambient) * voxel_exposure(vertex.voxel) * (1.0 - voxel_occlusion(vertex.voxel) * ambient_occlusion);
-  vertex.diffuse = vec3(0.0);
+  vertex_lighting(vertex);
 
   gl_Position = projection3D * view_model * position;
 }

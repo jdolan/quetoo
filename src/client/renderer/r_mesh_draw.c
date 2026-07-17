@@ -17,29 +17,11 @@
 
 #include "r_local.h"
 
-enum {
-  MESH_SAMPLER_MATERIAL,
-  MESH_SAMPLER_SHADOW_ATLAS_0,
-  MESH_SAMPLER_SHADOW_ATLAS_1,
-  MESH_SAMPLER_SHADOW_ATLAS_2,
-  MESH_SAMPLER_SHADOW_ATLAS_3,
-  MESH_SAMPLER_SHADOW_ATLAS_4,
-  MESH_SAMPLER_SHADOW_ATLAS_5,
-  MESH_SAMPLER_VOXEL_CAUSTICS,
-  MESH_SAMPLER_VOXEL_OCCLUSION,
-  MESH_SAMPLER_SKY_AMBIENT,
-  MESH_SAMPLER_STAGE,
-  MESH_SAMPLER_STAGE_NEXT,
-  MESH_NUM_SAMPLERS,
-};
-
-enum {
-  MESH_STORAGE_BSP_LIGHTS,
-  MESH_STORAGE_DYNAMIC_LIGHTS,
-  MESH_STORAGE_VOXEL_LIGHT_DATA,
-  MESH_STORAGE_VOXEL_LIGHT_INDICES,
-  MESH_NUM_STORAGE_BUFFERS,
-};
+/**
+ * @brief Mesh has no samplers beyond the shared family (r_material.h).
+ */
+#define MESH_NUM_VERTEX_SAMPLERS R_SAMPLER_MATERIAL_TOTAL
+#define MESH_NUM_SAMPLERS        R_SAMPLER_MATERIAL_TOTAL
 
 enum {
   MESH_UNIFORMS_GLOBALS,
@@ -127,8 +109,9 @@ static struct {
 typedef struct {
   mat4_t model;
   float lerp;
-  float padding[3]; // std140 pads vec4 color to a 16-byte boundary
+  float padding[3]; // pads color to a 16-byte boundary; see mesh_vs.glsl's matching padding0/1/2
   vec4_t color;
+  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32]; // for vertex_lighting, see light.glsl
 } r_mesh_locals_t;
 
 /**
@@ -158,13 +141,15 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    .num_samplers = MESH_NUM_VERTEX_SAMPLERS,
+    .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL, // per-vertex lighting binds the same buffers
     .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = MESH_NUM_SAMPLERS,
-    .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS,
+    .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
     .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
@@ -268,7 +253,7 @@ static void R_DrawMeshEntityMaterialStage(const r_view_t *view, RenderPass *pass
 
   $(pass, bindPipeline, pipeline);
 
-  $(pass, bindFragmentSamplers, MESH_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
+  $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = texture, .sampler = r_mesh_draw.stage_sampler->sampler },
     { .texture = texture_next, .sampler = r_mesh_draw.stage_sampler->sampler },
   }, 2);
@@ -357,12 +342,17 @@ static void R_DrawMeshEntityMaterialStages(const r_view_t *view, RenderPass *pas
 }
 
 /**
- * @brief Pushes the per-face model/lerp/color locals and binds the face's
- * vertex buffer offsets. Shared by the base face draw and the material-stage-
- * only pass, both of which need this before drawing the same face's geometry.
+ * @brief Pushes the per-face model/lerp/color/active_dynamic_lights locals and
+ * binds the face's vertex buffer offsets. Shared by the base face draw and the
+ * material-stage-only pass, both of which need this before drawing the same
+ * face's geometry.
+ * @param active_dynamic_lights The entity's dynamic-light cull bitmask,
+ * precomputed once per entity by the caller (see R_DrawMeshEntity) -- shared
+ * with the fragment stage's own locals push.
  */
 static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, const r_entity_t *e,
-                                 const r_mesh_model_t *mesh, const r_mesh_face_t *face, const r_material_t *material) {
+                                 const r_mesh_model_t *mesh, const r_mesh_face_t *face, const r_material_t *material,
+                                 const uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32]) {
 
   // Scale entity alpha by the surface's blend amount (33/66/100%); a no-op
   // for opaque faces (SURF_MASK_BLEND unset falls through to the 1x default).
@@ -371,6 +361,7 @@ static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, cons
     .lerp = e->lerp,
     .color = e->color,
   };
+  memcpy(locals.active_dynamic_lights, active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   switch (material->cm->surface & SURF_MASK_BLEND) {
     case SURF_BLEND_33:
       locals.color.w *= .333f;
@@ -402,12 +393,15 @@ static void R_BindMeshEntityFace(RenderPass *pass, CommandBuffer *commands, cons
  * @param draw_stages True to also draw this face's material stages inline
  * (the blend bucket); false to skip them (opaque/alpha-test buckets draw
  * their stages separately, see R_DrawMeshEntityFaceMaterialStages).
+ * @param active_dynamic_lights The entity's precomputed dynamic-light cull
+ * bitmask, forwarded to R_BindMeshEntityFace for vertex_lighting.
  */
 static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                  const r_entity_t *e, const r_mesh_model_t *mesh,
-                                 const r_mesh_face_t *face, const r_material_t *material, bool draw_stages) {
+                                 const r_mesh_face_t *face, const r_material_t *material, bool draw_stages,
+                                 const uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32]) {
 
-  $(pass, bindFragmentSamplers, MESH_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+  $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
     .texture = material->texture->texture->texture,
     .sampler = r_mesh_draw.diffusemap_sampler->sampler,
   }, 1);
@@ -429,7 +423,7 @@ static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, Command
   $(commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms.material, sizeof(material_uniforms.material));
   $(commands, pushFragmentUniformData, MESH_UNIFORMS_MATERIAL, &material_uniforms, sizeof(material_uniforms));
 
-  R_BindMeshEntityFace(pass, commands, e, mesh, face, material);
+  R_BindMeshEntityFace(pass, commands, e, mesh, face, material, active_dynamic_lights);
 
   const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
 
@@ -450,9 +444,20 @@ static void R_DrawMeshEntityFace(const r_view_t *view, RenderPass *pass, Command
  */
 static void R_DrawMeshEntityFaceMaterialStages(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
                                                const r_entity_t *e, const r_mesh_model_t *mesh,
-                                               const r_mesh_face_t *face, const r_material_t *material) {
+                                               const r_mesh_face_t *face, const r_material_t *material,
+                                               const uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32]) {
 
-  R_BindMeshEntityFace(pass, commands, e, mesh, face, material);
+  // Unlike R_DrawMeshEntityFace, this face has no base draw of its own to bind
+  // texture_material, but a STAGE_LIGHTING (non-flat) stage or shell still
+  // samples it (see mesh_fragment_lighting in mesh_fs.glsl). Without this, it
+  // would read whatever face's material was last bound by the base-pass loops
+  // in R_DrawMeshEntity -- a different, effectively random texture.
+  $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+    .texture = material->texture->texture->texture,
+    .sampler = r_mesh_draw.diffusemap_sampler->sampler,
+  }, 1);
+
+  R_BindMeshEntityFace(pass, commands, e, mesh, face, material, active_dynamic_lights);
 
   R_DrawMeshEntityMaterialStages(view, pass, commands, e, face, material);
 }
@@ -510,7 +515,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
     $(pass, bindPipeline, r_mesh_draw.pipeline);
 
-    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, false);
+    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, false, fragment_locals.active_dynamic_lights);
   }
 
   face = mesh->faces;
@@ -532,7 +537,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
 
     $(pass, bindPipeline, r_mesh_draw.pipeline_alpha_test);
 
-    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, false);
+    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, false, fragment_locals.active_dynamic_lights);
   }
 
   // Opaque and alpha-tested faces' material stages, in their own pass so
@@ -552,7 +557,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
         continue;
       }
 
-      R_DrawMeshEntityFaceMaterialStages(view, pass, commands, e, mesh, face, material);
+      R_DrawMeshEntityFaceMaterialStages(view, pass, commands, e, mesh, face, material, fragment_locals.active_dynamic_lights);
     }
   }
 
@@ -573,7 +578,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
     // left a stage pipeline bound.
     $(pass, bindPipeline, r_mesh_draw.blend_pipeline);
 
-    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, true);
+    R_DrawMeshEntityFace(view, pass, commands, e, mesh, face, material, true, fragment_locals.active_dynamic_lights);
   }
 
   // Restore the full depth range for subsequent entities.
@@ -614,7 +619,7 @@ void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
   $(pass, bindPipeline, r_mesh_draw.pipeline);
 
   // The point-light shadow atlas (comparison sampler), shared with the BSP pass.
-  $(pass, bindFragmentSamplers, MESH_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
+  $(pass, bindFragmentSamplers, R_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -624,13 +629,28 @@ void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
   }, 6);
 
   // The voxel caustics / occlusion volumes and the sky cubemap for ambient light.
-  $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
+  $(pass, bindFragmentSamplers, R_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
     { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
     { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
   }, 3);
 
-  $(pass, bindFragmentSamplers, MESH_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
+  $(pass, bindVertexSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler }, // material (unused)
+    { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
+    { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler }, // stage (unused)
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler }, // stage_next (unused)
+  }, 12);
+
+  $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
   }, 2);
@@ -641,7 +661,8 @@ void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
     bsp->voxels.light_data_buffer->buffer,
     bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_BSP_LIGHTS, storage, MESH_NUM_STORAGE_BUFFERS);
+  $(pass, bindFragmentStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
+  $(pass, bindVertexStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -706,7 +727,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   // No world is loaded for this view, so bind the 1x1x1 fallbacks; the shader's
   // VIEW_PLAYER_MODEL branch never actually samples them (see mesh_fs.glsl).
-  $(pass, bindFragmentSamplers, MESH_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
+  $(pass, bindFragmentSamplers, R_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
@@ -715,14 +736,29 @@ void R_DrawPlayerModelView(r_view_t *view) {
     { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
   }, 6);
 
-  $(pass, bindFragmentSamplers, MESH_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
+  $(pass, bindFragmentSamplers, R_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_mesh_draw.voxel_caustics_fallback->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
     { .texture = r_mesh_draw.voxel_occlusion_fallback->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
     { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
   }, 3);
 
+  $(pass, bindVertexSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler }, // material (unused)
+    { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+    { .texture = r_mesh_draw.voxel_caustics_fallback->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
+    { .texture = r_mesh_draw.voxel_occlusion_fallback->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
+    { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler }, // stage (unused)
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler }, // stage_next (unused)
+  }, 12);
+
   // Stage/stage-next: see R_DrawMeshEntities.
-  $(pass, bindFragmentSamplers, MESH_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
+  $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
   }, 2);
@@ -731,7 +767,8 @@ void R_DrawPlayerModelView(r_view_t *view) {
     r_lights.bsp_buffer->buffer, r_lights.dynamic_buffer->buffer,
     r_lights.bsp_buffer->buffer, r_lights.bsp_buffer->buffer,
   };
-  $(pass, bindFragmentStorageBuffers, MESH_STORAGE_BSP_LIGHTS, storage, MESH_NUM_STORAGE_BUFFERS);
+  $(pass, bindFragmentStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
+  $(pass, bindVertexStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -758,13 +795,15 @@ void R_InitMeshPipeline(void) {
 
   Shader *vertexShader = $(r_context.device, loadShader, "shaders/mesh_vs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+    .num_samplers = MESH_NUM_VERTEX_SAMPLERS,
+    .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL, // per-vertex lighting binds the same buffers
     .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
   Shader *fragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = MESH_NUM_SAMPLERS,
-    .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS,
+    .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
     .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
@@ -816,7 +855,7 @@ void R_InitMeshPipeline(void) {
   Shader *alphaTestFragmentShader = $(r_context.device, loadShader, "shaders/mesh_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
     .num_samplers = MESH_NUM_SAMPLERS,
-    .num_storage_buffers = MESH_NUM_STORAGE_BUFFERS,
+    .num_storage_buffers = R_STORAGE_MATERIAL_TOTAL,
     .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 

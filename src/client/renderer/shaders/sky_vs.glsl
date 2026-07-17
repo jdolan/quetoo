@@ -24,7 +24,10 @@
 #include "uniforms.glsl"
 
 // Sky's own binding map (vertex stage): a dense family shared with no other
-// pipeline. The fragment stage's own map is defined in sky_fs.glsl.
+// pipeline. material.glsl now declares the canonical sampler family (0-11)
+// unconditionally for every stage; sky_vs doesn't sample any of them, but
+// the vertex-stage pipeline still binds a dummy/real resource for each (see
+// r_sky.c) since SDL_gpu requires every declared slot to be bound.
 #define BINDING_UNIFORMS_MATERIAL 1
 
 #include "common.glsl"
