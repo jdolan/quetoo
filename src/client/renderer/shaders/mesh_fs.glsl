@@ -62,26 +62,14 @@ common_fragment_t fragment;
  */
 void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
 
-  if (fragment.view_dist >= lighting_distance || fragment.lod > 1.0 || view_type == VIEW_PLAYER_MODEL) {
+  if (fragment.lod > 1.0 || view_type == VIEW_PLAYER_MODEL) {
     fragment.ambient = vertex.ambient;
     fragment.diffuse = vertex.diffuse;
     fragment.specular = vec3(0.0);
-    fragment.caustics = 0.0;
     return;
   }
 
-  if ((material.flags & STAGE_LIGHTING_FLAT) == STAGE_LIGHTING_FLAT) {
-    fragment.normal_sample = normalize(vertex.normal);
-    fragment.specular_sample = vec4(fragment.diffuse_sample.rgb, pow(1.0 + material.specularity, 4.0));
-  } else {
-    fragment.normal_sample = sample_material_normal(fragment.parallax, mat3(vertex.tangent, vertex.bitangent, vertex.normal));
-    fragment.specular_sample = sample_material_specular(fragment.parallax);
-  }
-
-  float angle = random_angle(vertex.model_position);
-  fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
-
-  fragment_lighting(vertex, fragment);
+  fragment_lighting_lod(vertex, fragment);
 }
 
 /**

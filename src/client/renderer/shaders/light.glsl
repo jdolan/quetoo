@@ -290,6 +290,7 @@ void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
 /**
  * @brief Raymarches parallax self-shadowing along the light direction.
  */
+#if defined(PARALLAX_SELF_SHADOW)
 float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fragment_t f) {
 
   int max_steps = int(mix(12.0, 2.0, min(f.lod * 0.5, 1.0)));
@@ -310,6 +311,7 @@ float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fr
   float shadow = 1.0 - (max_height - texcoord.z) * material.shadow;
   return clamp(shadow, 0.0, 1.0);
 }
+#endif
 
 /**
  * @brief Accumulates diffuse, specular, and shadowing from one light.
@@ -341,9 +343,11 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in light_t 
 
   float shadow = sample_shadow_atlas(light, v, f, atten);
 
+#if defined(PARALLAX_SELF_SHADOW)
   if (!is_stage && material.shadow > 0.0 && f.lod < 2.0) {
     shadow *= parallax_self_shadow(dir, v, f);
   }
+#endif
 
   if (shadow <= 0.0) {
     return;
@@ -379,5 +383,38 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
   }
 
   fragment_caustics(v, f);
+}
+
+/**
+ * @brief Computes full fragment lighting, blending down to vertex lighting as
+ * fragment.view_dist approaches lighting_distance.
+ */
+void fragment_lighting_lod(in common_vertex_t v, inout common_fragment_t f) {
+
+  const float lod = clamp((f.view_dist - lighting_distance) / LIGHTING_LOD_BLEND_DIST, 0.0, 1.0);
+
+  if (lod >= 1.0) {
+    f.ambient = v.ambient;
+    f.diffuse = v.diffuse;
+    f.specular = vec3(0.0);
+    return;
+  }
+
+  if ((material.flags & STAGE_LIGHTING_FLAT) == STAGE_LIGHTING_FLAT) {
+    f.normal_sample = normalize(v.normal);
+    f.specular_sample = vec4(f.diffuse_sample.rgb, pow(1.0 + material.specularity, 4.0));
+  } else {
+    f.normal_sample = sample_material_normal(f.parallax, mat3(v.tangent, v.bitangent, v.normal));
+    f.specular_sample = sample_material_specular(f.parallax);
+  }
+
+  float angle = random_angle(v.model_position);
+  f.shadow_sin_cos = vec2(sin(angle), cos(angle));
+
+  fragment_lighting(v, f);
+
+  f.ambient = mix(f.ambient, v.ambient, lod);
+  f.diffuse = mix(f.diffuse, v.diffuse, lod);
+  f.specular *= 1.0 - lod;
 }
 #endif
