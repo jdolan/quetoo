@@ -109,11 +109,11 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t co
   });
 
   Cg_AddLight(&(const cg_light_t) {
-    .origin = Vec3_Fmaf(org, 8.f, dir),
-    .radius = 180.f,
+    .origin = Vec3_Fmaf(org, 32.f, dir),
+    .radius = 260.f,
     .color = color,
-    .intensity = 3.f,
-    .decay = 350.f
+    .intensity = 5.f,
+    .decay = 500.f
   });
 
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
