@@ -429,7 +429,7 @@ static void R_DrawMeshEntity(RenderPass *pass, const r_view_t *view, const r_ent
   }
 
   r_mesh_fragment_locals_t fragment_locals = { 0 };
-  R_ActiveDynamicLights(view, e->abs_model_bounds, fragment_locals.active_dynamic_lights);
+  memcpy(fragment_locals.active_dynamic_lights, e->active_dynamic_lights, sizeof(fragment_locals.active_dynamic_lights));
   $(commands, pushFragmentUniformData, MESH_UNIFORMS_LOCALS, &fragment_locals, sizeof(fragment_locals));
 
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {

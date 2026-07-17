@@ -445,10 +445,8 @@ void R_DrawDecals(RenderPass *pass, const r_view_t *view) {
 
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, e->matrix.array, sizeof(e->matrix));
 
-    uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
     if (!IS_WORLDSPAWN(e->model)) {
-      R_ActiveDynamicLights(view, e->abs_model_bounds, active_dynamic_lights);
-      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, active_dynamic_lights, sizeof(active_dynamic_lights));
+      $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, e->active_dynamic_lights, sizeof(e->active_dynamic_lights));
     }
 
     const r_bsp_inline_model_t *in = e->model->bsp_inline;

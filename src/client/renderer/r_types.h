@@ -1760,6 +1760,11 @@ typedef struct r_entity_s {
   box3_t abs_model_bounds;
 
   /**
+   * @brief The cached dynamic light bitmask for this entity.
+   */
+  uint32_t active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 32];
+
+  /**
    * @brief The model matrix.
    */
   mat4_t matrix;

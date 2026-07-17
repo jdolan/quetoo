@@ -293,7 +293,7 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveDynamicLights(view, entity->abs_model_bounds, locals.active_dynamic_lights);
+    memcpy(locals.active_dynamic_lights, entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
     $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
@@ -412,7 +412,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveDynamicLights(view, entity->abs_model_bounds, locals.active_dynamic_lights);
+    memcpy(locals.active_dynamic_lights, entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
     $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
@@ -452,7 +452,7 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveDynamicLights(view, entity->abs_model_bounds, locals.active_dynamic_lights);
+    memcpy(locals.active_dynamic_lights, entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
     $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
@@ -677,7 +677,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
   if (!IS_WORLDSPAWN(entity->model)) {
-    R_ActiveDynamicLights(view, entity->abs_model_bounds, locals.active_dynamic_lights);
+    memcpy(locals.active_dynamic_lights, entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
     $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }

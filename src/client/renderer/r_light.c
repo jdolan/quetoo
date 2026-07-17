@@ -39,7 +39,8 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 }
 
 /**
- * @brief Uploads light buffers and updates per-frame dynamic light masks.
+ * @brief Uploads light buffers and caches per-block and per-entity dynamic
+ * light masks for the frame.
  */
 void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
 
@@ -107,6 +108,11 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
     for (int32_t i = 0; i < in->num_blocks; i++, block++) {
       R_ActiveDynamicLights(view, block->visible_bounds, block->active_dynamic_lights);
     }
+  }
+
+  r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+    R_ActiveDynamicLights(view, e->abs_model_bounds, e->active_dynamic_lights);
   }
 }
 
