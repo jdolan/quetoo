@@ -154,11 +154,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map claustrophobopolis"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
-            isEnabled = "NO">
+            argument = "+map abase"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set sv_map_list maps-jdolan.lst"

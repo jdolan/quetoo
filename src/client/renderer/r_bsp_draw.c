@@ -46,26 +46,6 @@ typedef struct {
   r_active_dynamic_lights_t active_dynamic_lights;
 } r_bsp_uniform_locals_t;
 
-/**
- * @brief Cached BSP material-stage pipeline state.
- */
-typedef struct {
-  /**
-   * @brief The blend operators.
-   */
-  cm_blend_t src, dest;
-
-  /**
-   * @brief The depth write flag.
-   */
-  bool depth_write;
-
-  /**
-   * @brief The cached pipeline.
-   */
-  GraphicsPipeline *pipeline;
-} r_bsp_material_stage_pipeline_t;
-
 #define MAX_STAGE_PIPELINES 16
 
 /**
@@ -118,18 +98,18 @@ static struct {
   /**
    * @brief Cached material-stage pipelines.
    */
-  r_bsp_material_stage_pipeline_t stage_pipelines[MAX_STAGE_PIPELINES];
+  r_stage_pipeline_t stage_pipelines[MAX_STAGE_PIPELINES];
   int32_t num_stage_pipelines;
 } r_bsp_draw;
 
 /**
  * @brief Returns the cached BSP material-stage pipeline for the given blend state.
  */
-static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend_t dest, bool depth_write) {
+static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
-  const r_bsp_material_stage_pipeline_t *p = r_bsp_draw.stage_pipelines;
+  const r_stage_pipeline_t *p = r_bsp_draw.stage_pipelines;
   for (int32_t i = 0; i < r_bsp_draw.num_stage_pipelines; i++, p++) {
-    if (p->src == src && p->dest == dest && p->depth_write == depth_write) {
+    if (p->src == src && p->dest == dest) {
       return p->pipeline;
     }
   }
@@ -163,7 +143,7 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
   info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
   info.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
 
-  info.depth_stencil_state.enable_depth_write = depth_write;
+  info.depth_stencil_state.enable_depth_write = true;
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
@@ -212,11 +192,10 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
   release(vertexShader);
   release(fragmentShader);
 
-  r_bsp_material_stage_pipeline_t *out = &r_bsp_draw.stage_pipelines[r_bsp_draw.num_stage_pipelines++];
+  r_stage_pipeline_t *out = &r_bsp_draw.stage_pipelines[r_bsp_draw.num_stage_pipelines++];
 
   out->src = src;
   out->dest = dest;
-  out->depth_write = depth_write;
   out->pipeline = pipeline;
 
   return out->pipeline;
@@ -226,9 +205,10 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
  * @brief Draws one material stage for a BSP draw batch.
  * @param depth_write True for opaque-stage depth writes and false for blended stages.
  */
-static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, const r_entity_t *entity,
+static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
+                                               const r_entity_t *entity,
                                                const r_bsp_draw_elements_t *draw,
-                                               const r_stage_t *stage, bool depth_write) {
+                                               const r_stage_t *stage) {
 
   r_material_uniforms_t uniforms;
   R_MaterialUniforms(draw->material, draw->surface, &uniforms);
@@ -238,7 +218,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, const r_ent
     return;
   }
 
-  GraphicsPipeline *pipeline = R_DrawBspMaterialStagePipeline(stage->cm->blend.src, stage->cm->blend.dest, depth_write);
+  GraphicsPipeline *pipeline = R_DrawBspMaterialStagePipeline(stage->cm->blend.src, stage->cm->blend.dest);
   $(r_bsp_draw.pass, bindPipeline, pipeline);
 
   $(r_bsp_draw.pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
@@ -259,8 +239,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, const r_ent
  */
 static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
                                                 const r_entity_t *entity,
-                                                const r_bsp_draw_elements_t *draw,
-                                                bool depth_write) {
+                                                const r_bsp_draw_elements_t *draw) {
 
   const r_material_t *material = draw->material;
   if (!(material->cm->stage_flags & STAGE_DRAW)) {
@@ -283,7 +262,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
       continue;
     }
 
-    R_DrawBspDrawElementsMaterialStage(view, entity, draw, stage, depth_write);
+    R_DrawBspDrawElementsMaterialStage(view, entity, draw, stage);
   }
 }
 
@@ -325,7 +304,7 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
         continue;
       }
 
-      R_DrawBspDrawElementsMaterialStages(view, entity, draw, true);
+      R_DrawBspDrawElementsMaterialStages(view, entity, draw);
     }
   }
 }
@@ -666,7 +645,7 @@ static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, 
     r_stats.bsp_draw_elements++;
 
     if (r_draw_material_stages->integer) {
-      R_DrawBspDrawElementsMaterialStages(view, entity, draw, false);
+      R_DrawBspDrawElementsMaterialStages(view, entity, draw);
 
       r_bsp_draw.material = NULL;
     }
