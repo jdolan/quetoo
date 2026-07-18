@@ -65,7 +65,7 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       enableGPUFrameCaptureMode = "1"
-      enableGPUShaderValidationMode = "2"
+      enableGPUValidationMode = "1"
       allowLocationSimulation = "NO"
       consoleMode = "0"
       structuredConsoleMode = "1">
