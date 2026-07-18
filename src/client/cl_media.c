@@ -183,8 +183,6 @@ static void Cl_LoadImages(void) {
 
   Cl_LoadingProgress(-1, "compiling image atlas");
 
-  R_LoadSky();
-
   r_atlas_t *atlas = R_LoadAtlas("images");
   Fs_Enumerate("pics/emoji/*", Cl_LoadImages_Emoji, atlas);
 

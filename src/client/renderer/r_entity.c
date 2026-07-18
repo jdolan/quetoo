@@ -107,8 +107,6 @@ void R_UpdateEntities(r_view_t *view) {
  */
 void R_DrawEntities(const r_view_t *view, RenderPass *pass) {
 
-  R_DrawSky(pass, view);
-
   R_DrawOpaqueBspEntities(pass, view);
 
   R_DrawMeshEntities(pass, view);

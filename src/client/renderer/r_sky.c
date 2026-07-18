@@ -34,22 +34,6 @@ enum {
 #define MAX_STAGE_PIPELINES 16
 
 /**
- * @brief Sky state holding the cubemap image.
- */
-static struct {
-
-  /**
-   * @brief The sky cubemap.
-   */
-  r_image_t *image;
-
-  /**
-   * @brief The fallback sky cubemap.
-   */
-  Texture *fallback;
-} r_sky;
-
-/**
  * @brief Sky rendering resources.
  */
 static struct {
@@ -59,23 +43,19 @@ static struct {
   GraphicsPipeline *pipeline;
   
   /**
-   * @brief The cubemap sampler.
+   * @brief Repeating linear sampler, for tiled stage textures.
    */
-  Sampler *sampler;
-  
-  /**
-   * @brief The stage sampler for parallax scrolling sky effects.
-   */
-  Sampler *stage_sampler;
+  Sampler *repeat_sampler;
 
   /**
-   * @brief The stage pipelines, cached by blend operator combinations.
+   * @brief Clamped linear sampler, for the sky cubemap and voxel textures.
    */
-  struct {
-    cm_blend_t src, dest;
-    GraphicsPipeline *pipeline;
-  } stage_pipelines[MAX_STAGE_PIPELINES];
+  Sampler *clamp_sampler;
 
+  /**
+   * @brief Cached material-stage pipelines.
+   */
+  r_stage_pipeline_t stage_pipelines[MAX_STAGE_PIPELINES];
   int32_t num_stage_pipelines;
 } r_sky_draw;
 
@@ -84,9 +64,10 @@ static struct {
  */
 static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
-  for (int32_t i = 0; i < r_sky_draw.num_stage_pipelines; i++) {
-    if (r_sky_draw.stage_pipelines[i].src == src && r_sky_draw.stage_pipelines[i].dest == dest) {
-      return r_sky_draw.stage_pipelines[i].pipeline;
+  r_stage_pipeline_t *p = r_sky_draw.stage_pipelines;
+  for (int32_t i = 0; i < r_sky_draw.num_stage_pipelines; i++, p++) {
+    if (p->src == src && p->dest == dest) {
+      return p->pipeline;
     }
   }
 
@@ -157,11 +138,11 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
     },
     &info);
 
-  r_sky_draw.stage_pipelines[r_sky_draw.num_stage_pipelines] = (typeof(r_sky_draw.stage_pipelines[0])) {
+  r_sky_draw.stage_pipelines[r_sky_draw.num_stage_pipelines++] = (typeof(r_sky_draw.stage_pipelines[0])) {
     .src = src, .dest = dest, .pipeline = pipeline,
   };
 
-  return r_sky_draw.stage_pipelines[r_sky_draw.num_stage_pipelines++].pipeline;
+  return pipeline;
 }
 
 /**
@@ -186,8 +167,8 @@ static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view, RenderPass 
   $(pass, bindPipeline, pipeline);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = texture, .sampler = r_sky_draw.stage_sampler->sampler },
-    { .texture = texture_next, .sampler = r_sky_draw.stage_sampler->sampler },
+    { .texture = texture, .sampler = r_sky_draw.repeat_sampler->sampler },
+    { .texture = texture_next, .sampler = r_sky_draw.repeat_sampler->sampler },
   }, 2);
 
   $(commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
@@ -228,10 +209,6 @@ void R_DrawSky(RenderPass *pass, const r_view_t *view) {
     return;
   }
 
-  if (!r_sky.image) {
-    return;
-  }
-
   const r_bsp_model_t *bsp = r_models.world->bsp;
 
   CommandBuffer *commands = r_context.device->commands;
@@ -251,25 +228,25 @@ void R_DrawSky(RenderPass *pass, const r_view_t *view) {
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.repeat_sampler->sampler },
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
-    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_sky_draw.clamp_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_sky_draw.clamp_sampler->sampler },
   }, 9);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_SKY, &(SDL_GPUTextureSamplerBinding) {
-    .texture = r_sky.image->texture->texture,
-    .sampler = r_sky_draw.sampler->sampler,
+    .texture = bsp->sky->texture->texture,
+    .sampler = r_sky_draw.clamp_sampler->sampler,
   }, 1);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.repeat_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_sky_draw.repeat_sampler->sampler },
   }, 2);
 
   const r_bsp_inline_model_t *world = bsp->inline_models;
@@ -309,18 +286,6 @@ void R_DrawSky(RenderPass *pass, const r_view_t *view) {
       }
     }
   }
-}
-
-/**
- * @brief Returns the current sky cubemap or the fallback cubemap.
- */
-Texture *R_SkyTexture(void) {
-
-  if (r_sky.image && r_sky.image->texture) {
-    return r_sky.image->texture;
-  }
-
-  return r_sky.fallback;
 }
 
 /**
@@ -378,8 +343,8 @@ static void R_InitSkyPipeline(void) {
     },
     &info);
 
-  r_sky_draw.sampler = $(r_context.device, createSamplerLinearClamp);
-  r_sky_draw.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
+  r_sky_draw.clamp_sampler = $(r_context.device, createSamplerLinearClamp);
+  r_sky_draw.repeat_sampler = $(r_context.device, createSamplerLinearRepeat);
 }
 
 /**
@@ -387,11 +352,9 @@ static void R_InitSkyPipeline(void) {
  */
 void R_InitSky(void) {
 
-  memset(&r_sky, 0, sizeof(r_sky));
+  memset(&r_sky_draw, 0, sizeof(r_sky_draw));
 
   R_InitSkyPipeline();
-
-  r_sky.fallback = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_CUBE, 6, 0x00000000);
 }
 
 /**
@@ -400,53 +363,21 @@ void R_InitSky(void) {
 void R_ShutdownSky(void) {
 
   r_sky_draw.pipeline = release(r_sky_draw.pipeline);
-  r_sky_draw.sampler = release(r_sky_draw.sampler);
-  r_sky_draw.stage_sampler = release(r_sky_draw.stage_sampler);
+  r_sky_draw.clamp_sampler = release(r_sky_draw.clamp_sampler);
+  r_sky_draw.repeat_sampler = release(r_sky_draw.repeat_sampler);
 
   for (int32_t i = 0; i < r_sky_draw.num_stage_pipelines; i++) {
     r_sky_draw.stage_pipelines[i].pipeline = release(r_sky_draw.stage_pipelines[i].pipeline);
   }
-  r_sky_draw.num_stage_pipelines = 0;
 
-  r_sky.fallback = release(r_sky.fallback);
+  r_sky_draw.num_stage_pipelines = 0;
 }
 
 /**
  * @brief Rebuilds sky pipeline resources.
- * @remarks Preserves the loaded sky cubemap across the rebuild.
  */
 void R_UpdateSky(void) {
 
-  r_image_t *image = r_sky.image;
-
   R_ShutdownSky();
   R_InitSky();
-
-  r_sky.image = image;
-}
-
-/**
- * @brief Loads the sky cubemap specified in worldspawn.
- */
-void R_LoadSky(void) {
-
-  const char *name = Cm_EntityValue(Cm_Worldspawn(), "sky")->nullable_string;
-  if (name) {
-    r_sky.image = R_LoadImage(va("sky/%s", name), IMG_CUBEMAP);
-  } else {
-    r_sky.image = NULL;
-  }
-
-  if (r_sky.image == NULL) {
-    if (name) {
-      Com_Warn("Failed to load sky sky/%s\n", name);
-    } else {
-      Com_Warn("Failed to load sky (no sky key on worldspawn)\n");
-    }
-
-    r_sky.image = R_LoadImage("sky/template", IMG_CUBEMAP);
-    if (r_sky.image == NULL) {
-      Com_Error(ERROR_DROP, "Failed to load default sky\n");
-    }
-  }
 }

@@ -44,14 +44,25 @@ enum {
 typedef struct {
   mat4_t model;
   r_active_dynamic_lights_t active_dynamic_lights;
-} r_bsp_locals_t;
+} r_bsp_uniform_locals_t;
 
 /**
  * @brief Cached BSP material-stage pipeline state.
  */
 typedef struct {
+  /**
+   * @brief The blend operators.
+   */
   cm_blend_t src, dest;
+
+  /**
+   * @brief The depth write flag.
+   */
   bool depth_write;
+
+  /**
+   * @brief The cached pipeline.
+   */
   GraphicsPipeline *pipeline;
 } r_bsp_material_stage_pipeline_t;
 
@@ -78,19 +89,14 @@ static struct {
   GraphicsPipeline *blend_pipeline;
 
   /**
-   * @brief Material sampler.
+   * @brief Repeating linear sampler, for tiled material and stage textures.
    */
-  Sampler *diffusemap_sampler;
+  Sampler *repeat_sampler;
 
   /**
-   * @brief Material-stage sampler.
+   * @brief Clamped linear sampler, for voxel and sky textures.
    */
-  Sampler *stage_sampler;
-
-  /**
-   * @brief Sampler for ambient voxel and sky textures.
-   */
-  Sampler *ambient_sampler;
+  Sampler *clamp_sampler;
 
   /**
    * @brief Procedural warp texture.
@@ -236,8 +242,8 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view, const r_ent
   $(r_bsp_draw.pass, bindPipeline, pipeline);
 
   $(r_bsp_draw.pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = texture, .sampler = r_bsp_draw.stage_sampler->sampler },
-    { .texture = texture_next, .sampler = r_bsp_draw.stage_sampler->sampler },
+    { .texture = texture, .sampler = r_bsp_draw.repeat_sampler->sampler },
+    { .texture = texture_next, .sampler = r_bsp_draw.repeat_sampler->sampler },
   }, 2);
 
   $(r_bsp_draw.commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
@@ -267,7 +273,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 
     $(r_bsp_draw.pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
       .texture = draw->material->texture->texture->texture,
-      .sampler = r_bsp_draw.diffusemap_sampler->sampler,
+      .sampler = r_bsp_draw.repeat_sampler->sampler,
     }, 1);
   }
 
@@ -286,7 +292,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
  */
 static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t *entity) {
 
-  r_bsp_locals_t locals = {
+  r_bsp_uniform_locals_t locals = {
     .model = entity->matrix,
   };
 
@@ -344,7 +350,7 @@ static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block) {
 
       $(r_bsp_draw.pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
         .texture = draw->material->texture->texture->texture,
-        .sampler = r_bsp_draw.diffusemap_sampler->sampler,
+        .sampler = r_bsp_draw.repeat_sampler->sampler,
       }, 1);
 
       r_material_uniforms_t material;
@@ -381,7 +387,7 @@ static void R_DrawAlphaTestBspBlock(const r_bsp_block_t *block) {
 
       $(r_bsp_draw.pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
         .texture = draw->material->texture->texture->texture,
-        .sampler = r_bsp_draw.diffusemap_sampler->sampler,
+        .sampler = r_bsp_draw.repeat_sampler->sampler,
       }, 1);
 
       r_material_uniforms_t material;
@@ -405,7 +411,7 @@ static void R_DrawAlphaTestBspBlock(const r_bsp_block_t *block) {
  */
 static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity) {
 
-  r_bsp_locals_t locals = {
+  r_bsp_uniform_locals_t locals = {
     .model = entity->matrix,
   };
 
@@ -445,7 +451,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
  */
 static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *entity) {
 
-  r_bsp_locals_t locals = {
+  r_bsp_uniform_locals_t locals = {
     .model = entity->matrix,
   };
 
@@ -485,6 +491,8 @@ void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
     return;
   }
 
+  R_DrawSky(pass, view);
+
   CommandBuffer *commands = r_context.device->commands;
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
@@ -508,18 +516,18 @@ void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   $(pass, bindVertexSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.repeat_sampler->sampler },
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
-    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
-    { .texture = R_SkyTexture()->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.clamp_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.clamp_sampler->sampler },
+    { .texture = bsp->sky->texture->texture, .sampler = r_bsp_draw.clamp_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.repeat_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.repeat_sampler->sampler },
   }, 12);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
@@ -532,19 +540,19 @@ void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
   }, 6);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
-    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
-    { .texture = R_SkyTexture()->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.clamp_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.clamp_sampler->sampler },
+    { .texture = bsp->sky->texture->texture, .sampler = r_bsp_draw.clamp_sampler->sampler },
   }, 3);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.repeat_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.repeat_sampler->sampler },
   }, 2);
 
   $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_bsp_draw.warp_texture->texture,
-    .sampler = r_bsp_draw.stage_sampler->sampler,
+    .sampler = r_bsp_draw.repeat_sampler->sampler,
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
@@ -643,7 +651,7 @@ static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, 
 
       $(r_bsp_draw.pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
         .texture = draw->material->texture->texture->texture,
-        .sampler = r_bsp_draw.diffusemap_sampler->sampler,
+        .sampler = r_bsp_draw.repeat_sampler->sampler,
       }, 1);
 
       r_material_uniforms_t material;
@@ -670,7 +678,7 @@ static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, 
  */
 static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity) {
 
-  r_bsp_locals_t locals = {
+  r_bsp_uniform_locals_t locals = {
     .model = entity->matrix,
   };
 
@@ -740,18 +748,18 @@ void R_DrawBlendBspEntities(RenderPass *pass, const r_view_t *view) {
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   $(pass, bindVertexSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.repeat_sampler->sampler },
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
-    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
-    { .texture = R_SkyTexture()->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.clamp_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.clamp_sampler->sampler },
+    { .texture = bsp->sky->texture->texture, .sampler = r_bsp_draw.clamp_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.repeat_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.repeat_sampler->sampler },
   }, 12);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
@@ -764,19 +772,19 @@ void R_DrawBlendBspEntities(RenderPass *pass, const r_view_t *view) {
   }, 6);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
-    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
-    { .texture = R_SkyTexture()->texture, .sampler = r_bsp_draw.ambient_sampler->sampler },
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_bsp_draw.clamp_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_bsp_draw.clamp_sampler->sampler },
+    { .texture = bsp->sky->texture->texture, .sampler = r_bsp_draw.clamp_sampler->sampler },
   }, 3);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.repeat_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_bsp_draw.repeat_sampler->sampler },
   }, 2);
 
   $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_bsp_draw.warp_texture->texture,
-    .sampler = r_bsp_draw.stage_sampler->sampler,
+    .sampler = r_bsp_draw.repeat_sampler->sampler,
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
@@ -920,9 +928,8 @@ void R_InitBspPipeline(void) {
   release(vertexShader);
   release(fragmentShader);
 
-  r_bsp_draw.diffusemap_sampler = $(r_context.device, createSamplerLinearRepeat);
-  r_bsp_draw.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
-  r_bsp_draw.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
+  r_bsp_draw.repeat_sampler = $(r_context.device, createSamplerLinearRepeat);
+  r_bsp_draw.clamp_sampler = $(r_context.device, createSamplerLinearClamp);
 
   #define WARP_IMAGE_SIZE 16
   byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
@@ -959,9 +966,8 @@ void R_ShutdownBspPipeline(void) {
   r_bsp_draw.pipeline = release(r_bsp_draw.pipeline);
   r_bsp_draw.pipeline_alpha_test = release(r_bsp_draw.pipeline_alpha_test);
   r_bsp_draw.blend_pipeline = release(r_bsp_draw.blend_pipeline);
-  r_bsp_draw.diffusemap_sampler = release(r_bsp_draw.diffusemap_sampler);
-  r_bsp_draw.stage_sampler = release(r_bsp_draw.stage_sampler);
-  r_bsp_draw.ambient_sampler = release(r_bsp_draw.ambient_sampler);
+  r_bsp_draw.repeat_sampler = release(r_bsp_draw.repeat_sampler);
+  r_bsp_draw.clamp_sampler = release(r_bsp_draw.clamp_sampler);
   r_bsp_draw.warp_texture = release(r_bsp_draw.warp_texture);
 
   for (int32_t i = 0; i < r_bsp_draw.num_stage_pipelines; i++) {

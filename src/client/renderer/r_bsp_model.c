@@ -632,6 +632,32 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 }
 
 /**
+ * @brief Loads the sky cubemap specified in worldspawn.
+ */
+static void R_LoadBspSky(r_model_t *mod) {
+
+  const char *name = Cm_EntityValue(Cm_Worldspawn(), "sky")->nullable_string;
+  if (name) {
+    mod->bsp->sky = R_LoadImage(va("sky/%s", name), IMG_CUBEMAP);
+  } else {
+    mod->bsp->sky = NULL;
+  }
+
+  if (mod->bsp->sky == NULL) {
+    if (name) {
+      Com_Warn("Failed to load sky sky/%s\n", name);
+    } else {
+      Com_Warn("Failed to load sky (no sky key on worldspawn)\n");
+    }
+
+    mod->bsp->sky = R_LoadImage("sky/template", IMG_CUBEMAP);
+    if (mod->bsp->sky == NULL) {
+      Com_Error(ERROR_DROP, "Failed to load default sky\n");
+    }
+  }
+}
+
+/**
  * @brief BSP lumps required by the renderer.
  */
 #define R_BSP_LUMPS ( \
@@ -677,6 +703,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_FreeOcclusionQueries();
   R_LoadBspOcclusionQueries(mod->bsp);
   R_LoadBspVoxels(mod);
+  R_LoadBspSky(mod);
 
   Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
 

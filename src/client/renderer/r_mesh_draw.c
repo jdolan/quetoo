@@ -56,19 +56,14 @@ static struct {
   GraphicsPipeline *blend_pipeline;
 
   /**
-   * @brief Sampler for material textures.
+   * @brief Repeating linear sampler, for tiled material and stage textures.
    */
-  Sampler *diffusemap_sampler;
+  Sampler *repeat_sampler;
 
   /**
-   * @brief Sampler for ambient voxel and sky textures.
+   * @brief Clamped linear sampler, for voxel and sky textures.
    */
-  Sampler *ambient_sampler;
-
-  /**
-   * @brief Sampler for material stage textures.
-   */
-  Sampler *stage_sampler;
+  Sampler *clamp_sampler;
 
   /**
    * @brief Default shell image.
@@ -80,16 +75,13 @@ static struct {
    */
   Texture *voxel_caustics_fallback;
   Texture *voxel_occlusion_fallback;
+  Texture *sky_fallback;
 
   /**
    * @brief Cached stage pipelines keyed by blend function.
    */
-  struct {
-    cm_blend_t src, dest;
-    GraphicsPipeline *pipeline;
-  } stages[MAX_STAGE_PIPELINES];
-
-  int32_t num_stages;
+  r_stage_pipeline_t stage_pipelines[MAX_STAGE_PIPELINES];
+  int32_t num_stage_pipelines;
 
   /**
    * @brief Active render pass state.
@@ -128,13 +120,14 @@ typedef struct {
  */
 static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
 
-  for (int32_t i = 0; i < r_mesh_draw.num_stages; i++) {
-    if (r_mesh_draw.stages[i].src == src && r_mesh_draw.stages[i].dest == dest) {
-      return r_mesh_draw.stages[i].pipeline;
+  r_stage_pipeline_t *p = r_mesh_draw.stage_pipelines;
+  for (int32_t i = 0; i < r_mesh_draw.num_stage_pipelines; i++, p++) {
+    if (p->src == src && p->dest == dest) {
+      return p->pipeline;
     }
   }
 
-  if (r_mesh_draw.num_stages == MAX_STAGE_PIPELINES) {
+  if (r_mesh_draw.num_stage_pipelines == MAX_STAGE_PIPELINES) {
     return NULL;
   }
 
@@ -214,10 +207,11 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
   release(vertexShader);
   release(fragmentShader);
 
-  r_mesh_draw.stages[r_mesh_draw.num_stages] = (typeof(r_mesh_draw.stages[0])) {
+  r_mesh_draw.stage_pipelines[r_mesh_draw.num_stage_pipelines++] = (r_stage_pipeline_t) {
     .src = src, .dest = dest, .pipeline = pipeline,
   };
-  return r_mesh_draw.stages[r_mesh_draw.num_stages++].pipeline;
+
+  return pipeline;
 }
 
 /**
@@ -243,8 +237,8 @@ static void R_DrawMeshEntityMaterialStage(const r_view_t *view, const r_entity_t
   $(r_mesh_draw.pass, bindPipeline, pipeline);
 
   $(r_mesh_draw.pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = texture, .sampler = r_mesh_draw.stage_sampler->sampler },
-    { .texture = texture_next, .sampler = r_mesh_draw.stage_sampler->sampler },
+    { .texture = texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
+    { .texture = texture_next, .sampler = r_mesh_draw.repeat_sampler->sampler },
   }, 2);
 
   $(r_mesh_draw.commands, pushVertexUniformData, MESH_UNIFORMS_MATERIAL, &uniforms.material, sizeof(uniforms.material));
@@ -370,7 +364,7 @@ static void R_DrawMeshEntityFace(const r_view_t *view, const r_entity_t *e, cons
 
   $(r_mesh_draw.pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
     .texture = material->texture->texture->texture,
-    .sampler = r_mesh_draw.diffusemap_sampler->sampler,
+    .sampler = r_mesh_draw.repeat_sampler->sampler,
   }, 1);
 
   r_mesh_material_uniforms_t material_uniforms;
@@ -409,7 +403,7 @@ static void R_DrawMeshEntityFaceMaterialStages(const r_view_t *view, const r_ent
 
   $(r_mesh_draw.pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
     .texture = material->texture->texture->texture,
-    .sampler = r_mesh_draw.diffusemap_sampler->sampler,
+    .sampler = r_mesh_draw.repeat_sampler->sampler,
   }, 1);
 
   R_BindMeshEntityFace(e, mesh, face);
@@ -583,29 +577,32 @@ void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
   }, 6);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-    { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-  }, 3);
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+  }, 2);
+
+  $(pass, bindFragmentSamplers, R_SAMPLER_SKY, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = bsp->sky->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+  }, 1);
 
   $(pass, bindVertexSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-    { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
+    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = bsp->sky->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
   }, 12);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
   }, 2);
 
   SDL_GPUBuffer *storage[] = {
@@ -691,29 +688,32 @@ void R_DrawPlayerModelView(r_view_t *view) {
   }, 6);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_mesh_draw.voxel_caustics_fallback->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-    { .texture = r_mesh_draw.voxel_occlusion_fallback->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-    { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-  }, 3);
+    { .texture = r_mesh_draw.voxel_caustics_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = r_mesh_draw.voxel_occlusion_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+  }, 2);
+
+  $(pass, bindFragmentSamplers, R_SAMPLER_SKY, (SDL_GPUTextureSamplerBinding[]) {
+    { .texture = r_mesh_draw.sky_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+  }, 1);
 
   $(pass, bindVertexSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
     { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
     { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_mesh_draw.voxel_caustics_fallback->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-    { .texture = r_mesh_draw.voxel_occlusion_fallback->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-    { .texture = R_SkyTexture()->texture, .sampler = r_mesh_draw.ambient_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
+    { .texture = r_mesh_draw.voxel_caustics_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = r_mesh_draw.voxel_occlusion_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = r_mesh_draw.sky_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
   }, 12);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.stage_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
+    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
   }, 2);
 
   SDL_GPUBuffer *storage[] = {
@@ -825,9 +825,8 @@ void R_InitMeshPipeline(void) {
   release(vertexShader);
   release(fragmentShader);
 
-  r_mesh_draw.diffusemap_sampler = $(r_context.device, createSamplerLinearRepeat);
-  r_mesh_draw.ambient_sampler = $(r_context.device, createSamplerLinearClamp);
-  r_mesh_draw.stage_sampler = $(r_context.device, createSamplerLinearRepeat);
+  r_mesh_draw.repeat_sampler = $(r_context.device, createSamplerLinearRepeat);
+  r_mesh_draw.clamp_sampler = $(r_context.device, createSamplerLinearClamp);
 
   r_mesh_draw.voxel_caustics_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
@@ -846,6 +845,8 @@ void R_InitMeshPipeline(void) {
     .num_levels = 1,
     .sample_count = SDL_GPU_SAMPLECOUNT_1,
   }, NULL);
+
+  r_mesh_draw.sky_fallback = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_CUBE, 6, 0x00000000);
 }
 
 /**
@@ -855,17 +856,17 @@ void R_ShutdownMeshPipeline(void) {
   r_mesh_draw.pipeline = release(r_mesh_draw.pipeline);
   r_mesh_draw.pipeline_alpha_test = release(r_mesh_draw.pipeline_alpha_test);
   r_mesh_draw.blend_pipeline = release(r_mesh_draw.blend_pipeline);
-  r_mesh_draw.diffusemap_sampler = release(r_mesh_draw.diffusemap_sampler);
-  r_mesh_draw.ambient_sampler = release(r_mesh_draw.ambient_sampler);
-  r_mesh_draw.stage_sampler = release(r_mesh_draw.stage_sampler);
+  r_mesh_draw.repeat_sampler = release(r_mesh_draw.repeat_sampler);
+  r_mesh_draw.clamp_sampler = release(r_mesh_draw.clamp_sampler);
   r_mesh_draw.voxel_caustics_fallback = release(r_mesh_draw.voxel_caustics_fallback);
   r_mesh_draw.voxel_occlusion_fallback = release(r_mesh_draw.voxel_occlusion_fallback);
+  r_mesh_draw.sky_fallback = release(r_mesh_draw.sky_fallback);
 
-  for (int32_t i = 0; i < r_mesh_draw.num_stages; i++) {
-    r_mesh_draw.stages[i].pipeline = release(r_mesh_draw.stages[i].pipeline);
+  for (int32_t i = 0; i < r_mesh_draw.num_stage_pipelines; i++) {
+    release(r_mesh_draw.stage_pipelines[i].pipeline);
   }
-  r_mesh_draw.num_stages = 0;
 
+  r_mesh_draw.num_stage_pipelines = 0;
 }
 
 /**

@@ -1099,6 +1099,11 @@ typedef struct {
    */
   struct r_model_s *worldspawn;
 
+  /**
+   * @brief The sky cubemap texture (RGB8).
+   */
+  r_image_t *sky;
+
 } r_bsp_model_t;
 
 /**
@@ -2253,33 +2258,18 @@ typedef struct {
 #if defined(__R_LOCAL_H__)
 
 /**
- * @brief OpenGL texture unit reservations.
+ * @brief Cached material-stage pipeline state.
  */
-typedef enum {
-  TEXTURE_DIFFUSEMAP         = 0,
+typedef struct {
+  /**
+   * @brief The blend operators.
+   */
+  cm_blend_t src, dest;
 
-  TEXTURE_MATERIAL           = TEXTURE_DIFFUSEMAP,
-  TEXTURE_STAGE,
-  TEXTURE_STAGE_NEXT,
-  TEXTURE_WARP,
-
-  TEXTURE_VOXEL,
-  TEXTURE_VOXEL_CAUSTICS,
-  TEXTURE_VOXEL_OCCLUSION,
-  TEXTURE_VOXEL_LIGHT_DATA,
-  TEXTURE_VOXEL_LIGHT_INDICES,
-
-  TEXTURE_SKY,
-
-  TEXTURE_SHADOW_ATLAS,
-
-  TEXTURE_NEXT_DIFFUSEMAP,
-
-  TEXTURE_COLOR_ATTACHMENT,
-  TEXTURE_BLOOM_ATTACHMENT,
-  TEXTURE_POST_ATTACHMENT,
-  TEXTURE_DEPTH_ATTACHMENT,
-  TEXTURE_DEPTH_ATTACHMENT_COPY,
-} r_texture_t;
+  /**
+   * @brief The cached pipeline.
+   */
+  GraphicsPipeline *pipeline;
+} r_stage_pipeline_t;
 
 #endif
