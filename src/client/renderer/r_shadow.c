@@ -248,7 +248,7 @@ void R_DrawShadows(const r_view_t *view) {
       $(commands, pushVertexUniformData, 1, &(const r_shadow_locals_t) {
         .model = Mat4_Identity(),
         .light_view = r_shadow_light_view[face],
-        .light_origin = Vec3_ToVec4(l->origin, 0.f),
+        .light_origin = Vec3_ToVec4(l->origin, l->radius),
         .lerp = 0.f,
       }, sizeof(r_shadow_locals_t));
 
@@ -274,7 +274,7 @@ void R_DrawShadows(const r_view_t *view) {
         const r_shadow_locals_t in_locals = {
           .model = e->matrix,
           .light_view = r_shadow_light_view[face],
-          .light_origin = Vec3_ToVec4(l->origin, 0.f),
+          .light_origin = Vec3_ToVec4(l->origin, l->radius),
           .lerp = 0.f,
         };
         $(commands, pushVertexUniformData, 1, &in_locals, sizeof(in_locals));
@@ -317,7 +317,7 @@ void R_DrawShadows(const r_view_t *view) {
         const r_shadow_locals_t locals = {
           .model = e->matrix,
           .light_view = r_shadow_light_view[face],
-          .light_origin = Vec3_ToVec4(l->origin, 0.f),
+          .light_origin = Vec3_ToVec4(l->origin, l->radius),
           .lerp = e->lerp,
         };
         $(commands, pushVertexUniformData, 1, &locals, sizeof(locals));

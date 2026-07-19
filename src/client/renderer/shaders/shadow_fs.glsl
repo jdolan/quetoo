@@ -29,11 +29,12 @@
 #include "uniforms.glsl"
 
 layout (location = 0) in vec3 in_position;
+layout (location = 1) flat in float in_light_radius;
 
 void main(void) {
 
-  const float dist = length(in_position) / depth_range.y;
-  const float bias = clamp(dist * 0.01, 1.0 / depth_range.y, 8.0 / depth_range.y);
+  const float dist = length(in_position) / in_light_radius;
+  const float bias = clamp(dist * .08, 1.0 / in_light_radius, 8.0 / in_light_radius);
 
   gl_FragDepth = min(dist + bias, 1.0);
 }

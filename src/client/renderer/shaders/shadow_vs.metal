@@ -43,6 +43,7 @@ struct uniforms_block
 struct main0_out
 {
     float3 out_position [[user(locn0)]];
+    float out_light_radius [[user(locn1)]];
     float4 gl_Position [[position, invariant]];
 };
 
@@ -52,15 +53,16 @@ struct main0_in
     float3 in_next_position [[attribute(1)]];
 };
 
-vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _61 [[buffer(0)]], constant locals_block& _14 [[buffer(1)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _66 [[buffer(0)]], constant locals_block& _14 [[buffer(1)]])
 {
     main0_out out = {};
     float3 position = float3((_14.model * float4(mix(in.in_position, in.in_next_position, float3(_14.lerp)), 1.0)).xyz) - _14.light_origin.xyz;
     out.out_position = position;
-    float4x4 _68 = _61.light_projection * _14.light_view;
-    float4 _73 = float4(position, 1.0);
-    float4 _74 = _68 * _73;
-    out.gl_Position = _74;
+    out.out_light_radius = _14.light_origin.w;
+    float4x4 _73 = _66.light_projection * _14.light_view;
+    float4 _78 = float4(position, 1.0);
+    float4 _79 = _73 * _78;
+    out.gl_Position = _79;
     return out;
 }
 

@@ -42,6 +42,7 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_bloc
 };
 
 layout (location = 0) out vec3 out_position;
+layout (location = 1) flat out float out_light_radius;
 
 invariant gl_Position;
 
@@ -53,6 +54,7 @@ void main(void) {
   const vec3 position = vec3(model * vec4(mix(in_position, in_next_position, lerp), 1.0)) - light_origin.xyz;
 
   out_position = position;
+  out_light_radius = light_origin.w;
 
   gl_Position = light_projection * light_view * vec4(position, 1.0);
 }

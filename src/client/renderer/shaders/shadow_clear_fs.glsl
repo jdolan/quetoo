@@ -23,8 +23,9 @@
 
 /*
  * Writes the shadow atlas's "far" value (see shadow_fs.glsl: linear
- * radial distance normalized by depth_range, where 1.0 = no occluder found)
- * unconditionally, clearing whatever scissored rect this draw is restricted to.
+ * radial distance normalized by the light's radius, where 1.0 = no occluder
+ * found) unconditionally, clearing whatever scissored rect this draw is
+ * restricted to.
  */
 void main(void) {
 

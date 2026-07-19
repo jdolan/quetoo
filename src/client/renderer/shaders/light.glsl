@@ -132,7 +132,23 @@ float sample_shadow_atlas(in light_t light, in common_vertex_t v, in common_frag
 
   vec3 light_to_frag = v.model_position - light.origin.xyz;
   float dist_to_light = length(light_to_frag);
-  float current_depth = dist_to_light / depth_range.y;
+
+  float light_size = light.origin.w * 3.0;
+  float filter_radius = light_size * (dist_to_light / light.origin.w) * 0.005;
+
+  // Offset the receiver along its normal to combat acne. Every PCF tap
+  // below is compared against a single reference depth computed here, so
+  // the offset must cover the worst-case depth variation across the
+  // *entire* filter footprint (filter_radius), not just one texel --
+  // otherwise grazing/curved surfaces alias against their neighboring taps.
+  // Note: v.normal is view-space; v.model_normal is the world/model-space
+  // normal that actually matches v.model_position and light.origin here.
+  float n_dot_l = max(dot(v.model_normal, normalize(-light_to_frag)), 0.0);
+  vec3 offset_position = v.model_position + v.model_normal * filter_radius * (1.0 - n_dot_l);
+
+  light_to_frag = offset_position - light.origin.xyz;
+  dist_to_light = length(light_to_frag);
+  float current_depth = dist_to_light / light.origin.w;
 
   int face;
   vec2 fuv;
@@ -145,8 +161,6 @@ float sample_shadow_atlas(in light_t light, in common_vertex_t v, in common_frag
   vec2 tile_min = tile_origin + half_texel;
   vec2 tile_max = tile_origin + vec2(tile_uv) - half_texel;
 
-  float light_size = light.origin.w * 3.0;
-  float filter_radius = light_size * (dist_to_light / light.origin.w) * 0.005;
   float filter_uv = filter_radius / (2.0 * max(ma, 0.001));
 
   float importance = atten * clamp(1.0 - f.view_dist / 2048.0, 0.0, 1.0);

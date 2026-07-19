@@ -40,13 +40,14 @@ struct main0_out
 struct main0_in
 {
     float3 in_position [[user(locn0)]];
+    float in_light_radius [[user(locn1), flat]];
 };
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _22 [[buffer(0)]])
+fragment main0_out main0(main0_in in [[stage_in]])
 {
     main0_out out = {};
-    float dist = length(in.in_position) / _22.depth_range.y;
-    float bias0 = fast::clamp(dist * 0.00999999977648258209228515625, 1.0 / _22.depth_range.y, 8.0 / _22.depth_range.y);
+    float dist = length(in.in_position) / in.in_light_radius;
+    float bias0 = fast::clamp(dist * 0.07999999821186065673828125, 1.0 / in.in_light_radius, 8.0 / in.in_light_radius);
     out.gl_FragDepth = fast::min(dist + bias0, 1.0);
     return out;
 }
