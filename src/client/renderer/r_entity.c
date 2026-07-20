@@ -107,11 +107,11 @@ void R_UpdateEntities(r_view_t *view) {
  */
 void R_DrawEntities(const r_view_t *view, RenderPass *pass) {
 
-  R_DrawOpaqueBspEntities(pass, view);
+  R_DrawOpaqueBspEntities(view, pass);
 
-  R_DrawMeshEntities(pass, view);
+  R_DrawMeshEntities(view, pass);
 
-  R_DrawDecals(pass, view);
+  R_DrawDecals(view, pass);
 
-  R_DrawBlendBspEntities(pass, view);
+  R_DrawBlendBspEntities(view, pass);
 }

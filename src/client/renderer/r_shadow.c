@@ -69,11 +69,6 @@ static struct {
    * @brief The cube face currently being rendered.
    */
   int32_t face;
-
-  /**
-   * @brief Active render pass state.
-   */
-  CommandBuffer *commands;
 } r_shadow_draw;
 
 /**
@@ -219,9 +214,8 @@ void R_ClearShadows(const r_view_t *view) {
  * @brief Draws BSP world and inline-model shadow geometry for one light,
  * on the cube face currently tracked by r_shadow_draw.
  */
-static void R_DrawBspEntityShadows(const r_view_t *view, RenderPass *pass, const r_light_t *l) {
+static void R_DrawBspEntityShadows(const r_view_t *view, const r_light_t *l, RenderPass *pass) {
 
-  CommandBuffer *commands = r_shadow_draw.commands;
   const mat4_t light_view = r_shadow_draw.light_view[r_shadow_draw.face];
   const int32_t ts = r_shadow_atlas.tile_size;
 
@@ -243,7 +237,7 @@ static void R_DrawBspEntityShadows(const r_view_t *view, RenderPass *pass, const
     first_index = (uint32_t) ((uintptr_t) world->depth_pass_elements / sizeof(uint32_t));
   }
 
-  $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const r_shadow_locals_t) {
+  $(r_context.device->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const r_shadow_locals_t) {
     .model = Mat4_Identity(),
     .light_view = light_view,
     .light_origin = Vec3_ToVec4(l->origin, l->radius),
@@ -269,7 +263,7 @@ static void R_DrawBspEntityShadows(const r_view_t *view, RenderPass *pass, const
       continue;
     }
 
-    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const r_shadow_locals_t) {
+    $(r_context.device->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const r_shadow_locals_t) {
       .model = e->matrix,
       .light_view = light_view,
       .light_origin = Vec3_ToVec4(l->origin, l->radius),
@@ -285,9 +279,8 @@ static void R_DrawBspEntityShadows(const r_view_t *view, RenderPass *pass, const
  * currently tracked by r_shadow_draw. Opaque and alpha-tested faces use
  * separate pipelines; translucent faces cast no shadow.
  */
-static void R_DrawMeshEntityShadows(const r_view_t *view, RenderPass *pass, const r_light_t *l) {
+static void R_DrawMeshEntityShadows(const r_view_t *view, const r_light_t *l, RenderPass *pass) {
 
-  CommandBuffer *commands = r_shadow_draw.commands;
   const mat4_t light_view = r_shadow_draw.light_view[r_shadow_draw.face];
   const int32_t ts = r_shadow_atlas.tile_size;
 
@@ -295,6 +288,7 @@ static void R_DrawMeshEntityShadows(const r_view_t *view, RenderPass *pass, cons
     .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
     .min_depth = 0.f, .max_depth = 1.f,
   });
+
   $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
 
   for (int32_t j = 0; j < l->num_entities; j++) {
@@ -312,7 +306,7 @@ static void R_DrawMeshEntityShadows(const r_view_t *view, RenderPass *pass, cons
 
     const uint32_t stride = sizeof(r_mesh_vertex_t);
 
-    $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const r_shadow_locals_t) {
+    $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const r_shadow_locals_t) {
       .model = e->matrix,
       .light_view = light_view,
       .light_origin = Vec3_ToVec4(l->origin, l->radius),
@@ -345,7 +339,7 @@ static void R_DrawMeshEntityShadows(const r_view_t *view, RenderPass *pass, cons
         }, 1);
 
         const float alpha_test_value = material->cm->alpha_test * r_alpha_test->value;
-        $(commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alpha_test_value, sizeof(alpha_test_value));
+        $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alpha_test_value, sizeof(alpha_test_value));
       }
 
       const uint32_t old_offset = (uint32_t) (mf->base_vertex + e->old_frame * mf->num_vertexes) * stride;
@@ -370,8 +364,6 @@ void R_DrawShadows(const r_view_t *view) {
   CommandBuffer *commands = r_context.device->commands;
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
-
-  r_shadow_draw.commands = commands;
 
   for (int32_t face = 0; face < 6; face++) {
 
@@ -398,6 +390,7 @@ void R_DrawShadows(const r_view_t *view) {
 
     $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
+
     const r_light_t *l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
@@ -405,7 +398,7 @@ void R_DrawShadows(const r_view_t *view) {
         continue;
       }
 
-      R_DrawBspEntityShadows(view, pass, l);
+      R_DrawBspEntityShadows(view, l, pass);
     }
 
     $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
@@ -417,7 +410,7 @@ void R_DrawShadows(const r_view_t *view) {
         continue;
       }
 
-      R_DrawMeshEntityShadows(view, pass, l);
+      R_DrawMeshEntityShadows(view, l, pass);
     }
 
     pass = release(pass);

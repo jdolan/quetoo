@@ -361,7 +361,7 @@ void R_UpdateDecals(const r_view_t *view) {
 /**
  * @brief Uploads any dirty per-block decal geometry, growing buffers on demand.
  */
-void R_UploadDecals(const r_view_t *view, CopyPass *copyPass) {
+void R_UploadDecals(const r_view_t *view, CopyPass *pass) {
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -391,7 +391,7 @@ void R_UploadDecals(const r_view_t *view, CopyPass *copyPass) {
       }
 
       const void *data = VectorElement(decals->triangles, r_decal_triangle_t, 0);
-      $(copyPass, uploadData, decals->vertex_buffer->buffer, data,
+      $(pass, uploadData, decals->vertex_buffer->buffer, data,
         num_vertexes * sizeof(r_decal_vertex_t), 0, true);
 
       decals->dirty = false;
@@ -403,7 +403,7 @@ void R_UploadDecals(const r_view_t *view, CopyPass *copyPass) {
  * @brief Renders decals projected onto BSP surfaces, alpha-blended and lit by the
  * clustered voxel lights, over the opaque scene (depth-tested, no depth write).
  */
-void R_DrawDecals(RenderPass *pass, const r_view_t *view) {
+void R_DrawDecals(const r_view_t *view, RenderPass *pass) {
 
   if (!r_models.world) {
     return;

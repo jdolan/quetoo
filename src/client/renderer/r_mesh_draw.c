@@ -554,7 +554,7 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 /**
  * @brief Draws mesh entities for the view.
  */
-void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
+void R_DrawMeshEntities(const r_view_t *view, RenderPass *pass) {
 
   if (!r_models.world) {
     return;

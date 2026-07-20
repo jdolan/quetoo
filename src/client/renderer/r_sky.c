@@ -148,8 +148,10 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
 /**
  * @brief Draws one sky material stage.
  */
-static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
-                                               const r_bsp_draw_elements_t *draw, const r_stage_t *stage) {
+static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view,
+                                               const r_bsp_draw_elements_t *draw,
+                                               const r_stage_t *stage,
+                                               RenderPass *pass) {
 
   r_material_uniforms_t uniforms;
   R_MaterialUniforms(draw->material, draw->surface, &uniforms);
@@ -171,7 +173,7 @@ static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view, RenderPass 
     { .texture = texture_next, .sampler = r_sky_draw.repeat_sampler->sampler },
   }, 2);
 
-  $(commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
+  $(pass->commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
 
   const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
@@ -182,8 +184,9 @@ static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view, RenderPass 
 /**
  * @brief Draws all active material stages for a sky draw-elements batch.
  */
-static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view, RenderPass *pass, CommandBuffer *commands,
-                                                const r_bsp_draw_elements_t *draw) {
+static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view,
+                                                const r_bsp_draw_elements_t *draw,
+                                                RenderPass *pass) {
 
   const r_material_t *material = draw->material;
   if (!(material->cm->stage_flags & STAGE_DRAW)) {
@@ -196,22 +199,20 @@ static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view, RenderPass
       continue;
     }
 
-    R_DrawSkyDrawElementsMaterialStage(view, pass, commands, draw, stage);
+    R_DrawSkyDrawElementsMaterialStage(view, draw, stage, pass);
   }
 }
 
 /**
  * @brief Draws world sky surfaces with the active sky cubemap.
  */
-void R_DrawSky(RenderPass *pass, const r_view_t *view) {
+void R_DrawSky(const r_view_t *view, RenderPass *pass) {
 
   if (!r_models.world) {
     return;
   }
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
-
-  CommandBuffer *commands = r_context.device->commands;
 
   Framebuffer *framebuffer = view->framebuffer;
 
@@ -221,7 +222,7 @@ void R_DrawSky(RenderPass *pass, const r_view_t *view) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(pass->commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   $(pass, bindPipeline, r_sky_draw.pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
@@ -272,7 +273,7 @@ void R_DrawSky(RenderPass *pass, const r_view_t *view) {
 
       r_material_uniforms_t material;
       R_MaterialUniforms(draw->material, draw->surface, &material);
-      $(commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &material, sizeof(material));
+      $(pass->commands, pushUniformData, SKY_UNIFORMS_MATERIAL, &material, sizeof(material));
 
       const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
@@ -282,7 +283,7 @@ void R_DrawSky(RenderPass *pass, const r_view_t *view) {
       r_stats.bsp_draw_elements++;
 
       if (r_draw_material_stages->integer) {
-        R_DrawSkyDrawElementsMaterialStages(view, pass, commands, draw);
+        R_DrawSkyDrawElementsMaterialStages(view, draw, pass);
       }
     }
   }

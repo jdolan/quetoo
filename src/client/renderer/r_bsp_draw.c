@@ -66,12 +66,12 @@ static struct {
   /**
    * @brief Opaque BSP pipeline.
    */
-  GraphicsPipeline *pipeline;
+  GraphicsPipeline *opaque_pipeline;
 
   /**
    * @brief Alpha-test BSP pipeline.
    */
-  GraphicsPipeline *pipeline_alpha_test;
+  GraphicsPipeline *alpha_test_pipeline;
 
   /**
    * @brief Translucent BSP pipeline.
@@ -92,12 +92,6 @@ static struct {
    * @brief Procedural warp texture.
    */
   Texture *warp_texture;
-
-  /**
-   * @brief Active render pass state.
-   */
-  RenderPass *pass;
-  CommandBuffer *commands;
 
   /**
    * @brief Cached bound material state.
@@ -218,7 +212,8 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
 static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
                                                const r_entity_t *entity,
                                                const r_bsp_draw_elements_t *draw,
-                                               const r_stage_t *stage) {
+                                               const r_stage_t *stage,
+                                               RenderPass *pass) {
 
   r_material_uniforms_t uniforms;
   R_MaterialUniforms(draw->material, draw->surface, &uniforms);
@@ -229,17 +224,17 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
   }
 
   GraphicsPipeline *pipeline = R_DrawBspMaterialStagePipeline(stage->cm->blend.src, stage->cm->blend.dest);
-  $(r_bsp_draw.pass, bindPipeline, pipeline);
+  $(pass, bindPipeline, pipeline);
 
-  $(r_bsp_draw.pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
+  $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = texture, .sampler = r_bsp_draw.repeat_sampler->sampler },
     { .texture = texture_next, .sampler = r_bsp_draw.repeat_sampler->sampler },
   }, 2);
 
-  $(r_bsp_draw.commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
+  $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
 
   const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
-  $(r_bsp_draw.pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
+  $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
 
   r_stats.bsp_triangles += draw->num_elements / 3;
 }
@@ -249,7 +244,8 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
  */
 static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
                                                 const r_entity_t *entity,
-                                                const r_bsp_draw_elements_t *draw) {
+                                                const r_bsp_draw_elements_t *draw,
+                                                RenderPass *pass) {
 
   const r_material_t *material = draw->material;
   if (!(material->cm->stage_flags & STAGE_DRAW)) {
@@ -260,7 +256,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
     r_bsp_draw.material = draw->material;
     r_bsp_draw.surface = draw->surface;
 
-    $(r_bsp_draw.pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+    $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
       .texture = draw->material->texture->texture->texture,
       .sampler = r_bsp_draw.repeat_sampler->sampler,
     }, 1);
@@ -272,14 +268,14 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
       continue;
     }
 
-    R_DrawBspDrawElementsMaterialStage(view, entity, draw, stage);
+    R_DrawBspDrawElementsMaterialStage(view, entity, draw, stage, pass);
   }
 }
 
 /**
  * @brief Draws material stages for a BSP inline model entity.
  */
-static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t *entity) {
+static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t *entity, RenderPass *pass) {
 
   r_bsp_uniform_locals_t locals = {
     .model = entity->matrix,
@@ -289,8 +285,8 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-    $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+    $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -303,8 +299,8 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
       }
 
       memcpy(&locals.active_dynamic_lights, &block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-      $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+      $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+      $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
@@ -314,7 +310,7 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
         continue;
       }
 
-      R_DrawBspDrawElementsMaterialStages(view, entity, draw);
+      R_DrawBspDrawElementsMaterialStages(view, entity, draw, pass);
     }
   }
 }
@@ -322,7 +318,7 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
 /**
  * @brief Draws the opaque draw elements in a BSP block.
  */
-static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block) {
+static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block, RenderPass *pass) {
 
   const r_bsp_draw_elements_t *draw = block->draw_elements;
   for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -335,22 +331,22 @@ static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block) {
       r_bsp_draw.material = draw->material;
       r_bsp_draw.surface = draw->surface;
 
-      $(r_bsp_draw.pass, bindPipeline, r_bsp_draw.pipeline);
+      $(pass, bindPipeline, r_bsp_draw.opaque_pipeline);
 
-      $(r_bsp_draw.pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+      $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
         .texture = draw->material->texture->texture->texture,
         .sampler = r_bsp_draw.repeat_sampler->sampler,
       }, 1);
 
       r_material_uniforms_t material;
       R_MaterialUniforms(draw->material, draw->surface, &material);
-      $(r_bsp_draw.commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
+      $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
     }
 
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
     if (!(draw->surface & SURF_MATERIAL)) {
-      $(r_bsp_draw.pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
+      $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
       r_stats.bsp_triangles += draw->num_elements / 3;
     }
 
@@ -361,7 +357,7 @@ static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block) {
 /**
  * @brief Draws the alpha-tested draw elements in a BSP block.
  */
-static void R_DrawAlphaTestBspBlock(const r_bsp_block_t *block) {
+static void R_DrawAlphaTestBspBlock(const r_bsp_block_t *block, RenderPass *pass) {
 
   const r_bsp_draw_elements_t *draw = block->draw_elements;
   for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -374,20 +370,20 @@ static void R_DrawAlphaTestBspBlock(const r_bsp_block_t *block) {
       r_bsp_draw.material = draw->material;
       r_bsp_draw.surface = draw->surface;
 
-      $(r_bsp_draw.pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+      $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
         .texture = draw->material->texture->texture->texture,
         .sampler = r_bsp_draw.repeat_sampler->sampler,
       }, 1);
 
       r_material_uniforms_t material;
       R_MaterialUniforms(draw->material, draw->surface, &material);
-      $(r_bsp_draw.commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
+      $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
     }
 
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
     if (!(draw->surface & SURF_MATERIAL)) {
-      $(r_bsp_draw.pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
+      $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
       r_stats.bsp_triangles += draw->num_elements / 3;
     }
 
@@ -398,7 +394,7 @@ static void R_DrawAlphaTestBspBlock(const r_bsp_block_t *block) {
 /**
  * @brief Draws opaque geometry for a BSP inline model entity.
  */
-static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity) {
+static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity, RenderPass *pass) {
 
   r_bsp_uniform_locals_t locals = {
     .model = entity->matrix,
@@ -408,8 +404,8 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-    $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+    $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -425,11 +421,11 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
       r_stats.blocks_visible++;
 
       memcpy(&locals.active_dynamic_lights, &block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-      $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+      $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+      $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
 
-    R_DrawOpaqueBspBlock(block);
+    R_DrawOpaqueBspBlock(block, pass);
   }
 
   r_stats.bsp_inline_models++;
@@ -438,7 +434,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 /**
  * @brief Draws alpha-tested geometry for a BSP inline model entity.
  */
-static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *entity) {
+static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *entity, RenderPass *pass) {
 
   r_bsp_uniform_locals_t locals = {
     .model = entity->matrix,
@@ -448,8 +444,8 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-    $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+    $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -462,11 +458,11 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
       }
 
       memcpy(&locals.active_dynamic_lights, &block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-      $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+      $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+      $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
 
-    R_DrawAlphaTestBspBlock(block);
+    R_DrawAlphaTestBspBlock(block, pass);
   }
 }
 
@@ -474,21 +470,16 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
 /**
  * @brief Draws opaque, alpha-tested, and material-stage BSP inline model geometry.
  */
-void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
+void R_DrawOpaqueBspEntities(const r_view_t *view, RenderPass *pass) {
 
   if (!r_models.world) {
     return;
   }
 
-  R_DrawSky(pass, view);
-
-  CommandBuffer *commands = r_context.device->commands;
+  R_DrawSky(view, pass);
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
-
-  r_bsp_draw.pass = pass;
-  r_bsp_draw.commands = commands;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -496,11 +487,11 @@ void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(pass->commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   r_bsp_draw.material = NULL;
 
-  $(pass, bindPipeline, r_bsp_draw.pipeline);
+  $(pass, bindPipeline, r_bsp_draw.opaque_pipeline);
   $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = bsp->vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = bsp->elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
@@ -560,12 +551,12 @@ void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
       continue;
     }
 
-    R_DrawOpaqueBspEntity(view, e);
+    R_DrawOpaqueBspEntity(view, e, pass);
   }
 
   r_bsp_draw.material = NULL;
 
-  $(pass, bindPipeline, r_bsp_draw.pipeline_alpha_test);
+  $(pass, bindPipeline, r_bsp_draw.alpha_test_pipeline);
 
   e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -582,7 +573,7 @@ void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
       continue;
     }
 
-    R_DrawAlphaTestBspEntity(view, e);
+    R_DrawAlphaTestBspEntity(view, e, pass);
   }
 
   if (r_draw_material_stages->integer) {
@@ -604,17 +595,17 @@ void R_DrawOpaqueBspEntities(RenderPass *pass, const r_view_t *view) {
         continue;
       }
 
-      R_DrawBspEntityMaterialStages(view, e);
+      R_DrawBspEntityMaterialStages(view, e, pass);
     }
   }
 
-  r_bsp_draw.pass = NULL;
+  pass = NULL;
 }
 
 /**
  * @brief Draws the translucent draw elements in a BSP block.
  */
-static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, const r_bsp_block_t *block) {
+static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, const r_bsp_block_t *block, RenderPass *pass) {
 
   const r_bsp_draw_elements_t *draw = block->draw_elements;
   for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -627,26 +618,26 @@ static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, 
       r_bsp_draw.material = draw->material;
       r_bsp_draw.surface = draw->surface;
 
-      $(r_bsp_draw.pass, bindPipeline, r_bsp_draw.blend_pipeline);
+      $(pass, bindPipeline, r_bsp_draw.blend_pipeline);
 
-      $(r_bsp_draw.pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+      $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
         .texture = draw->material->texture->texture->texture,
         .sampler = r_bsp_draw.repeat_sampler->sampler,
       }, 1);
 
       r_material_uniforms_t material;
       R_MaterialUniforms(draw->material, draw->surface, &material);
-      $(r_bsp_draw.commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
+      $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
     }
 
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
-    $(r_bsp_draw.pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
+    $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
 
     r_stats.bsp_triangles += draw->num_elements / 3;
     r_stats.bsp_draw_elements++;
 
     if (r_draw_material_stages->integer) {
-      R_DrawBspDrawElementsMaterialStages(view, entity, draw);
+      R_DrawBspDrawElementsMaterialStages(view, entity, draw, pass);
 
       r_bsp_draw.material = NULL;
     }
@@ -656,7 +647,7 @@ static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, 
 /**
  * @brief Draws translucent geometry for a BSP inline model entity.
  */
-static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity) {
+static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity, RenderPass *pass) {
 
   r_bsp_uniform_locals_t locals = {
     .model = entity->matrix,
@@ -666,8 +657,8 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-    $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+    $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -684,34 +675,30 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
       }
 
       memcpy(&locals.active_dynamic_lights, &block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-      $(r_bsp_draw.commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(r_bsp_draw.commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+      $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
+      $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
 
-    R_DrawBlendBspBlock(view, entity, block);
+    R_DrawBlendBspBlock(view, entity, block, pass);
   }
 }
 
 /**
  * @brief Draws translucent BSP inline model geometry.
  */
-void R_DrawBlendBspEntities(RenderPass *pass, const r_view_t *view) {
+void R_DrawBlendBspEntities(const r_view_t *view, RenderPass *pass) {
 
   if (!r_models.world) {
     return;
   }
 
-  CommandBuffer *commands = r_context.device->commands;
+  const r_bsp_model_t *bsp = r_models.world->bsp;
 
   if (!view->framebuffer) {
     return;
   }
 
-  const r_bsp_model_t *bsp = r_models.world->bsp;
   Framebuffer *framebuffer = view->framebuffer;
-
-  r_bsp_draw.pass = pass;
-  r_bsp_draw.commands = commands;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = 0.f, .y = 0.f,
@@ -719,7 +706,7 @@ void R_DrawBlendBspEntities(RenderPass *pass, const r_view_t *view) {
     .min_depth = 0.f, .max_depth = 1.f,
   });
 
-  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
+  $(pass->commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   r_bsp_draw.material = NULL;
 
@@ -782,10 +769,8 @@ void R_DrawBlendBspEntities(RenderPass *pass, const r_view_t *view) {
       continue;
     }
 
-    R_DrawBlendBspEntity(view, e);
+    R_DrawBlendBspEntity(view, e, pass);
   }
-
-  r_bsp_draw.pass = NULL;
 }
 
 /**
@@ -875,7 +860,7 @@ void R_InitBspPipeline(void) {
     .has_depth_stencil_target = true,
   };
 
-  r_bsp_draw.pipeline = $(r_context.device, createGraphicsPipeline, &info);
+  r_bsp_draw.opaque_pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   Shader *alphaTestFragmentShader = $(r_context.device, loadShader, "shaders/bsp_fs_alpha_test", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
@@ -885,7 +870,7 @@ void R_InitBspPipeline(void) {
   });
 
   info.fragment_shader = alphaTestFragmentShader->shader;
-  r_bsp_draw.pipeline_alpha_test = $(r_context.device, createGraphicsPipeline, &info);
+  r_bsp_draw.alpha_test_pipeline = $(r_context.device, createGraphicsPipeline, &info);
   release(alphaTestFragmentShader);
 
   info.fragment_shader = fragmentShader->shader;
@@ -934,8 +919,8 @@ void R_InitBspPipeline(void) {
  * @brief Releases the BSP draw pipelines and samplers.
  */
 void R_ShutdownBspPipeline(void) {
-  r_bsp_draw.pipeline = release(r_bsp_draw.pipeline);
-  r_bsp_draw.pipeline_alpha_test = release(r_bsp_draw.pipeline_alpha_test);
+  r_bsp_draw.opaque_pipeline = release(r_bsp_draw.opaque_pipeline);
+  r_bsp_draw.alpha_test_pipeline = release(r_bsp_draw.alpha_test_pipeline);
   r_bsp_draw.blend_pipeline = release(r_bsp_draw.blend_pipeline);
   r_bsp_draw.repeat_sampler = release(r_bsp_draw.repeat_sampler);
   r_bsp_draw.clamp_sampler = release(r_bsp_draw.clamp_sampler);

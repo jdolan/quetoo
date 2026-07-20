@@ -24,7 +24,7 @@
 #include "r_types.h"
 
 #if defined(__R_LOCAL_H__)
-void R_DrawSky(RenderPass *pass, const r_view_t *view);
+void R_DrawSky(const r_view_t *view, RenderPass *pass);
 void R_InitSky(void);
 void R_ShutdownSky(void);
 void R_UpdateSky(void);
