@@ -598,8 +598,6 @@ void R_DrawOpaqueBspEntities(const r_view_t *view, RenderPass *pass) {
       R_DrawBspEntityMaterialStages(view, e, pass);
     }
   }
-
-  pass = NULL;
 }
 
 /**
