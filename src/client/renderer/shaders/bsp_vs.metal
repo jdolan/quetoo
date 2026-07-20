@@ -465,7 +465,7 @@ void vertex_lighting(thread common_vertex_t& v, constant material_block& materia
     v = param_10;
 }
 
-vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _160 [[buffer(0)]], constant bsp_locals_block& _890 [[buffer(1)]], constant material_block& material [[buffer(2)]], const device bsp_lights_block& _852 [[buffer(3)]], const device dynamic_lights_block& _883 [[buffer(4)]], const device voxel_light_data_block& _607 [[buffer(5)]], const device voxel_light_indices_block& _624 [[buffer(6)]], texture3d<float> texture_voxel_caustics [[texture(7)]], texture3d<float> texture_voxel_occlusion [[texture(8)]], texturecube<float> texture_sky [[texture(9)]], sampler texture_voxel_causticsSmplr [[sampler(7)]], sampler texture_voxel_occlusionSmplr [[sampler(8)]], sampler texture_skySmplr [[sampler(9)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _160 [[buffer(0)]], constant bsp_locals_block& _890 [[buffer(1)]], constant material_block& material [[buffer(2)]], const device bsp_lights_block& _852 [[buffer(3)]], const device dynamic_lights_block& _883 [[buffer(4)]], const device voxel_light_data_block& _607 [[buffer(5)]], const device voxel_light_indices_block& _624 [[buffer(6)]], texture3d<float> texture_voxel_caustics [[texture(0)]], texture3d<float> texture_voxel_occlusion [[texture(1)]], texturecube<float> texture_sky [[texture(2)]], sampler texture_voxel_causticsSmplr [[sampler(0)]], sampler texture_voxel_occlusionSmplr [[sampler(1)]], sampler texture_skySmplr [[sampler(2)]])
 {
     main0_out out = {};
     common_vertex_t vertex0 = {};

@@ -67,19 +67,36 @@ const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875
 
 /**
  * @brief Defines the shared sampler bindings for the lit-material shader family.
+ * @remarks Fragment stages declare and sample the full family (material,
+ * shadow atlas, voxel/sky, stage). Vertex stages only ever sample the voxel
+ * caustics/occlusion and sky textures (see ambient_light(), vertex_caustics()
+ * in light.glsl) -- they get their own compact 0..2 numbering here so their
+ * descriptor set's bindings stay contiguous from zero, satisfying both
+ * Vulkan's descriptor-type consistency and SDL_shadercross's contiguous-
+ * binding requirement for MSL/DXIL translation. Fragment-only samplers
+ * (material, shadow atlas, stage, stage next) are not declared at all for
+ * vertex stages, rather than relying on dead-code elimination.
  */
-#define BINDING_SAMPLER_MATERIAL        0
-#define BINDING_SAMPLER_SHADOW_ATLAS_0  1
-#define BINDING_SAMPLER_SHADOW_ATLAS_1  2
-#define BINDING_SAMPLER_SHADOW_ATLAS_2  3
-#define BINDING_SAMPLER_SHADOW_ATLAS_3  4
-#define BINDING_SAMPLER_SHADOW_ATLAS_4  5
-#define BINDING_SAMPLER_SHADOW_ATLAS_5  6
-#define BINDING_SAMPLER_VOXEL_CAUSTICS  7
-#define BINDING_SAMPLER_VOXEL_OCCLUSION 8
-#define BINDING_SAMPLER_SKY             9
-#define BINDING_SAMPLER_STAGE           10
-#define BINDING_SAMPLER_STAGE_NEXT      11
+#if defined(FRAGMENT_SHADER)
+  #define BINDING_SAMPLER_MATERIAL        0
+  #define BINDING_SAMPLER_SHADOW_ATLAS_0  1
+  #define BINDING_SAMPLER_SHADOW_ATLAS_1  2
+  #define BINDING_SAMPLER_SHADOW_ATLAS_2  3
+  #define BINDING_SAMPLER_SHADOW_ATLAS_3  4
+  #define BINDING_SAMPLER_SHADOW_ATLAS_4  5
+  #define BINDING_SAMPLER_SHADOW_ATLAS_5  6
+  #define BINDING_SAMPLER_VOXEL_CAUSTICS  7
+  #define BINDING_SAMPLER_VOXEL_OCCLUSION 8
+  #define BINDING_SAMPLER_SKY             9
+  #define BINDING_SAMPLER_STAGE           10
+  #define BINDING_SAMPLER_STAGE_NEXT      11
+#elif defined(VERTEX_SHADER)
+  #define BINDING_SAMPLER_VOXEL_CAUSTICS  0
+  #define BINDING_SAMPLER_VOXEL_OCCLUSION 1
+  #define BINDING_SAMPLER_SKY             2
+#else
+  #error "Define VERTEX_SHADER or FRAGMENT_SHADER when compiling shaders."
+#endif
 
 /**
  * @brief Defines the shared storage buffer bindings for lights and voxel clusters.
@@ -90,6 +107,7 @@ const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875
 #define BINDING_STORAGE_VOXEL_LIGHT_DATA     (BINDING_STORAGE_NUM_ACTIVE_SAMPLERS + 2)
 #define BINDING_STORAGE_VOXEL_LIGHT_INDICES  (BINDING_STORAGE_NUM_ACTIVE_SAMPLERS + 3)
 
+#if defined(FRAGMENT_SHADER)
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_MATERIAL) uniform sampler2DArray texture_material;
 
 /**
@@ -101,6 +119,7 @@ layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_2) uniform sam
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_3) uniform sampler2DShadow texture_shadow_atlas_3;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_4) uniform sampler2DShadow texture_shadow_atlas_4;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_5) uniform sampler2DShadow texture_shadow_atlas_5;
+#endif
 
 /**
  * @brief Declares the voxel caustics and occlusion volumes.
@@ -242,11 +261,13 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS_MATERIAL) uniform 
 #endif
 } material;
 
+#if defined(FRAGMENT_SHADER)
 /**
  * @brief The material stage texture, and its next animation frame.
  */
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_STAGE)      uniform sampler2D texture_stage;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_STAGE_NEXT) uniform sampler2D texture_stage_next;
+#endif
 
 /**
  * @brief Applies vertex-position adjustments for shell stages.
@@ -354,6 +375,7 @@ void stage_vertex(in vec3 in_position, inout common_vertex_t vertex) {
   }
 }
 
+#if defined(FRAGMENT_SHADER)
 /**
  * @brief Samples the diffuse material layer.
  */
@@ -417,3 +439,4 @@ vec4 sample_material_stage(in vec2 texcoord) {
 vec4 sample_material_tint(in vec2 texcoord) {
   return texture(texture_material, vec3(texcoord, 3));
 }
+#endif

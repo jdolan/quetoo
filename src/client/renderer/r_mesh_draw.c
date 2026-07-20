@@ -20,8 +20,19 @@
 /**
  * @brief Mesh has no samplers beyond the shared family (r_material.h).
  */
-#define MESH_NUM_VERTEX_SAMPLERS R_SAMPLER_MATERIAL_TOTAL
-#define MESH_NUM_SAMPLERS        R_SAMPLER_MATERIAL_TOTAL
+#define MESH_NUM_SAMPLERS R_SAMPLER_MATERIAL_TOTAL
+
+/**
+ * @brief mesh_vs only samples the voxel caustics/occlusion and sky textures
+ * (see material.glsl), at its own compact 0..2 binding numbering -- not the
+ * fragment stage's absolute R_SAMPLER_VOXEL_CAUSTICS/OCCLUSION/SKY indices.
+ */
+enum {
+  MESH_VERTEX_SAMPLER_VOXEL_CAUSTICS,
+  MESH_VERTEX_SAMPLER_VOXEL_OCCLUSION,
+  MESH_VERTEX_SAMPLER_SKY,
+  MESH_NUM_VERTEX_SAMPLERS,
+};
 
 enum {
   MESH_UNIFORMS_GLOBALS,
@@ -585,20 +596,11 @@ void R_DrawMeshEntities(RenderPass *pass, const r_view_t *view) {
     { .texture = bsp->sky->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
   }, 1);
 
-  $(pass, bindVertexSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
-    { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+  $(pass, bindVertexSamplers, MESH_VERTEX_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
     { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
     { .texture = bsp->sky->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
-  }, 12);
+  }, 3);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
@@ -696,20 +698,11 @@ void R_DrawPlayerModelView(r_view_t *view) {
     { .texture = r_mesh_draw.sky_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
   }, 1);
 
-  $(pass, bindVertexSamplers, R_SAMPLER_MATERIAL, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
-    { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
+  $(pass, bindVertexSamplers, MESH_VERTEX_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_mesh_draw.voxel_caustics_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
     { .texture = r_mesh_draw.voxel_occlusion_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
     { .texture = r_mesh_draw.sky_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
-  }, 12);
+  }, 3);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
     { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
