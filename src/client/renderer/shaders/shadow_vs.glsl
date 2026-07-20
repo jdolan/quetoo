@@ -30,6 +30,9 @@
 
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_next_position;
+#ifdef ALPHA_TEST
+layout (location = 2) in vec2 in_diffusemap;
+#endif
 
 /**
  * @brief Per-draw shadow transform and light origin.
@@ -43,6 +46,9 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_bloc
 
 layout (location = 0) out vec3 out_position;
 layout (location = 1) flat out float out_light_radius;
+#ifdef ALPHA_TEST
+layout (location = 2) out vec2 out_diffusemap;
+#endif
 
 invariant gl_Position;
 
@@ -55,6 +61,9 @@ void main(void) {
 
   out_position = position;
   out_light_radius = light_origin.w;
+#ifdef ALPHA_TEST
+  out_diffusemap = in_diffusemap;
+#endif
 
   gl_Position = light_projection * light_view * vec4(position, 1.0);
 }

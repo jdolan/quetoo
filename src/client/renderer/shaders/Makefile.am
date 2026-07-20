@@ -41,7 +41,11 @@ VERTEX_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shad
 FRAGMENT_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs shadow_clear_fs sky_fs sprite_fs decal_fs
 
 # Fragment shaders with an ALPHA_TEST compile-time variant due to the implications of discard.
-ALPHA_TEST_FRAGMENT_SHADERS = bsp_fs mesh_fs
+ALPHA_TEST_FRAGMENT_SHADERS = bsp_fs mesh_fs shadow_fs
+
+# Vertex shaders with an ALPHA_TEST compile-time variant that also passes
+# through diffusemap texcoords for their fragment-stage counterpart.
+ALPHA_TEST_VERTEX_SHADERS = shadow_vs
 
 shaders_DATA += \
 	$(VERTEX_SHADERS:=.spv) \
@@ -52,7 +56,10 @@ shaders_DATA += \
 	$(FRAGMENT_SHADERS:=.dxil) \
 	$(ALPHA_TEST_FRAGMENT_SHADERS:=_alpha_test.spv) \
 	$(ALPHA_TEST_FRAGMENT_SHADERS:=_alpha_test.metal) \
-	$(ALPHA_TEST_FRAGMENT_SHADERS:=_alpha_test.dxil)
+	$(ALPHA_TEST_FRAGMENT_SHADERS:=_alpha_test.dxil) \
+	$(ALPHA_TEST_VERTEX_SHADERS:=_alpha_test.spv) \
+	$(ALPHA_TEST_VERTEX_SHADERS:=_alpha_test.metal) \
+	$(ALPHA_TEST_VERTEX_SHADERS:=_alpha_test.dxil)
 
 EXTRA_DIST = $(shaders_DATA)
 
@@ -72,4 +79,9 @@ shaders:
 		$(GLSLC) -DFRAGMENT_SHADER -DALPHA_TEST -I$(srcdir) -fshader-stage=fragment $(srcdir)/$$s.glsl -o $${s}_alpha_test.spv || exit 1; \
 		$(SHADERCROSS) $${s}_alpha_test.spv -s SPIRV -d MSL -t fragment --msl-version 2.2.0 -o $${s}_alpha_test.metal || exit 1; \
 		$(SHADERCROSS) $${s}_alpha_test.spv -s SPIRV -d DXIL -t fragment -o $${s}_alpha_test.dxil || exit 1; \
+	done
+	for s in $(ALPHA_TEST_VERTEX_SHADERS); do \
+		$(GLSLC) -DVERTEX_SHADER -DALPHA_TEST -I$(srcdir) -fshader-stage=vertex $(srcdir)/$$s.glsl -o $${s}_alpha_test.spv || exit 1; \
+		$(SHADERCROSS) $${s}_alpha_test.spv -s SPIRV -d MSL -t vertex --msl-version 2.2.0 -o $${s}_alpha_test.metal || exit 1; \
+		$(SHADERCROSS) $${s}_alpha_test.spv -s SPIRV -d DXIL -t vertex -o $${s}_alpha_test.dxil || exit 1; \
 	done

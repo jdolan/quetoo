@@ -31,7 +31,30 @@
 layout (location = 0) in vec3 in_position;
 layout (location = 1) flat in float in_light_radius;
 
+/**
+ * @brief The alpha-test variant samples the base diffuse layer to discard
+ * transparent texels (foliage, fences, grates), rather than casting a solid
+ * silhouette. There is no separate depth pre-pass for shadows -- this
+ * fragment program IS the depth write -- so the discard is load-bearing
+ * here, not just an early-Z optimization like in bsp_fs/mesh_fs.
+ */
+#ifdef ALPHA_TEST
+layout (location = 2) in vec2 in_diffusemap;
+
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform shadow_material_block {
+  float alpha_test;
+};
+
+layout (set = SAMPLER_SET, binding = 0) uniform sampler2DArray texture_material;
+#endif
+
 void main(void) {
+
+#ifdef ALPHA_TEST
+  if (texture(texture_material, vec3(in_diffusemap, 0)).a < alpha_test) {
+    discard;
+  }
+#endif
 
   const float dist = length(in_position) / in_light_radius;
   const float bias = clamp(dist * .08, 1.0 / in_light_radius, 8.0 / in_light_radius);
