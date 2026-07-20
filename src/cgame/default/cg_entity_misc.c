@@ -810,7 +810,7 @@ const cg_entity_class_t cg_misc_sprite = {
   .classname = "misc_sprite",
   .Init = Cg_misc_sprite_Init,
   .Think = Cg_misc_sprite_Think,
-  .data_size = sizeof(cg_sprite_t)
+  .data_size = sizeof(cg_misc_sprite_t)
 };
 
 /**
@@ -907,7 +907,7 @@ const cg_entity_class_t cg_misc_steam = {
   .classname = "misc_steam",
   .Init = Cg_misc_steam_Init,
   .Think = Cg_misc_steam_Think,
-  .data_size = sizeof(s_play_sample_t)
+  .data_size = sizeof(cg_misc_steam_t)
 };
 
 /**
