@@ -207,6 +207,7 @@ void EmitLights(void) {
   }
 
   Bsp_AllocLump(&bsp_file, BSP_LUMP_ELEMENTS, MAX_BSP_ELEMENTS);
+  Bsp_AllocLump(&bsp_file, BSP_LUMP_DRAW_ELEMENTS, MAX_BSP_DRAW_ELEMENTS);
   Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, lights->count);
 
   bsp_light_t *out = bsp_file.lights;
