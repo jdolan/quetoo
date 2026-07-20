@@ -27,7 +27,7 @@
  * @brief BSP file identification.
  */
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-#define BSP_VERSION 79
+#define BSP_VERSION 80
 
 /**
  * @brief BSP file format limits.
@@ -652,14 +652,17 @@ typedef struct {
   float drift;
 
   /**
-   * @brief The index of the first element of this light's depth pass geometry.
+   * @brief The index of the first draw elements of this light's shadow geometry.
+   * @details One draw elements is emitted for all opaque faces lumped together
+   * (`material == -1`), plus one per unique alpha-test material touched by
+   * the light, so alpha-tested faces (foliage, fences, grates) cast holes.
    */
-  int32_t first_depth_pass_element;
+  int32_t first_draw_elements;
 
   /**
-   * @brief The count of depth pass geometry elements.
+   * @brief The count of draw elements of this light's shadow geometry.
    */
-  int32_t num_depth_pass_elements;
+  int32_t num_draw_elements;
 
   /**
    * @brief The entity number of the inline model entity this light is attached to, or 0.

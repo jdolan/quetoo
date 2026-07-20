@@ -251,7 +251,9 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
   const bsp_draw_elements_t *in = bsp->cm->file->draw_elements;
   for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
 
-    out->material = bsp->materials[in->material];
+    if (in->material > -1) {
+      out->material = bsp->materials[in->material];
+    }
     out->surface = in->surface;
 
     out->bounds = in->bounds;
@@ -259,7 +261,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
     out->elements = (void *) (in->first_element * sizeof(uint32_t));
     out->num_elements = in->num_elements;
 
-    if (out->material->cm->stage_flags & (STAGE_STRETCH | STAGE_ROTATE)) {
+    if (out->material && out->material->cm->stage_flags & (STAGE_STRETCH | STAGE_ROTATE)) {
 
       vec2_t st_mins = Vec2_Mins();
       vec2_t st_maxs = Vec2_Maxs();
@@ -367,8 +369,8 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
     out->bounds = in->bounds;
     q_strlcpy(out->style, in->style, sizeof(out->style));
     out->drift = in->drift;
-    out->depth_pass_elements = (void *) (in->first_depth_pass_element * sizeof(uint32_t));
-    out->num_depth_pass_elements = in->num_depth_pass_elements;
+    out->draw_elements = bsp->draw_elements + in->first_draw_elements;
+    out->num_draw_elements = in->num_draw_elements;
     out->target_entity = in->target_entity > 0 ? bsp->cm->entities[in->target_entity] : NULL;
   }
 }

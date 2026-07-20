@@ -556,7 +556,7 @@ static Order FaceCmpOrder(const ident a, const ident b) {
  * as this would break the references that the nodes hold to them.
  * @return The number of draw elements commands emitted.
  */
-static int32_t EmitDrawElements(Vector *faces) {
+int32_t EmitDrawElements(Vector *faces) {
 
   const int32_t num_draw_elements = bsp_file.num_draw_elements;
 

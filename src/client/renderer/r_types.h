@@ -805,14 +805,17 @@ typedef struct {
   r_occlusion_query_t *query;
 
   /**
-   * @brief An offset pointer (in bytes) into the BSP elements array for shadow geometry.
+   * @brief The draw elements of this light's shadow geometry, into `bsp->draw_elements`.
+   * @details One draw elements is emitted for all opaque faces lumped together
+   * (`material == NULL`), plus one per unique alpha-test material touched by
+   * the light, so alpha-tested faces (foliage, fences, grates) cast holes.
    */
-  void *depth_pass_elements;
+  r_bsp_draw_elements_t *draw_elements;
 
   /**
-   * @brief The count of elements.
+   * @brief The count of draw elements.
    */
-  int32_t num_depth_pass_elements;
+  int32_t num_draw_elements;
 
   /**
    * @brief The style string, a-z (26 levels), animated at 10Hz.

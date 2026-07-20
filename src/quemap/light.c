@@ -237,7 +237,23 @@ void EmitLights(void) {
     out->drift = light->drift;
 
     if (light->target_entity == -1) {
-      out->first_depth_pass_element = bsp_file.num_elements;
+      out->first_draw_elements = bsp_file.num_draw_elements;
+
+      if (bsp_file.num_draw_elements == MAX_BSP_DRAW_ELEMENTS) {
+        Com_Error(ERROR_FATAL, "MAX_BSP_DRAW_ELEMENTS\n");
+      }
+
+      // Opaque faces are lumped into a single draw elements, with a sentinel
+      // material of -1, since the shadow pass does not sample any texture
+      // for them. Alpha-tested faces (foliage, fences, grates) are grouped
+      // by material below, so their diffuse texture can be sampled and
+      // discarded per-pixel at draw time.
+      bsp_draw_elements_t *opaque = bsp_file.draw_elements + bsp_file.num_draw_elements;
+      opaque->material = -1;
+      opaque->bounds = Box3_Null();
+      opaque->first_element = bsp_file.num_elements;
+
+      Vector *alpha_test_faces = $(alloc(Vector), initWithSize, sizeof(bsp_face_t *));
 
       const bsp_model_t *worldspawn = bsp_file.models;
       const bsp_face_t *face = &bsp_file.faces[worldspawn->first_face];
@@ -267,11 +283,16 @@ void EmitLights(void) {
           continue;
         }
 
-        if (surface & SURF_MASK_TRANSLUCENT) {
+        if (surface & SURF_LIQUID) {
           continue;
         }
 
-        if (surface & SURF_LIQUID) {
+        if (surface & (SURF_MASK_BLEND | SURF_MATERIAL)) {
+          continue;
+        }
+
+        if (surface & SURF_ALPHA_TEST) {
+          $(alpha_test_faces, add, &face);
           continue;
         }
 
@@ -284,8 +305,22 @@ void EmitLights(void) {
                sizeof(int32_t) * face->num_elements);
 
         bsp_file.num_elements += face->num_elements;
-        out->num_depth_pass_elements += face->num_elements;
+
+        opaque->num_elements += face->num_elements;
+        opaque->bounds = Box3_Union(opaque->bounds, face->bounds);
       }
+
+      if (opaque->num_elements) {
+        bsp_file.num_draw_elements++;
+      }
+
+      if (alpha_test_faces->count) {
+        EmitDrawElements(alpha_test_faces);
+      }
+
+      release(alpha_test_faces);
+
+      out->num_draw_elements = bsp_file.num_draw_elements - out->first_draw_elements;
     }
 
     out++;

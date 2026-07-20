@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <Objectively/Vector.h>
+
 #include "tree.h"
 
 void EmitPlanes(void);
@@ -32,3 +34,4 @@ void BeginBSPFile(void);
 void EndBSPFile(void);
 bsp_model_t *BeginModel(const entity_t *e);
 void EndModel(bsp_model_t *mod);
+int32_t EmitDrawElements(Vector *faces);
