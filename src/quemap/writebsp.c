@@ -449,7 +449,6 @@ bsp_model_t *BeginModel(const entity_t *e) {
   mod->entity = (int32_t) (ptrdiff_t) (e - entities);
 
   mod->first_face = bsp_file.num_faces;
-  mod->first_draw_elements = bsp_file.num_draw_elements;
   mod->first_block = bsp_file.num_blocks;
 
   // bound the brushes
@@ -470,11 +469,26 @@ bsp_model_t *BeginModel(const entity_t *e) {
 }
 
 /**
- * @brief Emits depth-pass element indices for all opaque, non-liquid, non-sky faces of the model.
+ * @brief Emits depth-pass draw elements for the model: all opaque, non-liquid, non-sky faces
+ * are lumped into a single draw elements, with a sentinel material of -1, since the shadow
+ * pass and Z pre-pass do not sample any texture for them. Alpha-tested faces (foliage, fences,
+ * grates) are grouped by material, so their diffuse texture can be sampled and discarded
+ * per-pixel, letting them cast per-pixel holes rather than solid silhouettes.
  */
 static void EmitDepthPassElements(bsp_model_t *mod) {
 
-  mod->first_depth_pass_element = bsp_file.num_elements;
+  mod->first_depth_pass_elements = bsp_file.num_draw_elements;
+
+  if (bsp_file.num_draw_elements == MAX_BSP_DRAW_ELEMENTS) {
+    Com_Error(ERROR_FATAL, "MAX_BSP_DRAW_ELEMENTS\n");
+  }
+
+  bsp_draw_elements_t *opaque = bsp_file.draw_elements + bsp_file.num_draw_elements;
+  opaque->material = -1;
+  opaque->bounds = Box3_Null();
+  opaque->first_element = bsp_file.num_elements;
+
+  Vector *alpha_test_faces = $(alloc(Vector), initWithSize, sizeof(bsp_face_t *));
 
   const bsp_face_t *face = &bsp_file.faces[mod->first_face];
   for (int32_t i = 0; i < mod->num_faces; i++, face++) {
@@ -489,11 +503,16 @@ static void EmitDepthPassElements(bsp_model_t *mod) {
       continue;
     }
 
-    if (surface & SURF_MASK_TRANSLUCENT) {
+    if (surface & SURF_LIQUID) {
       continue;
     }
 
-    if (surface & SURF_LIQUID) {
+    if (surface & SURF_ALPHA_TEST) {
+      $(alpha_test_faces, add, &face);
+      continue;
+    }
+
+    if (surface & (SURF_MASK_BLEND | SURF_MATERIAL)) {
       continue;
     }
 
@@ -506,8 +525,22 @@ static void EmitDepthPassElements(bsp_model_t *mod) {
            sizeof(int32_t) * face->num_elements);
 
     bsp_file.num_elements += face->num_elements;
-    mod->num_depth_pass_elements += face->num_elements;
+
+    opaque->num_elements += face->num_elements;
+    opaque->bounds = Box3_Union(opaque->bounds, face->bounds);
   }
+
+  if (opaque->num_elements) {
+    bsp_file.num_draw_elements++;
+  }
+
+  if (alpha_test_faces->count) {
+    EmitDrawElements(alpha_test_faces);
+  }
+
+  release(alpha_test_faces);
+
+  mod->num_depth_pass_elements = bsp_file.num_draw_elements - mod->first_depth_pass_elements;
 }
 
 /**
@@ -699,6 +732,10 @@ void EndModel(bsp_model_t *mod) {
   FreePatchFaces(mod->entity);
 
   EmitDepthPassElements(mod);
+
+  // Captured here (not in BeginModel) since EmitDepthPassElements above also appends entries
+  // to the shared draw_elements pool; this must exclude those from the block range below.
+  mod->first_draw_elements = bsp_file.num_draw_elements;
 
   EmitBlocks(mod);
 

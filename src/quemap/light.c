@@ -288,12 +288,12 @@ void EmitLights(void) {
           continue;
         }
 
-        if (surface & (SURF_MASK_BLEND | SURF_MATERIAL)) {
+        if (surface & SURF_ALPHA_TEST) {
+          $(alpha_test_faces, add, &face);
           continue;
         }
 
-        if (surface & SURF_ALPHA_TEST) {
-          $(alpha_test_faces, add, &face);
+        if (surface & (SURF_MASK_BLEND | SURF_MATERIAL)) {
           continue;
         }
 
@@ -301,9 +301,7 @@ void EmitLights(void) {
           Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
         }
 
-        memcpy(bsp_file.elements + bsp_file.num_elements,
-               bsp_file.elements + face->first_element,
-               sizeof(int32_t) * face->num_elements);
+        memcpy(bsp_file.elements + bsp_file.num_elements, bsp_file.elements + face->first_element, sizeof(int32_t) * face->num_elements);
 
         bsp_file.num_elements += face->num_elements;
 

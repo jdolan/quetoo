@@ -728,12 +728,14 @@ typedef struct r_bsp_inline_model_s {
   int32_t num_faces;
 
   /**
-   * @brief The depth pass elements of this inline model.
+   * @brief The depth pass draw elements of this inline model.
+   * @details Entry 0 lumps all opaque faces into a single draw elements, with a sentinel
+   * material of NULL. Each subsequent entry is a unique alpha-tested material.
    */
-  void *depth_pass_elements;
+  r_bsp_draw_elements_t *depth_pass_elements;
 
   /**
-   * @brief The count of depth pass elements.
+   * @brief The count of depth pass draw elements.
    */
   int32_t num_depth_pass_elements;
 
@@ -1913,7 +1915,7 @@ typedef struct {
   const r_entity_t *entities[MAX_ENTITIES];
 
   /**
-   * @brief The number of entities in `entities`.
+   * @brief The count of intersecting entities.
    */
   int32_t num_entities;
 

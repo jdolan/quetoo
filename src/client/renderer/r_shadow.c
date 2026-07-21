@@ -35,9 +35,9 @@ typedef struct {
 static struct {
 
   /**
-   * @brief The static-geometry (BSP) shadow pipeline.
+   * @brief The opaque BSP shadow pipeline.
    */
-  GraphicsPipeline *pipeline;
+  GraphicsPipeline *bsp_opaque_pipeline;
 
   /**
    * @brief The BSP shadow pipeline for alpha-tested materials, discarding
@@ -48,7 +48,7 @@ static struct {
   /**
    * @brief The mesh shadow pipeline.
    */
-  GraphicsPipeline *mesh_pipeline;
+  GraphicsPipeline *mesh_opaque_pipeline;
 
   /**
    * @brief The mesh shadow pipeline for alpha-tested materials, discarding
@@ -146,7 +146,7 @@ void R_UpdateShadows(r_view_t *view) {
         continue;
       }
 
-      if (IS_WORLDSPAWN((e->model))) {
+      if (IS_WORLDSPAWN(e->model)) {
         continue;
       }
 
@@ -217,92 +217,182 @@ void R_ClearShadows(const r_view_t *view) {
 }
 
 /**
- * @brief Draws BSP world and inline-model shadow geometry for one light,
- * on the cube face currently tracked by r_shadow_draw.
+ * @brief Draws one BSP draw elements entry for shadow casting, binding the alpha-test pipeline
+ * and diffuse texture if the entry has a material, or the opaque pipeline otherwise.
+ * @return The pipeline now bound, so the caller can avoid redundant re-binds across calls.
  */
-static void R_DrawBspEntityShadows(const r_view_t *view, const r_light_t *l, RenderPass *pass) {
+static GraphicsPipeline *R_DrawBspDrawElementsShadow(RenderPass *pass, const r_bsp_draw_elements_t *draw, GraphicsPipeline *pipeline) {
 
-  const mat4_t light_view = r_shadow_draw.light_view[r_shadow_draw.face];
+  GraphicsPipeline *draw_pipeline = r_shadow_draw.bsp_opaque_pipeline;
+
+  if (draw->material) {
+
+    if (draw->material->cm->surface & (SURF_SKY | SURF_MASK_BLEND | SURF_MATERIAL)) {
+      return pipeline;
+    }
+
+    draw_pipeline = r_shadow_draw.bsp_alpha_test_pipeline;
+  }
+
+  if (pipeline != draw_pipeline) {
+    pipeline = draw_pipeline;
+    $(pass, bindPipeline, pipeline);
+  }
+
+  if (draw->material) {
+    $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
+      .texture = draw->material->texture->texture->texture,
+      .sampler = r_shadow_draw.repeat_sampler->sampler,
+    }, 1);
+
+    const float alpha_test_value = draw->material->cm->alpha_test * r_alpha_test->value;
+    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alpha_test_value, sizeof(alpha_test_value));
+  }
+
+  const uint32_t first_index = (uint32_t) ((uintptr_t) draw->elements / sizeof(uint32_t));
+  $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
+
+  return pipeline;
+}
+
+/**
+ * @brief Draws the given BSP draw elements array (one lumped opaque entry plus one per
+ * alpha-tested material) for shadow casting on the cube face currently tracked by
+ * r_shadow_draw. Restores the opaque pipeline before returning, so callers can chain multiple
+ * calls (e.g. across lights or inline-model entities) without redundant re-binds.
+ */
+static void R_DrawBspDrawElementsShadows(RenderPass *pass, const r_bsp_draw_elements_t *draw, int32_t count) {
+
+  GraphicsPipeline *pipeline = r_shadow_draw.bsp_opaque_pipeline;
+
+  for (int32_t i = 0; i < count; i++, draw++) {
+    pipeline = R_DrawBspDrawElementsShadow(pass, draw, pipeline);
+  }
+
+  if (pipeline != r_shadow_draw.bsp_opaque_pipeline) {
+    $(pass, bindPipeline, r_shadow_draw.bsp_opaque_pipeline);
+  }
+}
+
+/**
+ * @brief Draws BSP inline-model shadow geometry for one light and entity, on the cube face
+ * currently tracked by r_shadow_draw.
+ */
+static void R_DrawBspEntityShadows(const r_light_t *l, const r_entity_t *e, RenderPass *pass) {
+
+  const r_bsp_inline_model_t *in = e->model->bsp_inline;
+
+  if (!in->num_depth_pass_elements) {
+    return;
+  }
+
+  $(r_context.device->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const r_shadow_locals_t) {
+    .model = e->matrix,
+    .light_view = r_shadow_draw.light_view[r_shadow_draw.face],
+    .light_origin = Vec3_ToVec4(l->origin, l->radius),
+    .lerp = 0.f,
+  }, sizeof(r_shadow_locals_t));
+
+  R_DrawBspDrawElementsShadows(pass, in->depth_pass_elements, in->num_depth_pass_elements);
+}
+
+/**
+ * @brief Draws BSP world and inline-model shadow geometry for one light, on the cube face
+ * currently tracked by r_shadow_draw.
+ */
+static void R_DrawBspEntitiesShadows(const r_view_t *view, const r_light_t *l, RenderPass *pass) {
+
   const int32_t ts = r_shadow_atlas.tile_size;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
     .min_depth = 0.f, .max_depth = 1.f,
   });
-  $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
 
-  const r_bsp_model_t *bsp = r_models.world->bsp;
+  $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
 
   $(r_context.device->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const r_shadow_locals_t) {
     .model = Mat4_Identity(),
-    .light_view = light_view,
+    .light_view = r_shadow_draw.light_view[r_shadow_draw.face],
     .light_origin = Vec3_ToVec4(l->origin, l->radius),
     .lerp = 0.f,
   }, sizeof(r_shadow_locals_t));
 
   if (l->bsp_light && l->bsp_light->num_draw_elements) {
-
-    GraphicsPipeline *pipeline = r_shadow_draw.pipeline;
-
-    const r_bsp_draw_elements_t *draw = l->bsp_light->draw_elements;
-    for (int32_t i = 0; i < l->bsp_light->num_draw_elements; i++, draw++) {
-
-      GraphicsPipeline *draw_pipeline = draw->material ? r_shadow_draw.bsp_alpha_test_pipeline : r_shadow_draw.pipeline;
-      if (pipeline != draw_pipeline) {
-        pipeline = draw_pipeline;
-        $(pass, bindPipeline, pipeline);
-      }
-
-      if (draw->material) {
-        $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
-          .texture = draw->material->texture->texture->texture,
-          .sampler = r_shadow_draw.repeat_sampler->sampler,
-        }, 1);
-
-        const float alpha_test_value = draw->material->cm->alpha_test * r_alpha_test->value;
-        $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alpha_test_value, sizeof(alpha_test_value));
-      }
-
-      const uint32_t first_index = (uint32_t) ((uintptr_t) draw->elements / sizeof(uint32_t));
-      $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
-    }
-
-    if (pipeline != r_shadow_draw.pipeline) {
-      $(pass, bindPipeline, r_shadow_draw.pipeline);
-    }
+    R_DrawBspDrawElementsShadows(pass, l->bsp_light->draw_elements, l->bsp_light->num_draw_elements);
   } else {
+    const r_bsp_model_t *bsp = r_models.world->bsp;
     const r_bsp_inline_model_t *world = bsp->inline_models;
-    const uint32_t count = (uint32_t) world->num_depth_pass_elements;
-    const uint32_t first_index = (uint32_t) ((uintptr_t) world->depth_pass_elements / sizeof(uint32_t));
-
-    $(pass, drawIndexedPrimitives, count, 1, first_index, 0, 0);
+    R_DrawBspDrawElementsShadows(pass, world->depth_pass_elements, world->num_depth_pass_elements);
   }
 
-  for (int32_t j = 0; j < l->num_entities; j++) {
+  for (int32_t i = 0; i < l->num_entities; i++) {
 
-    const r_entity_t *e = l->entities[j];
+    const r_entity_t *e = l->entities[i];
 
     if (!IS_BSP_INLINE_MODEL(e->model)) {
       continue;
     }
 
-    const r_bsp_inline_model_t *in = e->model->bsp_inline;
+    R_DrawBspEntityShadows(l, e, pass);
+  }
+}
 
-    const uint32_t in_first_index = (uint32_t) ((uintptr_t) in->depth_pass_elements / sizeof(uint32_t));
-    const uint32_t in_count = (uint32_t) in->num_depth_pass_elements;
+/**
+ * @brief
+ */
+static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *l, const r_entity_t *e, RenderPass *pass) {
 
-    if (!in_count) {
+  const r_mesh_model_t *mesh = e->model->mesh;
+
+  $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
+    .buffer = mesh->elements_buffer->buffer
+  }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+
+  const uint32_t stride = sizeof(r_mesh_vertex_t);
+
+  $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const r_shadow_locals_t) {
+    .model = e->matrix,
+    .light_view =  r_shadow_draw.light_view[r_shadow_draw.face],
+    .light_origin = Vec3_ToVec4(l->origin, l->radius),
+    .lerp = e->lerp,
+  }, sizeof(r_shadow_locals_t));
+
+  const r_mesh_face_t *face = mesh->faces;
+  for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+
+    const r_material_t *material = e->skins[i] ?: face->material;
+
+    if (material->cm->surface & SURF_MASK_BLEND) {
       continue;
     }
 
-    $(r_context.device->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const r_shadow_locals_t) {
-      .model = e->matrix,
-      .light_view = light_view,
-      .light_origin = Vec3_ToVec4(l->origin, l->radius),
-      .lerp = 0.f,
-    }, sizeof(r_shadow_locals_t));
+    GraphicsPipeline *pipeline = r_shadow_draw.mesh_opaque_pipeline;
 
-    $(pass, drawIndexedPrimitives, in_count, 1, in_first_index, 0, 0);
+    if (material->cm->surface & SURF_ALPHA_TEST) {
+      pipeline = r_shadow_draw.mesh_alpha_test_pipeline;
+
+      $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
+        .texture = material->texture->texture->texture,
+        .sampler = r_shadow_draw.repeat_sampler->sampler,
+      }, 1);
+
+      const float alpha_test_value = material->cm->alpha_test * r_alpha_test->value;
+      $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alpha_test_value, sizeof(alpha_test_value));
+    }
+
+    $(pass, bindPipeline, pipeline);
+
+    const uint32_t old_offset = (uint32_t) (face->base_vertex + e->old_frame * face->num_vertexes) * stride;
+    const uint32_t cur_offset = (uint32_t) (face->base_vertex + e->frame * face->num_vertexes) * stride;
+
+    $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
+      { .buffer = mesh->vertex_buffer->buffer, .offset = old_offset },
+      { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
+    }, 2);
+
+    const uint32_t first_index = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
+    $(pass, drawIndexedPrimitives, face->num_elements, 1, first_index, 0, 0);
   }
 }
 
@@ -311,9 +401,8 @@ static void R_DrawBspEntityShadows(const r_view_t *view, const r_light_t *l, Ren
  * currently tracked by r_shadow_draw. Opaque and alpha-tested faces use
  * separate pipelines; translucent faces cast no shadow.
  */
-static void R_DrawMeshEntityShadows(const r_view_t *view, const r_light_t *l, RenderPass *pass) {
+static void R_DrawMeshEntitiesShadows(const r_view_t *view, const r_light_t *l, RenderPass *pass) {
 
-  const mat4_t light_view = r_shadow_draw.light_view[r_shadow_draw.face];
   const int32_t ts = r_shadow_atlas.tile_size;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
@@ -330,61 +419,7 @@ static void R_DrawMeshEntityShadows(const r_view_t *view, const r_light_t *l, Re
       continue;
     }
 
-    const r_mesh_model_t *mesh = e->model->mesh;
-
-    $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
-      .buffer = mesh->elements_buffer->buffer
-    }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
-
-    const uint32_t stride = sizeof(r_mesh_vertex_t);
-
-    $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const r_shadow_locals_t) {
-      .model = e->matrix,
-      .light_view = light_view,
-      .light_origin = Vec3_ToVec4(l->origin, l->radius),
-      .lerp = e->lerp,
-    }, sizeof(r_shadow_locals_t));
-
-    GraphicsPipeline *pipeline = NULL;
-
-    const r_mesh_face_t *mf = mesh->faces;
-    for (int32_t fi = 0; fi < mesh->num_faces; fi++, mf++) {
-
-      const r_material_t *material = e->skins[fi] ?: mf->material;
-
-      if (material->cm->surface & SURF_MASK_BLEND) {
-        continue;
-      }
-
-      const bool alpha_test = (material->cm->surface & SURF_ALPHA_TEST) != 0;
-
-      GraphicsPipeline *face_pipeline = alpha_test ? r_shadow_draw.mesh_alpha_test_pipeline : r_shadow_draw.mesh_pipeline;
-      if (pipeline != face_pipeline) {
-        pipeline = face_pipeline;
-        $(pass, bindPipeline, pipeline);
-      }
-
-      if (alpha_test) {
-        $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
-          .texture = material->texture->texture->texture,
-          .sampler = r_shadow_draw.repeat_sampler->sampler,
-        }, 1);
-
-        const float alpha_test_value = material->cm->alpha_test * r_alpha_test->value;
-        $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &alpha_test_value, sizeof(alpha_test_value));
-      }
-
-      const uint32_t old_offset = (uint32_t) (mf->base_vertex + e->old_frame * mf->num_vertexes) * stride;
-      const uint32_t cur_offset = (uint32_t) (mf->base_vertex + e->frame * mf->num_vertexes) * stride;
-
-      $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
-        { .buffer = mesh->vertex_buffer->buffer, .offset = old_offset },
-        { .buffer = mesh->vertex_buffer->buffer, .offset = cur_offset },
-      }, 2);
-
-      const uint32_t first_index = (uint32_t) ((uintptr_t) mf->indices / sizeof(uint32_t));
-      $(pass, drawIndexedPrimitives, mf->num_elements, 1, first_index, 0, 0);
-    }
+    R_DrawMeshEntityShadow(view, l, e, pass);
   }
 }
 
@@ -409,7 +444,7 @@ void R_DrawShadows(const r_view_t *view) {
 
     RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
 
-    $(pass, bindPipeline, r_shadow_draw.pipeline);
+    $(pass, bindPipeline, r_shadow_draw.bsp_opaque_pipeline);
 
     $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
       { .buffer = bsp->vertex_buffer->buffer },
@@ -422,7 +457,6 @@ void R_DrawShadows(const r_view_t *view) {
 
     $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
-
     const r_light_t *l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
@@ -430,7 +464,7 @@ void R_DrawShadows(const r_view_t *view) {
         continue;
       }
 
-      R_DrawBspEntityShadows(view, l, pass);
+      R_DrawBspEntitiesShadows(view, l, pass);
     }
 
     $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
@@ -442,7 +476,7 @@ void R_DrawShadows(const r_view_t *view) {
         continue;
       }
 
-      R_DrawMeshEntityShadows(view, l, pass);
+      R_DrawMeshEntitiesShadows(view, l, pass);
     }
 
     pass = release(pass);
@@ -529,7 +563,7 @@ void R_InitShadows(void) {
     },
   };
 
-  r_shadow_draw.pipeline = $(r_context.device, createGraphicsPipeline, &info);
+  r_shadow_draw.bsp_opaque_pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   info.vertex_input_state = (SDL_GPUVertexInputState) {
     .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]) {
@@ -544,7 +578,7 @@ void R_InitShadows(void) {
     .num_vertex_attributes = 2,
   };
 
-  r_shadow_draw.mesh_pipeline = $(r_context.device, createGraphicsPipeline, &info);
+  r_shadow_draw.mesh_opaque_pipeline = $(r_context.device, createGraphicsPipeline, &info);
 
   release(vertexShader);
   release(fragmentShader);
@@ -640,9 +674,9 @@ void R_InitShadows(void) {
  */
 void R_ShutdownShadows(void) {
 
-  r_shadow_draw.pipeline = release(r_shadow_draw.pipeline);
+  r_shadow_draw.bsp_opaque_pipeline = release(r_shadow_draw.bsp_opaque_pipeline);
   r_shadow_draw.bsp_alpha_test_pipeline = release(r_shadow_draw.bsp_alpha_test_pipeline);
-  r_shadow_draw.mesh_pipeline = release(r_shadow_draw.mesh_pipeline);
+  r_shadow_draw.mesh_opaque_pipeline = release(r_shadow_draw.mesh_opaque_pipeline);
   r_shadow_draw.mesh_alpha_test_pipeline = release(r_shadow_draw.mesh_alpha_test_pipeline);
   r_shadow_draw.clear_pipeline = release(r_shadow_draw.clear_pipeline);
   r_shadow_draw.repeat_sampler = release(r_shadow_draw.repeat_sampler);

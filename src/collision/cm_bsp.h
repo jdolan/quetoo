@@ -27,7 +27,7 @@
  * @brief BSP file identification.
  */
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-#define BSP_VERSION 80
+#define BSP_VERSION 81
 
 /**
  * @brief BSP file format limits.
@@ -574,12 +574,15 @@ typedef struct {
   int32_t num_faces;
 
   /**
-   * @brief The index of the first depth pass element belonging to this model.
+   * @brief The index of the first depth pass draw elements belonging to this model.
+   * @details Entry 0 lumps all opaque faces into a single draw elements, with a sentinel
+   * material of -1. Each subsequent entry is a unique alpha-tested material (foliage, fences,
+   * grates), so that its diffuse texture may be sampled and discarded per-pixel.
    */
-  int32_t first_depth_pass_element;
+  int32_t first_depth_pass_elements;
 
   /**
-   * @brief The count of depth pass elements.
+   * @brief The count of depth pass draw elements.
    */
   int32_t num_depth_pass_elements;
 

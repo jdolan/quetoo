@@ -336,7 +336,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
     out->faces = bsp->faces + in->first_face;
     out->num_faces = in->num_faces;
 
-    out->depth_pass_elements = (void *) (in->first_depth_pass_element * sizeof(uint32_t));
+    out->depth_pass_elements = bsp->draw_elements + in->first_depth_pass_elements;
     out->num_depth_pass_elements = in->num_depth_pass_elements;
 
     out->draw_elements = bsp->draw_elements + in->first_draw_elements;

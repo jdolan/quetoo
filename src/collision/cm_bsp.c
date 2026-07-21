@@ -334,7 +334,7 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
     model->first_face = LittleLong(model->first_face);
     model->num_faces = LittleLong(model->num_faces);
 
-    model->first_depth_pass_element = LittleLong(model->first_depth_pass_element);
+    model->first_depth_pass_elements = LittleLong(model->first_depth_pass_elements);
     model->num_depth_pass_elements = LittleLong(model->num_depth_pass_elements);
 
     model->first_draw_elements = LittleLong(model->first_draw_elements);
