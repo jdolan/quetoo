@@ -14,10 +14,6 @@
   background-color: #11111144;
 }
 
-.stageEffectTable {
-  -key-width: 100;
-}
-
 /*The actual header row that contains the stage name and remove button. */
 #material .stageHeader {
   background-color: #1e4e6266;
@@ -25,8 +21,19 @@
 }
 
 /* The list of stage panels. Scrolling is on the ScrollView wrapping this
-   StackView (MaterialViewController.c), driven by the Scrollbar bound to it. */
+   StackView (MaterialViewController.c); its own built-in ScrollBar overlay
+   shows automatically when the list overflows.
+   `autoresizing-mask: contain | width` is also set in C (MaterialViewController.c,
+   right before `setContentView`), but `setContentView` classes this StackView
+   "contentView" and the base stylesheet's `ScrollView > .contentView` rule
+   (autoresizing-mask: fit, no Width bit) then wins the very next style pass --
+   its selector is more specific (type ScrollView + class .contentView) than a
+   bare C assignment can defend against. Redeclaring it here, under the higher-
+   specificity `#material .stages` selector (id + class beats type + class),
+   is what actually keeps the Width bit; without this the list silently shrinks
+   to its content's natural width instead of filling the viewport. */
 #material .stages {
+  autoresizing-mask: contain | width;
   spacing: 8;
 }
 

@@ -75,18 +75,10 @@ struct MaterialViewController {
 
   /**
    * @brief The fixed-height viewport (a plain View) inside the stages box that
-   * holds `stages` + its scrollbar. fitStagesHeight sizes its height so the
-   * stages list fills the rest of the tab.
+   * holds the ScrollView wrapping `stages`. fitStagesHeight sizes its height so
+   * the stages list fills the rest of the tab.
    */
   View *stagesViewport;
-
-  /**
-   * @brief The vertical scrollbar for the stages list. It drives the ScrollView
-   * wrapping `stages` and lives in the gutter to its right; fitStagesHeight pins
-   * its x to the viewport's right edge so it is not subject to the viewport's
-   * right padding.
-   */
-  View *scrollbar;
 
   /**
    * @brief The Material group box, whose title shows the material name.

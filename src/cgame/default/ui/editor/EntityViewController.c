@@ -26,8 +26,16 @@ static cvar_t *editor_select_dist;
 
 #include "EntityViewController.h"
 #include "EntityView.h"
+#include "TableViewUtil.h"
 
 #define _Class _EntityViewController
+
+/**
+ * @brief Column widths for the entity key/value tables (TableView_AddRow),
+ * matching the old KeyValueTableView default `-key-width: 140` / `-value-width: 280`.
+ */
+#define ENTITY_TABLE_KEY_WIDTH 140
+#define ENTITY_TABLE_VALUE_WIDTH 280
 
 #pragma mark - Utilities
 
@@ -78,8 +86,8 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
       cgi.SetEntityKeyValue(this->entity->def, def->key, ENTITY_STRING, def->string);
     }
 
-    $((TextView *) ((KeyValueView *) this->add)->key, setAttributedText, NULL);
-    $((TextView *) ((KeyValueView *) this->add)->value, setAttributedText, NULL);
+    $(this->add->key, setAttributedText, NULL);
+    $(this->add->value, setAttributedText, NULL);
   }
 
   // Worldspawn's sky/message apply live. Sky reloads the skybox (R_LoadSky falls
@@ -90,7 +98,11 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
     cgi.SetSky(def->string);
   }
 
+  // See `applyingEdit`'s doc comment: guards against a synchronous NOTIFICATION_ENTITY_PARSED
+  // reentering setEntity and tearing down the EntityView/TextView whose callback is on the stack.
+  this->applyingEdit = true;
   cgi.WriteEntityInfoCommand(this->entity->number, this->entity->def);
+  this->applyingEdit = false;
 }
 
 /**
@@ -108,11 +120,14 @@ static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
 
     cgi.SetEntityKeyValue(this->teamEntity->def, def->key, ENTITY_STRING, def->string);
 
-    $((TextView *) ((KeyValueView *) this->teamAdd)->key, setAttributedText, NULL);
-    $((TextView *) ((KeyValueView *) this->teamAdd)->value, setAttributedText, NULL);
+    $(this->teamAdd->key, setAttributedText, NULL);
+    $(this->teamAdd->value, setAttributedText, NULL);
   }
 
+  // See `applyingEdit`'s doc comment.
+  this->applyingEdit = true;
   cgi.WriteEntityInfoCommand(this->teamEntity->number, this->teamEntity->def);
+  this->applyingEdit = false;
 }
 
 /**
@@ -140,7 +155,9 @@ static void dealloc(Object *self) {
 
   cgi.Free(this->created);
 
-  // Balance the retains taken in loadView for the reparented add-rows.
+  release(this->entityViews);
+  release(this->teamEntityViews);
+
   release(this->add);
   release(this->teamAdd);
 
@@ -161,10 +178,8 @@ static void loadView(ViewController *self) {
     MakeOutlet("createEntity", &this->createEntity),
     MakeOutlet("deleteEntity", &this->deleteEntity),
     MakeOutlet("pairs", &this->pairs),
-    MakeOutlet("add", &this->add),
     MakeOutlet("teamEntity", &this->teamMasterBox),
-    MakeOutlet("teamPairs", &this->teamPairs),
-    MakeOutlet("teamAdd", &this->teamAdd)
+    MakeOutlet("teamPairs", &this->teamPairs)
   );
 
   View *view = $$(View, viewWithResourceName, "ui/editor/EntityViewController.json", outlets);
@@ -173,21 +188,17 @@ static void loadView(ViewController *self) {
   $(self, setView, view);
   release(view);
 
+  // The persistent "add new key" EntityViews are built directly in C (not from
+  // JSON -- EntityView is a plain Object now, not a View) and kept for this
+  // controller's whole lifetime; setEntity re-appends their key/value widgets as
+  // the last row of their table on every selection.
+  this->add = $(alloc(EntityView), initWithEntity, NULL, NULL);
   this->add->delegate.self = this;
   this->add->delegate.didEditEntity = didEditEntity;
 
+  this->teamAdd = $(alloc(EntityView), initWithEntity, NULL, NULL);
   this->teamAdd->delegate.self = this;
   this->teamAdd->delegate.didEditEntity = didEditTeamEntity;
-
-  // The "add new key" rows are the LAST row of their tables (flush with the data
-  // rows, inheriting the table columns), not stranded at the bottom of the box.
-  // Detach them from their JSON box and retain them, since removeAllRows clears
-  // the table on every selection; setEntity re-appends them as the last row.
-  retain(this->add);
-  $((View *) this->add, removeFromSuperview);
-
-  retain(this->teamAdd);
-  $((View *) this->teamAdd, removeFromSuperview);
 
   this->createEntity->delegate.self = this;
   this->createEntity->delegate.didClick = didClickCreateEntity;
@@ -494,6 +505,12 @@ static EntityViewController *init(EntityViewController *self) {
   self = (EntityViewController *) super(ViewController, self, init);
   if (self) {
     self->show_func_groups = true;
+
+    self->entityViews = $$(Array, array);
+    assert(self->entityViews);
+
+    self->teamEntityViews = $$(Array, array);
+    assert(self->teamEntityViews);
   }
   return self;
 }
@@ -504,8 +521,22 @@ static EntityViewController *init(EntityViewController *self) {
  */
 static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
 
-  $(self->pairs, removeAllRows);
-  $(self->teamPairs, removeAllRows);
+  // Reentered synchronously from our own edit commit (see `applyingEdit`'s doc comment) --
+  // the UI already reflects what was just typed, so rebuilding here would only tear down the
+  // EntityView/TextView still executing on the stack.
+  if (self->applyingEdit) {
+    return;
+  }
+
+  TableView_RemoveAllRows(self->pairs);
+  TableView_RemoveAllRows(self->teamPairs);
+
+  // Tear down the previous selection's EntityViews (releasing this Array's retain
+  // runs each one's dealloc, detaching its key/value TextViews' delegates) before
+  // building the new set below. The persistent add/teamAdd EntityViews are not in
+  // these arrays, so they survive untouched.
+  $(self->entityViews, removeAllObjects);
+  $(self->teamEntityViews, removeAllObjects);
 
   if (entity) {
 
@@ -543,8 +574,10 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
         $(view, setTextureValidation, "sky/", ASSET_CONTEXT_NONE);
       }
 
-      $(self->pairs, addRowView, (KeyValueView *) view);
+      TableView_AddRow(self->pairs, (View *) view->key, (View *) view->value,
+                        ENTITY_TABLE_KEY_WIDTH, ENTITY_TABLE_VALUE_WIDTH);
 
+      $(self->entityViews, addObject, view);
       release(view);
     }
 
@@ -571,8 +604,10 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
           view->delegate.self = self;
           view->delegate.didEditEntity = didEditTeamEntity;
 
-          $(self->teamPairs, addRowView, (KeyValueView *) view);
+          TableView_AddRow(self->teamPairs, (View *) view->key, (View *) view->value,
+                            ENTITY_TABLE_KEY_WIDTH, ENTITY_TABLE_VALUE_WIDTH);
 
+          $(self->teamEntityViews, addObject, view);
           release(view);
         }
       }
@@ -586,11 +621,13 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
     ((View *) self->teamMasterBox)->hidden = true;
   }
 
-  // The persistent "add new key" rows are the last row of each table. removeAllRows
-  // (above) detached last selection's; re-append them after the data rows. They
-  // inherit the table columns via the table's layout, so no manual width is needed.
-  $(self->pairs, addRowView, (KeyValueView *) self->add);
-  $(self->teamPairs, addRowView, (KeyValueView *) self->teamAdd);
+  // The persistent "add new key" rows are the last row of each table.
+  // TableView_RemoveAllRows (above) detached last selection's; re-append them
+  // after the data rows.
+  TableView_AddRow(self->pairs, (View *) self->add->key, (View *) self->add->value,
+                    ENTITY_TABLE_KEY_WIDTH, ENTITY_TABLE_VALUE_WIDTH);
+  TableView_AddRow(self->teamPairs, (View *) self->teamAdd->key, (View *) self->teamAdd->value,
+                    ENTITY_TABLE_KEY_WIDTH, ENTITY_TABLE_VALUE_WIDTH);
 
   cg_editor.selected = self->entity ? self->entity->number : -1;
 

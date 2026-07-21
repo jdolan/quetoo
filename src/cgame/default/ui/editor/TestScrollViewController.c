@@ -26,7 +26,6 @@
 #include <ObjectivelyMVC/Button.h>
 #include <ObjectivelyMVC/Checkbox.h>
 #include <ObjectivelyMVC/ScrollView.h>
-#include <ObjectivelyMVC/Scrollbar.h>
 #include <ObjectivelyMVC/Select.h>
 #include <ObjectivelyMVC/StackView.h>
 #include <ObjectivelyMVC/TableView.h>
@@ -34,15 +33,19 @@
 
 #define _Class _TestScrollViewController
 
-#define TEST_SCROLLBAR_WIDTH 14
-
 #pragma mark - Delegates
 
 /**
  * @brief ButtonDelegate; pops this test harness off the view controller stack.
+ * @details Deferred via the command buffer (same pattern as the editor's own
+ * Quit button, `cgi.Cbuf("quit\n")`) rather than calling `cgi.PopViewController()`
+ * directly -- popping here frees this Button's own view tree, but
+ * `Control::captureEvent` keeps touching `self`/`view` after this delegate
+ * returns, so a synchronous free is a use-after-free.
  */
 static void didClickClose(Button *button) {
-  cgi.PopViewController();
+  Cg_Debug("Close clicked, queuing test_scroll\n");
+  cgi.Cbuf("test_scroll\n");
 }
 
 /**
@@ -180,9 +183,9 @@ static void loadView(ViewController *self) {
 
   (void) textView;
 
-  // Wrap `rows` in a ScrollView + pin a Scrollbar to it, mirroring
-  // MaterialViewController's stages list -- scrolling lives on ScrollView
-  // (generic over any contentView), not on the StackView itself.
+  // Wrap `rows` in a ScrollView -- it owns its own ScrollBar internally now (an
+  // overlay, auto-shown via the default ScrollBarAuto visibility when `rows`
+  // overflows the viewport), so there is no separate scrollbar View to build.
   retain((View *) rows);
   $((View *) rows, removeFromSuperview);
   ((View *) rows)->autoresizingMask = ViewAutoresizingContain | ViewAutoresizingWidth;
@@ -191,28 +194,17 @@ static void loadView(ViewController *self) {
   assert(scrollView);
   ((View *) scrollView)->autoresizingMask = ViewAutoresizingFill;
   ((View *) scrollView)->clipsSubviews = true;
-  ((View *) scrollView)->padding.right = TEST_SCROLLBAR_WIDTH + 4;
+  // Borders draw outward from a view's own frame (View::render expands the
+  // rect by borderWidth before stroking it), so a bordered child flush
+  // against scrollView's own clip edge (clipsSubviews, above) has nowhere for
+  // its left border to go -- it gets clipped away entirely.
+  ((View *) scrollView)->padding.left = 4;
   $(scrollView, setContentView, (View *) rows);
   release((View *) rows);
   $(viewport, addSubview, (View *) scrollView);
-
-  Scrollbar *scrollbar = $(alloc(Scrollbar), initWithScrollView, scrollView);
-  assert(scrollbar);
-  ((View *) scrollbar)->frame.w = TEST_SCROLLBAR_WIDTH;
-  ((View *) scrollbar)->autoresizingMask = ViewAutoresizingHeight;
-  ((View *) scrollbar)->alignment = ViewAlignmentRight;
-  $(viewport, addSubview, (View *) scrollbar);
-  release(scrollbar);
   release(scrollView);
 
-  // Size the viewport to fill the (fixed-size) box below the header. A
-  // "fixed size parent, one child eats the leftover height" layout isn't
-  // expressible in pure CSS here -- the same accepted exception the real
-  // editor's stagesViewport already relies on.
-  $((View *) header, layoutIfNeeded);
-  const SDL_Size headerSize = $((View *) header, sizeThatContains);
-  const SDL_Rect boxBounds = $(box, bounds);
-  viewport->frame = MakeRect(0, headerSize.h + 10, boxBounds.w, boxBounds.h - headerSize.h - 10);
+  (void) header;
 }
 
 #pragma mark - Class lifecycle

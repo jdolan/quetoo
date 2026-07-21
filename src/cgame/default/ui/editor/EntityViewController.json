@@ -20,14 +20,10 @@
             "subviews": [
               {
                 "identifier": "pairs",
-                "class": "KeyValueTableView",
+                "class": "TableView",
                 "classNames": [
                   "kvTable"
                 ]
-              },
-              {
-                "identifier": "add",
-                "class": "EntityView"
               }
             ]
           }
@@ -44,14 +40,10 @@
             "subviews": [
               {
                 "identifier": "teamPairs",
-                "class": "KeyValueTableView",
+                "class": "TableView",
                 "classNames": [
                   "kvTable"
                 ]
-              },
-              {
-                "identifier": "teamAdd",
-                "class": "EntityView"
               }
             ]
           }

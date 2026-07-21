@@ -19,26 +19,16 @@
           "contentView": {
             "subviews": [
               {
-                "class": "KeyValueTableView",
-                "classNames": [
-                  "kvTable"
-                ],
-                "subviews": [
-                  {
-                    "class": "KeyValueView",
-                    "key": { "class": "Label", "text": { "text": "Diffusemap" } },
-                    "value": { "class": "Label", "identifier": "diffusemap" }
-                  },
-                  {
-                    "class": "KeyValueView",
-                    "key": { "class": "Label", "text": { "text": "Normalmap" } },
-                    "value": { "class": "Label", "identifier": "normalmap" }
-                  },
-                  {
-                    "class": "KeyValueView",
-                    "key": { "class": "Label", "text": { "text": "Specularmap" } },
-                    "value": { "class": "Label", "identifier": "specularmap" }
-                  }
+                "class": "TableView",
+                "classNames": ["kvTable"],
+                "columns": ["key", "value"],
+                "cells": [
+                  { "column": "key", "row": 0, "class": "Label", "text": { "text": "Diffusemap" } },
+                  { "column": "value", "row": 0, "class": "Label", "identifier": "diffusemap" },
+                  { "column": "key", "row": 1, "class": "Label", "text": { "text": "Normalmap" } },
+                  { "column": "value", "row": 1, "class": "Label", "identifier": "normalmap" },
+                  { "column": "key", "row": 2, "class": "Label", "text": { "text": "Specularmap" } },
+                  { "column": "value", "row": 2, "class": "Label", "identifier": "specularmap" }
                 ]
               }
             ]
@@ -55,41 +45,22 @@
           "contentView": {
             "subviews": [
               {
-                "class": "KeyValueTableView",
-                "classNames": [
-                  "kvTable"
-                ],
-                "subviews": [
-                  {
-                    "class": "KeyValueView",
-                    "key": { "class": "Label", "text": { "text": "Roughness" } },
-                    "value": { "class": "Slider", "identifier": "roughness", "min": 0, "max": 8, "step": 0.125 }
-                  },
-                  {
-                    "class": "KeyValueView",
-                    "key": { "class": "Label", "text": { "text": "Parallax" } },
-                    "value": { "class": "Slider", "identifier": "parallax", "min": 0, "max": 8, "step": 0.125 }
-                  },
-                  {
-                    "class": "KeyValueView",
-                    "key": { "class": "Label", "text": { "text": "Shadow" } },
-                    "value": { "class": "Slider", "identifier": "shadow", "min": 0, "max": 8, "step": 0.125 }
-                  },
-                  {
-                    "class": "KeyValueView",
-                    "key": { "class": "Label", "text": { "text": "Hardness" } },
-                    "value": { "class": "Slider", "identifier": "hardness", "min": 0, "max": 8, "step": 0.125 }
-                  },
-                  {
-                    "class": "KeyValueView",
-                    "key": { "class": "Label", "text": { "text": "Specularity" } },
-                    "value": { "class": "Slider", "identifier": "specularity", "min": 0, "max": 8, "step": 0.125 }
-                  },
-                  {
-                    "class": "KeyValueView",
-                    "key": { "class": "Label", "text": { "text": "Alpha test" } },
-                    "value": { "class": "Slider", "identifier": "alpha_test", "min": 0, "max": 1, "step": 0.05 }
-                  }
+                "class": "TableView",
+                "classNames": ["kvTable"],
+                "columns": ["key", "value"],
+                "cells": [
+                  { "column": "key", "row": 0, "class": "Label", "text": { "text": "Roughness" } },
+                  { "column": "value", "row": 0, "class": "Slider", "identifier": "roughness", "min": 0, "max": 8, "step": 0.125 },
+                  { "column": "key", "row": 1, "class": "Label", "text": { "text": "Parallax" } },
+                  { "column": "value", "row": 1, "class": "Slider", "identifier": "parallax", "min": 0, "max": 8, "step": 0.125 },
+                  { "column": "key", "row": 2, "class": "Label", "text": { "text": "Shadow" } },
+                  { "column": "value", "row": 2, "class": "Slider", "identifier": "shadow", "min": 0, "max": 8, "step": 0.125 },
+                  { "column": "key", "row": 3, "class": "Label", "text": { "text": "Hardness" } },
+                  { "column": "value", "row": 3, "class": "Slider", "identifier": "hardness", "min": 0, "max": 8, "step": 0.125 },
+                  { "column": "key", "row": 4, "class": "Label", "text": { "text": "Specularity" } },
+                  { "column": "value", "row": 4, "class": "Slider", "identifier": "specularity", "min": 0, "max": 8, "step": 0.125 },
+                  { "column": "key", "row": 5, "class": "Label", "text": { "text": "Alpha test" } },
+                  { "column": "value", "row": 5, "class": "Slider", "identifier": "alpha_test", "min": 0, "max": 1, "step": 0.05 }
                 ]
               }
             ]

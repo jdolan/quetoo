@@ -48,7 +48,68 @@ Panel.editor .tabPageView {
   padding: 16;
 }
 
-.kvTable {
-  -key-width: 140;
-  -value-width: 280;
+/* No base stylesheet rule gives TableView an autoresizing-mask (only its inner
+   `.contentView` gets contain|width) -- without contain|width here, a TableView
+   defaults to `none`, so its parent's own layout never asks it for its real
+   content size (sizeThatContains); it just uses the TableView's raw, near-zero
+   frame, collapsing the whole box. */
+.kvTable,
+.stageEffectTable {
+  autoresizing-mask: contain | width;
+}
+
+/* Column widths: TableView tags each cell with a class matching its column
+   identifier (see ObjectivelyMVC TableView::reloadData / awakeWithDictionary_cells),
+   so a column can be styled once here instead of per-row -- same mechanism proven in
+   TestScrollViewController.css. min-width + max-width (not width) is required: the
+   cell's own autoresizing-mask:contain recomputes its frame from content on every
+   layout pass, discarding a plain "width" (which only sets frame.w once); min/max-size
+   are what View::resize actually clamps against, so they survive the recompute.
+
+   autoresizing-mask here (on the CELL, not its content) is the OTHER half of the
+   height story: TableRowView is a horizontal StackView, and StackView's cross-axis
+   stretch only touches children with the Height bit set (see StackView.c) -- the
+   base stylesheet's `TableCellView { autoresizing-mask: contain; }` never sets it,
+   so a short key cell just sits at its own natural height even when the row is
+   taller because of a sibling value widget (a Slider/Control floors at min-height
+   32). Higher specificity here (.kvTable .key, id+class) beats that bare-type base
+   rule, same fix as `#material .stages` elsewhere in this file. */
+.kvTable .key {
+  autoresizing-mask: contain | height;
+  min-width: 140;
+  max-width: 140;
+}
+
+/* The min/max-width above clamps the CELL, not the Label inside it -- a bare
+   Label is `autoresizing-mask: contain` (base stylesheet), so it self-sizes to
+   its own text every layout pass and just sits narrower/shorter than the cell,
+   with dead space around it. `width` + `height` make the cell's unconditional
+   per-subview resize() (every View::layoutSubviews call resizes ALL its
+   subviews, not just Width/Height-masked ones -- see StageView's key Labels,
+   which fill correctly because TableViewUtil sets minSize=maxSize directly on
+   the widget) stretch the Label to the cell's full inner bounds instead of
+   leaving it at its own small natural size. Text stays middle-left within
+   that now-larger frame (Label > Text: middle-left, base stylesheet); only
+   the Label's own frame/background/hit-area grows -- `contain` is kept so the
+   Label still reports a sane natural size (via sizeThatContains' max-with-
+   current) rather than collapsing to 0 before a parent bounds is known. */
+.kvTable .key > Label {
+  autoresizing-mask: contain | width | height;
+}
+
+/* No max-width: the value column is the flexible one -- TableRowView's own
+   layoutSubviews stretches the last cell's content to fill whatever width
+   remains after the fixed key column, every layout pass. A max-width here would
+   just clamp that stretch back down. */
+.kvTable .value {
+  autoresizing-mask: contain | height;
+  min-width: 280;
+}
+
+/* Row spacing: TableView's internal row-stacking StackView carries this second,
+   TableView-specific class precisely so it can be set without colliding with a
+   Box's own contentView spacing (both are classed "contentView"). */
+.kvTable .tableRows,
+.stageEffectTable .tableRows {
+  spacing: 2;
 }

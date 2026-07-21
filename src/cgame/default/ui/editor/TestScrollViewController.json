@@ -9,6 +9,318 @@
       ],
       "subviews": [
         {
+          "class": "View",
+          "identifier": "viewport",
+          "classNames": [
+            "viewport"
+          ],
+          "subviews": [
+            {
+              "class": "StackView",
+              "identifier": "rows",
+              "classNames": [
+                "rows"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "classNames": [
+                    "group"
+                  ],
+                  "label": {
+                    "text": {
+                      "text": "Inputs"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "StackView",
+                        "classNames": [
+                          "row"
+                        ],
+                        "subviews": [
+                          {
+                            "class": "Label",
+                            "classNames": [
+                              "key"
+                            ],
+                            "text": {
+                              "text": "TextView:"
+                            }
+                          },
+                          {
+                            "class": "TextView",
+                            "identifier": "textView",
+                            "classNames": [
+                              "value"
+                            ],
+                            "text": {
+                              "text": "edit me"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "StackView",
+                        "classNames": [
+                          "row"
+                        ],
+                        "subviews": [
+                          {
+                            "class": "Label",
+                            "classNames": [
+                              "key"
+                            ],
+                            "text": {
+                              "text": "Select:"
+                            }
+                          },
+                          {
+                            "class": "Select",
+                            "identifier": "select",
+                            "classNames": [
+                              "value"
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "class": "StackView",
+                        "classNames": [
+                          "row"
+                        ],
+                        "subviews": [
+                          {
+                            "class": "Label",
+                            "classNames": [
+                              "key"
+                            ],
+                            "text": {
+                              "text": "Checkbox:"
+                            }
+                          },
+                          {
+                            "class": "Checkbox",
+                            "identifier": "checkbox"
+                          }
+                        ]
+                      },
+                      {
+                        "class": "StackView",
+                        "classNames": [
+                          "row"
+                        ],
+                        "subviews": [
+                          {
+                            "class": "Label",
+                            "classNames": [
+                              "key"
+                            ],
+                            "text": {
+                              "text": "Button:"
+                            }
+                          },
+                          {
+                            "class": "Button",
+                            "identifier": "button",
+                            "title": {
+                              "text": "Click me"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "StackView",
+                        "classNames": [
+                          "row"
+                        ],
+                        "subviews": [
+                          {
+                            "class": "Label",
+                            "classNames": [
+                              "key"
+                            ],
+                            "text": {
+                              "text": "Select (radio-style):"
+                            }
+                          },
+                          {
+                            "class": "Select",
+                            "identifier": "radio",
+                            "classNames": [
+                              "value"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "classNames": [
+                    "group"
+                  ],
+                  "label": {
+                    "text": {
+                      "text": "Filler"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "StackView",
+                        "classNames": [
+                          "row"
+                        ],
+                        "subviews": [
+                          {
+                            "class": "Label",
+                            "classNames": [
+                              "key"
+                            ],
+                            "text": {
+                              "text": "Filler row 1"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "StackView",
+                        "classNames": [
+                          "row"
+                        ],
+                        "subviews": [
+                          {
+                            "class": "Label",
+                            "classNames": [
+                              "key"
+                            ],
+                            "text": {
+                              "text": "Filler row 2"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "StackView",
+                        "classNames": [
+                          "row"
+                        ],
+                        "subviews": [
+                          {
+                            "class": "Label",
+                            "classNames": [
+                              "key"
+                            ],
+                            "text": {
+                              "text": "Filler row 3"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "class": "StackView",
+                        "classNames": [
+                          "row"
+                        ],
+                        "subviews": [
+                          {
+                            "class": "Label",
+                            "classNames": [
+                              "key"
+                            ],
+                            "text": {
+                              "text": "Filler row 4"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "classNames": [
+                    "group"
+                  ],
+                  "label": {
+                    "text": {
+                      "text": "TableView (key/value)"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "TableView",
+                        "identifier": "table",
+                        "classNames": [
+                          "kvTable"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "classNames": [
+                    "group"
+                  ],
+                  "label": {
+                    "text": {
+                      "text": "Static TableView (JSON-declared, no C dataSource)"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "TableView",
+                        "classNames": [
+                          "kvTable"
+                        ],
+                        "columns": ["prop", "widget"],
+                        "cells": [
+                          { "column": "prop", "row": 0, "class": "Label", "text": {"text": "Plain text"} },
+                          { "column": "widget", "row": 0, "class": "Label", "text": {"text": "Just a Label"} },
+
+                          { "column": "prop", "row": 1, "class": "Label", "text": {"text": "Nested Box"} },
+                          {
+                            "column": "widget", "row": 1,
+                            "class": "Box",
+                            "classNames": ["nestedBox"],
+                            "label": { "text": { "text": "Inner" } },
+                            "contentView": {
+                              "subviews": [
+                                { "class": "Label", "text": { "text": "Inside a Box" } },
+                                { "class": "Checkbox" }
+                              ]
+                            }
+                          },
+
+                          { "column": "prop", "row": 2, "class": "Label", "text": {"text": "Nested TableView"} },
+                          {
+                            "column": "widget", "row": 2,
+                            "class": "TableView",
+                            "classNames": ["nestedTable"],
+                            "columns": ["a", "b"],
+                            "cells": [
+                              { "column": "a", "row": 0, "class": "Label", "text": {"text": "x"} },
+                              { "column": "b", "row": 0, "class": "Label", "text": {"text": "y"} },
+                              { "column": "a", "row": 1, "class": "Label", "text": {"text": "z"} },
+                              { "column": "b", "row": 1, "class": "Button", "title": {"text": "Go"} }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "class": "StackView",
           "identifier": "header",
           "classNames": [
@@ -28,236 +340,6 @@
               "title": {
                 "text": "Close"
               }
-            }
-          ]
-        },
-        {
-          "class": "View",
-          "identifier": "viewport",
-          "classNames": [
-            "viewport"
-          ],
-          "subviews": [
-            {
-              "class": "StackView",
-              "identifier": "rows",
-              "classNames": [
-                "rows"
-              ],
-              "subviews": [
-                {
-                  "class": "StackView",
-                  "classNames": [
-                    "row"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Label",
-                      "classNames": [
-                        "key"
-                      ],
-                      "text": {
-                        "text": "TextView:"
-                      }
-                    },
-                    {
-                      "class": "TextView",
-                      "identifier": "textView",
-                      "classNames": [
-                        "value"
-                      ],
-                      "text": {
-                        "text": "edit me"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "class": "StackView",
-                  "classNames": [
-                    "row"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Label",
-                      "classNames": [
-                        "key"
-                      ],
-                      "text": {
-                        "text": "Select:"
-                      }
-                    },
-                    {
-                      "class": "Select",
-                      "identifier": "select",
-                      "classNames": [
-                        "value"
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "class": "StackView",
-                  "classNames": [
-                    "row"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Label",
-                      "classNames": [
-                        "key"
-                      ],
-                      "text": {
-                        "text": "Checkbox:"
-                      }
-                    },
-                    {
-                      "class": "Checkbox",
-                      "identifier": "checkbox"
-                    }
-                  ]
-                },
-                {
-                  "class": "StackView",
-                  "classNames": [
-                    "row"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Label",
-                      "classNames": [
-                        "key"
-                      ],
-                      "text": {
-                        "text": "Button:"
-                      }
-                    },
-                    {
-                      "class": "Button",
-                      "identifier": "button",
-                      "title": {
-                        "text": "Click me"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "class": "StackView",
-                  "classNames": [
-                    "row"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Label",
-                      "classNames": [
-                        "key"
-                      ],
-                      "text": {
-                        "text": "Select (radio-style):"
-                      }
-                    },
-                    {
-                      "class": "Select",
-                      "identifier": "radio",
-                      "classNames": [
-                        "value"
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "class": "StackView",
-                  "classNames": [
-                    "row"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Label",
-                      "classNames": [
-                        "key"
-                      ],
-                      "text": {
-                        "text": "Filler row 1"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "class": "StackView",
-                  "classNames": [
-                    "row"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Label",
-                      "classNames": [
-                        "key"
-                      ],
-                      "text": {
-                        "text": "Filler row 2"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "class": "StackView",
-                  "classNames": [
-                    "row"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Label",
-                      "classNames": [
-                        "key"
-                      ],
-                      "text": {
-                        "text": "Filler row 3"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "class": "StackView",
-                  "classNames": [
-                    "row"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Label",
-                      "classNames": [
-                        "key"
-                      ],
-                      "text": {
-                        "text": "Filler row 4"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "class": "StackView",
-                  "classNames": [
-                    "tableRow"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Label",
-                      "classNames": [
-                        "key"
-                      ],
-                      "text": {
-                        "text": "TableView (key/value):"
-                      }
-                    },
-                    {
-                      "class": "TableView",
-                      "identifier": "table",
-                      "classNames": [
-                        "kvTable"
-                      ]
-                    }
-                  ]
-                }
-              ]
             }
           ]
         }

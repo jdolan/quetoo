@@ -28,26 +28,12 @@
 #define _Class _EntityView
 
 /**
- * @brief Value-field validation feedback colors. The "valid" background matches the
- * base `TextView` rule in common.css (#dedede10); "invalid" is a translucent maroon
- * tint, applied when a validated value does not resolve to an asset on disk.
+ * @brief Value-field validation feedback colors. The "valid" background matches
+ * the base `TextView` rule in common.css (#dedede10); "invalid" is a translucent
+ * maroon tint, applied when a validated value does not resolve to an asset on disk.
  */
 #define ENTITY_FIELD_BG_VALID   ((SDL_Color) { 0xde, 0xde, 0xde, 0x10 })
 #define ENTITY_FIELD_BG_INVALID ((SDL_Color) { 0x80, 0x30, 0x30, 0x66 })
-
-/**
- * @return This row's key TextView (the inherited KeyValueView column 0).
- */
-static TextView *keyTextView(const EntityView *self) {
-  return (TextView *) ((const KeyValueView *) self)->key;
-}
-
-/**
- * @return This row's value TextView (the inherited KeyValueView column 1).
- */
-static TextView *valueTextView(const EntityView *self) {
-  return (TextView *) ((const KeyValueView *) self)->value;
-}
 
 /**
  * @brief Tints the value field maroon when validation is enabled and the value does
@@ -60,7 +46,7 @@ static void validateValue(EntityView *self) {
     return;
   }
 
-  TextView *value = valueTextView(self);
+  TextView *value = self->value;
   const char *text = value->attributedText ? value->attributedText->chars : "";
 
   bool ok = true;
@@ -92,8 +78,8 @@ static void didEndEditing(TextView *textView) {
 
   cm_entity_t *e = self->pair ?: cgi.AllocEntity();
 
-  const char *key = keyTextView(self)->attributedText->chars;
-  const char *value = valueTextView(self)->attributedText->chars;
+  const char *key = self->key->attributedText->chars;
+  const char *value = self->value->attributedText->chars;
 
   q_strlcpy(e->key, key ?: "", sizeof(e->key));
   q_strlcpy(e->string, value ?: "", sizeof(e->string));
@@ -119,27 +105,18 @@ static void dealloc(Object *self) {
 
   memset(&this->delegate, 0, sizeof(this->delegate));
 
-  if (keyTextView(this)) {
-    keyTextView(this)->delegate.didEndEditing = NULL;
+  if (this->key) {
+    this->key->delegate.didEndEditing = NULL;
   }
-  if (valueTextView(this)) {
-    valueTextView(this)->delegate.didEndEditing = NULL;
+  if (this->value) {
+    this->value->delegate.didEndEditing = NULL;
+    this->value->delegate.didEdit = NULL;
   }
 
-  // The key/value TextViews are owned by the superclass as its columns and torn
-  // down with the view tree; nothing to release here.
+  release(this->key);
+  release(this->value);
 
   super(Object, self, dealloc);
-}
-
-#pragma mark - View
-
-/**
- * @fn View *View::init(View *self)
- * @memberof View
- */
-static View *init(View *self) {
-  return (View *) $((EntityView *) self, initWithEntity, NULL, NULL);
 }
 
 #pragma mark - EntityView
@@ -150,24 +127,21 @@ static View *init(View *self) {
  */
 static EntityView *initWithEntity(EntityView *self, cg_editor_entity_t *edit, cm_entity_t *pair) {
 
-  self = (EntityView *) super(KeyValueView, self, initWithFrame, NULL);
+  self = (EntityView *) super(Object, self, init);
   if (self) {
 
-    // The JSON's "key" and "value" become this KeyValueView's columns; the
-    // superclass parents and width-clamps them.
-    $((View *) self, awakeWithResourceName, "ui/editor/EntityView.json");
+    self->key = $(alloc(TextView), initWithFrame, NULL);
+    assert(self->key);
+    $((View *) self->key, addClassName, "key");
+    self->key->delegate.self = self;
+    self->key->delegate.didEndEditing = didEndEditing;
 
-    TextView *key = keyTextView(self);
-    TextView *value = valueTextView(self);
-
-    assert(key && value);
-
-    key->delegate.self = self;
-    key->delegate.didEndEditing = didEndEditing;
-
-    value->delegate.self = self;
-    value->delegate.didEndEditing = didEndEditing;
-    value->delegate.didEdit = didEditValue;
+    self->value = $(alloc(TextView), initWithFrame, NULL);
+    assert(self->value);
+    $((View *) self->value, addClassName, "value");
+    self->value->delegate.self = self;
+    self->value->delegate.didEndEditing = didEndEditing;
+    self->value->delegate.didEdit = didEditValue;
 
     $(self, setEntity, edit, pair);
   }
@@ -184,8 +158,8 @@ static void setEntity(EntityView *self, cg_editor_entity_t *edit, cm_entity_t *p
   self->edit = edit;
   self->pair = pair;
 
-  TextView *key = keyTextView(self);
-  TextView *value = valueTextView(self);
+  TextView *key = self->key;
+  TextView *value = self->value;
 
   key->control.state = ControlStateDefault;
   value->control.state = ControlStateDefault;
@@ -238,8 +212,6 @@ static void initialize(Class *clazz) {
 
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-  ((ViewInterface *) clazz->interface)->init = init;
-
   ((EntityViewInterface *) clazz->interface)->initWithEntity = initWithEntity;
   ((EntityViewInterface *) clazz->interface)->setEntity = setEntity;
   ((EntityViewInterface *) clazz->interface)->setTextureValidation = setTextureValidation;
@@ -256,7 +228,7 @@ Class *_EntityView(void) {
   do_once(&once, {
     clazz = _initialize(&(const ClassDef) {
       .name = "EntityView",
-      .superclass = _KeyValueView(),
+      .superclass = _Object(),
       .instanceSize = sizeof(EntityView),
       .interfaceOffset = offsetof(EntityView, interface),
       .interfaceSize = sizeof(EntityViewInterface),

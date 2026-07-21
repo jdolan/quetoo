@@ -1,7 +1,6 @@
 cguieditordir = @PKGLIBDIR@/default/ui/editor
 cguieditor_DATA = \
 	EditorViewController.json \
-	EntityView.json \
 	EntityViewController.css \
 	EntityViewController.json \
 	MaterialViewController.css \
@@ -21,6 +20,7 @@ noinst_HEADERS = \
 	MaterialViewController.h \
 	MeshViewController.h \
 	StageView.h \
+	TableViewUtil.h \
 	TestScrollViewController.h
 
 noinst_LTLIBRARIES = \
@@ -33,6 +33,7 @@ libcguieditor_la_SOURCES = \
 	MaterialViewController.c \
 	MeshViewController.c \
 	StageView.c \
+	TableViewUtil.c \
 	TestScrollViewController.c
 
 libcguieditor_la_CFLAGS = \

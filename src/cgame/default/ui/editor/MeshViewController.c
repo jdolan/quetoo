@@ -23,9 +23,6 @@
 
 #include "MeshViewController.h"
 
-#include <ObjectivelyMVC/KeyValueTableView.h>
-
-#include <ObjectivelyMVC/Label.h>
 #include <ObjectivelyMVC/TextView.h>
 
 #define _Class _MeshViewController
@@ -109,29 +106,6 @@ static void didEndEditing(TextView *textView) {
 #pragma mark - ViewController
 
 /**
- * @brief Appends a "label -> editable text field" row to a mesh transform table and
- * returns the value TextView, which is kept as an outlet for setModel + didEndEditing.
- * The Label is the key cell, the TextView the value cell; the table (a KeyValueTableView)
- * enforces shared column widths so every group's rows line up.
- */
-static TextView *addMeshRow(MeshViewController *this, KeyValueTableView *table, const char *label) {
-
-  Label *key = $(alloc(Label), initWithText, label, NULL);
-
-  TextView *value = $(alloc(TextView), initWithFrame, NULL);
-  value->isEditable = true;
-  value->delegate.self = this;
-  value->delegate.didEndEditing = didEndEditing;
-
-  $(table, addRow, (View *) key, (View *) value);
-
-  release(key);
-  release(value);
-
-  return value;
-}
-
-/**
  * @see ViewController::loadView(ViewController *)
  */
 static void loadView(ViewController *self) {
@@ -140,12 +114,21 @@ static void loadView(ViewController *self) {
 
   MeshViewController *this = (MeshViewController *) self;
 
-  KeyValueTableView *worldTable = NULL, *linkTable = NULL, *viewTable = NULL;
-
+  // Each config (world / link / view) is a table of transform rows declared entirely in
+  // MeshViewController.json (TableView "cells"). The value TextViews are resolved here as
+  // outlets -- they are the persistent editable widgets, needed for setModel and the
+  // didEndEditing delegate.
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("worldTable", &worldTable),
-    MakeOutlet("linkTable",  &linkTable),
-    MakeOutlet("viewTable",  &viewTable)
+    MakeOutlet("worldTranslate", &this->worldTranslate),
+    MakeOutlet("worldRotate",    &this->worldRotate),
+    MakeOutlet("worldScale",     &this->worldScale),
+    MakeOutlet("linkTranslate",  &this->linkTranslate),
+    MakeOutlet("linkRotate",     &this->linkRotate),
+    MakeOutlet("linkScale",      &this->linkScale),
+    MakeOutlet("viewTranslate",  &this->viewTranslate),
+    MakeOutlet("viewRotate",     &this->viewRotate),
+    MakeOutlet("viewScale",      &this->viewScale),
+    MakeOutlet("viewMuzzle",     &this->viewMuzzle)
   );
 
   $(self->view, awakeWithResourceName, "ui/editor/MeshViewController.json");
@@ -153,21 +136,16 @@ static void loadView(ViewController *self) {
 
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/editor/MeshViewController.css");
 
-  // Each config (world / link / view) is a table of transform rows built here in C.
-  // The value TextViews are the persistent editable widgets, kept for setModel and the
-  // didEndEditing delegate.
-  this->worldTranslate = addMeshRow(this, worldTable, "Translate");
-  this->worldRotate    = addMeshRow(this, worldTable, "Rotate");
-  this->worldScale     = addMeshRow(this, worldTable, "Scale");
+  TextView *fields[] = {
+    this->worldTranslate, this->worldRotate, this->worldScale,
+    this->linkTranslate, this->linkRotate, this->linkScale,
+    this->viewTranslate, this->viewRotate, this->viewScale, this->viewMuzzle
+  };
 
-  this->linkTranslate  = addMeshRow(this, linkTable, "Translate");
-  this->linkRotate     = addMeshRow(this, linkTable, "Rotate");
-  this->linkScale      = addMeshRow(this, linkTable, "Scale");
-
-  this->viewTranslate  = addMeshRow(this, viewTable, "Translate");
-  this->viewRotate     = addMeshRow(this, viewTable, "Rotate");
-  this->viewScale      = addMeshRow(this, viewTable, "Scale");
-  this->viewMuzzle     = addMeshRow(this, viewTable, "Muzzle");
+  for (size_t i = 0; i < lengthof(fields); i++) {
+    fields[i]->delegate.self = this;
+    fields[i]->delegate.didEndEditing = didEndEditing;
+  }
 }
 
 /**

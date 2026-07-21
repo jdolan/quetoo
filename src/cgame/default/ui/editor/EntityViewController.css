@@ -4,7 +4,3 @@
   autoresizing-mask: contain | width;
   background-color: #11111144;
 }
-
-#entity .entity {
-  axis: StackViewAxisHorizontal;
-}

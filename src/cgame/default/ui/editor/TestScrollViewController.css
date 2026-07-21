@@ -4,7 +4,6 @@
    for the corresponding structure. */
 
 #testScroll {
-  alignment: middle-center;
   autoresizing-mask: fill;
   background-color: #00000088;
 }
@@ -13,6 +12,7 @@
   width: 520;
   height: 620;
   autoresizing-mask: none;
+  alignment: middle-center;
   background-color: #222222f0;
   border-color: #666666;
   border-width: 1;
@@ -25,13 +25,28 @@
   autoresizing-mask: contain | width;
 }
 
+/* Fills box below the header (padding-top clears the header row) via the
+   standard autoresizing cascade -- same pattern as the real editor's
+   editorContent (`autoresizing-mask: fill; padding-top: 44`). No synchronous
+   frame math needed: this resolves during MVC's normal per-frame layout pass,
+   which runs after box's CSS width/height are already themed. */
 #testScroll .viewport {
+  autoresizing-mask: fill;
+  padding-top: 30;
   clips-subviews: true;
 }
 
+/* padding-top gives the first .group's Box label room to straddle its top
+   border (Box::layoutSubviews draws the label half above its own frame,
+   `label->frame.y = -size.h * 0.5`) -- without it, the label pokes up past
+   rows' logical top into whatever sits above the scroll viewport. Since this
+   is real StackView padding, it's naturally included in `rows`' own size
+   calc, which is what ScrollView reads for its scrollable content height --
+   no separate scroll-height fixup needed. */
 #testScroll .rows {
   axis: vertical;
   spacing: 10;
+  padding-top: 12;
   autoresizing-mask: contain | width;
 }
 
@@ -41,10 +56,27 @@
   autoresizing-mask: contain | width;
 }
 
-#testScroll .tableRow {
-  axis: vertical;
-  spacing: 4;
+/* Each group forces real scrollable overflow (three of these is taller than
+   the viewport) -- Box's own contentView is a StackView, so this cascades
+   the same as .rows above it. */
+#testScroll .group {
+  min-height: 300;
   autoresizing-mask: contain | width;
+}
+
+/* Direct-child combinator: Box's own contentView AND TableView's internal row
+   stack are both classed "contentView" (a shared convention), so a plain
+   descendant selector here would also apply this Box-body spacing to any
+   TableView nested inside a group -- scope it to Box's immediate child only. */
+#testScroll .group > .contentView {
+  spacing: 10;
+}
+
+/* TableView's internal row-stacking StackView carries this second, TableView-
+   specific class precisely so row spacing can be set without colliding with
+   Box's own contentView spacing above. */
+#testScroll .kvTable .tableRows {
+  spacing: 2;
 }
 
 #testScroll .key {
@@ -56,17 +88,40 @@
 }
 
 #testScroll .kvTable {
-  min-height: 160;
   autoresizing-mask: contain | width;
 }
 
 /* Targets the TableCellView classNames added in ObjectivelyMVC's
-   TableView::reloadData (tagged with the owning column's identifier) -- JD's
-   proposed alternative to a bespoke KeyValueTableView class. */
+   TableView::reloadData / awakeWithDictionary_cells (tagged with the owning
+   column's identifier). min-width + max-width (not width): the cell's own
+   autoresizing-mask:contain recomputes its frame from content every layout pass,
+   discarding a plain "width" (which only sets frame.w once) -- min/max-size are
+   what View::resize actually clamps against, so they survive the recompute. */
 #testScroll .kvTable .key {
-  width: 120;
+  min-width: 120;
+  max-width: 120;
 }
 
+/* No max-width: TableRowView's own layoutSubviews stretches the last cell's
+   content to fill the remaining width every layout pass; a max-width here
+   would just clamp that stretch back down. */
 #testScroll .kvTable .value {
-  width: 280;
+  min-width: 280;
+}
+
+/* Nested composites inside a cell need their own autoresizing-mask so the
+   cell (and in turn the row) can measure their real content height --
+   without this they default to `none` and report a stale/zero size.
+   `top` shifts the Box down within its cell to reserve room for its label,
+   which straddles the Box's own top border (Box::layoutSubviews draws it at
+   `-size.h * 0.5`, i.e. half above the Box's frame) -- same overhang as
+   [[reference_box_label_overhang]], just needing a `top` offset here instead
+   of a container's padding-top since this Box isn't first-in-a-stack. */
+#testScroll .nestedBox {
+  autoresizing-mask: contain | width;
+  top: 12;
+}
+
+#testScroll .nestedTable {
+  autoresizing-mask: contain | width;
 }

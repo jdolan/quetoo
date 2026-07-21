@@ -24,14 +24,14 @@
 #include "cgame/cgame.h"
 #include "../../cg_editor.h"
 
-#include <ObjectivelyMVC/KeyValueView.h>
+#include <ObjectivelyMVC/TextView.h>
 
 typedef struct EntityView EntityView;
 typedef struct EntityViewInterface EntityViewInterface;
 
 /**
  * @file
- * @brief An editable key->value row for a `cm_entity_t`, with aligned columns.
+ * @brief An editable key->value pair for a `cm_entity_t`.
  */
 
 /**
@@ -51,18 +51,19 @@ typedef struct EntityViewDelegate {
 } EntityViewDelegate;
 
 /**
- * @brief An editable entity key->value row.
- * @extends KeyValueView
- * @details The key and value TextViews are the inherited KeyValueView::key and
- * KeyValueView::value (cast to TextView); column widths are owned by the parent
- * KeyValueTableView. This type adds only the entity-editing behavior.
+ * @brief An editable entity key->value pair.
+ * @extends Object
+ * @details Owns the key/value TextViews directly (not a View itself -- its two
+ * widgets are placed into a table row by TableView_AddRow, see
+ * EntityViewController). This type is purely the entity-editing behavior +
+ * the widgets it wires; the row/column/table structure lives on the TableView.
  */
 struct EntityView {
 
   /**
    * @brief The superclass.
    */
-  KeyValueView keyValueView;
+  Object object;
 
   /**
    * @brief The interface. @protected
@@ -96,6 +97,16 @@ struct EntityView {
    * @brief The asset context used when `validatePrefix` is set.
    */
   cm_asset_context_t validateContext;
+
+  /**
+   * @brief The key TextView.
+   */
+  TextView *key;
+
+  /**
+   * @brief The value TextView.
+   */
+  TextView *value;
 };
 
 /**
@@ -106,7 +117,7 @@ struct EntityViewInterface {
   /**
    * @brief The superclass interface.
    */
-  KeyValueViewInterface keyValueViewInterface;
+  ObjectInterface objectInterface;
 
   /**
    * @fn EntityView *EntityView::initWithEntity(EntityView *self, cg_editor_entity_t *edit, cm_entity_t *pair)

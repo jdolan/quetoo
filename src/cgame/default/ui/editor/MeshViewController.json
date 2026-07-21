@@ -16,8 +16,17 @@
             "subviews": [
               {
                 "identifier": "worldTable",
-                "class": "KeyValueTableView",
-                "classNames": ["kvTable"]
+                "class": "TableView",
+                "classNames": ["kvTable"],
+                "columns": ["key", "value"],
+                "cells": [
+                  { "column": "key", "row": 0, "class": "Label", "text": { "text": "Translate" } },
+                  { "column": "value", "row": 0, "class": "TextView", "identifier": "worldTranslate", "editable": true },
+                  { "column": "key", "row": 1, "class": "Label", "text": { "text": "Rotate" } },
+                  { "column": "value", "row": 1, "class": "TextView", "identifier": "worldRotate", "editable": true },
+                  { "column": "key", "row": 2, "class": "Label", "text": { "text": "Scale" } },
+                  { "column": "value", "row": 2, "class": "TextView", "identifier": "worldScale", "editable": true }
+                ]
               }
             ]
           }
@@ -32,8 +41,17 @@
             "subviews": [
               {
                 "identifier": "linkTable",
-                "class": "KeyValueTableView",
-                "classNames": ["kvTable"]
+                "class": "TableView",
+                "classNames": ["kvTable"],
+                "columns": ["key", "value"],
+                "cells": [
+                  { "column": "key", "row": 0, "class": "Label", "text": { "text": "Translate" } },
+                  { "column": "value", "row": 0, "class": "TextView", "identifier": "linkTranslate", "editable": true },
+                  { "column": "key", "row": 1, "class": "Label", "text": { "text": "Rotate" } },
+                  { "column": "value", "row": 1, "class": "TextView", "identifier": "linkRotate", "editable": true },
+                  { "column": "key", "row": 2, "class": "Label", "text": { "text": "Scale" } },
+                  { "column": "value", "row": 2, "class": "TextView", "identifier": "linkScale", "editable": true }
+                ]
               }
             ]
           }
@@ -48,8 +66,19 @@
             "subviews": [
               {
                 "identifier": "viewTable",
-                "class": "KeyValueTableView",
-                "classNames": ["kvTable"]
+                "class": "TableView",
+                "classNames": ["kvTable"],
+                "columns": ["key", "value"],
+                "cells": [
+                  { "column": "key", "row": 0, "class": "Label", "text": { "text": "Translate" } },
+                  { "column": "value", "row": 0, "class": "TextView", "identifier": "viewTranslate", "editable": true },
+                  { "column": "key", "row": 1, "class": "Label", "text": { "text": "Rotate" } },
+                  { "column": "value", "row": 1, "class": "TextView", "identifier": "viewRotate", "editable": true },
+                  { "column": "key", "row": 2, "class": "Label", "text": { "text": "Scale" } },
+                  { "column": "value", "row": 2, "class": "TextView", "identifier": "viewScale", "editable": true },
+                  { "column": "key", "row": 3, "class": "Label", "text": { "text": "Muzzle" } },
+                  { "column": "value", "row": 3, "class": "TextView", "identifier": "viewMuzzle", "editable": true }
+                ]
               }
             ]
           }

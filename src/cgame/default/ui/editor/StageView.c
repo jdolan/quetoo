@@ -22,9 +22,7 @@
 #include "cg_local.h"
 
 #include "StageView.h"
-
-#include <ObjectivelyMVC/KeyValueView.h>
-#include <ObjectivelyMVC/KeyValueTableView.h>
+#include "TableViewUtil.h"
 
 #include <ObjectivelyMVC/Label.h>
 #include <ObjectivelyMVC/TextView.h>
@@ -61,11 +59,11 @@ typedef struct {
 #define STAGE_PARAM(field, mn, mx, st) { #field, offsetof(cm_stage_t, field), mn, mx, st }
 
 static const stage_param_desc_t color_params[] = {
-  STAGE_PARAM(color.r, 0.0, 1.0, 0.01), STAGE_PARAM(color.g, 0.0, 1.0, 0.01),
-  STAGE_PARAM(color.b, 0.0, 1.0, 0.01), STAGE_PARAM(color.a, 0.0, 1.0, 0.01),
+  STAGE_PARAM(color.r, 0.0, 4.0, 0.01), STAGE_PARAM(color.g, 0.0, 4.0, 0.01),
+  STAGE_PARAM(color.b, 0.0, 4.0, 0.01), STAGE_PARAM(color.a, 0.0, 1.0, 0.01),
 };
 static const stage_param_desc_t pulse_params[] = {
-  STAGE_PARAM(pulse.hz, 0.0, 10.0, 0.1), STAGE_PARAM(pulse.drift, 0.0, 10.0, 0.1),
+  STAGE_PARAM(pulse.hz, 0.0, 60.0, 0.1), STAGE_PARAM(pulse.drift, 0.0, 10.0, 0.1),
 };
 static const stage_param_desc_t stretch_params[] = {
   STAGE_PARAM(stretch.hz, 0.0, 10.0, 0.1), STAGE_PARAM(stretch.amplitude, 0.0, 10.0, 0.1),
@@ -146,6 +144,13 @@ static const stage_blend_factor_t stage_blend_factors[] = {
  * effect rows -- columns, spacing, colors -- is CSS-driven (see editor.css).
  */
 #define STAGE_ICON_BUTTON_SIZE 17
+
+/**
+ * @brief Column widths for the effect/texture property tables (TableView_AddRow),
+ * matching the old KeyValueTableView `-key-width: 100` / default `280` value width.
+ */
+#define STAGE_TABLE_KEY_WIDTH 100
+#define STAGE_TABLE_VALUE_WIDTH 280
 
 /**
  * @brief Texture-field validation feedback colors. The "valid" background matches
@@ -303,7 +308,7 @@ static View *makeHeaderBar(StageView *this, const char *className, const char *t
  * @brief Appends a `label -> blend-factor dropdown` row to the effect's property
  * table, preselecting `current` and routing changes to `didSelect`.
  */
-static void addBlendRow(StageView *this, KeyValueTableView *table, const char *label, uint32_t current,
+static void addBlendRow(StageView *this, TableView *table, const char *label, uint32_t current,
                         void (*didSelect)(Select *, Option *)) {
 
   Label *lbl = $(alloc(Label), initWithText, label, NULL);
@@ -317,7 +322,7 @@ static void addBlendRow(StageView *this, KeyValueTableView *table, const char *l
   select->delegate.self = this;
   select->delegate.didSelectOption = didSelect;
 
-  $(table, addRow, (View *) lbl, (View *) select);
+  TableView_AddRow(table, (View *) lbl, (View *) select, STAGE_TABLE_KEY_WIDTH, STAGE_TABLE_VALUE_WIDTH);
   release(lbl);
   release(select);
 }
@@ -557,7 +562,7 @@ static void respondToEvent(View *self, const SDL_Event *event) {
  * context). Used for the stage's Texture row and for the flare/envmap asset rows,
  * which all edit the one `stage->asset`.
  */
-static void addAssetRow(StageView *this, KeyValueTableView *table, const char *label) {
+static void addAssetRow(StageView *this, TableView *table, const char *label) {
 
   Label *lbl = $(alloc(Label), initWithText, label, NULL);
 
@@ -569,7 +574,7 @@ static void addAssetRow(StageView *this, KeyValueTableView *table, const char *l
   texture->delegate.didEndEditing = didEditTexture;
   validateTextureField(this, texture);
 
-  $(table, addRow, (View *) lbl, (View *) texture);
+  TableView_AddRow(table, (View *) lbl, (View *) texture, STAGE_TABLE_KEY_WIDTH, STAGE_TABLE_VALUE_WIDTH);
   release(lbl);
   release(texture);
 }
@@ -578,7 +583,7 @@ static void addAssetRow(StageView *this, KeyValueTableView *table, const char *l
  * @brief Appends a `label -> slider` row for one float parameter to the effect's
  * property table, binding the slider to the stage field it edits.
  */
-static void addParamRow(StageView *this, KeyValueTableView *table, const stage_param_desc_t *param) {
+static void addParamRow(StageView *this, TableView *table, const stage_param_desc_t *param) {
 
   // The descriptor label is the full struct field path (e.g. "scroll.s"); show only
   // the leaf property ("s") in the key column to save space -- the effect box header
@@ -599,7 +604,7 @@ static void addParamRow(StageView *this, KeyValueTableView *table, const stage_p
   slider->delegate.self = this;
   slider->delegate.didSetValue = didSetParam;
 
-  $(table, addRow, (View *) lbl, (View *) slider);
+  TableView_AddRow(table, (View *) lbl, (View *) slider, STAGE_TABLE_KEY_WIDTH, STAGE_TABLE_VALUE_WIDTH);
   release(lbl);
   release(slider);
 
@@ -611,10 +616,10 @@ static void addParamRow(StageView *this, KeyValueTableView *table, const stage_p
 
 /**
  * @brief Builds one active effect: a header (name + small remove button) and a
- * KeyValueTableView of the effect's property rows. The table owns its columns via
- * CSS (`.stageEffectTable` in editor.css), so every effect's labels and value
- * widgets line up; only the remove button's size is set in C (CSS width does not
- * bind to a dynamically-built button).
+ * TableView of the effect's property rows (via TableView_AddRow). Column widths
+ * are clamped in C (STAGE_TABLE_KEY_WIDTH/STAGE_TABLE_VALUE_WIDTH) so every
+ * effect's labels and value widgets line up; the remove button's size is also
+ * set in C (CSS width does not bind to a dynamically-built button).
  */
 static void addEffectGroup(StageView *this, const stage_effect_desc_t *effect) {
 
@@ -642,8 +647,8 @@ static void addEffectGroup(StageView *this, const stage_effect_desc_t *effect) {
 
   release(remove);
 
-  // property rows, in a table whose columns are inherited (and CSS-configured)
-  KeyValueTableView *table = $(alloc(KeyValueTableView), initWithFrame, NULL);
+  // property rows, in a table whose column widths TableView_AddRow clamps in C
+  TableView *table = $(alloc(TableView), initWithFrame, NULL);
   $((View *) table, addClassName, "stageEffectTable");
 
   for (size_t p = 0; p < effect->num_params; p++) {
@@ -665,7 +670,7 @@ static void addEffectGroup(StageView *this, const stage_effect_desc_t *effect) {
     lerp->delegate.self = this;
     lerp->delegate.didToggle = didToggleAnimLerp;
 
-    $(table, addRow, (View *) lbl, (View *) lerp);
+    TableView_AddRow(table, (View *) lbl, (View *) lerp, STAGE_TABLE_KEY_WIDTH, STAGE_TABLE_VALUE_WIDTH);
     release(lbl);
     release(lerp);
   } else if (effect->flag == STAGE_FLARE) {
@@ -763,7 +768,7 @@ static void buildControls(StageView *this) {
   // carries its single asset in its own effect box instead (see addEffectGroup), so
   // it is not shown (and not written as `texture ...`) here.
   if (this->stage->flags & STAGE_TEXTURE) {
-    KeyValueTableView *texTable = $(alloc(KeyValueTableView), initWithFrame, NULL);
+    TableView *texTable = $(alloc(TableView), initWithFrame, NULL);
     $((View *) texTable, addClassName, "stageEffectTable");
 
     addAssetRow(this, texTable, "Texture");

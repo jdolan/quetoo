@@ -25,19 +25,8 @@
 #include "StageView.h"
 
 #include <ObjectivelyMVC/ScrollView.h>
-#include <ObjectivelyMVC/Scrollbar.h>
 
 #define _Class _MaterialViewController
-
-/**
- * @brief Width of the scrollbar gutter reserved on the right of the stages list.
- */
-#define MATERIAL_SCROLLBAR_WIDTH 14
-
-/**
- * @brief Symmetric inset around the group boxes within the tab content.
- */
-#define MATERIAL_CONTENT_PADDING 8
 
 /**
  * @brief Height (window_bounds units) of the fixed section above the stages list
@@ -293,9 +282,9 @@ static void loadView(ViewController *self) {
 
   MaterialViewController *this = (MaterialViewController *) self;
 
-  // The material tab is built declaratively (KeyValueTableView rows in JSON). The
+  // The material tab is built declaratively (TableView "cells" rows in JSON). The
   // value widgets carry identifiers, so they resolve as outlets even though they
-  // are nested inside the inlet-bound KeyValueView rows. The Material Stages box is
+  // are nested inside the JSON-declared table cells. The Material Stages box is
   // present but intentionally empty for now (no Add Stage button / stage rows yet).
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("materialContent", &this->content),
@@ -367,14 +356,12 @@ static void loadView(ViewController *self) {
   // stay fixed. The stages box's contentView holds just the scroll structure (the
   // Add Stage button lives in the box title above); that structure is
   //   stagesViewport   [fills remaining tab height, sized per-frame]
-  //     |-- scrollView [fills the viewport, pans `stages` -- ObjectivelyMVC/ScrollView]
-  //     |     `-- stages  [the StackView of StageViews -- Contain-sized to its content]
-  //     `-- scrollbar  -> pinned in the right gutter, drives `scrollView`
+  //     `-- scrollView [fills the viewport, pans `stages` -- ObjectivelyMVC/ScrollView]
+  //           `-- stages  [the StackView of StageViews -- Contain-sized to its content]
   //
-  // Scrolling lives on ScrollView (generic, works over any contentView), not on
-  // StackView, so `stages` stays a plain Contain-sized stack and the wrapper does
-  // the panning/clipping. The gutter is reserved as the ScrollView's own right
-  // padding.
+  // ScrollView owns its own ScrollBar internally now (an overlay, shown automatically
+  // via the default ScrollBarAuto visibility when `stages` overflows the viewport) --
+  // no separate scrollbar View/gutter padding to manage here.
   View *stagesParent = ((View *) this->stages)->superview;
 
   this->stagesViewport = $(alloc(View), initWithFrame, NULL);
@@ -390,19 +377,9 @@ static void loadView(ViewController *self) {
   assert(scrollView);
   ((View *) scrollView)->autoresizingMask = ViewAutoresizingFill;
   ((View *) scrollView)->clipsSubviews = true;
-  ((View *) scrollView)->padding.right = MATERIAL_SCROLLBAR_WIDTH + MATERIAL_CONTENT_PADDING;
   $(scrollView, setContentView, (View *) this->stages);
   release(this->stages);
   $(this->stagesViewport, addSubview, (View *) scrollView);
-
-  Scrollbar *scrollbar = $(alloc(Scrollbar), initWithScrollView, scrollView);
-  assert(scrollbar);
-  ((View *) scrollbar)->frame.w = MATERIAL_SCROLLBAR_WIDTH;
-  ((View *) scrollbar)->autoresizingMask = ViewAutoresizingHeight;
-  ((View *) scrollbar)->alignment = ViewAlignmentRight;
-  $(this->stagesViewport, addSubview, (View *) scrollbar);
-  this->scrollbar = (View *) scrollbar;
-  release(scrollbar);
   release(scrollView);
 
   $(stagesParent, addSubview, this->stagesViewport);

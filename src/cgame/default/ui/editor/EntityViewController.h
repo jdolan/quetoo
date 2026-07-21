@@ -22,7 +22,7 @@
 #pragma once
 
 #include "EntityView.h"
-#include <ObjectivelyMVC/KeyValueTableView.h>
+#include <ObjectivelyMVC/TableView.h>
 
 #include <ObjectivelyMVC/Box.h>
 #include <ObjectivelyMVC/Button.h>
@@ -80,12 +80,26 @@ struct EntityViewController {
   /**
    * @brief The scrollable table of the entity's key-value pairs.
    */
-  KeyValueTableView *pairs;
+  TableView *pairs;
 
   /**
    * @brief The scrollable table of the team entity's key-value pairs.
    */
-  KeyValueTableView *teamPairs;
+  TableView *teamPairs;
+
+  /**
+   * @brief The EntityViews backing `pairs`' rows (one per non-add row), rebuilt each
+   * `setEntity`. Retained by this Array (see EntityView::dealloc for why an
+   * EntityView must outlive its row: its key/value TextViews reference it as their
+   * delegate); emptied at the start of each `setEntity` to tear down the previous
+   * selection's EntityViews before building the new ones.
+   */
+  Array *entityViews;
+
+  /**
+   * @brief The EntityViews backing `teamPairs`' rows. See `entityViews`.
+   */
+  Array *teamEntityViews;
 
   /**
    * @brief The EntityView for adding a new key-value pair to the current entity.
@@ -118,6 +132,20 @@ struct EntityViewController {
    * @details Toggled via the 'G' key.
    */
   bool show_func_groups;
+
+  /**
+   * @brief True while a `didEditEntity`/`didEditTeamEntity` commit is writing the edited
+   * entity back (`cgi.WriteEntityInfoCommand`).
+   * @details On a local/listen server that round-trip can resolve synchronously, delivering
+   * `NOTIFICATION_ENTITY_PARSED` for the same entity before the originating TextView's
+   * `didEndEditing` has returned. Without this guard, the resulting `setEntity` call tears down
+   * (`TableView_RemoveAllRows` + `entityViews`/`teamEntityViews removeAllObjects`) the very
+   * EntityView/TextView whose callback is still on the stack, releasing (and dealloc'ing) them
+   * out from under themselves -- a use-after-free that surfaces as a hang or silent crash, not a
+   * clean error. `setEntity` checks this and no-ops while it's set; the values just committed are
+   * already reflected in the UI, so skipping the rebuild loses nothing for this entity.
+   */
+  bool applyingEdit;
 
 };
 
