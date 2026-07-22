@@ -67,6 +67,13 @@ cvar_t *r_window_height;
 cvar_t *r_window_width;
 cvar_t *r_draw_stats;
 
+#if BUILD_RTX
+static cvar_t *r_rtx_smoke;
+static r_rtx_device_t r_rtx_device;
+static r_rtx_output_t r_rtx_output;
+static r_rtx_bridge_t r_rtx_bridge;
+#endif
+
 /**
  * @brief MSAA sample count for the 3D scene.
  */
@@ -285,6 +292,20 @@ void R_DrawViewDepth(r_view_t *view) {
 /**
  * @brief Draws the main view.
  */
+#if BUILD_RTX
+static void R_Rtx_SmokeDraw(void) {
+  if (!r_rtx_smoke->integer || !r_context.device->commands) return;
+  const VkExtent2D extent = { (uint32_t) r_context.device->framebuffer->size.w, (uint32_t) r_context.device->framebuffer->size.h };
+  if (!r_rtx_device.device && !R_Rtx_DeviceInit(&r_rtx_device)) { r_rtx_smoke->integer = 0; return; }
+  if (r_rtx_output.extent.width != extent.width || r_rtx_output.extent.height != extent.height) {
+    R_Rtx_BridgeShutdown(&r_rtx_bridge); R_Rtx_OutputShutdown(&r_rtx_device, &r_rtx_output);
+    if (!R_Rtx_OutputInit(&r_rtx_device, &r_rtx_output, extent) || !R_Rtx_BridgeInit(&r_rtx_bridge, extent)) { r_rtx_smoke->integer = 0; return; }
+  }
+  const float color[] = { .08f, .01f, .12f, 1.f };
+  if (R_Rtx_OutputClear(&r_rtx_device, &r_rtx_output, color)) { R_Rtx_BridgeUpload(&r_rtx_bridge, &r_rtx_output); R_Rtx_BridgeDraw(&r_rtx_bridge); }
+}
+#endif
+
 void R_DrawMainView(r_view_t *view) {
 
   assert(view);
@@ -332,6 +353,9 @@ void R_DrawMainView(r_view_t *view) {
   pass = release(pass);
 
   $(framebuffer, swap);
+#if BUILD_RTX
+  R_Rtx_SmokeDraw();
+#endif
 }
 
 /**
@@ -360,6 +384,9 @@ static void R_InitLocal(void) {
   r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
   r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
   r_draw_stats = Cvar_Add("r_draw_stats", "0", CVAR_DEVELOPER, "Draw renderer performance statistics (developer tool).");
+#if BUILD_RTX
+  r_rtx_smoke = Cvar_Add("r_rtx_smoke", "0", CVAR_DEVELOPER, "Draw the native Vulkan RTX output bridge (developer tool).");
+#endif
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
 
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
@@ -484,6 +511,12 @@ void R_Init(void) {
 void R_Shutdown(void) {
 
   Cmd_RemoveAll(CMD_RENDERER);
+
+#if BUILD_RTX
+  R_Rtx_BridgeShutdown(&r_rtx_bridge);
+  R_Rtx_OutputShutdown(&r_rtx_device, &r_rtx_output);
+  R_Rtx_DeviceShutdown(&r_rtx_device);
+#endif
 
   R_ShutdownDraw3D();
   R_ShutdownPost();

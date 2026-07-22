@@ -32,6 +32,17 @@ typedef struct {
 bool R_Rtx_DeviceInit(r_rtx_device_t *device);
 
 /**
+ * @brief Submits an empty command buffer to verify the native RTX queue.
+ */
+bool R_Rtx_DeviceSmokeTest(const r_rtx_device_t *device);
+
+/**
+ * @brief Finds a memory type matching the Vulkan allocation requirements.
+ */
+bool R_Rtx_FindMemoryType(const r_rtx_device_t *device, uint32_t type_bits,
+                          VkMemoryPropertyFlags properties, uint32_t *memory_type);
+
+/**
  * @brief Waits for and releases a device created by R_Rtx_DeviceInit.
  */
 void R_Rtx_DeviceShutdown(r_rtx_device_t *device);

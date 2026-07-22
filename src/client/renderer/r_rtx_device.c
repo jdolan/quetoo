@@ -217,6 +217,58 @@ bool R_Rtx_DeviceInit(r_rtx_device_t *device) {
   return true;
 }
 
+bool R_Rtx_DeviceSmokeTest(const r_rtx_device_t *device) {
+  assert(device);
+  assert(device->device);
+  assert(device->command_pool);
+
+  VkCommandBuffer command;
+  const VkCommandBufferAllocateInfo allocate = {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+    .commandPool = device->command_pool,
+    .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+    .commandBufferCount = 1,
+  };
+  if (vkAllocateCommandBuffers(device->device, &allocate, &command) != VK_SUCCESS) {
+    return false;
+  }
+
+  const VkCommandBufferBeginInfo begin = {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+    .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+  };
+  bool succeeded = vkBeginCommandBuffer(command, &begin) == VK_SUCCESS &&
+                   vkEndCommandBuffer(command) == VK_SUCCESS;
+  if (succeeded) {
+    const VkSubmitInfo submit = {
+      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+      .commandBufferCount = 1,
+      .pCommandBuffers = &command,
+    };
+    succeeded = vkQueueSubmit(device->queue, 1, &submit, VK_NULL_HANDLE) == VK_SUCCESS &&
+                vkQueueWaitIdle(device->queue) == VK_SUCCESS;
+  }
+
+  vkFreeCommandBuffers(device->device, device->command_pool, 1, &command);
+  return succeeded;
+}
+
+bool R_Rtx_FindMemoryType(const r_rtx_device_t *device, uint32_t type_bits,
+                          VkMemoryPropertyFlags properties, uint32_t *memory_type) {
+  VkPhysicalDeviceMemoryProperties memory;
+  vkGetPhysicalDeviceMemoryProperties(device->physical_device, &memory);
+
+  for (uint32_t i = 0; i < memory.memoryTypeCount; i++) {
+    if ((type_bits & (1u << i)) &&
+        (memory.memoryTypes[i].propertyFlags & properties) == properties) {
+      *memory_type = i;
+      return true;
+    }
+  }
+
+  return false;
+}
+
 void R_Rtx_DeviceShutdown(r_rtx_device_t *device) {
   if (!device) {
     return;
