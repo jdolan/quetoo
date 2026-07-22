@@ -29,6 +29,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_depth_pass.c" />
     <ClCompile Include="..\..\src\client\renderer\r_draw_2d.c" />
     <ClCompile Include="..\..\src\client\renderer\r_draw_3d.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_rtx_device.c" />
     <ClCompile Include="..\..\src\client\renderer\r_entity.c" />
     <ClCompile Include="..\..\src\client\renderer\r_image.c" />
     <ClCompile Include="..\..\src\client\renderer\r_light.c" />
@@ -43,6 +44,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_model.c" />
     <ClCompile Include="..\..\src\client\renderer\r_occlude.c" />
     <ClCompile Include="..\..\src\client\renderer\r_post.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_rtx_probe.c" />
     <ClCompile Include="..\..\src\client\renderer\r_shadow.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sprite.c" />
@@ -59,6 +61,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_depth_pass.h" />
     <ClInclude Include="..\..\src\client\renderer\r_draw_2d.h" />
     <ClInclude Include="..\..\src\client\renderer\r_draw_3d.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_rtx_device.h" />
     <ClInclude Include="..\..\src\client\renderer\r_entity.h" />
     <ClInclude Include="..\..\src\client\renderer\r_image.h" />
     <ClInclude Include="..\..\src\client\renderer\r_light.h" />
@@ -74,6 +77,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_model.h" />
     <ClInclude Include="..\..\src\client\renderer\r_occlude.h" />
     <ClInclude Include="..\..\src\client\renderer\r_post.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_rtx_probe.h" />
     <ClInclude Include="..\..\src\client\renderer\r_shadow.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sky.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sprite.h" />

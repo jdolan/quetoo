@@ -398,6 +398,10 @@ static void R_InitLocal(void) {
   Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
   Cmd_Add("r_save_mesh_configs", R_SaveMeshConfigs_f, CMD_RENDERER, "Write the mesh configs for the named model to disk (developer tool).");
   Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot.");
+
+#if BUILD_RTX
+  Cmd_Add("r_rtx_probe", R_Rtx_Probe_f, CMD_RENDERER, "Report whether a native Vulkan RTX device is available.");
+#endif
 }
 
 /**

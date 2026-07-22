@@ -98,6 +98,9 @@
     <ClCompile Include="..\..\src\client\renderer\r_post.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_rtx_probe.c">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_shadow.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -132,6 +135,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_draw_3d.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_rtx_device.c">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_entity.c">
@@ -181,6 +187,9 @@
     <ClInclude Include="..\..\src\client\renderer\r_post.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_rtx_probe.h">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_shadow.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -221,6 +230,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_draw_3d.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_rtx_device.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_entity.h">

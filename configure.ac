@@ -157,6 +157,31 @@ dnl ------------------------
 
 PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC >= 2.0.0])
 
+dnl ------------------------------------
+dnl Optionally check for Vulkan RTX (default: auto)
+dnl ------------------------------------
+dnl The SDL_gpu renderer remains the default renderer. The optional Vulkan
+dnl dependency is for the native RTX backend, which needs ray-tracing pipeline
+dnl and acceleration-structure entry points that SDL_gpu does not expose.
+AC_ARG_ENABLE([rtx],
+  [AS_HELP_STRING([--enable-rtx], [build the native Vulkan RTX backend (default: auto)])],
+  [enable_rtx=$enableval], [enable_rtx=auto])
+
+have_rtx=no
+AS_IF([test "x$enable_rtx" != "xno"], [
+  AC_CHECK_LIB([vulkan], [vkCreateInstance],
+    [AC_CHECK_HEADER([vulkan/vulkan.h], [have_rtx=yes], [have_rtx=no])],
+    [have_rtx=no])
+])
+AS_IF([test "x$enable_rtx" = "xyes" -a "x$have_rtx" = "xno"],
+  [AC_MSG_ERROR([--enable-rtx given but the Vulkan loader or headers were not found])])
+AS_IF([test "x$have_rtx" = "xyes"], [
+  AC_DEFINE([BUILD_RTX], [1], [Define to 1 to build the native Vulkan RTX backend.])
+  VULKAN_LIBS="-lvulkan"
+])
+AC_SUBST([VULKAN_LIBS])
+AM_CONDITIONAL([BUILD_RTX], [test "x$have_rtx" = "xyes"])
+
 dnl ------------------------------------------------
 dnl Check for offline shader cross-compilation tools
 dnl ------------------------------------------------

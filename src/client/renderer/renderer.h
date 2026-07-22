@@ -34,6 +34,7 @@
 #include "r_depth_pass.h"
 #include "r_draw_2d.h"
 #include "r_draw_3d.h"
+#include "r_rtx_device.h"
 #include "r_entity.h"
 #include "r_image.h"
 #include "r_light.h"
@@ -49,6 +50,7 @@
 #include "r_occlude.h"
 
 #include "r_post.h"
+#include "r_rtx_probe.h"
 #include "r_shadow.h"
 #include "r_sky.h"
 #include "r_sprite.h"

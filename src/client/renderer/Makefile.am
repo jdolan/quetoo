@@ -13,6 +13,7 @@ noinst_HEADERS = \
 	r_depth_pass.h \
 	r_draw_2d.h \
 	r_draw_3d.h \
+	r_rtx_device.h \
 	r_entity.h \
 	r_image.h \
 	r_light.h \
@@ -28,6 +29,7 @@ noinst_HEADERS = \
 	r_model.h \
 	r_occlude.h \
 	r_post.h \
+	r_rtx_probe.h \
 	r_shadow.h \
 	r_sky.h \
 	r_sprite.h \
@@ -66,6 +68,12 @@ librenderer_la_SOURCES = \
 	r_sky.c \
 	r_sprite.c
 
+if BUILD_RTX
+librenderer_la_SOURCES += \
+	r_rtx_device.c \
+	r_rtx_probe.c
+endif
+
 librenderer_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/client \
@@ -79,4 +87,5 @@ librenderer_la_LDFLAGS = \
 	
 librenderer_la_LIBADD = \
 	$(top_builddir)/src/common/libcommon.la \
-	@OBJECTIVELYGPU_LIBS@
+	@OBJECTIVELYGPU_LIBS@ \
+	@VULKAN_LIBS@
