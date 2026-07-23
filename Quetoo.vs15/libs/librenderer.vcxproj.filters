@@ -167,6 +167,9 @@
     <ClCompile Include="..\..\src\client\renderer\r_rtx_output.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_rtx_renderer.c">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_entity.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -263,6 +266,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_rtx_output.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_rtx_renderer.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_entity.h">
