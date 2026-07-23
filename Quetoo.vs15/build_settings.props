@@ -8,7 +8,7 @@
   <!-- SDL3 (core via ObjectivelyGPU, plus SDL3_image and SDL3_ttf from
        ObjectivelyMVC) is fetched on demand by this imported targets file, which
        defines $(SDL3Dir), $(SDL3ImageDir), $(SDL3TtfDir) and $(SDL3LibArch). -->
-  <Import Project="..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\sdl3.targets" />
+  <Import Project="..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\sdl3.targets" Condition="Exists('..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\sdl3.targets')" />
 
   <!-- This props file is imported before Microsoft.Cpp.props, which only sets
        the default Include/LibraryPath (Windows SDK + CRT dirs) when they are
@@ -112,14 +112,20 @@
     <QuetooFreeTypeLibraryPath>$(QuetooFreeTypePath)lib\$(Platform)\</QuetooFreeTypeLibraryPath>
 
     <!-- SDL3 search paths come from the imported sdl3.targets (downloaded on demand). -->
-    <QuetooSDLIncludePath>$(SDL3Dir)include\</QuetooSDLIncludePath>
-    <QuetooSDLLibraryPath>$(SDL3Dir)lib\$(SDL3LibArch)\</QuetooSDLLibraryPath>
+    <QuetooSDLIncludePath Condition="'$(SDL3Dir)'!=''">$(SDL3Dir)include\</QuetooSDLIncludePath>
+    <QuetooSDLLibraryPath Condition="'$(SDL3Dir)'!=''">$(SDL3Dir)lib\$(SDL3LibArch)\</QuetooSDLLibraryPath>
+    <QuetooSDLIncludePath Condition="'$(SDL3Dir)'==''">$(QuetooObjectivelyMVCLibsPath)sdl\</QuetooSDLIncludePath>
+    <QuetooSDLLibraryPath Condition="'$(SDL3Dir)'==''">$(QuetooObjectivelyMVCLibsPath)sdl\lib\$(Platform)\</QuetooSDLLibraryPath>
 
-    <QuetooSDLTTFIncludePath>$(SDL3TtfDir)include\</QuetooSDLTTFIncludePath>
-    <QuetooSDLTTFLibraryPath>$(SDL3TtfDir)lib\$(SDL3LibArch)\</QuetooSDLTTFLibraryPath>
+    <QuetooSDLTTFIncludePath Condition="'$(SDL3TtfDir)'!=''">$(SDL3TtfDir)include\</QuetooSDLTTFIncludePath>
+    <QuetooSDLTTFLibraryPath Condition="'$(SDL3TtfDir)'!=''">$(SDL3TtfDir)lib\$(SDL3LibArch)\</QuetooSDLTTFLibraryPath>
+    <QuetooSDLTTFIncludePath Condition="'$(SDL3TtfDir)'==''">$(QuetooObjectivelyMVCLibsPath)sdl\</QuetooSDLTTFIncludePath>
+    <QuetooSDLTTFLibraryPath Condition="'$(SDL3TtfDir)'==''">$(QuetooObjectivelyMVCLibsPath)sdl\lib\$(Platform)\</QuetooSDLTTFLibraryPath>
 
-    <QuetooSDLImageIncludePath>$(SDL3ImageDir)include\</QuetooSDLImageIncludePath>
-    <QuetooSDLImageLibraryPath>$(SDL3ImageDir)lib\$(SDL3LibArch)\</QuetooSDLImageLibraryPath>
+    <QuetooSDLImageIncludePath Condition="'$(SDL3ImageDir)'!=''">$(SDL3ImageDir)include\</QuetooSDLImageIncludePath>
+    <QuetooSDLImageLibraryPath Condition="'$(SDL3ImageDir)'!=''">$(SDL3ImageDir)lib\$(SDL3LibArch)\</QuetooSDLImageLibraryPath>
+    <QuetooSDLImageIncludePath Condition="'$(SDL3ImageDir)'==''">$(QuetooObjectivelyMVCLibsPath)sdl\</QuetooSDLImageIncludePath>
+    <QuetooSDLImageLibraryPath Condition="'$(SDL3ImageDir)'==''">$(QuetooObjectivelyMVCLibsPath)sdl\lib\$(Platform)\</QuetooSDLImageLibraryPath>
 
     <QuetoolibsndfilePath>$(QuetooLibsPath)libsndfile\</QuetoolibsndfilePath>
     <QuetoolibsndfileIncludePath>$(QuetoolibsndfilePath)\include</QuetoolibsndfileIncludePath>
