@@ -77,6 +77,18 @@ bool R_Rtx_OutputInit(const r_rtx_device_t *device, r_rtx_output_t *output, VkEx
     return false;
   }
 
+  const VkImageViewCreateInfo image_view = {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+    .image = output->image,
+    .viewType = VK_IMAGE_VIEW_TYPE_2D,
+    .format = VK_FORMAT_R8G8B8A8_UNORM,
+    .subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 },
+  };
+  if (vkCreateImageView(device->device, &image_view, NULL, &output->image_view) != VK_SUCCESS) {
+    R_Rtx_OutputShutdown(device, output);
+    return false;
+  }
+
   const VkBufferCreateInfo readback = {
     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
     .size = (VkDeviceSize) extent.width * extent.height * 4,
@@ -149,6 +161,27 @@ bool R_Rtx_OutputClear(const r_rtx_device_t *device, r_rtx_output_t *output, con
   return succeeded;
 }
 
+bool R_Rtx_OutputReadback(const r_rtx_device_t *device, r_rtx_output_t *output, VkCommandBuffer command) {
+  const VkImageMemoryBarrier to_read = {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+    .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+    .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+    .newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+    .image = output->image,
+    .subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 },
+  };
+  vkCmdPipelineBarrier(command, VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
+                       VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &to_read);
+  vkCmdCopyImageToBuffer(command, output->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                         output->readback, 1, &(VkBufferImageCopy) {
+                           .imageSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 },
+                           .imageExtent = { output->extent.width, output->extent.height, 1 },
+                         });
+  output->layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+  return true;
+}
+
 void R_Rtx_OutputShutdown(const r_rtx_device_t *device, r_rtx_output_t *output) {
   if (!output) {
     return;
@@ -158,6 +191,7 @@ void R_Rtx_OutputShutdown(const r_rtx_device_t *device, r_rtx_output_t *output) 
   }
   if (output->readback) vkDestroyBuffer(device->device, output->readback, NULL);
   if (output->readback_memory) vkFreeMemory(device->device, output->readback_memory, NULL);
+  if (output->image_view) vkDestroyImageView(device->device, output->image_view, NULL);
   if (output->image) vkDestroyImage(device->device, output->image, NULL);
   if (output->image_memory) vkFreeMemory(device->device, output->image_memory, NULL);
   memset(output, 0, sizeof(*output));

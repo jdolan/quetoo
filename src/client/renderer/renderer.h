@@ -37,6 +37,7 @@
 #include "r_rtx_device.h"
 #include "r_rtx_bridge.h"
 #include "r_rtx_output.h"
+#include "r_rtx_scene.h"
 #include "r_entity.h"
 #include "r_image.h"
 #include "r_light.h"

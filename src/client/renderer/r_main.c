@@ -324,13 +324,14 @@ static bool R_Rtx_EnsureOutput(VkExtent2D extent) {
   return true;
 }
 
-static void R_Rtx_Draw(void) {
+static void R_Rtx_Draw(const r_view_t *view) {
   if ((!r_rtx->integer && !r_rtx_smoke->integer) || !r_context.device->commands) {
     return;
   }
 
   const bool smoke = r_rtx_smoke->integer != 0;
-  const VkExtent2D extent = smoke ? (VkExtent2D) {
+  const bool scene = r_rtx->integer != 0 && !smoke;
+  const VkExtent2D extent = (smoke || scene) ? (VkExtent2D) {
     (uint32_t) r_context.device->framebuffer->size.w,
     (uint32_t) r_context.device->framebuffer->size.h
   } : (VkExtent2D) { 256, 64 };
@@ -340,7 +341,9 @@ static void R_Rtx_Draw(void) {
   }
 
   const float color[] = { .08f, .01f, .12f, 1.f };
-  if (!R_Rtx_OutputClear(&r_rtx_device, &r_rtx_output, color) ||
+  const bool rendered = scene ? R_Rtx_SceneRender(&r_rtx_device, &r_rtx_output, view) :
+      R_Rtx_OutputClear(&r_rtx_device, &r_rtx_output, color);
+  if (!rendered ||
       !R_Rtx_BridgeUpload(&r_rtx_bridge, &r_rtx_output)) {
     Com_Warn("Native Vulkan RTX frame failed; disabling r_rtx.\n");
     r_rtx->integer = 0;
@@ -348,9 +351,11 @@ static void R_Rtx_Draw(void) {
     return;
   }
 
-  if (smoke) {
+  if (smoke || scene) {
     R_Rtx_BridgeDraw(&r_rtx_bridge, 0, 0, r_context.w, r_context.h, color_white);
-    return;
+    if (!r_rtx_overlay->integer) {
+      return;
+    }
   }
 
   if (r_rtx_overlay->integer) {
@@ -358,9 +363,11 @@ static void R_Rtx_Draw(void) {
     const int32_t h = 64;
     const int32_t x = r_context.w > w + 36 ? r_context.w - w - 24 : 12;
     const int32_t y = r_context.h > h + 36 ? r_context.h - h - 24 : 12;
-    R_Rtx_BridgeDraw(&r_rtx_bridge, x, y, w, h, Color4f(1.f, 1.f, 1.f, .72f));
+    if (!scene) {
+      R_Rtx_BridgeDraw(&r_rtx_bridge, x, y, w, h, Color4f(1.f, 1.f, 1.f, .72f));
+    }
     R_Draw2DString(x + 14, y + 14, "RTX/VK", color_white);
-    R_Draw2DString(x + 14, y + 34, "native Vulkan active", color_white);
+    R_Draw2DString(x + 14, y + 34, scene ? "ray-traced scene active" : "native Vulkan active", color_white);
   }
 }
 #endif
@@ -413,7 +420,7 @@ void R_DrawMainView(r_view_t *view) {
 
   $(framebuffer, swap);
 #if BUILD_RTX
-  R_Rtx_Draw();
+  R_Rtx_Draw(view);
 #endif
 }
 
@@ -585,6 +592,7 @@ void R_Shutdown(void) {
   Cmd_RemoveAll(CMD_RENDERER);
 
 #if BUILD_RTX
+  R_Rtx_SceneShutdown(&r_rtx_device);
   R_Rtx_BridgeShutdown(&r_rtx_bridge);
   R_Rtx_OutputShutdown(&r_rtx_device, &r_rtx_output);
   R_Rtx_DeviceShutdown(&r_rtx_device);

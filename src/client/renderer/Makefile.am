@@ -16,6 +16,7 @@ noinst_HEADERS = \
 	r_rtx_device.h \
 	r_rtx_bridge.h \
 	r_rtx_output.h \
+	r_rtx_scene.h \
 	r_entity.h \
 	r_image.h \
 	r_light.h \
@@ -75,6 +76,7 @@ librenderer_la_SOURCES += \
 	r_rtx_device.c \
 	r_rtx_bridge.c \
 	r_rtx_output.c \
+	r_rtx_scene.c \
 	r_rtx_probe.c
 endif
 
