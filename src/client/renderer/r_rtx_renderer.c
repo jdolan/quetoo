@@ -62,9 +62,9 @@ static bool R_Rtx_EnsureOutput(VkExtent2D extent) {
   return true;
 }
 
-void R_Rtx_RenderView(const r_view_t *view) {
+bool R_Rtx_RenderView(const r_view_t *view) {
   if ((!r_rtx->integer && !r_rtx_smoke->integer) || !r_context.device->commands) {
-    return;
+    return false;
   }
 
   const bool smoke = r_rtx_smoke->integer != 0;
@@ -75,7 +75,7 @@ void R_Rtx_RenderView(const r_view_t *view) {
   } : (VkExtent2D) { 256, 64 };
 
   if (!R_Rtx_EnsureOutput(extent)) {
-    return;
+    return false;
   }
 
   const float color[] = { .08f, .01f, .12f, 1.f };
@@ -85,13 +85,13 @@ void R_Rtx_RenderView(const r_view_t *view) {
     Com_Warn("Native Vulkan RTX frame failed; disabling r_rtx.\n");
     Cvar_ForceSetInteger(r_rtx->name, 0);
     Cvar_ForceSetInteger(r_rtx_smoke->name, 0);
-    return;
+    return false;
   }
 
   if (smoke || scene) {
     R_Rtx_BridgeDraw(&r_rtx_bridge, 0, 0, r_context.w, r_context.h, color_white);
     if (!r_rtx_overlay->integer) {
-      return;
+      return true;
     }
   }
 
@@ -106,6 +106,8 @@ void R_Rtx_RenderView(const r_view_t *view) {
     R_Draw2DString(x + 14, y + 14, "RTX/VK", color_white);
     R_Draw2DString(x + 14, y + 34, scene ? "ray-traced scene active" : "native Vulkan active", color_white);
   }
+
+  return smoke || scene;
 }
 
 void R_Rtx_InitLocal(void) {

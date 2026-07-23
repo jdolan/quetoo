@@ -20,9 +20,11 @@ void R_Rtx_InitLocal(void);
 void R_Rtx_InitCommands(void);
 
 /**
- * @brief Lets the isolated RTX/Vulkan renderer draw or overlay the main view.
+ * @brief Lets the isolated RTX/Vulkan renderer draw the main view.
+ * @return True if the view was handled and the normal renderer should skip its
+ * main-view path, false if the normal renderer should draw as usual.
  */
-void R_Rtx_RenderView(const r_view_t *view);
+bool R_Rtx_RenderView(const r_view_t *view);
 
 /**
  * @brief Releases all RTX/Vulkan renderer state.

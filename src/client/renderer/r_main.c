@@ -289,6 +289,12 @@ void R_DrawMainView(r_view_t *view) {
 
   assert(view);
 
+#if BUILD_RTX
+  if (R_Rtx_RenderView(view)) {
+    return;
+  }
+#endif
+
   CommandBuffer *commands = r_context.device->commands;
 
   CopyPass *copyPass = $(commands, beginCopyPass);
@@ -332,9 +338,6 @@ void R_DrawMainView(r_view_t *view) {
   pass = release(pass);
 
   $(framebuffer, swap);
-#if BUILD_RTX
-  R_Rtx_RenderView(view);
-#endif
 }
 
 /**
