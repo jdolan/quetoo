@@ -39,9 +39,10 @@ bool R_Rtx_BridgeUpload(r_rtx_bridge_t *bridge, const r_rtx_output_t *output) {
   return true;
 }
 
-void R_Rtx_BridgeDraw(const r_rtx_bridge_t *bridge) {
+void R_Rtx_BridgeDraw(const r_rtx_bridge_t *bridge, int32_t x, int32_t y,
+                      int32_t w, int32_t h, color_t color) {
   r_image_t image = { .texture = bridge->texture };
-  R_Draw2DImage(0, 0, r_context.w, r_context.h, &image, color_white);
+  R_Draw2DImage(x, y, w, h, &image, color);
 }
 
 void R_Rtx_BridgeShutdown(r_rtx_bridge_t *bridge) {

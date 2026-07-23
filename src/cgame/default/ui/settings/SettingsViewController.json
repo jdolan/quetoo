@@ -152,6 +152,32 @@
                         },
                         {
                           "class": "Input",
+                          "identifier": "rtx",
+                          "label": {
+                            "text": {
+                              "text": "RTX / Vulkan"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarCheckbox",
+                            "var": "r_rtx"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "identifier": "rtxOverlay",
+                          "label": {
+                            "text": {
+                              "text": "RTX status tile"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarCheckbox",
+                            "var": "r_rtx_overlay"
+                          }
+                        },
+                        {
+                          "class": "Input",
                           "label": {
                             "text": {
                               "text": "Anisotropy"
