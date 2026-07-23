@@ -75,6 +75,30 @@
     <None Include="..\..\src\client\renderer\shaders\voxel.glsl">
       <Filter>src\shaders</Filter>
     </None>
+    <None Include="..\..\src\client\renderer\shaders\rtx.rchit">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\rtx.rchit.spv">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\rtx.rgen">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\rtx.rgen.spv">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\rtx.rmiss">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\rtx.rmiss.spv">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\rtx_shadow.rmiss">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\rtx_shadow.rmiss.spv">
+      <Filter>src\shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\client\renderer\r_mesh_draw.c">
@@ -96,6 +120,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_post.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_rtx_probe.c">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_shadow.c">
@@ -132,6 +159,15 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_draw_3d.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_rtx_device.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_rtx_output.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_rtx_renderer.c">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_entity.c">
@@ -181,6 +217,9 @@
     <ClInclude Include="..\..\src\client\renderer\r_post.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_rtx_probe.h">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_shadow.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -221,6 +260,15 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_draw_3d.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_rtx_device.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_rtx_output.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_rtx_renderer.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_entity.h">

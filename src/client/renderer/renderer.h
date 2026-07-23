@@ -34,6 +34,7 @@
 #include "r_depth_pass.h"
 #include "r_draw_2d.h"
 #include "r_draw_3d.h"
+#include "r_rtx_renderer.h"
 #include "r_entity.h"
 #include "r_image.h"
 #include "r_light.h"

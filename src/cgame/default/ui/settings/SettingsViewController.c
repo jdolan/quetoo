@@ -195,6 +195,7 @@ static void loadView(ViewController *self) {
   release(view);
 
   Select *windowMode, *resolution, *verticalSync, *anisotropy, *antialias, *quality;
+  View *rtx, *rtxOverlay;
   Button *apply;
 
   Outlet outlets[] = MakeOutlets(
@@ -204,10 +205,17 @@ static void loadView(ViewController *self) {
     MakeOutlet("anisotropy", &anisotropy),
     MakeOutlet("antialias", &antialias),
     MakeOutlet("quality", &quality),
+    MakeOutlet("rtx", &rtx),
+    MakeOutlet("rtxOverlay", &rtxOverlay),
     MakeOutlet("apply", &apply)
   );
 
   $(self->view, resolve, outlets);
+
+  if (!cgi.GetCvarInteger("r_rtx_supported")) {
+    rtx->hidden = true;
+    rtxOverlay->hidden = true;
+  }
 
   $(windowMode, addOption, "Window", (ident) 0);
   $(windowMode, addOption, "Fullscreen", (ident) 1);

@@ -280,7 +280,7 @@ void Sys_InstallDesktopEntry(void) {
     Com_Warn("Failed to install desktop entry: %s\n", desktop_dest);
   }
 
-  free(content);
+  SDL_free(content);
 
   // Register quetoo:// URI scheme handler for this user session.
   (void) system("update-desktop-database ~/.local/share/applications/ 2>/dev/null");
@@ -464,7 +464,7 @@ static void Sys_EnsureCrashLogPath(void) {
   SDL_asprintf(&dir, "%s/default", Sys_UserDir());
   SDL_CreateDirectory(dir);
   q_snprintf(sys_crash_log_path, sizeof(sys_crash_log_path), "%s/crash.log", dir);
-  free(dir);
+  SDL_free(dir);
 
 #if !defined(_WIN32)
   if (sys_crash_log_fd == -1) {
@@ -555,7 +555,7 @@ void Sys_Raise(const char *msg) {
                  VERSION, BUILD, msg, crash);
 
     char *encoded_body = Sys_UrlEncode(issue_body);
-    free(issue_body);
+    SDL_free(issue_body);
 
     char *issue_url = NULL;
     SDL_asprintf(&issue_url, "%s?title=Crash%%20Report&body=%s",
@@ -605,11 +605,11 @@ void Sys_Raise(const char *msg) {
         break;
     }
 
-    free(dialog_msg);
-    free(issue_url);
+    SDL_free(dialog_msg);
+    SDL_free(issue_url);
   }
 
-  free(crash);
+  SDL_free(crash);
 
 #if defined(_MSC_VER)
   RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, NULL);

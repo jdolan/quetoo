@@ -289,6 +289,12 @@ void R_DrawMainView(r_view_t *view) {
 
   assert(view);
 
+#if BUILD_RTX
+  if (R_Rtx_RenderView(view)) {
+    return;
+  }
+#endif
+
   CommandBuffer *commands = r_context.device->commands;
 
   CopyPass *copyPass = $(commands, beginCopyPass);
@@ -360,6 +366,9 @@ static void R_InitLocal(void) {
   r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
   r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
   r_draw_stats = Cvar_Add("r_draw_stats", "0", CVAR_DEVELOPER, "Draw renderer performance statistics (developer tool).");
+#if BUILD_RTX
+  R_Rtx_InitLocal();
+#endif
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
 
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
@@ -398,6 +407,10 @@ static void R_InitLocal(void) {
   Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
   Cmd_Add("r_save_mesh_configs", R_SaveMeshConfigs_f, CMD_RENDERER, "Write the mesh configs for the named model to disk (developer tool).");
   Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot.");
+
+#if BUILD_RTX
+  R_Rtx_InitCommands();
+#endif
 }
 
 /**
@@ -480,6 +493,10 @@ void R_Init(void) {
 void R_Shutdown(void) {
 
   Cmd_RemoveAll(CMD_RENDERER);
+
+#if BUILD_RTX
+  R_Rtx_RendererShutdown();
+#endif
 
   R_ShutdownDraw3D();
   R_ShutdownPost();
