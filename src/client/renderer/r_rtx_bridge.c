@@ -34,7 +34,7 @@ bool R_Rtx_BridgeUpload(r_rtx_bridge_t *bridge, const r_rtx_output_t *output) {
   memcpy(pixels, output->pixels, size);
   $(bridge->transfer, unmap);
   CopyPass *copy = $(r_context.device->commands, beginCopyPass);
-  $(copy, uploadTexture, &(SDL_GPUTextureTransferInfo) { .transfer_buffer = bridge->transfer->buffer, .pixels_per_row = output->extent.width, .rows_per_layer = output->extent.height }, &(SDL_GPUTextureRegion) { .texture = bridge->texture->texture, .w = output->extent.width, .h = output->extent.height, .d = 1 }, true);
+  $(copy, uploadTexture, &(SDL_GPUTextureTransferInfo) { .transfer_buffer = bridge->transfer->buffer, .pixels_per_row = output->extent.width, .rows_per_layer = output->extent.height }, &(SDL_GPUTextureRegion) { .texture = bridge->texture->texture, .w = output->extent.width, .h = output->extent.height, .d = 1 }, false);
   release(copy);
   return true;
 }
