@@ -5,6 +5,7 @@
 #if BUILD_RTX
 typedef struct {
   Texture *texture;
+  TransferBuffer *transfer;
   VkExtent2D extent;
 } r_rtx_bridge_t;
 
