@@ -56,11 +56,6 @@ typedef struct {
   Vector *brushes;
 
   /**
-   * @brief Persistent shadow cache flag for shadowmap optimization (light entities only).
-   */
-  bool shadow_cached;
-
-  /**
    * @brief The client-side entity state for `misc_*` (class, origin, think, etc.).
    */
   cg_entity_t misc;

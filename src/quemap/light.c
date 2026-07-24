@@ -276,6 +276,11 @@ void EmitLights(void) {
           contents = patch->contents;
         }
 
+        if (surface & SURF_ALPHA_TEST) {
+          $(alpha_test_faces, add, &face);
+          continue;
+        }
+
         if (contents & CONTENTS_MIST) {
           continue;
         }
@@ -285,11 +290,6 @@ void EmitLights(void) {
         }
 
         if (surface & SURF_LIQUID) {
-          continue;
-        }
-
-        if (surface & SURF_ALPHA_TEST) {
-          $(alpha_test_faces, add, &face);
           continue;
         }
 

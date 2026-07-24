@@ -98,8 +98,17 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 /**
  * @brief Updates entity state for the frame.
  */
-void R_UpdateEntities(r_view_t *view) {
-  
+void R_UpdateEntities(r_view_t *view, CopyPass *pass) {
+
+  r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+
+    if (e->model == NULL) {
+      continue;
+    }
+
+    R_ActiveDynamicLights(view, e->abs_model_bounds, &e->active_dynamic_lights);
+  }
 }
 
 /**

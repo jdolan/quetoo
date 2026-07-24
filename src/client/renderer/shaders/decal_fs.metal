@@ -48,7 +48,7 @@ struct light_t
 {
     float4 origin;
     float4 color;
-    float2 shadow;
+    float2 tile;
 };
 
 struct voxels_t
@@ -94,7 +94,7 @@ struct light_t_1
 {
     float4 origin;
     float4 color;
-    float2 shadow;
+    float2 tile;
 };
 
 struct bsp_lights_block
@@ -183,7 +183,7 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _56 
         int index = _246.voxel_light_indices[data.x + i];
         param_1.origin = _257.bsp_lights[index].origin;
         param_1.color = _257.bsp_lights[index].color;
-        param_1.shadow = _257.bsp_lights[index].shadow;
+        param_1.tile = _257.bsp_lights[index].tile;
         float3 param_2 = normal;
         light += decal_light(param_1, param_2, _56, in.in_model_position);
     }
@@ -198,7 +198,7 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _56 
         {
             param_5.origin = _287.dynamic_lights[j].origin;
             param_5.color = _287.dynamic_lights[j].color;
-            param_5.shadow = _287.dynamic_lights[j].shadow;
+            param_5.tile = _287.dynamic_lights[j].tile;
             float3 param_6 = normal;
             light += decal_light(param_5, param_6, _56, in.in_model_position);
         }

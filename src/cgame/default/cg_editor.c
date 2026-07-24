@@ -93,7 +93,6 @@ static vec4_t Cg_AddEditorEntity_Light(cg_editor_entity_t *edit) {
   light.intensity = light.intensity ?: 1.f;
   light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
   light.intensity = Cg_AnimateLight(light.intensity, style, drift);
-  light.shadow_cached = &edit->shadow_cached;
 
   cgi.AddLight(cgi.view, &light);
 
@@ -323,10 +322,6 @@ static void Cg_FreeEditorEntity(int16_t number) {
 void Cg_ParseEditorEntity(int16_t number, const char *info) {
 
   Cg_FreeEditorEntity(number);
-
-  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    cg_editor.entities[i].shadow_cached = false;
-  }
 
   if (*cgi.state == CL_ACTIVE && q_strlen(info)) {
     Cg_InitEditorEntity(number);

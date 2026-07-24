@@ -47,7 +47,7 @@ typedef struct {
   /**
    * @brief Shadow atlas tile origin, or (-1, -1) if the light has no shadow.
    */
-  vec2_t shadow;
+  vec2_t tile;
 } r_light_uniform_t;
 
 /**

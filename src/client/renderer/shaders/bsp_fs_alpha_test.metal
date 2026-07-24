@@ -48,7 +48,7 @@ struct light_t
 {
     float4 origin;
     float4 color;
-    float2 shadow;
+    float2 tile;
 };
 
 struct common_vertex_t
@@ -157,7 +157,7 @@ struct light_t_1
 {
     float4 origin;
     float4 color;
-    float2 shadow;
+    float2 tile;
 };
 
 struct bsp_lights_block
@@ -508,13 +508,13 @@ float sample_shadow_face(thread const int& face, thread const float3& uvw, depth
 static inline __attribute__((always_inline))
 float sample_shadow_atlas(thread const light_t& light, thread const common_vertex_t& v, thread const common_fragment_t& f, thread const float& atten, depth2d<float> texture_shadow_atlas_0, sampler texture_shadow_atlas_0Smplr, depth2d<float> texture_shadow_atlas_1, sampler texture_shadow_atlas_1Smplr, depth2d<float> texture_shadow_atlas_2, sampler texture_shadow_atlas_2Smplr, depth2d<float> texture_shadow_atlas_3, sampler texture_shadow_atlas_3Smplr, depth2d<float> texture_shadow_atlas_4, sampler texture_shadow_atlas_4Smplr, depth2d<float> texture_shadow_atlas_5, sampler texture_shadow_atlas_5Smplr)
 {
-    if (light.shadow.x < 0.0)
+    if (light.tile.x < 0.0)
     {
         return 1.0;
     }
     float2 texture_size = float2(int2(texture_shadow_atlas_0.get_width(), texture_shadow_atlas_0.get_height()));
     float tile_px = texture_size.x / 32.0;
-    float2 tile_origin = light.shadow / texture_size;
+    float2 tile_origin = light.tile / texture_size;
     float tile_uv = tile_px / texture_size.x;
     float3 light_to_frag = v.model_position - light.origin.xyz;
     float dist_to_light = length(light_to_frag);
@@ -791,7 +791,7 @@ void fragment_lighting(thread const common_vertex_t& v, thread common_fragment_t
             common_fragment_t param_5 = f;
             param_6.origin = _1586.bsp_lights[index].origin;
             param_6.color = _1586.bsp_lights[index].color;
-            param_6.shadow = _1586.bsp_lights[index].shadow;
+            param_6.tile = _1586.bsp_lights[index].tile;
             fragment_light(param_4, param_5, param_6, texture_material, texture_materialSmplr, material, _521, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr);
             f = param_5;
         }
@@ -809,7 +809,7 @@ void fragment_lighting(thread const common_vertex_t& v, thread common_fragment_t
             common_fragment_t param_10 = f;
             param_11.origin = _1616.dynamic_lights[j].origin;
             param_11.color = _1616.dynamic_lights[j].color;
-            param_11.shadow = _1616.dynamic_lights[j].shadow;
+            param_11.tile = _1616.dynamic_lights[j].tile;
             fragment_light(param_9, param_10, param_11, texture_material, texture_materialSmplr, material, _521, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr);
             f = param_10;
         }

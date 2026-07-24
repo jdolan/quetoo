@@ -72,7 +72,7 @@ struct light_t
 {
     float4 origin;
     float4 color;
-    float2 shadow;
+    float2 tile;
 };
 
 struct material_block
@@ -145,7 +145,7 @@ struct light_t_1
 {
     float4 origin;
     float4 color;
-    float2 shadow;
+    float2 tile;
 };
 
 struct bsp_lights_block
@@ -440,7 +440,7 @@ void vertex_lighting(thread common_vertex_t& v, constant material_block& materia
             common_vertex_t param_4 = v;
             param_5.origin = _852.bsp_lights[index].origin;
             param_5.color = _852.bsp_lights[index].color;
-            param_5.shadow = _852.bsp_lights[index].shadow;
+            param_5.tile = _852.bsp_lights[index].tile;
             v.diffuse += vertex_light(param_4, param_5, material, _160);
         }
     }
@@ -456,7 +456,7 @@ void vertex_lighting(thread common_vertex_t& v, constant material_block& materia
             common_vertex_t param_8 = v;
             param_9.origin = _883.dynamic_lights[j].origin;
             param_9.color = _883.dynamic_lights[j].color;
-            param_9.shadow = _883.dynamic_lights[j].shadow;
+            param_9.tile = _883.dynamic_lights[j].tile;
             v.diffuse += vertex_light(param_8, param_9, material, _160);
         }
     }

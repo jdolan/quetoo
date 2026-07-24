@@ -830,11 +830,6 @@ typedef struct {
   float drift;
 
   /**
-   * @brief True if this light's shadowmap can be reused from the previous frame.
-   */
-  bool shadow_cached;
-
-  /**
    * @brief The target entity for dynamic lights attached to inline model entities, or `NULL`.
    */
   cm_entity_t *target_entity;
@@ -1893,11 +1888,6 @@ typedef struct {
    * @brief The backing BSP light, for static light sources.
    */
   const r_bsp_light_t *bsp_light;
-
-  /**
-   * @brief Pointer to the shadow cache flag for this light.
-   */
-  bool *shadow_cached;
 
   /**
    * @brief The optional light source entity identifier.

@@ -44,7 +44,7 @@ struct light_t {
   /**
    * @brief Stores the shadow atlas tile origin in pixels, or (-1, -1) if the light has no shadow.
    */
-  vec2 shadow;
+  vec2 tile;
 };
 
 /**

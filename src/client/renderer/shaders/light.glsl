@@ -121,13 +121,13 @@ float sample_shadow_face(in int face, in vec3 uvw) {
  */
 float sample_shadow_atlas(in light_t light, in common_vertex_t v, in common_fragment_t f, in float atten) {
 
-  if (light.shadow.x < 0.0) {
+  if (light.tile.x < 0.0) {
     return 1.0;
   }
 
   vec2 texture_size = vec2(textureSize(texture_shadow_atlas_0, 0).xy);
   float tile_px = texture_size.x / float(SHADOW_ATLAS_LIGHTS_PER_ROW);
-  vec2 tile_origin = light.shadow.xy / texture_size;
+  vec2 tile_origin = light.tile.xy / texture_size;
   float tile_uv = tile_px / texture_size.x;
 
   vec3 light_to_frag = v.model_position - light.origin.xyz;

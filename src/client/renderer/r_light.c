@@ -88,7 +88,6 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
     r_light_uniform_t *out;
     if (l->bsp_light) {
       const ptrdiff_t index = (ptrdiff_t) (l->bsp_light - r_models.world->bsp->lights);
-      assert(index < bsp_lights->num_lights);
       out = &bsp_lights->lights[index];
     } else {
       if (num_dynamic_lights == MAX_DYNAMIC_LIGHTS) {
@@ -113,12 +112,16 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
       r_stats.lights_visible++;
     }
 
-    const int32_t light_col = i % SHADOW_ATLAS_LIGHTS_PER_ROW;
-    const int32_t light_row = i / SHADOW_ATLAS_LIGHTS_PER_ROW;
-    l->tile = Vec2((float) (light_col * r_shadow_atlas.tile_size),
-                   (float) (light_row * r_shadow_atlas.tile_size));
+    if (l->flags & R_LIGHT_NO_SHADOW) {
+      l->tile = Vec2(-1.f, -1.f);
+    } else {
+      const int32_t light_col = i % SHADOW_ATLAS_LIGHTS_PER_ROW;
+      const int32_t light_row = i / SHADOW_ATLAS_LIGHTS_PER_ROW;
+      l->tile = Vec2((float) (light_col * r_shadow_atlas.tile_size),
+                     (float) (light_row * r_shadow_atlas.tile_size));
+    }
 
-    out->shadow = (l->flags & R_LIGHT_NO_SHADOW) ? Vec2(-1.f, -1.f) : l->tile;
+    out->tile = l->tile;
   }
 
   dynamic_lights->num_lights = num_dynamic_lights;
@@ -136,20 +139,6 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
     for (int32_t i = 0; i < in->num_blocks; i++, block++) {
       R_ActiveDynamicLights(view, block->visible_bounds, &block->active_dynamic_lights);
     }
-  }
-
-  r_entity_t *e = view->entities;
-  for (int32_t i = 0; i < view->num_entities; i++, e++) {
-
-    if (e->model == NULL) {
-      continue;
-    }
-
-    if (IS_WORLDSPAWN(e->model)) {
-      continue;
-    }
-
-    R_ActiveDynamicLights(view, e->abs_model_bounds, &e->active_dynamic_lights);
   }
 }
 

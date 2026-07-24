@@ -48,7 +48,7 @@ struct light_t
 {
     float4 origin;
     float4 color;
-    float2 shadow;
+    float2 tile;
 };
 
 struct voxels_t
@@ -89,7 +89,7 @@ struct light_t_1
 {
     float4 origin;
     float4 color;
-    float2 shadow;
+    float2 tile;
 };
 
 struct bsp_lights_block
@@ -179,7 +179,7 @@ float3 sprite_lighting(thread const float3& position, constant uniforms_block& _
         int _218 = data.x + i;
         param_1.origin = _210.bsp_lights[_214.voxel_light_indices[_218]].origin;
         param_1.color = _210.bsp_lights[_214.voxel_light_indices[_218]].color;
-        param_1.shadow = _210.bsp_lights[_214.voxel_light_indices[_218]].shadow;
+        param_1.tile = _210.bsp_lights[_214.voxel_light_indices[_218]].tile;
         float3 param_2 = position;
         diffuse += sprite_light(param_1, param_2, _60);
     }
@@ -194,7 +194,7 @@ float3 sprite_lighting(thread const float3& position, constant uniforms_block& _
         {
             param_5.origin = _249.dynamic_lights[j].origin;
             param_5.color = _249.dynamic_lights[j].color;
-            param_5.shadow = _249.dynamic_lights[j].shadow;
+            param_5.tile = _249.dynamic_lights[j].tile;
             float3 param_6 = position;
             diffuse += sprite_light(param_5, param_6, _60);
         }

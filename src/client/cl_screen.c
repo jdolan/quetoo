@@ -152,7 +152,16 @@ static void Cl_DrawRendererStats(void) {
     R_Draw2DString(x, y, "Lights:", color_yellow);
     y += ch;
 
+    R_Draw2DString(x, y, va(" %d lights allocated", r_stats.lights_visible + r_stats.lights_occluded), color_yellow);
+    y += ch;
+
     R_Draw2DString(x, y, va(" %d lights visible", r_stats.lights_visible), color_yellow);
+    y += ch;
+
+    R_Draw2DString(x, y, va(" %d lights occluded", r_stats.lights_occluded), color_yellow);
+    y += ch;
+
+    R_Draw2DString(x, y, va(" %d lights cached", r_stats.lights_cached), color_yellow);
     y += ch;
   }
 

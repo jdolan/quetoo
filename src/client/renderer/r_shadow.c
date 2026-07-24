@@ -20,7 +20,7 @@
 r_shadow_atlas_t r_shadow_atlas;
 
 /**
- * @brief Per-face shadow locals, pushed to vertex uniform slot 1.
+ * @brief Per-face shadow uniform locals, pushed to vertex uniform slot 1.
  */
 typedef struct {
   mat4_t model;
@@ -33,6 +33,10 @@ typedef struct {
  * @brief Shadow draw pipelines, samplers, and per-face transient state.
  */
 static struct {
+  /**
+   * @brief If a given BSP light's only shadow caster is worldspawn, its shadowmap may be cached indefinitely.
+   */
+  bool cache[MAX_LIGHTS];
 
   /**
    * @brief The opaque BSP shadow pipeline.
@@ -146,10 +150,6 @@ void R_UpdateShadows(r_view_t *view) {
         continue;
       }
 
-      if (IS_WORLDSPAWN(e->model)) {
-        continue;
-      }
-
       if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
         continue;
       }
@@ -167,9 +167,13 @@ void R_UpdateShadows(r_view_t *view) {
       }
 
       l->entities[l->num_entities++] = e;
+
+      if (!IS_WORLDSPAWN(e->model)) {
+        r_shadow_draw.cache[i] = false;
+      }
     }
 
-    if (l->num_entities == 0 && l->shadow_cached && *l->shadow_cached) {
+    if (r_shadow_draw.cache[i]) {
       r_stats.lights_cached++;
     }
   }
@@ -199,7 +203,7 @@ void R_ClearShadows(const r_view_t *view) {
     const r_light_t *l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-      if (l->num_entities == 0 && l->shadow_cached && *l->shadow_cached) {
+      if (r_shadow_draw.cache[i]) {
         continue;
       }
 
@@ -207,6 +211,7 @@ void R_ClearShadows(const r_view_t *view) {
         .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
         .min_depth = 0.f, .max_depth = 1.f,
       });
+
       $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
 
       $(pass, drawPrimitives, 3, 1, 0, 0);
@@ -256,10 +261,7 @@ static GraphicsPipeline *R_DrawBspDrawElementsShadow(RenderPass *pass, const r_b
 }
 
 /**
- * @brief Draws the given BSP draw elements array (one lumped opaque entry plus one per
- * alpha-tested material) for shadow casting on the cube face currently tracked by
- * r_shadow_draw. Restores the opaque pipeline before returning, so callers can chain multiple
- * calls (e.g. across lights or inline-model entities) without redundant re-binds.
+ * @brief Draws the given BSP draw elements array, handling pipeline toggles for alpha-test.
  */
 static void R_DrawBspDrawElementsShadows(RenderPass *pass, const r_bsp_draw_elements_t *draw, int32_t count) {
 
@@ -275,8 +277,7 @@ static void R_DrawBspDrawElementsShadows(RenderPass *pass, const r_bsp_draw_elem
 }
 
 /**
- * @brief Draws BSP inline-model shadow geometry for one light and entity, on the cube face
- * currently tracked by r_shadow_draw.
+ * @brief Draws BSP inline-model shadow geometry for one light and entity.
  */
 static void R_DrawBspEntityShadows(const r_light_t *l, const r_entity_t *e, RenderPass *pass) {
 
@@ -293,12 +294,15 @@ static void R_DrawBspEntityShadows(const r_light_t *l, const r_entity_t *e, Rend
     .lerp = 0.f,
   }, sizeof(r_shadow_locals_t));
 
-  R_DrawBspDrawElementsShadows(pass, in->depth_pass_elements, in->num_depth_pass_elements);
+  if (IS_WORLDSPAWN(e->model) && l->bsp_light && l->bsp_light->num_draw_elements) {
+    R_DrawBspDrawElementsShadows(pass, l->bsp_light->draw_elements, l->bsp_light->num_draw_elements);
+  } else {
+    R_DrawBspDrawElementsShadows(pass, in->depth_pass_elements, in->num_depth_pass_elements);
+  }
 }
 
 /**
- * @brief Draws BSP world and inline-model shadow geometry for one light, on the cube face
- * currently tracked by r_shadow_draw.
+ * @brief Draws BSP inline-model shadow geometry for one light to the current shadow tile.
  */
 static void R_DrawBspEntitiesShadows(const r_view_t *view, const r_light_t *l, RenderPass *pass) {
 
@@ -310,21 +314,6 @@ static void R_DrawBspEntitiesShadows(const r_view_t *view, const r_light_t *l, R
   });
 
   $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
-
-  $(r_context.device->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &(const r_shadow_locals_t) {
-    .model = Mat4_Identity(),
-    .light_view = r_shadow_draw.light_view[r_shadow_draw.face],
-    .light_origin = Vec3_ToVec4(l->origin, l->radius),
-    .lerp = 0.f,
-  }, sizeof(r_shadow_locals_t));
-
-  if (l->bsp_light && l->bsp_light->num_draw_elements) {
-    R_DrawBspDrawElementsShadows(pass, l->bsp_light->draw_elements, l->bsp_light->num_draw_elements);
-  } else {
-    const r_bsp_model_t *bsp = r_models.world->bsp;
-    const r_bsp_inline_model_t *world = bsp->inline_models;
-    R_DrawBspDrawElementsShadows(pass, world->depth_pass_elements, world->num_depth_pass_elements);
-  }
 
   for (int32_t i = 0; i < l->num_entities; i++) {
 
@@ -460,7 +449,7 @@ void R_DrawShadows(const r_view_t *view) {
     const r_light_t *l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-      if (l->num_entities == 0 && l->shadow_cached && *l->shadow_cached) {
+      if (r_shadow_draw.cache[i]) {
         continue;
       }
 
@@ -472,7 +461,7 @@ void R_DrawShadows(const r_view_t *view) {
     l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-      if (l->num_entities == 0) {
+      if (r_shadow_draw.cache[i]) {
         continue;
       }
 
@@ -484,8 +473,8 @@ void R_DrawShadows(const r_view_t *view) {
 
   const r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
-    if (l->shadow_cached) {
-      *l->shadow_cached = l->num_entities == 0;
+    if (l->bsp_light && l->num_entities == 1 && IS_WORLDSPAWN(l->entities[0]->model)) {
+      r_shadow_draw.cache[i] = true;
     }
   }
 }
@@ -494,6 +483,8 @@ void R_DrawShadows(const r_view_t *view) {
  * @brief Initializes shadow atlas textures, samplers, and pipelines.
  */
 void R_InitShadows(void) {
+
+  memset(&r_shadow_draw, 0, sizeof(r_shadow_draw));
 
   memset(&r_shadow_atlas, 0, sizeof(r_shadow_atlas));
 

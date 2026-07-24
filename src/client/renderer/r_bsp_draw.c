@@ -692,10 +692,6 @@ void R_DrawBlendBspEntities(const r_view_t *view, RenderPass *pass) {
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
 
-  if (!view->framebuffer) {
-    return;
-  }
-
   Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
