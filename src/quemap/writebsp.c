@@ -493,22 +493,22 @@ static void EmitDepthPassElements(bsp_model_t *mod) {
   const bsp_face_t *face = &bsp_file.faces[mod->first_face];
   for (int32_t i = 0; i < mod->num_faces; i++, face++) {
 
+    const int32_t surface = FaceSurface(face);
+    if (surface & SURF_ALPHA_TEST) {
+      $(alpha_test_faces, add, &face);
+      continue;
+    }
+
     const int32_t contents = FaceContents(face);
     if (contents & CONTENTS_MIST) {
       continue;
     }
 
-    const int32_t surface = FaceSurface(face);
     if (surface & SURF_MASK_NO_DRAW_ELEMENTS) {
       continue;
     }
 
     if (surface & SURF_LIQUID) {
-      continue;
-    }
-
-    if (surface & SURF_ALPHA_TEST) {
-      $(alpha_test_faces, add, &face);
       continue;
     }
 
