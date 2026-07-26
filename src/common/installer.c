@@ -122,6 +122,31 @@ static void Installer_MarkStale(const HashTable *table, ident key, ident value, 
   ((cm_manifest_entry_t *) value)->status = ENTRY_STALE;
 }
 
+static void Installer_WriteManifestEntry(const HashTable *table, ident key, ident value, ident data) {
+  const cm_manifest_entry_t *entry = value;
+  fprintf((FILE *) data, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
+}
+
+/**
+ * @brief Writes `manifest` directly to `path` on the real filesystem.
+ * @details `Cm_WriteManifest` writes through PhysFS, which resolves relative
+ * paths against `Fs_WriteDir()` -- the user's writable game directory -- not
+ * `Fs_DataDir()`, where `path` actually lives. Using it here would silently
+ * write the manifest to a bogus nested path under the write dir instead of
+ * updating the real one, leaving the local manifest permanently stale and
+ * causing already-downloaded files to be re-downloaded on every launch.
+ */
+static bool Installer_WriteManifest(const char *path, HashTable *manifest) {
+  FILE *f = fopen(path, "wb");
+  if (!f) {
+    Com_Warn("Failed to open %s for writing\n", path);
+    return false;
+  }
+  $(manifest, enumerate, Installer_WriteManifestEntry, f);
+  fclose(f);
+  return true;
+}
+
 typedef struct {
   HashTable *local;
   int32_t files_total;
@@ -155,7 +180,7 @@ static void Installer_Commit(void) {
   if (installer.remote_manifest) {
     char mf_path[MAX_OS_PATH];
     q_snprintf(mf_path, sizeof(mf_path), "%s/%s/manifest.mf", Fs_DataDir(), game->string);
-    Cm_WriteManifest(mf_path, installer.remote_manifest);
+    Installer_WriteManifest(mf_path, installer.remote_manifest);
     Cm_FreeManifest(installer.remote_manifest);
     installer.remote_manifest = NULL;
   }
