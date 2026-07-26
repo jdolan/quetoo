@@ -564,11 +564,10 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e, RenderPa
  */
 void R_DrawMeshEntities(const r_view_t *view, RenderPass *pass) {
 
-  if (!r_models.world) {
-    return;
-  }
-
-  const r_bsp_model_t *bsp = r_models.world->bsp;
+  // The player model preview must never bind the current world's voxel/sky
+  // data: its view origin has no relation to the loaded map's lighting, so
+  // doing so would produce seemingly random lighting on the preview model.
+  const r_bsp_model_t *bsp = (view->type == VIEW_MAIN && r_models.world) ? r_models.world->bsp : NULL;
   Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
@@ -590,19 +589,23 @@ void R_DrawMeshEntities(const r_view_t *view, RenderPass *pass) {
     { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
   }, 6);
 
+  Texture *caustics = bsp ? bsp->voxels.caustics->texture : r_mesh_draw.voxel_caustics_fallback;
+  Texture *occlusion = bsp ? bsp->voxels.occlusion->texture : r_mesh_draw.voxel_occlusion_fallback;
+  Texture *sky = bsp ? bsp->sky->texture : r_mesh_draw.sky_fallback;
+
   $(pass, bindFragmentSamplers, R_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
-    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = caustics->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = occlusion->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
   }, 2);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_SKY, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = bsp->sky->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = sky->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
   }, 1);
 
   $(pass, bindVertexSamplers, MESH_VERTEX_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = bsp->voxels.caustics->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
-    { .texture = bsp->voxels.occlusion->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
-    { .texture = bsp->sky->texture->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = caustics->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = occlusion->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
+    { .texture = sky->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
   }, 3);
 
   $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
@@ -613,8 +616,8 @@ void R_DrawMeshEntities(const r_view_t *view, RenderPass *pass) {
   SDL_GPUBuffer *storage[] = {
     r_lights.bsp_buffer->buffer,
     r_lights.dynamic_buffer->buffer,
-    bsp->voxels.light_data_buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
+    bsp && bsp->voxels.light_data_buffer ? bsp->voxels.light_data_buffer->buffer : r_lights.bsp_buffer->buffer,
+    bsp && bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
   $(pass, bindVertexStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);

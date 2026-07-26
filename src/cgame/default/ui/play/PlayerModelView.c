@@ -34,6 +34,7 @@ static void dealloc(Object *self) {
 
   PlayerModelView *this = (PlayerModelView *) self;
 
+  release(this->modelView);
   release(this->iconView);
 
   super(Object, self, dealloc);
@@ -117,8 +118,14 @@ static void render(View *self, Renderer *renderer) {
 
     cgi.DrawPlayerModelView(&this->view);
 
-    const SDL_Rect renderFrame = $(self, renderFrame);
-    cgi.Draw2DFramebuffer(renderFrame.x, renderFrame.y, renderFrame.w, renderFrame.h, this->framebuffer, color_white);
+    // Present via an ImageView subview rather than a direct 2D framebuffer blit, so the
+    // preview is positioned and scaled through the same View hierarchy (and coordinate
+    // space) as the rest of the UI, instead of Quetoo's separately-scaled 2D HUD ortho.
+    Texture *texture = $(this->framebuffer, resolveColorTexture, 0);
+    if (this->modelView->texture != texture) {
+      this->modelView->texture = release(this->modelView->texture);
+      this->modelView->texture = retain(texture);
+    }
   }
 }
 
@@ -347,6 +354,12 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
   if (self) {
     self->animation1.animation = ANIM_TORSO_STAND1;
     self->animation2.animation = ANIM_LEGS_IDLE;
+
+    self->modelView = $(alloc(ImageView), initWithFrame, NULL);
+    assert(self->modelView);
+
+    $((View *) self->modelView, addClassName, "modelView");
+    $((View *) self, addSubview, (View *) self->modelView);
 
     self->iconView = $(alloc(ImageView), initWithFrame, NULL);
     assert(self->iconView);

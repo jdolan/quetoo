@@ -9,6 +9,10 @@ PlayerModelView {
   height: 680;
 }
 
+PlayerModelView > .modelView {
+  autoresizing-mask: fill;
+}
+
 PlayerModelView > .iconView {
   alignment: top-right;
   width: 64;

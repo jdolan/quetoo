@@ -340,11 +340,10 @@ void R_DrawMainView(r_view_t *view) {
 void R_DrawPlayerModelView(r_view_t *view) {
 
   assert(view);
-  // TODO This should really look like a trimmed down R_DrawMainView, without the BSP-bound calls.
 
-  /*R_UpdateUniforms(view);
+  R_UpdateUniforms(view);
 
-  R_UpdateEntities(view);
+  R_UpdateEntities(view, NULL);
 
   CommandBuffer *commands = r_context.device->commands;
 
@@ -355,75 +354,15 @@ void R_DrawPlayerModelView(r_view_t *view) {
     $(framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
   };
   const SDL_GPUDepthStencilTargetInfo depth =
-  $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
+    $(framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
 
   RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
-  pass = pass;
-  pass->commands = commands;
+  R_DrawMeshEntities(view, pass);
 
-  $(pass, setViewport, &(SDL_GPUViewport) {
-    .x = 0.f, .y = 0.f,
-    .w = (float) framebuffer->size.w, .h = (float) framebuffer->size.h,
-    .min_depth = 0.f, .max_depth = 1.f,
-  });
+  pass = release(pass);
 
-  $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
-
-  $(pass, bindPipeline, r_mesh_draw.opaque_pipeline);
-
-  $(pass, bindFragmentSamplers, R_SAMPLER_SHADOW_ATLAS_0, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_shadow_atlas.textures[0]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[1]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[2]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[3]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[4]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-    { .texture = r_shadow_atlas.textures[5]->texture, .sampler = r_shadow_atlas.sampler->sampler },
-  }, 6);
-
-  $(pass, bindFragmentSamplers, R_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_mesh_draw.voxel_caustics_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
-    { .texture = r_mesh_draw.voxel_occlusion_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
-  }, 2);
-
-  $(pass, bindFragmentSamplers, R_SAMPLER_SKY, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_mesh_draw.sky_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
-  }, 1);
-
-  $(pass, bindVertexSamplers, MESH_VERTEX_SAMPLER_VOXEL_CAUSTICS, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_mesh_draw.voxel_caustics_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
-    { .texture = r_mesh_draw.voxel_occlusion_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
-    { .texture = r_mesh_draw.sky_fallback->texture, .sampler = r_mesh_draw.clamp_sampler->sampler },
-  }, 3);
-
-  $(pass, bindFragmentSamplers, R_SAMPLER_STAGE, (SDL_GPUTextureSamplerBinding[]) {
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
-    { .texture = r_context.null_texture->texture, .sampler = r_mesh_draw.repeat_sampler->sampler },
-  }, 2);
-
-  SDL_GPUBuffer *storage[] = {
-    r_lights.bsp_buffer->buffer, r_lights.dynamic_buffer->buffer,
-    r_lights.bsp_buffer->buffer, r_lights.bsp_buffer->buffer,
-  };
-  $(pass, bindFragmentStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
-  $(pass, bindVertexStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
-
-  const r_entity_t *e = view->entities;
-  for (int32_t i = 0; i < view->num_entities; i++, e++) {
-
-    if (!IS_MESH_MODEL(e->model)) {
-      continue;
-    }
-
-    if (e->effects & EF_NO_DRAW) {
-      continue;
-    }
-
-    R_DrawMeshEntity(view, e, pass);
-    r_stats.entities_visible++;
-  }
-
-  pass = release(pass);*/
+  $(framebuffer, swap);
 }
 
 /**

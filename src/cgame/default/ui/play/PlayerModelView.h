@@ -78,6 +78,11 @@ struct PlayerModelView {
   cl_entity_animation_t animation1, animation2;
 
   /**
+   * @brief The ImageView presenting the rendered model preview.
+   */
+  ImageView *modelView;
+
+  /**
    * @brief The ImageView for the model icon.
    */
   ImageView *iconView;
