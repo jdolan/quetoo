@@ -261,7 +261,7 @@ static void R_DrawBspEntityShadows(const r_light_t *l, const r_entity_t *e, Rend
  */
 static void R_DrawBspEntitiesShadows(const r_view_t *view, const r_light_t *l, RenderPass *pass) {
 
-  const int32_t ts = r_shadow_atlas.tile_size;
+  const Uint32 ts = r_shadow_atlas.tile_size;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
@@ -347,7 +347,7 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *l, con
  */
 static void R_DrawMeshEntitiesShadows(const r_view_t *view, const r_light_t *l, RenderPass *pass) {
 
-  const int32_t ts = r_shadow_atlas.tile_size;
+  const Uint32 ts = r_shadow_atlas.tile_size;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
     .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
@@ -388,7 +388,7 @@ void R_DrawShadows(const r_view_t *view) {
 
     RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
 
-    const int32_t ts = r_shadow_atlas.tile_size;
+    const Uint32 ts = r_shadow_atlas.tile_size;
 
     $(pass, bindPipeline, r_shadow_draw.clear_pipeline);
 
@@ -464,18 +464,18 @@ void R_InitShadows(void) {
 
   r_shadow_atlas.tile_size = Maxi(r_shadow_tile_size->integer, 128);
 
-  const Uint32 layer_size = SHADOW_ATLAS_LIGHTS_PER_ROW * (Uint32) r_shadow_atlas.tile_size;
+  const Uint32 atlas_size = SHADOW_ATLAS_LIGHTS_PER_ROW * r_shadow_atlas.tile_size;
 
   Com_Verbose("   Shadow atlas: 6x %dx%d (%d tile size)\n",
-      layer_size, layer_size, r_shadow_atlas.tile_size);
+      atlas_size, atlas_size, r_shadow_atlas.tile_size);
 
   for (int32_t face = 0; face < 6; face++) {
     r_shadow_atlas.textures[face] = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_2D,
       .format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
       .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER,
-      .width = layer_size,
-      .height = layer_size,
+      .width = atlas_size,
+      .height = atlas_size,
       .layer_count_or_depth = 1,
       .num_levels = 1,
       .sample_count = SDL_GPU_SAMPLECOUNT_1,
