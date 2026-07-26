@@ -300,18 +300,12 @@ void R_DrawMainView(r_view_t *view) {
 
     R_UpdateSprites(view, pass);
 
-    R_UpdateDecals(view); // TODO: Merge update/upload decals
-
-    R_UploadDecals(view, pass);
+    R_UpdateDecals(view, pass);
 
     R_UpdateDraw3D(view, pass);
 
     pass = release(pass);
   }
-
-  R_UpdateShadows(view); // TODO: Merge into R_UpdateLights
-
-  R_ClearShadows(view); // TODO: Merge / call Clear from DrawShadows
 
   R_DrawShadows(view);
 

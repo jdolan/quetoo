@@ -122,6 +122,8 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
     }
 
     out->tile = l->tile;
+
+    R_UpdateLightEntities(view, l, i);
   }
 
   dynamic_lights->num_lights = num_dynamic_lights;

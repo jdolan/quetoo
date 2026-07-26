@@ -117,107 +117,62 @@ static bool R_CullLightEntity(const r_view_t *view, const r_light_t *light, cons
 }
 
 /**
- * @brief Collects shadow-casting entities for each visible light.
+ * @brief Collects shadow-casting entities for one light, and marks its
+ * shadow cache dirty if any non-worldspawn caster is present.
  */
-void R_UpdateShadows(r_view_t *view) {
+void R_UpdateLightEntities(const r_view_t *view, r_light_t *l, int32_t index) {
 
-  r_light_t *l = view->lights;
-  for (int32_t i = 0; i < view->num_lights; i++, l++) {
+  l->num_entities = 0;
 
-    l->num_entities = 0;
+  if (l->flags & R_LIGHT_NO_SHADOW) {
+    return;
+  }
 
-    if (l->flags & R_LIGHT_NO_SHADOW) {
+  if (l->occluded) {
+    return;
+  }
+
+  const vec3_t closest_point = Box3_ClampPoint(l->bounds, view->origin);
+  const float dist = Vec3_Distance(closest_point, view->origin);
+
+  // If the light's nearest bound is beyond the lighting LOD cutoff, no
+  // fragment this frame will be close enough to sample its shadow at all.
+  if (!r_shadows->value || dist > r_lighting_distance->value + LIGHTING_LOD_BLEND_DIST) {
+    return;
+  }
+
+  const r_entity_t *e = view->entities;
+  for (int32_t j = 0; j < view->num_entities; j++, e++) {
+
+    if (e->model == NULL) {
       continue;
     }
 
-    if (l->occluded) {
+    if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
+      continue;
+    }
+    
+    if (R_IsLightSource(l, e)) {
       continue;
     }
 
-    const vec3_t closest_point = Box3_ClampPoint(l->bounds, view->origin);
-    const float dist = Vec3_Distance(closest_point, view->origin);
-
-    // If the light's nearest bound is beyond the lighting LOD cutoff, no
-    // fragment this frame will be close enough to sample its shadow at all.
-    if (!r_shadows->value || dist > r_lighting_distance->value + LIGHTING_LOD_BLEND_DIST) {
+    if (!Box3_Intersects(l->bounds, e->abs_model_bounds)) {
       continue;
     }
 
-    const r_entity_t *e = view->entities;
-    for (int32_t j = 0; j < view->num_entities; j++, e++) {
-
-      if (e->model == NULL) {
-        continue;
-      }
-
-      if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
-        continue;
-      }
-      
-      if (R_IsLightSource(l, e)) {
-        continue;
-      }
-
-      if (!Box3_Intersects(l->bounds, e->abs_model_bounds)) {
-        continue;
-      }
-
-      if (R_CullLightEntity(view, l, e)) {
-        continue;
-      }
-
-      l->entities[l->num_entities++] = e;
-
-      if (!IS_WORLDSPAWN(e->model)) {
-        r_shadow_draw.cache[i] = false;
-      }
+    if (R_CullLightEntity(view, l, e)) {
+      continue;
     }
 
-    if (r_shadow_draw.cache[i]) {
-      r_stats.lights_cached++;
+    l->entities[l->num_entities++] = e;
+
+    if (!IS_WORLDSPAWN(e->model)) {
+      r_shadow_draw.cache[index] = false;
     }
   }
-}
 
-/**
- * @brief Clears shadow atlas tiles for lights that will be redrawn.
- */
-void R_ClearShadows(const r_view_t *view) {
-
-  CommandBuffer *commands = r_context.device->commands;
-
-  const int32_t ts = r_shadow_atlas.tile_size;
-
-  for (int32_t face = 0; face < 6; face++) {
-
-    const SDL_GPUDepthStencilTargetInfo depth = {
-      .texture = r_shadow_atlas.textures[face]->texture,
-      .load_op = SDL_GPU_LOADOP_LOAD,
-      .store_op = SDL_GPU_STOREOP_STORE,
-    };
-
-    RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
-
-    $(pass, bindPipeline, r_shadow_draw.clear_pipeline);
-
-    const r_light_t *l = view->lights;
-    for (int32_t i = 0; i < view->num_lights; i++, l++) {
-
-      if (r_shadow_draw.cache[i]) {
-        continue;
-      }
-
-      $(pass, setViewport, &(SDL_GPUViewport) {
-        .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
-        .min_depth = 0.f, .max_depth = 1.f,
-      });
-
-      $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
-
-      $(pass, drawPrimitives, 3, 1, 0, 0);
-    }
-
-    pass = release(pass);
+  if (r_shadow_draw.cache[index]) {
+    r_stats.lights_cached++;
   }
 }
 
@@ -433,6 +388,27 @@ void R_DrawShadows(const r_view_t *view) {
 
     RenderPass *pass = $(commands, beginRenderPass, NULL, 0, &depth);
 
+    const int32_t ts = r_shadow_atlas.tile_size;
+
+    $(pass, bindPipeline, r_shadow_draw.clear_pipeline);
+
+    const r_light_t *l = view->lights;
+    for (int32_t i = 0; i < view->num_lights; i++, l++) {
+
+      if (r_shadow_draw.cache[i]) {
+        continue;
+      }
+
+      $(pass, setViewport, &(SDL_GPUViewport) {
+        .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
+        .min_depth = 0.f, .max_depth = 1.f,
+      });
+
+      $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
+
+      $(pass, drawPrimitives, 3, 1, 0, 0);
+    }
+
     $(pass, bindPipeline, r_shadow_draw.bsp_opaque_pipeline);
 
     $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
@@ -446,7 +422,7 @@ void R_DrawShadows(const r_view_t *view) {
 
     $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
-    const r_light_t *l = view->lights;
+    l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
       if (r_shadow_draw.cache[i]) {

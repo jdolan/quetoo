@@ -309,9 +309,10 @@ static void R_ClipDecalToNode(const r_view_t *view,
 }
 
 /**
- * @brief Adds new decals and expires old decal triangles.
+ * @brief Adds new decals and expires old decal triangles, then uploads any
+ * dirty per-block decal geometry, growing buffers on demand.
  */
-void R_UpdateDecals(const r_view_t *view) {
+void R_UpdateDecals(const r_view_t *view, CopyPass *pass) {
 
   for (int32_t i = 0; i < view->num_decals; i++) {
     const r_decal_t *decal = &view->decals[i];
@@ -354,27 +355,6 @@ void R_UpdateDecals(const r_view_t *view) {
           decals->dirty = true;
         }
       }
-    }
-  }
-}
-
-/**
- * @brief Uploads any dirty per-block decal geometry, growing buffers on demand.
- */
-void R_UploadDecals(const r_view_t *view, CopyPass *pass) {
-
-  const r_entity_t *e = view->entities;
-  for (int32_t i = 0; i < view->num_entities; i++, e++) {
-
-    if (!IS_BSP_INLINE_MODEL(e->model)) {
-      continue;
-    }
-
-    const r_bsp_inline_model_t *in = e->model->bsp_inline;
-    r_bsp_block_t *block = in->blocks;
-    for (int32_t j = 0; j < in->num_blocks; j++, block++) {
-
-      r_bsp_block_decals_t *decals = &block->decals;
 
       const int32_t num_vertexes = (int32_t) decals->triangles->count * 3;
       if (num_vertexes == 0 || !decals->dirty) {
