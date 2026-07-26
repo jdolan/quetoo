@@ -288,6 +288,8 @@ g_entity_t *G_AllocEntity(const char *classname) {
       e->s.number = i;
       e->s.spawn_id = g_spawn_id++;
 
+      G_ModeEntitySpawn(e);
+
       return e;
     }
   }
@@ -305,6 +307,8 @@ void G_FreeEntity(g_entity_t *ent) {
   }
 
   gi.UnlinkEntity(ent);
+
+  G_ModeEntityFree(ent);
 
   memset(ent, 0, sizeof(*ent));
 }
@@ -389,10 +393,10 @@ void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius,
   if (item) {
     switch (item->def.type) {
       case ITEM_TYPE_TECH:
-        G_ResetDroppedTech(ent);
+        G_ModeResetDroppedTech(ent);
         break;
       case ITEM_TYPE_FLAG:
-        G_ResetDroppedFlag(ent);
+        G_ModeItemResetDropped(ent);
         break;
       default:
         G_FreeEntity(ent);
@@ -436,10 +440,8 @@ char *G_GameplayName(int32_t g) {
  * @brief Returns the gameplay mode for the given name string.
  */
 g_gameplay_t G_GameplayByName(const char *c) {
-  g_gameplay_t gameplay = GAME_DEATHMATCH;
-
   if (!c || *c == '\0') {
-    return gameplay;
+    return GAME_DEATHMATCH;
   }
 
   char lower[64];
@@ -448,12 +450,7 @@ g_gameplay_t G_GameplayByName(const char *c) {
     *p = (char) tolower((unsigned char) *p);
   }
 
-  if (!q_strncmp(lower, "insta", 5)) {
-    gameplay = GAME_INSTAGIB;
-  } else if (!q_strncmp(lower, "arena", 5)) {
-    gameplay = GAME_ARENA;
-  }
-  return gameplay;
+  return G_ModeGameplayByName(lower);
 }
 
 /**
@@ -480,104 +477,28 @@ g_team_t *G_TeamByName(const char *c) {
  * @brief Returns the team that owns the given flag entity, or `NULL` if the entity is not a flag.
  */
 g_team_t *G_TeamForFlag(const g_entity_t *ent) {
-
-  if (!g_level.ctf) {
-    return NULL;
-  }
-
-  if (!ent->item || ent->item->def.type != ITEM_TYPE_FLAG) {
-    return NULL;
-  }
-
-  for (int32_t i = 0; i < g_level.num_teams; i++) {
-
-    if (!q_strcmp(ent->classname, g_team_list[i].flag)) {
-      return &g_team_list[i];
-    }
-  }
-
-  return NULL;
+  return G_ModeTeamForFlag(ent);
 }
 
 /**
  * @brief Returns the flag entity currently placed for the given team, or `NULL` if CTF is off.
  */
 g_entity_t *G_FlagForTeam(const g_team_t *t) {
-
-  if (!g_level.ctf) {
-    return NULL;
-  }
-
-  return t->flag_entity;
+  return G_ModeFlagForTeam(t);
 }
 
 /**
  * @brief Returns the entity state effect flag for the given team, or 0 if none.
  */
 int32_t G_EffectForTeam(const g_team_t *t) {
-
-  if (!t) {
-    return 0;
-  }
-
-  return t->effect;
+  return G_ModeEffectForTeam(t);
 }
 
 /**
  * @brief Get the flag a player is holding, or `NULL` if we're not a flag-bearer.
  */
 const g_item_t *G_GetFlag(const g_client_t *cl) {
-
-  for (int32_t i = 0; i < g_level.num_teams; i++) {
-
-    if (&g_team_list[i] == cl->persistent.team) {
-      continue;
-    }
-
-    g_entity_t *f = G_FlagForTeam(&g_team_list[i]);
-
-    if (f && cl->inventory[f->item->def.tag]) {
-      return f->item;
-    }
-  }
-
-  return NULL;
-}
-
-/**
- * @brief Returns the number of players currently assigned to the given team.
- */
-size_t G_TeamSize(const g_team_t *team) {
-  size_t count = 0;
-
-  G_ForEachClient(cl, {
-    if (cl->persistent.team == team) {
-      count++;
-    }
-  });
-
-  return count;
-}
-
-/**
- * @brief Returns the team with the fewest players, used for auto-assignment.
- * @return The smallest team, or `NULL` if no teams are active.
- */
-g_team_t *G_SmallestTeam(void) {
-
-  g_team_t *smallest = NULL;
-  size_t size = SIZE_MAX;
-
-  g_team_t *team = g_team_list;
-  for (int32_t i = 0; i < g_level.num_teams; i++, team++) {
-    const size_t s = G_TeamSize(team);
-    if (s < size) {
-      smallest = team;
-      size = s;
-    }
-  }
-
-  return smallest;
+  return G_ModeGetFlag(cl);
 }
 
 /**

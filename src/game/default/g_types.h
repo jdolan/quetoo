@@ -72,6 +72,7 @@ typedef enum {
 #define CS_NUM_TEAMS       (CS_GAME + 7)  // number of teams (0 - MAX_TEAMS)
 #define CS_NAV_EDIT        (CS_GAME + 9)  // nav edit mode
 #define CS_ITEM_SET        (CS_GAME + 10) // active item set (g_items_t)
+#define CS_MODE_ITEMS      (CS_GAME + 11) // owner-scoped dynamic mode items
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -690,13 +691,7 @@ typedef struct {
     uint16_t weapon_switch;
 
     uint16_t countdown[11];
-    uint16_t ctf_capture;
-    uint16_t ctf_return;
-    uint16_t ctf_steal;
-
     uint16_t roar;
-
-    uint16_t techs[TECH_TOTAL];
 
     uint16_t chat;
 
@@ -1233,7 +1228,7 @@ struct g_client_s {
   /**
    * @brief Item inventory counts indexed by item index.
    */
-  int16_t inventory[ITEM_TOTAL];
+  int16_t inventory[MAX_INVENTORY];
 
   /**
    * @brief Currently active weapon.
@@ -1520,15 +1515,6 @@ struct g_client_s {
    */
   uint32_t scores_time;
 
-  /**
-   * @brief Next regeneration tick time.
-   */
-  uint32_t regen_time;
-
-  /**
-   * @brief Next time a tech powerup sound may play.
-   */
-  uint32_t tech_sound_time;
 };
 
 typedef struct g_client_s g_client_t;

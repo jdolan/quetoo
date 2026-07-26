@@ -151,10 +151,10 @@ void G_UseBestWeapon(g_client_t *cl) {
 
   const g_item_t *item = NULL;
 
-  for (g_item_tag_t t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-    const g_item_t *weapon = &g_items[t];
+  for (size_t i = 0, count = G_ModeItemCount(ITEM_TYPE_WEAPON); i < count; i++) {
+    const g_item_t *weapon = G_ModeItemAt(ITEM_TYPE_WEAPON, i);
 
-    if (!weapon) {
+    if (!weapon || !G_ItemAvailable(weapon)) {
       continue;
     }
 
@@ -257,7 +257,7 @@ g_entity_t *G_TossWeapon(g_client_t *cl) {
  * @brief Returns true if the specified client can fire their weapon, false
  * otherwise.
  */
-static bool G_FireWeapon(g_client_t *cl) {
+bool G_FireWeapon(g_client_t *cl) {
 
   const uint32_t buttons = (cl->latched_buttons | cl->buttons);
 
@@ -302,46 +302,21 @@ static bool G_FireWeapon(g_client_t *cl) {
 }
 
 /**
- * @brief Plays the activation or ambient sound for the client's currently held tech powerup.
- */
-void G_PlayTechSound(g_client_t *cl) {
-
-  const g_item_t *tech = G_GetTech(cl);
-
-  if (!tech) {
-    return;
-  }
-
-  if (cl->tech_sound_time < g_level.time) {
-    G_MulticastSound(&(const g_play_sound_t) {
-      .index = g_media.sounds.techs[tech->def.tag - TECH_FIRST],
-      .entity = cl->entity,
-    }, MULTICAST_PHS);
-    cl->tech_sound_time = g_level.time + 500;
-  }
-}
-
-/**
  * @brief Records that the weapon was fired, decrementing ammo and advancing the attack animation.
  */
-static void G_WeaponFired(g_client_t *cl, uint32_t interval, uint32_t ammo_needed) {
+void G_WeaponFired(g_client_t *cl, uint32_t interval, uint32_t ammo_needed) {
 
   // set the attack animation
   G_SetAnimation(cl, ANIM_TORSO_ATTACK1, true);
 
-  if (G_HasTech(cl, TECH_HASTE)) {
-    interval *= TECH_HASTE_FACTOR;
-    G_PlayTechSound(cl);
-  } else if (G_HasTech(cl, TECH_STRENGTH)) {
-    G_PlayTechSound(cl);
-  }
+  interval = G_ModeModifyWeaponInterval(cl, interval);
 
   // push the next fire time out by the interval
   cl->weapon_fire_time = g_level.time + interval;
   cl->weapon_fired_time = g_level.time;
 
   // and decrease their inventory
-  if (g_level.gameplay != GAME_INSTAGIB) {
+  if (!G_ModeHasCapability(G_MODE_CAP_NO_AMMO)) {
     if (cl->ammo_index) {
       cl->inventory[cl->ammo_index] -= ammo_needed;
     }
@@ -424,7 +399,7 @@ void G_ClientWeaponThink(g_client_t *cl) {
 /**
  * @brief Broadcasts a muzzle flash event for the entity's current weapon.
  */
-static void G_MuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
+void G_MuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
 
   gi.WriteByte(SV_CMD_MUZZLE_FLASH);
   gi.WriteShort(ent->s.number);
@@ -908,7 +883,8 @@ void G_FireRailgun(g_client_t *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
-    const int16_t damage = (g_level.gameplay == GAME_INSTAGIB) ? 999 : g_balance_railgun_damage->integer;
+    const int16_t damage = G_ModeHasCapability(G_MODE_CAP_INSTAGIB) ?
+        999 : g_balance_railgun_damage->integer;
 
     G_RailgunProjectile(cl->entity, org, forward, damage, g_balance_railgun_knockback->integer);
 

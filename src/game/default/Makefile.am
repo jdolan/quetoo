@@ -23,6 +23,7 @@ noinst_HEADERS = \
 	g_entity.h \
 	g_item.h \
 	g_local.h \
+	g_mode.h \
 	g_main.h \
 	g_physics.h \
 	g_sound.h \
@@ -83,6 +84,16 @@ game_la_SOURCES = \
 	g_entity.c \
 	g_item.c \
 	g_main.c \
+	g_mode.c \
+	g_mode_ctf.c \
+	g_mode_default.c \
+	g_mode_deathmatch.c \
+	g_mode_instagib.c \
+	g_mode_arena.c \
+	g_mode_techs.c \
+	g_mode_match.c \
+	g_mode_spawn.c \
+	g_mode_team.c \
 	g_physics.c \
 	g_sound.c \
 	g_util.c \

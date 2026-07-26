@@ -36,7 +36,7 @@ bool G_OnSameTeam(const g_client_t *a, const g_client_t *b) {
     return true;
   }
 
-  if (!g_level.teams && !g_level.ctf) {
+  if (!G_ModeTeamplay()) {
     return false;
   }
 
@@ -264,6 +264,14 @@ static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
  */
 void G_Damage(const g_damage_t *dmg) {
 
+  g_damage_t adjusted = *dmg;
+  bool cancel = false;
+  G_ModeModifyDamage(&adjusted, &cancel);
+  if (cancel) {
+    return;
+  }
+  dmg = &adjusted;
+
   g_entity_t *target = dmg->target;
   g_entity_t *inflictor = dmg->inflictor ?: ge.entities[0];
   g_entity_t *attacker = dmg->attacker ?: ge.entities[0];
@@ -304,29 +312,16 @@ void G_Damage(const g_damage_t *dmg) {
     }
   }
 
-  if (target->client && G_HasTech(target->client, TECH_RESIST)) {
-    damage *= TECH_RESIST_DAMAGE_FACTOR;
-    knockback *= TECH_RESIST_KNOCKBACK_FACTOR;
-
-    G_PlayTechSound(target->client);
-  }
-
   if (attacker->client) {
     if (attacker->client->inventory[POWERUP_QUAD]) {
       damage *= QUAD_DAMAGE_FACTOR;
       knockback *= QUAD_KNOCKBACK_FACTOR;
     }
 
-    if (G_HasTech(attacker->client, TECH_STRENGTH)) {
-      damage *= TECH_STRENGTH_DAMAGE_FACTOR;
-      knockback *= TECH_STRENGTH_KNOCKBACK_FACTOR;
-
-      G_PlayTechSound(attacker->client);
-    }
   }
 
   // friendly fire avoidance
-  if (target != attacker && (g_level.teams || g_level.ctf)) {
+  if (target != attacker && G_ModeTeamplay()) {
     if (G_OnSameTeam(target->client, attacker->client)) {
 
       if (mod == MOD_TELEFRAG) { // telefrags can not be avoided
@@ -342,16 +337,12 @@ void G_Damage(const g_damage_t *dmg) {
     }
   }
 
-  // there is no self damage in instagib or arena, but there is knockback
+  // Some composed modes disable self damage while retaining knockback.
   if (target == attacker) {
-    switch (g_level.gameplay) {
-      case GAME_INSTAGIB:
-      case GAME_ARENA:
-        damage = 0;
-        break;
-      default:
-        damage *= g_self_damage->value;
-        break;
+    if (G_ModeHasCapability(G_MODE_CAP_NO_SELF_DAMAGE)) {
+      damage = 0;
+    } else {
+      damage *= g_self_damage->value;
     }
   }
 
@@ -417,14 +408,12 @@ void G_Damage(const g_damage_t *dmg) {
       G_SpawnDamage(TE_SPARKS, pos, normal, damage_health);
     }
 
-    if (attacker->client && G_HasTech(attacker->client, TECH_VAMPIRE)) {
-      if (!target->dead && attacker != target && !G_OnSameTeam(attacker->client, target->client)) {
-        attacker->health = Minf(attacker->health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->max_health);
-        G_PlayTechSound(attacker->client);
-      }
-    }
-
     target->health -= damage_health;
+    // Expose the final pre-armor damage to post-application modifiers. The
+    // request was copied above so this does not mutate the caller's context.
+    adjusted.damage = damage;
+    adjusted.knockback = knockback;
+    G_ModeDamageApplied(&adjusted, damage_health, was_dead);
 
     // for hit sound
     if (!was_dead && attacker->client && attacker->client != client) {

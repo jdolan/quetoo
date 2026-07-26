@@ -247,7 +247,7 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
       attacker->client->persistent.score++;
     }
 
-    if ((g_level.teams || g_level.ctf) && cl->persistent.team && attacker->client->persistent.team) {
+    if (G_ModeTeamplay() && cl->persistent.team && attacker->client->persistent.team) {
       if (friendly_fire) {
         attacker->client->persistent.team->score--;
       } else {
@@ -257,7 +257,7 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
   } else {
     cl->persistent.score--;
 
-    if ((g_level.teams || g_level.ctf) && cl->persistent.team) {
+    if (G_ModeTeamplay() && cl->persistent.team) {
       cl->persistent.team->score--;
     }
   }
@@ -540,16 +540,14 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
   G_TossInvisibility(cl);
   G_TossInvulnerability(cl);
 
-  if (g_level.gameplay == GAME_DEATHMATCH && mod != MOD_TRIGGER_HURT) {
+  if (!G_ModeHasCapability(G_MODE_CAP_SUPPRESS_ITEMS) && mod != MOD_TRIGGER_HURT) {
     G_TossWeapon(cl);
   }
 
-  if (g_level.ctf) {
-    G_TossFlag(cl);
-  }
+  G_ModeItemDrop(cl);
 
-  if (g_level.techs) {
-    G_TossTech(cl);
+  if (G_ModeTechsEnabled()) {
+    G_ModeTossTech(cl);
   }
 
   const bool gibbed = ent->health <= -CLIENT_CORPSE_HEALTH;
@@ -630,7 +628,7 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
  * specified quantity of ammo, while health and armor are set to
  * the specified quantity.
  */
-static void G_Give(g_client_t *cl, char *it, int16_t quantity) {
+void G_Give(g_client_t *cl, const char *it, int16_t quantity) {
 
   if (!q_strcasecmp(it, "Health")) {
     cl->entity->health = quantity;
@@ -718,31 +716,9 @@ static bool G_GiveLevelLocals(g_client_t *cl) {
 static void G_InitClientInventory(g_client_t *cl) {
   const g_item_t *item;
 
-  // instagib gets railgun and slugs, both in normal mode and warmup
-  if (g_level.gameplay == GAME_INSTAGIB) {
-    G_Give(cl, "Railgun", 1);
-    G_Give(cl, "Grenades", 1);
-    item = &g_items[WEAPON_RAILGUN];
-  }
-  // arena yields all weapons, health, etc..
-  else if (g_level.gameplay == GAME_ARENA) {
-    G_Give(cl, "Railgun", 50);
-    G_Give(cl, "Lightning Gun", 200);
-    G_Give(cl, "Hyperblaster", 200);
-    G_Give(cl, "Rocket Launcher", 50);
-    G_Give(cl, "Hand Grenades", 1);
-    G_Give(cl, "Grenade Launcher", 50);
-    G_Give(cl, "Machinegun", 200);
-    G_Give(cl, "Super Shotgun", 80);
-    G_Give(cl, "Shotgun", 80);
-    G_Give(cl, "Blaster", 0);
-
-    G_Give(cl, "Body Armor", -1);
-
-    item = &g_items[WEAPON_ROCKET_LAUNCHER];
-  }
-  // dm gets the blaster, or the quake shotgun + shells in quake item sets
-  else if (g_level.items == ITEMS_QUAKE) {
+  if (G_ModeClientInventory(cl, &item)) {
+    // The active modifier supplied the mode-specific loadout.
+  } else if (g_level.items == ITEMS_QUAKE) {
     G_Give(cl, "Shotgun", 10);
     item = &g_items[WEAPON_QUAKE_SHOTGUN];
   } else {
@@ -756,249 +732,6 @@ static void G_InitClientInventory(g_client_t *cl) {
   } else { // or the one given by the gameplay type above
     G_UseWeapon(cl, item);
   }
-}
-
-/**
- * @brief Returns the distance to the nearest enemy from the given spot.
- */
-static float G_EnemyRangeFromSpot(g_client_t *cl, g_entity_t *spot) {
-  float dist, best_dist;
-  vec3_t v;
-
-  best_dist = 9999999.0;
-
-  G_ForEachClient(enemy, {
-    if (!enemy->entity || enemy->entity->health <= 0) {
-      continue;
-    }
-
-    if (enemy->persistent.spectator) {
-      continue;
-    }
-
-    v = Vec3_Subtract(spot->s.origin, enemy->entity->s.origin);
-    dist = Vec3_Length(v);
-
-    if (g_level.teams || g_level.ctf) { // avoid collision with team mates
-
-      if (enemy->persistent.team == cl->persistent.team) {
-        if (dist > 64.0) { // if they're far away, ignore them
-          continue;
-        }
-      }
-    }
-
-    if (dist < best_dist) {
-      best_dist = dist;
-    }
-  });
-
-  return best_dist;
-}
-
-/**
- * @brief Checks if spawning a player in this spot would cause a telefrag.
- */
-static bool G_WouldTelefrag(const vec3_t spot) {
-  g_entity_t *ents[MAX_ENTITIES];
-  box3_t bounds = Box3_Translate(PM_BOUNDS, spot);
-
-  bounds.mins.z -= PM_STEP_HEIGHT;
-  bounds.maxs.z += PM_STEP_HEIGHT;
-
-  const size_t len = gi.BoxEntities(bounds, ents, lengthof(ents), BOX_COLLIDE);
-
-  for (size_t i = 0; i < len; i++) {
-
-    if (G_IsMeat(ents[i])) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * @brief Selects a random unoccupied spawn point from the given set.
- */
-static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points) {
-
-  if (!spawn_points->count) {
-    assert(spawn_points != &g_level.spawn_points);
-    return G_SelectRandomSpawnPoint(&g_level.spawn_points);
-  }
-
-  uint32_t empty_spawns[spawn_points->count];
-  uint32_t num_empty_spawns = 0;
-
-  for (uint32_t i = 0; i < spawn_points->count; i++) {
-
-    if (!G_WouldTelefrag(spawn_points->spots[i]->s.origin)) {
-      empty_spawns[num_empty_spawns++] = i;
-    }
-  }
-
-  if (num_empty_spawns) {
-    return spawn_points->spots[empty_spawns[RandomRangeu(0, num_empty_spawns)]];
-  }
-
-  return spawn_points->spots[RandomRangeu(0, spawn_points->count)];
-}
-
-/**
- * @brief Adds unique spawn pointers from @c points into @c pool.
- */
-static uint32_t G_CollectSpawnPoints(g_entity_t **pool, uint32_t count, const g_spawn_points_t *points) {
-
-  for (uint32_t i = 0; i < points->count; i++) {
-    g_entity_t *spot = points->spots[i];
-    bool exists = false;
-
-    for (uint32_t j = 0; j < count; j++) {
-      if (pool[j] == spot) {
-        exists = true;
-        break;
-      }
-    }
-
-    if (!exists) {
-      pool[count++] = spot;
-    }
-  }
-
-  return count;
-}
-
-/**
- * @brief Selects a random unoccupied spawn point from a flat list.
- */
-static g_entity_t *G_SelectRandomSpawnPointFromPool(g_entity_t **spots, const uint32_t count) {
-
-  if (!count) {
-    return G_SelectRandomSpawnPoint(&g_level.spawn_points);
-  }
-
-  uint32_t empty_spawns[count];
-  uint32_t num_empty_spawns = 0;
-
-  for (uint32_t i = 0; i < count; i++) {
-    if (!G_WouldTelefrag(spots[i]->s.origin)) {
-      empty_spawns[num_empty_spawns++] = i;
-    }
-  }
-
-  if (num_empty_spawns) {
-    return spots[empty_spawns[RandomRangeu(0, num_empty_spawns)]];
-  }
-
-  return spots[RandomRangeu(0, count)];
-}
-
-/**
- * @brief Selects the spawn point farthest from all enemies for the given client.
- */
-static g_entity_t *G_SelectFarthestSpawnPoint(g_client_t *cl, const g_spawn_points_t *spawn_points) {
-  g_entity_t *spot, *best_spot;
-  float dist, best_dist;
-
-  spot = best_spot = NULL;
-  best_dist = 0.0;
-
-  for (size_t i = 0; i < spawn_points->count; i++) {
-
-    spot = spawn_points->spots[i];
-    dist = G_EnemyRangeFromSpot(cl, spot);
-
-    if (dist > best_dist && !G_WouldTelefrag(spot->s.origin)) {
-      best_spot = spot;
-      best_dist = dist;
-    }
-  }
-
-  if (best_spot) {
-    return best_spot;
-  }
-
-  return G_SelectRandomSpawnPoint(spawn_points);
-}
-
-/**
- * @brief Selects the farthest spawn point from a flat list.
- */
-static g_entity_t *G_SelectFarthestSpawnPointFromPool(g_client_t *cl, g_entity_t **spots, const uint32_t count) {
-  g_entity_t *best_spot = NULL;
-  float best_dist = 0.0;
-
-  for (uint32_t i = 0; i < count; i++) {
-    g_entity_t *spot = spots[i];
-    const float dist = G_EnemyRangeFromSpot(cl, spot);
-
-    if (dist > best_dist && !G_WouldTelefrag(spot->s.origin)) {
-      best_spot = spot;
-      best_dist = dist;
-    }
-  }
-
-  if (best_spot) {
-    return best_spot;
-  }
-
-  return G_SelectRandomSpawnPointFromPool(spots, count);
-}
-
-/**
- * @brief Selects an appropriate deathmatch spawn point for the given client.
- */
-static g_entity_t *G_SelectDeathmatchSpawnPoint(g_client_t *cl) {
-  // Include team spawns in non-team modes to improve spawn distribution on maps
-  // that define both DM and team spawn entities.
-  g_entity_t *pool[MAX_ENTITIES];
-  uint32_t count = 0;
-  
-  count = G_CollectSpawnPoints(pool, count, &g_level.spawn_points);
-
-  for (int32_t t = 0; t < MAX_TEAMS; t++) {
-    count = G_CollectSpawnPoints(pool, count, &g_team_list[t].spawn_points);
-  }
-
-  if (g_spawn_farthest->value) {
-    return G_SelectFarthestSpawnPointFromPool(cl, pool, count);
-  }
-
-  return G_SelectRandomSpawnPointFromPool(pool, count);
-}
-
-/**
- * @brief Selects an appropriate team spawn point for the given client.
- */
-static g_entity_t *G_SelectTeamSpawnPoint(g_client_t *cl) {
-
-  if (!cl->persistent.team) {
-    return NULL;
-  }
-
-  if (g_spawn_farthest->value) {
-    return G_SelectFarthestSpawnPoint(cl, &cl->persistent.team->spawn_points);
-  }
-
-  return G_SelectRandomSpawnPoint(&cl->persistent.team->spawn_points);
-}
-
-/**
- * @brief Selects the most appropriate spawn point for the given client.
- */
-static g_entity_t *G_SelectSpawnPoint(g_client_t *cl) {
-  g_entity_t *spawn = NULL;
-
-  if (g_level.teams || g_level.ctf) { // try team spawns first if applicable
-    spawn = G_SelectTeamSpawnPoint(cl);
-  }
-
-  if (spawn == NULL) { // fall back on DM spawns (e.g CTF games on DM maps)
-    spawn = G_SelectDeathmatchSpawnPoint(cl);
-  }
-
-  return spawn;
 }
 
 /**
@@ -1150,6 +883,10 @@ static void G_ClientRespawn_(g_client_t *cl) {
  */
 void G_ClientRespawn(g_client_t *cl, bool voluntary) {
 
+  if (G_ModeRespawn(cl, voluntary)) {
+    return;
+  }
+
   G_ClientRespawn_(cl);
 
   // clear scores on voluntary changes
@@ -1201,8 +938,10 @@ void G_ClientBegin(g_client_t *cl) {
     cl->persistent.spectator = true;
   }
   else {
-    if (g_level.teams || g_level.ctf) {
-      if (g_auto_join->value || cl->ai) {
+    if (G_ModeTeamplay()) {
+      if (G_ModeAssignTeam(cl)) {
+        // The active team component owns assignment.
+      } else if (g_auto_join->value || cl->ai) {
         G_AddClientToTeam(cl, G_SmallestTeam()->name);
       } else {
         cl->persistent.spectator = true;
@@ -1211,6 +950,8 @@ void G_ClientBegin(g_client_t *cl) {
   }
 
   G_ClientRespawn(cl, true);
+
+  G_ModeClientBegin(cl);
 
   if (g_level.intermission_time) {
     G_ClientToIntermission(cl);
@@ -1227,11 +968,11 @@ void G_ClientBegin(g_client_t *cl) {
     q_strlcat(welcome, "\n^2Gameplay is ^1", sizeof(welcome));
     q_strlcat(welcome, G_GameplayName(g_level.gameplay), sizeof(welcome));
 
-    if (g_level.teams) {
+    if (G_ModeTeamplay() && !G_ModeHasCapability(G_MODE_CAP_FLAG_OBJECTIVE)) {
       q_strlcat(welcome, "\n^2Teams are enabled", sizeof(welcome));
     }
 
-    if (g_level.ctf) {
+    if (G_ModeHasCapability(G_MODE_CAP_FLAG_OBJECTIVE)) {
       q_strlcat(welcome, "\n^2CTF is enabled", sizeof(welcome));
     }
 
@@ -1492,12 +1233,14 @@ bool G_ClientConnect(g_client_t *cl, char *user_info) {
  */
 void G_ClientDisconnect(g_client_t *cl) {
 
+  G_ModeClientDisconnect(cl);
+
   if (cl->entity) {
     G_TossQuadDamage(cl);
     G_TossInvisibility(cl);
     G_TossInvulnerability(cl);
-    G_TossFlag(cl);
-    G_TossTech(cl);
+    G_ModeItemDrop(cl);
+    G_ModeTossTech(cl);
     G_HookDetach(cl);
   }
 
@@ -2011,17 +1754,9 @@ void G_ClientBeginFrame(g_client_t *cl) {
         G_ClientRespawn(cl, false);
       }
     }
-  } else {
-    if (G_HasTech(cl, TECH_REGEN)) {
-      if (cl->regen_time < g_level.time) {
-        cl->regen_time = g_level.time + TECH_REGEN_TICK_TIME;
-        if (ent->health < ent->max_health) {
-          ent->health = Minf(ent->health + TECH_REGEN_HEALTH, ent->max_health);
-          G_PlayTechSound(cl);
-        }
-      }
-    }
   }
+
+  G_ModeClientFrame(cl);
 
   cl->latched_buttons = 0;
 }

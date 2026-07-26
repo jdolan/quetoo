@@ -56,9 +56,9 @@ static bool G_Ai_IsArmed(const g_client_t *cl) {
 
   const float threshold = AI_ARMED_PRIORITY * Lerpf(1.25f, .6f, cl->ai->personality.aggression);
 
-  for (g_item_tag_t t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-    const g_item_t *it = &g_items[t];
-    if (cl->inventory[t] && it->def.priority >= threshold) {
+  for (size_t i = 0, count = G_ModeItemCount(ITEM_TYPE_WEAPON); i < count; i++) {
+    const g_item_t *it = G_ModeItemAt(ITEM_TYPE_WEAPON, i);
+    if (it && cl->inventory[it->def.tag] && it->def.priority >= threshold) {
       return true;
     }
   }
@@ -319,6 +319,10 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
       weight *= 3.f;
     }
 
+    g_mode_bot_directives_t directives = { .item_weight = 1.f };
+    G_ModeBotDirectives(cl, ent, &directives);
+    weight *= directives.item_weight;
+
     $(items_visible, add, &(ai_item_pick_t) {
       .entity = ent,
       .item = item,
@@ -423,13 +427,17 @@ static void G_Ai_PickWeapon(g_client_t *cl) {
     targ_range = RANGE_DONT_CARE;
   }
 
-  ai_item_pick_t weapons[WEAPON_TOTAL];
+  ai_item_pick_t weapons[MAX_INVENTORY];
   size_t num_weapons = 0;
 
   const int16_t *inventory = cl->inventory;
 
-  for (g_item_tag_t t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-    const g_item_t *it = &g_items[t];
+  for (size_t i = 0, count = G_ModeItemCount(ITEM_TYPE_WEAPON); i < count; i++) {
+    const g_item_t *it = G_ModeItemAt(ITEM_TYPE_WEAPON, i);
+    if (!it) {
+      continue;
+    }
+    const g_item_tag_t t = it->def.tag;
 
     if (!inventory[t]) { // not in stock
       continue;
@@ -543,16 +551,7 @@ static float G_Ai_EnemyPriority(const g_client_t *cl, const g_entity_t *target, 
     priority += 2.f;
   }
 
-  // flag carriers are highest priority
-  if (target->client) {
-    const int16_t *inventory = target->client->inventory;
-    for (g_item_tag_t t = FLAG_FIRST; t < FLAG_LAST; t++) {
-      if (inventory[t]) {
-        priority += 5.f;
-        break;
-      }
-    }
-  }
+  G_ModeBotTarget(cl, target, &priority, NULL);
 
   return priority;
 }
@@ -572,6 +571,12 @@ static bool G_Ai_ChaseEnemy(const g_client_t *cl, const g_entity_t *target) {
 
   // base chance is our weapon's weight
   const g_item_t *const weapon = cl->weapon;
+  if (!weapon) {
+    // Inventory/weapon setup can briefly be incomplete during respawn or
+    // developer-mode initialization. An unarmed bot must not chase based on a
+    // dereferenced weapon record.
+    return false;
+  }
   float chance = weapon->def.priority;
 
   // if they're low health, higher chance
@@ -579,15 +584,7 @@ static bool G_Ai_ChaseEnemy(const g_client_t *cl, const g_entity_t *target) {
     chance *= 1.5f;
   }
 
-  // if they have a flag, higher chance
-  const int16_t *inventory = target->client->inventory;
-
-  for (g_item_tag_t t = FLAG_FIRST; t < FLAG_LAST; t++) {
-    if (inventory[t]) {
-      chance *= 2.0f;
-      break;
-    }
-  }
+  G_ModeBotTarget(cl, target, NULL, &chance);
 
   // aggressive bots are more willing to chase
   chance *= Lerpf(.6f, 1.4f, cl->ai->personality.aggression);
@@ -1510,7 +1507,7 @@ static uint32_t G_Ai_Turn(g_client_t *cl, pm_cmd_t *cmd) {
     vec3_t aim_direction;
     const g_item_t *const weapon = cl->weapon;
 
-    if (weapon->def.flags & WF_PROJECTILE) {
+    if (weapon && (weapon->def.flags & WF_PROJECTILE)) {
       const float dist = Vec3_Distance(eye_origin, enemy_center);
       // skilled bots predict more accurately (tighter speed estimate range)
       const float spread = Lerpf(300.f, 100.f, cl->ai->personality.skill);
@@ -1529,7 +1526,7 @@ static uint32_t G_Ai_Turn(g_client_t *cl, pm_cmd_t *cmd) {
     // fuzzy angle: amplitude scales with (1 - skill), per-bot phase offset
     // hitscan weapons carry a small fixed floor to prevent perfect tracking
     const float wobble = (1.f - cl->ai->personality.skill) * 2.f
-        + ((weapon->def.flags & WF_HITSCAN) ? 0.3f : 0.f);
+        + (weapon && (weapon->def.flags & WF_HITSCAN) ? 0.3f : 0.f);
     const float phase = cl->ai->personality.aim_phase;
     ideal_angles.x += sinf((g_level.time + phase) / 128.0f) * 4.3f * wobble;
     ideal_angles.y += cosf((g_level.time + phase) / 164.0f) * 4.0f * wobble;
@@ -1624,6 +1621,10 @@ static uint32_t G_Ai_LongRange(g_client_t *cl, pm_cmd_t *cmd) {
       } else if (G_Ai_ShouldRetreat(cl) && (ent->item->def.type == ITEM_TYPE_HEALTH || ent->item->def.type == ITEM_TYPE_ARMOR)) {
         weight *= 3.f;
       }
+
+      g_mode_bot_directives_t directives = { .item_weight = 1.f };
+      G_ModeBotDirectives(cl, ent, &directives);
+      weight *= directives.item_weight;
     }
 
     // didn't want this

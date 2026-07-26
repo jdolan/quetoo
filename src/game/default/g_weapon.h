@@ -24,12 +24,24 @@
 #include "g_types.h"
 
 #if defined(__GAME_LOCAL_H__)
-void G_PlayTechSound(g_client_t *cl);
 bool G_PickupWeapon(g_client_t *cl, g_entity_t *other);
 void G_UseBestWeapon(g_client_t *cl);
 void G_UseWeapon(g_client_t *cl, const g_item_t *item);
 g_entity_t *G_DropWeapon(g_client_t *cl, const g_item_t *item);
 g_entity_t *G_TossWeapon(g_client_t *cl);
+/**
+ * @brief Return true when the attack input, refire timer, and ammunition allow
+ * the active weapon to fire. Custom weapon Think callbacks should call this
+ * before creating their projectile or trace.
+ */
+bool G_FireWeapon(g_client_t *cl);
+/**
+ * @brief Apply common post-fire bookkeeping: animation, mode timing
+ * modifiers, refire time, ammunition consumption, and Quad feedback.
+ */
+void G_WeaponFired(g_client_t *cl, uint32_t interval, uint32_t ammo_needed);
+/** @brief Publish a standard muzzle flash for a weapon firing event. */
+void G_MuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash);
 void G_FireBlaster(g_client_t *cl);
 void G_FireShotgun(g_client_t *cl);
 void G_FireSuperShotgun(g_client_t *cl);

@@ -59,7 +59,7 @@ static struct {
     int16_t bit, used_bit;
     uint32_t time, bar_time;
     int16_t num;
-    bool has[WEAPON_TOTAL];
+    bool has[MAX_INVENTORY];
   } weapon;
 
   int16_t chase_target;
@@ -142,11 +142,11 @@ static void Cg_DrawVitals(const player_state_t *ps) {
     const int16_t ammo = Cg_ActiveAmmo(ps);
 
     if (ammo > 0) {
-      const int16_t active = Cg_ActiveWeapon(ps);
-      const int16_t ammo_low = active != WEAPON_SELECT_OFF
-                                 ? (int16_t) bg_item_defs[cg_weapons[active].ammo_tag].quantity
+      const g_item_tag_t active = Cg_ActiveWeaponTag(ps);
+      const int16_t ammo_low = active != ITEM_NONE
+                                 ? Cg_ItemQuantity(cg_weapons[active].ammo_tag)
                                  : 0;
-      const r_image_t *ammo_icon = active != WEAPON_SELECT_OFF ? cg_weapons[active].icon : NULL;
+      const r_image_t *ammo_icon = active != ITEM_NONE ? cg_weapons[active].icon : NULL;
 
       x = cgi.context->w * 0.25 - x_offset;
 
@@ -227,9 +227,9 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 
   g_item_tag_t flag_tag = ITEM_NONE;
 
-  for (g_item_tag_t i = FLAG_FIRST; i < FLAG_LAST; i++) {
-    if (ps->inventory[i]) {
-      flag_tag = i;
+  for (int32_t i = ITEM_FIRST; i < MAX_INVENTORY; i++) {
+    if (ps->inventory[i] && cg_items[i].type == ITEM_TYPE_FLAG) {
+      flag_tag = (g_item_tag_t) i;
       break;
     }
   }
@@ -238,7 +238,7 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
     return;
   }
 
-  const r_image_t *icon = cg_items[flag_tag].icon;
+  const r_image_t *icon = Cg_ItemIcon(flag_tag);
   if (!icon) {
     return;
   }
@@ -264,10 +264,8 @@ static void Cg_DrawPickup(const player_state_t *ps) {
   if (p) {
     const int16_t pickup = p & ~STAT_TOGGLE_BIT;
 
-    const char *string = pickup > ITEM_NONE && pickup < ITEM_TOTAL ? bg_item_defs[pickup].name : "";
-    const r_image_t *icon = pickup > ITEM_NONE && pickup < ITEM_TOTAL
-                              ? cg_items[pickup].icon
-                              : NULL;
+    const char *string = Cg_ItemName((g_item_tag_t) pickup);
+    const r_image_t *icon = Cg_ItemIcon((g_item_tag_t) pickup);
 
     x = cgi.context->w - HUD_PIC_HEIGHT - cgi.StringWidth(string);
     y = 0;
@@ -909,7 +907,7 @@ static void Cg_ValidateSelectedWeapon(const player_state_t *ps) {
 
   // if we were off, start from our current weapon.
   if (cg_hud_state.weapon.bit == WEAPON_SELECT_OFF) {
-    cg_hud_state.weapon.bit = Cg_ActiveWeapon(ps);
+    cg_hud_state.weapon.bit = Cg_ActiveWeaponTag(ps);
     return;
   }
 
@@ -919,15 +917,10 @@ static void Cg_ValidateSelectedWeapon(const player_state_t *ps) {
   }
 
   // nope, so pick the closest one we have
-  for (int32_t i = 2; i < WEAPON_TOTAL * 2; i++) {
-    int32_t offset = (int32_t) (((i & 1) ? -i : i) / 2);
-    int32_t id = cg_hud_state.weapon.bit + offset;
-
-    if (id < 0 || id >= WEAPON_TOTAL) {
-      continue;
-    }
-
-    if (cg_hud_state.weapon.has[id]) {
+  for (int32_t i = 1; i < MAX_INVENTORY * 2; i++) {
+    const int32_t offset = (i & 1) ? -((i + 1) / 2) : (i / 2);
+    const int32_t id = cg_hud_state.weapon.bit + offset;
+    if (id >= WEAPON_FIRST && id < MAX_INVENTORY && cg_hud_state.weapon.has[id]) {
       cg_hud_state.weapon.bit = id;
       return;
     }
@@ -957,29 +950,27 @@ static void Cg_SelectWeapon(const int8_t dir) {
     return;
   }
 
-  bool has[WEAPON_TOTAL] = { false };
-  for (int32_t i = 0; i < WEAPON_TOTAL; i++) {
-    has[i] = ps->inventory[WEAPON_FIRST + i] > 0;
+  bool has[MAX_INVENTORY] = { false };
+  for (g_item_tag_t tag = WEAPON_FIRST; tag < MAX_INVENTORY; tag++) {
+    has[tag] = ps->inventory[tag] > 0 && cg_items[tag].type == ITEM_TYPE_WEAPON;
   }
 
   int16_t bit = cg_hud_state.weapon.bit;
-  if (bit < 0 || bit >= WEAPON_TOTAL || !has[bit]) {
-    const int16_t current_tag = ps->stats[STAT_WEAPON] & 0xFF;
-    if (current_tag >= WEAPON_FIRST && current_tag < WEAPON_LAST) {
-      bit = current_tag - WEAPON_FIRST;
-    } else {
+  if (bit < WEAPON_FIRST || bit >= MAX_INVENTORY || !has[bit]) {
+    bit = Cg_ActiveWeaponTag(ps);
+    if (bit < WEAPON_FIRST || bit >= MAX_INVENTORY || !has[bit]) {
       bit = WEAPON_SELECT_OFF;
     }
   }
 
-  for (int32_t i = 0; i < WEAPON_TOTAL; i++) {
+  for (int32_t i = 0; i < MAX_INVENTORY; i++) {
 
     bit += dir;
 
-    if (bit < 0) {
-      bit = WEAPON_TOTAL - 1;
-    } else if (bit >= WEAPON_TOTAL) {
-      bit = 0;
+    if (bit < WEAPON_FIRST) {
+      bit = MAX_INVENTORY - 1;
+    } else if (bit >= MAX_INVENTORY) {
+      bit = WEAPON_FIRST;
     }
 
     if (has[bit]) {
@@ -1004,8 +995,9 @@ bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
   if (!ps->stats[STAT_SPECTATOR] &&
     cg_hud_state.weapon.bit != -1) {
 
-    if (cg_hud_state.weapon.bit != Cg_ActiveWeapon(ps)) {
-      const char *classname = bg_item_defs[cg_weapons[cg_hud_state.weapon.bit].tag].classname;
+    if (cg_hud_state.weapon.bit != (int16_t) Cg_ActiveWeaponTag(ps)) {
+      const g_item_tag_t tag = cg_hud_state.weapon.bit;
+      const char *classname = Cg_ItemClassname(cg_weapons[tag].tag);
       cgi.Cbuf(va("use %s\n", classname));
 
       cg_hud_state.weapon.time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
@@ -1038,10 +1030,10 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
   // rebuild weapon availability from inventory every frame
   cg_hud_state.weapon.num = 0;
 
-  for (int32_t i = 0; i < WEAPON_TOTAL; i++) {
-    cg_hud_state.weapon.has[i] = ps->inventory[WEAPON_FIRST + i] > 0;
-
-    if (cg_hud_state.weapon.has[i]) {
+  for (g_item_tag_t tag = WEAPON_FIRST; tag < MAX_INVENTORY; tag++) {
+    cg_hud_state.weapon.has[tag] = ps->inventory[tag] > 0 &&
+        cg_items[tag].type == ITEM_TYPE_WEAPON;
+    if (cg_hud_state.weapon.has[tag]) {
       cg_hud_state.weapon.num++;
     }
   }
@@ -1062,7 +1054,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
     if (cg_hud_state.weapon.used_bit && !ps->stats[STAT_SPECTATOR]) {
 
       // we changed weapons without using scrolly, show it for a bit
-      cg_hud_state.weapon.bit = cg_hud_state.weapon.used_bit - 1;
+      cg_hud_state.weapon.bit = cg_hud_state.weapon.used_bit;
       cg_hud_state.weapon.time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
       cg_hud_state.weapon.bar_time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
     }
@@ -1099,21 +1091,21 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
   const color_t color_selection = Color4f(1.f, 1.f, 1.f, alpha);
   const color_t color = Color4f(1.f, 1.f, 1.f, alpha * cg_select_weapon_alpha->value);
 
-  for (int32_t i = 0; i < WEAPON_TOTAL; i++) {
+  for (g_item_tag_t tag = WEAPON_FIRST; tag < MAX_INVENTORY; tag++) {
 
-    if (!cg_hud_state.weapon.has[i]) {
+    if (!cg_hud_state.weapon.has[tag]) {
       continue;
     }
 
-    const color_t c = (i == cg_hud_state.weapon.bit) ? color_selection : color;
+    const color_t c = ((int16_t) tag == cg_hud_state.weapon.bit) ? color_selection : color;
 
-    const r_image_t *icon = cg_weapons[i].icon;
+    const r_image_t *icon = cg_weapons[tag].icon;
     if (icon) {
       cgi.Draw2DImage(x, y, icon->width, icon->height, icon, c);
     }
 
-    if (i == cg_hud_state.weapon.bit) {
-      const char *name = bg_item_defs[cg_weapons[i].tag].name;
+    if ((int16_t) tag == cg_hud_state.weapon.bit) {
+      const char *name = Cg_ItemName(cg_weapons[tag].tag);
       cgi.Draw2DString(((cgi.context->w / 2) - (cgi.StringWidth(name) / 2)), y - ch, name, HUD_COLOR_STAT);
       cgi.Draw2DImage(x,
               y,

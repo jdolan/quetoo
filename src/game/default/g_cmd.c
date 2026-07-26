@@ -65,8 +65,12 @@ static void G_Give_f(g_client_t *cl) {
   }
 
   if (give_all || q_strcasecmp(name, "armor") == 0) {
-    for (g_item_tag_t t = ARMOR_FIRST; t < ARMOR_LAST; t++) {
-      it = &g_items[t];
+    for (size_t i = 0, count = G_ModeItemCount(ITEM_TYPE_ARMOR); i < count; i++) {
+      it = G_ModeItemAt(ITEM_TYPE_ARMOR, i);
+      if (!it) {
+        continue;
+      }
+      const g_item_tag_t t = it->def.tag;
       if (!it->Pickup) {
         continue;
       }
@@ -81,8 +85,12 @@ static void G_Give_f(g_client_t *cl) {
   }
 
   if (give_all || q_strcasecmp(name, "weapons") == 0) {
-    for (g_item_tag_t t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
-      it = &g_items[t];
+    for (size_t i = 0, count = G_ModeItemCount(ITEM_TYPE_WEAPON); i < count; i++) {
+      it = G_ModeItemAt(ITEM_TYPE_WEAPON, i);
+      if (!it) {
+        continue;
+      }
+      const g_item_tag_t t = it->def.tag;
       if (!it->Pickup) {
         continue;
       }
@@ -97,17 +105,21 @@ static void G_Give_f(g_client_t *cl) {
   }
 
   if (give_all || q_strcasecmp(name, "ammo") == 0) {
-    for (g_item_tag_t t = AMMO_FIRST; t < AMMO_LAST; t++) {
-      it = &g_items[t];
+    for (size_t i = 0, count = G_ModeItemCount(ITEM_TYPE_AMMO); i < count; i++) {
+      it = G_ModeItemAt(ITEM_TYPE_AMMO, i);
+      if (!it) {
+        continue;
+      }
       if (!it->Pickup) {
         continue;
       }
       // Give ammo if it's in the active set or used by an entity-promoted weapon.
       bool available = G_ItemAvailable(it);
       if (!available) {
-        for (g_item_tag_t w = WEAPON_FIRST; w < WEAPON_LAST; w++) {
-          if (G_ItemAvailable(&g_items[w]) &&
-              g_items[w].def.ammo == it->def.tag) {
+        for (size_t w = 0, weapons = G_ModeItemCount(ITEM_TYPE_WEAPON); w < weapons; w++) {
+          const g_item_t *weapon = G_ModeItemAt(ITEM_TYPE_WEAPON, w);
+          if (weapon && G_ItemAvailable(weapon) &&
+              weapon->def.ammo == it->def.tag) {
             available = true;
             break;
           }
@@ -284,8 +296,7 @@ static void G_Use_f(g_client_t *cl) {
 static void G_Drop_f(g_client_t *cl) {
   const g_item_t *it;
 
-  // we don't drop in instagib or arena
-  if (g_level.gameplay) {
+  if (G_ModeHasCapability(G_MODE_CAP_SUPPRESS_ITEMS)) {
     return;
   }
 
@@ -297,10 +308,10 @@ static void G_Drop_f(g_client_t *cl) {
   it = NULL;
 
   if (!q_strcmp(s, "flag")) {
-    G_TossFlag(cl);
+    G_ModeItemDrop(cl);
     return;
   } else if (!q_strcmp(s, "tech")) {
-    G_TossTech(cl);
+    G_ModeTossTech(cl);
     return;
   } else { // or just look up the item
     it = G_FindItem(s);
@@ -501,7 +512,7 @@ static void G_Say_f(g_client_t *cl) {
   if (!q_strcmp(gi.Argv(0), "say") || !q_strcmp(gi.Argv(0), "say_team")) {
     arg0 = false;
 
-    if (!q_strcmp(gi.Argv(0), "say_team") && (g_level.teams || g_level.ctf)) {
+    if (!q_strcmp(gi.Argv(0), "say_team") && G_ModeTeamplay()) {
       team = true;
     }
   }
@@ -605,8 +616,8 @@ bool G_AddClientToTeam(g_client_t *cl, const char *team_name) {
 
   if (!cl->persistent.spectator) { // changing teams
     G_TossQuadDamage(cl);
-    G_TossFlag(cl);
-    G_TossTech(cl);
+    G_ModeItemDrop(cl);
+    G_ModeTossTech(cl);
     G_HookDetach(cl);
   }
 
@@ -625,12 +636,12 @@ bool G_AddClientToTeam(g_client_t *cl, const char *team_name) {
  */
 static void G_Team_f(g_client_t *cl) {
 
-  if ((g_level.teams || g_level.ctf) && gi.Argc() != 2) {
+  if (G_ModeTeamplay() && gi.Argc() != 2) {
     gi.ClientPrint(cl, PRINT_HIGH, "Usage: %s <team name>\n", gi.Argv(0));
     return;
   }
 
-  if (!g_level.teams && !g_level.ctf) {
+  if (!G_ModeTeamplay()) {
     gi.ClientPrint(cl, PRINT_HIGH, "Teams are disabled\n");
     return;
   }
@@ -660,8 +671,8 @@ static void G_Spectate_f(g_client_t *cl) {
     }
 
     G_TossQuadDamage(cl);
-    G_TossFlag(cl);
-    G_TossTech(cl);
+    G_ModeItemDrop(cl);
+    G_ModeTossTech(cl);
     G_HookDetach(cl);
 
     gi.WriteByte(SV_CMD_MUZZLE_FLASH);
@@ -676,7 +687,7 @@ static void G_Spectate_f(g_client_t *cl) {
       return;
     }
 
-    if (g_level.teams || g_level.ctf) {
+    if (G_ModeTeamplay()) {
       if (g_auto_join->value) { // assign them to a team
         G_AddClientToTeam(cl, G_SmallestTeam()->name);
       } else { // or ask them to pick

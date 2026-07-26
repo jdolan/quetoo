@@ -328,7 +328,10 @@ typedef struct {
 #define MAX_STAT_BITS 32
 
 /**
- * @brief The number of inventory slots in `player_state_t`. Must match `ITEM_TOTAL` in `bg_item`.h`.
+ * @brief The number of inventory slots in `player_state_t`.
+ *
+ * The built-in catalog occupies the first `ITEM_TOTAL` slots. The remaining
+ * slots are reserved for items registered by an active game-mode module.
  */
 #define MAX_INVENTORY 64
 

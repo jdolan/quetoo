@@ -131,10 +131,7 @@ cvar_t *g_balance_supershotgun_pellets;
 cvar_t *g_balance_supershotgun_refire;
 cvar_t *g_balance_supershotgun_spread_x;
 cvar_t *g_balance_supershotgun_spread_y;
-cvar_t *g_capture_limit;
 cvar_t *g_cheats;
-cvar_t *g_ctf;
-cvar_t *g_techs;
 cvar_t *g_hook;
 cvar_t *g_hook_auto_refire;
 cvar_t *g_hook_distance;
@@ -310,7 +307,7 @@ void G_ResetItems(void) {
     G_ResetItem(ent);
   });
 
-  G_SpawnTechs();
+  G_ModeResetItems();
 }
 
 /**
@@ -321,13 +318,14 @@ void G_CheckHook(void) {
   if (q_strcmp(g_hook->string, "default")) { // check cvar first
     g_level.hook = !!g_hook->integer;
   } else if (g_level.hook_map != -1) { // check maps.lst
-    g_level.hook = (g_level.hook_map == -1) ? g_level.ctf : !!g_level.hook_map;
+      g_level.hook = (g_level.hook_map == -1) ?
+          G_ModeHasCapability(G_MODE_CAP_FLAG_OBJECTIVE) : !!g_level.hook_map;
   } else { // check worldspawn
     const cm_entity_t *hook = gi.EntityValue(ge.entities[0]->def, "hook");
     if (hook->parsed & ENTITY_INTEGER) {
       g_level.hook = hook->integer;
     } else {
-      g_level.hook = g_level.ctf;
+      g_level.hook = G_ModeHasCapability(G_MODE_CAP_FLAG_OBJECTIVE);
     }
   }
 
@@ -341,19 +339,7 @@ void G_CheckHook(void) {
  * @brief Checks and sets up the tech states
  */
 void G_CheckTechs(void) {
-
-  if (q_strcmp(g_techs->string, "default")) { // check cvar first
-    g_level.techs = !!g_techs->integer;
-  } else if (g_level.techs_map != -1) { // check maps.lst
-    g_level.techs = (g_level.techs_map == -1) ? g_level.ctf : !!g_level.techs_map;
-  } else { // check worldspawn
-    const cm_entity_t *techs = gi.EntityValue(ge.entities[0]->def, "techs");
-    if (techs->parsed & ENTITY_INTEGER) {
-      g_level.techs = techs->integer;
-    } else {
-      g_level.techs = g_level.ctf;
-    }
-  }
+  G_ModeResolveTechs(&g_level, ge.entities[0]->def);
 }
 
 /**
@@ -364,7 +350,7 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
   for (size_t i = 0; i < points->count; i++) {
     g_entity_t *ent = points->spots[i];
 
-    if (trail && (g_level.teams || g_level.ctf)) {
+    if (trail && G_ModeTeamplay()) {
 
       if (ent->s.trail) {
         // Shared spawn point (already claimed by another team): use yellow
@@ -421,10 +407,12 @@ static void G_RestartGame(bool teamz) {
 
     // determine spectator or team affiliations
 
-    if (g_level.teams || g_level.ctf) {
+    if (G_ModeTeamplay()) {
 
       if (!cl->persistent.team) {
-        if (g_auto_join->value) {
+        if (G_ModeAssignTeam(cl)) {
+          // The active team component owns assignment.
+        } else if (g_auto_join->value) {
           G_AddClientToTeam(cl, G_SmallestTeam()->name);
         } else {
           cl->persistent.spectator = true;
@@ -475,6 +463,13 @@ void G_MuteClient(char *name, bool mute) {
  */
 static void G_PostStats(void) {
 
+  // A level can reach intermission before its first simulation tick (for
+  // example when a mode rule immediately ends the round).  In addition,
+  // vectors are released after posting, so make this operation idempotent.
+  if (!g_level.frags || !g_level.captures) {
+    return;
+  }
+
   gi.PostStats((g_frag_t *) g_level.frags->elements, (int32_t) g_level.frags->count,
                (g_capture_t *) g_level.captures->elements, (int32_t) g_level.captures->count);
 
@@ -492,7 +487,9 @@ static void G_BeginIntermission(void) {
     return; // already activated
   }
 
-  g_level.intermission_time = g_level.time;
+  // Zero is the inactive sentinel, so preserve a non-zero marker when the
+  // level ends on its initial frame.
+  g_level.intermission_time = g_level.time ?: 1;
 
   G_PostStats();
 
@@ -628,36 +625,14 @@ static void G_CheckRules(void) {
 
   G_RunTimers();
 
-  if (!g_level.ctf && g_level.frag_limit) { // check frag_limit
-
-    if (g_level.teams) { // check team scores
-      for (int32_t i = 0; i < g_level.num_teams; i++) {
-        if (g_team_list[i].score >= g_level.frag_limit) {
-          gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
-          G_EndLevel();
-          return;
-        }
-      }
-    } else { // or individual scores
-      G_ForEachClient(cl, {
-        if (cl->persistent.score >= g_level.frag_limit) {
-          gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
-          G_EndLevel();
-          return;
-        }
-      });
-    }
+  if (G_ModeCheckRules()) {
+    G_EndLevel();
+    return;
   }
 
-  if (g_level.ctf && g_level.capture_limit) { // check capture limit
-
-    for (int32_t i = 0; i < g_level.num_teams; i++) {
-      if (g_team_list[i].captures >= g_level.capture_limit) {
-        gi.BroadcastPrint(PRINT_HIGH, "Capture limit hit\n");
-        G_EndLevel();
-        return;
-      }
-    }
+  if (G_CheckMatchLimit()) {
+    G_EndLevel();
+    return;
   }
 
   if (g_gameplay->modified) { // change gameplay, fix items, respawn clients
@@ -748,7 +723,7 @@ static void G_CheckRules(void) {
     if (g_level.num_teams != num_teams) {
       g_level.num_teams = num_teams;
 
-      if (g_teams->integer || g_ctf->integer) {
+      if (g_teams->integer || G_ModeObjectiveEnabled()) {
         G_InitNumTeams();
 
         gi.BroadcastPrint(PRINT_HIGH, "Number of teams set to %i\n",
@@ -770,10 +745,9 @@ static void G_CheckRules(void) {
     restart = true;
   }
 
-  if (g_ctf->modified) { // reset teams, scores
-    g_ctf->modified = false;
-
-    g_level.ctf = g_ctf->integer;
+  int32_t objective_enabled;
+  if (G_ModeObjectiveCvarChanged(&objective_enabled)) { // reset teams, scores
+    g_level.ctf = objective_enabled;
     gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));
 
     gi.BroadcastPrint(PRINT_HIGH, "CTF has been %s\n", g_level.ctf ? "enabled" : "disabled");
@@ -781,8 +755,9 @@ static void G_CheckRules(void) {
     restart = true;
   }
 
-  if (g_techs->modified) {
-    g_techs->modified = false;
+  cvar_t *techs_cvar = G_ModeTechsCvar();
+  if (techs_cvar->modified) {
+    techs_cvar->modified = false;
 
     G_CheckTechs();
 
@@ -804,9 +779,9 @@ static void G_CheckRules(void) {
     gi.BroadcastPrint(PRINT_HIGH, "Frag limit has been changed to %d\n", g_level.frag_limit);
   }
 
-  if (g_capture_limit->modified) {
-    g_capture_limit->modified = false;
-    g_level.capture_limit = g_capture_limit->integer;
+  int32_t capture_limit;
+  if (G_ModeCaptureLimitCvarChanged(&capture_limit)) {
+    g_level.capture_limit = capture_limit;
 
     gi.BroadcastPrint(PRINT_HIGH, "Capture limit has been changed to %d\n", g_level.capture_limit);
   }
@@ -894,6 +869,8 @@ static void G_Frame(void) {
     g_level.current_entity = NULL;
   });
 
+  G_ModeFrame();
+
   // let the AI think
   G_Ai_Frame();
 
@@ -914,9 +891,9 @@ static const char *G_GameName(void) {
   q_strlcpy(name, G_GameplayName(g_level.gameplay), size);
 
   // teams are implied for capture the flag
-  if (g_level.ctf) {
+  if (G_ModeHasCapability(G_MODE_CAP_FLAG_OBJECTIVE)) {
     q_strlcat(name, " CTF", size);
-  } else if (g_level.teams) {
+  } else if (G_ModeTeamplay()) {
     q_strlcpy(name, va("Team %s", name), size);
   }
 
@@ -950,13 +927,15 @@ void G_InitNumTeams(void) {
     g_level.num_teams = Clampf(g_level.num_teams, 2, MAX_TEAMS);
   }
 
-  gi.SetConfigString(CS_NUM_TEAMS, va("%d", (g_level.teams || g_level.ctf) ? g_level.num_teams : 0));
+  gi.SetConfigString(CS_NUM_TEAMS, va("%d", G_ModeTeamplay() ? g_level.num_teams : 0));
 }
 
 /**
  * @brief This will be called when the game module is first loaded.
  */
 void G_Init(void) {
+
+  G_ModeInit();
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
     ge.clients[i] = gi.Malloc(sizeof(g_client_t), MEM_TAG_GAME);
@@ -1082,7 +1061,6 @@ void G_Init(void) {
   g_balance_supershotgun_refire = gi.AddCvar("g_balance_supershotgun_refire", "0.8", 0, NULL);
   g_balance_supershotgun_spread_x = gi.AddCvar("g_balance_supershotgun_spread_x", "1600", 0, NULL);
   g_balance_supershotgun_spread_y = gi.AddCvar("g_balance_supershotgun_spread_y", "500", 0, NULL);
-  g_capture_limit = gi.AddCvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level.");
   g_cheats = gi.AddCvar("g_cheats",
 #if _DEBUG
     "1"
@@ -1090,7 +1068,6 @@ void G_Init(void) {
     "0"
 #endif
     , CVAR_SERVER_INFO, NULL);
-  g_ctf = gi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay.");
   g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO, "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
   g_hook_style = gi.AddCvar("g_hook_style", "default", 0, "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
   g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", 0, "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
@@ -1141,7 +1118,6 @@ void G_Init(void) {
   g_spawn_farthest = gi.AddCvar("g_spawn_farthest", "1", CVAR_SERVER_INFO, NULL);
   g_spectator_chat = gi.AddCvar("g_spectator_chat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators.");
   g_teams = gi.AddCvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play.");
-  g_techs = gi.AddCvar("g_techs", "default", CVAR_SERVER_INFO, "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
   g_time_limit = gi.AddCvar("g_time_limit", "20", CVAR_SERVER_INFO, "The time limit per level in minutes.");
   g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
   g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "If enabled, weapons will remain when picked up rather than respawn with delay.");
@@ -1149,9 +1125,7 @@ void G_Init(void) {
   G_Ai_Init();
 
   // set these to false to avoid spurious game restarts and alerts on init
-  g_capture_limit->modified =
-      g_cheats->modified =
-      g_ctf->modified =
+  g_cheats->modified =
       g_frag_limit->modified =
       g_friendly_fire->modified =
       g_gameplay->modified =
@@ -1160,12 +1134,12 @@ void G_Init(void) {
       g_hook_style->modified =
       g_hook->modified =
       g_num_teams->modified =
-      g_self_damage->modified =
+  g_self_damage->modified =
       g_self_knockback->modified =
       g_teams->modified =
-      g_techs->modified =
       g_time_limit->modified =
       g_weapon_stay->modified = false;
+  G_ModeTechsCvar()->modified = false;
 
   // add game-specific server console commands
   gi.AddCmd("mute", G_Mute_f, CMD_GAME, "Prevent a client from talking");
@@ -1182,6 +1156,8 @@ void G_Init(void) {
 void G_Shutdown(void) {
 
   gi.Print("Game module shutdown...\n");
+
+  G_ModeShutdown();
   
   G_Ai_Shutdown();
 

@@ -75,10 +75,8 @@ static void G_UpdateScore(const g_client_t *cl, g_score_t *s) {
     s->color = -1;
     s->flags |= SCORE_SPECTATOR;
   } else {
-    if (g_level.ctf) {
-      if (G_GetFlag(cl)) {
-        s->flags |= SCORE_CTF_FLAG;
-      }
+    if (G_ModeGetFlag(cl)) {
+      s->flags |= SCORE_CTF_FLAG;
     }
     if (cl->persistent.team) {
       s->color = cl->persistent.team->color;
@@ -106,7 +104,7 @@ static size_t G_UpdateScores(g_score_t *scores) {
   });
 
   // and optionally concatenate the team scores
-  if (g_level.teams || g_level.ctf) {
+  if (G_ModeTeamplay()) {
     memset(s, 0, sizeof(*s) * MAX_TEAMS);
 
     for (i = 0; i < MAX_TEAMS; i++) {
@@ -185,7 +183,7 @@ void G_ClientStats(g_client_t *cl) {
   }
 
   // tech
-  const g_item_t *tech = G_GetTech(cl);
+  const g_item_t *tech = G_ModeGetTech(cl);
   cl->ps.stats[STAT_TECH] = tech ? tech->def.tag : 0;
 
   // captures

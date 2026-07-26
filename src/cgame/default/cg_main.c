@@ -260,6 +260,9 @@ static void Cg_UpdateConfigString(int32_t i) {
     case CS_ITEM_SET:
       cg_state.items = (g_items_t) strtol(s, NULL, 10);
       return;
+    case CS_MODE_ITEMS:
+      Cg_ParseModeItems(s);
+      return;
     case CS_CTF:
       cg_state.ctf = Clampf01(atoi(s));
       return;

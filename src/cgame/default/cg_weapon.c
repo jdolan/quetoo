@@ -132,11 +132,10 @@ void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
     return; // spectating
   }
 
-  const int16_t tag = ps->stats[STAT_WEAPON] & 0xFF;
-  if (tag < WEAPON_FIRST || tag >= WEAPON_LAST) {
+  const g_item_tag_t tag = Cg_ActiveWeaponTag(ps);
+  if (tag == ITEM_NONE) {
     return; // no weapon, e.g. level intermission
   }
-  const int16_t active = tag - WEAPON_FIRST;
 
   memset(&w, 0, sizeof(w));
 
@@ -148,9 +147,9 @@ void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
 
   w.origin = Vec3_Add(w.origin, velocity);
 
-  w.model = cg_weapons[active].model;
+  w.model = cg_weapons[tag].model;
 
-  if (cg_weapons[active].tag < WEAPON_QUAKE_SHOTGUN) {
+  if (cg_weapons[tag].tag < WEAPON_QUAKE_SHOTGUN) {
     switch (cg_hand->integer) {
       case HAND_LEFT:
         offset.y -= 5.f;

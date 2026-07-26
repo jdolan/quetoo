@@ -44,12 +44,20 @@ typedef struct {
    */
   const r_model_t *model;
 
+  /**
+   * @brief Presentation category, including mode-owned runtime items.
+   */
+  g_item_type_t type;
+
+  /** @brief Pickup/respawn effect color. */
+  color_t effect_color;
+
 } cg_item_t;
 
 /**
  * @brief Per-item cache, indexed by `g_item_tag_t`. Populated at load time.
  */
-extern cg_item_t cg_items[ITEM_TOTAL];
+extern cg_item_t cg_items[MAX_INVENTORY];
 
 /**
  * @brief Cached per-weapon data derived from `bg_item_defs` at load time.
@@ -79,15 +87,21 @@ typedef struct {
 } cg_weapon_t;
 
 /**
- * @brief Per-weapon cache, indexed by (tag - `WEAPON_FIRST`). Populated at load time.
+ * @brief Per-weapon cache, indexed by runtime item tag. Populated at load time.
  */
-extern cg_weapon_t cg_weapons[WEAPON_TOTAL];
+/** @brief Weapon presentation records indexed by runtime item tag. */
+extern cg_weapon_t cg_weapons[MAX_INVENTORY];
 
 /**
  * @brief Initializes the inventory cache (weapon icons, ammo tags).
  * Called once per map load from `Cg_LoadHudMedia`.
  */
 void Cg_InitInventory(void);
+void Cg_ParseModeItems(const char *catalog);
+const char *Cg_ItemName(g_item_tag_t tag);
+const char *Cg_ItemClassname(g_item_tag_t tag);
+const r_image_t *Cg_ItemIcon(g_item_tag_t tag);
+color_t Cg_ItemEffectColor(g_item_tag_t tag);
 
 /**
  * @brief Returns true if the player has at least one weapon in inventory.
@@ -99,11 +113,13 @@ bool Cg_HasWeapon(const player_state_t *ps);
  * Prefers the weapon being switched to over the one currently equipped.
  */
 int16_t Cg_ActiveWeapon(const player_state_t *ps);
+g_item_tag_t Cg_ActiveWeaponTag(const player_state_t *ps);
 
 /**
  * @brief Returns the active ammo quantity, or 0 if the active weapon has no ammo.
  */
 int16_t Cg_ActiveAmmo(const player_state_t *ps);
+int16_t Cg_ItemQuantity(g_item_tag_t tag);
 
 /**
  * @brief Returns the icon for the player's current armor based on inventory.

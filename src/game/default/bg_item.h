@@ -40,7 +40,9 @@ typedef enum {
 } g_item_type_t;
 
 /**
- * @brief Global item tags. Each tag is the item's index in `g_items[]`.
+ * @brief Built-in item tags. Each built-in tag is the item's index in
+ * `g_items[]`; active mode modules may allocate additional tags from the
+ * reserved `ITEM_TOTAL..MAX_INVENTORY` range.
  */
 typedef enum {
   ITEM_NONE = 0,

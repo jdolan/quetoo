@@ -48,6 +48,7 @@
 #include "g_entity.h"
 #include "g_item.h"
 #include "g_main.h"
+#include "g_mode.h"
 #include "g_physics.h"
 #include "g_sound.h"
 #include "g_types.h"

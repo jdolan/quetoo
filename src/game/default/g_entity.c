@@ -152,6 +152,10 @@ static void G_SpawnEntity(cm_entity_t *def) {
   ent->damage = gi.EntityValue(ent->def, "dmg")->integer;
   ent->mass = gi.EntityValue(ent->def, "mass")->value;
 
+  if (G_ModeSpawnEntityClass(ent)) {
+    return;
+  }
+
   // check item spawn functions
   const g_item_t *it = G_FindItemByClassName(ent->classname);
   if (it) {
@@ -312,10 +316,6 @@ static void G_InitMedia(void) {
   g_media.sounds.weapon_switch = gi.SoundIndex("weapons/common/switch");
 
   g_media.sounds.chat = gi.SoundIndex("misc/chat");
-  g_media.sounds.ctf_capture = gi.SoundIndex("ctf/capture");
-  g_media.sounds.ctf_return = gi.SoundIndex("ctf/return");
-  g_media.sounds.ctf_steal = gi.SoundIndex("ctf/steal");
-
   for (i = 0; i < NUM_GIB_MODELS; i++) {
     g_media.models.gibs[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris", i + 1));
   }
@@ -333,12 +333,6 @@ static void G_InitMedia(void) {
   }
 
   g_media.sounds.roar = gi.SoundIndex("misc/ominous_bwah");
-
-  g_media.sounds.techs[TECH_HASTE - TECH_FIRST]    = gi.SoundIndex("techs/haste/haste");
-  g_media.sounds.techs[TECH_REGEN - TECH_FIRST]    = gi.SoundIndex("techs/regen/regen");
-  g_media.sounds.techs[TECH_RESIST - TECH_FIRST]   = gi.SoundIndex("techs/resist/resist");
-  g_media.sounds.techs[TECH_STRENGTH - TECH_FIRST] = gi.SoundIndex("techs/strength/strength");
-  g_media.sounds.techs[TECH_VAMPIRE - TECH_FIRST]  = gi.SoundIndex("techs/vampire/vampire");
 
   g_media.images.health = gi.ImageIndex("pics/i_health");
 }
@@ -431,8 +425,15 @@ static void G_CreateTeamSpawnPoints(Vector **dm_spawns, Vector **team_red_spawns
     red_flag->s.origin = reused_spawns[r]->s.origin;
     blue_flag->s.origin = reused_spawns[r ^ 1]->s.origin;
     
-    G_SpawnItem(red_flag, &g_items[FLAG_RED]);
-    G_SpawnItem(blue_flag, &g_items[FLAG_BLUE]);
+    const g_item_t *red_item = G_FindItemByClassName(g_team_red->flag);
+    const g_item_t *blue_item = G_FindItemByClassName(g_team_blue->flag);
+    // Team maps historically synthesize hidden flags even outside CTF. Keep
+    // the legacy catalog fallback until the common item table is fully
+    // replaced by the mode-owned catalog.
+    red_item = red_item ?: &g_items[FLAG_RED];
+    blue_item = blue_item ?: &g_items[FLAG_BLUE];
+    G_SpawnItem(red_flag, red_item);
+    G_SpawnItem(blue_flag, blue_item);
     
     g_team_red->flag_entity = red_flag;
     g_team_blue->flag_entity = blue_flag;
@@ -618,52 +619,6 @@ static void G_InitSpawnPoints(void) {
 }
 
 /**
- * @brief Spawns a single tech item at a randomly selected spawn point with a random initial velocity.
- */
-void G_SpawnTech(const g_item_t *item) {
-
-  g_entity_t *spawn = G_SelectTechSpawnPoint();
-
-  g_entity_t *ent = G_AllocEntity(item->def.classname);
-  ent->s.origin = spawn->s.origin;
-
-  G_SpawnItem(ent, item);
-  ent->next_think = 0;
-  ent->Think = NULL;
-
-  // Treat spawned techs like dropped items so they can land near spawn points
-  // instead of forcing immediate pickup on spawn.
-  ent->spawn_flags |= SF_ITEM_DROPPED;
-  ent->move_type = MOVE_TYPE_BOUNCE;
-  ent->touch_time = g_level.time + 1000;
-
-  vec3_t angles = spawn->s.angles;
-  angles.y += RandomRangef(-45.f, 45.f);
-
-  vec3_t forward;
-  Vec3_Vectors(angles, &forward, NULL, NULL);
-
-  ent->velocity = Vec3_Scale(forward, 100.f);
-  ent->velocity.z = 300.f + (Randomf() * 50.f);
-
-  G_ResetItem(ent);
-}
-
-/**
- * @brief Spawn all of the techs
- */
-void G_SpawnTechs(void) {
-
-  if (!g_level.techs) {
-    return;
-  }
-
-  for (g_item_tag_t i = TECH_FIRST; i < TECH_LAST; i++) {
-    G_SpawnTech(&g_items[i]);
-  }
-}
-
-/**
  * @brief Spawns game entities from the BSP entity definition lump.
  */
 void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities) {
@@ -674,15 +629,6 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
       G_ClientDisconnect(cl);
     }
   });
-
-  gi.FreeTag(MEM_TAG_GAME_LEVEL);
-
-  memset(&g_level, 0, sizeof(g_level));
-
-  q_strlcpy(g_level.name, name, sizeof(g_level.name));
-
-  g_level.frags    = $(alloc(Vector), initWithSize, sizeof(g_frag_t));
-  g_level.captures = $(alloc(Vector), initWithSize, sizeof(g_capture_t));
 
   // Clear real client entity pointers before freeing entities to prevent dangling references
   G_ForEachClient(cl, {
@@ -696,6 +642,18 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
     G_FreeEntity(ge.entities[i]);
   }
+
+  // Keep mode-owned entity records and dynamic item IDs valid until all
+  // entities have released their callbacks and item pointers.
+  G_ModeEndLevel();
+  gi.FreeTag(MEM_TAG_GAME_LEVEL);
+
+  memset(&g_level, 0, sizeof(g_level));
+
+  q_strlcpy(g_level.name, name, sizeof(g_level.name));
+
+  g_level.frags    = $(alloc(Vector), initWithSize, sizeof(g_frag_t));
+  g_level.captures = $(alloc(Vector), initWithSize, sizeof(g_capture_t));
 
   g_map = props;
 
@@ -921,7 +879,7 @@ static void G_worldspawn(g_entity_t *ent) {
     if (ctf->parsed & ENTITY_INTEGER) {
       g_level.ctf = ctf->integer;
     } else {
-      g_level.ctf = g_ctf->integer;
+      g_level.ctf = G_ModeObjectiveEnabled();
     }
   }
 
@@ -950,6 +908,21 @@ static void G_worldspawn(g_entity_t *ent) {
     g_level.teams = 0;
   }
 
+  // Activate the mode after worldspawn has resolved the level configuration,
+  // but before any mode-dependent map entities are spawned. Gameplay variants
+  // remain common modifiers for now; CTF owns the objective-specific hooks.
+  const char *mode_name = G_ModePrimaryName(g_level.ctf);
+  const char *modifier_names[G_MODE_MAX_MODIFIERS] = { NULL };
+  size_t num_modifiers = 0;
+  const char *modifier_name = G_ModeModifierName(g_level.gameplay);
+  if (modifier_name) {
+    modifier_names[num_modifiers++] = modifier_name;
+  }
+  if (num_modifiers < G_MODE_MAX_MODIFIERS) {
+    modifier_names[num_modifiers++] = "techs";
+  }
+  G_ModeBeginLevel(mode_name, modifier_names, num_modifiers, g_level.name, g_map);
+
   gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));
   gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
 
@@ -973,7 +946,7 @@ static void G_worldspawn(g_entity_t *ent) {
     if (capture_limit->parsed & ENTITY_INTEGER) {
       g_level.capture_limit = capture_limit->integer;
     } else {
-      g_level.capture_limit = g_capture_limit->integer;
+      g_level.capture_limit = G_ModeCaptureLimit();
     }
   }
 

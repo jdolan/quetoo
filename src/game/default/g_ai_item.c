@@ -62,20 +62,19 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
 
       return true;
     case ITEM_TYPE_TECH:
-      for (g_item_tag_t tag = TECH_FIRST; tag < TECH_LAST; tag++) {
-        if (inventory[tag]) {
+      for (size_t i = 0, count = G_ModeItemCount(ITEM_TYPE_TECH); i < count; i++) {
+        const g_item_t *tech = G_ModeItemAt(ITEM_TYPE_TECH, i);
+        if (tech && inventory[tech->def.tag]) {
           return false;
         }
       }
 
       return true;
     case ITEM_TYPE_FLAG: {
-      const g_team_id_t team = cl->persistent.team->id;
-      const g_team_id_t flag_team = (item->def.tag - FLAG_FIRST);
-      if (flag_team == team && other->owner == NULL) {
-        return false;
+      bool can_pickup = true;
+      if (G_ModeBotCanPickup(cl, other, &can_pickup)) {
+        return can_pickup;
       }
-
       return true;
     }
 
@@ -83,5 +82,3 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
       return true;
   }
 }
-
-

@@ -26,13 +26,20 @@ const box3_t ITEM_BOUNDS = {
   .maxs = { {  16.0,  16.0,  32.0 } }
 };
 
+static void G_SetFlagTeamTint(g_entity_t *ent, const g_item_t *item);
+
 /**
  * @brief Finds an item by its entity class name.
  */
 const g_item_t *G_FindItemByClassName(const char *classname) {
 
-  for (g_item_tag_t t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
-    const g_item_t *it = &g_items[t];
+  const g_item_t *mode_item = G_ModeFindItemByClassName(classname);
+  if (mode_item) {
+    return mode_item;
+  }
+
+  for (size_t i = 0, count = G_ModeItemCount(ITEM_TYPE_NONE); i < count; i++) {
+    const g_item_t *it = G_ModeItemAt(ITEM_TYPE_NONE, i);
 
     if (!q_strcmp(it->def.classname, classname)) {
       return it;
@@ -51,9 +58,14 @@ const g_item_t *G_FindItem(const char *name) {
     return NULL;
   }
 
+  const g_item_t *mode_item = G_ModeFindItem(name);
+  if (mode_item) {
+    return mode_item;
+  }
+
   const g_item_t *fallback = NULL;
-  for (g_item_tag_t t = WEAPON_FIRST; t < ITEM_TOTAL; t++) {
-    const g_item_t *it = &g_items[t];
+  for (size_t i = 0, count = G_ModeItemCount(ITEM_TYPE_NONE); i < count; i++) {
+    const g_item_t *it = G_ModeItemAt(ITEM_TYPE_NONE, i);
 
     if (!q_strcasecmp(it->def.name, name)) {
       if (G_ItemAvailable(it)) {
@@ -641,195 +653,14 @@ static bool G_PickupArmor(g_client_t *cl, g_entity_t *ent) {
 }
 
 /**
- * @brief A dropped flag has been idle for 30 seconds, return it.
- */
-void G_ResetDroppedFlag(g_entity_t *ent) {
-  g_team_t *t;
-  g_entity_t *f;
-
-  if (!(t = G_TeamForFlag(ent))) {
-    return;
-  }
-
-  if (!(f = G_FlagForTeam(t))) {
-    return;
-  }
-
-  f->sv_flags &= ~SVF_NO_CLIENT;
-  f->s.event = EV_ITEM_RESPAWN;
-  f->s.event_data = f->item->def.tag;
-  f->solid = SOLID_TRIGGER;
-
-  gi.LinkEntity(f);
-
-  G_MulticastSound(&(const g_play_sound_t) {
-    .index = g_media.sounds.ctf_return
-  }, MULTICAST_PHS_R);
-
-  gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
-
-  G_FreeEntity(ent);
-}
-
-/**
- * @brief Steal the enemy's flag. If our own flag is dropped, return it. Else, if we are
- * carrying the enemy's flag and touch our own flag, that is a capture.
- */
-static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
-  int32_t index;
-
-  if (!cl->persistent.team) {
-    return false;
-  }
-
-  g_team_t *team = G_TeamForFlag(ent);
-  g_entity_t *team_flag = G_FlagForTeam(team);
-
-  const g_item_t *carried_flag = G_GetFlag(cl);
-
-  if (team == cl->persistent.team) { // our flag
-
-    if (ent->spawn_flags & SF_ITEM_DROPPED) { // return it if necessary
-
-      team_flag->solid = SOLID_TRIGGER;
-      team_flag->sv_flags &= ~SVF_NO_CLIENT;
-
-      gi.LinkEntity(team_flag);
-
-      team_flag->s.event = EV_ITEM_RESPAWN;
-      team_flag->s.event_data = team_flag->item->def.tag;
-
-      G_MulticastSound(&(const g_play_sound_t) {
-        .index = g_media.sounds.ctf_return
-      }, MULTICAST_PHS);
-
-      gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag :flag%d_return:\n", cl->persistent.net_name, team->name, team->id + 1);
-
-      return true;
-    }
-
-    if (carried_flag) {
-      const g_team_t *other_team = &g_team_list[carried_flag->def.tag - FLAG_FIRST];
-      g_entity_t *other_team_flag = G_FlagForTeam(other_team);
-
-      index = other_team_flag->item->def.tag;
-      if (cl->inventory[index]) { // capture
-
-        cl->inventory[index] = 0;
-        cl->entity->s.effects &= ~G_EffectForTeam(other_team);
-        cl->entity->s.model3 = 0;
-
-        other_team_flag->solid = SOLID_TRIGGER;
-        other_team_flag->sv_flags &= ~SVF_NO_CLIENT; // reset the other flag
-
-        gi.LinkEntity(other_team_flag);
-
-        other_team_flag->s.event = EV_ITEM_RESPAWN;
-        other_team_flag->s.event_data = other_team_flag->item->def.tag;
-
-        G_MulticastSound(&(const g_play_sound_t) {
-          .index = g_media.sounds.ctf_capture
-        }, MULTICAST_PHS_R);
-
-        gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag :flag%d_capture:\n", cl->persistent.net_name, other_team->name, other_team->id + 1);
-
-        team->captures++;
-        cl->persistent.captures++;
-
-        {
-          const bool player_ai = cl->ai != NULL;
-          g_capture_t capture = {
-            .player_ai = player_ai,
-            .time = (uint32_t) time(NULL),
-          };
-          q_strlcpy(capture.level,       g_level.name,              sizeof(capture.level));
-          q_strlcpy(capture.player,      cl->persistent.net_name,   sizeof(capture.player));
-          q_strlcpy(capture.player_guid, cl->persistent.guid,       sizeof(capture.player_guid));
-          q_strlcpy(capture.team,        other_team->name,          sizeof(capture.team));
-
-          if (capture.player_guid[0]) {
-            $(g_level.captures, add, &capture);
-          }
-        }
-
-        return false;
-      }
-    }
-
-    // touching our own flag for no particular reason
-    return false;
-  }
-
-  // it's enemy's flag, so take it if we can
-  if (carried_flag) {
-    return false; // we have one already
-  }
-
-  team_flag->solid = SOLID_NOT;
-  team_flag->sv_flags |= SVF_NO_CLIENT;
-
-  gi.LinkEntity(team_flag);
-
-  index = team_flag->item->def.tag;
-  cl->inventory[index] = 1;
-
-  // link the flag model to the player
-  cl->entity->s.model3 = team_flag->item->model_index;
-
-  G_MulticastSound(&(const g_play_sound_t) {
-    .index = g_media.sounds.ctf_steal,
-  }, MULTICAST_PHS_R);
-
-  gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n", cl->persistent.net_name, team->name, team->id + 1);
-
-  cl->entity->s.effects |= G_EffectForTeam(team);
-  return true;
-}
-
-/**
- * @brief Drops the CTF flag currently carried by the client as a world entity.
- */
-g_entity_t *G_TossFlag(g_client_t *cl) {
-
-  const g_item_t *flag = G_GetFlag(cl);;
-
-  if (!flag) {
-    return NULL;
-  }
-
-  const g_team_t *team = &g_team_list[flag->def.tag - FLAG_FIRST];
-  const g_item_tag_t index = flag->def.tag;
-
-  if (!cl->inventory[index]) {
-    return NULL;
-  }
-
-  cl->inventory[index] = 0;
-
-  cl->entity->s.model3 = 0;
-  cl->entity->s.effects &= ~EF_CTF_MASK;
-
-  gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag :flag%d_drop:\n", cl->persistent.net_name, team->name, team->id + 1);
-
-  return G_DropItem(cl, flag);
-}
-
-/**
- * @brief Drop command callback that tosses the client's carried CTF flag.
- */
-static g_entity_t *G_DropFlag(g_client_t *cl, const g_item_t *item) {
-  return G_TossFlag(cl);
-}
-
-/**
  * @brief Sets the expiration timer and think function for a dropped item entity.
  */
 static void G_DropItem_SetExpiration(g_entity_t *ent) {
 
   if (ent->item->def.type == ITEM_TYPE_FLAG) { // flags go back to base
-    ent->Think = G_ResetDroppedFlag;
+    ent->Think = G_ModeItemResetDropped;
   } else if (ent->item->def.type == ITEM_TYPE_TECH) {
-    ent->Think = G_ResetDroppedTech;
+      ent->Think = G_ModeResetDroppedTech;
   } else { // everything else just gets freed
     ent->Think = G_FreeEntity;
   }
@@ -966,13 +797,14 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
   const cm_trace_t tr = gi.Trace(it->s.origin, it->s.origin, it->bounds, cl->entity, CONTENTS_MASK_SOLID);
 
   it->item = item;
+  G_ModeEntitySpawn(it);
 
   // we're in a bad spot, forget it
   if (tr.start_solid) {
     if (item->def.type == ITEM_TYPE_TECH) {
-      G_ResetDroppedTech(it);
+      G_ModeResetDroppedTech(it);
     } else if (item->def.type == ITEM_TYPE_FLAG) {
-      G_ResetDroppedFlag(it);
+      G_ModeItemResetDropped(it);
     } else {
       G_FreeEntity(it);
     }
@@ -986,6 +818,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
   it->move_type = MOVE_TYPE_BOUNCE;
   it->Touch = G_TouchItem;
   it->s.effects = item->def.effects;
+  G_SetFlagTeamTint(it, item);
 
   if (item->def.light_radius) {
     it->s.effects |= EF_LIGHT | EF_LIGHT_PULSE;
@@ -1034,154 +867,6 @@ static void G_UseItem(g_entity_t *ent, g_entity_t *other, g_entity_t *activator)
 }
 
 /**
- * @brief Returns the distance to the nearest enemy from the given spot.
- */
-static float G_TechRangeFromSpawn(const g_entity_t *spawn) {
-  float best_dist = FLT_MAX;
-  bool any = false;
-
-  for (g_item_tag_t tech = TECH_FIRST; tech < TECH_LAST; tech++) {
-
-    g_entity_t *ent = NULL;
-    G_ForEachEntity(e, {
-      if (e->item == &g_items[tech]) {
-        ent = e;
-        break;
-      }
-    });
-
-    if (!ent) {
-      continue;
-    }
-
-    const vec3_t v = Vec3_Subtract(spawn->s.origin, ent->s.origin);
-    const float dist = Vec3_Length(v);
-
-    if (dist < best_dist) {
-      best_dist = dist;
-    }
-
-    any = true;
-  }
-
-  if (!any) {
-    return Randomf() * MAX_WORLD_DIST;
-  }
-
-  return best_dist;
-}
-
-/**
- * @brief Finds the spawn point farthest from all existing tech items within the given set.
- */
-static void G_SelectFarthestTechSpawnPoint(const g_spawn_points_t *spawn_points, g_entity_t **point, float *point_dist) {
-
-  for (size_t i = 0; i < spawn_points->count; i++) {
-    g_entity_t *spot = spawn_points->spots[i];
-    float dist = G_TechRangeFromSpawn(spot);
-
-    if (dist > *point_dist) {
-      *point = spot;
-      *point_dist = dist;
-    }
-  }
-}
-
-/**
- * @brief Selects the optimal spawn point for a tech item by maximizing distance from all other techs.
- */
-g_entity_t *G_SelectTechSpawnPoint(void) {
-  float point_dist = -FLT_MAX;
-  g_entity_t *point = NULL;
-
-  if (g_level.teams || g_level.ctf) {
-    for (int32_t i = 0; i < g_level.num_teams; i++) {
-      G_SelectFarthestTechSpawnPoint(&g_team_list[i].spawn_points, &point, &point_dist);
-    }
-  } else {
-    G_SelectFarthestTechSpawnPoint(&g_level.spawn_points, &point, &point_dist);
-  }
-
-  if (!point) {
-    G_SelectFarthestTechSpawnPoint(&g_level.spawn_points, &point, &point_dist);
-  }
-
-  return point;
-}
-
-/**
- * @brief Respawns a tech item at a new spawn point and frees the dropped entity.
- */
-void G_ResetDroppedTech(g_entity_t *ent) {
-
-  G_SpawnTech(ent->item);
-
-  G_FreeEntity(ent);
-}
-
-/**
- * @brief Check if a player has the specified tech.
- */
-bool G_HasTech(const g_client_t *cl, g_item_tag_t tech) {
-  return !!cl->inventory[tech];
-}
-
-/**
- * @brief Pickup function for techs. Can only hold one tech at a time.
- */
-static bool G_PickupTech(g_client_t *cl, g_entity_t *ent) {
-
-  for (g_item_tag_t tech = TECH_FIRST; tech < TECH_LAST; tech++) {
-
-    if (G_HasTech(cl, tech)) {
-      return false;
-    }
-  }
-
-  // add the weapon to inventory
-  cl->inventory[ent->item->def.tag]++;
-
-  return true;
-}
-
-/**
- * @brief Returns the tech item currently held by the client, or `NULL` if none.
- */
-const g_item_t *G_GetTech(const g_client_t *cl) {
-
-  for (g_item_tag_t i = TECH_FIRST; i < TECH_LAST; i++) {
-
-    if (G_HasTech(cl, i)) {
-      return &g_items[i];
-    }
-  }
-
-  return NULL;
-}
-
-/**
- * @brief Drops the tech item currently carried by the client as a world entity.
- */
-g_entity_t *G_TossTech(g_client_t *cl) {
-  const g_item_t *tech = G_GetTech(cl);
-
-  if (!tech) {
-    return NULL;
-  }
-
-  cl->inventory[tech->def.tag] = 0;
-
-  return G_DropItem(cl, tech);
-}
-
-/**
- * @brief Drop the tech.
- */
-static g_entity_t *G_DropTech(g_client_t *cl, const g_item_t *item) {
-  return G_TossTech(cl);
-}
-
-/**
  * @brief Reset the item's interaction state based on the current game state.
  */
 void G_ResetItem(g_entity_t *ent) {
@@ -1191,12 +876,7 @@ void G_ResetItem(g_entity_t *ent) {
   ent->Touch = G_TouchItem;
 
   if (ent->item->def.type == ITEM_TYPE_FLAG) {
-    const g_team_id_t flag_team = ent->item->def.tag - FLAG_FIRST;
-    const g_team_id_t last_team = FLAG_FIRST + g_level.num_teams - 1;
-    if (g_level.ctf == false || flag_team > last_team) {
-      ent->sv_flags |= SVF_NO_CLIENT;
-      ent->solid = SOLID_NOT;
-    }
+    G_ModeItemReset(ent);
   }
 
   if (ent->spawn_flags & SF_ITEM_TRIGGER) {
@@ -1210,8 +890,8 @@ void G_ResetItem(g_entity_t *ent) {
     ent->Touch = NULL;
   }
 
-  const bool inhibited = (g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB)
-                          && ent->item->def.type != ITEM_TYPE_FLAG;
+  const bool inhibited = G_ModeHasCapability(G_MODE_CAP_SUPPRESS_ITEMS) &&
+                         ent->item->def.type != ITEM_TYPE_FLAG;
 
   if (inhibited || (ent->flags & FL_TEAM_SLAVE)) {
     ent->sv_flags |= SVF_NO_CLIENT;
@@ -1356,6 +1036,29 @@ void G_PrecacheItem(const g_item_t *it) {
 
 static void G_InitItem(g_item_t *it, const g_item_def_t *def);
 
+/** @brief Encode the owning team for a flag entity's client-side tint. */
+static void G_SetFlagTeamTint(g_entity_t *ent, const g_item_t *item) {
+  if (!ent || !item || item->def.type != ITEM_TYPE_FLAG) {
+    return;
+  }
+
+  const g_team_t *team = G_ModeTeamForFlag(ent);
+  int32_t team_id = team ? (int32_t) team->id : -1;
+  const char *classname = ent->classname ?: item->def.classname;
+  if (team_id < 0 && classname && !q_strncmp(classname, "item_flag_team", 14)) {
+    const int32_t parsed = atoi(classname + 14) - 1;
+    if (parsed >= 0 && parsed < MAX_TEAMS) {
+      team_id = parsed;
+    }
+  }
+  if (team_id < 0 && item->def.tag >= FLAG_FIRST && item->def.tag < FLAG_LAST) {
+    team_id = item->def.tag - FLAG_FIRST;
+  }
+
+  ent->s.animation1 = (uint8_t) Clampf(team_id < 0 ? 0 : team_id,
+                                       0, MAX_TEAMS - 1);
+}
+
 /**
  * @brief Sets the clipping size and plants the object on the floor.
  *
@@ -1365,6 +1068,7 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def);
 void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 
   ent->item = item;
+  G_ModeEntitySpawn(ent);
   G_PrecacheItem(ent->item);
 
   ent->bounds = Box3_Scale(ITEM_BOUNDS, ITEM_SCALE);
@@ -1372,11 +1076,17 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
   if (ent->model) {
     ent->s.model1 = gi.ModelIndex(ent->model);
   } else {
-    G_InitItem((g_item_t *) ent->item, &ent->item->def);
+    // Mode-owned items are already fully initialized from their prototype.
+    // Re-running the built-in classname switch here would erase a mode's
+    // custom callbacks.
+    if (!ent->item->model_index) {
+      G_InitItem((g_item_t *) ent->item, &ent->item->def);
+    }
     ent->s.model1 = ent->item->model_index;
   }
 
   ent->s.effects = item->def.effects;
+  G_SetFlagTeamTint(ent, item);
 
   if (item->def.light_radius) {
     ent->s.effects |= EF_LIGHT | EF_LIGHT_PULSE;
@@ -1392,9 +1102,6 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
     } else {
       ent->health = 0;
     }
-  } else if (ent->item->def.type == ITEM_TYPE_FLAG) {
-    // pass flag tint over (0-based team index)
-    ent->s.animation1 = item->def.tag - FLAG_FIRST;
   }
 
   ent->next_think = g_level.time + QUETOO_TICK_MILLIS * 2;
@@ -1410,6 +1117,12 @@ g_item_t *g_items;
  * @brief Returns true if the item belongs to the active item set.
  */
 bool G_ItemAvailable(const g_item_t *item) {
+
+  if (!item || item->def.tag >= ITEM_TOTAL) {
+    // Runtime mode-owned items are already filtered by their owning module;
+    // they do not belong to either legacy Quetoo or Quake item family.
+    return item != NULL;
+  }
 
   if (item->def.type == ITEM_TYPE_WEAPON) {
     if (g_level.items == ITEMS_QUAKE) {
@@ -1527,8 +1240,8 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
       break;
 
     case ITEM_TYPE_FLAG:
-      it->Pickup = G_PickupFlag;
-      it->Drop = G_DropFlag;
+      it->Pickup = G_ModeItemPickup;
+      it->Drop = G_ModeItemDropCallback;
       break;
 
     case ITEM_TYPE_POWERUP:
@@ -1544,8 +1257,8 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
       break;
 
     case ITEM_TYPE_TECH:
-      it->Pickup = G_PickupTech;
-      it->Drop = G_DropTech;
+      it->Pickup = G_ModePickupTech;
+      it->Drop = G_ModeDropTech;
       break;
 
     default:
@@ -1561,9 +1274,26 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
  */
 void G_InitItems(void) {
 
-  g_items = gi.Malloc(ITEM_TOTAL * sizeof(g_item_t), MEM_TAG_GAME);
+  g_items = gi.Malloc(MAX_INVENTORY * sizeof(g_item_t), MEM_TAG_GAME);
+  memset(g_items, 0, MAX_INVENTORY * sizeof(g_item_t));
 
   for (g_item_tag_t tag = ITEM_FIRST; tag < ITEM_TOTAL; tag++) {
     G_InitItem(&g_items[tag], &bg_item_defs[tag]);
   }
+}
+
+/**
+ * @brief Initialize a mode-owned item from an immutable prototype.
+ *
+ * The prototype carries all callbacks and static definition data. Runtime
+ * indices are assigned by the mode registry, so mode items can use the same
+ * inventory and entity code as built-ins without extending the global enum.
+ */
+void G_InitModeItem(g_item_t *item, const g_item_t *prototype, const g_item_tag_t tag) {
+  assert(item);
+  assert(prototype);
+  *item = *prototype;
+  item->def.tag = tag;
+  item->model_index = item->def.model ? gi.ModelIndex(item->def.model) : 0;
+  item->pickup_sound_index = item->def.pickup_sound ? gi.SoundIndex(item->def.pickup_sound) : 0;
 }
