@@ -371,6 +371,16 @@ From `README.md` and `configure.ac`:
 
 All dependencies are in `deps/` or system-installed via pkg-config.
 
+### Sister Projects (Objectively family)
+
+Quetoo builds on three of the user's own sibling projects, checked out and built independently in `~/Coding/`:
+
+- **[Objectively](https://github.com/jdolan/objectively)** (`~/Coding/Objectively`) - Object-oriented core library for C (collections, JSON, etc.)
+- **[ObjectivelyMVC](https://github.com/jdolan/objectivelymvc)** (`~/Coding/ObjectivelyMVC`) - UI framework (`View`, `Renderer`, `Window`, layout/CSS) used by all in-game menus
+- **[ObjectivelyGPU](https://github.com/jdolan/objectivelygpu)** (`~/Coding/ObjectivelyGPU`) - SDL_gpu wrapper (`CommandBuffer`, `RenderPass`, `CopyPass`, `Texture`, `Buffer`) used throughout the renderer
+
+These are installed system-wide (e.g. via `make -j8 && sudo make install` from each repo) and consumed by Quetoo via pkg-config/headers in `/usr/local/include`. When debugging engine or UI issues, check these repos' own source first (not just their installed headers) — they are frequently the actual site of a bug or the place a fix belongs, not Quetoo itself. Never commit/push to these repos without the same explicit approval required for Quetoo.
+
 ## Subsystem Documentation
 
 Detailed documentation for each major subsystem:
