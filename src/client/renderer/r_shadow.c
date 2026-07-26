@@ -456,8 +456,6 @@ void R_DrawShadows(const r_view_t *view) {
       R_DrawBspEntitiesShadows(view, l, pass);
     }
 
-    $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
-
     l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
