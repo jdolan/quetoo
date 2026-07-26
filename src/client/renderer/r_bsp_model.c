@@ -739,6 +739,7 @@ static void R_RegisterBspModel(r_media_t *self) {
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.occlusion);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_data);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_indices);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->sky);
 
   r_models.world = mod;
 }
