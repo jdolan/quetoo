@@ -266,8 +266,12 @@ static void R_DrawBspEntitiesShadows(const r_view_t *view, const r_light_t *l, R
   const Uint32 ts = r_shadow_atlas.tile_size;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
-    .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
-    .min_depth = 0.f, .max_depth = 1.f,
+    .x = l->tile.x,
+    .y = l->tile.y,
+    .w = (float) ts,
+    .h = (float) ts,
+    .min_depth = 0.f,
+    .max_depth = 1.f,
   });
 
   $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
@@ -352,8 +356,12 @@ static void R_DrawMeshEntitiesShadows(const r_view_t *view, const r_light_t *l, 
   const Uint32 ts = r_shadow_atlas.tile_size;
 
   $(pass, setViewport, &(SDL_GPUViewport) {
-    .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
-    .min_depth = 0.f, .max_depth = 1.f,
+    .x = l->tile.x,
+    .y = l->tile.y,
+    .w = (float) ts,
+    .h = (float) ts,
+    .min_depth = 0.f,
+    .max_depth = 1.f,
   });
 
   $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
@@ -397,13 +405,21 @@ void R_DrawShadows(const r_view_t *view) {
     const r_light_t *l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
+      if (l->occluded) {
+        continue;
+      }
+
       if (r_shadow_draw.cache[i]) {
         continue;
       }
 
       $(pass, setViewport, &(SDL_GPUViewport) {
-        .x = l->tile.x, .y = l->tile.y, .w = (float) ts, .h = (float) ts,
-        .min_depth = 0.f, .max_depth = 1.f,
+        .x = l->tile.x,
+        .y = l->tile.y,
+        .w = (float) ts,
+        .h = (float) ts,
+        .min_depth = 0.f,
+        .max_depth = 1.f,
       });
 
       $(pass, setScissor, &(SDL_Rect) { (int32_t) l->tile.x, (int32_t) l->tile.y, ts, ts });
@@ -427,6 +443,10 @@ void R_DrawShadows(const r_view_t *view) {
     l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
+      if (l->occluded) {
+        continue;
+      }
+
       if (r_shadow_draw.cache[i]) {
         continue;
       }
@@ -436,6 +456,10 @@ void R_DrawShadows(const r_view_t *view) {
 
     l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
+
+      if (l->occluded) {
+        continue;
+      }
 
       if (r_shadow_draw.cache[i]) {
         continue;

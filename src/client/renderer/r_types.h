@@ -782,11 +782,6 @@ typedef struct {
   vec3_t color;
 
   /**
-   * @brief The light normal and plane distance for directional lights.
-   */
-  vec4_t normal;
-
-  /**
    * @brief The light radius.
    */
   float radius;
@@ -1436,8 +1431,8 @@ typedef struct r_model_s {
 
 #define IS_BSP_MODEL(m) (m && m->type == MODEL_BSP)
 #define IS_BSP_INLINE_MODEL(m) (m && m->type == MODEL_BSP_INLINE)
-#define IS_WORLDSPAWN(m) (m && m == r_models.world->bsp->worldspawn)
 #define IS_MESH_MODEL(m) (m && m->type == MODEL_MESH)
+#define IS_WORLDSPAWN(m) (IS_BSP_MODEL(r_models.world) && IS_BSP_INLINE_MODEL(m) && r_models.world->bsp->worldspawn == m)
 
 /**
  * @brief The model format type.
@@ -1476,7 +1471,7 @@ typedef struct {
 typedef struct {
 
   /**
-   * @brief The currently loaded world model, if any.
+   * @brief The currently loaded BSP model, if any.
    */
   r_model_t *world;
 
