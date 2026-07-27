@@ -135,14 +135,12 @@ void R_UpdateLightEntities(const r_view_t *view, r_light_t *l, int32_t index) {
   const vec3_t closest_point = Box3_ClampPoint(l->bounds, view->origin);
   const float dist = Vec3_Distance(closest_point, view->origin);
 
-  // If the light's nearest bound is beyond the lighting LOD cutoff, no
-  // fragment this frame will be close enough to sample its shadow at all.
-  if (!r_shadows->value || dist > r_lighting_distance->value + LIGHTING_LOD_BLEND_DIST) {
+  if (dist > r_lighting_distance->value + LIGHTING_LOD_BLEND_DIST) {
     return;
   }
 
   const r_entity_t *e = view->entities;
-  for (int32_t j = 0; j < view->num_entities; j++, e++) {
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
     if (e->model == NULL) {
       continue;
@@ -151,7 +149,11 @@ void R_UpdateLightEntities(const r_view_t *view, r_light_t *l, int32_t index) {
     if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
       continue;
     }
-    
+
+    if (IS_MESH_MODEL(e->model) && !r_shadows->value) {
+      continue;
+    }
+
     if (R_IsLightSource(l, e)) {
       continue;
     }
@@ -465,9 +467,6 @@ void R_InitShadows(void) {
   r_shadow_atlas.tile_size = Maxi(r_shadow_tile_size->integer, 128);
 
   const Uint32 atlas_size = SHADOW_ATLAS_LIGHTS_PER_ROW * r_shadow_atlas.tile_size;
-
-  Com_Verbose("   Shadow atlas: 6x %dx%d (%d tile size)\n",
-      atlas_size, atlas_size, r_shadow_atlas.tile_size);
 
   for (int32_t face = 0; face < 6; face++) {
     r_shadow_atlas.textures[face] = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
