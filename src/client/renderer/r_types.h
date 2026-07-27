@@ -803,9 +803,9 @@ typedef struct {
 
   /**
    * @brief The draw elements of this light's shadow geometry, into `bsp->draw_elements`.
-   * @details One draw elements is emitted for all opaque faces lumped together
-   * (`material == NULL`), plus one per unique alpha-test material touched by
-   * the light, so alpha-tested faces (foliage, fences, grates) cast holes.
+   * @details One draw elements is emitted for all opaque faces lumped together, plus one per
+   * unique alpha-test material visible to the light, so alpha-tested faces (foliage, fences,
+   * grates) cast pixel-correct shadows.
    */
   r_bsp_draw_elements_t *draw_elements;
 

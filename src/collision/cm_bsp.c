@@ -686,7 +686,19 @@ void Bsp_AllocLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id, const size_t co
   // calculate size
   const size_t lump_type_size = bsp_lump_meta[lump_id].type_size;
 
+  const size_t old_count = (size_t) *lump_count;
+
   *lump_data = Mem_Realloc(*lump_data, lump_type_size * count);
+
+  // Mem_Realloc does not zero-initialize newly grown memory, unlike the initial
+  // allocation (which uses calloc). Zero it explicitly so that callers who grow a
+  // lump after populating it (e.g. quemap's -light stage growing the draw elements
+  // lump after loading it from the -bsp/-vis stage) don't read garbage for fields
+  // that are accumulated in place (e.g. `num_elements += ...`).
+  if (count > old_count) {
+    uint8_t *data = (uint8_t *) *lump_data;
+    memset(data + old_count * lump_type_size, 0, (count - old_count) * lump_type_size);
+  }
 }
 
 /**
