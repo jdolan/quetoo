@@ -21,10 +21,10 @@
 
 #include <errno.h>
 
+#include <Objectively/URLSession.h>
+
 #if defined(_WIN32)
   #define ioctl ioctlsocket
-
-  #include <Objectively/URLSession.h>
 #else
   #include <netdb.h>
   #include <netinet/tcp.h>
@@ -364,17 +364,21 @@ void Net_Init(void) {
  */
 void Net_Shutdown(void) {
 
-#if defined(_WIN32)
-  #if defined(_MSC_VER)
-  // HACK: With MSVC runtime, exit() terminates all threads before dispatching
-  // atexit() hooks, which means that the URLSession's thread is already gone
-  // before normal Objectively teardown and destroy operations can get to it.
-  // As a workaround, we explicitly cancel the URLSession's worker thread here,
-  // from the main thread, well before exit().
+#if defined(_WIN32) && defined(_MSC_VER)
   #undef interface // Windows COM headers redefine this, breaking Objectively macros
+#endif
+
+  // The URLSession shared instance (backing cgame's RESTClient) owns a persistent
+  // background worker thread. Objectively's own atexit-driven class teardown will
+  // eventually invalidate and join this thread, but that happens deep inside libc's
+  // exit() cascade, racing against the worker thread if it's still processing a
+  // request -- this can crash the worker thread with a use-after-free. Explicitly
+  // (and idempotently; see URLSession::invalidateAndCancel) cancel it here,
+  // deterministically, well before exit() is ever called.
   URLSession *session = $$(URLSession, sharedInstance);
   $(session, invalidateAndCancel);
-  #endif
+
+#if defined(_WIN32)
   WSACleanup();
 #endif
 
