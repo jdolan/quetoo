@@ -436,7 +436,11 @@ static void LightWorld(void) {
 }
 
 /**
- * @brief `LIGHT` stage entry point: loads the BSP, builds and bakes all lights, and writes the updated BSP.
+ * @brief `LIGHT` stage entry point: builds and bakes all lights, and writes the updated BSP.
+ * @details `BSP_Main()` always runs immediately before this in the same process, so `bsp_file`
+ * is already fully populated in memory; there is no need to reload it from disk here. The
+ * collision model, however, is a distinct representation that must be built from the .bsp file
+ * `BSP_Main()` just wrote.
  */
 int32_t LIGHT_Main(void) {
 
@@ -445,7 +449,6 @@ int32_t LIGHT_Main(void) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
   if (bsp_file.num_nodes == 0 || bsp_file.num_faces == 0) {
     Com_Error(ERROR_FATAL, "Empty map\n");
   }
