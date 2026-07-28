@@ -275,7 +275,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
     Cg_AddClientEntity(ent, &e);
 
     // add our view weapon, if it's our view entity and we're in first-person
-    if (ent == Cg_Self() && !cgi.client->third_person) {
+    if (ent == Cg_Self() && !cgi.client->third_person && !Cg_DemoOverridingView()) {
       Cg_AddWeapon(ent, &e);
     }
 

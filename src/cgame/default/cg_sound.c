@@ -41,19 +41,44 @@ void Cg_PrepareStage(const cl_frame_t *frame) {
 void Cg_ParseSound(void) {
 
   const byte flags = cgi.ReadByte();
-
   const uint8_t sample_index = cgi.ReadByte();
+
   s_play_sample_t play = {
     .sample = cgi.client->sounds[sample_index]
   };
+
+  // consume the whole message first, in wire order, so that a missing sample (or
+  // any later bail-out) cannot leave the read cursor misaligned and desync the
+  // rest of the packet
+  int32_t number = -1;
+  if (flags & SOUND_ENTITY) {
+    number = cgi.ReadShort();
+  }
+
+  vec3_t origin = Vec3_Zero();
+  const bool has_origin = flags & SOUND_ORIGIN;
+  if (has_origin) {
+    origin = cgi.ReadPosition();
+  }
+
+  if (flags & SOUND_PITCH) {
+    play.pitch = cgi.ReadChar() * 2;
+  }
+
+  if (flags & SOUND_GAIN) {
+    play.gain = cgi.ReadByte() / 255.f;
+  }
+
+  if (flags & SOUND_RELATIVE) {
+    play.flags |= S_PLAY_RELATIVE;
+  }
 
   if (!play.sample) {
     Cg_Warn("NULL sample for sound index %u\n", sample_index);
     return;
   }
 
-  if (flags & SOUND_ENTITY) {
-    const int16_t number = cgi.ReadShort();
+  if (number >= 0) {
     assert(number < MAX_ENTITIES);
     const cl_entity_t *ent = &cgi.client->entities[number];
     play.entity = ent;
@@ -74,20 +99,8 @@ void Cg_ParseSound(void) {
     play.entity = NULL;
   }
 
-  if (flags & SOUND_ORIGIN) {
-    play.origin = cgi.ReadPosition();
-  }
-
-  if (flags & SOUND_PITCH) {
-    play.pitch = cgi.ReadChar() * 2;
-  }
-
-  if (flags & SOUND_GAIN) {
-    play.gain = cgi.ReadByte() / 255.f;
-  }
-
-  if (flags & SOUND_RELATIVE) {
-    play.flags |= S_PLAY_RELATIVE;
+  if (has_origin) {
+    play.origin = origin;
   }
 
   Cg_AddSample(cgi.stage, &play);

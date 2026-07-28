@@ -22,6 +22,7 @@
 #pragma once
 
 #include "common/common.h"
+#include "common/demo.h"
 
 #include "game/game.h"
 
@@ -118,6 +119,53 @@ typedef struct {
    * @brief Open demo file for demo playback, or `NULL` during live gameplay.
    */
   file_t *demo_file;
+
+  /**
+   * @brief True if the active demo is the v2 (timecoded, seekable) container.
+   */
+  bool demo_v2;
+
+  /**
+   * @brief Demo playback clock, in milliseconds from demo start (v2 only).
+   * Records are transmitted to the client as this clock reaches their timecode.
+   */
+  uint32_t demo_time;
+
+  /**
+   * @brief Keyframe seek index for the active v2 demo, built on load.
+   */
+  demo_index_t demo_index;
+
+  /**
+   * @brief When true, the demo clock is frozen (v2 only).
+   */
+  bool demo_paused;
+
+  /**
+   * @brief Demo clock rate multiplier (1.0 = realtime). Independent of
+   * time_scale, so the (real-time) free camera stays smooth at any speed.
+   */
+  float demo_speed;
+
+  /**
+   * @brief Open file for server-side demo recording (serverrecord), or NULL.
+   */
+  file_t *record_file;
+
+  /**
+   * @brief True while recording a server-side demo.
+   */
+  bool recording;
+
+  /**
+   * @brief Frame number of the first recorded frame, or -1.
+   */
+  int32_t record_first_frame;
+
+  /**
+   * @brief Frame number of the most recently recorded frame.
+   */
+  int32_t record_last_frame;
 } sv_server_t;
 
 /**

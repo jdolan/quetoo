@@ -24,7 +24,7 @@
 /**
  * @brief Writes a delta update of an `entity_state_t` list to the message.
  */
-static void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg) {
+void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg) {
   entity_state_t *old_state = NULL, *new_state = NULL;
   int32_t old_index, new_index;
   int16_t old_num, new_num;
@@ -92,7 +92,7 @@ static void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem
 /**
  * @brief Writes a delta-compressed player state to the message buffer.
  */
-static void Sv_WritePlayerState(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg) {
+void Sv_WritePlayerState(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg) {
   static player_state_t null_state;
 
   if (from) {

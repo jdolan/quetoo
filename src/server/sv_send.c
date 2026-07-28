@@ -20,6 +20,7 @@
  */
 
 #include "sv_local.h"
+#include "common/demo.h"
 
 /**
  * @brief Sends text across to be displayed if the level filter passes.
@@ -363,6 +364,77 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
 }
 
 /**
+ * @brief Largest number of demo records transmitted to a client per server tick.
+ * A seek makes a large backlog of records due at once (the keyframe plus every
+ * frame up to the target); transmitting them all at once would overrun the
+ * loopback receive ring (MAX_NET_UDP_LOOPS == 64), silently dropping frames and
+ * breaking the delta chain ("Delta frame too old"). Capping the burst spreads
+ * the catch-up over a few ticks -- a brief, smooth fast-forward -- while keeping
+ * every frame in order so the chain never breaks.
+ *
+ * Sv_Frame may run up to 4 ticks before the client drains the ring once (and the
+ * client can skip draining entirely under its frame-rate cap), so the bound is
+ * 4 * (SV_DEMO_MAX_BURST + 1 status) records between drains. 12 keeps that at 52,
+ * safely under the 64-slot ring for any realistic frame rate.
+ */
+#define SV_DEMO_MAX_BURST 12
+
+/**
+ * @brief Transmits the v2 demo records whose timecode has been reached by the
+ * demo clock, reframing each as the client expects. The records are the exact
+ * v1 wire messages, so the client parses them identically to live play. At most
+ * SV_DEMO_MAX_BURST are sent per frame so a seek's backlog cannot overrun the
+ * loopback ring.
+ * @return False when the demo has completed (end of records).
+ */
+static bool Sv_SendDemoV2Records(sv_client_t *cl) {
+  byte buffer[MAX_MSG_SIZE];
+  demo_record_t rec;
+  int32_t sent = 0;
+
+  for (;;) {
+    const int64_t offset = Fs_Tell(sv.demo_file);
+
+    if (!Demo_ReadRecord(sv.demo_file, &rec, buffer, sizeof(buffer))) {
+      Sv_DemoCompleted();
+      return false;
+    }
+
+    if (rec.timecode > sv.demo_time) { // not due yet; rewind and wait
+      Fs_Seek(sv.demo_file, offset);
+      return true;
+    }
+
+    if (sent >= SV_DEMO_MAX_BURST) { // throttle the catch-up; resume next frame
+      Fs_Seek(sv.demo_file, offset);
+      return true;
+    }
+
+    Netchan_Transmit(&cl->net_chan, buffer, rec.length);
+    sent++;
+  }
+}
+
+/**
+ * @brief Transmits the demo playback status (time, duration, paused, speed) to
+ * the client as a config string, so the cgame can draw the timeline scrubber.
+ * Sent explicitly here because the demo path does not flush the multicast.
+ */
+static void Sv_SendDemoStatus(sv_client_t *cl) {
+  byte buffer[256];
+  mem_buf_t msg;
+
+  Mem_InitBuffer(&msg, buffer, sizeof(buffer));
+
+  Net_WriteByte(&msg, SV_CMD_CONFIG_STRING);
+  Net_WriteShort(&msg, CS_DEMO_STATUS);
+  Net_WriteString(&msg, va("%u %u %d %.3f", sv.demo_time, sv.demo_index.duration,
+                           sv.demo_paused ? 1 : 0, sv.demo_speed));
+
+  Netchan_Transmit(&cl->net_chan, msg.data, msg.size);
+}
+
+/**
  * @brief Send the frame and all pending datagram messages since the last frame.
  */
 void Sv_SendClientPackets(void) {
@@ -384,13 +456,21 @@ void Sv_SendClientPackets(void) {
     }
 
     if (svs.state == SV_ACTIVE_DEMO) { // send the demo packet
-      byte buffer[MAX_MSG_SIZE];
-      size_t size;
 
-      if ((size = Sv_GetDemoMessage(buffer))) {
-        Netchan_Transmit(&cl->net_chan, buffer, size);
+      if (sv.demo_v2) {
+        if (!Sv_SendDemoV2Records(cl)) {
+          break; // demo complete
+        }
+        Sv_SendDemoStatus(cl);
       } else {
-        break;    // recording is done, so we're done
+        byte buffer[MAX_MSG_SIZE];
+        size_t size;
+
+        if ((size = Sv_GetDemoMessage(buffer))) {
+          Netchan_Transmit(&cl->net_chan, buffer, size);
+        } else {
+          break;    // recording is done, so we're done
+        }
       }
     } else if (cl->state == SV_CLIENT_ACTIVE) { // send the game packet
 

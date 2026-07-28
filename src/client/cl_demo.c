@@ -20,15 +20,56 @@
  */
 
 #include "cl_local.h"
+#include "common/demo.h"
+
+cvar_t *cl_demo_v2;
+
+// state for the in-progress recording
+static bool cl_demo_recording_v2; // true if the active recording is the v2 container
+static int32_t cl_demo_first_frame; // frame_num of the first recorded frame, or -1
+
+/**
+ * @brief Flushes one accumulated startup sub-message to the demo file, as a v1
+ * length-prefixed block or, for v2, a RELIABLE record stamped at timecode 0.
+ */
+static void Cl_FlushDemoHeader(mem_buf_t *msg) {
+
+  if (msg->size == 0) {
+    return;
+  }
+
+  if (cl_demo_recording_v2) {
+    Demo_WriteRecord(cls.demo_file, DEMO_RECORD_RELIABLE, 0, msg->data, msg->size);
+  } else {
+    const int32_t len = LittleLong((int32_t) msg->size);
+    Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+    Fs_Write(cls.demo_file, msg->data, msg->size, 1);
+  }
+
+  msg->size = 0;
+}
 
 /**
  * @brief Writes `server_data`, `config_strings`, and baselines once a non-delta
- * compressed frame arrives from the server.
+ * compressed frame arrives from the server. For v2 demos this also writes the
+ * container header; the startup messages become RELIABLE records at timecode 0.
  */
 static void Cl_WriteDemoHeader(void) {
   static entity_state_t null_state;
   mem_buf_t msg;
   byte buffer[MAX_MSG_SIZE];
+
+  if (cl_demo_recording_v2) {
+    const demo_header_t header = {
+      .version = DEMO_FORMAT_VERSION,
+      .flags = DEMO_FLAG_CLIENT,
+      .protocol_major = PROTOCOL_MAJOR,
+      .protocol_minor = (uint16_t) cls.cgame->protocol,
+      .tick_rate = QUETOO_TICK_RATE,
+      .epoch_len = 0,
+    };
+    Demo_WriteHeader(cls.demo_file, &header, NULL, 0);
+  }
 
   // write out messages to hold the startup information
   Mem_InitBuffer(&msg, buffer, sizeof(buffer));
@@ -45,10 +86,7 @@ static void Cl_WriteDemoHeader(void) {
   for (int32_t i = 0; i < MAX_CONFIG_STRINGS; i++) {
     if (*cl.config_strings[i] != '\0') {
       if (msg.size + q_strlen(cl.config_strings[i]) + 32 > msg.max_size) { // write it out
-        const int32_t len = LittleLong((int32_t) msg.size);
-        Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-        Fs_Write(cls.demo_file, msg.data, msg.size, 1);
-        msg.size = 0;
+        Cl_FlushDemoHeader(&msg);
       }
 
       Net_WriteByte(&msg, SV_CMD_CONFIG_STRING);
@@ -65,10 +103,7 @@ static void Cl_WriteDemoHeader(void) {
     }
 
     if (msg.size + 64 > msg.max_size) { // write it out
-      const int32_t len = LittleLong((int32_t) msg.size);
-      Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-      Fs_Write(cls.demo_file, msg.data, msg.size, 1);
-      msg.size = 0;
+      Cl_FlushDemoHeader(&msg);
     }
 
     Net_WriteByte(&msg, SV_CMD_BASELINE);
@@ -78,21 +113,72 @@ static void Cl_WriteDemoHeader(void) {
   Net_WriteByte(&msg, SV_CMD_CBUF_TEXT);
   Net_WriteString(&msg, "precache 0\n");
 
-  // write it to the demo file
-
-  const int32_t len = LittleLong((int32_t) msg.size);
-
-  Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-  Fs_Write(cls.demo_file, msg.data, msg.size, 1);
+  Cl_FlushDemoHeader(&msg);
 
   Com_Debug(DEBUG_CLIENT, "Demo started\n");
   // the rest of the demo file will be individual frames
 }
 
 /**
- * @brief Dumps the current net message, prefixed by the length.
+ * @brief Writes the current packet as v2 records, stamped with the current
+ * frame's timecode. A server packet is the concatenation of any reliable
+ * commands the netchan prepended, the frame command, and the per-frame datagram.
+ * The frame command is written as its own FRAME record with the surrounding
+ * bytes written verbatim as RELIABLE records, so the frame is isolated in pure
+ * engine wire format. This lets playback decode and re-encode it into a fully
+ * seekable stream (see Sv_DemoMakeSeekable) without having to parse the game's
+ * datagram commands, whose lengths only the client game module knows.
+ *
+ * Datagram-only packets (a fragmented frame's continuation) carry no frame
+ * command (`frame_start < 0`) and are written verbatim as a single RELIABLE
+ * record.
+ *
+ * @param frame_start Byte offset of the frame command in net_message, or -1.
+ * @param frame_end Byte offset just past the frame command in net_message.
  */
-void Cl_WriteDemoMessage(void) {
+static void Cl_WriteDemoRecord(int32_t frame_start, int32_t frame_end) {
+
+  byte *payload = net_message.data + 8;
+  const int32_t payload_size = (int32_t) net_message.size - 8;
+
+  if (cl_demo_first_frame < 0) {
+    cl_demo_first_frame = cl.frame.frame_num;
+  }
+
+  const int32_t rel_frame = cl.frame.frame_num - cl_demo_first_frame;
+  const uint32_t timecode = (uint32_t) rel_frame * QUETOO_TICK_MILLIS;
+
+  // the frame command's range within the recorded payload (skip the 8-byte seq)
+  const int32_t fstart = frame_start - 8;
+  const int32_t fend = frame_end - 8;
+
+  if (frame_start < 0 || fstart < 0 || fend > payload_size || fstart >= fend) {
+    Demo_WriteRecord(cls.demo_file, DEMO_RECORD_RELIABLE, timecode, payload, payload_size);
+    return;
+  }
+
+  const uint8_t frame_type = (cl.frame.delta_frame_num < 0)
+      ? DEMO_RECORD_FRAME_KEY : DEMO_RECORD_FRAME_DELTA;
+
+  // reliable commands the netchan prepended ahead of the frame
+  if (fstart > 0) {
+    Demo_WriteRecord(cls.demo_file, DEMO_RECORD_RELIABLE, timecode, payload, fstart);
+  }
+
+  // the isolated, engine-format frame command (decodable without the cgame)
+  Demo_WriteRecord(cls.demo_file, frame_type, timecode, payload + fstart, fend - fstart);
+
+  // trailing datagram commands (sounds, temp entities, ...)
+  if (fend < payload_size) {
+    Demo_WriteRecord(cls.demo_file, DEMO_RECORD_RELIABLE, timecode, payload + fend, payload_size - fend);
+  }
+}
+
+/**
+ * @brief Dumps the current net message to the demo, prefixed by the length (v1)
+ * or wrapped in timecoded records (v2).
+ */
+void Cl_WriteDemoMessage(int32_t frame_start, int32_t frame_end) {
 
   if (!cls.demo_file) {
     return;
@@ -107,26 +193,33 @@ void Cl_WriteDemoMessage(void) {
     }
   }
 
-  // the first eight bytes are just packet sequencing stuff
-  const int32_t len = LittleLong((int32_t) (net_message.size - 8));
+  if (cl_demo_recording_v2) {
+    Cl_WriteDemoRecord(frame_start, frame_end);
+  } else {
+    // the first eight bytes are just packet sequencing stuff
+    const int32_t len = LittleLong((int32_t) (net_message.size - 8));
 
-  Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-  Fs_Write(cls.demo_file, net_message.data + 8, len, 1);
+    Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+    Fs_Write(cls.demo_file, net_message.data + 8, len, 1);
+  }
 }
 
 /**
  * @brief Stop recording a demo
  */
 void Cl_Stop_f(void) {
-  int32_t len = -1;
 
   if (!cls.demo_file) {
     Com_Print("Not recording a demo\n");
     return;
   }
 
-  // finish up
-  Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+  if (!cl_demo_recording_v2) { // v1 demos are terminated with a -1 length sentinel
+    int32_t len = -1;
+    Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+  }
+
+  // v2 demos are terminated by end-of-file (records are self-framing)
   Fs_Close(cls.demo_file);
 
   cls.demo_file = NULL;
@@ -172,7 +265,10 @@ void Cl_Record_f(void) {
     return;
   }
 
-  Com_Print("Recording to %s\n", cls.demo_filename);
+  cl_demo_recording_v2 = cl_demo_v2->value;
+  cl_demo_first_frame = -1;
+
+  Com_Print("Recording to %s (%s)\n", cls.demo_filename, cl_demo_recording_v2 ? "v2" : "v1");
 }
 
 #define DEMO_PLAYBACK_STEP 1
@@ -203,4 +299,12 @@ void Cl_FastForward_f(void) {
  */
 void Cl_SlowMotion_f(void) {
   Cl_AdjustDemoPlayback(-DEMO_PLAYBACK_STEP);
+}
+
+/**
+ * @brief Registers demo recording cvars.
+ */
+void Cl_InitDemo(void) {
+  cl_demo_v2 = Cvar_Add("cl_demo_v2", "1", CVAR_ARCHIVE,
+      "Record demos in the seekable v2 container format (0 for legacy v1).");
 }

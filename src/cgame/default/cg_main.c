@@ -184,6 +184,8 @@ static void Cg_Init(void) {
 
   Cg_InitDiscord();
 
+  Cg_InitDemo();
+
   cgi.Print("Client game module initialized\n");
 }
 
@@ -372,6 +374,8 @@ static void Cg_ClearState(void) {
   Cg_ClearHud();
 
   Cg_ClearUi();
+
+  Cg_ClearDemo();
 }
 
 /**
@@ -457,10 +461,16 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
 
   } else {
 
-    Cg_DrawHud(&frame->ps);
+    if (!Cg_DemoHidesHud()) {
+      Cg_DrawHud(&frame->ps);
 
-    Cg_DrawScores(&frame->ps);
+      Cg_DrawScores(&frame->ps);
+    }
+
+    Cg_DrawDemoBar();
   }
+
+  Cg_DrawDemoLetterbox(); // cinematic bars, drawn over everything
 
   Cg_CheckEditor();
 }

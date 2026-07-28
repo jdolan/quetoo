@@ -25,6 +25,7 @@
 
 #include "ResponseServiceViewController.h"
 #include "MovementCombatViewController.h"
+#include "DemoBindsViewController.h"
 
 #define _Class _ControlsViewController
 
@@ -66,6 +67,10 @@ static void loadView(ViewController *self) {
   release(viewController);
 
   viewController = $((ViewController *) alloc(ResponseServiceViewController), init);
+  $(tabViewController, addChildViewController, viewController);
+  release(viewController);
+
+  viewController = $((ViewController *) alloc(DemoBindsViewController), init);
   $(tabViewController, addChildViewController, viewController);
   release(viewController);
 

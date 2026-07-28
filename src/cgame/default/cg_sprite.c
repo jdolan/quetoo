@@ -76,7 +76,10 @@ cg_sprite_t *Cg_AddSprite(const cg_sprite_t *in_s) {
     return NULL;
   }
 
-  assert(in_s->media);
+  if (in_s->media == NULL) { // the sprite/atlas/animation/beam image failed to precache
+    Cg_Debug("NULL sprite media\n");
+    return NULL;
+  }
 
   cg_sprite_t *s = cg_free_sprites;
 

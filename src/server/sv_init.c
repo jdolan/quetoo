@@ -20,6 +20,7 @@
  */
 
 #include "sv_local.h"
+#include "common/demo.h"
 
 /**
  * @brief Searches `sv.`config_strings` from the specified start, searching for the
@@ -145,9 +146,15 @@ static void Sv_ClearState(void) {
     return;
   }
 
+  Sv_StopServerRecord();
+
   if (sv.demo_file) {
     Fs_Close(sv.demo_file);
   }
+
+  Sv_DemoSeekCleanup();
+
+  Demo_FreeIndex(&sv.demo_index);
 
   memset(&sv, 0, sizeof(sv));
   Com_QuitSubsystem(QUETOO_SERVER);
@@ -275,7 +282,33 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
     sv.demo_file = Fs_OpenRead(va("demos/%s.demo", sv.name));
     svs.spawn_count = 0;
 
-    Com_Print("  Loaded demo %s.\n", sv.name);
+    // detect the v2 container; if present, consume its header so the read
+    // cursor is left at the first record. Otherwise fall back to legacy v1.
+    sv.demo_v2 = false;
+    sv.demo_time = 0;
+
+    if (sv.demo_file && Demo_IsV2(sv.demo_file)) {
+      demo_header_t header;
+      if (Demo_ReadHeader(sv.demo_file, &header, NULL)) {
+        sv.demo_v2 = true;
+        sv.demo_speed = 1.0;
+        sv.demo_paused = false;
+
+        // pre-decode the whole demo into a clean, fully seekable stream (periodic
+        // keyframes + sequential deltas) so scrubbing can't break the delta chain
+        if (!Sv_DemoMakeSeekable(&header)) {
+          Com_Warn("  Seek re-encode failed; forward playback only.\n");
+        }
+
+        // build the keyframe seek index; this leaves the cursor at the first record
+        Demo_ScanIndex(sv.demo_file, &sv.demo_index);
+        Com_Print("  %u keyframe(s), %.1fs.\n", sv.demo_index.count, sv.demo_index.duration / 1000.0);
+      } else {
+        Com_Warn("Corrupt v2 demo header in %s\n", sv.name);
+      }
+    }
+
+    Com_Print("  Loaded demo %s (%s).\n", sv.name, sv.demo_v2 ? "v2" : "v1");
   } else { // loading a map
     Cvar_ForceSetString(sv_map->name, sv.name);
 

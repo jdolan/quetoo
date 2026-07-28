@@ -370,6 +370,10 @@ void Cl_ParseServerMessage(void) {
     Com_Print("------------------\n");
   }
 
+  // byte range of the frame command within this packet, so the demo recorder can
+  // isolate it from the reliable/datagram commands around it (-1 if no frame)
+  int32_t frame_start = -1, frame_end = -1;
+
   cmd = SV_CMD_BAD;
 
   // parse the message
@@ -414,7 +418,9 @@ void Cl_ParseServerMessage(void) {
         Com_Error(ERROR_DROP, "Server dropped connection\n");
 
       case SV_CMD_FRAME:
+        frame_start = (int32_t) (net_message.read - 1); // the SV_CMD_FRAME byte
         Cl_ParseFrame();
+        frame_end = (int32_t) net_message.read;
         break;
 
       case SV_CMD_PRINT:
@@ -451,5 +457,5 @@ void Cl_ParseServerMessage(void) {
 
   Cl_AddNetGraph();
 
-  Cl_WriteDemoMessage();
+  Cl_WriteDemoMessage(frame_start, frame_end);
 }

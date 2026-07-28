@@ -1,6 +1,8 @@
 cguicontrolsdir = @PKGLIBDIR@/default/ui/controls
 cguicontrols_DATA = \
 	ControlsViewController.json \
+	DemoBindsViewController.css \
+	DemoBindsViewController.json \
 	MovementCombatViewController.css \
 	MovementCombatViewController.json \
 	ResponseServiceViewController.css \
@@ -9,6 +11,7 @@ cguicontrols_DATA = \
 noinst_HEADERS = \
 	ControlsViewController.h \
 	CrosshairView.h \
+	DemoBindsViewController.h \
 	MovementCombatViewController.h \
 	ResponseServiceViewController.h
 
@@ -18,6 +21,7 @@ noinst_LTLIBRARIES = \
 libcguicontrols_la_SOURCES = \
 	ControlsViewController.c \
 	CrosshairView.c \
+	DemoBindsViewController.c \
 	MovementCombatViewController.c \
 	ResponseServiceViewController.c
 
