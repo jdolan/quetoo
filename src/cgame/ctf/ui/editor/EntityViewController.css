@@ -1,0 +1,7 @@
+#entity TextView.key {
+  max-width: 120;
+}
+
+#entity TextView.value {
+  width: 220;
+}

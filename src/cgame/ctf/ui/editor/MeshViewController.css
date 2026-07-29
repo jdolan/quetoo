@@ -1,0 +1,11 @@
+#mesh Input Label {
+  max-width: 100;
+}
+
+#mesh Input TextView {
+  width: 250;
+}
+
+#mesh Input Slider {
+  width: 250;
+}

@@ -1,0 +1,52 @@
+#Leaderboard {
+  autoresizing-mask: contain;
+}
+
+#leaderboard {
+  width: 1420;
+  height: 700;
+}
+
+#leaderboard #Rank {
+  min-width: 60;
+}
+
+#leaderboard #Player {
+  min-width: 320;
+}
+
+#leaderboard #Frags {
+  min-width: 100;
+}
+
+#leaderboard #Deaths {
+  min-width: 100;
+}
+
+#leaderboard #KD {
+  min-width: 100;
+}
+
+#leaderboard #Time {
+  min-width: 100;
+}
+
+#leaderboard .gold > Text {
+  color: #ffd700;
+  font-style: bold;
+}
+
+#leaderboard .silver > Text {
+  color: #c0c0c0;
+  font-style: bold;
+}
+
+#leaderboard .bronze > Text {
+  color: #cd7f32;
+  font-style: bold;
+}
+
+#leaderboard .me > Text {
+  color: #00c8ff;
+  font-style: bold;
+}

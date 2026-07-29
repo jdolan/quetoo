@@ -1,0 +1,91 @@
+{
+  "identifier": "mesh",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": ["container"],
+      "subviews": [
+        {
+          "class": "Box",
+          "label": {
+            "text": { "text": "World" }
+          },
+          "contentView": {
+            "subviews": [
+              {
+                "class": "Input",
+                "label": { "text": { "text": "Translate" } },
+                "control": { "class": "TextView", "identifier": "worldTranslate" }
+              },
+              {
+                "class": "Input",
+                "label": { "text": { "text": "Rotate" } },
+                "control": { "class": "TextView", "identifier": "worldRotate" }
+              },
+              {
+                "class": "Input",
+                "label": { "text": { "text": "Scale" } },
+                "control": { "class": "TextView", "identifier": "worldScale" }
+              }
+            ]
+          }
+        },
+        {
+          "class": "Box",
+          "label": {
+            "text": { "text": "Link" }
+          },
+          "contentView": {
+            "subviews": [
+              {
+                "class": "Input",
+                "label": { "text": { "text": "Translate" } },
+                "control": { "class": "TextView", "identifier": "linkTranslate" }
+              },
+              {
+                "class": "Input",
+                "label": { "text": { "text": "Rotate" } },
+                "control": { "class": "TextView", "identifier": "linkRotate" }
+              },
+              {
+                "class": "Input",
+                "label": { "text": { "text": "Scale" } },
+                "control": { "class": "TextView", "identifier": "linkScale" }
+              }
+            ]
+          }
+        },
+        {
+          "class": "Box",
+          "label": {
+            "text": { "text": "View" }
+          },
+          "contentView": {
+            "subviews": [
+              {
+                "class": "Input",
+                "label": { "text": { "text": "Translate" } },
+                "control": { "class": "TextView", "identifier": "viewTranslate" }
+              },
+              {
+                "class": "Input",
+                "label": { "text": { "text": "Rotate" } },
+                "control": { "class": "TextView", "identifier": "viewRotate" }
+              },
+              {
+                "class": "Input",
+                "label": { "text": { "text": "Scale" } },
+                "control": { "class": "TextView", "identifier": "viewScale" }
+              },
+              {
+                "class": "Input",
+                "label": { "text": { "text": "Muzzle" } },
+                "control": { "class": "TextView", "identifier": "viewMuzzle" }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

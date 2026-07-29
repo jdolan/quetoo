@@ -1,0 +1,191 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#include "cg_local.h"
+
+#include "CreateServerViewController.h"
+#include "MapListCollectionItemView.h"
+
+#define _Class _CreateServerViewController
+
+#pragma mark - Delegates
+
+/**
+ * @brief TextViewDelegate for the Bots field.
+ * Stores (entered value + 1) into sv_min_clients, accounting for the
+ * player themselves occupying one client slot.
+ */
+static void botsDidEndEditing(TextView *textView) {
+
+  const String *string = (String *) textView->attributedText;
+  cgi.SetCvarInteger("sv_min_clients", atoi(string->chars) + 1);
+}
+
+/**
+ * @brief Select teams mode.
+ */
+static void selectTeams(Select *select, Option *option) {
+
+  const intptr_t value = (intptr_t) option->value;
+  switch (value) {
+    case 1:
+      cgi.SetCvarInteger("g_teams", 1);
+      cgi.SetCvarInteger("g_ctf", 0);
+      break;
+    case 2:
+      cgi.SetCvarInteger("g_teams", 0);
+      cgi.SetCvarInteger("g_ctf", 1);
+      break;
+    default:
+      cgi.SetCvarInteger("g_teams", 0);
+      cgi.SetCvarInteger("g_ctf", 1);
+      break;
+  }
+}
+
+/**
+ * @brief ButtonDelegate for the Create button.
+ */
+static void createServer(Button *button) {
+
+  CreateServerViewController *this = button->delegate.self;
+
+  PointerArray *selectedMaps = $(this->mapList, selectedMaps);
+  if (selectedMaps->count) {
+
+    file_t *file = cgi.OpenFileWrite(MAP_LIST_UI);
+    if (file) {
+
+      String *string = str("");
+      assert(string);
+
+      for (size_t i = 0; i < selectedMaps->count; i++) {
+        const MapListItemInfo *info = (MapListItemInfo *) $(selectedMaps, get, i);
+
+        char name[MAX_QPATH];
+        StripExtension(Basename(info->mapname), name);
+
+        $(string, appendFormat, "{\n\tname %s\n}\n", name);
+      }
+
+      const int64_t len = cgi.WriteFile(file, string->chars, string->length, 1);
+
+      if (len == -1) {
+        Cg_Warn("Failed to write %s\n", MAP_LIST_UI);
+      } else {
+        Cg_Debug("Wrote %s %"PRId64" bytes\n", MAP_LIST_UI, len);
+      }
+
+      release(string);
+
+      cgi.CloseFile(file);
+
+      cgi.SetCvarString("sv_map_list", MAP_LIST_UI);
+      cgi.Cbuf("next_map");
+    } else {
+      Cg_Warn("Failed to create %s\n", MAP_LIST_UI);
+    }
+  } else {
+    cgi.Print("No maps selected\n");
+  }
+
+  release(selectedMaps);
+}
+
+#pragma mark - ViewController
+
+/**
+ * @see ViewController::loadView(ViewController *)
+ */
+static void loadView(ViewController *self) {
+
+  super(ViewController, self, loadView);
+
+  CreateServerViewController *this = (CreateServerViewController *) self;
+
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("bots", &this->bots),
+    MakeOutlet("gameplay", &this->gameplay),
+    MakeOutlet("teams", &this->teams),
+    MakeOutlet("mapList", &this->mapList),
+    MakeOutlet("create", &this->create)
+  );
+
+  $(self->view, awakeWithResourceName, "ui/play/CreateServerViewController.json");
+  $(self->view, resolve, outlets);
+
+  self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/CreateServerViewController.css");
+  assert(self->view->stylesheet);
+
+  const cvar_t *sv_min_clients = cgi.GetCvar("sv_min_clients");
+  const int32_t bots = sv_min_clients ? Maxi(0, sv_min_clients->integer - 1) : 0;
+  $(this->bots, setDefaultText, va("%d", bots));
+
+  this->bots->delegate.didEndEditing = botsDidEndEditing;
+
+  $(this->gameplay, addOption, "Default", "default");
+  $(this->gameplay, addOption, "Deathmatch", "deathmatch");
+  $(this->gameplay, addOption, "Instagib", "instagib");
+  $(this->gameplay, addOption, "Arena", "arena");
+
+  $(this->teams, addOption, "Free for all", (ident) 0);
+  $(this->teams, addOption, "Team deathmatch", (ident) 1);
+  $(this->teams, addOption, "Capture the flag", (ident) 2);
+
+  this->teams->delegate.didSelectOption = selectTeams;
+
+  this->create->delegate.didClick = createServer;
+  this->create->delegate.self = this;
+}
+
+#pragma mark - Class lifecycle
+
+/**
+ * @see Class::initialize(Class *)
+ */
+static void initialize(Class *clazz) {
+
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+}
+
+/**
+ * @fn Class *CreateServerViewController::_CreateServerViewController(void)
+ * @memberof CreateServerViewController
+ */
+Class *_CreateServerViewController(void) {
+  static Class *clazz;
+  static Once once;
+
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "CreateServerViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(CreateServerViewController),
+      .interfaceOffset = offsetof(CreateServerViewController, interface),
+      .interfaceSize = sizeof(CreateServerViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
+
+  return clazz;
+}
+
+#undef _Class

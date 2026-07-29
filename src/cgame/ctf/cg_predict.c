@@ -1,0 +1,125 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#include "cg_local.h"
+#include "game/ctf/bg_pmove.h"
+
+/**
+ * @brief Returns true if client side prediction should be used.
+ */
+bool Cg_UsePrediction(void) {
+
+  if (!cg_predict->value) {
+    return false;
+  }
+
+  if (cgi.client->demo_server) {
+    return false;
+  }
+
+  if (cgi.client->third_person) {
+    return false;
+  }
+
+  if (cgi.client->delta_frame == NULL) {
+    return false;
+  }
+
+  if (cgi.client->frame.ps.pm_state.type == PM_DEAD) {
+    return false;
+  }
+
+  if (cgi.client->frame.ps.pm_state.type == PM_FREEZE) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Trace wrapper for `Pm_Move`.
+ */
+static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
+  return cgi.Trace(start, end, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
+}
+
+/**
+ * @brief Run recent movement commands through the player movement code locally, storing the
+ * resulting state so that it may be interpolated to and reconciled later.
+ */
+void Cg_PredictMovement(const Vector *cmds) {
+
+  assert(cmds);
+  assert(cmds->count);
+
+  cl_predicted_state_t *pr = &cgi.client->predicted_state;
+
+  // copy current state to into the move
+  pm_move_t pm = {};
+  pm.s = cgi.client->frame.ps.pm_state;
+
+  pm.ground = pr->ground;
+  pm.hook_pull_speed = cg_state.hook_pull_speed;
+
+  pm.PointContents = cgi.PointContents;
+  pm.BoxContents = cgi.BoxContents;
+  
+  pm.Trace = Cg_PredictMovement_Trace;
+
+  pm.Debug = cgi.Debug;
+  pm.DebugMask = cgi.DebugMask;
+  pm.debug_mask = DEBUG_PMOVE_CLIENT;
+
+  // run the commands
+  for (uint32_t i = 0; i < cmds->count; i++) {
+    cl_cmd_t *cmd = VectorValue(cmds, cl_cmd_t *, i);
+
+    if (cmd->cmd.msec) { // if the command has time, run it
+
+      // timestamp it so the client knows we have valid results
+      cmd->prediction.time = cgi.client->time;
+
+      // simulate the movement
+      pm.cmd = cmd->cmd;
+      Pm_Move(&pm);
+    }
+
+    // save for error detection
+    cmd->prediction.origin = pm.s.origin;
+  }
+
+  // save for rendering
+  if (Vec3_Distance(pr->view.origin, pm.s.origin) > TRACE_EPSILON) {
+    pr->view.origin = pm.s.origin;
+  }
+  pr->view.offset = pm.s.view_offset;
+  pr->view.step_offset = pm.s.step_offset;
+
+  // If the server is requesting a snap, use the authoritative angles rather than
+  // the last cmd angles, which may be stale (pre-snap) pending commands.
+  if (cg_state.snap_angles) {
+    pr->view.angles = cg_state.snap_view_angles;
+  } else {
+    pr->view.angles = pm.cmd.angles;
+  }
+
+  pr->ground = pm.ground;
+}

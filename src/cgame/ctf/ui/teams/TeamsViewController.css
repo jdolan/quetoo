@@ -1,0 +1,84 @@
+#teams {
+  autoresizing-mask: fit;
+}
+
+#teams > StackView {
+  autoresizing-mask: fit;
+}
+
+#teams > StackView > .contentView {
+  autoresizing-mask: fit;
+}
+
+#teamsCollectionView {
+  autoresizing-mask: fit;
+  axis: horizontal;
+  border-width: 1;
+  border-color: #dedede;
+  item-size: 240 480;
+}
+
+#teamsCollectionView > ScrollView {
+  autoresizing-mask: fit;
+  clips-subviews: false;
+}
+
+#teamsCollectionView > ScrollView .contentView {
+  autoresizing-mask: fit;
+  background-color: transparent;
+  padding: 0;
+}
+
+TeamView {
+  autoresizing-mask: fill;
+}
+
+TeamView > .team {
+  autoresizing-mask: fill;
+  padding: 2;
+  spacing: 2;
+}
+
+TeamView > .team > #name {
+  autoresizing-mask: width;
+  height: 32;
+}
+
+TeamView > .team > #name > Text {
+  font-style: bold;
+  alignment: middle-center;
+}
+
+TeamView > .team > #players {
+  autoresizing-mask: contain | width;
+}
+
+TeamPlayerView {
+  autoresizing-mask: width;
+  height: 28;
+}
+
+TeamPlayerView:nth-child(even) {
+  background-color: #ffffff11;
+}
+
+TeamPlayerView > .player {
+  autoresizing-mask: fill;
+  axis: horizontal;
+  spacing: 2;
+  padding: 2;
+}
+
+TeamPlayerView > .player > #icon {
+  alignment: middle-center;
+  height: 24;
+  width: 24;
+}
+
+TeamPlayerView > .player > #name {
+  autoresizing-mask: height | contain;
+}
+
+TeamPlayerView > .player > #name > Text {
+  alignment: bottom;
+}

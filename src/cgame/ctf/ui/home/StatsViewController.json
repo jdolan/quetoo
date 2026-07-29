@@ -1,0 +1,81 @@
+{
+  "identifier": "Stats",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "StackView",
+          "classNames": [
+            "tiles"
+          ],
+          "subviews": [
+            {
+              "class": "StackView",
+              "classNames": [ "tile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "name", "classNames": ["statValue"], "text": { "colorEscapes": true } },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Name" } }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [ "tile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "rank", "classNames": ["statValue"] },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Rank" } }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [ "tile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "frags", "classNames": ["statValue"] },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Frags" } }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [ "tile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "deaths", "classNames": ["statValue"] },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Deaths" } }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [ "tile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "kd", "classNames": ["statValue"] },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "KD" } }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [ "tile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "time", "classNames": ["statValue"] },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Time" } }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [ "tile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "nemesis", "classNames": ["statValue"], "text": { "colorEscapes": true } },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Nemesis" } }
+              ]
+            }
+          ]
+        },
+        {
+          "class": "TableView",
+          "identifier": "weapons"
+        }
+      ]
+    }
+  ]
+}
