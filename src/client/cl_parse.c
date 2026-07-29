@@ -281,7 +281,8 @@ static void Cl_ParseServerData(void) {
 
     Fs_SetGame(str);
 
-    // reload the client game
+    Cvar_ForceSetString("game", str);
+
     Cl_InitCgame();
   }
 
