@@ -167,7 +167,12 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
       if (move->accel_frames < 1) {
         move->accel_frames = 1;
       }
-      const float peak_speed = (float)move->accel_frames * move->accel * QUETOO_TICK_SECONDS;
+
+      // accel_frames may have just been floored to 1 for a very punchy accel value whose
+      // 1-tick ramp would overshoot move->speed; the runtime accel loop below clamps
+      // current_speed to move->speed in that case, so the plan must match that clamp or
+      // decel/const_frames will be sized for a peak the entity never actually reaches.
+      const float peak_speed = Minf((float)move->accel_frames * move->accel * QUETOO_TICK_SECONDS, move->speed);
 
       move->decel_frames = (int32_t)(peak_speed / move->decel * QUETOO_TICK_RATE);
       if (move->decel_frames < 1) {
