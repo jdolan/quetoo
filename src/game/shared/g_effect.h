@@ -23,17 +23,4 @@
 
 #include "g_types.h"
 
-#if defined(__GAME_LOCAL_H__)
-void G_func_button(g_entity_t *ent);
-void G_func_conveyor(g_entity_t *ent);
-void G_func_door(g_entity_t *ent);
-void G_func_door_rotating(g_entity_t *ent);
-void G_func_door_secret(g_entity_t *ent);
-void G_func_killbox(g_entity_t *ent);
-void G_func_plat(g_entity_t *ent);
-void G_func_rotating(g_entity_t *ent);
-void G_func_timer(g_entity_t *ent);
-void G_func_train(g_entity_t *ent);
-void G_func_wall(g_entity_t *ent);
-void G_func_water(g_entity_t *ent);
-#endif /* __GAME_LOCAL_H__ */
+void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size, bool splash);

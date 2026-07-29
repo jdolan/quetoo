@@ -1,3 +1,6 @@
+GSHARED_DIR = $(top_srcdir)/src/game/shared
+include $(top_srcdir)/src/game/shared/sources.mk
+
 noinst_HEADERS = \
 	bg_item.h \
 	bg_pmove.h \
@@ -15,24 +18,33 @@ noinst_HEADERS = \
 	g_client.h \
 	g_combat.h \
 	g_cmd.h \
-	g_entity_func.h \
 	g_entity_info.h \
 	g_entity_misc.h \
-	g_entity_target.h \
 	g_entity_trigger.h \
 	g_entity.h \
 	g_item.h \
 	g_local.h \
 	g_main.h \
-	g_physics.h \
-	g_sound.h \
 	g_types.h \
 	g_util.h \
-	g_weapon.h
+	g_weapon.h \
+	$(GSHARED_HDR)
 
 noinst_LTLIBRARIES = \
 	libitem.la \
-	libpmove.la
+	libpmove.la \
+	libgshareddefault.la
+
+libgshareddefault_la_SOURCES = \
+	$(GSHARED_SRC)
+
+libgshareddefault_la_CFLAGS = \
+	-I$(top_srcdir)/src \
+	-I$(srcdir) \
+	$(GSHARED_CFLAGS) \
+	@SO_CFLAGS@ \
+	@BASE_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@
 
 libitem_la_SOURCES = \
 	bg_item.c
@@ -75,21 +87,19 @@ game_la_SOURCES = \
 	g_client.c \
 	g_cmd.c \
 	g_combat.c \
-	g_entity_func.c \
 	g_entity_info.c \
 	g_entity_misc.c \
-	g_entity_target.c \
 	g_entity_trigger.c \
 	g_entity.c \
 	g_item.c \
 	g_main.c \
-	g_physics.c \
-	g_sound.c \
 	g_util.c \
 	g_weapon.c
 
 game_la_CFLAGS = \
 	-I$(top_srcdir)/src \
+	-I$(srcdir) \
+	$(GSHARED_CFLAGS) \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@
@@ -103,4 +113,5 @@ game_la_LDFLAGS = \
 game_la_LIBADD = \
 	libitem.la \
 	libpmove.la \
+	libgshareddefault.la \
 	@OBJECTIVELY_LIBS@
