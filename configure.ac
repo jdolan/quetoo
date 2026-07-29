@@ -404,6 +404,7 @@ AC_CONFIG_FILES([
 	src/common/Makefile
 	src/game/Makefile
 	src/game/default/Makefile
+	src/game/ctf/Makefile
 	src/main/Makefile
 	src/master/Makefile
 	src/net/Makefile

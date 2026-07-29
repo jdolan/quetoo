@@ -1,0 +1,227 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#pragma once
+
+#include "g_types.h"
+
+#if defined(__GAME_LOCAL_H__)
+
+extern g_level_t g_level;
+extern g_media_t g_media;
+
+pm_params_t G_MovementParams(void);
+
+extern g_import_t gi;
+extern g_export_t ge;
+
+extern cvar_t *g_admin_password;
+extern cvar_t *g_ammo_respawn_time;
+extern cvar_t *g_auto_join;
+extern cvar_t *g_balance_armor_shard_respawn;
+extern cvar_t *g_balance_armor_jacket_respawn;
+extern cvar_t *g_balance_armor_combat_respawn;
+extern cvar_t *g_balance_armor_body_respawn;
+extern cvar_t *g_balance_bfg_damage;
+extern cvar_t *g_balance_bfg_knockback;
+extern cvar_t *g_balance_bfg_prefire;
+extern cvar_t *g_balance_bfg_radius;
+extern cvar_t *g_balance_bfg_refire;
+extern cvar_t *g_balance_bfg_speed;
+extern cvar_t *g_balance_blaster_damage;
+extern cvar_t *g_balance_blaster_knockback;
+extern cvar_t *g_balance_blaster_refire;
+extern cvar_t *g_balance_blaster_speed;
+extern cvar_t *g_balance_handgrenade_refire;
+extern cvar_t *g_balance_health_small_respawn;
+extern cvar_t *g_balance_health_medium_respawn;
+extern cvar_t *g_balance_health_large_respawn;
+extern cvar_t *g_balance_health_mega_respawn;
+extern cvar_t *g_balance_hyperblaster_climb_damage;
+extern cvar_t *g_balance_hyperblaster_climb_knockback;
+extern cvar_t *g_balance_hyperblaster_damage;
+extern cvar_t *g_balance_hyperblaster_knockback;
+extern cvar_t *g_balance_hyperblaster_refire;
+extern cvar_t *g_balance_hyperblaster_speed;
+extern cvar_t *g_balance_lightning_damage;
+extern cvar_t *g_balance_lightning_knockback;
+extern cvar_t *g_balance_lightning_length;
+extern cvar_t *g_balance_lightning_refire;
+extern cvar_t *g_balance_machinegun_damage;
+extern cvar_t *g_balance_machinegun_knockback;
+extern cvar_t *g_balance_machinegun_refire;
+extern cvar_t *g_balance_machinegun_spread_x;
+extern cvar_t *g_balance_machinegun_spread_y;
+extern cvar_t *g_balance_grenadelauncher_damage;
+extern cvar_t *g_balance_grenadelauncher_knockback;
+extern cvar_t *g_balance_grenadelauncher_radius;
+extern cvar_t *g_balance_grenadelauncher_refire;
+extern cvar_t *g_balance_grenadelauncher_speed;
+extern cvar_t *g_balance_grenadelauncher_timer;
+extern cvar_t *g_balance_quad_damage_respawn_time;
+extern cvar_t *g_balance_quad_damage_time;
+extern cvar_t *g_balance_quake_shotgun_damage;
+extern cvar_t *g_balance_quake_shotgun_knockback;
+extern cvar_t *g_balance_quake_shotgun_pellets;
+extern cvar_t *g_balance_quake_shotgun_refire;
+extern cvar_t *g_balance_quake_shotgun_spread_x;
+extern cvar_t *g_balance_quake_shotgun_spread_y;
+extern cvar_t *g_balance_quake_supershotgun_damage;
+extern cvar_t *g_balance_quake_supershotgun_knockback;
+extern cvar_t *g_balance_quake_supershotgun_pellets;
+extern cvar_t *g_balance_quake_supershotgun_refire;
+extern cvar_t *g_balance_quake_supershotgun_spread_x;
+extern cvar_t *g_balance_quake_supershotgun_spread_y;
+extern cvar_t *g_balance_quake_nailgun_damage;
+extern cvar_t *g_balance_quake_nailgun_knockback;
+extern cvar_t *g_balance_quake_nailgun_refire;
+extern cvar_t *g_balance_quake_nailgun_speed;
+extern cvar_t *g_balance_quake_supernailgun_damage;
+extern cvar_t *g_balance_quake_supernailgun_knockback;
+extern cvar_t *g_balance_quake_supernailgun_refire;
+extern cvar_t *g_balance_quake_supernailgun_speed;
+extern cvar_t *g_balance_quake_grenadelauncher_damage;
+extern cvar_t *g_balance_quake_grenadelauncher_knockback;
+extern cvar_t *g_balance_quake_grenadelauncher_radius;
+extern cvar_t *g_balance_quake_grenadelauncher_refire;
+extern cvar_t *g_balance_quake_grenadelauncher_speed;
+extern cvar_t *g_balance_quake_grenadelauncher_timer;
+extern cvar_t *g_balance_quake_rocketlauncher_damage;
+extern cvar_t *g_balance_quake_rocketlauncher_knockback;
+extern cvar_t *g_balance_quake_rocketlauncher_radius;
+extern cvar_t *g_balance_quake_rocketlauncher_refire;
+extern cvar_t *g_balance_quake_rocketlauncher_speed;
+extern cvar_t *g_balance_quake_thunderbolt_damage;
+extern cvar_t *g_balance_quake_thunderbolt_knockback;
+extern cvar_t *g_balance_quake_thunderbolt_length;
+extern cvar_t *g_balance_quake_thunderbolt_refire;
+extern cvar_t *g_balance_invisibility_respawn_time;
+extern cvar_t *g_balance_invisibility_time;
+extern cvar_t *g_balance_invulnerability_respawn_time;
+extern cvar_t *g_balance_invulnerability_time;
+extern cvar_t *g_balance_railgun_damage;
+extern cvar_t *g_balance_railgun_knockback;
+extern cvar_t *g_balance_railgun_refire;
+extern cvar_t *g_balance_rocketlauncher_damage;
+extern cvar_t *g_balance_rocketlauncher_knockback;
+extern cvar_t *g_balance_rocketlauncher_radius;
+extern cvar_t *g_balance_rocketlauncher_refire;
+extern cvar_t *g_balance_rocketlauncher_speed;
+extern cvar_t *g_balance_shotgun_damage;
+extern cvar_t *g_balance_shotgun_knockback;
+extern cvar_t *g_balance_shotgun_pellets;
+extern cvar_t *g_balance_shotgun_refire;
+extern cvar_t *g_balance_shotgun_spread_x;
+extern cvar_t *g_balance_shotgun_spread_y;
+extern cvar_t *g_balance_supershotgun_damage;
+extern cvar_t *g_balance_supershotgun_knockback;
+extern cvar_t *g_balance_supershotgun_pellets;
+extern cvar_t *g_balance_supershotgun_refire;
+extern cvar_t *g_balance_supershotgun_spread_x;
+extern cvar_t *g_balance_supershotgun_spread_y;
+extern cvar_t *g_capture_limit;
+extern cvar_t *g_cheats;
+extern cvar_t *g_ctf;
+extern cvar_t *g_techs;
+extern cvar_t *g_hook;
+extern cvar_t *g_hook_auto_refire;
+extern cvar_t *g_hook_distance;
+extern cvar_t *g_hook_pull_speed;
+extern cvar_t *g_hook_refire;
+extern cvar_t *g_hook_sky;
+extern cvar_t *g_hook_speed;
+extern cvar_t *g_hook_style;
+extern cvar_t *g_frag_limit;
+extern cvar_t *g_friendly_fire;
+extern cvar_t *g_gameplay;
+
+// player movement parameters (hydrated into pm_params_t by G_MovementParams)
+extern cvar_t *g_air_acceleration;
+extern cvar_t *g_air_friction;
+extern cvar_t *g_air_speed;
+extern cvar_t *g_duck_speed;
+extern cvar_t *g_duck_stand_speed;
+extern cvar_t *g_gravity;
+extern cvar_t *g_ground_acceleration;
+extern cvar_t *g_ground_acceleration_slick;
+extern cvar_t *g_ground_friction;
+extern cvar_t *g_ground_friction_slick;
+extern cvar_t *g_ground_speed;
+extern cvar_t *g_jump_speed;
+extern cvar_t *g_ladder_acceleration;
+extern cvar_t *g_ladder_friction;
+extern cvar_t *g_ladder_speed;
+extern cvar_t *g_spectator_acceleration;
+extern cvar_t *g_spectator_friction;
+extern cvar_t *g_spectator_speed;
+extern cvar_t *g_stop_speed;
+extern cvar_t *g_water_acceleration;
+extern cvar_t *g_water_friction;
+extern cvar_t *g_water_gravity;
+extern cvar_t *g_water_jump_speed;
+extern cvar_t *g_water_speed;
+extern cvar_t *g_num_teams;
+extern cvar_t *g_motd;
+extern cvar_t *g_password;
+extern cvar_t *g_player_projectile;
+extern cvar_t *g_respawn_protection;
+extern cvar_t *g_fall_damage;
+extern cvar_t *g_self_damage;
+extern cvar_t *g_self_knockback;
+extern cvar_t *g_show_attacker_stats;
+extern cvar_t *g_spawn_farthest;
+extern cvar_t *g_spectator_chat;
+extern cvar_t *g_teams;
+extern cvar_t *g_time_limit;
+extern cvar_t *g_weapon_respawn_time;
+extern cvar_t *g_weapon_stay;
+
+extern cvar_t *sv_max_clients;
+extern cvar_t *sv_max_entities;
+extern cvar_t *sv_min_clients;
+extern cvar_t *sv_hostname;
+extern cvar_t *dedicated;
+extern cvar_t *editor;
+
+extern g_team_t g_team_list[MAX_TEAMS];
+
+#define g_team_red (&g_team_list[TEAM_RED])
+#define g_team_blue (&g_team_list[TEAM_BLUE])
+#define g_team_yellow (&g_team_list[TEAM_YELLOW])
+#define g_team_green (&g_team_list[TEAM_GREEN])
+
+void G_Init(void);
+void G_Shutdown(void);
+void G_CheckHook(void);
+void G_CheckTechs(void);
+void G_ResetItems(void);
+void G_ResetTeams(void);
+void G_InitNumTeams(void);
+void G_SetTeamNames(void);
+void G_ResetSpawnPoints(void);
+void G_CallTimeOut(g_entity_t *ent);
+void G_CallTimeIn(void);
+void G_RunTimers(void);
+void G_MuteClient(char *name, bool mute);
+
+g_export_t *G_LoadGame(g_import_t *import);
+
+#endif /* __GAME_LOCAL_H__ */
