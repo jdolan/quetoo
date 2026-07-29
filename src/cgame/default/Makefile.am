@@ -1,5 +1,19 @@
-SUBDIRS = \
-	ui
+CGUI_DIR = $(top_srcdir)/src/cgame/shared/ui
+include $(top_srcdir)/src/cgame/shared/ui/sources.mk
+
+CGAME_CFLAGS = \
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/src/cgame \
+	-I$(top_srcdir)/src/cgame/shared \
+	-I$(srcdir) \
+	$(CGUI_CFLAGS) \
+	@SO_CFLAGS@ \
+	@BASE_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@ \
+	@OBJECTIVELYMVC_CFLAGS@ \
+	@OPENAL_CFLAGS@ \
+	@SDL3_CFLAGS@ \
+	@SNDFILE_CFLAGS@
 
 noinst_HEADERS = \
 	cg_client.h \
@@ -27,7 +41,22 @@ noinst_HEADERS = \
 	cg_types.h \
 	cg_ui.h \
 	cg_view.h \
-	cg_weapon.h
+	cg_weapon.h \
+	$(CGUI_HDR)
+
+# The shared UI is compiled here rather than linked from a prebuilt library,
+# because cg_state_t's layout depends on this module's game/<module>/g_types.h.
+# This library's name MUST stay unique across modules: with subdir-objects,
+# automake derives object file names from it, so two modules both using the
+# cgame_la- prefix would write colliding objects into src/cgame/shared/ui.
+noinst_LTLIBRARIES = \
+	libcguidefault.la
+
+libcguidefault_la_SOURCES = \
+	$(CGUI_SRC)
+
+libcguidefault_la_CFLAGS = \
+	$(CGAME_CFLAGS)
 
 cgamelibdir = \
 	@PKGLIBDIR@/default
@@ -63,13 +92,7 @@ cgame_la_SOURCES = \
 	cg_weapon.c
 
 cgame_la_CFLAGS = \
-	-I$(top_srcdir)/src \
-	@SO_CFLAGS@ \
-	@BASE_CFLAGS@ \
-	@OBJECTIVELY_CFLAGS@ \
-	@OPENAL_CFLAGS@ \
-	@SDL3_CFLAGS@ \
-	@SNDFILE_CFLAGS@
+	$(CGAME_CFLAGS)
 
 cgame_la_LDFLAGS = \
 	-avoid-version \
@@ -78,18 +101,11 @@ cgame_la_LDFLAGS = \
 	-shared
 
 cgame_la_LIBADD = \
-	ui/common/libcguicommon.la \
-	ui/controls/libcguicontrols.la \
-	ui/credits/libcguicredits.la \
-	ui/editor/libcguieditor.la \
-	ui/home/libcguihome.la \
-	ui/main/libcguimain.la \
-	ui/play/libcguiplay.la \
-	ui/settings/libcguisettings.la \
-	ui/teams/libcguiteams.la \
+	libcguidefault.la \
 	$(top_builddir)/src/game/default/libitem.la \
 	$(top_builddir)/src/game/default/libpmove.la \
-	$(top_builddir)/deps/discord-rpc/src/libdiscord-rpc.la
+	$(top_builddir)/deps/discord-rpc/src/libdiscord-rpc.la \
+	@OBJECTIVELYMVC_LIBS@
 
 if APPLE
 cgame_la_LIBADD += -lc++

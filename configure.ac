@@ -384,31 +384,19 @@ AC_CONFIG_FILES([
 	src/collision/Makefile
 	src/cgame/Makefile
 	src/cgame/default/Makefile
-	src/cgame/default/ui/Makefile
-	src/cgame/default/ui/backgrounds/Makefile
-	src/cgame/default/ui/fonts/Makefile
-	src/cgame/default/ui/common/Makefile
-	src/cgame/default/ui/controls/Makefile
-	src/cgame/default/ui/credits/Makefile
-	src/cgame/default/ui/editor/Makefile
-	src/cgame/default/ui/home/Makefile
-	src/cgame/default/ui/main/Makefile
-	src/cgame/default/ui/play/Makefile
-	src/cgame/default/ui/settings/Makefile
-	src/cgame/default/ui/teams/Makefile
 	src/cgame/ctf/Makefile
-	src/cgame/ctf/ui/Makefile
-	src/cgame/ctf/ui/backgrounds/Makefile
-	src/cgame/ctf/ui/fonts/Makefile
-	src/cgame/ctf/ui/common/Makefile
-	src/cgame/ctf/ui/controls/Makefile
-	src/cgame/ctf/ui/credits/Makefile
-	src/cgame/ctf/ui/editor/Makefile
-	src/cgame/ctf/ui/home/Makefile
-	src/cgame/ctf/ui/main/Makefile
-	src/cgame/ctf/ui/play/Makefile
-	src/cgame/ctf/ui/settings/Makefile
-	src/cgame/ctf/ui/teams/Makefile
+	src/cgame/shared/ui/Makefile
+	src/cgame/shared/ui/backgrounds/Makefile
+	src/cgame/shared/ui/fonts/Makefile
+	src/cgame/shared/ui/common/Makefile
+	src/cgame/shared/ui/controls/Makefile
+	src/cgame/shared/ui/credits/Makefile
+	src/cgame/shared/ui/editor/Makefile
+	src/cgame/shared/ui/home/Makefile
+	src/cgame/shared/ui/main/Makefile
+	src/cgame/shared/ui/play/Makefile
+	src/cgame/shared/ui/settings/Makefile
+	src/cgame/shared/ui/teams/Makefile
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile
