@@ -22,6 +22,8 @@ CGAME_CFLAGS = \
 	@SNDFILE_CFLAGS@
 
 noinst_HEADERS = \
+	cg_hud.h \
+	cg_score.h \
 	$(CGCOMMON_HDR) \
 	$(CGUI_HDR)
 
@@ -47,6 +49,8 @@ cgamelib_LTLIBRARIES = \
 	cgame.la
 
 cgame_la_SOURCES = \
+	cg_hud.c \
+	cg_score.c \
 	cg_team_mode.c
 
 cgame_la_CFLAGS = \

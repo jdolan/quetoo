@@ -855,6 +855,12 @@
 		F7EBE32625F44EBF895E36BC /* cg_inventory.h in Headers */ = {isa = PBXBuildFile; fileRef = 066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */; };
 		F8D615462A724ECF9847D4CD /* r_post.h in Headers */ = {isa = PBXBuildFile; fileRef = B80C92655F5249E48131CB95 /* r_post.h */; };
 		FCC98BF568490D2F2305B0A1 /* libgame-item.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93837BFDD89832004989509B /* libgame-item.a */; };
+		CEC0FD002026010500000002 /* cg_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000001 /* cg_hud.c */; };
+		CEC0FD002026010500000004 /* cg_hud.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000003 /* cg_hud.h */; };
+		CEC0FD002026010500000006 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000005 /* cg_score.c */; };
+		CEC0FD002026010500000008 /* cg_score.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000007 /* cg_score.h */; };
+		CEC0FD00202601050000000A /* cg_hud_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000009 /* cg_hud_draw.c */; };
+		CEC0FD00202601050000000C /* cg_hud_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000009 /* cg_hud_draw.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -2180,6 +2186,12 @@
 		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
 		F7E7256984E276048C2A155E /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
 		FCD76A809F00440F99BC0068 /* cg_inventory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_inventory.c; sourceTree = "<group>"; };
+		CEC0FD002026010500000001 /* cg_hud.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud.c; sourceTree = "<group>"; };
+		CEC0FD002026010500000003 /* cg_hud.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud.h; sourceTree = "<group>"; };
+		CEC0FD002026010500000005 /* cg_score.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_score.c; sourceTree = "<group>"; };
+		CEC0FD002026010500000007 /* cg_score.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_score.h; sourceTree = "<group>"; };
+		CEC0FD002026010500000009 /* cg_hud_draw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud_draw.c; sourceTree = "<group>"; };
+		CEC0FD00202601050000000B /* cg_hud_draw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud_draw.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2756,6 +2768,10 @@
 		CE12D55D1C5C58C300CD0B13 /* default */ = {
 			isa = PBXGroup;
 			children = (
+				CE12D57A1C5C58C300CD0B13 /* cg_score.h */,
+				CE12D5791C5C58C300CD0B13 /* cg_score.c */,
+				CE12D56D1C5C58C300CD0B13 /* cg_hud.h */,
+				CE12D56C1C5C58C300CD0B13 /* cg_hud.c */,
 				CEC01100202601020000000F /* cg_team_mode.c */,
 				CE12D5801C5C58C300CD0B13 /* Makefile.am */,
 			);
@@ -3695,6 +3711,8 @@
 		CEC011002026010100000001 /* common */ = {
 			isa = PBXGroup;
 			children = (
+				CEC0FD00202601050000000B /* cg_hud_draw.h */,
+				CEC0FD002026010500000009 /* cg_hud_draw.c */,
 				CE4DCF04256DCCA100FECAFC /* cg_weapon.h */,
 				CE4DCF05256DCCA100FECAFC /* cg_weapon.c */,
 				CE12D57F1C5C58C300CD0B13 /* cg_view.h */,
@@ -3708,8 +3726,6 @@
 				CEAC32B7242124BB007E1253 /* cg_sprite.c */,
 				CEBDD1B425A0C2710055860E /* cg_sound.h */,
 				CEBDD1B525A0C2710055860E /* cg_sound.c */,
-				CE12D57A1C5C58C300CD0B13 /* cg_score.h */,
-				CE12D5791C5C58C300CD0B13 /* cg_score.c */,
 				CE12D5781C5C58C300CD0B13 /* cg_predict.h */,
 				CE12D5771C5C58C300CD0B13 /* cg_predict.c */,
 				CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */,
@@ -3725,8 +3741,6 @@
 				FCD76A809F00440F99BC0068 /* cg_inventory.c */,
 				CEB8D6241E00B72100043814 /* cg_input.h */,
 				CEB8D6231E00B72100043814 /* cg_input.c */,
-				CE12D56D1C5C58C300CD0B13 /* cg_hud.h */,
-				CE12D56C1C5C58C300CD0B13 /* cg_hud.c */,
 				CE61772125C0D41F0087A5E7 /* cg_flare.h */,
 				CE61772225C0D41F0087A5E7 /* cg_flare.c */,
 				CE12D56B1C5C58C300CD0B13 /* cg_entity_trail.h */,
@@ -3834,6 +3848,10 @@
 		CEC0FF00202601030000005F /* ctf */ = {
 			isa = PBXGroup;
 			children = (
+				CEC0FD002026010500000007 /* cg_score.h */,
+				CEC0FD002026010500000005 /* cg_score.c */,
+				CEC0FD002026010500000003 /* cg_hud.h */,
+				CEC0FD002026010500000001 /* cg_hud.c */,
 				CEC0FF00202601030000008D /* cg_team_mode.c */,
 				CEC0FF002026010300000061 /* Makefile.am */,
 			);
@@ -4221,6 +4239,8 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEC0FD002026010500000008 /* cg_score.h in Headers */,
+				CEC0FD002026010500000004 /* cg_hud.h in Headers */,
 				CEC0FF0020260103000001FA /* cg_client.h in Headers */,
 				CEC0FF0020260103000001FB /* cg_discord.h in Headers */,
 				CEC0FF0020260103000001FC /* cg_editor.h in Headers */,
@@ -4231,7 +4251,6 @@
 				CEC0FF002026010300000201 /* cg_entity_misc.h in Headers */,
 				CEC0FF002026010300000202 /* cg_entity_trail.h in Headers */,
 				CEC0FF002026010300000203 /* cg_flare.h in Headers */,
-				CEC0FF002026010300000204 /* cg_hud.h in Headers */,
 				CEC0FF002026010300000205 /* cg_input.h in Headers */,
 				CEC0FF002026010300000206 /* cg_inventory.h in Headers */,
 				CEC0FF002026010300000207 /* cg_light.h in Headers */,
@@ -4240,7 +4259,6 @@
 				CEC0FF00202601030000020A /* cg_media.h in Headers */,
 				CEC0FF00202601030000020B /* cg_muzzle_flash.h in Headers */,
 				CEC0FF00202601030000020C /* cg_predict.h in Headers */,
-				CEC0FF00202601030000020D /* cg_score.h in Headers */,
 				CEC0FF00202601030000020E /* cg_sound.h in Headers */,
 				CEC0FF00202601030000020F /* cg_sprite.h in Headers */,
 				CEC0FF002026010300000210 /* cg_temp_entity.h in Headers */,
@@ -5254,6 +5272,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEC0FD00202601050000000A /* cg_hud_draw.c in Sources */,
 				CEC011002026010200000010 /* cg_team_mode.c in Sources */,
 				CE12D7EF1C5C5E0200CD0B13 /* cg_client.c in Sources */,
 				CE12D7F01C5C5E0200CD0B13 /* cg_effect.c in Sources */,
@@ -5721,6 +5740,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEC0FD00202601050000000C /* cg_hud_draw.c in Sources */,
+				CEC0FD002026010500000006 /* cg_score.c in Sources */,
+				CEC0FD002026010500000002 /* cg_hud.c in Sources */,
 				CEC0FF0020260103000001E0 /* cg_client.c in Sources */,
 				CEC0FF0020260103000001E1 /* cg_discord.c in Sources */,
 				CEC0FF0020260103000001E2 /* cg_editor.c in Sources */,
@@ -5731,7 +5753,6 @@
 				CEC0FF0020260103000001E7 /* cg_entity_misc.c in Sources */,
 				CEC0FF0020260103000001E8 /* cg_entity_trail.c in Sources */,
 				CEC0FF0020260103000001E9 /* cg_flare.c in Sources */,
-				CEC0FF0020260103000001EA /* cg_hud.c in Sources */,
 				CEC0FF0020260103000001EB /* cg_input.c in Sources */,
 				CEC0FF0020260103000001EC /* cg_inventory.c in Sources */,
 				CEC0FF0020260103000001ED /* cg_light.c in Sources */,
@@ -5739,7 +5760,6 @@
 				CEC0FF0020260103000001EF /* cg_media.c in Sources */,
 				CEC0FF0020260103000001F0 /* cg_muzzle_flash.c in Sources */,
 				CEC0FF0020260103000001F1 /* cg_predict.c in Sources */,
-				CEC0FF0020260103000001F2 /* cg_score.c in Sources */,
 				CEC0FF0020260103000001F3 /* cg_sound.c in Sources */,
 				CEC0FF0020260103000001F4 /* cg_sprite.c in Sources */,
 				CEC0FF0020260103000001F5 /* cg_team_mode.c in Sources */,

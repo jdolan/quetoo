@@ -39,10 +39,5 @@ typedef enum {
 #define CROSSHAIR_PULSE_ALPHA 0.5f
 
 #if defined(__CG_LOCAL_H__)
-void Cg_ParseCenterPrint(void);
-bool Cg_AttemptSelectWeapon(const player_state_t *ps);
 void Cg_DrawHud(const player_state_t *ps);
-void Cg_ClearHud(void);
-void Cg_LoadHudMedia(void);
-void Cg_InitHud(void);
 #endif /* __CG_LOCAL_H__ */

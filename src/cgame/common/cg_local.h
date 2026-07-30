@@ -41,6 +41,7 @@
 #include "cg_entity_trail.h"
 #include "cg_flare.h"
 #include "cg_hud.h"
+#include "cg_hud_draw.h"
 #include "cg_input.h"
 #include "cg_inventory.h"
 #include "cg_light.h"
