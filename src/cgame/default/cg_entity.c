@@ -45,6 +45,7 @@ static const cm_entity_t *Cg_FindEntity(const cm_entity_t *from, const Cg_Entity
       start++;
     }
     assert(start < bsp->num_entities);
+    start++;
   }
 
   for (int32_t i = start; i < bsp->num_entities; i++) {

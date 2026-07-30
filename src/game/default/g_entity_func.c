@@ -101,12 +101,12 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
   if (move->current_speed == 0.0) { // starting or restarting after being blocked
 
     const float distance = Vec3_Distance(move->dest, ent->s.origin);
+    const float dt2 = QUETOO_TICK_SECONDS * QUETOO_TICK_SECONDS;
 
     const float accel_time = move->speed / move->accel;
     const float decel_time = move->speed / move->decel;
 
     move->accel_frames = (int32_t)(accel_time * QUETOO_TICK_RATE);
-    move->decel_frames = (int32_t)(decel_time * QUETOO_TICK_RATE);
 
     const float avg_speed = move->speed * 0.5f;
 
@@ -127,8 +127,6 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
       //
       // Any gap not covered by accel/decel is padded with const frames at
       // peak speed so Final is only called with a sub-frame residual.
-      const float dt2 = QUETOO_TICK_SECONDS * QUETOO_TICK_SECONDS;
-
       move->accel_frames = 0;
       move->decel_frames = 0;
       move->const_frames = 0;
@@ -159,8 +157,33 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
         move->const_frames = remaining > 0.f ? (int32_t)floorf(remaining / (peak_speed * QUETOO_TICK_SECONDS)) : 0;
       }
     } else {
-      const float const_distance = distance - accel_distance - decel_distance;
-      move->const_frames = (int32_t)(const_distance / move->speed * QUETOO_TICK_RATE);
+      // accel_frames (truncated above) reaches a "peak_speed" slightly below the
+      // nominal move->speed. Deriving the cruise/decel phases from the nominal
+      // speed instead of the speed the discrete ramp actually reaches leaves the
+      // plan short of `distance`, forcing a long near-stationary crawl through
+      // Final before Done can fire. Rebuild the plan from the realized peak
+      // speed instead, using the same discrete-distance formulas as the
+      // clamped path above, so it is self-consistent.
+      if (move->accel_frames < 1) {
+        move->accel_frames = 1;
+      }
+
+      // accel_frames may have just been floored to 1 for a very punchy accel value whose
+      // 1-tick ramp would overshoot move->speed; the runtime accel loop below clamps
+      // current_speed to move->speed in that case, so the plan must match that clamp or
+      // decel/const_frames will be sized for a peak the entity never actually reaches.
+      const float peak_speed = Minf((float)move->accel_frames * move->accel * QUETOO_TICK_SECONDS, move->speed);
+
+      move->decel_frames = (int32_t)(peak_speed / move->decel * QUETOO_TICK_RATE);
+      if (move->decel_frames < 1) {
+        move->decel_frames = 1;
+      }
+
+      const float actual_accel_distance = move->accel * dt2 * (float)(move->accel_frames * (move->accel_frames + 1)) * 0.5f;
+      const float actual_decel_distance = move->decel * dt2 * (float)(move->decel_frames * (move->decel_frames - 1)) * 0.5f;
+
+      const float const_distance = distance - actual_accel_distance - actual_decel_distance;
+      move->const_frames = const_distance > 0.f ? (int32_t)(const_distance / peak_speed * QUETOO_TICK_RATE) : 0;
     }
   }
 
@@ -325,6 +348,9 @@ static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
 
   const vec3_t dir = ent->velocity;
 
+  // func_bob gets its own obituary; every other pusher uses the generic crush message
+  const uint32_t mod = q_strcmp(ent->classname, "func_bob") ? MOD_CRUSH : MOD_BOB;
+
   // Dead entities (meat boxes) are obliterated immediately, no throttle needed.
   // Symmetrical to non-meat entities which get G_Explode + freed.
   // Client entities are never freed while connected, even when SOLID_DEAD.
@@ -336,7 +362,7 @@ static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
       gi.Multicast(other->s.origin, MULTICAST_PVS);
       G_FreeEntity(other);
     } else if (other->Die) {
-      other->Die(other, ent, MOD_CRUSH);
+      other->Die(other, ent, mod);
     }
     return;
   }
@@ -358,7 +384,7 @@ static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
       .damage = ent->damage,
       .knockback = 0,
       .flags = DMG_NO_ARMOR,
-      .mod = MOD_CRUSH
+      .mod = mod
     });
   } else {
     G_Damage(&(g_damage_t) {
@@ -371,7 +397,7 @@ static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
       .damage = 999,
       .knockback = 0,
       .flags = 0,
-      .mod = MOD_CRUSH
+      .mod = mod
     });
     if (other->in_use) {
       G_Explode(other, 60, 60, 80.0, 0);
@@ -653,6 +679,212 @@ void G_func_plat(g_entity_t *ent) {
     ent->move_info.sound_start = gi.SoundIndex(va("func/plat_start_%d", s + 1));
     ent->move_info.sound_middle = gi.SoundIndex(va("func/plat_middle_%d", s + 1));
     ent->move_info.sound_end = gi.SoundIndex(va("func/plat_end_%d", s + 1));
+  }
+}
+
+static void G_func_bob_Top(g_entity_t *ent);
+static void G_func_bob_Bottom(g_entity_t *ent);
+
+/**
+ * @brief Drives a `func_bob`'s motion each tick along a single half-sine spanning the whole leg:
+ * speed is zero at both ends and peaks at the midpoint of travel, like a pendulum or a floating
+ * object bobbing on water. This is one continuous curve rather than separate accel/cruise/decel
+ * zones stitched together, so there's no interior seam where slopes have to be reconciled — the
+ * whole motion is smooth by construction. Speed is derived fresh each tick from the actual
+ * traveled distance rather than a pre-computed frame count, so there's no discretization residual
+ * for `G_MoveInfo_Linear_Final` to crawl through — it decays to (near) zero exactly at the
+ * destination. `ent->random` doubles as the "compression" exponent (see `G_func_bob`): >1 narrows
+ * the peak and adds hang time at the ends, <1 flattens/widens the peak.
+ */
+static void G_func_bob_Ease(g_entity_t *ent) {
+  g_move_info_t *move = &ent->move_info;
+
+  vec3_t dir;
+  const float remaining = Vec3_DistanceDir(move->dest, ent->s.origin, &dir);
+
+  if (remaining <= .25f || Vec3_Dot(dir, move->dir) < 0.f) {
+    G_MoveInfo_Linear_Done(ent);
+    return;
+  }
+
+  const float total_distance = Vec3_Distance(move->start_origin, move->end_origin);
+  const float traveled = total_distance - remaining;
+
+  const float t = traveled / total_distance;
+  const float speed = move->speed * powf(sinf((float) M_PI * t), ent->random);
+
+  // small floor to guarantee forward progress against the curve's asymptotic tail; kept tiny so
+  // it doesn't reintroduce a visible plateau before the final snap
+  ent->velocity = Vec3_Scale(move->dir, Maxf(speed, move->speed * .005f));
+
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->Think = G_func_bob_Ease;
+}
+
+/**
+ * @brief Starts a `func_bob` moving toward `dest`, easing via `G_func_bob_Ease`.
+ */
+static void G_func_bob_Move(g_entity_t *ent, const vec3_t dest, void (*Done)(g_entity_t *)) {
+  g_move_info_t *move = &ent->move_info;
+
+  ent->velocity = Vec3_Zero();
+  move->dest = dest;
+  move->dir = Vec3_Normalize(Vec3_Subtract(dest, ent->s.origin));
+  move->Done = Done;
+
+  ent->s.sound = move->sound_middle;
+
+  ent->Think = G_func_bob_Ease;
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+}
+
+/**
+ * @brief Sends a `func_bob` toward its end position.
+ */
+static void G_func_bob_GoingUp(g_entity_t *ent) {
+  ent->move_info.state = MOVE_STATE_GOING_UP;
+  G_func_bob_Move(ent, ent->move_info.end_origin, G_func_bob_Top);
+}
+
+/**
+ * @brief Sends a `func_bob` back toward its start position.
+ */
+static void G_func_bob_GoingDown(g_entity_t *ent) {
+  ent->move_info.state = MOVE_STATE_GOING_DOWN;
+  G_func_bob_Move(ent, ent->move_info.start_origin, G_func_bob_Bottom);
+}
+
+/**
+ * @brief Called when a `func_bob` reaches its end position; schedules the return leg.
+ */
+static void G_func_bob_Top(g_entity_t *ent) {
+  ent->move_info.state = MOVE_STATE_TOP;
+  ent->s.sound = 0;
+
+  ent->Think = G_func_bob_GoingDown;
+  ent->next_think = g_level.time + (uint32_t) (ent->wait * 1000.f);
+}
+
+/**
+ * @brief Called when a `func_bob` reaches its start position; schedules the outbound leg.
+ */
+static void G_func_bob_Bottom(g_entity_t *ent) {
+  ent->move_info.state = MOVE_STATE_BOTTOM;
+  ent->s.sound = 0;
+
+  ent->Think = G_func_bob_GoingUp;
+  ent->next_think = g_level.time + (uint32_t) (ent->wait * 1000.f);
+}
+
+/**
+ * @brief Toggles a `func_bob` on or off when triggered. Pausing freezes it in place; resuming
+ * continues toward wherever it was already headed, per `move_info.state`.
+ */
+static void G_func_bob_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
+
+  if (ent->next_think) { // active (moving, or waiting between legs) - pause in place
+    ent->Think = NULL;
+    ent->next_think = 0;
+    ent->velocity = Vec3_Zero();
+    ent->s.sound = 0;
+  } else { // paused - resume toward wherever it was already headed
+    if (ent->move_info.state == MOVE_STATE_BOTTOM || ent->move_info.state == MOVE_STATE_GOING_UP) {
+      G_func_bob_GoingUp(ent);
+    } else {
+      G_func_bob_GoingDown(ent);
+    }
+  }
+}
+
+#define BOB_START_OFF 0x1
+
+/*QUAKED func_bob (0 .5 .8) ? start_off
+ A solid brush that bobs continuously back and forth along a vector. Unlike `func_train`, no
+ `path_corner`s or triggers are required, making it cheap to place in quantity (e.g. an array of
+ small ambient platforms).
+
+ -------- Keys --------
+ velocity : The direction and distance to travel from the spawn origin, e.g. "0 0 32".
+ speed : The peak speed reached at the midpoint of travel (default 100). Motion eases from 0 up
+         to this and back down to 0 at each end, like a pendulum or a floating object bobbing.
+ compression : Shapes the ease curve (default 1, pure sine). Greater than 1 narrows the peak and
+               adds "hang time" at each end; less than 1 flattens/widens the peak.
+ wait : Seconds to pause at each end before reversing (default 0, i.e. continuous bobbing).
+ drift : Multiplier (default 1) on the entity's own natural cycle length, used to pick a random
+         startup delay so multiple func_bobs with identical keys don't move in lockstep. 1 spans
+         one full cycle (complete phase coverage); raise it for extra margin, lower it to allow
+         more visible clustering.
+ dmg : The damage inflicted on players who block the entity (default 2).
+ sound : The looping sound to play while moving.
+ targetname : The target name of this entity if it is to be triggered, to toggle it on or off.
+
+ -------- Spawn flags --------
+ start_off : If set, the entity starts motionless and waits to be triggered.
+ */
+void G_func_bob(g_entity_t *ent) {
+
+  ent->s.angles = Vec3_Zero();
+
+  ent->solid = SOLID_BSP;
+  ent->move_type = MOVE_TYPE_PUSH;
+
+  gi.SetModel(ent, ent->model);
+
+  const char *sound = gi.EntityValue(ent->def, "sound")->string;
+  if (*sound) {
+    ent->move_info.sound_middle = gi.SoundIndex(sound);
+  }
+
+  if (!ent->speed) {
+    ent->speed = 100.0;
+  }
+
+  // reuse the generic `random` field to cache the "compression" exponent, read once here rather
+  // than every tick in G_func_bob_Ease
+  const float compression = gi.EntityValue(ent->def, "compression")->value;
+  ent->random = compression > 0.f ? compression : 1.f;
+
+  if (!ent->damage) {
+    ent->damage = 2;
+  }
+
+  ent->pos1 = ent->s.origin;
+  ent->pos2 = Vec3_Add(ent->pos1, gi.EntityValue(ent->def, "velocity")->vec3);
+
+  if (Vec3_Equal(ent->pos1, ent->pos2)) {
+    gi.Warn("%s @ %s has no \"velocity\" and will not move\n", ent->classname, vtos(ent->s.origin));
+  }
+
+  ent->move_info.speed = ent->speed;
+
+  ent->move_info.start_origin = ent->pos1;
+  ent->move_info.end_origin = ent->pos2;
+
+  ent->move_info.state = MOVE_STATE_BOTTOM;
+
+  ent->Blocked = G_MoveType_Push_Blocked;
+  ent->Use = G_func_bob_Use;
+
+  gi.LinkEntity(ent);
+
+  if (!(ent->spawn_flags & BOB_START_OFF)) {
+    // Stagger the initial phase across identical func_bobs so they don't move in lockstep.
+    // A random startup delay only decorrelates phase if it spans a full cycle - a flat number
+    // of seconds looks random for some speed/distance/wait combos and barely-desynced for
+    // others, since the mapper has no easy way to know the entity's actual cycle length. So
+    // derive the window from the entity's own numbers: average speed of a half-sine leg is
+    // (2/pi) * peak, giving leg_time = distance * pi / (2 * speed); the full up-down-wait cycle
+    // is twice that plus twice the wait.
+    const float total_distance = Vec3_Distance(ent->pos1, ent->pos2);
+    const float leg_time = total_distance > 0.f ? (total_distance * (float) M_PI) / (2.f * ent->speed) : 0.f;
+    const float cycle_time = 2.f * (leg_time + ent->wait);
+
+    const float drift = gi.EntityValue(ent->def, "drift")->value;
+    const float drift_scale = drift > 0.f ? drift : 1.f;
+
+    ent->Think = G_func_bob_GoingUp;
+    ent->next_think = g_level.time + QUETOO_TICK_MILLIS +
+                       (uint32_t) (RandomRangef(0.f, drift_scale * cycle_time) * 1000.f);
   }
 }
 

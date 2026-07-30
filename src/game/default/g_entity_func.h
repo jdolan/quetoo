@@ -24,6 +24,7 @@
 #include "g_types.h"
 
 #if defined(__GAME_LOCAL_H__)
+void G_func_bob(g_entity_t *ent);
 void G_func_button(g_entity_t *ent);
 void G_func_conveyor(g_entity_t *ent);
 void G_func_door(g_entity_t *ent);

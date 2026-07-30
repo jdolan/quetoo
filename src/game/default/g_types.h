@@ -922,6 +922,7 @@ typedef struct {
   MOD_FIREBALL,
   MOD_HOOK,
   MOD_ACT_OF_GOD,
+  MOD_BOB,
   MOD_FRIENDLY_FIRE = 0x8000000
 } g_means_of_death;
 
