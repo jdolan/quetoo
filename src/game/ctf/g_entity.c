@@ -768,8 +768,8 @@ static void G_worldspawn(g_entity_t *ent) {
     g_level.min_clients_map = -1;
   }
 
-  if (g_level.teams && g_level.ctf) { // ctf overrides teams
-    g_level.teams = 0;
+  if (g_level.ctf && !g_level.teams) { // capture play is team play
+    g_level.teams = 1;
   }
 
   gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));

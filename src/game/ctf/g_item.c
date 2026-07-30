@@ -1094,7 +1094,7 @@ g_entity_t *G_SelectTechSpawnPoint(void) {
   float point_dist = -FLT_MAX;
   g_entity_t *point = NULL;
 
-  if (g_level.teams || g_level.ctf) {
+  if (g_level.teams) {
     for (int32_t i = 0; i < g_level.num_teams; i++) {
       G_SelectFarthestTechSpawnPoint(&g_team_list[i].spawn_points, &point, &point_dist);
     }

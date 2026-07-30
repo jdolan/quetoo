@@ -106,7 +106,7 @@ static size_t G_UpdateScores(g_score_t *scores) {
   });
 
   // and optionally concatenate the team scores
-  if (g_level.teams || g_level.ctf) {
+  if (g_level.teams) {
     memset(s, 0, sizeof(*s) * MAX_TEAMS);
 
     for (i = 0; i < MAX_TEAMS; i++) {

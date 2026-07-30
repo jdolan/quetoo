@@ -364,7 +364,7 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
   for (size_t i = 0; i < points->count; i++) {
     g_entity_t *ent = points->spots[i];
 
-    if (trail && (g_level.teams || g_level.ctf)) {
+    if (trail && g_level.teams) {
 
       if (ent->s.trail) {
         // Shared spawn point (already claimed by another team): use yellow
@@ -421,7 +421,7 @@ static void G_RestartGame(bool teamz) {
 
     // determine spectator or team affiliations
 
-    if (g_level.teams || g_level.ctf) {
+    if (g_level.teams) {
 
       if (!cl->persistent.team) {
         if (g_auto_join->value) {
@@ -763,6 +763,9 @@ static void G_CheckRules(void) {
     g_teams->modified = false;
 
     g_level.teams = g_teams->integer;
+    if (g_level.ctf && !g_level.teams) { // capture play is team play
+      g_level.teams = 1;
+    }
     G_InitNumTeams();
 
     gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n", g_level.teams ? "enabled" : "disabled");
@@ -774,6 +777,9 @@ static void G_CheckRules(void) {
     g_ctf->modified = false;
 
     g_level.ctf = g_ctf->integer;
+    if (g_level.ctf && !g_level.teams) { // capture play is team play
+      g_level.teams = 1;
+    }
     gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));
 
     gi.BroadcastPrint(PRINT_HIGH, "CTF has been %s\n", g_level.ctf ? "enabled" : "disabled");
@@ -950,7 +956,7 @@ void G_InitNumTeams(void) {
     g_level.num_teams = Clampf(g_level.num_teams, 2, MAX_TEAMS);
   }
 
-  gi.SetConfigString(CS_NUM_TEAMS, va("%d", (g_level.teams || g_level.ctf) ? g_level.num_teams : 0));
+  gi.SetConfigString(CS_NUM_TEAMS, va("%d", g_level.teams ? g_level.num_teams : 0));
 }
 
 /**

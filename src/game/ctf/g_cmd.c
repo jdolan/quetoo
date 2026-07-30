@@ -501,7 +501,7 @@ static void G_Say_f(g_client_t *cl) {
   if (!q_strcmp(gi.Argv(0), "say") || !q_strcmp(gi.Argv(0), "say_team")) {
     arg0 = false;
 
-    if (!q_strcmp(gi.Argv(0), "say_team") && (g_level.teams || g_level.ctf)) {
+    if (!q_strcmp(gi.Argv(0), "say_team") && g_level.teams) {
       team = true;
     }
   }
@@ -625,12 +625,12 @@ bool G_AddClientToTeam(g_client_t *cl, const char *team_name) {
  */
 static void G_Team_f(g_client_t *cl) {
 
-  if ((g_level.teams || g_level.ctf) && gi.Argc() != 2) {
+  if (g_level.teams && gi.Argc() != 2) {
     gi.ClientPrint(cl, PRINT_HIGH, "Usage: %s <team name>\n", gi.Argv(0));
     return;
   }
 
-  if (!g_level.teams && !g_level.ctf) {
+  if (!g_level.teams) {
     gi.ClientPrint(cl, PRINT_HIGH, "Teams are disabled\n");
     return;
   }
@@ -676,7 +676,7 @@ static void G_Spectate_f(g_client_t *cl) {
       return;
     }
 
-    if (g_level.teams || g_level.ctf) {
+    if (g_level.teams) {
       if (g_auto_join->value) { // assign them to a team
         G_AddClientToTeam(cl, G_SmallestTeam()->name);
       } else { // or ask them to pick

@@ -35,7 +35,7 @@ static const cg_team_mode_cvar_t cg_team_deathmatch[] = {
 };
 
 static const cg_team_mode_cvar_t cg_capture_the_flag[] = {
-  { "g_teams", "0" },
+  { "g_teams", "1" },
   { "g_ctf", "1" },
   { NULL, NULL }
 };
