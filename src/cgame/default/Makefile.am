@@ -42,6 +42,7 @@ noinst_HEADERS = \
 	cg_ui.h \
 	cg_view.h \
 	cg_weapon.h \
+	$(top_srcdir)/src/cgame/common/cg_team_mode.h \
 	$(CGUI_HDR)
 
 # The common UI is compiled here rather than linked from a prebuilt library,
@@ -86,6 +87,7 @@ cgame_la_SOURCES = \
 	cg_score.c \
 	cg_sound.c \
 	cg_sprite.c \
+	cg_team_mode.c \
 	cg_temp_entity.c \
 	cg_ui.c \
 	cg_view.c \

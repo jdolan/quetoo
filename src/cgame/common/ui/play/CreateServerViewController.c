@@ -20,6 +20,7 @@
  */
 
 #include "cg_local.h"
+#include "cg_team_mode.h"
 
 #include "CreateServerViewController.h"
 #include "MapListCollectionItemView.h"
@@ -44,20 +45,10 @@ static void botsDidEndEditing(TextView *textView) {
  */
 static void selectTeams(Select *select, Option *option) {
 
-  const intptr_t value = (intptr_t) option->value;
-  switch (value) {
-    case 1:
-      cgi.SetCvarInteger("g_teams", 1);
-      cgi.SetCvarInteger("g_ctf", 0);
-      break;
-    case 2:
-      cgi.SetCvarInteger("g_teams", 0);
-      cgi.SetCvarInteger("g_ctf", 1);
-      break;
-    default:
-      cgi.SetCvarInteger("g_teams", 0);
-      cgi.SetCvarInteger("g_ctf", 1);
-      break;
+  const cg_team_mode_t *mode = option->value;
+
+  for (const cg_team_mode_cvar_t *cvar = mode->cvars; cvar->var; cvar++) {
+    cgi.SetCvarString(cvar->var, cvar->value);
   }
 }
 
@@ -146,9 +137,12 @@ static void loadView(ViewController *self) {
   $(this->gameplay, addOption, "Instagib", "instagib");
   $(this->gameplay, addOption, "Arena", "arena");
 
-  $(this->teams, addOption, "Free for all", (ident) 0);
-  $(this->teams, addOption, "Team deathmatch", (ident) 1);
-  $(this->teams, addOption, "Capture the flag", (ident) 2);
+  size_t num_team_modes;
+  const cg_team_mode_t *team_modes = Cg_TeamModes(&num_team_modes);
+
+  for (size_t i = 0; i < num_team_modes; i++) {
+    $(this->teams, addOption, team_modes[i].name, (ident) &team_modes[i]);
+  }
 
   this->teams->delegate.didSelectOption = selectTeams;
 

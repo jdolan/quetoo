@@ -1,0 +1,56 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#pragma once
+
+#include <stddef.h>
+
+/**
+ * @brief A cvar assignment applied when a team mode is selected.
+ */
+typedef struct {
+  const char *var;
+  const char *value;
+} cg_team_mode_cvar_t;
+
+/**
+ * @brief A team arrangement offered by this client game module, such as free
+ * for all or capture the flag.
+ */
+typedef struct {
+  /**
+   * @brief The menu label.
+   */
+  const char *name;
+
+  /**
+   * @brief The cvars this mode implies, terminated by a NULL `var`.
+   */
+  const cg_team_mode_cvar_t *cvars;
+} cg_team_mode_t;
+
+/**
+ * @brief Returns the team modes this module supports.
+ * @details Each client game module MUST define this. The common create-server
+ * menu builds its team list from it, so a module offers only the arrangements
+ * it actually implements rather than the menu assuming a fixed set.
+ */
+const cg_team_mode_t *Cg_TeamModes(size_t *count);
