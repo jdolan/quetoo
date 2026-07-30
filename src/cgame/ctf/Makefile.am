@@ -103,7 +103,7 @@ cgame_la_LDFLAGS = \
 cgame_la_LIBADD = \
 	libcguictf.la \
 	$(top_builddir)/src/game/ctf/libitem.la \
-	$(top_builddir)/src/game/ctf/libpmove.la \
+	$(top_builddir)/src/game/ctf/libpmovectf.la \
 	$(top_builddir)/deps/discord-rpc/src/libdiscord-rpc.la \
 	@OBJECTIVELYMVC_LIBS@
 

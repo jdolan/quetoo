@@ -20,7 +20,7 @@
  */
 
 #include "cg_local.h"
-#include "game/ctf/bg_pmove.h"
+#include "game/common/bg_pmove.h"
 
 #define MAX_CLIENT_INFO_ENTRIES 7
 

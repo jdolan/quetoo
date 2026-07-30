@@ -31,6 +31,7 @@ GCOMMON_SRC = \
 	$(GCOMMON_DIR)/g_sound.c
 
 GCOMMON_HDR = \
+	$(GCOMMON_DIR)/bg_pmove.h \
 	$(GCOMMON_DIR)/g_effect.h \
 	$(GCOMMON_DIR)/g_entity_func.h \
 	$(GCOMMON_DIR)/g_entity_target.h \

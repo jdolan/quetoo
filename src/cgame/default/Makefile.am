@@ -103,7 +103,7 @@ cgame_la_LDFLAGS = \
 cgame_la_LIBADD = \
 	libcguidefault.la \
 	$(top_builddir)/src/game/default/libitem.la \
-	$(top_builddir)/src/game/default/libpmove.la \
+	$(top_builddir)/src/game/default/libpmovedefault.la \
 	$(top_builddir)/deps/discord-rpc/src/libdiscord-rpc.la \
 	@OBJECTIVELYMVC_LIBS@
 

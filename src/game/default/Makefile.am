@@ -3,7 +3,6 @@ include $(top_srcdir)/src/game/common/sources.mk
 
 noinst_HEADERS = \
 	bg_item.h \
-	bg_pmove.h \
 	g_ai_goal.h \
     g_ai_grid.h \
 	g_ai_info.h \
@@ -32,7 +31,7 @@ noinst_HEADERS = \
 
 noinst_LTLIBRARIES = \
 	libitem.la \
-	libpmove.la \
+	libpmovedefault.la \
 	libgcommondefault.la
 
 libgcommondefault_la_SOURCES = \
@@ -56,15 +55,16 @@ libitem_la_LDFLAGS = \
 	-shared
 libitem_la_LIBADD =
 
-libpmove_la_SOURCES = \
-	bg_pmove.c
-libpmove_la_CFLAGS = \
+libpmovedefault_la_SOURCES = \
+	$(GCOMMON_DIR)/bg_pmove.c
+libpmovedefault_la_CFLAGS = \
 	-I$(top_srcdir)/src \
+	$(GCOMMON_CFLAGS) \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@
-libpmove_la_LDFLAGS = \
+libpmovedefault_la_LDFLAGS = \
 	-shared
-libpmove_la_LIBADD = \
+libpmovedefault_la_LIBADD = \
 	$(top_builddir)/src/shared/libshared.la
 
 gamelibdir = \
@@ -112,6 +112,6 @@ game_la_LDFLAGS = \
 
 game_la_LIBADD = \
 	libitem.la \
-	libpmove.la \
+	libpmovedefault.la \
 	libgcommondefault.la \
 	@OBJECTIVELY_LIBS@

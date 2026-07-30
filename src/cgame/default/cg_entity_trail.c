@@ -20,7 +20,7 @@
  */
 
 #include "cg_local.h"
-#include "game/default/bg_pmove.h"
+#include "game/common/bg_pmove.h"
 
 /**
  * @brief Returns the BSP contents flags for the bounding box spanning the given trail segment.
