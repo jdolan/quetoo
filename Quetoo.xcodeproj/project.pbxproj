@@ -38,6 +38,8 @@
 			buildPhases = (
 			);
 			dependencies = (
+				CEC0FE002026010400000002 /* PBXTargetDependency */,
+				CEC0FE002026010400000004 /* PBXTargetDependency */,
 				CEA029C01C5E548B00341079 /* PBXTargetDependency */,
 				CEA029C21C5E548B00341079 /* PBXTargetDependency */,
 				CEA029BC1C5E546200341079 /* PBXTargetDependency */,
@@ -689,6 +691,170 @@
 		CEC011002026010200000004 /* g_effect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000003 /* g_effect.h */; };
 		CEC01100202601020000000E /* cg_team_mode.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC01100202601020000000D /* cg_team_mode.h */; };
 		CEC011002026010200000010 /* cg_team_mode.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC01100202601020000000F /* cg_team_mode.c */; };
+		CEC0FF0020260103000000D6 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000004 /* bg_item.c */; };
+		CEC0FF0020260103000000D7 /* bg_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000005 /* bg_item.h */; };
+		CEC0FF0020260103000000EF /* g_ai_goal.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000006 /* g_ai_goal.c */; };
+		CEC0FF0020260103000000F0 /* g_ai_grid.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000008 /* g_ai_grid.c */; };
+		CEC0FF0020260103000000F1 /* g_ai_info.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000000A /* g_ai_info.c */; };
+		CEC0FF0020260103000000F2 /* g_ai_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000000C /* g_ai_item.c */; };
+		CEC0FF0020260103000000F3 /* g_ai_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000000E /* g_ai_main.c */; };
+		CEC0FF0020260103000000F4 /* g_ai_node.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000010 /* g_ai_node.c */; };
+		CEC0FF0020260103000000F5 /* g_ballistics.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000013 /* g_ballistics.c */; };
+		CEC0FF0020260103000000F6 /* g_client.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000015 /* g_client.c */; };
+		CEC0FF0020260103000000F7 /* g_client_chase.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000017 /* g_client_chase.c */; };
+		CEC0FF0020260103000000F8 /* g_client_stats.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000019 /* g_client_stats.c */; };
+		CEC0FF0020260103000000F9 /* g_client_view.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000001B /* g_client_view.c */; };
+		CEC0FF0020260103000000FA /* g_cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000001D /* g_cmd.c */; };
+		CEC0FF0020260103000000FB /* g_combat.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000001F /* g_combat.c */; };
+		CEC0FF0020260103000000FC /* g_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000021 /* g_entity.c */; };
+		CEC0FF0020260103000000FD /* g_entity_info.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000023 /* g_entity_info.c */; };
+		CEC0FF0020260103000000FE /* g_entity_trigger.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000025 /* g_entity_trigger.c */; };
+		CEC0FF0020260103000000FF /* g_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000027 /* g_item.c */; };
+		CEC0FF002026010300000100 /* g_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002A /* g_main.c */; };
+		CEC0FF002026010300000101 /* g_util.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002D /* g_util.c */; };
+		CEC0FF002026010300000102 /* g_weapon.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002F /* g_weapon.c */; };
+		CEC0FF002026010300000103 /* g_effect.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000001 /* g_effect.c */; };
+		CEC0FF002026010300000104 /* g_entity_func.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6571C5C58C300CD0B13 /* g_entity_func.c */; };
+		CEC0FF002026010300000105 /* g_entity_misc.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65B1C5C58C300CD0B13 /* g_entity_misc.c */; };
+		CEC0FF002026010300000106 /* g_entity_target.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65D1C5C58C300CD0B13 /* g_entity_target.c */; };
+		CEC0FF002026010300000107 /* g_hook.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000005 /* g_hook.c */; };
+		CEC0FF002026010300000108 /* g_physics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66A1C5C58C300CD0B13 /* g_physics.c */; };
+		CEC0FF002026010300000109 /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
+		CEC0FF00202601030000010A /* bg_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000005 /* bg_item.h */; };
+		CEC0FF00202601030000010B /* g_ai_goal.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000007 /* g_ai_goal.h */; };
+		CEC0FF00202601030000010C /* g_ai_grid.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000009 /* g_ai_grid.h */; };
+		CEC0FF00202601030000010D /* g_ai_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000000B /* g_ai_info.h */; };
+		CEC0FF00202601030000010E /* g_ai_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000000D /* g_ai_item.h */; };
+		CEC0FF00202601030000010F /* g_ai_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000000F /* g_ai_main.h */; };
+		CEC0FF002026010300000110 /* g_ai_node.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000011 /* g_ai_node.h */; };
+		CEC0FF002026010300000111 /* g_ai_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000012 /* g_ai_types.h */; };
+		CEC0FF002026010300000112 /* g_ballistics.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000014 /* g_ballistics.h */; };
+		CEC0FF002026010300000113 /* g_client.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000016 /* g_client.h */; };
+		CEC0FF002026010300000114 /* g_client_chase.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000018 /* g_client_chase.h */; };
+		CEC0FF002026010300000115 /* g_client_stats.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000001A /* g_client_stats.h */; };
+		CEC0FF002026010300000116 /* g_client_view.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000001C /* g_client_view.h */; };
+		CEC0FF002026010300000117 /* g_cmd.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000001E /* g_cmd.h */; };
+		CEC0FF002026010300000118 /* g_combat.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000020 /* g_combat.h */; };
+		CEC0FF002026010300000119 /* g_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000022 /* g_entity.h */; };
+		CEC0FF00202601030000011A /* g_entity_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000024 /* g_entity_info.h */; };
+		CEC0FF00202601030000011B /* g_entity_trigger.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000026 /* g_entity_trigger.h */; };
+		CEC0FF00202601030000011C /* g_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000028 /* g_item.h */; };
+		CEC0FF00202601030000011D /* g_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000029 /* g_local.h */; };
+		CEC0FF00202601030000011E /* g_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002B /* g_main.h */; };
+		CEC0FF00202601030000011F /* g_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002C /* g_types.h */; };
+		CEC0FF002026010300000120 /* g_util.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002E /* g_util.h */; };
+		CEC0FF002026010300000121 /* g_weapon.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000030 /* g_weapon.h */; };
+		CEC0FF002026010300000122 /* bg_pmove.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6421C5C58C300CD0B13 /* bg_pmove.h */; };
+		CEC0FF002026010300000123 /* g_effect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000003 /* g_effect.h */; };
+		CEC0FF002026010300000124 /* g_entity_func.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6581C5C58C300CD0B13 /* g_entity_func.h */; };
+		CEC0FF002026010300000125 /* g_entity_misc.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D65C1C5C58C300CD0B13 /* g_entity_misc.h */; };
+		CEC0FF002026010300000126 /* g_entity_target.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D65E1C5C58C300CD0B13 /* g_entity_target.h */; };
+		CEC0FF002026010300000127 /* g_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000007 /* g_hook.h */; };
+		CEC0FF002026010300000128 /* g_hook_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000009 /* g_hook_types.h */; };
+		CEC0FF002026010300000129 /* g_physics.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66B1C5C58C300CD0B13 /* g_physics.h */; };
+		CEC0FF00202601030000012A /* g_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1295277D439B001E1500 /* g_sound.h */; };
+		CEC0FF0020260103000000EB /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CEC0FF0020260103000000EC /* libgame-item-ctf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC0FF0020260103000000D4 /* libgame-item-ctf.a */; };
+		CEC0FF0020260103000000ED /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
+		CEC0FF0020260103000000EE /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		CEC0FF00202601030000017E /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE32529B1F760D3F00512523 /* BindTextView.c */; };
+		CEC0FF00202601030000017F /* ControlsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */; };
+		CEC0FF002026010300000180 /* CreateServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58707F1F5CDFE0004CAAB2 /* CreateServerViewController.c */; };
+		CEC0FF002026010300000181 /* CreditsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA1A0072F9F00000087B100 /* CreditsViewController.c */; };
+		CEC0FF002026010300000182 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28441F7600AC005F62A9 /* CrosshairView.c */; };
+		CEC0FF002026010300000183 /* CvarCheckbox.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709C1F5CE97C004CAAB2 /* CvarCheckbox.c */; };
+		CEC0FF002026010300000184 /* CvarSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709E1F5CE97C004CAAB2 /* CvarSelect.c */; };
+		CEC0FF002026010300000185 /* CvarSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */; };
+		CEC0FF002026010300000186 /* CvarTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A21F5CE97C004CAAB2 /* CvarTextView.c */; };
+		CEC0FF002026010300000187 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
+		CEC0FF002026010300000188 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000042F9100000000C004 /* EditorViewController.c */; };
+		CEC0FF002026010300000189 /* EntityView.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000072F9100000000C007 /* EntityView.c */; };
+		CEC0FF00202601030000018A /* EntityViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000A2F9100000000C00A /* EntityViewController.c */; };
+		CEC0FF00202601030000018B /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
+		CEC0FF00202601030000018C /* JoinServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870811F5CDFE0004CAAB2 /* JoinServerViewController.c */; };
+		CEC0FF00202601030000018D /* LeaderboardViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */; };
+		CEC0FF00202601030000018E /* LoadingViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */; };
+		CEC0FF00202601030000018F /* MainView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AC1F5CE98D004CAAB2 /* MainView.c */; };
+		CEC0FF002026010300000190 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870981F5CE7D2004CAAB2 /* MainViewController.c */; };
+		CEC0FF002026010300000191 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
+		CEC0FF002026010300000192 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
+		CEC0FF002026010300000193 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
+		CEC0FF002026010300000194 /* MeshViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* MeshViewController.c */; };
+		CEC0FF002026010300000195 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
+		CEC0FF002026010300000196 /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
+		CEC0FF002026010300000197 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
+		CEC0FF002026010300000198 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
+		CEC0FF002026010300000199 /* ResponseServiceViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */; };
+		CEC0FF00202601030000019A /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */; };
+		CEC0FF00202601030000019B /* StatsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */; };
+		CEC0FF00202601030000019C /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
+		CEC0FF00202601030000019D /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
+		CEC0FF00202601030000019E /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
+		CEC0FF00202601030000019F /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
+		CEC0FF0020260103000001E0 /* cg_client.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000062 /* cg_client.c */; };
+		CEC0FF0020260103000001E1 /* cg_discord.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000064 /* cg_discord.c */; };
+		CEC0FF0020260103000001E2 /* cg_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000066 /* cg_editor.c */; };
+		CEC0FF0020260103000001E3 /* cg_effect.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000068 /* cg_effect.c */; };
+		CEC0FF0020260103000001E4 /* cg_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000006A /* cg_entity.c */; };
+		CEC0FF0020260103000001E5 /* cg_entity_effect.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000006C /* cg_entity_effect.c */; };
+		CEC0FF0020260103000001E6 /* cg_entity_event.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000006E /* cg_entity_event.c */; };
+		CEC0FF0020260103000001E7 /* cg_entity_misc.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000070 /* cg_entity_misc.c */; };
+		CEC0FF0020260103000001E8 /* cg_entity_trail.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000072 /* cg_entity_trail.c */; };
+		CEC0FF0020260103000001E9 /* cg_flare.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000074 /* cg_flare.c */; };
+		CEC0FF0020260103000001EA /* cg_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000076 /* cg_hud.c */; };
+		CEC0FF0020260103000001EB /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000078 /* cg_input.c */; };
+		CEC0FF0020260103000001EC /* cg_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000007A /* cg_inventory.c */; };
+		CEC0FF0020260103000001ED /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000007C /* cg_light.c */; };
+		CEC0FF0020260103000001EE /* cg_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000007F /* cg_main.c */; };
+		CEC0FF0020260103000001EF /* cg_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000081 /* cg_media.c */; };
+		CEC0FF0020260103000001F0 /* cg_muzzle_flash.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000083 /* cg_muzzle_flash.c */; };
+		CEC0FF0020260103000001F1 /* cg_predict.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000085 /* cg_predict.c */; };
+		CEC0FF0020260103000001F2 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000087 /* cg_score.c */; };
+		CEC0FF0020260103000001F3 /* cg_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000089 /* cg_sound.c */; };
+		CEC0FF0020260103000001F4 /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000008B /* cg_sprite.c */; };
+		CEC0FF0020260103000001F5 /* cg_team_mode.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000008D /* cg_team_mode.c */; };
+		CEC0FF0020260103000001F6 /* cg_temp_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000008E /* cg_temp_entity.c */; };
+		CEC0FF0020260103000001F7 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000091 /* cg_ui.c */; };
+		CEC0FF0020260103000001F8 /* cg_view.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000093 /* cg_view.c */; };
+		CEC0FF0020260103000001F9 /* cg_weapon.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000095 /* cg_weapon.c */; };
+		CEC0FF0020260103000001FA /* cg_client.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000063 /* cg_client.h */; };
+		CEC0FF0020260103000001FB /* cg_discord.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000065 /* cg_discord.h */; };
+		CEC0FF0020260103000001FC /* cg_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000067 /* cg_editor.h */; };
+		CEC0FF0020260103000001FD /* cg_effect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000069 /* cg_effect.h */; };
+		CEC0FF0020260103000001FE /* cg_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000006B /* cg_entity.h */; };
+		CEC0FF0020260103000001FF /* cg_entity_effect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000006D /* cg_entity_effect.h */; };
+		CEC0FF002026010300000200 /* cg_entity_event.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000006F /* cg_entity_event.h */; };
+		CEC0FF002026010300000201 /* cg_entity_misc.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000071 /* cg_entity_misc.h */; };
+		CEC0FF002026010300000202 /* cg_entity_trail.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000073 /* cg_entity_trail.h */; };
+		CEC0FF002026010300000203 /* cg_flare.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000075 /* cg_flare.h */; };
+		CEC0FF002026010300000204 /* cg_hud.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000077 /* cg_hud.h */; };
+		CEC0FF002026010300000205 /* cg_input.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000079 /* cg_input.h */; };
+		CEC0FF002026010300000206 /* cg_inventory.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000007B /* cg_inventory.h */; };
+		CEC0FF002026010300000207 /* cg_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000007D /* cg_light.h */; };
+		CEC0FF002026010300000208 /* cg_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000007E /* cg_local.h */; };
+		CEC0FF002026010300000209 /* cg_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000080 /* cg_main.h */; };
+		CEC0FF00202601030000020A /* cg_media.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000082 /* cg_media.h */; };
+		CEC0FF00202601030000020B /* cg_muzzle_flash.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000084 /* cg_muzzle_flash.h */; };
+		CEC0FF00202601030000020C /* cg_predict.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000086 /* cg_predict.h */; };
+		CEC0FF00202601030000020D /* cg_score.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000088 /* cg_score.h */; };
+		CEC0FF00202601030000020E /* cg_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000008A /* cg_sound.h */; };
+		CEC0FF00202601030000020F /* cg_sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000008C /* cg_sprite.h */; };
+		CEC0FF002026010300000210 /* cg_temp_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000008F /* cg_temp_entity.h */; };
+		CEC0FF002026010300000211 /* cg_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000090 /* cg_types.h */; };
+		CEC0FF002026010300000212 /* cg_ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000092 /* cg_ui.h */; };
+		CEC0FF002026010300000213 /* cg_view.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000094 /* cg_view.h */; };
+		CEC0FF002026010300000214 /* cg_weapon.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000096 /* cg_weapon.h */; };
+		CEC0FF0020260103000001D5 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		CEC0FF0020260103000001D6 /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CEC0FF0020260103000001D7 /* ObjectivelyMVC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BD2FE6083F005C680C /* ObjectivelyMVC.framework */; };
+		CEC0FF0020260103000001D8 /* libc++.1.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */; };
+		CEC0FF0020260103000001D9 /* libdiscord-rpc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27E11527AC26E6003D56AC /* libdiscord-rpc.a */; };
+		CEC0FF0020260103000001DA /* libcgame-ui-ctf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000017A /* libcgame-ui-ctf.a */; };
+		CEC0FF0020260103000001DB /* libgame-item-ctf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC0FF0020260103000000D4 /* libgame-item-ctf.a */; };
+		CEC0FF0020260103000001DC /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
+		CEC0FF0020260103000001DD /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		CEC0FF0020260103000001DE /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
+		CEC0FF0020260103000001DF /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -971,6 +1137,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = CE12D7CC1C5C5D5C00CD0B13;
 			remoteInfo = game;
+		};
+		CEC0FE002026010400000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CEC0FF0020260103000000E3;
+			remoteInfo = "game-ctf";
+		};
+		CEC0FE002026010400000003 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CEC0FF0020260103000001CD;
+			remoteInfo = "cgame-ctf";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -1961,6 +2141,110 @@
 		CEC01100202601020000000B /* sources.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = sources.mk; sourceTree = "<group>"; };
 		CEC01100202601020000000D /* cg_team_mode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_team_mode.h; sourceTree = "<group>"; };
 		CEC01100202601020000000F /* cg_team_mode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_team_mode.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000003 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CEC0FF002026010300000004 /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000005 /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000006 /* g_ai_goal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ai_goal.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000007 /* g_ai_goal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ai_goal.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000008 /* g_ai_grid.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ai_grid.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000009 /* g_ai_grid.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ai_grid.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000000A /* g_ai_info.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ai_info.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000000B /* g_ai_info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ai_info.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000000C /* g_ai_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ai_item.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000000D /* g_ai_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ai_item.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000000E /* g_ai_main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ai_main.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000000F /* g_ai_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ai_main.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000010 /* g_ai_node.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ai_node.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000011 /* g_ai_node.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ai_node.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000012 /* g_ai_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ai_types.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000013 /* g_ballistics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ballistics.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000014 /* g_ballistics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ballistics.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000015 /* g_client.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_client.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000016 /* g_client.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_client.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000017 /* g_client_chase.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_client_chase.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000018 /* g_client_chase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_client_chase.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000019 /* g_client_stats.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_client_stats.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000001A /* g_client_stats.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_client_stats.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000001B /* g_client_view.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_client_view.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000001C /* g_client_view.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_client_view.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000001D /* g_cmd.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_cmd.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000001E /* g_cmd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_cmd.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000001F /* g_combat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_combat.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000020 /* g_combat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_combat.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000021 /* g_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_entity.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000022 /* g_entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_entity.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000023 /* g_entity_info.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_entity_info.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000024 /* g_entity_info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_entity_info.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000025 /* g_entity_trigger.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_entity_trigger.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000026 /* g_entity_trigger.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_entity_trigger.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000027 /* g_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_item.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000028 /* g_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_item.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000029 /* g_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_local.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000002A /* g_main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_main.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000002B /* g_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_main.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000002C /* g_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_types.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000002D /* g_util.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_util.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000002E /* g_util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_util.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000002F /* g_weapon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_weapon.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000030 /* g_weapon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_weapon.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000061 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CEC0FF002026010300000062 /* cg_client.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_client.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000063 /* cg_client.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_client.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000064 /* cg_discord.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_discord.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000065 /* cg_discord.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_discord.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000066 /* cg_editor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_editor.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000067 /* cg_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_editor.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000068 /* cg_effect.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_effect.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000069 /* cg_effect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_effect.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000006A /* cg_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_entity.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000006B /* cg_entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_entity.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000006C /* cg_entity_effect.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_entity_effect.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000006D /* cg_entity_effect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_entity_effect.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000006E /* cg_entity_event.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_entity_event.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000006F /* cg_entity_event.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_entity_event.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000070 /* cg_entity_misc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_entity_misc.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000071 /* cg_entity_misc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_entity_misc.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000072 /* cg_entity_trail.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_entity_trail.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000073 /* cg_entity_trail.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_entity_trail.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000074 /* cg_flare.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_flare.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000075 /* cg_flare.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_flare.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000076 /* cg_hud.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000077 /* cg_hud.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000078 /* cg_input.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_input.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000079 /* cg_input.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_input.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000007A /* cg_inventory.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_inventory.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000007B /* cg_inventory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_inventory.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000007C /* cg_light.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_light.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000007D /* cg_light.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_light.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000007E /* cg_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_local.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000007F /* cg_main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_main.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000080 /* cg_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_main.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000081 /* cg_media.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_media.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000082 /* cg_media.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_media.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000083 /* cg_muzzle_flash.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_muzzle_flash.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000084 /* cg_muzzle_flash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_muzzle_flash.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000085 /* cg_predict.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_predict.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000086 /* cg_predict.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_predict.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000087 /* cg_score.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_score.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000088 /* cg_score.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_score.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000089 /* cg_sound.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_sound.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000008A /* cg_sound.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_sound.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000008B /* cg_sprite.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_sprite.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000008C /* cg_sprite.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_sprite.h; sourceTree = "<group>"; };
+		CEC0FF00202601030000008D /* cg_team_mode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_team_mode.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000008E /* cg_temp_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_temp_entity.c; sourceTree = "<group>"; };
+		CEC0FF00202601030000008F /* cg_temp_entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_temp_entity.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000090 /* cg_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_types.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000091 /* cg_ui.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_ui.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000092 /* cg_ui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_ui.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000093 /* cg_view.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_view.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000094 /* cg_view.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_view.h; sourceTree = "<group>"; };
+		CEC0FF002026010300000095 /* cg_weapon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_weapon.c; sourceTree = "<group>"; };
+		CEC0FF002026010300000096 /* cg_weapon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_weapon.h; sourceTree = "<group>"; };
+		CEC0FF0020260103000000D4 /* libgame-item-ctf.a */ = {isa = PBXFileReference; explicitFileType = "archive.ar"; includeInIndex = 0; name = libgame-item-ctf.a; path = "ctf/libgame-item-ctf.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEC0FF0020260103000000EA /* game.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; name = game.so; path = "ctf/game.so"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEC0FF00202601030000017A /* libcgame-ui-ctf.a */ = {isa = PBXFileReference; explicitFileType = "archive.ar"; includeInIndex = 0; name = libcgame-ui-ctf.a; path = "ctf/libcgame-ui-ctf.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEC0FF0020260103000001D4 /* cgame.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; name = cgame.so; path = "ctf/cgame.so"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2314,6 +2598,49 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CEC0FF0020260103000000D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEC0FF0020260103000000E6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEC0FF0020260103000000EB /* Objectively.framework in Frameworks */,
+				CEC0FF0020260103000000EC /* libgame-item-ctf.a in Frameworks */,
+				CEC0FF0020260103000000ED /* libgame-pmove.a in Frameworks */,
+				CEC0FF0020260103000000EE /* libshared.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEC0FF002026010300000176 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEC0FF0020260103000001D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEC0FF0020260103000001D5 /* SDL3.xcframework in Frameworks */,
+				CEC0FF0020260103000001D6 /* Objectively.framework in Frameworks */,
+				CEC0FF0020260103000001D7 /* ObjectivelyMVC.framework in Frameworks */,
+				CEC0FF0020260103000001D8 /* libc++.1.tbd in Frameworks */,
+				CEC0FF0020260103000001D9 /* libdiscord-rpc.a in Frameworks */,
+				CEC0FF0020260103000001DA /* libcgame-ui-ctf.a in Frameworks */,
+				CEC0FF0020260103000001DB /* libgame-item-ctf.a in Frameworks */,
+				CEC0FF0020260103000001DC /* libgame-pmove.a in Frameworks */,
+				CEC0FF0020260103000001DD /* libshared.a in Frameworks */,
+				CEC0FF0020260103000001DE /* AppKit.framework in Frameworks */,
+				CEC0FF0020260103000001DF /* OpenGL.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -2482,6 +2809,7 @@
 		CE12D55B1C5C58C300CD0B13 /* cgame */ = {
 			isa = PBXGroup;
 			children = (
+				CEC0FF00202601030000005F /* ctf */,
 				CEC011002026010100000001 /* common */,
 				CE12D55D1C5C58C300CD0B13 /* default */,
 				CE12D55C1C5C58C300CD0B13 /* cgame.h */,
@@ -2785,6 +3113,7 @@
 		CE12D63F1C5C58C300CD0B13 /* game */ = {
 			isa = PBXGroup;
 			children = (
+				CEC0FF002026010300000001 /* ctf */,
 				CEC011002026010100000002 /* common */,
 				CE12D6401C5C58C300CD0B13 /* default */,
 				CE12D6741C5C58C300CD0B13 /* game.h */,
@@ -3029,6 +3358,10 @@
 		CE12D7361C5C5B9300CD0B13 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				CEC0FF0020260103000001D4 /* cgame.so */,
+				CEC0FF00202601030000017A /* libcgame-ui-ctf.a */,
+				CEC0FF0020260103000000EA /* game.so */,
+				CEC0FF0020260103000000D4 /* libgame-item-ctf.a */,
 				CE12D7351C5C5B9300CD0B13 /* quetoo */,
 				CE12D7CD1C5C5D5C00CD0B13 /* game.so */,
 				CE12D7EB1C5C5DF900CD0B13 /* cgame.so */,
@@ -3569,6 +3902,120 @@
 			path = common;
 			sourceTree = "<group>";
 		};
+		CEC0FF002026010300000001 /* ctf */ = {
+			isa = PBXGroup;
+			children = (
+				CEC0FF002026010300000030 /* g_weapon.h */,
+				CEC0FF00202601030000002F /* g_weapon.c */,
+				CEC0FF00202601030000002E /* g_util.h */,
+				CEC0FF00202601030000002D /* g_util.c */,
+				CEC0FF00202601030000002C /* g_types.h */,
+				CEC0FF00202601030000002B /* g_main.h */,
+				CEC0FF00202601030000002A /* g_main.c */,
+				CEC0FF002026010300000029 /* g_local.h */,
+				CEC0FF002026010300000028 /* g_item.h */,
+				CEC0FF002026010300000027 /* g_item.c */,
+				CEC0FF002026010300000026 /* g_entity_trigger.h */,
+				CEC0FF002026010300000025 /* g_entity_trigger.c */,
+				CEC0FF002026010300000024 /* g_entity_info.h */,
+				CEC0FF002026010300000023 /* g_entity_info.c */,
+				CEC0FF002026010300000022 /* g_entity.h */,
+				CEC0FF002026010300000021 /* g_entity.c */,
+				CEC0FF002026010300000020 /* g_combat.h */,
+				CEC0FF00202601030000001F /* g_combat.c */,
+				CEC0FF00202601030000001E /* g_cmd.h */,
+				CEC0FF00202601030000001D /* g_cmd.c */,
+				CEC0FF00202601030000001C /* g_client_view.h */,
+				CEC0FF00202601030000001B /* g_client_view.c */,
+				CEC0FF00202601030000001A /* g_client_stats.h */,
+				CEC0FF002026010300000019 /* g_client_stats.c */,
+				CEC0FF002026010300000018 /* g_client_chase.h */,
+				CEC0FF002026010300000017 /* g_client_chase.c */,
+				CEC0FF002026010300000016 /* g_client.h */,
+				CEC0FF002026010300000015 /* g_client.c */,
+				CEC0FF002026010300000014 /* g_ballistics.h */,
+				CEC0FF002026010300000013 /* g_ballistics.c */,
+				CEC0FF002026010300000012 /* g_ai_types.h */,
+				CEC0FF002026010300000011 /* g_ai_node.h */,
+				CEC0FF002026010300000010 /* g_ai_node.c */,
+				CEC0FF00202601030000000F /* g_ai_main.h */,
+				CEC0FF00202601030000000E /* g_ai_main.c */,
+				CEC0FF00202601030000000D /* g_ai_item.h */,
+				CEC0FF00202601030000000C /* g_ai_item.c */,
+				CEC0FF00202601030000000B /* g_ai_info.h */,
+				CEC0FF00202601030000000A /* g_ai_info.c */,
+				CEC0FF002026010300000009 /* g_ai_grid.h */,
+				CEC0FF002026010300000008 /* g_ai_grid.c */,
+				CEC0FF002026010300000007 /* g_ai_goal.h */,
+				CEC0FF002026010300000006 /* g_ai_goal.c */,
+				CEC0FF002026010300000005 /* bg_item.h */,
+				CEC0FF002026010300000004 /* bg_item.c */,
+				CEC0FF002026010300000003 /* Makefile.am */,
+			);
+			path = ctf;
+			sourceTree = "<group>";
+		};
+		CEC0FF00202601030000005F /* ctf */ = {
+			isa = PBXGroup;
+			children = (
+				CEC0FF002026010300000096 /* cg_weapon.h */,
+				CEC0FF002026010300000095 /* cg_weapon.c */,
+				CEC0FF002026010300000094 /* cg_view.h */,
+				CEC0FF002026010300000093 /* cg_view.c */,
+				CEC0FF002026010300000092 /* cg_ui.h */,
+				CEC0FF002026010300000091 /* cg_ui.c */,
+				CEC0FF002026010300000090 /* cg_types.h */,
+				CEC0FF00202601030000008F /* cg_temp_entity.h */,
+				CEC0FF00202601030000008E /* cg_temp_entity.c */,
+				CEC0FF00202601030000008D /* cg_team_mode.c */,
+				CEC0FF00202601030000008C /* cg_sprite.h */,
+				CEC0FF00202601030000008B /* cg_sprite.c */,
+				CEC0FF00202601030000008A /* cg_sound.h */,
+				CEC0FF002026010300000089 /* cg_sound.c */,
+				CEC0FF002026010300000088 /* cg_score.h */,
+				CEC0FF002026010300000087 /* cg_score.c */,
+				CEC0FF002026010300000086 /* cg_predict.h */,
+				CEC0FF002026010300000085 /* cg_predict.c */,
+				CEC0FF002026010300000084 /* cg_muzzle_flash.h */,
+				CEC0FF002026010300000083 /* cg_muzzle_flash.c */,
+				CEC0FF002026010300000082 /* cg_media.h */,
+				CEC0FF002026010300000081 /* cg_media.c */,
+				CEC0FF002026010300000080 /* cg_main.h */,
+				CEC0FF00202601030000007F /* cg_main.c */,
+				CEC0FF00202601030000007E /* cg_local.h */,
+				CEC0FF00202601030000007D /* cg_light.h */,
+				CEC0FF00202601030000007C /* cg_light.c */,
+				CEC0FF00202601030000007B /* cg_inventory.h */,
+				CEC0FF00202601030000007A /* cg_inventory.c */,
+				CEC0FF002026010300000079 /* cg_input.h */,
+				CEC0FF002026010300000078 /* cg_input.c */,
+				CEC0FF002026010300000077 /* cg_hud.h */,
+				CEC0FF002026010300000076 /* cg_hud.c */,
+				CEC0FF002026010300000075 /* cg_flare.h */,
+				CEC0FF002026010300000074 /* cg_flare.c */,
+				CEC0FF002026010300000073 /* cg_entity_trail.h */,
+				CEC0FF002026010300000072 /* cg_entity_trail.c */,
+				CEC0FF002026010300000071 /* cg_entity_misc.h */,
+				CEC0FF002026010300000070 /* cg_entity_misc.c */,
+				CEC0FF00202601030000006F /* cg_entity_event.h */,
+				CEC0FF00202601030000006E /* cg_entity_event.c */,
+				CEC0FF00202601030000006D /* cg_entity_effect.h */,
+				CEC0FF00202601030000006C /* cg_entity_effect.c */,
+				CEC0FF00202601030000006B /* cg_entity.h */,
+				CEC0FF00202601030000006A /* cg_entity.c */,
+				CEC0FF002026010300000069 /* cg_effect.h */,
+				CEC0FF002026010300000068 /* cg_effect.c */,
+				CEC0FF002026010300000067 /* cg_editor.h */,
+				CEC0FF002026010300000066 /* cg_editor.c */,
+				CEC0FF002026010300000065 /* cg_discord.h */,
+				CEC0FF002026010300000064 /* cg_discord.c */,
+				CEC0FF002026010300000063 /* cg_client.h */,
+				CEC0FF002026010300000062 /* cg_client.c */,
+				CEC0FF002026010300000061 /* Makefile.am */,
+			);
+			path = ctf;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -3910,6 +4357,95 @@
 			buildActionMask = 2147483647;
 			files = (
 				1384B3692A611AB241B9C51C /* bg_item.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEC0FF0020260103000000CF /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEC0FF0020260103000000D7 /* bg_item.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEC0FF0020260103000000E5 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEC0FF00202601030000010A /* bg_item.h in Headers */,
+				CEC0FF00202601030000010B /* g_ai_goal.h in Headers */,
+				CEC0FF00202601030000010C /* g_ai_grid.h in Headers */,
+				CEC0FF00202601030000010D /* g_ai_info.h in Headers */,
+				CEC0FF00202601030000010E /* g_ai_item.h in Headers */,
+				CEC0FF00202601030000010F /* g_ai_main.h in Headers */,
+				CEC0FF002026010300000110 /* g_ai_node.h in Headers */,
+				CEC0FF002026010300000111 /* g_ai_types.h in Headers */,
+				CEC0FF002026010300000112 /* g_ballistics.h in Headers */,
+				CEC0FF002026010300000113 /* g_client.h in Headers */,
+				CEC0FF002026010300000114 /* g_client_chase.h in Headers */,
+				CEC0FF002026010300000115 /* g_client_stats.h in Headers */,
+				CEC0FF002026010300000116 /* g_client_view.h in Headers */,
+				CEC0FF002026010300000117 /* g_cmd.h in Headers */,
+				CEC0FF002026010300000118 /* g_combat.h in Headers */,
+				CEC0FF002026010300000119 /* g_entity.h in Headers */,
+				CEC0FF00202601030000011A /* g_entity_info.h in Headers */,
+				CEC0FF00202601030000011B /* g_entity_trigger.h in Headers */,
+				CEC0FF00202601030000011C /* g_item.h in Headers */,
+				CEC0FF00202601030000011D /* g_local.h in Headers */,
+				CEC0FF00202601030000011E /* g_main.h in Headers */,
+				CEC0FF00202601030000011F /* g_types.h in Headers */,
+				CEC0FF002026010300000120 /* g_util.h in Headers */,
+				CEC0FF002026010300000121 /* g_weapon.h in Headers */,
+				CEC0FF002026010300000122 /* bg_pmove.h in Headers */,
+				CEC0FF002026010300000123 /* g_effect.h in Headers */,
+				CEC0FF002026010300000124 /* g_entity_func.h in Headers */,
+				CEC0FF002026010300000125 /* g_entity_misc.h in Headers */,
+				CEC0FF002026010300000126 /* g_entity_target.h in Headers */,
+				CEC0FF002026010300000127 /* g_hook.h in Headers */,
+				CEC0FF002026010300000128 /* g_hook_types.h in Headers */,
+				CEC0FF002026010300000129 /* g_physics.h in Headers */,
+				CEC0FF00202601030000012A /* g_sound.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEC0FF002026010300000175 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEC0FF0020260103000001CF /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEC0FF0020260103000001FA /* cg_client.h in Headers */,
+				CEC0FF0020260103000001FB /* cg_discord.h in Headers */,
+				CEC0FF0020260103000001FC /* cg_editor.h in Headers */,
+				CEC0FF0020260103000001FD /* cg_effect.h in Headers */,
+				CEC0FF0020260103000001FE /* cg_entity.h in Headers */,
+				CEC0FF0020260103000001FF /* cg_entity_effect.h in Headers */,
+				CEC0FF002026010300000200 /* cg_entity_event.h in Headers */,
+				CEC0FF002026010300000201 /* cg_entity_misc.h in Headers */,
+				CEC0FF002026010300000202 /* cg_entity_trail.h in Headers */,
+				CEC0FF002026010300000203 /* cg_flare.h in Headers */,
+				CEC0FF002026010300000204 /* cg_hud.h in Headers */,
+				CEC0FF002026010300000205 /* cg_input.h in Headers */,
+				CEC0FF002026010300000206 /* cg_inventory.h in Headers */,
+				CEC0FF002026010300000207 /* cg_light.h in Headers */,
+				CEC0FF002026010300000208 /* cg_local.h in Headers */,
+				CEC0FF002026010300000209 /* cg_main.h in Headers */,
+				CEC0FF00202601030000020A /* cg_media.h in Headers */,
+				CEC0FF00202601030000020B /* cg_muzzle_flash.h in Headers */,
+				CEC0FF00202601030000020C /* cg_predict.h in Headers */,
+				CEC0FF00202601030000020D /* cg_score.h in Headers */,
+				CEC0FF00202601030000020E /* cg_sound.h in Headers */,
+				CEC0FF00202601030000020F /* cg_sprite.h in Headers */,
+				CEC0FF002026010300000210 /* cg_temp_entity.h in Headers */,
+				CEC0FF002026010300000211 /* cg_types.h in Headers */,
+				CEC0FF002026010300000212 /* cg_ui.h in Headers */,
+				CEC0FF002026010300000213 /* cg_view.h in Headers */,
+				CEC0FF002026010300000214 /* cg_weapon.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4575,6 +5111,74 @@
 			productReference = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		CEC0FF0020260103000000CD /* game-item-ctf */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CEC0FF0020260103000000D1 /* Build configuration list for PBXNativeTarget "game-item-ctf" */;
+			buildPhases = (
+				CEC0FF0020260103000000CE /* Sources */,
+				CEC0FF0020260103000000D0 /* Frameworks */,
+				CEC0FF0020260103000000CF /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "game-item-ctf";
+			productName = "game-item-ctf";
+			productReference = CEC0FF0020260103000000D4 /* libgame-item-ctf.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		CEC0FF0020260103000000E3 /* game-ctf */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CEC0FF0020260103000000E7 /* Build configuration list for PBXNativeTarget "game-ctf" */;
+			buildPhases = (
+				CEC0FF0020260103000000E4 /* Sources */,
+				CEC0FF0020260103000000E6 /* Frameworks */,
+				CEC0FF0020260103000000E5 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "game-ctf";
+			productName = "game-ctf";
+			productReference = CEC0FF0020260103000000EA /* game.so */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+		CEC0FF002026010300000173 /* cgame-ui-ctf */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CEC0FF002026010300000177 /* Build configuration list for PBXNativeTarget "cgame-ui-ctf" */;
+			buildPhases = (
+				CEC0FF002026010300000174 /* Sources */,
+				CEC0FF002026010300000176 /* Frameworks */,
+				CEC0FF002026010300000175 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "cgame-ui-ctf";
+			productName = "cgame-ui-ctf";
+			productReference = CEC0FF00202601030000017A /* libcgame-ui-ctf.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		CEC0FF0020260103000001CD /* cgame-ctf */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CEC0FF0020260103000001D1 /* Build configuration list for PBXNativeTarget "cgame-ctf" */;
+			buildPhases = (
+				CEC0FF0020260103000001CE /* Sources */,
+				CEC0FF0020260103000001D0 /* Frameworks */,
+				CEC0FF0020260103000001CF /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "cgame-ctf";
+			productName = "cgame-ctf";
+			productReference = CEC0FF0020260103000001D4 /* cgame.so */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -4625,6 +5229,10 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				CEC0FF0020260103000001CD /* cgame-ctf */,
+				CEC0FF002026010300000173 /* cgame-ui-ctf */,
+				CEC0FF0020260103000000E3 /* game-ctf */,
+				CEC0FF0020260103000000CD /* game-item-ctf */,
 				CE27E10C27AC26E6003D56AC /* discord-rpc */,
 				CE12D8101C5C5EF000CD0B13 /* minizip */,
 				CE80FDB41C5E3D4E00A21A51 /* shared */,
@@ -5219,6 +5827,122 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CEC0FF0020260103000000CE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEC0FF0020260103000000D6 /* bg_item.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEC0FF0020260103000000E4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEC0FF0020260103000000EF /* g_ai_goal.c in Sources */,
+				CEC0FF0020260103000000F0 /* g_ai_grid.c in Sources */,
+				CEC0FF0020260103000000F1 /* g_ai_info.c in Sources */,
+				CEC0FF0020260103000000F2 /* g_ai_item.c in Sources */,
+				CEC0FF0020260103000000F3 /* g_ai_main.c in Sources */,
+				CEC0FF0020260103000000F4 /* g_ai_node.c in Sources */,
+				CEC0FF0020260103000000F5 /* g_ballistics.c in Sources */,
+				CEC0FF0020260103000000F6 /* g_client.c in Sources */,
+				CEC0FF0020260103000000F7 /* g_client_chase.c in Sources */,
+				CEC0FF0020260103000000F8 /* g_client_stats.c in Sources */,
+				CEC0FF0020260103000000F9 /* g_client_view.c in Sources */,
+				CEC0FF0020260103000000FA /* g_cmd.c in Sources */,
+				CEC0FF0020260103000000FB /* g_combat.c in Sources */,
+				CEC0FF0020260103000000FC /* g_entity.c in Sources */,
+				CEC0FF0020260103000000FD /* g_entity_info.c in Sources */,
+				CEC0FF0020260103000000FE /* g_entity_trigger.c in Sources */,
+				CEC0FF0020260103000000FF /* g_item.c in Sources */,
+				CEC0FF002026010300000100 /* g_main.c in Sources */,
+				CEC0FF002026010300000101 /* g_util.c in Sources */,
+				CEC0FF002026010300000102 /* g_weapon.c in Sources */,
+				CEC0FF002026010300000103 /* g_effect.c in Sources */,
+				CEC0FF002026010300000104 /* g_entity_func.c in Sources */,
+				CEC0FF002026010300000105 /* g_entity_misc.c in Sources */,
+				CEC0FF002026010300000106 /* g_entity_target.c in Sources */,
+				CEC0FF002026010300000107 /* g_hook.c in Sources */,
+				CEC0FF002026010300000108 /* g_physics.c in Sources */,
+				CEC0FF002026010300000109 /* g_sound.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEC0FF002026010300000174 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEC0FF00202601030000017E /* BindTextView.c in Sources */,
+				CEC0FF00202601030000017F /* ControlsViewController.c in Sources */,
+				CEC0FF002026010300000180 /* CreateServerViewController.c in Sources */,
+				CEC0FF002026010300000181 /* CreditsViewController.c in Sources */,
+				CEC0FF002026010300000182 /* CrosshairView.c in Sources */,
+				CEC0FF002026010300000183 /* CvarCheckbox.c in Sources */,
+				CEC0FF002026010300000184 /* CvarSelect.c in Sources */,
+				CEC0FF002026010300000185 /* CvarSlider.c in Sources */,
+				CEC0FF002026010300000186 /* CvarTextView.c in Sources */,
+				CEC0FF002026010300000187 /* DialogViewController.c in Sources */,
+				CEC0FF002026010300000188 /* EditorViewController.c in Sources */,
+				CEC0FF002026010300000189 /* EntityView.c in Sources */,
+				CEC0FF00202601030000018A /* EntityViewController.c in Sources */,
+				CEC0FF00202601030000018B /* HomeViewController.c in Sources */,
+				CEC0FF00202601030000018C /* JoinServerViewController.c in Sources */,
+				CEC0FF00202601030000018D /* LeaderboardViewController.c in Sources */,
+				CEC0FF00202601030000018E /* LoadingViewController.c in Sources */,
+				CEC0FF00202601030000018F /* MainView.c in Sources */,
+				CEC0FF002026010300000190 /* MainViewController.c in Sources */,
+				CEC0FF002026010300000191 /* MapListCollectionItemView.c in Sources */,
+				CEC0FF002026010300000192 /* MapListCollectionView.c in Sources */,
+				CEC0FF002026010300000193 /* MaterialViewController.c in Sources */,
+				CEC0FF002026010300000194 /* MeshViewController.c in Sources */,
+				CEC0FF002026010300000195 /* MovementCombatViewController.c in Sources */,
+				CEC0FF002026010300000196 /* PlayViewController.c in Sources */,
+				CEC0FF002026010300000197 /* PlayerModelView.c in Sources */,
+				CEC0FF002026010300000198 /* PlayerSetupViewController.c in Sources */,
+				CEC0FF002026010300000199 /* ResponseServiceViewController.c in Sources */,
+				CEC0FF00202601030000019A /* SettingsViewController.c in Sources */,
+				CEC0FF00202601030000019B /* StatsViewController.c in Sources */,
+				CEC0FF00202601030000019C /* TeamPlayerView.c in Sources */,
+				CEC0FF00202601030000019D /* TeamView.c in Sources */,
+				CEC0FF00202601030000019E /* TeamsViewController.c in Sources */,
+				CEC0FF00202601030000019F /* UpdateViewController.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEC0FF0020260103000001CE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEC0FF0020260103000001E0 /* cg_client.c in Sources */,
+				CEC0FF0020260103000001E1 /* cg_discord.c in Sources */,
+				CEC0FF0020260103000001E2 /* cg_editor.c in Sources */,
+				CEC0FF0020260103000001E3 /* cg_effect.c in Sources */,
+				CEC0FF0020260103000001E4 /* cg_entity.c in Sources */,
+				CEC0FF0020260103000001E5 /* cg_entity_effect.c in Sources */,
+				CEC0FF0020260103000001E6 /* cg_entity_event.c in Sources */,
+				CEC0FF0020260103000001E7 /* cg_entity_misc.c in Sources */,
+				CEC0FF0020260103000001E8 /* cg_entity_trail.c in Sources */,
+				CEC0FF0020260103000001E9 /* cg_flare.c in Sources */,
+				CEC0FF0020260103000001EA /* cg_hud.c in Sources */,
+				CEC0FF0020260103000001EB /* cg_input.c in Sources */,
+				CEC0FF0020260103000001EC /* cg_inventory.c in Sources */,
+				CEC0FF0020260103000001ED /* cg_light.c in Sources */,
+				CEC0FF0020260103000001EE /* cg_main.c in Sources */,
+				CEC0FF0020260103000001EF /* cg_media.c in Sources */,
+				CEC0FF0020260103000001F0 /* cg_muzzle_flash.c in Sources */,
+				CEC0FF0020260103000001F1 /* cg_predict.c in Sources */,
+				CEC0FF0020260103000001F2 /* cg_score.c in Sources */,
+				CEC0FF0020260103000001F3 /* cg_sound.c in Sources */,
+				CEC0FF0020260103000001F4 /* cg_sprite.c in Sources */,
+				CEC0FF0020260103000001F5 /* cg_team_mode.c in Sources */,
+				CEC0FF0020260103000001F6 /* cg_temp_entity.c in Sources */,
+				CEC0FF0020260103000001F7 /* cg_ui.c in Sources */,
+				CEC0FF0020260103000001F8 /* cg_view.c in Sources */,
+				CEC0FF0020260103000001F9 /* cg_weapon.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -5421,6 +6145,16 @@
 			isa = PBXTargetDependency;
 			target = CE12D7CC1C5C5D5C00CD0B13 /* game */;
 			targetProxy = CEEC176B2FD6F88900C72A8A /* PBXContainerItemProxy */;
+		};
+		CEC0FE002026010400000002 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CEC0FF0020260103000000E3 /* game-ctf */;
+			targetProxy = CEC0FE002026010400000001 /* PBXContainerItemProxy */;
+		};
+		CEC0FE002026010400000004 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CEC0FF0020260103000001CD /* cgame-ctf */;
+			targetProxy = CEC0FE002026010400000003 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -6512,6 +7246,220 @@
 			};
 			name = Release;
 		};
+		CEC0FF0020260103000000D2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
+				PRODUCT_NAME = game-item-ctf;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					"$(BUILT_PRODUCTS_DIR)/..",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/ctf",
+				);
+			};
+			name = Debug;
+		};
+		CEC0FF0020260103000000D3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
+				PRODUCT_NAME = game-item-ctf;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					"$(BUILT_PRODUCTS_DIR)/..",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/ctf",
+				);
+			};
+			name = Release;
+		};
+		CEC0FF0020260103000000E8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_EXTENSION = so;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					G_HOOK,
+				);
+				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
+				PRODUCT_NAME = game;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					"$(BUILT_PRODUCTS_DIR)/..",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/ctf",
+				);
+			};
+			name = Debug;
+		};
+		CEC0FF0020260103000000E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_EXTENSION = so;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					G_HOOK,
+				);
+				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
+				PRODUCT_NAME = game;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					"$(BUILT_PRODUCTS_DIR)/..",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/ctf",
+				);
+			};
+			name = Release;
+		};
+		CEC0FF002026010300000178 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
+				PRODUCT_NAME = cgame-ui-ctf;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					"$(BUILT_PRODUCTS_DIR)/..",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/cgame",
+					"$(SRCROOT)/src/cgame/common",
+					"$(SRCROOT)/src/cgame/ctf",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/ctf",
+					"$(SRCROOT)/src/cgame/common/ui",
+					"$(SRCROOT)/src/cgame/common/ui/common",
+					"$(SRCROOT)/src/cgame/common/ui/controls",
+					"$(SRCROOT)/src/cgame/common/ui/credits",
+					"$(SRCROOT)/src/cgame/common/ui/editor",
+					"$(SRCROOT)/src/cgame/common/ui/home",
+					"$(SRCROOT)/src/cgame/common/ui/main",
+					"$(SRCROOT)/src/cgame/common/ui/play",
+					"$(SRCROOT)/src/cgame/common/ui/settings",
+					"$(SRCROOT)/src/cgame/common/ui/teams",
+				);
+			};
+			name = Debug;
+		};
+		CEC0FF002026010300000179 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
+				PRODUCT_NAME = cgame-ui-ctf;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					"$(BUILT_PRODUCTS_DIR)/..",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/cgame",
+					"$(SRCROOT)/src/cgame/common",
+					"$(SRCROOT)/src/cgame/ctf",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/ctf",
+					"$(SRCROOT)/src/cgame/common/ui",
+					"$(SRCROOT)/src/cgame/common/ui/common",
+					"$(SRCROOT)/src/cgame/common/ui/controls",
+					"$(SRCROOT)/src/cgame/common/ui/credits",
+					"$(SRCROOT)/src/cgame/common/ui/editor",
+					"$(SRCROOT)/src/cgame/common/ui/home",
+					"$(SRCROOT)/src/cgame/common/ui/main",
+					"$(SRCROOT)/src/cgame/common/ui/play",
+					"$(SRCROOT)/src/cgame/common/ui/settings",
+					"$(SRCROOT)/src/cgame/common/ui/teams",
+				);
+			};
+			name = Release;
+		};
+		CEC0FF0020260103000001D2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_EXTENSION = so;
+				OTHER_LDFLAGS = "-all_load";
+				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
+				PRODUCT_NAME = cgame;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					"$(BUILT_PRODUCTS_DIR)/..",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/cgame",
+					"$(SRCROOT)/src/cgame/common",
+					"$(SRCROOT)/src/cgame/ctf",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/ctf",
+					"$(SRCROOT)/src/cgame/common/ui",
+					"$(SRCROOT)/src/cgame/common/ui/common",
+					"$(SRCROOT)/src/cgame/common/ui/controls",
+					"$(SRCROOT)/src/cgame/common/ui/credits",
+					"$(SRCROOT)/src/cgame/common/ui/editor",
+					"$(SRCROOT)/src/cgame/common/ui/home",
+					"$(SRCROOT)/src/cgame/common/ui/main",
+					"$(SRCROOT)/src/cgame/common/ui/play",
+					"$(SRCROOT)/src/cgame/common/ui/settings",
+					"$(SRCROOT)/src/cgame/common/ui/teams",
+				);
+			};
+			name = Debug;
+		};
+		CEC0FF0020260103000001D3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_EXTENSION = so;
+				OTHER_LDFLAGS = "-all_load";
+				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
+				PRODUCT_NAME = cgame;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					"$(BUILT_PRODUCTS_DIR)/..",
+				);
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/cgame",
+					"$(SRCROOT)/src/cgame/common",
+					"$(SRCROOT)/src/cgame/ctf",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/ctf",
+					"$(SRCROOT)/src/cgame/common/ui",
+					"$(SRCROOT)/src/cgame/common/ui/common",
+					"$(SRCROOT)/src/cgame/common/ui/controls",
+					"$(SRCROOT)/src/cgame/common/ui/credits",
+					"$(SRCROOT)/src/cgame/common/ui/editor",
+					"$(SRCROOT)/src/cgame/common/ui/home",
+					"$(SRCROOT)/src/cgame/common/ui/main",
+					"$(SRCROOT)/src/cgame/common/ui/play",
+					"$(SRCROOT)/src/cgame/common/ui/settings",
+					"$(SRCROOT)/src/cgame/common/ui/teams",
+				);
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -6880,6 +7828,42 @@
 			buildConfigurations = (
 				CEFC7B881D9D2E71000FA6B2 /* Debug */,
 				CEFC7B891D9D2E71000FA6B2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CEC0FF0020260103000000D1 /* Build configuration list for PBXNativeTarget "game-item-ctf" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEC0FF0020260103000000D2 /* Debug */,
+				CEC0FF0020260103000000D3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CEC0FF0020260103000000E7 /* Build configuration list for PBXNativeTarget "game-ctf" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEC0FF0020260103000000E8 /* Debug */,
+				CEC0FF0020260103000000E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CEC0FF002026010300000177 /* Build configuration list for PBXNativeTarget "cgame-ui-ctf" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEC0FF002026010300000178 /* Debug */,
+				CEC0FF002026010300000179 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CEC0FF0020260103000001D1 /* Build configuration list for PBXNativeTarget "cgame-ctf" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEC0FF0020260103000001D2 /* Debug */,
+				CEC0FF0020260103000001D3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
