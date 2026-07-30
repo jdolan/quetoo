@@ -54,22 +54,6 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
   *out = *decal;
 }
 
-static void R_RemoveDecalTriangleAtIndexFast(Vector *triangles, size_t index) {
-
-  assert(triangles);
-  assert(index < triangles->count);
-
-  if (index < triangles->count - 1) {
-    memcpy(
-      VectorElement(triangles, r_decal_triangle_t, index),
-      VectorElement(triangles, r_decal_triangle_t, triangles->count - 1),
-      sizeof(r_decal_triangle_t)
-    );
-  }
-
-  triangles->count--;
-}
-
 /**
  * @brief Clips a decal to a face and adds the resulting triangles to the face's block.
  */
@@ -151,7 +135,7 @@ static void R_ClipDecalToFace(const r_view_t *view,
   if (overflow > 0) {
     const int32_t remove_count = Mini(overflow, (int32_t) decals->triangles->count);
     for (int32_t i = 0; i < remove_count; i++) {
-      $(decals->triangles, removeAt, 0);
+      $(decals->triangles, removeAtFast, 0);
     }
   }
   
@@ -309,8 +293,8 @@ static void R_ClipDecalToNode(const r_view_t *view,
 }
 
 /**
- * @brief Adds new decals and expires old decal triangles, then uploads any
- * dirty per-block decal geometry, growing buffers on demand.
+ * @brief Adds new decals and expires old decal triangles, then uploads dirty
+ * per-block decal geometry for visible blocks, growing buffers on demand.
  */
 void R_UpdateDecals(const r_view_t *view, CopyPass *pass) {
 
@@ -341,6 +325,8 @@ void R_UpdateDecals(const r_view_t *view, CopyPass *pass) {
       continue;
     }
 
+    const bool culled = R_CullEntity(view, e);
+
     r_bsp_inline_model_t *in = e->model->bsp_inline;
 
     r_bsp_block_t *block = in->blocks;
@@ -351,13 +337,25 @@ void R_UpdateDecals(const r_view_t *view, CopyPass *pass) {
         const r_decal_triangle_t *v = VectorElement(decals->triangles, r_decal_triangle_t, --k);
 
         if (view->ticks - v->vertexes->time >= v->vertexes->lifetime) {
-          R_RemoveDecalTriangleAtIndexFast(decals->triangles, k);
+          $(decals->triangles, removeAtFast, k);
           decals->dirty = true;
         }
       }
 
       const int32_t num_vertexes = (int32_t) decals->triangles->count * 3;
       if (num_vertexes == 0 || !decals->dirty) {
+        continue;
+      }
+
+      if (culled) {
+        continue;
+      }
+
+      if (block->query && !block->query->result) {
+        continue;
+      }
+
+      if (R_CulludeBox(view, block->visible_bounds)) {
         continue;
       }
 
