@@ -783,7 +783,7 @@ static void Cg_misc_sprite_Think(cg_entity_t *self) {
       }
 
       s.origin = Vec3_Mix(this->sprite.origin, that->sprite.origin, Randomf());
-      s.velocity = Vec3_Mix(this->sprite.origin, that->sprite.origin, Randomf());
+      s.velocity = Vec3_Mix(this->sprite.velocity, that->sprite.velocity, Randomf());
       s.acceleration = Vec3_Mix(this->sprite.acceleration, that->sprite.acceleration, Randomf());
       s.rotation = Mixf(this->sprite.rotation, that->sprite.rotation, Randomf());
       s.rotation_velocity = Mixf(this->sprite.rotation_velocity, that->sprite.rotation_velocity, Randomf());
