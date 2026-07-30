@@ -243,6 +243,7 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
     return 1;
   }
 
+
   // if we got stuck, don't hunt for items for a little bit
   if (cl->ai->reacquire_time > g_level.time) {
     return cl->ai->reacquire_time - g_level.time; 
@@ -542,6 +543,19 @@ static float G_Ai_EnemyPriority(const g_client_t *cl, const g_entity_t *target, 
     priority += 2.f;
   }
 
+#if defined(G_CTF)
+  // flag carriers are highest priority
+  if (target->client) {
+    const int16_t *inventory = target->client->inventory;
+    for (g_item_tag_t t = FLAG_FIRST; t < FLAG_LAST; t++) {
+      if (inventory[t]) {
+        priority += 5.f;
+        break;
+      }
+    }
+  }
+#endif
+
   return priority;
 }
 
@@ -567,6 +581,18 @@ static bool G_Ai_ChaseEnemy(const g_client_t *cl, const g_entity_t *target) {
     chance *= 1.5f;
   }
 
+#if defined(G_CTF)
+  // if they have a flag, higher chance
+  const int16_t *inventory = target->client->inventory;
+
+  for (g_item_tag_t t = FLAG_FIRST; t < FLAG_LAST; t++) {
+    if (inventory[t]) {
+      chance *= 2.0f;
+      break;
+    }
+  }
+#endif
+
   // aggressive bots are more willing to chase
   chance *= Lerpf(.6f, 1.4f, cl->ai->personality.aggression);
 
@@ -581,6 +607,7 @@ static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
   if (cl->entity->solid == SOLID_DEAD) {
     return 1;
   }
+
 
   if (g_ai_no_target->integer || g_ai_node_dev->integer) {
 
@@ -751,6 +778,7 @@ static uint32_t G_Ai_Weaponry(g_client_t *cl, pm_cmd_t *cmd) {
     return 1;
   }
 
+
   if (cl->ai->weapon_check_time < g_level.time) { // check for a new weapon every once in a while
     G_Ai_PickWeapon(cl);
   }
@@ -789,6 +817,7 @@ static uint32_t G_Ai_Acrobatics(g_client_t *cl, pm_cmd_t *cmd) {
   if (cl->entity->solid == SOLID_DEAD) {
     return 1;
   }
+
 
   if (cl->ai->combat_target.type != AI_GOAL_ENTITY) {
     return 200;

@@ -24,6 +24,12 @@
 #   MOD_CRUSH, MOD_TELEFRAG, MOD_ACT_OF_GOD  (g_means_of_death, g_types.h)
 
 GCOMMON_SRC = \
+	$(GCOMMON_DIR)/g_ai_goal.c \
+	$(GCOMMON_DIR)/g_ai_grid.c \
+	$(GCOMMON_DIR)/g_ai_info.c \
+	$(GCOMMON_DIR)/g_ai_item.c \
+	$(GCOMMON_DIR)/g_ai_main.c \
+	$(GCOMMON_DIR)/g_ai_node.c \
 	$(GCOMMON_DIR)/g_effect.c \
 	$(GCOMMON_DIR)/g_entity_func.c \
 	$(GCOMMON_DIR)/g_entity_misc.c \
@@ -32,6 +38,13 @@ GCOMMON_SRC = \
 	$(GCOMMON_DIR)/g_sound.c
 
 GCOMMON_HDR = \
+	$(GCOMMON_DIR)/g_ai_goal.h \
+	$(GCOMMON_DIR)/g_ai_grid.h \
+	$(GCOMMON_DIR)/g_ai_info.h \
+	$(GCOMMON_DIR)/g_ai_item.h \
+	$(GCOMMON_DIR)/g_ai_main.h \
+	$(GCOMMON_DIR)/g_ai_node.h \
+	$(GCOMMON_DIR)/g_ai_types.h \
 	$(GCOMMON_DIR)/bg_pmove.h \
 	$(GCOMMON_DIR)/g_effect.h \
 	$(GCOMMON_DIR)/g_entity_func.h \
@@ -45,7 +58,8 @@ GCOMMON_CFLAGS = \
 
 # Optional features. A module opts in by adding the define to its compile
 # flags, which switches on the matching code in the common sources - the
-# teleporter's hook handling in g_entity_misc.c, for instance. A module that
+# teleporter's hook handling in g_entity_misc.c and the bots' interest in flags
+# and techs, for instance. A module that
 # does not opt in never sees those references, so it needs none of the hook's
 # fields or symbols.
 GCOMMON_HOOK_SRC = \
@@ -57,3 +71,6 @@ GCOMMON_HOOK_HDR = \
 
 GCOMMON_HOOK_CFLAGS = \
 	-DG_HOOK
+
+GCOMMON_CTF_CFLAGS = \
+	-DG_CTF
