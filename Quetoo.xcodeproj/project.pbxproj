@@ -2470,6 +2470,7 @@
 		CE12D55B1C5C58C300CD0B13 /* cgame */ = {
 			isa = PBXGroup;
 			children = (
+				CEC011002026010100000001 /* common */,
 				CE12D55D1C5C58C300CD0B13 /* default */,
 				CE12D55C1C5C58C300CD0B13 /* cgame.h */,
 				CE12D5821C5C58C300CD0B13 /* Makefile.am */,
@@ -2480,7 +2481,6 @@
 		CE12D55D1C5C58C300CD0B13 /* default */ = {
 			isa = PBXGroup;
 			children = (
-				CE5870711F5CDFE0004CAAB2 /* ui */,
 				CE12D55E1C5C58C300CD0B13 /* cg_client.c */,
 				CE12D55F1C5C58C300CD0B13 /* cg_client.h */,
 				CE27E6B727AC95D1003D56AC /* cg_discord.c */,
@@ -2772,6 +2772,7 @@
 		CE12D63F1C5C58C300CD0B13 /* game */ = {
 			isa = PBXGroup;
 			children = (
+				CEC011002026010100000002 /* common */,
 				CE12D6401C5C58C300CD0B13 /* default */,
 				CE12D6741C5C58C300CD0B13 /* game.h */,
 				CE12D6751C5C58C300CD0B13 /* Makefile.am */,
@@ -2784,8 +2785,6 @@
 			children = (
 				7966EA6596003F9303BC00FA /* bg_item.c */,
 				F7E7256984E276048C2A155E /* bg_item.h */,
-				CE12D6411C5C58C300CD0B13 /* bg_pmove.c */,
-				CE12D6421C5C58C300CD0B13 /* bg_pmove.h */,
 				CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */,
 				CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */,
 				CE4E05402FDAE2CE00B92C32 /* g_ai_grid.c */,
@@ -2813,14 +2812,8 @@
 				CE12D6521C5C58C300CD0B13 /* g_cmd.h */,
 				CE12D6531C5C58C300CD0B13 /* g_combat.c */,
 				CE12D6541C5C58C300CD0B13 /* g_combat.h */,
-				CE12D6571C5C58C300CD0B13 /* g_entity_func.c */,
-				CE12D6581C5C58C300CD0B13 /* g_entity_func.h */,
 				CE12D6591C5C58C300CD0B13 /* g_entity_info.c */,
 				CE12D65A1C5C58C300CD0B13 /* g_entity_info.h */,
-				CE12D65B1C5C58C300CD0B13 /* g_entity_misc.c */,
-				CE12D65C1C5C58C300CD0B13 /* g_entity_misc.h */,
-				CE12D65D1C5C58C300CD0B13 /* g_entity_target.c */,
-				CE12D65E1C5C58C300CD0B13 /* g_entity_target.h */,
 				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
 				CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */,
 				CE12D6551C5C58C300CD0B13 /* g_entity.c */,
@@ -2830,10 +2823,6 @@
 				CE12D6631C5C58C300CD0B13 /* g_local.h */,
 				CE12D6641C5C58C300CD0B13 /* g_main.c */,
 				CE12D6651C5C58C300CD0B13 /* g_main.h */,
-				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
-				CE12D66B1C5C58C300CD0B13 /* g_physics.h */,
-				CEFF1296277D439B001E1500 /* g_sound.c */,
-				CEFF1295277D439B001E1500 /* g_sound.h */,
 				CE12D66C1C5C58C300CD0B13 /* g_types.h */,
 				CE12D66D1C5C58C300CD0B13 /* g_util.c */,
 				CE12D66E1C5C58C300CD0B13 /* g_util.h */,
@@ -3531,6 +3520,33 @@
 				CEA716EB2FA796690099B469 /* Makefile.am */,
 			);
 			path = editor;
+			sourceTree = "<group>";
+		};
+		CEC011002026010100000001 /* common */ = {
+			isa = PBXGroup;
+			children = (
+				CE5870711F5CDFE0004CAAB2 /* ui */,
+			);
+			path = common;
+			sourceTree = "<group>";
+		};
+		CEC011002026010100000002 /* common */ = {
+			isa = PBXGroup;
+			children = (
+				CEFF1295277D439B001E1500 /* g_sound.h */,
+				CEFF1296277D439B001E1500 /* g_sound.c */,
+				CE12D66B1C5C58C300CD0B13 /* g_physics.h */,
+				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
+				CE12D65E1C5C58C300CD0B13 /* g_entity_target.h */,
+				CE12D65D1C5C58C300CD0B13 /* g_entity_target.c */,
+				CE12D65C1C5C58C300CD0B13 /* g_entity_misc.h */,
+				CE12D65B1C5C58C300CD0B13 /* g_entity_misc.c */,
+				CE12D6581C5C58C300CD0B13 /* g_entity_func.h */,
+				CE12D6571C5C58C300CD0B13 /* g_entity_func.c */,
+				CE12D6421C5C58C300CD0B13 /* bg_pmove.h */,
+				CE12D6411C5C58C300CD0B13 /* bg_pmove.c */,
+			);
+			path = common;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -5388,6 +5404,12 @@
 		5F77C54AE17C47CA328A1CB7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/default",
+				);
 				EXECUTABLE_PREFIX = lib;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5397,6 +5419,12 @@
 		A7B1BB97F5361E990B64778B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/default",
+				);
 				EXECUTABLE_PREFIX = lib;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5599,6 +5627,12 @@
 		CE12D7CF1C5C5D5C00CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/default",
+				);
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5608,6 +5642,12 @@
 		CE12D7D01C5C5D5C00CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/default",
+				);
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5617,6 +5657,25 @@
 		CE12D7ED1C5C5DF900CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/cgame",
+					"$(SRCROOT)/src/cgame/common",
+					"$(SRCROOT)/src/cgame/default",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/default",
+					"$(SRCROOT)/src/cgame/common/ui",
+					"$(SRCROOT)/src/cgame/common/ui/common",
+					"$(SRCROOT)/src/cgame/common/ui/controls",
+					"$(SRCROOT)/src/cgame/common/ui/credits",
+					"$(SRCROOT)/src/cgame/common/ui/editor",
+					"$(SRCROOT)/src/cgame/common/ui/home",
+					"$(SRCROOT)/src/cgame/common/ui/main",
+					"$(SRCROOT)/src/cgame/common/ui/play",
+					"$(SRCROOT)/src/cgame/common/ui/settings",
+					"$(SRCROOT)/src/cgame/common/ui/teams",
+				);
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = "-all_load";
@@ -5627,6 +5686,25 @@
 		CE12D7EE1C5C5DF900CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/cgame",
+					"$(SRCROOT)/src/cgame/common",
+					"$(SRCROOT)/src/cgame/default",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/default",
+					"$(SRCROOT)/src/cgame/common/ui",
+					"$(SRCROOT)/src/cgame/common/ui/common",
+					"$(SRCROOT)/src/cgame/common/ui/controls",
+					"$(SRCROOT)/src/cgame/common/ui/credits",
+					"$(SRCROOT)/src/cgame/common/ui/editor",
+					"$(SRCROOT)/src/cgame/common/ui/home",
+					"$(SRCROOT)/src/cgame/common/ui/main",
+					"$(SRCROOT)/src/cgame/common/ui/play",
+					"$(SRCROOT)/src/cgame/common/ui/settings",
+					"$(SRCROOT)/src/cgame/common/ui/teams",
+				);
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = "-all_load";
@@ -5921,6 +5999,25 @@
 		CE6EE3351F6BFAF600FBC830 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/cgame",
+					"$(SRCROOT)/src/cgame/common",
+					"$(SRCROOT)/src/cgame/default",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/default",
+					"$(SRCROOT)/src/cgame/common/ui",
+					"$(SRCROOT)/src/cgame/common/ui/common",
+					"$(SRCROOT)/src/cgame/common/ui/controls",
+					"$(SRCROOT)/src/cgame/common/ui/credits",
+					"$(SRCROOT)/src/cgame/common/ui/editor",
+					"$(SRCROOT)/src/cgame/common/ui/home",
+					"$(SRCROOT)/src/cgame/common/ui/main",
+					"$(SRCROOT)/src/cgame/common/ui/play",
+					"$(SRCROOT)/src/cgame/common/ui/settings",
+					"$(SRCROOT)/src/cgame/common/ui/teams",
+				);
 				EXECUTABLE_PREFIX = lib;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -5930,6 +6027,25 @@
 		CE6EE3361F6BFAF600FBC830 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/cgame",
+					"$(SRCROOT)/src/cgame/common",
+					"$(SRCROOT)/src/cgame/default",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/default",
+					"$(SRCROOT)/src/cgame/common/ui",
+					"$(SRCROOT)/src/cgame/common/ui/common",
+					"$(SRCROOT)/src/cgame/common/ui/controls",
+					"$(SRCROOT)/src/cgame/common/ui/credits",
+					"$(SRCROOT)/src/cgame/common/ui/editor",
+					"$(SRCROOT)/src/cgame/common/ui/home",
+					"$(SRCROOT)/src/cgame/common/ui/main",
+					"$(SRCROOT)/src/cgame/common/ui/play",
+					"$(SRCROOT)/src/cgame/common/ui/settings",
+					"$(SRCROOT)/src/cgame/common/ui/teams",
+				);
 				EXECUTABLE_PREFIX = lib;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6347,6 +6463,11 @@
 		CEFC7B881D9D2E71000FA6B2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+				);
 				EXECUTABLE_PREFIX = lib;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6356,6 +6477,11 @@
 		CEFC7B891D9D2E71000FA6B2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+				);
 				EXECUTABLE_PREFIX = lib;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
