@@ -266,7 +266,7 @@ static void G_InitMedia(void) {
   g_media.models.quake_nail = gi.ModelIndex("models/projectiles/quake_nail/tris");
   g_media.models.rocket = gi.ModelIndex("models/projectiles/rocket/tris");
   g_media.models.quake_rocket = gi.ModelIndex("models/projectiles/quake_rocket/tris");
-  g_media.models.hook = gi.ModelIndex("models/grapplehook/tris");
+  G_Hook_InitMedia();
   g_media.models.fireball = gi.ModelIndex("models/fireball/tris");
   g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
   g_media.sounds.bfg_prime = gi.SoundIndex("weapons/bfg/prime");
@@ -293,12 +293,6 @@ static void G_InitMedia(void) {
   g_media.sounds.invulnerability_protect = gi.SoundIndex("powerups/invulnerability/protect");
   g_media.sounds.invisibility_pickup = gi.SoundIndex("powerups/invisibility/pickup");
   g_media.sounds.invisibility_expire = gi.SoundIndex("powerups/invisibility/expire");
-  g_media.sounds.hook_fire = gi.SoundIndex("grapplehook/fire");
-  g_media.sounds.hook_fly = gi.SoundIndex("grapplehook/fly");
-  g_media.sounds.hook_hit = gi.SoundIndex("grapplehook/hit");
-  g_media.sounds.hook_pull = gi.SoundIndex("grapplehook/pull");
-  g_media.sounds.hook_detach = gi.SoundIndex("grapplehook/detach");
-  g_media.sounds.hook_gibhit = gi.SoundIndex("grapplehook/gibhit");
   g_media.sounds.teleport = gi.SoundIndex("misc/teleport");
 
   for (i = 0; i < lengthof(g_media.sounds.quake_teleport); i++) {
@@ -529,7 +523,7 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
 
   G_InitEntityTeams();
 
-  G_CheckHook();
+  G_Hook_CheckState(g_level.ctf);
 
   G_CheckTechs();
 
@@ -749,9 +743,9 @@ static void G_worldspawn(g_entity_t *ent) {
 
   const cm_entity_t *hook_map = G_MapValue("hook");
   if (hook_map && (hook_map->parsed & ENTITY_INTEGER) && hook_map->integer > -1) {
-    g_level.hook_map = hook_map->integer;
+    G_Hook_SetMapValue(hook_map->integer);
   } else {
-    g_level.hook_map = -1;
+    G_Hook_SetMapValue(-1);
   }
 
   const cm_entity_t *techs_map = G_MapValue("techs");

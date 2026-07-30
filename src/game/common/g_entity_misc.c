@@ -31,7 +31,7 @@ static void G_misc_teleporter_Touch(g_entity_t *ent, g_entity_t *other, const cm
   // a grappling hook shouldn't reach through teleporters: detach a hook
   // projectile that flies into one rather than letting it pass through (#867)
   if (other->owner && other->owner->client &&
-      other->owner->client->hook_entity == other) {
+      other->owner->client->hook.entity == other) {
     G_HookDetach(other->owner->client);
     return;
   }
@@ -43,7 +43,7 @@ static void G_misc_teleporter_Touch(g_entity_t *ent, g_entity_t *other, const cm
 
 #if defined(G_HOOK)
   // release a hooked player as they warp, so they aren't tethered across the portal
-  if (other->client && other->client->hook_entity) {
+  if (other->client && other->client->hook.entity) {
     G_HookDetach(other->client);
   }
 #endif

@@ -35,18 +35,6 @@ static void G_PlayerProjectile(g_entity_t *ent, const float scale) {
 }
 
 /**
- * @brief Returns true if the entity is facing a wall at too close proximity
- * for the specified projectile.
- */
-static bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile) {
-
-  const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
-                                 ent, CONTENTS_MASK_SOLID);
-
-  return tr.fraction < 1.0;
-}
-
-/**
  * @brief Returns true if the specified entity takes damage.
  */
 static bool G_TakesDamage(g_entity_t *ent) {

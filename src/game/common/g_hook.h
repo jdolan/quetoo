@@ -22,6 +22,30 @@
 #pragma once
 
 #include "g_types.h"
+#include "bg_pmove.h"
 
-bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile);
-void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size, bool splash);
+#if defined(__GAME_LOCAL_H__)
+
+extern cvar_t *g_hook;
+extern cvar_t *g_hook_auto_refire;
+extern cvar_t *g_hook_distance;
+extern cvar_t *g_hook_pull_speed;
+extern cvar_t *g_hook_refire;
+extern cvar_t *g_hook_sky;
+extern cvar_t *g_hook_speed;
+extern cvar_t *g_hook_style;
+
+bool G_Hook_Enabled(void);
+void G_Hook_SetMapValue(int32_t value);
+void G_Hook_Init(void);
+void G_Hook_InitMedia(void);
+void G_Hook_CheckState(bool enabled_by_default);
+bool G_Hook_ApplyPmove(const g_client_t *cl, pm_move_t *pm);
+
+void G_HookDetach(g_client_t *cl);
+void G_HookThink(g_client_t *cl, const bool refire);
+g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir);
+g_hook_style_t G_HookStyleByName(const char *s);
+void G_SetClientHookStyle(g_client_t *cl);
+
+#endif /* __GAME_LOCAL_H__ */

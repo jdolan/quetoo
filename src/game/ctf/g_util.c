@@ -601,20 +601,6 @@ g_client_t *G_ClientByName(char *name) {
 }
 
 /**
- * @return Get the `g_hook_style_t` this string describes.
- */
-g_hook_style_t G_HookStyleByName(const char *s) {
-  
-  if (!q_strcmp(s, "swing_manual")) {
-    return HOOK_SWING_MANUAL;
-  } else if (!q_strcmp(s, "swing_auto")) {
-    return HOOK_SWING_AUTO;
-  }
-
-  return HOOK_PULL;
-}
-
-/**
  * @return True if the specified entity should bleed when damaged.
  */
 bool G_IsMeat(const g_entity_t *ent) {

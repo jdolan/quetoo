@@ -22,6 +22,8 @@
 #pragma once
 
 #include "shared/shared.h"
+
+#include "game/common/g_hook_types.h"
 #include "collision/cm_types.h"
 #include "bg_item.h"
 #include <Objectively/Vector.h>
@@ -375,15 +377,6 @@ typedef enum {
   ITEMS_QUAKE
 } g_items_t;
 
-/**
- * @brief Hook style.
- */
-typedef enum {
-  HOOK_PULL,
-  HOOK_SWING_MANUAL,
-  HOOK_SWING_AUTO
-} g_hook_style_t;
-
 // g_item_type_t and g_item_tag_t are defined in bg_item.h
 
 /**
@@ -647,7 +640,6 @@ typedef struct {
     uint16_t quake_nail;
     uint16_t rocket;
     uint16_t quake_rocket;
-    uint16_t hook;
 
     uint16_t fireball;
   } models;
@@ -672,13 +664,6 @@ typedef struct {
     uint16_t lightning_fly;
     uint16_t quad_attack;
     uint16_t quad_expire;
-
-    uint16_t hook_fire;
-    uint16_t hook_hit;
-    uint16_t hook_pull;
-    uint16_t hook_fly;
-    uint16_t hook_detach;
-    uint16_t hook_gibhit;
 
     uint16_t teleport;
     uint16_t quake_teleport[5];
@@ -785,22 +770,12 @@ typedef struct {
    */
   bool techs;
 
-  /**
-   * @brief True if the grappling hook is enabled.
-   */
-  bool hook;
-
-  /**
+    /**
    * @brief Number of active teams.
    */
   int32_t num_teams;
 
-  /**
-   * @brief Map-specified hook allowance, used for voting and restarts.
-   */
-  int32_t hook_map;
-
-  /**
+    /**
    * @brief Map-specified techs allowance.
    */
   int32_t techs_map;
@@ -1186,6 +1161,11 @@ typedef struct {
 struct g_client_s {
 
   /**
+   * @brief Grappling hook state, reset on respawn.
+   */
+  g_client_hook_t hook;
+
+  /**
    * @brief The entity bound to this client.
    */
   g_entity_t *entity;
@@ -1295,27 +1275,7 @@ struct g_client_s {
    */
   pm_water_level_t old_water_level;
 
-  /**
-   * @brief Level time when the hook think was last called.
-   */
-  uint32_t hook_think_time;
-
-  /**
-   * @brief Hook may fire again when time exceeds this.
-   */
-  uint32_t hook_fire_time;
-
-  /**
-   * @brief The hook entity the client is attached to.
-   */
-  g_entity_t *hook_entity;
-
-  /**
-   * @brief True if the client is currently pulling toward the hook.
-   */
-  bool hook_pull;
-
-  /**
+          /**
    * @brief Alternating barrel index for the Quake nailgun.
    * Odd = right barrel (+2 units), even = left barrel (-2 units).
    */

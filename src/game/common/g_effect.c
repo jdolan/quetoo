@@ -82,3 +82,15 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
     gi.Multicast(pos, MULTICAST_PVS);
   }
 }
+
+/**
+ * @brief Returns true if the entity is facing a wall at too close proximity
+ * for the specified projectile.
+ */
+bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile) {
+
+  const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
+                                 ent, CONTENTS_MASK_SOLID);
+
+  return tr.fraction < 1.0;
+}

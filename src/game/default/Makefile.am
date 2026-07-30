@@ -48,6 +48,7 @@ libitem_la_SOURCES = \
 	bg_item.c
 libitem_la_CFLAGS = \
 	-I$(top_srcdir)/src \
+	$(GCOMMON_CFLAGS) \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@
 libitem_la_LDFLAGS = \

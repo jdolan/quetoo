@@ -48,5 +48,12 @@ GCOMMON_CFLAGS = \
 # teleporter's hook handling in g_entity_misc.c, for instance. A module that
 # does not opt in never sees those references, so it needs none of the hook's
 # fields or symbols.
+GCOMMON_HOOK_SRC = \
+	$(GCOMMON_DIR)/g_hook.c
+
+GCOMMON_HOOK_HDR = \
+	$(GCOMMON_DIR)/g_hook.h \
+	$(GCOMMON_DIR)/g_hook_types.h
+
 GCOMMON_HOOK_CFLAGS = \
 	-DG_HOOK

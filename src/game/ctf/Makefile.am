@@ -26,7 +26,8 @@ noinst_HEADERS = \
 	g_types.h \
 	g_util.h \
 	g_weapon.h \
-	$(GCOMMON_HDR)
+	$(GCOMMON_HDR) \
+	$(GCOMMON_HOOK_HDR)
 
 noinst_LTLIBRARIES = \
 	libitem.la \
@@ -34,7 +35,8 @@ noinst_LTLIBRARIES = \
 	libgcommonctf.la
 
 libgcommonctf_la_SOURCES = \
-	$(GCOMMON_SRC)
+	$(GCOMMON_SRC) \
+	$(GCOMMON_HOOK_SRC)
 
 libgcommonctf_la_CFLAGS = \
 	-I$(top_srcdir)/src \
@@ -49,6 +51,7 @@ libitem_la_SOURCES = \
 	bg_item.c
 libitem_la_CFLAGS = \
 	-I$(top_srcdir)/src \
+	$(GCOMMON_CFLAGS) \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@
 libitem_la_LDFLAGS = \

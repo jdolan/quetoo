@@ -39,6 +39,7 @@
 #include "g_client_view.h"
 #include "g_client.h"
 #include "g_effect.h"
+#include "g_hook.h"
 #include "g_cmd.h"
 #include "g_combat.h"
 #include "g_entity_func.h"

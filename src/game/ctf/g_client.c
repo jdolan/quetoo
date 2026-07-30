@@ -1248,27 +1248,6 @@ void G_ClientBegin(g_client_t *cl) {
 }
 
 /**
- * @brief Set the hook style of the player, respecting server properties.
- */
-void G_SetClientHookStyle(g_client_t *cl) {
-
-  if (!cl->in_use) {
-    return;
-  }
-
-  g_hook_style_t hook_style;
-
-  // respect user_info on default
-  if (!q_strcmp(g_hook_style->string, "default")) {
-    hook_style = G_HookStyleByName(InfoString_Get(cl->persistent.user_info, "hook_style"));
-  } else {
-    hook_style = G_HookStyleByName(g_hook_style->string);
-  }
-
-  cl->persistent.hook_style = hook_style;
-}
-
-/**
  * @brief Applies updates from a client's user info string to their persistent state.
  */
 void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
@@ -1639,24 +1618,12 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
 
     pm.s.origin = ent->s.origin;
 
-    if (cl->hook_pull) {
-
-      if (cl->persistent.hook_style == HOOK_PULL) {
-        pm.s.type = PM_HOOK_PULL;
-      } else if (cl->persistent.hook_style == HOOK_SWING_MANUAL) {
-        pm.s.type = PM_HOOK_SWING_MANUAL;
-      } else if (cl->persistent.hook_style == HOOK_SWING_AUTO) {
-        pm.s.type = PM_HOOK_SWING_AUTO;
-      } else {
-        pm.s.type = PM_HOOK_PULL;
-      }
-    } else {
+    if (!G_Hook_ApplyPmove(cl, &pm)) {
       pm.s.velocity = ent->velocity;
     }
 
     pm.cmd = *cmd;
     pm.ground = ent->ground;
-    pm.hook_pull_speed = g_hook_pull_speed->value;
 #if defined(_DEBUG)
   }
 #endif
@@ -1935,7 +1902,7 @@ void G_ClientThink(g_client_t *cl, pm_cmd_t *cmd) {
   if (!cl->chase_target) { // move through the world
 
     // process hook buttons
-    if (cl->hook_think_time < g_level.time) {
+    if (cl->hook.think_time < g_level.time) {
       G_HookThink(cl, false);
     }
 
@@ -2001,7 +1968,7 @@ void G_ClientBeginFrame(g_client_t *cl) {
     G_ClientWeaponThink(cl);
   }
 
-  if (cl->hook_think_time < g_level.time) {
+  if (cl->hook.think_time < g_level.time) {
     G_HookThink(cl, false);
   }
 
