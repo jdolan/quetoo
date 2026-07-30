@@ -685,6 +685,10 @@
 		F7EBE32625F44EBF895E36BC /* cg_inventory.h in Headers */ = {isa = PBXBuildFile; fileRef = 066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */; };
 		F8D615462A724ECF9847D4CD /* r_post.h in Headers */ = {isa = PBXBuildFile; fileRef = B80C92655F5249E48131CB95 /* r_post.h */; };
 		FCC98BF568490D2F2305B0A1 /* libgame-item.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93837BFDD89832004989509B /* libgame-item.a */; };
+		CEC011002026010200000002 /* g_effect.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000001 /* g_effect.c */; };
+		CEC011002026010200000004 /* g_effect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000003 /* g_effect.h */; };
+		CEC01100202601020000000E /* cg_team_mode.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC01100202601020000000D /* cg_team_mode.h */; };
+		CEC011002026010200000010 /* cg_team_mode.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC01100202601020000000F /* cg_team_mode.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1949,6 +1953,14 @@
 		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
 		F7E7256984E276048C2A155E /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
 		FCD76A809F00440F99BC0068 /* cg_inventory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_inventory.c; sourceTree = "<group>"; };
+		CEC011002026010200000001 /* g_effect.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_effect.c; sourceTree = "<group>"; };
+		CEC011002026010200000003 /* g_effect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_effect.h; sourceTree = "<group>"; };
+		CEC011002026010200000005 /* g_hook.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_hook.c; sourceTree = "<group>"; };
+		CEC011002026010200000007 /* g_hook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_hook.h; sourceTree = "<group>"; };
+		CEC011002026010200000009 /* g_hook_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_hook_types.h; sourceTree = "<group>"; };
+		CEC01100202601020000000B /* sources.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = sources.mk; sourceTree = "<group>"; };
+		CEC01100202601020000000D /* cg_team_mode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_team_mode.h; sourceTree = "<group>"; };
+		CEC01100202601020000000F /* cg_team_mode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_team_mode.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2481,6 +2493,7 @@
 		CE12D55D1C5C58C300CD0B13 /* default */ = {
 			isa = PBXGroup;
 			children = (
+				CEC01100202601020000000F /* cg_team_mode.c */,
 				CE12D55E1C5C58C300CD0B13 /* cg_client.c */,
 				CE12D55F1C5C58C300CD0B13 /* cg_client.h */,
 				CE27E6B727AC95D1003D56AC /* cg_discord.c */,
@@ -3525,6 +3538,7 @@
 		CEC011002026010100000001 /* common */ = {
 			isa = PBXGroup;
 			children = (
+				CEC01100202601020000000D /* cg_team_mode.h */,
 				CE5870711F5CDFE0004CAAB2 /* ui */,
 			);
 			path = common;
@@ -3533,6 +3547,12 @@
 		CEC011002026010100000002 /* common */ = {
 			isa = PBXGroup;
 			children = (
+				CEC01100202601020000000B /* sources.mk */,
+				CEC011002026010200000009 /* g_hook_types.h */,
+				CEC011002026010200000007 /* g_hook.h */,
+				CEC011002026010200000005 /* g_hook.c */,
+				CEC011002026010200000003 /* g_effect.h */,
+				CEC011002026010200000001 /* g_effect.c */,
 				CEFF1295277D439B001E1500 /* g_sound.h */,
 				CEFF1296277D439B001E1500 /* g_sound.c */,
 				CE12D66B1C5C58C300CD0B13 /* g_physics.h */,
@@ -3556,6 +3576,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEC011002026010200000004 /* g_effect.h in Headers */,
 				CE80FE941C5E443D00A21A51 /* game.h in Headers */,
 				CE27E9FE27BDA2AE003D56AC /* g_ai_goal.h in Headers */,
 				CE80FE7E1C5E442700A21A51 /* g_ballistics.h in Headers */,
@@ -3592,6 +3613,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEC01100202601020000000E /* cg_team_mode.h in Headers */,
 				CE80FEA71C5E445D00A21A51 /* cgame.h in Headers */,
 				CE80FE951C5E445500A21A51 /* cg_client.h in Headers */,
 				CE80FE961C5E445500A21A51 /* cg_effect.h in Headers */,
@@ -4721,6 +4743,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEC011002026010200000002 /* g_effect.c in Sources */,
 				CE27E9FC27BDA2AE003D56AC /* g_ai_goal.c in Sources */,
 				CE27E9FF27BDA2AE003D56AC /* g_ai_info.c in Sources */,
 				CE27E9FD27BDA2AE003D56AC /* g_ai_item.c in Sources */,
@@ -4753,6 +4776,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEC011002026010200000010 /* cg_team_mode.c in Sources */,
 				CE12D7EF1C5C5E0200CD0B13 /* cg_client.c in Sources */,
 				CE12D7F01C5C5E0200CD0B13 /* cg_effect.c in Sources */,
 				CE12D7F11C5C5E0200CD0B13 /* cg_entity_misc.c in Sources */,
