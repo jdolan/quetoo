@@ -18,7 +18,6 @@ noinst_HEADERS = \
 	g_combat.h \
 	g_cmd.h \
 	g_entity_info.h \
-	g_entity_misc.h \
 	g_entity_trigger.h \
 	g_entity.h \
 	g_item.h \
@@ -39,6 +38,7 @@ libgcommonctf_la_SOURCES = \
 
 libgcommonctf_la_CFLAGS = \
 	-I$(top_srcdir)/src \
+	$(GCOMMON_HOOK_CFLAGS) \
 	-I$(srcdir) \
 	$(GCOMMON_CFLAGS) \
 	@SO_CFLAGS@ \
@@ -88,7 +88,6 @@ game_la_SOURCES = \
 	g_cmd.c \
 	g_combat.c \
 	g_entity_info.c \
-	g_entity_misc.c \
 	g_entity_trigger.c \
 	g_entity.c \
 	g_item.c \
@@ -98,6 +97,7 @@ game_la_SOURCES = \
 
 game_la_CFLAGS = \
 	-I$(top_srcdir)/src \
+	$(GCOMMON_HOOK_CFLAGS) \
 	-I$(srcdir) \
 	$(GCOMMON_CFLAGS) \
 	@SO_CFLAGS@ \

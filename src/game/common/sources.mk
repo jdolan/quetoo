@@ -26,6 +26,7 @@
 GCOMMON_SRC = \
 	$(GCOMMON_DIR)/g_effect.c \
 	$(GCOMMON_DIR)/g_entity_func.c \
+	$(GCOMMON_DIR)/g_entity_misc.c \
 	$(GCOMMON_DIR)/g_entity_target.c \
 	$(GCOMMON_DIR)/g_physics.c \
 	$(GCOMMON_DIR)/g_sound.c
@@ -34,9 +35,18 @@ GCOMMON_HDR = \
 	$(GCOMMON_DIR)/bg_pmove.h \
 	$(GCOMMON_DIR)/g_effect.h \
 	$(GCOMMON_DIR)/g_entity_func.h \
+	$(GCOMMON_DIR)/g_entity_misc.h \
 	$(GCOMMON_DIR)/g_entity_target.h \
 	$(GCOMMON_DIR)/g_physics.h \
 	$(GCOMMON_DIR)/g_sound.h
 
 GCOMMON_CFLAGS = \
 	-I$(GCOMMON_DIR)
+
+# Optional features. A module opts in by adding the define to its compile
+# flags, which switches on the matching code in the common sources - the
+# teleporter's hook handling in g_entity_misc.c, for instance. A module that
+# does not opt in never sees those references, so it needs none of the hook's
+# fields or symbols.
+GCOMMON_HOOK_CFLAGS = \
+	-DG_HOOK
