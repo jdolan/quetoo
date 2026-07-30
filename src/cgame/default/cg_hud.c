@@ -214,39 +214,6 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
 }
 
 /**
- * @brief Draws the flag you are currently holding
- */
-static void Cg_DrawHeldFlag(const player_state_t *ps) {
-  int32_t x, y;
-
-  g_item_tag_t flag_tag = ITEM_NONE;
-
-  for (g_item_tag_t i = FLAG_FIRST; i < FLAG_LAST; i++) {
-    if (ps->inventory[i]) {
-      flag_tag = i;
-      break;
-    }
-  }
-
-  if (flag_tag == ITEM_NONE) {
-    return;
-  }
-
-  const r_image_t *icon = cg_items[flag_tag].icon;
-  if (!icon) {
-    return;
-  }
-
-  color_t pulse = color_white;
-  pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f);
-
-  x = HUD_PIC_HEIGHT / 2;
-  y = cgi.context->h / 2 - HUD_PIC_HEIGHT * 2;
-
-  cgi.Draw2DImage(x, y, icon->width, icon->height, icon, pulse);
-}
-
-/**
  * @brief Draws the recently picked up item icon and name in the top-right corner.
  */
 static void Cg_DrawPickup(const player_state_t *ps) {
@@ -332,38 +299,6 @@ static void Cg_DrawDeaths(const player_state_t *ps) {
 }
 
 /**
- * @brief Draws the player's flag capture count in the top-right corner for CTF games.
- */
-static void Cg_DrawCaptures(const player_state_t *ps) {
-  const int16_t captures = ps->stats[STAT_CAPTURES];
-  int32_t x, y, cw, ch;
-
-  if (!cg_state.ctf) {
-    return;
-  }
-
-  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-    return;
-  }
-
-  cgi.BindFont("small", NULL, &ch);
-
-  x = cgi.context->w - cgi.StringWidth("Captures");
-  y = 3 * (HUD_PIC_HEIGHT + ch);
-
-  cgi.Draw2DString(x, y, "Captures", color_green);
-  y += ch;
-
-  cgi.BindFont("large", &cw, NULL);
-
-  x = cgi.context->w - 3 * cw;
-
-  cgi.Draw2DString(x, y, va("%3d", captures), HUD_COLOR_STAT);
-
-  cgi.BindFont(NULL, NULL, NULL);
-}
-
-/**
  * @brief Draws the "Spectating" label when the player is a spectator not in chase mode.
  */
 static void Cg_DrawSpectator(const player_state_t *ps) {
@@ -442,10 +377,6 @@ static void Cg_DrawTime(const player_state_t *ps) {
 
   x = cgi.context->w - cgi.StringWidth(string);
   y = 3 * (HUD_PIC_HEIGHT + ch);
-
-  if (cg_state.ctf) {
-    y += HUD_PIC_HEIGHT + ch;
-  }
 
   cgi.Draw2DString(x, y, string, color_white);
 
@@ -1205,8 +1136,6 @@ void Cg_DrawHud(const player_state_t *ps) {
 
   Cg_DrawPowerups(ps);
 
-  Cg_DrawHeldFlag(ps);
-
   Cg_DrawPickup(ps);
 
   Cg_DrawTeamBanner(ps);
@@ -1214,8 +1143,6 @@ void Cg_DrawHud(const player_state_t *ps) {
   Cg_DrawFrags(ps);
 
   Cg_DrawDeaths(ps);
-
-  Cg_DrawCaptures(ps);
 
   Cg_DrawSpectator(ps);
 

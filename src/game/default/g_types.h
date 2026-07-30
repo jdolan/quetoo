@@ -63,7 +63,6 @@ typedef enum {
  * @brief ConfigStrings that are local to the game module.
  */
 #define CS_GAMEPLAY        (CS_GAME + 0)  // gameplay string
-#define CS_CTF             (CS_GAME + 1)  // is capture enabled?
 #define CS_TEAM_INFO       (CS_GAME + 2)  // team info, separated by \ (name\color\name\color, etc)
 #define CS_TIME            (CS_GAME + 3)  // map time
 #define CS_MAX_CLIENTS     (CS_GAME + 5)  // max clients of server
@@ -77,7 +76,6 @@ typedef enum {
  */
 typedef enum {
   STAT_ARMOR,
-  STAT_CAPTURES,
   STAT_CHASE,
   STAT_DAMAGE_ARMOR,
   STAT_DAMAGE_HEALTH,
@@ -224,18 +222,13 @@ typedef struct {
    */
   int16_t score;
 
-  /**
-   * @brief Number of flag captures.
-   */
-  int16_t captures;
-
-  /**
+    /**
    * @brief Number of deaths.
    */
   uint16_t deaths;
 
   /**
-   * @brief Score flags (`SCORE_CTF_FLAG`, etc.).
+   * @brief Score flags.
    */
   uint8_t flags;
 
@@ -248,7 +241,6 @@ typedef struct {
 /**
  * @brief Player scores flags.
  */
-#define SCORE_CTF_FLAG  (1 << 0)
 #define SCORE_SPECTATOR (1 << 2)
 #define SCORE_AGGREGATE (1 << 3)
 
@@ -280,18 +272,12 @@ typedef enum {
 #define EF_CORPSE          (EF_GAME << 4) // to differentiate own corpse from self
 #define EF_RESPAWN         (EF_GAME << 5) // yellow shell
 #define EF_QUAD            (EF_GAME << 6) // blue-green shell
-#define EF_CTF_RED         (EF_GAME << 7) // carrying the red flag
-#define EF_CTF_BLUE        (EF_GAME << 8) // carrying the blue flag
-#define EF_CTF_GREEN       (EF_GAME << 9) // carrying the green flag
-#define EF_CTF_YELLOW      (EF_GAME << 10) // carrying the yellow flag
 #define EF_DESPAWN         (EF_GAME << 11) // translucent
 #define EF_LIGHT           (EF_GAME << 12) // colored light
 #define EF_LIGHT_PULSE     (EF_GAME << 13) // pulse EF_LIGHT radius
 #define EF_TEAM_TINT       (EF_GAME << 14) // tint by the team color provided
 #define EF_INVISIBILITY    (EF_GAME << 15) // ring of shadows (invisible shell)
 #define EF_INVULNERABILITY (EF_GAME << 16) // invulnerability shell
-
-#define EF_CTF_MASK   (EF_CTF_RED | EF_CTF_BLUE | EF_CTF_YELLOW | EF_CTF_GREEN)
 
 /**
  * @brief The lightning gun overrides animation1 to inform the client what
@@ -669,9 +655,6 @@ typedef struct {
     uint16_t weapon_switch;
 
     uint16_t countdown[11];
-    uint16_t ctf_capture;
-    uint16_t ctf_return;
-    uint16_t ctf_steal;
 
     uint16_t roar;
 
@@ -752,12 +735,7 @@ typedef struct {
    */
   bool teams;
 
-  /**
-   * @brief True if capture the flag is active.
-   */
-  bool ctf;
-
-    /**
+      /**
    * @brief Number of active teams.
    */
   int32_t num_teams;
@@ -772,12 +750,7 @@ typedef struct {
    */
   int32_t frag_limit;
 
-  /**
-   * @brief Capture limit; game ends when a team reaches this.
-   */
-  int32_t capture_limit;
-
-  /**
+    /**
    * @brief Time limit in minutes; game ends when exceeded.
    */
   int32_t time_limit;
@@ -827,11 +800,7 @@ typedef struct {
    */
   Vector *frags;
 
-  /**
-   * @brief Accumulated capture events for this CTF map, POSTed at intermission.
-   */
-  Vector *captures;
-} g_level_t;
+  } g_level_t;
 
 /**
  * @brief Means of death.
@@ -972,12 +941,7 @@ typedef struct {
    */
   char skin[MAX_QPATH];
 
-  /**
-   * @brief Flag entity classname.
-   */
-  char flag[MAX_QPATH];
-
-  /**
+    /**
    * @brief Spawn point classname.
    */
   char spawn[MAX_QPATH];
@@ -992,31 +956,17 @@ typedef struct {
    */
   int16_t color;
 
-  /**
-   * @brief Entity effect for the team flag.
-   */
-  int16_t effect;
-
-  /**
+    /**
    * @brief Team score.
    */
   int16_t score;
 
-  /**
-   * @brief Team capture count.
-   */
-  int16_t captures;
-
-  /**
+    /**
    * @brief Spawn points for this team.
    */
   g_spawn_points_t spawn_points;
 
-  /**
-   * @brief The team's flag entity.
-   */
-  g_entity_t *flag_entity;
-} g_team_t;
+  } g_team_t;
 
 /**
  * @brief The default player model
@@ -1098,12 +1048,7 @@ typedef struct {
    */
   int16_t score;
 
-  /**
-   * @brief Number of flag captures.
-   */
-  int16_t captures;
-
-  /**
+    /**
    * @brief Number of deaths.
    */
   uint16_t deaths;

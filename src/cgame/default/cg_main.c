@@ -258,9 +258,6 @@ static void Cg_UpdateConfigString(int32_t i) {
     case CS_ITEM_SET:
       cg_state.items = (g_items_t) strtol(s, NULL, 10);
       return;
-    case CS_CTF:
-      cg_state.ctf = Clampf01(atoi(s));
-      return;
     case CS_MAX_CLIENTS:
       cg_state.max_clients = (int32_t) strtol(s, NULL, 10);
       return;

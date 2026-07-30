@@ -815,61 +815,6 @@ const g_item_def_t bg_item_defs[] = {
     .light_radius = 120.f
   },
 
-  {
-    .classname = "item_flag_team1",
-    .model = "models/ctf/flag/tris.obj",
-    .effects = EF_BOB | EF_ROTATE | EF_TEAM_TINT,
-    .icon = "pics/i_flag1",
-    .name = "Enemy Flag",
-    .quantity = 0,
-    .type = ITEM_TYPE_FLAG,
-    .tag = FLAG_RED,
-    .effect_color = { { 0.90f, 0.20f, 0.20f, 1.f } },
-    .priority = 0.75,
-    .precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
-  },
-
-  {
-    .classname = "item_flag_team2",
-    .model = "models/ctf/flag/tris.obj",
-    .effects = EF_BOB | EF_ROTATE | EF_TEAM_TINT,
-    .icon = "pics/i_flag2",
-    .name = "Enemy Flag",
-    .quantity = 0,
-    .type = ITEM_TYPE_FLAG,
-    .tag = FLAG_BLUE,
-    .effect_color = { { 0.25f, 0.40f, 1.00f, 1.f } },
-    .priority = 0.75,
-    .precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
-  },
-
-  {
-    .classname = "item_flag_team3",
-    .model = "models/ctf/flag/tris.obj",
-    .effects = EF_BOB | EF_ROTATE | EF_TEAM_TINT,
-    .icon = "pics/i_flag3",
-    .name = "Enemy Flag",
-    .quantity = 0,
-    .type = ITEM_TYPE_FLAG,
-    .tag = FLAG_YELLOW,
-    .effect_color = { { 1.00f, 0.90f, 0.20f, 1.f } },
-    .priority = 0.75,
-    .precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
-  },
-
-  {
-    .classname = "item_flag_team4",
-    .model = "models/ctf/flag/tris.obj",
-    .effects = EF_BOB | EF_ROTATE | EF_TEAM_TINT,
-    .icon = "pics/i_flag4",
-    .name = "Enemy Flag",
-    .quantity = 0,
-    .type = ITEM_TYPE_FLAG,
-    .tag = FLAG_GREEN,
-    .effect_color = { { 0.20f, 0.90f, 0.30f, 1.f } },
-    .priority = 0.75,
-    .precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
-  }
 };
 
 size_t bg_num_items = sizeof(bg_item_defs) / sizeof(bg_item_defs[0]);

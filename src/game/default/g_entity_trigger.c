@@ -327,11 +327,7 @@ static void G_trigger_hurt_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
   if (!other->take_damage) { // deal with items that land on us
 
     if (other->item) {
-      if (other->item->def.type == ITEM_TYPE_FLAG) {
-        G_ResetDroppedFlag(other);
-      } else {
-        G_FreeEntity(other);
-      }
+      G_FreeEntity(other);
     }
 
     G_Debug("%s\n", etos(other));

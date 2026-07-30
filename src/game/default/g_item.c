@@ -114,7 +114,6 @@ const g_item_t *G_MappedWeapon(const g_item_t *weapon) {
  */
 const g_item_t *G_ClientArmor(const g_client_t *cl) {
 
-
   for (g_item_tag_t armor = ARMOR_QUAKE_BODY; armor > ARMOR_SHARD; armor--) {
 
     if (cl->inventory[armor]) {
@@ -641,196 +640,11 @@ static bool G_PickupArmor(g_client_t *cl, g_entity_t *ent) {
 }
 
 /**
- * @brief A dropped flag has been idle for 30 seconds, return it.
- */
-void G_ResetDroppedFlag(g_entity_t *ent) {
-  g_team_t *t;
-  g_entity_t *f;
-
-  if (!(t = G_TeamForFlag(ent))) {
-    return;
-  }
-
-  if (!(f = G_FlagForTeam(t))) {
-    return;
-  }
-
-  f->sv_flags &= ~SVF_NO_CLIENT;
-  f->s.event = EV_ITEM_RESPAWN;
-  f->s.event_data = f->item->def.tag;
-  f->solid = SOLID_TRIGGER;
-
-  gi.LinkEntity(f);
-
-  G_MulticastSound(&(const g_play_sound_t) {
-    .index = g_media.sounds.ctf_return
-  }, MULTICAST_PHS_R);
-
-  gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
-
-  G_FreeEntity(ent);
-}
-
-/**
- * @brief Steal the enemy's flag. If our own flag is dropped, return it. Else, if we are
- * carrying the enemy's flag and touch our own flag, that is a capture.
- */
-static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
-  int32_t index;
-
-  if (!cl->persistent.team) {
-    return false;
-  }
-
-  g_team_t *team = G_TeamForFlag(ent);
-  g_entity_t *team_flag = G_FlagForTeam(team);
-
-  const g_item_t *carried_flag = G_GetFlag(cl);
-
-  if (team == cl->persistent.team) { // our flag
-
-    if (ent->spawn_flags & SF_ITEM_DROPPED) { // return it if necessary
-
-      team_flag->solid = SOLID_TRIGGER;
-      team_flag->sv_flags &= ~SVF_NO_CLIENT;
-
-      gi.LinkEntity(team_flag);
-
-      team_flag->s.event = EV_ITEM_RESPAWN;
-      team_flag->s.event_data = team_flag->item->def.tag;
-
-      G_MulticastSound(&(const g_play_sound_t) {
-        .index = g_media.sounds.ctf_return
-      }, MULTICAST_PHS);
-
-      gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag :flag%d_return:\n", cl->persistent.net_name, team->name, team->id + 1);
-
-      return true;
-    }
-
-    if (carried_flag) {
-      const g_team_t *other_team = &g_team_list[carried_flag->def.tag - FLAG_FIRST];
-      g_entity_t *other_team_flag = G_FlagForTeam(other_team);
-
-      index = other_team_flag->item->def.tag;
-      if (cl->inventory[index]) { // capture
-
-        cl->inventory[index] = 0;
-        cl->entity->s.effects &= ~G_EffectForTeam(other_team);
-        cl->entity->s.model3 = 0;
-
-        other_team_flag->solid = SOLID_TRIGGER;
-        other_team_flag->sv_flags &= ~SVF_NO_CLIENT; // reset the other flag
-
-        gi.LinkEntity(other_team_flag);
-
-        other_team_flag->s.event = EV_ITEM_RESPAWN;
-        other_team_flag->s.event_data = other_team_flag->item->def.tag;
-
-        G_MulticastSound(&(const g_play_sound_t) {
-          .index = g_media.sounds.ctf_capture
-        }, MULTICAST_PHS_R);
-
-        gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag :flag%d_capture:\n", cl->persistent.net_name, other_team->name, other_team->id + 1);
-
-        team->captures++;
-        cl->persistent.captures++;
-
-        {
-          const bool player_ai = cl->ai != NULL;
-          g_capture_t capture = {
-            .player_ai = player_ai,
-            .time = (uint32_t) time(NULL),
-          };
-          q_strlcpy(capture.level,       g_level.name,              sizeof(capture.level));
-          q_strlcpy(capture.player,      cl->persistent.net_name,   sizeof(capture.player));
-          q_strlcpy(capture.player_guid, cl->persistent.guid,       sizeof(capture.player_guid));
-          q_strlcpy(capture.team,        other_team->name,          sizeof(capture.team));
-
-          if (capture.player_guid[0]) {
-            $(g_level.captures, add, &capture);
-          }
-        }
-
-        return false;
-      }
-    }
-
-    // touching our own flag for no particular reason
-    return false;
-  }
-
-  // it's enemy's flag, so take it if we can
-  if (carried_flag) {
-    return false; // we have one already
-  }
-
-  team_flag->solid = SOLID_NOT;
-  team_flag->sv_flags |= SVF_NO_CLIENT;
-
-  gi.LinkEntity(team_flag);
-
-  index = team_flag->item->def.tag;
-  cl->inventory[index] = 1;
-
-  // link the flag model to the player
-  cl->entity->s.model3 = team_flag->item->model_index;
-
-  G_MulticastSound(&(const g_play_sound_t) {
-    .index = g_media.sounds.ctf_steal,
-  }, MULTICAST_PHS_R);
-
-  gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n", cl->persistent.net_name, team->name, team->id + 1);
-
-  cl->entity->s.effects |= G_EffectForTeam(team);
-  return true;
-}
-
-/**
- * @brief Drops the CTF flag currently carried by the client as a world entity.
- */
-g_entity_t *G_TossFlag(g_client_t *cl) {
-
-  const g_item_t *flag = G_GetFlag(cl);;
-
-  if (!flag) {
-    return NULL;
-  }
-
-  const g_team_t *team = &g_team_list[flag->def.tag - FLAG_FIRST];
-  const g_item_tag_t index = flag->def.tag;
-
-  if (!cl->inventory[index]) {
-    return NULL;
-  }
-
-  cl->inventory[index] = 0;
-
-  cl->entity->s.model3 = 0;
-  cl->entity->s.effects &= ~EF_CTF_MASK;
-
-  gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag :flag%d_drop:\n", cl->persistent.net_name, team->name, team->id + 1);
-
-  return G_DropItem(cl, flag);
-}
-
-/**
- * @brief Drop command callback that tosses the client's carried CTF flag.
- */
-static g_entity_t *G_DropFlag(g_client_t *cl, const g_item_t *item) {
-  return G_TossFlag(cl);
-}
-
-/**
  * @brief Sets the expiration timer and think function for a dropped item entity.
  */
 static void G_DropItem_SetExpiration(g_entity_t *ent) {
 
-  if (ent->item->def.type == ITEM_TYPE_FLAG) { // flags go back to base
-    ent->Think = G_ResetDroppedFlag;
-  } else { // everything else just gets freed
-    ent->Think = G_FreeEntity;
-  }
+  ent->Think = G_FreeEntity;
 
   uint32_t expiration;
   if (ent->item->def.type == ITEM_TYPE_POWERUP) { // expire from last touch
@@ -967,11 +781,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
 
   // we're in a bad spot, forget it
   if (tr.start_solid) {
-    if (item->def.type == ITEM_TYPE_FLAG) {
-      G_ResetDroppedFlag(it);
-    } else {
-      G_FreeEntity(it);
-    }
+    G_FreeEntity(it);
 
     return NULL;
   }
@@ -1038,15 +848,6 @@ void G_ResetItem(g_entity_t *ent) {
   ent->sv_flags &= ~SVF_NO_CLIENT;
   ent->Touch = G_TouchItem;
 
-  if (ent->item->def.type == ITEM_TYPE_FLAG) {
-    const g_team_id_t flag_team = ent->item->def.tag - FLAG_FIRST;
-    const g_team_id_t last_team = FLAG_FIRST + g_level.num_teams - 1;
-    if (g_level.ctf == false || flag_team > last_team) {
-      ent->sv_flags |= SVF_NO_CLIENT;
-      ent->solid = SOLID_NOT;
-    }
-  }
-
   if (ent->spawn_flags & SF_ITEM_TRIGGER) {
     ent->sv_flags |= SVF_NO_CLIENT;
     ent->solid = SOLID_NOT;
@@ -1058,8 +859,7 @@ void G_ResetItem(g_entity_t *ent) {
     ent->Touch = NULL;
   }
 
-  const bool inhibited = (g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB)
-                          && ent->item->def.type != ITEM_TYPE_FLAG;
+  const bool inhibited = g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB;
 
   if (inhibited || (ent->flags & FL_TEAM_SLAVE)) {
     ent->sv_flags |= SVF_NO_CLIENT;
@@ -1240,9 +1040,6 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
     } else {
       ent->health = 0;
     }
-  } else if (ent->item->def.type == ITEM_TYPE_FLAG) {
-    // pass flag tint over (0-based team index)
-    ent->s.animation1 = item->def.tag - FLAG_FIRST;
   }
 
   ent->next_think = g_level.time + QUETOO_TICK_MILLIS * 2;
@@ -1372,11 +1169,6 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
 
     case ITEM_TYPE_HEALTH:
       it->Pickup = G_PickupHealth;
-      break;
-
-    case ITEM_TYPE_FLAG:
-      it->Pickup = G_PickupFlag;
-      it->Drop = G_DropFlag;
       break;
 
     case ITEM_TYPE_POWERUP:

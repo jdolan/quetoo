@@ -1070,98 +1070,6 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 }
 
 /**
- * @brief Think function for orbiting powerup trail sprites.
- */
-static void Cg_OrbitTrail_Think(cg_sprite_t *sprite, float life, float delta) {
-
-  if (!(sprite->flags & SPRITE_FOLLOW_ENTITY)) {
-    sprite->Think = NULL;
-    sprite->velocity = Vec3(0.f, 0.f, RandomRangef(20.f, 60.f));
-    sprite->size_velocity = -sprite->size / MILLIS_TO_SECONDS(sprite->lifetime);
-    sprite->time = sprite->timestamp = cgi.client->unclamped_time;
-    sprite->lifetime = RandomRangeu(500, 1000);
-    return;
-  }
-
-  const float t = MILLIS_TO_SECONDS(cgi.client->unclamped_time);
-  const float phase = sprite->rotation;
-  const float orbit_speed = 3.f;
-  const float radius = 24.f;
-  const float bob_speed = 2.f;
-
-  const float angle = phase + t * orbit_speed;
-  sprite->origin.x = cosf(angle) * radius;
-  sprite->origin.y = sinf(angle) * radius;
-  sprite->origin.z = 16.f + sinf(phase * 3.f + t * bob_speed) * 12.f;
-
-  sprite->size = 2.f + sinf(t * 5.f + phase) * .5f;
-}
-
-/**
- * @brief Spawns orbiting sprites and legacy particle trail for powerup effects.
- */
-static void Cg_OrbitalTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, const vec3_t color) {
-
-  // Orbiting sprites: spawn a few at staggered intervals
-  if (ent->timestamp < cgi.client->unclamped_time) {
-    ent->timestamp = cgi.client->unclamped_time + 80;
-
-    const float phase = RandomRangef(0.f, 2.f * M_PI);
-
-    Cg_AddSprite(&(cg_sprite_t) {
-      .atlas_image = cg_sprite_spark,
-      .origin = Vec3_Zero(),
-      .size = 2.5f,
-      .color = color,
-      .end_color = Vec3(1.f, 1.f, 1.f),
-      .lifetime = 2000,
-      .rotation = phase,
-      .flags = SPRITE_FOLLOW_ENTITY | SPRITE_DATA_NOFREE | SPRITE_ENTITY_UNLINK_ON_DEATH,
-      .Think = Cg_OrbitTrail_Think,
-      .entity = Cg_GetSpriteEntity(ent),
-      .data = ent,
-      .lighting = .25f
-    });
-  }
-
-  // Trailing particles for motion streak
-  const int32_t count = Cg_TrailCount(end, 4.f, ent, TRAIL_PRIMARY, NULL, NULL);
-  for (int32_t i = 0; i < count; i++) {
-
-    if (!Cg_AddSprite(&(cg_sprite_t) {
-      .atlas_image = cg_sprite_particle,
-      .lifetime = RandomRangeu(300, 800),
-      .size = RandomRangef(1.f, 2.f),
-      .size_velocity = RandomRangef(-3.f, -1.f),
-      .origin = Vec3_Add(start, Vec3_RandomRanges(-12.f, 12.f, -12.f, 12.f, 8.f, 28.f)),
-      .velocity = Vec3_RandomRanges(-8.f, 8.f, -8.f, 8.f, 10.f, 30.f),
-      .friction = 30.f,
-      .color = color,
-      .end_color = Vec3_Scale(color, .3f),
-      .lighting = .5f
-    })) {
-      break;
-    };
-  }
-}
-
-/**
- * @brief Renders the CTF flag carrier orbital particle trail in the carrier's team color.
- */
-static void Cg_CtfEffectTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-
-  const cg_team_info_t *team = cg_state.teams;
-  for (size_t i = 0; i < lengthof(cg_state.teams); i++, team++) {
-    if (ent->current.effects & (EF_CTF_RED << i)) {
-      break;
-    }
-  }
-  assert(team);
-
-  Cg_OrbitalTrail(ent, start, end, ColorHSV(team->hue, 1.f, 1.f).vec3);
-}
-
-/**
  * @brief Apply unique trails to entities between their previous packet origin
  * and their current interpolated origin. Beam trails are a special case: the
  * old origin field is overridden to specify the endpoint of the beam.
@@ -1231,7 +1139,4 @@ void Cg_EntityTrail(cl_entity_t *ent) {
       break;
   }
 
-  if (s->effects & EF_CTF_MASK) {
-    Cg_CtfEffectTrail(ent, start, end);
-  }
 }

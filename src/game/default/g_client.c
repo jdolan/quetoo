@@ -247,7 +247,7 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
       attacker->client->persistent.score++;
     }
 
-    if ((g_level.teams || g_level.ctf) && cl->persistent.team && attacker->client->persistent.team) {
+    if (g_level.teams && cl->persistent.team && attacker->client->persistent.team) {
       if (friendly_fire) {
         attacker->client->persistent.team->score--;
       } else {
@@ -257,7 +257,7 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
   } else {
     cl->persistent.score--;
 
-    if ((g_level.teams || g_level.ctf) && cl->persistent.team) {
+    if (g_level.teams && cl->persistent.team) {
       cl->persistent.team->score--;
     }
   }
@@ -542,10 +542,6 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
     G_TossWeapon(cl);
   }
 
-  if (g_level.ctf) {
-    G_TossFlag(cl);
-  }
-
   const bool gibbed = ent->health <= -CLIENT_CORPSE_HEALTH;
 
   if (gibbed) {
@@ -773,7 +769,7 @@ static float G_EnemyRangeFromSpot(g_client_t *cl, g_entity_t *spot) {
     v = Vec3_Subtract(spot->s.origin, enemy->entity->s.origin);
     dist = Vec3_Length(v);
 
-    if (g_level.teams || g_level.ctf) { // avoid collision with team mates
+    if (g_level.teams) { // avoid collision with team mates
 
       if (enemy->persistent.team == cl->persistent.team) {
         if (dist > 64.0) { // if they're far away, ignore them
@@ -984,7 +980,7 @@ static g_entity_t *G_SelectTeamSpawnPoint(g_client_t *cl) {
 static g_entity_t *G_SelectSpawnPoint(g_client_t *cl) {
   g_entity_t *spawn = NULL;
 
-  if (g_level.teams || g_level.ctf) { // try team spawns first if applicable
+  if (g_level.teams) { // try team spawns first if applicable
     spawn = G_SelectTeamSpawnPoint(cl);
   }
 
@@ -1146,7 +1142,7 @@ void G_ClientRespawn(g_client_t *cl, bool voluntary) {
 
   // clear scores on voluntary changes
   if (cl->persistent.spectator && voluntary) {
-    cl->persistent.score = cl->persistent.deaths = cl->persistent.captures = 0;
+    cl->persistent.score = cl->persistent.deaths = 0;
   }
 
   cl->respawn_time = g_level.time;
@@ -1193,7 +1189,7 @@ void G_ClientBegin(g_client_t *cl) {
     cl->persistent.spectator = true;
   }
   else {
-    if (g_level.teams || g_level.ctf) {
+    if (g_level.teams) {
       if (g_auto_join->value || cl->ai) {
         G_AddClientToTeam(cl, G_SmallestTeam()->name);
       } else {
@@ -1221,10 +1217,6 @@ void G_ClientBegin(g_client_t *cl) {
 
     if (g_level.teams) {
       q_strlcat(welcome, "\n^2Teams are enabled", sizeof(welcome));
-    }
-
-    if (g_level.ctf) {
-      q_strlcat(welcome, "\n^2CTF is enabled", sizeof(welcome));
     }
 
     // FIXME: Move these tidbits into ConfigStrings so that the client can display a menu
@@ -1464,7 +1456,6 @@ void G_ClientDisconnect(g_client_t *cl) {
     G_TossQuadDamage(cl);
     G_TossInvisibility(cl);
     G_TossInvulnerability(cl);
-    G_TossFlag(cl);
   }
 
   cl->in_use = false;

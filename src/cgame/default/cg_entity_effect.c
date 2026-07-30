@@ -133,29 +133,6 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
     e->shell.w = fmaxf(e->shell.w, 0.666f);
   }
 
-  if (e->effects & EF_CTF_MASK) {
-
-    for (g_team_id_t team = TEAM_RED; team < MAX_TEAMS; team++) {
-      if (e->effects & (EF_CTF_RED << team)) {
-        const vec3_t color = Cg_EffectColor(&cg_state.teams[team].hue, 0.f);
-        const float pulse = 2.5f + sinf(cgi.client->unclamped_time * 0.005f) * .5f;
-
-        const cg_light_t l = {
-          .origin = e->origin,
-          .radius = 250.0,
-          .color = color,
-          .intensity = pulse,
-          .source = ent,
-        };
-
-        Cg_AddLight(&l);
-
-        e->shell = Vec4_Fmaf(e->shell, 1.f, Vec3_ToVec4(l.color, 0.f));
-        e->shell.w = fmaxf(e->shell.w, 0.666f);
-      }
-    }
-  }
-
   const vec3_t shell_rgb = Vec3(e->shell.x, e->shell.y, e->shell.z);
   if (Vec3_Length(shell_rgb) > 0.f) {
     e->shell = Vec3_ToVec4(Vec3_Normalize(shell_rgb), e->shell.w);

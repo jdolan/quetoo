@@ -306,9 +306,6 @@ static void G_InitMedia(void) {
   g_media.sounds.weapon_switch = gi.SoundIndex("weapons/common/switch");
 
   g_media.sounds.chat = gi.SoundIndex("misc/chat");
-  g_media.sounds.ctf_capture = gi.SoundIndex("ctf/capture");
-  g_media.sounds.ctf_return = gi.SoundIndex("ctf/return");
-  g_media.sounds.ctf_steal = gi.SoundIndex("ctf/steal");
 
   for (i = 0; i < NUM_GIB_MODELS; i++) {
     g_media.models.gibs[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris", i + 1));
@@ -353,13 +350,8 @@ static void G_InitSpawnPoints(void) {
       $(dm_spawns, add, &spot);
     }
   }
-  
-  // find the team points, if we have any explicit ones in the map.
-  // start by finding the flags
-  for (int32_t t = 0; t < MAX_TEAMS; t++) {
-    g_team_list[t].flag_entity = G_Find(NULL, EOFS(classname), g_team_list[t].flag);
-  }
 
+  // find the team points, if we have any explicit ones in the map
   Vector *team_spawns[MAX_TEAMS];
 
   memset(team_spawns, 0, sizeof(team_spawns));
@@ -446,13 +438,11 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
   q_strlcpy(g_level.name, name, sizeof(g_level.name));
 
   g_level.frags    = $(alloc(Vector), initWithSize, sizeof(g_frag_t));
-  g_level.captures = $(alloc(Vector), initWithSize, sizeof(g_capture_t));
 
   // Clear real client entity pointers before freeing entities to prevent dangling references
   G_ForEachClient(cl, {
     cl->entity = NULL;
     cl->persistent.score = 0;
-    cl->persistent.captures = 0;
     cl->persistent.deaths = 0;
     cl->persistent.team = NULL;
   });
@@ -565,10 +555,8 @@ static void G_worldspawn_Music(void) {
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."
  teams : Enables and enforces teams play (enabled = 1, auto-balance = 2).
  num_teams : Enforces number of teams (disabled = -1, must be between 2 and 4)
- ctf : Enables CTF play (enabled = 1, auto-balance = 2).
  fraglimit : The frag limit (default 20).
  roundlimit : The round limit (default 20).
- capturelimit : The capture limit (default 8).
  timelimit : The time limit in minutes (default 20).
  give : A comma-delimited item string to give each player on spawn.
  items : The item set for this map: "default" (Quetoo weapons) or "quake" (Quake weapons).
@@ -672,30 +660,12 @@ static void G_worldspawn(g_entity_t *ent) {
     g_level.num_teams = Clampf(g_level.num_teams, 2, MAX_TEAMS);
   }
 
-  const cm_entity_t *ctf_map = G_MapValue("ctf");
-  if (ctf_map && (ctf_map->parsed & ENTITY_INTEGER) && ctf_map->integer > -1) { // prefer map metadata ctf
-    g_level.ctf = ctf_map->integer;
-  } else { // or fall back on worldspawn
-    const cm_entity_t *ctf = gi.EntityValue(ent->def, "ctf");
-    if (ctf->parsed & ENTITY_INTEGER) {
-      g_level.ctf = ctf->integer;
-    } else {
-      g_level.ctf = g_ctf->integer;
-    }
-  }
-
   const cm_entity_t *min_clients_map = G_MapValue("min_clients");
   if (min_clients_map && (min_clients_map->parsed & ENTITY_INTEGER) && min_clients_map->integer > -1) {
     g_level.min_clients_map = min_clients_map->integer;
   } else {
     g_level.min_clients_map = -1;
   }
-
-  if (g_level.teams && g_level.ctf) { // ctf overrides teams
-    g_level.teams = 0;
-  }
-
-  gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));
 
   const cm_entity_t *frag_limit_map = G_MapValue("frag_limit");
   if (frag_limit_map && (frag_limit_map->parsed & ENTITY_INTEGER) && frag_limit_map->integer > -1) { // prefer map metadata frag_limit
@@ -706,18 +676,6 @@ static void G_worldspawn(g_entity_t *ent) {
       g_level.frag_limit = frag_limit->integer;
     } else {
       g_level.frag_limit = g_frag_limit->integer;
-    }
-  }
-
-  const cm_entity_t *capture_limit_map = G_MapValue("capture_limit");
-  if (capture_limit_map && (capture_limit_map->parsed & ENTITY_INTEGER) && capture_limit_map->integer > -1) { // prefer map metadata capture_limit
-    g_level.capture_limit = capture_limit_map->integer;
-  } else { // or fall back on worldspawn
-    const cm_entity_t *capture_limit = gi.EntityValue(ent->def, "capture_limit");
-    if (capture_limit->parsed & ENTITY_INTEGER) {
-      g_level.capture_limit = capture_limit->integer;
-    } else {
-      g_level.capture_limit = g_capture_limit->integer;
     }
   }
 

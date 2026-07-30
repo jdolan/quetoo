@@ -36,7 +36,7 @@ bool G_OnSameTeam(const g_client_t *a, const g_client_t *b) {
     return true;
   }
 
-  if (!g_level.teams && !g_level.ctf) {
+  if (!g_level.teams) {
     return false;
   }
 
@@ -309,7 +309,7 @@ void G_Damage(const g_damage_t *dmg) {
   }
 
   // friendly fire avoidance
-  if (target != attacker && (g_level.teams || g_level.ctf)) {
+  if (target != attacker && g_level.teams) {
     if (G_OnSameTeam(target->client, attacker->client)) {
 
       if (mod == MOD_TELEFRAG) { // telefrags can not be avoided
