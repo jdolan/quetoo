@@ -1,10 +1,10 @@
-CGUI_DIR = $(top_srcdir)/src/cgame/shared/ui
-include $(top_srcdir)/src/cgame/shared/ui/sources.mk
+CGUI_DIR = $(top_srcdir)/src/cgame/common/ui
+include $(top_srcdir)/src/cgame/common/ui/sources.mk
 
 CGAME_CFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/cgame \
-	-I$(top_srcdir)/src/cgame/shared \
+	-I$(top_srcdir)/src/cgame/common \
 	-I$(srcdir) \
 	$(CGUI_CFLAGS) \
 	@SO_CFLAGS@ \
@@ -44,11 +44,11 @@ noinst_HEADERS = \
 	cg_weapon.h \
 	$(CGUI_HDR)
 
-# The shared UI is compiled here rather than linked from a prebuilt library,
+# The common UI is compiled here rather than linked from a prebuilt library,
 # because cg_state_t's layout depends on this module's game/<module>/g_types.h.
 # This library's name MUST stay unique across modules: with subdir-objects,
 # automake derives object file names from it, so two modules both using the
-# cgame_la- prefix would write colliding objects into src/cgame/shared/ui.
+# cgame_la- prefix would write colliding objects into src/cgame/common/ui.
 noinst_LTLIBRARIES = \
 	libcguictf.la
 

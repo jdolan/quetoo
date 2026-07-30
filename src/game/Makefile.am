@@ -6,4 +6,4 @@ noinst_HEADERS = \
 	game.h
 
 EXTRA_DIST = \
-	shared/sources.mk
+	common/sources.mk

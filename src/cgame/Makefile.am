@@ -1,5 +1,5 @@
 SUBDIRS = \
-	shared/ui \
+	common/ui \
 	@GAME_MODULES@ \
 	ctf
 
@@ -7,4 +7,4 @@ noinst_HEADERS = \
 	cgame.h
 
 EXTRA_DIST = \
-	shared/ui/sources.mk
+	common/ui/sources.mk

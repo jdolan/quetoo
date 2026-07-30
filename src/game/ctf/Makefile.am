@@ -1,5 +1,5 @@
-GSHARED_DIR = $(top_srcdir)/src/game/shared
-include $(top_srcdir)/src/game/shared/sources.mk
+GCOMMON_DIR = $(top_srcdir)/src/game/common
+include $(top_srcdir)/src/game/common/sources.mk
 
 noinst_HEADERS = \
 	bg_item.h \
@@ -28,20 +28,20 @@ noinst_HEADERS = \
 	g_types.h \
 	g_util.h \
 	g_weapon.h \
-	$(GSHARED_HDR)
+	$(GCOMMON_HDR)
 
 noinst_LTLIBRARIES = \
 	libitem.la \
 	libpmove.la \
-	libgsharedctf.la
+	libgcommonctf.la
 
-libgsharedctf_la_SOURCES = \
-	$(GSHARED_SRC)
+libgcommonctf_la_SOURCES = \
+	$(GCOMMON_SRC)
 
-libgsharedctf_la_CFLAGS = \
+libgcommonctf_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(srcdir) \
-	$(GSHARED_CFLAGS) \
+	$(GCOMMON_CFLAGS) \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@
@@ -99,7 +99,7 @@ game_la_SOURCES = \
 game_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(srcdir) \
-	$(GSHARED_CFLAGS) \
+	$(GCOMMON_CFLAGS) \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@
@@ -113,5 +113,5 @@ game_la_LDFLAGS = \
 game_la_LIBADD = \
 	libitem.la \
 	libpmove.la \
-	libgsharedctf.la \
+	libgcommonctf.la \
 	@OBJECTIVELY_LIBS@

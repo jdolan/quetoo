@@ -1,4 +1,4 @@
-# Shared client game UI sources, included by each cgame module's Makefile.am.
+# Common client game UI sources, included by each cgame module's Makefile.am.
 #
 # These MUST be compiled per module rather than linked from a prebuilt library.
 # cg_state_t embeds cg_team_info_t teams[MAX_TEAMS] along with g_gameplay_t and
