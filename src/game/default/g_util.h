@@ -44,7 +44,6 @@ int32_t G_EffectForTeam(const g_team_t *team);
 size_t G_TeamSize(const g_team_t *team);
 g_team_t *G_SmallestTeam(void);
 g_client_t *G_ClientByName(char *name);
-g_hook_style_t G_HookStyleByName(const char *s);
 bool G_IsMeat(const g_entity_t *ent);
 bool G_IsStationary(const g_entity_t *ent);
 bool G_IsStructural(const cm_trace_t *trace);

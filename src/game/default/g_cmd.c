@@ -603,7 +603,6 @@ bool G_AddClientToTeam(g_client_t *cl, const char *team_name) {
   if (!cl->persistent.spectator) { // changing teams
     G_TossQuadDamage(cl);
     G_TossFlag(cl);
-    G_HookDetach(cl);
   }
 
   cl->persistent.team = team;
@@ -657,7 +656,6 @@ static void G_Spectate_f(g_client_t *cl) {
 
     G_TossQuadDamage(cl);
     G_TossFlag(cl);
-    G_HookDetach(cl);
 
     gi.WriteByte(SV_CMD_MUZZLE_FLASH);
     gi.WriteShort(cl->entity->s.number);

@@ -66,7 +66,6 @@ typedef enum {
 #define CS_CTF             (CS_GAME + 1)  // is capture enabled?
 #define CS_TEAM_INFO       (CS_GAME + 2)  // team info, separated by \ (name\color\name\color, etc)
 #define CS_TIME            (CS_GAME + 3)  // map time
-#define CS_HOOK_PULL_SPEED (CS_GAME + 4)  // hook speed
 #define CS_MAX_CLIENTS     (CS_GAME + 5)  // max clients of server
 #define CS_NUM_CLIENTS     (CS_GAME + 6)  // number of players in server
 #define CS_NUM_TEAMS       (CS_GAME + 7)  // number of teams (0 - MAX_TEAMS)
@@ -150,7 +149,6 @@ typedef enum {
   TE_BFG,
   TE_GIB,
   TE_RIPPLE,
-  TE_HOOK_IMPACT,
   TE_NAIL,
   TE_AI_NODE,
   TE_AI_NODE_LINK
@@ -315,7 +313,6 @@ typedef enum {
   TRAIL_TELEPORTER,
   TRAIL_GIB,
   TRAIL_FIREBALL,
-  TRAIL_HOOK,
   TRAIL_PLAYER_SPAWN,
   TRAIL_QUAKE_NAIL,
   TRAIL_QUAKE_GRENADE,
@@ -373,15 +370,6 @@ typedef enum {
   ITEMS_DEFAULT,
   ITEMS_QUAKE
 } g_items_t;
-
-/**
- * @brief Hook style.
- */
-typedef enum {
-  HOOK_PULL,
-  HOOK_SWING_MANUAL,
-  HOOK_SWING_AUTO
-} g_hook_style_t;
 
 // g_item_type_t and g_item_tag_t are defined in bg_item.h
 
@@ -646,7 +634,6 @@ typedef struct {
     uint16_t quake_nail;
     uint16_t rocket;
     uint16_t quake_rocket;
-    uint16_t hook;
 
     uint16_t fireball;
   } models;
@@ -671,13 +658,6 @@ typedef struct {
     uint16_t lightning_fly;
     uint16_t quad_attack;
     uint16_t quad_expire;
-
-    uint16_t hook_fire;
-    uint16_t hook_hit;
-    uint16_t hook_pull;
-    uint16_t hook_fly;
-    uint16_t hook_detach;
-    uint16_t hook_gibhit;
 
     uint16_t teleport;
     uint16_t quake_teleport[5];
@@ -777,22 +757,12 @@ typedef struct {
    */
   bool ctf;
 
-  /**
-   * @brief True if the grappling hook is enabled.
-   */
-  bool hook;
-
-  /**
+    /**
    * @brief Number of active teams.
    */
   int32_t num_teams;
 
-  /**
-   * @brief Map-specified hook allowance, used for voting and restarts.
-   */
-  int32_t hook_map;
-
-  /**
+    /**
    * @brief Map-specified minimum clients override.
    */
   int32_t min_clients_map;
@@ -907,7 +877,6 @@ typedef struct {
   MOD_HANDGRENADE_SUICIDE,
   MOD_HANDGRENADE_KAMIKAZE,
   MOD_FIREBALL,
-  MOD_HOOK,
   MOD_ACT_OF_GOD,
   MOD_BOB,
   MOD_FRIENDLY_FIRE = 0x8000000
@@ -1109,12 +1078,7 @@ typedef struct {
    */
   uint16_t auto_switch;
 
-  /**
-   * @brief The player's selected hook style.
-   */
-  g_hook_style_t hook_style;
-
-  /**
+    /**
    * @brief Current team assignment.
    */
   g_team_t *team;
@@ -1283,27 +1247,7 @@ struct g_client_s {
    */
   pm_water_level_t old_water_level;
 
-  /**
-   * @brief Level time when the hook think was last called.
-   */
-  uint32_t hook_think_time;
-
-  /**
-   * @brief Hook may fire again when time exceeds this.
-   */
-  uint32_t hook_fire_time;
-
-  /**
-   * @brief The hook entity the client is attached to.
-   */
-  g_entity_t *hook_entity;
-
-  /**
-   * @brief True if the client is currently pulling toward the hook.
-   */
-  bool hook_pull;
-
-  /**
+          /**
    * @brief Alternating barrel index for the Quake nailgun.
    * Odd = right barrel (+2 units), even = left barrel (-2 units).
    */

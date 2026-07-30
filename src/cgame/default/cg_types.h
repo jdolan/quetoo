@@ -170,12 +170,7 @@ typedef struct {
    */
   int32_t num_teams;
 
-  /**
-   * @brief Grapple hook speed, for client side prediction.
-   */
-  float hook_pull_speed;
-
-  /**
+    /**
    * @brief The current `sv_max_clients` value of the server.
    */
   int32_t max_clients;

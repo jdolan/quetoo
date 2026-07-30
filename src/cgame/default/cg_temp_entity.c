@@ -1392,42 +1392,6 @@ static void Cg_RippleSplashEffect(const vec3_t org, const vec3_t dir, int32_t br
 }
 
 /**
- * @brief Spawns hook impact spark particles, a brief light, and plays the hook impact sound.
- */
-static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
-
-  for (int32_t i = 0; i < 32; i++) {
-
-    if (!Cg_AddSprite(&(cg_sprite_t) {
-        .atlas_image = cg_sprite_particle,
-        .origin = Vec3_Add(org, Vec3_RandomRange(-4.f, 4.f)),
-        .velocity = Vec3_Add(Vec3_Scale(dir, 9.f), Vec3_RandomRange(-90.f, 90.f)),
-        .acceleration = Vec3_Add(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, -0.5f * SPRITE_GRAVITY)),
-        .lifetime = 100 + (Randomf() * 150),
-        .color = Vec3(1.f, 1.f, .4f),
-        .size = 6.4f + Randomf() * 3.2f,
-        .lighting = 1.f
-      })) {
-      break;
-    }
-  }
-
-  Cg_AddLight(&(const cg_light_t) {
-    .origin = Vec3_Add(org, dir),
-    .radius = 80.0,
-    .color = Vec3(.7f, .5f, .5f),
-    .intensity = 1.f,
-    .decay = 850
-  });
-
-  Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
-    .sample = cg_sample_hook_hit,
-    .origin = org,
-    .pitch = RandomRangei(-4, 5)
-  });
-}
-
-/**
  * @brief Parses a temporary entity message from the server and dispatches the appropriate visual effect.
  */
 void Cg_ParseTempEntity(void) {
@@ -1558,12 +1522,6 @@ void Cg_ParseTempEntity(void) {
       j = cgi.ReadByte();
       k = cgi.ReadByte();
       Cg_RippleSplashEffect(pos, dir, i, j, k);
-      break;
-
-    case TE_HOOK_IMPACT: // grapple hook impact
-      pos = cgi.ReadPosition();
-      dir = cgi.ReadDir();
-      Cg_HookImpactEffect(pos, dir);
       break;
 
     case TE_AI_NODE: // AI node debug

@@ -24,7 +24,6 @@
 #include "cg_types.h"
 
 #if defined(__CG_LOCAL_H__)
-float Cg_GetHookPullSpeed(void);
 
 extern cvar_t *cg_add_atmospheric;
 extern cvar_t *cg_add_decals;
@@ -77,7 +76,6 @@ extern cvar_t *cg_auto_switch;
 extern cvar_t *cg_color;
 extern cvar_t *cg_hand;
 extern cvar_t *cg_helmet;
-extern cvar_t *cg_hook_style;
 extern cvar_t *cg_pants;
 extern cvar_t *cg_shirt;
 extern cvar_t *cg_skin;

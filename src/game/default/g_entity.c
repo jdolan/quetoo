@@ -267,7 +267,6 @@ static void G_InitMedia(void) {
   g_media.models.quake_nail = gi.ModelIndex("models/projectiles/quake_nail/tris");
   g_media.models.rocket = gi.ModelIndex("models/projectiles/rocket/tris");
   g_media.models.quake_rocket = gi.ModelIndex("models/projectiles/quake_rocket/tris");
-  g_media.models.hook = gi.ModelIndex("models/grapplehook/tris");
   g_media.models.fireball = gi.ModelIndex("models/fireball/tris");
   g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
   g_media.sounds.bfg_prime = gi.SoundIndex("weapons/bfg/prime");
@@ -294,12 +293,6 @@ static void G_InitMedia(void) {
   g_media.sounds.invulnerability_protect = gi.SoundIndex("powerups/invulnerability/protect");
   g_media.sounds.invisibility_pickup = gi.SoundIndex("powerups/invisibility/pickup");
   g_media.sounds.invisibility_expire = gi.SoundIndex("powerups/invisibility/expire");
-  g_media.sounds.hook_fire = gi.SoundIndex("grapplehook/fire");
-  g_media.sounds.hook_fly = gi.SoundIndex("grapplehook/fly");
-  g_media.sounds.hook_hit = gi.SoundIndex("grapplehook/hit");
-  g_media.sounds.hook_pull = gi.SoundIndex("grapplehook/pull");
-  g_media.sounds.hook_detach = gi.SoundIndex("grapplehook/detach");
-  g_media.sounds.hook_gibhit = gi.SoundIndex("grapplehook/gibhit");
   g_media.sounds.teleport = gi.SoundIndex("misc/teleport");
 
   for (i = 0; i < lengthof(g_media.sounds.quake_teleport); i++) {
@@ -478,8 +471,6 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
 
   G_InitEntityTeams();
 
-  G_CheckHook();
-
   G_ResetTeams();
 
   if (editor->value) {
@@ -572,7 +563,6 @@ static void G_worldspawn_Music(void) {
  ambient : The ambient light level (e.g. 0.14 0.11 0.12).
  gravity : Gravity for the level (default 800).
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."
- hook : Enables the grappling hook (unset for gameplay default, 0 = disabled, 1 = enabled)."
  teams : Enables and enforces teams play (enabled = 1, auto-balance = 2).
  num_teams : Enforces number of teams (disabled = -1, must be between 2 and 4)
  ctf : Enables CTF play (enabled = 1, auto-balance = 2).
@@ -694,13 +684,6 @@ static void G_worldspawn(g_entity_t *ent) {
     }
   }
 
-  const cm_entity_t *hook_map = G_MapValue("hook");
-  if (hook_map && (hook_map->parsed & ENTITY_INTEGER) && hook_map->integer > -1) {
-    g_level.hook_map = hook_map->integer;
-  } else {
-    g_level.hook_map = -1;
-  }
-
   const cm_entity_t *min_clients_map = G_MapValue("min_clients");
   if (min_clients_map && (min_clients_map->parsed & ENTITY_INTEGER) && min_clients_map->integer > -1) {
     g_level.min_clients_map = min_clients_map->integer;
@@ -713,7 +696,6 @@ static void G_worldspawn(g_entity_t *ent) {
   }
 
   gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));
-  gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
 
   const cm_entity_t *frag_limit_map = G_MapValue("frag_limit");
   if (frag_limit_map && (frag_limit_map->parsed & ENTITY_INTEGER) && frag_limit_map->integer > -1) { // prefer map metadata frag_limit

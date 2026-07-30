@@ -134,14 +134,6 @@ cvar_t *g_balance_supershotgun_spread_y;
 cvar_t *g_capture_limit;
 cvar_t *g_cheats;
 cvar_t *g_ctf;
-cvar_t *g_hook;
-cvar_t *g_hook_auto_refire;
-cvar_t *g_hook_distance;
-cvar_t *g_hook_pull_speed;
-cvar_t *g_hook_refire;
-cvar_t *g_hook_sky;
-cvar_t *g_hook_speed;
-cvar_t *g_hook_style;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
@@ -306,30 +298,6 @@ void G_ResetItems(void) {
 }
 
 /**
- * @brief Checks and sets up the hook state
- */
-void G_CheckHook(void) {
-
-  if (q_strcmp(g_hook->string, "default")) { // check cvar first
-    g_level.hook = !!g_hook->integer;
-  } else if (g_level.hook_map != -1) { // check maps.lst
-    g_level.hook = (g_level.hook_map == -1) ? g_level.ctf : !!g_level.hook_map;
-  } else { // check worldspawn
-    const cm_entity_t *hook = gi.EntityValue(ge.entities[0]->def, "hook");
-    if (hook->parsed & ENTITY_INTEGER) {
-      g_level.hook = hook->integer;
-    } else {
-      g_level.hook = g_level.ctf;
-    }
-  }
-
-  if (g_hook_distance->modified) {
-    g_hook_distance->value = Clampf(g_hook_distance->value, PM_HOOK_MIN_DIST, PM_HOOK_MAX_DIST);
-    g_hook_distance->modified = false;
-  }
-}
-
-/**
  * @brief Setup the effects for spawn points
  */
 static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trail_t trail, const g_team_id_t team_id) {
@@ -408,8 +376,6 @@ static void G_RestartGame(bool teamz) {
     G_ClientUserInfoChanged(cl, cl->persistent.user_info);
     G_ClientRespawn(cl, false);
   });
-
-  G_CheckHook();
 
   G_ResetItems();
 
@@ -642,20 +608,6 @@ static void G_CheckRules(void) {
     gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GameplayName(g_level.gameplay));
   }
 
-  if (g_hook->modified) {
-    g_hook->modified = false;
-
-    G_CheckHook();
-
-    gi.BroadcastPrint(PRINT_HIGH, "Hook has been %s\n", g_level.hook ? "enabled" : "disabled");
-  }
-
-  if (g_hook_speed->modified) {
-    g_hook_speed->modified = false;
-
-    gi.BroadcastPrint(PRINT_HIGH, "Hook speed has been changed to %g\n", g_hook_speed->value);
-  }
-
   if (g_friendly_fire->modified) {
     g_friendly_fire->modified = false;
 
@@ -678,25 +630,6 @@ static void G_CheckRules(void) {
     gi.SetCvarValue(g_self_knockback->name, Clampf(g_self_knockback->value, 0.0, 4.0));
 
     gi.BroadcastPrint(PRINT_HIGH, "Self knockback has been changed to %g\n", g_self_knockback->value);
-  }
-
-  if (g_hook_pull_speed->modified) {
-    g_hook_pull_speed->modified = false;
-
-    gi.BroadcastPrint(PRINT_HIGH, "Hook pull speed has been changed to %g\n", g_hook_pull_speed->value);
-
-    gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
-  }
-
-  if (g_hook_style->modified) {
-    g_hook_style->modified = false;
-
-    // reset all the hook styles on the players
-    G_ForEachClient(cl, {
-      G_SetClientHookStyle(cl);
-    });
-
-    gi.BroadcastPrint(PRINT_HIGH, "Hook style has been changed to %s\n", g_hook_style->string);
   }
 
   if (g_gravity->modified) { // G_MovementParams() reads g_level.gravity each move
@@ -1052,14 +985,6 @@ void G_Init(void) {
 #endif
     , CVAR_SERVER_INFO, NULL);
   g_ctf = gi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay.");
-  g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO, "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
-  g_hook_style = gi.AddCvar("g_hook_style", "default", 0, "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
-  g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", 0, "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
-  g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), 0, "The maximum distance the hook will travel.");
-  g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "800", 0, "The speed that you get pulled towards the hook.");
-  g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", 0, "The refire delay on the grapple hook in seconds.");
-  g_hook_sky = gi.AddCvar("g_hook_sky", "0", CVAR_SERVER_INFO, "If enabled, the grapple hook attaches to sky surfaces rather than detaching.");
-  g_hook_speed = gi.AddCvar("g_hook_speed", "1200", 0, "The speed that the hook will fly at.");
   g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
   g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
   g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, instagib or arena combat.");
@@ -1115,10 +1040,6 @@ void G_Init(void) {
       g_frag_limit->modified =
       g_friendly_fire->modified =
       g_gameplay->modified =
-      g_hook_pull_speed->modified =
-      g_hook_speed->modified =
-      g_hook_style->modified =
-      g_hook->modified =
       g_num_teams->modified =
       g_self_damage->modified =
       g_self_knockback->modified =

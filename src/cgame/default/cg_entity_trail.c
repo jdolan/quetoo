@@ -766,26 +766,6 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
   }
 }
 
-/**
- * @brief Renders the grappling hook cable as a beam between the entity and its attachment point.
- */
-static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-
-  vec3_t forward;
-  Vec3_Vectors(ent->angles, &forward, NULL, NULL);
-
-  const vec3_t color = Cg_ClientEffectColor(ent->current.client, NULL, color_hue_green);
-
-  cgi.AddBeam(cgi.view, &(const r_beam_t) {
-    .start = start,
-    .end = Vec3_Fmaf(end, -3.f, forward),
-    .color = color,
-    .image = cg_beam_hook,
-    .size = 1.f,
-    .flags = SPRITE_BEAM_REPEAT,
-  });
-}
-
 #define BFG_BALLS_SPEED  400.f
 
 /**
@@ -1202,14 +1182,7 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 
       // we own this beam (lightning, grapple, etc..)
       // anchor start to the client-side muzzle; keep end as the server-authoritative termination
-      if (s->trail == TRAIL_HOOK) {
-        // the grapple cable reads better leaving the player than the view
-        // weapon muzzle, which floats well ahead of the eye and shifts with
-        // cg_fov (#867)
-        start = Cg_Self()->origin;
-      } else {
-        start = cg_state.clients[ent->current.client].weapon_muzzle;
-      }
+      start = cg_state.clients[ent->current.client].weapon_muzzle;
     }
   } else {
     end = ent->origin;
@@ -1235,9 +1208,6 @@ void Cg_EntityTrail(cl_entity_t *ent) {
       break;
     case TRAIL_LIGHTNING:
       Cg_LightningTrail(ent, start, end);
-      break;
-    case TRAIL_HOOK:
-      Cg_HookTrail(ent, start, end);
       break;
     case TRAIL_BFG:
       Cg_BfgTrail(ent, start, end);

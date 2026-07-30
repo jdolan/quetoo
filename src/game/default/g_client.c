@@ -126,9 +126,6 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
       case MOD_TELEFRAG:
         msg = "%s tried to invade %s's personal space :telefrag:";
         break;
-      case MOD_HOOK:
-        msg = "%s had their intestines shredded by %s's grappling hook :hook:";
-        break;
     }
 
 #pragma clang diagnostic push
@@ -536,8 +533,6 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
   g_client_t *cl = ent->client;
 
   G_ClientObituary(cl, attacker, mod);
-
-  G_HookDetach(cl);
 
   G_TossQuadDamage(cl);
   G_TossInvisibility(cl);
@@ -1009,8 +1004,6 @@ static void G_ClientRespawn_(g_client_t *cl) {
     return;
   }
 
-  G_HookDetach(cl);
-
   gi.UnlinkEntity(cl->entity);
 
   // leave a corpse in our place if applicable
@@ -1247,27 +1240,6 @@ void G_ClientBegin(g_client_t *cl) {
 }
 
 /**
- * @brief Set the hook style of the player, respecting server properties.
- */
-void G_SetClientHookStyle(g_client_t *cl) {
-
-  if (!cl->in_use) {
-    return;
-  }
-
-  g_hook_style_t hook_style;
-
-  // respect user_info on default
-  if (!q_strcmp(g_hook_style->string, "default")) {
-    hook_style = G_HookStyleByName(InfoString_Get(cl->persistent.user_info, "hook_style"));
-  } else {
-    hook_style = G_HookStyleByName(g_hook_style->string);
-  }
-
-  cl->persistent.hook_style = hook_style;
-}
-
-/**
  * @brief Applies updates from a client's user info string to their persistent state.
  */
 void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
@@ -1441,9 +1413,6 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   uint16_t auto_switch = strtoul(InfoString_Get(user_info, "auto_switch"), NULL, 10);
   cl->persistent.auto_switch = auto_switch;
 
-  // hook style
-  G_SetClientHookStyle(cl);
-
   // stats guid
   q_strlcpy(cl->persistent.guid, InfoString_Get(user_info, "guid"), sizeof(cl->persistent.guid));
 }
@@ -1496,7 +1465,6 @@ void G_ClientDisconnect(g_client_t *cl) {
     G_TossInvisibility(cl);
     G_TossInvulnerability(cl);
     G_TossFlag(cl);
-    G_HookDetach(cl);
   }
 
   cl->in_use = false;
@@ -1637,24 +1605,10 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
 
     pm.s.origin = ent->s.origin;
 
-    if (cl->hook_pull) {
-
-      if (cl->persistent.hook_style == HOOK_PULL) {
-        pm.s.type = PM_HOOK_PULL;
-      } else if (cl->persistent.hook_style == HOOK_SWING_MANUAL) {
-        pm.s.type = PM_HOOK_SWING_MANUAL;
-      } else if (cl->persistent.hook_style == HOOK_SWING_AUTO) {
-        pm.s.type = PM_HOOK_SWING_AUTO;
-      } else {
-        pm.s.type = PM_HOOK_PULL;
-      }
-    } else {
-      pm.s.velocity = ent->velocity;
-    }
+    pm.s.velocity = ent->velocity;
 
     pm.cmd = *cmd;
     pm.ground = ent->ground;
-    pm.hook_pull_speed = g_hook_pull_speed->value;
 #if defined(_DEBUG)
   }
 #endif
@@ -1932,11 +1886,6 @@ void G_ClientThink(g_client_t *cl, pm_cmd_t *cmd) {
 
   if (!cl->chase_target) { // move through the world
 
-    // process hook buttons
-    if (cl->hook_think_time < g_level.time) {
-      G_HookThink(cl, false);
-    }
-
     G_ClientMove(cl, cmd);
   }
 
@@ -1997,10 +1946,6 @@ void G_ClientBeginFrame(g_client_t *cl) {
   // run weapon think if it hasn't been done by a command
   if (cl->weapon_think_time < g_level.time) {
     G_ClientWeaponThink(cl);
-  }
-
-  if (cl->hook_think_time < g_level.time) {
-    G_HookThink(cl, false);
   }
 
   if (ent->dead) {

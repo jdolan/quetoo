@@ -1243,7 +1243,6 @@ static uint32_t G_Ai_Move(g_client_t *cl, pm_cmd_t *cmd) {
 
   pm.cmd = *cmd;
   pm.ground = ent->ground;
-  //pm.hook_pull_speed = g_hook_pull_speed->value;
 
   pm.PointContents = gi.PointContents;
   pm.BoxContents = gi.BoxContents;

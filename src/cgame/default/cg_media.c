@@ -36,7 +36,6 @@ s_sample_t *cg_sample_lightning_discharge;
 s_sample_t *cg_sample_railgun_fire;
 s_sample_t *cg_sample_bfg_fire;
 s_sample_t *cg_sample_bfg_hit;
-s_sample_t *cg_sample_hook_hit;
 
 s_sample_t *cg_sample_quake_shotgun_fire;
 s_sample_t *cg_sample_quake_supershotgun_fire;
@@ -213,7 +212,6 @@ void Cg_LoadMedia(void) {
   cg_sample_bfg_fire = cgi.LoadSample("weapons/bfg/fire");
   cg_sample_bfg_hit = cgi.LoadSample("weapons/bfg/hit");
 
-  cg_sample_hook_hit = cgi.LoadSample("grapplehook/hit");
 
   cg_sample_quake_shotgun_fire = cgi.LoadSample("weapons/quake_shotgun/fire");
   cg_sample_quake_supershotgun_fire = cgi.LoadSample("weapons/quake_supershotgun/fire");

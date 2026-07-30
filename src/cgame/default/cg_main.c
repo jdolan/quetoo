@@ -74,7 +74,6 @@ cvar_t *cg_auto_switch;
 cvar_t *cg_color;
 cvar_t *cg_hand;
 cvar_t *cg_helmet;
-cvar_t *cg_hook_style;
 cvar_t *cg_pants;
 cvar_t *cg_shirt;
 cvar_t *cg_skin;
@@ -149,7 +148,6 @@ static void Cg_Init(void) {
   cg_color = cgi.AddCvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies the effect color for your own weapon trails.");
   cg_hand = cgi.AddCvar("hand", "1", CVAR_ARCHIVE | CVAR_USER_INFO, "Controls weapon handedness (center: 0, right: 1, left: 2).");
   cg_helmet = cgi.AddCvar("helmet", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your helmet color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
-  cg_hook_style = cgi.AddCvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE, "Your preferred hook style. Can be either \"pull\", \"swing_manual\", or \"swing_auto\".");
   cg_pants = cgi.AddCvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your pants color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
   cg_shirt = cgi.AddCvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your shirt color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
   cg_skin = cgi.AddCvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE, "Your player model and skin.");
@@ -263,9 +261,6 @@ static void Cg_UpdateConfigString(int32_t i) {
     case CS_CTF:
       cg_state.ctf = Clampf01(atoi(s));
       return;
-    case CS_HOOK_PULL_SPEED:
-      cg_state.hook_pull_speed = strtof(s, NULL);
-      return;
     case CS_MAX_CLIENTS:
       cg_state.max_clients = (int32_t) strtol(s, NULL, 10);
       return;
@@ -346,14 +341,6 @@ static bool Cg_ParseMessage(int32_t cmd) {
   }
 
   return false;
-}
-
-/**
- * @brief Fetch the server's reported hook pull speed.
- */
-float Cg_GetHookPullSpeed(void) {
-
-  return cg_state.hook_pull_speed;
 }
 
 /**

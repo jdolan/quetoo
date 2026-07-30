@@ -98,8 +98,6 @@ static const char *G_WeaponNameForMod(g_means_of_death mod) {
       return "Quake Thunderbolt";
     case MOD_FIREBALL:
       return "Fireball";
-    case MOD_HOOK:
-      return "Hook";
     case MOD_TELEFRAG:
       return "Telefrag";
     case MOD_EXPLOSIVE:
