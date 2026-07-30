@@ -335,12 +335,6 @@ static void G_InitMedia(void) {
 
   g_media.sounds.roar = gi.SoundIndex("misc/ominous_bwah");
 
-  g_media.sounds.techs[TECH_HASTE - TECH_FIRST]    = gi.SoundIndex("techs/haste/haste");
-  g_media.sounds.techs[TECH_REGEN - TECH_FIRST]    = gi.SoundIndex("techs/regen/regen");
-  g_media.sounds.techs[TECH_RESIST - TECH_FIRST]   = gi.SoundIndex("techs/resist/resist");
-  g_media.sounds.techs[TECH_STRENGTH - TECH_FIRST] = gi.SoundIndex("techs/strength/strength");
-  g_media.sounds.techs[TECH_VAMPIRE - TECH_FIRST]  = gi.SoundIndex("techs/vampire/vampire");
-
   g_media.images.health = gi.ImageIndex("pics/i_health");
 }
 
@@ -619,52 +613,6 @@ static void G_InitSpawnPoints(void) {
 }
 
 /**
- * @brief Spawns a single tech item at a randomly selected spawn point with a random initial velocity.
- */
-void G_SpawnTech(const g_item_t *item) {
-
-  g_entity_t *spawn = G_SelectTechSpawnPoint();
-
-  g_entity_t *ent = G_AllocEntity(item->def.classname);
-  ent->s.origin = spawn->s.origin;
-
-  G_SpawnItem(ent, item);
-  ent->next_think = 0;
-  ent->Think = NULL;
-
-  // Treat spawned techs like dropped items so they can land near spawn points
-  // instead of forcing immediate pickup on spawn.
-  ent->spawn_flags |= SF_ITEM_DROPPED;
-  ent->move_type = MOVE_TYPE_BOUNCE;
-  ent->touch_time = g_level.time + 1000;
-
-  vec3_t angles = spawn->s.angles;
-  angles.y += RandomRangef(-45.f, 45.f);
-
-  vec3_t forward;
-  Vec3_Vectors(angles, &forward, NULL, NULL);
-
-  ent->velocity = Vec3_Scale(forward, 100.f);
-  ent->velocity.z = 300.f + (Randomf() * 50.f);
-
-  G_ResetItem(ent);
-}
-
-/**
- * @brief Spawn all of the techs
- */
-void G_SpawnTechs(void) {
-
-  if (!g_level.techs) {
-    return;
-  }
-
-  for (g_item_tag_t i = TECH_FIRST; i < TECH_LAST; i++) {
-    G_SpawnTech(&g_items[i]);
-  }
-}
-
-/**
  * @brief Spawns game entities from the BSP entity definition lump.
  */
 void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities) {
@@ -709,8 +657,6 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
   G_InitEntityTeams();
 
   G_CheckHook();
-
-  G_CheckTechs();
 
   G_ResetTeams();
 
@@ -931,13 +877,6 @@ static void G_worldspawn(g_entity_t *ent) {
     g_level.hook_map = hook_map->integer;
   } else {
     g_level.hook_map = -1;
-  }
-
-  const cm_entity_t *techs_map = G_MapValue("techs");
-  if (techs_map && (techs_map->parsed & ENTITY_INTEGER) && techs_map->integer > -1) {
-    g_level.techs_map = techs_map->integer;
-  } else {
-    g_level.techs_map = -1;
   }
 
   const cm_entity_t *min_clients_map = G_MapValue("min_clients");

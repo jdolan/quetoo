@@ -551,10 +551,6 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
     G_TossFlag(cl);
   }
 
-  if (g_level.techs) {
-    G_TossTech(cl);
-  }
-
   const bool gibbed = ent->health <= -CLIENT_CORPSE_HEALTH;
 
   if (gibbed) {
@@ -1500,7 +1496,6 @@ void G_ClientDisconnect(g_client_t *cl) {
     G_TossInvisibility(cl);
     G_TossInvulnerability(cl);
     G_TossFlag(cl);
-    G_TossTech(cl);
     G_HookDetach(cl);
   }
 
@@ -2012,16 +2007,6 @@ void G_ClientBeginFrame(g_client_t *cl) {
     if (g_level.time > cl->respawn_time) {
       if (cl->latched_buttons & BUTTON_ATTACK) {
         G_ClientRespawn(cl, false);
-      }
-    }
-  } else {
-    if (G_HasTech(cl, TECH_REGEN)) {
-      if (cl->regen_time < g_level.time) {
-        cl->regen_time = g_level.time + TECH_REGEN_TICK_TIME;
-        if (ent->health < ent->max_health) {
-          ent->health = Minf(ent->health + TECH_REGEN_HEALTH, ent->max_health);
-          G_PlayTechSound(cl);
-        }
       }
     }
   }

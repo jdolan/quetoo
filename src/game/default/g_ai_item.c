@@ -61,14 +61,6 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
       }
 
       return true;
-    case ITEM_TYPE_TECH:
-      for (g_item_tag_t tag = TECH_FIRST; tag < TECH_LAST; tag++) {
-        if (inventory[tag]) {
-          return false;
-        }
-      }
-
-      return true;
     case ITEM_TYPE_FLAG: {
       const g_team_id_t team = cl->persistent.team->id;
       const g_team_id_t flag_team = (item->def.tag - FLAG_FIRST);
@@ -83,5 +75,4 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
       return true;
   }
 }
-
 

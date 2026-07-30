@@ -828,8 +828,6 @@ static void G_DropItem_SetExpiration(g_entity_t *ent) {
 
   if (ent->item->def.type == ITEM_TYPE_FLAG) { // flags go back to base
     ent->Think = G_ResetDroppedFlag;
-  } else if (ent->item->def.type == ITEM_TYPE_TECH) {
-    ent->Think = G_ResetDroppedTech;
   } else { // everything else just gets freed
     ent->Think = G_FreeEntity;
   }
@@ -969,9 +967,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
 
   // we're in a bad spot, forget it
   if (tr.start_solid) {
-    if (item->def.type == ITEM_TYPE_TECH) {
-      G_ResetDroppedTech(it);
-    } else if (item->def.type == ITEM_TYPE_FLAG) {
+    if (item->def.type == ITEM_TYPE_FLAG) {
       G_ResetDroppedFlag(it);
     } else {
       G_FreeEntity(it);
@@ -1031,154 +1027,6 @@ static void G_UseItem(g_entity_t *ent, g_entity_t *other, g_entity_t *activator)
   }
 
   gi.LinkEntity(ent);
-}
-
-/**
- * @brief Returns the distance to the nearest enemy from the given spot.
- */
-static float G_TechRangeFromSpawn(const g_entity_t *spawn) {
-  float best_dist = FLT_MAX;
-  bool any = false;
-
-  for (g_item_tag_t tech = TECH_FIRST; tech < TECH_LAST; tech++) {
-
-    g_entity_t *ent = NULL;
-    G_ForEachEntity(e, {
-      if (e->item == &g_items[tech]) {
-        ent = e;
-        break;
-      }
-    });
-
-    if (!ent) {
-      continue;
-    }
-
-    const vec3_t v = Vec3_Subtract(spawn->s.origin, ent->s.origin);
-    const float dist = Vec3_Length(v);
-
-    if (dist < best_dist) {
-      best_dist = dist;
-    }
-
-    any = true;
-  }
-
-  if (!any) {
-    return Randomf() * MAX_WORLD_DIST;
-  }
-
-  return best_dist;
-}
-
-/**
- * @brief Finds the spawn point farthest from all existing tech items within the given set.
- */
-static void G_SelectFarthestTechSpawnPoint(const g_spawn_points_t *spawn_points, g_entity_t **point, float *point_dist) {
-
-  for (size_t i = 0; i < spawn_points->count; i++) {
-    g_entity_t *spot = spawn_points->spots[i];
-    float dist = G_TechRangeFromSpawn(spot);
-
-    if (dist > *point_dist) {
-      *point = spot;
-      *point_dist = dist;
-    }
-  }
-}
-
-/**
- * @brief Selects the optimal spawn point for a tech item by maximizing distance from all other techs.
- */
-g_entity_t *G_SelectTechSpawnPoint(void) {
-  float point_dist = -FLT_MAX;
-  g_entity_t *point = NULL;
-
-  if (g_level.teams || g_level.ctf) {
-    for (int32_t i = 0; i < g_level.num_teams; i++) {
-      G_SelectFarthestTechSpawnPoint(&g_team_list[i].spawn_points, &point, &point_dist);
-    }
-  } else {
-    G_SelectFarthestTechSpawnPoint(&g_level.spawn_points, &point, &point_dist);
-  }
-
-  if (!point) {
-    G_SelectFarthestTechSpawnPoint(&g_level.spawn_points, &point, &point_dist);
-  }
-
-  return point;
-}
-
-/**
- * @brief Respawns a tech item at a new spawn point and frees the dropped entity.
- */
-void G_ResetDroppedTech(g_entity_t *ent) {
-
-  G_SpawnTech(ent->item);
-
-  G_FreeEntity(ent);
-}
-
-/**
- * @brief Check if a player has the specified tech.
- */
-bool G_HasTech(const g_client_t *cl, g_item_tag_t tech) {
-  return !!cl->inventory[tech];
-}
-
-/**
- * @brief Pickup function for techs. Can only hold one tech at a time.
- */
-static bool G_PickupTech(g_client_t *cl, g_entity_t *ent) {
-
-  for (g_item_tag_t tech = TECH_FIRST; tech < TECH_LAST; tech++) {
-
-    if (G_HasTech(cl, tech)) {
-      return false;
-    }
-  }
-
-  // add the weapon to inventory
-  cl->inventory[ent->item->def.tag]++;
-
-  return true;
-}
-
-/**
- * @brief Returns the tech item currently held by the client, or `NULL` if none.
- */
-const g_item_t *G_GetTech(const g_client_t *cl) {
-
-  for (g_item_tag_t i = TECH_FIRST; i < TECH_LAST; i++) {
-
-    if (G_HasTech(cl, i)) {
-      return &g_items[i];
-    }
-  }
-
-  return NULL;
-}
-
-/**
- * @brief Drops the tech item currently carried by the client as a world entity.
- */
-g_entity_t *G_TossTech(g_client_t *cl) {
-  const g_item_t *tech = G_GetTech(cl);
-
-  if (!tech) {
-    return NULL;
-  }
-
-  cl->inventory[tech->def.tag] = 0;
-
-  return G_DropItem(cl, tech);
-}
-
-/**
- * @brief Drop the tech.
- */
-static g_entity_t *G_DropTech(g_client_t *cl, const g_item_t *item) {
-  return G_TossTech(cl);
 }
 
 /**
@@ -1541,11 +1389,6 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
       } else if (!q_strcmp(it->def.classname, "item_invulnerability")) {
         it->Pickup = G_PickupInvulnerability;
       }
-      break;
-
-    case ITEM_TYPE_TECH:
-      it->Pickup = G_PickupTech;
-      it->Drop = G_DropTech;
       break;
 
     default:

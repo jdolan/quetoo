@@ -93,7 +93,6 @@ typedef enum {
   STAT_SCORES,
   STAT_SPECTATOR,
   STAT_TEAM,
-  STAT_TECH,
   STAT_TIME,
   STAT_WEAPON
 } g_stat_t;
@@ -696,8 +695,6 @@ typedef struct {
 
     uint16_t roar;
 
-    uint16_t techs[TECH_TOTAL];
-
     uint16_t chat;
 
     uint16_t invulnerability_pickup;
@@ -781,11 +778,6 @@ typedef struct {
   bool ctf;
 
   /**
-   * @brief True if tech powerups are enabled.
-   */
-  bool techs;
-
-  /**
    * @brief True if the grappling hook is enabled.
    */
   bool hook;
@@ -799,11 +791,6 @@ typedef struct {
    * @brief Map-specified hook allowance, used for voting and restarts.
    */
   int32_t hook_map;
-
-  /**
-   * @brief Map-specified techs allowance.
-   */
-  int32_t techs_map;
 
   /**
    * @brief Map-specified minimum clients override.
@@ -1521,16 +1508,7 @@ struct g_client_s {
    */
   uint32_t scores_time;
 
-  /**
-   * @brief Next regeneration tick time.
-   */
-  uint32_t regen_time;
-
-  /**
-   * @brief Next time a tech powerup sound may play.
-   */
-  uint32_t tech_sound_time;
-};
+  };
 
 typedef struct g_client_s g_client_t;
 

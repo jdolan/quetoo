@@ -388,8 +388,6 @@ void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius,
   const g_item_t *item = ent->item;
   if (item) {
     switch (item->def.type) {
-      case ITEM_TYPE_TECH:
-        G_ResetDroppedTech(ent);
         break;
       case ITEM_TYPE_FLAG:
         G_ResetDroppedFlag(ent);

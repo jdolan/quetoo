@@ -24,7 +24,6 @@
 #include "g_types.h"
 
 #if defined(__GAME_LOCAL_H__)
-void G_PlayTechSound(g_client_t *cl);
 bool G_PickupWeapon(g_client_t *cl, g_entity_t *other);
 void G_UseBestWeapon(g_client_t *cl);
 void G_UseWeapon(g_client_t *cl, const g_item_t *item);

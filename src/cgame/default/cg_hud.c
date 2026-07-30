@@ -65,7 +65,6 @@ static struct {
   int16_t chase_target;
 } cg_hud_state;
 
-
 static r_image_t *cg_pickup_blend_image;
 static r_image_t *cg_quad_blend_image;
 static r_image_t *cg_invisibility_blend_image;
@@ -211,11 +210,6 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
     y = Cg_DrawPowerup(y, ps->stats[STAT_INVISIBILITY_TIME], cg_items[POWERUP_INVISIBILITY].icon, ch);
   }
 
-  const int16_t tech = ps->stats[STAT_TECH];
-  if (tech) {
-    y = Cg_DrawPowerup(y, 0, cg_items[tech].icon, ch);
-  }
-
   cgi.BindFont(NULL, NULL, NULL);
 }
 
@@ -336,7 +330,6 @@ static void Cg_DrawDeaths(const player_state_t *ps) {
 
   cgi.BindFont(NULL, NULL, NULL);
 }
-
 
 /**
  * @brief Draws the player's flag capture count in the top-right corner for CTF games.

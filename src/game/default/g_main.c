@@ -134,7 +134,6 @@ cvar_t *g_balance_supershotgun_spread_y;
 cvar_t *g_capture_limit;
 cvar_t *g_cheats;
 cvar_t *g_ctf;
-cvar_t *g_techs;
 cvar_t *g_hook;
 cvar_t *g_hook_auto_refire;
 cvar_t *g_hook_distance;
@@ -302,15 +301,8 @@ void G_ResetItems(void) {
       continue;
     }
 
-    if (ent->item->def.type == ITEM_TYPE_TECH) {
-      G_FreeEntity(ent);
-      continue;
-    }
-
     G_ResetItem(ent);
   });
-
-  G_SpawnTechs();
 }
 
 /**
@@ -334,25 +326,6 @@ void G_CheckHook(void) {
   if (g_hook_distance->modified) {
     g_hook_distance->value = Clampf(g_hook_distance->value, PM_HOOK_MIN_DIST, PM_HOOK_MAX_DIST);
     g_hook_distance->modified = false;
-  }
-}
-
-/**
- * @brief Checks and sets up the tech states
- */
-void G_CheckTechs(void) {
-
-  if (q_strcmp(g_techs->string, "default")) { // check cvar first
-    g_level.techs = !!g_techs->integer;
-  } else if (g_level.techs_map != -1) { // check maps.lst
-    g_level.techs = (g_level.techs_map == -1) ? g_level.ctf : !!g_level.techs_map;
-  } else { // check worldspawn
-    const cm_entity_t *techs = gi.EntityValue(ge.entities[0]->def, "techs");
-    if (techs->parsed & ENTITY_INTEGER) {
-      g_level.techs = techs->integer;
-    } else {
-      g_level.techs = g_level.ctf;
-    }
   }
 }
 
@@ -437,8 +410,6 @@ static void G_RestartGame(bool teamz) {
   });
 
   G_CheckHook();
-
-  G_CheckTechs();
 
   G_ResetItems();
 
@@ -777,16 +748,6 @@ static void G_CheckRules(void) {
     gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));
 
     gi.BroadcastPrint(PRINT_HIGH, "CTF has been %s\n", g_level.ctf ? "enabled" : "disabled");
-
-    restart = true;
-  }
-
-  if (g_techs->modified) {
-    g_techs->modified = false;
-
-    G_CheckTechs();
-
-    gi.BroadcastPrint(PRINT_HIGH, "Techs have been %s\n", g_level.techs ? "enabled" : "disabled");
 
     restart = true;
   }
@@ -1141,7 +1102,6 @@ void G_Init(void) {
   g_spawn_farthest = gi.AddCvar("g_spawn_farthest", "1", CVAR_SERVER_INFO, NULL);
   g_spectator_chat = gi.AddCvar("g_spectator_chat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators.");
   g_teams = gi.AddCvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play.");
-  g_techs = gi.AddCvar("g_techs", "default", CVAR_SERVER_INFO, "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
   g_time_limit = gi.AddCvar("g_time_limit", "20", CVAR_SERVER_INFO, "The time limit per level in minutes.");
   g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
   g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "If enabled, weapons will remain when picked up rather than respawn with delay.");
@@ -1163,7 +1123,6 @@ void G_Init(void) {
       g_self_damage->modified =
       g_self_knockback->modified =
       g_teams->modified =
-      g_techs->modified =
       g_time_limit->modified =
       g_weapon_stay->modified = false;
 

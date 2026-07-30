@@ -299,8 +299,6 @@ static void G_Drop_f(g_client_t *cl) {
   if (!q_strcmp(s, "flag")) {
     G_TossFlag(cl);
     return;
-  } else if (!q_strcmp(s, "tech")) {
-    G_TossTech(cl);
     return;
   } else { // or just look up the item
     it = G_FindItem(s);
@@ -401,7 +399,6 @@ static void G_Kill_f(g_client_t *cl) {
 
   cl->entity->Die(cl->entity, cl->entity, MOD_SUICIDE);
 }
-
 
 /**
  * @brief Server console command for muting players by name (toggles)
@@ -606,7 +603,6 @@ bool G_AddClientToTeam(g_client_t *cl, const char *team_name) {
   if (!cl->persistent.spectator) { // changing teams
     G_TossQuadDamage(cl);
     G_TossFlag(cl);
-    G_TossTech(cl);
     G_HookDetach(cl);
   }
 
@@ -661,7 +657,6 @@ static void G_Spectate_f(g_client_t *cl) {
 
     G_TossQuadDamage(cl);
     G_TossFlag(cl);
-    G_TossTech(cl);
     G_HookDetach(cl);
 
     gi.WriteByte(SV_CMD_MUZZLE_FLASH);

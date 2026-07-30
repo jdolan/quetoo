@@ -184,10 +184,6 @@ void G_ClientStats(g_client_t *cl) {
     cl->ps.stats[STAT_ARMOR] = 0;
   }
 
-  // tech
-  const g_item_t *tech = G_GetTech(cl);
-  cl->ps.stats[STAT_TECH] = tech ? tech->def.tag : 0;
-
   // captures
   cl->ps.stats[STAT_CAPTURES] = cl->persistent.captures;
 
