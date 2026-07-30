@@ -2257,6 +2257,11 @@ typedef struct {
   cm_blend_t src, dest;
 
   /**
+   * @brief The depth write flag.
+   */
+  bool depth_write;
+
+  /**
    * @brief The cached pipeline.
    */
   GraphicsPipeline *pipeline;

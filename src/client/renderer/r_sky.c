@@ -139,7 +139,7 @@ static GraphicsPipeline *R_SkyStagePipeline(cm_blend_t src, cm_blend_t dest) {
     &info);
 
   r_sky_draw.stage_pipelines[r_sky_draw.num_stage_pipelines++] = (typeof(r_sky_draw.stage_pipelines[0])) {
-    .src = src, .dest = dest, .pipeline = pipeline,
+    .src = src, .dest = dest, .depth_write = false, .pipeline = pipeline,
   };
 
   return pipeline;

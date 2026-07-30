@@ -213,7 +213,7 @@ static GraphicsPipeline *R_MeshStagePipeline(cm_blend_t src, cm_blend_t dest) {
   release(fragmentShader);
 
   r_mesh_draw.stage_pipelines[r_mesh_draw.num_stage_pipelines++] = (r_stage_pipeline_t) {
-    .src = src, .dest = dest, .pipeline = pipeline,
+    .src = src, .dest = dest, .depth_write = false, .pipeline = pipeline,
   };
 
   return pipeline;
