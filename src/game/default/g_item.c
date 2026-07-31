@@ -1202,3 +1202,10 @@ void G_InitItems(void) {
     G_InitItem(&g_items[tag], &bg_item_defs[tag]);
   }
 }
+
+/**
+ * @brief
+ */
+void G_ResetDroppedItem(g_entity_t *ent) {
+  G_FreeEntity(ent);
+}

@@ -387,13 +387,7 @@ void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius,
 
   const g_item_t *item = ent->item;
   if (item) {
-    switch (item->def.type) {
-        break;
-        break;
-      default:
-        G_FreeEntity(ent);
-        break;
-    }
+    G_ResetDroppedItem(ent);
   } else {
     G_FreeEntity(ent);
   }

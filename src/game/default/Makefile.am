@@ -3,15 +3,10 @@ include $(top_srcdir)/src/game/common/sources.mk
 
 noinst_HEADERS = \
 	bg_item.h \
-	g_ballistics.h \
-	g_client_chase.h \
 	g_client_stats.h \
-	g_client_view.h \
 	g_client.h \
 	g_combat.h \
 	g_cmd.h \
-	g_entity_info.h \
-	g_entity_trigger.h \
 	g_entity.h \
 	g_item.h \
 	g_local.h \
@@ -67,15 +62,10 @@ gamelib_LTLIBRARIES = \
 	game.la
 
 game_la_SOURCES = \
-	g_ballistics.c \
-	g_client_chase.c \
 	g_client_stats.c \
-	g_client_view.c \
 	g_client.c \
 	g_cmd.c \
 	g_combat.c \
-	g_entity_info.c \
-	g_entity_trigger.c \
 	g_entity.c \
 	g_item.c \
 	g_main.c \

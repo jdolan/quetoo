@@ -24,6 +24,11 @@
 #   MOD_CRUSH, MOD_TELEFRAG, MOD_ACT_OF_GOD  (g_means_of_death, g_types.h)
 
 GCOMMON_SRC = \
+	$(GCOMMON_DIR)/g_ballistics.c \
+	$(GCOMMON_DIR)/g_client_chase.c \
+	$(GCOMMON_DIR)/g_client_view.c \
+	$(GCOMMON_DIR)/g_entity_info.c \
+	$(GCOMMON_DIR)/g_entity_trigger.c \
 	$(GCOMMON_DIR)/g_ai_goal.c \
 	$(GCOMMON_DIR)/g_ai_grid.c \
 	$(GCOMMON_DIR)/g_ai_info.c \
@@ -38,6 +43,12 @@ GCOMMON_SRC = \
 	$(GCOMMON_DIR)/g_sound.c
 
 GCOMMON_HDR = \
+	$(GCOMMON_DIR)/g_ballistics.h \
+	$(GCOMMON_DIR)/g_client_chase.h \
+	$(GCOMMON_DIR)/g_client_view.h \
+	$(GCOMMON_DIR)/g_entity_info.h \
+	$(GCOMMON_DIR)/g_entity_trigger.h \
+	$(GCOMMON_DIR)/g_module.h \
 	$(GCOMMON_DIR)/g_ai_goal.h \
 	$(GCOMMON_DIR)/g_ai_grid.h \
 	$(GCOMMON_DIR)/g_ai_info.h \

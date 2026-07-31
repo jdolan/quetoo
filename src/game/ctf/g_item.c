@@ -1567,3 +1567,21 @@ void G_InitItems(void) {
     G_InitItem(&g_items[tag], &bg_item_defs[tag]);
   }
 }
+
+/**
+ * @brief
+ */
+void G_ResetDroppedItem(g_entity_t *ent) {
+
+  switch (ent->item->def.type) {
+    case ITEM_TYPE_FLAG:
+      G_ResetDroppedFlag(ent);
+      break;
+    case ITEM_TYPE_TECH:
+      G_ResetDroppedTech(ent);
+      break;
+    default:
+      G_FreeEntity(ent);
+      break;
+  }
+}

@@ -594,16 +594,16 @@
 		CEC0FF0020260103000000F2 /* g_ai_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F227BDA2AE003D56AC /* g_ai_item.c */; };
 		CEC0FF0020260103000000F3 /* g_ai_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F527BDA2AE003D56AC /* g_ai_main.c */; };
 		CEC0FF0020260103000000F4 /* g_ai_node.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F827BDA2AE003D56AC /* g_ai_node.c */; };
-		CEC0FF0020260103000000F5 /* g_ballistics.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000013 /* g_ballistics.c */; };
+		CEC0FF0020260103000000F5 /* g_ballistics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6471C5C58C300CD0B13 /* g_ballistics.c */; };
 		CEC0FF0020260103000000F6 /* g_client.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000015 /* g_client.c */; };
-		CEC0FF0020260103000000F7 /* g_client_chase.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000017 /* g_client_chase.c */; };
+		CEC0FF0020260103000000F7 /* g_client_chase.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D64B1C5C58C300CD0B13 /* g_client_chase.c */; };
 		CEC0FF0020260103000000F8 /* g_client_stats.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000019 /* g_client_stats.c */; };
-		CEC0FF0020260103000000F9 /* g_client_view.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000001B /* g_client_view.c */; };
+		CEC0FF0020260103000000F9 /* g_client_view.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D64F1C5C58C300CD0B13 /* g_client_view.c */; };
 		CEC0FF0020260103000000FA /* g_cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000001D /* g_cmd.c */; };
 		CEC0FF0020260103000000FB /* g_combat.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000001F /* g_combat.c */; };
 		CEC0FF0020260103000000FC /* g_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000021 /* g_entity.c */; };
-		CEC0FF0020260103000000FD /* g_entity_info.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000023 /* g_entity_info.c */; };
-		CEC0FF0020260103000000FE /* g_entity_trigger.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000025 /* g_entity_trigger.c */; };
+		CEC0FF0020260103000000FD /* g_entity_info.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6591C5C58C300CD0B13 /* g_entity_info.c */; };
+		CEC0FF0020260103000000FE /* g_entity_trigger.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */; };
 		CEC0FF0020260103000000FF /* g_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000027 /* g_item.c */; };
 		CEC0FF002026010300000100 /* g_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002A /* g_main.c */; };
 		CEC0FF002026010300000101 /* g_util.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002D /* g_util.c */; };
@@ -623,16 +623,16 @@
 		CEC0FF00202601030000010F /* g_ai_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F727BDA2AE003D56AC /* g_ai_main.h */; };
 		CEC0FF002026010300000110 /* g_ai_node.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F927BDA2AE003D56AC /* g_ai_node.h */; };
 		CEC0FF002026010300000111 /* g_ai_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F627BDA2AE003D56AC /* g_ai_types.h */; };
-		CEC0FF002026010300000112 /* g_ballistics.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000014 /* g_ballistics.h */; };
+		CEC0FF002026010300000112 /* g_ballistics.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6481C5C58C300CD0B13 /* g_ballistics.h */; };
 		CEC0FF002026010300000113 /* g_client.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000016 /* g_client.h */; };
-		CEC0FF002026010300000114 /* g_client_chase.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000018 /* g_client_chase.h */; };
+		CEC0FF002026010300000114 /* g_client_chase.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D64C1C5C58C300CD0B13 /* g_client_chase.h */; };
 		CEC0FF002026010300000115 /* g_client_stats.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000001A /* g_client_stats.h */; };
-		CEC0FF002026010300000116 /* g_client_view.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000001C /* g_client_view.h */; };
+		CEC0FF002026010300000116 /* g_client_view.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6501C5C58C300CD0B13 /* g_client_view.h */; };
 		CEC0FF002026010300000117 /* g_cmd.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000001E /* g_cmd.h */; };
 		CEC0FF002026010300000118 /* g_combat.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000020 /* g_combat.h */; };
 		CEC0FF002026010300000119 /* g_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000022 /* g_entity.h */; };
-		CEC0FF00202601030000011A /* g_entity_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000024 /* g_entity_info.h */; };
-		CEC0FF00202601030000011B /* g_entity_trigger.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000026 /* g_entity_trigger.h */; };
+		CEC0FF00202601030000011A /* g_entity_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D65A1C5C58C300CD0B13 /* g_entity_info.h */; };
+		CEC0FF00202601030000011B /* g_entity_trigger.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */; };
 		CEC0FF00202601030000011C /* g_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000028 /* g_item.h */; };
 		CEC0FF00202601030000011D /* g_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000029 /* g_local.h */; };
 		CEC0FF00202601030000011E /* g_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002B /* g_main.h */; };
@@ -2073,26 +2073,16 @@
 		CEC0FF002026010300000003 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CEC0FF002026010300000004 /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
 		CEC0FF002026010300000005 /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
-		CEC0FF002026010300000013 /* g_ballistics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ballistics.c; sourceTree = "<group>"; };
-		CEC0FF002026010300000014 /* g_ballistics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ballistics.h; sourceTree = "<group>"; };
 		CEC0FF002026010300000015 /* g_client.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_client.c; sourceTree = "<group>"; };
 		CEC0FF002026010300000016 /* g_client.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_client.h; sourceTree = "<group>"; };
-		CEC0FF002026010300000017 /* g_client_chase.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_client_chase.c; sourceTree = "<group>"; };
-		CEC0FF002026010300000018 /* g_client_chase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_client_chase.h; sourceTree = "<group>"; };
 		CEC0FF002026010300000019 /* g_client_stats.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_client_stats.c; sourceTree = "<group>"; };
 		CEC0FF00202601030000001A /* g_client_stats.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_client_stats.h; sourceTree = "<group>"; };
-		CEC0FF00202601030000001B /* g_client_view.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_client_view.c; sourceTree = "<group>"; };
-		CEC0FF00202601030000001C /* g_client_view.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_client_view.h; sourceTree = "<group>"; };
 		CEC0FF00202601030000001D /* g_cmd.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_cmd.c; sourceTree = "<group>"; };
 		CEC0FF00202601030000001E /* g_cmd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_cmd.h; sourceTree = "<group>"; };
 		CEC0FF00202601030000001F /* g_combat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_combat.c; sourceTree = "<group>"; };
 		CEC0FF002026010300000020 /* g_combat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_combat.h; sourceTree = "<group>"; };
 		CEC0FF002026010300000021 /* g_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_entity.c; sourceTree = "<group>"; };
 		CEC0FF002026010300000022 /* g_entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_entity.h; sourceTree = "<group>"; };
-		CEC0FF002026010300000023 /* g_entity_info.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_entity_info.c; sourceTree = "<group>"; };
-		CEC0FF002026010300000024 /* g_entity_info.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_entity_info.h; sourceTree = "<group>"; };
-		CEC0FF002026010300000025 /* g_entity_trigger.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_entity_trigger.c; sourceTree = "<group>"; };
-		CEC0FF002026010300000026 /* g_entity_trigger.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_entity_trigger.h; sourceTree = "<group>"; };
 		CEC0FF002026010300000027 /* g_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_item.c; sourceTree = "<group>"; };
 		CEC0FF002026010300000028 /* g_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_item.h; sourceTree = "<group>"; };
 		CEC0FF002026010300000029 /* g_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_local.h; sourceTree = "<group>"; };
@@ -2192,6 +2182,7 @@
 		CEC0FD002026010500000007 /* cg_score.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_score.h; sourceTree = "<group>"; };
 		CEC0FD002026010500000009 /* cg_hud_draw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud_draw.c; sourceTree = "<group>"; };
 		CEC0FD00202601050000000B /* cg_hud_draw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud_draw.h; sourceTree = "<group>"; };
+		CEC0FB002026010700000001 /* g_module.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_module.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3026,24 +3017,14 @@
 			children = (
 				7966EA6596003F9303BC00FA /* bg_item.c */,
 				F7E7256984E276048C2A155E /* bg_item.h */,
-				CE12D6471C5C58C300CD0B13 /* g_ballistics.c */,
-				CE12D6481C5C58C300CD0B13 /* g_ballistics.h */,
-				CE12D64B1C5C58C300CD0B13 /* g_client_chase.c */,
-				CE12D64C1C5C58C300CD0B13 /* g_client_chase.h */,
 				CE12D64D1C5C58C300CD0B13 /* g_client_stats.c */,
 				CE12D64E1C5C58C300CD0B13 /* g_client_stats.h */,
-				CE12D64F1C5C58C300CD0B13 /* g_client_view.c */,
-				CE12D6501C5C58C300CD0B13 /* g_client_view.h */,
 				CE12D6491C5C58C300CD0B13 /* g_client.c */,
 				CE12D64A1C5C58C300CD0B13 /* g_client.h */,
 				CE12D6511C5C58C300CD0B13 /* g_cmd.c */,
 				CE12D6521C5C58C300CD0B13 /* g_cmd.h */,
 				CE12D6531C5C58C300CD0B13 /* g_combat.c */,
 				CE12D6541C5C58C300CD0B13 /* g_combat.h */,
-				CE12D6591C5C58C300CD0B13 /* g_entity_info.c */,
-				CE12D65A1C5C58C300CD0B13 /* g_entity_info.h */,
-				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
-				CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */,
 				CE12D6551C5C58C300CD0B13 /* g_entity.c */,
 				CE12D6561C5C58C300CD0B13 /* g_entity.h */,
 				CE12D6611C5C58C300CD0B13 /* g_item.c */,
@@ -3770,6 +3751,17 @@
 		CEC011002026010100000002 /* common */ = {
 			isa = PBXGroup;
 			children = (
+				CEC0FB002026010700000001 /* g_module.h */,
+				CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */,
+				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
+				CE12D65A1C5C58C300CD0B13 /* g_entity_info.h */,
+				CE12D6591C5C58C300CD0B13 /* g_entity_info.c */,
+				CE12D6501C5C58C300CD0B13 /* g_client_view.h */,
+				CE12D64F1C5C58C300CD0B13 /* g_client_view.c */,
+				CE12D64C1C5C58C300CD0B13 /* g_client_chase.h */,
+				CE12D64B1C5C58C300CD0B13 /* g_client_chase.c */,
+				CE12D6481C5C58C300CD0B13 /* g_ballistics.h */,
+				CE12D6471C5C58C300CD0B13 /* g_ballistics.c */,
 				CE27E9F627BDA2AE003D56AC /* g_ai_types.h */,
 				CE27E9F927BDA2AE003D56AC /* g_ai_node.h */,
 				CE27E9F827BDA2AE003D56AC /* g_ai_node.c */,
@@ -3810,26 +3802,16 @@
 			children = (
 				CEC0FF002026010300000005 /* bg_item.h */,
 				CEC0FF002026010300000004 /* bg_item.c */,
-				CEC0FF002026010300000014 /* g_ballistics.h */,
-				CEC0FF002026010300000013 /* g_ballistics.c */,
 				CEC0FF002026010300000016 /* g_client.h */,
 				CEC0FF002026010300000015 /* g_client.c */,
-				CEC0FF002026010300000018 /* g_client_chase.h */,
-				CEC0FF002026010300000017 /* g_client_chase.c */,
 				CEC0FF00202601030000001A /* g_client_stats.h */,
 				CEC0FF002026010300000019 /* g_client_stats.c */,
-				CEC0FF00202601030000001C /* g_client_view.h */,
-				CEC0FF00202601030000001B /* g_client_view.c */,
 				CEC0FF00202601030000001E /* g_cmd.h */,
 				CEC0FF00202601030000001D /* g_cmd.c */,
 				CEC0FF002026010300000020 /* g_combat.h */,
 				CEC0FF00202601030000001F /* g_combat.c */,
 				CEC0FF002026010300000022 /* g_entity.h */,
 				CEC0FF002026010300000021 /* g_entity.c */,
-				CEC0FF002026010300000024 /* g_entity_info.h */,
-				CEC0FF002026010300000023 /* g_entity_info.c */,
-				CEC0FF002026010300000026 /* g_entity_trigger.h */,
-				CEC0FF002026010300000025 /* g_entity_trigger.c */,
 				CEC0FF002026010300000028 /* g_item.h */,
 				CEC0FF002026010300000027 /* g_item.c */,
 				CEC0FF002026010300000029 /* g_local.h */,
