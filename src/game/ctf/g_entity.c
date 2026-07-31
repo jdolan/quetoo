@@ -441,8 +441,19 @@ void G_SpawnTech(const g_item_t *item) {
 
   g_entity_t *spawn = G_SelectTechSpawnPoint();
 
+  vec3_t angles = spawn->s.angles;
+  angles.y += RandomRangef(-45.f, 45.f);
+
+  vec3_t forward;
+  Vec3_Vectors(angles, &forward, NULL, NULL);
+
   g_entity_t *ent = G_AllocEntity(item->def.classname);
-  ent->s.origin = spawn->s.origin;
+
+  // Techs spawn from the player spawn points, so start clear of the point
+  // itself, along the way the tech is about to be thrown. A client spawning in
+  // on the first frame of the level would otherwise have the tech inside its
+  // bounding box and collect something it never saw.
+  ent->s.origin = Vec3_Fmaf(spawn->s.origin, 32.f, forward);
 
   G_SpawnItem(ent, item);
   ent->next_think = 0;
@@ -453,12 +464,6 @@ void G_SpawnTech(const g_item_t *item) {
   ent->spawn_flags |= SF_ITEM_DROPPED;
   ent->move_type = MOVE_TYPE_BOUNCE;
   ent->touch_time = g_level.time + 1000;
-
-  vec3_t angles = spawn->s.angles;
-  angles.y += RandomRangef(-45.f, 45.f);
-
-  vec3_t forward;
-  Vec3_Vectors(angles, &forward, NULL, NULL);
 
   ent->velocity = Vec3_Scale(forward, 100.f);
   ent->velocity.z = 300.f + (Randomf() * 50.f);

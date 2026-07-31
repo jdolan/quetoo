@@ -875,8 +875,11 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
     return;
   }
 
-  if (other == ent->owner) {
-    if (ent->touch_time > g_level.time) {
+  // an item that was dropped ignores whoever dropped it for a moment; one that
+  // nobody dropped ignores everybody, so an item placed by the game cannot be
+  // taken the instant it appears
+  if (ent->touch_time > g_level.time) {
+    if (ent->owner == NULL || other == ent->owner) {
       return;
     }
   }
