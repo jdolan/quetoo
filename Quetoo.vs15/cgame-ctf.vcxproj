@@ -32,11 +32,6 @@
     <ProjectGuid>{75a43a72-06c1-59b9-8346-72f4984848fd}</ProjectGuid>
     <RootNamespace>cgame-ctf</RootNamespace>
   </PropertyGroup>
-  <!-- G_HOOK and G_CTF switch on the grapple and capture play in the common
-       client sources; the game module opts into the same features. -->
-  <PropertyGroup>
-    <ExtraPreprocessorDefinitions>G_HOOK;G_CTF;$(ExtraPreprocessorDefinitions)</ExtraPreprocessorDefinitions>
-  </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="build_settings.props" />
     <Import Project="cgame_common.props" />
@@ -67,7 +62,12 @@
            These are per project rather than in QuetooFullIncludePath because
            every module has a cg_local.h and a g_types.h: one global list
            would make them ambiguous. -->
-      <AdditionalIncludeDirectories>..\src\cgame\ctf;..\src\cgame\common;..\src\cgame;..\src\game\ctf;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\cgame\ctf;..\src\cgame\common;..\src\cgame\common\ui;..\src\cgame\common\ui\common;..\src\cgame\common\ui\controls;..\src\cgame\common\ui\credits;..\src\cgame\common\ui\editor;..\src\cgame\common\ui\home;..\src\cgame\common\ui\main;..\src\cgame\common\ui\play;..\src\cgame\common\ui\settings;..\src\cgame\common\ui\teams;..\src\cgame;..\src\game\ctf;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <!-- G_HOOK and G_CTF switch on the grapple and capture play in the
+           common sources. Set here rather than through
+           $(ExtraPreprocessorDefinitions), which expands empty by the time
+           build_settings.props' item definition is evaluated. -->
+      <PreprocessorDefinitions>G_HOOK;G_CTF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;SDL3.lib;SDL3_image.lib;%(AdditionalDependencies)</AdditionalDependencies>

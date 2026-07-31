@@ -51,11 +51,9 @@
     <ProjectGuid>{9d657586-69f6-54fd-9a93-118a9fdcd4de}</ProjectGuid>
     <RootNamespace>game-ctf</RootNamespace>
   </PropertyGroup>
-  <!-- Selects the grapple sources from game_common.props; G_HOOK and G_CTF
-       switch on the matching code in the shared sources. -->
+  <!-- Selects the grapple sources from game_common.props. -->
   <PropertyGroup>
     <QuetooGameHook>true</QuetooGameHook>
-    <ExtraPreprocessorDefinitions>G_HOOK;G_CTF;$(ExtraPreprocessorDefinitions)</ExtraPreprocessorDefinitions>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="build_settings.props" />
@@ -87,6 +85,11 @@
            are per project rather than in QuetooFullIncludePath because every
            module has a g_types.h: one global list would make it ambiguous. -->
       <AdditionalIncludeDirectories>..\src\game\ctf;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <!-- G_HOOK and G_CTF switch on the grapple and capture play in the
+           common sources. Set here rather than through
+           $(ExtraPreprocessorDefinitions), which expands empty by the time
+           build_settings.props' item definition is evaluated. -->
+      <PreprocessorDefinitions>G_HOOK;G_CTF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>
