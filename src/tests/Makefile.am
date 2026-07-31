@@ -174,6 +174,7 @@ check_r_media_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_r_media_LDADD = \
 	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la \
 	$(top_builddir)/src/client/renderer/librenderer.la
 
 check_shared_SOURCES = \

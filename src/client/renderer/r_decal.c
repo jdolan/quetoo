@@ -55,6 +55,45 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
 }
 
 /**
+ * @brief Per-thread scratch windings for decal clipping, so that clipping a
+ * decal to a face performs no allocations. Freed with the rest of
+ * `MEM_TAG_POLYLIB` at shutdown.
+ */
+static _Thread_local struct {
+  cm_winding_t *decal;
+  cm_winding_t *face;
+  cm_winding_t *a, *b;
+  int32_t max_face_points;
+  int32_t capacity;
+} r_decal_windings;
+
+/**
+ * @brief Grows the per-thread scratch windings to accommodate a face of
+ * `face_points` points.
+ */
+static void R_ReserveDecalWindings(int32_t face_points) {
+
+  if (r_decal_windings.decal == NULL) {
+    r_decal_windings.decal = Cm_AllocWinding(4);
+  }
+
+  if (face_points > r_decal_windings.max_face_points) {
+
+    if (r_decal_windings.face) {
+      Cm_FreeWinding(r_decal_windings.face);
+      Cm_FreeWinding(r_decal_windings.a);
+      Cm_FreeWinding(r_decal_windings.b);
+    }
+
+    r_decal_windings.capacity = 4 + 4 * face_points;
+    r_decal_windings.face = Cm_AllocWinding(face_points);
+    r_decal_windings.a = Cm_AllocWinding(r_decal_windings.capacity);
+    r_decal_windings.b = Cm_AllocWinding(r_decal_windings.capacity);
+    r_decal_windings.max_face_points = face_points;
+  }
+}
+
+/**
  * @brief Clips a decal to a face and adds the resulting triangles to the face's block.
  */
 static void R_ClipDecalToFace(const r_view_t *view,
@@ -86,17 +125,18 @@ static void R_ClipDecalToFace(const r_view_t *view,
     Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b,  r)),
   };
 
-  cm_winding_t *dw = Cm_AllocWinding(4);
+  const int32_t n_edge = face->patch ? (int32_t) sqrtf((float) face->num_vertexes) : 0;
+
+  R_ReserveDecalWindings(face->patch ? 4 * (n_edge - 1) : face->num_vertexes);
+
+  cm_winding_t *dw = r_decal_windings.decal;
   dw->num_points = 4;
   for (int32_t i = 0; i < dw->num_points; i++) {
     dw->points[i] = Vec3_Add(positions[i], n);
   }
 
-  cm_winding_t *fw;
+  cm_winding_t *fw = r_decal_windings.face;
   if (face->patch) {
-    const int32_t n_edge = (int32_t) sqrtf((float) face->num_vertexes);
-    const int32_t perimeter = 4 * (n_edge - 1);
-    fw = Cm_AllocWinding(perimeter);
     fw->num_points = 0;
     for (int32_t i = 0; i < n_edge; i++)
       fw->points[fw->num_points++] = face->vertexes[i].position;
@@ -107,21 +147,17 @@ static void R_ClipDecalToFace(const r_view_t *view,
     for (int32_t j = n_edge - 2; j >= 1; j--)
       fw->points[fw->num_points++] = face->vertexes[j * n_edge].position;
   } else {
-    fw = Cm_AllocWinding(face->num_vertexes);
     fw->num_points = face->num_vertexes;
     for (int32_t i = 0; i < face->num_vertexes; i++) {
       fw->points[i] = face->vertexes[i].position;
     }
   }
-  cm_winding_t *w = Cm_ClipWindingToWinding(dw, fw, n, -1.f - ON_EPSILON);
 
-  Cm_FreeWinding(dw);
-  Cm_FreeWinding(fw);
+  const cm_winding_t *w = Cm_ClipWindingToWindingInto(dw, fw, n, -1.f - ON_EPSILON,
+                                                      r_decal_windings.a, r_decal_windings.b,
+                                                      r_decal_windings.capacity);
 
   if (w == NULL || w->num_points < 3) {
-    if (w) {
-      Cm_FreeWinding(w);
-    }
     return;
   }
 
@@ -168,8 +204,6 @@ static void R_ClipDecalToFace(const r_view_t *view,
   }
 
   decals->dirty = true;
-
-  Cm_FreeWinding(w);
 }
 
 /**
@@ -295,6 +329,10 @@ static void R_ClipDecalToNode(const r_view_t *view,
 /**
  * @brief Adds new decals and expires old decal triangles, then uploads dirty
  * per-block decal geometry for visible blocks, growing buffers on demand.
+ * @remarks Blocks we can't see are skipped and stay dirty until they become
+ * visible, matching the culling `R_DrawDecals` applies, so that painted-over
+ * geometry elsewhere in the world doesn't re-upload every frame that one of its
+ * decals expires.
  */
 void R_UpdateDecals(const r_view_t *view, CopyPass *pass) {
 

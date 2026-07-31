@@ -50,6 +50,20 @@ typedef struct {
   int32_t num_queries;
 
   /**
+   * @brief The bounds of this frame's occluded world block queries, compacted so
+   * that `R_OccludeBox` need only visit the blocks relevant to each of its passes.
+   */
+  box3_t occluded_bounds[MAX_BSP_BLOCKS];
+  int32_t num_occluded_bounds;
+
+  /**
+   * @brief The bounds of this frame's visible world block queries, compacted as
+   * above.
+   */
+  box3_t visible_bounds[MAX_BSP_BLOCKS];
+  int32_t num_visible_bounds;
+
+  /**
    * @brief Per-instance occlusion box bounds.
    */
   Vector *boxes;

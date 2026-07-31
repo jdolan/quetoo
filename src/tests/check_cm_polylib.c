@@ -410,6 +410,106 @@ START_TEST(check_Cm_ClipWindingToWinding_full_outside) {
 
 } END_TEST
 
+/**
+ * @brief Builds an axis-aligned quad in the y = 0 plane.
+ */
+static cm_winding_t *CheckQuad(float x0, float z0, float x1, float z1) {
+
+  cm_winding_t *w = Cm_AllocWinding(4);
+  w->num_points = 4;
+  w->points[0] = Vec3(x0, 0, z0);
+  w->points[1] = Vec3(x1, 0, z0);
+  w->points[2] = Vec3(x1, 0, z1);
+  w->points[3] = Vec3(x0, 0, z1);
+
+  return w;
+}
+
+START_TEST(check_Cm_ClipWindingToWindingInto_parity) {
+  // The allocation-free variant must agree with the allocating one
+  const float cases[][4] = {
+    { 25.f, 25.f, 75.f,  75.f  }, // partial overlap
+    { 10.f, 10.f, 40.f,  40.f  }, // fully inside
+    { -5.f, -5.f, 55.f,  55.f  }, // fully surrounding
+    {  0.f,  0.f, 50.f,  50.f  }, // edge aligned
+    { 25.f, -5.f, 75.f,  25.f  }, // corner overlap
+  };
+
+  cm_winding_t *clip = CheckQuad(0.f, 0.f, 50.f, 50.f);
+
+  for (size_t c = 0; c < lengthof(cases); c++) {
+    cm_winding_t *in = CheckQuad(cases[c][0], cases[c][1], cases[c][2], cases[c][3]);
+
+    cm_winding_t *expected = Cm_ClipWindingToWinding(in, clip, Vec3(0, 1, 0), SIDE_EPSILON);
+
+    const int32_t capacity = in->num_points + 4 * clip->num_points;
+    cm_winding_t *a = Cm_AllocWinding(capacity);
+    cm_winding_t *b = Cm_AllocWinding(capacity);
+
+    const cm_winding_t *actual = Cm_ClipWindingToWindingInto(in, clip, Vec3(0, 1, 0),
+                                                             SIDE_EPSILON, a, b, capacity);
+
+    if (expected == NULL) {
+      ck_assert_ptr_null(actual);
+    } else {
+      ck_assert_ptr_nonnull(actual);
+      ck_assert_int_eq(actual->num_points, expected->num_points);
+      for (int32_t i = 0; i < expected->num_points; i++) {
+        ck_assert_float_eq_tol(actual->points[i].x, expected->points[i].x, SIDE_EPSILON);
+        ck_assert_float_eq_tol(actual->points[i].y, expected->points[i].y, SIDE_EPSILON);
+        ck_assert_float_eq_tol(actual->points[i].z, expected->points[i].z, SIDE_EPSILON);
+      }
+      Cm_FreeWinding(expected);
+    }
+
+    Cm_FreeWinding(a);
+    Cm_FreeWinding(b);
+    Cm_FreeWinding(in);
+  }
+
+  Cm_FreeWinding(clip);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWindingToWindingInto_full_outside) {
+  cm_winding_t *clip = CheckQuad(0.f, 0.f, 50.f, 50.f);
+  cm_winding_t *in = CheckQuad(100.f, 100.f, 150.f, 150.f);
+
+  const int32_t capacity = in->num_points + 4 * clip->num_points;
+  cm_winding_t *a = Cm_AllocWinding(capacity);
+  cm_winding_t *b = Cm_AllocWinding(capacity);
+
+  ck_assert_ptr_null(Cm_ClipWindingToWindingInto(in, clip, Vec3(0, 1, 0), SIDE_EPSILON,
+                                                 a, b, capacity));
+
+  Cm_FreeWinding(a);
+  Cm_FreeWinding(b);
+  Cm_FreeWinding(in);
+  Cm_FreeWinding(clip);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWindingToWindingInto_full_inside) {
+  // Nothing clips, so the input itself is returned and the scratch is untouched
+  cm_winding_t *clip = CheckQuad(0.f, 0.f, 50.f, 50.f);
+  cm_winding_t *in = CheckQuad(10.f, 10.f, 40.f, 40.f);
+
+  const int32_t capacity = in->num_points + 4 * clip->num_points;
+  cm_winding_t *a = Cm_AllocWinding(capacity);
+  cm_winding_t *b = Cm_AllocWinding(capacity);
+
+  const cm_winding_t *result = Cm_ClipWindingToWindingInto(in, clip, Vec3(0, 1, 0),
+                                                           SIDE_EPSILON, a, b, capacity);
+
+  ck_assert_ptr_eq(result, in);
+
+  Cm_FreeWinding(a);
+  Cm_FreeWinding(b);
+  Cm_FreeWinding(in);
+  Cm_FreeWinding(clip);
+
+} END_TEST
+
 START_TEST(check_Cm_ClipWindingToWinding_partial_overlap) {
   // Clip a quad partially overlapping another
   cm_winding_t *clip = Cm_AllocWinding(4);
@@ -706,6 +806,15 @@ int32_t main(int32_t argc, char **argv) {
     tcase_add_test(tcase, check_Cm_ClipWindingToWinding_offset_planes);
     tcase_add_test(tcase, check_Cm_ClipWindingToWinding_decal_scenario);
     tcase_add_test(tcase, check_Cm_ClipWindingToWinding_edge_aligned);
+    suite_add_tcase(suite, tcase);
+  }
+
+  {
+    TCase *tcase = tcase_create("Cm_ClipWindingToWindingInto");
+    tcase_add_checked_fixture(tcase, setup, teardown);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWindingInto_parity);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWindingInto_full_outside);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWindingInto_full_inside);
     suite_add_tcase(suite, tcase);
   }
 

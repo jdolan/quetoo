@@ -27,7 +27,36 @@
 r_occlusion_t r_occlusion;
 
 /**
+ * @brief Compacts this frame's world block query bounds by visibility, so that
+ * `R_OccludeBox` visits only the blocks each of its passes cares about.
+ */
+static void R_UpdateOcclusionBounds(void) {
+
+  r_occlusion.num_occluded_bounds = 0;
+  r_occlusion.num_visible_bounds = 0;
+
+  if (!r_models.world) {
+    return;
+  }
+
+  const r_bsp_inline_model_t *in = r_models.world->bsp->inline_models;
+
+  const r_bsp_block_t *block = in->blocks;
+  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+
+    if (block->query->result) {
+      r_occlusion.visible_bounds[r_occlusion.num_visible_bounds++] = block->query->bounds;
+    } else {
+      r_occlusion.occluded_bounds[r_occlusion.num_occluded_bounds++] = block->query->bounds;
+    }
+  }
+}
+
+/**
  * @brief Returns true if the box is occluded by BSP block queries.
+ * @remarks An occluded block that fully contains the box occludes it, regardless
+ * of block order, so both tests are resolved in priority order rather than
+ * interleaved.
  */
 bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 
@@ -39,19 +68,16 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
     return false;
   }
 
-  const r_bsp_inline_model_t *in = r_models.world->bsp->inline_models;
-
-  const r_bsp_block_t *block = in->blocks;
-  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
-
-    if (!block->query->result) {
-      if (Box3_Contains(block->query->bounds, bounds)) {
-        return true;
-      }
-      continue;
+  const box3_t *b = r_occlusion.occluded_bounds;
+  for (int32_t i = 0; i < r_occlusion.num_occluded_bounds; i++, b++) {
+    if (Box3_Contains(*b, bounds)) {
+      return true;
     }
+  }
 
-    if (Box3_Intersects(block->query->bounds, bounds)) {
+  b = r_occlusion.visible_bounds;
+  for (int32_t i = 0; i < r_occlusion.num_visible_bounds; i++, b++) {
+    if (Box3_Intersects(*b, bounds)) {
       return false;
     }
   }
@@ -217,6 +243,8 @@ void R_DrawOcclusionQueries(const r_view_t *view, CommandBuffer *commands) {
       }
     }
   }
+
+  R_UpdateOcclusionBounds();
 
   if (r_draw_stats->value) {
     const r_occlusion_query_t *q = r_occlusion.queries;
