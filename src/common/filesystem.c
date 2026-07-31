@@ -68,6 +68,11 @@ typedef struct {
   char **base_search_paths;
 
   /**
+   * @brief The game directory the search path is currently configured for.
+   */
+  char game[MAX_QPATH];
+
+  /**
    * @brief For debugging purposes, track all loaded files to ensure that
    * they are freed (`Fs_Free`) in all code paths.
    */
@@ -81,6 +86,13 @@ static fs_state_t fs_state;
  */
 const char *Fs_BaseDir(void) {
   return fs_state.base_dir;
+}
+
+/**
+ * @return The game directory the search path is currently configured for.
+ */
+const char *Fs_Game(void) {
+  return fs_state.game;
 }
 
 /**
@@ -627,6 +639,8 @@ void Fs_SetGame(const char *dir) {
   Fs_AddToSearchPathv(fs_state.data_dir, dir, NULL);
 
   Fs_AddUserSearchPath(dir);
+
+  q_strlcpy(fs_state.game, dir, sizeof(fs_state.game));
 }
 
 /**
@@ -799,6 +813,8 @@ void Fs_Init(const uint32_t flags) {
   Fs_AddToSearchPathv(fs_state.data_dir, DEFAULT_GAME, NULL);
 
   Fs_AddUserSearchPath(DEFAULT_GAME);
+
+  q_strlcpy(fs_state.game, DEFAULT_GAME, sizeof(fs_state.game));
 
   // finally add any paths specified on the command line
   int32_t i;

@@ -328,6 +328,8 @@ void Cl_InitCgame(void) {
 
   cls.cgame->Init();
 
+  q_strlcpy(cls.cgame_game, Fs_Game(), sizeof(cls.cgame_game));
+
   Com_Print("Client game initialized\n");
   Com_InitSubsystem(QUETOO_CGAME);
 }
@@ -345,6 +347,7 @@ void Cl_ShutdownCgame(void) {
 
   cls.cgame->Shutdown();
   cls.cgame = NULL;
+  cls.cgame_game[0] = '\0';
 
   Cmd_RemoveAll(CMD_CGAME);
 

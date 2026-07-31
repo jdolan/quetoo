@@ -275,9 +275,10 @@ static void Cl_ParseServerData(void) {
   // determine if we're viewing a demo
   cl.demo_server = Net_ReadByte(&net_message);
 
-  // game directory
+  // game directory; compare against the module we hold rather than the game
+  // cvar, which a listen server shares with us and has already updated
   char *str = Net_ReadString(&net_message);
-  if (q_strcmp(Cvar_GetString("game"), str)) {
+  if (q_strcmp(cls.cgame_game, str)) {
 
     Fs_SetGame(str);
 
