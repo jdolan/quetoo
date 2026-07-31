@@ -137,6 +137,12 @@ void Cm_ClipWinding(cm_winding_t **w, const vec3_t normal, double dist, double e
 cm_winding_t *Cm_ClipWindingToWinding(const cm_winding_t *in, const cm_winding_t *clip, const vec3_t normal, double epsilon);
 
 /**
+ * @brief Clips `in` against every edge of `clip` without allocating, using the
+ * caller-supplied scratch windings `a` and `b`.
+ */
+const cm_winding_t *Cm_ClipWindingToWindingInto(const cm_winding_t *in, const cm_winding_t *clip, const vec3_t normal, double epsilon, cm_winding_t *a, cm_winding_t *b, int32_t capacity);
+
+/**
  * @brief Merges two coplanar windings into a single winding, if possible.
  * @return The merged winding, or `NULL` if the windings could not be merged.
  */
