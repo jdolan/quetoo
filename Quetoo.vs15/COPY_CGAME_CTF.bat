@@ -7,7 +7,7 @@ if "%QUETOO_HOME%" == "" GOTO INVALID
 set quetoo_folder=%~1
 set build_name=%~2
 
-call ROBO_FLAT "bin/%build_name%" "%quetoo_folder%/lib/default" game*
+call ROBO_FLAT "bin/%build_name%/ctf" "%quetoo_folder%/lib/ctf" cgame*
 GOTO DONE
 
 :INVALID

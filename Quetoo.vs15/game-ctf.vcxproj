@@ -23,38 +23,50 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\game\game.h" />
-    <ClInclude Include="..\src\game\default\bg_item.h" />
-    <ClInclude Include="..\src\game\default\g_client.h" />
-    <ClInclude Include="..\src\game\default\g_client_stats.h" />
-    <ClInclude Include="..\src\game\default\g_cmd.h" />
-    <ClInclude Include="..\src\game\default\g_combat.h" />
-    <ClInclude Include="..\src\game\default\g_entity.h" />
-    <ClInclude Include="..\src\game\default\g_item.h" />
-    <ClInclude Include="..\src\game\default\g_local.h" />
-    <ClInclude Include="..\src\game\default\g_main.h" />
-    <ClInclude Include="..\src\game\default\g_types.h" />
-    <ClInclude Include="..\src\game\default\g_weapon.h" />
+    <ClInclude Include="..\src\game\ctf\bg_item.h" />
+    <ClInclude Include="..\src\game\ctf\g_client.h" />
+    <ClInclude Include="..\src\game\ctf\g_client_stats.h" />
+    <ClInclude Include="..\src\game\ctf\g_cmd.h" />
+    <ClInclude Include="..\src\game\ctf\g_combat.h" />
+    <ClInclude Include="..\src\game\ctf\g_entity.h" />
+    <ClInclude Include="..\src\game\ctf\g_flag.h" />
+    <ClInclude Include="..\src\game\ctf\g_item.h" />
+    <ClInclude Include="..\src\game\ctf\g_local.h" />
+    <ClInclude Include="..\src\game\ctf\g_main.h" />
+    <ClInclude Include="..\src\game\ctf\g_types.h" />
+    <ClInclude Include="..\src\game\ctf\g_weapon.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\game\default\g_client.c" />
-    <ClCompile Include="..\src\game\default\g_client_stats.c" />
-    <ClCompile Include="..\src\game\default\g_cmd.c" />
-    <ClCompile Include="..\src\game\default\g_combat.c" />
-    <ClCompile Include="..\src\game\default\g_entity.c" />
-    <ClCompile Include="..\src\game\default\g_item.c" />
-    <ClCompile Include="..\src\game\default\g_main.c" />
-    <ClCompile Include="..\src\game\default\g_weapon.c" />
+    <ClCompile Include="..\src\game\ctf\g_client.c" />
+    <ClCompile Include="..\src\game\ctf\g_client_stats.c" />
+    <ClCompile Include="..\src\game\ctf\g_cmd.c" />
+    <ClCompile Include="..\src\game\ctf\g_combat.c" />
+    <ClCompile Include="..\src\game\ctf\g_entity.c" />
+    <ClCompile Include="..\src\game\ctf\g_flag.c" />
+    <ClCompile Include="..\src\game\ctf\g_item.c" />
+    <ClCompile Include="..\src\game\ctf\g_main.c" />
+    <ClCompile Include="..\src\game\ctf\g_weapon.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A663B8E2-126D-45DA-B3F8-B381AB866E7D}</ProjectGuid>
-    <RootNamespace>game</RootNamespace>
+    <ProjectGuid>{9d657586-69f6-54fd-9a93-118a9fdcd4de}</ProjectGuid>
+    <RootNamespace>game-ctf</RootNamespace>
+  </PropertyGroup>
+  <!-- Selects the grapple sources from game_common.props; G_HOOK and G_CTF
+       switch on the matching code in the shared sources. -->
+  <PropertyGroup>
+    <QuetooGameHook>true</QuetooGameHook>
+    <ExtraPreprocessorDefinitions>G_HOOK;G_CTF;$(ExtraPreprocessorDefinitions)</ExtraPreprocessorDefinitions>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="build_settings.props" />
     <Import Project="game_common.props" />
   </ImportGroup>
   <PropertyGroup>
-    <OutDir>$(QuetooOutDir)</OutDir>
+    <!-- The engine loads this module as "game", so the module keeps that name
+         and takes a directory of its own; Xcode does the same with
+         PRODUCT_NAME and CONFIGURATION_BUILD_DIR. -->
+    <TargetName>game</TargetName>
+    <OutDir>$(QuetooOutDir)ctf\</OutDir>
     <IntDir>$(QuetooIntDir)</IntDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -74,19 +86,19 @@
       <!-- This module's own directory comes first, then the common one. These
            are per project rather than in QuetooFullIncludePath because every
            module has a g_types.h: one global list would make it ambiguous. -->
-      <AdditionalIncludeDirectories>..\src\game\default;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\game\ctf;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>game.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>COPY_GAME "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
+      <Command>COPY_GAME_CTF "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="libs\libitem.vcxproj">
-      <Project>{a2f31748-6b8c-4d5e-9e0f-b3c4d5e6f7a8}</Project>
+    <ProjectReference Include="libs\libitemctf.vcxproj">
+      <Project>{7d1ceb4a-3626-538b-9558-165e872d38d4}</Project>
     </ProjectReference>
     <ProjectReference Include="libs\libpmove.vcxproj">
       <Project>{B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1}</Project>

@@ -19,14 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\game\common\bg_pmove.c" />
+    <ClCompile Include="..\..\src\game\ctf\bg_item.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\game\common\bg_pmove.h" />
+    <ClInclude Include="..\..\src\game\ctf\bg_item.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1}</ProjectGuid>
-    <RootNamespace>libpmove</RootNamespace>
+    <ProjectGuid>{7D1CEB4A-3626-538B-9558-165E872D38D4}</ProjectGuid>
+    <RootNamespace>libitemctf</RootNamespace>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="..\build_settings.props" />

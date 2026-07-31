@@ -7,18 +7,18 @@
     <Filter Include="src\game">
       <UniqueIdentifier>{23e4db7c-3d2b-44a7-a386-5f5bc93f09d4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\game\common">
-      <UniqueIdentifier>{7e2d62c4-de97-5682-9c0a-fbb2167793bb}</UniqueIdentifier>
+    <Filter Include="src\game\ctf">
+      <UniqueIdentifier>{f3961076-0897-53ec-bfbf-7f1ad1cfa6da}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\game\common\bg_pmove.h">
-      <Filter>src\game\common</Filter>
+    <ClInclude Include="..\..\src\game\ctf\bg_item.h">
+      <Filter>src\game\ctf</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\game\common\bg_pmove.c">
-      <Filter>src\game\common</Filter>
+    <ClCompile Include="..\..\src\game\ctf\bg_item.c">
+      <Filter>src\game\ctf</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
