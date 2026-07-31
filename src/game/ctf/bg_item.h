@@ -145,7 +145,7 @@ typedef enum {
   ITEM_TOTAL = FLAG_LAST,
 } g_item_tag_t;
 
-_Static_assert(ITEM_TOTAL <= MAX_INVENTORY, "ITEM_TOTAL exceeds MAX_INVENTORY; increase MAX_INVENTORY in shared.h");
+static_assert(ITEM_TOTAL <= MAX_INVENTORY, "ITEM_TOTAL exceeds MAX_INVENTORY; increase MAX_INVENTORY in shared.h");
 
 /**
  * @brief Shared item definition, visible to both game and cgame.

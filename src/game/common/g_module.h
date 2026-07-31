@@ -83,7 +83,7 @@ typedef struct {
 } g_entity_server_fields_t;
 
 #define G_ASSERT_SERVER_FIELD(prefix, field)                                   \
-  _Static_assert(offsetof(prefix##_t, field) ==                                \
+  static_assert(offsetof(prefix##_t, field) ==                                \
                      offsetof(prefix##_server_fields_t, field) &&              \
                  sizeof(((prefix##_t *) 0)->field) ==                          \
                      sizeof(((prefix##_server_fields_t *) 0)->field),          \
