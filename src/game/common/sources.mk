@@ -24,6 +24,7 @@
 #   MOD_CRUSH, MOD_TELEFRAG, MOD_ACT_OF_GOD  (g_means_of_death, g_types.h)
 
 GCOMMON_SRC = \
+	$(GCOMMON_DIR)/g_util.c \
 	$(GCOMMON_DIR)/g_ballistics.c \
 	$(GCOMMON_DIR)/g_client_chase.c \
 	$(GCOMMON_DIR)/g_client_view.c \
@@ -43,6 +44,7 @@ GCOMMON_SRC = \
 	$(GCOMMON_DIR)/g_sound.c
 
 GCOMMON_HDR = \
+	$(GCOMMON_DIR)/g_util.h \
 	$(GCOMMON_DIR)/g_ballistics.h \
 	$(GCOMMON_DIR)/g_client_chase.h \
 	$(GCOMMON_DIR)/g_client_view.h \

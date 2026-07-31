@@ -12,7 +12,6 @@ noinst_HEADERS = \
 	g_local.h \
 	g_main.h \
 	g_types.h \
-	g_util.h \
 	g_weapon.h \
 	$(GCOMMON_HDR)
 
@@ -69,7 +68,6 @@ game_la_SOURCES = \
 	g_entity.c \
 	g_item.c \
 	g_main.c \
-	g_util.c \
 	g_weapon.c
 
 game_la_CFLAGS = \

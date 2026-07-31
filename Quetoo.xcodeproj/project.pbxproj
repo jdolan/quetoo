@@ -606,7 +606,7 @@
 		CEC0FF0020260103000000FE /* g_entity_trigger.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */; };
 		CEC0FF0020260103000000FF /* g_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000027 /* g_item.c */; };
 		CEC0FF002026010300000100 /* g_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002A /* g_main.c */; };
-		CEC0FF002026010300000101 /* g_util.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002D /* g_util.c */; };
+		CEC0FF002026010300000101 /* g_util.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66D1C5C58C300CD0B13 /* g_util.c */; };
 		CEC0FF002026010300000102 /* g_weapon.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002F /* g_weapon.c */; };
 		CEC0FF002026010300000103 /* g_effect.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000001 /* g_effect.c */; };
 		CEC0FF002026010300000104 /* g_entity_func.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6571C5C58C300CD0B13 /* g_entity_func.c */; };
@@ -637,7 +637,7 @@
 		CEC0FF00202601030000011D /* g_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000029 /* g_local.h */; };
 		CEC0FF00202601030000011E /* g_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002B /* g_main.h */; };
 		CEC0FF00202601030000011F /* g_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002C /* g_types.h */; };
-		CEC0FF002026010300000120 /* g_util.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002E /* g_util.h */; };
+		CEC0FF002026010300000120 /* g_util.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66E1C5C58C300CD0B13 /* g_util.h */; };
 		CEC0FF002026010300000121 /* g_weapon.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000030 /* g_weapon.h */; };
 		CEC0FF002026010300000122 /* bg_pmove.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6421C5C58C300CD0B13 /* bg_pmove.h */; };
 		CEC0FF002026010300000123 /* g_effect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000003 /* g_effect.h */; };
@@ -861,6 +861,8 @@
 		CEC0FD002026010500000008 /* cg_score.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000007 /* cg_score.h */; };
 		CEC0FD00202601050000000A /* cg_hud_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000009 /* cg_hud_draw.c */; };
 		CEC0FD00202601050000000C /* cg_hud_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000009 /* cg_hud_draw.c */; };
+		CEC0FA002026010800000002 /* g_flag.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FA002026010800000001 /* g_flag.c */; };
+		CEC0FA002026010800000004 /* g_flag.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FA002026010800000003 /* g_flag.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -2089,8 +2091,6 @@
 		CEC0FF00202601030000002A /* g_main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_main.c; sourceTree = "<group>"; };
 		CEC0FF00202601030000002B /* g_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_main.h; sourceTree = "<group>"; };
 		CEC0FF00202601030000002C /* g_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_types.h; sourceTree = "<group>"; };
-		CEC0FF00202601030000002D /* g_util.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_util.c; sourceTree = "<group>"; };
-		CEC0FF00202601030000002E /* g_util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_util.h; sourceTree = "<group>"; };
 		CEC0FF00202601030000002F /* g_weapon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_weapon.c; sourceTree = "<group>"; };
 		CEC0FF002026010300000030 /* g_weapon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_weapon.h; sourceTree = "<group>"; };
 		CEC0FF002026010300000061 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -2183,6 +2183,8 @@
 		CEC0FD002026010500000009 /* cg_hud_draw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud_draw.c; sourceTree = "<group>"; };
 		CEC0FD00202601050000000B /* cg_hud_draw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud_draw.h; sourceTree = "<group>"; };
 		CEC0FB002026010700000001 /* g_module.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_module.h; sourceTree = "<group>"; };
+		CEC0FA002026010800000001 /* g_flag.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_flag.c; sourceTree = "<group>"; };
+		CEC0FA002026010800000003 /* g_flag.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_flag.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3033,8 +3035,6 @@
 				CE12D6641C5C58C300CD0B13 /* g_main.c */,
 				CE12D6651C5C58C300CD0B13 /* g_main.h */,
 				CE12D66C1C5C58C300CD0B13 /* g_types.h */,
-				CE12D66D1C5C58C300CD0B13 /* g_util.c */,
-				CE12D66E1C5C58C300CD0B13 /* g_util.h */,
 				CE12D66F1C5C58C300CD0B13 /* g_weapon.c */,
 				CE12D6701C5C58C300CD0B13 /* g_weapon.h */,
 				CE12D6711C5C58C300CD0B13 /* Makefile.am */,
@@ -3751,6 +3751,8 @@
 		CEC011002026010100000002 /* common */ = {
 			isa = PBXGroup;
 			children = (
+				CE12D66E1C5C58C300CD0B13 /* g_util.h */,
+				CE12D66D1C5C58C300CD0B13 /* g_util.c */,
 				CEC0FB002026010700000001 /* g_module.h */,
 				CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */,
 				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
@@ -3800,6 +3802,8 @@
 		CEC0FF002026010300000001 /* ctf */ = {
 			isa = PBXGroup;
 			children = (
+				CEC0FA002026010800000003 /* g_flag.h */,
+				CEC0FA002026010800000001 /* g_flag.c */,
 				CEC0FF002026010300000005 /* bg_item.h */,
 				CEC0FF002026010300000004 /* bg_item.c */,
 				CEC0FF002026010300000016 /* g_client.h */,
@@ -3818,8 +3822,6 @@
 				CEC0FF00202601030000002B /* g_main.h */,
 				CEC0FF00202601030000002A /* g_main.c */,
 				CEC0FF00202601030000002C /* g_types.h */,
-				CEC0FF00202601030000002E /* g_util.h */,
-				CEC0FF00202601030000002D /* g_util.c */,
 				CEC0FF002026010300000030 /* g_weapon.h */,
 				CEC0FF00202601030000002F /* g_weapon.c */,
 				CEC0FF002026010300000003 /* Makefile.am */,
@@ -4174,6 +4176,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEC0FA002026010800000004 /* g_flag.h in Headers */,
 				CEC0FF00202601030000010A /* bg_item.h in Headers */,
 				CEC0FF00202601030000010B /* g_ai_goal.h in Headers */,
 				CEC0FF00202601030000010C /* g_ai_grid.h in Headers */,
@@ -5647,6 +5650,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEC0FA002026010800000002 /* g_flag.c in Sources */,
 				CEC0FF0020260103000000EF /* g_ai_goal.c in Sources */,
 				CEC0FF0020260103000000F0 /* g_ai_grid.c in Sources */,
 				CEC0FF0020260103000000F1 /* g_ai_info.c in Sources */,

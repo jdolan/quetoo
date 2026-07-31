@@ -8,11 +8,11 @@ noinst_HEADERS = \
 	g_combat.h \
 	g_cmd.h \
 	g_entity.h \
+	g_flag.h \
 	g_item.h \
 	g_local.h \
 	g_main.h \
 	g_types.h \
-	g_util.h \
 	g_weapon.h \
 	$(GCOMMON_HDR) \
 	$(GCOMMON_HOOK_HDR)
@@ -71,9 +71,9 @@ game_la_SOURCES = \
 	g_cmd.c \
 	g_combat.c \
 	g_entity.c \
+	g_flag.c \
 	g_item.c \
 	g_main.c \
-	g_util.c \
 	g_weapon.c
 
 game_la_CFLAGS = \
