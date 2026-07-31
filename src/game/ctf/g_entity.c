@@ -45,6 +45,7 @@ static void G_worldspawn(g_entity_t *ent);
  */
 static const g_entity_class_t g_entity_classes[] = {
 
+  { "func_bob", G_func_bob },
   { "func_button", G_func_button },
   { "func_conveyor", G_func_conveyor },
   { "func_door", G_func_door },

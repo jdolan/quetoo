@@ -21,7 +21,7 @@
 #
 #   G_Damage, G_RadiusDamage  (g_combat.c)
 #   G_Explode, G_UseTargets   (g_util.c)
-#   MOD_CRUSH, MOD_TELEFRAG, MOD_ACT_OF_GOD  (g_means_of_death, g_types.h)
+#   MOD_CRUSH, MOD_TELEFRAG, MOD_ACT_OF_GOD, MOD_BOB  (g_means_of_death, g_types.h)
 
 GCOMMON_SRC = \
 	$(GCOMMON_DIR)/g_util.c \

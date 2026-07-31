@@ -154,6 +154,9 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
       case MOD_CRUSH:
         msg = "%s was squished :crush:";
         break;
+      case MOD_BOB:
+        msg = "%s was crushed by Bob. Not the builder. :crush:";
+        break;
       case MOD_WATER:
         msg = "%s sleeps with the fishes :drown:";
         break;
