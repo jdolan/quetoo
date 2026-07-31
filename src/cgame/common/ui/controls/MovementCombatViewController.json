@@ -251,6 +251,7 @@
                 },
                 {
                   "class": "Box",
+                  "identifier": "grappleHook",
                   "label": {
                     "text": {
                       "text": "Grapple hook"

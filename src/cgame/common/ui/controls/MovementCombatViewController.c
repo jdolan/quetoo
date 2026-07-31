@@ -57,10 +57,17 @@ static void loadView(ViewController *self) {
 
   super(ViewController, self, loadView);
 
+#if defined(G_HOOK)
   Select *hookStyle;
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("hookStyle", &hookStyle)
   );
+#else
+  View *grappleHook;
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("grappleHook", &grappleHook)
+  );
+#endif
 
   $(self->view, awakeWithResourceName, "ui/controls/MovementCombatViewController.json");
   $(self->view, resolve, outlets);
@@ -70,9 +77,13 @@ static void loadView(ViewController *self) {
   
   $(self->view, enumerateSelection, "BindTextView", setDelegate, self);
 
+#if defined(G_HOOK)
   $(hookStyle, addOption, "pull", NULL);
   $(hookStyle, addOption, "swing_manual", NULL);
   $(hookStyle, addOption, "swing_auto", NULL);
+#else
+  $(grappleHook, removeFromSuperview);
+#endif
 }
 
 #pragma mark - Class lifecycle
