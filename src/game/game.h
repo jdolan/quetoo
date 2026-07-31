@@ -44,8 +44,12 @@
 #if !defined(__GAME_LOCAL_H__)
 
 /**
- * @brief This is the server's definition of the client and entity structures. The
- * game module is free to add additional members to these structures.
+ * @brief This is the server's definition of the client and entity structures.
+ * The game module is free to add additional members to these structures, but
+ * MUST append them: the server reads the fields below at the offsets this
+ * declaration produces, so a module's definitions have to begin with them, in
+ * this order. See the assertions in game/common/g_module.h, which hold each
+ * module to it at build time.
  */
 
 typedef struct g_client_s g_client_t;

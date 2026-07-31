@@ -1162,11 +1162,6 @@ typedef struct {
 struct g_client_s {
 
   /**
-   * @brief Grappling hook state, reset on respawn.
-   */
-  g_client_hook_t hook;
-
-  /**
    * @brief The entity bound to this client.
    */
   g_entity_t *entity;
@@ -1200,6 +1195,11 @@ struct g_client_s {
    * @brief Non-null if this client is a bot.
    */
   struct ai_s *ai;
+
+  /**
+   * @brief Grappling hook state, reset on respawn.
+   */
+  g_client_hook_t hook;
 
   /**
    * @brief Data that persists across respawns.
