@@ -647,11 +647,10 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
   g_team_t *t;
   g_entity_t *f;
 
-  if (!(t = G_TeamForFlag(ent))) {
-    return;
-  }
-
-  if (!(f = G_FlagForTeam(t))) {
+  if (!(t = G_TeamForFlag(ent)) || !(f = G_FlagForTeam(t))) {
+    if (ent->spawn_flags & SF_ITEM_DROPPED) {
+      G_FreeEntity(ent); // nothing to return it to; do not strand it
+    }
     return;
   }
 
@@ -668,7 +667,9 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 
   gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
 
-  G_FreeEntity(ent);
+  if (ent != f) {
+    G_FreeEntity(ent); // the base flag was restored in place, so keep it
+  }
 }
 
 /**
@@ -683,7 +684,14 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
   }
 
   g_team_t *team = G_TeamForFlag(ent);
+  if (!team) {
+    return false; // a flag for a team this level does not have
+  }
+
   g_entity_t *team_flag = G_FlagForTeam(team);
+  if (!team_flag) {
+    return false; // the map placed no base flag for that team
+  }
 
   const g_item_t *carried_flag = G_GetFlag(cl);
 
@@ -711,6 +719,9 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
     if (carried_flag) {
       const g_team_t *other_team = &g_team_list[carried_flag->def.tag - FLAG_FIRST];
       g_entity_t *other_team_flag = G_FlagForTeam(other_team);
+      if (!other_team_flag) {
+        return false;
+      }
 
       index = other_team_flag->item->def.tag;
       if (cl->inventory[index]) { // capture
