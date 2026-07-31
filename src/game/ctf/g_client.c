@@ -827,7 +827,9 @@ static bool G_WouldTelefrag(const vec3_t spot) {
 static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points) {
 
   if (!spawn_points->count) {
-    assert(spawn_points != &g_level.spawn_points);
+    if (spawn_points == &g_level.spawn_points) {
+      gi.Error("No spawn points on %s\n", g_level.name);
+    }
     return G_SelectRandomSpawnPoint(&g_level.spawn_points);
   }
 
