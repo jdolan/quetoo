@@ -285,10 +285,12 @@ typedef enum {
 #define EF_CORPSE          (EF_GAME << 4) // to differentiate own corpse from self
 #define EF_RESPAWN         (EF_GAME << 5) // yellow shell
 #define EF_QUAD            (EF_GAME << 6) // blue-green shell
+// these MUST stay in g_team_id_t order: the client resolves a carrier's team
+// by testing EF_CTF_RED << team
 #define EF_CTF_RED         (EF_GAME << 7) // carrying the red flag
 #define EF_CTF_BLUE        (EF_GAME << 8) // carrying the blue flag
-#define EF_CTF_GREEN       (EF_GAME << 9) // carrying the green flag
-#define EF_CTF_YELLOW      (EF_GAME << 10) // carrying the yellow flag
+#define EF_CTF_YELLOW      (EF_GAME << 9) // carrying the yellow flag
+#define EF_CTF_GREEN       (EF_GAME << 10) // carrying the green flag
 #define EF_DESPAWN         (EF_GAME << 11) // translucent
 #define EF_LIGHT           (EF_GAME << 12) // colored light
 #define EF_LIGHT_PULSE     (EF_GAME << 13) // pulse EF_LIGHT radius

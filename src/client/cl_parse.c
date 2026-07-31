@@ -275,15 +275,22 @@ static void Cl_ParseServerData(void) {
   // determine if we're viewing a demo
   cl.demo_server = Net_ReadByte(&net_message);
 
-  // game directory; compare against the module we hold rather than the game
-  // cvar, which a listen server shares with us and has already updated
+  // game directory. Two separate questions: the search path and the game cvar
+  // must always follow the server, while the client game only needs reloading
+  // when it is not already the server's module. Asking the second question of
+  // the cvar or the search path does not work, because a listen server shares
+  // both with us and has already switched them.
   char *str = Net_ReadString(&net_message);
+
+  if (!Fs_ValidGame(str)) {
+    Com_Error(ERROR_DROP, "Server sent an invalid game directory\n");
+  }
+
+  Fs_SetGame(str);
+
+  Cvar_ForceSetString("game", str);
+
   if (q_strcmp(cls.cgame_game, str)) {
-
-    Fs_SetGame(str);
-
-    Cvar_ForceSetString("game", str);
-
     Cl_InitCgame();
   }
 

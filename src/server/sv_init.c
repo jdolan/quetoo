@@ -163,6 +163,7 @@ static void Sv_UpdateLatchedVars(void) {
   Cvar_UpdateLatched();
 
   sv_max_clients->integer = Clampf(sv_max_clients->integer, 1, MAX_CLIENTS);
+  sv_max_entities->integer = Clampf(sv_max_entities->integer, MAX_CLIENTS + 1, MAX_ENTITIES);
 }
 
 /**

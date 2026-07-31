@@ -84,9 +84,12 @@ typedef struct {
 
 #define G_ASSERT_SERVER_FIELD(prefix, field)                                   \
   _Static_assert(offsetof(prefix##_t, field) ==                                \
-                     offsetof(prefix##_server_fields_t, field),                \
-                 #prefix "::" #field " must keep the offset the server "       \
-                 "expects; the server's fields come first, in game.h order")
+                     offsetof(prefix##_server_fields_t, field) &&              \
+                 sizeof(((prefix##_t *) 0)->field) ==                          \
+                     sizeof(((prefix##_server_fields_t *) 0)->field),          \
+                 #prefix "::" #field " must keep the offset and the size the " \
+                 "server expects; the server's fields come first, in game.h "  \
+                 "order")
 
 G_ASSERT_SERVER_FIELD(g_client, entity);
 G_ASSERT_SERVER_FIELD(g_client, ps);

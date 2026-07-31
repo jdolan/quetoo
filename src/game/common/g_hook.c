@@ -369,7 +369,9 @@ void G_HookDetach(g_client_t *cl) {
   }
 
   // free entity
-  G_FreeEntity(cl->hook.entity->target_ent);
+  if (cl->hook.entity->target_ent) {
+    G_FreeEntity(cl->hook.entity->target_ent);
+  }
   G_FreeEntity(cl->hook.entity);
 
   cl->hook.entity = NULL;

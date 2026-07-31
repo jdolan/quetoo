@@ -1,6 +1,5 @@
 SUBDIRS = \
-	@GAME_MODULES@ \
-	ctf
+	@GAME_MODULES@
 
 noinst_HEADERS = \
 	game.h

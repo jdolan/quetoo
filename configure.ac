@@ -200,7 +200,7 @@ dnl ---------------------------------
 
 AC_MSG_CHECKING(which game modules to build)
 
-GAME_MODULES="default"
+GAME_MODULES="default ctf"
 
 AC_ARG_WITH(games,
 	AS_HELP_STRING([--with-games='default ...'],

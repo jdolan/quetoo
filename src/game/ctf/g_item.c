@@ -1195,8 +1195,7 @@ void G_ResetItem(g_entity_t *ent) {
 
   if (ent->item->def.type == ITEM_TYPE_FLAG) {
     const g_team_id_t flag_team = ent->item->def.tag - FLAG_FIRST;
-    const g_team_id_t last_team = FLAG_FIRST + g_level.num_teams - 1;
-    if (g_level.ctf == false || flag_team > last_team) {
+    if (g_level.ctf == false || flag_team >= g_level.num_teams) {
       ent->sv_flags |= SVF_NO_CLIENT;
       ent->solid = SOLID_NOT;
     }

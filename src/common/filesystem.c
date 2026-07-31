@@ -595,18 +595,39 @@ static void Fs_AddUserSearchPath(const char *dir) {
 }
 
 /**
- * @brief Sets the game path to a relative directory.
+ * @return True if `dir` names a game directory the filesystem will accept.
  */
-void Fs_SetGame(const char *dir) {
+bool Fs_ValidGame(const char *dir) {
 
   if (!dir || !*dir) {
     Com_Warn("Missing game name\n");
-    return;
+    return false;
+  }
+
+  if (q_strlen(dir) >= MAX_QPATH) {
+    Com_Warn("Game name is too long (%s)\n", dir);
+    return false;
   }
 
   if (q_strstr(dir, "..") || q_strstr(dir, "/") || q_strstr(dir, "\\") || q_strstr(dir, ":")) {
     Com_Warn("Game should be a directory name, not a path (%s)\n", dir);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Sets the game path to a relative directory.
+ */
+void Fs_SetGame(const char *dir) {
+
+  if (!Fs_ValidGame(dir)) {
     return;
+  }
+
+  if (!q_strcmp(fs_state.game, dir)) {
+    return; // already there; re-mounting would needlessly tear the paths down
   }
 
   Com_Debug(DEBUG_FILESYSTEM, "Setting game: %s\n", dir);
