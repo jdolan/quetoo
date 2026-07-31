@@ -582,6 +582,14 @@
 		CEC011002026010200000004 /* g_effect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000003 /* g_effect.h */; };
 		CEC01100202601020000000E /* cg_team_mode.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC01100202601020000000D /* cg_team_mode.h */; };
 		CEC011002026010200000010 /* cg_team_mode.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC01100202601020000000F /* cg_team_mode.c */; };
+		CEC0FA002026010800000002 /* g_flag.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FA002026010800000001 /* g_flag.c */; };
+		CEC0FA002026010800000004 /* g_flag.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FA002026010800000003 /* g_flag.h */; };
+		CEC0FD002026010500000002 /* cg_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000001 /* cg_hud.c */; };
+		CEC0FD002026010500000004 /* cg_hud.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000003 /* cg_hud.h */; };
+		CEC0FD002026010500000006 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000005 /* cg_score.c */; };
+		CEC0FD002026010500000008 /* cg_score.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000007 /* cg_score.h */; };
+		CEC0FD00202601050000000A /* cg_hud_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000009 /* cg_hud_draw.c */; };
+		CEC0FD00202601050000000C /* cg_hud_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000009 /* cg_hud_draw.c */; };
 		CEC0FF0020260103000000D6 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000004 /* bg_item.c */; };
 		CEC0FF0020260103000000D7 /* bg_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000005 /* bg_item.h */; };
 		CEC0FF0020260103000000EB /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
@@ -703,7 +711,6 @@
 		CEC0FF0020260103000001E7 /* cg_entity_misc.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5621C5C58C300CD0B13 /* cg_entity_misc.c */; };
 		CEC0FF0020260103000001E8 /* cg_entity_trail.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D56A1C5C58C300CD0B13 /* cg_entity_trail.c */; };
 		CEC0FF0020260103000001E9 /* cg_flare.c in Sources */ = {isa = PBXBuildFile; fileRef = CE61772225C0D41F0087A5E7 /* cg_flare.c */; };
-		CEC0FF0020260103000001EA /* cg_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D56C1C5C58C300CD0B13 /* cg_hud.c */; };
 		CEC0FF0020260103000001EB /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB8D6231E00B72100043814 /* cg_input.c */; };
 		CEC0FF0020260103000001EC /* cg_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = FCD76A809F00440F99BC0068 /* cg_inventory.c */; };
 		CEC0FF0020260103000001ED /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
@@ -711,7 +718,6 @@
 		CEC0FF0020260103000001EF /* cg_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5711C5C58C300CD0B13 /* cg_media.c */; };
 		CEC0FF0020260103000001F0 /* cg_muzzle_flash.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */; };
 		CEC0FF0020260103000001F1 /* cg_predict.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5771C5C58C300CD0B13 /* cg_predict.c */; };
-		CEC0FF0020260103000001F2 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5791C5C58C300CD0B13 /* cg_score.c */; };
 		CEC0FF0020260103000001F3 /* cg_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDD1B525A0C2710055860E /* cg_sound.c */; };
 		CEC0FF0020260103000001F4 /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
 		CEC0FF0020260103000001F5 /* cg_team_mode.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000008D /* cg_team_mode.c */; };
@@ -729,7 +735,6 @@
 		CEC0FF002026010300000201 /* cg_entity_misc.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5631C5C58C300CD0B13 /* cg_entity_misc.h */; };
 		CEC0FF002026010300000202 /* cg_entity_trail.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D56B1C5C58C300CD0B13 /* cg_entity_trail.h */; };
 		CEC0FF002026010300000203 /* cg_flare.h in Headers */ = {isa = PBXBuildFile; fileRef = CE61772125C0D41F0087A5E7 /* cg_flare.h */; };
-		CEC0FF002026010300000204 /* cg_hud.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D56D1C5C58C300CD0B13 /* cg_hud.h */; };
 		CEC0FF002026010300000205 /* cg_input.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB8D6241E00B72100043814 /* cg_input.h */; };
 		CEC0FF002026010300000206 /* cg_inventory.h in Headers */ = {isa = PBXBuildFile; fileRef = 066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */; };
 		CEC0FF002026010300000207 /* cg_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9023E792FE0009DA65 /* cg_light.h */; };
@@ -738,7 +743,6 @@
 		CEC0FF00202601030000020A /* cg_media.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0B13 /* cg_media.h */; };
 		CEC0FF00202601030000020B /* cg_muzzle_flash.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */; };
 		CEC0FF00202601030000020C /* cg_predict.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5781C5C58C300CD0B13 /* cg_predict.h */; };
-		CEC0FF00202601030000020D /* cg_score.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57A1C5C58C300CD0B13 /* cg_score.h */; };
 		CEC0FF00202601030000020E /* cg_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEBDD1B425A0C2710055860E /* cg_sound.h */; };
 		CEC0FF00202601030000020F /* cg_sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAC32B6242124BB007E1253 /* cg_sprite.h */; };
 		CEC0FF002026010300000210 /* cg_temp_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57C1C5C58C300CD0B13 /* cg_temp_entity.h */; };
@@ -855,14 +859,6 @@
 		F7EBE32625F44EBF895E36BC /* cg_inventory.h in Headers */ = {isa = PBXBuildFile; fileRef = 066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */; };
 		F8D615462A724ECF9847D4CD /* r_post.h in Headers */ = {isa = PBXBuildFile; fileRef = B80C92655F5249E48131CB95 /* r_post.h */; };
 		FCC98BF568490D2F2305B0A1 /* libgame-item.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93837BFDD89832004989509B /* libgame-item.a */; };
-		CEC0FD002026010500000002 /* cg_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000001 /* cg_hud.c */; };
-		CEC0FD002026010500000004 /* cg_hud.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000003 /* cg_hud.h */; };
-		CEC0FD002026010500000006 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000005 /* cg_score.c */; };
-		CEC0FD002026010500000008 /* cg_score.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000007 /* cg_score.h */; };
-		CEC0FD00202601050000000A /* cg_hud_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000009 /* cg_hud_draw.c */; };
-		CEC0FD00202601050000000C /* cg_hud_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000009 /* cg_hud_draw.c */; };
-		CEC0FA002026010800000002 /* g_flag.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FA002026010800000001 /* g_flag.c */; };
-		CEC0FA002026010800000004 /* g_flag.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FA002026010800000003 /* g_flag.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -2072,6 +2068,15 @@
 		CEC01100202601020000000B /* sources.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = sources.mk; sourceTree = "<group>"; };
 		CEC01100202601020000000D /* cg_team_mode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_team_mode.h; sourceTree = "<group>"; };
 		CEC01100202601020000000F /* cg_team_mode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_team_mode.c; sourceTree = "<group>"; };
+		CEC0FA002026010800000001 /* g_flag.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_flag.c; sourceTree = "<group>"; };
+		CEC0FA002026010800000003 /* g_flag.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_flag.h; sourceTree = "<group>"; };
+		CEC0FB002026010700000001 /* g_module.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_module.h; sourceTree = "<group>"; };
+		CEC0FD002026010500000001 /* cg_hud.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud.c; sourceTree = "<group>"; };
+		CEC0FD002026010500000003 /* cg_hud.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud.h; sourceTree = "<group>"; };
+		CEC0FD002026010500000005 /* cg_score.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_score.c; sourceTree = "<group>"; };
+		CEC0FD002026010500000007 /* cg_score.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_score.h; sourceTree = "<group>"; };
+		CEC0FD002026010500000009 /* cg_hud_draw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud_draw.c; sourceTree = "<group>"; };
+		CEC0FD00202601050000000B /* cg_hud_draw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud_draw.h; sourceTree = "<group>"; };
 		CEC0FF002026010300000003 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CEC0FF002026010300000004 /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
 		CEC0FF002026010300000005 /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
@@ -2176,15 +2181,6 @@
 		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
 		F7E7256984E276048C2A155E /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
 		FCD76A809F00440F99BC0068 /* cg_inventory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_inventory.c; sourceTree = "<group>"; };
-		CEC0FD002026010500000001 /* cg_hud.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud.c; sourceTree = "<group>"; };
-		CEC0FD002026010500000003 /* cg_hud.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud.h; sourceTree = "<group>"; };
-		CEC0FD002026010500000005 /* cg_score.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_score.c; sourceTree = "<group>"; };
-		CEC0FD002026010500000007 /* cg_score.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_score.h; sourceTree = "<group>"; };
-		CEC0FD002026010500000009 /* cg_hud_draw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud_draw.c; sourceTree = "<group>"; };
-		CEC0FD00202601050000000B /* cg_hud_draw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud_draw.h; sourceTree = "<group>"; };
-		CEC0FB002026010700000001 /* g_module.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_module.h; sourceTree = "<group>"; };
-		CEC0FA002026010800000001 /* g_flag.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_flag.c; sourceTree = "<group>"; };
-		CEC0FA002026010800000003 /* g_flag.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_flag.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2761,10 +2757,10 @@
 		CE12D55D1C5C58C300CD0B13 /* default */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D57A1C5C58C300CD0B13 /* cg_score.h */,
-				CE12D5791C5C58C300CD0B13 /* cg_score.c */,
 				CE12D56D1C5C58C300CD0B13 /* cg_hud.h */,
 				CE12D56C1C5C58C300CD0B13 /* cg_hud.c */,
+				CE12D57A1C5C58C300CD0B13 /* cg_score.h */,
+				CE12D5791C5C58C300CD0B13 /* cg_score.c */,
 				CEC01100202601020000000F /* cg_team_mode.c */,
 				CE12D5801C5C58C300CD0B13 /* Makefile.am */,
 			);
@@ -3017,26 +3013,26 @@
 		CE12D6401C5C58C300CD0B13 /* default */ = {
 			isa = PBXGroup;
 			children = (
-				7966EA6596003F9303BC00FA /* bg_item.c */,
 				F7E7256984E276048C2A155E /* bg_item.h */,
-				CE12D64D1C5C58C300CD0B13 /* g_client_stats.c */,
-				CE12D64E1C5C58C300CD0B13 /* g_client_stats.h */,
-				CE12D6491C5C58C300CD0B13 /* g_client.c */,
+				7966EA6596003F9303BC00FA /* bg_item.c */,
 				CE12D64A1C5C58C300CD0B13 /* g_client.h */,
-				CE12D6511C5C58C300CD0B13 /* g_cmd.c */,
+				CE12D6491C5C58C300CD0B13 /* g_client.c */,
+				CE12D64E1C5C58C300CD0B13 /* g_client_stats.h */,
+				CE12D64D1C5C58C300CD0B13 /* g_client_stats.c */,
 				CE12D6521C5C58C300CD0B13 /* g_cmd.h */,
-				CE12D6531C5C58C300CD0B13 /* g_combat.c */,
+				CE12D6511C5C58C300CD0B13 /* g_cmd.c */,
 				CE12D6541C5C58C300CD0B13 /* g_combat.h */,
-				CE12D6551C5C58C300CD0B13 /* g_entity.c */,
+				CE12D6531C5C58C300CD0B13 /* g_combat.c */,
 				CE12D6561C5C58C300CD0B13 /* g_entity.h */,
-				CE12D6611C5C58C300CD0B13 /* g_item.c */,
+				CE12D6551C5C58C300CD0B13 /* g_entity.c */,
 				CE12D6621C5C58C300CD0B13 /* g_item.h */,
+				CE12D6611C5C58C300CD0B13 /* g_item.c */,
 				CE12D6631C5C58C300CD0B13 /* g_local.h */,
-				CE12D6641C5C58C300CD0B13 /* g_main.c */,
 				CE12D6651C5C58C300CD0B13 /* g_main.h */,
+				CE12D6641C5C58C300CD0B13 /* g_main.c */,
 				CE12D66C1C5C58C300CD0B13 /* g_types.h */,
-				CE12D66F1C5C58C300CD0B13 /* g_weapon.c */,
 				CE12D6701C5C58C300CD0B13 /* g_weapon.h */,
+				CE12D66F1C5C58C300CD0B13 /* g_weapon.c */,
 				CE12D6711C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = default;
@@ -3692,58 +3688,58 @@
 		CEC011002026010100000001 /* common */ = {
 			isa = PBXGroup;
 			children = (
-				CEC0FD00202601050000000B /* cg_hud_draw.h */,
-				CEC0FD002026010500000009 /* cg_hud_draw.c */,
-				CE4DCF04256DCCA100FECAFC /* cg_weapon.h */,
-				CE4DCF05256DCCA100FECAFC /* cg_weapon.c */,
-				CE12D57F1C5C58C300CD0B13 /* cg_view.h */,
-				CE12D57E1C5C58C300CD0B13 /* cg_view.c */,
-				CE6EE4101F72919800FBC830 /* cg_ui.h */,
-				CE6EE40F1F72919800FBC830 /* cg_ui.c */,
-				CE12D57D1C5C58C300CD0B13 /* cg_types.h */,
-				CE12D57C1C5C58C300CD0B13 /* cg_temp_entity.h */,
-				CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */,
-				CEAC32B6242124BB007E1253 /* cg_sprite.h */,
-				CEAC32B7242124BB007E1253 /* cg_sprite.c */,
-				CEBDD1B425A0C2710055860E /* cg_sound.h */,
-				CEBDD1B525A0C2710055860E /* cg_sound.c */,
-				CE12D5781C5C58C300CD0B13 /* cg_predict.h */,
-				CE12D5771C5C58C300CD0B13 /* cg_predict.c */,
-				CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */,
-				CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */,
-				CE12D5721C5C58C300CD0B13 /* cg_media.h */,
-				CE12D5711C5C58C300CD0B13 /* cg_media.c */,
-				CE12D5701C5C58C300CD0B13 /* cg_main.h */,
-				CE12D56F1C5C58C300CD0B13 /* cg_main.c */,
-				CE12D56E1C5C58C300CD0B13 /* cg_local.h */,
-				CE9CFC9023E792FE0009DA65 /* cg_light.h */,
-				CE9CFC9123E792FE0009DA65 /* cg_light.c */,
-				066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */,
-				FCD76A809F00440F99BC0068 /* cg_inventory.c */,
-				CEB8D6241E00B72100043814 /* cg_input.h */,
-				CEB8D6231E00B72100043814 /* cg_input.c */,
-				CE61772125C0D41F0087A5E7 /* cg_flare.h */,
-				CE61772225C0D41F0087A5E7 /* cg_flare.c */,
-				CE12D56B1C5C58C300CD0B13 /* cg_entity_trail.h */,
-				CE12D56A1C5C58C300CD0B13 /* cg_entity_trail.c */,
-				CE12D5631C5C58C300CD0B13 /* cg_entity_misc.h */,
-				CE12D5621C5C58C300CD0B13 /* cg_entity_misc.c */,
-				CE12D5691C5C58C300CD0B13 /* cg_entity_event.h */,
-				CE12D5681C5C58C300CD0B13 /* cg_entity_event.c */,
-				CE12D5671C5C58C300CD0B13 /* cg_entity_effect.h */,
-				CE12D5661C5C58C300CD0B13 /* cg_entity_effect.c */,
-				CE12D5651C5C58C300CD0B13 /* cg_entity.h */,
-				CE12D5641C5C58C300CD0B13 /* cg_entity.c */,
-				CE12D5611C5C58C300CD0B13 /* cg_effect.h */,
-				CE12D5601C5C58C300CD0B13 /* cg_effect.c */,
-				CFA000032F9100000000C003 /* cg_editor.h */,
-				CFA000022F9100000000C002 /* cg_editor.c */,
-				CE27E6B827AC95D1003D56AC /* cg_discord.h */,
-				CE27E6B727AC95D1003D56AC /* cg_discord.c */,
+				CE5870711F5CDFE0004CAAB2 /* ui */,
 				CE12D55F1C5C58C300CD0B13 /* cg_client.h */,
 				CE12D55E1C5C58C300CD0B13 /* cg_client.c */,
-				CE5870711F5CDFE0004CAAB2 /* ui */,
+				CE27E6B827AC95D1003D56AC /* cg_discord.h */,
+				CE27E6B727AC95D1003D56AC /* cg_discord.c */,
+				CFA000032F9100000000C003 /* cg_editor.h */,
+				CFA000022F9100000000C002 /* cg_editor.c */,
+				CE12D5611C5C58C300CD0B13 /* cg_effect.h */,
+				CE12D5601C5C58C300CD0B13 /* cg_effect.c */,
+				CE12D5651C5C58C300CD0B13 /* cg_entity.h */,
+				CE12D5641C5C58C300CD0B13 /* cg_entity.c */,
+				CE12D5671C5C58C300CD0B13 /* cg_entity_effect.h */,
+				CE12D5661C5C58C300CD0B13 /* cg_entity_effect.c */,
+				CE12D5691C5C58C300CD0B13 /* cg_entity_event.h */,
+				CE12D5681C5C58C300CD0B13 /* cg_entity_event.c */,
+				CE12D5631C5C58C300CD0B13 /* cg_entity_misc.h */,
+				CE12D5621C5C58C300CD0B13 /* cg_entity_misc.c */,
+				CE12D56B1C5C58C300CD0B13 /* cg_entity_trail.h */,
+				CE12D56A1C5C58C300CD0B13 /* cg_entity_trail.c */,
+				CE61772125C0D41F0087A5E7 /* cg_flare.h */,
+				CE61772225C0D41F0087A5E7 /* cg_flare.c */,
+				CEC0FD00202601050000000B /* cg_hud_draw.h */,
+				CEC0FD002026010500000009 /* cg_hud_draw.c */,
+				CEB8D6241E00B72100043814 /* cg_input.h */,
+				CEB8D6231E00B72100043814 /* cg_input.c */,
+				066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */,
+				FCD76A809F00440F99BC0068 /* cg_inventory.c */,
+				CE9CFC9023E792FE0009DA65 /* cg_light.h */,
+				CE9CFC9123E792FE0009DA65 /* cg_light.c */,
+				CE12D56E1C5C58C300CD0B13 /* cg_local.h */,
+				CE12D5701C5C58C300CD0B13 /* cg_main.h */,
+				CE12D56F1C5C58C300CD0B13 /* cg_main.c */,
+				CE12D5721C5C58C300CD0B13 /* cg_media.h */,
+				CE12D5711C5C58C300CD0B13 /* cg_media.c */,
+				CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */,
+				CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */,
+				CE12D5781C5C58C300CD0B13 /* cg_predict.h */,
+				CE12D5771C5C58C300CD0B13 /* cg_predict.c */,
+				CEBDD1B425A0C2710055860E /* cg_sound.h */,
+				CEBDD1B525A0C2710055860E /* cg_sound.c */,
+				CEAC32B6242124BB007E1253 /* cg_sprite.h */,
+				CEAC32B7242124BB007E1253 /* cg_sprite.c */,
 				CEC01100202601020000000D /* cg_team_mode.h */,
+				CE12D57C1C5C58C300CD0B13 /* cg_temp_entity.h */,
+				CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */,
+				CE12D57D1C5C58C300CD0B13 /* cg_types.h */,
+				CE6EE4101F72919800FBC830 /* cg_ui.h */,
+				CE6EE40F1F72919800FBC830 /* cg_ui.c */,
+				CE12D57F1C5C58C300CD0B13 /* cg_view.h */,
+				CE12D57E1C5C58C300CD0B13 /* cg_view.c */,
+				CE4DCF04256DCCA100FECAFC /* cg_weapon.h */,
+				CE4DCF05256DCCA100FECAFC /* cg_weapon.c */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -3751,49 +3747,49 @@
 		CEC011002026010100000002 /* common */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D66E1C5C58C300CD0B13 /* g_util.h */,
-				CE12D66D1C5C58C300CD0B13 /* g_util.c */,
-				CEC0FB002026010700000001 /* g_module.h */,
-				CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */,
-				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
-				CE12D65A1C5C58C300CD0B13 /* g_entity_info.h */,
-				CE12D6591C5C58C300CD0B13 /* g_entity_info.c */,
-				CE12D6501C5C58C300CD0B13 /* g_client_view.h */,
-				CE12D64F1C5C58C300CD0B13 /* g_client_view.c */,
-				CE12D64C1C5C58C300CD0B13 /* g_client_chase.h */,
-				CE12D64B1C5C58C300CD0B13 /* g_client_chase.c */,
-				CE12D6481C5C58C300CD0B13 /* g_ballistics.h */,
-				CE12D6471C5C58C300CD0B13 /* g_ballistics.c */,
-				CE27E9F627BDA2AE003D56AC /* g_ai_types.h */,
-				CE27E9F927BDA2AE003D56AC /* g_ai_node.h */,
-				CE27E9F827BDA2AE003D56AC /* g_ai_node.c */,
-				CE27E9F727BDA2AE003D56AC /* g_ai_main.h */,
-				CE27E9F527BDA2AE003D56AC /* g_ai_main.c */,
-				CE27E9FA27BDA2AE003D56AC /* g_ai_item.h */,
-				CE27E9F227BDA2AE003D56AC /* g_ai_item.c */,
-				CE27E9FB27BDA2AE003D56AC /* g_ai_info.h */,
-				CE27E9F427BDA2AE003D56AC /* g_ai_info.c */,
-				CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */,
-				CE4E05402FDAE2CE00B92C32 /* g_ai_grid.c */,
-				CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */,
-				CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */,
 				CE12D6421C5C58C300CD0B13 /* bg_pmove.h */,
 				CE12D6411C5C58C300CD0B13 /* bg_pmove.c */,
+				CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */,
+				CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */,
+				CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */,
+				CE4E05402FDAE2CE00B92C32 /* g_ai_grid.c */,
+				CE27E9FB27BDA2AE003D56AC /* g_ai_info.h */,
+				CE27E9F427BDA2AE003D56AC /* g_ai_info.c */,
+				CE27E9FA27BDA2AE003D56AC /* g_ai_item.h */,
+				CE27E9F227BDA2AE003D56AC /* g_ai_item.c */,
+				CE27E9F727BDA2AE003D56AC /* g_ai_main.h */,
+				CE27E9F527BDA2AE003D56AC /* g_ai_main.c */,
+				CE27E9F927BDA2AE003D56AC /* g_ai_node.h */,
+				CE27E9F827BDA2AE003D56AC /* g_ai_node.c */,
+				CE27E9F627BDA2AE003D56AC /* g_ai_types.h */,
+				CE12D6481C5C58C300CD0B13 /* g_ballistics.h */,
+				CE12D6471C5C58C300CD0B13 /* g_ballistics.c */,
+				CE12D64C1C5C58C300CD0B13 /* g_client_chase.h */,
+				CE12D64B1C5C58C300CD0B13 /* g_client_chase.c */,
+				CE12D6501C5C58C300CD0B13 /* g_client_view.h */,
+				CE12D64F1C5C58C300CD0B13 /* g_client_view.c */,
 				CEC011002026010200000003 /* g_effect.h */,
 				CEC011002026010200000001 /* g_effect.c */,
 				CE12D6581C5C58C300CD0B13 /* g_entity_func.h */,
 				CE12D6571C5C58C300CD0B13 /* g_entity_func.c */,
+				CE12D65A1C5C58C300CD0B13 /* g_entity_info.h */,
+				CE12D6591C5C58C300CD0B13 /* g_entity_info.c */,
 				CE12D65C1C5C58C300CD0B13 /* g_entity_misc.h */,
 				CE12D65B1C5C58C300CD0B13 /* g_entity_misc.c */,
 				CE12D65E1C5C58C300CD0B13 /* g_entity_target.h */,
 				CE12D65D1C5C58C300CD0B13 /* g_entity_target.c */,
+				CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */,
+				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
 				CEC011002026010200000007 /* g_hook.h */,
 				CEC011002026010200000005 /* g_hook.c */,
 				CEC011002026010200000009 /* g_hook_types.h */,
+				CEC0FB002026010700000001 /* g_module.h */,
 				CE12D66B1C5C58C300CD0B13 /* g_physics.h */,
 				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
 				CEFF1295277D439B001E1500 /* g_sound.h */,
 				CEFF1296277D439B001E1500 /* g_sound.c */,
+				CE12D66E1C5C58C300CD0B13 /* g_util.h */,
+				CE12D66D1C5C58C300CD0B13 /* g_util.c */,
 				CEC01100202601020000000B /* sources.mk */,
 			);
 			path = common;
@@ -3802,8 +3798,6 @@
 		CEC0FF002026010300000001 /* ctf */ = {
 			isa = PBXGroup;
 			children = (
-				CEC0FA002026010800000003 /* g_flag.h */,
-				CEC0FA002026010800000001 /* g_flag.c */,
 				CEC0FF002026010300000005 /* bg_item.h */,
 				CEC0FF002026010300000004 /* bg_item.c */,
 				CEC0FF002026010300000016 /* g_client.h */,
@@ -3816,6 +3810,8 @@
 				CEC0FF00202601030000001F /* g_combat.c */,
 				CEC0FF002026010300000022 /* g_entity.h */,
 				CEC0FF002026010300000021 /* g_entity.c */,
+				CEC0FA002026010800000003 /* g_flag.h */,
+				CEC0FA002026010800000001 /* g_flag.c */,
 				CEC0FF002026010300000028 /* g_item.h */,
 				CEC0FF002026010300000027 /* g_item.c */,
 				CEC0FF002026010300000029 /* g_local.h */,
@@ -3832,10 +3828,10 @@
 		CEC0FF00202601030000005F /* ctf */ = {
 			isa = PBXGroup;
 			children = (
-				CEC0FD002026010500000007 /* cg_score.h */,
-				CEC0FD002026010500000005 /* cg_score.c */,
 				CEC0FD002026010500000003 /* cg_hud.h */,
 				CEC0FD002026010500000001 /* cg_hud.c */,
+				CEC0FD002026010500000007 /* cg_score.h */,
+				CEC0FD002026010500000005 /* cg_score.c */,
 				CEC0FF00202601030000008D /* cg_team_mode.c */,
 				CEC0FF002026010300000061 /* Makefile.am */,
 			);
@@ -7187,16 +7183,16 @@
 			buildSettings = {
 				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
 				EXECUTABLE_EXTENSION = so;
-				LIBRARY_SEARCH_PATHS = (
-					"$(HOMEBREW_PREFIX)/lib",
-					"$(BUILT_PRODUCTS_DIR)/..",
-				);
-				OTHER_LDFLAGS = "-all_load";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					G_HOOK,
 					G_CTF,
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					"$(BUILT_PRODUCTS_DIR)/..",
+				);
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = cgame;
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
@@ -7225,16 +7221,16 @@
 			buildSettings = {
 				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
 				EXECUTABLE_EXTENSION = so;
-				LIBRARY_SEARCH_PATHS = (
-					"$(HOMEBREW_PREFIX)/lib",
-					"$(BUILT_PRODUCTS_DIR)/..",
-				);
-				OTHER_LDFLAGS = "-all_load";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					G_HOOK,
 					G_CTF,
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					"$(BUILT_PRODUCTS_DIR)/..",
+				);
+				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = cgame;
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
