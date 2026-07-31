@@ -24,7 +24,9 @@ BINARIES = \
 
 MODULES = \
 	$(STAGING)/lib/default/cgame.so \
-	$(STAGING)/lib/default/game.so
+	$(STAGING)/lib/default/game.so \
+	$(STAGING)/lib/ctf/cgame.so \
+	$(STAGING)/lib/ctf/game.so
 
 ARCHIVE  = $(TARGET)/quetoo-$(BUILD).tar.gz
 DEB      = $(TARGET)/quetoo_$(VERSION)_$(DEB_ARCH).deb
