@@ -31,6 +31,8 @@
 
 #define FS_FILE_BUFFER (1024 * 1024 * 2)
 
+#define MAX_COMMAND_LINE_PATHS 8
+
 typedef struct {
 
   /**
@@ -73,6 +75,15 @@ typedef struct {
   char game[MAX_QPATH];
 
   /**
+   * @brief Search paths given on the command line with `-path` or `-wpath`.
+   * @details These are roots that may contain game directories, exactly like
+   * the install directories, so that a development tree laid out the same way
+   * resolves modules and assets the same way.
+   */
+  char command_line_paths[MAX_COMMAND_LINE_PATHS][MAX_OS_PATH];
+  size_t num_command_line_paths;
+
+  /**
    * @brief For debugging purposes, track all loaded files to ensure that
    * they are freed (`Fs_Free`) in all code paths.
    */
@@ -80,6 +91,22 @@ typedef struct {
 } fs_state_t;
 
 static fs_state_t fs_state;
+
+/**
+ * @brief Adds a command line search path, remembering it as a root so that
+ * `Fs_SetGame` can resolve game directories beneath it.
+ */
+static void Fs_AddCommandLinePath(const char *path) {
+
+  Fs_AddToSearchPath(path);
+
+  if (fs_state.num_command_line_paths == MAX_COMMAND_LINE_PATHS) {
+    Com_Warn("Ignoring %s; only %d command line paths are supported\n", path, MAX_COMMAND_LINE_PATHS);
+    return;
+  }
+
+  q_strlcpy(fs_state.command_line_paths[fs_state.num_command_line_paths++], path, MAX_OS_PATH);
+}
 
 /**
  * @return The base directory, if running from a bundled application.
@@ -627,7 +654,7 @@ void Fs_SetGame(const char *dir) {
   }
 
   if (!q_strcmp(fs_state.game, dir)) {
-    return; // already there; re-mounting would needlessly tear the paths down
+    return;
   }
 
   Com_Debug(DEBUG_FILESYSTEM, "Setting game: %s\n", dir);
@@ -658,6 +685,10 @@ void Fs_SetGame(const char *dir) {
   // now add new entries for the new game
   Fs_AddToSearchPathv(fs_state.lib_dir, dir, NULL);
   Fs_AddToSearchPathv(fs_state.data_dir, dir, NULL);
+
+  for (size_t p = 0; p < fs_state.num_command_line_paths; p++) {
+    Fs_AddToSearchPathv(fs_state.command_line_paths[p], dir, NULL);
+  }
 
   Fs_AddUserSearchPath(dir);
 
@@ -842,15 +873,21 @@ void Fs_Init(const uint32_t flags) {
   for (i = 1; i < Com_Argc(); i++) {
 
     if (!q_strcmp(Com_Argv(i), "-p") || !q_strcmp(Com_Argv(i), "-path")) {
-      Fs_AddToSearchPath(Com_Argv(i + 1));
+      Fs_AddCommandLinePath(Com_Argv(i + 1));
       continue;
     }
 
     if (!q_strcmp(Com_Argv(i), "-w") || !q_strcmp(Com_Argv(i), "-wpath")) {
-      Fs_AddToSearchPath(Com_Argv(i + 1));
+      Fs_AddCommandLinePath(Com_Argv(i + 1));
       Fs_SetWriteDir(Com_Argv(i + 1));
       continue;
     }
+  }
+
+  // as with the install directories, the default game beneath them is a base
+  // path, present whichever game is later selected
+  for (size_t p = 0; p < fs_state.num_command_line_paths; p++) {
+    Fs_AddToSearchPathv(fs_state.command_line_paths[p], DEFAULT_GAME, NULL);
   }
 
   // these paths will be retained across all game modules
