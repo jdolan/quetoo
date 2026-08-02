@@ -343,7 +343,6 @@ typedef enum {
   TEAM_BLUE,
   TEAM_YELLOW,
   TEAM_GREEN,
-
   MAX_TEAMS
 } g_team_id_t;
 
@@ -378,8 +377,6 @@ typedef enum {
   ITEMS_DEFAULT,
   ITEMS_QUAKE
 } g_items_t;
-
-// g_item_type_t and g_item_tag_t are defined in bg_item.h
 
 /**
  * @brief Weapon flags provide hints to indicate weapon use.

@@ -22,28 +22,12 @@
 #include "cg_local.h"
 #include "cg_team_mode.h"
 
-static const cg_team_mode_cvar_t cg_free_for_all[] = {
-  { "g_teams", "0" },
-  { "g_ctf", "0" },
-  { NULL, NULL }
-};
-
-static const cg_team_mode_cvar_t cg_team_deathmatch[] = {
-  { "g_teams", "1" },
-  { "g_ctf", "0" },
-  { NULL, NULL }
-};
-
-static const cg_team_mode_cvar_t cg_capture_the_flag[] = {
-  { "g_teams", "1" },
-  { "g_ctf", "1" },
-  { NULL, NULL }
-};
-
 static const cg_team_mode_t cg_team_modes[] = {
-  { "Free for all", cg_free_for_all },
-  { "Team deathmatch", cg_team_deathmatch },
-  { "Capture the flag", cg_capture_the_flag },
+  {
+    "Capture the flag", (cg_team_mode_cvar_t[]) {
+      { "g_ctf", "1" }, { NULL, NULL }
+    }
+  },
 };
 
 /**

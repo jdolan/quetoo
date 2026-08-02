@@ -132,7 +132,6 @@ static void loadView(ViewController *self) {
 
   this->bots->delegate.didEndEditing = botsDidEndEditing;
 
-  $(this->gameplay, addOption, "Default", "default");
   $(this->gameplay, addOption, "Deathmatch", "deathmatch");
   $(this->gameplay, addOption, "Instagib", "instagib");
   $(this->gameplay, addOption, "Arena", "arena");
