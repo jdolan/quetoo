@@ -23,6 +23,48 @@
 #include "bg_pmove.h"
 
 /**
+ * @brief Appends a spawn point to `spawns`, allocating the vector on first use.
+ */
+void G_AddSpawn(Vector **spawns, g_entity_t *spot) {
+
+  if (!*spawns) {
+    *spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *));
+  }
+
+  $(*spawns, add, &spot);
+}
+
+/**
+ * @brief Appends every entity of the given class to `spawns`.
+ */
+void G_CollectSpawns(const char *class_name, Vector **spawns) {
+
+  g_entity_t *spot = NULL;
+
+  while ((spot = G_Find(spot, EOFS(classname), class_name)) != NULL) {
+    G_AddSpawn(spawns, spot);
+  }
+}
+
+/**
+ * @brief Copies collected spawn points into an array that lives for the level.
+ */
+void G_SetSpawnPoints(g_spawn_points_t *points, const Vector *spawns) {
+
+  points->count = spawns ? (int32_t) spawns->count : 0;
+
+  if (points->count) {
+    points->spots = gi.Malloc(sizeof(g_entity_t *) * points->count, MEM_TAG_GAME_LEVEL);
+
+    for (uint32_t i = 0; i < (uint32_t) points->count; i++) {
+      points->spots[i] = VectorValue(spawns, g_entity_t *, i);
+    }
+  } else {
+    points->spots = NULL;
+  }
+}
+
+/**
  * @brief Initializes a player spawn point entity, adjusting origin and angle for the spawn preview model.
  */
 void G_InitPlayerSpawn(g_entity_t *ent) {

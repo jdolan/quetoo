@@ -31,6 +31,10 @@ void G_Gib(g_entity_t *ent);
 void G_InitPlayerSpawn(g_entity_t *ent);
 void G_ClientProjectile(const g_client_t *cl, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *org, float hand);
 g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match);
+
+void G_AddSpawn(Vector **spawns, g_entity_t *spot);
+void G_CollectSpawns(const char *class_name, Vector **spawns);
+void G_SetSpawnPoints(g_spawn_points_t *points, const Vector *spawns);
 g_entity_t *G_PickTarget(const char *target_name);
 void G_UseTargets(g_entity_t *ent, g_entity_t *activator);
 void G_SetMoveDir(g_entity_t *ent);

@@ -339,99 +339,94 @@ static void G_InitMedia(void) {
 }
 
 /**
- * @brief Set up the list of spawn points.
+ * @brief Collects the deathmatch spawn points, falling back on the single
+ * player start for maps that provide none.
  */
-static void G_InitSpawnPoints(void) {
+static Vector *G_InitDeathmatchSpawns(void) {
 
-  // first, set up all of the deathmatch points
-  Vector *dm_spawns = NULL;
-  g_entity_t *spot = NULL;
+  Vector *spawns = NULL;
 
-  while ((spot = G_Find(spot, EOFS(classname), "info_player_deathmatch")) != NULL) {
-    if (!dm_spawns) { dm_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-    $(dm_spawns, add, &spot);
+  G_CollectSpawns("info_player_deathmatch", &spawns);
+
+  if (!spawns) {
+    G_CollectSpawns("info_player_start", &spawns);
   }
 
-  if (!dm_spawns) {
-    spot = NULL;
+  return spawns;
+}
 
-    while ((spot = G_Find(spot, EOFS(classname), "info_player_start")) != NULL) {
-      if (!dm_spawns) { dm_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-      $(dm_spawns, add, &spot);
-    }
-  }
-  
-  // find the team points, if we have any explicit ones in the map.
-  // start by finding the flags
+/**
+ * @brief Collects each team's spawn points and the flag it defends. An
+ * `info_player_team_any` spawn belongs to every team, and precedes that team's
+ * own spawns.
+ */
+static void G_InitTeamSpawns(Vector *team_spawns[MAX_TEAMS]) {
+
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
     g_team_list[t].flag_entity = G_Find(NULL, EOFS(classname), g_team_list[t].flag);
   }
 
-  Vector *team_spawns[MAX_TEAMS];
-
-  memset(team_spawns, 0, sizeof(team_spawns));
-
-  spot = NULL;
+  g_entity_t *spot = NULL;
 
   while ((spot = G_Find(spot, EOFS(classname), "info_player_team_any")) != NULL) {
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
-      if (!team_spawns[t]) { team_spawns[t] = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-      $(team_spawns[t], add, &spot);
+      G_AddSpawn(&team_spawns[t], spot);
     }
   }
 
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
-    spot = NULL;
-    g_team_t *team = &g_team_list[t];
-
-    while ((spot = G_Find(spot, EOFS(classname), team->spawn)) != NULL) {
-      if (!team_spawns[t]) { team_spawns[t] = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-      $(team_spawns[t], add, &spot);
-    }
-
-    team->spawn_points.count = team_spawns[t] ? (int32_t) team_spawns[t]->count : 0;
+    G_CollectSpawns(g_team_list[t].spawn, &team_spawns[t]);
   }
+}
 
-  g_level.spawn_points.count = dm_spawns ? (int32_t) dm_spawns->count : 0;
+/**
+ * @brief Publishes the collected spawn points and derives the team count.
+ * @details A map providing only team spawns still needs a deathmatch set, and
+ * conversely a team game on a map with no team spawns draws everyone from the
+ * deathmatch set. Most maps have no team spawns at all, so capture play leans
+ * on that fallback rather than treating it as an oddity.
+ */
+static void G_ResolveSpawnPoints(Vector *dm_spawns, Vector *team_spawns[MAX_TEAMS]) {
 
-  // in the odd case that the map only has team spawns, we'll use them
-  if (!g_level.spawn_points.count) {
+  if (!dm_spawns) {
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
-      if (!team_spawns[t]) { continue; }
-      for (uint32_t i = 0; i < team_spawns[t]->count; i++) {
-        g_entity_t *p = VectorValue(team_spawns[t], g_entity_t *, i);
-        if (!dm_spawns) { dm_spawns = $(alloc(Vector), initWithSize, sizeof(g_entity_t *)); }
-        $(dm_spawns, add, &p);
+      for (uint32_t i = 0; team_spawns[t] && i < team_spawns[t]->count; i++) {
+        G_AddSpawn(&dm_spawns, VectorValue(team_spawns[t], g_entity_t *, i));
       }
     }
-    
-    g_level.spawn_points.count = dm_spawns ? (int32_t) dm_spawns->count : 0;
 
-    if (!g_level.spawn_points.count) {
+    if (!dm_spawns) {
       gi.Error("Map has no spawn points\n");
     }
   }
 
-  // copy all the data in!
+  G_SetSpawnPoints(&g_level.spawn_points, dm_spawns);
+  release(dm_spawns);
+
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
-    g_team_list[t].spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_team_list[t].spawn_points.count, MEM_TAG_GAME_LEVEL);
-  
-    for (int32_t i = 0; team_spawns[t] && i < (int32_t) team_spawns[t]->count; i++) {
-      g_team_list[t].spawn_points.spots[i] = VectorValue(team_spawns[t], g_entity_t *, i);
+    G_SetSpawnPoints(&g_team_list[t].spawn_points, team_spawns[t]);
+
+    if (team_spawns[t]) {
+      release(team_spawns[t]);
     }
-  
-    if (team_spawns[t]) { release(team_spawns[t]); }
   }
-  
-  g_level.spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_level.spawn_points.count, MEM_TAG_GAME_LEVEL);
-
-  for (int32_t i = 0; dm_spawns && i < (int32_t) dm_spawns->count; i++) {
-    g_level.spawn_points.spots[i] = VectorValue(dm_spawns, g_entity_t *, i);
-  }
-
-  if (dm_spawns) { release(dm_spawns); }
 
   G_InitNumTeams();
+}
+
+/**
+ * @brief Resolves the spawn points, and the team each belongs to.
+ */
+static void G_InitSpawnPoints(void) {
+
+  Vector *dm_spawns = G_InitDeathmatchSpawns();
+
+  Vector *team_spawns[MAX_TEAMS];
+  memset(team_spawns, 0, sizeof(team_spawns));
+
+  G_InitTeamSpawns(team_spawns);
+
+  G_ResolveSpawnPoints(dm_spawns, team_spawns);
 }
 
 /**
