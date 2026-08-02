@@ -3790,36 +3790,36 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEC011002026010200000004 /* g_effect.h in Headers */,
-				CE80FE941C5E443D00A21A51 /* game.h in Headers */,
 				CE27E9FE27BDA2AE003D56AC /* g_ai_goal.h in Headers */,
+				CE4E05412FDAE2CE00B92C32 /* g_ai_grid.h in Headers */,
+				CE27EA0627BDA2AF003D56AC /* g_ai_info.h in Headers */,
+				CE27EA0527BDA2AF003D56AC /* g_ai_item.h in Headers */,
+				CE27EA0227BDA2AF003D56AC /* g_ai_main.h in Headers */,
+				CE27EA0427BDA2AF003D56AC /* g_ai_node.h in Headers */,
+				CE27EA0127BDA2AF003D56AC /* g_ai_types.h in Headers */,
 				CE80FE7E1C5E442700A21A51 /* g_ballistics.h in Headers */,
 				CE80FE7F1C5E442700A21A51 /* g_client.h in Headers */,
-				CE27EA0527BDA2AF003D56AC /* g_ai_item.h in Headers */,
 				CE80FE801C5E442700A21A51 /* g_client_chase.h in Headers */,
 				CE80FE811C5E442700A21A51 /* g_client_stats.h in Headers */,
 				CE80FE821C5E442700A21A51 /* g_client_view.h in Headers */,
 				CE80FE831C5E442700A21A51 /* g_cmd.h in Headers */,
 				CE80FE841C5E442700A21A51 /* g_combat.h in Headers */,
+				CEC011002026010200000004 /* g_effect.h in Headers */,
 				CE80FE851C5E442700A21A51 /* g_entity.h in Headers */,
 				CE80FE861C5E442700A21A51 /* g_entity_func.h in Headers */,
 				CE80FE871C5E442700A21A51 /* g_entity_info.h in Headers */,
-				CE27EA0227BDA2AF003D56AC /* g_ai_main.h in Headers */,
 				CE80FE881C5E442700A21A51 /* g_entity_misc.h in Headers */,
-				CE27EA0627BDA2AF003D56AC /* g_ai_info.h in Headers */,
 				CE80FE891C5E442700A21A51 /* g_entity_target.h in Headers */,
 				CE80FE8A1C5E442700A21A51 /* g_entity_trigger.h in Headers */,
-				CE27EA0127BDA2AF003D56AC /* g_ai_types.h in Headers */,
 				CE80FE8B1C5E442700A21A51 /* g_item.h in Headers */,
 				CE80FE8C1C5E442700A21A51 /* g_local.h in Headers */,
 				CE80FE8D1C5E442700A21A51 /* g_main.h in Headers */,
-				CE27EA0427BDA2AF003D56AC /* g_ai_node.h in Headers */,
 				CE80FE901C5E442700A21A51 /* g_physics.h in Headers */,
-				CE80FE911C5E442800A21A51 /* g_types.h in Headers */,
-				CE4E05412FDAE2CE00B92C32 /* g_ai_grid.h in Headers */,
-				CE80FE921C5E442800A21A51 /* g_util.h in Headers */,
 				CEFF1297277D439B001E1500 /* g_sound.h in Headers */,
+				CE80FE911C5E442800A21A51 /* g_types.h in Headers */,
+				CE80FE921C5E442800A21A51 /* g_util.h in Headers */,
 				CE80FE931C5E442800A21A51 /* g_weapon.h in Headers */,
+				CE80FE941C5E443D00A21A51 /* game.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3827,21 +3827,20 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEC01100202601020000000E /* cg_team_mode.h in Headers */,
-				CE80FEA71C5E445D00A21A51 /* cgame.h in Headers */,
 				CE80FE951C5E445500A21A51 /* cg_client.h in Headers */,
+				CE27E6BA27AC95D1003D56AC /* cg_discord.h in Headers */,
+				CFA000152F9100000000C015 /* cg_editor.h in Headers */,
 				CE80FE961C5E445500A21A51 /* cg_effect.h in Headers */,
-				CE80FE971C5E445500A21A51 /* cg_entity_misc.h in Headers */,
 				CE80FE981C5E445500A21A51 /* cg_entity.h in Headers */,
 				CE80FE991C5E445500A21A51 /* cg_entity_effect.h in Headers */,
 				CE80FE9A1C5E445500A21A51 /* cg_entity_event.h in Headers */,
+				CE80FE971C5E445500A21A51 /* cg_entity_misc.h in Headers */,
 				CE80FE9B1C5E445500A21A51 /* cg_entity_trail.h in Headers */,
 				CE61772325C0D41F0087A5E7 /* cg_flare.h in Headers */,
 				CE80FE9C1C5E445500A21A51 /* cg_hud.h in Headers */,
 				F7EBE32625F44EBF895E36BC /* cg_inventory.h in Headers */,
 				CE9CFC9223E792FE0009DA65 /* cg_light.h in Headers */,
 				CE80FE9D1C5E445500A21A51 /* cg_local.h in Headers */,
-				CE27E6BA27AC95D1003D56AC /* cg_discord.h in Headers */,
 				CE80FE9E1C5E445500A21A51 /* cg_main.h in Headers */,
 				CE80FE9F1C5E445500A21A51 /* cg_media.h in Headers */,
 				CE80FEA01C5E445500A21A51 /* cg_muzzle_flash.h in Headers */,
@@ -3849,12 +3848,13 @@
 				CE80FEA31C5E445500A21A51 /* cg_score.h in Headers */,
 				CEBDD1B625A0C2710055860E /* cg_sound.h in Headers */,
 				CEAC32B8242124BB007E1253 /* cg_sprite.h in Headers */,
+				CEC01100202601020000000E /* cg_team_mode.h in Headers */,
 				CE80FEA41C5E445500A21A51 /* cg_temp_entity.h in Headers */,
 				CE80FEA51C5E445500A21A51 /* cg_types.h in Headers */,
-				CFA000152F9100000000C015 /* cg_editor.h in Headers */,
 				CE6EE4121F72919800FBC830 /* cg_ui.h in Headers */,
 				CE80FEA61C5E445500A21A51 /* cg_view.h in Headers */,
 				CE4DCF06256DCCA100FECAFC /* cg_weapon.h in Headers */,
+				CE80FEA71C5E445D00A21A51 /* cgame.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3872,11 +3872,11 @@
 			files = (
 				CE27E1F427AC276C003D56AC /* backoff.h in Headers */,
 				CE27E1F127AC276C003D56AC /* connection.h in Headers */,
+				CE27E21927AC2774003D56AC /* discord_register.h in Headers */,
+				CE27E21A27AC2774003D56AC /* discord_rpc.h in Headers */,
 				CE27E1F227AC276C003D56AC /* msg_queue.h in Headers */,
 				CE27E1F527AC276C003D56AC /* rpc_connection.h in Headers */,
 				CE27E1F327AC276C003D56AC /* serialization.h in Headers */,
-				CE27E21927AC2774003D56AC /* discord_register.h in Headers */,
-				CE27E21A27AC2774003D56AC /* discord_rpc.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3884,11 +3884,11 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE5CDC3A1D9F51A90034757D /* ui.h in Headers */,
 				CE4E07E42028B0CB000B276C /* ui_data.h in Headers */,
 				CE5CDC361D9F51A90034757D /* ui_local.h in Headers */,
 				CE5CDC381D9F51A90034757D /* ui_main.h in Headers */,
 				CE5CDC391D9F51A90034757D /* ui_types.h in Headers */,
-				CE5CDC3A1D9F51A90034757D /* ui.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3896,13 +3896,13 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE89C2BC2FE56440000B6244 /* md5.h in Headers */,
-				CE89C2BE2FE56451000B6244 /* qstring.h in Headers */,
-				CEE7508B2D6A3267004CDBCA /* rgb9e5.h in Headers */,
 				CE0C0752260CC75700FFE27B /* box.h in Headers */,
 				CE04F3D825CADFCA00C31433 /* color.h in Headers */,
 				CE04F3FC25CADFCF00C31433 /* matrix.h in Headers */,
+				CE89C2BC2FE56440000B6244 /* md5.h in Headers */,
 				CE04F42025CADFD200C31433 /* parse.h in Headers */,
+				CE89C2BE2FE56451000B6244 /* qstring.h in Headers */,
+				CEE7508B2D6A3267004CDBCA /* rgb9e5.h in Headers */,
 				CE80FE781C5E439200A21A51 /* shared.h in Headers */,
 				CE04F44425CADFD800C31433 /* swap.h in Headers */,
 				CE04F46825CADFDA00C31433 /* vector.h in Headers */,
@@ -3922,8 +3922,8 @@
 				CE04F18B25CADF6900C31433 /* filesystem.h in Headers */,
 				CE04F1B025CADF6C00C31433 /* image.h in Headers */,
 				CE04F1D525CADF6F00C31433 /* installer.h in Headers */,
-				CE04F21E25CADF7700C31433 /* mem_buf.h in Headers */,
 				CE04F24325CADF7A00C31433 /* mem.h in Headers */,
+				CE04F21E25CADF7700C31433 /* mem_buf.h in Headers */,
 				CEE7508F2D6A3E3B004CDBCA /* rgb9e5.h in Headers */,
 				CE04F26825CADF7C00C31433 /* sys.h in Headers */,
 				CE04F28D25CADF7F00C31433 /* thread.h in Headers */,
@@ -3935,16 +3935,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */,
-				EEE815CF5A924D398351DF7C /* cm_voxel.h in Headers */,
 				CEBDB0C9214A037900A7AC3D /* cm_entity.h in Headers */,
-				CE3C529421E4DF2500FEDBED /* cm_polylib.h in Headers */,
 				CE80FE721C5E437F00A21A51 /* cm_local.h in Headers */,
-				CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */,
 				F53787C291008C7507AE5FF4 /* cm_manifest.h in Headers */,
+				CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */,
 				CE80FE731C5E437F00A21A51 /* cm_model.h in Headers */,
+				CE3C529421E4DF2500FEDBED /* cm_polylib.h in Headers */,
 				CE80FE741C5E437F00A21A51 /* cm_test.h in Headers */,
 				CE80FE751C5E437F00A21A51 /* cm_trace.h in Headers */,
 				CE80FE761C5E437F00A21A51 /* cm_types.h in Headers */,
+				EEE815CF5A924D398351DF7C /* cm_voxel.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3952,10 +3952,10 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE80FE6C1C5E435C00A21A51 /* net_sock.h in Headers */,
 				CE80FE6D1C5E435C00A21A51 /* net_chan.h in Headers */,
 				CE04FB1925CEDCD400C31433 /* net_http_server.h in Headers */,
 				CE80FE6E1C5E435C00A21A51 /* net_message.h in Headers */,
+				CE80FE6C1C5E435C00A21A51 /* net_sock.h in Headers */,
 				CE80FE701C5E435C00A21A51 /* net_types.h in Headers */,
 				CE80FE711C5E435C00A21A51 /* net_udp.h in Headers */,
 			);
@@ -3968,7 +3968,6 @@
 				CE80FF801C5E49E700A21A51 /* cl_binds.h in Headers */,
 				CE80FF811C5E49E700A21A51 /* cl_cgame.h in Headers */,
 				CE80FF821C5E49E700A21A51 /* cl_cmd.h in Headers */,
-				CE7FCDD82596996600E49A2D /* cl_screen.h in Headers */,
 				CE80FF831C5E49E700A21A51 /* cl_console.h in Headers */,
 				CE80FF841C5E49E700A21A51 /* cl_demo.h in Headers */,
 				CE80FF851C5E49E700A21A51 /* cl_entity.h in Headers */,
@@ -3978,11 +3977,12 @@
 				CE80FF8A1C5E49E700A21A51 /* cl_main.h in Headers */,
 				CE80FF8B1C5E49E700A21A51 /* cl_media.h in Headers */,
 				CE80FF8C1C5E49E700A21A51 /* cl_mouse.h in Headers */,
-				CE3CFBF825A10D9B003D6148 /* cl_sound.h in Headers */,
 				CE80FF8D1C5E49E700A21A51 /* cl_parse.h in Headers */,
 				CE80FF8E1C5E49E700A21A51 /* cl_predict.h in Headers */,
 				CE3CFB6D25A10AAC003D6148 /* cl_renderer.h in Headers */,
+				CE7FCDD82596996600E49A2D /* cl_screen.h in Headers */,
 				CE80FF901C5E49E700A21A51 /* cl_server.h in Headers */,
+				CE3CFBF825A10D9B003D6148 /* cl_sound.h in Headers */,
 				CE80FF911C5E49E700A21A51 /* cl_types.h in Headers */,
 				CE80FF931C5E49E700A21A51 /* client.h in Headers */,
 			);
@@ -4022,8 +4022,8 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEC0FA002026010800000004 /* g_flag.h in Headers */,
 				CEC0FF00202601030000010A /* bg_item.h in Headers */,
+				CEC0FF002026010300000122 /* bg_pmove.h in Headers */,
 				CEC0FF00202601030000010B /* g_ai_goal.h in Headers */,
 				CEC0FF00202601030000010C /* g_ai_grid.h in Headers */,
 				CEC0FF00202601030000010D /* g_ai_info.h in Headers */,
@@ -4038,24 +4038,24 @@
 				CEC0FF002026010300000116 /* g_client_view.h in Headers */,
 				CEC0FF002026010300000117 /* g_cmd.h in Headers */,
 				CEC0FF002026010300000118 /* g_combat.h in Headers */,
+				CEC0FF002026010300000123 /* g_effect.h in Headers */,
 				CEC0FF002026010300000119 /* g_entity.h in Headers */,
+				CEC0FF002026010300000124 /* g_entity_func.h in Headers */,
 				CEC0FF00202601030000011A /* g_entity_info.h in Headers */,
+				CEC0FF002026010300000125 /* g_entity_misc.h in Headers */,
+				CEC0FF002026010300000126 /* g_entity_target.h in Headers */,
 				CEC0FF00202601030000011B /* g_entity_trigger.h in Headers */,
+				CEC0FA002026010800000004 /* g_flag.h in Headers */,
+				CEC0FF002026010300000127 /* g_hook.h in Headers */,
+				CEC0FF002026010300000128 /* g_hook_types.h in Headers */,
 				CEC0FF00202601030000011C /* g_item.h in Headers */,
 				CEC0FF00202601030000011D /* g_local.h in Headers */,
 				CEC0FF00202601030000011E /* g_main.h in Headers */,
+				CEC0FF002026010300000129 /* g_physics.h in Headers */,
+				CEC0FF00202601030000012A /* g_sound.h in Headers */,
 				CEC0FF00202601030000011F /* g_types.h in Headers */,
 				CEC0FF002026010300000120 /* g_util.h in Headers */,
 				CEC0FF002026010300000121 /* g_weapon.h in Headers */,
-				CEC0FF002026010300000122 /* bg_pmove.h in Headers */,
-				CEC0FF002026010300000123 /* g_effect.h in Headers */,
-				CEC0FF002026010300000124 /* g_entity_func.h in Headers */,
-				CEC0FF002026010300000125 /* g_entity_misc.h in Headers */,
-				CEC0FF002026010300000126 /* g_entity_target.h in Headers */,
-				CEC0FF002026010300000127 /* g_hook.h in Headers */,
-				CEC0FF002026010300000128 /* g_hook_types.h in Headers */,
-				CEC0FF002026010300000129 /* g_physics.h in Headers */,
-				CEC0FF00202601030000012A /* g_sound.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4063,8 +4063,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEC0FD002026010500000008 /* cg_score.h in Headers */,
-				CEC0FD002026010500000004 /* cg_hud.h in Headers */,
 				CEC0FF0020260103000001FA /* cg_client.h in Headers */,
 				CEC0FF0020260103000001FB /* cg_discord.h in Headers */,
 				CEC0FF0020260103000001FC /* cg_editor.h in Headers */,
@@ -4075,6 +4073,7 @@
 				CEC0FF002026010300000201 /* cg_entity_misc.h in Headers */,
 				CEC0FF002026010300000202 /* cg_entity_trail.h in Headers */,
 				CEC0FF002026010300000203 /* cg_flare.h in Headers */,
+				CEC0FD002026010500000004 /* cg_hud.h in Headers */,
 				CEC0FF002026010300000205 /* cg_input.h in Headers */,
 				CEC0FF002026010300000206 /* cg_inventory.h in Headers */,
 				CEC0FF002026010300000207 /* cg_light.h in Headers */,
@@ -4083,6 +4082,7 @@
 				CEC0FF00202601030000020A /* cg_media.h in Headers */,
 				CEC0FF00202601030000020B /* cg_muzzle_flash.h in Headers */,
 				CEC0FF00202601030000020C /* cg_predict.h in Headers */,
+				CEC0FD002026010500000008 /* cg_score.h in Headers */,
 				CEC0FF00202601030000020E /* cg_sound.h in Headers */,
 				CEC0FF00202601030000020F /* cg_sprite.h in Headers */,
 				CEC0FF002026010300000210 /* cg_temp_entity.h in Headers */,
@@ -4101,6 +4101,7 @@
 				CEA082381DC6EC59001207AA /* r_atlas.h in Headers */,
 				CED438831D9D34450052BAFA /* r_bsp_draw.h in Headers */,
 				CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */,
+				CE1643C52FF75DDB00863996 /* r_context.h in Headers */,
 				CEA153B3296B4BE100916F83 /* r_cull.h in Headers */,
 				CE5ABAD92F32D86C00D05D09 /* r_decal.h in Headers */,
 				CE2CEB9325852E110001E599 /* r_depth_pass.h in Headers */,
@@ -4119,14 +4120,13 @@
 				CE5022EC23DE3CF900B333CE /* r_mesh_model_md3.h in Headers */,
 				CE5022E823DE3C3600B333CE /* r_mesh_model_obj.h in Headers */,
 				CED438971D9D34450052BAFA /* r_model.h in Headers */,
-				CEE13C16293241970075585D /* r_shadow.h in Headers */,
 				CE1643F62FFB571100863996 /* r_occlude.h in Headers */,
-				CED4389E1D9D34450052BAFA /* r_sky.h in Headers */,
 				F8D615462A724ECF9847D4CD /* r_post.h in Headers */,
+				CEE13C16293241970075585D /* r_shadow.h in Headers */,
+				CED4389E1D9D34450052BAFA /* r_sky.h in Headers */,
 				CEAC32BD24212553007E1253 /* r_sprite.h in Headers */,
 				CED438A01D9D34450052BAFA /* r_types.h in Headers */,
 				CED438A11D9D34450052BAFA /* renderer.h in Headers */,
-				CE1643C52FF75DDB00863996 /* r_context.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4922,8 +4922,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE052A5F214831FE003446C9 /* tests.c in Sources */,
 				CE052A712148320E003446C9 /* check_mem.c in Sources */,
+				CE052A5F214831FE003446C9 /* tests.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4931,8 +4931,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE052A7721483255003446C9 /* tests.c in Sources */,
 				CE052A8721483275003446C9 /* check_thread.c in Sources */,
+				CE052A7721483255003446C9 /* tests.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4948,8 +4948,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEC011002026010200000002 /* g_effect.c in Sources */,
+				08962C395D0FB0E620F78625 /* bg_item.c in Sources */,
+				CEFC7B8B1D9D2E9C000FA6B2 /* bg_pmove.c in Sources */,
 				CE27E9FC27BDA2AE003D56AC /* g_ai_goal.c in Sources */,
+				CE4E05422FDAE2CE00B92C32 /* g_ai_grid.c in Sources */,
 				CE27E9FF27BDA2AE003D56AC /* g_ai_info.c in Sources */,
 				CE27E9FD27BDA2AE003D56AC /* g_ai_item.c in Sources */,
 				CE27EA0027BDA2AE003D56AC /* g_ai_main.c in Sources */,
@@ -4961,6 +4963,7 @@
 				CE12D7D71C5C5D6A00CD0B13 /* g_client_view.c in Sources */,
 				CE12D7D81C5C5D6A00CD0B13 /* g_cmd.c in Sources */,
 				CE12D7D91C5C5D6A00CD0B13 /* g_combat.c in Sources */,
+				CEC011002026010200000002 /* g_effect.c in Sources */,
 				CE12D7DA1C5C5D6A00CD0B13 /* g_entity.c in Sources */,
 				CE12D7DB1C5C5D6A00CD0B13 /* g_entity_func.c in Sources */,
 				CE12D7DC1C5C5D6A00CD0B13 /* g_entity_info.c in Sources */,
@@ -4969,13 +4972,10 @@
 				CE12D7DF1C5C5D6A00CD0B13 /* g_entity_trigger.c in Sources */,
 				CE12D7E01C5C5D6A00CD0B13 /* g_item.c in Sources */,
 				CE12D7E11C5C5D6A00CD0B13 /* g_main.c in Sources */,
-				CEFF1298277D439B001E1500 /* g_sound.c in Sources */,
 				CE12D7E41C5C5D6A00CD0B13 /* g_physics.c in Sources */,
+				CEFF1298277D439B001E1500 /* g_sound.c in Sources */,
 				CE12D7E51C5C5D6A00CD0B13 /* g_util.c in Sources */,
-				CE4E05422FDAE2CE00B92C32 /* g_ai_grid.c in Sources */,
 				CE12D7E61C5C5D6A00CD0B13 /* g_weapon.c in Sources */,
-				08962C395D0FB0E620F78625 /* bg_item.c in Sources */,
-				CEFC7B8B1D9D2E9C000FA6B2 /* bg_pmove.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4983,17 +4983,21 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEC0FD00202601050000000A /* cg_hud_draw.c in Sources */,
-				CEC011002026010200000010 /* cg_team_mode.c in Sources */,
+				CEFEED000000000000000004 /* bg_item.c in Sources */,
+				CEFEED000000000000000002 /* bg_pmove.c in Sources */,
+				CE32529D1F760D3F00512523 /* BindTextView.c in Sources */,
 				CE12D7EF1C5C5E0200CD0B13 /* cg_client.c in Sources */,
+				CE27E6B927AC95D1003D56AC /* cg_discord.c in Sources */,
+				CFA000142F9100000000C014 /* cg_editor.c in Sources */,
 				CE12D7F01C5C5E0200CD0B13 /* cg_effect.c in Sources */,
-				CE12D7F11C5C5E0200CD0B13 /* cg_entity_misc.c in Sources */,
 				CE12D7F21C5C5E0200CD0B13 /* cg_entity.c in Sources */,
 				CE12D7F31C5C5E0200CD0B13 /* cg_entity_effect.c in Sources */,
 				CE12D7F41C5C5E0200CD0B13 /* cg_entity_event.c in Sources */,
+				CE12D7F11C5C5E0200CD0B13 /* cg_entity_misc.c in Sources */,
 				CE12D7F51C5C5E0200CD0B13 /* cg_entity_trail.c in Sources */,
 				CE61772425C0D41F0087A5E7 /* cg_flare.c in Sources */,
 				CE12D7F61C5C5E0200CD0B13 /* cg_hud.c in Sources */,
+				CEC0FD00202601050000000A /* cg_hud_draw.c in Sources */,
 				CEB8D6271E00B73200043814 /* cg_input.c in Sources */,
 				EC45E0FA2A80403C8FEA3834 /* cg_inventory.c in Sources */,
 				CE9CFC9323E792FE0009DA65 /* cg_light.c in Sources */,
@@ -5004,48 +5008,44 @@
 				CE12D7FC1C5C5E0200CD0B13 /* cg_score.c in Sources */,
 				CEBDD1B725A0C2710055860E /* cg_sound.c in Sources */,
 				CEAC32B9242124BB007E1253 /* cg_sprite.c in Sources */,
+				CEC011002026010200000010 /* cg_team_mode.c in Sources */,
 				CE12D7FD1C5C5E0200CD0B13 /* cg_temp_entity.c in Sources */,
-				CFA000142F9100000000C014 /* cg_editor.c in Sources */,
 				CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */,
 				CE12D7FE1C5C5E0200CD0B13 /* cg_view.c in Sources */,
 				CE4DCF07256DCCA100FECAFC /* cg_weapon.c in Sources */,
-				CE27E6B927AC95D1003D56AC /* cg_discord.c in Sources */,
-				CE32529D1F760D3F00512523 /* BindTextView.c in Sources */,
+				CE1A28401F75FEB1005F62A9 /* ControlsViewController.c in Sources */,
+				CE6EE3E11F720D9A00FBC830 /* CreateServerViewController.c in Sources */,
+				CEA1A0012F9F00000087B100 /* CreditsViewController.c in Sources */,
+				CE1A28481F7600AC005F62A9 /* CrosshairView.c in Sources */,
 				CE6EE3D21F720D6700FBC830 /* CvarCheckbox.c in Sources */,
 				CE6EE3D31F720D6700FBC830 /* CvarSelect.c in Sources */,
 				CE6EE3D41F720D6700FBC830 /* CvarSlider.c in Sources */,
 				CE6EE3D51F720D6700FBC830 /* CvarTextView.c in Sources */,
 				CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */,
-				CE1A28401F75FEB1005F62A9 /* ControlsViewController.c in Sources */,
-				CE1A28481F7600AC005F62A9 /* CrosshairView.c in Sources */,
-				CE1A283C1F75FE70005F62A9 /* ResponseServiceViewController.c in Sources */,
-				CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */,
-				CEA1A0012F9F00000087B100 /* CreditsViewController.c in Sources */,
-				CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */,
-				CEA9B3A16C6E4B3A9F010001 /* LeaderboardViewController.c in Sources */,
-				CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */,
-				CE6EE3DD1F720D8700FBC830 /* MainView.c in Sources */,
-				CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */,
-				CE6EE3DE1F720D8700FBC830 /* MainViewController.c in Sources */,
-				CE6EE3E11F720D9A00FBC830 /* CreateServerViewController.c in Sources */,
-				CE6EE3E21F720D9A00FBC830 /* JoinServerViewController.c in Sources */,
-				CE6EE3E31F720D9A00FBC830 /* MapListCollectionItemView.c in Sources */,
-				CE6EE3E41F720D9A00FBC830 /* MapListCollectionView.c in Sources */,
-				CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */,
-				CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */,
-				CEA9B3A36C6E4B3A9F010001 /* StatsViewController.c in Sources */,
 				CFA000162F9100000000C016 /* EditorViewController.c in Sources */,
 				CFA000192F9100000000C019 /* EntityView.c in Sources */,
 				CFA0001C2F9100000000C01C /* EntityViewController.c in Sources */,
+				CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */,
+				CE6EE3E21F720D9A00FBC830 /* JoinServerViewController.c in Sources */,
+				CEA9B3A16C6E4B3A9F010001 /* LeaderboardViewController.c in Sources */,
+				CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */,
+				CE6EE3DD1F720D8700FBC830 /* MainView.c in Sources */,
+				CE6EE3DE1F720D8700FBC830 /* MainViewController.c in Sources */,
+				CE6EE3E31F720D9A00FBC830 /* MapListCollectionItemView.c in Sources */,
+				CE6EE3E41F720D9A00FBC830 /* MapListCollectionView.c in Sources */,
 				CFA000202F9100000000C020 /* MaterialViewController.c in Sources */,
 				CFA000252F9100000000C025 /* MeshViewController.c in Sources */,
+				CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */,
+				CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */,
+				CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */,
+				CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */,
+				CE1A283C1F75FE70005F62A9 /* ResponseServiceViewController.c in Sources */,
 				CE6EE3ED1F720D9A00FBC830 /* SettingsViewController.c in Sources */,
-				CEAA78ED2775388700EAC853 /* TeamView.c in Sources */,
+				CEA9B3A36C6E4B3A9F010001 /* StatsViewController.c in Sources */,
 				CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */,
 				CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */,
+				CEAA78ED2775388700EAC853 /* TeamView.c in Sources */,
 				CEAD8FBC2F93A4990087A850 /* UpdateViewController.c in Sources */,
-				CEFEED000000000000000002 /* bg_pmove.c in Sources */,
-				CEFEED000000000000000004 /* bg_item.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5089,8 +5089,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE4DCF90256F0DAD00FECAFC /* tests.c in Sources */,
 				CE4DCFFB256F0DF500FECAFC /* check_cm_test.c in Sources */,
+				CE4DCF90256F0DAD00FECAFC /* tests.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5098,9 +5098,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE51FB9321481B1400ABE14F /* check_r_media.c in Sources */,
 				CE51FB9521481B5F00ABE14F /* r_media.c in Sources */,
 				CE51FB9C21481CF700ABE14F /* tests.c in Sources */,
-				CE51FB9321481B1400ABE14F /* check_r_media.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5108,8 +5108,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE51FBA021481DD300ABE14F /* tests.c in Sources */,
 				CE51FBB021481E1C00ABE14F /* check_cmd.c in Sources */,
+				CE51FBA021481DD300ABE14F /* tests.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5117,8 +5117,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE51FBB521481F2500ABE14F /* tests.c in Sources */,
 				CE51FBCB21481F6700ABE14F /* check_cvar.c in Sources */,
+				CE51FBB521481F2500ABE14F /* tests.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5126,8 +5126,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE51FBD021481FC100ABE14F /* tests.c in Sources */,
 				CE51FBE221481FD500ABE14F /* check_filesystem.c in Sources */,
+				CE51FBD021481FC100ABE14F /* tests.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5135,8 +5135,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE51FC072148219900ABE14F /* tests.c in Sources */,
 				CE51FC062148214300ABE14F /* check_master.c in Sources */,
+				CE51FC072148219900ABE14F /* tests.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5160,8 +5160,8 @@
 				CE80FFE61C5E4D1800A21A51 /* face.c in Sources */,
 				CE80FFE81C5E4D1800A21A51 /* leakfile.c in Sources */,
 				CEBDB0C6214A02B500A7AC3D /* light.c in Sources */,
-				CEB112B022544B3900CE65F6 /* voxel.c in Sources */,
 				CE80FFEA1C5E4D1800A21A51 /* main.c in Sources */,
+				997E573805B0DCF96FB8C299 /* manifest.c in Sources */,
 				CE80FFEB1C5E4D1800A21A51 /* map.c in Sources */,
 				CECA8CB01E50B5F1005E97E8 /* material.c in Sources */,
 				CE5ABAE52F6CA9AD00D05D09 /* patch.c in Sources */,
@@ -5170,10 +5170,10 @@
 				CE80FFF21C5E4D1800A21A51 /* qbsp.c in Sources */,
 				CE80FFF31C5E4D1800A21A51 /* qlight.c in Sources */,
 				CE80FFF61C5E4D1800A21A51 /* qzip.c in Sources */,
-				997E573805B0DCF96FB8C299 /* manifest.c in Sources */,
 				CE80FFF81C5E4D1800A21A51 /* texture.c in Sources */,
 				CE91924D2055731E007AC8FF /* tjunction.c in Sources */,
 				CE80FFFA1C5E4D1800A21A51 /* tree.c in Sources */,
+				CEB112B022544B3900CE65F6 /* voxel.c in Sources */,
 				CE80FFF91C5E4D1800A21A51 /* work.c in Sources */,
 				CE80FFFB1C5E4D1800A21A51 /* writebsp.c in Sources */,
 			);
@@ -5183,8 +5183,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE89C2BA2FE56432000B6244 /* md5.c in Sources */,
 				091C43A66A7972053AD1C8E7 /* box.c in Sources */,
+				CE89C2BA2FE56432000B6244 /* md5.c in Sources */,
 				CE04F48C25CADFEE00C31433 /* parse.c in Sources */,
 				CE89C2BD2FE56450000B6244 /* qstring.c in Sources */,
 				CE80FDB61C5E3D4E00A21A51 /* shared-anorms.c in Sources */,
@@ -5205,8 +5205,8 @@
 				CE04F2B225CADF8D00C31433 /* filesystem.c in Sources */,
 				CE04F2D725CADF9000C31433 /* image.c in Sources */,
 				CE04F2FC25CADF9300C31433 /* installer.c in Sources */,
-				CE04F32125CADF9800C31433 /* mem_buf.c in Sources */,
 				CE04F34625CADF9B00C31433 /* mem.c in Sources */,
+				CE04F32125CADF9800C31433 /* mem_buf.c in Sources */,
 				CEE7508E2D6A3C78004CDBCA /* rgb9e5.c in Sources */,
 				CE04F36B25CADF9F00C31433 /* sys.c in Sources */,
 				CE04F39025CADFA200C31433 /* thread.c in Sources */,
@@ -5218,14 +5218,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */,
-				CC87D6AEB29F498DB8AA7E1C /* cm_voxel.c in Sources */,
 				CEBDB0CA214A037900A7AC3D /* cm_entity.c in Sources */,
-				CEA3B48D1E0576E3004A6CF3 /* cm_material.c in Sources */,
 				522B158EA7384E83CD005789 /* cm_manifest.c in Sources */,
+				CEA3B48D1E0576E3004A6CF3 /* cm_material.c in Sources */,
 				CE80FE3B1C5E424300A21A51 /* cm_model.c in Sources */,
+				CE3C529521E4DF2500FEDBED /* cm_polylib.c in Sources */,
 				CE80FE3C1C5E424300A21A51 /* cm_test.c in Sources */,
 				CE80FE3D1C5E424300A21A51 /* cm_trace.c in Sources */,
-				CE3C529521E4DF2500FEDBED /* cm_polylib.c in Sources */,
+				CC87D6AEB29F498DB8AA7E1C /* cm_voxel.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5233,10 +5233,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE80FE671C5E433F00A21A51 /* net_sock.c in Sources */,
 				CE80FE681C5E433F00A21A51 /* net_chan.c in Sources */,
 				CE04FB1A25CEDCD400C31433 /* net_http_server.c in Sources */,
 				CE80FE691C5E433F00A21A51 /* net_message.c in Sources */,
+				CE80FE671C5E433F00A21A51 /* net_sock.c in Sources */,
 				CE80FE6B1C5E433F00A21A51 /* net_udp.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -5253,14 +5253,14 @@
 				CE80FF371C5E473500A21A51 /* cl_input.c in Sources */,
 				CE80FF381C5E473500A21A51 /* cl_keys.c in Sources */,
 				CE80FF391C5E473500A21A51 /* cl_main.c in Sources */,
-				CE3CFBF925A10D9B003D6148 /* cl_sound.c in Sources */,
 				CE80FF3A1C5E473500A21A51 /* cl_media.c in Sources */,
-				CE7FCDD72596996600E49A2D /* cl_screen.c in Sources */,
 				CE80FF3B1C5E473500A21A51 /* cl_mouse.c in Sources */,
 				CE80FF3D1C5E473500A21A51 /* cl_parse.c in Sources */,
 				CE80FF3E1C5E473500A21A51 /* cl_predict.c in Sources */,
 				CE3CFB6E25A10AAC003D6148 /* cl_renderer.c in Sources */,
+				CE7FCDD72596996600E49A2D /* cl_screen.c in Sources */,
 				CE80FF401C5E473500A21A51 /* cl_server.c in Sources */,
+				CE3CFBF925A10D9B003D6148 /* cl_sound.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5328,8 +5328,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEA508F92EA5D20A00F27205 /* tests.c in Sources */,
 				CEA508FA2EA5D20A00F27205 /* check_cm_polylib.c in Sources */,
+				CEA508F92EA5D20A00F27205 /* tests.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5337,8 +5337,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEAD8F912F8D765F0087A850 /* tests.c in Sources */,
 				CEAD8FA02F8D76830087A850 /* check_http.c in Sources */,
+				CEAD8F912F8D765F0087A850 /* tests.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5346,8 +5346,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEAD8FA82F8D8DE30087A850 /* tests.c in Sources */,
 				CEAD8FB52F8D8DF70087A850 /* check_cm_manifest.c in Sources */,
+				CEAD8FA82F8D8DE30087A850 /* tests.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5363,7 +5363,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEC0FA002026010800000002 /* g_flag.c in Sources */,
+				CEC0FF0020260103000000D6 /* bg_item.c in Sources */,
+				CEFEED000000000000000001 /* bg_pmove.c in Sources */,
 				CEC0FF0020260103000000EF /* g_ai_goal.c in Sources */,
 				CEC0FF0020260103000000F0 /* g_ai_grid.c in Sources */,
 				CEC0FF0020260103000000F1 /* g_ai_info.c in Sources */,
@@ -5377,22 +5378,21 @@
 				CEC0FF0020260103000000F9 /* g_client_view.c in Sources */,
 				CEC0FF0020260103000000FA /* g_cmd.c in Sources */,
 				CEC0FF0020260103000000FB /* g_combat.c in Sources */,
-				CEC0FF0020260103000000FC /* g_entity.c in Sources */,
-				CEC0FF0020260103000000FD /* g_entity_info.c in Sources */,
-				CEC0FF0020260103000000FE /* g_entity_trigger.c in Sources */,
-				CEC0FF0020260103000000FF /* g_item.c in Sources */,
-				CEC0FF002026010300000100 /* g_main.c in Sources */,
-				CEC0FF002026010300000101 /* g_util.c in Sources */,
-				CEC0FF002026010300000102 /* g_weapon.c in Sources */,
 				CEC0FF002026010300000103 /* g_effect.c in Sources */,
+				CEC0FF0020260103000000FC /* g_entity.c in Sources */,
 				CEC0FF002026010300000104 /* g_entity_func.c in Sources */,
+				CEC0FF0020260103000000FD /* g_entity_info.c in Sources */,
 				CEC0FF002026010300000105 /* g_entity_misc.c in Sources */,
 				CEC0FF002026010300000106 /* g_entity_target.c in Sources */,
+				CEC0FF0020260103000000FE /* g_entity_trigger.c in Sources */,
+				CEC0FA002026010800000002 /* g_flag.c in Sources */,
 				CEC0FF002026010300000107 /* g_hook.c in Sources */,
+				CEC0FF0020260103000000FF /* g_item.c in Sources */,
+				CEC0FF002026010300000100 /* g_main.c in Sources */,
 				CEC0FF002026010300000108 /* g_physics.c in Sources */,
 				CEC0FF002026010300000109 /* g_sound.c in Sources */,
-				CEC0FF0020260103000000D6 /* bg_item.c in Sources */,
-				CEFEED000000000000000001 /* bg_pmove.c in Sources */,
+				CEC0FF002026010300000101 /* g_util.c in Sources */,
+				CEC0FF002026010300000102 /* g_weapon.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5400,9 +5400,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEC0FD00202601050000000C /* cg_hud_draw.c in Sources */,
-				CEC0FD002026010500000006 /* cg_score.c in Sources */,
-				CEC0FD002026010500000002 /* cg_hud.c in Sources */,
+				CEFEED000000000000000005 /* bg_item.c in Sources */,
+				CEFEED000000000000000003 /* bg_pmove.c in Sources */,
+				CEC0FF00202601030000017E /* BindTextView.c in Sources */,
 				CEC0FF0020260103000001E0 /* cg_client.c in Sources */,
 				CEC0FF0020260103000001E1 /* cg_discord.c in Sources */,
 				CEC0FF0020260103000001E2 /* cg_editor.c in Sources */,
@@ -5413,6 +5413,8 @@
 				CEC0FF0020260103000001E7 /* cg_entity_misc.c in Sources */,
 				CEC0FF0020260103000001E8 /* cg_entity_trail.c in Sources */,
 				CEC0FF0020260103000001E9 /* cg_flare.c in Sources */,
+				CEC0FD002026010500000002 /* cg_hud.c in Sources */,
+				CEC0FD00202601050000000C /* cg_hud_draw.c in Sources */,
 				CEC0FF0020260103000001EB /* cg_input.c in Sources */,
 				CEC0FF0020260103000001EC /* cg_inventory.c in Sources */,
 				CEC0FF0020260103000001ED /* cg_light.c in Sources */,
@@ -5420,6 +5422,7 @@
 				CEC0FF0020260103000001EF /* cg_media.c in Sources */,
 				CEC0FF0020260103000001F0 /* cg_muzzle_flash.c in Sources */,
 				CEC0FF0020260103000001F1 /* cg_predict.c in Sources */,
+				CEC0FD002026010500000006 /* cg_score.c in Sources */,
 				CEC0FF0020260103000001F3 /* cg_sound.c in Sources */,
 				CEC0FF0020260103000001F4 /* cg_sprite.c in Sources */,
 				CEC0FF0020260103000001F5 /* cg_team_mode.c in Sources */,
@@ -5427,7 +5430,6 @@
 				CEC0FF0020260103000001F7 /* cg_ui.c in Sources */,
 				CEC0FF0020260103000001F8 /* cg_view.c in Sources */,
 				CEC0FF0020260103000001F9 /* cg_weapon.c in Sources */,
-				CEC0FF00202601030000017E /* BindTextView.c in Sources */,
 				CEC0FF00202601030000017F /* ControlsViewController.c in Sources */,
 				CEC0FF002026010300000180 /* CreateServerViewController.c in Sources */,
 				CEC0FF002026010300000181 /* CreditsViewController.c in Sources */,
@@ -5451,18 +5453,16 @@
 				CEC0FF002026010300000193 /* MaterialViewController.c in Sources */,
 				CEC0FF002026010300000194 /* MeshViewController.c in Sources */,
 				CEC0FF002026010300000195 /* MovementCombatViewController.c in Sources */,
-				CEC0FF002026010300000196 /* PlayViewController.c in Sources */,
 				CEC0FF002026010300000197 /* PlayerModelView.c in Sources */,
 				CEC0FF002026010300000198 /* PlayerSetupViewController.c in Sources */,
+				CEC0FF002026010300000196 /* PlayViewController.c in Sources */,
 				CEC0FF002026010300000199 /* ResponseServiceViewController.c in Sources */,
 				CEC0FF00202601030000019A /* SettingsViewController.c in Sources */,
 				CEC0FF00202601030000019B /* StatsViewController.c in Sources */,
 				CEC0FF00202601030000019C /* TeamPlayerView.c in Sources */,
-				CEC0FF00202601030000019D /* TeamView.c in Sources */,
 				CEC0FF00202601030000019E /* TeamsViewController.c in Sources */,
+				CEC0FF00202601030000019D /* TeamView.c in Sources */,
 				CEC0FF00202601030000019F /* UpdateViewController.c in Sources */,
-				CEFEED000000000000000003 /* bg_pmove.c in Sources */,
-				CEFEED000000000000000005 /* bg_item.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5474,6 +5474,7 @@
 				CEA082371DC6EC50001207AA /* r_atlas.c in Sources */,
 				CED4383C1D9D34450052BAFA /* r_bsp_draw.c in Sources */,
 				CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */,
+				CE1643C42FF75DDB00863996 /* r_context.c in Sources */,
 				CEA153B4296B4BE100916F83 /* r_cull.c in Sources */,
 				CE5ABAD82F32D86C00D05D09 /* r_decal.c in Sources */,
 				CE2CEB9425852E110001E599 /* r_depth_pass.c in Sources */,
@@ -5488,15 +5489,14 @@
 				CE9CFC9823E7A9410009DA65 /* r_mesh.c in Sources */,
 				CED4384B1D9D34450052BAFA /* r_mesh_draw.c in Sources */,
 				CED4384C1D9D34450052BAFA /* r_mesh_model.c in Sources */,
-				CE5022E923DE3C3600B333CE /* r_mesh_model_obj.c in Sources */,
-				CE1643C42FF75DDB00863996 /* r_context.c in Sources */,
 				CE5022ED23DE3CF900B333CE /* r_mesh_model_md3.c in Sources */,
+				CE5022E923DE3C3600B333CE /* r_mesh_model_obj.c in Sources */,
 				CED4384F1D9D34450052BAFA /* r_model.c in Sources */,
+				CE1643F52FFB571100863996 /* r_occlude.c in Sources */,
+				014684FA691B4EB0944ACDCB /* r_post.c in Sources */,
 				CEE13C15293241970075585D /* r_shadow.c in Sources */,
 				CED438561D9D34450052BAFA /* r_sky.c in Sources */,
-				014684FA691B4EB0944ACDCB /* r_post.c in Sources */,
 				CEAC32BC24212553007E1253 /* r_sprite.c in Sources */,
-				CE1643F52FFB571100863996 /* r_occlude.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5516,8 +5516,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEE3A0F421EE2B3F0070FD3E /* tests.c in Sources */,
 				CEA509072EA5D21F00F27205 /* check_cm_entity.c in Sources */,
+				CEE3A0F421EE2B3F0070FD3E /* tests.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
