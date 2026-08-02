@@ -385,17 +385,6 @@ AC_CONFIG_FILES([
 	src/cgame/Makefile
 	src/cgame/default/Makefile
 	src/cgame/ctf/Makefile
-	src/cgame/common/ui/Makefile
-	src/cgame/common/ui/backgrounds/Makefile
-	src/cgame/common/ui/fonts/Makefile
-	src/cgame/common/ui/controls/Makefile
-	src/cgame/common/ui/credits/Makefile
-	src/cgame/common/ui/editor/Makefile
-	src/cgame/common/ui/home/Makefile
-	src/cgame/common/ui/main/Makefile
-	src/cgame/common/ui/play/Makefile
-	src/cgame/common/ui/settings/Makefile
-	src/cgame/common/ui/teams/Makefile
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile

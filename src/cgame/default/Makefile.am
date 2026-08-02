@@ -30,6 +30,122 @@ AM_CFLAGS = \
 	@SDL3_CFLAGS@ \
 	@SNDFILE_CFLAGS@
 
+CGUI_DIR = $(CGAME_COMMON_DIR)/ui
+
+cguidir = \
+	@PKGLIBDIR@/default/ui
+
+cgui_DATA = \
+	$(CGUI_DIR)/DialogViewController.css \
+	$(CGUI_DIR)/DialogViewController.json \
+	$(CGUI_DIR)/change.wav \
+	$(CGUI_DIR)/clack.wav \
+	$(CGUI_DIR)/click.wav \
+	$(CGUI_DIR)/common.css \
+	$(CGUI_DIR)/conback.png \
+	$(CGUI_DIR)/loading.png \
+	$(CGUI_DIR)/logo.png \
+	$(CGUI_DIR)/progress_bar.png
+
+cguibackgroundsdir = \
+	@PKGLIBDIR@/default/ui/backgrounds
+
+cguibackgrounds_DATA = \
+	$(CGUI_DIR)/backgrounds/0.png \
+	$(CGUI_DIR)/backgrounds/1.png \
+	$(CGUI_DIR)/backgrounds/2.png \
+	$(CGUI_DIR)/backgrounds/3.png \
+	$(CGUI_DIR)/backgrounds/4.png \
+	$(CGUI_DIR)/backgrounds/5.png
+
+cguifontsdir = \
+	@PKGLIBDIR@/default/ui/fonts
+
+cguifonts_DATA = \
+	$(CGUI_DIR)/fonts/large.png \
+	$(CGUI_DIR)/fonts/medium.png \
+	$(CGUI_DIR)/fonts/small.png
+
+cguicontrolsdir = \
+	@PKGLIBDIR@/default/ui/controls
+
+cguicontrols_DATA = \
+	$(CGUI_DIR)/controls/ControlsViewController.json \
+	$(CGUI_DIR)/controls/MovementCombatViewController.css \
+	$(CGUI_DIR)/controls/MovementCombatViewController.json \
+	$(CGUI_DIR)/controls/ResponseServiceViewController.css \
+	$(CGUI_DIR)/controls/ResponseServiceViewController.json
+
+cguicreditsdir = \
+	@PKGLIBDIR@/default/ui/credits
+
+cguicredits_DATA = \
+	$(CGUI_DIR)/credits/CreditsViewController.css \
+	$(CGUI_DIR)/credits/CreditsViewController.json
+
+cguieditordir = \
+	@PKGLIBDIR@/default/ui/editor
+
+cguieditor_DATA = \
+	$(CGUI_DIR)/editor/EditorViewController.json \
+	$(CGUI_DIR)/editor/EntityView.json \
+	$(CGUI_DIR)/editor/EntityViewController.css \
+	$(CGUI_DIR)/editor/EntityViewController.json \
+	$(CGUI_DIR)/editor/MaterialViewController.css \
+	$(CGUI_DIR)/editor/MaterialViewController.json \
+	$(CGUI_DIR)/editor/MeshViewController.css \
+	$(CGUI_DIR)/editor/MeshViewController.json \
+	$(CGUI_DIR)/editor/editor.css
+
+cguihomedir = \
+	@PKGLIBDIR@/default/ui/home
+
+cguihome_DATA = \
+	$(CGUI_DIR)/home/HomeViewController.css \
+	$(CGUI_DIR)/home/HomeViewController.json \
+	$(CGUI_DIR)/home/LeaderboardViewController.css \
+	$(CGUI_DIR)/home/LeaderboardViewController.json \
+	$(CGUI_DIR)/home/StatsViewController.css \
+	$(CGUI_DIR)/home/StatsViewController.json
+
+cguimaindir = \
+	@PKGLIBDIR@/default/ui/main
+
+cguimain_DATA = \
+	$(CGUI_DIR)/main/LoadingViewController.css \
+	$(CGUI_DIR)/main/LoadingViewController.json \
+	$(CGUI_DIR)/main/MainView.css \
+	$(CGUI_DIR)/main/MainView.json \
+	$(CGUI_DIR)/main/UpdateViewController.css \
+	$(CGUI_DIR)/main/UpdateViewController.json
+
+cguiplaydir = \
+	@PKGLIBDIR@/default/ui/play
+
+cguiplay_DATA = \
+	$(CGUI_DIR)/play/CreateServerViewController.css \
+	$(CGUI_DIR)/play/CreateServerViewController.json \
+	$(CGUI_DIR)/play/JoinServerViewController.css \
+	$(CGUI_DIR)/play/JoinServerViewController.json \
+	$(CGUI_DIR)/play/PlayViewController.json \
+	$(CGUI_DIR)/play/PlayerSetupViewController.css \
+	$(CGUI_DIR)/play/PlayerSetupViewController.json
+
+cguisettingsdir = \
+	@PKGLIBDIR@/default/ui/settings
+
+cguisettings_DATA = \
+	$(CGUI_DIR)/settings/SettingsViewController.json
+
+cguiteamsdir = \
+	@PKGLIBDIR@/default/ui/teams
+
+cguiteams_DATA = \
+	$(CGUI_DIR)/teams/TeamPlayerView.json \
+	$(CGUI_DIR)/teams/TeamView.json \
+	$(CGUI_DIR)/teams/TeamsViewController.css \
+	$(CGUI_DIR)/teams/TeamsViewController.json
+
 cgamelibdir = \
 	@PKGLIBDIR@/default
 
