@@ -29,13 +29,7 @@ noinst_HEADERS = \
 	g_main.h \
 	g_types.h \
 	g_weapon.h \
-	$(GAME_COMMON_DIR)/g_util.h \
-	$(GAME_COMMON_DIR)/g_ballistics.h \
-	$(GAME_COMMON_DIR)/g_client_chase.h \
-	$(GAME_COMMON_DIR)/g_client_view.h \
-	$(GAME_COMMON_DIR)/g_entity_info.h \
-	$(GAME_COMMON_DIR)/g_entity_trigger.h \
-	$(GAME_COMMON_DIR)/g_module.h \
+	$(GAME_COMMON_DIR)/bg_pmove.h \
 	$(GAME_COMMON_DIR)/g_ai_goal.h \
 	$(GAME_COMMON_DIR)/g_ai_grid.h \
 	$(GAME_COMMON_DIR)/g_ai_info.h \
@@ -43,15 +37,21 @@ noinst_HEADERS = \
 	$(GAME_COMMON_DIR)/g_ai_main.h \
 	$(GAME_COMMON_DIR)/g_ai_node.h \
 	$(GAME_COMMON_DIR)/g_ai_types.h \
-	$(GAME_COMMON_DIR)/bg_pmove.h \
+	$(GAME_COMMON_DIR)/g_ballistics.h \
+	$(GAME_COMMON_DIR)/g_client_chase.h \
+	$(GAME_COMMON_DIR)/g_client_view.h \
 	$(GAME_COMMON_DIR)/g_effect.h \
 	$(GAME_COMMON_DIR)/g_entity_func.h \
+	$(GAME_COMMON_DIR)/g_entity_info.h \
 	$(GAME_COMMON_DIR)/g_entity_misc.h \
 	$(GAME_COMMON_DIR)/g_entity_target.h \
+	$(GAME_COMMON_DIR)/g_entity_trigger.h \
+	$(GAME_COMMON_DIR)/g_hook.h \
+	$(GAME_COMMON_DIR)/g_hook_types.h \
+	$(GAME_COMMON_DIR)/g_module.h \
 	$(GAME_COMMON_DIR)/g_physics.h \
 	$(GAME_COMMON_DIR)/g_sound.h \
-	$(GAME_COMMON_DIR)/g_hook.h \
-	$(GAME_COMMON_DIR)/g_hook_types.h
+	$(GAME_COMMON_DIR)/g_util.h
 
 noinst_LTLIBRARIES = \
 	libitem.la \
@@ -59,25 +59,25 @@ noinst_LTLIBRARIES = \
 	libgcommonctf.la
 
 libgcommonctf_la_SOURCES = \
-	$(GAME_COMMON_DIR)/g_util.c \
-	$(GAME_COMMON_DIR)/g_ballistics.c \
-	$(GAME_COMMON_DIR)/g_client_chase.c \
-	$(GAME_COMMON_DIR)/g_client_view.c \
-	$(GAME_COMMON_DIR)/g_entity_info.c \
-	$(GAME_COMMON_DIR)/g_entity_trigger.c \
 	$(GAME_COMMON_DIR)/g_ai_goal.c \
 	$(GAME_COMMON_DIR)/g_ai_grid.c \
 	$(GAME_COMMON_DIR)/g_ai_info.c \
 	$(GAME_COMMON_DIR)/g_ai_item.c \
 	$(GAME_COMMON_DIR)/g_ai_main.c \
 	$(GAME_COMMON_DIR)/g_ai_node.c \
+	$(GAME_COMMON_DIR)/g_ballistics.c \
+	$(GAME_COMMON_DIR)/g_client_chase.c \
+	$(GAME_COMMON_DIR)/g_client_view.c \
 	$(GAME_COMMON_DIR)/g_effect.c \
 	$(GAME_COMMON_DIR)/g_entity_func.c \
+	$(GAME_COMMON_DIR)/g_entity_info.c \
 	$(GAME_COMMON_DIR)/g_entity_misc.c \
 	$(GAME_COMMON_DIR)/g_entity_target.c \
+	$(GAME_COMMON_DIR)/g_entity_trigger.c \
+	$(GAME_COMMON_DIR)/g_hook.c \
 	$(GAME_COMMON_DIR)/g_physics.c \
 	$(GAME_COMMON_DIR)/g_sound.c \
-	$(GAME_COMMON_DIR)/g_hook.c
+	$(GAME_COMMON_DIR)/g_util.c
 
 libgcommonctf_la_CFLAGS = \
 	$(GAME_CFLAGS)

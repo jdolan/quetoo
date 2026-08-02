@@ -8,6 +8,7 @@ CGAME_CFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/cgame \
 	-I$(CGAME_COMMON_DIR) \
+	-I$(GAME_COMMON_DIR) \
 	-I$(CGAME_COMMON_DIR)/ui \
 	-I$(CGAME_COMMON_DIR)/ui/controls \
 	-I$(CGAME_COMMON_DIR)/ui/credits \
@@ -17,7 +18,6 @@ CGAME_CFLAGS = \
 	-I$(CGAME_COMMON_DIR)/ui/play \
 	-I$(CGAME_COMMON_DIR)/ui/settings \
 	-I$(CGAME_COMMON_DIR)/ui/teams \
-	-I$(GAME_COMMON_DIR) \
 	-I$(top_srcdir)/src/game/ctf \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
@@ -84,13 +84,13 @@ noinst_HEADERS = \
 	$(CGAME_COMMON_DIR)/ui/play/JoinServerViewController.h \
 	$(CGAME_COMMON_DIR)/ui/play/MapListCollectionItemView.h \
 	$(CGAME_COMMON_DIR)/ui/play/MapListCollectionView.h \
+	$(CGAME_COMMON_DIR)/ui/play/PlayViewController.h \
 	$(CGAME_COMMON_DIR)/ui/play/PlayerModelView.h \
 	$(CGAME_COMMON_DIR)/ui/play/PlayerSetupViewController.h \
-	$(CGAME_COMMON_DIR)/ui/play/PlayViewController.h \
 	$(CGAME_COMMON_DIR)/ui/settings/SettingsViewController.h \
 	$(CGAME_COMMON_DIR)/ui/teams/TeamPlayerView.h \
-	$(CGAME_COMMON_DIR)/ui/teams/TeamsViewController.h \
-	$(CGAME_COMMON_DIR)/ui/teams/TeamView.h
+	$(CGAME_COMMON_DIR)/ui/teams/TeamView.h \
+	$(CGAME_COMMON_DIR)/ui/teams/TeamsViewController.h
 
 # The common UI and client game sources are compiled here rather than linked
 # from a prebuilt library, because cg_state_t and the item roster resolve from
@@ -152,13 +152,13 @@ libcgcommonctf_la_SOURCES = \
 	$(CGAME_COMMON_DIR)/ui/play/JoinServerViewController.c \
 	$(CGAME_COMMON_DIR)/ui/play/MapListCollectionItemView.c \
 	$(CGAME_COMMON_DIR)/ui/play/MapListCollectionView.c \
+	$(CGAME_COMMON_DIR)/ui/play/PlayViewController.c \
 	$(CGAME_COMMON_DIR)/ui/play/PlayerModelView.c \
 	$(CGAME_COMMON_DIR)/ui/play/PlayerSetupViewController.c \
-	$(CGAME_COMMON_DIR)/ui/play/PlayViewController.c \
 	$(CGAME_COMMON_DIR)/ui/settings/SettingsViewController.c \
 	$(CGAME_COMMON_DIR)/ui/teams/TeamPlayerView.c \
-	$(CGAME_COMMON_DIR)/ui/teams/TeamsViewController.c \
-	$(CGAME_COMMON_DIR)/ui/teams/TeamView.c
+	$(CGAME_COMMON_DIR)/ui/teams/TeamView.c \
+	$(CGAME_COMMON_DIR)/ui/teams/TeamsViewController.c
 
 libcgcommonctf_la_CFLAGS = \
 	$(CGAME_CFLAGS)
