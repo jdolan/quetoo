@@ -1,6 +1,3 @@
-GCOMMON_DIR = $(top_srcdir)/src/game/common
-include $(top_srcdir)/src/game/common/sources.mk
-
 noinst_HEADERS = \
 	bg_item.h \
 	g_client_stats.h \
@@ -14,8 +11,29 @@ noinst_HEADERS = \
 	g_main.h \
 	g_types.h \
 	g_weapon.h \
-	$(GCOMMON_HDR) \
-	$(GCOMMON_HOOK_HDR)
+	$(top_srcdir)/src/game/common/g_util.h \
+	$(top_srcdir)/src/game/common/g_ballistics.h \
+	$(top_srcdir)/src/game/common/g_client_chase.h \
+	$(top_srcdir)/src/game/common/g_client_view.h \
+	$(top_srcdir)/src/game/common/g_entity_info.h \
+	$(top_srcdir)/src/game/common/g_entity_trigger.h \
+	$(top_srcdir)/src/game/common/g_module.h \
+	$(top_srcdir)/src/game/common/g_ai_goal.h \
+	$(top_srcdir)/src/game/common/g_ai_grid.h \
+	$(top_srcdir)/src/game/common/g_ai_info.h \
+	$(top_srcdir)/src/game/common/g_ai_item.h \
+	$(top_srcdir)/src/game/common/g_ai_main.h \
+	$(top_srcdir)/src/game/common/g_ai_node.h \
+	$(top_srcdir)/src/game/common/g_ai_types.h \
+	$(top_srcdir)/src/game/common/bg_pmove.h \
+	$(top_srcdir)/src/game/common/g_effect.h \
+	$(top_srcdir)/src/game/common/g_entity_func.h \
+	$(top_srcdir)/src/game/common/g_entity_misc.h \
+	$(top_srcdir)/src/game/common/g_entity_target.h \
+	$(top_srcdir)/src/game/common/g_physics.h \
+	$(top_srcdir)/src/game/common/g_sound.h \
+	$(top_srcdir)/src/game/common/g_hook.h \
+	$(top_srcdir)/src/game/common/g_hook_types.h
 
 noinst_LTLIBRARIES = \
 	libitem.la \
@@ -23,15 +41,32 @@ noinst_LTLIBRARIES = \
 	libgcommonctf.la
 
 libgcommonctf_la_SOURCES = \
-	$(GCOMMON_SRC) \
-	$(GCOMMON_HOOK_SRC)
+	$(top_srcdir)/src/game/common/g_util.c \
+	$(top_srcdir)/src/game/common/g_ballistics.c \
+	$(top_srcdir)/src/game/common/g_client_chase.c \
+	$(top_srcdir)/src/game/common/g_client_view.c \
+	$(top_srcdir)/src/game/common/g_entity_info.c \
+	$(top_srcdir)/src/game/common/g_entity_trigger.c \
+	$(top_srcdir)/src/game/common/g_ai_goal.c \
+	$(top_srcdir)/src/game/common/g_ai_grid.c \
+	$(top_srcdir)/src/game/common/g_ai_info.c \
+	$(top_srcdir)/src/game/common/g_ai_item.c \
+	$(top_srcdir)/src/game/common/g_ai_main.c \
+	$(top_srcdir)/src/game/common/g_ai_node.c \
+	$(top_srcdir)/src/game/common/g_effect.c \
+	$(top_srcdir)/src/game/common/g_entity_func.c \
+	$(top_srcdir)/src/game/common/g_entity_misc.c \
+	$(top_srcdir)/src/game/common/g_entity_target.c \
+	$(top_srcdir)/src/game/common/g_physics.c \
+	$(top_srcdir)/src/game/common/g_sound.c \
+	$(top_srcdir)/src/game/common/g_hook.c
 
 libgcommonctf_la_CFLAGS = \
 	-I$(top_srcdir)/src \
-	$(GCOMMON_HOOK_CFLAGS) \
-	$(GCOMMON_CTF_CFLAGS) \
+	-DG_HOOK \
+	-DG_CTF \
 	-I$(srcdir) \
-	$(GCOMMON_CFLAGS) \
+	-I$(top_srcdir)/src/game/common \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@
@@ -40,7 +75,7 @@ libitem_la_SOURCES = \
 	bg_item.c
 libitem_la_CFLAGS = \
 	-I$(top_srcdir)/src \
-	$(GCOMMON_CFLAGS) \
+	-I$(top_srcdir)/src/game/common \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@
 libitem_la_LDFLAGS = \
@@ -48,10 +83,10 @@ libitem_la_LDFLAGS = \
 libitem_la_LIBADD =
 
 libpmovectf_la_SOURCES = \
-	$(GCOMMON_DIR)/bg_pmove.c
+	$(top_srcdir)/src/game/common/bg_pmove.c
 libpmovectf_la_CFLAGS = \
 	-I$(top_srcdir)/src \
-	$(GCOMMON_CFLAGS) \
+	-I$(top_srcdir)/src/game/common \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@
 libpmovectf_la_LDFLAGS = \
@@ -78,10 +113,10 @@ game_la_SOURCES = \
 
 game_la_CFLAGS = \
 	-I$(top_srcdir)/src \
-	$(GCOMMON_HOOK_CFLAGS) \
-	$(GCOMMON_CTF_CFLAGS) \
+	-DG_HOOK \
+	-DG_CTF \
 	-I$(srcdir) \
-	$(GCOMMON_CFLAGS) \
+	-I$(top_srcdir)/src/game/common \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@
