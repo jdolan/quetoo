@@ -1,3 +1,19 @@
+GAME_COMMON_DIR = $(top_srcdir)/src/game/common
+
+GAME_CFLAGS = \
+	-I$(srcdir) \
+	-I$(top_srcdir)/src \
+	-I$(GAME_COMMON_DIR) \
+	@SO_CFLAGS@ \
+	@BASE_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@
+
+GAME_LIB_CFLAGS = \
+	-I$(top_srcdir)/src \
+	-I$(GAME_COMMON_DIR) \
+	@BASE_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@
+
 noinst_HEADERS = \
 	bg_item.h \
 	g_client_stats.h \
@@ -10,27 +26,27 @@ noinst_HEADERS = \
 	g_main.h \
 	g_types.h \
 	g_weapon.h \
-	$(top_srcdir)/src/game/common/g_util.h \
-	$(top_srcdir)/src/game/common/g_ballistics.h \
-	$(top_srcdir)/src/game/common/g_client_chase.h \
-	$(top_srcdir)/src/game/common/g_client_view.h \
-	$(top_srcdir)/src/game/common/g_entity_info.h \
-	$(top_srcdir)/src/game/common/g_entity_trigger.h \
-	$(top_srcdir)/src/game/common/g_module.h \
-	$(top_srcdir)/src/game/common/g_ai_goal.h \
-	$(top_srcdir)/src/game/common/g_ai_grid.h \
-	$(top_srcdir)/src/game/common/g_ai_info.h \
-	$(top_srcdir)/src/game/common/g_ai_item.h \
-	$(top_srcdir)/src/game/common/g_ai_main.h \
-	$(top_srcdir)/src/game/common/g_ai_node.h \
-	$(top_srcdir)/src/game/common/g_ai_types.h \
-	$(top_srcdir)/src/game/common/bg_pmove.h \
-	$(top_srcdir)/src/game/common/g_effect.h \
-	$(top_srcdir)/src/game/common/g_entity_func.h \
-	$(top_srcdir)/src/game/common/g_entity_misc.h \
-	$(top_srcdir)/src/game/common/g_entity_target.h \
-	$(top_srcdir)/src/game/common/g_physics.h \
-	$(top_srcdir)/src/game/common/g_sound.h
+	$(GAME_COMMON_DIR)/g_util.h \
+	$(GAME_COMMON_DIR)/g_ballistics.h \
+	$(GAME_COMMON_DIR)/g_client_chase.h \
+	$(GAME_COMMON_DIR)/g_client_view.h \
+	$(GAME_COMMON_DIR)/g_entity_info.h \
+	$(GAME_COMMON_DIR)/g_entity_trigger.h \
+	$(GAME_COMMON_DIR)/g_module.h \
+	$(GAME_COMMON_DIR)/g_ai_goal.h \
+	$(GAME_COMMON_DIR)/g_ai_grid.h \
+	$(GAME_COMMON_DIR)/g_ai_info.h \
+	$(GAME_COMMON_DIR)/g_ai_item.h \
+	$(GAME_COMMON_DIR)/g_ai_main.h \
+	$(GAME_COMMON_DIR)/g_ai_node.h \
+	$(GAME_COMMON_DIR)/g_ai_types.h \
+	$(GAME_COMMON_DIR)/bg_pmove.h \
+	$(GAME_COMMON_DIR)/g_effect.h \
+	$(GAME_COMMON_DIR)/g_entity_func.h \
+	$(GAME_COMMON_DIR)/g_entity_misc.h \
+	$(GAME_COMMON_DIR)/g_entity_target.h \
+	$(GAME_COMMON_DIR)/g_physics.h \
+	$(GAME_COMMON_DIR)/g_sound.h
 
 noinst_LTLIBRARIES = \
 	libitem.la \
@@ -38,51 +54,40 @@ noinst_LTLIBRARIES = \
 	libgcommondefault.la
 
 libgcommondefault_la_SOURCES = \
-	$(top_srcdir)/src/game/common/g_util.c \
-	$(top_srcdir)/src/game/common/g_ballistics.c \
-	$(top_srcdir)/src/game/common/g_client_chase.c \
-	$(top_srcdir)/src/game/common/g_client_view.c \
-	$(top_srcdir)/src/game/common/g_entity_info.c \
-	$(top_srcdir)/src/game/common/g_entity_trigger.c \
-	$(top_srcdir)/src/game/common/g_ai_goal.c \
-	$(top_srcdir)/src/game/common/g_ai_grid.c \
-	$(top_srcdir)/src/game/common/g_ai_info.c \
-	$(top_srcdir)/src/game/common/g_ai_item.c \
-	$(top_srcdir)/src/game/common/g_ai_main.c \
-	$(top_srcdir)/src/game/common/g_ai_node.c \
-	$(top_srcdir)/src/game/common/g_effect.c \
-	$(top_srcdir)/src/game/common/g_entity_func.c \
-	$(top_srcdir)/src/game/common/g_entity_misc.c \
-	$(top_srcdir)/src/game/common/g_entity_target.c \
-	$(top_srcdir)/src/game/common/g_physics.c \
-	$(top_srcdir)/src/game/common/g_sound.c
+	$(GAME_COMMON_DIR)/g_util.c \
+	$(GAME_COMMON_DIR)/g_ballistics.c \
+	$(GAME_COMMON_DIR)/g_client_chase.c \
+	$(GAME_COMMON_DIR)/g_client_view.c \
+	$(GAME_COMMON_DIR)/g_entity_info.c \
+	$(GAME_COMMON_DIR)/g_entity_trigger.c \
+	$(GAME_COMMON_DIR)/g_ai_goal.c \
+	$(GAME_COMMON_DIR)/g_ai_grid.c \
+	$(GAME_COMMON_DIR)/g_ai_info.c \
+	$(GAME_COMMON_DIR)/g_ai_item.c \
+	$(GAME_COMMON_DIR)/g_ai_main.c \
+	$(GAME_COMMON_DIR)/g_ai_node.c \
+	$(GAME_COMMON_DIR)/g_effect.c \
+	$(GAME_COMMON_DIR)/g_entity_func.c \
+	$(GAME_COMMON_DIR)/g_entity_misc.c \
+	$(GAME_COMMON_DIR)/g_entity_target.c \
+	$(GAME_COMMON_DIR)/g_physics.c \
+	$(GAME_COMMON_DIR)/g_sound.c
 
 libgcommondefault_la_CFLAGS = \
-	-I$(top_srcdir)/src \
-	-I$(srcdir) \
-	-I$(top_srcdir)/src/game/common \
-	@SO_CFLAGS@ \
-	@BASE_CFLAGS@ \
-	@OBJECTIVELY_CFLAGS@
+	$(GAME_CFLAGS)
 
 libitem_la_SOURCES = \
 	bg_item.c
 libitem_la_CFLAGS = \
-	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/src/game/common \
-	@BASE_CFLAGS@ \
-	@OBJECTIVELY_CFLAGS@
+	$(GAME_LIB_CFLAGS)
 libitem_la_LDFLAGS = \
 	-shared
 libitem_la_LIBADD =
 
 libpmovedefault_la_SOURCES = \
-	$(top_srcdir)/src/game/common/bg_pmove.c
+	$(GAME_COMMON_DIR)/bg_pmove.c
 libpmovedefault_la_CFLAGS = \
-	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/src/game/common \
-	@BASE_CFLAGS@ \
-	@OBJECTIVELY_CFLAGS@
+	$(GAME_LIB_CFLAGS)
 libpmovedefault_la_LDFLAGS = \
 	-shared
 libpmovedefault_la_LIBADD = \
@@ -105,12 +110,7 @@ game_la_SOURCES = \
 	g_weapon.c
 
 game_la_CFLAGS = \
-	-I$(top_srcdir)/src \
-	-I$(srcdir) \
-	-I$(top_srcdir)/src/game/common \
-	@SO_CFLAGS@ \
-	@BASE_CFLAGS@ \
-	@OBJECTIVELY_CFLAGS@
+	$(GAME_CFLAGS)
 
 game_la_LDFLAGS = \
 	-avoid-version \

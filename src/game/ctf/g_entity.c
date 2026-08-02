@@ -329,11 +329,11 @@ static void G_InitMedia(void) {
 
   g_media.sounds.roar = gi.SoundIndex("misc/ominous_bwah");
 
-  g_media.sounds.techs[TECH_HASTE - TECH_FIRST]    = gi.SoundIndex("techs/haste/haste");
-  g_media.sounds.techs[TECH_REGEN - TECH_FIRST]    = gi.SoundIndex("techs/regen/regen");
-  g_media.sounds.techs[TECH_RESIST - TECH_FIRST]   = gi.SoundIndex("techs/resist/resist");
+  g_media.sounds.techs[TECH_HASTE    - TECH_FIRST] = gi.SoundIndex("techs/haste/haste");
+  g_media.sounds.techs[TECH_REGEN    - TECH_FIRST] = gi.SoundIndex("techs/regen/regen");
+  g_media.sounds.techs[TECH_RESIST   - TECH_FIRST] = gi.SoundIndex("techs/resist/resist");
   g_media.sounds.techs[TECH_STRENGTH - TECH_FIRST] = gi.SoundIndex("techs/strength/strength");
-  g_media.sounds.techs[TECH_VAMPIRE - TECH_FIRST]  = gi.SoundIndex("techs/vampire/vampire");
+  g_media.sounds.techs[TECH_VAMPIRE  - TECH_FIRST] = gi.SoundIndex("techs/vampire/vampire");
 
   g_media.images.health = gi.ImageIndex("pics/i_health");
 }
