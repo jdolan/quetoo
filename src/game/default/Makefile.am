@@ -47,28 +47,7 @@ noinst_HEADERS = \
 	g_local.h \
 	g_main.h \
 	g_types.h \
-	g_weapon.h \
-	$(GAME_COMMON_DIR)/bg_pmove.h \
-	$(GAME_COMMON_DIR)/g_ai_goal.h \
-	$(GAME_COMMON_DIR)/g_ai_grid.h \
-	$(GAME_COMMON_DIR)/g_ai_info.h \
-	$(GAME_COMMON_DIR)/g_ai_item.h \
-	$(GAME_COMMON_DIR)/g_ai_main.h \
-	$(GAME_COMMON_DIR)/g_ai_node.h \
-	$(GAME_COMMON_DIR)/g_ai_types.h \
-	$(GAME_COMMON_DIR)/g_ballistics.h \
-	$(GAME_COMMON_DIR)/g_client_chase.h \
-	$(GAME_COMMON_DIR)/g_client_view.h \
-	$(GAME_COMMON_DIR)/g_effect.h \
-	$(GAME_COMMON_DIR)/g_entity_func.h \
-	$(GAME_COMMON_DIR)/g_entity_info.h \
-	$(GAME_COMMON_DIR)/g_entity_misc.h \
-	$(GAME_COMMON_DIR)/g_entity_target.h \
-	$(GAME_COMMON_DIR)/g_entity_trigger.h \
-	$(GAME_COMMON_DIR)/g_module.h \
-	$(GAME_COMMON_DIR)/g_physics.h \
-	$(GAME_COMMON_DIR)/g_sound.h \
-	$(GAME_COMMON_DIR)/g_util.h
+	g_weapon.h
 
 noinst_LTLIBRARIES = \
 	libitem.la \

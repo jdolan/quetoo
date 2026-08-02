@@ -89,68 +89,7 @@ CGAME_CFLAGS = \
 
 noinst_HEADERS = \
 	cg_hud.h \
-	cg_score.h \
-	$(CGAME_COMMON_DIR)/cg_client.h \
-	$(CGAME_COMMON_DIR)/cg_discord.h \
-	$(CGAME_COMMON_DIR)/cg_editor.h \
-	$(CGAME_COMMON_DIR)/cg_effect.h \
-	$(CGAME_COMMON_DIR)/cg_entity.h \
-	$(CGAME_COMMON_DIR)/cg_entity_effect.h \
-	$(CGAME_COMMON_DIR)/cg_entity_event.h \
-	$(CGAME_COMMON_DIR)/cg_entity_misc.h \
-	$(CGAME_COMMON_DIR)/cg_entity_trail.h \
-	$(CGAME_COMMON_DIR)/cg_flare.h \
-	$(CGAME_COMMON_DIR)/cg_hud_draw.h \
-	$(CGAME_COMMON_DIR)/cg_input.h \
-	$(CGAME_COMMON_DIR)/cg_inventory.h \
-	$(CGAME_COMMON_DIR)/cg_light.h \
-	$(CGAME_COMMON_DIR)/cg_local.h \
-	$(CGAME_COMMON_DIR)/cg_main.h \
-	$(CGAME_COMMON_DIR)/cg_media.h \
-	$(CGAME_COMMON_DIR)/cg_muzzle_flash.h \
-	$(CGAME_COMMON_DIR)/cg_predict.h \
-	$(CGAME_COMMON_DIR)/cg_sound.h \
-	$(CGAME_COMMON_DIR)/cg_sprite.h \
-	$(CGAME_COMMON_DIR)/cg_team_mode.h \
-	$(CGAME_COMMON_DIR)/cg_temp_entity.h \
-	$(CGAME_COMMON_DIR)/cg_types.h \
-	$(CGAME_COMMON_DIR)/cg_ui.h \
-	$(CGAME_COMMON_DIR)/cg_view.h \
-	$(CGAME_COMMON_DIR)/cg_weapon.h \
-	$(CGAME_COMMON_DIR)/ui/BindTextView.h \
-	$(CGAME_COMMON_DIR)/ui/CvarCheckbox.h \
-	$(CGAME_COMMON_DIR)/ui/CvarSelect.h \
-	$(CGAME_COMMON_DIR)/ui/CvarSlider.h \
-	$(CGAME_COMMON_DIR)/ui/CvarTextView.h \
-	$(CGAME_COMMON_DIR)/ui/DialogViewController.h \
-	$(CGAME_COMMON_DIR)/ui/controls/ControlsViewController.h \
-	$(CGAME_COMMON_DIR)/ui/controls/CrosshairView.h \
-	$(CGAME_COMMON_DIR)/ui/controls/MovementCombatViewController.h \
-	$(CGAME_COMMON_DIR)/ui/controls/ResponseServiceViewController.h \
-	$(CGAME_COMMON_DIR)/ui/credits/CreditsViewController.h \
-	$(CGAME_COMMON_DIR)/ui/editor/EditorViewController.h \
-	$(CGAME_COMMON_DIR)/ui/editor/EntityView.h \
-	$(CGAME_COMMON_DIR)/ui/editor/EntityViewController.h \
-	$(CGAME_COMMON_DIR)/ui/editor/MaterialViewController.h \
-	$(CGAME_COMMON_DIR)/ui/editor/MeshViewController.h \
-	$(CGAME_COMMON_DIR)/ui/home/HomeViewController.h \
-	$(CGAME_COMMON_DIR)/ui/home/LeaderboardViewController.h \
-	$(CGAME_COMMON_DIR)/ui/home/StatsViewController.h \
-	$(CGAME_COMMON_DIR)/ui/main/LoadingViewController.h \
-	$(CGAME_COMMON_DIR)/ui/main/MainView.h \
-	$(CGAME_COMMON_DIR)/ui/main/MainViewController.h \
-	$(CGAME_COMMON_DIR)/ui/main/UpdateViewController.h \
-	$(CGAME_COMMON_DIR)/ui/play/CreateServerViewController.h \
-	$(CGAME_COMMON_DIR)/ui/play/JoinServerViewController.h \
-	$(CGAME_COMMON_DIR)/ui/play/MapListCollectionItemView.h \
-	$(CGAME_COMMON_DIR)/ui/play/MapListCollectionView.h \
-	$(CGAME_COMMON_DIR)/ui/play/PlayViewController.h \
-	$(CGAME_COMMON_DIR)/ui/play/PlayerModelView.h \
-	$(CGAME_COMMON_DIR)/ui/play/PlayerSetupViewController.h \
-	$(CGAME_COMMON_DIR)/ui/settings/SettingsViewController.h \
-	$(CGAME_COMMON_DIR)/ui/teams/TeamPlayerView.h \
-	$(CGAME_COMMON_DIR)/ui/teams/TeamView.h \
-	$(CGAME_COMMON_DIR)/ui/teams/TeamsViewController.h
+	cg_score.h
 
 # The common UI and client game sources are compiled here rather than linked
 # from a prebuilt library, because cg_state_t and the item roster resolve from
