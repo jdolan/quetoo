@@ -67,18 +67,18 @@
     <ClInclude Include="..\src\cgame\common\cg_weapon.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\cgame\common\ui\common\BindTextView.c" />
-    <ClInclude Include="..\src\cgame\common\ui\common\BindTextView.h" />
-    <ClCompile Include="..\src\cgame\common\ui\common\CvarCheckbox.c" />
-    <ClInclude Include="..\src\cgame\common\ui\common\CvarCheckbox.h" />
-    <ClCompile Include="..\src\cgame\common\ui\common\CvarSelect.c" />
-    <ClInclude Include="..\src\cgame\common\ui\common\CvarSelect.h" />
-    <ClCompile Include="..\src\cgame\common\ui\common\CvarSlider.c" />
-    <ClInclude Include="..\src\cgame\common\ui\common\CvarSlider.h" />
-    <ClCompile Include="..\src\cgame\common\ui\common\CvarTextView.c" />
-    <ClInclude Include="..\src\cgame\common\ui\common\CvarTextView.h" />
-    <ClCompile Include="..\src\cgame\common\ui\common\DialogViewController.c" />
-    <ClInclude Include="..\src\cgame\common\ui\common\DialogViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\BindTextView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\BindTextView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\CvarCheckbox.c" />
+    <ClInclude Include="..\src\cgame\common\ui\CvarCheckbox.h" />
+    <ClCompile Include="..\src\cgame\common\ui\CvarSelect.c" />
+    <ClInclude Include="..\src\cgame\common\ui\CvarSelect.h" />
+    <ClCompile Include="..\src\cgame\common\ui\CvarSlider.c" />
+    <ClInclude Include="..\src\cgame\common\ui\CvarSlider.h" />
+    <ClCompile Include="..\src\cgame\common\ui\CvarTextView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\CvarTextView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\DialogViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\DialogViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\controls\ControlsViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\controls\ControlsViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\controls\CrosshairView.c" />

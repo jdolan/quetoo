@@ -1205,18 +1205,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CE4E07B420265210000B276C /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = ui/common;
-			dstSubfolderSpec = 16;
-			files = (
-				CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */,
-				CEADCE4A25DB415E006E34A6 /* DialogViewController.json in CopyFiles */,
-				CE4E07B52026524A000B276C /* common.css in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CE4E07B720267815000B276C /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1305,6 +1293,9 @@
 			dstSubfolderSpec = 16;
 			files = (
 				CEA400082F9800000087B100 /* logo.png in CopyFiles */,
+				CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */,
+				CEADCE4A25DB415E006E34A6 /* DialogViewController.json in CopyFiles */,
+				CE4E07B52026524A000B276C /* common.css in CopyFiles */,
 				CEAD8FC82F9650560087A850 /* change.wav in CopyFiles */,
 				CEAD8FC92F9650560087A850 /* clack.wav in CopyFiles */,
 				CEAD8FCA2F9650560087A850 /* click.wav in CopyFiles */,
@@ -1910,7 +1901,6 @@
 		CE6EE40F1F72919800FBC830 /* cg_ui.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_ui.c; sourceTree = "<group>"; };
 		CE6EE4101F72919800FBC830 /* cg_ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_ui.h; sourceTree = "<group>"; };
 		CE6FF29C1E9E6FBA00F3C160 /* qzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qzip.h; sourceTree = "<group>"; };
-		CE7D2C07202E9C6D004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C08202E9DE6004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C0A202EA0FB004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C0B202EA3A2004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -3490,7 +3480,21 @@
 			isa = PBXGroup;
 			children = (
 				CEA4000F2F9800000087B100 /* backgrounds */,
-				CE5870781F5CDFE0004CAAB2 /* common */,
+				CE32529C1F760D3F00512523 /* BindTextView.h */,
+				CE32529B1F760D3F00512523 /* BindTextView.c */,
+				CE58709D1F5CE97C004CAAB2 /* CvarCheckbox.h */,
+				CE58709C1F5CE97C004CAAB2 /* CvarCheckbox.c */,
+				CE58709F1F5CE97C004CAAB2 /* CvarSelect.h */,
+				CE58709E1F5CE97C004CAAB2 /* CvarSelect.c */,
+				CE5870A11F5CE97C004CAAB2 /* CvarSlider.h */,
+				CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */,
+				CE5870A31F5CE97C004CAAB2 /* CvarTextView.h */,
+				CE5870A21F5CE97C004CAAB2 /* CvarTextView.c */,
+				CE8819591F882D9F000D5AB7 /* DialogViewController.h */,
+				CE8819581F882D9F000D5AB7 /* DialogViewController.c */,
+				CE7D2C2A2030F269004BC58E /* DialogViewController.css */,
+				CE7D2C292030F25B004BC58E /* DialogViewController.json */,
+				CE4E07B320264B15000B276C /* common.css */,
 				CE1A28351F75FE70005F62A9 /* controls */,
 				CEA1A0062F9F00000087B100 /* credits */,
 				CFA000012F9100000000C001 /* editor */,
@@ -3510,29 +3514,6 @@
 				CE6EE3CE1F72018C00FBC830 /* Makefile.am */,
 			);
 			path = ui;
-			sourceTree = "<group>";
-		};
-		CE5870781F5CDFE0004CAAB2 /* common */ = {
-			isa = PBXGroup;
-			children = (
-				CE32529C1F760D3F00512523 /* BindTextView.h */,
-				CE32529B1F760D3F00512523 /* BindTextView.c */,
-				CE58709D1F5CE97C004CAAB2 /* CvarCheckbox.h */,
-				CE58709C1F5CE97C004CAAB2 /* CvarCheckbox.c */,
-				CE58709F1F5CE97C004CAAB2 /* CvarSelect.h */,
-				CE58709E1F5CE97C004CAAB2 /* CvarSelect.c */,
-				CE5870A11F5CE97C004CAAB2 /* CvarSlider.h */,
-				CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */,
-				CE5870A31F5CE97C004CAAB2 /* CvarTextView.h */,
-				CE5870A21F5CE97C004CAAB2 /* CvarTextView.c */,
-				CE8819591F882D9F000D5AB7 /* DialogViewController.h */,
-				CE8819581F882D9F000D5AB7 /* DialogViewController.c */,
-				CE7D2C2A2030F269004BC58E /* DialogViewController.css */,
-				CE7D2C292030F25B004BC58E /* DialogViewController.json */,
-				CE4E07B320264B15000B276C /* common.css */,
-				CE7D2C07202E9C6D004BC58E /* Makefile.am */,
-			);
-			path = common;
 			sourceTree = "<group>";
 		};
 		CE58707E1F5CDFE0004CAAB2 /* play */ = {
@@ -4620,7 +4601,6 @@
 				CE6EE3171F6BFAF600FBC830 /* Sources */,
 				CE6EE3241F6BFAF600FBC830 /* Frameworks */,
 				CE6EE3271F6BFAF600FBC830 /* Headers */,
-				CE4E07B420265210000B276C /* CopyFiles */,
 				CE4E07CA2026881F000B276C /* CopyFiles */,
 				CFA000132F9100000000C013 /* CopyFiles */,
 				CEA1A0052F9F00000087B100 /* CopyFiles */,
@@ -6300,7 +6280,6 @@
 					"$(SRCROOT)/src/game/common",
 					"$(SRCROOT)/src/game/default",
 					"$(SRCROOT)/src/cgame/common/ui",
-					"$(SRCROOT)/src/cgame/common/ui/common",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
 					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
@@ -6329,7 +6308,6 @@
 					"$(SRCROOT)/src/game/common",
 					"$(SRCROOT)/src/game/default",
 					"$(SRCROOT)/src/cgame/common/ui",
-					"$(SRCROOT)/src/cgame/common/ui/common",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
 					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
@@ -6641,7 +6619,6 @@
 					"$(SRCROOT)/src/game/common",
 					"$(SRCROOT)/src/game/default",
 					"$(SRCROOT)/src/cgame/common/ui",
-					"$(SRCROOT)/src/cgame/common/ui/common",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
 					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
@@ -6669,7 +6646,6 @@
 					"$(SRCROOT)/src/game/common",
 					"$(SRCROOT)/src/game/default",
 					"$(SRCROOT)/src/cgame/common/ui",
-					"$(SRCROOT)/src/cgame/common/ui/common",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
 					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
@@ -7133,7 +7109,6 @@
 					"$(SRCROOT)/src/game/common",
 					"$(SRCROOT)/src/game/ctf",
 					"$(SRCROOT)/src/cgame/common/ui",
-					"$(SRCROOT)/src/cgame/common/ui/common",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
 					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
@@ -7165,7 +7140,6 @@
 					"$(SRCROOT)/src/game/common",
 					"$(SRCROOT)/src/game/ctf",
 					"$(SRCROOT)/src/cgame/common/ui",
-					"$(SRCROOT)/src/cgame/common/ui/common",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
 					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
@@ -7203,7 +7177,6 @@
 					"$(SRCROOT)/src/game/common",
 					"$(SRCROOT)/src/game/ctf",
 					"$(SRCROOT)/src/cgame/common/ui",
-					"$(SRCROOT)/src/cgame/common/ui/common",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
 					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
@@ -7241,7 +7214,6 @@
 					"$(SRCROOT)/src/game/common",
 					"$(SRCROOT)/src/game/ctf",
 					"$(SRCROOT)/src/cgame/common/ui",
-					"$(SRCROOT)/src/cgame/common/ui/common",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
 					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",

@@ -1,6 +1,5 @@
 SUBDIRS = \
 	backgrounds \
-	common \
 	credits \
 	editor \
 	fonts \
@@ -13,9 +12,12 @@ SUBDIRS = \
 
 cguidir = @PKGLIBDIR@/ui
 cgui_DATA = \
+	DialogViewController.css \
+	DialogViewController.json \
 	change.wav \
 	clack.wav \
 	click.wav \
+	common.css \
 	conback.png \
 	loading.png \
 	logo.png \

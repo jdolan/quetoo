@@ -12,12 +12,12 @@
 # primary suffixes, which would otherwise demand a matching install dir.
 
 CGUI_SRC = \
-	$(CGUI_DIR)/common/BindTextView.c \
-	$(CGUI_DIR)/common/CvarCheckbox.c \
-	$(CGUI_DIR)/common/CvarSelect.c \
-	$(CGUI_DIR)/common/CvarSlider.c \
-	$(CGUI_DIR)/common/CvarTextView.c \
-	$(CGUI_DIR)/common/DialogViewController.c \
+	$(CGUI_DIR)/BindTextView.c \
+	$(CGUI_DIR)/CvarCheckbox.c \
+	$(CGUI_DIR)/CvarSelect.c \
+	$(CGUI_DIR)/CvarSlider.c \
+	$(CGUI_DIR)/CvarTextView.c \
+	$(CGUI_DIR)/DialogViewController.c \
 	$(CGUI_DIR)/controls/ControlsViewController.c \
 	$(CGUI_DIR)/controls/CrosshairView.c \
 	$(CGUI_DIR)/controls/MovementCombatViewController.c \
@@ -48,12 +48,12 @@ CGUI_SRC = \
 	$(CGUI_DIR)/teams/TeamView.c
 
 CGUI_HDR = \
-	$(CGUI_DIR)/common/BindTextView.h \
-	$(CGUI_DIR)/common/CvarCheckbox.h \
-	$(CGUI_DIR)/common/CvarSelect.h \
-	$(CGUI_DIR)/common/CvarSlider.h \
-	$(CGUI_DIR)/common/CvarTextView.h \
-	$(CGUI_DIR)/common/DialogViewController.h \
+	$(CGUI_DIR)/BindTextView.h \
+	$(CGUI_DIR)/CvarCheckbox.h \
+	$(CGUI_DIR)/CvarSelect.h \
+	$(CGUI_DIR)/CvarSlider.h \
+	$(CGUI_DIR)/CvarTextView.h \
+	$(CGUI_DIR)/DialogViewController.h \
 	$(CGUI_DIR)/controls/ControlsViewController.h \
 	$(CGUI_DIR)/controls/CrosshairView.h \
 	$(CGUI_DIR)/controls/MovementCombatViewController.h \
@@ -85,7 +85,6 @@ CGUI_HDR = \
 
 CGUI_CFLAGS = \
 	-I$(CGUI_DIR) \
-	-I$(CGUI_DIR)/common \
 	-I$(CGUI_DIR)/controls \
 	-I$(CGUI_DIR)/credits \
 	-I$(CGUI_DIR)/editor \

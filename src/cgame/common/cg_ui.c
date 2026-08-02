@@ -34,7 +34,7 @@ static Stylesheet *stylesheet;
  */
 void Cg_InitUi(void) {
 
-  stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common/common.css");
+  stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common.css");
   assert(stylesheet);
 
   Theme *theme = cgi.Theme();

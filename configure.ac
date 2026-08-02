@@ -388,7 +388,6 @@ AC_CONFIG_FILES([
 	src/cgame/common/ui/Makefile
 	src/cgame/common/ui/backgrounds/Makefile
 	src/cgame/common/ui/fonts/Makefile
-	src/cgame/common/ui/common/Makefile
 	src/cgame/common/ui/controls/Makefile
 	src/cgame/common/ui/credits/Makefile
 	src/cgame/common/ui/editor/Makefile
