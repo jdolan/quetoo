@@ -75,10 +75,8 @@ static void G_UpdateScore(const g_client_t *cl, g_score_t *s) {
     s->color = -1;
     s->flags |= SCORE_SPECTATOR;
   } else {
-    if (g_level.ctf) {
-      if (G_GetFlag(cl)) {
-        s->flags |= SCORE_CTF_FLAG;
-      }
+    if (G_GetFlag(cl)) {
+      s->flags |= SCORE_CTF_FLAG;
     }
     if (cl->persistent.team) {
       s->color = cl->persistent.team->color;

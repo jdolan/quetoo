@@ -264,11 +264,6 @@ static void Cg_UpdateConfigString(int32_t i) {
     case CS_ITEM_SET:
       cg_state.items = (g_items_t) strtol(s, NULL, 10);
       return;
-#if defined(G_CTF)
-    case CS_CTF:
-      cg_state.ctf = Clampf01(atoi(s));
-      return;
-#endif
 #if defined(G_HOOK)
     case CS_HOOK_PULL_SPEED:
       cg_state.hook_pull_speed = strtof(s, NULL);

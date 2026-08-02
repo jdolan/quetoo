@@ -133,7 +133,6 @@ cvar_t *g_balance_supershotgun_spread_x;
 cvar_t *g_balance_supershotgun_spread_y;
 cvar_t *g_capture_limit;
 cvar_t *g_cheats;
-cvar_t *g_ctf;
 cvar_t *g_techs;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
@@ -310,22 +309,15 @@ void G_ResetItems(void) {
  */
 void G_CheckTechs(void) {
 
-  if (q_strcmp(g_techs->string, "default")) { // check cvar first
+  if (q_strcmp(g_techs->string, "default")) { // the cvar, else capture play implies them
     g_level.techs = !!g_techs->integer;
-  } else if (g_level.techs_map != -1) { // check maps.lst
-    g_level.techs = (g_level.techs_map == -1) ? g_level.ctf : !!g_level.techs_map;
-  } else { // check worldspawn
-    const cm_entity_t *techs = gi.EntityValue(ge.entities[0]->def, "techs");
-    if (techs->parsed & ENTITY_INTEGER) {
-      g_level.techs = techs->integer;
-    } else {
-      g_level.techs = g_level.ctf;
-    }
+  } else {
+    g_level.techs = true;
   }
 }
 
 /**
- * @brief Setup the effects for spawn points
+ * @brief Setup the effects for spawn points.
  */
 static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trail_t trail, const g_team_id_t team_id) {
 
@@ -404,7 +396,7 @@ static void G_RestartGame(bool teamz) {
     G_ClientRespawn(cl, false);
   });
 
-  G_Hook_CheckState(g_level.ctf);
+  G_Hook_CheckState(true);
 
   G_CheckTechs();
 
@@ -596,28 +588,7 @@ static void G_CheckRules(void) {
 
   G_RunTimers();
 
-  if (!g_level.ctf && g_level.frag_limit) { // check frag_limit
-
-    if (g_level.teams) { // check team scores
-      for (int32_t i = 0; i < g_level.num_teams; i++) {
-        if (g_team_list[i].score >= g_level.frag_limit) {
-          gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
-          G_EndLevel();
-          return;
-        }
-      }
-    } else { // or individual scores
-      G_ForEachClient(cl, {
-        if (cl->persistent.score >= g_level.frag_limit) {
-          gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
-          G_EndLevel();
-          return;
-        }
-      });
-    }
-  }
-
-  if (g_level.ctf && g_level.capture_limit) { // check capture limit
+  if (g_level.capture_limit) { // check capture limit
 
     for (int32_t i = 0; i < g_level.num_teams; i++) {
       if (g_team_list[i].captures >= g_level.capture_limit) {
@@ -642,7 +613,7 @@ static void G_CheckRules(void) {
   if (g_hook->modified) {
     g_hook->modified = false;
 
-    G_Hook_CheckState(g_level.ctf);
+    G_Hook_CheckState(true);
 
     gi.BroadcastPrint(PRINT_HIGH, "Hook has been %s\n", G_Hook_Enabled() ? "enabled" : "disabled");
   }
@@ -716,7 +687,7 @@ static void G_CheckRules(void) {
     if (g_level.num_teams != num_teams) {
       g_level.num_teams = num_teams;
 
-      if (g_teams->integer || g_ctf->integer) {
+      {
         G_InitNumTeams();
 
         gi.BroadcastPrint(PRINT_HIGH, "Number of teams set to %i\n",
@@ -730,27 +701,10 @@ static void G_CheckRules(void) {
   if (g_teams->modified) { // reset teams, scores
     g_teams->modified = false;
 
-    g_level.teams = g_teams->integer;
-    if (g_level.ctf && !g_level.teams) { // capture play is team play
-      g_level.teams = 1;
-    }
+    g_level.teams = 1; // capture play is team play
     G_InitNumTeams();
 
     gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n", g_level.teams ? "enabled" : "disabled");
-
-    restart = true;
-  }
-
-  if (g_ctf->modified) { // reset teams, scores
-    g_ctf->modified = false;
-
-    g_level.ctf = g_ctf->integer;
-    if (g_level.ctf && !g_level.teams) { // capture play is team play
-      g_level.teams = 1;
-    }
-    gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));
-
-    gi.BroadcastPrint(PRINT_HIGH, "CTF has been %s\n", g_level.ctf ? "enabled" : "disabled");
 
     restart = true;
   }
@@ -887,12 +841,7 @@ static const char *G_GameName(void) {
 
   q_strlcpy(name, G_GameplayName(g_level.gameplay), size);
 
-  // teams are implied for capture the flag
-  if (g_level.ctf) {
-    q_strlcat(name, " CTF", size);
-  } else if (g_level.teams) {
-    q_strlcpy(name, va("Team %s", name), size);
-  }
+  q_strlcat(name, " CTF", size);
 
   return name;
 }
@@ -1066,7 +1015,6 @@ void G_Init(void) {
     "0"
 #endif
     , CVAR_SERVER_INFO, NULL);
-  g_ctf = gi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay.");
   g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
   g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
   g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, instagib or arena combat.");
@@ -1119,7 +1067,6 @@ void G_Init(void) {
   // set these to false to avoid spurious game restarts and alerts on init
   g_capture_limit->modified =
       g_cheats->modified =
-      g_ctf->modified =
       g_frag_limit->modified =
       g_friendly_fire->modified =
       g_gameplay->modified =

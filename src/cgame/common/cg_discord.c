@@ -154,12 +154,9 @@ static void Cg_DiscordReady(const DiscordUser *user) {
 static const char *Cg_GetGameMode(void) {
 
 #if defined(G_CTF)
-  if (cg_state.ctf) {
-    return va("%i-Team CTF", cg_state.num_teams);
-  } else if (cg_state.num_teams) {
+  return va("%i-Team CTF", cg_state.num_teams);
 #else
   if (cg_state.num_teams) {
-#endif
     return va("%i-Team Deathmatch", cg_state.num_teams);
   } else switch (cg_state.gameplay) {
     case GAME_DEATHMATCH:
@@ -171,6 +168,7 @@ static const char *Cg_GetGameMode(void) {
   }
 
   return va("Deathmatch");
+#endif
 }
 
 void Cg_UpdateDiscord(void) {

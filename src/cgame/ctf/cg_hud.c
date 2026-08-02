@@ -223,10 +223,6 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
   const int16_t captures = ps->stats[STAT_CAPTURES];
   int32_t x, y, cw, ch;
 
-  if (!cg_state.ctf) {
-    return;
-  }
-
   if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
     return;
   }
@@ -328,9 +324,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
   x = cgi.context->w - cgi.StringWidth(string);
   y = 3 * (HUD_PIC_HEIGHT + ch);
 
-  if (cg_state.ctf) {
-    y += HUD_PIC_HEIGHT + ch;
-  }
+  y += HUD_PIC_HEIGHT + ch;
 
   cgi.Draw2DString(x, y, string, color_white);
 

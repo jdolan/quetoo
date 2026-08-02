@@ -160,13 +160,6 @@ typedef struct {
    */
   g_items_t items;
 
-  #if defined(G_CTF)
-/**
-   * @brief Non-zero if CTF is enabled.
-   */
-  int32_t ctf;
-#endif
-
   /**
    * @brief Non-zero if teams play is enabled.
    */

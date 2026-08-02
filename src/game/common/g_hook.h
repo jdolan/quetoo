@@ -36,7 +36,6 @@ extern cvar_t *g_hook_speed;
 extern cvar_t *g_hook_style;
 
 bool G_Hook_Enabled(void);
-void G_Hook_SetMapValue(int32_t value);
 void G_Hook_Init(void);
 void G_Hook_InitMedia(void);
 void G_Hook_CheckState(bool enabled_by_default);

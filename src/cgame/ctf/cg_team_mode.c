@@ -25,7 +25,7 @@
 static const cg_team_mode_t cg_team_modes[] = {
   {
     "Capture the flag", (cg_team_mode_cvar_t[]) {
-      { "g_ctf", "1" }, { NULL, NULL }
+      { NULL, NULL }
     }
   },
 };

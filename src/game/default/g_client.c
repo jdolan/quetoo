@@ -658,51 +658,6 @@ static void G_Give(g_client_t *cl, char *it, int16_t quantity) {
 }
 
 /**
- * @brief Grants items specified in the level's give string to the client.
- */
-static bool G_GiveLevelLocals(g_client_t *cl) {
-  char buf[512], *it, *q;
-  int32_t quantity;
-
-  if (*g_level.give == '\0') {
-    return false;
-  }
-
-  q_strlcpy(buf, g_level.give, sizeof(buf));
-
-  it = strtok(buf, ",");
-
-  while (true) {
-
-    if (!it) {
-      break;
-    }
-
-    while (isspace((unsigned char) *it)) { it++; }
-    { char *_end = it + q_strlen(it) - 1; while (_end >= it && isspace((unsigned char) *_end)) { *_end-- = '\0'; } }
-
-    if (*it != '\0') {
-
-      if ((q = q_strrchr(it, ' '))) {
-        quantity = atoi(q + 1);
-
-        if (quantity > -1) { // valid quantity
-          *q = '\0';
-        }
-      } else {
-        quantity = -1;
-      }
-
-      G_Give(cl, it, quantity);
-    }
-
-    it = strtok(NULL, ",");
-  }
-
-  return true;
-}
-
-/**
  * @brief Initializes a client's starting inventory based on the current game mode.
  */
 static void G_InitClientInventory(g_client_t *cl) {
@@ -740,12 +695,7 @@ static void G_InitClientInventory(g_client_t *cl) {
     item = &g_items[WEAPON_BLASTER];
   }
 
-  // use the best weapon given by the level
-  if (G_GiveLevelLocals(cl)) {
-    G_UseBestWeapon(cl);
-  } else { // or the one given by the gameplay type above
-    G_UseWeapon(cl, item);
-  }
+  G_UseWeapon(cl, item);
 }
 
 /**

@@ -65,7 +65,6 @@ typedef enum {
  * @brief ConfigStrings that are local to the game module.
  */
 #define CS_GAMEPLAY        (CS_GAME + 0)  // gameplay string
-#define CS_CTF             (CS_GAME + 1)  // is capture enabled?
 #define CS_TEAM_INFO       (CS_GAME + 2)  // team info, separated by \ (name\color\name\color, etc)
 #define CS_TIME            (CS_GAME + 3)  // map time
 #define CS_HOOK_PULL_SPEED (CS_GAME + 4)  // hook speed
@@ -760,11 +759,6 @@ typedef struct {
   bool teams;
 
   /**
-   * @brief True if capture the flag is active.
-   */
-  bool ctf;
-
-  /**
    * @brief True if tech powerups are enabled.
    */
   bool techs;
@@ -773,11 +767,6 @@ typedef struct {
    * @brief Number of active teams.
    */
   int32_t num_teams;
-
-    /**
-   * @brief Map-specified techs allowance.
-   */
-  int32_t techs_map;
 
   /**
    * @brief Map-specified minimum clients override.
@@ -798,11 +787,6 @@ typedef struct {
    * @brief Time limit in minutes; game ends when exceeded.
    */
   int32_t time_limit;
-
-  /**
-   * @brief Items to give all players on spawn.
-   */
-  char give[MAX_STRING_CHARS];
 
   /**
    * @brief Background music track.

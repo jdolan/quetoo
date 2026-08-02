@@ -71,11 +71,7 @@ void Cg_ParseScores(void) {
     cg_score_state.num_scores = index + count;
 
     // the aggregate scores are the last set in the array
-    if (
-        cg_state.ctf ||
-        cg_state.num_teams) {
-      cg_score_state.num_scores -= MAX_TEAMS;
-    }
+    cg_score_state.num_scores -= MAX_TEAMS;
   }
 
   qsort(cg_score_state.scores, cg_score_state.num_scores, sizeof(g_score_t), Cg_ParseScores_Compare);
@@ -114,12 +110,7 @@ static int32_t Cg_DrawScoresHeader(void) {
     const cg_team_info_t *team = cg_state.teams;
     for (int32_t i = 0; i < cg_state.num_teams; i++, score++, team++) {
 
-      if (cg_state.ctf) {
-        cgi.Draw2DString(x, y, va("%s^7 %d captures", team->name, score->captures), team->color);
-      } else
-      {
-        cgi.Draw2DString(x, y, va("%s^7 %d frags", team->name, score->score), team->color);
-      }
+      cgi.Draw2DString(x, y, va("%s^7 %d captures", team->name, score->captures), team->color);
 
       x += SCORES_COL_WIDTH;
     }
@@ -142,7 +133,7 @@ static bool Cg_DrawScore(int32_t x, int32_t y, const g_score_t *s) {
   cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH - 2, SCORES_ICON_WIDTH - 2, info->icon, color_white);
 
   // flag carrier icon
-  if (cg_state.ctf && (s->flags & SCORE_CTF_FLAG)) {
+  if (s->flags & SCORE_CTF_FLAG) {
     const int32_t team = s->team;
     const r_image_t *flag = cgi.LoadImage(va("pics/i_flag%d", team), IMG_PIC);
     cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH * 0.3f, SCORES_ICON_WIDTH * .3f, flag, color_white);
@@ -189,10 +180,6 @@ static bool Cg_DrawScore(int32_t x, int32_t y, const g_score_t *s) {
   y += ch;
 
   // captures
-  if (!cg_state.ctf) {
-    return true;
-  }
-
   cgi.Draw2DString(x, y, va("%d captures", s->captures), color_white);
   return true;
 }

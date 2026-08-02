@@ -55,20 +55,11 @@ static bool g_hook_enabled;
 /**
  * @brief Map-specified hook allowance, used for voting and restarts.
  */
-static int32_t g_hook_map;
-
 /**
  * @return True if the hook is enabled for this level.
  */
 bool G_Hook_Enabled(void) {
   return g_hook_enabled;
-}
-
-/**
- * @brief Records the map's hook allowance, or -1 when it specifies none.
- */
-void G_Hook_SetMapValue(int32_t value) {
-  g_hook_map = value;
 }
 
 /**
@@ -536,17 +527,10 @@ void G_SetClientHookStyle(g_client_t *cl) {
  */
 void G_Hook_CheckState(bool enabled_by_default) {
 
-  if (q_strcmp(g_hook->string, "default")) { // check cvar first
+  if (q_strcmp(g_hook->string, "default")) { // the cvar, else the module's default
     g_hook_enabled = !!g_hook->integer;
-  } else if (g_hook_map != -1) { // check maps.lst
-    g_hook_enabled = (g_hook_map == -1) ? enabled_by_default : !!g_hook_map;
-  } else { // check worldspawn
-    const cm_entity_t *hook = gi.EntityValue(ge.entities[0]->def, "hook");
-    if (hook->parsed & ENTITY_INTEGER) {
-      g_hook_enabled = hook->integer;
-    } else {
-      g_hook_enabled = enabled_by_default;
-    }
+  } else {
+    g_hook_enabled = enabled_by_default;
   }
 
   if (g_hook_distance->modified) {

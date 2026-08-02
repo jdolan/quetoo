@@ -532,7 +532,7 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
 
   G_InitEntityTeams();
 
-  G_Hook_CheckState(g_level.ctf);
+  G_Hook_CheckState(true);
 
   G_CheckTechs();
 
@@ -706,62 +706,10 @@ static void G_worldspawn(g_entity_t *ent) {
 
   gi.SetConfigString(CS_ITEM_SET, va("%d", g_level.items));
 
-  const cm_entity_t *teams_map = G_MapValue("teams");
-  if (teams_map && (teams_map->parsed & ENTITY_INTEGER) && teams_map->integer > -1) { // prefer map metadata teams
-    g_level.teams = teams_map->integer;
-  } else { // or fall back on worldspawn
-    const cm_entity_t *teams = gi.EntityValue(ent->def, "teams");
-    if (teams->parsed & ENTITY_INTEGER) {
-      g_level.teams = teams->integer;
-    } else {
-      g_level.teams = g_teams->integer;
-    }
-  }
-
-  const cm_entity_t *num_teams_map = G_MapValue("num_teams");
-  if (num_teams_map && (num_teams_map->parsed & ENTITY_INTEGER) && num_teams_map->integer > -1) { // prefer map metadata teams
-    g_level.num_teams = num_teams_map->integer;
-  } else { // or fall back on worldspawn
-    const cm_entity_t *num_teams = gi.EntityValue(ent->def, "num_teams");
-    if (num_teams->parsed & ENTITY_INTEGER) {
-      g_level.num_teams = num_teams->integer;
-    } else {
-      if (q_strcmp(g_num_teams->string, "default")) {
-        g_level.num_teams = g_num_teams->integer;
-      } else {
-        g_level.num_teams = -1; // spawn point function will do this
-      }
-    }
-  }
-
-  if (g_level.num_teams != -1) {
-    g_level.num_teams = Clampf(g_level.num_teams, 2, MAX_TEAMS);
-  }
-
-  const cm_entity_t *ctf_map = G_MapValue("ctf");
-  if (ctf_map && (ctf_map->parsed & ENTITY_INTEGER) && ctf_map->integer > -1) { // prefer map metadata ctf
-    g_level.ctf = ctf_map->integer;
-  } else { // or fall back on worldspawn
-    const cm_entity_t *ctf = gi.EntityValue(ent->def, "ctf");
-    if (ctf->parsed & ENTITY_INTEGER) {
-      g_level.ctf = ctf->integer;
-    } else {
-      g_level.ctf = g_ctf->integer;
-    }
-  }
-
-  const cm_entity_t *hook_map = G_MapValue("hook");
-  if (hook_map && (hook_map->parsed & ENTITY_INTEGER) && hook_map->integer > -1) {
-    G_Hook_SetMapValue(hook_map->integer);
+  if (q_strcmp(g_num_teams->string, "default")) {
+    g_level.num_teams = Clampf(g_num_teams->integer, 2, MAX_TEAMS);
   } else {
-    G_Hook_SetMapValue(-1);
-  }
-
-  const cm_entity_t *techs_map = G_MapValue("techs");
-  if (techs_map && (techs_map->parsed & ENTITY_INTEGER) && techs_map->integer > -1) {
-    g_level.techs_map = techs_map->integer;
-  } else {
-    g_level.techs_map = -1;
+    g_level.num_teams = -1; // G_InitSpawnPoints derives it from the spawn points
   }
 
   const cm_entity_t *min_clients_map = G_MapValue("min_clients");
@@ -771,11 +719,7 @@ static void G_worldspawn(g_entity_t *ent) {
     g_level.min_clients_map = -1;
   }
 
-  if (g_level.ctf && !g_level.teams) { // capture play is team play
-    g_level.teams = 1;
-  }
-
-  gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));
+  g_level.teams = 1; // capture play is team play
   gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
 
   const cm_entity_t *frag_limit_map = G_MapValue("frag_limit");
@@ -815,18 +759,6 @@ static void G_worldspawn(g_entity_t *ent) {
     }
   }
   g_level.time_limit = minutes * 60 * 1000;
-
-  const cm_entity_t *give_map = G_MapValue("give");
-  if (give_map && *give_map->string) { // prefer map metadata give
-    q_strlcpy(g_level.give, give_map->string, sizeof(g_level.give));
-  } else { // or fall back on worldspawn
-    const cm_entity_t *give = gi.EntityValue(ent->def, "give");
-    if (*give->string) {
-      q_strlcpy(g_level.give, give->string, sizeof(g_level.give));
-    } else {
-      g_level.give[0] = '\0';
-    }
-  }
 
   const cm_entity_t *music_map = G_MapValue("music");
   if (music_map && *music_map->string) { // prefer map metadata music

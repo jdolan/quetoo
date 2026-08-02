@@ -26,10 +26,6 @@
  */
 g_team_t *G_TeamForFlag(const g_entity_t *ent) {
 
-  if (!g_level.ctf) {
-    return NULL;
-  }
-
   if (!ent->item || ent->item->def.type != ITEM_TYPE_FLAG) {
     return NULL;
   }
@@ -48,10 +44,6 @@ g_team_t *G_TeamForFlag(const g_entity_t *ent) {
  * @brief Returns the flag entity currently placed for the given team, or `NULL` if CTF is off.
  */
 g_entity_t *G_FlagForTeam(const g_team_t *t) {
-
-  if (!g_level.ctf) {
-    return NULL;
-  }
 
   return t->flag_entity;
 }

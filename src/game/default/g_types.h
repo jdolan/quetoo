@@ -756,11 +756,6 @@ typedef struct {
   int32_t time_limit;
 
   /**
-   * @brief Items to give all players on spawn.
-   */
-  char give[MAX_STRING_CHARS];
-
-  /**
    * @brief Background music track.
    */
   char music[MAX_STRING_CHARS];
