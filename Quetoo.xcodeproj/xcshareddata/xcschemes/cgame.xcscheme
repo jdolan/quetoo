@@ -16,7 +16,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CE12D7EA1C5C5DF900CD0B13"
                BuildableName = "cgame.so"
-               BlueprintName = "cgame"
+               BlueprintName = "cgame-default"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,7 +45,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE12D7EA1C5C5DF900CD0B13"
             BuildableName = "cgame.so"
-            BlueprintName = "cgame"
+            BlueprintName = "cgame-default"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -61,7 +61,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CE12D7EA1C5C5DF900CD0B13"
             BuildableName = "cgame.so"
-            BlueprintName = "cgame"
+            BlueprintName = "cgame-default"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
