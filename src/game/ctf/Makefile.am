@@ -1,5 +1,28 @@
 GAME_COMMON_DIR = $(top_srcdir)/src/game/common
 
+VPATH = $(srcdir):$(GAME_COMMON_DIR)
+
+GAME_COMMON_OBJECTS = \
+	g_ai_goal.lo \
+	g_ai_grid.lo \
+	g_ai_info.lo \
+	g_ai_item.lo \
+	g_ai_main.lo \
+	g_ai_node.lo \
+	g_ballistics.lo \
+	g_client_chase.lo \
+	g_client_view.lo \
+	g_effect.lo \
+	g_entity_func.lo \
+	g_entity_info.lo \
+	g_entity_misc.lo \
+	g_entity_target.lo \
+	g_entity_trigger.lo \
+	g_hook.lo \
+	g_physics.lo \
+	g_sound.lo \
+	g_util.lo
+
 GAME_CFLAGS = \
 	-DG_HOOK \
 	-DG_CTF \
@@ -55,32 +78,7 @@ noinst_HEADERS = \
 
 noinst_LTLIBRARIES = \
 	libitem.la \
-	libpmovectf.la \
-	libgcommonctf.la
-
-libgcommonctf_la_SOURCES = \
-	$(GAME_COMMON_DIR)/g_ai_goal.c \
-	$(GAME_COMMON_DIR)/g_ai_grid.c \
-	$(GAME_COMMON_DIR)/g_ai_info.c \
-	$(GAME_COMMON_DIR)/g_ai_item.c \
-	$(GAME_COMMON_DIR)/g_ai_main.c \
-	$(GAME_COMMON_DIR)/g_ai_node.c \
-	$(GAME_COMMON_DIR)/g_ballistics.c \
-	$(GAME_COMMON_DIR)/g_client_chase.c \
-	$(GAME_COMMON_DIR)/g_client_view.c \
-	$(GAME_COMMON_DIR)/g_effect.c \
-	$(GAME_COMMON_DIR)/g_entity_func.c \
-	$(GAME_COMMON_DIR)/g_entity_info.c \
-	$(GAME_COMMON_DIR)/g_entity_misc.c \
-	$(GAME_COMMON_DIR)/g_entity_target.c \
-	$(GAME_COMMON_DIR)/g_entity_trigger.c \
-	$(GAME_COMMON_DIR)/g_hook.c \
-	$(GAME_COMMON_DIR)/g_physics.c \
-	$(GAME_COMMON_DIR)/g_sound.c \
-	$(GAME_COMMON_DIR)/g_util.c
-
-libgcommonctf_la_CFLAGS = \
-	$(GAME_CFLAGS)
+	libpmovectf.la
 
 libitem_la_SOURCES = \
 	bg_item.c
@@ -126,7 +124,16 @@ game_la_LDFLAGS = \
 	-shared
 
 game_la_LIBADD = \
+	$(GAME_COMMON_OBJECTS) \
 	libitem.la \
 	libpmovectf.la \
-	libgcommonctf.la \
 	@OBJECTIVELY_LIBS@
+
+%.lo: %.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+		--mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+		$(AM_CPPFLAGS) $(CPPFLAGS) $(GAME_CFLAGS) $(CFLAGS) \
+		-MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+
+-include $(GAME_COMMON_OBJECTS:%.lo=$(DEPDIR)/%.Plo)
