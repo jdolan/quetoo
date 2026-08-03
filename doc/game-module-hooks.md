@@ -85,7 +85,7 @@ extern ResetDroppedItem G_ResetDroppedItem;
 ```
 
 ```c
-/* g_inventory.c — the domain file owns the default */
+/* g_module.c — the file that owns the default */
 static void FreeDroppedItem(g_entity_t *ent) {
   G_FreeEntity(ent);
 }
@@ -100,7 +100,7 @@ static struct {
   DropInventoryItem DropInventoryItem;
 } super;
 
-static void TechResetDroppedItem(g_entity_t *ent) {
+static void G_ResetDroppedItem_Tech(g_entity_t *ent) {
 
   if (ent->item->def.type == ITEM_TYPE_TECH) {
     G_ResetDroppedTech(ent);
@@ -112,7 +112,7 @@ static void TechResetDroppedItem(g_entity_t *ent) {
 
 /* in G_Tech_Init */
 super.ResetDroppedItem = G_ResetDroppedItem;
-G_ResetDroppedItem = TechResetDroppedItem;
+G_ResetDroppedItem = G_ResetDroppedItem_Tech;
 ```
 
 `g_flag.c` does the same for flags, independently. Composition then falls out of
@@ -161,8 +161,9 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
   `DropInventoryItem`, `InhibitItem`, `ConfigureLevel`, `PrepareMove`. This
   matches `g_entity_t::Think` and `::Touch`, and the `cg_entity.h` typedefs.
 - Dispatch pointer: the type with a `G_` prefix — `G_ResetDroppedItem`.
-- Feature implementation: the feature name then the hook —
-  `TechResetDroppedItem`, `FlagDropInventoryItem`.
+- Feature implementation: the dispatch pointer with the feature suffixed —
+  `G_ResetDroppedItem_Tech`, `G_DropInventoryItem_Flag`. Reading a call site's
+  chain then only means grepping for the hook's name.
 - Default implementation: named for **what it does**, not "default" —
   `FreeDroppedItem`, `DropItemByName`.
 - Avoid a leading underscore: C reserves `_` followed by an uppercase letter.
@@ -178,6 +179,9 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
   `src/game/common/g_item.c` is impossible today because `vpath` would have each
   module's own `g_item.c` shadow it. That is why the inventory default lives in
   `g_inventory.c`, which parallels `cg_inventory.c` on the client side.
+- Which is also why some defaults are in `g_module.c` for now: the domain file
+  is exactly the file still forked. `ScalePowerupDamage` belongs beside
+  `G_Damage`, so move it when `g_combat.c` lands in common.
 - `g_inventory.h` does not exist yet; add it when `G_AddAmmo`, `G_SetAmmo`,
   `G_InitClientInventory` and `G_ClientInventoryThink` migrate there.
 
@@ -189,13 +193,24 @@ Done:
 | --- | --- | --- |
 | `ResetDroppedItem` | `G_ResetDroppedItem`, `G_DropItem`, `G_DropItem_SetExpiration` | the latter two are byte-identical between modules |
 | `DropInventoryItem` | `G_Drop_f` | both modules' command handler is one line |
+| `ModifyDamage` | `G_Damage` (213 lines, +21) | quad is the default; resist and strength install over it. Vampire is a guard, not part of the hook — see below |
 
 Also done, as prerequisites: techs extracted to `g_tech.{c,h}` behind `G_TECH`;
 `g_ai_item.c`'s item switch split so techs no longer require `G_CTF`;
 `G_ResetDroppedFlag` moved to `g_flag.c` with a `G_Flag_Init`.
 
-Current: **165 shared functions, 133 identical, 32 differing** (from 166 / 130 /
-36).
+Current: **164 shared functions, 133 identical, 31 differing**. These come from a
+different counting script than the figures above, which is why the shared total
+fell from 165 to 164 without a function going anywhere; run one script over both
+revisions rather than comparing across rows. On this one, the revision before
+`ModifyDamage` measured 164 / 132 / 32.
+
+`G_Damage` needed both a hook and a guard, because the three tech modifiers are
+not all the same shape. Resist and strength scale `damage` and `knockback` in
+the modifier region, which is the hook. Vampire heals the attacker much later,
+after armor has been resolved and inside `if (damage_health && ...)`, and it
+reads `damage` as friendly fire and self damage left it; hoisting it into the
+hook would change when it fires. Six lines in one hunk is what a guard is for.
 
 ### Remaining hooks
 
@@ -203,7 +218,6 @@ Chainable, roughly in order of yield:
 
 | hook | absorbs | note |
 | --- | --- | --- |
-| `ModifyDamage` | `G_Damage` (213 lines, +21) | highest yield; the tech resist/strength/vampire modifiers. Also the first hook that *transforms values* rather than dispatching on type. |
 | `CheckRules` | ~59 lines of `G_CheckRules`, `G_RestartGame`'s `*_CheckState` calls | every `g_hook_*` / `g_techs` `->modified` block; belongs in the feature, as `g_hook.c`'s docblock already says |
 | `PrepareMove` | `G_ClientMove` (220 lines, +3) | `G_Hook_ApplyPmove` is already the seam; only the call site diverges |
 | `InhibitItem` | `G_ResetItem`'s `inhibited` expression | flags opt out of arena/instagib inhibition |
@@ -223,14 +237,14 @@ captures resets, `G_worldspawn`'s `capture_limit` parsing and `g_level.teams = 1
 
 ### Suggested order
 
-1. `ModifyDamage` — largest single body recovered, and proves the
-   value-transforming shape.
-2. `CheckRules` — removes the per-feature cvar blocks, the thing that shreds
+1. `CheckRules` — removes the per-feature cvar blocks, the thing that shreds
    `g_main.c`.
-3. `PrepareMove`, `InhibitItem`, `ResetItem`, `ConfigureLevel` — small.
-4. The three single-owner contracts.
-5. Then move the guarded files into `src/game/common` and delete ctf's copies.
-6. Then Lithium: a `Makefile.am`, a `g_types.h`, a `bg_item.{c,h}`, `g_tech.c`,
+2. `PrepareMove`, `InhibitItem`, `ResetItem`, `ConfigureLevel` — small.
+3. The three single-owner contracts.
+4. Then move the guarded files into `src/game/common` and delete both modules'
+   copies. `g_combat.c` is one guard away: `G_WeaponNameForMod`'s `MOD_HOOK`
+   case wants a `#if defined(G_HOOK)`, as does `g_client.c`'s.
+5. Then Lithium: a `Makefile.am`, a `g_types.h`, a `bg_item.{c,h}`, `g_tech.c`,
    `g_hook.c`, and `-DG_HOOK -DG_TECH`.
 
 ## Watch out for
@@ -287,7 +301,16 @@ entries resolve.
 - The dedicated server takes the terminal with curses unconditionally
   (`Sv_InitConsole`), so its output only appears through a pty — wrap it in
   `script -q <log>`. A plain redirect is block buffered and loses everything if
-  the process is signalled.
+  the process is signalled. `script` needs a controlling terminal of its own: run
+  it in the foreground, because started with `&` from a non-interactive shell it
+  writes an empty log.
+- **Keep `-dedicated` in the executable's name.** `main.c` decides `dedicated`
+  by matching that substring against `Sys_ExecutablePath()`, so a bundle that
+  installs the binary as, say, `quetoo-srv` runs with `dedicated` 0. It still
+  loads the map and runs frames, but `Sv_BroadcastPrint` only echoes to the
+  console when `dedicated` is set, so every obituary and bot join disappears from
+  `quetoo.log` while the game underneath is perfectly healthy. That reads exactly
+  like bots failing to spawn.
 - The client routes `Print` to its in-game console once initialised, so its
   engine output does *not* reach stdout. `Sys_UserDir()/<game>/quetoo.log` has it,
   but **not** `gi.ClientPrint` output, so per-client messages need a human
