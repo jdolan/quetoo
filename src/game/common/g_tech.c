@@ -30,9 +30,20 @@
 
 cvar_t *g_techs;
 
+/**
+ * @brief `g_module_t` function pointers.
+ */
+static struct {
+  ResetDroppedItem ResetDroppedItem;
+  DropInventoryItem DropInventoryItem;
+} super;
+
+static bool installed;
+
 static struct {
   uint16_t sounds[TECH_TOTAL];
 } g_tech_media;
+
 
 /**
  * @brief True when techs are available this level.
@@ -47,9 +58,49 @@ bool G_Tech_Enabled(void) {
 }
 
 /**
- * @brief Registers the techs' cvars.
+ * @brief Respawns a dropped tech, deferring anything else.
+ */
+static void G_ResetDroppedItem_Tech(g_entity_t *ent) {
+
+  if (ent->item->def.type == ITEM_TYPE_TECH) {
+    G_ResetDroppedTech(ent);
+    return;
+  }
+
+  super.ResetDroppedItem(ent);
+}
+
+/**
+ * @brief Resolves "tech" to whichever tech the client is carrying.
+ */
+static void G_DropInventoryItem_Tech(g_client_t *cl, const char *name) {
+
+  if (!q_strcasecmp(name, "tech")) {
+    const g_item_t *tech = G_GetTech(cl);
+    if (tech) {
+      name = tech->def.name;
+    }
+  }
+
+  super.DropInventoryItem(cl, name);
+}
+
+/**
+ * @brief Registers the techs' cvars and installs their hooks.
  */
 void G_Tech_Init(void) {
+
+  // G_Init runs on every server initialization, and the module is not always
+  // unloaded in between, so installing twice would point super at ourselves.
+  if (!installed) {
+    installed = true;
+
+    super.ResetDroppedItem = G_ResetDroppedItem;
+    G_ResetDroppedItem = G_ResetDroppedItem_Tech;
+
+    super.DropInventoryItem = G_DropInventoryItem;
+    G_DropInventoryItem = G_DropInventoryItem_Tech;
+  }
 
   g_techs = gi.AddCvar("g_techs", "default", CVAR_SERVER_INFO, "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
 
@@ -271,13 +322,6 @@ g_entity_t *G_TossTech(g_client_t *cl) {
   cl->inventory[tech->def.tag] = 0;
 
   return G_DropItem(cl, tech);
-}
-
-/**
- * @brief Drop the tech.
- */
-g_entity_t *G_DropTech(g_client_t *cl, const g_item_t *item) {
-  return G_TossTech(cl);
 }
 
 /**

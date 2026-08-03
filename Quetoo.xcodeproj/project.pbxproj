@@ -617,6 +617,10 @@
 		CEC0FF002026010300000105 /* g_entity_misc.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65B1C5C58C300CD0B13 /* g_entity_misc.c */; };
 		CEC0FF002026010300000106 /* g_entity_target.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65D1C5C58C300CD0B13 /* g_entity_target.c */; };
 		CEC0FF002026010300000107 /* g_hook.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000005 /* g_hook.c */; };
+		CEFEEE0000000000000000E2 /* g_module.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000E1 /* g_module.c */; };
+		CEFEEE0000000000000000F2 /* g_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000F1 /* g_inventory.c */; };
+		CEFEEE0000000000000000F3 /* g_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000F1 /* g_inventory.c */; };
+		CEFEEE0000000000000000E3 /* g_module.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000E1 /* g_module.c */; };
 		CEFEEE0000000000000000D1 /* g_tech.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000C1 /* g_tech.c */; };
 		CEC0FF002026010300000108 /* g_physics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66A1C5C58C300CD0B13 /* g_physics.c */; };
 		CEC0FF002026010300000109 /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
@@ -2050,6 +2054,8 @@
 		CEC0FA002026010800000001 /* g_flag.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_flag.c; sourceTree = "<group>"; };
 		CEC0FA002026010800000003 /* g_flag.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_flag.h; sourceTree = "<group>"; };
 		CEC0FB002026010700000001 /* g_module.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_module.h; sourceTree = "<group>"; };
+		CEFEEE0000000000000000E1 /* g_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_module.c; sourceTree = "<group>"; };
+		CEFEEE0000000000000000F1 /* g_inventory.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_inventory.c; sourceTree = "<group>"; };
 		CEC0FD002026010500000001 /* cg_hud.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud.c; sourceTree = "<group>"; };
 		CEC0FD002026010500000003 /* cg_hud.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud.h; sourceTree = "<group>"; };
 		CEC0FD002026010500000005 /* cg_score.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_score.c; sourceTree = "<group>"; };
@@ -3694,6 +3700,8 @@
 				CEFEEE0000000000000000C2 /* g_tech.h */,
 				CEFEEE0000000000000000C3 /* g_tech_types.h */,
 				CEC0FB002026010700000001 /* g_module.h */,
+				CEFEEE0000000000000000E1 /* g_module.c */,
+				CEFEEE0000000000000000F1 /* g_inventory.c */,
 				CE12D66B1C5C58C300CD0B13 /* g_physics.h */,
 				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
 				CEFF1295277D439B001E1500 /* g_sound.h */,
@@ -4959,6 +4967,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEFEEE0000000000000000F2 /* g_inventory.c in Sources */,
+				CEFEEE0000000000000000E2 /* g_module.c in Sources */,
 				08962C395D0FB0E620F78625 /* bg_item.c in Sources */,
 				CEFC7B8B1D9D2E9C000FA6B2 /* bg_pmove.c in Sources */,
 				CE27E9FC27BDA2AE003D56AC /* g_ai_goal.c in Sources */,
@@ -5374,6 +5384,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEFEEE0000000000000000F3 /* g_inventory.c in Sources */,
+				CEFEEE0000000000000000E3 /* g_module.c in Sources */,
 				CEC0FF0020260103000000D6 /* bg_item.c in Sources */,
 				CEFEED000000000000000001 /* bg_pmove.c in Sources */,
 				CEC0FF0020260103000000EF /* g_ai_goal.c in Sources */,

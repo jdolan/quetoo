@@ -22,6 +22,16 @@
 #include "g_local.h"
 
 /**
+ * @brief `g_module_t` function pointers.
+ */
+static struct {
+  ResetDroppedItem ResetDroppedItem;
+  DropInventoryItem DropInventoryItem;
+} super;
+
+static bool installed;
+
+/**
  * @brief Returns the team that owns the given flag entity, or `NULL` if the entity is not a flag.
  */
 g_team_t *G_TeamForFlag(const g_entity_t *ent) {
@@ -79,4 +89,82 @@ const g_item_t *G_GetFlag(const g_client_t *cl) {
   }
 
   return NULL;
+}
+
+/**
+ * @brief A dropped flag has been idle for 30 seconds, return it.
+ */
+void G_ResetDroppedFlag(g_entity_t *ent) {
+  g_team_t *t;
+  g_entity_t *f;
+
+  if (!(t = G_TeamForFlag(ent)) || !(f = G_FlagForTeam(t))) {
+    if (ent->spawn_flags & SF_ITEM_DROPPED) {
+      G_FreeEntity(ent); // nothing to return it to; do not strand it
+    }
+    return;
+  }
+
+  f->sv_flags &= ~SVF_NO_CLIENT;
+  f->s.event = EV_ITEM_RESPAWN;
+  f->s.event_data = f->item->def.tag;
+  f->solid = SOLID_TRIGGER;
+
+  gi.LinkEntity(f);
+
+  G_MulticastSound(&(const g_play_sound_t) {
+    .index = g_media.sounds.ctf_return
+  }, MULTICAST_PHS_R);
+
+  gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
+
+  if (ent != f) {
+    G_FreeEntity(ent); // the base flag was restored in place, so keep it
+  }
+}
+
+/**
+ * @brief Returns a dropped flag to its base, deferring anything else.
+ */
+static void G_ResetDroppedItem_Flag(g_entity_t *ent) {
+
+  if (ent->item->def.type == ITEM_TYPE_FLAG) {
+    G_ResetDroppedFlag(ent);
+    return;
+  }
+
+  super.ResetDroppedItem(ent);
+}
+
+/**
+ * @brief Resolves "flag" to whichever flag the client is carrying.
+ */
+static void G_DropInventoryItem_Flag(g_client_t *cl, const char *name) {
+
+  if (!q_strcasecmp(name, "flag")) {
+    const g_item_t *flag = G_GetFlag(cl);
+    if (flag) {
+      name = flag->def.name;
+    }
+  }
+
+  super.DropInventoryItem(cl, name);
+}
+
+/**
+ * @brief Installs the flags' hooks.
+ */
+void G_Flag_Init(void) {
+
+  // G_Init runs on every server initialization, and the module is not always
+  // unloaded in between, so installing twice would point super at ourselves.
+  if (!installed) {
+    installed = true;
+
+    super.ResetDroppedItem = G_ResetDroppedItem;
+    G_ResetDroppedItem = G_ResetDroppedItem_Flag;
+
+    super.DropInventoryItem = G_DropInventoryItem;
+    G_DropInventoryItem = G_DropInventoryItem_Flag;
+  }
 }

@@ -105,6 +105,12 @@
     <ClInclude Include="..\src\game\common\g_entity_trigger.h">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClCompile Include="..\src\game\common\g_inventory.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_module.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
     <ClInclude Include="..\src\game\common\g_module.h">
       <Filter>src\common</Filter>
     </ClInclude>

@@ -19,19 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "g_local.h"
 
-#pragma once
+/**
+ * @brief The default for `G_ResetDroppedItem`, and the end of any chain a
+ * feature installs over it.
+ */
+static void FreeDroppedItem(g_entity_t *ent) {
+  G_FreeEntity(ent);
+}
 
-#include "g_types.h"
-
-#if defined(__GAME_LOCAL_H__)
-
-void G_Flag_Init(void);
-void G_ResetDroppedFlag(g_entity_t *ent);
-
-const g_item_t *G_GetFlag(const g_client_t *cl);
-g_team_t *G_TeamForFlag(const g_entity_t *ent);
-g_entity_t *G_FlagForTeam(const g_team_t *team);
-int32_t G_EffectForTeam(const g_team_t *team);
-
-#endif /* __GAME_LOCAL_H__ */
+ResetDroppedItem G_ResetDroppedItem = FreeDroppedItem;

@@ -640,37 +640,6 @@ static bool G_PickupArmor(g_client_t *cl, g_entity_t *ent) {
   return taken;
 }
 
-/**
- * @brief A dropped flag has been idle for 30 seconds, return it.
- */
-void G_ResetDroppedFlag(g_entity_t *ent) {
-  g_team_t *t;
-  g_entity_t *f;
-
-  if (!(t = G_TeamForFlag(ent)) || !(f = G_FlagForTeam(t))) {
-    if (ent->spawn_flags & SF_ITEM_DROPPED) {
-      G_FreeEntity(ent); // nothing to return it to; do not strand it
-    }
-    return;
-  }
-
-  f->sv_flags &= ~SVF_NO_CLIENT;
-  f->s.event = EV_ITEM_RESPAWN;
-  f->s.event_data = f->item->def.tag;
-  f->solid = SOLID_TRIGGER;
-
-  gi.LinkEntity(f);
-
-  G_MulticastSound(&(const g_play_sound_t) {
-    .index = g_media.sounds.ctf_return
-  }, MULTICAST_PHS_R);
-
-  gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
-
-  if (ent != f) {
-    G_FreeEntity(ent); // the base flag was restored in place, so keep it
-  }
-}
 
 /**
  * @brief Steal the enemy's flag. If our own flag is dropped, return it. Else, if we are
@@ -800,22 +769,13 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
 /**
  * @brief Drops the CTF flag currently carried by the client as a world entity.
  */
-g_entity_t *G_TossFlag(g_client_t *cl) {
-
-  const g_item_t *flag = G_GetFlag(cl);;
-
-  if (!flag) {
-    return NULL;
-  }
+/**
+ * @brief Sheds the carried flag's effects and announces it, then puts the flag
+ * into the world. The caller owns the inventory bookkeeping.
+ */
+g_entity_t *G_ReleaseFlag(g_client_t *cl, const g_item_t *flag) {
 
   const g_team_t *team = &g_team_list[flag->def.tag - FLAG_FIRST];
-  const g_item_tag_t index = flag->def.tag;
-
-  if (!cl->inventory[index]) {
-    return NULL;
-  }
-
-  cl->inventory[index] = 0;
 
   cl->entity->s.model3 = 0;
   cl->entity->s.effects &= ~EF_CTF_MASK;
@@ -825,11 +785,24 @@ g_entity_t *G_TossFlag(g_client_t *cl) {
   return G_DropItem(cl, flag);
 }
 
+g_entity_t *G_TossFlag(g_client_t *cl) {
+
+  const g_item_t *flag = G_GetFlag(cl);
+
+  if (!flag || !cl->inventory[flag->def.tag]) {
+    return NULL;
+  }
+
+  cl->inventory[flag->def.tag] = 0;
+
+  return G_ReleaseFlag(cl, flag);
+}
+
 /**
  * @brief Drop command callback that tosses the client's carried CTF flag.
  */
 static g_entity_t *G_DropFlag(g_client_t *cl, const g_item_t *item) {
-  return G_TossFlag(cl);
+  return G_ReleaseFlag(cl, item);
 }
 
 /**
@@ -837,13 +810,7 @@ static g_entity_t *G_DropFlag(g_client_t *cl, const g_item_t *item) {
  */
 static void G_DropItem_SetExpiration(g_entity_t *ent) {
 
-  if (ent->item->def.type == ITEM_TYPE_FLAG) { // flags go back to base
-    ent->Think = G_ResetDroppedFlag;
-  } else if (ent->item->def.type == ITEM_TYPE_TECH) {
-    ent->Think = G_ResetDroppedTech;
-  } else { // everything else just gets freed
-    ent->Think = G_FreeEntity;
-  }
+  ent->Think = G_ResetDroppedItem;
 
   uint32_t expiration;
   if (ent->item->def.type == ITEM_TYPE_POWERUP) { // expire from last touch
@@ -983,13 +950,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
 
   // we're in a bad spot, forget it
   if (tr.start_solid) {
-    if (item->def.type == ITEM_TYPE_TECH) {
-      G_ResetDroppedTech(it);
-    } else if (item->def.type == ITEM_TYPE_FLAG) {
-      G_ResetDroppedFlag(it);
-    } else {
-      G_FreeEntity(it);
-    }
+    G_ResetDroppedItem(it);
 
     return NULL;
   }
@@ -1410,7 +1371,7 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
 
     case ITEM_TYPE_TECH:
       it->Pickup = G_PickupTech;
-      it->Drop = G_DropTech;
+      it->Drop = G_DropItem;
       break;
 
     default:
@@ -1433,20 +1394,3 @@ void G_InitItems(void) {
   }
 }
 
-/**
- * @brief
- */
-void G_ResetDroppedItem(g_entity_t *ent) {
-
-  switch (ent->item->def.type) {
-    case ITEM_TYPE_FLAG:
-      G_ResetDroppedFlag(ent);
-      break;
-    case ITEM_TYPE_TECH:
-      G_ResetDroppedTech(ent);
-      break;
-    default:
-      G_FreeEntity(ent);
-      break;
-  }
-}
