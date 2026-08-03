@@ -106,7 +106,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_fullscreen 2"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_antialias 0"
@@ -157,8 +157,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map torn"
-            isEnabled = "YES">
+            argument = "+map edge"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set sv_map_list maps-jdolan.lst"
