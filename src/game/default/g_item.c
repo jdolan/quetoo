@@ -644,7 +644,7 @@ static bool G_PickupArmor(g_client_t *cl, g_entity_t *ent) {
  */
 static void G_DropItem_SetExpiration(g_entity_t *ent) {
 
-  ent->Think = G_FreeEntity;
+  ent->Think = G_ResetDroppedItem;
 
   uint32_t expiration;
   if (ent->item->def.type == ITEM_TYPE_POWERUP) { // expire from last touch
@@ -784,7 +784,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
 
   // we're in a bad spot, forget it
   if (tr.start_solid) {
-    G_FreeEntity(it);
+    G_ResetDroppedItem(it);
 
     return NULL;
   }
@@ -1206,9 +1206,3 @@ void G_InitItems(void) {
   }
 }
 
-/**
- * @brief
- */
-void G_ResetDroppedItem(g_entity_t *ent) {
-  G_FreeEntity(ent);
-}

@@ -65,7 +65,6 @@ void G_Tech_ClientThink(g_entity_t *ent);
 bool G_HasTech(const g_client_t *cl, g_item_tag_t tech);
 const g_item_t *G_GetTech(const g_client_t *cl);
 bool G_PickupTech(g_client_t *cl, g_entity_t *ent);
-g_entity_t *G_DropTech(g_client_t *cl, const g_item_t *item);
 g_entity_t *G_TossTech(g_client_t *cl);
 void G_ResetDroppedTech(g_entity_t *ent);
 void G_PlayTechSound(g_client_t *cl);

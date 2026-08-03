@@ -35,6 +35,7 @@ game_la_SOURCES = \
 	g_combat.c \
 	g_effect.c \
 	g_entity.c \
+	g_inventory.c \
 	g_entity_func.c \
 	g_entity_info.c \
 	g_entity_misc.c \
@@ -42,6 +43,7 @@ game_la_SOURCES = \
 	g_entity_trigger.c \
 	g_item.c \
 	g_main.c \
+	g_module.c \
 	g_physics.c \
 	g_sound.c \
 	g_util.c \

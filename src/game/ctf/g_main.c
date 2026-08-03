@@ -870,6 +870,7 @@ void G_Init(void) {
 
   G_Hook_Init();
   G_Tech_Init();
+  G_Flag_Init();
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
     ge.clients[i] = gi.Malloc(sizeof(g_client_t), MEM_TAG_GAME);

@@ -99,6 +99,18 @@ G_ASSERT_SERVER_FIELD(g_entity_t, client);
  * deliberately not a set of #if guards: a guard would put knowledge of every
  * module that will ever exist into shared code, whereas a module implementing a
  * named function keeps that knowledge where it belongs.
+ *
+ * Variation points that several optional features may each want a say in are
+ * chainable hooks rather than named functions. Common holds the default
+ * behaviour; a feature installs itself over the top in its own `_Init`, keeping
+ * the previous value to call as super. Composition then falls out: a module with
+ * flags and techs gets both, one with only techs gets only that, and neither
+ * feature has to know the other exists.
+ *
+ * Hooks MUST be installed from `G_Init`, once per module load. Installing from
+ * anything per-level would grow the chain on every map restart. Chain order is
+ * installation order, so the order of the `_Init` calls in a module's `G_Init`
+ * is part of its behaviour.
  */
 
 /**
@@ -107,6 +119,19 @@ G_ASSERT_SERVER_FIELD(g_entity_t, client);
  * @details A plain deathmatch module frees it. A module with flags returns them
  * to their base instead, and one with techs respawns them.
  */
-void G_ResetDroppedItem(g_entity_t *ent);
+typedef void (*ResetDroppedItem)(g_entity_t *ent);
+
+extern ResetDroppedItem G_ResetDroppedItem;
+
+/**
+ * @brief Drops the named item from the client's inventory, reporting to them
+ * when they can not.
+ * @details Deathmatch resolves the name against the item list. Features that
+ * answer to a category rather than an item name, such as the "flag" a client
+ * happens to be carrying, resolve it to a real item name and defer.
+ */
+typedef void (*DropInventoryItem)(g_client_t *cl, const char *name);
+
+extern DropInventoryItem G_DropInventoryItem;
 
 #endif
