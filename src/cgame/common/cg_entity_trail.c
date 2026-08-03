@@ -1091,7 +1091,7 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
   Cg_AddLight(&l);
 }
 
-#if defined(G_CTF)
+#if defined(G_FLAG)
 /**
  * @brief Think function for orbiting powerup trail sprites.
  */
@@ -1121,7 +1121,7 @@ static void Cg_OrbitTrail_Think(cg_sprite_t *sprite, float life, float delta) {
 }
 #endif
 
-#if defined(G_CTF)
+#if defined(G_FLAG)
 /**
  * @brief Spawns orbiting sprites and legacy particle trail for powerup effects.
  */
@@ -1171,7 +1171,7 @@ static void Cg_OrbitalTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 }
 #endif
 
-#if defined(G_CTF)
+#if defined(G_FLAG)
 /**
  * @brief Renders the CTF flag carrier orbital particle trail in the carrier's team color.
  */
@@ -1275,7 +1275,7 @@ void Cg_EntityTrail(cl_entity_t *ent) {
       break;
   }
 
-#if defined(G_CTF)
+#if defined(G_FLAG)
   if (s->effects & EF_CTF_MASK) {
     Cg_CtfEffectTrail(ent, start, end);
   }

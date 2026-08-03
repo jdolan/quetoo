@@ -1931,6 +1931,10 @@ void G_ClientBeginFrame(g_client_t *cl) {
   }
 #endif
 
+#if defined(G_TECH)
+  const bool was_dead = ent->dead;
+#endif
+
   if (ent->dead) {
     if (g_level.time > cl->respawn_time) {
       if (cl->latched_buttons & BUTTON_ATTACK) {
@@ -1940,7 +1944,9 @@ void G_ClientBeginFrame(g_client_t *cl) {
   }
 
 #if defined(G_TECH)
-  if (!ent->dead) {
+  // the respawn above clears ent->dead, so this asks what it was, which is the
+  // question the guarded code replaced an `else` on
+  if (!was_dead) {
     G_Tech_ClientThink(ent);
   }
 #endif

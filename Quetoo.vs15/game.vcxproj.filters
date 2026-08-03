@@ -114,12 +114,6 @@
     <ClInclude Include="..\src\game\common\g_util.h">
       <Filter>src\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\common\g_hook.h">
-      <Filter>src\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\game\common\g_hook_types.h">
-      <Filter>src\common</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\game\common\g_client.c">
@@ -204,9 +198,6 @@
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\g_util.c">
-      <Filter>src\common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\game\common\g_hook.c">
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\bg_pmove.c">

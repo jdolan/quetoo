@@ -238,10 +238,17 @@ heal, and the tech branches of `G_ResetItems` and `G_ClientThink`.
 
 A guard MUST name a **feature** - `G_FLAG`, `G_HOOK`, `G_TECH` - and never a
 module. `#if defined(G_CTF)` in common would put knowledge of which modules will
-ever exist into shared code, which is the thing `g_module.h` says not to do.
-`G_CTF` survives only in each module's own manifest. This is why the flags moved
-into common behind `G_FLAG` rather than staying in `src/game/ctf`: without that,
-every capture-shaped divergence in a shared file had no legal mechanism.
+ever exist into shared code, which is the thing `g_module.h` says not to do. This
+is why the flags moved into common behind `G_FLAG` rather than staying in
+`src/game/ctf`: without that, every capture-shaped divergence in a shared file
+had no legal mechanism.
+
+`G_CTF` is **no longer defined by anything**. The nine guards that used it - the
+bots' flag-carrier priority, the flag item type, the CTF trails and effects, and
+the Discord game mode string - were all flag-shaped and now say `G_FLAG`, so a
+flags-only mod gets bots that chase carriers and a client that draws the trails.
+A define that nothing consumes is an invitation to guard on a module again, so it
+is gone from all three build systems rather than left lying around.
 
 A guard MUST also be balanced. A guard that opens on `}` or `else`, straddling a
 brace so that the two branches of the preprocessor close different blocks,
@@ -300,9 +307,9 @@ Each is small, and each is a consequence of a chain replacing a hand-written lis
 of calls:
 
 - `TossInventory` runs in reverse installation order, so flags, techs and the
-  grapple are shed before the quad damage rather than after. Nothing reads
-  another's inventory slot, so only the order the dropped entities spawn in
-  changes.
+  grapple are shed first, where death used to shed them last - after the quad,
+  the powerups and the weapon. Nothing reads another's inventory slot, so only
+  the order the dropped entities spawn in changes.
 - Death used to toss a tech only `if (G_Tech_Enabled())`. It now always tosses,
   which matters only for a client still holding a tech after techs were turned
   off mid-level: they now drop it instead of keeping it.
@@ -311,6 +318,14 @@ of calls:
   module, compiling one in is the module saying it wants it.
 - Resist, quad and strength still scale damage in that order, because the tech
   implementation calls super between them. Chain order is behaviour.
+- A flag whose team is not playing is now hidden outright. It used to be hidden
+  before `G_ResetItem` read `SF_ITEM_NO_TOUCH`, so a map that set that flag on
+  such a flag got `SOLID_BOX` back; the hook runs after super, so `SOLID_NOT`
+  wins. Reachable only for a map that marks an out-of-play team's flag
+  no-touch.
+- The feature cvar announcements now all print at the end of `G_CheckRules`,
+  in chain order, rather than interleaved with the core ones. `restart` is acted
+  on at the same point either way.
 
 ## Watch out for
 

@@ -133,7 +133,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
     e->shell.w = fmaxf(e->shell.w, 0.666f);
   }
 
-#if defined(G_CTF)
+#if defined(G_FLAG)
   if (e->effects & EF_CTF_MASK) {
 
     for (g_team_id_t team = TEAM_RED; team < MAX_TEAMS; team++) {

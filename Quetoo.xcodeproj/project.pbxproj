@@ -6680,7 +6680,6 @@
 					G_FLAG,
 					G_HOOK,
 					G_TECH,
-					G_CTF,
 				);
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				MACH_O_TYPE = mh_bundle;
@@ -6705,7 +6704,6 @@
 					G_FLAG,
 					G_HOOK,
 					G_TECH,
-					G_CTF,
 				);
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				MACH_O_TYPE = mh_bundle;
@@ -6730,7 +6728,6 @@
 					G_FLAG,
 					G_HOOK,
 					G_TECH,
-					G_CTF,
 				);
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				MACH_O_TYPE = mh_bundle;
@@ -6768,7 +6765,6 @@
 					G_FLAG,
 					G_HOOK,
 					G_TECH,
-					G_CTF,
 				);
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				MACH_O_TYPE = mh_bundle;

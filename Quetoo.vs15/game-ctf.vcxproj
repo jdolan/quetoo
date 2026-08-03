@@ -70,11 +70,11 @@
            are per project rather than in QuetooFullIncludePath because every
            module has a g_types.h: one global list would make it ambiguous. -->
       <AdditionalIncludeDirectories>..\src\game\ctf;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <!-- G_HOOK and G_CTF switch on the grapple and capture play in the
-           common sources. Set here rather than through
+      <!-- These switch the optional features on in the common sources. Set
+           here rather than through
            $(ExtraPreprocessorDefinitions), which expands empty by the time
            build_settings.props' item definition is evaluated. -->
-      <PreprocessorDefinitions>G_FLAG;G_HOOK;G_TECH;G_CTF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>G_FLAG;G_HOOK;G_TECH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>

@@ -63,11 +63,11 @@
            every module has a cg_local.h and a g_types.h: one global list
            would make them ambiguous. -->
       <AdditionalIncludeDirectories>..\src\cgame\ctf;..\src\cgame\common;..\src\cgame\common\ui;..\src\cgame\common\ui\controls;..\src\cgame\common\ui\credits;..\src\cgame\common\ui\editor;..\src\cgame\common\ui\home;..\src\cgame\common\ui\main;..\src\cgame\common\ui\play;..\src\cgame\common\ui\settings;..\src\cgame\common\ui\teams;..\src\cgame;..\src\game\ctf;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <!-- G_HOOK and G_CTF switch on the grapple and capture play in the
-           common sources. Set here rather than through
+      <!-- These switch the optional features on in the common sources. Set
+           here rather than through
            $(ExtraPreprocessorDefinitions), which expands empty by the time
            build_settings.props' item definition is evaluated. -->
-      <PreprocessorDefinitions>G_FLAG;G_HOOK;G_TECH;G_CTF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>G_FLAG;G_HOOK;G_TECH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;SDL3.lib;SDL3_image.lib;%(AdditionalDependencies)</AdditionalDependencies>

@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /**
- * @brief `g_module_t` function pointers.
+ * @brief `g_module.h` function pointers.
  */
 static struct {
   ResetDroppedItem ResetDroppedItem;
@@ -65,7 +65,8 @@ g_team_t *G_TeamForFlag(const g_entity_t *ent) {
 }
 
 /**
- * @brief Returns the flag entity currently placed for the given team, or `NULL` if CTF is off.
+ * @brief Returns the flag entity currently placed for the given team, or `NULL`
+ * if the map placed none.
  */
 g_entity_t *G_FlagForTeam(const g_team_t *t) {
 
@@ -75,11 +76,7 @@ g_entity_t *G_FlagForTeam(const g_team_t *t) {
 /**
  * @brief Returns the entity state effect flag for the given team, or 0 if none.
  */
-int32_t G_EffectForTeam(const g_team_t *t) {
-
-  if (!t) {
-    return 0;
-  }
+static int32_t G_EffectForTeam(const g_team_t *t) {
 
   return t->effect;
 }
@@ -108,7 +105,7 @@ const g_item_t *G_GetFlag(const g_client_t *cl) {
 /**
  * @brief A dropped flag has been idle for 30 seconds, return it.
  */
-void G_ResetDroppedFlag(g_entity_t *ent) {
+static void G_ResetDroppedFlag(g_entity_t *ent) {
   g_team_t *t;
   g_entity_t *f;
 
@@ -336,7 +333,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
  * @brief Sheds the carried flag's effects and announces it, then puts the flag
  * into the world. The caller owns the inventory bookkeeping.
  */
-g_entity_t *G_ReleaseFlag(g_client_t *cl, const g_item_t *flag) {
+static g_entity_t *G_ReleaseFlag(g_client_t *cl, const g_item_t *flag) {
 
   const g_team_t *team = &g_team_list[flag->def.tag - FLAG_FIRST];
 
@@ -352,7 +349,7 @@ g_entity_t *G_ReleaseFlag(g_client_t *cl, const g_item_t *flag) {
  * @brief Tosses the flag the client is carrying into the world, clearing it
  * from their inventory first.
  */
-g_entity_t *G_TossFlag(g_client_t *cl) {
+static g_entity_t *G_TossFlag(g_client_t *cl) {
 
   const g_item_t *flag = G_GetFlag(cl);
 

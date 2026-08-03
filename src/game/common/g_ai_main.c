@@ -543,7 +543,7 @@ static float G_Ai_EnemyPriority(const g_client_t *cl, const g_entity_t *target, 
     priority += 2.f;
   }
 
-#if defined(G_CTF)
+#if defined(G_FLAG)
   // flag carriers are highest priority
   if (target->client) {
     const int16_t *inventory = target->client->inventory;
@@ -581,7 +581,7 @@ static bool G_Ai_ChaseEnemy(const g_client_t *cl, const g_entity_t *target) {
     chance *= 1.5f;
   }
 
-#if defined(G_CTF)
+#if defined(G_FLAG)
   // if they have a flag, higher chance
   const int16_t *inventory = target->client->inventory;
 

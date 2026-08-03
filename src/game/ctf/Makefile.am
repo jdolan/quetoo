@@ -6,7 +6,6 @@ AM_CPPFLAGS = \
 	-DG_FLAG \
 	-DG_HOOK \
 	-DG_TECH \
-	-DG_CTF \
 	-I$(top_srcdir)/src \
 	-I$(GAME_COMMON_DIR)
 

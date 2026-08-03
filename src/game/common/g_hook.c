@@ -66,12 +66,9 @@ static struct {
 static bool g_hook_enabled;
 
 /**
- * @brief Map-specified hook allowance, used for voting and restarts.
- */
-/**
  * @return True if the hook is enabled for this level.
  */
-bool G_Hook_Enabled(void) {
+static bool G_Hook_Enabled(void) {
   return g_hook_enabled;
 }
 

@@ -31,7 +31,7 @@
 cvar_t *g_techs;
 
 /**
- * @brief `g_module_t` function pointers.
+ * @brief `g_module.h` function pointers.
  */
 static struct {
   ResetDroppedItem ResetDroppedItem;
@@ -46,6 +46,9 @@ static struct {
 
 static bool installed;
 
+static void G_ResetDroppedTech(g_entity_t *ent);
+static g_entity_t *G_TossTech(g_client_t *cl);
+
 static struct {
   uint16_t sounds[TECH_TOTAL];
 } g_tech_media;
@@ -59,7 +62,7 @@ static bool g_tech_enabled;
 /**
  * @return True if techs are enabled for this level.
  */
-bool G_Tech_Enabled(void) {
+static bool G_Tech_Enabled(void) {
   return g_tech_enabled;
 }
 
@@ -364,7 +367,7 @@ void G_Tech_SpawnAll(void) {
 /**
  * @brief Respawns a tech item at a new spawn point and frees the dropped entity.
  */
-void G_ResetDroppedTech(g_entity_t *ent) {
+static void G_ResetDroppedTech(g_entity_t *ent) {
 
   G_SpawnTech(ent->item);
 
@@ -414,7 +417,7 @@ const g_item_t *G_GetTech(const g_client_t *cl) {
 /**
  * @brief Drops the tech item currently carried by the client as a world entity.
  */
-g_entity_t *G_TossTech(g_client_t *cl) {
+static g_entity_t *G_TossTech(g_client_t *cl) {
   const g_item_t *tech = G_GetTech(cl);
 
   if (!tech) {

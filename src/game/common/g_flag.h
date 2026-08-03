@@ -29,13 +29,9 @@
 extern cvar_t *g_capture_limit;
 
 void G_Flag_Init(void);
-void G_ResetDroppedFlag(g_entity_t *ent);
-g_entity_t *G_ReleaseFlag(g_client_t *cl, const g_item_t *flag);
-g_entity_t *G_TossFlag(g_client_t *cl);
 
 const g_item_t *G_GetFlag(const g_client_t *cl);
 g_team_t *G_TeamForFlag(const g_entity_t *ent);
 g_entity_t *G_FlagForTeam(const g_team_t *team);
-int32_t G_EffectForTeam(const g_team_t *team);
 
 #endif /* __GAME_LOCAL_H__ */

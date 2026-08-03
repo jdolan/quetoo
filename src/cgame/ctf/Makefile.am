@@ -9,7 +9,6 @@ AM_CPPFLAGS = \
 	-DG_FLAG \
 	-DG_HOOK \
 	-DG_TECH \
-	-DG_CTF \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/cgame \
 	-I$(CGAME_COMMON_DIR) \
