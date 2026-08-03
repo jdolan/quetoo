@@ -27,9 +27,12 @@
 static struct {
   ResetDroppedItem ResetDroppedItem;
   DropInventoryItem DropInventoryItem;
+  CheckCvars CheckCvars;
 } super;
 
 static bool installed;
+
+cvar_t *g_capture_limit;
 
 /**
  * @brief Returns the team that owns the given flag entity, or `NULL` if the entity is not a flag.
@@ -152,7 +155,40 @@ static void G_DropInventoryItem_Flag(g_client_t *cl, const char *name) {
 }
 
 /**
- * @brief Installs the flags' hooks.
+ * @brief Applies the captures' own cvars.
+ */
+static bool G_CheckCvars_Flag(void) {
+
+  if (g_capture_limit->modified) {
+    g_capture_limit->modified = false;
+    g_level.capture_limit = g_capture_limit->integer;
+
+    gi.BroadcastPrint(PRINT_HIGH, "Capture limit has been changed to %d\n", g_level.capture_limit);
+  }
+
+  return super.CheckCvars();
+}
+
+/**
+ * @brief Plays for captures rather than frags, and so does not defer to super.
+ */
+static bool G_CheckWinCondition_Flag(void) {
+
+  if (g_level.capture_limit) {
+
+    for (int32_t i = 0; i < g_level.num_teams; i++) {
+      if (g_team_list[i].captures >= g_level.capture_limit) {
+        gi.BroadcastPrint(PRINT_HIGH, "Capture limit hit\n");
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @brief Registers the captures' cvars and installs the flags' hooks.
  */
 void G_Flag_Init(void) {
 
@@ -166,5 +202,14 @@ void G_Flag_Init(void) {
 
     super.DropInventoryItem = G_DropInventoryItem;
     G_DropInventoryItem = G_DropInventoryItem_Flag;
+
+    super.CheckCvars = G_CheckCvars;
+    G_CheckCvars = G_CheckCvars_Flag;
+
+    G_CheckWinCondition = G_CheckWinCondition_Flag;
   }
+
+  g_capture_limit = gi.AddCvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level.");
+
+  g_capture_limit->modified = false;
 }

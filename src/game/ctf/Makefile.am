@@ -49,6 +49,7 @@ game_la_SOURCES = \
 	g_item.c \
 	g_main.c \
 	g_physics.c \
+	g_rules.c \
 	g_sound.c \
 	g_tech.c \
 	g_util.c \

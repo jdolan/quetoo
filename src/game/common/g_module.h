@@ -146,4 +146,28 @@ typedef void (*ModifyDamage)(g_entity_t *target, g_entity_t *attacker, int32_t *
 
 extern ModifyDamage G_ModifyDamage;
 
+/**
+ * @brief Applies whichever of a feature's own cvars have been modified, once
+ * per server frame.
+ * @return True if the change requires the level to restart.
+ * @details A feature announces the change itself, so that the module enforcing
+ * the rules does not have to know which cvars exist. Every implementation MUST
+ * clear the `modified` flag of each cvar it consumes, or it will announce the
+ * same change on every frame.
+ */
+typedef bool (*CheckCvars)(void);
+
+extern CheckCvars G_CheckCvars;
+
+/**
+ * @brief Decides whether the level has been won, once per server frame.
+ * @details A single owner: frag limit and capture limit are answers to the same
+ * question, not additions to each other, so a module that plays for captures
+ * replaces this rather than chaining onto it. Announce the reason before
+ * returning true; the caller only ends the level.
+ */
+typedef bool (*CheckWinCondition)(void);
+
+extern CheckWinCondition G_CheckWinCondition;
+
 #endif

@@ -131,7 +131,6 @@ cvar_t *g_balance_supershotgun_pellets;
 cvar_t *g_balance_supershotgun_refire;
 cvar_t *g_balance_supershotgun_spread_x;
 cvar_t *g_balance_supershotgun_spread_y;
-cvar_t *g_capture_limit;
 cvar_t *g_cheats;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
@@ -575,15 +574,9 @@ static void G_CheckRules(void) {
 
   G_RunTimers();
 
-  if (g_level.capture_limit) { // check capture limit
-
-    for (int32_t i = 0; i < g_level.num_teams; i++) {
-      if (g_team_list[i].captures >= g_level.capture_limit) {
-        gi.BroadcastPrint(PRINT_HIGH, "Capture limit hit\n");
-        G_EndLevel();
-        return;
-      }
-    }
+  if (G_CheckWinCondition()) {
+    G_EndLevel();
+    return;
   }
 
   if (g_gameplay->modified) { // change gameplay, fix items, respawn clients
@@ -595,20 +588,6 @@ static void G_CheckRules(void) {
     restart = true;
 
     gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GameplayName(g_level.gameplay));
-  }
-
-  if (g_hook->modified) {
-    g_hook->modified = false;
-
-    G_Hook_CheckState(true);
-
-    gi.BroadcastPrint(PRINT_HIGH, "Hook has been %s\n", G_Hook_Enabled() ? "enabled" : "disabled");
-  }
-
-  if (g_hook_speed->modified) {
-    g_hook_speed->modified = false;
-
-    gi.BroadcastPrint(PRINT_HIGH, "Hook speed has been changed to %g\n", g_hook_speed->value);
   }
 
   if (g_friendly_fire->modified) {
@@ -633,25 +612,6 @@ static void G_CheckRules(void) {
     gi.SetCvarValue(g_self_knockback->name, Clampf(g_self_knockback->value, 0.0, 4.0));
 
     gi.BroadcastPrint(PRINT_HIGH, "Self knockback has been changed to %g\n", g_self_knockback->value);
-  }
-
-  if (g_hook_pull_speed->modified) {
-    g_hook_pull_speed->modified = false;
-
-    gi.BroadcastPrint(PRINT_HIGH, "Hook pull speed has been changed to %g\n", g_hook_pull_speed->value);
-
-    gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
-  }
-
-  if (g_hook_style->modified) {
-    g_hook_style->modified = false;
-
-    // reset all the hook styles on the players
-    G_ForEachClient(cl, {
-      G_SetClientHookStyle(cl);
-    });
-
-    gi.BroadcastPrint(PRINT_HIGH, "Hook style has been changed to %s\n", g_hook_style->string);
   }
 
   if (g_gravity->modified) { // G_MovementParams() reads g_level.gravity each move
@@ -696,16 +656,6 @@ static void G_CheckRules(void) {
     restart = true;
   }
 
-  if (g_techs->modified) {
-    g_techs->modified = false;
-
-    G_Tech_CheckState(true);
-
-    gi.BroadcastPrint(PRINT_HIGH, "Techs have been %s\n", G_Tech_Enabled() ? "enabled" : "disabled");
-
-    restart = true;
-  }
-
   if (g_cheats->modified) { // notify when cheats changes
     g_cheats->modified = false;
 
@@ -717,13 +667,6 @@ static void G_CheckRules(void) {
     g_level.frag_limit = g_frag_limit->integer;
 
     gi.BroadcastPrint(PRINT_HIGH, "Frag limit has been changed to %d\n", g_level.frag_limit);
-  }
-
-  if (g_capture_limit->modified) {
-    g_capture_limit->modified = false;
-    g_level.capture_limit = g_capture_limit->integer;
-
-    gi.BroadcastPrint(PRINT_HIGH, "Capture limit has been changed to %d\n", g_level.capture_limit);
   }
 
   if (g_time_limit->modified) {
@@ -767,6 +710,8 @@ static void G_CheckRules(void) {
       });
     }
   }
+
+  restart |= G_CheckCvars();
 
   if (restart) {
     G_RestartGame(true); // reset all clients
@@ -996,7 +941,6 @@ void G_Init(void) {
   g_balance_supershotgun_refire = gi.AddCvar("g_balance_supershotgun_refire", "0.8", 0, NULL);
   g_balance_supershotgun_spread_x = gi.AddCvar("g_balance_supershotgun_spread_x", "1600", 0, NULL);
   g_balance_supershotgun_spread_y = gi.AddCvar("g_balance_supershotgun_spread_y", "500", 0, NULL);
-  g_capture_limit = gi.AddCvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level.");
   g_cheats = gi.AddCvar("g_cheats",
 #if _DEBUG
     "1"
@@ -1053,7 +997,6 @@ void G_Init(void) {
   G_Ai_Init();
 
   // set these to false to avoid spurious game restarts and alerts on init
-  g_capture_limit->modified =
       g_cheats->modified =
       g_frag_limit->modified =
       g_friendly_fire->modified =

@@ -137,7 +137,6 @@ extern cvar_t *g_balance_supershotgun_pellets;
 extern cvar_t *g_balance_supershotgun_refire;
 extern cvar_t *g_balance_supershotgun_spread_x;
 extern cvar_t *g_balance_supershotgun_spread_y;
-extern cvar_t *g_capture_limit;
 extern cvar_t *g_cheats;
 extern cvar_t *g_frag_limit;
 extern cvar_t *g_friendly_fire;

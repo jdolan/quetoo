@@ -194,6 +194,9 @@
     <ClCompile Include="..\src\game\common\g_entity_trigger.c">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\game\common\g_rules.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\game\common\g_physics.c">
       <Filter>src\common</Filter>
     </ClCompile>

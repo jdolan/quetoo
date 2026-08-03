@@ -28,6 +28,15 @@
  * values.
  */
 
+/**
+ * @brief `g_module.h` function pointers.
+ */
+static struct {
+  CheckCvars CheckCvars;
+} super;
+
+static bool installed;
+
 cvar_t *g_hook;
 cvar_t *g_hook_auto_refire;
 cvar_t *g_hook_distance;
@@ -63,9 +72,59 @@ bool G_Hook_Enabled(void) {
 }
 
 /**
- * @brief Registers the hook's cvars.
+ * @brief Applies the hook's own cvars.
+ */
+static bool G_CheckCvars_Hook(void) {
+
+  if (g_hook->modified) {
+    g_hook->modified = false;
+
+    G_Hook_CheckState(true);
+
+    gi.BroadcastPrint(PRINT_HIGH, "Hook has been %s\n", G_Hook_Enabled() ? "enabled" : "disabled");
+  }
+
+  if (g_hook_speed->modified) {
+    g_hook_speed->modified = false;
+
+    gi.BroadcastPrint(PRINT_HIGH, "Hook speed has been changed to %g\n", g_hook_speed->value);
+  }
+
+  if (g_hook_pull_speed->modified) {
+    g_hook_pull_speed->modified = false;
+
+    gi.BroadcastPrint(PRINT_HIGH, "Hook pull speed has been changed to %g\n", g_hook_pull_speed->value);
+
+    gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
+  }
+
+  if (g_hook_style->modified) {
+    g_hook_style->modified = false;
+
+    // reset all the hook styles on the players
+    G_ForEachClient(cl, {
+      G_SetClientHookStyle(cl);
+    });
+
+    gi.BroadcastPrint(PRINT_HIGH, "Hook style has been changed to %s\n", g_hook_style->string);
+  }
+
+  return super.CheckCvars();
+}
+
+/**
+ * @brief Registers the hook's cvars and installs its hooks.
  */
 void G_Hook_Init(void) {
+
+  // G_Init runs on every server initialization, and the module is not always
+  // unloaded in between, so installing twice would point super at ourselves.
+  if (!installed) {
+    installed = true;
+
+    super.CheckCvars = G_CheckCvars;
+    G_CheckCvars = G_CheckCvars_Hook;
+  }
 
   g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO, "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
   g_hook_style = gi.AddCvar("g_hook_style", "default", 0, "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");

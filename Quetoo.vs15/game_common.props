@@ -50,6 +50,7 @@
     <ClInclude Include="..\src\game\common\g_entity_trigger.h" />
     <ClCompile Include="..\src\game\common\g_inventory.c" />
     <ClInclude Include="..\src\game\common\g_module.h" />
+    <ClCompile Include="..\src\game\common\g_rules.c" />
     <ClCompile Include="..\src\game\common\g_physics.c" />
     <ClInclude Include="..\src\game\common\g_physics.h" />
     <ClCompile Include="..\src\game\common\g_sound.c" />

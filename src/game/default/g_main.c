@@ -552,25 +552,9 @@ static void G_CheckRules(void) {
 
   G_RunTimers();
 
-  if (g_level.frag_limit) { // check frag_limit
-
-    if (g_level.teams) { // check team scores
-      for (int32_t i = 0; i < g_level.num_teams; i++) {
-        if (g_team_list[i].score >= g_level.frag_limit) {
-          gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
-          G_EndLevel();
-          return;
-        }
-      }
-    } else { // or individual scores
-      G_ForEachClient(cl, {
-        if (cl->persistent.score >= g_level.frag_limit) {
-          gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
-          G_EndLevel();
-          return;
-        }
-      });
-    }
+  if (G_CheckWinCondition()) {
+    G_EndLevel();
+    return;
   }
 
   if (g_gameplay->modified) { // change gameplay, fix items, respawn clients
@@ -704,6 +688,8 @@ static void G_CheckRules(void) {
       });
     }
   }
+
+  restart |= G_CheckCvars();
 
   if (restart) {
     G_RestartGame(true); // reset all clients

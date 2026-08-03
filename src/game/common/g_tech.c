@@ -37,6 +37,7 @@ static struct {
   ResetDroppedItem ResetDroppedItem;
   DropInventoryItem DropInventoryItem;
   ModifyDamage ModifyDamage;
+  CheckCvars CheckCvars;
 } super;
 
 static bool installed;
@@ -111,6 +112,25 @@ static void G_ModifyDamage_Tech(g_entity_t *target, g_entity_t *attacker, int32_
 }
 
 /**
+ * @brief Applies the techs' own cvars.
+ */
+static bool G_CheckCvars_Tech(void) {
+  bool restart = false;
+
+  if (g_techs->modified) {
+    g_techs->modified = false;
+
+    G_Tech_CheckState(true);
+
+    gi.BroadcastPrint(PRINT_HIGH, "Techs have been %s\n", G_Tech_Enabled() ? "enabled" : "disabled");
+
+    restart = true;
+  }
+
+  return super.CheckCvars() || restart;
+}
+
+/**
  * @brief Registers the techs' cvars and installs their hooks.
  */
 void G_Tech_Init(void) {
@@ -128,6 +148,9 @@ void G_Tech_Init(void) {
 
     super.ModifyDamage = G_ModifyDamage;
     G_ModifyDamage = G_ModifyDamage_Tech;
+
+    super.CheckCvars = G_CheckCvars;
+    G_CheckCvars = G_CheckCvars_Tech;
   }
 
   g_techs = gi.AddCvar("g_techs", "default", CVAR_SERVER_INFO, "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");

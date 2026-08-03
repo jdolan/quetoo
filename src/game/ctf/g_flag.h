@@ -26,6 +26,8 @@
 
 #if defined(__GAME_LOCAL_H__)
 
+extern cvar_t *g_capture_limit;
+
 void G_Flag_Init(void);
 void G_ResetDroppedFlag(g_entity_t *ent);
 

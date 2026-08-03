@@ -797,6 +797,8 @@
 		CEFEEE0000000000000000D3 /* g_tech_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000C3 /* g_tech_types.h */; };
 		CEFEEE0000000000000000F2 /* g_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000F1 /* g_inventory.c */; };
 		CEFEEE0000000000000000F3 /* g_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000F1 /* g_inventory.c */; };
+		CEFEEE00000000000000A102 /* g_rules.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE00000000000000A101 /* g_rules.c */; };
+		CEFEEE00000000000000A103 /* g_rules.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE00000000000000A101 /* g_rules.c */; };
 		CEFF1297277D439B001E1500 /* g_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1295277D439B001E1500 /* g_sound.h */; };
 		CEFF1298277D439B001E1500 /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
 		CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
@@ -2090,6 +2092,7 @@
 		CEFEEE0000000000000000C2 /* g_tech.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_tech.h; sourceTree = "<group>"; };
 		CEFEEE0000000000000000C3 /* g_tech_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_tech_types.h; sourceTree = "<group>"; };
 		CEFEEE0000000000000000F1 /* g_inventory.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_inventory.c; sourceTree = "<group>"; };
+		CEFEEE00000000000000A101 /* g_rules.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_rules.c; sourceTree = "<group>"; };
 		CEFF1295277D439B001E1500 /* g_sound.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_sound.h; sourceTree = "<group>"; };
 		CEFF1296277D439B001E1500 /* g_sound.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_sound.c; sourceTree = "<group>"; };
 		CEFF1376277FB721001E1500 /* TeamPlayerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamPlayerView.c; sourceTree = "<group>"; };
@@ -3661,6 +3664,7 @@
 				CEFEEE0000000000000000F1 /* g_inventory.c */,
 				CE12D66B1C5C58C300CD0B13 /* g_physics.h */,
 				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
+				CEFEEE00000000000000A101 /* g_rules.c */,
 				CEFF1295277D439B001E1500 /* g_sound.h */,
 				CEFF1296277D439B001E1500 /* g_sound.c */,
 				CE12D66E1C5C58C300CD0B13 /* g_util.h */,
@@ -4988,6 +4992,7 @@
 			files = (
 				CEFC7B8B1D9D2E9C000FA6B2 /* bg_pmove.c in Sources */,
 				CEFEEE0000000000000000F2 /* g_inventory.c in Sources */,
+				CEFEEE00000000000000A102 /* g_rules.c in Sources */,
 				CE27E9FC27BDA2AE003D56AC /* g_ai_goal.c in Sources */,
 				CE4E05422FDAE2CE00B92C32 /* g_ai_grid.c in Sources */,
 				CE27E9FF27BDA2AE003D56AC /* g_ai_info.c in Sources */,
@@ -5403,6 +5408,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CEFEEE0000000000000000F3 /* g_inventory.c in Sources */,
+				CEFEEE00000000000000A103 /* g_rules.c in Sources */,
 				CEFEED000000000000000001 /* bg_pmove.c in Sources */,
 				CEC0FF0020260103000000EF /* g_ai_goal.c in Sources */,
 				CEC0FF0020260103000000F0 /* g_ai_grid.c in Sources */,
