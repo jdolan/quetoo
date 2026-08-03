@@ -28,7 +28,6 @@
     <ClInclude Include="..\src\game\ctf\g_client_stats.h" />
     <ClInclude Include="..\src\game\ctf\g_cmd.h" />
     <ClInclude Include="..\src\game\ctf\g_entity.h" />
-    <ClInclude Include="..\src\game\ctf\g_flag.h" />
     <ClInclude Include="..\src\game\ctf\g_item.h" />
     <ClInclude Include="..\src\game\ctf\g_local.h" />
     <ClInclude Include="..\src\game\ctf\g_main.h" />
@@ -41,7 +40,6 @@
     <ClCompile Include="..\src\game\ctf\g_client_stats.c" />
     <ClCompile Include="..\src\game\ctf\g_cmd.c" />
     <ClCompile Include="..\src\game\ctf\g_entity.c" />
-    <ClCompile Include="..\src\game\ctf\g_flag.c" />
     <ClCompile Include="..\src\game\ctf\g_item.c" />
     <ClCompile Include="..\src\game\ctf\g_main.c" />
     <ClCompile Include="..\src\game\ctf\g_weapon.c" />
@@ -52,6 +50,7 @@
   </PropertyGroup>
   <!-- Selects the grapple sources from game_common.props. -->
   <PropertyGroup>
+    <QuetooGameFlag>true</QuetooGameFlag>
     <QuetooGameHook>true</QuetooGameHook>
     <QuetooGameTech>true</QuetooGameTech>
   </PropertyGroup>
@@ -89,7 +88,7 @@
            common sources. Set here rather than through
            $(ExtraPreprocessorDefinitions), which expands empty by the time
            build_settings.props' item definition is evaluated. -->
-      <PreprocessorDefinitions>G_HOOK;G_TECH;G_CTF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>G_FLAG;G_HOOK;G_TECH;G_CTF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>

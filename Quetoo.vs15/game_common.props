@@ -61,6 +61,10 @@
   <!-- The grapple, for modules that opt in by setting QuetooGameHook and
        defining G_HOOK; the counterpart of listing g_hook.c in a module's
        _SOURCES and adding -DG_HOOK to its AM_CPPFLAGS. -->
+  <ItemGroup Condition="'$(QuetooGameFlag)'=='true'">
+    <ClCompile Include="..\src\game\common\g_flag.c" />
+    <ClInclude Include="..\src\game\common\g_flag.h" />
+  </ItemGroup>
   <ItemGroup Condition="'$(QuetooGameHook)'=='true'">
     <ClCompile Include="..\src\game\common\g_hook.c" />
     <ClInclude Include="..\src\game\common\g_hook.h" />

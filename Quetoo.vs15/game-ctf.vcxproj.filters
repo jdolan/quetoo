@@ -33,8 +33,8 @@
     <ClInclude Include="..\src\game\ctf\g_entity.h">
       <Filter>src\ctf</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\ctf\g_flag.h">
-      <Filter>src\ctf</Filter>
+    <ClInclude Include="..\src\game\common\g_flag.h">
+      <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\ctf\g_item.h">
       <Filter>src\ctf</Filter>
@@ -143,8 +143,8 @@
     <ClCompile Include="..\src\game\ctf\g_entity.c">
       <Filter>src\ctf</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\game\ctf\g_flag.c">
-      <Filter>src\ctf</Filter>
+    <ClCompile Include="..\src\game\common\g_flag.c">
+      <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\ctf\g_item.c">
       <Filter>src\ctf</Filter>

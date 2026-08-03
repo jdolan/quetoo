@@ -3,6 +3,7 @@ GAME_COMMON_DIR = $(top_srcdir)/src/game/common
 vpath %.c $(srcdir):$(GAME_COMMON_DIR)
 
 AM_CPPFLAGS = \
+	-DG_FLAG \
 	-DG_HOOK \
 	-DG_TECH \
 	-DG_CTF \

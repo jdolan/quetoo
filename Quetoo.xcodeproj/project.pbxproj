@@ -3654,6 +3654,8 @@
 				CE12D65D1C5C58C300CD0B13 /* g_entity_target.c */,
 				CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */,
 				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
+				CEC0FA002026010800000003 /* g_flag.h */,
+				CEC0FA002026010800000001 /* g_flag.c */,
 				CEC011002026010200000007 /* g_hook.h */,
 				CEC011002026010200000005 /* g_hook.c */,
 				CEC011002026010200000009 /* g_hook_types.h */,
@@ -3686,8 +3688,6 @@
 				CEC0FF00202601030000001D /* g_cmd.c */,
 				CEC0FF002026010300000022 /* g_entity.h */,
 				CEC0FF002026010300000021 /* g_entity.c */,
-				CEC0FA002026010800000003 /* g_flag.h */,
-				CEC0FA002026010800000001 /* g_flag.c */,
 				CEC0FF002026010300000028 /* g_item.h */,
 				CEC0FF002026010300000027 /* g_item.c */,
 				CEC0FF002026010300000029 /* g_local.h */,
@@ -6713,6 +6713,7 @@
 				EXECUTABLE_EXTENSION = so;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
+					G_FLAG,
 					G_HOOK,
 					G_TECH,
 					G_CTF,
@@ -6737,6 +6738,7 @@
 				EXECUTABLE_EXTENSION = so;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
+					G_FLAG,
 					G_HOOK,
 					G_TECH,
 					G_CTF,
@@ -6761,6 +6763,7 @@
 				EXECUTABLE_EXTENSION = so;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
+					G_FLAG,
 					G_HOOK,
 					G_TECH,
 					G_CTF,
@@ -6798,6 +6801,7 @@
 				EXECUTABLE_EXTENSION = so;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
+					G_FLAG,
 					G_HOOK,
 					G_TECH,
 					G_CTF,
