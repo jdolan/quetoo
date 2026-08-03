@@ -292,6 +292,22 @@ entries resolve.
   engine output does *not* reach stdout. `Sys_UserDir()/<game>/quetoo.log` has it,
   but **not** `gi.ClientPrint` output, so per-client messages need a human
   in-game.
+- **`Sys_OpenLibrary`'s path is a request, not a fact.** dyld searches
+  `DYLD_LIBRARY_PATH` for a library's *leaf name* before it honours the path it
+  was given, and every module is named `game.so` or `cgame.so`. Xcode injects
+  that variable with each target's build directory when it launches a scheme, so
+  two modules building into their own directories made every `dlopen` resolve to
+  whichever came first in the list -- the engine reported loading `ctf/game.so`
+  and then ran default's code, with a file on disk that was demonstrably
+  correct. A scheme environment variable does not help: Xcode prepends yours and
+  appends its own. The fix is to keep the products out of that search path,
+  which the module targets now do by building under their own names at the
+  products root and installing a correctly named copy into a directory Xcode
+  never adds. If you add a fifth module, it needs the same install script, and
+  the copy needs signing because the script runs before Xcode's CodeSign step.
+  `Sys_LoadLibrary` reports the image `dladdr` attributes the entry point to,
+  and `Sys_OpenLibrary` warns when that is not the file it asked for -- believe
+  those two lines over the `Loading ...` line above them.
 - Kill leftover servers between runs. A stale process holding port 1998 makes the
   next one die with `bind: Address already in use`, which looks exactly like a
   crash you just introduced.
