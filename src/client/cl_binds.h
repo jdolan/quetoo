@@ -78,22 +78,16 @@ static const char *DEFAULT_BINDS =
 
     "bind \"left alt\" +ZOOM\n"
 
-    // spam alias for pros
-    "alias SPAM \""
-    "use hyperblaster;"
-    "use lightning gun;"
-    "bind f SPAM"
-    "\"\n"
-
     "bind f11 r_screenshot view\n"
     "bind f12 r_screenshot\n"
 
     // now execute the "default" configuration file
     "exec quetoo.cfg\n"
 
-    // and "default" autoexec.cfg
+    // and "default" autoexec.cfg; a later `game` change re-execs the new
+    // module's copy from Frame
     "exec autoexec.cfg\n"
 
-  // bind these last in case somebody is using a Quake 2 config
+    // bind these last in case somebody is using a Quake 2 config
     "bind ` cl_toggle_console\n"
     "bind f8 cl_toggle_console\n";

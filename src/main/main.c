@@ -309,7 +309,6 @@ static void Init(void) {
   editor = Cvar_Add("editor", "0", CVAR_LATCH | CVAR_SERVER_INFO, "Enables the in-game editor.");
 
   game = Cvar_Add("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
-  game->modified = q_strcmp(game->string, DEFAULT_GAME);
 
   rcon_address = Cvar_Add("rcon_address", "", 0, "The remote console server address (defaults to current server)");
   rcon_password = Cvar_Add("rcon_password", "", CVAR_ARCHIVE, "The remote console password. "
@@ -331,6 +330,7 @@ static void Init(void) {
   quetoo.Warn = Warn;
 
   Fs_Init(FS_AUTO_LOAD_ARCHIVES);
+
   Fs_SetGame(game->string);
 
   Thread_Init(threads->integer);
@@ -419,14 +419,19 @@ static void Frame(const uint32_t msec) {
   }
 
   if (game->modified) {
-    game->modified = false;
 
     Fs_SetGame(game->string);
 
-    if (Fs_Exists("autoexec.cfg")) {
-      Cbuf_AddText("exec autoexec.cfg\n");
-      Cbuf_Execute();
+    // Cvar_Set only lets a latched cvar through with no server running, so this
+    // is the console case. The next map load reloads the game module anyway, but
+    // the client game has to come now so the menus match what was selected, and
+    // Cl_Frame consumes the flag to do it. A dedicated server has no client, so
+    // nothing would clear it there.
+    if (dedicated->value) {
+      game->modified = false;
     }
+
+    Cbuf_AddText("exec autoexec.cfg\n");
   }
 
   Sv_Frame(msec);
