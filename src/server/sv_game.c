@@ -381,7 +381,7 @@ void Sv_InitGame(void) {
 
   import.PostStats = Sv_PostStats;
 
-  game_handle = Sys_OpenLibrary("game", false);
+  game_handle = Sys_OpenLibrary("game");
   assert(game_handle);
   
   svs.game = (g_export_t *) Sys_LoadLibrary(game_handle, "G_LoadGame", &import);

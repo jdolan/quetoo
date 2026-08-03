@@ -313,7 +313,7 @@ void Cl_InitCgame(void) {
   import.Draw3DLines = R_Draw3DLines;
   import.Draw3DBox = R_Draw3DBox;
 
-  cgame_handle = Sys_OpenLibrary("cgame", true);
+  cgame_handle = Sys_OpenLibrary("cgame");
   assert(cgame_handle);
   
   cls.cgame = Sys_LoadLibrary(cgame_handle, "Cg_LoadCgame", &import);

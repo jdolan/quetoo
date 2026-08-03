@@ -138,7 +138,7 @@ const char *Sys_UserDir(void) {
  * @brief Loads a shared library by name, searching the game filesystem for the .so/.dll file.
  * @return A handle to the loaded library, or aborts with `ERROR_DROP` on failure.
  */
-void *Sys_OpenLibrary(const char *name, bool global) {
+void *Sys_OpenLibrary(const char *name) {
 
 #if defined(_WIN32)
   const char *so_name = va("%s.dll", name);
@@ -152,7 +152,7 @@ void *Sys_OpenLibrary(const char *name, bool global) {
     q_snprintf(path, sizeof(path), "%s/%s", Fs_RealDir(so_name), so_name);
     Com_Print("  Loading %s...\n", path);
 
-    void *handle = dlopen(path, RTLD_LAZY | (global ? RTLD_GLOBAL : RTLD_LOCAL));
+    void *handle = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
     if (handle) {
       return handle;
     }
