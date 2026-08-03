@@ -135,6 +135,44 @@ const char *Sys_UserDir(void) {
 }
 
 /**
+ * @brief Warns if the image that loaded is not the one at the given path.
+ * @details dyld searches DYLD_LIBRARY_PATH for a library's leaf name before it
+ * honors the path it was given, so a module of the same name in another
+ * directory silently wins. Every game module is named game.so or cgame.so, so
+ * this is a real hazard wherever that variable is set, as Xcode sets it.
+ */
+static void Sys_CheckLibrary(const char *path) {
+#if defined(__APPLE__)
+
+  char *expected = realpath(path, NULL);
+  if (!expected) {
+    return;
+  }
+
+  bool loaded = false;
+  for (uint32_t i = 0; i < _dyld_image_count() && !loaded; i++) {
+
+    const char *image = _dyld_get_image_name(i);
+    if (!image) {
+      continue;
+    }
+
+    char *actual = realpath(image, NULL);
+    if (actual) {
+      loaded = !q_strcmp(actual, expected);
+      free(actual);
+    }
+  }
+
+  if (!loaded) {
+    Com_Warn("%s is not the image that loaded; check DYLD_LIBRARY_PATH\n", path);
+  }
+
+  free(expected);
+#endif
+}
+
+/**
  * @brief Loads a shared library by name, searching the game filesystem for the .so/.dll file.
  * @return A handle to the loaded library, or aborts with `ERROR_DROP` on failure.
  */
@@ -154,6 +192,7 @@ void *Sys_OpenLibrary(const char *name) {
 
     void *handle = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
     if (handle) {
+      Sys_CheckLibrary(path);
       return handle;
     }
 
