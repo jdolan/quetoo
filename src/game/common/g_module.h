@@ -26,23 +26,6 @@
 #if defined(__GAME_LOCAL_H__)
 
 /**
- * @brief The contract every game module implements for the common sources.
- *
- * @details Common code calls these; each module defines them. This is
- * deliberately not a set of #if guards: a guard would put knowledge of every
- * module that will ever exist into shared code, whereas a module implementing a
- * named function keeps that knowledge where it belongs.
- */
-
-/**
- * @brief Disposes of a dropped item that has left the world - fallen into the
- * void, or been caught by a hurt trigger or an explosion.
- * @details A plain deathmatch module frees it. A module with flags returns them
- * to their base instead, and one with techs respawns them.
- */
-void G_ResetDroppedItem(g_entity_t *ent);
-
-/**
  * @brief The fields the server reads out of a client and an entity, mirroring
  * its own declarations in game.h.
  * @details The server declares g_client_t and g_entity_t itself, holding only
@@ -65,7 +48,7 @@ typedef struct {
   char user_info[MAX_INFO_STRING_STRING];
   bool in_use;
   void *ai;
-} g_client_server_fields_t;
+} g_client_t_fields_t;
 
 typedef struct {
   const cm_entity_t *def;
@@ -80,36 +63,50 @@ typedef struct {
   solid_t solid;
   g_entity_t *owner;
   g_client_t *client;
-} g_entity_server_fields_t;
+} g_entity_t_fields_t;
 
-#define G_ASSERT_SERVER_FIELD(prefix, field)                                   \
-  static_assert(offsetof(prefix##_t, field) ==                                \
-                     offsetof(prefix##_server_fields_t, field) &&              \
-                 sizeof(((prefix##_t *) 0)->field) ==                          \
-                     sizeof(((prefix##_server_fields_t *) 0)->field),          \
-                 #prefix "::" #field " must keep the offset and the size the " \
-                 "server expects; the server's fields come first, in game.h "  \
-                 "order")
+#define G_ASSERT_SERVER_FIELD(type, field) \
+  static_assert(offsetof(type, field) == offsetof(type##_fields_t, field) \
+    && sizeof(((type *) 0)->field) == sizeof(((type##_fields_t *) 0)->field), \
+      #type "::" #field " must keep the offset and the size the " \
+      "server expects; the server's fields come first, in game.h order")
 
-G_ASSERT_SERVER_FIELD(g_client, entity);
-G_ASSERT_SERVER_FIELD(g_client, ps);
-G_ASSERT_SERVER_FIELD(g_client, ping);
-G_ASSERT_SERVER_FIELD(g_client, score);
-G_ASSERT_SERVER_FIELD(g_client, user_info);
-G_ASSERT_SERVER_FIELD(g_client, in_use);
-G_ASSERT_SERVER_FIELD(g_client, ai);
+G_ASSERT_SERVER_FIELD(g_client_t, entity);
+G_ASSERT_SERVER_FIELD(g_client_t, ps);
+G_ASSERT_SERVER_FIELD(g_client_t, ping);
+G_ASSERT_SERVER_FIELD(g_client_t, score);
+G_ASSERT_SERVER_FIELD(g_client_t, user_info);
+G_ASSERT_SERVER_FIELD(g_client_t, in_use);
+G_ASSERT_SERVER_FIELD(g_client_t, ai);
 
-G_ASSERT_SERVER_FIELD(g_entity, def);
-G_ASSERT_SERVER_FIELD(g_entity, classname);
-G_ASSERT_SERVER_FIELD(g_entity, model);
-G_ASSERT_SERVER_FIELD(g_entity, s);
-G_ASSERT_SERVER_FIELD(g_entity, in_use);
-G_ASSERT_SERVER_FIELD(g_entity, sv_flags);
-G_ASSERT_SERVER_FIELD(g_entity, bounds);
-G_ASSERT_SERVER_FIELD(g_entity, abs_bounds);
-G_ASSERT_SERVER_FIELD(g_entity, size);
-G_ASSERT_SERVER_FIELD(g_entity, solid);
-G_ASSERT_SERVER_FIELD(g_entity, owner);
-G_ASSERT_SERVER_FIELD(g_entity, client);
+G_ASSERT_SERVER_FIELD(g_entity_t, def);
+G_ASSERT_SERVER_FIELD(g_entity_t, classname);
+G_ASSERT_SERVER_FIELD(g_entity_t, model);
+G_ASSERT_SERVER_FIELD(g_entity_t, s);
+G_ASSERT_SERVER_FIELD(g_entity_t, in_use);
+G_ASSERT_SERVER_FIELD(g_entity_t, sv_flags);
+G_ASSERT_SERVER_FIELD(g_entity_t, bounds);
+G_ASSERT_SERVER_FIELD(g_entity_t, abs_bounds);
+G_ASSERT_SERVER_FIELD(g_entity_t, size);
+G_ASSERT_SERVER_FIELD(g_entity_t, solid);
+G_ASSERT_SERVER_FIELD(g_entity_t, owner);
+G_ASSERT_SERVER_FIELD(g_entity_t, client);
 
-#endif /* __GAME_LOCAL_H__ */
+/**
+ * @brief The contract every game module implements for the common sources.
+ *
+ * @details Common code calls these; each module defines them. This is
+ * deliberately not a set of #if guards: a guard would put knowledge of every
+ * module that will ever exist into shared code, whereas a module implementing a
+ * named function keeps that knowledge where it belongs.
+ */
+
+/**
+ * @brief Disposes of a dropped item that has left the world - fallen into the
+ * void, or been caught by a hurt trigger or an explosion.
+ * @details A plain deathmatch module frees it. A module with flags returns them
+ * to their base instead, and one with techs respawns them.
+ */
+void G_ResetDroppedItem(g_entity_t *ent);
+
+#endif
