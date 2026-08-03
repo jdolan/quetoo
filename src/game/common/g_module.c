@@ -30,3 +30,18 @@ static void FreeDroppedItem(g_entity_t *ent) {
 }
 
 ResetDroppedItem G_ResetDroppedItem = FreeDroppedItem;
+
+/**
+ * @brief The default for `G_ModifyDamage`, applying the quad damage powerup.
+ */
+static void ScalePowerupDamage(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback) {
+
+  if (attacker->client) {
+    if (attacker->client->inventory[POWERUP_QUAD]) {
+      *damage *= QUAD_DAMAGE_FACTOR;
+      *knockback *= QUAD_KNOCKBACK_FACTOR;
+    }
+  }
+}
+
+ModifyDamage G_ModifyDamage = ScalePowerupDamage;

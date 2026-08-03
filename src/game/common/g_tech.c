@@ -36,6 +36,7 @@ cvar_t *g_techs;
 static struct {
   ResetDroppedItem ResetDroppedItem;
   DropInventoryItem DropInventoryItem;
+  ModifyDamage ModifyDamage;
 } super;
 
 static bool installed;
@@ -86,6 +87,30 @@ static void G_DropInventoryItem_Tech(g_client_t *cl, const char *name) {
 }
 
 /**
+ * @brief Applies the resist and strength modifiers, deferring the powerups to
+ * super so that the three keep the order they had before resist and strength
+ * were a hook.
+ */
+static void G_ModifyDamage_Tech(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback) {
+
+  if (target->client && G_HasTech(target->client, TECH_RESIST)) {
+    *damage *= TECH_RESIST_DAMAGE_FACTOR;
+    *knockback *= TECH_RESIST_KNOCKBACK_FACTOR;
+
+    G_PlayTechSound(target->client);
+  }
+
+  super.ModifyDamage(target, attacker, damage, knockback);
+
+  if (attacker->client && G_HasTech(attacker->client, TECH_STRENGTH)) {
+    *damage *= TECH_STRENGTH_DAMAGE_FACTOR;
+    *knockback *= TECH_STRENGTH_KNOCKBACK_FACTOR;
+
+    G_PlayTechSound(attacker->client);
+  }
+}
+
+/**
  * @brief Registers the techs' cvars and installs their hooks.
  */
 void G_Tech_Init(void) {
@@ -100,6 +125,9 @@ void G_Tech_Init(void) {
 
     super.DropInventoryItem = G_DropInventoryItem;
     G_DropInventoryItem = G_DropInventoryItem_Tech;
+
+    super.ModifyDamage = G_ModifyDamage;
+    G_ModifyDamage = G_ModifyDamage_Tech;
   }
 
   g_techs = gi.AddCvar("g_techs", "default", CVAR_SERVER_INFO, "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");

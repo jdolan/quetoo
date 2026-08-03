@@ -304,26 +304,7 @@ void G_Damage(const g_damage_t *dmg) {
     }
   }
 
-  if (target->client && G_HasTech(target->client, TECH_RESIST)) {
-    damage *= TECH_RESIST_DAMAGE_FACTOR;
-    knockback *= TECH_RESIST_KNOCKBACK_FACTOR;
-
-    G_PlayTechSound(target->client);
-  }
-
-  if (attacker->client) {
-    if (attacker->client->inventory[POWERUP_QUAD]) {
-      damage *= QUAD_DAMAGE_FACTOR;
-      knockback *= QUAD_KNOCKBACK_FACTOR;
-    }
-
-    if (G_HasTech(attacker->client, TECH_STRENGTH)) {
-      damage *= TECH_STRENGTH_DAMAGE_FACTOR;
-      knockback *= TECH_STRENGTH_KNOCKBACK_FACTOR;
-
-      G_PlayTechSound(attacker->client);
-    }
-  }
+  G_ModifyDamage(target, attacker, &damage, &knockback);
 
   // friendly fire avoidance
   if (target != attacker && g_level.teams) {
@@ -417,12 +398,14 @@ void G_Damage(const g_damage_t *dmg) {
       G_SpawnDamage(TE_SPARKS, pos, normal, damage_health);
     }
 
+#if defined(G_TECH)
     if (attacker->client && G_HasTech(attacker->client, TECH_VAMPIRE)) {
       if (!target->dead && attacker != target && !G_OnSameTeam(attacker->client, target->client)) {
         attacker->health = Minf(attacker->health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->max_health);
         G_PlayTechSound(attacker->client);
       }
     }
+#endif
 
     target->health -= damage_health;
 

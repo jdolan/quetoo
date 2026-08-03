@@ -134,4 +134,16 @@ typedef void (*DropInventoryItem)(g_client_t *cl, const char *name);
 
 extern DropInventoryItem G_DropInventoryItem;
 
+/**
+ * @brief Scales the damage and the knockback an attack is about to impart,
+ * before friendly fire and self damage are resolved.
+ * @details The quad damage powerup is the default. A feature carrying its own
+ * modifiers, such as the resist and strength techs, installs over the top;
+ * because the modifiers multiply, where it calls super decides only how the
+ * integer truncation falls.
+ */
+typedef void (*ModifyDamage)(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback);
+
+extern ModifyDamage G_ModifyDamage;
+
 #endif
