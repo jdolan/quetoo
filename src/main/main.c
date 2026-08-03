@@ -418,25 +418,15 @@ static void Frame(const uint32_t msec) {
     Thread_Init(threads->integer);
   }
 
-  if (game->modified) {
-
-    Fs_SetGame(game->string);
-
-    // Cvar_Set only lets a latched cvar through with no server running, so this
-    // is the console case. The next map load reloads the game module anyway, but
-    // the client game has to come now so the menus match what was selected, and
-    // Cl_Frame consumes the flag to do it. A dedicated server has no client, so
-    // nothing would clear it there.
-    if (dedicated->value) {
-      game->modified = false;
-    }
-
-    Cbuf_AddText("exec autoexec.cfg\n");
+  if (game->modified && !dedicated->value) {
+    Com_SetGame(game->string);
   }
 
   Sv_Frame(msec);
 
   Cl_Frame(msec);
+  
+  game->modified = false;
 }
 
 /**

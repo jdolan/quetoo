@@ -103,6 +103,7 @@ extern const char *DEBUG_CATEGORIES[DEBUG_TOTAL];
 bool Com_IsDebug(const debug_t debug);
 const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
+void Com_SetGame(const char *game);
 
 void Com_LogString(const char *str);
 

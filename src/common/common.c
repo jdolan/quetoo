@@ -81,6 +81,23 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
   }
 }
 
+/**
+ * @brief Makes the given game current: points the filesystem at it and runs its
+ * autoexec.cfg.
+ * @details Called wherever the game becomes current at runtime -- from the
+ * console with no server running, when the server applies a latched change at
+ * map load, and when a server we are joining tells us its game. Startup mounts
+ * the initial game directly, before the console has execed anything.
+ */
+void Com_SetGame(const char *game) {
+
+  Fs_SetGame(game);
+
+  if (Fs_Exists("autoexec.cfg")) {
+    Cbuf_AddText("exec autoexec.cfg\n");
+  }
+}
+
 // max len we'll try to parse for a category
 #define DEBUG_CATEGORY_MAX_LEN  32
 

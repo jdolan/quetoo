@@ -247,7 +247,7 @@ static void Sv_InitEntities(sv_state_t state) {
 
     Sv_UpdateLatchedVars();
 
-    Fs_SetGame(game->string);
+    Com_SetGame(game->string);
 
     Sv_InitGame();
 

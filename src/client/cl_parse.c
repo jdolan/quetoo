@@ -286,7 +286,7 @@ static void Cl_ParseServerData(void) {
     Com_Error(ERROR_DROP, "Server sent an invalid game directory\n");
   }
 
-  Fs_SetGame(str);
+  Com_SetGame(str);
 
   Cvar_ForceSetString("game", str);
 

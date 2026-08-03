@@ -637,11 +637,7 @@ void Cl_Frame(const uint32_t msec) {
     return;
   }
 
-  // main's Frame has already pointed the filesystem at the new game and left
-  // the flag for us, so that the client game reloads without waiting for a map.
-  if (game->modified) {
-    game->modified = false;
-
+  if (game->modified && q_strcmp(cls.cgame_game, Fs_Game())) {
     Cl_InitCgame();
   }
 
