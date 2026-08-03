@@ -248,18 +248,51 @@ brace so that the two branches of the preprocessor close different blocks,
 compiles and then breaks the next person to edit around it. Restate the condition
 and make the block additive instead.
 
+### The client side
+
+`cg_hud.c` and `cg_score.c` were the same fork on the client, and moved the same
+way, on G_FLAG and G_TECH guards. `cg_team_mode.c` stays per-module: the list of
+team modes a mod offers is a manifest, like the item roster.
+
+The cgame gets the **same** feature defines as its game module, in all three build
+systems, and it includes that module's own `g_types.h`. That is what keeps the two
+sides of the wire from disagreeing; a define set that differs between a module's
+game and cgame is the layout fault described above, and it would present as a
+network fault rather than a build failure.
+
 ### What is left
 
-1. **Lithium.** A `Makefile.am`, a `g_types.h`, a `bg_item.{c,h}`, and
-   `-DG_HOOK -DG_TECH`. Nothing else, which is the point.
+1. **Lithium.** A `Makefile.am`, a `g_types.h`, a `bg_item.{c,h}`, a
+   `cg_team_mode.c`, and whichever of `-DG_FLAG -DG_HOOK -DG_TECH` it wants.
+   Nothing else, which is the point.
 2. **Recombining `common` and `default`.** `default` is now an empty shell over
    `common`, so the two could merge and let `ctf` and friends override `default`
    directly. The `_Default` naming already assumes this.
 3. **`g_inventory.h`** still does not exist; add it when `G_AddAmmo`, `G_SetAmmo`,
    `G_InitClientInventory` and `G_ClientInventoryThink` migrate there.
-4. **The manifest.** `g_types.h` and `bg_item.{c,h}` are forked by design, but
-   they are large, and most of each is common. Splitting the wire values and item
-   roster a module really owns from the rest is the next real reduction.
+4. **The manifest**, which is now the whole of the remaining duplication and
+   needs a decision rather than a refactor. Measured:
+
+   | file | lines | diverging |
+   | --- | --- | --- |
+   | `g_types.h` | 1726 | 98 |
+   | `bg_item.c` | 820 | 130 |
+   | `bg_item.h` | 232 | 23 |
+   | `g_local.h` | 58 | 3 |
+
+   So ~2500 lines are duplicated to express ~250 lines of real difference, and
+   that difference is almost entirely **wire values**: `STAT_CAPTURES` and
+   `STAT_TECH` inserted into `g_stat_t`, `TE_HOOK_IMPACT` into the temp entities,
+   `TRAIL_HOOK`, the `EF_CTF_*` bits, `CS_HOOK_PULL_SPEED`, and the flag and tech
+   item tags. Inserting into the middle of an enum shifts everything after it,
+   which is exactly why `g_hook_types.h` says a module numbers its own.
+
+   These could be shared, guarded on the feature defines, and it would be *safer*
+   than the fork rather than less safe, because a module's game and cgame include
+   the same header and so cannot drift apart by hand. But it makes the wire
+   protocol a function of the define set, which is a decision about who owns
+   numbering, and the doc has said until now that a module does. **That call is
+   not a refactor; make it deliberately.**
 
 ### Behaviour that changed on purpose
 
