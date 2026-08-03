@@ -48,7 +48,6 @@ game_la_SOURCES = \
 	g_hook.c \
 	g_item.c \
 	g_main.c \
-	g_module.c \
 	g_physics.c \
 	g_sound.c \
 	g_tech.c \

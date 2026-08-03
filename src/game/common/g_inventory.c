@@ -22,10 +22,21 @@
 #include "g_local.h"
 
 /**
- * @brief The default for `G_DropInventoryItem`, resolving the name against the
- * item list.
+ * @brief The tail of the `G_ResetDroppedItem` chain, disposing of an item that
+ * has left the world. Features that would rather recycle it install over the
+ * top.
  */
-static void DropItemByName(g_client_t *cl, const char *name) {
+static void G_ResetDroppedItem_Default(g_entity_t *ent) {
+  G_FreeEntity(ent);
+}
+
+ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Default;
+
+/**
+ * @brief The tail of the `G_DropInventoryItem` chain, resolving the name
+ * against the item list.
+ */
+static void G_DropInventoryItem_Default(g_client_t *cl, const char *name) {
   const g_item_t *it;
 
   // we don't drop in instagib or arena
@@ -82,4 +93,4 @@ static void DropItemByName(g_client_t *cl, const char *name) {
   }
 }
 
-DropInventoryItem G_DropInventoryItem = DropItemByName;
+DropInventoryItem G_DropInventoryItem = G_DropInventoryItem_Default;

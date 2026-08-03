@@ -30,9 +30,6 @@
     <ClInclude Include="..\src\game\ctf\g_cmd.h">
       <Filter>src\ctf</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\ctf\g_combat.h">
-      <Filter>src\ctf</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\game\ctf\g_entity.h">
       <Filter>src\ctf</Filter>
     </ClInclude>
@@ -108,9 +105,6 @@
     <ClCompile Include="..\src\game\common\g_inventory.c">
       <Filter>src\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\game\common\g_module.c">
-      <Filter>src\common</Filter>
-    </ClCompile>
     <ClInclude Include="..\src\game\common\g_module.h">
       <Filter>src\common</Filter>
     </ClInclude>
@@ -144,9 +138,6 @@
       <Filter>src\ctf</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\ctf\g_cmd.c">
-      <Filter>src\ctf</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\game\ctf\g_combat.c">
       <Filter>src\ctf</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\ctf\g_entity.c">
@@ -191,6 +182,12 @@
     <ClCompile Include="..\src\game\common\g_client_view.c">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\game\common\g_combat.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\game\common\g_combat.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
     <ClCompile Include="..\src\game\common\g_effect.c">
       <Filter>src\common</Filter>
     </ClCompile>

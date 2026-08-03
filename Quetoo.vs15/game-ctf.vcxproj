@@ -27,7 +27,6 @@
     <ClInclude Include="..\src\game\ctf\g_client.h" />
     <ClInclude Include="..\src\game\ctf\g_client_stats.h" />
     <ClInclude Include="..\src\game\ctf\g_cmd.h" />
-    <ClInclude Include="..\src\game\ctf\g_combat.h" />
     <ClInclude Include="..\src\game\ctf\g_entity.h" />
     <ClInclude Include="..\src\game\ctf\g_flag.h" />
     <ClInclude Include="..\src\game\ctf\g_item.h" />
@@ -41,7 +40,6 @@
     <ClCompile Include="..\src\game\ctf\g_client.c" />
     <ClCompile Include="..\src\game\ctf\g_client_stats.c" />
     <ClCompile Include="..\src\game\ctf\g_cmd.c" />
-    <ClCompile Include="..\src\game\ctf\g_combat.c" />
     <ClCompile Include="..\src\game\ctf\g_entity.c" />
     <ClCompile Include="..\src\game\ctf\g_flag.c" />
     <ClCompile Include="..\src\game\ctf\g_item.c" />

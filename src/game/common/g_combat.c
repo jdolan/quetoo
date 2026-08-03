@@ -98,8 +98,10 @@ static const char *G_WeaponNameForMod(g_means_of_death mod) {
       return "Quake Thunderbolt";
     case MOD_FIREBALL:
       return "Fireball";
+#if defined(G_HOOK)
     case MOD_HOOK:
       return "Hook";
+#endif
     case MOD_TELEFRAG:
       return "Telefrag";
     case MOD_EXPLOSIVE:
@@ -108,7 +110,6 @@ static const char *G_WeaponNameForMod(g_means_of_death mod) {
       return "Unknown";
   }
 }
-
 
 bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
   vec3_t dest;
@@ -238,6 +239,22 @@ static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
 
   return saved;
 }
+
+/**
+ * @brief The tail of the `G_ModifyDamage` chain, applying the quad damage
+ * powerup. Features holding their own modifiers install over the top.
+ */
+static void G_ModifyDamage_Default(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback) {
+
+  if (attacker->client) {
+    if (attacker->client->inventory[POWERUP_QUAD]) {
+      *damage *= QUAD_DAMAGE_FACTOR;
+      *knockback *= QUAD_KNOCKBACK_FACTOR;
+    }
+  }
+}
+
+ModifyDamage G_ModifyDamage = G_ModifyDamage_Default;
 
 /**
  * @brief Damage routine. The inflictor imparts damage on the target on behalf
