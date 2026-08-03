@@ -845,7 +845,7 @@ static void G_UseItem(g_entity_t *ent, g_entity_t *other, g_entity_t *activator)
 /**
  * @brief Reset the item's interaction state based on the current game state.
  */
-void G_ResetItem(g_entity_t *ent) {
+static void G_ResetItem_Default(g_entity_t *ent) {
 
   ent->solid = SOLID_TRIGGER;
   ent->sv_flags &= ~SVF_NO_CLIENT;
@@ -862,9 +862,7 @@ void G_ResetItem(g_entity_t *ent) {
     ent->Touch = NULL;
   }
 
-  const bool inhibited = g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB;
-
-  if (inhibited || (ent->flags & FL_TEAM_SLAVE)) {
+  if (G_InhibitItem(ent) || (ent->flags & FL_TEAM_SLAVE)) {
     ent->sv_flags |= SVF_NO_CLIENT;
     ent->solid = SOLID_NOT;
   }
@@ -877,6 +875,18 @@ void G_ResetItem(g_entity_t *ent) {
 
   gi.LinkEntity(ent);
 }
+
+ResetItem G_ResetItem = G_ResetItem_Default;
+
+/**
+ * @brief The tail of the `G_InhibitItem` chain: arena and instagib play with
+ * whatever the client spawns with.
+ */
+static bool G_InhibitItem_Default(const g_entity_t *ent) {
+  return g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB;
+}
+
+InhibitItem G_InhibitItem = G_InhibitItem_Default;
 
 /**
  * @brief Drops the specified item to the floor and sets up interaction
@@ -1005,7 +1015,7 @@ void G_PrecacheItem(const g_item_t *it) {
   }
 }
 
-static void G_InitItem(g_item_t *it, const g_item_def_t *def);
+static void G_SetupItem(g_item_t *it);
 
 /**
  * @brief Sets the clipping size and plants the object on the floor.
@@ -1023,7 +1033,7 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
   if (ent->model) {
     ent->s.model1 = gi.ModelIndex(ent->model);
   } else {
-    G_InitItem((g_item_t *) ent->item, &ent->item->def);
+    G_SetupItem((g_item_t *) ent->item);
     ent->s.model1 = ent->item->model_index;
   }
 
@@ -1044,6 +1054,13 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
       ent->health = 0;
     }
   }
+
+#if defined(G_FLAG)
+  // the flags override animation1 to tint themselves by team, 0-based
+  if (ent->item->def.type == ITEM_TYPE_FLAG) {
+    ent->s.animation1 = item->def.tag - FLAG_FIRST;
+  }
+#endif
 
   ent->next_think = g_level.time + QUETOO_TICK_MILLIS * 2;
   ent->Think = G_ItemDropToFloor;
@@ -1099,11 +1116,10 @@ bool G_ItemAvailable(const g_item_t *item) {
 }
 
 /**
- * @brief Called to set up a specific item in the item list.
+ * @brief The tail of the `G_InitItem` chain, answering for the deathmatch item
+ * types and erroring on any other.
  */
-static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
-
-  it->def = *def;
+static void G_InitItem_Default(g_item_t *it) {
 
   switch (it->def.type) {
     case ITEM_TYPE_ARMOR:
@@ -1187,8 +1203,20 @@ static void G_InitItem(g_item_t *it, const g_item_def_t *def) {
       break;
 
     default:
-      gi.Error("Item %s (tag %d) has an invalid type\n", def->name, def->tag);
+      gi.Error("Item %s (tag %d) has an invalid type\n", it->def.name, it->def.tag);
   }
+
+}
+
+InitItem G_InitItem = G_InitItem_Default;
+
+/**
+ * @brief Fills in an item's behaviour and indexes its media. The behaviour is a
+ * hook, so a feature answering for its own type never has to remember the media.
+ */
+static void G_SetupItem(g_item_t *it) {
+
+  G_InitItem(it);
 
   it->model_index = gi.ModelIndex(it->def.model);
   it->pickup_sound_index = gi.SoundIndex(it->def.pickup_sound);
@@ -1202,7 +1230,8 @@ void G_InitItems(void) {
   g_items = gi.Malloc(ITEM_TOTAL * sizeof(g_item_t), MEM_TAG_GAME);
 
   for (g_item_tag_t tag = ITEM_FIRST; tag < ITEM_TOTAL; tag++) {
-    G_InitItem(&g_items[tag], &bg_item_defs[tag]);
+    g_items[tag].def = bg_item_defs[tag];
+    G_SetupItem(&g_items[tag]);
   }
 }
 

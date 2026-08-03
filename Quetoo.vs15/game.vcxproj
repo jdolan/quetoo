@@ -24,17 +24,11 @@
   <ItemGroup>
     <ClInclude Include="..\src\game\game.h" />
     <ClInclude Include="..\src\game\default\bg_item.h" />
-    <ClInclude Include="..\src\game\default\g_client.h" />
-    <ClInclude Include="..\src\game\default\g_entity.h" />
-    <ClInclude Include="..\src\game\default\g_item.h" />
     <ClInclude Include="..\src\game\default\g_local.h" />
     <ClInclude Include="..\src\game\default\g_types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\game\default\bg_item.c" />
-    <ClCompile Include="..\src\game\default\g_client.c" />
-    <ClCompile Include="..\src\game\default\g_entity.c" />
-    <ClCompile Include="..\src\game\default\g_item.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A663B8E2-126D-45DA-B3F8-B381AB866E7D}</ProjectGuid>

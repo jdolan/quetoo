@@ -406,13 +406,7 @@ static void G_RestartGame(bool teamz) {
     G_ClientRespawn(cl, false);
   });
 
-#if defined(G_HOOK)
-  G_Hook_CheckState(true);
-#endif
-
-#if defined(G_TECH)
-  G_Tech_CheckState(true);
-#endif
+  G_ConfigureLevel();
 
   G_ResetItems();
 

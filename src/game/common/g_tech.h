@@ -57,8 +57,7 @@ extern cvar_t *g_techs;
 
 bool G_Tech_Enabled(void);
 void G_Tech_Init(void);
-void G_Tech_InitMedia(void);
-void G_Tech_CheckState(bool enabled_by_default);
+void G_Tech_CheckState(void);
 void G_Tech_SpawnAll(void);
 void G_Tech_ClientThink(g_entity_t *ent);
 

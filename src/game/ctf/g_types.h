@@ -674,9 +674,6 @@ typedef struct {
     uint16_t weapon_switch;
 
     uint16_t countdown[11];
-    uint16_t ctf_capture;
-    uint16_t ctf_return;
-    uint16_t ctf_steal;
 
     uint16_t roar;
 

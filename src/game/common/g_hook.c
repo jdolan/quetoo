@@ -34,6 +34,9 @@
 static struct {
   CheckCvars CheckCvars;
   TossInventory TossInventory;
+  InitMedia InitMedia;
+  ConfigureLevel ConfigureLevel;
+  PrepareMove PrepareMove;
 } super;
 
 static bool installed;
@@ -73,6 +76,62 @@ bool G_Hook_Enabled(void) {
 }
 
 /**
+ * @brief Takes the client's movement over while they are pulling on the hook,
+ * and otherwise defers to super.
+ */
+static void G_PrepareMove_Hook(g_client_t *cl, pm_move_t *pm) {
+
+  if (!cl->hook.pull) {
+    super.PrepareMove(cl, pm);
+    return;
+  }
+
+  switch (cl->persistent.hook_style) {
+    case HOOK_SWING_MANUAL:
+      pm->s.type = PM_HOOK_SWING_MANUAL;
+      break;
+    case HOOK_SWING_AUTO:
+      pm->s.type = PM_HOOK_SWING_AUTO;
+      break;
+    default:
+      pm->s.type = PM_HOOK_PULL;
+      break;
+  }
+
+  pm->hook_pull_speed = g_hook_pull_speed->value;
+}
+
+/**
+ * @brief Indexes the hook's model and sounds for this level.
+ */
+static void G_InitMedia_Hook(void) {
+
+  super.InitMedia();
+
+  g_hook_media.model = gi.ModelIndex("models/grapplehook/tris");
+
+  g_hook_media.fire = gi.SoundIndex("grapplehook/fire");
+  g_hook_media.fly = gi.SoundIndex("grapplehook/fly");
+  g_hook_media.hit = gi.SoundIndex("grapplehook/hit");
+  g_hook_media.pull = gi.SoundIndex("grapplehook/pull");
+  g_hook_media.detach = gi.SoundIndex("grapplehook/detach");
+  g_hook_media.gibhit = gi.SoundIndex("grapplehook/gibhit");
+}
+
+/**
+ * @brief Resolves whether the hook is available this level, and publishes the
+ * pull speed the client predicts with.
+ */
+static void G_ConfigureLevel_Hook(void) {
+
+  G_Hook_CheckState();
+
+  gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
+
+  super.ConfigureLevel();
+}
+
+/**
  * @brief Applies the hook's own cvars.
  */
 static bool G_CheckCvars_Hook(void) {
@@ -80,7 +139,7 @@ static bool G_CheckCvars_Hook(void) {
   if (g_hook->modified) {
     g_hook->modified = false;
 
-    G_Hook_CheckState(true);
+    G_Hook_CheckState();
 
     gi.BroadcastPrint(PRINT_HIGH, "Hook has been %s\n", G_Hook_Enabled() ? "enabled" : "disabled");
   }
@@ -137,6 +196,15 @@ void G_Hook_Init(void) {
     G_CheckCvars = G_CheckCvars_Hook;
     super.TossInventory = G_TossInventory;
     G_TossInventory = G_TossInventory_Hook;
+
+    super.InitMedia = G_InitMedia;
+    G_InitMedia = G_InitMedia_Hook;
+
+    super.ConfigureLevel = G_ConfigureLevel;
+    G_ConfigureLevel = G_ConfigureLevel_Hook;
+
+    super.PrepareMove = G_PrepareMove;
+    G_PrepareMove = G_PrepareMove_Hook;
   }
 
   g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO, "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
@@ -152,48 +220,6 @@ void G_Hook_Init(void) {
       g_hook_speed->modified =
       g_hook_style->modified =
       g_hook->modified = false;
-}
-
-/**
- * @brief Indexes the hook's model and sounds for this level.
- */
-void G_Hook_InitMedia(void) {
-
-  g_hook_media.model = gi.ModelIndex("models/grapplehook/tris");
-
-  g_hook_media.fire = gi.SoundIndex("grapplehook/fire");
-  g_hook_media.fly = gi.SoundIndex("grapplehook/fly");
-  g_hook_media.hit = gi.SoundIndex("grapplehook/hit");
-  g_hook_media.pull = gi.SoundIndex("grapplehook/pull");
-  g_hook_media.detach = gi.SoundIndex("grapplehook/detach");
-  g_hook_media.gibhit = gi.SoundIndex("grapplehook/gibhit");
-}
-
-/**
- * @brief Applies the client's hook state to their movement, if they're pulling.
- * @return True if the hook took over the movement type.
- */
-bool G_Hook_ApplyPmove(const g_client_t *cl, pm_move_t *pm) {
-
-  if (!cl->hook.pull) {
-    return false;
-  }
-
-  switch (cl->persistent.hook_style) {
-    case HOOK_SWING_MANUAL:
-      pm->s.type = PM_HOOK_SWING_MANUAL;
-      break;
-    case HOOK_SWING_AUTO:
-      pm->s.type = PM_HOOK_SWING_AUTO;
-      break;
-    default:
-      pm->s.type = PM_HOOK_PULL;
-      break;
-  }
-
-  pm->hook_pull_speed = g_hook_pull_speed->value;
-
-  return true;
 }
 
 /**
@@ -594,15 +620,15 @@ void G_SetClientHookStyle(g_client_t *cl) {
 
 /**
  * @brief Checks and sets up the hook state.
- * @param enabled_by_default What "default" means for this module, which
- * decides the hook when neither the cvar nor the map is explicit.
+ * @details "default" means enabled: a module that compiled the hook in is a
+ * module that wants it, and one that does not can set the cvar.
  */
-void G_Hook_CheckState(bool enabled_by_default) {
+void G_Hook_CheckState(void) {
 
-  if (q_strcmp(g_hook->string, "default")) { // the cvar, else the module's default
+  if (q_strcmp(g_hook->string, "default")) { // the cvar, else compiled in means on
     g_hook_enabled = !!g_hook->integer;
   } else {
-    g_hook_enabled = enabled_by_default;
+    g_hook_enabled = true;
   }
 
   if (g_hook_distance->modified) {

@@ -21,8 +21,8 @@
     <ClInclude Include="..\src\game\default\bg_item.h">
       <Filter>src\default</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\default\g_client.h">
-      <Filter>src\default</Filter>
+    <ClInclude Include="..\src\game\common\g_client.h">
+      <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\common\g_client_stats.h">
       <Filter>src\common</Filter>
@@ -30,11 +30,11 @@
     <ClInclude Include="..\src\game\common\g_cmd.h">
       <Filter>src\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\default\g_entity.h">
-      <Filter>src\default</Filter>
+    <ClInclude Include="..\src\game\common\g_entity.h">
+      <Filter>src\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\default\g_item.h">
-      <Filter>src\default</Filter>
+    <ClInclude Include="..\src\game\common\g_item.h">
+      <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\default\g_local.h">
       <Filter>src\default</Filter>
@@ -122,8 +122,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\game\default\g_client.c">
-      <Filter>src\default</Filter>
+    <ClCompile Include="..\src\game\common\g_client.c">
+      <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\g_client_stats.c">
       <Filter>src\common</Filter>
@@ -131,11 +131,11 @@
     <ClCompile Include="..\src\game\common\g_cmd.c">
       <Filter>src\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\game\default\g_entity.c">
-      <Filter>src\default</Filter>
+    <ClCompile Include="..\src\game\common\g_entity.c">
+      <Filter>src\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\game\default\g_item.c">
-      <Filter>src\default</Filter>
+    <ClCompile Include="..\src\game\common\g_item.c">
+      <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\g_main.c">
       <Filter>src\common</Filter>

@@ -126,6 +126,11 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
       case MOD_TELEFRAG:
         msg = "%s tried to invade %s's personal space :telefrag:";
         break;
+#if defined(G_HOOK)
+      case MOD_HOOK:
+        msg = "%s had their intestines shredded by %s's grappling hook :hook:";
+        break;
+#endif
     }
 
 #pragma clang diagnostic push
@@ -534,7 +539,7 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
 
   G_ClientObituary(cl, attacker, mod);
 
-  G_TossQuadDamage(cl);
+  G_TossInventory(cl);
   G_TossInvisibility(cl);
   G_TossInvulnerability(cl);
 
@@ -952,6 +957,10 @@ static void G_ClientRespawn_(g_client_t *cl) {
     return;
   }
 
+#if defined(G_HOOK)
+  G_HookDetach(cl);
+#endif
+
   gi.UnlinkEntity(cl->entity);
 
   // leave a corpse in our place if applicable
@@ -1095,6 +1104,9 @@ void G_ClientRespawn(g_client_t *cl, bool voluntary) {
   // clear scores on voluntary changes
   if (cl->persistent.spectator && voluntary) {
     cl->persistent.score = cl->persistent.deaths = 0;
+#if defined(G_FLAG)
+    cl->persistent.captures = 0;
+#endif
   }
 
   cl->respawn_time = g_level.time;
@@ -1357,6 +1369,11 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   uint16_t auto_switch = strtoul(InfoString_Get(user_info, "auto_switch"), NULL, 10);
   cl->persistent.auto_switch = auto_switch;
 
+#if defined(G_HOOK)
+  // hook style
+  G_SetClientHookStyle(cl);
+#endif
+
   // stats guid
   q_strlcpy(cl->persistent.guid, InfoString_Get(user_info, "guid"), sizeof(cl->persistent.guid));
 }
@@ -1405,7 +1422,7 @@ bool G_ClientConnect(g_client_t *cl, char *user_info) {
 void G_ClientDisconnect(g_client_t *cl) {
 
   if (cl->entity) {
-    G_TossQuadDamage(cl);
+    G_TossInventory(cl);
     G_TossInvisibility(cl);
     G_TossInvulnerability(cl);
   }
@@ -1504,6 +1521,17 @@ void G_PlayPmove(void) {
 #endif
 
 /**
+ * @brief The tail of the `G_PrepareMove` chain, handing the move the entity's
+ * own velocity.
+ */
+static void G_PrepareMove_Default(g_client_t *cl, pm_move_t *pm) {
+
+  pm->s.velocity = cl->entity->velocity;
+}
+
+PrepareMove G_PrepareMove = G_PrepareMove_Default;
+
+/**
  * @brief Process the movement command, call `Pm_Move` and act on the result.
  */
 static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
@@ -1548,7 +1576,7 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
 
     pm.s.origin = ent->s.origin;
 
-    pm.s.velocity = ent->velocity;
+    G_PrepareMove(cl, &pm);
 
     pm.cmd = *cmd;
     pm.ground = ent->ground;
@@ -1829,6 +1857,12 @@ void G_ClientThink(g_client_t *cl, pm_cmd_t *cmd) {
 
   if (!cl->chase_target) { // move through the world
 
+#if defined(G_HOOK)
+    if (cl->hook.think_time < g_level.time) {
+      G_HookThink(cl, false);
+    }
+#endif
+
     G_ClientMove(cl, cmd);
   }
 
@@ -1891,6 +1925,12 @@ void G_ClientBeginFrame(g_client_t *cl) {
     G_ClientWeaponThink(cl);
   }
 
+#if defined(G_HOOK)
+  if (cl->hook.think_time < g_level.time) {
+    G_HookThink(cl, false);
+  }
+#endif
+
   if (ent->dead) {
     if (g_level.time > cl->respawn_time) {
       if (cl->latched_buttons & BUTTON_ATTACK) {
@@ -1898,6 +1938,12 @@ void G_ClientBeginFrame(g_client_t *cl) {
       }
     }
   }
+
+#if defined(G_TECH)
+  if (!ent->dead) {
+    G_Tech_ClientThink(ent);
+  }
+#endif
 
   cl->latched_buttons = 0;
 }

@@ -39,6 +39,9 @@ static struct {
   ModifyDamage ModifyDamage;
   CheckCvars CheckCvars;
   TossInventory TossInventory;
+  InitItem InitItem;
+  InitMedia InitMedia;
+  ConfigureLevel ConfigureLevel;
 } super;
 
 static bool installed;
@@ -113,6 +116,30 @@ static void G_ModifyDamage_Tech(g_entity_t *target, g_entity_t *attacker, int32_
 }
 
 /**
+ * @brief Indexes the techs' sounds for this level.
+ */
+static void G_InitMedia_Tech(void) {
+
+  super.InitMedia();
+
+  g_tech_media.sounds[TECH_HASTE    - TECH_FIRST] = gi.SoundIndex("techs/haste/haste");
+  g_tech_media.sounds[TECH_REGEN    - TECH_FIRST] = gi.SoundIndex("techs/regen/regen");
+  g_tech_media.sounds[TECH_RESIST   - TECH_FIRST] = gi.SoundIndex("techs/resist/resist");
+  g_tech_media.sounds[TECH_STRENGTH - TECH_FIRST] = gi.SoundIndex("techs/strength/strength");
+  g_tech_media.sounds[TECH_VAMPIRE  - TECH_FIRST] = gi.SoundIndex("techs/vampire/vampire");
+}
+
+/**
+ * @brief Resolves whether techs are available this level.
+ */
+static void G_ConfigureLevel_Tech(void) {
+
+  G_Tech_CheckState();
+
+  super.ConfigureLevel();
+}
+
+/**
  * @brief Applies the techs' own cvars.
  */
 static bool G_CheckCvars_Tech(void) {
@@ -121,7 +148,7 @@ static bool G_CheckCvars_Tech(void) {
   if (g_techs->modified) {
     g_techs->modified = false;
 
-    G_Tech_CheckState(true);
+    G_Tech_CheckState();
 
     gi.BroadcastPrint(PRINT_HIGH, "Techs have been %s\n", G_Tech_Enabled() ? "enabled" : "disabled");
 
@@ -129,6 +156,20 @@ static bool G_CheckCvars_Tech(void) {
   }
 
   return super.CheckCvars() || restart;
+}
+
+/**
+ * @brief Answers for the tech item type.
+ */
+static void G_InitItem_Tech(g_item_t *it) {
+
+  if (it->def.type == ITEM_TYPE_TECH) {
+    it->Pickup = G_PickupTech;
+    it->Drop = G_DropItem;
+    return;
+  }
+
+  super.InitItem(it);
 }
 
 /**
@@ -164,6 +205,15 @@ void G_Tech_Init(void) {
     G_CheckCvars = G_CheckCvars_Tech;
     super.TossInventory = G_TossInventory;
     G_TossInventory = G_TossInventory_Tech;
+
+    super.InitItem = G_InitItem;
+    G_InitItem = G_InitItem_Tech;
+
+    super.InitMedia = G_InitMedia;
+    G_InitMedia = G_InitMedia_Tech;
+
+    super.ConfigureLevel = G_ConfigureLevel;
+    G_ConfigureLevel = G_ConfigureLevel_Tech;
   }
 
   g_techs = gi.AddCvar("g_techs", "default", CVAR_SERVER_INFO, "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
@@ -172,27 +222,15 @@ void G_Tech_Init(void) {
 }
 
 /**
- * @brief Indexes the techs' sounds for this level.
- */
-void G_Tech_InitMedia(void) {
-
-  g_tech_media.sounds[TECH_HASTE    - TECH_FIRST] = gi.SoundIndex("techs/haste/haste");
-  g_tech_media.sounds[TECH_REGEN    - TECH_FIRST] = gi.SoundIndex("techs/regen/regen");
-  g_tech_media.sounds[TECH_RESIST   - TECH_FIRST] = gi.SoundIndex("techs/resist/resist");
-  g_tech_media.sounds[TECH_STRENGTH - TECH_FIRST] = gi.SoundIndex("techs/strength/strength");
-  g_tech_media.sounds[TECH_VAMPIRE  - TECH_FIRST] = gi.SoundIndex("techs/vampire/vampire");
-}
-
-/**
  * @brief Resolves whether techs are active this level, honouring an explicit
- * cvar setting and otherwise deferring to the module's own default.
+ * cvar setting and otherwise taking the feature being compiled in as consent.
  */
-void G_Tech_CheckState(bool enabled_by_default) {
+void G_Tech_CheckState(void) {
 
   if (q_strcmp(g_techs->string, "default")) {
     g_tech_enabled = !!g_techs->integer;
   } else {
-    g_tech_enabled = enabled_by_default;
+    g_tech_enabled = true;
   }
 }
 

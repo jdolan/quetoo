@@ -49,7 +49,6 @@
   const g_item_t *G_ClientArmor(const g_client_t *cl);
   const g_armor_info_t *G_ArmorInfo(const g_item_t *armor);
   void G_PrecacheItem(const g_item_t *it);
-  void G_ResetItem(g_entity_t *ent);
   void G_SetItemRespawn(g_entity_t *ent, uint32_t delay);
   void G_SpawnItem(g_entity_t *ent, const g_item_t *item);
   bool G_SetAmmo(g_client_t *cl, const g_item_t *item, int16_t count);

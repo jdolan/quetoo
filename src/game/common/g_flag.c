@@ -29,11 +29,21 @@ static struct {
   DropInventoryItem DropInventoryItem;
   CheckCvars CheckCvars;
   TossInventory TossInventory;
+  InitMedia InitMedia;
+  ResetItem ResetItem;
+  InhibitItem InhibitItem;
+  InitItem InitItem;
 } super;
 
 static bool installed;
 
 cvar_t *g_capture_limit;
+
+static struct {
+  uint16_t capture;
+  uint16_t return_;
+  uint16_t steal;
+} g_flag_media;
 
 /**
  * @brief Returns the team that owns the given flag entity, or `NULL` if the entity is not a flag.
@@ -117,7 +127,7 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
   gi.LinkEntity(f);
 
   G_MulticastSound(&(const g_play_sound_t) {
-    .index = g_media.sounds.ctf_return
+    .index = g_flag_media.return_
   }, MULTICAST_PHS_R);
 
   gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
@@ -198,6 +208,229 @@ static void G_FormatGameName_Flag(char *name, size_t size) {
 }
 
 /**
+ * @brief Steal the enemy's flag. If our own flag is dropped, return it. Else, if we are
+ * carrying the enemy's flag and touch our own flag, that is a capture.
+ */
+static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
+  int32_t index;
+
+  if (!cl->persistent.team) {
+    return false;
+  }
+
+  g_team_t *team = G_TeamForFlag(ent);
+  if (!team) {
+    return false; // a flag for a team this level does not have
+  }
+
+  g_entity_t *team_flag = G_FlagForTeam(team);
+  if (!team_flag) {
+    return false; // the map placed no base flag for that team
+  }
+
+  const g_item_t *carried_flag = G_GetFlag(cl);
+
+  if (team == cl->persistent.team) { // our flag
+
+    if (ent->spawn_flags & SF_ITEM_DROPPED) { // return it if necessary
+
+      team_flag->solid = SOLID_TRIGGER;
+      team_flag->sv_flags &= ~SVF_NO_CLIENT;
+
+      gi.LinkEntity(team_flag);
+
+      team_flag->s.event = EV_ITEM_RESPAWN;
+      team_flag->s.event_data = team_flag->item->def.tag;
+
+      G_MulticastSound(&(const g_play_sound_t) {
+        .index = g_flag_media.return_
+      }, MULTICAST_PHS);
+
+      gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag :flag%d_return:\n", cl->persistent.net_name, team->name, team->id + 1);
+
+      return true;
+    }
+
+    if (carried_flag) {
+      const g_team_t *other_team = &g_team_list[carried_flag->def.tag - FLAG_FIRST];
+      g_entity_t *other_team_flag = G_FlagForTeam(other_team);
+      if (!other_team_flag) {
+        return false;
+      }
+
+      index = other_team_flag->item->def.tag;
+      if (cl->inventory[index]) { // capture
+
+        cl->inventory[index] = 0;
+        cl->entity->s.effects &= ~G_EffectForTeam(other_team);
+        cl->entity->s.model3 = 0;
+
+        other_team_flag->solid = SOLID_TRIGGER;
+        other_team_flag->sv_flags &= ~SVF_NO_CLIENT; // reset the other flag
+
+        gi.LinkEntity(other_team_flag);
+
+        other_team_flag->s.event = EV_ITEM_RESPAWN;
+        other_team_flag->s.event_data = other_team_flag->item->def.tag;
+
+        G_MulticastSound(&(const g_play_sound_t) {
+          .index = g_flag_media.capture
+        }, MULTICAST_PHS_R);
+
+        gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag :flag%d_capture:\n", cl->persistent.net_name, other_team->name, other_team->id + 1);
+
+        team->captures++;
+        cl->persistent.captures++;
+
+        {
+          const bool player_ai = cl->ai != NULL;
+          g_capture_t capture = {
+            .player_ai = player_ai,
+            .time = (uint32_t) time(NULL),
+          };
+          q_strlcpy(capture.level,       g_level.name,              sizeof(capture.level));
+          q_strlcpy(capture.player,      cl->persistent.net_name,   sizeof(capture.player));
+          q_strlcpy(capture.player_guid, cl->persistent.guid,       sizeof(capture.player_guid));
+          q_strlcpy(capture.team,        other_team->name,          sizeof(capture.team));
+
+          if (capture.player_guid[0]) {
+            $(g_level.captures, add, &capture);
+          }
+        }
+
+        return false;
+      }
+    }
+
+    // touching our own flag for no particular reason
+    return false;
+  }
+
+  // it's enemy's flag, so take it if we can
+  if (carried_flag) {
+    return false; // we have one already
+  }
+
+  team_flag->solid = SOLID_NOT;
+  team_flag->sv_flags |= SVF_NO_CLIENT;
+
+  gi.LinkEntity(team_flag);
+
+  index = team_flag->item->def.tag;
+  cl->inventory[index] = 1;
+
+  // link the flag model to the player
+  cl->entity->s.model3 = team_flag->item->model_index;
+
+  G_MulticastSound(&(const g_play_sound_t) {
+    .index = g_flag_media.steal,
+  }, MULTICAST_PHS_R);
+
+  gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n", cl->persistent.net_name, team->name, team->id + 1);
+
+  cl->entity->s.effects |= G_EffectForTeam(team);
+  return true;
+}
+
+/**
+ * @brief Sheds the carried flag's effects and announces it, then puts the flag
+ * into the world. The caller owns the inventory bookkeeping.
+ */
+g_entity_t *G_ReleaseFlag(g_client_t *cl, const g_item_t *flag) {
+
+  const g_team_t *team = &g_team_list[flag->def.tag - FLAG_FIRST];
+
+  cl->entity->s.model3 = 0;
+  cl->entity->s.effects &= ~EF_CTF_MASK;
+
+  gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag :flag%d_drop:\n", cl->persistent.net_name, team->name, team->id + 1);
+
+  return G_DropItem(cl, flag);
+}
+
+/**
+ * @brief Tosses the flag the client is carrying into the world, clearing it
+ * from their inventory first.
+ */
+g_entity_t *G_TossFlag(g_client_t *cl) {
+
+  const g_item_t *flag = G_GetFlag(cl);
+
+  if (!flag || !cl->inventory[flag->def.tag]) {
+    return NULL;
+  }
+
+  cl->inventory[flag->def.tag] = 0;
+
+  return G_ReleaseFlag(cl, flag);
+}
+
+/**
+ * @brief Drop command callback that tosses the client's carried CTF flag.
+ */
+static g_entity_t *G_DropFlag(g_client_t *cl, const g_item_t *item) {
+  return G_ReleaseFlag(cl, item);
+}
+
+/**
+ * @brief Indexes the flags' sounds for this level.
+ */
+static void G_InitMedia_Flag(void) {
+
+  super.InitMedia();
+
+  g_flag_media.capture = gi.SoundIndex("ctf/capture");
+  g_flag_media.return_ = gi.SoundIndex("ctf/return");
+  g_flag_media.steal = gi.SoundIndex("ctf/steal");
+}
+
+/**
+ * @brief Hides a flag whose team is not playing this level.
+ */
+static void G_ResetItem_Flag(g_entity_t *ent) {
+
+  super.ResetItem(ent);
+
+  if (ent->item->def.type == ITEM_TYPE_FLAG) {
+    const g_team_id_t flag_team = ent->item->def.tag - FLAG_FIRST;
+
+    if (flag_team >= g_level.num_teams) {
+      ent->sv_flags |= SVF_NO_CLIENT;
+      ent->solid = SOLID_NOT;
+
+      gi.LinkEntity(ent);
+    }
+  }
+}
+
+/**
+ * @brief Exempts the flags from the gameplay modes that withhold items, since
+ * without them there is nothing to capture.
+ */
+static bool G_InhibitItem_Flag(const g_entity_t *ent) {
+
+  if (ent->item->def.type == ITEM_TYPE_FLAG) {
+    return false;
+  }
+
+  return super.InhibitItem(ent);
+}
+
+/**
+ * @brief Answers for the flag item type.
+ */
+static void G_InitItem_Flag(g_item_t *it) {
+
+  if (it->def.type == ITEM_TYPE_FLAG) {
+    it->Pickup = G_PickupFlag;
+    it->Drop = G_DropFlag;
+    return;
+  }
+
+  super.InitItem(it);
+}
+
+/**
  * @brief Tosses the flag a client leaving play is holding.
  */
 static void G_TossInventory_Flag(g_client_t *cl) {
@@ -231,6 +464,18 @@ void G_Flag_Init(void) {
     G_FormatGameName = G_FormatGameName_Flag;
     super.TossInventory = G_TossInventory;
     G_TossInventory = G_TossInventory_Flag;
+
+    super.ResetItem = G_ResetItem;
+    G_ResetItem = G_ResetItem_Flag;
+
+    super.InhibitItem = G_InhibitItem;
+    G_InhibitItem = G_InhibitItem_Flag;
+
+    super.InitItem = G_InitItem;
+    G_InitItem = G_InitItem_Flag;
+
+    super.InitMedia = G_InitMedia;
+    G_InitMedia = G_InitMedia_Flag;
   }
 
   g_capture_limit = gi.AddCvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level.");

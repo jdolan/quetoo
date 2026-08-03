@@ -234,7 +234,7 @@ static void G_InitEntityTeams(void) {
 /**
  * @brief Resolves references to frequently accessed media.
  */
-static void G_InitMedia(void) {
+static void G_InitMedia_Default(void) {
   uint16_t i;
 
   memset(&g_media, 0, sizeof(g_media));
@@ -267,8 +267,6 @@ static void G_InitMedia(void) {
   g_media.models.quake_nail = gi.ModelIndex("models/projectiles/quake_nail/tris");
   g_media.models.rocket = gi.ModelIndex("models/projectiles/rocket/tris");
   g_media.models.quake_rocket = gi.ModelIndex("models/projectiles/quake_rocket/tris");
-  G_Hook_InitMedia();
-  G_Tech_InitMedia();
   g_media.models.fireball = gi.ModelIndex("models/fireball/tris");
   g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
   g_media.sounds.bfg_prime = gi.SoundIndex("weapons/bfg/prime");
@@ -308,9 +306,6 @@ static void G_InitMedia(void) {
   g_media.sounds.weapon_switch = gi.SoundIndex("weapons/common/switch");
 
   g_media.sounds.chat = gi.SoundIndex("misc/chat");
-  g_media.sounds.ctf_capture = gi.SoundIndex("ctf/capture");
-  g_media.sounds.ctf_return = gi.SoundIndex("ctf/return");
-  g_media.sounds.ctf_steal = gi.SoundIndex("ctf/steal");
 
   for (i = 0; i < NUM_GIB_MODELS; i++) {
     g_media.models.gibs[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris", i + 1));
@@ -333,6 +328,9 @@ static void G_InitMedia(void) {
   g_media.images.health = gi.ImageIndex("pics/i_health");
 }
 
+InitMedia G_InitMedia = G_InitMedia_Default;
+
+
 /**
  * @brief Collects the deathmatch spawn points, falling back on the single
  * player start for maps that provide none.
@@ -351,15 +349,17 @@ static Vector *G_InitDeathmatchSpawns(void) {
 }
 
 /**
- * @brief Collects each team's spawn points and the flag it defends. An
- * `info_player_team_any` spawn belongs to every team, and precedes that team's
- * own spawns.
+ * @brief Collects each team's spawn points, and the flag it defends where the
+ * module has flags. An `info_player_team_any` spawn belongs to every team, and
+ * precedes that team's own spawns.
  */
 static void G_InitTeamSpawns(Vector *team_spawns[MAX_TEAMS]) {
 
+#if defined(G_FLAG)
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
     g_team_list[t].flag_entity = G_Find(NULL, EOFS(classname), g_team_list[t].flag);
   }
+#endif
 
   g_entity_t *spot = NULL;
 
@@ -425,6 +425,15 @@ static void G_InitSpawnPoints(void) {
 }
 
 /**
+ * @brief The tail of the `G_ConfigureLevel` chain. Deathmatch reads everything
+ * it needs from the worldspawn itself.
+ */
+static void G_ConfigureLevel_Default(void) {
+}
+
+ConfigureLevel G_ConfigureLevel = G_ConfigureLevel_Default;
+
+/**
  * @brief Spawns game entities from the BSP entity definition lump.
  */
 void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities) {
@@ -443,16 +452,23 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
   q_strlcpy(g_level.name, name, sizeof(g_level.name));
 
   g_level.frags    = $(alloc(Vector), initWithSize, sizeof(g_frag_t));
+
+#if defined(G_FLAG)
   g_level.captures = $(alloc(Vector), initWithSize, sizeof(g_capture_t));
+#endif
 
   // Clear real client entity pointers before freeing entities to prevent dangling references
   G_ForEachClient(cl, {
     cl->entity = NULL;
+#if defined(G_HOOK)
     // the grapple's entities are freed below with all the rest, so the state
     // referring to them must not survive into the next level
     memset(&cl->hook, 0, sizeof(cl->hook));
+#endif
     cl->persistent.score = 0;
+#if defined(G_FLAG)
     cl->persistent.captures = 0;
+#endif
     cl->persistent.deaths = 0;
     cl->persistent.team = NULL;
   });
@@ -471,9 +487,7 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
 
   G_InitEntityTeams();
 
-  G_Hook_CheckState(true);
-
-  G_Tech_CheckState(true);
+  G_ConfigureLevel();
 
   G_ResetTeams();
 
@@ -645,6 +659,11 @@ static void G_worldspawn(g_entity_t *ent) {
 
   gi.SetConfigString(CS_ITEM_SET, va("%d", g_level.items));
 
+  g_level.teams = g_teams->integer;
+#if defined(G_FLAG)
+  g_level.teams = true; // playing for captures is playing for teams
+#endif
+
   if (q_strcmp(g_num_teams->string, "default")) {
     g_level.num_teams = Clampf(g_num_teams->integer, 2, MAX_TEAMS);
   } else {
@@ -658,9 +677,6 @@ static void G_worldspawn(g_entity_t *ent) {
     g_level.min_clients_map = -1;
   }
 
-  g_level.teams = 1; // capture play is team play
-  gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
-
   const cm_entity_t *frag_limit_map = G_MapValue("frag_limit");
   if (frag_limit_map && (frag_limit_map->parsed & ENTITY_INTEGER) && frag_limit_map->integer > -1) { // prefer map metadata frag_limit
     g_level.frag_limit = frag_limit_map->integer;
@@ -673,6 +689,7 @@ static void G_worldspawn(g_entity_t *ent) {
     }
   }
 
+#if defined(G_FLAG)
   const cm_entity_t *capture_limit_map = G_MapValue("capture_limit");
   if (capture_limit_map && (capture_limit_map->parsed & ENTITY_INTEGER) && capture_limit_map->integer > -1) { // prefer map metadata capture_limit
     g_level.capture_limit = capture_limit_map->integer;
@@ -684,6 +701,7 @@ static void G_worldspawn(g_entity_t *ent) {
       g_level.capture_limit = g_capture_limit->integer;
     }
   }
+#endif
 
   float minutes;
   const cm_entity_t *time_limit_map = G_MapValue("time_limit");

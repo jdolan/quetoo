@@ -14,10 +14,13 @@ duplicated `.c` files, before any of this work:
 | differing | 36 |
 | present only in ctf | 4 |
 
-So **78% of the fork is pure duplication**, and every fix to `default` has to be
-carried across by hand or it silently rots. The goal is that `default` is little
-more than a manifest over `src/game/common`, and that a mod is its manifest plus
-the handful of behaviours it genuinely changes.
+So **78% of the fork is pure duplication**, and every fix to `default` had to be
+carried across by hand or it silently rotted. The goal was that `default` is
+little more than a manifest over `src/game/common`, and that a mod is its
+manifest plus the handful of behaviours it genuinely changes. That is now the
+case: see [State of the work](#state-of-the-work). What follows is why the
+mechanisms are shaped the way they are, which is what you need in order to add
+the next one.
 
 Function-level override is *not* the answer on its own, because most of the
 divergence is not function-shaped. Of the 36 differing functions, **24 are
@@ -50,9 +53,10 @@ Pick by what kind of difference it is. In rough order of preference:
 3. **Chainable hook.** For a variation point that *several optional features may
    each want a say in*. See below. This is the interesting one.
 
-4. **Single-owner contract.** A plain function declared in `g_module.h` that
-   every module defines, where exactly one answer is possible and chaining is
-   meaningless. A missing implementation is a link error.
+4. **A hook that is not chained.** Where exactly one answer is possible - a win
+   condition, the name of the gameplay - the mechanism is still a hook, but the
+   feature installing it does not call super. Nothing enforces that, so the
+   docblock on the hook MUST say which kind it is.
 
 A fifth option always remains: **override the whole file**. `vpath` resolves a
 module's own copy ahead of common's, so forking one file is a bounded, per-file
@@ -68,9 +72,9 @@ else.
   shredded; find the seam that collects them. `g_main.c` was 39 hunks over 136
   lines before the features started owning their own cvars.
 - A file that resists everything → it is probably a manifest and a mechanism
-  wearing one name. `G_CheckRules` is a win condition (single owner) plus a pile
-  of per-feature cvar blocks (hook); `G_worldspawn` is a feature config publish
-  plus two ctf level settings.
+  wearing one name. `G_CheckRules` turned out to be three things: a win condition
+  (`CheckWinCondition`), a pile of per-feature cvar blocks (`CheckCvars`), and
+  the core rules, which never diverged at all.
 
 ## The chainable hook
 
@@ -85,12 +89,12 @@ extern ResetDroppedItem G_ResetDroppedItem;
 ```
 
 ```c
-/* g_module.c — the file that owns the default */
-static void FreeDroppedItem(g_entity_t *ent) {
+/* g_inventory.c — the domain file owns the tail of the chain */
+static void G_ResetDroppedItem_Default(g_entity_t *ent) {
   G_FreeEntity(ent);
 }
 
-ResetDroppedItem G_ResetDroppedItem = FreeDroppedItem;
+ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Default;
 ```
 
 ```c
@@ -120,9 +124,9 @@ which features a module builds:
 
 | module | chain |
 | --- | --- |
-| default | `FreeDroppedItem` |
-| ctf | flag → tech → `FreeDroppedItem` |
-| a techs-only mod | tech → `FreeDroppedItem` |
+| default | `_Default` |
+| ctf | flag → tech → `_Default` |
+| a techs-only mod | tech → `_Default` |
 
 Neither feature mentions the other, and no module hand-writes a dispatcher.
 
@@ -164,88 +168,116 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
 - Feature implementation: the dispatch pointer with the feature suffixed —
   `G_ResetDroppedItem_Tech`, `G_DropInventoryItem_Flag`. Reading a call site's
   chain then only means grepping for the hook's name.
-- Default implementation: named for **what it does**, not "default" —
-  `FreeDroppedItem`, `DropItemByName`.
+- The tail of the chain: the dispatch pointer suffixed `_Default` —
+  `G_ResetDroppedItem_Default`. It is the answer the plain deathmatch module
+  gives, and the name it would keep if `common` folded back into `default`.
 - Avoid a leading underscore: C reserves `_` followed by an uppercase letter.
 
 ### Where things live
 
 - **Declarations** (typedef + `extern`) go in `g_module.h`, so there is one
   authoritative list of every variation point.
-- **Defaults** go in the domain file that owns the behaviour — `g_inventory.c`
-  for the inventory and dropping, not a catch-all. `g_module.c` holds only what
-  has no better home.
-- A domain file cannot be named after a file that still exists per-module.
-  `src/game/common/g_item.c` is impossible today because `vpath` would have each
-  module's own `g_item.c` shadow it. That is why the inventory default lives in
-  `g_inventory.c`, which parallels `cg_inventory.c` on the client side.
-- Which is also why some defaults are in `g_module.c` for now: the domain file
-  is exactly the file still forked. `ScalePowerupDamage` belongs beside
-  `G_Damage`, so move it when `g_combat.c` lands in common.
-- `g_inventory.h` does not exist yet; add it when `G_AddAmmo`, `G_SetAmmo`,
-  `G_InitClientInventory` and `G_ClientInventoryThink` migrate there.
+- **Tails** go in the domain file that owns the behaviour — `g_inventory.c` for
+  the inventory and dropping, `g_combat.c` for damage, `g_item.c` for items,
+  `g_rules.c` for the rules. Never a catch-all: `g_module.c` existed for exactly
+  two tails and was deleted, because a file that accumulates every hookable
+  function in the game is what this design exists to prevent.
+- A common file cannot share a name with a file that still exists in *any*
+  module, because `vpath` resolves the module's own copy first. That is why the
+  order of work is always: make both copies identical, delete both, then add the
+  one in common. `g_inventory.c` got its name because `g_item.c` was still forked
+  at the time; it parallels `cg_inventory.c` on the client side, so it stays.
 
 ## State of the work
 
-Done:
+Every duplicated `.c` file is gone. `src/game/default` and `src/game/ctf` now
+hold only their manifest:
 
-| hook | absorbed | result |
+    bg_item.c  bg_item.h  g_local.h  g_types.h  Makefile.am
+
+Everything else is one copy in `src/game/common`, compiled once per module.
+`ctf` builds it with `-DG_FLAG -DG_HOOK -DG_TECH -DG_CTF`; `default` builds it
+with none of those. A mod is its manifest, its `Makefile.am`, and the features it
+switches on.
+
+### The hooks
+
+| hook | tail lives in | installed by |
 | --- | --- | --- |
-| `ResetDroppedItem` | `G_ResetDroppedItem`, `G_DropItem`, `G_DropItem_SetExpiration` | the latter two are byte-identical between modules |
-| `DropInventoryItem` | `G_Drop_f` | both modules' command handler is one line |
-| `ModifyDamage` | `G_Damage` (213 lines, +21) | quad is the default; resist and strength install over it. Vampire is a guard, not part of the hook — see below |
+| `ResetDroppedItem` | `g_inventory.c` | flags, techs |
+| `DropInventoryItem` | `g_inventory.c` | flags, techs |
+| `TossInventory` | `g_inventory.c` | flags, techs, hook |
+| `ModifyDamage` | `g_combat.c` | techs |
+| `CheckCvars` | `g_rules.c` | flags, techs, hook |
+| `CheckWinCondition` | `g_rules.c` | flags |
+| `FormatGameName` | `g_rules.c` | flags |
+| `ResetItem` | `g_item.c` | flags |
+| `InhibitItem` | `g_item.c` | flags |
+| `InitItem` | `g_item.c` | flags, techs |
+| `InitMedia` | `g_entity.c` | flags, techs, hook |
+| `ConfigureLevel` | `g_entity.c` | techs, hook |
+| `PrepareMove` | `g_client.c` | hook |
 
-Also done, as prerequisites: techs extracted to `g_tech.{c,h}` behind `G_TECH`;
-`g_ai_item.c`'s item switch split so techs no longer require `G_CTF`;
-`G_ResetDroppedFlag` moved to `g_flag.c` with a `G_Flag_Init`.
+The tail of each chain lives beside the code that calls it, never in a catch-all:
+`g_module.c` was deleted once its last default moved out, because a file that
+collects every hookable function in the game is the thing this design exists to
+avoid. `g_rules.c` is new, and owns the rules a module enforces.
 
-Current: **164 shared functions, 133 identical, 31 differing**. These come from a
-different counting script than the figures above, which is why the shared total
-fell from 165 to 164 without a function going anywhere; run one script over both
-revisions rather than comparing across rows. On this one, the revision before
-`ModifyDamage` measured 164 / 132 / 32.
+Every tail is named `G_TheHook_Default` and every installation
+`G_TheHook_Feature`, so the whole of a variation point is one grep. `_Default`
+is also what these become if `common` is ever folded back into `default` and
+mods override `default` directly.
 
-`G_Damage` needed both a hook and a guard, because the three tech modifiers are
-not all the same shape. Resist and strength scale `damage` and `knockback` in
-the modifier region, which is the hook. Vampire heals the attacker much later,
-after armor has been resolved and inside `if (damage_health && ...)`, and it
-reads `damage` as friendly fire and self damage left it; hoisting it into the
-hook would change when it fires. Six lines in one hunk is what a guard is for.
+### What stayed a guard
 
-### Remaining hooks
+Additive one-liners on manifest fields, where a hook would be ceremony:
+the team roster's `.flag` and `.effect`, the capture and tech scoreboard stats,
+`g_level.captures`, `cl->persistent.captures`, the grapple's per-client state,
+the `MOD_HOOK` obituary and weapon name, the haste refire scaling, the vampire
+heal, and the tech branches of `G_ResetItems` and `G_ClientThink`.
 
-Chainable, roughly in order of yield:
+A guard MUST name a **feature** - `G_FLAG`, `G_HOOK`, `G_TECH` - and never a
+module. `#if defined(G_CTF)` in common would put knowledge of which modules will
+ever exist into shared code, which is the thing `g_module.h` says not to do.
+`G_CTF` survives only in each module's own manifest. This is why the flags moved
+into common behind `G_FLAG` rather than staying in `src/game/ctf`: without that,
+every capture-shaped divergence in a shared file had no legal mechanism.
 
-| hook | absorbs | note |
-| --- | --- | --- |
-| `CheckRules` | ~59 lines of `G_CheckRules`, `G_RestartGame`'s `*_CheckState` calls | every `g_hook_*` / `g_techs` `->modified` block; belongs in the feature, as `g_hook.c`'s docblock already says |
-| `PrepareMove` | `G_ClientMove` (220 lines, +3) | `G_Hook_ApplyPmove` is already the seam; only the call site diverges |
-| `InhibitItem` | `G_ResetItem`'s `inhibited` expression | flags opt out of arena/instagib inhibition |
-| `ResetItem` | `G_ResetItem`'s visibility block | flag hidden when its team is not in play |
-| `ConfigureLevel` | `G_worldspawn`'s `SetConfigString(CS_HOOK_PULL_SPEED, …)` | each feature publishes its own config strings |
+A guard MUST also be balanced. A guard that opens on `}` or `else`, straddling a
+brace so that the two branches of the preprocessor close different blocks,
+compiles and then breaks the next person to edit around it. Restate the condition
+and make the block additive instead.
 
-Single-owner contracts:
+### What is left
 
-| contract | why one owner |
-| --- | --- |
-| `FormatGameName` | ctf appends " CTF", default prefixes "Team " — a replacement, not additive |
-| `CheckWinCondition` | capture limit versus frag limit; extract from `G_CheckRules` |
-| `PostStats` | ctf passes its captures list alongside frags |
+1. **Lithium.** A `Makefile.am`, a `g_types.h`, a `bg_item.{c,h}`, and
+   `-DG_HOOK -DG_TECH`. Nothing else, which is the point.
+2. **Recombining `common` and `default`.** `default` is now an empty shell over
+   `common`, so the two could merge and let `ctf` and friends override `default`
+   directly. The `_Default` naming already assumes this.
+3. **`g_inventory.h`** still does not exist; add it when `G_AddAmmo`, `G_SetAmmo`,
+   `G_InitClientInventory` and `G_ClientInventoryThink` migrate there.
+4. **The manifest.** `g_types.h` and `bg_item.{c,h}` are forked by design, but
+   they are large, and most of each is common. Splitting the wire values and item
+   roster a module really owns from the rest is the next real reduction.
 
-Guards, no mechanism: `G_ClientRespawn`'s `captures = 0`, `G_RestartGame`'s
-captures resets, `G_worldspawn`'s `capture_limit` parsing and `g_level.teams = 1`.
+### Behaviour that changed on purpose
 
-### Suggested order
+Each is small, and each is a consequence of a chain replacing a hand-written list
+of calls:
 
-1. `CheckRules` — removes the per-feature cvar blocks, the thing that shreds
-   `g_main.c`.
-2. `PrepareMove`, `InhibitItem`, `ResetItem`, `ConfigureLevel` — small.
-3. The three single-owner contracts.
-4. Then move the guarded files into `src/game/common` and delete both modules'
-   copies. `g_combat.c` is one guard away: `G_WeaponNameForMod`'s `MOD_HOOK`
-   case wants a `#if defined(G_HOOK)`, as does `g_client.c`'s.
-5. Then Lithium: a `Makefile.am`, a `g_types.h`, a `bg_item.{c,h}`, `g_tech.c`,
-   `g_hook.c`, and `-DG_HOOK -DG_TECH`.
+- `TossInventory` runs in reverse installation order, so flags, techs and the
+  grapple are shed before the quad damage rather than after. Nothing reads
+  another's inventory slot, so only the order the dropped entities spawn in
+  changes.
+- Death used to toss a tech only `if (G_Tech_Enabled())`. It now always tosses,
+  which matters only for a client still holding a tech after techs were turned
+  off mid-level: they now drop it instead of keeping it.
+- `G_Tech_CheckState` and `G_Hook_CheckState` lost their `enabled_by_default`
+  argument. Every caller passed `true`, and with the features compiled in per
+  module, compiling one in is the module saying it wants it.
+- Resist, quad and strength still scale damage in that order, because the tech
+  implementation calls super between them. Chain order is behaviour.
 
 ## Watch out for
 
@@ -277,6 +309,24 @@ All three build systems, or the Windows build rots silently:
 Cross-check afterwards that each module's source list matches its `Makefile.am`
 in both directions. Verifying a list is complete is not the same as verifying its
 entries resolve.
+
+### Moving a forked file into common
+
+The `_SOURCES` entry does not move: `vpath` already searches `src/game/common`
+after `srcdir`, so a file listed in both `Makefile.am`s resolves to whichever copy
+exists. Only the two project files need editing.
+
+1. Make the two copies **byte-identical** — `diff` must be silent — then delete
+   both and add the one in `src/game/common`. A common file that shares a name
+   with a surviving module file is shadowed by it, silently.
+2. `Quetoo.vs15`: move the `ClCompile`/`ClInclude` from `game.vcxproj` and
+   `game-ctf.vcxproj` into `game_common.props`, and retarget both
+   `.vcxproj.filters` entries to `src\common`.
+3. `Quetoo.xcodeproj`: keep **one** `PBXFileReference` and point every
+   `PBXBuildFile` at it, delete the other reference, and move the surviving one
+   from the module group into the `src/game/common` group. The per-target
+   `PBXBuildFile` objects are what keep the file in each target, and for an
+   opt-in feature they are what make it opt-in.
 
 ## Verifying
 

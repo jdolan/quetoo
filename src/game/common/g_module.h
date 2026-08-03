@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "bg_pmove.h"
 #include "g_types.h"
 
 #if defined(__GAME_LOCAL_H__)
@@ -191,5 +192,67 @@ extern FormatGameName G_FormatGameName;
 typedef void (*TossInventory)(g_client_t *cl);
 
 extern TossInventory G_TossInventory;
+
+/**
+ * @brief Places an item in the world for the start of a level, deciding whether
+ * it can be seen and touched.
+ * @details The whole of the deathmatch placement is the default, and a feature
+ * that has more to say about its own items installs over the top. Anything it
+ * changes after deferring to super MUST be linked again, because super links.
+ */
+typedef void (*ResetItem)(g_entity_t *ent);
+
+extern ResetItem G_ResetItem;
+
+/**
+ * @brief Decides whether the current gameplay withholds an item from the level
+ * altogether.
+ * @details Arena and instagib withhold everything by default. A feature whose
+ * items are the point of the level, such as the flags, exempts its own.
+ */
+typedef bool (*InhibitItem)(const g_entity_t *ent);
+
+extern InhibitItem G_InhibitItem;
+
+/**
+ * @brief Fills in an item's behaviour - how it is picked up, and how it is
+ * dropped - from its type.
+ * @details The default answers for the deathmatch item types and errors on any
+ * type it does not recognise, so a feature bringing its own item type MUST
+ * install ahead of it and answer for that type rather than deferring.
+ */
+typedef void (*InitItem)(g_item_t *it);
+
+extern InitItem G_InitItem;
+
+/**
+ * @brief Indexes the models and sounds the module needs for the level ahead.
+ * @details The whole of the deathmatch media is the default; a feature indexes
+ * its own on top, and keeps the indices itself rather than growing `g_media`.
+ */
+typedef void (*InitMedia)(void);
+
+extern InitMedia G_InitMedia;
+
+/**
+ * @brief Resolves the settings a feature holds for the level ahead, after the
+ * worldspawn has been read, and again whenever the game restarts.
+ * @details Nothing to do by default. A feature decides here whether it is
+ * enabled this level, and publishes any config strings the client needs.
+ */
+typedef void (*ConfigureLevel)(void);
+
+extern ConfigureLevel G_ConfigureLevel;
+
+/**
+ * @brief Seeds the player move with the state it should start from, before the
+ * client's command is applied.
+ * @details The default hands the move the entity's own velocity. A feature that
+ * takes the movement over, as the grapple does while pulling, sets the move type
+ * and the velocity it wants and does not defer to super.
+ */
+typedef void (*PrepareMove)(g_client_t *cl, pm_move_t *pm);
+
+extern PrepareMove G_PrepareMove;
 
 #endif

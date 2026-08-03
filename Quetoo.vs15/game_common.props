@@ -59,6 +59,12 @@
     <ClInclude Include="..\src\game\common\g_client_stats.h" />
     <ClCompile Include="..\src\game\common\g_cmd.c" />
     <ClInclude Include="..\src\game\common\g_cmd.h" />
+    <ClCompile Include="..\src\game\common\g_item.c" />
+    <ClInclude Include="..\src\game\common\g_item.h" />
+    <ClCompile Include="..\src\game\common\g_entity.c" />
+    <ClInclude Include="..\src\game\common\g_entity.h" />
+    <ClCompile Include="..\src\game\common\g_client.c" />
+    <ClInclude Include="..\src\game\common\g_client.h" />
     <ClCompile Include="..\src\game\common\g_physics.c" />
     <ClInclude Include="..\src\game\common\g_physics.h" />
     <ClCompile Include="..\src\game\common\g_sound.c" />

@@ -37,9 +37,7 @@ extern cvar_t *g_hook_style;
 
 bool G_Hook_Enabled(void);
 void G_Hook_Init(void);
-void G_Hook_InitMedia(void);
-void G_Hook_CheckState(bool enabled_by_default);
-bool G_Hook_ApplyPmove(const g_client_t *cl, pm_move_t *pm);
+void G_Hook_CheckState(void);
 
 void G_HookDetach(g_client_t *cl);
 void G_HookThink(g_client_t *cl, const bool refire);
