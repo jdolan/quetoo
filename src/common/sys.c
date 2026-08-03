@@ -226,9 +226,11 @@ void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
     Com_Error(ERROR_DROP, "Failed to resolve entry point: %s\n", entry_point);
   }
 
-#if !defined(_WIN32)
+#if defined(__APPLE__)
   // dlopen may resolve an image already in the process rather than the file it
-  // was handed, so report where the entry point actually came from
+  // was handed, so report where the entry point actually came from. dladdr and
+  // Dl_info are a glibc extension gated behind _GNU_SOURCE, and only dyld
+  // redirects a path by its leaf name, so this stays where it is needed.
   Dl_info info;
   if (dladdr((void *) EntryPoint, &info) && info.dli_fname) {
     Com_Print("  %s from %s\n", entry_point, info.dli_fname);
