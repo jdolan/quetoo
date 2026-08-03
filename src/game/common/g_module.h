@@ -170,4 +170,26 @@ typedef bool (*CheckWinCondition)(void);
 
 extern CheckWinCondition G_CheckWinCondition;
 
+/**
+ * @brief Names the gameplay the server is running, for its info strings.
+ * @param name The buffer to format into, holding the gameplay name.
+ * @param size The size of that buffer.
+ * @details Chainable so that a feature can qualify what it was handed, but a
+ * feature that renames the gameplay outright does not defer to super.
+ */
+typedef void (*FormatGameName)(char *name, size_t size);
+
+extern FormatGameName G_FormatGameName;
+
+/**
+ * @brief Tosses whatever the client is carrying that must not leave play with
+ * them, when they change team or become a spectator.
+ * @details The quad damage powerup is the default. Flags, techs and the grapple
+ * each add their own, which is why this is a chain rather than a list of calls
+ * in whichever command happens to need it.
+ */
+typedef void (*TossInventory)(g_client_t *cl);
+
+extern TossInventory G_TossInventory;
+
 #endif

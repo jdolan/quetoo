@@ -38,6 +38,7 @@ static struct {
   DropInventoryItem DropInventoryItem;
   ModifyDamage ModifyDamage;
   CheckCvars CheckCvars;
+  TossInventory TossInventory;
 } super;
 
 static bool installed;
@@ -131,6 +132,16 @@ static bool G_CheckCvars_Tech(void) {
 }
 
 /**
+ * @brief Tosses the tech a client leaving play is holding.
+ */
+static void G_TossInventory_Tech(g_client_t *cl) {
+
+  G_TossTech(cl);
+
+  super.TossInventory(cl);
+}
+
+/**
  * @brief Registers the techs' cvars and installs their hooks.
  */
 void G_Tech_Init(void) {
@@ -151,6 +162,8 @@ void G_Tech_Init(void) {
 
     super.CheckCvars = G_CheckCvars;
     G_CheckCvars = G_CheckCvars_Tech;
+    super.TossInventory = G_TossInventory;
+    G_TossInventory = G_TossInventory_Tech;
   }
 
   g_techs = gi.AddCvar("g_techs", "default", CVAR_SERVER_INFO, "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");

@@ -28,6 +28,7 @@ static struct {
   ResetDroppedItem ResetDroppedItem;
   DropInventoryItem DropInventoryItem;
   CheckCvars CheckCvars;
+  TossInventory TossInventory;
 } super;
 
 static bool installed;
@@ -188,6 +189,25 @@ static bool G_CheckWinCondition_Flag(void) {
 }
 
 /**
+ * @brief Names the gameplay for captures, which replaces rather than qualifies
+ * what it was handed, and so does not defer to super.
+ */
+static void G_FormatGameName_Flag(char *name, size_t size) {
+
+  q_strlcat(name, " CTF", size);
+}
+
+/**
+ * @brief Tosses the flag a client leaving play is holding.
+ */
+static void G_TossInventory_Flag(g_client_t *cl) {
+
+  G_TossFlag(cl);
+
+  super.TossInventory(cl);
+}
+
+/**
  * @brief Registers the captures' cvars and installs the flags' hooks.
  */
 void G_Flag_Init(void) {
@@ -207,6 +227,10 @@ void G_Flag_Init(void) {
     G_CheckCvars = G_CheckCvars_Flag;
 
     G_CheckWinCondition = G_CheckWinCondition_Flag;
+
+    G_FormatGameName = G_FormatGameName_Flag;
+    super.TossInventory = G_TossInventory;
+    G_TossInventory = G_TossInventory_Flag;
   }
 
   g_capture_limit = gi.AddCvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level.");

@@ -33,6 +33,16 @@ static void G_ResetDroppedItem_Default(g_entity_t *ent) {
 ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Default;
 
 /**
+ * @brief The tail of the `G_TossInventory` chain, tossing the quad damage.
+ */
+static void G_TossInventory_Default(g_client_t *cl) {
+
+  G_TossQuadDamage(cl);
+}
+
+TossInventory G_TossInventory = G_TossInventory_Default;
+
+/**
  * @brief The tail of the `G_DropInventoryItem` chain, resolving the name
  * against the item list.
  */

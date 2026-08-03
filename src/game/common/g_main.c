@@ -189,49 +189,65 @@ g_team_t g_team_list[MAX_TEAMS] = {
     .id = TEAM_RED,
     .name = "Red",
     .skin = DEFAULT_TEAM_SKIN,
+#if defined(G_FLAG)
     .flag = "item_flag_team1",
+#endif
     .spawn = "info_player_team1",
     .shirt = { .r = 1.f, .g = 0.f, .b = 0.f, .a = 1.f },
     .pants = { .r = 1.f, .g = 0.f, .b = 0.f, .a = 1.f },
     .helmet = { .r = 1.f, .g = 0.f, .b = 0.f, .a = 1.f },
     .color = TEAM_COLOR_RED,
+#if defined(G_FLAG)
     .effect = EF_CTF_RED,
+#endif
   },
   [TEAM_BLUE] = {
     .id = TEAM_BLUE,
     .name = "Blue",
     .skin = DEFAULT_TEAM_SKIN,
+#if defined(G_FLAG)
     .flag = "item_flag_team2",
+#endif
     .spawn = "info_player_team2",
     .shirt = { .r = 0.f, .g = 0.f, .b = 1.f, .a = 1.f },
     .pants = { .r = 0.f, .g = 0.f, .b = 1.f, .a = 1.f },
     .helmet = { .r = 0.f, .g = 0.f, .b = 1.f, .a = 1.f },
     .color = TEAM_COLOR_BLUE,
+#if defined(G_FLAG)
     .effect = EF_CTF_BLUE,
+#endif
   },
   [TEAM_YELLOW] = {
     .id = TEAM_YELLOW,
     .name = "Yellow",
     .skin = DEFAULT_TEAM_SKIN,
+#if defined(G_FLAG)
     .flag = "item_flag_team3",
+#endif
     .spawn = "info_player_team3",
     .shirt = { .r = 1.f, .g = 1.f, .b = 0.f, .a = 1.f },
     .pants = { .r = 1.f, .g = 1.f, .b = 0.f, .a = 1.f },
     .helmet = { .r = 1.f, .g = 1.f, .b = 0.f, .a = 1.f },
     .color = TEAM_COLOR_YELLOW,
+#if defined(G_FLAG)
     .effect = EF_CTF_YELLOW,
+#endif
   },
   [TEAM_GREEN] = {
     .id = TEAM_GREEN,
     .name = "Green",
     .skin = DEFAULT_TEAM_SKIN,
+#if defined(G_FLAG)
     .flag = "item_flag_team4",
+#endif
     .spawn = "info_player_team4",
     .shirt = { .r = 0.f, .g = 1.f, .b = 0.f, .a = 1.f },
     .pants = { .r = 0.f, .g = 1.f, .b = 0.f, .a = 1.f },
     .helmet = { .r = 0.f, .g = 1.f, .b = 0.f, .a = 1.f },
     .color = TEAM_COLOR_GREEN,
+#if defined(G_FLAG)
     .effect = EF_CTF_GREEN,
+#endif
   },
 };
 
@@ -243,9 +259,11 @@ void G_ResetTeams(void) {
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
     g_team_t *team = &g_team_list[i];
     team->score = 0;
-    team->captures = 0;
     team->spawn_points = (g_spawn_points_t) { 0 };
+#if defined(G_FLAG)
+    team->captures = 0;
     team->flag_entity = NULL;
+#endif
   }
 
   G_SetTeamNames();
@@ -291,15 +309,19 @@ void G_ResetItems(void) {
       continue;
     }
 
+#if defined(G_TECH)
     if (ent->item->def.type == ITEM_TYPE_TECH) {
       G_FreeEntity(ent);
       continue;
     }
+#endif
 
     G_ResetItem(ent);
   });
 
+#if defined(G_TECH)
   G_Tech_SpawnAll();
+#endif
 }
 
 /**
@@ -335,7 +357,7 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
 }
 
 /**
- * @brief Setup the effects for spawn points
+ * @brief Setup the effects for spawn points.
  */
 void G_ResetSpawnPoints(void) {
 
@@ -358,7 +380,9 @@ static void G_RestartGame(bool teamz) {
   G_ForEachClient(cl, {
 
     cl->persistent.score = 0;
+#if defined(G_FLAG)
     cl->persistent.captures = 0;
+#endif
     cl->persistent.deaths = 0;
 
     if (teamz) { // reset teams
@@ -382,9 +406,13 @@ static void G_RestartGame(bool teamz) {
     G_ClientRespawn(cl, false);
   });
 
+#if defined(G_HOOK)
   G_Hook_CheckState(true);
+#endif
 
+#if defined(G_TECH)
   G_Tech_CheckState(true);
+#endif
 
   G_ResetItems();
 
@@ -393,7 +421,10 @@ static void G_RestartGame(bool teamz) {
   G_InitNumTeams();
 
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
-    g_team_list[i].score = g_team_list[i].captures = 0;
+    g_team_list[i].score = 0;
+#if defined(G_FLAG)
+    g_team_list[i].captures = 0;
+#endif
   }
 
   gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
@@ -417,15 +448,29 @@ void G_MuteClient(char *name, bool mute) {
 }
 
 /**
- * @brief Submits accumulated frags and captures to the server for stats processing.
+ * @brief Submits accumulated frags, and captures where the module has them, to
+ * the server for stats processing.
+ * @details The capture arguments are part of the game import ABI, which the
+ * engine and every module share, whether or not the module scores captures.
  */
 static void G_PostStats(void) {
 
+  g_capture_t *captures = NULL;
+  int32_t num_captures = 0;
+
+#if defined(G_FLAG)
+  captures = (g_capture_t *) g_level.captures->elements;
+  num_captures = (int32_t) g_level.captures->count;
+#endif
+
   gi.PostStats((g_frag_t *) g_level.frags->elements, (int32_t) g_level.frags->count,
-               (g_capture_t *) g_level.captures->elements, (int32_t) g_level.captures->count);
+               captures, num_captures);
 
   g_level.frags = release(g_level.frags);
+
+#if defined(G_FLAG)
   g_level.captures = release(g_level.captures);
+#endif
 }
 
 /**
@@ -554,8 +599,8 @@ pm_params_t G_MovementParams(void) {
 }
 
 /**
- * @brief Inspects and enforces gameplay rules each server frame, including frag/capture/time
- * limits and live cvar-driven gameplay changes.
+ * @brief Inspects and enforces gameplay rules each server frame, including the win
+ * condition, time limits and live cvar-driven gameplay changes.
  */
 static void G_CheckRules(void) {
   bool restart = false;
@@ -634,7 +679,7 @@ static void G_CheckRules(void) {
     if (g_level.num_teams != num_teams) {
       g_level.num_teams = num_teams;
 
-      {
+      if (g_level.teams) {
         G_InitNumTeams();
 
         gi.BroadcastPrint(PRINT_HIGH, "Number of teams set to %i\n",
@@ -648,7 +693,10 @@ static void G_CheckRules(void) {
   if (g_teams->modified) { // reset teams, scores
     g_teams->modified = false;
 
-    g_level.teams = 1; // capture play is team play
+    g_level.teams = g_teams->integer;
+#if defined(G_FLAG)
+    g_level.teams = true; // playing for captures is playing for teams
+#endif
     G_InitNumTeams();
 
     gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n", g_level.teams ? "enabled" : "disabled");
@@ -773,7 +821,7 @@ static const char *G_GameName(void) {
 
   q_strlcpy(name, G_GameplayName(g_level.gameplay), size);
 
-  q_strlcat(name, " CTF", size);
+  G_FormatGameName(name, size);
 
   return name;
 }
@@ -813,9 +861,19 @@ void G_InitNumTeams(void) {
  */
 void G_Init(void) {
 
+  // chain order is installation order, so the order of these is part of the
+  // module's behaviour
+#if defined(G_HOOK)
   G_Hook_Init();
+#endif
+
+#if defined(G_TECH)
   G_Tech_Init();
+#endif
+
+#if defined(G_FLAG)
   G_Flag_Init();
+#endif
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
     ge.clients[i] = gi.Malloc(sizeof(g_client_t), MEM_TAG_GAME);

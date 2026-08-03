@@ -24,11 +24,11 @@
     <ClInclude Include="..\src\game\default\g_client.h">
       <Filter>src\default</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\default\g_client_stats.h">
-      <Filter>src\default</Filter>
+    <ClInclude Include="..\src\game\common\g_client_stats.h">
+      <Filter>src\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\default\g_cmd.h">
-      <Filter>src\default</Filter>
+    <ClInclude Include="..\src\game\common\g_cmd.h">
+      <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\default\g_entity.h">
       <Filter>src\default</Filter>
@@ -39,14 +39,14 @@
     <ClInclude Include="..\src\game\default\g_local.h">
       <Filter>src\default</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\default\g_main.h">
-      <Filter>src\default</Filter>
+    <ClInclude Include="..\src\game\common\g_main.h">
+      <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\default\g_types.h">
       <Filter>src\default</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\default\g_weapon.h">
-      <Filter>src\default</Filter>
+    <ClInclude Include="..\src\game\common\g_weapon.h">
+      <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\common\bg_pmove.h">
       <Filter>src\common</Filter>
@@ -125,11 +125,11 @@
     <ClCompile Include="..\src\game\default\g_client.c">
       <Filter>src\default</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\game\default\g_client_stats.c">
-      <Filter>src\default</Filter>
+    <ClCompile Include="..\src\game\common\g_client_stats.c">
+      <Filter>src\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\game\default\g_cmd.c">
-      <Filter>src\default</Filter>
+    <ClCompile Include="..\src\game\common\g_cmd.c">
+      <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\default\g_entity.c">
       <Filter>src\default</Filter>
@@ -137,11 +137,11 @@
     <ClCompile Include="..\src\game\default\g_item.c">
       <Filter>src\default</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\game\default\g_main.c">
-      <Filter>src\default</Filter>
+    <ClCompile Include="..\src\game\common\g_main.c">
+      <Filter>src\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\game\default\g_weapon.c">
-      <Filter>src\default</Filter>
+    <ClCompile Include="..\src\game\common\g_weapon.c">
+      <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\g_ai_goal.c">
       <Filter>src\common</Filter>

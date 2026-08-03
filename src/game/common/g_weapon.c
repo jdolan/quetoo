@@ -309,12 +309,14 @@ static void G_WeaponFired(g_client_t *cl, uint32_t interval, uint32_t ammo_neede
   // set the attack animation
   G_SetAnimation(cl, ANIM_TORSO_ATTACK1, true);
 
+#if defined(G_TECH)
   if (G_HasTech(cl, TECH_HASTE)) {
     interval *= TECH_HASTE_FACTOR;
     G_PlayTechSound(cl);
   } else if (G_HasTech(cl, TECH_STRENGTH)) {
     G_PlayTechSound(cl);
   }
+#endif
 
   // push the next fire time out by the interval
   cl->weapon_fire_time = g_level.time + interval;

@@ -33,6 +33,7 @@
  */
 static struct {
   CheckCvars CheckCvars;
+  TossInventory TossInventory;
 } super;
 
 static bool installed;
@@ -113,6 +114,16 @@ static bool G_CheckCvars_Hook(void) {
 }
 
 /**
+ * @brief Tosses the grapple a client leaving play is holding.
+ */
+static void G_TossInventory_Hook(g_client_t *cl) {
+
+  G_HookDetach(cl);
+
+  super.TossInventory(cl);
+}
+
+/**
  * @brief Registers the hook's cvars and installs its hooks.
  */
 void G_Hook_Init(void) {
@@ -124,6 +135,8 @@ void G_Hook_Init(void) {
 
     super.CheckCvars = G_CheckCvars;
     G_CheckCvars = G_CheckCvars_Hook;
+    super.TossInventory = G_TossInventory;
+    G_TossInventory = G_TossInventory_Hook;
   }
 
   g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO, "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");

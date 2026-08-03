@@ -75,9 +75,11 @@ static void G_UpdateScore(const g_client_t *cl, g_score_t *s) {
     s->color = -1;
     s->flags |= SCORE_SPECTATOR;
   } else {
+#if defined(G_FLAG)
     if (G_GetFlag(cl)) {
       s->flags |= SCORE_CTF_FLAG;
     }
+#endif
     if (cl->persistent.team) {
       s->color = cl->persistent.team->color;
       s->team = cl->persistent.team->id + 1;
@@ -88,7 +90,9 @@ static void G_UpdateScore(const g_client_t *cl, g_score_t *s) {
 
   s->score = cl->persistent.score;
   s->deaths = cl->persistent.deaths;
+#if defined(G_FLAG)
   s->captures = cl->persistent.captures;
+#endif
 }
 
 /**
@@ -112,7 +116,9 @@ static size_t G_UpdateScores(g_score_t *scores) {
 
       s->client = MAX_CLIENTS;
       s->score = team->score;
+#if defined(G_FLAG)
       s->captures = team->captures;
+#endif
       s->flags = team->id | SCORE_AGGREGATE;
       s++;
     }
@@ -182,12 +188,16 @@ void G_ClientStats(g_client_t *cl) {
     cl->ps.stats[STAT_ARMOR] = 0;
   }
 
+#if defined(G_TECH)
   // tech
   const g_item_t *tech = G_GetTech(cl);
   cl->ps.stats[STAT_TECH] = tech ? tech->def.tag : 0;
+#endif
 
+#if defined(G_FLAG)
   // captures
   cl->ps.stats[STAT_CAPTURES] = cl->persistent.captures;
+#endif
 
   // damage received and inflicted
   cl->ps.stats[STAT_DAMAGE_ARMOR] = cl->damage_armor;

@@ -64,3 +64,16 @@ static bool G_CheckWinCondition_Default(void) {
 }
 
 CheckWinCondition G_CheckWinCondition = G_CheckWinCondition_Default;
+
+/**
+ * @brief The tail of the `G_FormatGameName` chain, qualifying the gameplay with
+ * team play when the module is playing it.
+ */
+static void G_FormatGameName_Default(char *name, size_t size) {
+
+  if (g_level.teams) {
+    q_strlcpy(name, va("Team %s", name), size);
+  }
+}
+
+FormatGameName G_FormatGameName = G_FormatGameName_Default;
