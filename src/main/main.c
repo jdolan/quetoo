@@ -331,10 +331,7 @@ static void Init(void) {
   quetoo.Warn = Warn;
 
   Fs_Init(FS_AUTO_LOAD_ARCHIVES);
-
-  if (game->modified) {
-    Fs_SetGame(game->string);
-  }
+  Fs_SetGame(game->string);
 
   Thread_Init(threads->integer);
 
