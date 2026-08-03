@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CEC0FF0020260103000000E3"
-               BuildableName = "game.so"
+               BuildableName = "game-ctf.so"
                BlueprintName = "game-ctf"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
@@ -52,7 +52,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CEC0FF0020260103000000E3"
-            BuildableName = "game.so"
+            BuildableName = "game-ctf.so"
             BlueprintName = "game-ctf"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>

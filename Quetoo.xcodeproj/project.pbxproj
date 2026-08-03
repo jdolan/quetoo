@@ -1127,7 +1127,7 @@
 		6816070175ED2CEC62FB6E56 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = ui/fonts;
+			dstPath = "default/ui/fonts";
 			dstSubfolderSpec = 16;
 			files = (
 				2C468DAAA30BB6E232FA21C3 /* large.png in CopyFiles */,
@@ -1173,7 +1173,7 @@
 		CE4E07B720267815000B276C /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = ui/play;
+			dstPath = "default/ui/play";
 			dstSubfolderSpec = 16;
 			files = (
 				CE4E07DE202689F4000B276C /* CreateServerViewController.css in CopyFiles */,
@@ -1189,7 +1189,7 @@
 		CE4E07CA2026881F000B276C /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = ui/controls;
+			dstPath = "default/ui/controls";
 			dstSubfolderSpec = 16;
 			files = (
 				CE7D2C242030A133004BC58E /* ControlsViewController.json in CopyFiles */,
@@ -1203,7 +1203,7 @@
 		CE4E07D32026888A000B276C /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = ui/main;
+			dstPath = "default/ui/main";
 			dstSubfolderSpec = 16;
 			files = (
 				CE4E07D62026889D000B276C /* LoadingViewController.css in CopyFiles */,
@@ -1218,7 +1218,7 @@
 		CE4E07D9202688C5000B276C /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = ui/settings;
+			dstPath = "default/ui/settings";
 			dstSubfolderSpec = 16;
 			files = (
 				CE7D2C3320310810004BC58E /* SettingsViewController.json in CopyFiles */,
@@ -1228,7 +1228,7 @@
 		CE7D2C15202F6911004BC58E /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = ui/home;
+			dstPath = "default/ui/home";
 			dstSubfolderSpec = 16;
 			files = (
 				CEEEEEA82F9EF1FA00665A30 /* HomeViewController.css in CopyFiles */,
@@ -1243,7 +1243,7 @@
 		CEA1A0052F9F00000087B100 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = ui/credits;
+			dstPath = "default/ui/credits";
 			dstSubfolderSpec = 16;
 			files = (
 				CEA1A0042F9F00000087B100 /* CreditsViewController.css in CopyFiles */,
@@ -1254,7 +1254,7 @@
 		CEA400102F9800000087B100 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = ui;
+			dstPath = "default/ui";
 			dstSubfolderSpec = 16;
 			files = (
 				CEA400082F9800000087B100 /* logo.png in CopyFiles */,
@@ -1273,7 +1273,7 @@
 		CEA400112F9800000087B100 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = ui/backgrounds;
+			dstPath = "default/ui/backgrounds";
 			dstSubfolderSpec = 16;
 			files = (
 				CEA400092F9800000087B100 /* 0.png in CopyFiles */,
@@ -1288,7 +1288,7 @@
 		CEAA78A5277535F100EAC853 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = ui/teams;
+			dstPath = "default/ui/teams";
 			dstSubfolderSpec = 16;
 			files = (
 				CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */,
@@ -1301,7 +1301,7 @@
 		CFA000132F9100000000C013 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = ui/editor;
+			dstPath = "default/ui/editor";
 			dstSubfolderSpec = 16;
 			files = (
 				CFA000182F9100000000C018 /* EditorViewController.json in CopyFiles */,
@@ -4189,6 +4189,7 @@
 				CE12D7C91C5C5D5C00CD0B13 /* Sources */,
 				CE12D7CA1C5C5D5C00CD0B13 /* Frameworks */,
 				CE12D7CB1C5C5D5C00CD0B13 /* Headers */,
+				CEFEEE000000000000000A01 /* Install module */,
 			);
 			buildRules = (
 			);
@@ -4217,6 +4218,7 @@
 				CEA400102F9800000087B100 /* CopyFiles */,
 				6816070175ED2CEC62FB6E56 /* CopyFiles */,
 				CEA400112F9800000087B100 /* CopyFiles */,
+				CEFEEE000000000000000A03 /* Install module */,
 			);
 			buildRules = (
 			);
@@ -4691,6 +4693,7 @@
 				CEC0FF0020260103000000E4 /* Sources */,
 				CEC0FF0020260103000000E6 /* Frameworks */,
 				CEC0FF0020260103000000E5 /* Headers */,
+				CEFEEE000000000000000A02 /* Install module */,
 			);
 			buildRules = (
 			);
@@ -4708,6 +4711,7 @@
 				CEC0FF0020260103000001CE /* Sources */,
 				CEC0FF0020260103000001D0 /* Frameworks */,
 				CEC0FF0020260103000001CF /* Headers */,
+				CEFEEE000000000000000A04 /* Install module */,
 			);
 			buildRules = (
 			);
@@ -4896,6 +4900,65 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "export PATH=/usr/local/bin:/opt/homebrew/bin:${PATH}\nmake -C src/client/renderer/shaders shaders\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		CEFEEE000000000000000A01 /* Install module */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Install module";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "mkdir -p \"$BUILT_PRODUCTS_DIR/default\"\ncp \"$BUILT_PRODUCTS_DIR/game-default.so\" \"$BUILT_PRODUCTS_DIR/default/game.so\"\n";
+		};
+		CEFEEE000000000000000A02 /* Install module */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Install module";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "mkdir -p \"$BUILT_PRODUCTS_DIR/ctf\"\ncp \"$BUILT_PRODUCTS_DIR/game-ctf.so\" \"$BUILT_PRODUCTS_DIR/ctf/game.so\"\n";
+		};
+		CEFEEE000000000000000A03 /* Install module */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Install module";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "mkdir -p \"$BUILT_PRODUCTS_DIR/default\"\ncp \"$BUILT_PRODUCTS_DIR/cgame-default.so\" \"$BUILT_PRODUCTS_DIR/default/cgame.so\"\n";
+		};
+		CEFEEE000000000000000A04 /* Install module */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Install module";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "mkdir -p \"$BUILT_PRODUCTS_DIR/ctf\"\ncp \"$BUILT_PRODUCTS_DIR/cgame-ctf.so\" \"$BUILT_PRODUCTS_DIR/ctf/cgame.so\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -5923,13 +5986,12 @@
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				MACH_O_TYPE = mh_bundle;
-				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/default";
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					"$(BUILT_PRODUCTS_DIR)/..",
 				);
-				PRODUCT_NAME = game;
+				PRODUCT_NAME = "game-default";
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
 					"$(SRCROOT)/src",
@@ -5945,13 +6007,12 @@
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				MACH_O_TYPE = mh_bundle;
-				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/default";
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					"$(BUILT_PRODUCTS_DIR)/..",
 				);
-				PRODUCT_NAME = game;
+				PRODUCT_NAME = "game-default";
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
 					"$(SRCROOT)/src",
@@ -5967,14 +6028,13 @@
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				MACH_O_TYPE = mh_bundle;
-				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/default";
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					"$(BUILT_PRODUCTS_DIR)/..",
 				);
 				OTHER_LDFLAGS = "-all_load";
-				PRODUCT_NAME = cgame;
+				PRODUCT_NAME = "cgame-default";
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
 					"$(SRCROOT)/src",
@@ -6002,14 +6062,13 @@
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				MACH_O_TYPE = mh_bundle;
-				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/default";
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					"$(BUILT_PRODUCTS_DIR)/..",
 				);
 				OTHER_LDFLAGS = "-all_load";
-				PRODUCT_NAME = cgame;
+				PRODUCT_NAME = "cgame-default";
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
 					"$(SRCROOT)/src",
@@ -6667,7 +6726,6 @@
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				MACH_O_TYPE = mh_bundle;
-				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
 				EXECUTABLE_EXTENSION = so;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -6679,7 +6737,7 @@
 					"$(HOMEBREW_PREFIX)/lib",
 					"$(BUILT_PRODUCTS_DIR)/..",
 				);
-				PRODUCT_NAME = game;
+				PRODUCT_NAME = "game-ctf";
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
 					"$(SRCROOT)/src",
@@ -6695,7 +6753,6 @@
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				MACH_O_TYPE = mh_bundle;
-				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
 				EXECUTABLE_EXTENSION = so;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -6707,7 +6764,7 @@
 					"$(HOMEBREW_PREFIX)/lib",
 					"$(BUILT_PRODUCTS_DIR)/..",
 				);
-				PRODUCT_NAME = game;
+				PRODUCT_NAME = "game-ctf";
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
 					"$(SRCROOT)/src",
@@ -6723,7 +6780,6 @@
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				MACH_O_TYPE = mh_bundle;
-				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
 				EXECUTABLE_EXTENSION = so;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -6736,7 +6792,7 @@
 					"$(BUILT_PRODUCTS_DIR)/..",
 				);
 				OTHER_LDFLAGS = "-all_load";
-				PRODUCT_NAME = cgame;
+				PRODUCT_NAME = "cgame-ctf";
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
 					"$(SRCROOT)/src",
@@ -6764,7 +6820,6 @@
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				MACH_O_TYPE = mh_bundle;
-				CONFIGURATION_BUILD_DIR = "$(BUILT_PRODUCTS_DIR)/ctf";
 				EXECUTABLE_EXTENSION = so;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -6777,7 +6832,7 @@
 					"$(BUILT_PRODUCTS_DIR)/..",
 				);
 				OTHER_LDFLAGS = "-all_load";
-				PRODUCT_NAME = cgame;
+				PRODUCT_NAME = "cgame-ctf";
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
 					"$(SRCROOT)/src",
