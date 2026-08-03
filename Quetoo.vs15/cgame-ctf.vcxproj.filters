@@ -63,11 +63,11 @@
     <ClInclude Include="..\src\cgame\cgame.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\ctf\cg_hud.h">
-      <Filter>src\ctf</Filter>
+    <ClInclude Include="..\src\cgame\common\cg_hud.h">
+      <Filter>src\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\ctf\cg_score.h">
-      <Filter>src\ctf</Filter>
+    <ClInclude Include="..\src\cgame\common\cg_score.h">
+      <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\cg_client.h">
       <Filter>src\common</Filter>
@@ -281,11 +281,11 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\cgame\ctf\cg_hud.c">
-      <Filter>src\ctf</Filter>
+    <ClCompile Include="..\src\cgame\common\cg_hud.c">
+      <Filter>src\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\ctf\cg_score.c">
-      <Filter>src\ctf</Filter>
+    <ClCompile Include="..\src\cgame\common\cg_score.c">
+      <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\ctf\cg_team_mode.c">
       <Filter>src\ctf</Filter>

@@ -90,8 +90,50 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
     y = Cg_DrawPowerup(y, ps->stats[STAT_INVISIBILITY_TIME], cg_items[POWERUP_INVISIBILITY].icon, ch);
   }
 
+#if defined(G_TECH)
+  const int16_t tech = ps->stats[STAT_TECH];
+  if (tech) {
+    y = Cg_DrawPowerup(y, 0, cg_items[tech].icon, ch);
+  }
+#endif
+
   cgi.BindFont(NULL, NULL, NULL);
 }
+
+#if defined(G_FLAG)
+/**
+ * @brief Draws the flag the client is carrying.
+ */
+static void Cg_DrawHeldFlag(const player_state_t *ps) {
+  int32_t x, y;
+
+  g_item_tag_t flag_tag = ITEM_NONE;
+
+  for (g_item_tag_t i = FLAG_FIRST; i < FLAG_LAST; i++) {
+    if (ps->inventory[i]) {
+      flag_tag = i;
+      break;
+    }
+  }
+
+  if (flag_tag == ITEM_NONE) {
+    return;
+  }
+
+  const r_image_t *icon = cg_items[flag_tag].icon;
+  if (!icon) {
+    return;
+  }
+
+  color_t pulse = color_white;
+  pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f);
+
+  x = HUD_PIC_HEIGHT / 2;
+  y = cgi.context->h / 2 - HUD_PIC_HEIGHT * 2;
+
+  cgi.Draw2DImage(x, y, icon->width, icon->height, icon, pulse);
+}
+#endif
 
 /**
  * @brief Draws the recently picked up item icon and name in the top-right corner.
@@ -178,6 +220,36 @@ static void Cg_DrawDeaths(const player_state_t *ps) {
   cgi.BindFont(NULL, NULL, NULL);
 }
 
+#if defined(G_FLAG)
+/**
+ * @brief Draws the client's capture count.
+ */
+static void Cg_DrawCaptures(const player_state_t *ps) {
+  const int16_t captures = ps->stats[STAT_CAPTURES];
+  int32_t x, y, cw, ch;
+
+  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
+    return;
+  }
+
+  cgi.BindFont("small", NULL, &ch);
+
+  x = cgi.context->w - cgi.StringWidth("Captures");
+  y = 3 * (HUD_PIC_HEIGHT + ch);
+
+  cgi.Draw2DString(x, y, "Captures", color_green);
+  y += ch;
+
+  cgi.BindFont("large", &cw, NULL);
+
+  x = cgi.context->w - 3 * cw;
+
+  cgi.Draw2DString(x, y, va("%3d", captures), HUD_COLOR_STAT);
+
+  cgi.BindFont(NULL, NULL, NULL);
+}
+#endif
+
 /**
  * @brief Draws the "Spectating" label when the player is a spectator not in chase mode.
  */
@@ -258,6 +330,10 @@ static void Cg_DrawTime(const player_state_t *ps) {
   x = cgi.context->w - cgi.StringWidth(string);
   y = 3 * (HUD_PIC_HEIGHT + ch);
 
+#if defined(G_FLAG)
+  y += HUD_PIC_HEIGHT + ch; // the capture count sits where this would
+#endif
+
   cgi.Draw2DString(x, y, string, color_white);
 
   cgi.BindFont(NULL, NULL, NULL);
@@ -329,6 +405,10 @@ void Cg_DrawHud(const player_state_t *ps) {
 
   Cg_DrawPowerups(ps);
 
+#if defined(G_FLAG)
+  Cg_DrawHeldFlag(ps);
+#endif
+
   Cg_DrawPickup(ps);
 
   Cg_DrawTeamBanner(ps);
@@ -336,6 +416,10 @@ void Cg_DrawHud(const player_state_t *ps) {
   Cg_DrawFrags(ps);
 
   Cg_DrawDeaths(ps);
+
+#if defined(G_FLAG)
+  Cg_DrawCaptures(ps);
+#endif
 
   Cg_DrawSpectator(ps);
 

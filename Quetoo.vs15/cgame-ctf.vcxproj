@@ -22,14 +22,10 @@
     <ClInclude Include="..\src\cgame\cgame.h" />
     <ClInclude Include="..\src\game\ctf\bg_item.h" />
     <ClInclude Include="..\src\game\common\bg_pmove.h" />
-    <ClInclude Include="..\src\cgame\ctf\cg_hud.h" />
-    <ClInclude Include="..\src\cgame\ctf\cg_score.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\game\ctf\bg_item.c" />
     <ClCompile Include="..\src\game\common\bg_pmove.c" />
-    <ClCompile Include="..\src\cgame\ctf\cg_hud.c" />
-    <ClCompile Include="..\src\cgame\ctf\cg_score.c" />
     <ClCompile Include="..\src\cgame\ctf\cg_team_mode.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

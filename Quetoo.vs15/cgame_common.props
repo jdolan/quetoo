@@ -34,6 +34,10 @@
     <ClInclude Include="..\src\cgame\common\cg_entity_trail.h" />
     <ClCompile Include="..\src\cgame\common\cg_flare.c" />
     <ClInclude Include="..\src\cgame\common\cg_flare.h" />
+    <ClCompile Include="..\src\cgame\common\cg_hud.c" />
+    <ClInclude Include="..\src\cgame\common\cg_hud.h" />
+    <ClCompile Include="..\src\cgame\common\cg_score.c" />
+    <ClInclude Include="..\src\cgame\common\cg_score.h" />
     <ClCompile Include="..\src\cgame\common\cg_hud_draw.c" />
     <ClInclude Include="..\src\cgame\common\cg_hud_draw.h" />
     <ClCompile Include="..\src\cgame\common\cg_input.c" />

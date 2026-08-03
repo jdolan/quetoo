@@ -553,10 +553,10 @@
 		CEC011002026010200000010 /* cg_team_mode.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC01100202601020000000F /* cg_team_mode.c */; };
 		CEC0FA002026010800000002 /* g_flag.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FA002026010800000001 /* g_flag.c */; };
 		CEC0FA002026010800000004 /* g_flag.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FA002026010800000003 /* g_flag.h */; };
-		CEC0FD002026010500000002 /* cg_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000001 /* cg_hud.c */; };
-		CEC0FD002026010500000004 /* cg_hud.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000003 /* cg_hud.h */; };
-		CEC0FD002026010500000006 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000005 /* cg_score.c */; };
-		CEC0FD002026010500000008 /* cg_score.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000007 /* cg_score.h */; };
+		CEC0FD002026010500000002 /* cg_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D56C1C5C58C300CD0B13 /* cg_hud.c */; };
+		CEC0FD002026010500000004 /* cg_hud.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D56D1C5C58C300CD0B13 /* cg_hud.h */; };
+		CEC0FD002026010500000006 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5791C5C58C300CD0B13 /* cg_score.c */; };
+		CEC0FD002026010500000008 /* cg_score.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57A1C5C58C300CD0B13 /* cg_score.h */; };
 		CEC0FD00202601050000000A /* cg_hud_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000009 /* cg_hud_draw.c */; };
 		CEC0FD00202601050000000C /* cg_hud_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000009 /* cg_hud_draw.c */; };
 		CEC0FF0020260103000000D6 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000004 /* bg_item.c */; };
@@ -2014,10 +2014,6 @@
 		CEC0FA002026010800000001 /* g_flag.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_flag.c; sourceTree = "<group>"; };
 		CEC0FA002026010800000003 /* g_flag.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_flag.h; sourceTree = "<group>"; };
 		CEC0FB002026010700000001 /* g_module.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_module.h; sourceTree = "<group>"; };
-		CEC0FD002026010500000001 /* cg_hud.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud.c; sourceTree = "<group>"; };
-		CEC0FD002026010500000003 /* cg_hud.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud.h; sourceTree = "<group>"; };
-		CEC0FD002026010500000005 /* cg_score.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_score.c; sourceTree = "<group>"; };
-		CEC0FD002026010500000007 /* cg_score.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_score.h; sourceTree = "<group>"; };
 		CEC0FD002026010500000009 /* cg_hud_draw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud_draw.c; sourceTree = "<group>"; };
 		CEC0FD00202601050000000B /* cg_hud_draw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud_draw.h; sourceTree = "<group>"; };
 		CEC0FF002026010300000003 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -2640,10 +2636,6 @@
 		CE12D55D1C5C58C300CD0B13 /* default */ = {
 			isa = PBXGroup;
 			children = (
-				CE12D56D1C5C58C300CD0B13 /* cg_hud.h */,
-				CE12D56C1C5C58C300CD0B13 /* cg_hud.c */,
-				CE12D57A1C5C58C300CD0B13 /* cg_score.h */,
-				CE12D5791C5C58C300CD0B13 /* cg_score.c */,
 				CEC01100202601020000000F /* cg_team_mode.c */,
 				CE12D5801C5C58C300CD0B13 /* Makefile.am */,
 			);
@@ -3554,6 +3546,10 @@
 				CE61772125C0D41F0087A5E7 /* cg_flare.h */,
 				CE61772225C0D41F0087A5E7 /* cg_flare.c */,
 				CEC0FD00202601050000000B /* cg_hud_draw.h */,
+				CE12D56C1C5C58C300CD0B13 /* cg_hud.c */,
+				CE12D56D1C5C58C300CD0B13 /* cg_hud.h */,
+				CE12D5791C5C58C300CD0B13 /* cg_score.c */,
+				CE12D57A1C5C58C300CD0B13 /* cg_score.h */,
 				CEC0FD002026010500000009 /* cg_hud_draw.c */,
 				CEB8D6241E00B72100043814 /* cg_input.h */,
 				CEB8D6231E00B72100043814 /* cg_input.c */,
@@ -3676,10 +3672,6 @@
 		CEC0FF00202601030000005F /* ctf */ = {
 			isa = PBXGroup;
 			children = (
-				CEC0FD002026010500000003 /* cg_hud.h */,
-				CEC0FD002026010500000001 /* cg_hud.c */,
-				CEC0FD002026010500000007 /* cg_score.h */,
-				CEC0FD002026010500000005 /* cg_score.c */,
 				CEC0FF00202601030000008D /* cg_team_mode.c */,
 				CEC0FF002026010300000061 /* Makefile.am */,
 			);
