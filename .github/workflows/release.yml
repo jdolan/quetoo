@@ -483,7 +483,6 @@ jobs:
         New-Item -ItemType Directory -Force -Path "$staging\lib\default\shaders" | Out-Null
         New-Item -ItemType Directory -Force -Path "$staging\lib\default\ui" | Out-Null
         New-Item -ItemType Directory -Force -Path "$staging\lib\ctf" | Out-Null
-        New-Item -ItemType Directory -Force -Path "$staging\lib\ui" | Out-Null
 
         # Executables and their PDBs
         Copy-Item "Quetoo.vs15\bin\x64Release\quetoo.exe" "$staging\bin\"
@@ -527,10 +526,10 @@ jobs:
         Copy-Item -Path "src\client\renderer\shaders\*" -Destination "$staging\lib\default\shaders\" -Recurse
 
         # UI files (CSS, JSON, PNG and WAV assets, preserving directory structure)
-        foreach ($uiSource in @("src\cgame\common\ui", "src\client\ui")) {
+        foreach ($uiSource in @("src\cgame\common\ui")) {
           Get-ChildItem -Path $uiSource -Include "*.css","*.json","*.png","*.wav" -Recurse | ForEach-Object {
             $relativePath = $_.FullName.Substring((Resolve-Path $uiSource).Path.Length).TrimStart('\')
-            $destPath = Join-Path "$staging\lib\ui" $relativePath
+            $destPath = Join-Path "$staging\lib\default\ui" $relativePath
             $destDir = Split-Path $destPath -Parent
             if (-not (Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force | Out-Null }
             Copy-Item $_.FullName -Destination $destPath

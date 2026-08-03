@@ -8,9 +8,9 @@
   from the module's own game directory: a shared copy would read cg_state at
   the wrong offsets in any module that changes its teams or item set.
 
-  This list is the MSBuild counterpart of src/cgame/common/sources.mk and
-  src/cgame/common/ui/sources.mk. All MUST be updated together when a common
-  source is added or removed.
+  This list is the MSBuild counterpart of the _SOURCES lists in each module's
+  src/cgame/*/Makefile.am, which the autotools build resolves through vpath.
+  Both MUST be updated together when a common source is added or removed.
 -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>

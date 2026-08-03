@@ -7,12 +7,13 @@
   directory: a single prebuilt copy would bake one module's struct layout
   into all of them.
 
-  This list is the MSBuild counterpart of src/game/common/sources.mk, which
-  the autotools build uses for the same purpose. Both MUST be updated
-  together when a common source is added or removed.
+  This list is the MSBuild counterpart of the _SOURCES lists in each module's
+  src/game/*/Makefile.am, which the autotools build resolves through vpath.
+  Both MUST be updated together when a common source is added or removed.
 -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="..\src\game\common\bg_pmove.c" />
     <ClInclude Include="..\src\game\common\bg_pmove.h" />
     <ClCompile Include="..\src\game\common\g_ai_goal.c" />
     <ClInclude Include="..\src\game\common\g_ai_goal.h" />
@@ -54,7 +55,8 @@
     <ClInclude Include="..\src\game\common\g_util.h" />
   </ItemGroup>
   <!-- The grapple, for modules that opt in by setting QuetooGameHook and
-       defining G_HOOK; the counterpart of sources.mk's GCOMMON_HOOK_SRC. -->
+       defining G_HOOK; the counterpart of listing g_hook.c in a module's
+       _SOURCES and adding -DG_HOOK to its AM_CPPFLAGS. -->
   <ItemGroup Condition="'$(QuetooGameHook)'=='true'">
     <ClCompile Include="..\src\game\common\g_hook.c" />
     <ClInclude Include="..\src\game\common\g_hook.h" />

@@ -209,5 +209,11 @@
     <ClCompile Include="..\src\game\common\g_hook.c">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\ctf\bg_item.c">
+      <Filter>src\ctf</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

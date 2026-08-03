@@ -20,10 +20,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\cgame\cgame.h" />
+    <ClInclude Include="..\src\game\ctf\bg_item.h" />
+    <ClInclude Include="..\src\game\common\bg_pmove.h" />
     <ClInclude Include="..\src\cgame\ctf\cg_hud.h" />
     <ClInclude Include="..\src\cgame\ctf\cg_score.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\game\ctf\bg_item.c" />
+    <ClCompile Include="..\src\game\common\bg_pmove.c" />
     <ClCompile Include="..\src\cgame\ctf\cg_hud.c" />
     <ClCompile Include="..\src\cgame\ctf\cg_score.c" />
     <ClCompile Include="..\src\cgame\ctf\cg_team_mode.c" />
@@ -82,12 +86,6 @@
     </ProjectReference>
     <ProjectReference Include="..\..\Objectively\Objectively.vs15\Objectively.vcxproj">
       <Project>{3e6b97c6-1f51-4d72-bdfe-1d492f5eda6c}</Project>
-    </ProjectReference>
-    <ProjectReference Include="libs\libitemctf.vcxproj">
-      <Project>{7d1ceb4a-3626-538b-9558-165e872d38d4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="libs\libpmove.vcxproj">
-      <Project>{B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1}</Project>
     </ProjectReference>
     <ProjectReference Include="libs\libshared.vcxproj">
       <Project>{2F1C792E-6243-462B-AF0D-E2554E77D5C5}</Project>

@@ -49,6 +49,15 @@
     <Filter Include="src\ctf">
       <UniqueIdentifier>{613ae598-9e30-5521-807f-7a2408c3ce80}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\game">
+      <UniqueIdentifier>{92a36082-a73f-542f-bf4c-5190a8a06168}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\game\common">
+      <UniqueIdentifier>{1b99d444-f798-5c2d-b3f6-7cf0fb3f99ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\game\ctf">
+      <UniqueIdentifier>{13e7ff26-6943-5736-b5e5-6149367f705a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\cgame\cgame.h">
@@ -264,6 +273,12 @@
     <ClInclude Include="..\deps\discord-rpc\src\serialization.h">
       <Filter>deps\discord-rpc\src</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\game\common\bg_pmove.h">
+      <Filter>src\game\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\ctf\bg_item.h">
+      <Filter>src\game\ctf</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cgame\ctf\cg_hud.c">
@@ -466,6 +481,12 @@
     </ClCompile>
     <ClCompile Include="..\deps\discord-rpc\src\serialization.cpp">
       <Filter>deps\discord-rpc\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove.c">
+      <Filter>src\game\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\ctf\bg_item.c">
+      <Filter>src\game\ctf</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

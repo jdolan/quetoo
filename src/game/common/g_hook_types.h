@@ -25,9 +25,10 @@
 
 /**
  * @brief The grappling hook is an optional feature. A game module opts in by
- * adding GCOMMON_HOOK_SRC to its sources and GCOMMON_HOOK_CFLAGS to its
- * compile flags, then embedding `g_client_hook_t` in its `g_client_t` and
- * `g_hook_style_t` in its `g_client_persistent_t`.
+ * adding g_hook.c to its _SOURCES and -DG_HOOK to its AM_CPPFLAGS, then
+ * embedding `g_client_hook_t` in its `g_client_t` and `g_hook_style_t` in its
+ * `g_client_persistent_t`. The MSVS build sets QuetooGameHook and G_HOOK; the
+ * Xcode build adds the source to the target and G_HOOK to its defines.
  *
  * @details This header is deliberately free of game types so that g_types.h
  * may include it before defining them. The hook owns everything else it needs:

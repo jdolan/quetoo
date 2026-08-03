@@ -65,8 +65,9 @@ install-lib:
 
 # Move non-Mach-O engine assets (UI layouts, shaders, images) out of
 # lib/quetoo/ and into Contents/Resources/, preserving the relative path, so
-# that lib/quetoo/default/shaders lands in Resources/default/shaders and the
-# shared lib/quetoo/ui in Resources/ui. The engine searches both on macOS.
+# that lib/quetoo/default/shaders lands in Resources/default/shaders and
+# lib/quetoo/default/ui in Resources/default/ui. The engine searches both on
+# macOS.
 # This leaves only .so plugins under lib/quetoo/, which codesign
 # --verify --deep handles cleanly.
 move-resources:
