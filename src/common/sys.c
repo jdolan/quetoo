@@ -187,6 +187,15 @@ void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
     Com_Error(ERROR_DROP, "Failed to resolve entry point: %s\n", entry_point);
   }
 
+#if !defined(_WIN32)
+  // dlopen may resolve an image already in the process rather than the file it
+  // was handed, so report where the entry point actually came from
+  Dl_info info;
+  if (dladdr((void *) EntryPoint, &info) && info.dli_fname) {
+    Com_Print("  %s from %s\n", entry_point, info.dli_fname);
+  }
+#endif
+
   return EntryPoint(params);
 }
 
