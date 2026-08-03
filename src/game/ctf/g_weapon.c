@@ -302,26 +302,6 @@ static bool G_FireWeapon(g_client_t *cl) {
 }
 
 /**
- * @brief Plays the activation or ambient sound for the client's currently held tech powerup.
- */
-void G_PlayTechSound(g_client_t *cl) {
-
-  const g_item_t *tech = G_GetTech(cl);
-
-  if (!tech) {
-    return;
-  }
-
-  if (cl->tech_sound_time < g_level.time) {
-    G_MulticastSound(&(const g_play_sound_t) {
-      .index = g_media.sounds.techs[tech->def.tag - TECH_FIRST],
-      .entity = cl->entity,
-    }, MULTICAST_PHS);
-    cl->tech_sound_time = g_level.time + 500;
-  }
-}
-
-/**
  * @brief Records that the weapon was fired, decrementing ammo and advancing the attack animation.
  */
 static void G_WeaponFired(g_client_t *cl, uint32_t interval, uint32_t ammo_needed) {

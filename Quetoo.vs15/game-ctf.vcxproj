@@ -55,6 +55,7 @@
   <!-- Selects the grapple sources from game_common.props. -->
   <PropertyGroup>
     <QuetooGameHook>true</QuetooGameHook>
+    <QuetooGameTech>true</QuetooGameTech>
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="build_settings.props" />
@@ -90,7 +91,7 @@
            common sources. Set here rather than through
            $(ExtraPreprocessorDefinitions), which expands empty by the time
            build_settings.props' item definition is evaluated. -->
-      <PreprocessorDefinitions>G_HOOK;G_CTF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>G_HOOK;G_TECH;G_CTF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>

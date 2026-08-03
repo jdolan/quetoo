@@ -4,6 +4,7 @@ vpath %.c $(srcdir):$(GAME_COMMON_DIR)
 
 AM_CPPFLAGS = \
 	-DG_HOOK \
+	-DG_TECH \
 	-DG_CTF \
 	-I$(top_srcdir)/src \
 	-I$(GAME_COMMON_DIR)
@@ -48,6 +49,7 @@ game_la_SOURCES = \
 	g_main.c \
 	g_physics.c \
 	g_sound.c \
+	g_tech.c \
 	g_util.c \
 	g_weapon.c
 

@@ -268,6 +268,7 @@ static void G_InitMedia(void) {
   g_media.models.rocket = gi.ModelIndex("models/projectiles/rocket/tris");
   g_media.models.quake_rocket = gi.ModelIndex("models/projectiles/quake_rocket/tris");
   G_Hook_InitMedia();
+  G_Tech_InitMedia();
   g_media.models.fireball = gi.ModelIndex("models/fireball/tris");
   g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
   g_media.sounds.bfg_prime = gi.SoundIndex("weapons/bfg/prime");
@@ -328,12 +329,6 @@ static void G_InitMedia(void) {
   }
 
   g_media.sounds.roar = gi.SoundIndex("misc/ominous_bwah");
-
-  g_media.sounds.techs[TECH_HASTE    - TECH_FIRST] = gi.SoundIndex("techs/haste/haste");
-  g_media.sounds.techs[TECH_REGEN    - TECH_FIRST] = gi.SoundIndex("techs/regen/regen");
-  g_media.sounds.techs[TECH_RESIST   - TECH_FIRST] = gi.SoundIndex("techs/resist/resist");
-  g_media.sounds.techs[TECH_STRENGTH - TECH_FIRST] = gi.SoundIndex("techs/strength/strength");
-  g_media.sounds.techs[TECH_VAMPIRE  - TECH_FIRST] = gi.SoundIndex("techs/vampire/vampire");
 
   g_media.images.health = gi.ImageIndex("pics/i_health");
 }
@@ -430,57 +425,6 @@ static void G_InitSpawnPoints(void) {
 }
 
 /**
- * @brief Spawns a single tech item at a randomly selected spawn point with a random initial velocity.
- */
-void G_SpawnTech(const g_item_t *item) {
-
-  g_entity_t *spawn = G_SelectTechSpawnPoint();
-
-  vec3_t angles = spawn->s.angles;
-  angles.y += RandomRangef(-45.f, 45.f);
-
-  vec3_t forward;
-  Vec3_Vectors(angles, &forward, NULL, NULL);
-
-  g_entity_t *ent = G_AllocEntity(item->def.classname);
-
-  // Techs spawn from the player spawn points, so start clear of the point
-  // itself, along the way the tech is about to be thrown. A client spawning in
-  // on the first frame of the level would otherwise have the tech inside its
-  // bounding box and collect something it never saw.
-  ent->s.origin = Vec3_Fmaf(spawn->s.origin, 32.f, forward);
-
-  G_SpawnItem(ent, item);
-  ent->next_think = 0;
-  ent->Think = NULL;
-
-  // Treat spawned techs like dropped items so they can land near spawn points
-  // instead of forcing immediate pickup on spawn.
-  ent->spawn_flags |= SF_ITEM_DROPPED;
-  ent->move_type = MOVE_TYPE_BOUNCE;
-  ent->touch_time = g_level.time + 1000;
-
-  ent->velocity = Vec3_Scale(forward, 100.f);
-  ent->velocity.z = 300.f + (Randomf() * 50.f);
-
-  G_ResetItem(ent);
-}
-
-/**
- * @brief Spawn all of the techs
- */
-void G_SpawnTechs(void) {
-
-  if (!g_level.techs) {
-    return;
-  }
-
-  for (g_item_tag_t i = TECH_FIRST; i < TECH_LAST; i++) {
-    G_SpawnTech(&g_items[i]);
-  }
-}
-
-/**
  * @brief Spawns game entities from the BSP entity definition lump.
  */
 void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities) {
@@ -529,7 +473,7 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
 
   G_Hook_CheckState(true);
 
-  G_CheckTechs();
+  G_Tech_CheckState(true);
 
   G_ResetTeams();
 

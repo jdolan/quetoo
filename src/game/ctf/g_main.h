@@ -139,7 +139,6 @@ extern cvar_t *g_balance_supershotgun_spread_x;
 extern cvar_t *g_balance_supershotgun_spread_y;
 extern cvar_t *g_capture_limit;
 extern cvar_t *g_cheats;
-extern cvar_t *g_techs;
 extern cvar_t *g_frag_limit;
 extern cvar_t *g_friendly_fire;
 extern cvar_t *g_gameplay;
@@ -201,7 +200,6 @@ extern g_team_t g_team_list[MAX_TEAMS];
 
 void G_Init(void);
 void G_Shutdown(void);
-void G_CheckTechs(void);
 void G_ResetItems(void);
 void G_ResetTeams(void);
 void G_InitNumTeams(void);

@@ -25,6 +25,4 @@
 
 #if defined(__GAME_LOCAL_H__)
 void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities);
-void G_SpawnTech(const g_item_t *item);
-void G_SpawnTechs(void);
 #endif /* __GAME_LOCAL_H__ */

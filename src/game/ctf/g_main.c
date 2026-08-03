@@ -133,7 +133,6 @@ cvar_t *g_balance_supershotgun_spread_x;
 cvar_t *g_balance_supershotgun_spread_y;
 cvar_t *g_capture_limit;
 cvar_t *g_cheats;
-cvar_t *g_techs;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
@@ -301,19 +300,7 @@ void G_ResetItems(void) {
     G_ResetItem(ent);
   });
 
-  G_SpawnTechs();
-}
-
-/**
- * @brief Checks and sets up the tech states
- */
-void G_CheckTechs(void) {
-
-  if (q_strcmp(g_techs->string, "default")) { // the cvar, else capture play implies them
-    g_level.techs = !!g_techs->integer;
-  } else {
-    g_level.techs = true;
-  }
+  G_Tech_SpawnAll();
 }
 
 /**
@@ -398,7 +385,7 @@ static void G_RestartGame(bool teamz) {
 
   G_Hook_CheckState(true);
 
-  G_CheckTechs();
+  G_Tech_CheckState(true);
 
   G_ResetItems();
 
@@ -712,9 +699,9 @@ static void G_CheckRules(void) {
   if (g_techs->modified) {
     g_techs->modified = false;
 
-    G_CheckTechs();
+    G_Tech_CheckState(true);
 
-    gi.BroadcastPrint(PRINT_HIGH, "Techs have been %s\n", g_level.techs ? "enabled" : "disabled");
+    gi.BroadcastPrint(PRINT_HIGH, "Techs have been %s\n", G_Tech_Enabled() ? "enabled" : "disabled");
 
     restart = true;
   }
@@ -882,6 +869,7 @@ void G_InitNumTeams(void) {
 void G_Init(void) {
 
   G_Hook_Init();
+  G_Tech_Init();
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
     ge.clients[i] = gi.Malloc(sizeof(g_client_t), MEM_TAG_GAME);
@@ -1057,7 +1045,6 @@ void G_Init(void) {
   g_spawn_farthest = gi.AddCvar("g_spawn_farthest", "1", CVAR_SERVER_INFO, NULL);
   g_spectator_chat = gi.AddCvar("g_spectator_chat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators.");
   g_teams = gi.AddCvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play.");
-  g_techs = gi.AddCvar("g_techs", "default", CVAR_SERVER_INFO, "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
   g_time_limit = gi.AddCvar("g_time_limit", "20", CVAR_SERVER_INFO, "The time limit per level in minutes.");
   g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
   g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "If enabled, weapons will remain when picked up rather than respawn with delay.");
@@ -1074,7 +1061,6 @@ void G_Init(void) {
       g_self_damage->modified =
       g_self_knockback->modified =
       g_teams->modified =
-      g_techs->modified =
       g_time_limit->modified =
       g_weapon_stay->modified = false;
 

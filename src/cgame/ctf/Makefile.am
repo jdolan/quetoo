@@ -7,6 +7,7 @@ vpath %.c $(srcdir):$(CGAME_COMMON_DIR):$(GAME_DIR):$(GAME_COMMON_DIR)
 
 AM_CPPFLAGS = \
 	-DG_HOOK \
+	-DG_TECH \
 	-DG_CTF \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/cgame \

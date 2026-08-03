@@ -62,4 +62,10 @@
     <ClInclude Include="..\src\game\common\g_hook.h" />
     <ClInclude Include="..\src\game\common\g_hook_types.h" />
   </ItemGroup>
+  <!-- The tech powerups, on the same terms: QuetooGameTech and G_TECH. -->
+  <ItemGroup Condition="'$(QuetooGameTech)'=='true'">
+    <ClCompile Include="..\src\game\common\g_tech.c" />
+    <ClInclude Include="..\src\game\common\g_tech.h" />
+    <ClInclude Include="..\src\game\common\g_tech_types.h" />
+  </ItemGroup>
 </Project>

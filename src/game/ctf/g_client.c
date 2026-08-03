@@ -549,7 +549,7 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
 
   G_TossFlag(cl);
 
-  if (g_level.techs) {
+  if (G_Tech_Enabled()) {
     G_TossTech(cl);
   }
 
@@ -1928,15 +1928,7 @@ void G_ClientBeginFrame(g_client_t *cl) {
       }
     }
   } else {
-    if (G_HasTech(cl, TECH_REGEN)) {
-      if (cl->regen_time < g_level.time) {
-        cl->regen_time = g_level.time + TECH_REGEN_TICK_TIME;
-        if (ent->health < ent->max_health) {
-          ent->health = Minf(ent->health + TECH_REGEN_HEALTH, ent->max_health);
-          G_PlayTechSound(cl);
-        }
-      }
-    }
+    G_Tech_ClientThink(ent);
   }
 
   cl->latched_buttons = 0;

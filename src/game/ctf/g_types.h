@@ -27,6 +27,7 @@
 #include "collision/cm_types.h"
 #include "bg_item.h"
 #include "game/common/g_hook_types.h"
+#include "game/common/g_tech_types.h"
 
 /**
  * @brief Game protocol version (protocol minor version). To be incremented
@@ -679,8 +680,6 @@ typedef struct {
 
     uint16_t roar;
 
-    uint16_t techs[TECH_TOTAL];
-
     uint16_t chat;
 
     uint16_t invulnerability_pickup;
@@ -757,11 +756,6 @@ typedef struct {
    * @brief True if team play is active.
    */
   bool teams;
-
-  /**
-   * @brief True if tech powerups are enabled.
-   */
-  bool techs;
 
     /**
    * @brief Number of active teams.
@@ -1465,14 +1459,9 @@ struct g_client_s {
   uint32_t scores_time;
 
   /**
-   * @brief Next regeneration tick time.
+   * @brief Tech powerup state.
    */
-  uint32_t regen_time;
-
-  /**
-   * @brief Next time a tech powerup sound may play.
-   */
-  uint32_t tech_sound_time;
+  g_client_tech_t tech;
 };
 
 typedef struct g_client_s g_client_t;

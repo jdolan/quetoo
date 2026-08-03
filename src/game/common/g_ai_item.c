@@ -61,7 +61,7 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
       }
 
       return true;
-#if defined(G_CTF)
+#if defined(G_TECH)
     case ITEM_TYPE_TECH:
       for (g_item_tag_t tag = TECH_FIRST; tag < TECH_LAST; tag++) {
         if (inventory[tag]) {
@@ -70,6 +70,8 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
       }
 
       return true;
+#endif
+#if defined(G_CTF)
     case ITEM_TYPE_FLAG: {
       const g_team_id_t team = cl->persistent.team->id;
       const g_team_id_t flag_team = (item->def.tag - FLAG_FIRST);
