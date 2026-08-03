@@ -4916,7 +4916,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "mkdir -p \"$BUILT_PRODUCTS_DIR/default\"\ncp \"$BUILT_PRODUCTS_DIR/game-default.so\" \"$BUILT_PRODUCTS_DIR/default/game.so\"\n";
+			shellScript = "mkdir -p \"$BUILT_PRODUCTS_DIR/default\"\ncp \"$BUILT_PRODUCTS_DIR/game-default.so\" \"$BUILT_PRODUCTS_DIR/default/game.so\"\ncodesign --force --sign - \"$BUILT_PRODUCTS_DIR/default/game.so\"\n";
 		};
 		CEFEEE000000000000000A02 /* Install module */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -4930,7 +4930,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "mkdir -p \"$BUILT_PRODUCTS_DIR/ctf\"\ncp \"$BUILT_PRODUCTS_DIR/game-ctf.so\" \"$BUILT_PRODUCTS_DIR/ctf/game.so\"\n";
+			shellScript = "mkdir -p \"$BUILT_PRODUCTS_DIR/ctf\"\ncp \"$BUILT_PRODUCTS_DIR/game-ctf.so\" \"$BUILT_PRODUCTS_DIR/ctf/game.so\"\ncodesign --force --sign - \"$BUILT_PRODUCTS_DIR/ctf/game.so\"\n";
 		};
 		CEFEEE000000000000000A03 /* Install module */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -4944,7 +4944,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "mkdir -p \"$BUILT_PRODUCTS_DIR/default\"\ncp \"$BUILT_PRODUCTS_DIR/cgame-default.so\" \"$BUILT_PRODUCTS_DIR/default/cgame.so\"\n";
+			shellScript = "mkdir -p \"$BUILT_PRODUCTS_DIR/default\"\ncp \"$BUILT_PRODUCTS_DIR/cgame-default.so\" \"$BUILT_PRODUCTS_DIR/default/cgame.so\"\ncodesign --force --sign - \"$BUILT_PRODUCTS_DIR/default/cgame.so\"\n";
 		};
 		CEFEEE000000000000000A04 /* Install module */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -4958,7 +4958,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "mkdir -p \"$BUILT_PRODUCTS_DIR/ctf\"\ncp \"$BUILT_PRODUCTS_DIR/cgame-ctf.so\" \"$BUILT_PRODUCTS_DIR/ctf/cgame.so\"\n";
+			shellScript = "mkdir -p \"$BUILT_PRODUCTS_DIR/ctf\"\ncp \"$BUILT_PRODUCTS_DIR/cgame-ctf.so\" \"$BUILT_PRODUCTS_DIR/ctf/cgame.so\"\ncodesign --force --sign - \"$BUILT_PRODUCTS_DIR/ctf/cgame.so\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
