@@ -43,9 +43,12 @@ mechanism has to follow the *shape* of each difference.
 Pick by what kind of difference it is. In rough order of preference:
 
 1. **Manifest, per-module.** Wire numbering, the item roster, tuning constants:
-   `g_types.h`, `bg_item.h`, `bg_item.c`. These stay forked *by design* — a
-   module numbers its own wire values, as `g_hook_types.h` already states. Do not
-   try to share them. Roughly 265 of the diverging lines belong here.
+   `g_types.h`, `bg_item.h`, `bg_item.c`. These stay forked *by design*, and the
+   reason is not only that a module numbers its own wire values, as
+   `g_hook_types.h` already states. It is that a mod Quetoo does not ship can only
+   edit files in its own directory: the manifest is what a modder owns, and
+   sharing it would make adding one stat a reason to fork the engine. Do not try
+   to share them. Roughly 265 of the diverging lines belong here.
 
 2. **`#if` guard in common.** For additive divergence in few hunks. Duplicates
    nothing. This is right for most of the 24 additive functions.
@@ -287,11 +290,12 @@ network fault rather than a build failure.
    Nothing else, which is the point.
 2. **Recombining `common` and `default`.** `default` is now an empty shell over
    `common`, so the two could merge and let `ctf` and friends override `default`
-   directly. The `_Default` naming already assumes this.
+   directly. The `_Default` naming already assumes this. It changes nothing about
+   the manifest, which stays with each module either way.
 3. **`g_inventory.h`** still does not exist; add it when `G_AddAmmo`, `G_SetAmmo`,
    `G_InitClientInventory` and `G_ClientInventoryThink` migrate there.
-4. **The manifest**, which is now the whole of the remaining duplication and
-   needs a decision rather than a refactor. Measured:
+4. **The manifest stays forked. That is the decision, not a deferral.** It is now
+   the whole of the remaining duplication - measured:
 
    | file | lines | diverging |
    | --- | --- | --- |
@@ -300,19 +304,23 @@ network fault rather than a build failure.
    | `bg_item.h` | 232 | 23 |
    | `g_local.h` | 58 | 3 |
 
-   So ~2500 lines are duplicated to express ~250 lines of real difference, and
-   that difference is almost entirely **wire values**: `STAT_CAPTURES` and
-   `STAT_TECH` inserted into `g_stat_t`, `TE_HOOK_IMPACT` into the temp entities,
-   `TRAIL_HOOK`, the `EF_CTF_*` bits, `CS_HOOK_PULL_SPEED`, and the flag and tech
-   item tags. Inserting into the middle of an enum shifts everything after it,
-   which is exactly why `g_hook_types.h` says a module numbers its own.
+   ~2500 duplicated lines expressing ~250 lines of real difference, almost all of
+   it wire values inserted mid-enum: `STAT_CAPTURES` and `STAT_TECH`,
+   `TE_HOOK_IMPACT`, `TRAIL_HOOK`, the `EF_CTF_*` bits, `CS_HOOK_PULL_SPEED`, and
+   the flag and tech item tags.
 
-   These could be shared, guarded on the feature defines, and it would be *safer*
-   than the fork rather than less safe, because a module's game and cgame include
-   the same header and so cannot drift apart by hand. But it makes the wire
-   protocol a function of the define set, which is a decision about who owns
-   numbering, and the doc has said until now that a module does. **That call is
-   not a refactor; make it deliberately.**
+   Sharing them behind the feature defines would be less code, and arguably less
+   error prone, because a module's game and cgame include the same header and so
+   could not drift apart by hand. **Do not do it.** A mod that Quetoo does not
+   ship - and most of them will not be - can only touch files inside its own
+   module directory. A modder adding a stat, an item, a temp entity or an effect
+   edits *their* `g_types.h` and *their* `bg_item.c`; if those lived in `common`
+   they would have to fork Quetoo to add a single wire value, and a guard named
+   after their mod could never be committed here anyway.
+
+   So the duplication is not a defect to remove, it is the interface: the manifest
+   is the part of a module a modder owns outright, and its size is the price of
+   their independence. Improve the template if it helps them, but do not move it.
 
 ### Behaviour that changed on purpose
 
