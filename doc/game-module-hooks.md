@@ -455,8 +455,25 @@ of calls:
   define set than the objects it links reads those at the wrong offsets and
   presents as a network fault. This is why every common source is compiled once
   per module rather than shared, in all three build systems.
-- **`g_module.h`'s `static_assert`s** pin the leading fields of `g_client_t` and
-  `g_entity_t` to what the server reads. Never reorder those; append only.
+- **The server's view of a client and an entity is the first member of the
+  module's.** `game.h` declares `sv_game_client_t` and `sv_game_entity_t` - the
+  fields the server reads, in the order it reads them - and a module's
+  `g_client_s` and `g_entity_s` embed the matching one as their first member.
+  Because C guarantees that a pointer to a structure points at its first member,
+  the two views of the same memory are a fact of the language, not a rule anyone
+  has to remember: there is nothing a module can write that moves those fields.
+
+  It is an *anonymous* member, so the fields are still reached without naming it -
+  `cl->entity`, `ent->s.origin` - which is why the game targets compile with
+  `-fms-extensions` and `-Wno-microsoft-anon-tag` in all three build systems. The
+  server needs neither; only a module embeds.
+
+  This replaced a hand-copied mirror of the field list in `g_module.h` and 19
+  `static_assert`s over it - three copies of the same list, one of which existed
+  only to check the other two. The assertions could compare offsets and sizes but
+  not types, and they had been passing over a real discrepancy: `game.h` said
+  `struct g_ai_s *ai` where every module said `struct ai_s *ai`. Both are
+  pointers, so both are the same size at the same offset.
 
 ## Adding a common source file
 

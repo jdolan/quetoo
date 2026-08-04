@@ -7,6 +7,8 @@ AM_CPPFLAGS = \
 	-I$(GAME_COMMON_DIR)
 
 AM_CFLAGS = \
+	-fms-extensions \
+	-Wno-microsoft-anon-tag \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@

@@ -5950,6 +5950,11 @@
 		CE12D7CF1C5C5D5C00CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-fms-extensions",
+					"-Wno-microsoft-anon-tag",
+				);
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				EXECUTABLE_EXTENSION = so;
@@ -5968,6 +5973,11 @@
 		CE12D7D01C5C5D5C00CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-fms-extensions",
+					"-Wno-microsoft-anon-tag",
+				);
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				EXECUTABLE_EXTENSION = so;
@@ -6678,6 +6688,11 @@
 		CEC0FF0020260103000000E8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-fms-extensions",
+					"-Wno-microsoft-anon-tag",
+				);
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				EXECUTABLE_EXTENSION = so;
@@ -6702,6 +6717,11 @@
 		CEC0FF0020260103000000E9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-fms-extensions",
+					"-Wno-microsoft-anon-tag",
+				);
 				DYLIB_COMPATIBILITY_VERSION = "";
 				DYLIB_CURRENT_VERSION = "";
 				EXECUTABLE_EXTENSION = so;

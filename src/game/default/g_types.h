@@ -27,6 +27,7 @@
 #include "collision/cm_types.h"
 #include "bg_item.h"
 #include "bg_pmove.h"
+#include "game/game.h"
 
 /**
  * @brief The name this module answers to: its directory under lib/quetoo, and
@@ -1086,39 +1087,12 @@ typedef struct {
 struct g_client_s {
 
   /**
-   * @brief The entity bound to this client.
+   * @brief What the server reads out of a client. This MUST be the first member:
+   * the server reads these fields at offset zero, and C guarantees a pointer to
+   * a structure points at its first member. Its fields are reached without
+   * naming it, so `cl->entity` is the entity bound to this client.
    */
-  g_entity_t *entity;
-
-  /**
-   * @brief Player state communicated to clients by the server.
-   */
-  player_state_t ps;
-
-  /**
-   * @brief Current round-trip latency in milliseconds.
-   */
-  uint32_t ping;
-
-  /**
-   * @brief Current score (frags, points, etc.), mirrored for the server.
-   */
-  int16_t score;
-
-  /**
-   * @brief Raw user info key-value string.
-   */
-  char user_info[MAX_INFO_STRING_STRING];
-
-  /**
-   * @brief True if this client slot is currently active.
-   */
-  bool in_use;
-
-  /**
-   * @brief Non-null if this client is a bot.
-   */
-  struct ai_s *ai;
+  sv_game_client_t;
 
   /**
    * @brief Data that persists across respawns.
@@ -1411,64 +1385,12 @@ typedef struct g_client_s g_client_t;
 struct g_entity_s {
 
   /**
-   * @brief Entity definition parsed from the BSP file.
+   * @brief What the server reads out of an entity. This MUST be the first member:
+   * the server reads these fields at offset zero, and C guarantees a pointer to
+   * a structure points at its first member. Its fields are reached without
+   * naming it, so `ent->s.origin` is this entity's state origin.
    */
-  const cm_entity_t *def;
-
-  /**
-   * @brief Entity class name; guaranteed set through `G_Spawn`.
-   */
-  const char *classname;
-
-  /**
-   * @brief Model name; for `SOLID_BSP` entities this is the inline model name.
-   */
-  const char *model;
-
-  /**
-   * @brief Entity state written by the game and delta-compressed by the server.
-   */
-  entity_state_t s;
-
-  /**
-   * @brief True if the entity is currently allocated and active.
-   */
-  bool in_use;
-
-  /**
-   * @brief Server-specific flags bitmask (e.g. `SVF_NO_CLIENT`).
-   */
-  uint32_t sv_flags;
-
-  /**
-   * @brief Game-set bounding box in entity-local space.
-   */
-  box3_t bounds;
-
-  /**
-   * @brief Server-set bounding box in world space; set by `gi.LinkEntity`.
-   */
-  box3_t abs_bounds;
-
-  /**
-   * @brief Server-set entity size; set by `gi.LinkEntity`.
-   */
-  vec3_t size;
-
-  /**
-   * @brief Solid type defining clipping behavior.
-   */
-  solid_t solid;
-
-  /**
-   * @brief Entity that spawned this one (e.g. player for projectiles).
-   */
-  g_entity_t *owner;
-
-  /**
-   * @brief Non-null for entities 1..`sv_max_clients`.
-   */
-  g_client_t *client;
+  sv_game_entity_t;
 
   /**
    * @brief Spawn flags (`SF_ITEM_HOVER`, etc.).
@@ -1727,7 +1649,5 @@ struct g_entity_s {
 };
 
 typedef struct g_entity_s g_entity_t;
-
-#include "game/game.h"
 
 #endif /* __GAME_LOCAL_H__ */
