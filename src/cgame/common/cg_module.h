@@ -91,5 +91,38 @@ void Cg_Module_Shutdown(void);
 
 /**
  * @}
+ * @defgroup hooks-hud Heads up display
+ * @brief What the HUD is made of, and how it is arranged. Tail in cg_hud.c.
+ * @{
+ */
+
+/**
+ * @brief Draws the elements of the HUD that hold a position, arranging them.
+ * @param layout The running position of each column that stacks, which an
+ * implementation advances by whatever it drew.
+ * @details One hook for the whole arrangement rather than one per element,
+ * because the elements are independent draws with nothing to return, and a mod
+ * with an opinion about the HUD has an opinion about all of it. The blocks it
+ * arranges - `Cg_DrawFrags`, `Cg_DrawPowerups` and the rest - are public in
+ * `cg_hud.h` for exactly that reason.
+ *
+ * Chainable, and a feature adding an element MUST call super first and draw
+ * after it, so that what it draws lands below what it did not write. A module
+ * that arranges the whole HUD itself does not defer to super at all, and then
+ * owns every element: nothing it declines to call gets drawn.
+ *
+ * What this does not decide is the framing - the `cg_draw_hud` cvar, the
+ * intermission, the crosshair, the editor, the clock beneath the stat column, and
+ * the overlays that place themselves. `Cg_DrawHud` keeps those, so that a module
+ * cannot lose the damage blend or the hit sound by forgetting to draw them. A
+ * module that wants the clock somewhere else overrides `cg_hud.c` outright, which
+ * vpath has always allowed.
+ */
+typedef void (*DrawHudElements)(const player_state_t *ps, cg_hud_layout_t *layout);
+
+extern DrawHudElements Cg_DrawHudElements;
+
+/**
+ * @}
  */
 #endif /* __CG_LOCAL_H__ */

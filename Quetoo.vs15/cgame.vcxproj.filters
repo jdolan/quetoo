@@ -120,6 +120,9 @@
     <ClInclude Include="..\src\cgame\common\cg_media.h">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_module.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\cg_muzzle_flash.h">
       <Filter>src\common</Filter>
     </ClInclude>

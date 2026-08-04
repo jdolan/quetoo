@@ -43,6 +43,7 @@ cgame_la_SOURCES = \
 	bg_item.c \
 	bg_pmove.c \
 	cg_client.c \
+	cg_ctf.c \
 	cg_discord.c \
 	cg_editor.c \
 	cg_effect.c \
@@ -66,6 +67,7 @@ cgame_la_SOURCES = \
 	cg_sound.c \
 	cg_sprite.c \
 	cg_team_mode.c \
+	cg_tech.c \
 	cg_temp_entity.c \
 	cg_ui.c \
 	cg_view.c \

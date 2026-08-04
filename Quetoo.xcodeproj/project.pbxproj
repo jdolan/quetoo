@@ -194,6 +194,7 @@
 		CE05B3F030224900C0DE0012 /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
 		CE05B3F030224900C0DE0013 /* cg_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D56F1C5C58C300CD0B13 /* cg_main.c */; };
 		CE05B3F030224900C0DE0014 /* cg_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5711C5C58C300CD0B13 /* cg_media.c */; };
+		CE05B3F030224900C0DEAD03 /* cg_tech.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0D03 /* cg_tech.c */; };
 		CE05B3F030224900C0DE0015 /* cg_muzzle_flash.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */; };
 		CE05B3F030224900C0DE0016 /* cg_predict.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5771C5C58C300CD0B13 /* cg_predict.c */; };
 		CE05B3F030224900C0DE0017 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5791C5C58C300CD0B13 /* cg_score.c */; };
@@ -255,6 +256,7 @@
 		CE05B3F030224900C0DE004E /* cg_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D56E1C5C58C300CD0B13 /* cg_local.h */; };
 		CE05B3F030224900C0DE004F /* cg_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5701C5C58C300CD0B13 /* cg_main.h */; };
 		CE05B3F030224900C0DE0050 /* cg_media.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0B13 /* cg_media.h */; };
+		CE05B3F030224900C0DEAD04 /* cg_tech.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0D04 /* cg_tech.h */; };
 		CE05B3F030224900C0DEAC21 /* cg_module.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0C21 /* cg_module.h */; };
 		CE05B3F030224900C0DE0051 /* cg_muzzle_flash.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */; };
 		CE05B3F030224900C0DE0052 /* cg_predict.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5781C5C58C300CD0B13 /* cg_predict.h */; };
@@ -852,6 +854,8 @@
 		CEC0FF0020260103000001ED /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
 		CEC0FF0020260103000001EE /* cg_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D56F1C5C58C300CD0B13 /* cg_main.c */; };
 		CEC0FF0020260103000001EF /* cg_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5711C5C58C300CD0B13 /* cg_media.c */; };
+		CEC0FF0020260103000AD03 /* cg_tech.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0D03 /* cg_tech.c */; };
+		CEC0FF0020260103000AD01 /* cg_ctf.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0D01 /* cg_ctf.c */; };
 		CEC0FF0020260103000001F0 /* cg_muzzle_flash.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */; };
 		CEC0FF0020260103000001F1 /* cg_predict.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5771C5C58C300CD0B13 /* cg_predict.c */; };
 		CEC0FF0020260103000001F3 /* cg_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDD1B525A0C2710055860E /* cg_sound.c */; };
@@ -878,6 +882,8 @@
 		CEC0FF002026010300000208 /* cg_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D56E1C5C58C300CD0B13 /* cg_local.h */; };
 		CEC0FF002026010300000209 /* cg_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5701C5C58C300CD0B13 /* cg_main.h */; };
 		CEC0FF00202601030000020A /* cg_media.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0B13 /* cg_media.h */; };
+		CEC0FF0020260103000AD04 /* cg_tech.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0D04 /* cg_tech.h */; };
+		CEC0FF0020260103000AD02 /* cg_ctf.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0D02 /* cg_ctf.h */; };
 		CEC0FF002026010300000AC2 /* cg_module.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0C21 /* cg_module.h */; };
 		CEC0FF00202601030000020B /* cg_muzzle_flash.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */; };
 		CEC0FF00202601030000020C /* cg_predict.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5781C5C58C300CD0B13 /* cg_predict.h */; };
@@ -1571,6 +1577,10 @@
 		CE12D5701C5C58C300CD0B13 /* cg_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_main.h; sourceTree = "<group>"; };
 		CE12D5711C5C58C300CD0B13 /* cg_media.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_media.c; sourceTree = "<group>"; };
 		CE12D5721C5C58C300CD0B13 /* cg_media.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_media.h; sourceTree = "<group>"; };
+		CE12D5721C5C58C300CD0D01 /* cg_ctf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_ctf.c; sourceTree = "<group>"; };
+		CE12D5721C5C58C300CD0D02 /* cg_ctf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_ctf.h; sourceTree = "<group>"; };
+		CE12D5721C5C58C300CD0D03 /* cg_tech.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_tech.c; sourceTree = "<group>"; };
+		CE12D5721C5C58C300CD0D04 /* cg_tech.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_tech.h; sourceTree = "<group>"; };
 		CE12D5721C5C58C300CD0C21 /* cg_module.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_module.h; sourceTree = "<group>"; };
 		CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_muzzle_flash.c; sourceTree = "<group>"; };
 		CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_muzzle_flash.h; sourceTree = "<group>"; };
@@ -3814,6 +3824,10 @@
 				CE12D5701C5C58C300CD0B13 /* cg_main.h */,
 				CE12D56F1C5C58C300CD0B13 /* cg_main.c */,
 				CE12D5721C5C58C300CD0B13 /* cg_media.h */,
+				CE12D5721C5C58C300CD0D01 /* cg_ctf.c */,
+				CE12D5721C5C58C300CD0D02 /* cg_ctf.h */,
+				CE12D5721C5C58C300CD0D03 /* cg_tech.c */,
+				CE12D5721C5C58C300CD0D04 /* cg_tech.h */,
 				CE12D5721C5C58C300CD0C21 /* cg_module.h */,
 				CE12D5711C5C58C300CD0B13 /* cg_media.c */,
 				CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */,
@@ -4044,6 +4058,7 @@
 				CE05B3F030224900C0DE004E /* cg_local.h in Headers */,
 				CE05B3F030224900C0DE004F /* cg_main.h in Headers */,
 				CE05B3F030224900C0DE0050 /* cg_media.h in Headers */,
+				CE05B3F030224900C0DEAD04 /* cg_tech.h in Headers */,
 				CE05B3F030224900C0DEAC21 /* cg_module.h in Headers */,
 				CE05B3F030224900C0DE0051 /* cg_muzzle_flash.h in Headers */,
 				CE05B3F030224900C0DE0052 /* cg_predict.h in Headers */,
@@ -4355,6 +4370,8 @@
 				CEC0FF002026010300000208 /* cg_local.h in Headers */,
 				CEC0FF002026010300000209 /* cg_main.h in Headers */,
 				CEC0FF00202601030000020A /* cg_media.h in Headers */,
+				CEC0FF0020260103000AD04 /* cg_tech.h in Headers */,
+				CEC0FF0020260103000AD02 /* cg_ctf.h in Headers */,
 				CEC0FF002026010300000AC2 /* cg_module.h in Headers */,
 				CEC0FF00202601030000020B /* cg_muzzle_flash.h in Headers */,
 				CEC0FF00202601030000020C /* cg_predict.h in Headers */,
@@ -5440,6 +5457,7 @@
 				CE05B3F030224900C0DE0012 /* cg_light.c in Sources */,
 				CE05B3F030224900C0DE0013 /* cg_main.c in Sources */,
 				CE05B3F030224900C0DE0014 /* cg_media.c in Sources */,
+				CE05B3F030224900C0DEAD03 /* cg_tech.c in Sources */,
 				CE05B3F030224900C0DE0015 /* cg_muzzle_flash.c in Sources */,
 				CE05B3F030224900C0DE0016 /* cg_predict.c in Sources */,
 				CE05B3F030224900C0DE0017 /* cg_score.c in Sources */,
@@ -5977,6 +5995,8 @@
 				CEC0FF0020260103000001ED /* cg_light.c in Sources */,
 				CEC0FF0020260103000001EE /* cg_main.c in Sources */,
 				CEC0FF0020260103000001EF /* cg_media.c in Sources */,
+				CEC0FF0020260103000AD03 /* cg_tech.c in Sources */,
+				CEC0FF0020260103000AD01 /* cg_ctf.c in Sources */,
 				CEC0FF0020260103000001F0 /* cg_muzzle_flash.c in Sources */,
 				CEC0FF0020260103000001F1 /* cg_predict.c in Sources */,
 				CEC0FD002026010500000006 /* cg_score.c in Sources */,

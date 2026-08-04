@@ -188,6 +188,13 @@ static void Cg_Init(void) {
 
   Cg_InitDiscord();
 
+#if defined(G_TECH)
+  Cg_Tech_Init();
+#endif
+#if defined(G_CTF)
+  Cg_Ctf_Init();
+#endif
+
   Cg_Module_Init();
 
   cgi.Print("Client game module initialized\n");

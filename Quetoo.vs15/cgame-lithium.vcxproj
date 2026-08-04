@@ -33,6 +33,10 @@
     <ProjectGuid>{2b8d4ea1-5c63-4f9f-a042-7d3e6b9f8c12}</ProjectGuid>
     <RootNamespace>cgame-lithium</RootNamespace>
   </PropertyGroup>
+  <!-- Selects the optional feature sources from cgame_common.props. -->
+  <PropertyGroup>
+    <QuetooCgameTech>true</QuetooCgameTech>
+  </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="build_settings.props" />
     <Import Project="cgame_common.props" />

@@ -51,6 +51,7 @@
     <ClInclude Include="..\src\cgame\common\cg_main.h" />
     <ClCompile Include="..\src\cgame\common\cg_media.c" />
     <ClInclude Include="..\src\cgame\common\cg_media.h" />
+    <ClInclude Include="..\src\cgame\common\cg_module.h" />
     <ClCompile Include="..\src\cgame\common\cg_muzzle_flash.c" />
     <ClInclude Include="..\src\cgame\common\cg_muzzle_flash.h" />
     <ClCompile Include="..\src\cgame\common\cg_predict.c" />
@@ -139,6 +140,18 @@
     <ClInclude Include="..\src\cgame\common\ui\teams\TeamView.h" />
     <ClCompile Include="..\src\cgame\common\ui\teams\TeamsViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\teams\TeamsViewController.h" />
+  </ItemGroup>
+  <!-- Capture the flag, for modules that opt in by setting QuetooCgameCtf and
+       defining G_CTF; the counterpart of listing cg_ctf.c in a module's
+       _SOURCES and adding -DG_CTF to its AM_CPPFLAGS. -->
+  <ItemGroup Condition="'$(QuetooCgameCtf)'=='true'">
+    <ClCompile Include="..\src\cgame\common\cg_ctf.c" />
+    <ClInclude Include="..\src\cgame\common\cg_ctf.h" />
+  </ItemGroup>
+  <!-- The tech powerups, on the same terms: QuetooCgameTech and G_TECH. -->
+  <ItemGroup Condition="'$(QuetooCgameTech)'=='true'">
+    <ClCompile Include="..\src\cgame\common\cg_tech.c" />
+    <ClInclude Include="..\src\cgame\common\cg_tech.h" />
   </ItemGroup>
   <!-- Windows has no separate discord-rpc project, so each cgame module
        compiles it in; autotools links deps/discord-rpc/libdiscord-rpc.la. -->

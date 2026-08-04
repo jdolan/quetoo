@@ -120,6 +120,15 @@
     <ClInclude Include="..\src\cgame\common\cg_media.h">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_module.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_ctf.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_tech.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\cg_muzzle_flash.h">
       <Filter>src\common</Filter>
     </ClInclude>
@@ -339,6 +348,12 @@
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\cg_media.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_ctf.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_tech.c">
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\cg_muzzle_flash.c">

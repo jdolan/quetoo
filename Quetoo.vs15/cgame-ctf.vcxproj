@@ -33,6 +33,11 @@
     <ProjectGuid>{75a43a72-06c1-59b9-8346-72f4984848fd}</ProjectGuid>
     <RootNamespace>cgame-ctf</RootNamespace>
   </PropertyGroup>
+  <!-- Selects the optional feature sources from cgame_common.props. -->
+  <PropertyGroup>
+    <QuetooCgameCtf>true</QuetooCgameCtf>
+    <QuetooCgameTech>true</QuetooCgameTech>
+  </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="build_settings.props" />
     <Import Project="cgame_common.props" />

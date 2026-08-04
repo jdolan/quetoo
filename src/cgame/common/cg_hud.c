@@ -25,7 +25,7 @@
 /**
  * @brief Draws health, ammo and armor numerics and icons.
  */
-static void Cg_DrawVitals(const player_state_t *ps) {
+void Cg_DrawVitals(const player_state_t *ps) {
   int32_t x, cw, ch, x_offset;
 
   cgi.BindFont("large", &cw, &ch);
@@ -69,14 +69,12 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 }
 
 /**
- * @brief Draws health, ammo and armor numerics and icons.
+ * @brief Draws the powerups the client holds, and the time left on each.
  */
-static void Cg_DrawPowerups(const player_state_t *ps) {
-  int32_t y, ch;
+int32_t Cg_DrawPowerups(const player_state_t *ps, int32_t y) {
+  int32_t ch;
 
   cgi.BindFont("large", &ch, NULL);
-
-  y = cgi.context->h / 2;
 
   if (ps->stats[STAT_QUAD_TIME] > 0) {
     y = Cg_DrawPowerup(y, ps->stats[STAT_QUAD_TIME], cg_items[POWERUP_QUAD].icon, ch);
@@ -90,55 +88,15 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
     y = Cg_DrawPowerup(y, ps->stats[STAT_INVISIBILITY_TIME], cg_items[POWERUP_INVISIBILITY].icon, ch);
   }
 
-#if defined(G_TECH)
-  const int16_t tech = ps->stats[STAT_TECH];
-  if (tech) {
-    y = Cg_DrawPowerup(y, 0, cg_items[tech].icon, ch);
-  }
-#endif
-
   cgi.BindFont(NULL, NULL, NULL);
+
+  return y;
 }
-
-#if defined(G_CTF)
-/**
- * @brief Draws the flag the client is carrying.
- */
-static void Cg_DrawHeldFlag(const player_state_t *ps) {
-  int32_t x, y;
-
-  g_item_tag_t flag_tag = ITEM_NONE;
-
-  for (g_item_tag_t i = FLAG_FIRST; i < FLAG_LAST; i++) {
-    if (ps->inventory[i]) {
-      flag_tag = i;
-      break;
-    }
-  }
-
-  if (flag_tag == ITEM_NONE) {
-    return;
-  }
-
-  const r_image_t *icon = cg_items[flag_tag].icon;
-  if (!icon) {
-    return;
-  }
-
-  color_t pulse = color_white;
-  pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f);
-
-  x = HUD_PIC_HEIGHT / 2;
-  y = cgi.context->h / 2 - HUD_PIC_HEIGHT * 2;
-
-  cgi.Draw2DImage(x, y, icon->width, icon->height, icon, pulse);
-}
-#endif
 
 /**
  * @brief Draws the recently picked up item icon and name in the top-right corner.
  */
-static void Cg_DrawPickup(const player_state_t *ps) {
+void Cg_DrawPickup(const player_state_t *ps) {
   int32_t x, y, cw, ch;
 
   cgi.BindFont(NULL, &cw, &ch);
@@ -167,93 +125,65 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 /**
  * @brief Draws the player's frag count in the top-right corner of the HUD.
  */
-static void Cg_DrawFrags(const player_state_t *ps) {
+int32_t Cg_DrawFrags(const player_state_t *ps, int32_t y) {
   const int16_t frags = ps->stats[STAT_FRAGS];
-  int32_t x, y, cw, ch;
-
-  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-    return;
-  }
+  int32_t x, cw, ch;
 
   cgi.BindFont("small", NULL, &ch);
 
+  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
+    cgi.BindFont(NULL, NULL, NULL);
+    return y + HUD_PIC_HEIGHT + ch;
+  }
+
   x = cgi.context->w - cgi.StringWidth("Frags");
-  y = HUD_PIC_HEIGHT + ch;
 
   cgi.Draw2DString(x, y, "Frags", color_green);
-  y += ch;
 
   cgi.BindFont("large", &cw, NULL);
 
   x = cgi.context->w - 3 * cw;
 
-  cgi.Draw2DString(x, y, va("%3d", frags), HUD_COLOR_STAT);
+  cgi.Draw2DString(x, y + ch, va("%3d", frags), HUD_COLOR_STAT);
 
   cgi.BindFont(NULL, NULL, NULL);
+
+  return y + HUD_PIC_HEIGHT + ch;
 }
 
 /**
  * @brief Draws the player's death count in the top-right corner of the HUD.
  */
-static void Cg_DrawDeaths(const player_state_t *ps) {
+int32_t Cg_DrawDeaths(const player_state_t *ps, int32_t y) {
   const int16_t deaths = ps->stats[STAT_DEATHS];
-  int32_t x, y, cw, ch;
-
-  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-    return;
-  }
+  int32_t x, cw, ch;
 
   cgi.BindFont("small", NULL, &ch);
+
+  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
+    cgi.BindFont(NULL, NULL, NULL);
+    return y + HUD_PIC_HEIGHT + ch;
+  }
 
   x = cgi.context->w - cgi.StringWidth("Deaths");
-  y = 2 * (HUD_PIC_HEIGHT + ch);
 
   cgi.Draw2DString(x, y, "Deaths", color_green);
-  y += ch;
 
   cgi.BindFont("large", &cw, NULL);
 
   x = cgi.context->w - 3 * cw;
 
-  cgi.Draw2DString(x, y, va("%3d", deaths), HUD_COLOR_STAT);
+  cgi.Draw2DString(x, y + ch, va("%3d", deaths), HUD_COLOR_STAT);
 
   cgi.BindFont(NULL, NULL, NULL);
+
+  return y + HUD_PIC_HEIGHT + ch;
 }
-
-#if defined(G_CTF)
-/**
- * @brief Draws the client's capture count.
- */
-static void Cg_DrawCaptures(const player_state_t *ps) {
-  const int16_t captures = ps->stats[STAT_CAPTURES];
-  int32_t x, y, cw, ch;
-
-  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-    return;
-  }
-
-  cgi.BindFont("small", NULL, &ch);
-
-  x = cgi.context->w - cgi.StringWidth("Captures");
-  y = 3 * (HUD_PIC_HEIGHT + ch);
-
-  cgi.Draw2DString(x, y, "Captures", color_green);
-  y += ch;
-
-  cgi.BindFont("large", &cw, NULL);
-
-  x = cgi.context->w - 3 * cw;
-
-  cgi.Draw2DString(x, y, va("%3d", captures), HUD_COLOR_STAT);
-
-  cgi.BindFont(NULL, NULL, NULL);
-}
-#endif
 
 /**
  * @brief Draws the "Spectating" label when the player is a spectator not in chase mode.
  */
-static void Cg_DrawSpectator(const player_state_t *ps) {
+void Cg_DrawSpectator(const player_state_t *ps) {
   int32_t x, y, cw;
 
   if (!ps->stats[STAT_SPECTATOR] || ps->stats[STAT_CHASE]) {
@@ -273,7 +203,7 @@ static void Cg_DrawSpectator(const player_state_t *ps) {
 /**
  * @brief Draws the name of the player currently being chased in chasecam mode.
  */
-static void Cg_DrawChase(const player_state_t *ps) {
+void Cg_DrawChase(const player_state_t *ps) {
   int32_t x, y, ch;
   char string[MAX_INFO_STRING_VALUE * 2], *s;
 
@@ -317,32 +247,29 @@ static void Cg_DrawChase(const player_state_t *ps) {
 /**
  * @brief Draws the current match time string from the server config string.
  */
-static void Cg_DrawTime(const player_state_t *ps) {
-  int32_t x, y, ch;
+int32_t Cg_DrawTime(const player_state_t *ps, int32_t y) {
+  int32_t x, ch;
   const char *string = cgi.ConfigString(CS_TIME);
 
   if (!ps->stats[STAT_TIME]) {
-    return;
+    return y;
   }
 
   cgi.BindFont("small", NULL, &ch);
 
   x = cgi.context->w - cgi.StringWidth(string);
-  y = 3 * (HUD_PIC_HEIGHT + ch);
-
-#if defined(G_CTF)
-  y += HUD_PIC_HEIGHT + ch; // the capture count sits where this would
-#endif
 
   cgi.Draw2DString(x, y, string, color_white);
 
   cgi.BindFont(NULL, NULL, NULL);
+
+  return y + ch;
 }
 
 /**
  * @brief Draws a translucent team-color banner strip at the bottom of the screen.
  */
-static void Cg_DrawTeamBanner(const player_state_t *ps) {
+void Cg_DrawTeamBanner(const player_state_t *ps) {
   const int16_t team = ps->stats[STAT_TEAM];
   int32_t x, y;
 
@@ -361,7 +288,7 @@ static void Cg_DrawTeamBanner(const player_state_t *ps) {
 /**
  * @brief Plays the hit sound if the player inflicted damage this frame.
  */
-static void Cg_DrawDamageInflicted(const player_state_t *ps) {
+void Cg_DrawDamageInflicted(const player_state_t *ps) {
 
   if (!cg_hit_sound->integer) {
     return;
@@ -383,6 +310,31 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 }
 
 /**
+ * @brief Arranges the deathmatch HUD, which is the whole of it for a module that
+ * builds no optional feature.
+ */
+static void Cg_DrawHudElements_Common(const player_state_t *ps, cg_hud_layout_t *layout) {
+
+  Cg_DrawVitals(ps);
+
+  layout->powerup_y = Cg_DrawPowerups(ps, layout->powerup_y);
+
+  Cg_DrawPickup(ps);
+
+  Cg_DrawTeamBanner(ps);
+
+  layout->stat_y = Cg_DrawFrags(ps, layout->stat_y);
+
+  layout->stat_y = Cg_DrawDeaths(ps, layout->stat_y);
+
+  Cg_DrawSpectator(ps);
+
+  Cg_DrawChase(ps);
+}
+
+DrawHudElements Cg_DrawHudElements = Cg_DrawHudElements_Common;
+
+/**
  * @brief Draws the HUD for the current frame.
  */
 void Cg_DrawHud(const player_state_t *ps) {
@@ -401,31 +353,18 @@ void Cg_DrawHud(const player_state_t *ps) {
     return;
   }
 
-  Cg_DrawVitals(ps);
+  int32_t ch;
+  cgi.BindFont("small", NULL, &ch);
+  cgi.BindFont(NULL, NULL, NULL);
 
-  Cg_DrawPowerups(ps);
+  cg_hud_layout_t layout = {
+    .powerup_y = cgi.context->h / 2,
+    .stat_y = HUD_PIC_HEIGHT + ch, // the pickup holds the first row
+  };
 
-#if defined(G_CTF)
-  Cg_DrawHeldFlag(ps);
-#endif
+  Cg_DrawHudElements(ps, &layout);
 
-  Cg_DrawPickup(ps);
-
-  Cg_DrawTeamBanner(ps);
-
-  Cg_DrawFrags(ps);
-
-  Cg_DrawDeaths(ps);
-
-#if defined(G_CTF)
-  Cg_DrawCaptures(ps);
-#endif
-
-  Cg_DrawSpectator(ps);
-
-  Cg_DrawChase(ps);
-
-  Cg_DrawTime(ps);
+  Cg_DrawTime(ps, layout.stat_y);
 
   Cg_DrawCenterPrint(ps);
 

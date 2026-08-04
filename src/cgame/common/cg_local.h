@@ -31,6 +31,12 @@
 #define Cg_Warn(...) cgi.Warn(__func__, __VA_ARGS__)
 
 #include "cg_client.h"
+#if defined(G_CTF)
+#include "cg_ctf.h"
+#endif
+#if defined(G_TECH)
+#include "cg_tech.h"
+#endif
 #include "cg_editor.h"
 #include "cg_discord.h"
 #include "cg_effect.h"
