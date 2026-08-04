@@ -21,11 +21,16 @@
 
 #pragma once
 
+/**
+ * @brief Every common game source includes this, and it is common: a module's own
+ * headers are included by that module's own sources, so nothing here has to know
+ * they exist. What a module contributes is its manifest - g_types.h, bg_item.{c,h}
+ * - and the features it switches on below.
+ */
+
 #define __GAME_LOCAL_H__
 
 #include <Objectively/Vector.h>
-
-#define GAME_NAME "ctf"
 
 #include "g_ai_main.h"
 #include "g_ballistics.h"
@@ -33,9 +38,13 @@
 #include "g_client_stats.h"
 #include "g_client_view.h"
 #include "g_client.h"
-#include "g_ctf.h"
 #include "g_effect.h"
+#if defined(G_CTF)
+#include "g_ctf.h"
+#endif
+#if defined(G_HOOK)
 #include "g_hook.h"
+#endif
 #include "g_cmd.h"
 #include "g_combat.h"
 #include "g_entity_func.h"
@@ -49,7 +58,9 @@
 #include "g_main.h"
 #include "g_physics.h"
 #include "g_sound.h"
+#if defined(G_TECH)
 #include "g_tech.h"
+#endif
 #include "g_types.h"
 #include "g_util.h"
 #include "g_weapon.h"

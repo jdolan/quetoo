@@ -39,8 +39,8 @@
     <ClInclude Include="..\src\game\common\g_item.h">
       <Filter>src\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\ctf\g_local.h">
-      <Filter>src\ctf</Filter>
+    <ClInclude Include="..\src\game\common\g_local.h">
+      <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\common\g_main.h">
       <Filter>src\common</Filter>

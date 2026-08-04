@@ -30,6 +30,12 @@
 #include "bg_item.h"
 
 /**
+ * @brief The name this module answers to: its directory under lib/quetoo, and
+ * the game_name it advertises.
+ */
+#define GAME_NAME "ctf"
+
+/**
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */

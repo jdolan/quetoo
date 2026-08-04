@@ -608,7 +608,7 @@
 		CEC0FF00202601030000011A /* g_entity_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D65A1C5C58C300CD0B13 /* g_entity_info.h */; };
 		CEC0FF00202601030000011B /* g_entity_trigger.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */; };
 		CEC0FF00202601030000011C /* g_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6621C5C58C300CD0B13 /* g_item.h */; };
-		CEC0FF00202601030000011D /* g_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000029 /* g_local.h */; };
+		CEC0FF00202601030000011D /* g_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6631C5C58C300CD0B13 /* g_local.h */; };
 		CEC0FF00202601030000011E /* g_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6651C5C58C300CD0B13 /* g_main.h */; };
 		CEC0FF00202601030000011F /* g_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000002C /* g_types.h */; };
 		CEC0FF002026010300000120 /* g_util.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66E1C5C58C300CD0B13 /* g_util.h */; };
@@ -2021,7 +2021,6 @@
 		CEC0FF002026010300000003 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CEC0FF002026010300000004 /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
 		CEC0FF002026010300000005 /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
-		CEC0FF002026010300000029 /* g_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_local.h; sourceTree = "<group>"; };
 		CEC0FF00202601030000002C /* g_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_types.h; sourceTree = "<group>"; };
 		CEC0FF002026010300000061 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CEC0FF00202601030000008D /* cg_team_mode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_team_mode.c; sourceTree = "<group>"; };
@@ -2895,7 +2894,6 @@
 				F7E7256984E276048C2A155E /* bg_item.h */,
 				7966EA6596003F9303BC00FA /* bg_item.c */,
 				CEFEEE00000000000000B101 /* g_module.c */,
-				CE12D6631C5C58C300CD0B13 /* g_local.h */,
 				CE12D66C1C5C58C300CD0B13 /* g_types.h */,
 				CE12D6711C5C58C300CD0B13 /* Makefile.am */,
 			);
@@ -3650,6 +3648,7 @@
 				CE12D66B1C5C58C300CD0B13 /* g_physics.h */,
 				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
 				CEFEEE00000000000000A101 /* g_rules.c */,
+				CE12D6631C5C58C300CD0B13 /* g_local.h */,
 				CEFF1295277D439B001E1500 /* g_sound.h */,
 				CEFF1296277D439B001E1500 /* g_sound.c */,
 				CEFEEE0000000000000000C2 /* g_tech.h */,
@@ -3667,7 +3666,6 @@
 			children = (
 				CEC0FF002026010300000005 /* bg_item.h */,
 				CEC0FF002026010300000004 /* bg_item.c */,
-				CEC0FF002026010300000029 /* g_local.h */,
 				CEFEEE00000000000000B103 /* g_module.c */,
 				CEC0FF00202601030000002C /* g_types.h */,
 				CEC0FF002026010300000003 /* Makefile.am */,

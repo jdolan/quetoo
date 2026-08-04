@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "bg_pmove.h"
 #include "g_types.h"
 
 #if defined(__GAME_LOCAL_H__)

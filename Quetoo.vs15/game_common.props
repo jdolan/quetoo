@@ -61,6 +61,7 @@
     <ClInclude Include="..\src\game\common\g_cmd.h" />
     <ClCompile Include="..\src\game\common\g_item.c" />
     <ClInclude Include="..\src\game\common\g_item.h" />
+    <ClInclude Include="..\src\game\common\g_local.h" />
     <ClCompile Include="..\src\game\common\g_entity.c" />
     <ClInclude Include="..\src\game\common\g_entity.h" />
     <ClCompile Include="..\src\game\common\g_client.c" />

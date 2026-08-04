@@ -24,7 +24,6 @@
   <ItemGroup>
     <ClInclude Include="..\src\game\game.h" />
     <ClInclude Include="..\src\game\default\bg_item.h" />
-    <ClInclude Include="..\src\game\default\g_local.h" />
     <ClInclude Include="..\src\game\default\g_types.h" />
   </ItemGroup>
   <ItemGroup>

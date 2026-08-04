@@ -26,6 +26,13 @@
 #include "shared/shared.h"
 #include "collision/cm_types.h"
 #include "bg_item.h"
+#include "bg_pmove.h"
+
+/**
+ * @brief The name this module answers to: its directory under lib/quetoo, and
+ * the game_name it advertises.
+ */
+#define GAME_NAME "default"
 
 /**
  * @brief Game protocol version (protocol minor version). To be incremented

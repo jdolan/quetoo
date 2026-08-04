@@ -190,6 +190,11 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
   `g_rules.c` for the rules. Never a catch-all: `g_module.c` existed for exactly
   two tails and was deleted, because a file that accumulates every hookable
   function in the game is what this design exists to prevent.
+- `g_local.h` is common, like `cg_local.h` always was. What made it look
+  per-module was `GAME_NAME`, which is manifest and now sits in `g_types.h` beside
+  `PROTOCOL_MINOR`, and the optional feature headers, which are guards like any
+  other. A module's own headers need no seam here: the module's own sources include
+  them, and common must not know they exist.
 - A common file cannot share a name with a file that still exists in *any*
   module, because `vpath` resolves the module's own copy first. That is why the
   order of work is always: make both copies identical, delete both, then add the
@@ -199,9 +204,9 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
 ## State of the work
 
 Every duplicated `.c` file is gone. `src/game/default` and `src/game/ctf` now
-hold only their manifest:
+hold only their manifest, and the seam where they install their own behaviour:
 
-    bg_item.c  bg_item.h  g_local.h  g_types.h  Makefile.am
+    bg_item.c  bg_item.h  g_types.h  g_module.c  Makefile.am
 
 Everything else is one copy in `src/game/common`, compiled once per module.
 `ctf` builds it with `-DG_CTF -DG_HOOK -DG_TECH`; `default` builds it
@@ -287,6 +292,28 @@ systems, and it includes that module's own `g_types.h`. That is what keeps the t
 sides of the wire from disagreeing; a define set that differs between a module's
 game and cgame is the layout fault described above, and it would present as a
 network fault rather than a build failure.
+
+### Diagnostics
+
+`G_Debug`, `G_Warn`, `G_Error`, `G_Ai_Debug` and the `Cg_` three are macros, and
+that is deliberate: they supply `__func__`, which C gives a function no way to
+learn about its caller. They take the shape `src/common/common.h` established -
+a prefixed macro over the real function behind it - and they live in the common
+`g_main.h`, beside the `gi` they wrap, rather than in each module.
+
+Two rules come out of the way they used to be written:
+
+- **A diagnostic macro MUST be prefixed for its layer.** The game's were once bare
+  `Warn` and `Error`, and because the preprocessor expands a function-like macro
+  wherever the identifier is followed by a paren - it does not care that a dot
+  precedes it - they rewrote member accesses. `gi.Warn(fmt, ...)` compiled as
+  `gi.Warn_(__func__, fmt, ...)`, so `gi.Warn` was not a member of `g_import_t` at
+  all and looking it up in `game.h` found nothing.
+- **Do not gate on the debug mask.** `Com_Debugv_` returns early on an inactive
+  mask, so a gate in the macro only skips formatting the arguments. The one place
+  that is worth having is `Pm_Debug`, called per move from the movement loop, and
+  it spells the gate `do while` rather than as a GNU statement expression - which
+  compiles on Windows only because the toolset is ClangCL.
 
 ### `bg_` is for what both sides use
 
