@@ -219,9 +219,36 @@ hold only their manifest, and the seam where they install their own behaviour:
     bg_item.c  bg_item.h  g_types.h  g_module.c  Makefile.am
 
 Everything else is one copy in `src/game/common`, compiled once per module.
-`ctf` builds it with `-DG_CTF -DG_HOOK -DG_TECH`; `default` builds it
-with none of those. A mod is its manifest, its `Makefile.am`, and the features it
-switches on.
+`ctf` builds it with `-DG_CTF -DG_HOOK -DG_TECH`; `default` builds it with none of
+those; `lithium` takes `-DG_HOOK -DG_TECH`. A mod is its manifest, its
+`Makefile.am`, and the features it switches on.
+
+### Lithium, which is the proof
+
+`src/game/lithium` is deathmatch with the grappling hook and the techs - "CTF
+minus the CTF". It shares no source with `ctf`; it was built from `default`'s
+manifest by following what `bg_hook.h` and `g_tech.c` say a module adopting them
+must supply, and it cost **125 lines** over that manifest:
+
+| | lines |
+| --- | --- |
+| `bg_item.c` - the five tech item definitions | 74 |
+| `g_types.h` - `CS_HOOK_PULL_SPEED`, `MOD_HOOK`, `TE_HOOK_IMPACT`, `TRAIL_HOOK`, `STAT_TECH`, and the two per-client structures | 24 |
+| `bg_item.h` - `ITEM_TYPE_TECH` and the `TECH_*` tags | 13 |
+| `g_module.c` - docblocks; both functions are still empty | 8 |
+| `Makefile.am` - two defines, two sources | 6 |
+
+No new logic, and none of the hook or tech behaviour was touched to make room for
+it. On `edge` it spawns 85 entities where `default` spawns 80: the five techs,
+placed by the `G_TECH` guard in `G_ResetItems`. The composition is visible in the
+built objects - `lithium/game.so` carries `G_HookThink` and `G_Tech_Init` and no
+`G_Ctf_Init`, and no `item_flag_team*` anywhere in its roster.
+
+The one thing the feature docblocks did not mention, and now do not need to,
+is `CS_HOOK_PULL_SPEED`: `bg_hook.h` listed `MOD_HOOK`, `TE_HOOK_IMPACT` and
+`TRAIL_HOOK` as the wire values a module must number, but the config string the
+`ConfigureLevel` hook publishes is a fourth. Following the docblock alone would
+have produced a module that did not compile.
 
 ### The hooks
 
@@ -389,10 +416,10 @@ from the other end.
 
 ### What is left
 
-1. **Lithium.** A `Makefile.am`, a `g_types.h`, a `bg_item.{c,h}`, a
-   `g_module.c`, a `cg_team_mode.c`, and whichever of `-DG_CTF -DG_HOOK -DG_TECH`
-   it wants. Nothing else, which is the point: anything it invents goes in its own
-   sources and installs from its `G_Module_Init`.
+1. **Lithium's MSVS and Xcode projects.** The module itself exists and builds
+   under autotools (see below); it has no `.vcxproj` pair and no Xcode targets, so
+   it does not build on Windows and cannot be run from a scheme. That is project
+   authoring, not design, and nothing about the pattern is waiting on it.
 2. **Recombining `common` and `default`.** `default` is now an empty shell over
    `common`, so the two could merge and let `ctf` and friends override `default`
    directly. The `_Default` naming already assumes this. It changes nothing about
