@@ -1253,7 +1253,7 @@ static uint32_t G_Ai_Move(g_client_t *cl, pm_cmd_t *cmd) {
   
   pm.Trace = G_Ai_MoveTrace;
 
-  pm.Debug = gi.Debug_;
+  pm.Debug = gi.Debug;
   pm.DebugMask = gi.DebugMask;
   pm.debug_mask = DEBUG_PMOVE_SERVER;
 
@@ -1720,7 +1720,7 @@ void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd) {
       cl->ai->func_goal_next_thinks[i] = g_level.time + next;
 
       if (func_us > 50000) { // > 50ms for one goal function is pathological
-        gi.Warn("%s goal func %d took %dms\n",
+        G_Warn("%s goal func %d took %dms\n",
                cl->persistent.net_name, i, (int32_t)(func_us / 1000));
       }
     }
@@ -1802,7 +1802,7 @@ static void G_Ai_ClientThink(g_entity_t *ent) {
 
     if (think_us > 100000) { // > 100ms for one think pass is pathological
       if (ent->client) {
-        gi.Warn("%s AI think pass %d took %dms\n",
+        G_Warn("%s AI think pass %d took %dms\n",
                ent->client->persistent.net_name, i, (int32_t)(think_us / 1000));
       }
     }

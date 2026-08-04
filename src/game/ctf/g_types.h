@@ -25,9 +25,9 @@
 
 #include "shared/shared.h"
 #include "collision/cm_types.h"
-#include "bg_item.h"
 #include "game/common/bg_hook.h"
 #include "game/common/bg_tech.h"
+#include "bg_item.h"
 
 /**
  * @brief Game protocol version (protocol minor version). To be incremented
@@ -66,14 +66,15 @@ typedef enum {
  * @brief ConfigStrings that are local to the game module.
  */
 #define CS_GAMEPLAY        (CS_GAME + 0)  // gameplay string
-#define CS_TEAM_INFO       (CS_GAME + 2)  // team info, separated by \ (name\color\name\color, etc)
-#define CS_TIME            (CS_GAME + 3)  // map time
-#define CS_HOOK_PULL_SPEED (CS_GAME + 4)  // hook speed
-#define CS_MAX_CLIENTS     (CS_GAME + 5)  // max clients of server
-#define CS_NUM_CLIENTS     (CS_GAME + 6)  // number of players in server
-#define CS_NUM_TEAMS       (CS_GAME + 7)  // number of teams (0 - MAX_TEAMS)
-#define CS_NAV_EDIT        (CS_GAME + 9)  // nav edit mode
-#define CS_ITEM_SET        (CS_GAME + 10) // active item set (g_items_t)
+#define CS_TEAM_INFO       (CS_GAME + 1)  // team info, separated by \ (name\color\name\color, etc)
+#define CS_TIME            (CS_GAME + 2)  // map time
+#define CS_MAX_CLIENTS     (CS_GAME + 3)  // max clients of server
+#define CS_NUM_CLIENTS     (CS_GAME + 4)  // number of players in server
+#define CS_NUM_TEAMS       (CS_GAME + 5)  // number of teams (0 - MAX_TEAMS)
+#define CS_NAV_EDIT        (CS_GAME + 6)  // nav edit mode
+#define CS_ITEM_SET        (CS_GAME + 7)  // active item set (g_items_t)
+#define CS_HOOK_PULL_SPEED (CS_GAME + 8)  // hook speed
+
 
 /**
  * @brief Player state statistics (inventory, score, etc).

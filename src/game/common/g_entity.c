@@ -170,7 +170,7 @@ static void G_SpawnEntity(cm_entity_t *def) {
     }
   }
 
-  gi.Warn("%s doesn't have a spawn function\n", etos(ent));
+  G_Warn("%s doesn't have a spawn function\n", etos(ent));
 
   G_FreeEntity(ent);
 }
@@ -391,7 +391,7 @@ static void G_ResolveSpawnPoints(Vector *dm_spawns, Vector *team_spawns[MAX_TEAM
     }
 
     if (!dm_spawns) {
-      gi.Error("Map has no spawn points\n");
+      G_Error("Map has no spawn points\n");
     }
   }
 

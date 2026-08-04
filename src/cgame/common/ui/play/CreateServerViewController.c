@@ -138,11 +138,12 @@ static void loadView(ViewController *self) {
 
   size_t num_team_modes;
   const cg_team_mode_t *team_modes = Cg_TeamModes(&num_team_modes);
-
-  for (size_t i = 0; i < num_team_modes; i++) {
-    $(this->teams, addOption, team_modes[i].name, (ident) &team_modes[i]);
+  if (num_team_modes) {
+    for (size_t i = 0; i < num_team_modes; i++) {
+      $(this->teams, addOption, team_modes[i].name, (ident) &team_modes[i]);
+    }
+    $(this->teams, selectOptionWithValue, (ident) &team_modes[0]);
   }
-
   this->teams->delegate.didSelectOption = selectTeams;
 
   this->create->delegate.didClick = createServer;

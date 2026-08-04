@@ -99,7 +99,18 @@ static struct {
 
 } pm_locals;
 
-#define Pm_Debug(...) ({ if (pm->DebugMask() & pm->debug_mask) { pm->Debug(pm->debug_mask, __func__, __VA_ARGS__); } })
+/**
+ * @brief Unlike the game and the client game, this keeps its own mask test: it is
+ * called per move, from the movement loop, where the arguments it would otherwise
+ * format are worth skipping. `do while` rather than a statement expression, so it
+ * is standard C.
+ */
+#define Pm_Debug(...) \
+  do { \
+    if (pm->DebugMask() & pm->debug_mask) { \
+      pm->Debug(pm->debug_mask, __func__, __VA_ARGS__); \
+    } \
+  } while (0)
 
 /**
  * @brief Mark the specified entity as touched. This enables the game module to

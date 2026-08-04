@@ -445,7 +445,7 @@ static void G_Ai_Node_Adjust(const ai_node_id_t id) {
 void G_Ai_Node_Destroy(const ai_node_id_t id) {
 
   if (!g_ai_nodes || id >= g_ai_nodes->count) {
-    gi.Warn("Invalid node id %u\n", id);
+    G_Warn("Invalid node id %u\n", id);
     return;
   }
 
@@ -1077,7 +1077,7 @@ void G_Ai_InitNodes(void) {
   q_snprintf(filename, sizeof(filename), "maps/%s.nav", g_level.name);
 
   if (!gi.FileExists(filename)) {
-    gi.Warn("No navigation file exists for this map; bots will be dumb!\nUse `g_ai_node_dev` to set up nodes.\n");
+    G_Warn("No navigation file exists for this map; bots will be dumb!\nUse `g_ai_node_dev` to set up nodes.\n");
     return;
   }
 
@@ -1087,7 +1087,7 @@ void G_Ai_InitNodes(void) {
   gi.ReadFile(file, &magic, sizeof(magic), 1);
 
   if (magic != AI_NODE_MAGIC) {
-    gi.Warn("Nav file invalid format!\n");
+    G_Warn("Nav file invalid format!\n");
     gi.CloseFile(file);
     return;
   }
@@ -1095,7 +1095,7 @@ void G_Ai_InitNodes(void) {
   gi.ReadFile(file, &version, sizeof(version), 1);
 
   if (version != AI_NODE_VERSION) {
-    gi.Warn("Nav file out of date!\n");
+    G_Warn("Nav file out of date!\n");
     gi.CloseFile(file);
     return;
   }
@@ -1171,7 +1171,7 @@ static void G_Ai_CheckNodes(void) {
       ai_node_id_t node = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
 
       if (node == AI_NODE_INVALID) {
-        gi.Warn("Entity %s @ %s appears to be unreachable by nodes\n", ent->classname, vtos(ent->s.origin));
+        G_Warn("Entity %s @ %s appears to be unreachable by nodes\n", ent->classname, vtos(ent->s.origin));
       }
     });
   }
@@ -1180,7 +1180,7 @@ static void G_Ai_CheckNodes(void) {
     const ai_node_t *node = AI_NODE(g_ai_nodes, i);
     
     if (gi.PointContents(node->position) & CONTENTS_MASK_SOLID) {
-      gi.Warn("Node %zu @ %s is inside of solid\n", i, vtos(node->position));
+      G_Warn("Node %zu @ %s is inside of solid\n", i, vtos(node->position));
     }
   }
 }
@@ -1232,7 +1232,7 @@ void G_Ai_NodesReady(void) {
 void G_Ai_SaveNodes(void) {
 
   if (g_ai_node_dev->integer != 1) {
-    gi.Warn("This command only works with `g_ai_node_dev` set to 1.\n");
+    G_Warn("This command only works with `g_ai_node_dev` set to 1.\n");
     return;
   }
 
@@ -1241,7 +1241,7 @@ void G_Ai_SaveNodes(void) {
   q_snprintf(filename, sizeof(filename), "maps/%s.nav", g_level.name);
 
   if (!g_ai_nodes) {
-    gi.Warn("No nodes to write.\n");
+    G_Warn("No nodes to write.\n");
     return;
   }
 
@@ -1593,7 +1593,7 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
 
         ai_node_priority_t *e = G_Ai_Node_AllocPathEntry();
         if (!e) {
-          gi.Warn("A* open-set entry pool exhausted (capacity %zu)\n", heap_capacity);
+          G_Warn("A* open-set entry pool exhausted (capacity %zu)\n", heap_capacity);
           break;
         }
 
@@ -1604,7 +1604,7 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
         // log and stop expanding from this node. The capacity heuristic
         // above (4 * N + 16) is generous for typical Quetoo maps.
         if (!gheap_push(queue, priority, e)) {
-          gi.Warn("A* open-set heap exhausted (capacity %zu)\n", heap_capacity);
+          G_Warn("A* open-set heap exhausted (capacity %zu)\n", heap_capacity);
           break;
         }
 

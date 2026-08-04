@@ -305,9 +305,9 @@ void Sv_InitGame(void) {
 
   import.Print = Com_Print;
   import.DebugMask = Sv_DebugMask;
-  import.Debug_ = Sv_GameDebug;
-  import.Warn_ = Com_Warn_;
-  import.Error_ = Sv_GameError;
+  import.Debug = Sv_GameDebug;
+  import.Warn = Com_Warn_;
+  import.Error = Sv_GameError;
 
   import.Malloc = Mem_TagMalloc;
   import.LinkMalloc = Mem_LinkMalloc;

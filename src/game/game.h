@@ -216,17 +216,17 @@ typedef struct g_import_s {
    * @brief Prints a formatted debug message to the configured consoles.
    * @details If the provided `debug` mask is inactive, the message will not be printed.
    */
-  void (*Debug_)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+  void (*Debug)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
   /**
    * @brief Prints a formatted warning message to the configured consoles.
    */
-  void (*Warn_)(const char *func, const char *fmr, ...) __attribute__((format(printf, 2, 3)));
+  void (*Warn)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
   /**
    * @brief Prints a formatted error message to the configured consoles.
    */
-  void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+  void (*Error)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 
   /**
    * @}

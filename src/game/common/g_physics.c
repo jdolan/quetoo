@@ -154,7 +154,7 @@ void G_RunThink(g_entity_t *ent) {
   ent->next_think = 0;
 
   if (!ent->Think) {
-    gi.Error("%s has no Think function\n", etos(ent));
+    G_Error("%s has no Think function\n", etos(ent));
   }
 
   ent->Think(ent);
@@ -454,7 +454,7 @@ static g_push_t g_pushes[MAX_ENTITIES], *g_push_p;
 static void G_Physics_Push_Impact(g_entity_t *ent) {
 
   if (g_push_p - g_pushes == MAX_ENTITIES) {
-    gi.Error("MAX_ENTITIES\n");
+    G_Error("MAX_ENTITIES\n");
   }
 
   g_push_p->ent = ent;
@@ -1203,7 +1203,7 @@ void G_RunEntity(g_entity_t *ent) {
       G_Physics_Bounce(ent);
       break;
     default:
-      gi.Error("Bad move type %i\n", ent->move_type);
+      G_Error("Bad move type %i\n", ent->move_type);
   }
 
   // update BSP sub-model animations based on move state

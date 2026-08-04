@@ -31,6 +31,17 @@ extern g_media_t g_media;
 pm_params_t G_MovementParams(void);
 
 extern g_import_t gi;
+
+/**
+ * @brief Console logging, in the shape `Com_Debug`, `Com_Warn` and `Com_Error`
+ * take in the engine: a prefixed macro supplying `__func__`, which C gives a
+ * function no way to learn for itself, over the real function behind it.
+ * @details These live here rather than in `g_local.h` because that is per-module,
+ * and a macro every common source uses should not be copied into each mod.
+ */
+#define G_Debug(...) gi.Debug(DEBUG_GAME, __func__, __VA_ARGS__)
+#define G_Warn(...) gi.Warn(__func__, __VA_ARGS__)
+#define G_Error(...) gi.Error(__func__, __VA_ARGS__)
 extern g_export_t ge;
 
 extern cvar_t *g_admin_password;

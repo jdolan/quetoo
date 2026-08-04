@@ -931,7 +931,7 @@ static void G_ItemDropToFloor(g_entity_t *ent) {
         // make an effort to come up out of the floor (broken maps)
         tr = gi.Trace(ent->s.origin, ent->s.origin, ent->bounds, ent, CONTENTS_MASK_SOLID);
         if (tr.start_solid) {
-          gi.Warn("%s start_solid\n", etos(ent));
+          G_Warn("%s start_solid\n", etos(ent));
           G_FreeEntity(ent);
           return;
         }
@@ -993,7 +993,7 @@ void G_PrecacheItem(const g_item_t *it) {
 
     len = s - start;
     if (len >= MAX_QPATH || len < 5) {
-      gi.Error("%s has bad precache string\n", it->def.classname);
+      G_Error("%s has bad precache string\n", it->def.classname);
     }
     memcpy(data, start, len);
     data[len] = '\0';
@@ -1010,7 +1010,7 @@ void G_PrecacheItem(const g_item_t *it) {
     } else if (dlen >= 4 && (!q_strcmp(data + dlen - 4, ".png") || !q_strcmp(data + dlen - 4, ".jpg") || !q_strcmp(data + dlen - 4, ".tga"))) {
       gi.ImageIndex(data);
     } else {
-      gi.Error("%s has unknown data type\n", it->def.classname);
+      G_Error("%s has unknown data type\n", it->def.classname);
     }
   }
 }
@@ -1203,7 +1203,7 @@ static void G_InitItem_Default(g_item_t *it) {
       break;
 
     default:
-      gi.Error("Item %s (tag %d) has an invalid type\n", it->def.name, it->def.tag);
+      G_Error("Item %s (tag %d) has an invalid type\n", it->def.name, it->def.tag);
   }
 
 }

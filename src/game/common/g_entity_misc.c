@@ -51,7 +51,7 @@ static void G_misc_teleporter_Touch(g_entity_t *ent, g_entity_t *other, const cm
   const g_entity_t *dest = G_Find(NULL, EOFS(target_name), ent->target);
 
   if (!dest) {
-    gi.Warn("Couldn't find destination\n");
+    G_Warn("Couldn't find destination\n");
     return;
   }
 
@@ -143,7 +143,7 @@ static void G_misc_teleporter_Think(g_entity_t *ent) {
   const g_entity_t *dest = G_Find(NULL, EOFS(target_name), ent->target);
 
   if (!dest) {
-    gi.Warn("Couldn't find destination\n");
+    G_Warn("Couldn't find destination\n");
     return;
   }
 

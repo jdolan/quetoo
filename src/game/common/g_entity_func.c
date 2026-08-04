@@ -852,7 +852,7 @@ void G_func_bob(g_entity_t *ent) {
   ent->pos2 = Vec3_Add(ent->pos1, gi.EntityValue(ent->def, "velocity")->vec3);
 
   if (Vec3_Equal(ent->pos1, ent->pos2)) {
-    gi.Warn("%s @ %s has no \"velocity\" and will not move\n", ent->classname, vtos(ent->s.origin));
+    G_Warn("%s @ %s has no \"velocity\" and will not move\n", ent->classname, vtos(ent->s.origin));
   }
 
   ent->move_info.speed = ent->speed;

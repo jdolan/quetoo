@@ -25,13 +25,7 @@
 
 #include <Objectively/Vector.h>
 
-#if !defined(GAME_NAME)
-  #define GAME_NAME "ctf"
-#endif
-
-#define G_Debug(...) ({ if (gi.DebugMask() & DEBUG_GAME) { gi.Debug_(DEBUG_GAME, __func__, __VA_ARGS__); } })
-#define Warn(...) Warn_(__func__, __VA_ARGS__)
-#define Error(...) Error_(__func__, __VA_ARGS__)
+#define GAME_NAME "ctf"
 
 #include "g_ai_main.h"
 #include "g_ballistics.h"

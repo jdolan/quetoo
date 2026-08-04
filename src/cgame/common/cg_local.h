@@ -26,7 +26,7 @@
 #include <Objectively/PointerArray.h>
 #include <Objectively/Vector.h>
 
-#define Cg_Debug(...) ({ if (cgi.DebugMask() & DEBUG_CGAME) { cgi.Debug(DEBUG_CGAME, __func__, __VA_ARGS__); } })
+#define Cg_Debug(...) cgi.Debug(DEBUG_CGAME, __func__, __VA_ARGS__)
 #define Cg_Error(...) cgi.Error(__func__, __VA_ARGS__)
 #define Cg_Warn(...) cgi.Warn(__func__, __VA_ARGS__)
 

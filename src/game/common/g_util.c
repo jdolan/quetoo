@@ -334,7 +334,7 @@ g_entity_t *G_AllocEntity(const char *classname) {
     }
   }
 
-  gi.Error("No free entities\n");
+  G_Error("No free entities\n");
 }
 
 /**

@@ -770,7 +770,7 @@ static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points
 
   if (!spawn_points->count) {
     if (spawn_points == &g_level.spawn_points) {
-      gi.Error("No spawn points on %s\n", g_level.name);
+      G_Error("No spawn points on %s\n", g_level.name);
     }
     return G_SelectRandomSpawnPoint(&g_level.spawn_points);
   }
@@ -1203,7 +1203,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 
   // check for malformed or illegal info strings
   if (!InfoString_Validate(user_info)) {
-    gi.Warn("Invalid user info\n");
+    G_Warn("Invalid user info\n");
     user_info = DEFAULT_USER_INFO;
   }
 
@@ -1589,7 +1589,7 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
   
   pm.Trace = G_ClientMove_Trace;
 
-  pm.Debug = gi.Debug_;
+  pm.Debug = gi.Debug;
   pm.DebugMask = gi.DebugMask;
   pm.debug_mask = DEBUG_PMOVE_SERVER;
 
