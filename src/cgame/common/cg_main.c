@@ -349,17 +349,17 @@ static bool Cg_ParseMessage(int32_t cmd) {
   }
 
   return false;
-#if defined(G_HOOK)
 }
 
+#if defined(G_HOOK)
 /**
  * @brief Fetch the server's reported hook pull speed.
  */
 float Cg_GetHookPullSpeed(void) {
 
   return cg_state.hook_pull_speed;
-#endif
 }
+#endif
 
 /**
  * @brief Clear any state that should not persist over multiple server connections.

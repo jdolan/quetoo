@@ -1210,17 +1210,16 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 
       // we own this beam (lightning, grapple, etc..)
       // anchor start to the client-side muzzle; keep end as the server-authoritative termination
+      start = cg_state.clients[ent->current.client].weapon_muzzle;
+
 #if defined(G_HOOK)
       if (s->trail == TRAIL_HOOK) {
         // the grapple cable reads better leaving the player than the view
         // weapon muzzle, which floats well ahead of the eye and shifts with
         // cg_fov (#867)
         start = Cg_Self()->origin;
-      } else
-#endif
-      {
-        start = cg_state.clients[ent->current.client].weapon_muzzle;
       }
+#endif
     }
   } else {
     end = ent->origin;
