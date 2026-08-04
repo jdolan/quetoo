@@ -255,4 +255,33 @@ typedef void (*PrepareMove)(g_client_t *cl, pm_move_t *pm);
 
 extern PrepareMove G_PrepareMove;
 
+/**
+ * @brief The module's own initialization, called once per module load from
+ * `G_Init`, after the features common ships have installed themselves.
+ * @details This is where a module installs the hooks for behaviour that is its
+ * own rather than one of common's features. It exists because a mod Quetoo does
+ * not ship can only add files to its own directory: it cannot add a call to
+ * `G_Init`, and a guard named after it could never be committed here, so without
+ * this seam its only way to install a hook would be to fork `g_main.c`.
+ *
+ * Every module MUST define it, even if the body is empty. A missing definition
+ * is a link error, which is the right way to tell a new module what it owes.
+ * Installing from here rather than from `G_Init` also means a module's hooks sit
+ * at the head of every chain, so they may wrap a shipped feature.
+ */
+void G_Module_Init(void);
+
+/**
+ * @brief The module's own shutdown, called from `G_Shutdown` before the game's
+ * memory tags are freed, so that a module may still touch what it allocated.
+ * @details Every module MUST define it, even if the body is empty.
+ *
+ * This is for what a module allocated or opened, and **MUST NOT uninstall
+ * hooks**. `G_Init` and `G_Shutdown` run on every server initialization, while a
+ * hook installs exactly once per module image, behind a `static bool installed` -
+ * so uninstalling here would tear a link out of a chain that the next `G_Init`
+ * declines to rebuild. Chains are not unwound; they are built once and left.
+ */
+void G_Module_Shutdown(void);
+
 #endif

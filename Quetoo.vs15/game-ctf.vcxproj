@@ -29,6 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\game\ctf\bg_item.c" />
+    <ClCompile Include="..\src\game\ctf\g_module.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9d657586-69f6-54fd-9a93-118a9fdcd4de}</ProjectGuid>

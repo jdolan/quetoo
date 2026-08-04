@@ -206,5 +206,8 @@
     <ClCompile Include="..\src\game\default\bg_item.c">
       <Filter>src\default</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\game\default\g_module.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

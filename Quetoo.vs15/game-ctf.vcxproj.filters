@@ -230,5 +230,8 @@
     <ClCompile Include="..\src\game\ctf\bg_item.c">
       <Filter>src\ctf</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\game\ctf\g_module.c">
+      <Filter>src\ctf</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

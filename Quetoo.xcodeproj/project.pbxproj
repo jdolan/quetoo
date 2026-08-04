@@ -799,6 +799,8 @@
 		CEFEEE0000000000000000F3 /* g_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000F1 /* g_inventory.c */; };
 		CEFEEE00000000000000A102 /* g_rules.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE00000000000000A101 /* g_rules.c */; };
 		CEFEEE00000000000000A103 /* g_rules.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE00000000000000A101 /* g_rules.c */; };
+		CEFEEE00000000000000B102 /* g_module.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE00000000000000B101 /* g_module.c */; };
+		CEFEEE00000000000000B104 /* g_module.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE00000000000000B103 /* g_module.c */; };
 		CEFF1297277D439B001E1500 /* g_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1295277D439B001E1500 /* g_sound.h */; };
 		CEFF1298277D439B001E1500 /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
 		CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
@@ -2075,6 +2077,8 @@
 		CEFEEE0000000000000000C3 /* g_tech_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_tech_types.h; sourceTree = "<group>"; };
 		CEFEEE0000000000000000F1 /* g_inventory.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_inventory.c; sourceTree = "<group>"; };
 		CEFEEE00000000000000A101 /* g_rules.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_rules.c; sourceTree = "<group>"; };
+		CEFEEE00000000000000B101 /* g_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_module.c; sourceTree = "<group>"; };
+		CEFEEE00000000000000B103 /* g_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_module.c; sourceTree = "<group>"; };
 		CEFF1295277D439B001E1500 /* g_sound.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_sound.h; sourceTree = "<group>"; };
 		CEFF1296277D439B001E1500 /* g_sound.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_sound.c; sourceTree = "<group>"; };
 		CEFF1376277FB721001E1500 /* TeamPlayerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamPlayerView.c; sourceTree = "<group>"; };
@@ -2890,6 +2894,7 @@
 			children = (
 				F7E7256984E276048C2A155E /* bg_item.h */,
 				7966EA6596003F9303BC00FA /* bg_item.c */,
+				CEFEEE00000000000000B101 /* g_module.c */,
 				CE12D6631C5C58C300CD0B13 /* g_local.h */,
 				CE12D66C1C5C58C300CD0B13 /* g_types.h */,
 				CE12D6711C5C58C300CD0B13 /* Makefile.am */,
@@ -3604,14 +3609,24 @@
 				CE27E9F627BDA2AE003D56AC /* g_ai_types.h */,
 				CE12D6481C5C58C300CD0B13 /* g_ballistics.h */,
 				CE12D6471C5C58C300CD0B13 /* g_ballistics.c */,
+				CE12D64A1C5C58C300CD0B13 /* g_client.h */,
+				CE12D6491C5C58C300CD0B13 /* g_client.c */,
 				CE12D64C1C5C58C300CD0B13 /* g_client_chase.h */,
 				CE12D64B1C5C58C300CD0B13 /* g_client_chase.c */,
+				CE12D64E1C5C58C300CD0B13 /* g_client_stats.h */,
+				CE12D64D1C5C58C300CD0B13 /* g_client_stats.c */,
 				CE12D6501C5C58C300CD0B13 /* g_client_view.h */,
 				CE12D64F1C5C58C300CD0B13 /* g_client_view.c */,
+				CE12D6521C5C58C300CD0B13 /* g_cmd.h */,
+				CE12D6511C5C58C300CD0B13 /* g_cmd.c */,
 				CE12D6541C5C58C300CD0B13 /* g_combat.h */,
 				CE12D6531C5C58C300CD0B13 /* g_combat.c */,
+				CEC0FA002026010800000003 /* g_ctf.h */,
+				CEC0FA002026010800000001 /* g_ctf.c */,
 				CEC011002026010200000003 /* g_effect.h */,
 				CEC011002026010200000001 /* g_effect.c */,
+				CE12D6561C5C58C300CD0B13 /* g_entity.h */,
+				CE12D6551C5C58C300CD0B13 /* g_entity.c */,
 				CE12D6581C5C58C300CD0B13 /* g_entity_func.h */,
 				CE12D6571C5C58C300CD0B13 /* g_entity_func.c */,
 				CE12D65A1C5C58C300CD0B13 /* g_entity_info.h */,
@@ -3622,37 +3637,27 @@
 				CE12D65D1C5C58C300CD0B13 /* g_entity_target.c */,
 				CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */,
 				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
-				CEC0FA002026010800000003 /* g_ctf.h */,
-				CEC0FA002026010800000001 /* g_ctf.c */,
 				CEC011002026010200000007 /* g_hook.h */,
 				CEC011002026010200000005 /* g_hook.c */,
 				CEC011002026010200000009 /* g_hook_types.h */,
-				CEFEEE0000000000000000C1 /* g_tech.c */,
-				CEFEEE0000000000000000C2 /* g_tech.h */,
-				CEFEEE0000000000000000C3 /* g_tech_types.h */,
-				CEC0FB002026010700000001 /* g_module.h */,
 				CEFEEE0000000000000000F1 /* g_inventory.c */,
+				CE12D6621C5C58C300CD0B13 /* g_item.h */,
+				CE12D6611C5C58C300CD0B13 /* g_item.c */,
+				CE12D6651C5C58C300CD0B13 /* g_main.h */,
+				CE12D6641C5C58C300CD0B13 /* g_main.c */,
+				CEC0FB002026010700000001 /* g_module.h */,
 				CE12D66B1C5C58C300CD0B13 /* g_physics.h */,
 				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
 				CEFEEE00000000000000A101 /* g_rules.c */,
-				CE12D6641C5C58C300CD0B13 /* g_main.c */,
-				CE12D6651C5C58C300CD0B13 /* g_main.h */,
-				CE12D66F1C5C58C300CD0B13 /* g_weapon.c */,
-				CE12D6701C5C58C300CD0B13 /* g_weapon.h */,
-				CE12D64D1C5C58C300CD0B13 /* g_client_stats.c */,
-				CE12D64E1C5C58C300CD0B13 /* g_client_stats.h */,
-				CE12D6511C5C58C300CD0B13 /* g_cmd.c */,
-				CE12D6521C5C58C300CD0B13 /* g_cmd.h */,
-				CE12D6611C5C58C300CD0B13 /* g_item.c */,
-				CE12D6621C5C58C300CD0B13 /* g_item.h */,
-				CE12D6551C5C58C300CD0B13 /* g_entity.c */,
-				CE12D6561C5C58C300CD0B13 /* g_entity.h */,
-				CE12D6491C5C58C300CD0B13 /* g_client.c */,
-				CE12D64A1C5C58C300CD0B13 /* g_client.h */,
 				CEFF1295277D439B001E1500 /* g_sound.h */,
 				CEFF1296277D439B001E1500 /* g_sound.c */,
+				CEFEEE0000000000000000C2 /* g_tech.h */,
+				CEFEEE0000000000000000C1 /* g_tech.c */,
+				CEFEEE0000000000000000C3 /* g_tech_types.h */,
 				CE12D66E1C5C58C300CD0B13 /* g_util.h */,
 				CE12D66D1C5C58C300CD0B13 /* g_util.c */,
+				CE12D6701C5C58C300CD0B13 /* g_weapon.h */,
+				CE12D66F1C5C58C300CD0B13 /* g_weapon.c */,
 			);
 			path = common;
 			sourceTree = "<group>";
@@ -3663,6 +3668,7 @@
 				CEC0FF002026010300000005 /* bg_item.h */,
 				CEC0FF002026010300000004 /* bg_item.c */,
 				CEC0FF002026010300000029 /* g_local.h */,
+				CEFEEE00000000000000B103 /* g_module.c */,
 				CEC0FF00202601030000002C /* g_types.h */,
 				CEC0FF002026010300000003 /* Makefile.am */,
 			);
@@ -4976,6 +4982,7 @@
 				CEFF1298277D439B001E1500 /* g_sound.c in Sources */,
 				CE12D7E51C5C5D6A00CD0B13 /* g_util.c in Sources */,
 				08962C395D0FB0E620F78625 /* bg_item.c in Sources */,
+				CEFEEE00000000000000B102 /* g_module.c in Sources */,
 				CE12D7D41C5C5D6A00CD0B13 /* g_client.c in Sources */,
 				CE12D7D61C5C5D6A00CD0B13 /* g_client_stats.c in Sources */,
 				CE12D7D81C5C5D6A00CD0B13 /* g_cmd.c in Sources */,
@@ -5395,6 +5402,7 @@
 				CEFEEE0000000000000000D1 /* g_tech.c in Sources */,
 				CEC0FF002026010300000101 /* g_util.c in Sources */,
 				CEC0FF0020260103000000D6 /* bg_item.c in Sources */,
+				CEFEEE00000000000000B104 /* g_module.c in Sources */,
 				CEC0FF0020260103000000F6 /* g_client.c in Sources */,
 				CEC0FF0020260103000000F8 /* g_client_stats.c in Sources */,
 				CEC0FF0020260103000000FA /* g_cmd.c in Sources */,

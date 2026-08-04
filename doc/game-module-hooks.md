@@ -61,7 +61,12 @@ Pick by what kind of difference it is. In rough order of preference:
    feature installing it does not call super. Nothing enforces that, so the
    docblock on the hook MUST say which kind it is.
 
-A fifth option always remains: **override the whole file**. `vpath` resolves a
+5. **A contract.** A plain function declared in `g_module.h` that every module
+   defines, where the module is the only possible answer. There are two:
+   `G_Module_Init` and `G_Module_Shutdown`. A missing definition is a link error,
+   which is how a new module finds out what it owes.
+
+One more option always remains: **override the whole file**. `vpath` resolves a
 module's own copy ahead of common's, so forking one file is a bounded, per-file
 decision rather than a per-module one. Use it when a file resists everything
 else.
@@ -283,11 +288,52 @@ sides of the wire from disagreeing; a define set that differs between a module's
 game and cgame is the layout fault described above, and it would present as a
 network fault rather than a build failure.
 
+### Where a mod installs its own hooks
+
+`G_Init` lives in `common/g_main.c` now, and it calls each shipped feature behind
+its own define:
+
+```c
+#if defined(G_HOOK)
+  G_Hook_Init();
+#endif
+#if defined(G_TECH)
+  G_Tech_Init();
+#endif
+#if defined(G_CTF)
+  G_Ctf_Init();
+#endif
+
+  G_Module_Init();
+```
+
+A mod Quetoo does not ship cannot add a line to that list, and a guard named
+after it could never be committed here, so **`G_Module_Init` is the seam it owns**:
+declared in `g_module.h`, defined by every module in its own `src/game/<mod>/g_module.c`,
+and called last. Without it a mod could compose the features common ships but
+could not add behaviour of its own without forking `g_main.c`, which is the fork
+this whole exercise removed.
+
+Being called last means a module's hooks sit at the head of every chain, so they
+may wrap a shipped feature rather than only precede the tail. `default` and `ctf`
+both define it empty, because everything they do is either a common feature or the
+default itself.
+
+`G_Module_Shutdown` pairs with it, called from `G_Shutdown` before the game's
+memory tags are freed so a module can still touch what it allocated. It is for
+resources, and it **MUST NOT uninstall hooks**: `G_Init` and `G_Shutdown` run on
+every server initialization, while a hook installs exactly once per module image
+behind its `installed` guard, so uninstalling would tear a link out of a chain the
+next `G_Init` declines to rebuild. Chains are built once and left. That asymmetry
+is the same one that makes the `installed` guard necessary in the first place, seen
+from the other end.
+
 ### What is left
 
 1. **Lithium.** A `Makefile.am`, a `g_types.h`, a `bg_item.{c,h}`, a
-   `cg_team_mode.c`, and whichever of `-DG_CTF -DG_HOOK -DG_TECH` it wants.
-   Nothing else, which is the point.
+   `g_module.c`, a `cg_team_mode.c`, and whichever of `-DG_CTF -DG_HOOK -DG_TECH`
+   it wants. Nothing else, which is the point: anything it invents goes in its own
+   sources and installs from its `G_Module_Init`.
 2. **Recombining `common` and `default`.** `default` is now an empty shell over
    `common`, so the two could merge and let `ctf` and friends override `default`
    directly. The `_Default` naming already assumes this. It changes nothing about

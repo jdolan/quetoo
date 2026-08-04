@@ -855,8 +855,6 @@ void G_InitNumTeams(void) {
  */
 void G_Init(void) {
 
-  // chain order is installation order, so the order of these is part of the
-  // module's behaviour
 #if defined(G_HOOK)
   G_Hook_Init();
 #endif
@@ -868,6 +866,8 @@ void G_Init(void) {
 #if defined(G_CTF)
   G_Ctf_Init();
 #endif
+
+  G_Module_Init();
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
     ge.clients[i] = gi.Malloc(sizeof(g_client_t), MEM_TAG_GAME);
@@ -1075,7 +1075,9 @@ void G_Init(void) {
 void G_Shutdown(void) {
 
   gi.Print("Game module shutdown...\n");
-  
+
+  G_Module_Shutdown();
+
   G_Ai_Shutdown();
 
   gi.FreeTag(MEM_TAG_GAME_LEVEL);

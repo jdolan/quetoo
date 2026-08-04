@@ -43,6 +43,7 @@ game_la_SOURCES = \
 	g_entity_trigger.c \
 	g_item.c \
 	g_main.c \
+	g_module.c \
 	g_physics.c \
 	g_rules.c \
 	g_sound.c \
