@@ -188,6 +188,8 @@ static void Cg_Init(void) {
 
   Cg_InitDiscord();
 
+  Cg_Module_Init();
+
   cgi.Print("Client game module initialized\n");
 }
 
@@ -203,6 +205,8 @@ static void Cg_Shutdown(void) {
   Cg_ShutdownUi();
 
   Cg_ShutdownDiscord();
+
+  Cg_Module_Shutdown();
 
   cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
   cgi.FreeTag(MEM_TAG_CGAME);

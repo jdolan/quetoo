@@ -199,6 +199,7 @@
 		CE05B3F030224900C0DE0017 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5791C5C58C300CD0B13 /* cg_score.c */; };
 		CE05B3F030224900C0DE0018 /* cg_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDD1B525A0C2710055860E /* cg_sound.c */; };
 		CE05B3F030224900C0DE0019 /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
+		CE05B3FC30224E3E0012870B /* cg_module.c in Sources */ = {isa = PBXBuildFile; fileRef = CE05B3FC30224E3E0012870A /* cg_module.c */; };
 		CE05B3F030224900C0DE001A /* cg_team_mode.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000008D /* cg_team_mode.c */; };
 		CE05B3F030224900C0DE001B /* cg_temp_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */; };
 		CE05B3F030224900C0DE001C /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
@@ -254,6 +255,7 @@
 		CE05B3F030224900C0DE004E /* cg_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D56E1C5C58C300CD0B13 /* cg_local.h */; };
 		CE05B3F030224900C0DE004F /* cg_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5701C5C58C300CD0B13 /* cg_main.h */; };
 		CE05B3F030224900C0DE0050 /* cg_media.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0B13 /* cg_media.h */; };
+		CE05B3F030224900C0DEAC21 /* cg_module.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0C21 /* cg_module.h */; };
 		CE05B3F030224900C0DE0051 /* cg_muzzle_flash.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */; };
 		CE05B3F030224900C0DE0052 /* cg_predict.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5781C5C58C300CD0B13 /* cg_predict.h */; };
 		CE05B3F030224900C0DE0053 /* cg_score.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57A1C5C58C300CD0B13 /* cg_score.h */; };
@@ -543,6 +545,7 @@
 		CE80FE9D1C5E445500A21A51 /* cg_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D56E1C5C58C300CD0B13 /* cg_local.h */; };
 		CE80FE9E1C5E445500A21A51 /* cg_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5701C5C58C300CD0B13 /* cg_main.h */; };
 		CE80FE9F1C5E445500A21A51 /* cg_media.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0B13 /* cg_media.h */; };
+		CE80FE9F1C5E445500A2AC21 /* cg_module.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0C21 /* cg_module.h */; };
 		CE80FEA01C5E445500A21A51 /* cg_muzzle_flash.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */; };
 		CE80FEA21C5E445500A21A51 /* cg_predict.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5781C5C58C300CD0B13 /* cg_predict.h */; };
 		CE80FEA31C5E445500A21A51 /* cg_score.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57A1C5C58C300CD0B13 /* cg_score.h */; };
@@ -720,6 +723,7 @@
 		CEC011002026010200000002 /* g_effect.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000001 /* g_effect.c */; };
 		CEC011002026010200000004 /* g_effect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000003 /* g_effect.h */; };
 		CEC01100202601020000000E /* cg_team_mode.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC01100202601020000000D /* cg_team_mode.h */; };
+		CE12D55D1C5C58C300CD0C12 /* cg_module.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D55D1C5C58C300CD0C11 /* cg_module.c */; };
 		CEC011002026010200000010 /* cg_team_mode.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC01100202601020000000F /* cg_team_mode.c */; };
 		CEC0FA002026010800000004 /* g_ctf.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FA002026010800000003 /* g_ctf.h */; };
 		CEC0FD002026010500000002 /* cg_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D56C1C5C58C300CD0B13 /* cg_hud.c */; };
@@ -852,6 +856,7 @@
 		CEC0FF0020260103000001F1 /* cg_predict.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5771C5C58C300CD0B13 /* cg_predict.c */; };
 		CEC0FF0020260103000001F3 /* cg_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDD1B525A0C2710055860E /* cg_sound.c */; };
 		CEC0FF0020260103000001F4 /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
+		CEC0FF0020260103000000A2 /* cg_module.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF0020260103000000A1 /* cg_module.c */; };
 		CEC0FF0020260103000001F5 /* cg_team_mode.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000008D /* cg_team_mode.c */; };
 		CEC0FF0020260103000001F6 /* cg_temp_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */; };
 		CEC0FF0020260103000001F7 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
@@ -873,6 +878,7 @@
 		CEC0FF002026010300000208 /* cg_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D56E1C5C58C300CD0B13 /* cg_local.h */; };
 		CEC0FF002026010300000209 /* cg_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5701C5C58C300CD0B13 /* cg_main.h */; };
 		CEC0FF00202601030000020A /* cg_media.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0B13 /* cg_media.h */; };
+		CEC0FF002026010300000AC2 /* cg_module.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0C21 /* cg_module.h */; };
 		CEC0FF00202601030000020B /* cg_muzzle_flash.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */; };
 		CEC0FF00202601030000020C /* cg_predict.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5781C5C58C300CD0B13 /* cg_predict.h */; };
 		CEC0FF00202601030000020E /* cg_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEBDD1B425A0C2710055860E /* cg_sound.h */; };
@@ -1528,6 +1534,7 @@
 		CE05B283302248070012862B /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE05B2D53022486E0012862B /* game-lithium.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "game-lithium.so"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE05B3F030224900C0DE0930 /* cgame.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; name = cgame.so; path = "cgame-lithium.so"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE05B3FC30224E3E0012870A /* cg_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_module.c; sourceTree = "<group>"; };
 		CE05B3FC30224E3E0012862B /* cg_team_mode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_team_mode.c; sourceTree = "<group>"; };
 		CE05B40930224E3E0012862B /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE0C0751260CC75700FFE27B /* box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = box.h; sourceTree = "<group>"; };
@@ -1564,6 +1571,7 @@
 		CE12D5701C5C58C300CD0B13 /* cg_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_main.h; sourceTree = "<group>"; };
 		CE12D5711C5C58C300CD0B13 /* cg_media.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_media.c; sourceTree = "<group>"; };
 		CE12D5721C5C58C300CD0B13 /* cg_media.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_media.h; sourceTree = "<group>"; };
+		CE12D5721C5C58C300CD0C21 /* cg_module.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_module.h; sourceTree = "<group>"; };
 		CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_muzzle_flash.c; sourceTree = "<group>"; };
 		CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_muzzle_flash.h; sourceTree = "<group>"; };
 		CE12D5771C5C58C300CD0B13 /* cg_predict.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = cg_predict.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
@@ -2202,6 +2210,7 @@
 		CEC011002026010200000007 /* g_hook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_hook.h; sourceTree = "<group>"; };
 		CEC011002026010200000009 /* bg_hook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_hook.h; sourceTree = "<group>"; };
 		CEC01100202601020000000D /* cg_team_mode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_team_mode.h; sourceTree = "<group>"; };
+		CE12D55D1C5C58C300CD0C11 /* cg_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_module.c; sourceTree = "<group>"; };
 		CEC01100202601020000000F /* cg_team_mode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_team_mode.c; sourceTree = "<group>"; };
 		CEC0FA002026010800000001 /* g_ctf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ctf.c; sourceTree = "<group>"; };
 		CEC0FA002026010800000003 /* g_ctf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ctf.h; sourceTree = "<group>"; };
@@ -2213,6 +2222,7 @@
 		CEC0FF002026010300000005 /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
 		CEC0FF00202601030000002C /* g_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_types.h; sourceTree = "<group>"; };
 		CEC0FF002026010300000061 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CEC0FF0020260103000000A1 /* cg_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_module.c; sourceTree = "<group>"; };
 		CEC0FF00202601030000008D /* cg_team_mode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_team_mode.c; sourceTree = "<group>"; };
 		CEC0FF0020260103000000EA /* game-ctf.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "game-ctf.so"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEC0FF0020260103000001D4 /* cgame.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; name = cgame.so; path = "cgame-ctf.so"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2759,6 +2769,7 @@
 		CE05B40B30224E3E0012862B /* lithium */ = {
 			isa = PBXGroup;
 			children = (
+				CE05B3FC30224E3E0012870A /* cg_module.c */,
 				CE05B3FC30224E3E0012862B /* cg_team_mode.c */,
 				CE05B40930224E3E0012862B /* Makefile.am */,
 			);
@@ -2874,6 +2885,7 @@
 		CE12D55D1C5C58C300CD0B13 /* default */ = {
 			isa = PBXGroup;
 			children = (
+				CE12D55D1C5C58C300CD0C11 /* cg_module.c */,
 				CEC01100202601020000000F /* cg_team_mode.c */,
 				CE12D5801C5C58C300CD0B13 /* Makefile.am */,
 			);
@@ -3802,6 +3814,7 @@
 				CE12D5701C5C58C300CD0B13 /* cg_main.h */,
 				CE12D56F1C5C58C300CD0B13 /* cg_main.c */,
 				CE12D5721C5C58C300CD0B13 /* cg_media.h */,
+				CE12D5721C5C58C300CD0C21 /* cg_module.h */,
 				CE12D5711C5C58C300CD0B13 /* cg_media.c */,
 				CE12D5741C5C58C300CD0B13 /* cg_muzzle_flash.h */,
 				CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */,
@@ -3913,6 +3926,7 @@
 		CEC0FF00202601030000005F /* ctf */ = {
 			isa = PBXGroup;
 			children = (
+				CEC0FF0020260103000000A1 /* cg_module.c */,
 				CEC0FF00202601030000008D /* cg_team_mode.c */,
 				CEC0FF002026010300000061 /* Makefile.am */,
 			);
@@ -4030,6 +4044,7 @@
 				CE05B3F030224900C0DE004E /* cg_local.h in Headers */,
 				CE05B3F030224900C0DE004F /* cg_main.h in Headers */,
 				CE05B3F030224900C0DE0050 /* cg_media.h in Headers */,
+				CE05B3F030224900C0DEAC21 /* cg_module.h in Headers */,
 				CE05B3F030224900C0DE0051 /* cg_muzzle_flash.h in Headers */,
 				CE05B3F030224900C0DE0052 /* cg_predict.h in Headers */,
 				CE05B3F030224900C0DE0053 /* cg_score.h in Headers */,
@@ -4100,6 +4115,7 @@
 				CE80FE9D1C5E445500A21A51 /* cg_local.h in Headers */,
 				CE80FE9E1C5E445500A21A51 /* cg_main.h in Headers */,
 				CE80FE9F1C5E445500A21A51 /* cg_media.h in Headers */,
+				CE80FE9F1C5E445500A2AC21 /* cg_module.h in Headers */,
 				CE80FEA01C5E445500A21A51 /* cg_muzzle_flash.h in Headers */,
 				CE80FEA21C5E445500A21A51 /* cg_predict.h in Headers */,
 				CE80FEA31C5E445500A21A51 /* cg_score.h in Headers */,
@@ -4339,6 +4355,7 @@
 				CEC0FF002026010300000208 /* cg_local.h in Headers */,
 				CEC0FF002026010300000209 /* cg_main.h in Headers */,
 				CEC0FF00202601030000020A /* cg_media.h in Headers */,
+				CEC0FF002026010300000AC2 /* cg_module.h in Headers */,
 				CEC0FF00202601030000020B /* cg_muzzle_flash.h in Headers */,
 				CEC0FF00202601030000020C /* cg_predict.h in Headers */,
 				CEC0FD002026010500000008 /* cg_score.h in Headers */,
@@ -5428,6 +5445,7 @@
 				CE05B3F030224900C0DE0017 /* cg_score.c in Sources */,
 				CE05B3F030224900C0DE0018 /* cg_sound.c in Sources */,
 				CE05B3F030224900C0DE0019 /* cg_sprite.c in Sources */,
+				CE05B3FC30224E3E0012870B /* cg_module.c in Sources */,
 				CE05B3F030224900C0DE001A /* cg_team_mode.c in Sources */,
 				CE05B3F030224900C0DE001B /* cg_temp_entity.c in Sources */,
 				CE05B3F030224900C0DE001C /* cg_ui.c in Sources */,
@@ -5543,6 +5561,7 @@
 				CE12D7FC1C5C5E0200CD0B13 /* cg_score.c in Sources */,
 				CEBDD1B725A0C2710055860E /* cg_sound.c in Sources */,
 				CEAC32B9242124BB007E1253 /* cg_sprite.c in Sources */,
+				CE12D55D1C5C58C300CD0C12 /* cg_module.c in Sources */,
 				CEC011002026010200000010 /* cg_team_mode.c in Sources */,
 				CE12D7FD1C5C5E0200CD0B13 /* cg_temp_entity.c in Sources */,
 				CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */,
@@ -5963,6 +5982,7 @@
 				CEC0FD002026010500000006 /* cg_score.c in Sources */,
 				CEC0FF0020260103000001F3 /* cg_sound.c in Sources */,
 				CEC0FF0020260103000001F4 /* cg_sprite.c in Sources */,
+				CEC0FF0020260103000000A2 /* cg_module.c in Sources */,
 				CEC0FF0020260103000001F5 /* cg_team_mode.c in Sources */,
 				CEC0FF0020260103000001F6 /* cg_temp_entity.c in Sources */,
 				CEC0FF0020260103000001F7 /* cg_ui.c in Sources */,

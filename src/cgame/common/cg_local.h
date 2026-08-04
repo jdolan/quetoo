@@ -47,6 +47,7 @@
 #include "cg_light.h"
 #include "cg_main.h"
 #include "cg_media.h"
+#include "cg_module.h"
 #include "cg_muzzle_flash.h"
 #include "cg_predict.h"
 #include "cg_score.h"

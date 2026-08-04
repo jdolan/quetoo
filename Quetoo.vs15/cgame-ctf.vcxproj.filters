@@ -287,6 +287,9 @@
     <ClCompile Include="..\src\cgame\common\cg_score.c">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cgame\ctf\cg_module.c">
+      <Filter>src\ctf</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\cgame\ctf\cg_team_mode.c">
       <Filter>src\ctf</Filter>
     </ClCompile>
