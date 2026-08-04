@@ -795,8 +795,6 @@
 		CEFEEE0000000000000000D1 /* g_tech.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000C1 /* g_tech.c */; };
 		CEFEEE0000000000000000D2 /* g_tech.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000C2 /* g_tech.h */; };
 		CEFEEE0000000000000000D3 /* bg_tech.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000C3 /* bg_tech.h */; };
-		CEFEEE0000000000000000F2 /* g_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000F1 /* g_inventory.c */; };
-		CEFEEE0000000000000000F3 /* g_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000F1 /* g_inventory.c */; };
 		CEFEEE00000000000000A102 /* g_rules.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE00000000000000A101 /* g_rules.c */; };
 		CEFEEE00000000000000A103 /* g_rules.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE00000000000000A101 /* g_rules.c */; };
 		CEFEEE00000000000000B102 /* g_module.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE00000000000000B101 /* g_module.c */; };
@@ -2074,7 +2072,6 @@
 		CEFEEE0000000000000000C1 /* g_tech.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_tech.c; sourceTree = "<group>"; };
 		CEFEEE0000000000000000C2 /* g_tech.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_tech.h; sourceTree = "<group>"; };
 		CEFEEE0000000000000000C3 /* bg_tech.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_tech.h; sourceTree = "<group>"; };
-		CEFEEE0000000000000000F1 /* g_inventory.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_inventory.c; sourceTree = "<group>"; };
 		CEFEEE00000000000000A101 /* g_rules.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_rules.c; sourceTree = "<group>"; };
 		CEFEEE00000000000000B101 /* g_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_module.c; sourceTree = "<group>"; };
 		CEFEEE00000000000000B103 /* g_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_module.c; sourceTree = "<group>"; };
@@ -3639,8 +3636,7 @@
 				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
 				CEC011002026010200000007 /* g_hook.h */,
 				CEC011002026010200000005 /* g_hook.c */,
-				CEFEEE0000000000000000F1 /* g_inventory.c */,
-				CE12D6621C5C58C300CD0B13 /* g_item.h */,
+						CE12D6621C5C58C300CD0B13 /* g_item.h */,
 				CE12D6611C5C58C300CD0B13 /* g_item.c */,
 				CE12D6651C5C58C300CD0B13 /* g_main.h */,
 				CE12D6641C5C58C300CD0B13 /* g_main.c */,
@@ -4959,8 +4955,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CEFC7B8B1D9D2E9C000FA6B2 /* bg_pmove.c in Sources */,
-				CEFEEE0000000000000000F2 /* g_inventory.c in Sources */,
-				CEFEEE00000000000000A102 /* g_rules.c in Sources */,
+						CEFEEE00000000000000A102 /* g_rules.c in Sources */,
 				CE27E9FC27BDA2AE003D56AC /* g_ai_goal.c in Sources */,
 				CE4E05422FDAE2CE00B92C32 /* g_ai_grid.c in Sources */,
 				CE27E9FF27BDA2AE003D56AC /* g_ai_info.c in Sources */,
@@ -5376,8 +5371,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEFEEE0000000000000000F3 /* g_inventory.c in Sources */,
-				CEFEEE00000000000000A103 /* g_rules.c in Sources */,
+						CEFEEE00000000000000A103 /* g_rules.c in Sources */,
 				CEFEED000000000000000001 /* bg_pmove.c in Sources */,
 				CEC0FF0020260103000000EF /* g_ai_goal.c in Sources */,
 				CEC0FF0020260103000000F0 /* g_ai_grid.c in Sources */,

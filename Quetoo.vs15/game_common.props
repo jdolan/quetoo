@@ -48,7 +48,6 @@
     <ClInclude Include="..\src\game\common\g_entity_target.h" />
     <ClCompile Include="..\src\game\common\g_entity_trigger.c" />
     <ClInclude Include="..\src\game\common\g_entity_trigger.h" />
-    <ClCompile Include="..\src\game\common\g_inventory.c" />
     <ClInclude Include="..\src\game\common\g_module.h" />
     <ClCompile Include="..\src\game\common\g_rules.c" />
     <ClCompile Include="..\src\game\common\g_main.c" />

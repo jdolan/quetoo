@@ -112,8 +112,7 @@ extern InitMedia G_InitMedia;
 /**
  * @}
  * @defgroup hooks-items Items
- * @brief Placing items in the world, and what becomes of them. Tails in g_item.c,
- * except `ResetDroppedItem`, whose domain is the inventory it left.
+ * @brief Placing items in the world, and what becomes of them. Tails in g_item.c.
  * @{
  */
 
@@ -162,7 +161,7 @@ extern ResetItem G_ResetItem;
 /**
  * @}
  * @defgroup hooks-inventory Inventory
- * @brief Parting a client from what they are carrying. Tails in g_inventory.c.
+ * @brief Parting a client from what they are carrying. Tails in g_item.c.
  * @{
  */
 

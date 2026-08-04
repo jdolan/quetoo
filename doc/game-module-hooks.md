@@ -97,7 +97,7 @@ extern ResetDroppedItem G_ResetDroppedItem;
 ```
 
 ```c
-/* g_inventory.c — the domain file owns the tail of the chain */
+/* g_item.c — the domain file owns the tail of the chain */
 static void G_ResetDroppedItem_Default(g_entity_t *ent) {
   G_FreeEntity(ent);
 }
@@ -185,11 +185,20 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
 
 - **Declarations** (typedef + `extern`) go in `g_module.h`, so there is one
   authoritative list of every variation point.
-- **Tails** go in the domain file that owns the behaviour — `g_inventory.c` for
-  the inventory and dropping, `g_combat.c` for damage, `g_item.c` for items,
-  `g_rules.c` for the rules. Never a catch-all: `g_module.c` existed for exactly
-  two tails and was deleted, because a file that accumulates every hookable
-  function in the game is what this design exists to prevent.
+- **Tails** go in the domain file that owns the behaviour — `g_item.c` for items
+  and for parting a client from them, `g_combat.c` for damage, `g_entity.c` for the
+  level, `g_client.c` for movement, `g_rules.c` for the rules. Never a catch-all:
+  `g_module.c` existed for exactly two tails and was deleted, because a file that
+  accumulates every hookable function in the game is what this design exists to
+  prevent.
+- **A file invented to dodge the shadowing rule should not outlive it.**
+  `g_inventory.c` existed only because `src/game/common/g_item.c` was impossible
+  while each module still had one; it held three hook tails whose neighbours were
+  all in `g_item.c`, one of which did nothing but call a function 170 lines away in
+  that file. Once `g_item.c` became common the reason was gone, so the file is too.
+  The name borrowed its justification from `cg_inventory.c`, but that is a real
+  subsystem — the client's read-only view for the HUD — whereas the game's
+  "inventory" is an array on the client that item code writes.
 - `g_local.h` is common, like `cg_local.h` always was. What made it look
   per-module was `GAME_NAME`, which is manifest and now sits in `g_types.h` beside
   `PROTOCOL_MINOR`, and the optional feature headers, which are guards like any
@@ -198,8 +207,9 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
 - A common file cannot share a name with a file that still exists in *any*
   module, because `vpath` resolves the module's own copy first. That is why the
   order of work is always: make both copies identical, delete both, then add the
-  one in common. `g_inventory.c` got its name because `g_item.c` was still forked
-  at the time; it parallels `cg_inventory.c` on the client side, so it stays.
+  one in common. This is worth knowing in both directions: `g_inventory.c` was
+  invented to dodge the rule while `g_item.c` was still forked, and outlived its
+  reason by three commits.
 
 ## State of the work
 
@@ -217,9 +227,9 @@ switches on.
 
 | hook | tail lives in | installed by |
 | --- | --- | --- |
-| `ResetDroppedItem` | `g_inventory.c` | ctf, techs |
-| `DropInventoryItem` | `g_inventory.c` | ctf, techs |
-| `TossInventory` | `g_inventory.c` | ctf, techs, hook |
+| `ResetDroppedItem` | `g_item.c` | ctf, techs |
+| `DropInventoryItem` | `g_item.c` | ctf, techs |
+| `TossInventory` | `g_item.c` | ctf, techs, hook |
 | `ModifyDamage` | `g_combat.c` | techs |
 | `CheckCvars` | `g_rules.c` | ctf, techs, hook |
 | `CheckWinCondition` | `g_rules.c` | ctf |
@@ -387,9 +397,7 @@ from the other end.
    `common`, so the two could merge and let `ctf` and friends override `default`
    directly. The `_Default` naming already assumes this. It changes nothing about
    the manifest, which stays with each module either way.
-3. **`g_inventory.h`** still does not exist; add it when `G_AddAmmo`, `G_SetAmmo`,
-   `G_InitClientInventory` and `G_ClientInventoryThink` migrate there.
-4. **The manifest stays forked. That is the decision, not a deferral.** It is now
+3. **The manifest stays forked. That is the decision, not a deferral.** It is now
    the whole of the remaining duplication - measured:
 
    | file | lines | diverging |
