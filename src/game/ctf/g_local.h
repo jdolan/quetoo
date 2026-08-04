@@ -23,9 +23,10 @@
 
 #define __GAME_LOCAL_H__
 
-// this is the game name that we advertise to clients
+#include <Objectively/Vector.h>
+
 #if !defined(GAME_NAME)
-  #define GAME_NAME "default"
+  #define GAME_NAME "ctf"
 #endif
 
 #define G_Debug(...) ({ if (gi.DebugMask() & DEBUG_GAME) { gi.Debug_(DEBUG_GAME, __func__, __VA_ARGS__); } })
@@ -38,6 +39,7 @@
 #include "g_client_stats.h"
 #include "g_client_view.h"
 #include "g_client.h"
+#include "g_ctf.h"
 #include "g_effect.h"
 #include "g_hook.h"
 #include "g_cmd.h"
@@ -48,7 +50,6 @@
 #include "g_entity_target.h"
 #include "g_entity_trigger.h"
 #include "g_entity.h"
-#include "g_ctf.h"
 #include "g_item.h"
 #include "g_module.h"
 #include "g_main.h"
@@ -58,4 +59,3 @@
 #include "g_types.h"
 #include "g_util.h"
 #include "g_weapon.h"
-#include <Objectively/Vector.h>

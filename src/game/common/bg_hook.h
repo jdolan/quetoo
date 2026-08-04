@@ -30,12 +30,18 @@
  * `g_client_persistent_t`. The MSVS build sets QuetooGameHook and G_HOOK; the
  * Xcode build adds the source to the target and G_HOOK to its defines.
  *
- * @details This header is deliberately free of game types so that g_types.h
- * may include it before defining them. The hook owns everything else it needs:
- * its cvars, its media indices and its enabled state all live in g_hook.c.
- * The module supplies only this per-client state, plus the MOD_HOOK,
- * TE_HOOK_IMPACT and TRAIL_HOOK values, which are read off the wire by the
- * client game and so must be numbered by the module.
+ * @details This is `bg_` rather than `g_` because both sides use it: the game
+ * parses the style a client asked for, and the client game offers the choice.
+ * It is deliberately free of game types, both so that `g_types.h` may include it
+ * before defining them - `g_hook.h` cannot, because its own declarations need
+ * `g_client_t` - and so that the client game may include it at all. The hook owns
+ * everything else it needs: its cvars, its media indices and its enabled state
+ * all live in g_hook.c. The module supplies only this per-client state, plus the
+ * MOD_HOOK, TE_HOOK_IMPACT and TRAIL_HOOK values, which are read off the wire by
+ * the client game and so must be numbered by the module.
+ *
+ * There is no bg_hook.c, unlike bg_pmove and bg_item, because the two functions
+ * below are all the shared code there is; both sides still compile them.
  */
 
 struct g_entity_s;
@@ -74,3 +80,37 @@ typedef struct {
    */
   bool pull;
 } g_client_hook_t;
+
+/**
+ * @return The name of the given hook style, as the `g_hook_style` cvar and a
+ * client's `hook_style` user info spell it.
+ * @details The game parses these and the client game offers them, so they are
+ * declared once here rather than spelled out in a menu and a parser that must
+ * agree by inspection.
+ */
+static inline const char *Hook_StyleName(g_hook_style_t style) {
+
+  switch (style) {
+    case HOOK_SWING_MANUAL:
+      return "swing_manual";
+    case HOOK_SWING_AUTO:
+      return "swing_auto";
+    default:
+      return "pull";
+  }
+}
+
+/**
+ * @return The hook style of the given name, defaulting to `HOOK_PULL` for any
+ * name that is not one of them, including "default".
+ */
+static inline g_hook_style_t Hook_StyleByName(const char *name) {
+
+  for (g_hook_style_t style = HOOK_PULL; style <= HOOK_SWING_AUTO; style++) {
+    if (!q_strcmp(name, Hook_StyleName(style))) {
+      return style;
+    }
+  }
+
+  return HOOK_PULL;
+}

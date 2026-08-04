@@ -288,6 +288,28 @@ sides of the wire from disagreeing; a define set that differs between a module's
 game and cgame is the layout fault described above, and it would present as a
 network fault rather than a build failure.
 
+### `bg_` is for what both sides use
+
+`bg_pmove.{c,h}` and `bg_item.{c,h}` are compiled into the game *and* the client
+game, and that is what the prefix means. `g_types.h` is not `bg_` despite the
+client game including it, because it is the game module's own manifest, which the
+client game borrows wholesale - so the two prefixes are not in conflict.
+
+`bg_hook.h` and `bg_tech.h` were `g_hook_types.h` and `g_tech_types.h`. They exist
+because `g_types.h` must embed `g_client_hook_t` in `g_client_t`, and `g_hook.h`
+cannot be the source of it: `g_hook.h` includes `g_types.h` for the `g_client_t`
+its own declarations take, and `__GAME_LOCAL_H__` is defined for the whole
+translation unit, so folding the types into `g_hook.h` puts its declarations in
+front of the types they need. That is not a style choice, it is a cycle - it was
+tried, and the compiler says `unknown type name 'g_client_t'`.
+
+They are `bg_` rather than `g_` because both sides genuinely use them:
+`Hook_StyleName` and `Hook_StyleByName` live in `bg_hook.h`, so the three style
+names the client game offers in its menu are the same three the game parses out of
+a cvar and a client's user info, rather than two lists that must agree by
+inspection. There is no `bg_hook.c`, because those two functions are all the shared
+code there is.
+
 ### Where a mod installs its own hooks
 
 `G_Init` lives in `common/g_main.c` now, and it calls each shipped feature behind

@@ -26,8 +26,8 @@
 #include "shared/shared.h"
 #include "collision/cm_types.h"
 #include "bg_item.h"
-#include "game/common/g_hook_types.h"
-#include "game/common/g_tech_types.h"
+#include "game/common/bg_hook.h"
+#include "game/common/bg_tech.h"
 
 /**
  * @brief Game protocol version (protocol minor version). To be incremented

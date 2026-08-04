@@ -581,20 +581,6 @@ void G_HookThink(g_client_t *cl, const bool refire) {
 }
 
 /**
- * @return Get the `g_hook_style_t` this string describes.
- */
-g_hook_style_t G_HookStyleByName(const char *s) {
-  
-  if (!q_strcmp(s, "swing_manual")) {
-    return HOOK_SWING_MANUAL;
-  } else if (!q_strcmp(s, "swing_auto")) {
-    return HOOK_SWING_AUTO;
-  }
-
-  return HOOK_PULL;
-}
-
-/**
  * @brief Set the hook style of the player, respecting server properties.
  */
 void G_SetClientHookStyle(g_client_t *cl) {
@@ -607,9 +593,9 @@ void G_SetClientHookStyle(g_client_t *cl) {
 
   // respect user_info on default
   if (!q_strcmp(g_hook_style->string, "default")) {
-    hook_style = G_HookStyleByName(InfoString_Get(cl->persistent.user_info, "hook_style"));
+    hook_style = Hook_StyleByName(InfoString_Get(cl->persistent.user_info, "hook_style"));
   } else {
-    hook_style = G_HookStyleByName(g_hook_style->string);
+    hook_style = Hook_StyleByName(g_hook_style->string);
   }
 
   cl->persistent.hook_style = hook_style;

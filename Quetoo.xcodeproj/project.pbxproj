@@ -619,7 +619,7 @@
 		CEC0FF002026010300000125 /* g_entity_misc.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D65C1C5C58C300CD0B13 /* g_entity_misc.h */; };
 		CEC0FF002026010300000126 /* g_entity_target.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D65E1C5C58C300CD0B13 /* g_entity_target.h */; };
 		CEC0FF002026010300000127 /* g_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000007 /* g_hook.h */; };
-		CEC0FF002026010300000128 /* g_hook_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000009 /* g_hook_types.h */; };
+		CEC0FF002026010300000128 /* bg_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000009 /* bg_hook.h */; };
 		CEC0FF002026010300000129 /* g_physics.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66B1C5C58C300CD0B13 /* g_physics.h */; };
 		CEC0FF00202601030000012A /* g_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1295277D439B001E1500 /* g_sound.h */; };
 		CEC0FF00202601030000017E /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE32529B1F760D3F00512523 /* BindTextView.c */; };
@@ -794,7 +794,7 @@
 		CEFEED000000000000000005 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000004 /* bg_item.c */; };
 		CEFEEE0000000000000000D1 /* g_tech.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000C1 /* g_tech.c */; };
 		CEFEEE0000000000000000D2 /* g_tech.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000C2 /* g_tech.h */; };
-		CEFEEE0000000000000000D3 /* g_tech_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000C3 /* g_tech_types.h */; };
+		CEFEEE0000000000000000D3 /* bg_tech.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000C3 /* bg_tech.h */; };
 		CEFEEE0000000000000000F2 /* g_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000F1 /* g_inventory.c */; };
 		CEFEEE0000000000000000F3 /* g_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000F1 /* g_inventory.c */; };
 		CEFEEE00000000000000A102 /* g_rules.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE00000000000000A101 /* g_rules.c */; };
@@ -2010,7 +2010,7 @@
 		CEC011002026010200000003 /* g_effect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_effect.h; sourceTree = "<group>"; };
 		CEC011002026010200000005 /* g_hook.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_hook.c; sourceTree = "<group>"; };
 		CEC011002026010200000007 /* g_hook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_hook.h; sourceTree = "<group>"; };
-		CEC011002026010200000009 /* g_hook_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_hook_types.h; sourceTree = "<group>"; };
+		CEC011002026010200000009 /* bg_hook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_hook.h; sourceTree = "<group>"; };
 		CEC01100202601020000000D /* cg_team_mode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_team_mode.h; sourceTree = "<group>"; };
 		CEC01100202601020000000F /* cg_team_mode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_team_mode.c; sourceTree = "<group>"; };
 		CEC0FA002026010800000001 /* g_ctf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ctf.c; sourceTree = "<group>"; };
@@ -2074,7 +2074,7 @@
 		CEFD07FA2B671DE700642169 /* mesh_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = mesh_fs.glsl; sourceTree = "<group>"; };
 		CEFEEE0000000000000000C1 /* g_tech.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_tech.c; sourceTree = "<group>"; };
 		CEFEEE0000000000000000C2 /* g_tech.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_tech.h; sourceTree = "<group>"; };
-		CEFEEE0000000000000000C3 /* g_tech_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_tech_types.h; sourceTree = "<group>"; };
+		CEFEEE0000000000000000C3 /* bg_tech.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_tech.h; sourceTree = "<group>"; };
 		CEFEEE0000000000000000F1 /* g_inventory.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_inventory.c; sourceTree = "<group>"; };
 		CEFEEE00000000000000A101 /* g_rules.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_rules.c; sourceTree = "<group>"; };
 		CEFEEE00000000000000B101 /* g_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_module.c; sourceTree = "<group>"; };
@@ -3592,8 +3592,10 @@
 		CEC011002026010100000002 /* common */ = {
 			isa = PBXGroup;
 			children = (
+				CEC011002026010200000009 /* bg_hook.h */,
 				CE12D6421C5C58C300CD0B13 /* bg_pmove.h */,
 				CE12D6411C5C58C300CD0B13 /* bg_pmove.c */,
+				CEFEEE0000000000000000C3 /* bg_tech.h */,
 				CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */,
 				CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */,
 				CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */,
@@ -3639,7 +3641,6 @@
 				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
 				CEC011002026010200000007 /* g_hook.h */,
 				CEC011002026010200000005 /* g_hook.c */,
-				CEC011002026010200000009 /* g_hook_types.h */,
 				CEFEEE0000000000000000F1 /* g_inventory.c */,
 				CE12D6621C5C58C300CD0B13 /* g_item.h */,
 				CE12D6611C5C58C300CD0B13 /* g_item.c */,
@@ -3653,7 +3654,6 @@
 				CEFF1296277D439B001E1500 /* g_sound.c */,
 				CEFEEE0000000000000000C2 /* g_tech.h */,
 				CEFEEE0000000000000000C1 /* g_tech.c */,
-				CEFEEE0000000000000000C3 /* g_tech_types.h */,
 				CE12D66E1C5C58C300CD0B13 /* g_util.h */,
 				CE12D66D1C5C58C300CD0B13 /* g_util.c */,
 				CE12D6701C5C58C300CD0B13 /* g_weapon.h */,
@@ -3993,14 +3993,14 @@
 				CEC0FF00202601030000011B /* g_entity_trigger.h in Headers */,
 				CEC0FA002026010800000004 /* g_ctf.h in Headers */,
 				CEC0FF002026010300000127 /* g_hook.h in Headers */,
-				CEC0FF002026010300000128 /* g_hook_types.h in Headers */,
+				CEC0FF002026010300000128 /* bg_hook.h in Headers */,
 				CEC0FF00202601030000011C /* g_item.h in Headers */,
 				CEC0FF00202601030000011D /* g_local.h in Headers */,
 				CEC0FF00202601030000011E /* g_main.h in Headers */,
 				CEC0FF002026010300000129 /* g_physics.h in Headers */,
 				CEC0FF00202601030000012A /* g_sound.h in Headers */,
 				CEFEEE0000000000000000D2 /* g_tech.h in Headers */,
-				CEFEEE0000000000000000D3 /* g_tech_types.h in Headers */,
+				CEFEEE0000000000000000D3 /* bg_tech.h in Headers */,
 				CEC0FF00202601030000011F /* g_types.h in Headers */,
 				CEC0FF002026010300000120 /* g_util.h in Headers */,
 				CEC0FF002026010300000121 /* g_weapon.h in Headers */,

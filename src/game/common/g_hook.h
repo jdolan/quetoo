@@ -41,7 +41,6 @@ void G_Hook_CheckState(void);
 void G_HookDetach(g_client_t *cl);
 void G_HookThink(g_client_t *cl, const bool refire);
 g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir);
-g_hook_style_t G_HookStyleByName(const char *s);
 void G_SetClientHookStyle(g_client_t *cl);
 
 #endif /* __GAME_LOCAL_H__ */
