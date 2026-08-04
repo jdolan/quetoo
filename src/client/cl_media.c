@@ -31,6 +31,13 @@ static void Cl_CheckManifestEntry_(const HashTable *table, ident key, ident val,
   const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) val;
   if (Fs_Exists(entry->path)) {
     if (!Cm_CheckManifestEntry(entry)) {
+
+      // the bsp is the one asset a mismatch on is not cosmetic: the client
+      // predicts against its own collision model, so a different bsp desyncs
+      if (!q_strcmp(entry->path, cl.config_strings[CS_BSP])) {
+        Com_Error(ERROR_DROP, "%s differs from server (expected %s)\n", entry->path, entry->hash);
+      }
+
       Com_Warn("%s differs from server (expected %s)\n", entry->path, entry->hash);
     }
   } else {

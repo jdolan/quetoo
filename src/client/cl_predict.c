@@ -304,17 +304,10 @@ void Cl_UpdatePrediction(void) {
 
   // ensure the world model is loaded
   if (!Com_WasInit(QUETOO_SERVER) || cl.demo_server || !Cm_NumModels()) {
-    int64_t bs;
 
-    const char *bsp_name = cl.config_strings[CS_BSP];
-    const int64_t bsp_size = strtoll(cl.config_strings[CS_BSP_SIZE], NULL, 10);
-
-    Cm_LoadBspModel(bsp_name, &bs);
-
-    if (bs != bsp_size) {
-      Com_Error(ERROR_DROP, "Local map version differs from server: "
-                "%" PRId64 " != %" PRId64 "\n", bs, bsp_size);
-    }
+    // a bsp that differs from the server's is fatal in Cl_CheckManifestEntry_,
+    // which compares its hash rather than only its size
+    Cm_LoadBspModel(cl.config_strings[CS_BSP], NULL);
   }
 
   // load the BSP models for prediction as well

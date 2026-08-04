@@ -267,7 +267,6 @@ static void Sv_InitEntities(sv_state_t state) {
  * load the rest.
  */
 static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t state) {
-  int64_t bsp_size = -1;
 
   strcpy(sv.name, name);
   strcpy(sv.config_strings[CS_MESSAGE], name);
@@ -284,7 +283,7 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
 
     q_snprintf(sv.config_strings[CS_BSP], MAX_STRING_CHARS, "maps/%s.bsp", sv.name);
 
-    sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_BSP], &bsp_size);
+    sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_BSP], NULL);
 
     const char *dir = Fs_RealDir(sv.config_strings[CS_BSP]);
     const size_t dir_len = q_strlen(dir);
@@ -317,7 +316,6 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
     Com_Print("  Loaded map %s, %d entities.\n", sv.name, num_entities);
   }
 
-  q_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_STRING_CHARS, "%" PRId64, bsp_size);
 }
 
 /**
