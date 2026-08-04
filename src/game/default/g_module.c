@@ -23,7 +23,7 @@
 
 /**
  * @brief Plain deathmatch adds no behaviour of its own, and switches on none of
- * the optional features, so every hook runs its `_Default` tail.
+ * the optional features, so every hook runs its `_Common` tail.
  */
 void G_Module_Init(void) {
 }

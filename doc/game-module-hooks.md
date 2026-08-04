@@ -98,11 +98,11 @@ extern ResetDroppedItem G_ResetDroppedItem;
 
 ```c
 /* g_item.c — the domain file owns the tail of the chain */
-static void G_ResetDroppedItem_Default(g_entity_t *ent) {
+static void G_ResetDroppedItem_Common(g_entity_t *ent) {
   G_FreeEntity(ent);
 }
 
-ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Default;
+ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Common;
 ```
 
 ```c
@@ -132,9 +132,9 @@ which features a module builds:
 
 | module | chain |
 | --- | --- |
-| default | `_Default` |
-| ctf | flag → tech → `_Default` |
-| a techs-only mod | tech → `_Default` |
+| default | `_Common` |
+| ctf | ctf → tech → hook → `_Common` |
+| lithium | tech → hook → `_Common` |
 
 Neither feature mentions the other, and no module hand-writes a dispatcher.
 
@@ -176,9 +176,12 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
 - Feature implementation: the dispatch pointer with the feature suffixed —
   `G_ResetDroppedItem_Tech`, `G_DropInventoryItem_Flag`. Reading a call site's
   chain then only means grepping for the hook's name.
-- The tail of the chain: the dispatch pointer suffixed `_Default` —
-  `G_ResetDroppedItem_Default`. It is the answer the plain deathmatch module
-  gives, and the name it would keep if `common` folded back into `default`.
+- The tail of the chain: the dispatch pointer suffixed `_Common` —
+  `G_ResetDroppedItem_Common`. Every suffix names where an implementation *comes
+  from*, which is the whole rule: `_Ctf`, `_Hook`, `_Tech` name a feature, and
+  `_Common` names the shared sources. It is deliberately not `_Default`: the tails
+  live in `common` and serve every module, so naming them after one of the three
+  would invite the question of why default's code is in common.
 - Avoid a leading underscore: C reserves `_` followed by an uppercase letter.
 
 ### Where things live
@@ -273,10 +276,9 @@ The tail of each chain lives beside the code that calls it, never in a catch-all
 collects every hookable function in the game is the thing this design exists to
 avoid. `g_rules.c` is new, and owns the rules a module enforces.
 
-Every tail is named `G_TheHook_Default` and every installation
-`G_TheHook_Feature`, so the whole of a variation point is one grep. `_Default`
-is also what these become if `common` is ever folded back into `default` and
-mods override `default` directly.
+Every tail is named `G_TheHook_Common` and every installation
+`G_TheHook_Feature`, so the whole of a variation point is one grep, and the suffix
+always answers "where does this come from".
 
 ### What stayed a guard
 
@@ -420,10 +422,16 @@ from the other end.
    under autotools (see below); it has no `.vcxproj` pair and no Xcode targets, so
    it does not build on Windows and cannot be run from a scheme. That is project
    authoring, not design, and nothing about the pattern is waiting on it.
-2. **Recombining `common` and `default`.** `default` is now an empty shell over
-   `common`, so the two could merge and let `ctf` and friends override `default`
-   directly. The `_Default` naming already assumes this. It changes nothing about
-   the manifest, which stays with each module either way.
+2. **Do not merge `common` into `default`.** It looks tempting - `default` is a
+   shell of four files, and a shorter `vpath` would make the pattern read as "a mod
+   overrides default". It is a trap. `#include "..."` searches the *including
+   file's own directory* first, ahead of every `-I`, so a shared source living in
+   `default/` that includes `"g_types.h"` gets **default's** manifest - its wire
+   values, its item roster - while compiling ctf or lithium. Clean build, network
+   fault. Demonstrated: a probe in `default/` compiled with `-I ctf` first read
+   default's value. It works today only because `common/` holds no `g_types.h`, so
+   the quoted include falls through to `-I`. `common` is what makes per-module
+   manifests possible; it is not ceremony.
 3. **The manifest stays forked. That is the decision, not a deferral.** It is now
    the whole of the remaining duplication - measured:
 

@@ -333,12 +333,12 @@ g_entity_t *G_TossInvulnerability(g_client_t *cl) {
 /**
  * @brief The tail of the `G_TossInventory` chain, tossing the quad damage.
  */
-static void G_TossInventory_Default(g_client_t *cl) {
+static void G_TossInventory_Common(g_client_t *cl) {
 
   G_TossQuadDamage(cl);
 }
 
-TossInventory G_TossInventory = G_TossInventory_Default;
+TossInventory G_TossInventory = G_TossInventory_Common;
 
 /**
  * @brief Adds the given amount of ammo to the client's inventory, clamped to the item's maximum.
@@ -654,11 +654,11 @@ static bool G_PickupArmor(g_client_t *cl, g_entity_t *ent) {
  * has left the world. Features that would rather recycle it install over the
  * top.
  */
-static void G_ResetDroppedItem_Default(g_entity_t *ent) {
+static void G_ResetDroppedItem_Common(g_entity_t *ent) {
   G_FreeEntity(ent);
 }
 
-ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Default;
+ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Common;
 
 /**
  * @brief Sets the expiration timer and think function for a dropped item entity.
@@ -848,7 +848,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
  * @brief The tail of the `G_DropInventoryItem` chain, resolving the name
  * against the item list.
  */
-static void G_DropInventoryItem_Default(g_client_t *cl, const char *name) {
+static void G_DropInventoryItem_Common(g_client_t *cl, const char *name) {
   const g_item_t *it;
 
   // we don't drop in instagib or arena
@@ -905,7 +905,7 @@ static void G_DropInventoryItem_Default(g_client_t *cl, const char *name) {
   }
 }
 
-DropInventoryItem G_DropInventoryItem = G_DropInventoryItem_Default;
+DropInventoryItem G_DropInventoryItem = G_DropInventoryItem_Common;
 
 /**
  * @brief Use callback that reveals a hidden item and enables it for pickup.
@@ -929,7 +929,7 @@ static void G_UseItem(g_entity_t *ent, g_entity_t *other, g_entity_t *activator)
 /**
  * @brief Reset the item's interaction state based on the current game state.
  */
-static void G_ResetItem_Default(g_entity_t *ent) {
+static void G_ResetItem_Common(g_entity_t *ent) {
 
   ent->solid = SOLID_TRIGGER;
   ent->sv_flags &= ~SVF_NO_CLIENT;
@@ -960,17 +960,17 @@ static void G_ResetItem_Default(g_entity_t *ent) {
   gi.LinkEntity(ent);
 }
 
-ResetItem G_ResetItem = G_ResetItem_Default;
+ResetItem G_ResetItem = G_ResetItem_Common;
 
 /**
  * @brief The tail of the `G_InhibitItem` chain: arena and instagib play with
  * whatever the client spawns with.
  */
-static bool G_InhibitItem_Default(const g_entity_t *ent) {
+static bool G_InhibitItem_Common(const g_entity_t *ent) {
   return g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB;
 }
 
-InhibitItem G_InhibitItem = G_InhibitItem_Default;
+InhibitItem G_InhibitItem = G_InhibitItem_Common;
 
 /**
  * @brief Drops the specified item to the floor and sets up interaction
@@ -1203,7 +1203,7 @@ bool G_ItemAvailable(const g_item_t *item) {
  * @brief The tail of the `G_InitItem` chain, answering for the deathmatch item
  * types and erroring on any other.
  */
-static void G_InitItem_Default(g_item_t *it) {
+static void G_InitItem_Common(g_item_t *it) {
 
   switch (it->def.type) {
     case ITEM_TYPE_ARMOR:
@@ -1292,7 +1292,7 @@ static void G_InitItem_Default(g_item_t *it) {
 
 }
 
-InitItem G_InitItem = G_InitItem_Default;
+InitItem G_InitItem = G_InitItem_Common;
 
 /**
  * @brief Fills in an item's behaviour and indexes its media. The behaviour is a

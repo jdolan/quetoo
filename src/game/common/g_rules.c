@@ -30,16 +30,16 @@
  * @brief The tail of the `G_CheckCvars` chain. A module's own cvars are its own
  * business; this answers for the features it did not build.
  */
-static bool G_CheckCvars_Default(void) {
+static bool G_CheckCvars_Common(void) {
   return false;
 }
 
-CheckCvars G_CheckCvars = G_CheckCvars_Default;
+CheckCvars G_CheckCvars = G_CheckCvars_Common;
 
 /**
  * @brief The tail of the `G_CheckWinner` chain, playing for frags.
  */
-static bool G_CheckWinner_Default(void) {
+static bool G_CheckWinner_Common(void) {
 
   if (g_level.frag_limit) {
 
@@ -63,17 +63,17 @@ static bool G_CheckWinner_Default(void) {
   return false;
 }
 
-CheckWinner G_CheckWinner = G_CheckWinner_Default;
+CheckWinner G_CheckWinner = G_CheckWinner_Common;
 
 /**
  * @brief The tail of the `G_FormatGameName` chain, qualifying the gameplay with
  * team play when the module is playing it.
  */
-static void G_FormatGameName_Default(char *name, size_t size) {
+static void G_FormatGameName_Common(char *name, size_t size) {
 
   if (g_level.teams) {
     q_strlcpy(name, va("Team %s", name), size);
   }
 }
 
-FormatGameName G_FormatGameName = G_FormatGameName_Default;
+FormatGameName G_FormatGameName = G_FormatGameName_Common;

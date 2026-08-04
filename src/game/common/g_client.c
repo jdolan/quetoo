@@ -1524,12 +1524,12 @@ void G_PlayPmove(void) {
  * @brief The tail of the `G_PrepareMove` chain, handing the move the entity's
  * own velocity.
  */
-static void G_PrepareMove_Default(g_client_t *cl, pm_move_t *pm) {
+static void G_PrepareMove_Common(g_client_t *cl, pm_move_t *pm) {
 
   pm->s.velocity = cl->entity->velocity;
 }
 
-PrepareMove G_PrepareMove = G_PrepareMove_Default;
+PrepareMove G_PrepareMove = G_PrepareMove_Common;
 
 /**
  * @brief Process the movement command, call `Pm_Move` and act on the result.

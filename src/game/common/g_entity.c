@@ -234,7 +234,7 @@ static void G_InitEntityTeams(void) {
 /**
  * @brief Resolves references to frequently accessed media.
  */
-static void G_InitMedia_Default(void) {
+static void G_InitMedia_Common(void) {
   uint16_t i;
 
   memset(&g_media, 0, sizeof(g_media));
@@ -328,7 +328,7 @@ static void G_InitMedia_Default(void) {
   g_media.images.health = gi.ImageIndex("pics/i_health");
 }
 
-InitMedia G_InitMedia = G_InitMedia_Default;
+InitMedia G_InitMedia = G_InitMedia_Common;
 
 
 /**
@@ -428,10 +428,10 @@ static void G_InitSpawnPoints(void) {
  * @brief The tail of the `G_ConfigureLevel` chain. Deathmatch reads everything
  * it needs from the worldspawn itself.
  */
-static void G_ConfigureLevel_Default(void) {
+static void G_ConfigureLevel_Common(void) {
 }
 
-ConfigureLevel G_ConfigureLevel = G_ConfigureLevel_Default;
+ConfigureLevel G_ConfigureLevel = G_ConfigureLevel_Common;
 
 /**
  * @brief Spawns game entities from the BSP entity definition lump.

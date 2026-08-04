@@ -244,7 +244,7 @@ static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
  * @brief The tail of the `G_ModifyDamage` chain, applying the quad damage
  * powerup. Features holding their own modifiers install over the top.
  */
-static void G_ModifyDamage_Default(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback) {
+static void G_ModifyDamage_Common(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback) {
 
   if (attacker->client) {
     if (attacker->client->inventory[POWERUP_QUAD]) {
@@ -254,7 +254,7 @@ static void G_ModifyDamage_Default(g_entity_t *target, g_entity_t *attacker, int
   }
 }
 
-ModifyDamage G_ModifyDamage = G_ModifyDamage_Default;
+ModifyDamage G_ModifyDamage = G_ModifyDamage_Common;
 
 /**
  * @brief Damage routine. The inflictor imparts damage on the target on behalf
