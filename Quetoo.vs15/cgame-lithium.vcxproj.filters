@@ -290,7 +290,7 @@
     <ClCompile Include="..\src\cgame\lithium\cg_module.c">
       <Filter>src\lithium</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\ctf\cg_team_mode.c">
+    <ClCompile Include="..\src\cgame\lithium\cg_team_mode.c">
       <Filter>src\lithium</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\cg_client.c">

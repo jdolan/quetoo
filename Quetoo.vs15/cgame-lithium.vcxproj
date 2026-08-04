@@ -27,7 +27,7 @@
     <ClCompile Include="..\src\game\lithium\bg_item.c" />
     <ClCompile Include="..\src\game\common\bg_pmove.c" />
     <ClCompile Include="..\src\cgame\lithium\cg_module.c" />
-    <ClCompile Include="..\src\cgame\ctf\cg_team_mode.c" />
+    <ClCompile Include="..\src\cgame\lithium\cg_team_mode.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2b8d4ea1-5c63-4f9f-a042-7d3e6b9f8c12}</ProjectGuid>
@@ -63,7 +63,7 @@
            These are per project rather than in QuetooFullIncludePath because
            every module has a cg_local.h and a g_types.h: one global list
            would make them ambiguous. -->
-      <AdditionalIncludeDirectories>..\src\cgame\ctf;..\src\cgame\common;..\src\cgame\common\ui;..\src\cgame\common\ui\controls;..\src\cgame\common\ui\credits;..\src\cgame\common\ui\editor;..\src\cgame\common\ui\home;..\src\cgame\common\ui\main;..\src\cgame\common\ui\play;..\src\cgame\common\ui\settings;..\src\cgame\common\ui\teams;..\src\cgame;..\src\game\lithium;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\cgame\lithium;..\src\cgame\common;..\src\cgame\common\ui;..\src\cgame\common\ui\controls;..\src\cgame\common\ui\credits;..\src\cgame\common\ui\editor;..\src\cgame\common\ui\home;..\src\cgame\common\ui\main;..\src\cgame\common\ui\play;..\src\cgame\common\ui\settings;..\src\cgame\common\ui\teams;..\src\cgame;..\src\game\lithium;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <!-- These switch the optional features on in the common sources. Set
            here rather than through
            $(ExtraPreprocessorDefinitions), which expands empty by the time

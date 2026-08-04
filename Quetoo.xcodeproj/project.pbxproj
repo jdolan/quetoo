@@ -200,7 +200,7 @@
 		CE05B3F030224900C0DE0018 /* cg_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDD1B525A0C2710055860E /* cg_sound.c */; };
 		CE05B3F030224900C0DE0019 /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
 		CE05B3FC30224E3E0012870B /* cg_module.c in Sources */ = {isa = PBXBuildFile; fileRef = CE05B3FC30224E3E0012870A /* cg_module.c */; };
-		CE05B3F030224900C0DE001A /* cg_team_mode.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF00202601030000008D /* cg_team_mode.c */; };
+		CE05B3F030224900C0DE001A /* cg_team_mode.c in Sources */ = {isa = PBXBuildFile; fileRef = CE05B3FC30224E3E0012862B /* cg_team_mode.c */; };
 		CE05B3F030224900C0DE001B /* cg_temp_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */; };
 		CE05B3F030224900C0DE001C /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
 		CE05B3F030224900C0DE001D /* cg_view.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57E1C5C58C300CD0B13 /* cg_view.c */; };
