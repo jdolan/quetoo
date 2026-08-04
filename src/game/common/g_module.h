@@ -47,6 +47,98 @@
  */
 
 /**
+ * @defgroup module-contract Module contract
+ * @brief What every module defines for itself. A missing definition is a link error,
+ * which is how a new module learns what it owes.
+ * @{
+ */
+
+/**
+ * @brief The module's own initialization, called once per module load from
+ * `G_Init`, after the features common ships have installed themselves.
+ * @details This is where a module installs the hooks for behaviour that is its
+ * own rather than one of common's features. It exists because a mod Quetoo does
+ * not ship can only add files to its own directory: it cannot add a call to
+ * `G_Init`, and a guard named after it could never be committed here, so without
+ * this seam its only way to install a hook would be to fork `g_main.c`.
+ *
+ * Every module MUST define it, even if the body is empty. A missing definition
+ * is a link error, which is the right way to tell a new module what it owes.
+ * Installing from here rather than from `G_Init` also means a module's hooks sit
+ * at the head of every chain, so they may wrap a shipped feature.
+ */
+void G_Module_Init(void);
+
+/**
+ * @brief The module's own shutdown, called from `G_Shutdown` before the game's
+ * memory tags are freed, so that a module may still touch what it allocated.
+ * @details Every module MUST define it, even if the body is empty.
+ *
+ * This is for what a module allocated or opened, and **MUST NOT uninstall
+ * hooks**. `G_Init` and `G_Shutdown` run on every server initialization, while a
+ * hook installs exactly once per module image, behind a `static bool installed` -
+ * so uninstalling here would tear a link out of a chain that the next `G_Init`
+ * declines to rebuild. Chains are not unwound; they are built once and left.
+ */
+void G_Module_Shutdown(void);
+
+/**
+ * @}
+ * @defgroup hooks-level Level
+ * @brief Setting the level up, and resolving what a feature holds for it. Tails in
+ * g_entity.c.
+ * @{
+ */
+
+/**
+ * @brief Resolves the settings a feature holds for the level ahead, after the
+ * worldspawn has been read, and again whenever the game restarts.
+ * @details Nothing to do by default. A feature decides here whether it is
+ * enabled this level, and publishes any config strings the client needs.
+ */
+typedef void (*ConfigureLevel)(void);
+
+extern ConfigureLevel G_ConfigureLevel;
+
+/**
+ * @brief Indexes the models and sounds the module needs for the level ahead.
+ * @details The whole of the deathmatch media is the default; a feature indexes
+ * its own on top, and keeps the indices itself rather than growing `g_media`.
+ */
+typedef void (*InitMedia)(void);
+
+extern InitMedia G_InitMedia;
+
+/**
+ * @}
+ * @defgroup hooks-items Items
+ * @brief Placing items in the world, and what becomes of them. Tails in g_item.c,
+ * except `ResetDroppedItem`, whose domain is the inventory it left.
+ * @{
+ */
+
+/**
+ * @brief Decides whether the current gameplay withholds an item from the level
+ * altogether.
+ * @details Arena and instagib withhold everything by default. A feature whose
+ * items are the point of the level, such as the flags, exempts its own.
+ */
+typedef bool (*InhibitItem)(const g_entity_t *ent);
+
+extern InhibitItem G_InhibitItem;
+
+/**
+ * @brief Fills in an item's behaviour - how it is picked up, and how it is
+ * dropped - from its type.
+ * @details The default answers for the deathmatch item types and errors on any
+ * type it does not recognise, so a feature bringing its own item type MUST
+ * install ahead of it and answer for that type rather than deferring.
+ */
+typedef void (*InitItem)(g_item_t *it);
+
+extern InitItem G_InitItem;
+
+/**
  * @brief Disposes of a dropped item that has left the world - fallen into the
  * void, or been caught by a hurt trigger or an explosion.
  * @details A plain deathmatch module frees it. A module with flags returns them
@@ -55,6 +147,24 @@
 typedef void (*ResetDroppedItem)(g_entity_t *ent);
 
 extern ResetDroppedItem G_ResetDroppedItem;
+
+/**
+ * @brief Places an item in the world for the start of a level, deciding whether
+ * it can be seen and touched.
+ * @details The whole of the deathmatch placement is the default, and a feature
+ * that has more to say about its own items installs over the top. Anything it
+ * changes after deferring to super MUST be linked again, because super links.
+ */
+typedef void (*ResetItem)(g_entity_t *ent);
+
+extern ResetItem G_ResetItem;
+
+/**
+ * @}
+ * @defgroup hooks-inventory Inventory
+ * @brief Parting a client from what they are carrying. Tails in g_inventory.c.
+ * @{
+ */
 
 /**
  * @brief Drops the named item from the client's inventory, reporting to them
@@ -68,6 +178,24 @@ typedef void (*DropInventoryItem)(g_client_t *cl, const char *name);
 extern DropInventoryItem G_DropInventoryItem;
 
 /**
+ * @brief Tosses whatever the client is carrying that must not leave play with
+ * them, when they change team or become a spectator.
+ * @details The quad damage powerup is the default. Flags, techs and the grapple
+ * each add their own, which is why this is a chain rather than a list of calls
+ * in whichever command happens to need it.
+ */
+typedef void (*TossInventory)(g_client_t *cl);
+
+extern TossInventory G_TossInventory;
+
+/**
+ * @}
+ * @defgroup hooks-combat Combat
+ * @brief What an attack does. Tails in g_combat.c.
+ * @{
+ */
+
+/**
  * @brief Scales the damage and the knockback an attack is about to impart,
  * before friendly fire and self damage are resolved.
  * @details The quad damage powerup is the default. A feature carrying its own
@@ -78,6 +206,32 @@ extern DropInventoryItem G_DropInventoryItem;
 typedef void (*ModifyDamage)(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback);
 
 extern ModifyDamage G_ModifyDamage;
+
+/**
+ * @}
+ * @defgroup hooks-movement Movement
+ * @brief How a client moves. Tails in g_client.c.
+ * @{
+ */
+
+/**
+ * @brief Seeds the player move with the state it should start from, before the
+ * client's command is applied.
+ * @details The default hands the move the entity's own velocity. A feature that
+ * takes the movement over, as the grapple does while pulling, sets the move type
+ * and the velocity it wants and does not defer to super.
+ */
+typedef void (*PrepareMove)(g_client_t *cl, pm_move_t *pm);
+
+extern PrepareMove G_PrepareMove;
+
+/**
+ * @}
+ * @defgroup hooks-rules Rules
+ * @brief The rules a module enforces, once per frame or once per level. Tails in
+ * g_rules.c.
+ * @{
+ */
 
 /**
  * @brief Applies whichever of a feature's own cvars have been modified, once
@@ -115,105 +269,6 @@ typedef void (*FormatGameName)(char *name, size_t size);
 extern FormatGameName G_FormatGameName;
 
 /**
- * @brief Tosses whatever the client is carrying that must not leave play with
- * them, when they change team or become a spectator.
- * @details The quad damage powerup is the default. Flags, techs and the grapple
- * each add their own, which is why this is a chain rather than a list of calls
- * in whichever command happens to need it.
+ * @}
  */
-typedef void (*TossInventory)(g_client_t *cl);
-
-extern TossInventory G_TossInventory;
-
-/**
- * @brief Places an item in the world for the start of a level, deciding whether
- * it can be seen and touched.
- * @details The whole of the deathmatch placement is the default, and a feature
- * that has more to say about its own items installs over the top. Anything it
- * changes after deferring to super MUST be linked again, because super links.
- */
-typedef void (*ResetItem)(g_entity_t *ent);
-
-extern ResetItem G_ResetItem;
-
-/**
- * @brief Decides whether the current gameplay withholds an item from the level
- * altogether.
- * @details Arena and instagib withhold everything by default. A feature whose
- * items are the point of the level, such as the flags, exempts its own.
- */
-typedef bool (*InhibitItem)(const g_entity_t *ent);
-
-extern InhibitItem G_InhibitItem;
-
-/**
- * @brief Fills in an item's behaviour - how it is picked up, and how it is
- * dropped - from its type.
- * @details The default answers for the deathmatch item types and errors on any
- * type it does not recognise, so a feature bringing its own item type MUST
- * install ahead of it and answer for that type rather than deferring.
- */
-typedef void (*InitItem)(g_item_t *it);
-
-extern InitItem G_InitItem;
-
-/**
- * @brief Indexes the models and sounds the module needs for the level ahead.
- * @details The whole of the deathmatch media is the default; a feature indexes
- * its own on top, and keeps the indices itself rather than growing `g_media`.
- */
-typedef void (*InitMedia)(void);
-
-extern InitMedia G_InitMedia;
-
-/**
- * @brief Resolves the settings a feature holds for the level ahead, after the
- * worldspawn has been read, and again whenever the game restarts.
- * @details Nothing to do by default. A feature decides here whether it is
- * enabled this level, and publishes any config strings the client needs.
- */
-typedef void (*ConfigureLevel)(void);
-
-extern ConfigureLevel G_ConfigureLevel;
-
-/**
- * @brief Seeds the player move with the state it should start from, before the
- * client's command is applied.
- * @details The default hands the move the entity's own velocity. A feature that
- * takes the movement over, as the grapple does while pulling, sets the move type
- * and the velocity it wants and does not defer to super.
- */
-typedef void (*PrepareMove)(g_client_t *cl, pm_move_t *pm);
-
-extern PrepareMove G_PrepareMove;
-
-/**
- * @brief The module's own initialization, called once per module load from
- * `G_Init`, after the features common ships have installed themselves.
- * @details This is where a module installs the hooks for behaviour that is its
- * own rather than one of common's features. It exists because a mod Quetoo does
- * not ship can only add files to its own directory: it cannot add a call to
- * `G_Init`, and a guard named after it could never be committed here, so without
- * this seam its only way to install a hook would be to fork `g_main.c`.
- *
- * Every module MUST define it, even if the body is empty. A missing definition
- * is a link error, which is the right way to tell a new module what it owes.
- * Installing from here rather than from `G_Init` also means a module's hooks sit
- * at the head of every chain, so they may wrap a shipped feature.
- */
-void G_Module_Init(void);
-
-/**
- * @brief The module's own shutdown, called from `G_Shutdown` before the game's
- * memory tags are freed, so that a module may still touch what it allocated.
- * @details Every module MUST define it, even if the body is empty.
- *
- * This is for what a module allocated or opened, and **MUST NOT uninstall
- * hooks**. `G_Init` and `G_Shutdown` run on every server initialization, while a
- * hook installs exactly once per module image, behind a `static bool installed` -
- * so uninstalling here would tear a link out of a chain that the next `G_Init`
- * declines to rebuild. Chains are not unwound; they are built once and left.
- */
-void G_Module_Shutdown(void);
-
 #endif
