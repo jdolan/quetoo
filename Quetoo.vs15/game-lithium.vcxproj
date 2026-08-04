@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="game.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\game\game.h" />
+    <ClInclude Include="..\src\game\lithium\bg_item.h" />
+    <ClInclude Include="..\src\game\lithium\g_types.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\game\lithium\bg_item.c" />
+    <ClCompile Include="..\src\game\lithium\g_module.c" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{1a7c3d90-4b52-4e8e-9f31-6c2d5a8e7b01}</ProjectGuid>
+    <RootNamespace>game-lithium</RootNamespace>
+  </PropertyGroup>
+  <!-- Selects the grapple sources from game_common.props. -->
+  <PropertyGroup>
+    <QuetooGameHook>true</QuetooGameHook>
+    <QuetooGameTech>true</QuetooGameTech>
+  </PropertyGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="build_settings.props" />
+    <Import Project="game_common.props" />
+  </ImportGroup>
+  <PropertyGroup>
+    <!-- The engine loads this module as "game", so the module keeps that name
+         and takes a directory of its own; Xcode does the same with
+         PRODUCT_NAME and CONFIGURATION_BUILD_DIR. -->
+    <TargetName>game</TargetName>
+    <OutDir>$(QuetooOutDir)lithium\</OutDir>
+    <IntDir>$(QuetooIntDir)</IntDir>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup>
+    <IncludePath>$(QuetooFullIncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(QuetooFullLibraryPath);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <!-- This module's own directory comes first, then the common one. These
+           are per project rather than in QuetooFullIncludePath because every
+           module has a g_types.h: one global list would make it ambiguous. -->
+      <AdditionalIncludeDirectories>..\src\game\lithium;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <!-- g_client_s and g_entity_s embed the server's view of themselves as an
+           anonymous member, which needs this. clang-cl enables it by default; it
+           is spelled out so that a toolset change cannot take it away quietly. -->
+      <AdditionalOptions>%(AdditionalOptions) -fms-extensions -Wno-microsoft-anon-tag</AdditionalOptions>
+      <!-- These switch the optional features on in the common sources. Set
+           here rather than through
+           $(ExtraPreprocessorDefinitions), which expands empty by the time
+           build_settings.props' item definition is evaluated. -->
+      <PreprocessorDefinitions>G_HOOK;G_TECH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>game.def</ModuleDefinitionFile>
+    </Link>
+    <PostBuildEvent>
+      <Command>COPY_GAME_CTF "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="libs\libshared.vcxproj">
+      <Project>{2F1C792E-6243-462B-AF0D-E2554E77D5C5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Objectively\Objectively.vs15\Objectively.vcxproj">
+      <Project>{3e6b97c6-1f51-4d72-bdfe-1d492f5eda6c}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

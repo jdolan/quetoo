@@ -418,10 +418,8 @@ from the other end.
 
 ### What is left
 
-1. **Lithium's MSVS and Xcode projects.** The module itself exists and builds
-   under autotools (see below); it has no `.vcxproj` pair and no Xcode targets, so
-   it does not build on Windows and cannot be run from a scheme. That is project
-   authoring, not design, and nothing about the pattern is waiting on it.
+1. **Nothing structural.** Lithium builds in all three systems, so the pattern is
+   exercised end to end by three modules that share every line of behaviour.
 2. **Do not merge `common` into `default`.** It looks tempting - `default` is a
    shell of four files, and a shorter `vpath` would make the pattern read as "a mod
    overrides default". It is a trap. `#include "..."` searches the *including
@@ -533,6 +531,24 @@ All three build systems, or the Windows build rots silently:
 Cross-check afterwards that each module's source list matches its `Makefile.am`
 in both directions. Verifying a list is complete is not the same as verifying its
 entries resolve.
+
+### Adding a module, or duplicating a target
+
+Duplicating an Xcode target copies the *original's* file references, and they are
+what decide which manifest gets compiled. A copy of `game-ctf` therefore builds
+ctf's `g_types.h` and `bg_item.c` under the new target's name, with ctf's
+`USER_HEADER_SEARCH_PATHS` and ctf's defines, and it builds cleanly. It happened;
+the target had to be repointed at `src/game/lithium` in four places - Sources,
+Headers, the search paths, and the defines - and its install script, which was
+still copying over `ctf/game.so`.
+
+Worse, the duplication moved `g_ctf.c` and `G_CTF` *out of* `game-ctf`, which
+still linked, because with `G_CTF` undefined nothing references `G_Ctf_Init`. Xcode
+had quietly been building ctf without capture the flag. **After duplicating a
+target, check what the original lost**, not only what the copy gained.
+
+The cheap check for all of it is comparing each target's Sources against its
+`Makefile.am`, in every build system, which is how both of these were found.
 
 ### Moving a forked file into common
 

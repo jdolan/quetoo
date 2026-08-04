@@ -483,6 +483,7 @@ jobs:
         New-Item -ItemType Directory -Force -Path "$staging\lib\default\shaders" | Out-Null
         New-Item -ItemType Directory -Force -Path "$staging\lib\default\ui" | Out-Null
         New-Item -ItemType Directory -Force -Path "$staging\lib\ctf" | Out-Null
+        New-Item -ItemType Directory -Force -Path "$staging\lib\lithium" | Out-Null
 
         # Executables and their PDBs
         Copy-Item "Quetoo.vs15\bin\x64Release\quetoo.exe" "$staging\bin\"
@@ -501,6 +502,10 @@ jobs:
         Copy-Item "Quetoo.vs15\bin\x64Release\ctf\cgame.pdb" "$staging\lib\ctf\"
         Copy-Item "Quetoo.vs15\bin\x64Release\ctf\game.dll" "$staging\lib\ctf\"
         Copy-Item "Quetoo.vs15\bin\x64Release\ctf\game.pdb" "$staging\lib\ctf\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\lithium\cgame.dll" "$staging\lib\lithium\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\lithium\cgame.pdb" "$staging\lib\lithium\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\lithium\game.dll" "$staging\lib\lithium\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\lithium\game.pdb" "$staging\lib\lithium\"
 
         # Objectively, ObjectivelyGPU, and ObjectivelyMVC and their PDBs
         Copy-Item "..\Objectively\Objectively.vs15\bin\x64Release\Objectively.dll" "$staging\bin\"
