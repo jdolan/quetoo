@@ -100,7 +100,7 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
   cgi.BindFont(NULL, NULL, NULL);
 }
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
 /**
  * @brief Draws the flag the client is carrying.
  */
@@ -220,7 +220,7 @@ static void Cg_DrawDeaths(const player_state_t *ps) {
   cgi.BindFont(NULL, NULL, NULL);
 }
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
 /**
  * @brief Draws the client's capture count.
  */
@@ -330,7 +330,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
   x = cgi.context->w - cgi.StringWidth(string);
   y = 3 * (HUD_PIC_HEIGHT + ch);
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
   y += HUD_PIC_HEIGHT + ch; // the capture count sits where this would
 #endif
 
@@ -405,7 +405,7 @@ void Cg_DrawHud(const player_state_t *ps) {
 
   Cg_DrawPowerups(ps);
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
   Cg_DrawHeldFlag(ps);
 #endif
 
@@ -417,7 +417,7 @@ void Cg_DrawHud(const player_state_t *ps) {
 
   Cg_DrawDeaths(ps);
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
   Cg_DrawCaptures(ps);
 #endif
 

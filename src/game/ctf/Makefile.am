@@ -3,7 +3,7 @@ GAME_COMMON_DIR = $(top_srcdir)/src/game/common
 vpath %.c $(srcdir):$(GAME_COMMON_DIR)
 
 AM_CPPFLAGS = \
-	-DG_FLAG \
+	-DG_CTF \
 	-DG_HOOK \
 	-DG_TECH \
 	-I$(top_srcdir)/src \
@@ -44,7 +44,7 @@ game_la_SOURCES = \
 	g_entity_misc.c \
 	g_entity_target.c \
 	g_entity_trigger.c \
-	g_flag.c \
+	g_ctf.c \
 	g_hook.c \
 	g_item.c \
 	g_main.c \

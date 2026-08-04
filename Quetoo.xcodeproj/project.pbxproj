@@ -551,8 +551,8 @@
 		CEC011002026010200000004 /* g_effect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000003 /* g_effect.h */; };
 		CEC01100202601020000000E /* cg_team_mode.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC01100202601020000000D /* cg_team_mode.h */; };
 		CEC011002026010200000010 /* cg_team_mode.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC01100202601020000000F /* cg_team_mode.c */; };
-		CEC0FA002026010800000002 /* g_flag.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FA002026010800000001 /* g_flag.c */; };
-		CEC0FA002026010800000004 /* g_flag.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FA002026010800000003 /* g_flag.h */; };
+		CEC0FA002026010800000002 /* g_ctf.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FA002026010800000001 /* g_ctf.c */; };
+		CEC0FA002026010800000004 /* g_ctf.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FA002026010800000003 /* g_ctf.h */; };
 		CEC0FD002026010500000002 /* cg_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D56C1C5C58C300CD0B13 /* cg_hud.c */; };
 		CEC0FD002026010500000004 /* cg_hud.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D56D1C5C58C300CD0B13 /* cg_hud.h */; };
 		CEC0FD002026010500000006 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5791C5C58C300CD0B13 /* cg_score.c */; };
@@ -2011,8 +2011,8 @@
 		CEC011002026010200000009 /* g_hook_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_hook_types.h; sourceTree = "<group>"; };
 		CEC01100202601020000000D /* cg_team_mode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_team_mode.h; sourceTree = "<group>"; };
 		CEC01100202601020000000F /* cg_team_mode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_team_mode.c; sourceTree = "<group>"; };
-		CEC0FA002026010800000001 /* g_flag.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_flag.c; sourceTree = "<group>"; };
-		CEC0FA002026010800000003 /* g_flag.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_flag.h; sourceTree = "<group>"; };
+		CEC0FA002026010800000001 /* g_ctf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ctf.c; sourceTree = "<group>"; };
+		CEC0FA002026010800000003 /* g_ctf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ctf.h; sourceTree = "<group>"; };
 		CEC0FB002026010700000001 /* g_module.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_module.h; sourceTree = "<group>"; };
 		CEC0FD002026010500000009 /* cg_hud_draw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_hud_draw.c; sourceTree = "<group>"; };
 		CEC0FD00202601050000000B /* cg_hud_draw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_hud_draw.h; sourceTree = "<group>"; };
@@ -3622,8 +3622,8 @@
 				CE12D65D1C5C58C300CD0B13 /* g_entity_target.c */,
 				CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */,
 				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
-				CEC0FA002026010800000003 /* g_flag.h */,
-				CEC0FA002026010800000001 /* g_flag.c */,
+				CEC0FA002026010800000003 /* g_ctf.h */,
+				CEC0FA002026010800000001 /* g_ctf.c */,
 				CEC011002026010200000007 /* g_hook.h */,
 				CEC011002026010200000005 /* g_hook.c */,
 				CEC011002026010200000009 /* g_hook_types.h */,
@@ -3985,7 +3985,7 @@
 				CEC0FF002026010300000125 /* g_entity_misc.h in Headers */,
 				CEC0FF002026010300000126 /* g_entity_target.h in Headers */,
 				CEC0FF00202601030000011B /* g_entity_trigger.h in Headers */,
-				CEC0FA002026010800000004 /* g_flag.h in Headers */,
+				CEC0FA002026010800000004 /* g_ctf.h in Headers */,
 				CEC0FF002026010300000127 /* g_hook.h in Headers */,
 				CEC0FF002026010300000128 /* g_hook_types.h in Headers */,
 				CEC0FF00202601030000011C /* g_item.h in Headers */,
@@ -5400,7 +5400,7 @@
 				CEC0FF0020260103000000FA /* g_cmd.c in Sources */,
 				CEC0FF0020260103000000FB /* g_combat.c in Sources */,
 				CEC0FF0020260103000000FC /* g_entity.c in Sources */,
-				CEC0FA002026010800000002 /* g_flag.c in Sources */,
+				CEC0FA002026010800000002 /* g_ctf.c in Sources */,
 				CEC0FF0020260103000000FF /* g_item.c in Sources */,
 				CEC0FF002026010300000100 /* g_main.c in Sources */,
 				CEC0FF002026010300000102 /* g_weapon.c in Sources */,
@@ -6677,7 +6677,7 @@
 				EXECUTABLE_EXTENSION = so;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
-					G_FLAG,
+					G_CTF,
 					G_HOOK,
 					G_TECH,
 				);
@@ -6701,7 +6701,7 @@
 				EXECUTABLE_EXTENSION = so;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
-					G_FLAG,
+					G_CTF,
 					G_HOOK,
 					G_TECH,
 				);
@@ -6725,7 +6725,7 @@
 				EXECUTABLE_EXTENSION = so;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
-					G_FLAG,
+					G_CTF,
 					G_HOOK,
 					G_TECH,
 				);
@@ -6762,7 +6762,7 @@
 				EXECUTABLE_EXTENSION = so;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
-					G_FLAG,
+					G_CTF,
 					G_HOOK,
 					G_TECH,
 				);

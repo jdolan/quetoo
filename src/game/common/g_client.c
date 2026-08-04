@@ -1104,7 +1104,7 @@ void G_ClientRespawn(g_client_t *cl, bool voluntary) {
   // clear scores on voluntary changes
   if (cl->persistent.spectator && voluntary) {
     cl->persistent.score = cl->persistent.deaths = 0;
-#if defined(G_FLAG)
+#if defined(G_CTF)
     cl->persistent.captures = 0;
 #endif
   }

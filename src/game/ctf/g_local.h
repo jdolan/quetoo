@@ -48,7 +48,7 @@
 #include "g_entity_target.h"
 #include "g_entity_trigger.h"
 #include "g_entity.h"
-#include "g_flag.h"
+#include "g_ctf.h"
 #include "g_item.h"
 #include "g_module.h"
 #include "g_main.h"

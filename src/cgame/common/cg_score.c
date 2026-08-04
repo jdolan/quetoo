@@ -112,7 +112,7 @@ static int32_t Cg_DrawScoresHeader(void) {
     const cg_team_info_t *team = cg_state.teams;
     for (int32_t i = 0; i < cg_state.num_teams; i++, score++, team++) {
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
       cgi.Draw2DString(x, y, va("%s^7 %d captures", team->name, score->captures), team->color);
 #else
       cgi.Draw2DString(x, y, va("%s^7 %d frags", team->name, score->score), team->color);
@@ -138,7 +138,7 @@ static bool Cg_DrawScore(int32_t x, int32_t y, const g_score_t *s) {
   // icon
   cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH - 2, SCORES_ICON_WIDTH - 2, info->icon, color_white);
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
   // flag carrier icon
   if (s->flags & SCORE_CTF_FLAG) {
     const int32_t team = s->team;
@@ -187,7 +187,7 @@ static bool Cg_DrawScore(int32_t x, int32_t y, const g_score_t *s) {
   cgi.Draw2DString(x + fw - cgi.StringWidth(deaths), y, deaths, color_white);
   y += ch;
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
   // captures
   cgi.Draw2DString(x, y, va("%d captures", s->captures), color_white);
 #endif

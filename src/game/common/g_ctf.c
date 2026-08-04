@@ -43,7 +43,7 @@ static struct {
   uint16_t capture;
   uint16_t return_;
   uint16_t steal;
-} g_flag_media;
+} g_ctf_media;
 
 /**
  * @brief Returns the team that owns the given flag entity, or `NULL` if the entity is not a flag.
@@ -124,7 +124,7 @@ static void G_ResetDroppedFlag(g_entity_t *ent) {
   gi.LinkEntity(f);
 
   G_MulticastSound(&(const g_play_sound_t) {
-    .index = g_flag_media.return_
+    .index = g_ctf_media.return_
   }, MULTICAST_PHS_R);
 
   gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
@@ -137,7 +137,7 @@ static void G_ResetDroppedFlag(g_entity_t *ent) {
 /**
  * @brief Returns a dropped flag to its base, deferring anything else.
  */
-static void G_ResetDroppedItem_Flag(g_entity_t *ent) {
+static void G_ResetDroppedItem_Ctf(g_entity_t *ent) {
 
   if (ent->item->def.type == ITEM_TYPE_FLAG) {
     G_ResetDroppedFlag(ent);
@@ -150,7 +150,7 @@ static void G_ResetDroppedItem_Flag(g_entity_t *ent) {
 /**
  * @brief Resolves "flag" to whichever flag the client is carrying.
  */
-static void G_DropInventoryItem_Flag(g_client_t *cl, const char *name) {
+static void G_DropInventoryItem_Ctf(g_client_t *cl, const char *name) {
 
   if (!q_strcasecmp(name, "flag")) {
     const g_item_t *flag = G_GetFlag(cl);
@@ -163,9 +163,9 @@ static void G_DropInventoryItem_Flag(g_client_t *cl, const char *name) {
 }
 
 /**
- * @brief Applies the captures' own cvars.
+ * @brief Applies capture the flag's own cvars.
  */
-static bool G_CheckCvars_Flag(void) {
+static bool G_CheckCvars_Ctf(void) {
 
   if (g_capture_limit->modified) {
     g_capture_limit->modified = false;
@@ -180,7 +180,7 @@ static bool G_CheckCvars_Flag(void) {
 /**
  * @brief Plays for captures rather than frags, and so does not defer to super.
  */
-static bool G_CheckWinCondition_Flag(void) {
+static bool G_CheckWinCondition_Ctf(void) {
 
   if (g_level.capture_limit) {
 
@@ -199,7 +199,7 @@ static bool G_CheckWinCondition_Flag(void) {
  * @brief Names the gameplay for captures, which replaces rather than qualifies
  * what it was handed, and so does not defer to super.
  */
-static void G_FormatGameName_Flag(char *name, size_t size) {
+static void G_FormatGameName_Ctf(char *name, size_t size) {
 
   q_strlcat(name, " CTF", size);
 }
@@ -240,7 +240,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
       team_flag->s.event_data = team_flag->item->def.tag;
 
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = g_flag_media.return_
+        .index = g_ctf_media.return_
       }, MULTICAST_PHS);
 
       gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag :flag%d_return:\n", cl->persistent.net_name, team->name, team->id + 1);
@@ -271,7 +271,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
         other_team_flag->s.event_data = other_team_flag->item->def.tag;
 
         G_MulticastSound(&(const g_play_sound_t) {
-          .index = g_flag_media.capture
+          .index = g_ctf_media.capture
         }, MULTICAST_PHS_R);
 
         gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag :flag%d_capture:\n", cl->persistent.net_name, other_team->name, other_team->id + 1);
@@ -320,7 +320,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
   cl->entity->s.model3 = team_flag->item->model_index;
 
   G_MulticastSound(&(const g_play_sound_t) {
-    .index = g_flag_media.steal,
+    .index = g_ctf_media.steal,
   }, MULTICAST_PHS_R);
 
   gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n", cl->persistent.net_name, team->name, team->id + 1);
@@ -370,21 +370,21 @@ static g_entity_t *G_DropFlag(g_client_t *cl, const g_item_t *item) {
 }
 
 /**
- * @brief Indexes the flags' sounds for this level.
+ * @brief Indexes capture the flag's sounds for this level.
  */
-static void G_InitMedia_Flag(void) {
+static void G_InitMedia_Ctf(void) {
 
   super.InitMedia();
 
-  g_flag_media.capture = gi.SoundIndex("ctf/capture");
-  g_flag_media.return_ = gi.SoundIndex("ctf/return");
-  g_flag_media.steal = gi.SoundIndex("ctf/steal");
+  g_ctf_media.capture = gi.SoundIndex("ctf/capture");
+  g_ctf_media.return_ = gi.SoundIndex("ctf/return");
+  g_ctf_media.steal = gi.SoundIndex("ctf/steal");
 }
 
 /**
  * @brief Hides a flag whose team is not playing this level.
  */
-static void G_ResetItem_Flag(g_entity_t *ent) {
+static void G_ResetItem_Ctf(g_entity_t *ent) {
 
   super.ResetItem(ent);
 
@@ -404,7 +404,7 @@ static void G_ResetItem_Flag(g_entity_t *ent) {
  * @brief Exempts the flags from the gameplay modes that withhold items, since
  * without them there is nothing to capture.
  */
-static bool G_InhibitItem_Flag(const g_entity_t *ent) {
+static bool G_InhibitItem_Ctf(const g_entity_t *ent) {
 
   if (ent->item->def.type == ITEM_TYPE_FLAG) {
     return false;
@@ -416,7 +416,7 @@ static bool G_InhibitItem_Flag(const g_entity_t *ent) {
 /**
  * @brief Answers for the flag item type.
  */
-static void G_InitItem_Flag(g_item_t *it) {
+static void G_InitItem_Ctf(g_item_t *it) {
 
   if (it->def.type == ITEM_TYPE_FLAG) {
     it->Pickup = G_PickupFlag;
@@ -430,7 +430,7 @@ static void G_InitItem_Flag(g_item_t *it) {
 /**
  * @brief Tosses the flag a client leaving play is holding.
  */
-static void G_TossInventory_Flag(g_client_t *cl) {
+static void G_TossInventory_Ctf(g_client_t *cl) {
 
   G_TossFlag(cl);
 
@@ -438,9 +438,9 @@ static void G_TossInventory_Flag(g_client_t *cl) {
 }
 
 /**
- * @brief Registers the captures' cvars and installs the flags' hooks.
+ * @brief Registers capture the flag's cvars and installs its hooks.
  */
-void G_Flag_Init(void) {
+void G_Ctf_Init(void) {
 
   // G_Init runs on every server initialization, and the module is not always
   // unloaded in between, so installing twice would point super at ourselves.
@@ -448,31 +448,31 @@ void G_Flag_Init(void) {
     installed = true;
 
     super.ResetDroppedItem = G_ResetDroppedItem;
-    G_ResetDroppedItem = G_ResetDroppedItem_Flag;
+    G_ResetDroppedItem = G_ResetDroppedItem_Ctf;
 
     super.DropInventoryItem = G_DropInventoryItem;
-    G_DropInventoryItem = G_DropInventoryItem_Flag;
+    G_DropInventoryItem = G_DropInventoryItem_Ctf;
 
     super.CheckCvars = G_CheckCvars;
-    G_CheckCvars = G_CheckCvars_Flag;
+    G_CheckCvars = G_CheckCvars_Ctf;
 
-    G_CheckWinCondition = G_CheckWinCondition_Flag;
+    G_CheckWinCondition = G_CheckWinCondition_Ctf;
 
-    G_FormatGameName = G_FormatGameName_Flag;
+    G_FormatGameName = G_FormatGameName_Ctf;
     super.TossInventory = G_TossInventory;
-    G_TossInventory = G_TossInventory_Flag;
+    G_TossInventory = G_TossInventory_Ctf;
 
     super.ResetItem = G_ResetItem;
-    G_ResetItem = G_ResetItem_Flag;
+    G_ResetItem = G_ResetItem_Ctf;
 
     super.InhibitItem = G_InhibitItem;
-    G_InhibitItem = G_InhibitItem_Flag;
+    G_InhibitItem = G_InhibitItem_Ctf;
 
     super.InitItem = G_InitItem;
-    G_InitItem = G_InitItem_Flag;
+    G_InitItem = G_InitItem_Ctf;
 
     super.InitMedia = G_InitMedia;
-    G_InitMedia = G_InitMedia_Flag;
+    G_InitMedia = G_InitMedia_Ctf;
   }
 
   g_capture_limit = gi.AddCvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level.");

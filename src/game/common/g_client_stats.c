@@ -75,7 +75,7 @@ static void G_UpdateScore(const g_client_t *cl, g_score_t *s) {
     s->color = -1;
     s->flags |= SCORE_SPECTATOR;
   } else {
-#if defined(G_FLAG)
+#if defined(G_CTF)
     if (G_GetFlag(cl)) {
       s->flags |= SCORE_CTF_FLAG;
     }
@@ -90,7 +90,7 @@ static void G_UpdateScore(const g_client_t *cl, g_score_t *s) {
 
   s->score = cl->persistent.score;
   s->deaths = cl->persistent.deaths;
-#if defined(G_FLAG)
+#if defined(G_CTF)
   s->captures = cl->persistent.captures;
 #endif
 }
@@ -116,7 +116,7 @@ static size_t G_UpdateScores(g_score_t *scores) {
 
       s->client = MAX_CLIENTS;
       s->score = team->score;
-#if defined(G_FLAG)
+#if defined(G_CTF)
       s->captures = team->captures;
 #endif
       s->flags = team->id | SCORE_AGGREGATE;
@@ -194,7 +194,7 @@ void G_ClientStats(g_client_t *cl) {
   cl->ps.stats[STAT_TECH] = tech ? tech->def.tag : 0;
 #endif
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
   // captures
   cl->ps.stats[STAT_CAPTURES] = cl->persistent.captures;
 #endif

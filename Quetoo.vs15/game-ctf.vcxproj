@@ -36,7 +36,7 @@
   </PropertyGroup>
   <!-- Selects the grapple sources from game_common.props. -->
   <PropertyGroup>
-    <QuetooGameFlag>true</QuetooGameFlag>
+    <QuetooGameCtf>true</QuetooGameCtf>
     <QuetooGameHook>true</QuetooGameHook>
     <QuetooGameTech>true</QuetooGameTech>
   </PropertyGroup>
@@ -74,7 +74,7 @@
            here rather than through
            $(ExtraPreprocessorDefinitions), which expands empty by the time
            build_settings.props' item definition is evaluated. -->
-      <PreprocessorDefinitions>G_FLAG;G_HOOK;G_TECH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>G_CTF;G_HOOK;G_TECH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>

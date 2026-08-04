@@ -67,7 +67,7 @@
            here rather than through
            $(ExtraPreprocessorDefinitions), which expands empty by the time
            build_settings.props' item definition is evaluated. -->
-      <PreprocessorDefinitions>G_FLAG;G_HOOK;G_TECH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>G_CTF;G_HOOK;G_TECH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;SDL3.lib;SDL3_image.lib;%(AdditionalDependencies)</AdditionalDependencies>

@@ -355,7 +355,7 @@ static Vector *G_InitDeathmatchSpawns(void) {
  */
 static void G_InitTeamSpawns(Vector *team_spawns[MAX_TEAMS]) {
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
     g_team_list[t].flag_entity = G_Find(NULL, EOFS(classname), g_team_list[t].flag);
   }
@@ -453,7 +453,7 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
 
   g_level.frags    = $(alloc(Vector), initWithSize, sizeof(g_frag_t));
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
   g_level.captures = $(alloc(Vector), initWithSize, sizeof(g_capture_t));
 #endif
 
@@ -466,7 +466,7 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
     memset(&cl->hook, 0, sizeof(cl->hook));
 #endif
     cl->persistent.score = 0;
-#if defined(G_FLAG)
+#if defined(G_CTF)
     cl->persistent.captures = 0;
 #endif
     cl->persistent.deaths = 0;
@@ -660,7 +660,7 @@ static void G_worldspawn(g_entity_t *ent) {
   gi.SetConfigString(CS_ITEM_SET, va("%d", g_level.items));
 
   g_level.teams = g_teams->integer;
-#if defined(G_FLAG)
+#if defined(G_CTF)
   g_level.teams = true; // playing for captures is playing for teams
 #endif
 
@@ -689,7 +689,7 @@ static void G_worldspawn(g_entity_t *ent) {
     }
   }
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
   const cm_entity_t *capture_limit_map = G_MapValue("capture_limit");
   if (capture_limit_map && (capture_limit_map->parsed & ENTITY_INTEGER) && capture_limit_map->integer > -1) { // prefer map metadata capture_limit
     g_level.capture_limit = capture_limit_map->integer;

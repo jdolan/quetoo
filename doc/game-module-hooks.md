@@ -119,7 +119,7 @@ super.ResetDroppedItem = G_ResetDroppedItem;
 G_ResetDroppedItem = G_ResetDroppedItem_Tech;
 ```
 
-`g_flag.c` does the same for flags, independently. Composition then falls out of
+`g_ctf.c` does the same for the flags, independently. Composition then falls out of
 which features a module builds:
 
 | module | chain |
@@ -196,7 +196,7 @@ hold only their manifest:
     bg_item.c  bg_item.h  g_local.h  g_types.h  Makefile.am
 
 Everything else is one copy in `src/game/common`, compiled once per module.
-`ctf` builds it with `-DG_FLAG -DG_HOOK -DG_TECH -DG_CTF`; `default` builds it
+`ctf` builds it with `-DG_CTF -DG_HOOK -DG_TECH`; `default` builds it
 with none of those. A mod is its manifest, its `Makefile.am`, and the features it
 switches on.
 
@@ -204,17 +204,17 @@ switches on.
 
 | hook | tail lives in | installed by |
 | --- | --- | --- |
-| `ResetDroppedItem` | `g_inventory.c` | flags, techs |
-| `DropInventoryItem` | `g_inventory.c` | flags, techs |
-| `TossInventory` | `g_inventory.c` | flags, techs, hook |
+| `ResetDroppedItem` | `g_inventory.c` | ctf, techs |
+| `DropInventoryItem` | `g_inventory.c` | ctf, techs |
+| `TossInventory` | `g_inventory.c` | ctf, techs, hook |
 | `ModifyDamage` | `g_combat.c` | techs |
-| `CheckCvars` | `g_rules.c` | flags, techs, hook |
-| `CheckWinCondition` | `g_rules.c` | flags |
-| `FormatGameName` | `g_rules.c` | flags |
-| `ResetItem` | `g_item.c` | flags |
-| `InhibitItem` | `g_item.c` | flags |
-| `InitItem` | `g_item.c` | flags, techs |
-| `InitMedia` | `g_entity.c` | flags, techs, hook |
+| `CheckCvars` | `g_rules.c` | ctf, techs, hook |
+| `CheckWinCondition` | `g_rules.c` | ctf |
+| `FormatGameName` | `g_rules.c` | ctf |
+| `ResetItem` | `g_item.c` | ctf |
+| `InhibitItem` | `g_item.c` | ctf |
+| `InitItem` | `g_item.c` | ctf, techs |
+| `InitMedia` | `g_entity.c` | ctf, techs, hook |
 | `ConfigureLevel` | `g_entity.c` | techs, hook |
 | `PrepareMove` | `g_client.c` | hook |
 
@@ -236,19 +236,32 @@ the team roster's `.flag` and `.effect`, the capture and tech scoreboard stats,
 the `MOD_HOOK` obituary and weapon name, the haste refire scaling, the vampire
 heal, and the tech branches of `G_ResetItems` and `G_ClientThink`.
 
-A guard MUST name a **feature** - `G_FLAG`, `G_HOOK`, `G_TECH` - and never a
-module. `#if defined(G_CTF)` in common would put knowledge of which modules will
-ever exist into shared code, which is the thing `g_module.h` says not to do. This
-is why the flags moved into common behind `G_FLAG` rather than staying in
-`src/game/ctf`: without that, every capture-shaped divergence in a shared file
-had no legal mechanism.
+A guard MUST name a **feature** - `G_CTF`, `G_HOOK`, `G_TECH` - and never a
+module. The distinction is what the define means, not what it is spelled: a guard
+on a feature asks "was this behaviour built?", which shared code is entitled to
+ask, while a guard on a module asks "am I inside ctf?", which puts knowledge of
+every module that will ever exist into shared code. `g_module.h` says not to do
+the second.
 
-`G_CTF` is **no longer defined by anything**. The nine guards that used it - the
-bots' flag-carrier priority, the flag item type, the CTF trails and effects, and
-the Discord game mode string - were all flag-shaped and now say `G_FLAG`, so a
-flags-only mod gets bots that chase carriers and a client that draws the trails.
-A define that nothing consumes is an invitation to guard on a module again, so it
-is gone from all three build systems rather than left lying around.
+`G_CTF` is the **capture the flag feature**, which `src/game/common/g_ctf.c`
+implements: the captures, the capture limit, the win condition, forced team play,
+the flag items and their effects. That the ctf module is named after the mode it
+was built to play is a coincidence of naming, and the module has no define of its
+own - there is nothing for a guard to reach for. This is also why the feature
+moved into common at all rather than staying in `src/game/ctf`: without it, every
+capture-shaped divergence in a shared file had no legal mechanism. Nine guards in
+the shared sources predated this and were spelled as the module - the bots'
+flag-carrier priority and chase chance, the flag item in the bots' want-item test,
+the carrier trails and effects, and the Discord game mode string. They are part of
+the feature, so a mod that builds it gets bots that hunt carriers and a client
+that draws the trails.
+
+It is `G_CTF` and `g_ctf.c` rather than `G_FLAG` and `g_flag.c` because "flag" is
+badly overloaded in this codebase - `spawn_flags`, `sv_flags`, `dflags`, a score's
+`flags`, the `EF_` and `SF_` bits - and because the feature is more than the item.
+"Flag" is kept only where it means the item: `G_TossFlag`, `G_PickupFlag`,
+`G_TeamForFlag`, `G_FlagForTeam`. Everything naming the feature is `_Ctf`:
+`G_Ctf_Init`, `G_CheckCvars_Ctf`, `G_ResetItem_Ctf`.
 
 A guard MUST also be balanced. A guard that opens on `}` or `else`, straddling a
 brace so that the two branches of the preprocessor close different blocks,
@@ -258,7 +271,7 @@ and make the block additive instead.
 ### The client side
 
 `cg_hud.c` and `cg_score.c` were the same fork on the client, and moved the same
-way, on G_FLAG and G_TECH guards. `cg_team_mode.c` stays per-module: the list of
+way, on `G_CTF` and `G_TECH` guards. `cg_team_mode.c` stays per-module: the list of
 team modes a mod offers is a manifest, like the item roster.
 
 The cgame gets the **same** feature defines as its game module, in all three build
@@ -270,7 +283,7 @@ network fault rather than a build failure.
 ### What is left
 
 1. **Lithium.** A `Makefile.am`, a `g_types.h`, a `bg_item.{c,h}`, a
-   `cg_team_mode.c`, and whichever of `-DG_FLAG -DG_HOOK -DG_TECH` it wants.
+   `cg_team_mode.c`, and whichever of `-DG_CTF -DG_HOOK -DG_TECH` it wants.
    Nothing else, which is the point.
 2. **Recombining `common` and `default`.** `default` is now an empty shell over
    `common`, so the two could merge and let `ctf` and friends override `default`

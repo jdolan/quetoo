@@ -189,7 +189,7 @@ g_team_t g_team_list[MAX_TEAMS] = {
     .id = TEAM_RED,
     .name = "Red",
     .skin = DEFAULT_TEAM_SKIN,
-#if defined(G_FLAG)
+#if defined(G_CTF)
     .flag = "item_flag_team1",
 #endif
     .spawn = "info_player_team1",
@@ -197,7 +197,7 @@ g_team_t g_team_list[MAX_TEAMS] = {
     .pants = { .r = 1.f, .g = 0.f, .b = 0.f, .a = 1.f },
     .helmet = { .r = 1.f, .g = 0.f, .b = 0.f, .a = 1.f },
     .color = TEAM_COLOR_RED,
-#if defined(G_FLAG)
+#if defined(G_CTF)
     .effect = EF_CTF_RED,
 #endif
   },
@@ -205,7 +205,7 @@ g_team_t g_team_list[MAX_TEAMS] = {
     .id = TEAM_BLUE,
     .name = "Blue",
     .skin = DEFAULT_TEAM_SKIN,
-#if defined(G_FLAG)
+#if defined(G_CTF)
     .flag = "item_flag_team2",
 #endif
     .spawn = "info_player_team2",
@@ -213,7 +213,7 @@ g_team_t g_team_list[MAX_TEAMS] = {
     .pants = { .r = 0.f, .g = 0.f, .b = 1.f, .a = 1.f },
     .helmet = { .r = 0.f, .g = 0.f, .b = 1.f, .a = 1.f },
     .color = TEAM_COLOR_BLUE,
-#if defined(G_FLAG)
+#if defined(G_CTF)
     .effect = EF_CTF_BLUE,
 #endif
   },
@@ -221,7 +221,7 @@ g_team_t g_team_list[MAX_TEAMS] = {
     .id = TEAM_YELLOW,
     .name = "Yellow",
     .skin = DEFAULT_TEAM_SKIN,
-#if defined(G_FLAG)
+#if defined(G_CTF)
     .flag = "item_flag_team3",
 #endif
     .spawn = "info_player_team3",
@@ -229,7 +229,7 @@ g_team_t g_team_list[MAX_TEAMS] = {
     .pants = { .r = 1.f, .g = 1.f, .b = 0.f, .a = 1.f },
     .helmet = { .r = 1.f, .g = 1.f, .b = 0.f, .a = 1.f },
     .color = TEAM_COLOR_YELLOW,
-#if defined(G_FLAG)
+#if defined(G_CTF)
     .effect = EF_CTF_YELLOW,
 #endif
   },
@@ -237,7 +237,7 @@ g_team_t g_team_list[MAX_TEAMS] = {
     .id = TEAM_GREEN,
     .name = "Green",
     .skin = DEFAULT_TEAM_SKIN,
-#if defined(G_FLAG)
+#if defined(G_CTF)
     .flag = "item_flag_team4",
 #endif
     .spawn = "info_player_team4",
@@ -245,7 +245,7 @@ g_team_t g_team_list[MAX_TEAMS] = {
     .pants = { .r = 0.f, .g = 1.f, .b = 0.f, .a = 1.f },
     .helmet = { .r = 0.f, .g = 1.f, .b = 0.f, .a = 1.f },
     .color = TEAM_COLOR_GREEN,
-#if defined(G_FLAG)
+#if defined(G_CTF)
     .effect = EF_CTF_GREEN,
 #endif
   },
@@ -260,7 +260,7 @@ void G_ResetTeams(void) {
     g_team_t *team = &g_team_list[i];
     team->score = 0;
     team->spawn_points = (g_spawn_points_t) { 0 };
-#if defined(G_FLAG)
+#if defined(G_CTF)
     team->captures = 0;
     team->flag_entity = NULL;
 #endif
@@ -380,7 +380,7 @@ static void G_RestartGame(bool teamz) {
   G_ForEachClient(cl, {
 
     cl->persistent.score = 0;
-#if defined(G_FLAG)
+#if defined(G_CTF)
     cl->persistent.captures = 0;
 #endif
     cl->persistent.deaths = 0;
@@ -416,7 +416,7 @@ static void G_RestartGame(bool teamz) {
 
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
     g_team_list[i].score = 0;
-#if defined(G_FLAG)
+#if defined(G_CTF)
     g_team_list[i].captures = 0;
 #endif
   }
@@ -452,7 +452,7 @@ static void G_PostStats(void) {
   g_capture_t *captures = NULL;
   int32_t num_captures = 0;
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
   captures = (g_capture_t *) g_level.captures->elements;
   num_captures = (int32_t) g_level.captures->count;
 #endif
@@ -462,7 +462,7 @@ static void G_PostStats(void) {
 
   g_level.frags = release(g_level.frags);
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
   g_level.captures = release(g_level.captures);
 #endif
 }
@@ -688,7 +688,7 @@ static void G_CheckRules(void) {
     g_teams->modified = false;
 
     g_level.teams = g_teams->integer;
-#if defined(G_FLAG)
+#if defined(G_CTF)
     g_level.teams = true; // playing for captures is playing for teams
 #endif
     G_InitNumTeams();
@@ -865,8 +865,8 @@ void G_Init(void) {
   G_Tech_Init();
 #endif
 
-#if defined(G_FLAG)
-  G_Flag_Init();
+#if defined(G_CTF)
+  G_Ctf_Init();
 #endif
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {

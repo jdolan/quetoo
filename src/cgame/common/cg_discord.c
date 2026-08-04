@@ -153,7 +153,7 @@ static void Cg_DiscordReady(const DiscordUser *user) {
 
 static const char *Cg_GetGameMode(void) {
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
   return va("%i-Team CTF", cg_state.num_teams);
 #else
   if (cg_state.num_teams) {

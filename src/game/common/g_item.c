@@ -1055,7 +1055,7 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
     }
   }
 
-#if defined(G_FLAG)
+#if defined(G_CTF)
   // the flags override animation1 to tint themselves by team, 0-based
   if (ent->item->def.type == ITEM_TYPE_FLAG) {
     ent->s.animation1 = item->def.tag - FLAG_FIRST;
