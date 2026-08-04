@@ -613,7 +613,7 @@ static void G_CheckRules(void) {
 
   G_RunTimers();
 
-  if (G_CheckWinCondition()) {
+  if (G_CheckWinner()) {
     G_EndLevel();
     return;
   }

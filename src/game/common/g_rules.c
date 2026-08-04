@@ -37,9 +37,9 @@ static bool G_CheckCvars_Default(void) {
 CheckCvars G_CheckCvars = G_CheckCvars_Default;
 
 /**
- * @brief The tail of the `G_CheckWinCondition` chain, playing for frags.
+ * @brief The tail of the `G_CheckWinner` chain, playing for frags.
  */
-static bool G_CheckWinCondition_Default(void) {
+static bool G_CheckWinner_Default(void) {
 
   if (g_level.frag_limit) {
 
@@ -63,7 +63,7 @@ static bool G_CheckWinCondition_Default(void) {
   return false;
 }
 
-CheckWinCondition G_CheckWinCondition = G_CheckWinCondition_Default;
+CheckWinner G_CheckWinner = G_CheckWinner_Default;
 
 /**
  * @brief The tail of the `G_FormatGameName` chain, qualifying the gameplay with

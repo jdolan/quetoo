@@ -180,7 +180,7 @@ static bool G_CheckCvars_Ctf(void) {
 /**
  * @brief Plays for captures rather than frags, and so does not defer to super.
  */
-static bool G_CheckWinCondition_Ctf(void) {
+static bool G_CheckWinner_Ctf(void) {
 
   if (g_level.capture_limit) {
 
@@ -456,7 +456,7 @@ void G_Ctf_Init(void) {
     super.CheckCvars = G_CheckCvars;
     G_CheckCvars = G_CheckCvars_Ctf;
 
-    G_CheckWinCondition = G_CheckWinCondition_Ctf;
+    G_CheckWinner = G_CheckWinner_Ctf;
 
     G_FormatGameName = G_FormatGameName_Ctf;
     super.TossInventory = G_TossInventory;

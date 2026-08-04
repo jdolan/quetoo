@@ -99,9 +99,9 @@ extern CheckCvars G_CheckCvars;
  * replaces this rather than chaining onto it. Announce the reason before
  * returning true; the caller only ends the level.
  */
-typedef bool (*CheckWinCondition)(void);
+typedef bool (*CheckWinner)(void);
 
-extern CheckWinCondition G_CheckWinCondition;
+extern CheckWinner G_CheckWinner;
 
 /**
  * @brief Names the gameplay the server is running, for its info strings.
