@@ -484,6 +484,108 @@ of calls:
   in chain order, rather than interleaved with the core ones. `restart` is acted
   on at the same point either way.
 
+## Next: carrying the pattern into the client game
+
+The client game is where the game side was two days ago, minus the duplication:
+its fork is already gone. Each cgame module holds one file.
+
+    src/cgame/{default,ctf,lithium}/  cg_team_mode.c  Makefile.am
+
+What it does *not* have is any of the three mechanisms. There is no `cg_module.h`,
+no chainable hook, and no seam a mod owns - a cgame mod today can only compose
+what common ships, exactly the gap `G_Module_Init` closed on the game side. All of
+its variation lives in **33 feature guards across 15 files**:
+
+| file | G_CTF | G_HOOK | G_TECH |
+| --- | --- | --- | --- |
+| `cg_hud.c` | 5 | | 1 |
+| `cg_entity_trail.c` | 4 | 3 | |
+| `cg_score.c` | 3 | | |
+| `cg_main.c` / `cg_main.h` | | 6 | |
+| `cg_media.c` / `cg_media.h` | | 3 | |
+| `cg_temp_entity.c` | | 2 | |
+| `ui/controls/MovementCombatViewController.c` | | 2 | |
+| `cg_entity_effect.c` | 1 | | |
+| `cg_discord.c` | 1 | | |
+| `cg_predict.c` | | 1 | |
+| `cg_types.h` | | 1 | |
+
+### Check these two premises before designing anything
+
+Both were assumed on the game side and turned out to matter. Neither is verified
+for the cgame:
+
+1. **Does `Cg_Init` run more than once per process?** It does - `Cl_InitCgame` is
+   called from client startup *and* from `Cl_Frame` whenever `game->modified`,
+   which is precisely what switching mods does. `Cl_ShutdownCgame` calls
+   `Sys_CloseLibrary`, but `dlclose` does not reliably unload on macOS, which is
+   what makes the `installed` guard load-bearing on the game side. **Confirm
+   whether cgame file statics survive a `game` change** before trusting anything
+   to run once. If they do, every install needs the same `static bool installed`,
+   and the failure mode is the same beachball.
+2. **There is no `__CGAME_LOCAL_H__`.** The game headers hide their declarations
+   behind `#if defined(__GAME_LOCAL_H__)`, which is what lets `g_module.h` be
+   included from anywhere safely. `cg_local.h` defines no such macro. Decide
+   whether `cg_module.h` needs one before writing it, and remember the include
+   cycle that shape exists to prevent: `g_hook.h` cannot hold its own types
+   because `g_types.h` must embed them first.
+
+### The hooks worth extracting
+
+In descending order of how much guard they retire. Each mirrors a game-side hook,
+so take the name from the server where one exists:
+
+| candidate | retires | notes |
+| --- | --- | --- |
+| `DrawHud` | `cg_hud.c`'s 5 + 1 | features draw their own elements: the carried flag, the capture count, the tech icon. The layout shift - the timer moving up when there is no capture count - is the interesting part, and is the same shape as `ModifyDamage`: a value several features adjust |
+| `AddEntityTrail` | `cg_entity_trail.c`'s 7 | the largest single cluster; flags and the grapple each add a trail |
+| `DrawScore` | `cg_score.c`'s 3 | the team line, the carrier icon, the per-player captures. The "%d frags" against "%d captures" line is a replacement, so it is a not-chained hook, like `CheckWinner` |
+| `FormatGameName` | `cg_discord.c`'s 1 | **the same hook already exists on the game side.** Give it the same name; a mod naming its mode should say so once |
+| `AddEntityEffects` | `cg_entity_effect.c`'s 1 | small, but pairs with the trail hook |
+
+### What should stay a guard
+
+Additive one-liners on state a module declares, which is what guards are for:
+`cg_types.h`'s `hook_pull_speed` in `cg_state_t`, the `cg_media.{c,h}` indices,
+`cg_predict.c`'s single prediction branch, and the menu outlets in
+`MovementCombatViewController.c`, which are driven by a JSON resource rather than
+code. `cg_main.{c,h}`'s six are worth reading before deciding: some are wiring
+that a `Cg_Module_Init` would absorb.
+
+`cg_team_mode.c` stays per-module. A list of the team modes a mod offers is a
+manifest, like the item roster.
+
+### Everything else carries over unchanged
+
+The rules, the naming, `_Common` tails in domain files rather than a catch-all
+`cg_module.c` in common, a guard naming a feature and never a module, and the
+prohibition on a gate around a diagnostic. The two contracts become
+`Cg_Module_Init` and `Cg_Module_Shutdown`, defined per module in
+`src/cgame/<mod>/cg_module.c`, called from `Cg_Init` and `Cg_Shutdown` after the
+shipped features, so a mod's hooks sit at the head of every chain.
+
+### Verifying it
+
+The cgame is the visual half, so the check is a screenshot rather than an entity
+count. The recipe that works: run the client as its own listen server, because a
+client cannot connect to a dedicated server holding the same port -
+
+    printf 'wait\n%.0s' {1..1200} > "$WRITE_DIR/probe.cfg"
+    echo 'r_screenshot' >> "$WRITE_DIR/probe.cfg" && echo quit >> "$WRITE_DIR/probe.cfg"
+    quetoo +set game lithium +set sv_min_clients 4 +map edge +exec probe.cfg
+
+then read `$WRITE_DIR/screenshots/`. Enough `wait` lines to get past the map load,
+or the screenshot is of the console. Compare all three modules: `default` has no
+capture count and the timer sits where it would be, `ctf` has one, `lithium` has
+the tech icon and no capture count. That last combination has never been looked at
+- it is new with lithium, and it is the one the layout hook could break.
+
+And the rule that makes all of this necessary: **a module whose manifest differs at
+all needs its own cgame.** Lithium's wire values are shifted from default's by the
+hook and tech insertions, and with no `lithium/cgame.so` the client silently loads
+`default/cgame.so` off the search path, with every stat and temp entity one index
+out and no warning.
+
 ## Watch out for
 
 - **The `Drop` contract.** `it->Drop(cl, it)` receives the item with the
