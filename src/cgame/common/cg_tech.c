@@ -34,7 +34,7 @@ static void Cg_DrawHudElements_Tech(const player_state_t *ps, cg_hud_layout_t *l
   super.DrawHudElements(ps, layout);
 
   const int16_t tech = ps->stats[STAT_TECH];
-  if (tech) {
+  if (tech > ITEM_NONE && tech < ITEM_TOTAL && cg_items[tech].icon) {
     int32_t ch;
     cgi.BindFont("large", &ch, NULL);
 

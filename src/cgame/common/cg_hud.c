@@ -219,7 +219,7 @@ void Cg_DrawChase(const player_state_t *ps) {
 
   const int32_t e = ps->stats[STAT_CHASE];
 
-  if (e < 0 || e > MAX_ENTITIES) {
+  if (e < 0 || e >= MAX_ENTITIES) {
     Cg_Warn("Invalid client info index: %d\n", e);
     return;
   }
