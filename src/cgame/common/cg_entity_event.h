@@ -26,4 +26,4 @@
 #if defined(__CG_LOCAL_H__)
 void Cg_TeleporterEffect(const vec3_t org);
 void Cg_EntityEvent(cl_entity_t *e);
-#endif /* __CG_LOCAL_H__ */
+#endif

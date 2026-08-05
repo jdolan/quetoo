@@ -27,4 +27,4 @@
 void G_ClientDamageKick(g_client_t *cl, const vec3_t dir, const float kick);
 void G_ClientEndFrame(g_client_t *cl);
 void G_EndClientFrames(void);
-#endif /* __G_LOCAL_H__ */
+#endif

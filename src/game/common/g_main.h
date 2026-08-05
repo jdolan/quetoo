@@ -222,4 +222,4 @@ void G_MuteClient(char *name, bool mute);
 
 g_export_t *G_LoadGame(g_import_t *import);
 
-#endif /* __G_LOCAL_H__ */
+#endif

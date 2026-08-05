@@ -27,4 +27,4 @@
 void G_misc_teleporter(g_entity_t *ent);
 void G_misc_teleporter_dest(g_entity_t *ent);
 void G_misc_fireball(g_entity_t *ent);
-#endif /* __G_LOCAL_H__ */
+#endif

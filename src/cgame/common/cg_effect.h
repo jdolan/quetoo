@@ -25,4 +25,4 @@
 
 #if defined(__CG_LOCAL_H__)
 void Cg_AddEffects(void);
-#endif /* __CG_LOCAL_H__ */
+#endif

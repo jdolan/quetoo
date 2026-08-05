@@ -90,4 +90,4 @@ extern cg_import_t cgi;
 
 CGAME_EXPORT cg_export_t *Cg_LoadCgame(cg_import_t *import);
 
-#endif /* __CG_LOCAL_H__ */
+#endif

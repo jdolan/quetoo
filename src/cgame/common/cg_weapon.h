@@ -25,4 +25,4 @@
 
 #if defined(__CG_LOCAL_H__)
 void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self);
-#endif /* __CG_LOCAL_H__ */
+#endif

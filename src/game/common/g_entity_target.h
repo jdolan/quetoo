@@ -27,4 +27,4 @@
 void G_target_light(g_entity_t *ent);
 void G_target_speaker(g_entity_t *ent);
 void G_target_string(g_entity_t *ent);
-#endif /* __G_LOCAL_H__ */
+#endif

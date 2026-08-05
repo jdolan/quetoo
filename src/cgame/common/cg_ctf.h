@@ -31,4 +31,4 @@
  */
 void Cg_Ctf_Init(void);
 
-#endif /* __CG_LOCAL_H__ */
+#endif

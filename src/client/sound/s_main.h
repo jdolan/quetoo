@@ -41,4 +41,4 @@ void S_GetError_(const char *function, const char *msg);
   } \
 }
 
-#endif /* __S_LOCAL_H__ */
+#endif

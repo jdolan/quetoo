@@ -115,4 +115,4 @@ void Cg_DrawDamageInflicted(const player_state_t *ps);
 /**
  * @}
  */
-#endif /* __CG_LOCAL_H__ */
+#endif

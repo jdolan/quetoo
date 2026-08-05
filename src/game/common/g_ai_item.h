@@ -24,4 +24,4 @@
 #if defined(__G_LOCAL_H__)
 
 bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other);
-#endif /* __G_LOCAL_H__ */
+#endif

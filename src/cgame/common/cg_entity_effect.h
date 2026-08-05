@@ -27,4 +27,4 @@
 void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e);
 vec3_t Cg_EffectColor(float *hue, const float default_hue);
 vec3_t Cg_ClientEffectColor(const int32_t client, float *hue, const float default_hue);
-#endif /* __CG_LOCAL_H__ */
+#endif

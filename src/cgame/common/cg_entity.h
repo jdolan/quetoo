@@ -138,4 +138,4 @@ bool Cg_IsDucking(const cl_entity_t *ent);
 void Cg_Interpolate(const cl_frame_t *frame);
 void Cg_AddEntities(const cl_frame_t *frame);
 
-#endif /* __CG_ENTITY_H__ */
+#endif

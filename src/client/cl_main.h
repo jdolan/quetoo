@@ -64,4 +64,4 @@ void Cl_SendDisconnect(void);
 void Cl_Reconnect_f(void);
 void Cl_ClearState(void);
 
-#endif /* __CL_LOCAL_H__ */
+#endif

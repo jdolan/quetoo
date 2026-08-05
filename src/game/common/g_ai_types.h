@@ -339,4 +339,4 @@ typedef struct ai_s {
   bool lookahead_no_ground;
 } ai_t;
 
-#endif /* __G_LOCAL_H__ */
+#endif

@@ -27,4 +27,4 @@
 void Cg_AddFlares(void);
 void Cg_LoadFlares(void);
 void Cg_FreeFlares(void);
-#endif /* __CG_LOCAL_H__ */
+#endif

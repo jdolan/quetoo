@@ -56,4 +56,4 @@ void Sv_KickClient(sv_client_t *cl, const char *msg);
 void Sv_DropClient(sv_client_t *cl);
 void Sv_UserInfoChanged(sv_client_t *cl);
 
-#endif /* __SV_LOCAL_H__ */
+#endif

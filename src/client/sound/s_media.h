@@ -37,4 +37,4 @@ s_media_t *S_AllocMedia(const char *name, size_t size, s_media_type_t type);
 void S_InitMedia(void);
 void S_ShutdownMedia(void);
 
-#endif /* __S_LOCAL_H__ */
+#endif

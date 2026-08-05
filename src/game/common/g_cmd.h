@@ -27,4 +27,4 @@
 bool G_AddClientToTeam(g_client_t *cl, const char *team_name);
 void G_ClientCommand(g_client_t *cl);
 void G_Mute_f(void);
-#endif /* __G_LOCAL_H__ */
+#endif

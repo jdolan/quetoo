@@ -779,4 +779,4 @@ typedef struct {
 } cl_static_t;
 
 #if defined(__CL_LOCAL_H__)
-#endif /* __CL_LOCAL_H__ */
+#endif

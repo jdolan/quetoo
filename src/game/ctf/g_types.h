@@ -1717,4 +1717,4 @@ struct g_entity_s {
 
 typedef struct g_entity_s g_entity_t;
 
-#endif /* __G_LOCAL_H__ */
+#endif

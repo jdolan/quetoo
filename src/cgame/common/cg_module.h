@@ -125,4 +125,4 @@ extern DrawHudElements Cg_DrawHudElements;
 /**
  * @}
  */
-#endif /* __CG_LOCAL_H__ */
+#endif

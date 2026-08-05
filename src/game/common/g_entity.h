@@ -25,4 +25,4 @@
 
 #if defined(__G_LOCAL_H__)
 void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities);
-#endif /* __G_LOCAL_H__ */
+#endif

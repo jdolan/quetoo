@@ -95,4 +95,4 @@ int32_t Cm_BoxContents(const box3_t bounds, int32_t head_node);
 
 #if defined(__CM_LOCAL_H__)
 void Cm_InitBoxHull(cm_bsp_t *bsp);
-#endif /* __CM_LOCAL_H__ */
+#endif

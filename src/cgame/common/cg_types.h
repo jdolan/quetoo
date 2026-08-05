@@ -209,4 +209,4 @@ typedef struct {
 
 extern cg_state_t cg_state;
 
-#endif /* __CG_LOCAL_H__ */
+#endif

@@ -28,4 +28,4 @@ void G_ClientChaseThink(g_client_t *cl);
 void G_ClientChaseNext(g_client_t *cl);
 void G_ClientChasePrevious(g_client_t *cl);
 void G_ClientChaseTarget(g_client_t *cl);
-#endif /* __G_LOCAL_H__ */
+#endif

@@ -29,4 +29,4 @@ void G_ClientSpectatorStats(g_client_t *cl);
 void G_ClientStats(g_client_t *cl);
 void G_ClientTeamsScoreboard(g_client_t *cl);
 void G_ClientToIntermission(g_client_t *cl);
-#endif /* __G_LOCAL_H__ */
+#endif

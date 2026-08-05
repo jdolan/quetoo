@@ -28,4 +28,4 @@
 void G_TouchOccupy(g_entity_t *ent);
 void G_RunThink(g_entity_t *ent);
 void G_RunEntity(g_entity_t *ent);
-#endif /* __G_LOCAL_H__ */
+#endif

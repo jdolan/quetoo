@@ -139,4 +139,4 @@ void Cg_CreateFramebuffer(void);
 void Cg_DestroyFramebuffer(void);
 void Cg_LoadMedia(void);
 void Cg_FreeMedia(void);
-#endif /* __CG_LOCAL_H__ */
+#endif

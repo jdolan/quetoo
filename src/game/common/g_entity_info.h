@@ -33,4 +33,4 @@ void G_info_player_team2(g_entity_t *ent);
 void G_info_player_team3(g_entity_t *ent);
 void G_info_player_team4(g_entity_t *ent);
 void G_info_player_team_any(g_entity_t *ent);
-#endif /* __G_LOCAL_H__ */
+#endif

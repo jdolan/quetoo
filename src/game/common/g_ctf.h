@@ -34,4 +34,4 @@ const g_item_t *G_GetFlag(const g_client_t *cl);
 g_team_t *G_TeamForFlag(const g_entity_t *ent);
 g_entity_t *G_FlagForTeam(const g_team_t *team);
 
-#endif /* __G_LOCAL_H__ */
+#endif

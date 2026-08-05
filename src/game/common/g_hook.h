@@ -43,4 +43,4 @@ void G_HookThink(g_client_t *cl, const bool refire);
 g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir);
 void G_SetClientHookStyle(g_client_t *cl);
 
-#endif /* __G_LOCAL_H__ */
+#endif

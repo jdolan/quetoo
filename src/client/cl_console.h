@@ -34,4 +34,4 @@ void Cl_DrawChat(void);
 void Cl_ToggleConsole_f(void);
 void Cl_InitConsole(void);
 void Cl_ShutdownConsole(void);
-#endif /* __CL_LOCAL_H__ */
+#endif

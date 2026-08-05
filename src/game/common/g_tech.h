@@ -65,4 +65,4 @@ const g_item_t *G_GetTech(const g_client_t *cl);
 bool G_PickupTech(g_client_t *cl, g_entity_t *ent);
 void G_PlayTechSound(g_client_t *cl);
 
-#endif /* __G_LOCAL_H__ */
+#endif

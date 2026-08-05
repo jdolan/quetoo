@@ -65,4 +65,4 @@ const cm_bsp_t *Cm_Bsp(void);
 
 extern cm_bsp_t cm_bsp;
 
-#endif /* __CM_LOCAL_H__ */
+#endif

@@ -31,4 +31,4 @@ int32_t Cg_UpdateInstaller(const installer_status_t *status);
 
 #if defined(__CG_LOCAL_H__)
 void Cg_BindCvar(const Inlet *inlet, ident obj);
-#endif /* __CG_LOCAL_H__ */
+#endif

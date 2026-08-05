@@ -82,4 +82,4 @@ void Cg_AddLights(void);
 void Cg_InitLights(void);
 void Cg_FreeLights(void);
 
-#endif /* __CG_LOCAL_H__ */
+#endif

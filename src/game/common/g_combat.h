@@ -32,4 +32,4 @@ void G_Damage(const g_damage_t *damage);
 
 void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ignore, int32_t damage,
                     int32_t knockback, float radius, g_means_of_death mod);
-#endif /* __G_LOCAL_H__ */
+#endif

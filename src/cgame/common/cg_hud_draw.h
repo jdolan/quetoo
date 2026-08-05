@@ -102,4 +102,4 @@ void Cg_InitHud(void);
 void Cg_LoadHudMedia(void);
 void Cg_ClearHud(void);
 
-#endif /* __CG_LOCAL_H__ */
+#endif

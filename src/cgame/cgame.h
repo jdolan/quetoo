@@ -1105,4 +1105,4 @@ typedef struct cg_export_s {
 
 } cg_export_t;
 
-#endif /* __CGAME_H__ */
+#endif

@@ -31,4 +31,4 @@
  */
 void Cg_Tech_Init(void);
 
-#endif /* __CG_LOCAL_H__ */
+#endif

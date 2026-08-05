@@ -48,4 +48,4 @@ void G_FireQuakeGrenadeLauncher(g_client_t *cl);
 void G_FireQuakeRocketLauncher(g_client_t *cl);
 void G_FireQuakeThunderbolt(g_client_t *cl);
 void G_ClientWeaponThink(g_client_t *cl);
-#endif /* __G_LOCAL_H__ */
+#endif

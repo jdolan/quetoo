@@ -59,4 +59,4 @@
   void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace);
   void G_InitItems(void);
 
-#endif /* __G_LOCAL_H__ */
+#endif

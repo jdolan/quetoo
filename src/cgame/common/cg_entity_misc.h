@@ -32,4 +32,4 @@ extern const cg_entity_class_t cg_misc_sparks;
 extern const cg_entity_class_t cg_misc_sprite;
 extern const cg_entity_class_t cg_misc_steam;
 extern const cg_entity_class_t cg_misc_weather;
-#endif /* __CG_LOCAL_H__ */
+#endif

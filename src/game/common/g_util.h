@@ -94,4 +94,4 @@ void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) __attribute__
   } \
 }
 
-#endif /* __G_LOCAL_H__ */
+#endif

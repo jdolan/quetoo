@@ -28,4 +28,4 @@ void Cl_WriteEntityInfoCommand(int16_t number, const cm_entity_t *entity);
 #if defined(__CL_LOCAL_H__)
 void Cl_UpdateMovementCommand(uint32_t msec);
 void Cl_SendCommands(void);
-#endif /* __CL_LOCAL_H__ */
+#endif

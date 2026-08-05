@@ -26,4 +26,4 @@
 #if defined(__CG_LOCAL_H__)
 bool Cg_UsePrediction(void);
 void Cg_PredictMovement(const Vector *cmds);
-#endif /* __CG_LOCAL_H__ */
+#endif

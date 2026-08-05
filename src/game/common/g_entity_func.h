@@ -37,4 +37,4 @@ void G_func_timer(g_entity_t *ent);
 void G_func_train(g_entity_t *ent);
 void G_func_wall(g_entity_t *ent);
 void G_func_water(g_entity_t *ent);
-#endif /* __G_LOCAL_H__ */
+#endif
