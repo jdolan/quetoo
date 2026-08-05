@@ -27,26 +27,6 @@
 static void *cgame_handle;
 
 /**
- * @brief Resolves an Objectively Class that the client game defines.
- * @details ObjectivelyMVC binds Views by class name, from JSON view hierarchies
- * and from CSS selectors, and Objectively resolves a name it has not yet
- * initialized through the process-wide namespace. The client game is opened
- * `RTLD_LOCAL` so that two modules' symbols cannot coalesce, which leaves it out
- * of that namespace - and Windows has no such namespace at all - so the engine
- * answers for it against the handle it holds.
- */
-static Class *Cl_CgameClassLoader(const char *name) {
-
-  if (cgame_handle == NULL) {
-    return NULL;
-  }
-
-  Class *(*archetype)(void) = Sys_LibrarySymbol(cgame_handle, va("_%s", name));
-
-  return archetype ? archetype() : NULL;
-}
-
-/**
  * @brief Fetch the active debug mask.
  */
 static debug_t Cl_CgameDebugMask(void) {
@@ -336,7 +316,11 @@ void Cl_InitCgame(void) {
   cgame_handle = Sys_OpenLibrary("cgame");
   assert(cgame_handle);
 
-  addClassLoader(Cl_CgameClassLoader);
+  // ObjectivelyMVC binds Views by class name, from JSON hierarchies and CSS
+  // selectors, and the module is opened RTLD_LOCAL so that two modules' symbols
+  // cannot coalesce - which leaves it out of the namespace Objectively would
+  // otherwise search, and Windows has no such namespace at all.
+  addClassImage(cgame_handle);
   
   cls.cgame = Sys_LoadLibrary(cgame_handle, "Cg_LoadCgame", &import);
 
@@ -379,10 +363,9 @@ void Cl_ShutdownCgame(void) {
   Com_Print("Client game down\n");
   Com_QuitSubsystem(QUETOO_CGAME);
 
-  removeClassLoader(Cl_CgameClassLoader);
-
-  // and the Classes it resolved, while the image is still open to be identified
-  removeClassesForImage(Sys_LibrarySymbol(cgame_handle, "Cg_LoadCgame"));
+  // last, and while the handle is still open: the menus are gone by now, and
+  // the Classes this image declared must not outlive it
+  removeClassImage(cgame_handle);
 
   Sys_CloseLibrary(cgame_handle);
   cgame_handle = NULL;

@@ -203,21 +203,6 @@ void *Sys_OpenLibrary(const char *name) {
 }
 
 /**
- * @brief Resolves a symbol in an open module.
- * @return The symbol's address, or `NULL` if the module does not define it.
- * @details This is scoped to the handle deliberately: the modules are opened
- * `RTLD_LOCAL`, so the process-wide namespace cannot answer for them, and two
- * modules defining the same symbol cannot coalesce.
- */
-void *Sys_LibrarySymbol(void *handle, const char *name) {
-
-  assert(handle);
-  assert(name);
-
-  return dlsym(handle, name);
-}
-
-/**
  * @brief Closes an open game module.
  */
 void Sys_CloseLibrary(void *handle) {

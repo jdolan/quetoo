@@ -31,7 +31,6 @@ const char *Sys_UserDir(void);
 
 void *Sys_OpenLibrary(const char *name);
 void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params);
-void *Sys_LibrarySymbol(void *handle, const char *name);
 void Sys_CloseLibrary(void *handle);
 
 #if defined(__linux__)
