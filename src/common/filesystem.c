@@ -70,11 +70,6 @@ typedef struct {
   char **base_search_paths;
 
   /**
-   * @brief The game directory the search path is currently configured for.
-   */
-  char game[MAX_QPATH];
-
-  /**
    * @brief Search paths given on the command line with `-path` or `-wpath`.
    * @details These are roots that may contain game directories, exactly like
    * the install directories, so that a development tree laid out the same way
@@ -113,13 +108,6 @@ static void Fs_AddCommandLinePath(const char *path) {
  */
 const char *Fs_BaseDir(void) {
   return fs_state.base_dir;
-}
-
-/**
- * @return The game directory the search path is currently configured for.
- */
-const char *Fs_Game(void) {
-  return fs_state.game;
 }
 
 /**
@@ -681,15 +669,14 @@ bool Fs_ValidGame(const char *dir) {
 }
 
 /**
- * @brief Sets the game path to a relative directory.
+ * @brief Points the search path at the given game directory.
+ * @details `Com_SetGame` is the only caller, and it holds the game that is
+ * current and has already validated this name, so there is nothing to compare
+ * against here: this only does the work.
  */
 void Fs_SetGame(const char *dir) {
 
   if (!Fs_ValidGame(dir)) {
-    return;
-  }
-
-  if (!q_strcmp(fs_state.game, dir)) {
     return;
   }
 
@@ -727,8 +714,6 @@ void Fs_SetGame(const char *dir) {
   }
 
   Fs_AddUserSearchPath(dir);
-
-  q_strlcpy(fs_state.game, dir, sizeof(fs_state.game));
 }
 
 /**
@@ -901,8 +886,6 @@ void Fs_Init(const uint32_t flags) {
   Fs_AddToSearchPathv(fs_state.data_dir, DEFAULT_GAME, NULL);
 
   Fs_AddUserSearchPath(DEFAULT_GAME);
-
-  q_strlcpy(fs_state.game, DEFAULT_GAME, sizeof(fs_state.game));
 
   // finally add any paths specified on the command line
   int32_t i;

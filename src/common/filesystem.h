@@ -57,7 +57,6 @@ void Fs_AddToSearchPathv(const char *dir, ...) __attribute__((sentinel));
 void Fs_SetGame(const char *dir);
 void Fs_SetWriteDir(const char *dir);
 bool Fs_ValidGame(const char *dir);
-const char *Fs_Game(void);
 const char *Fs_WriteDir(void);
 const char *Fs_RealDir(const char *filename);
 const char *Fs_RealPath(const char *path);
