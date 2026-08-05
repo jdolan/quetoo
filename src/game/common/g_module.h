@@ -22,6 +22,7 @@
 #pragma once
 
 #include "g_types.h"
+#include "bg_pmove.h"
 
 #if defined(__G_LOCAL_H__)
 

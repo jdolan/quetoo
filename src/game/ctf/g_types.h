@@ -28,6 +28,7 @@
 #include "game/common/bg_hook.h"
 #include "game/common/bg_tech.h"
 #include "bg_item.h"
+#include "bg_pmove.h"
 #include "game/game.h"
 
 /**
