@@ -310,6 +310,13 @@ static void Game_f(void) {
 }
 
 /**
+ * @brief Game command autocompletion.
+ */
+static void Game_Autocomplete_f(const uint32_t argi, List *matches) {
+  Fs_CompleteGame(va("%s*", Cmd_Argv(argi)), matches);
+}
+
+/**
  * @brief Console command to cleanly shut down the engine.
  */
 static void Quit_f(void) __attribute__((noreturn));
@@ -433,7 +440,8 @@ static void Init(void) {
 
   Con_Init();
 
-  Cmd_Add("game", Game_f, CMD_SYSTEM, "Change the game module: game [name]");
+  cmd_t *game_cmd = Cmd_Add("game", Game_f, CMD_SYSTEM, "Change the game module: game [name]");
+  Cmd_SetAutocomplete(game_cmd, Game_Autocomplete_f);
   Cmd_Add("mem_stats", MemStats_f, CMD_SYSTEM, "Print memory stats");
   Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");
   Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");

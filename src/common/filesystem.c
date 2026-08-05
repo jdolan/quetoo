@@ -539,6 +539,42 @@ void Fs_CompleteFile(const char *pattern, List *matches) {
   Fs_Enumerate(pattern, Fs_CompleteFile_enumerate, matches);
 }
 
+/**
+ * @brief Console completion for game names.
+ * @details A game is a directory under the library directory that ships a client
+ * game. Only the game that is current is mounted, so this reads the real
+ * filesystem rather than the search path, and globs the module rather than naming
+ * it, so that the shared library extension stays the platform's business.
+ */
+void Fs_CompleteGame(const char *pattern, List *matches) {
+
+  int32_t count;
+  char **games = SDL_GlobDirectory(fs_state.lib_dir, pattern, SDL_GLOB_CASEINSENSITIVE, &count);
+  if (!games) {
+    return;
+  }
+
+  for (int32_t i = 0; i < count; i++) {
+    const char *dir = va("%s/%s", fs_state.lib_dir, games[i]);
+
+    SDL_PathInfo info;
+    if (!SDL_GetPathInfo(dir, &info) || info.type != SDL_PATHTYPE_DIRECTORY) {
+      continue;
+    }
+
+    int32_t modules;
+    char **module = SDL_GlobDirectory(dir, "cgame.*", SDL_GLOB_CASEINSENSITIVE, &modules);
+    if (module) {
+      if (modules) {
+        Con_AutocompleteMatch(matches, games[i], NULL);
+      }
+      SDL_free(module);
+    }
+  }
+
+  SDL_free(games);
+}
+
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
 
 /**
