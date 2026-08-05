@@ -35,7 +35,7 @@ cvar_t *g_techs;
  */
 static struct {
   ResetDroppedItem ResetDroppedItem;
-  DropInventoryItem DropInventoryItem;
+  ResolveInventoryItem ResolveInventoryItem;
   ModifyDamage ModifyDamage;
   CheckCvars CheckCvars;
   TossInventory TossInventory;
@@ -82,16 +82,16 @@ static void G_ResetDroppedItem_Tech(g_entity_t *ent) {
 /**
  * @brief Resolves "tech" to whichever tech the client is carrying.
  */
-static void G_DropInventoryItem_Tech(g_client_t *cl, const char *name) {
+static const g_item_t *G_ResolveInventoryItem_Tech(g_client_t *cl, const char *name) {
 
   if (!q_strcasecmp(name, "tech")) {
     const g_item_t *tech = G_GetTech(cl);
     if (tech) {
-      name = tech->def.name;
+      return tech;
     }
   }
 
-  super.DropInventoryItem(cl, name);
+  return super.ResolveInventoryItem(cl, name);
 }
 
 /**
@@ -198,8 +198,8 @@ void G_Tech_Init(void) {
     super.ResetDroppedItem = G_ResetDroppedItem;
     G_ResetDroppedItem = G_ResetDroppedItem_Tech;
 
-    super.DropInventoryItem = G_DropInventoryItem;
-    G_DropInventoryItem = G_DropInventoryItem_Tech;
+    super.ResolveInventoryItem = G_ResolveInventoryItem;
+    G_ResolveInventoryItem = G_ResolveInventoryItem_Tech;
 
     super.ModifyDamage = G_ModifyDamage;
     G_ModifyDamage = G_ModifyDamage_Tech;

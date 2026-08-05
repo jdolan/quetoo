@@ -167,15 +167,20 @@ extern ResetItem G_ResetItem;
  */
 
 /**
- * @brief Drops the named item from the client's inventory, reporting to them
- * when they can not.
+ * @brief Resolves the item a client named to one they are carrying, or `NULL`
+ * when the name means nothing here.
  * @details Deathmatch resolves the name against the item list. Features that
  * answer to a category rather than an item name, such as the "flag" a client
- * happens to be carrying, resolve it to a real item name and defer.
+ * happens to be carrying, return that item outright.
+ *
+ * The chain resolves to an item rather than to another name because a name can
+ * not say *which* item is meant: all four flags are called "Enemy Flag", so
+ * handing a name back to the item list finds the first of them and not the one
+ * being carried.
  */
-typedef void (*DropInventoryItem)(g_client_t *cl, const char *name);
+typedef const g_item_t *(*ResolveInventoryItem)(g_client_t *cl, const char *name);
 
-extern DropInventoryItem G_DropInventoryItem;
+extern ResolveInventoryItem G_ResolveInventoryItem;
 
 /**
  * @brief Tosses whatever the client is carrying that must not leave play with

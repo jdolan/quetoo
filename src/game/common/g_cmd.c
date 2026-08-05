@@ -283,7 +283,16 @@ static void G_Use_f(g_client_t *cl) {
  */
 static void G_Drop_f(g_client_t *cl) {
 
-  G_DropInventoryItem(cl, gi.Args());
+  const char *name = gi.Args();
+
+  const g_item_t *it = G_ResolveInventoryItem(cl, name);
+
+  if (!it) {
+    gi.ClientPrint(cl, PRINT_HIGH, "Unknown item: %s\n", name);
+    return;
+  }
+
+  G_DropInventoryItem(cl, it);
 }
 
 /**

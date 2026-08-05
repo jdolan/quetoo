@@ -109,7 +109,7 @@ ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Common;
 /* g_tech.c — a feature installs over the top */
 static struct {
   ResetDroppedItem ResetDroppedItem;
-  DropInventoryItem DropInventoryItem;
+  ResolveInventoryItem ResolveInventoryItem;
 } super;
 
 static void G_ResetDroppedItem_Tech(g_entity_t *ent) {
@@ -170,11 +170,11 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
 ### Naming
 
 - Hook type: **VerbSubject**, PascalCase, no prefix — `ResetDroppedItem`,
-  `DropInventoryItem`, `InhibitItem`, `ConfigureLevel`, `PrepareMove`. This
+  `ResolveInventoryItem`, `InhibitItem`, `ConfigureLevel`, `PrepareMove`. This
   matches `g_entity_t::Think` and `::Touch`, and the `cg_entity.h` typedefs.
 - Dispatch pointer: the type with a `G_` prefix — `G_ResetDroppedItem`.
 - Feature implementation: the dispatch pointer with the feature suffixed —
-  `G_ResetDroppedItem_Tech`, `G_DropInventoryItem_Flag`. Reading a call site's
+  `G_ResetDroppedItem_Tech`, `G_ResolveInventoryItem_Ctf`. Reading a call site's
   chain then only means grepping for the hook's name.
 - The tail of the chain: the dispatch pointer suffixed `_Common` —
   `G_ResetDroppedItem_Common`. Every suffix names where an implementation *comes
@@ -258,7 +258,7 @@ have produced a module that did not compile.
 | hook | tail lives in | installed by |
 | --- | --- | --- |
 | `ResetDroppedItem` | `g_item.c` | ctf, techs |
-| `DropInventoryItem` | `g_item.c` | ctf, techs |
+| `ResolveInventoryItem` | `g_item.c` | ctf, techs |
 | `TossInventory` | `g_item.c` | ctf, techs, hook |
 | `ModifyDamage` | `g_combat.c` | techs |
 | `CheckCvars` | `g_rules.c` | ctf, techs, hook |

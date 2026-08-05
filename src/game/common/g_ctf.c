@@ -26,7 +26,7 @@
  */
 static struct {
   ResetDroppedItem ResetDroppedItem;
-  DropInventoryItem DropInventoryItem;
+  ResolveInventoryItem ResolveInventoryItem;
   CheckCvars CheckCvars;
   TossInventory TossInventory;
   InitMedia InitMedia;
@@ -150,16 +150,16 @@ static void G_ResetDroppedItem_Ctf(g_entity_t *ent) {
 /**
  * @brief Resolves "flag" to whichever flag the client is carrying.
  */
-static void G_DropInventoryItem_Ctf(g_client_t *cl, const char *name) {
+static const g_item_t *G_ResolveInventoryItem_Ctf(g_client_t *cl, const char *name) {
 
   if (!q_strcasecmp(name, "flag")) {
     const g_item_t *flag = G_GetFlag(cl);
     if (flag) {
-      name = flag->def.name;
+      return flag;
     }
   }
 
-  super.DropInventoryItem(cl, name);
+  return super.ResolveInventoryItem(cl, name);
 }
 
 /**
@@ -450,8 +450,8 @@ void G_Ctf_Init(void) {
     super.ResetDroppedItem = G_ResetDroppedItem;
     G_ResetDroppedItem = G_ResetDroppedItem_Ctf;
 
-    super.DropInventoryItem = G_DropInventoryItem;
-    G_DropInventoryItem = G_DropInventoryItem_Ctf;
+    super.ResolveInventoryItem = G_ResolveInventoryItem;
+    G_ResolveInventoryItem = G_ResolveInventoryItem_Ctf;
 
     super.CheckCvars = G_CheckCvars;
     G_CheckCvars = G_CheckCvars_Ctf;

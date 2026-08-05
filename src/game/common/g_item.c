@@ -845,11 +845,25 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
 }
 
 /**
- * @brief The tail of the `G_DropInventoryItem` chain, resolving the name
+ * @brief The tail of the `G_ResolveInventoryItem` chain, resolving the name
  * against the item list.
  */
-static void G_DropInventoryItem_Common(g_client_t *cl, const char *name) {
-  const g_item_t *it;
+static const g_item_t *G_ResolveInventoryItem_Common(g_client_t *cl, const char *name) {
+
+  (void) cl;
+
+  return G_FindItem(name);
+}
+
+ResolveInventoryItem G_ResolveInventoryItem = G_ResolveInventoryItem_Common;
+
+/**
+ * @brief Drops the given item from the client's inventory, reporting to them
+ * when they can not.
+ */
+void G_DropInventoryItem(g_client_t *cl, const g_item_t *it) {
+
+  const char *name = it->def.name;
 
   // we don't drop in instagib or arena
   if (g_level.gameplay) {
@@ -857,13 +871,6 @@ static void G_DropInventoryItem_Common(g_client_t *cl, const char *name) {
   }
 
   if (cl->entity->dead) {
-    return;
-  }
-
-  it = G_FindItem(name);
-
-  if (!it) {
-    gi.ClientPrint(cl, PRINT_HIGH, "Unknown item: %s\n", name);
     return;
   }
 
@@ -904,8 +911,6 @@ static void G_DropInventoryItem_Common(g_client_t *cl, const char *name) {
     }
   }
 }
-
-DropInventoryItem G_DropInventoryItem = G_DropInventoryItem_Common;
 
 /**
  * @brief Use callback that reveals a hidden item and enables it for pickup.
