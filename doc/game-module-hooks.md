@@ -364,7 +364,7 @@ client game borrows wholesale - so the two prefixes are not in conflict.
 `bg_hook.h` and `bg_tech.h` were `g_hook_types.h` and `g_tech_types.h`. They exist
 because `g_types.h` must embed `g_client_hook_t` in `g_client_t`, and `g_hook.h`
 cannot be the source of it: `g_hook.h` includes `g_types.h` for the `g_client_t`
-its own declarations take, and `__GAME_LOCAL_H__` is defined for the whole
+its own declarations take, and `__G_LOCAL_H__` is defined for the whole
 translation unit, so folding the types into `g_hook.h` puts its declarations in
 front of the types they need. That is not a style choice, it is a cycle - it was
 tried, and the compiler says `unknown type name 'g_client_t'`.
@@ -524,7 +524,7 @@ for the cgame:
    to run once. If they do, every install needs the same `static bool installed`,
    and the failure mode is the same beachball.
 2. **There is no `__CGAME_LOCAL_H__`.** The game headers hide their declarations
-   behind `#if defined(__GAME_LOCAL_H__)`, which is what lets `g_module.h` be
+   behind `#if defined(__G_LOCAL_H__)`, which is what lets `g_module.h` be
    included from anywhere safely. `cg_local.h` defines no such macro. Decide
    whether `cg_module.h` needs one before writing it, and remember the include
    cycle that shape exists to prevent: `g_hook.h` cannot hold its own types

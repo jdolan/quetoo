@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 
 /**
  * @brief The contract every game module implements for the common sources.

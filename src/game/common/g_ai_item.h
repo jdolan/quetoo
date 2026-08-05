@@ -21,7 +21,7 @@
 
 #pragma once
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 
 bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other);
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __G_LOCAL_H__ */

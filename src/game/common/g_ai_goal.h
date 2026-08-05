@@ -21,7 +21,7 @@
 
 #pragma once
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 #include "g_ai_types.h"
 
 void G_Ai_SetPositionGoal(const g_client_t *cl, ai_goal_t *goal, float priority, const vec3_t position);
@@ -30,4 +30,4 @@ void G_Ai_SetPathGoal(const g_client_t *cl, ai_goal_t *goal, float priority, Vec
 void G_Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to);
 void G_Ai_ClearGoal(ai_goal_t *goal);
 bool G_Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent);
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __G_LOCAL_H__ */

@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 #define AI_NAME "default"
 
 #define G_Ai_Debug(...) gi.Debug(DEBUG_AI, __func__, __VA_ARGS__)
@@ -49,4 +49,4 @@ void G_Ai_Shutdown(void);
 bool G_Ai_InDeveloperMode(void);
 bool G_Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node);
 
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __G_LOCAL_H__ */

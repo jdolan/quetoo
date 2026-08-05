@@ -23,10 +23,10 @@
 
 #include "g_types.h"
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 void G_ClientScores(g_client_t *cl);
 void G_ClientSpectatorStats(g_client_t *cl);
 void G_ClientStats(g_client_t *cl);
 void G_ClientTeamsScoreboard(g_client_t *cl);
 void G_ClientToIntermission(g_client_t *cl);
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __G_LOCAL_H__ */

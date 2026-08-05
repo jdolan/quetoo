@@ -21,7 +21,7 @@
 
 #pragma once
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 
 uint32_t G_Ai_Node_Count(void);
 ai_node_id_t G_Ai_Node_Create(const vec3_t position);

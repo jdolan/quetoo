@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 
 void G_KillBox(g_entity_t *ent);
 void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius, uint32_t mod);
@@ -94,4 +94,4 @@ void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) __attribute__
   } \
 }
 
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __G_LOCAL_H__ */

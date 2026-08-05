@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 
   extern g_item_t *g_items;
 
@@ -58,4 +58,4 @@
   void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace);
   void G_InitItems(void);
 
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __G_LOCAL_H__ */

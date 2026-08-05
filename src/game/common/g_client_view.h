@@ -23,8 +23,8 @@
 
 #include "g_types.h"
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 void G_ClientDamageKick(g_client_t *cl, const vec3_t dir, const float kick);
 void G_ClientEndFrame(g_client_t *cl);
 void G_EndClientFrames(void);
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __G_LOCAL_H__ */

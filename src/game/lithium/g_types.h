@@ -408,7 +408,7 @@ typedef struct {
   float energy_protection;
 } g_armor_info_t;
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 
 /**
  * @brief This file will define the game-visible definitions of `g_client_t`
@@ -1672,4 +1672,4 @@ struct g_entity_s {
 
 typedef struct g_entity_s g_entity_t;
 
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __G_LOCAL_H__ */

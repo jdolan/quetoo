@@ -28,7 +28,7 @@
  * - and the features it switches on below.
  */
 
-#define __GAME_LOCAL_H__
+#define __G_LOCAL_H__
 
 #include <Objectively/Vector.h>
 

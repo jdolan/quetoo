@@ -29,7 +29,7 @@
  */
 #define AI_NODE_INVALID ((ai_node_id_t)-1)
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 
 /**
  * @brief The default user info string (name and skin).
@@ -339,4 +339,4 @@ typedef struct ai_s {
   bool lookahead_no_ground;
 } ai_t;
 
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __G_LOCAL_H__ */

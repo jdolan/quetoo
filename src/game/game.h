@@ -61,7 +61,7 @@
 typedef struct sv_game_client_s sv_game_client_t;
 typedef struct sv_game_entity_s sv_game_entity_t;
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 typedef struct g_client_s g_client_t;
 typedef struct g_entity_s g_entity_t;
 #else

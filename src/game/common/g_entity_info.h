@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 void G_info_player_deathmatch(g_entity_t *ent);
 void G_info_player_intermission(g_entity_t *ent);
 void G_info_notnull(g_entity_t *ent);
@@ -33,4 +33,4 @@ void G_info_player_team2(g_entity_t *ent);
 void G_info_player_team3(g_entity_t *ent);
 void G_info_player_team4(g_entity_t *ent);
 void G_info_player_team_any(g_entity_t *ent);
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __G_LOCAL_H__ */

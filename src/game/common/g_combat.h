@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 bool G_OnSameTeam(const g_client_t *a, const g_client_t *b);
 bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor);
 vec3_t G_GetOrigin(const g_entity_t *ent);
@@ -32,4 +32,4 @@ void G_Damage(const g_damage_t *damage);
 
 void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ignore, int32_t damage,
                     int32_t knockback, float radius, g_means_of_death mod);
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __G_LOCAL_H__ */

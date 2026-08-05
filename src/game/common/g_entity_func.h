@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 void G_func_bob(g_entity_t *ent);
 void G_func_button(g_entity_t *ent);
 void G_func_conveyor(g_entity_t *ent);
@@ -37,4 +37,4 @@ void G_func_timer(g_entity_t *ent);
 void G_func_train(g_entity_t *ent);
 void G_func_wall(g_entity_t *ent);
 void G_func_water(g_entity_t *ent);
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __G_LOCAL_H__ */

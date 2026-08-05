@@ -24,7 +24,7 @@
 #include "g_types.h"
 #include "bg_pmove.h"
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 
 extern cvar_t *g_hook;
 extern cvar_t *g_hook_auto_refire;
@@ -43,4 +43,4 @@ void G_HookThink(g_client_t *cl, const bool refire);
 g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir);
 void G_SetClientHookStyle(g_client_t *cl);
 
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __G_LOCAL_H__ */
