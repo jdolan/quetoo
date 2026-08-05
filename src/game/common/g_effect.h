@@ -23,5 +23,9 @@
 
 #include "g_types.h"
 
+#if defined(__G_LOCAL_H__)
+
 bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile);
 void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size, bool splash);
+
+#endif /* __G_LOCAL_H__ */

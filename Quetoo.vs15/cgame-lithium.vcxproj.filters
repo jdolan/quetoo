@@ -55,7 +55,7 @@
     <Filter Include="src\game\common">
       <UniqueIdentifier>{1b99d444-f798-5c2d-b3f6-7cf0fb3f99ed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\game\ctf">
+    <Filter Include="src\game\lithium">
       <UniqueIdentifier>{13e7ff26-6943-5736-b5e5-6149367f705a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -283,7 +283,7 @@
       <Filter>src\game\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\lithium\bg_item.h">
-      <Filter>src\game\ctf</Filter>
+      <Filter>src\game\lithium</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -498,7 +498,7 @@
       <Filter>src\game\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\lithium\bg_item.c">
-      <Filter>src\game\ctf</Filter>
+      <Filter>src\game\lithium</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

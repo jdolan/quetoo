@@ -38,6 +38,7 @@ game_la_SOURCES = \
 	g_client_view.c \
 	g_cmd.c \
 	g_combat.c \
+	g_ctf.c \
 	g_effect.c \
 	g_entity.c \
 	g_entity_func.c \
@@ -45,7 +46,6 @@ game_la_SOURCES = \
 	g_entity_misc.c \
 	g_entity_target.c \
 	g_entity_trigger.c \
-	g_ctf.c \
 	g_hook.c \
 	g_item.c \
 	g_main.c \

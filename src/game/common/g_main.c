@@ -690,10 +690,10 @@ static void G_CheckRules(void) {
     g_level.teams = g_teams->integer;
 #if defined(G_CTF)
     g_level.teams = true; // playing for captures is playing for teams
+#else
+    gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n", g_level.teams ? "enabled" : "disabled");
 #endif
     G_InitNumTeams();
-
-    gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n", g_level.teams ? "enabled" : "disabled");
 
     restart = true;
   }
