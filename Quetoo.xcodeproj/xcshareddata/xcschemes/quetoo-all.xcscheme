@@ -141,16 +141,16 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set game ctf"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "+set g_ai_node_dev 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+game ctf"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map claustrophobopolis"
