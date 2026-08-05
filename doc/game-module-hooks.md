@@ -732,8 +732,9 @@ is listed in each module's own `.vcxproj` rather than in the props sheet, as
 
 Cross-check afterwards that each module's source list matches its `Makefile.am`
 in both directions. Verifying a list is complete is not the same as verifying its
-entries resolve — and the check is worth scripting, because both of the faults
-below were found by it and neither produced a build failure.
+entries resolve. `src/tools/verify_projects.py` does all of this, including the
+feature defines and the per-module manifests; both of the faults below were found
+that way, and neither produced a build failure.
 
 ### Adding a module, or duplicating a target
 
