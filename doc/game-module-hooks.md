@@ -81,7 +81,7 @@ else.
   lines before the features started owning their own cvars.
 - A file that resists everything → it is probably a manifest and a mechanism
   wearing one name. `G_CheckRules` turned out to be three things: a win condition
-  (`CheckWinCondition`), a pile of per-feature cvar blocks (`CheckCvars`), and
+  (`CheckWinner`), a pile of per-feature cvar blocks (`CheckCvars`), and
   the core rules, which never diverged at all.
 
 ## The chainable hook
@@ -262,7 +262,7 @@ have produced a module that did not compile.
 | `TossInventory` | `g_item.c` | ctf, techs, hook |
 | `ModifyDamage` | `g_combat.c` | techs |
 | `CheckCvars` | `g_rules.c` | ctf, techs, hook |
-| `CheckWinCondition` | `g_rules.c` | ctf |
+| `CheckWinner` | `g_rules.c` | ctf |
 | `FormatGameName` | `g_rules.c` | ctf |
 | `ResetItem` | `g_item.c` | ctf |
 | `InhibitItem` | `g_item.c` | ctf |
@@ -323,7 +323,9 @@ and make the block additive instead.
 ### The client side
 
 `cg_hud.c` and `cg_score.c` were the same fork on the client, and moved the same
-way, on `G_CTF` and `G_TECH` guards. `cg_team_mode.c` stays per-module: the list of
+way, on `G_CTF` and `G_TECH` guards. `cg_hud.c`'s have since become the
+`DrawHudElements` chain and the two cgame feature files - see
+[The client game](#the-client-game). `cg_team_mode.c` stays per-module: the list of
 team modes a mod offers is a manifest, like the item roster.
 
 The cgame gets the **same** feature defines as its game module, in all three build
@@ -418,8 +420,11 @@ from the other end.
 
 ### What is left
 
-1. **Nothing structural.** Lithium builds in all three systems, so the pattern is
-   exercised end to end by three modules that share every line of behaviour.
+1. **Nothing structural on the game side.** Lithium builds in all three systems,
+   so the pattern is exercised end to end by three modules that share every line of
+   behaviour. The client game has the same three mechanisms now; what remains there
+   is four more hooks, listed under
+   [The hooks left to extract](#the-hooks-left-to-extract).
 2. **Do not merge `common` into `default`.** It looks tempting - `default` is a
    shell of four files, and a shorter `vpath` would make the pattern read as "a mod
    overrides default". It is a trap. `#include "..."` searches the *including
@@ -484,101 +489,188 @@ of calls:
   in chain order, rather than interleaved with the core ones. `restart` is acted
   on at the same point either way.
 
-## Next: carrying the pattern into the client game
+## The client game
 
-The client game is where the game side was two days ago, minus the duplication:
-its fork is already gone. Each cgame module holds one file.
+The client game now has the same three mechanisms, and its fork was already gone
+before any of this. Each cgame module holds two files:
 
-    src/cgame/{default,ctf,lithium}/  cg_team_mode.c  Makefile.am
+    src/cgame/{default,ctf,lithium}/  cg_module.c  cg_team_mode.c  Makefile.am
 
-What it does *not* have is any of the three mechanisms. There is no `cg_module.h`,
-no chainable hook, and no seam a mod owns - a cgame mod today can only compose
-what common ships, exactly the gap `G_Module_Init` closed on the game side. All of
-its variation lives in **33 feature guards across 15 files**:
+`cg_module.h` is the client half of `g_module.h`: the authoritative list of the
+client's variation points and the two contracts, `Cg_Module_Init` and
+`Cg_Module_Shutdown`, defined per module and called from `Cg_Init` and
+`Cg_Shutdown` after the shipped features, so a mod's hooks sit at the head of
+every chain. `src/cgame/common/cg_ctf.c` and `cg_tech.c` are the first cgame
+features, listed only in the `_SOURCES` of the modules that build them, exactly as
+`g_ctf.c` is.
 
-| file | G_CTF | G_HOOK | G_TECH |
-| --- | --- | --- | --- |
-| `cg_hud.c` | 5 | | 1 |
-| `cg_entity_trail.c` | 4 | 3 | |
-| `cg_score.c` | 3 | | |
-| `cg_main.c` / `cg_main.h` | | 6 | |
-| `cg_media.c` / `cg_media.h` | | 3 | |
-| `cg_temp_entity.c` | | 2 | |
-| `ui/controls/MovementCombatViewController.c` | | 2 | |
-| `cg_entity_effect.c` | 1 | | |
-| `cg_discord.c` | 1 | | |
-| `cg_predict.c` | | 1 | |
-| `cg_types.h` | | 1 | |
+Everything from the game side carries over unchanged: the naming, `_Common` tails
+in the domain file that calls them rather than a catch-all, a guard naming a
+feature and never a module, the balance rule, and the prohibition on a gate around
+a diagnostic.
 
-### Check these two premises before designing anything
+### Two premises, now measured
 
-Both were assumed on the game side and turned out to matter. Neither is verified
-for the cgame:
+Both were assumed on the game side. Neither had been checked for the cgame, and
+both mattered:
 
-1. **Does `Cg_Init` run more than once per process?** It does - `Cl_InitCgame` is
-   called from client startup *and* from `Cl_Frame` whenever `game->modified`,
-   which is precisely what switching mods does. `Cl_ShutdownCgame` calls
-   `Sys_CloseLibrary`, but `dlclose` does not reliably unload on macOS, which is
-   what makes the `installed` guard load-bearing on the game side. **Confirm
-   whether cgame file statics survive a `game` change** before trusting anything
-   to run once. If they do, every install needs the same `static bool installed`,
-   and the failure mode is the same beachball.
-2. **There is no `__CGAME_LOCAL_H__`.** The game headers hide their declarations
-   behind `#if defined(__G_LOCAL_H__)`, which is what lets `g_module.h` be
-   included from anywhere safely. `cg_local.h` defines no such macro. Decide
-   whether `cg_module.h` needs one before writing it, and remember the include
-   cycle that shape exists to prevent: `g_hook.h` cannot hold its own types
-   because `g_types.h` must embed them first.
+1. **`Cg_Init` runs more than once per process, and the file statics survive it.**
+   `Cl_InitCgame` has four call sites: client startup, `game->modified` in
+   `Cl_Frame`, a server reporting a different game directory in `Cl_ParseServerData`,
+   and **`r_restart`** - which tears down and re-initializes the *same* module
+   image with no mod switch at all. That last one makes a double install reachable
+   by typing one command in a plain session, where the game side needed
+   `game ctf`. `Cl_ShutdownCgame` does call `Sys_CloseLibrary`, and the image stays
+   mapped anyway: `dlopen`, `dlclose`, then `dlopen(RTLD_NOLOAD)` still resolves,
+   for `cgame.so` and `game.so` alike. So every cgame install needs the same
+   `static bool installed`, and the failure mode is the same spin.
+2. **The guard macro already existed, spelled `__CG_LOCAL_H__`.** It is defined in
+   `cg_local.h` and used by some twenty-five headers, so `cg_module.h` only had to
+   follow it; there was nothing to decide. The expectation that it would be
+   `__CGAME_LOCAL_H__` came from the game side spelling its own
+   `__GAME_LOCAL_H__`, which was a workaround for a collision with glib. glib is
+   long gone, so the game now spells it `__G_LOCAL_H__` like every other subsystem.
+   Two notes if that ever needs revisiting: glib's headers are still on the include
+   path transitively through harfbuzz, so "we removed the dependency" is not the
+   same as "the name is free"; and a guard that stops matching fails *silently*, so
+   the check is that preprocessing a source gives byte-identical output, not that
+   the build is clean.
 
-### The hooks worth extracting
+   The include cycle that shape exists to prevent still applies: `g_hook.h` cannot
+   hold its own types because `g_types.h` must embed them first. The cgame has not
+   needed a `bg_`-style split yet, because `hook_pull_speed` is a plain float.
 
-In descending order of how much guard they retire. Each mirrors a game-side hook,
-so take the name from the server where one exists:
+### The HUD, and why it is one fat hook
+
+`DrawHudElements` is a single chainable hook for the whole arrangement rather than
+one hook per element, and the elements it arranges - `Cg_DrawFrags`,
+`Cg_DrawPowerups`, `Cg_DrawTime` and the rest - are **public in `cg_hud.h`** so
+that a module may arrange all of it rather than only insert into the arrangement
+common ships. A feature calls super and draws after it; a module that arranges the
+HUD itself does not defer to super at all, and then owns every element it declines
+to call.
+
+The layout was the interesting part, and it is *not* the shape an earlier draft of
+this document claimed. It is not a value several features adjust, like
+`ModifyDamage`. The stat rows addressed their slot arithmetically - frags at one
+row, deaths at two, captures at three - so an element a feature drew had to be paid
+for by an element that did not know the feature existed:
+
+```c
+/* the old Cg_DrawTime */
+y = 3 * (HUD_PIC_HEIGHT + ch);
+#if defined(G_CTF)
+y += HUD_PIC_HEIGHT + ch; // the capture count sits where this would
+#endif
+```
+
+A chained hook alone would have retired that guard and *kept* the coupling, with
+nothing left to name it. The fix is that each stacking element takes the y of its
+slot and returns the next - which is `Cg_DrawPowerup`'s existing shape, already
+right one column over - and `cg_hud_layout_t` carries a cursor per stacking column
+through the chain. Only the elements that stack take a position; the overlays place
+themselves, because a coordinate an element would ignore is a signature that lies.
+
+Two rules fell out:
+
+- **A stat row is reserved whether or not it draws**, so a spectator sees the rows
+  below it where a player would. The old arithmetic got this for free; a cursor has
+  to say it.
+- **The framing is not part of the arrangement.** The `cg_draw_hud` cvar, the
+  intermission, the crosshair, the editor, the clock below the stat column and the
+  overlays stay in `Cg_DrawHud`, so a module cannot lose the damage blend or the
+  hit sound by forgetting to draw them. The cost is that a module wanting the clock
+  elsewhere overrides `cg_hud.c` outright, which vpath has always allowed.
+
+### The hooks left to extract
+
+In descending order of how much guard they retire:
 
 | candidate | retires | notes |
 | --- | --- | --- |
-| `DrawHud` | `cg_hud.c`'s 5 + 1 | features draw their own elements: the carried flag, the capture count, the tech icon. The layout shift - the timer moving up when there is no capture count - is the interesting part, and is the same shape as `ModifyDamage`: a value several features adjust |
-| `AddEntityTrail` | `cg_entity_trail.c`'s 7 | the largest single cluster; flags and the grapple each add a trail |
-| `DrawScore` | `cg_score.c`'s 3 | the team line, the carrier icon, the per-player captures. The "%d frags" against "%d captures" line is a replacement, so it is a not-chained hook, like `CheckWinner` |
+| `AddEntityTrail` | `cg_entity_trail.c`'s 7 | the largest remaining cluster. Four of the seven are whole static functions that move into `cg_hook.c` and `cg_ctf.c` untouched; the switch case on `s->trail` and the `EF_CTF_MASK` tail become the chain. The eighth thing in that file, the grapple's beam start, runs *before* dispatch and stays a guard |
+| `DrawScore` | `cg_score.c`'s 3 | **not one hook.** Two of the three are one to four line insertions inside a ninety line function, so a wholesale hook would have ctf carry an eighty-nine line copy to add four lines - the `G_ClientObituary` mistake. Only the `"%d captures"` against `"%d frags"` line is a replacement, and it wants a small not-chained `FormatTeamScore`; the carrier icon and the per-player captures stay guards |
 | `FormatGameName` | `cg_discord.c`'s 1 | **the same hook already exists on the game side.** Give it the same name; a mod naming its mode should say so once |
 | `AddEntityEffects` | `cg_entity_effect.c`'s 1 | small, but pairs with the trail hook |
+| `InitMedia` | `cg_media.{c,h}`'s 3 | the game side already has this hook, installed by all three features. Now that `cg_ctf.c` and `cg_tech.c` exist, `cg_sample_hook_hit` and its `LoadSample` can move into the feature that wants them, which an earlier draft of this document filed under "stays a guard" for want of anywhere to put them |
 
-### What should stay a guard
+### What stays a guard
 
-Additive one-liners on state a module declares, which is what guards are for:
-`cg_types.h`'s `hook_pull_speed` in `cg_state_t`, the `cg_media.{c,h}` indices,
-`cg_predict.c`'s single prediction branch, and the menu outlets in
-`MovementCombatViewController.c`, which are driven by a JSON resource rather than
-code. `cg_main.{c,h}`'s six are worth reading before deciding: some are wiring
-that a `Cg_Module_Init` would absorb.
+`cg_types.h`'s `hook_pull_speed` in `cg_state_t`, `cg_predict.c`'s single
+prediction branch, and the menu outlets in `MovementCombatViewController.c`, which
+are driven by a JSON resource rather than by code. `cg_main.{c,h}`'s are wiring -
+the `hook_style` cvar, the config string, the accessor - and the two in
+`cg_local.h` are the feature includes, which are guards like any other.
 
 `cg_team_mode.c` stays per-module. A list of the team modes a mod offers is a
 manifest, like the item roster.
 
-### Everything else carries over unchanged
+### Where the guards went
 
-The rules, the naming, `_Common` tails in domain files rather than a catch-all
-`cg_module.c` in common, a guard naming a feature and never a module, and the
-prohibition on a gate around a diagnostic. The two contracts become
-`Cg_Module_Init` and `Cg_Module_Shutdown`, defined per module in
-`src/cgame/<mod>/cg_module.c`, called from `Cg_Init` and `Cg_Shutdown` after the
-shipped features, so a mod's hooks sit at the head of every chain.
+31 guards across 13 files, from 33 across 15. That is not a net six, because
+retiring the HUD's six added four of a different kind: the two `Cg_*_Init` calls in
+`Cg_Init` and the two feature includes in `cg_local.h`. Those are the composition
+seam rather than behaviour inline in a shared function, which is the trade the
+whole design is making.
+
+| file | G_CTF | G_HOOK | G_TECH |
+| --- | --- | --- | --- |
+| `cg_entity_trail.c` | 4 | 3 | |
+| `cg_main.c` | 1 | 4 | 1 |
+| `cg_score.c` | 3 | | |
+| `cg_local.h` | 1 | | 1 |
+| `cg_media.c` | | 2 | |
+| `cg_temp_entity.c` | | 2 | |
+| `ui/controls/MovementCombatViewController.c` | | 2 | |
+| `cg_main.h` | | 2 | |
+| `cg_entity_effect.c` | 1 | | |
+| `cg_discord.c` | 1 | | |
+| `cg_media.h` | | 1 | |
+| `cg_predict.c` | | 1 | |
+| `cg_types.h` | | 1 | |
+
+### Two guards that were already wrong
+
+Both compiled either way, and both were the shape this document warns about - a
+guard opening on a brace or an `else`, so the two arms of the preprocessor close
+different blocks. `cg_main.c` had `G_HOOK` open after `Cg_ParseMessage`'s last
+statement, swallow its closing brace, and share a brace with the next function.
+`cg_entity_trail.c` spelled the beam start as an `if`/`else` across the `#endif`.
+Worth knowing that the rule is not hypothetical: it was being broken in shipped
+code, in the file the next hook is going to touch.
 
 ### Verifying it
 
 The cgame is the visual half, so the check is a screenshot rather than an entity
-count. The recipe that works: run the client as its own listen server, because a
-client cannot connect to a dedicated server holding the same port -
+count. Run the client as its own listen server, because a client cannot connect to
+a dedicated server holding the same port:
 
-    printf 'wait\n%.0s' {1..1200} > "$WRITE_DIR/probe.cfg"
+    printf 'wait\n%.0s' {1..1400} > "$WRITE_DIR/probe.cfg"
     echo 'r_screenshot' >> "$WRITE_DIR/probe.cfg" && echo quit >> "$WRITE_DIR/probe.cfg"
     quetoo +set game lithium +set sv_min_clients 4 +map edge +exec probe.cfg
 
 then read `$WRITE_DIR/screenshots/`. Enough `wait` lines to get past the map load,
-or the screenshot is of the console. Compare all three modules: `default` has no
-capture count and the timer sits where it would be, `ctf` has one, `lithium` has
-the tech icon and no capture count. That last combination has never been looked at
-- it is new with lithium, and it is the one the layout hook could break.
+or the screenshot is of the console. What the three modules should show, and did:
+`default` draws frags and deaths with the clock at the third row, `ctf` adds the
+capture count and pushes the clock to the fourth, and `lithium` - the combination
+that had never been looked at, and the one the layout could break - draws the tech
+icon below the quad in the powerup column with the clock back at the third row.
+
+Some paths need a state the map does not hand you:
+
+- **The tech icon** wants a tech held. `+set g_cheats 1` and `give Haste` from the
+  probe puts one in the inventory, and `give Quad Damage` as well is what shows the
+  powerup column stacking rather than just drawing.
+- **The held flag resisted every attempt.** `give` spawns the item entity and
+  touches it, and the flag pickup declines a synthetic one; all four flags are also
+  named "Enemy Flag", so the name resolves to the first, which is your own team's
+  unless you `team Blue` first. Neither is enough. `Cg_DrawHeldFlag` is therefore
+  the one moved function this document cannot claim was seen working - it needs a
+  real capture, or a bot chased in `cg_third_person_chasecam`.
+
+The bundle the runtime needs is described under [Verifying](#verifying); for the
+client specifically, `Contents/Resources` is a symlink to `quetoo-data/target` and
+each module needs `lib/quetoo/<mod>/{ui,shaders}` symlinks beside its two `.so`s.
 
 And the rule that makes all of this necessary: **a module whose manifest differs at
 all needs its own cgame.** Lithium's wire values are shifted from default's by the
@@ -620,19 +712,28 @@ out and no warning.
 
 ## Adding a common source file
 
-All three build systems, or the Windows build rots silently:
+All three build systems, or the Windows build rots silently. For the game:
 
-1. `src/game/{default,ctf}/Makefile.am` — add to `_SOURCES` (alphabetical).
+1. `src/game/{default,ctf,lithium}/Makefile.am` — add to `_SOURCES`
+   (alphabetical), in the modules that build it.
 2. `Quetoo.vs15/game_common.props` — add a `ClCompile`; use a
-   `Condition="'$(QuetooGameX)'=='true'"` group if it is an opt-in feature.
-3. `Quetoo.vs15/game{,-ctf}.vcxproj.filters` — add under `src\common`.
+   `Condition="'$(QuetooGameX)'=='true'"` group if it is an opt-in feature, and
+   set that property in each module's `.vcxproj` that wants it.
+3. `Quetoo.vs15/game{,-ctf,-lithium}.vcxproj.filters` — add under `src\common`.
 4. `Quetoo.xcodeproj/project.pbxproj` — one `PBXFileReference`, one
    `PBXBuildFile` *per target*, add to the `src/game/common` group and to each
    target's Sources phase. Keep the phase entries alphabetical.
 
+The client game is the same shape with its own names: `cgame_common.props`,
+`QuetooCgameCtf` and `QuetooCgameTech`, `cgame{,-ctf,-lithium}.vcxproj.filters`,
+and the `src/cgame/common` group in Xcode. A per-module file such as `cg_module.c`
+is listed in each module's own `.vcxproj` rather than in the props sheet, as
+`cg_team_mode.c` is.
+
 Cross-check afterwards that each module's source list matches its `Makefile.am`
 in both directions. Verifying a list is complete is not the same as verifying its
-entries resolve.
+entries resolve — and the check is worth scripting, because both of the faults
+below were found by it and neither produced a build failure.
 
 ### Adding a module, or duplicating a target
 
@@ -649,8 +750,18 @@ still linked, because with `G_CTF` undefined nothing references `G_Ctf_Init`. Xc
 had quietly been building ctf without capture the flag. **After duplicating a
 target, check what the original lost**, not only what the copy gained.
 
+It happened a second time, in the other direction and on the client: `cgame-lithium`
+was created the same way and kept `src/cgame/ctf/cg_team_mode.c` in both Xcode and
+MSVS, along with an include path still naming `src\cgame\ctf`. Lithium's own file
+reference was sitting in the lithium group with nothing building it, so on Windows
+and in Xcode the lithium client offered "Capture the flag" and neither free for all
+nor team deathmatch. Autotools was right the whole time, because `vpath` searches
+`srcdir` first - which is exactly why this class of fault survives: **the build
+system that resolves by convention hides the one that resolves by list.** So check
+what the copy *kept*, as well as what the original lost.
+
 The cheap check for all of it is comparing each target's Sources against its
-`Makefile.am`, in every build system, which is how both of these were found.
+`Makefile.am`, in every build system, which is how all three of these were found.
 
 ### Moving a forked file into common
 
