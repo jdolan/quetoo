@@ -309,6 +309,7 @@ static void Init(void) {
   editor = Cvar_Add("editor", "0", CVAR_LATCH | CVAR_SERVER_INFO, "Enables the in-game editor.");
 
   game = Cvar_Add("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
+  game->modified = false;
 
   rcon_address = Cvar_Add("rcon_address", "", 0, "The remote console server address (defaults to current server)");
   rcon_password = Cvar_Add("rcon_password", "", CVAR_ARCHIVE, "The remote console password. "
