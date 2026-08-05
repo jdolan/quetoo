@@ -22,8 +22,6 @@ INSTALL   = $(TARGET)/Quetoo.app
 BINDIR    = $(INSTALL)/Contents/MacOS
 LIBDIR    = $(BINDIR)/lib
 MODULEDIR = $(LIBDIR)/quetoo
-GAMEDIR   = $(MODULEDIR)/default
-CTFDIR    = $(MODULEDIR)/ctf
 DATADIR   = $(INSTALL)/Contents/Resources
 
 SNAPSHOT        = $(TARGET)/Quetoo-$(BUILD).dmg
@@ -57,10 +55,7 @@ install-lib:
 		-x $(BINDIR)/quetoo \
 		-x $(BINDIR)/quetoo-dedicated \
 		-x $(BINDIR)/quetoo-master \
-		-x $(GAMEDIR)/cgame.so \
-		-x $(GAMEDIR)/game.so \
-		-x $(CTFDIR)/cgame.so \
-		-x $(CTFDIR)/game.so \
+		$$(find $(MODULEDIR) -name '*.so' | sed 's/^/-x /') \
 		-d $(LIBDIR) -of -p @executable_path/lib
 
 # Move non-Mach-O engine assets (UI layouts, shaders, images) out of

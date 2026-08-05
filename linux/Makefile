@@ -26,7 +26,9 @@ MODULES = \
 	$(STAGING)/lib/default/cgame.so \
 	$(STAGING)/lib/default/game.so \
 	$(STAGING)/lib/ctf/cgame.so \
-	$(STAGING)/lib/ctf/game.so
+	$(STAGING)/lib/ctf/game.so \
+	$(STAGING)/lib/lithium/cgame.so \
+	$(STAGING)/lib/lithium/game.so
 
 ARCHIVE  = $(TARGET)/quetoo-$(BUILD).tar.gz
 DEB      = $(TARGET)/quetoo_$(VERSION)_$(DEB_ARCH).deb

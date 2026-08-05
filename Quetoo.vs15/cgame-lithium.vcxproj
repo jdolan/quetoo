@@ -78,7 +78,7 @@
       <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;SDL3.lib;SDL3_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_CGAME_CTF "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
+      <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_CGAME_MODULE "$(QUETOO_HOME)" "$(Platform)$(Configuration)" "lithium"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

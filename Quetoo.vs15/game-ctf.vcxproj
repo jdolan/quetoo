@@ -85,7 +85,7 @@
       <ModuleDefinitionFile>game.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>COPY_GAME_CTF "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
+      <Command>COPY_GAME_MODULE "$(QUETOO_HOME)" "$(Platform)$(Configuration)" "ctf"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
