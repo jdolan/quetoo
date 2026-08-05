@@ -173,26 +173,53 @@ static void Sys_CheckLibrary(const char *path) {
 }
 
 /**
- * @brief Loads a shared library by name, searching the game filesystem for the .so/.dll file.
+ * @return The platform's file name for the named module.
+ */
+static const char *Sys_LibraryName(const char *name) {
+
+#if defined(_WIN32)
+  return va("%s.dll", name);
+#else
+  return va("%s.so", name);
+#endif
+}
+
+/**
+ * @brief Resolves a module the current game provides.
+ * @return The real directory holding `so_name`, or `NULL` if this game has none.
+ * @details The module must come from the game's own directory. Every module is
+ * named game.so or cgame.so and <lib_dir>/default stays mounted as a base path
+ * for the shared UI, so accepting whatever the search path resolves would run
+ * another game's module under this game's name. Directories are prepended as they
+ * are mounted and Fs_SetGame mounts the game's own last, so the game's copy wins
+ * wherever it exists: resolving anything else means it has none.
+ */
+static const char *Sys_LibraryDir(const char *so_name) {
+
+  const char *real_dir = Fs_Exists(so_name) ? Fs_RealDir(so_name) : NULL;
+
+  return real_dir && !q_strcmp(Basename(real_dir), Com_Game()) ? real_dir : NULL;
+}
+
+/**
+ * @return True if the current game provides the named module.
+ * @details Lets a game change be refused before it tears anything down, rather
+ * than dropping to the console from inside the load.
+ */
+bool Sys_HasLibrary(const char *name) {
+  return Sys_LibraryDir(Sys_LibraryName(name)) != NULL;
+}
+
+/**
+ * @brief Loads a shared library by name from the game that is current.
  * @return A handle to the loaded library, or aborts with `ERROR_DROP` on failure.
  */
 void *Sys_OpenLibrary(const char *name) {
 
-#if defined(_WIN32)
-  const char *so_name = va("%s.dll", name);
-#else
-  const char *so_name = va("%s.so", name);
-#endif
+  const char *so_name = Sys_LibraryName(name);
+  const char *real_dir = Sys_LibraryDir(so_name);
 
-  // the module must come from the game's own directory. Every module is named
-  // game.so or cgame.so and <lib_dir>/default stays mounted as a base path for
-  // the shared UI, so accepting whatever the search path resolves would run
-  // another game's module under this game's name. Directories are prepended as
-  // they are mounted and Fs_SetGame mounts the game's own last, so the game's
-  // copy wins wherever it exists: resolving anything else means it has none
-  const char *real_dir = Fs_Exists(so_name) ? Fs_RealDir(so_name) : NULL;
-
-  if (real_dir && !q_strcmp(Basename(real_dir), Fs_Game())) {
+  if (real_dir) {
     char path[MAX_OS_PATH];
 
     q_snprintf(path, sizeof(path), "%s/%s", real_dir, so_name);
@@ -207,7 +234,7 @@ void *Sys_OpenLibrary(const char *name) {
     Com_Error(ERROR_DROP, "%s\n", dlerror());
   }
 
-  Com_Error(ERROR_DROP, "Couldn't find %s for game %s\n", so_name, Fs_Game());
+  Com_Error(ERROR_DROP, "Couldn't find %s for game %s\n", so_name, Com_Game());
 }
 
 /**

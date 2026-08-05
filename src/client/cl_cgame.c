@@ -334,7 +334,7 @@ void Cl_InitCgame(void) {
 
   cls.cgame->Init();
 
-  q_strlcpy(cls.cgame_game, Fs_Game(), sizeof(cls.cgame_game));
+  q_strlcpy(cls.cgame_game, Com_Game(), sizeof(cls.cgame_game));
 
   Com_Print("Client game initialized\n");
   Com_InitSubsystem(QUETOO_CGAME);

@@ -288,8 +288,6 @@ static void Cl_ParseServerData(void) {
 
   Com_SetGame(str);
 
-  Cvar_ForceSetString("game", str);
-
   if (q_strcmp(cls.cgame_game, str)) {
     Cl_InitCgame();
   }

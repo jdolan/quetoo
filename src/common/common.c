@@ -82,20 +82,47 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
 }
 
 /**
- * @brief Makes the given game current: points the filesystem at it and runs its
- * autoexec.cfg.
- * @details Called wherever the game becomes current at runtime -- from the
- * console with no server running, when the server applies a latched change at
- * map load, and when a server we are joining tells us its game. Startup mounts
- * the initial game directly, before the console has execed anything.
+ * @return The game module that is current.
  */
-void Com_SetGame(const char *game) {
+const char *Com_Game(void) {
+  return quetoo.game;
+}
+
+/**
+ * @brief Makes the given game current: points the filesystem at it, records it,
+ * and runs its autoexec.cfg.
+ * @return True if the game is current on return, false if the name was rejected.
+ * @details This is the whole of the state change, and the only writer of
+ * `quetoo.game`. It carries no policy: deciding whether a change is allowed, and
+ * tearing down whatever is running, belongs to the `game` command, which is the
+ * only place that knows about both the server and the client. Startup and a
+ * server telling us its game reach this directly.
+ */
+bool Com_SetGame(const char *game) {
+
+  if (!Fs_ValidGame(game)) {
+    Com_Warn("Invalid game: %s\n", game);
+    return false;
+  }
+
+  if (!q_strcmp(quetoo.game, game)) {
+    return true;
+  }
+
+  // startup establishes the first game before the console has execed anything,
+  // and the default binds exec autoexec.cfg for us there; only a change from one
+  // game to another has to run the new game's config itself
+  const bool initial = *quetoo.game == '\0';
 
   Fs_SetGame(game);
 
-  if (Fs_Exists("autoexec.cfg")) {
+  q_strlcpy(quetoo.game, game, sizeof(quetoo.game));
+
+  if (!initial && Fs_Exists("autoexec.cfg")) {
     Cbuf_AddText("exec autoexec.cfg\n");
   }
+
+  return true;
 }
 
 // max len we'll try to parse for a category

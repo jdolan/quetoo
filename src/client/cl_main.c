@@ -637,10 +637,6 @@ void Cl_Frame(const uint32_t msec) {
     return;
   }
 
-  if (game->modified && q_strcmp(cls.cgame_game, Fs_Game())) {
-    Cl_InitCgame();
-  }
-
   // update the simulation time
   cl.time += msec;
 
