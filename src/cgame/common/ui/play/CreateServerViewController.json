@@ -136,9 +136,8 @@
                           }
                         },
                         "control": {
-                          "class": "CvarSelect",
-                          "identifier": "teams",
-                          "var": "g_teams"
+                          "class": "Select",
+                          "identifier": "teams"
                         }
                       },
                       {
