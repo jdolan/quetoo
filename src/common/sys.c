@@ -184,10 +184,18 @@ void *Sys_OpenLibrary(const char *name) {
   const char *so_name = va("%s.so", name);
 #endif
 
-  if (Fs_Exists(so_name)) {
+  // the module must come from the game's own directory. Every module is named
+  // game.so or cgame.so and <lib_dir>/default stays mounted as a base path for
+  // the shared UI, so accepting whatever the search path resolves would run
+  // another game's module under this game's name. Directories are prepended as
+  // they are mounted and Fs_SetGame mounts the game's own last, so the game's
+  // copy wins wherever it exists: resolving anything else means it has none
+  const char *real_dir = Fs_Exists(so_name) ? Fs_RealDir(so_name) : NULL;
+
+  if (real_dir && !q_strcmp(Basename(real_dir), Fs_Game())) {
     char path[MAX_OS_PATH];
 
-    q_snprintf(path, sizeof(path), "%s/%s", Fs_RealDir(so_name), so_name);
+    q_snprintf(path, sizeof(path), "%s/%s", real_dir, so_name);
     Com_Print("  Loading %s...\n", path);
 
     void *handle = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
@@ -199,7 +207,7 @@ void *Sys_OpenLibrary(const char *name) {
     Com_Error(ERROR_DROP, "%s\n", dlerror());
   }
 
-  Com_Error(ERROR_DROP, "Couldn't find %s\n", so_name);
+  Com_Error(ERROR_DROP, "Couldn't find %s for game %s\n", so_name, Fs_Game());
 }
 
 /**
