@@ -1,0 +1,146 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#include "cg_local.h"
+
+#include "ui/main/MainViewController.h"
+#include "ui/main/LoadingViewController.h"
+#include "ui/main/UpdateViewController.h"
+
+static MainViewController *mainViewController;
+static UpdateViewController *updateViewController;
+static Stylesheet *stylesheet;
+
+/**
+ * @brief Initializes the user interface.
+ */
+void Cg_InitUi(void) {
+
+  stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common.css");
+  assert(stylesheet);
+
+  Theme *theme = cgi.Theme();
+  assert(theme);
+
+  $(theme, addStylesheet, stylesheet);
+
+  mainViewController = $(alloc(MainViewController), init);
+  assert(mainViewController);
+
+  cgi.PushViewController((ViewController *) mainViewController);
+}
+
+/**
+ * @brief Shuts down the user interface.
+ */
+void Cg_ShutdownUi(void) {
+
+  cgi.PopAllViewControllers();
+  cgi.PopViewController();
+
+  $(cgi.Theme(), removeStylesheet, stylesheet);
+
+  updateViewController = release(updateViewController);
+  mainViewController = release(mainViewController);
+  stylesheet = release(stylesheet);
+}
+
+/**
+ * @brief Pops to the main view controller.
+ */
+void Cg_ClearUi(void) {
+
+  if (mainViewController) {
+    cgi.PopToViewController((ViewController *) mainViewController);
+  }
+}
+
+/**
+ * @brief Updates the loading screen
+ */
+void Cg_UpdateLoading(const cl_loading_t loading) {
+  static LoadingViewController *loadingViewController;
+
+  if (loading.percent == 0) {
+    loadingViewController = $(alloc(LoadingViewController), init);
+    cgi.PushViewController((ViewController *) loadingViewController);
+  } else if (loading.percent == 100) {
+    cgi.PopToViewController((ViewController *) mainViewController);
+    loadingViewController = release(loadingViewController);
+  }
+
+  if (loadingViewController) {
+    $(loadingViewController, setProgress, loading);
+  }
+}
+
+/**
+ * @brief Manages the UpdateViewController lifecycle and routes installer progress to it.
+ * Pushes UpdateViewController when updating, pops it on completion.
+ */
+int32_t Cg_UpdateInstaller(const installer_status_t *in) {
+
+  if (updateViewController == NULL) {
+    updateViewController = $(alloc(UpdateViewController), init);
+    cgi.PushViewController((ViewController *) updateViewController);
+  }
+
+  $(updateViewController, setStatus, in);
+
+  if (in->state == INSTALLER_UPDATE_AVAILABLE) {
+    mainViewController->updateAvailable = true;
+    cgi.PopViewController();
+    release(updateViewController);
+    updateViewController = NULL;
+    return 1;
+  }
+
+  if (in->state == INSTALLER_DONE || in->state == INSTALLER_ERROR) {
+    static uint64_t done_at = 0;
+    if (done_at == 0) {
+      done_at = SDL_GetTicks();
+    }
+    if (SDL_GetTicks() - done_at > 2000) {
+      cgi.PopViewController();
+      release(updateViewController);
+      updateViewController = NULL;
+      done_at = 0;
+      return 1;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * @brief Inlet binding for `cvar_t *`.
+ */
+void Cg_BindCvar(const Inlet *inlet, ident obj) {
+
+  const char *name = cast(String, obj)->chars;
+  cvar_t *var = cgi.GetCvar(name);
+
+  if (var == NULL) {
+    Cg_Warn("%s not found\n", name);
+  }
+
+  *(cvar_t **) inlet->dest = var;
+}

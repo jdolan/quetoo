@@ -19,163 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\deps\discord-rpc\include\discord_register.h" />
-    <ClInclude Include="..\deps\discord-rpc\include\discord_rpc.h" />
-    <ClInclude Include="..\deps\discord-rpc\src\backoff.h" />
-    <ClInclude Include="..\deps\discord-rpc\src\connection.h" />
-    <ClInclude Include="..\deps\discord-rpc\src\msg_queue.h" />
-    <ClInclude Include="..\deps\discord-rpc\src\rpc_connection.h" />
-    <ClInclude Include="..\deps\discord-rpc\src\serialization.h" />
     <ClInclude Include="..\src\cgame\cgame.h" />
-    <ClInclude Include="..\src\cgame\default\cg_client.h" />
-    <ClInclude Include="..\src\cgame\default\cg_discord.h" />
-    <ClInclude Include="..\src\cgame\default\cg_effect.h" />
-    <ClInclude Include="..\src\cgame\default\cg_entity.h" />
-    <ClInclude Include="..\src\cgame\default\cg_entity_effect.h" />
-    <ClInclude Include="..\src\cgame\default\cg_editor.h" />
-    <ClInclude Include="..\src\cgame\default\cg_entity_event.h" />
-    <ClInclude Include="..\src\cgame\default\cg_entity_misc.h" />
-    <ClInclude Include="..\src\cgame\default\cg_entity_trail.h" />
-    <ClInclude Include="..\src\cgame\default\cg_flare.h" />
-    <ClInclude Include="..\src\cgame\default\cg_hud.h" />
-    <ClInclude Include="..\src\cgame\default\cg_input.h" />
-    <ClInclude Include="..\src\cgame\default\cg_inventory.h" />
-    <ClInclude Include="..\src\cgame\default\cg_light.h" />
-    <ClInclude Include="..\src\cgame\default\cg_local.h" />
-    <ClInclude Include="..\src\cgame\default\cg_main.h" />
-    <ClInclude Include="..\src\cgame\default\cg_media.h" />
-    <ClInclude Include="..\src\cgame\default\cg_muzzle_flash.h" />
-    <ClInclude Include="..\src\cgame\default\cg_predict.h" />
-    <ClInclude Include="..\src\cgame\default\cg_score.h" />
-    <ClInclude Include="..\src\cgame\default\cg_sound.h" />
-    <ClInclude Include="..\src\cgame\default\cg_sprite.h" />
-    <ClInclude Include="..\src\cgame\default\cg_temp_entity.h" />
-    <ClInclude Include="..\src\cgame\default\cg_types.h" />
-    <ClInclude Include="..\src\cgame\default\cg_ui.h" />
-    <ClInclude Include="..\src\cgame\default\cg_view.h" />
-    <ClInclude Include="..\src\cgame\default\cg_weapon.h" />
-    <ClInclude Include="..\src\cgame\default\ui\common\BindTextView.h" />
-    <ClInclude Include="..\src\cgame\default\ui\common\CvarCheckbox.h" />
-    <ClInclude Include="..\src\cgame\default\ui\common\CvarSelect.h" />
-    <ClInclude Include="..\src\cgame\default\ui\common\CvarSlider.h" />
-    <ClInclude Include="..\src\cgame\default\ui\common\CvarTextView.h" />
-    <ClInclude Include="..\src\cgame\default\ui\common\DialogViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\controls\ControlsViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\controls\CrosshairView.h" />
-    <ClInclude Include="..\src\cgame\default\ui\controls\MovementCombatViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\controls\ResponseServiceViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\editor\EditorViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\editor\EntityView.h" />
-    <ClInclude Include="..\src\cgame\default\ui\editor\EntityViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\editor\MaterialViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\editor\MeshViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\credits\CreditsViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\home\HomeViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\home\LeaderboardViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\home\StatsViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\main\LoadingViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\main\MainView.h" />
-    <ClInclude Include="..\src\cgame\default\ui\main\MainViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\main\UpdateViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\play\CreateServerViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\play\JoinServerViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\play\MapListCollectionItemView.h" />
-    <ClInclude Include="..\src\cgame\default\ui\play\MapListCollectionView.h" />
-    <ClInclude Include="..\src\cgame\default\ui\play\PlayerModelView.h" />
-    <ClInclude Include="..\src\cgame\default\ui\play\PlayerSetupViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\play\PlayViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\settings\SettingsViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\teams\TeamPlayerView.h" />
-    <ClInclude Include="..\src\cgame\default\ui\teams\TeamsViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\teams\TeamView.h" />
+    <ClInclude Include="..\src\game\default\bg_item.h" />
+    <ClInclude Include="..\src\game\common\bg_pmove.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\deps\discord-rpc\src\connection_win.cpp" />
-    <ClCompile Include="..\deps\discord-rpc\src\discord_register_win.cpp" />
-    <ClCompile Include="..\deps\discord-rpc\src\discord_rpc.cpp" />
-    <ClCompile Include="..\deps\discord-rpc\src\dllmain.cpp" />
-    <ClCompile Include="..\deps\discord-rpc\src\rpc_connection.cpp" />
-    <ClCompile Include="..\deps\discord-rpc\src\serialization.cpp" />
-    <ClCompile Include="..\src\cgame\default\cg_client.c" />
-    <ClCompile Include="..\src\cgame\default\cg_discord.c" />
-    <ClCompile Include="..\src\cgame\default\cg_editor.c" />
-    <ClCompile Include="..\src\cgame\default\cg_effect.c" />
-    <ClCompile Include="..\src\cgame\default\cg_entity.c" />
-    <ClCompile Include="..\src\cgame\default\cg_entity_effect.c" />
-    <ClCompile Include="..\src\cgame\default\cg_entity_event.c" />
-    <ClCompile Include="..\src\cgame\default\cg_entity_misc.c" />
-    <ClCompile Include="..\src\cgame\default\cg_entity_trail.c" />
-    <ClCompile Include="..\src\cgame\default\cg_flare.c" />
-    <ClCompile Include="..\src\cgame\default\cg_hud.c" />
-    <ClCompile Include="..\src\cgame\default\cg_input.c" />
-    <ClCompile Include="..\src\cgame\default\cg_inventory.c" />
-    <ClCompile Include="..\src\cgame\default\cg_light.c" />
-    <ClCompile Include="..\src\cgame\default\cg_main.c" />
-    <ClCompile Include="..\src\cgame\default\cg_media.c" />
-    <ClCompile Include="..\src\cgame\default\cg_muzzle_flash.c" />
-    <ClCompile Include="..\src\cgame\default\cg_predict.c" />
-    <ClCompile Include="..\src\cgame\default\cg_score.c" />
-    <ClCompile Include="..\src\cgame\default\cg_sound.c" />
-    <ClCompile Include="..\src\cgame\default\cg_sprite.c" />
-    <ClCompile Include="..\src\cgame\default\cg_temp_entity.c" />
-    <ClCompile Include="..\src\cgame\default\cg_ui.c" />
-    <ClCompile Include="..\src\cgame\default\cg_view.c" />
-    <ClCompile Include="..\src\cgame\default\cg_weapon.c" />
-    <ClCompile Include="..\src\cgame\default\ui\common\BindTextView.c" />
-    <ClCompile Include="..\src\cgame\default\ui\common\CvarCheckbox.c" />
-    <ClCompile Include="..\src\cgame\default\ui\common\CvarSelect.c" />
-    <ClCompile Include="..\src\cgame\default\ui\common\CvarSlider.c" />
-    <ClCompile Include="..\src\cgame\default\ui\common\CvarTextView.c" />
-    <ClCompile Include="..\src\cgame\default\ui\common\DialogViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\controls\ControlsViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\controls\CrosshairView.c" />
-    <ClCompile Include="..\src\cgame\default\ui\controls\MovementCombatViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\controls\ResponseServiceViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\editor\EditorViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\editor\EntityView.c" />
-    <ClCompile Include="..\src\cgame\default\ui\editor\EntityViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\editor\MaterialViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\editor\MeshViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\credits\CreditsViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\home\HomeViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\home\LeaderboardViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\home\StatsViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\main\LoadingViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\main\MainView.c" />
-    <ClCompile Include="..\src\cgame\default\ui\main\MainViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\main\UpdateViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\play\CreateServerViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\play\JoinServerViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\play\MapListCollectionItemView.c" />
-    <ClCompile Include="..\src\cgame\default\ui\play\MapListCollectionView.c" />
-    <ClCompile Include="..\src\cgame\default\ui\play\PlayerModelView.c" />
-    <ClCompile Include="..\src\cgame\default\ui\play\PlayerSetupViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\play\PlayViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\settings\SettingsViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\teams\TeamPlayerView.c" />
-    <ClCompile Include="..\src\cgame\default\ui\teams\TeamsViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\teams\TeamView.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\src\cgame\default\ui\credits\CreditsViewController.css" />
-    <None Include="..\src\cgame\default\ui\credits\CreditsViewController.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\ObjectivelyMVC.vcxproj">
-      <Project>{ad4ceb0f-306e-4d57-b579-503239939766}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Objectively\Objectively.vs15\Objectively.vcxproj">
-      <Project>{3e6b97c6-1f51-4d72-bdfe-1d492f5eda6c}</Project>
-    </ProjectReference>
-    <ProjectReference Include="libs\libitem.vcxproj">
-      <Project>{a2f31748-6b8c-4d5e-9e0f-b3c4d5e6f7a8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="libs\libpmove.vcxproj">
-      <Project>{B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="libs\libshared.vcxproj">
-      <Project>{2F1C792E-6243-462B-AF0D-E2554E77D5C5}</Project>
-    </ProjectReference>
+    <ClCompile Include="..\src\game\default\bg_item.c" />
+    <ClCompile Include="..\src\game\common\bg_pmove.c" />
+    <ClCompile Include="..\src\cgame\default\cg_module.c" />
+    <ClCompile Include="..\src\cgame\default\cg_team_mode.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C8CF2939-7614-4820-9CF5-B433456764D3}</ProjectGuid>
@@ -183,6 +35,7 @@
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="build_settings.props" />
+    <Import Project="cgame_common.props" />
   </ImportGroup>
   <PropertyGroup>
     <OutDir>$(QuetooOutDir)</OutDir>
@@ -201,6 +54,13 @@
     <LibraryPath>$(QuetooFullLibraryPath);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
+    <ClCompile>
+      <!-- This module's own directories come first, then the common ones.
+           These are per project rather than in QuetooFullIncludePath because
+           every module has a cg_local.h and a g_types.h: one global list
+           would make them ambiguous. -->
+      <AdditionalIncludeDirectories>..\src\cgame\default;..\src\cgame\common;..\src\cgame\common\ui;..\src\cgame\common\ui\controls;..\src\cgame\common\ui\credits;..\src\cgame\common\ui\editor;..\src\cgame\common\ui\home;..\src\cgame\common\ui\main;..\src\cgame\common\ui\play;..\src\cgame\common\ui\settings;..\src\cgame\common\ui\teams;..\src\cgame;..\src\game\default;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
     <Link>
       <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;SDL3.lib;SDL3_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -208,5 +68,16 @@
       <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_CGAME "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\ObjectivelyMVC.vcxproj">
+      <Project>{ad4ceb0f-306e-4d57-b579-503239939766}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Objectively\Objectively.vs15\Objectively.vcxproj">
+      <Project>{3e6b97c6-1f51-4d72-bdfe-1d492f5eda6c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libshared.vcxproj">
+      <Project>{2F1C792E-6243-462B-AF0D-E2554E77D5C5}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

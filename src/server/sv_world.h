@@ -33,4 +33,4 @@ int32_t Sv_BoxContents(const box3_t bounds);
 cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, const g_entity_t *skip, int32_t contents);
 cm_trace_t Sv_Clip(const vec3_t start, const vec3_t end, const box3_t bounds, const g_entity_t *test, int32_t contents);
 
-#endif /* __SV_LOCAL_H__ */
+#endif

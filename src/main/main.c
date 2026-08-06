@@ -44,7 +44,6 @@ cvar_t *build;
 cvar_t *dedicated;
 cvar_t *developer;
 cvar_t *editor;
-cvar_t *game;
 cvar_t *rcon_address;
 cvar_t *rcon_password;
 cvar_t *threads;
@@ -216,6 +215,108 @@ static void Warn(const char *msg) {
 }
 
 /**
+ * @brief Resolves the game to start in from `+game <name>` on the command line.
+ * @details The game must be current before `Cl_Init`, which loads the client game,
+ * and the deferred command buffer that carries `+commands` does not run until
+ * after it. The `game` command is idempotent, so when it runs from there it finds
+ * this game already current and does nothing.
+ */
+static const char *StartupGame(void) {
+
+  for (int32_t i = 1; i < Com_Argc() - 1; i++) {
+    if (!q_strcmp(Com_Argv(i), "+game")) {
+
+      // a bare +game asks what the game is, and the next token is the command
+      // after it rather than a name
+      const char *game = Com_Argv(i + 1);
+      if (*game != '+') {
+        return game;
+      }
+    }
+  }
+
+  return DEFAULT_GAME;
+}
+
+/**
+ * @return True if the game that is current provides the module this executable
+ * loads: the client game for a client, the game module for a dedicated server.
+ */
+static bool HasGameModule(void) {
+
+  const char *module = dedicated->value ? "game" : "cgame";
+
+  if (Sys_HasLibrary(module)) {
+    return true;
+  }
+
+  Com_Warn("%s provides no %s module\n", Com_Game(), module);
+  return false;
+}
+
+/**
+ * @brief Console command to change the game module that is current.
+ * @details Changing games is an operation, not an assignment: the game and client
+ * game modules are both loaded from the game that is current, so whatever is
+ * running has to come down first. This is the only place that knows about both the
+ * server and the client, which is why the policy lives here and `Com_SetGame`
+ * carries none.
+ */
+static void Game_f(void) {
+
+  if (Cmd_Argc() < 2) {
+    Com_Print("Game: ^2%s^7\n", Com_Game());
+    return;
+  }
+
+  const char *game = Cmd_Argv(1);
+
+  if (!q_strcmp(game, Com_Game())) {
+    Com_Print("Game is already ^2%s^7\n", game);
+    return;
+  }
+
+  if (!Fs_ValidGame(game)) {
+    Com_Print("^1Invalid game: %s^7\n", game);
+    return;
+  }
+
+  // nothing may outlive the change: a session carried across it would be parsing
+  // another module's protocol against this one's layout
+  if (Com_WasInit(QUETOO_SERVER)) {
+    Sv_ShutdownServer("Game changed\n");
+  }
+
+  if (Com_WasInit(QUETOO_CLIENT)) {
+    Cl_Disconnect();
+  }
+
+  char previous[MAX_QPATH];
+  q_strlcpy(previous, Com_Game(), sizeof(previous));
+
+  if (!Com_SetGame(game)) {
+    return;
+  }
+
+  // a game that ships no module is the one thing Com_SetGame can not see, and
+  // loading it would drop to the console with no module at all
+  if (!HasGameModule()) {
+    Com_SetGame(previous);
+  }
+
+  if (Com_WasInit(QUETOO_CLIENT)) {
+    Cl_InitCgame();
+  }
+}
+
+/**
+ * @brief Game command autocompletion.
+ */
+static void Game_Autocomplete_f(const uint32_t argi, List *matches) {
+  Fs_CompleteGame(va("%s*", Cmd_Argv(argi)), matches);
+}
+
+/**
  * @brief Console command to cleanly shut down the engine.
  */
 static void Quit_f(void) __attribute__((noreturn));
@@ -308,9 +409,6 @@ static void Init(void) {
   developer = Cvar_Add("developer", "0", CVAR_DEVELOPER, "Enables shader debugging tools (developer tool)");
   editor = Cvar_Add("editor", "0", CVAR_LATCH | CVAR_SERVER_INFO, "Enables the in-game editor.");
 
-  game = Cvar_Add("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
-  game->modified = q_strcmp(game->string, DEFAULT_GAME);
-
   rcon_address = Cvar_Add("rcon_address", "", 0, "The remote console server address (defaults to current server)");
   rcon_password = Cvar_Add("rcon_password", "", CVAR_ARCHIVE, "The remote console password. "
                            "Set this on your server to enable remote administration via the in-game console. "
@@ -332,10 +430,18 @@ static void Init(void) {
 
   Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
+  // fall back rather than failing inside the load, so that a mistyped +game
+  // behaves as the game command does
+  if (!Com_SetGame(StartupGame()) || !HasGameModule()) {
+    Com_SetGame(DEFAULT_GAME);
+  }
+
   Thread_Init(threads->integer);
 
   Con_Init();
 
+  cmd_t *game_cmd = Cmd_Add("game", Game_f, CMD_SYSTEM, "Change the game module: game [name]");
+  Cmd_SetAutocomplete(game_cmd, Game_Autocomplete_f);
   Cmd_Add("mem_stats", MemStats_f, CMD_SYSTEM, "Print memory stats");
   Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");
   Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");
@@ -356,7 +462,7 @@ static void Init(void) {
 
   // Re-add data search paths in case the installer just created them
   Fs_AddToSearchPathv(Fs_DataDir(), NULL);
-  Fs_AddToSearchPathv(Fs_DataDir(), game->string, NULL);
+  Fs_AddToSearchPathv(Fs_DataDir(), Com_Game(), NULL);
 
   // execute any +commands specified on the command line
   Cbuf_InsertFromDefer();
@@ -415,17 +521,6 @@ static void Frame(const uint32_t msec) {
 
     Thread_Shutdown();
     Thread_Init(threads->integer);
-  }
-
-  if (game->modified) {
-    game->modified = false;
-
-    Fs_SetGame(game->string);
-
-    if (Fs_Exists("autoexec.cfg")) {
-      Cbuf_AddText("exec autoexec.cfg\n");
-      Cbuf_Execute();
-    }
   }
 
   Sv_Frame(msec);

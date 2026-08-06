@@ -26,4 +26,4 @@
 Theme *Ui_Theme(void);
 
 #if defined(__UI_LOCAL_H__)
-#endif /* __UI_LOCAL_H__ */
+#endif

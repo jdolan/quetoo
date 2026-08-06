@@ -68,4 +68,4 @@ __attribute__ ((warn_unused_result))
 box3_t Cm_TraceBounds(const vec3_t start, const vec3_t end, const box3_t bounds);
 
 #if defined(__CM_LOCAL_H__)
-#endif /* __CM_LOCAL_H__ */
+#endif

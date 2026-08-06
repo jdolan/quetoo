@@ -36,4 +36,4 @@ void Ui_Init(void);
 void Ui_Shutdown(void);
 
 #if defined(__UI_LOCAL_H__)
-#endif /* __UI_LOCAL_H__ */
+#endif

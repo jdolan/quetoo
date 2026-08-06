@@ -1,0 +1,173 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The common client game sources, including the whole user interface, shared
+  by every cgame module's project.
+
+  They are compiled by each module rather than linked from one prebuilt
+  library, because cg_state_t embeds the team roster, gameplay and item types
+  from the module's own game directory: a shared copy would read cg_state at
+  the wrong offsets in any module that changes its teams or item set.
+
+  This list is the MSBuild counterpart of the _SOURCES lists in each module's
+  src/cgame/*/Makefile.am, which the autotools build resolves through vpath.
+  Both MUST be updated together when a common source is added or removed.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\src\cgame\common\cg_client.c" />
+    <ClInclude Include="..\src\cgame\common\cg_client.h" />
+    <ClCompile Include="..\src\cgame\common\cg_discord.c" />
+    <ClInclude Include="..\src\cgame\common\cg_discord.h" />
+    <ClCompile Include="..\src\cgame\common\cg_editor.c" />
+    <ClInclude Include="..\src\cgame\common\cg_editor.h" />
+    <ClCompile Include="..\src\cgame\common\cg_effect.c" />
+    <ClInclude Include="..\src\cgame\common\cg_effect.h" />
+    <ClCompile Include="..\src\cgame\common\cg_entity.c" />
+    <ClInclude Include="..\src\cgame\common\cg_entity.h" />
+    <ClCompile Include="..\src\cgame\common\cg_entity_effect.c" />
+    <ClInclude Include="..\src\cgame\common\cg_entity_effect.h" />
+    <ClCompile Include="..\src\cgame\common\cg_entity_event.c" />
+    <ClInclude Include="..\src\cgame\common\cg_entity_event.h" />
+    <ClCompile Include="..\src\cgame\common\cg_entity_misc.c" />
+    <ClInclude Include="..\src\cgame\common\cg_entity_misc.h" />
+    <ClCompile Include="..\src\cgame\common\cg_entity_trail.c" />
+    <ClInclude Include="..\src\cgame\common\cg_entity_trail.h" />
+    <ClCompile Include="..\src\cgame\common\cg_flare.c" />
+    <ClInclude Include="..\src\cgame\common\cg_flare.h" />
+    <ClCompile Include="..\src\cgame\common\cg_hud.c" />
+    <ClInclude Include="..\src\cgame\common\cg_hud.h" />
+    <ClCompile Include="..\src\cgame\common\cg_score.c" />
+    <ClInclude Include="..\src\cgame\common\cg_score.h" />
+    <ClCompile Include="..\src\cgame\common\cg_hud_draw.c" />
+    <ClInclude Include="..\src\cgame\common\cg_hud_draw.h" />
+    <ClCompile Include="..\src\cgame\common\cg_input.c" />
+    <ClInclude Include="..\src\cgame\common\cg_input.h" />
+    <ClCompile Include="..\src\cgame\common\cg_inventory.c" />
+    <ClInclude Include="..\src\cgame\common\cg_inventory.h" />
+    <ClCompile Include="..\src\cgame\common\cg_light.c" />
+    <ClInclude Include="..\src\cgame\common\cg_light.h" />
+    <ClInclude Include="..\src\cgame\common\cg_local.h" />
+    <ClCompile Include="..\src\cgame\common\cg_main.c" />
+    <ClInclude Include="..\src\cgame\common\cg_main.h" />
+    <ClCompile Include="..\src\cgame\common\cg_media.c" />
+    <ClInclude Include="..\src\cgame\common\cg_media.h" />
+    <ClInclude Include="..\src\cgame\common\cg_module.h" />
+    <ClCompile Include="..\src\cgame\common\cg_muzzle_flash.c" />
+    <ClInclude Include="..\src\cgame\common\cg_muzzle_flash.h" />
+    <ClCompile Include="..\src\cgame\common\cg_predict.c" />
+    <ClInclude Include="..\src\cgame\common\cg_predict.h" />
+    <ClCompile Include="..\src\cgame\common\cg_sound.c" />
+    <ClInclude Include="..\src\cgame\common\cg_sound.h" />
+    <ClCompile Include="..\src\cgame\common\cg_sprite.c" />
+    <ClInclude Include="..\src\cgame\common\cg_sprite.h" />
+    <ClInclude Include="..\src\cgame\common\cg_team_mode.h" />
+    <ClCompile Include="..\src\cgame\common\cg_temp_entity.c" />
+    <ClInclude Include="..\src\cgame\common\cg_temp_entity.h" />
+    <ClInclude Include="..\src\cgame\common\cg_types.h" />
+    <ClCompile Include="..\src\cgame\common\cg_ui.c" />
+    <ClInclude Include="..\src\cgame\common\cg_ui.h" />
+    <ClCompile Include="..\src\cgame\common\cg_view.c" />
+    <ClInclude Include="..\src\cgame\common\cg_view.h" />
+    <ClCompile Include="..\src\cgame\common\cg_weapon.c" />
+    <ClInclude Include="..\src\cgame\common\cg_weapon.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\cgame\common\ui\BindTextView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\BindTextView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\CvarCheckbox.c" />
+    <ClInclude Include="..\src\cgame\common\ui\CvarCheckbox.h" />
+    <ClCompile Include="..\src\cgame\common\ui\CvarSelect.c" />
+    <ClInclude Include="..\src\cgame\common\ui\CvarSelect.h" />
+    <ClCompile Include="..\src\cgame\common\ui\CvarSlider.c" />
+    <ClInclude Include="..\src\cgame\common\ui\CvarSlider.h" />
+    <ClCompile Include="..\src\cgame\common\ui\CvarTextView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\CvarTextView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\DialogViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\DialogViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\controls\ControlsViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\controls\ControlsViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\controls\CrosshairView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\controls\CrosshairView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\controls\MovementCombatViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\controls\MovementCombatViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\controls\ResponseServiceViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\controls\ResponseServiceViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\credits\CreditsViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\credits\CreditsViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\editor\EditorViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\editor\EditorViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\editor\EntityView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\editor\EntityView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\editor\EntityViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\editor\EntityViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\editor\MaterialViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\editor\MaterialViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\editor\MeshViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\editor\MeshViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\home\HomeViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\home\HomeViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\home\LeaderboardViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\home\LeaderboardViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\home\StatsViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\home\StatsViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\main\LoadingViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\main\LoadingViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\main\MainView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\main\MainView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\main\MainViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\main\MainViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\main\UpdateViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\main\UpdateViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\play\CreateServerViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\play\CreateServerViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\play\JoinServerViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\play\JoinServerViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\play\MapListCollectionItemView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\play\MapListCollectionItemView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\play\MapListCollectionView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\play\MapListCollectionView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\play\PlayViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\play\PlayViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\play\PlayerModelView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\play\PlayerModelView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\play\PlayerSetupViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\play\PlayerSetupViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\settings\SettingsViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\settings\SettingsViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\teams\TeamPlayerView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\teams\TeamPlayerView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\teams\TeamView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\teams\TeamView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\teams\TeamsViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\teams\TeamsViewController.h" />
+  </ItemGroup>
+  <!-- Capture the flag, for modules that opt in by setting QuetooCgameCtf and
+       defining G_CTF; the counterpart of listing cg_ctf.c in a module's
+       _SOURCES and adding -DG_CTF to its AM_CPPFLAGS. -->
+  <ItemGroup Condition="'$(QuetooCgameCtf)'=='true'">
+    <ClCompile Include="..\src\cgame\common\cg_ctf.c" />
+    <ClInclude Include="..\src\cgame\common\cg_ctf.h" />
+  </ItemGroup>
+  <!-- The tech powerups, on the same terms: QuetooCgameTech and G_TECH. -->
+  <ItemGroup Condition="'$(QuetooCgameTech)'=='true'">
+    <ClCompile Include="..\src\cgame\common\cg_tech.c" />
+    <ClInclude Include="..\src\cgame\common\cg_tech.h" />
+  </ItemGroup>
+  <!-- Windows has no separate discord-rpc project, so each cgame module
+       compiles it in; autotools links deps/discord-rpc/libdiscord-rpc.la. -->
+  <ItemGroup>
+    <ClInclude Include="..\deps\discord-rpc\include\discord_register.h" />
+    <ClInclude Include="..\deps\discord-rpc\include\discord_rpc.h" />
+    <ClInclude Include="..\deps\discord-rpc\src\backoff.h" />
+    <ClInclude Include="..\deps\discord-rpc\src\connection.h" />
+    <ClCompile Include="..\deps\discord-rpc\src\connection_win.cpp" />
+    <ClCompile Include="..\deps\discord-rpc\src\discord_register_win.cpp" />
+    <ClCompile Include="..\deps\discord-rpc\src\discord_rpc.cpp" />
+    <ClCompile Include="..\deps\discord-rpc\src\dllmain.cpp" />
+    <ClInclude Include="..\deps\discord-rpc\src\msg_queue.h" />
+    <ClCompile Include="..\deps\discord-rpc\src\rpc_connection.cpp" />
+    <ClInclude Include="..\deps\discord-rpc\src\rpc_connection.h" />
+    <ClCompile Include="..\deps\discord-rpc\src\serialization.cpp" />
+    <ClInclude Include="..\deps\discord-rpc\src\serialization.h" />
+  </ItemGroup>
+</Project>

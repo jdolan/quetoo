@@ -48,7 +48,7 @@
  * of core net messages or serialized data types change. The game and client
  * game maintain `PROTOCOL_MINOR` as well.
  */
-#define PROTOCOL_MAJOR 2027
+#define PROTOCOL_MAJOR 2028
 
 /**
  * @brief The IP address of the master server, where the authoritative list of
@@ -103,6 +103,8 @@ extern const char *DEBUG_CATEGORIES[DEBUG_TOTAL];
 bool Com_IsDebug(const debug_t debug);
 const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
+const char *Com_Game(void);
+bool Com_SetGame(const char *game);
 
 void Com_LogString(const char *str);
 
@@ -167,6 +169,15 @@ typedef struct {
   uint32_t subsystems;
 
   /**
+   * @brief The game module that is current, e.g. `"ctf"`.
+   * @details This is the state; `Com_SetGame` is the only thing that changes it.
+   * Changing games tears down the game and client game modules, so it is an
+   * operation rather than a value, which is why the `game` command owns it and
+   * there is no cvar to assign.
+   */
+  char game[MAX_QPATH];
+
+  /**
    * @brief The enabled debug categories.
    */
   debug_t debug_mask;
@@ -209,7 +220,6 @@ extern cvar_t *build;
 extern cvar_t *dedicated;
 extern cvar_t *developer;
 extern cvar_t *editor;
-extern cvar_t *game;
 extern cvar_t *rcon_address;
 extern cvar_t *rcon_password;
 extern cvar_t *threads;

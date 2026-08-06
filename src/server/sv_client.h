@@ -25,4 +25,4 @@
 
 #if defined(__SV_LOCAL_H__)
 void Sv_ParseClientMessage(sv_client_t *cl);
-#endif /* __SV_LOCAL_H__ */
+#endif

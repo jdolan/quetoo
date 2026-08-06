@@ -325,6 +325,12 @@ void *Mem_Realloc(void *p, size_t size) {
   const size_t old_size = b->size;
   const size_t s = Mem_BlockSize(size);
 
+  // Once unlinked, a childless block is unreachable by other threads, so the
+  // reallocation can happen without holding the lock. A block with children is
+  // still reachable through their parent pointers, so it keeps the lock until
+  // those have been re-seated.
+  const bool has_children = b->first_child != NULL;
+
   SDL_LockSpinlock(&mem_state.lock);
 
   // remove the old block while b is still a valid pointer
@@ -336,6 +342,10 @@ void *Mem_Realloc(void *p, size_t size) {
     if (b->prev_block) { b->prev_block->next_block = b->next_block; }
     else { mem_state.head = b->next_block; }
     if (b->next_block) { b->next_block->prev_block = b->prev_block; }
+  }
+
+  if (!has_children) {
+    SDL_UnlockSpinlock(&mem_state.lock);
   }
 
   b->size = size;
@@ -350,6 +360,10 @@ void *Mem_Realloc(void *p, size_t size) {
 
   mem_footer_t *footer = Mem_Footer(data, size);
   footer->magic = (mem_magic_t) (MEM_MAGIC + new_b->size);
+
+  if (!has_children) {
+    SDL_LockSpinlock(&mem_state.lock);
+  }
 
   // re-seat us in our parent or in global list
   if (new_b->parent) {

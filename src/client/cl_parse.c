@@ -275,14 +275,30 @@ static void Cl_ParseServerData(void) {
   // determine if we're viewing a demo
   cl.demo_server = Net_ReadByte(&net_message);
 
-  // game directory
+  // game directory. Two separate questions: the search path and the game cvar
+  // must always follow the server, while the client game only needs reloading
+  // when it is not already the server's module. Asking the second question of
+  // the cvar or the search path does not work, because a listen server shares
+  // both with us and has already switched them.
   char *str = Net_ReadString(&net_message);
-  if (q_strcmp(Cvar_GetString("game"), str)) {
 
-    Fs_SetGame(str);
+  if (!Fs_ValidGame(str)) {
+    Com_Error(ERROR_DROP, "Server sent an invalid game directory\n");
+  }
 
-    // reload the client game
+  Com_SetGame(str);
+
+  if (q_strcmp(cls.cgame_game, str)) {
     Cl_InitCgame();
+  }
+
+  // ensure the module we loaded is the module the server is running. Sys_OpenLibrary
+  // resolves cgame.so through the whole search path, and lib/quetoo/default is a
+  // retained base path, so a client without the server's module loads default's
+  // instead. Only the module can answer for itself; the game cvar and the search
+  // path record what was asked for, not what was found
+  if (q_strcmp(cls.cgame->name, str)) {
+    Com_Error(ERROR_DROP, "Server is running the %s game module, you loaded %s\n", str, cls.cgame->name);
   }
 
   // ensure protocol minor matches

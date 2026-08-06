@@ -139,6 +139,11 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
 
     r_bsp_block_t *block = in->blocks;
     for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+
+      if (block->query->result == 0) {
+        continue;
+      }
+
       R_ActiveDynamicLights(view, block->visible_bounds, &block->active_dynamic_lights);
     }
   }

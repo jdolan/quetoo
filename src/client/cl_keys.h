@@ -37,4 +37,4 @@ void Cl_WriteBindings(file_t *f);
 void Cl_InitKeys(void);
 void Cl_ShutdownKeys(void);
 
-#endif /* __CL_LOCAL_H__ */
+#endif

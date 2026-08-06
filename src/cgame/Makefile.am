@@ -3,3 +3,4 @@ SUBDIRS = \
 
 noinst_HEADERS = \
 	cgame.h
+

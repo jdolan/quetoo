@@ -30,4 +30,4 @@ void Sv_ShutdownServer(const char *msg);
 int32_t Sv_ModelIndex(const char *name);
 int32_t Sv_SoundIndex(const char *name);
 int32_t Sv_ImageIndex(const char *name);
-#endif /* __SV_LOCAL_H__ */
+#endif

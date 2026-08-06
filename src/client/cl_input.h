@@ -41,4 +41,4 @@ void Cl_KeyDown(button_t *b);
 void Cl_KeyUp(button_t *b);
 float Cl_KeyState(button_t *key, uint32_t cmd_msec);
 
-#endif /* __CL_LOCAL_H__ */
+#endif

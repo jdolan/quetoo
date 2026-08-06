@@ -52,6 +52,13 @@ void Cl_Frame(const uint32_t msec) {
 }
 
 /**
+ * @brief Null client stub: no client game to load.
+ */
+void Cl_InitCgame(void) {
+
+}
+
+/**
  * @brief Null client stub: minimal init that clears the client state.
  */
 void Cl_Init(void) {

@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\cgame\cgame.h" />
+    <ClInclude Include="..\src\game\ctf\bg_item.h" />
+    <ClInclude Include="..\src\game\common\bg_pmove.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\game\ctf\bg_item.c" />
+    <ClCompile Include="..\src\game\common\bg_pmove.c" />
+    <ClCompile Include="..\src\cgame\ctf\cg_module.c" />
+    <ClCompile Include="..\src\cgame\ctf\cg_team_mode.c" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{75a43a72-06c1-59b9-8346-72f4984848fd}</ProjectGuid>
+    <RootNamespace>cgame-ctf</RootNamespace>
+  </PropertyGroup>
+  <!-- Selects the optional feature sources from cgame_common.props. -->
+  <PropertyGroup>
+    <QuetooCgameCtf>true</QuetooCgameCtf>
+    <QuetooCgameTech>true</QuetooCgameTech>
+  </PropertyGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="build_settings.props" />
+    <Import Project="cgame_common.props" />
+  </ImportGroup>
+  <PropertyGroup>
+    <!-- The client loads this module as "cgame", so the module keeps that name
+         and takes a directory of its own; Xcode does the same with
+         PRODUCT_NAME and CONFIGURATION_BUILD_DIR. -->
+    <TargetName>cgame</TargetName>
+    <OutDir>$(QuetooOutDir)ctf\</OutDir>
+    <IntDir>$(QuetooIntDir)</IntDir>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup>
+    <IncludePath>$(QuetooFullIncludePath);$(IncludePath)</IncludePath>
+    <LibraryPath>$(QuetooFullLibraryPath);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <!-- This module's own directories come first, then the common ones.
+           These are per project rather than in QuetooFullIncludePath because
+           every module has a cg_local.h and a g_types.h: one global list
+           would make them ambiguous. -->
+      <AdditionalIncludeDirectories>..\src\cgame\ctf;..\src\cgame\common;..\src\cgame\common\ui;..\src\cgame\common\ui\controls;..\src\cgame\common\ui\credits;..\src\cgame\common\ui\editor;..\src\cgame\common\ui\home;..\src\cgame\common\ui\main;..\src\cgame\common\ui\play;..\src\cgame\common\ui\settings;..\src\cgame\common\ui\teams;..\src\cgame;..\src\game\ctf;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <!-- These switch the optional features on in the common sources. Set
+           here rather than through
+           $(ExtraPreprocessorDefinitions), which expands empty by the time
+           build_settings.props' item definition is evaluated. -->
+      <PreprocessorDefinitions>G_CTF;G_HOOK;G_TECH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;SDL3.lib;SDL3_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_CGAME_MODULE "$(QUETOO_HOME)" "$(Platform)$(Configuration)" "ctf"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\ObjectivelyMVC.vcxproj">
+      <Project>{ad4ceb0f-306e-4d57-b579-503239939766}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Objectively\Objectively.vs15\Objectively.vcxproj">
+      <Project>{3e6b97c6-1f51-4d72-bdfe-1d492f5eda6c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="libs\libshared.vcxproj">
+      <Project>{2F1C792E-6243-462B-AF0D-E2554E77D5C5}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

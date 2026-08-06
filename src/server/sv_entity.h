@@ -26,4 +26,4 @@
 #if defined(__SV_LOCAL_H__)
 void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg);
 void Sv_BuildClientFrame(sv_client_t *client);
-#endif /* __SV_LOCAL_H__ */
+#endif

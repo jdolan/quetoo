@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 30
+#define GAME_API_VERSION 31
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -41,17 +41,35 @@
 
 #define BOX_ALL       (BOX_COLLIDE | BOX_OCCUPY)
 
-#if !defined(__GAME_LOCAL_H__)
-
 /**
- * @brief This is the server's definition of the client and entity structures. The
- * game module is free to add additional members to these structures.
+ * @brief What the server reads out of a client and an entity, and the whole of
+ * what it declares.
+ * @details The server reads these fields at the offsets these declarations
+ * produce. A game module extends a client and an entity by embedding the
+ * matching type as the **first** member of its own `g_client_s` and
+ * `g_entity_s`, so that the fields the server wants are always at offset zero
+ * and always in this order. C guarantees that a pointer to a structure points
+ * at its first member, which makes the two views of the same memory a fact of
+ * the language rather than a rule a module has to remember: there is nothing a
+ * module can write in its own structures that moves them.
+ *
+ * The module's declarations are therefore the only ones that name these types.
+ * The server's own view is all it needs, so `g_client_t` and `g_entity_t` mean
+ * these types outside a module and the module's extended ones inside it.
  */
 
+typedef struct sv_game_client_s sv_game_client_t;
+typedef struct sv_game_entity_s sv_game_entity_t;
+
+#if defined(__G_LOCAL_H__)
 typedef struct g_client_s g_client_t;
 typedef struct g_entity_s g_entity_t;
+#else
+typedef sv_game_client_t g_client_t;
+typedef sv_game_entity_t g_entity_t;
+#endif
 
-struct g_client_s {
+struct sv_game_client_s {
 
   /**
    * @brief The entity bound to this client.
@@ -86,7 +104,7 @@ struct g_client_s {
   /**
    * @brief Non-null if this client is a bot.
    */
-  struct g_ai_s *ai;
+  struct ai_s *ai;
 };
 
 /**
@@ -94,7 +112,7 @@ struct g_client_s {
  * as items, moving platforms, giblets and players. The game module and server
  * share a common base for this structure, but the game is free to extend it.
  */
-struct g_entity_s {
+struct sv_game_entity_s {
 
   /**
    * @brief Entity definition from the BSP file.
@@ -157,8 +175,6 @@ struct g_entity_s {
   g_client_t *client;
 };
 
-#endif /* __GAME_LOCAL_H__ */
-
 /**
  * @brief A frag event accumulated during a match, submitted to the stats service at intermission.
  */
@@ -212,17 +228,17 @@ typedef struct g_import_s {
    * @brief Prints a formatted debug message to the configured consoles.
    * @details If the provided `debug` mask is inactive, the message will not be printed.
    */
-  void (*Debug_)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+  void (*Debug)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
   /**
    * @brief Prints a formatted warning message to the configured consoles.
    */
-  void (*Warn_)(const char *func, const char *fmr, ...) __attribute__((format(printf, 2, 3)));
+  void (*Warn)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
   /**
    * @brief Prints a formatted error message to the configured consoles.
    */
-  void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+  void (*Error)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 
   /**
    * @}

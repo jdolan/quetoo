@@ -33,4 +33,4 @@
 
 void Cl_ParseFrame(void);
 void Cl_Interpolate(void);
-#endif /* __CL_LOCAL_H__ */
+#endif

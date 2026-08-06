@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The common game module sources, shared by every game module's project.
+
+  They are compiled by each module rather than linked from one prebuilt
+  library, because they resolve g_types.h from the importing module's own
+  directory: a single prebuilt copy would bake one module's struct layout
+  into all of them.
+
+  This list is the MSBuild counterpart of the _SOURCES lists in each module's
+  src/game/*/Makefile.am, which the autotools build resolves through vpath.
+  Both MUST be updated together when a common source is added or removed.
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\src\game\common\bg_pmove.c" />
+    <ClInclude Include="..\src\game\common\bg_pmove.h" />
+    <ClCompile Include="..\src\game\common\g_ai_goal.c" />
+    <ClInclude Include="..\src\game\common\g_ai_goal.h" />
+    <ClCompile Include="..\src\game\common\g_ai_grid.c" />
+    <ClInclude Include="..\src\game\common\g_ai_grid.h" />
+    <ClCompile Include="..\src\game\common\g_ai_info.c" />
+    <ClInclude Include="..\src\game\common\g_ai_info.h" />
+    <ClCompile Include="..\src\game\common\g_ai_item.c" />
+    <ClInclude Include="..\src\game\common\g_ai_item.h" />
+    <ClCompile Include="..\src\game\common\g_ai_main.c" />
+    <ClInclude Include="..\src\game\common\g_ai_main.h" />
+    <ClCompile Include="..\src\game\common\g_ai_node.c" />
+    <ClInclude Include="..\src\game\common\g_ai_node.h" />
+    <ClInclude Include="..\src\game\common\g_ai_types.h" />
+    <ClCompile Include="..\src\game\common\g_ballistics.c" />
+    <ClInclude Include="..\src\game\common\g_ballistics.h" />
+    <ClCompile Include="..\src\game\common\g_client_chase.c" />
+    <ClInclude Include="..\src\game\common\g_client_chase.h" />
+    <ClCompile Include="..\src\game\common\g_client_view.c" />
+    <ClInclude Include="..\src\game\common\g_client_view.h" />
+    <ClCompile Include="..\src\game\common\g_combat.c" />
+    <ClInclude Include="..\src\game\common\g_combat.h" />
+    <ClCompile Include="..\src\game\common\g_effect.c" />
+    <ClInclude Include="..\src\game\common\g_effect.h" />
+    <ClCompile Include="..\src\game\common\g_entity_func.c" />
+    <ClInclude Include="..\src\game\common\g_entity_func.h" />
+    <ClCompile Include="..\src\game\common\g_entity_info.c" />
+    <ClInclude Include="..\src\game\common\g_entity_info.h" />
+    <ClCompile Include="..\src\game\common\g_entity_misc.c" />
+    <ClInclude Include="..\src\game\common\g_entity_misc.h" />
+    <ClCompile Include="..\src\game\common\g_entity_target.c" />
+    <ClInclude Include="..\src\game\common\g_entity_target.h" />
+    <ClCompile Include="..\src\game\common\g_entity_trigger.c" />
+    <ClInclude Include="..\src\game\common\g_entity_trigger.h" />
+    <ClInclude Include="..\src\game\common\g_module.h" />
+    <ClCompile Include="..\src\game\common\g_rules.c" />
+    <ClCompile Include="..\src\game\common\g_main.c" />
+    <ClInclude Include="..\src\game\common\g_main.h" />
+    <ClCompile Include="..\src\game\common\g_weapon.c" />
+    <ClInclude Include="..\src\game\common\g_weapon.h" />
+    <ClCompile Include="..\src\game\common\g_client_stats.c" />
+    <ClInclude Include="..\src\game\common\g_client_stats.h" />
+    <ClCompile Include="..\src\game\common\g_cmd.c" />
+    <ClInclude Include="..\src\game\common\g_cmd.h" />
+    <ClCompile Include="..\src\game\common\g_item.c" />
+    <ClInclude Include="..\src\game\common\g_item.h" />
+    <ClInclude Include="..\src\game\common\g_local.h" />
+    <ClCompile Include="..\src\game\common\g_entity.c" />
+    <ClInclude Include="..\src\game\common\g_entity.h" />
+    <ClCompile Include="..\src\game\common\g_client.c" />
+    <ClInclude Include="..\src\game\common\g_client.h" />
+    <ClCompile Include="..\src\game\common\g_physics.c" />
+    <ClInclude Include="..\src\game\common\g_physics.h" />
+    <ClCompile Include="..\src\game\common\g_sound.c" />
+    <ClInclude Include="..\src\game\common\g_sound.h" />
+    <ClCompile Include="..\src\game\common\g_util.c" />
+    <ClInclude Include="..\src\game\common\g_util.h" />
+  </ItemGroup>
+  <!-- The grapple, for modules that opt in by setting QuetooGameHook and
+       defining G_HOOK; the counterpart of listing g_hook.c in a module's
+       _SOURCES and adding -DG_HOOK to its AM_CPPFLAGS. -->
+  <ItemGroup Condition="'$(QuetooGameCtf)'=='true'">
+    <ClCompile Include="..\src\game\common\g_ctf.c" />
+    <ClInclude Include="..\src\game\common\g_ctf.h" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(QuetooGameHook)'=='true'">
+    <ClCompile Include="..\src\game\common\g_hook.c" />
+    <ClInclude Include="..\src\game\common\g_hook.h" />
+    <ClInclude Include="..\src\game\common\bg_hook.h" />
+  </ItemGroup>
+  <!-- The tech powerups, on the same terms: QuetooGameTech and G_TECH. -->
+  <ItemGroup Condition="'$(QuetooGameTech)'=='true'">
+    <ClCompile Include="..\src\game\common\g_tech.c" />
+    <ClInclude Include="..\src\game\common\g_tech.h" />
+    <ClInclude Include="..\src\game\common\bg_tech.h" />
+  </ItemGroup>
+</Project>

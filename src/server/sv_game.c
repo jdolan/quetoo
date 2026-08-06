@@ -305,9 +305,9 @@ void Sv_InitGame(void) {
 
   import.Print = Com_Print;
   import.DebugMask = Sv_DebugMask;
-  import.Debug_ = Sv_GameDebug;
-  import.Warn_ = Com_Warn_;
-  import.Error_ = Sv_GameError;
+  import.Debug = Sv_GameDebug;
+  import.Warn = Com_Warn_;
+  import.Error = Sv_GameError;
 
   import.Malloc = Mem_TagMalloc;
   import.LinkMalloc = Mem_LinkMalloc;
@@ -381,7 +381,7 @@ void Sv_InitGame(void) {
 
   import.PostStats = Sv_PostStats;
 
-  game_handle = Sys_OpenLibrary("game", false);
+  game_handle = Sys_OpenLibrary("game");
   assert(game_handle);
   
   svs.game = (g_export_t *) Sys_LoadLibrary(game_handle, "G_LoadGame", &import);

@@ -27,4 +27,4 @@
 void Sv_DrawConsole(void);
 void Sv_InitConsole(void);
 void Sv_ShutdownConsole(void);
-#endif /* __SV_LOCAL_H__ */
+#endif

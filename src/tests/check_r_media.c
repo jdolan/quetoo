@@ -24,10 +24,17 @@
 
 quetoo_t quetoo;
 
+cvar_t *developer;
+cvar_t *editor;
+
 /**
  * @brief Setup fixture.
  */
 void setup(void) {
+  static cvar_t null_cvar;
+
+  developer = &null_cvar;
+  editor = &null_cvar;
 
   Mem_Init();
 

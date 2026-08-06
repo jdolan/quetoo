@@ -305,9 +305,10 @@ cm_winding_t *Cm_WindingForBrushSide(const bsp_file_t *file, const bsp_brush_sid
 }
 
 /**
- * @brief Removes duplicate adjacent points and frees degenerate windings.
+ * @brief Removes duplicate adjacent points from the winding, in place.
+ * @return False if fewer than three points remain, leaving `w` degenerate.
  */
-static cm_winding_t *Cm_FixWinding(cm_winding_t *w) {
+static bool Cm_CompactWinding(cm_winding_t *w) {
 
   for (int32_t i = 0; i < w->num_points; i++) {
     const vec3_t a = w->points[(i + 0) % w->num_points];
@@ -323,7 +324,16 @@ static cm_winding_t *Cm_FixWinding(cm_winding_t *w) {
     }
   }
 
-  if (w->num_points < 3) {
+  return w->num_points >= 3;
+}
+
+/**
+ * @brief Removes duplicate points from the winding, freeing it if fewer than
+ * three points remain.
+ */
+static cm_winding_t *Cm_FixWinding(cm_winding_t *w) {
+
+  if (!Cm_CompactWinding(w)) {
     Cm_FreeWinding(w);
     return NULL;
   }
@@ -437,19 +447,14 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
 }
 
 /**
- * @brief Clips the winding against the given plane.
+ * @brief Classifies each point of the winding against the given plane.
+ * @param clip_points Receives one entry per point of `in`.
  */
-void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, double epsilon) {
+static void Cm_ClassifyWindingPoints(const cm_winding_t *in, const vec3_t normal, double dist,
+                                     double epsilon, cm_clip_point_t *clip_points,
+                                     int32_t *side_front, int32_t *side_back) {
 
-  cm_winding_t *in = *in_out;
-  
-  assert(in->num_points);
-  const int32_t max_points = in->num_points + 4;
-
-  cm_clip_point_t clip_points[max_points];
-  memset(clip_points, 0, max_points * sizeof(cm_clip_point_t));
-
-  int32_t side_front = 0, side_back = 0;
+  *side_front = *side_back = 0;
 
   cm_clip_point_t *c = clip_points;
   for (int32_t i = 0; i < in->num_points; i++, c++) {
@@ -457,26 +462,26 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
     c->dist = (double) Vec3_Dot(c->point, normal) - dist;
     if (c->dist > epsilon) {
       c->side = SIDE_FRONT;
-      side_front++;
+      (*side_front)++;
     } else if (c->dist < -epsilon) {
       c->side = SIDE_BACK;
-      side_back++;
+      (*side_back)++;
     } else {
       c->side = SIDE_BOTH;
     }
   }
+}
 
-  if (side_front == 0) {
-    Cm_FreeWinding(in);
-    *in_out = NULL;
-    return;
-  }
+/**
+ * @brief Emits the front-side portion of `in` into `out`.
+ * @param capacity The number of points `out` can hold.
+ * @remarks Neither winding is allocated or freed, and they MUST NOT alias.
+ */
+static void Cm_EmitClippedWinding(const cm_winding_t *in, const cm_clip_point_t *clip_points,
+                                  const vec3_t normal, double dist, cm_winding_t *out,
+                                  int32_t capacity) {
 
-  if (side_back == 0) {
-    return;
-  }
-
-  cm_winding_t *out = Cm_AllocWinding(max_points);
+  out->num_points = 0;
 
   for (int32_t i = 0; i < in->num_points; i++) {
     const cm_clip_point_t *c = clip_points + i;
@@ -518,10 +523,41 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
     out->points[out->num_points] = Vec3d_CastVec3(mid);
     out->num_points++;
 
-    if (out->num_points == max_points) {
+    if (out->num_points == capacity) {
       Com_Error(ERROR_FATAL, "Points exceeded estimate\n");
     }
   }
+}
+
+/**
+ * @brief Clips the winding against the given plane.
+ */
+void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, double epsilon) {
+
+  cm_winding_t *in = *in_out;
+
+  assert(in->num_points);
+  const int32_t max_points = in->num_points + 4;
+
+  cm_clip_point_t clip_points[max_points];
+  memset(clip_points, 0, max_points * sizeof(cm_clip_point_t));
+
+  int32_t side_front, side_back;
+  Cm_ClassifyWindingPoints(in, normal, dist, epsilon, clip_points, &side_front, &side_back);
+
+  if (side_front == 0) {
+    Cm_FreeWinding(in);
+    *in_out = NULL;
+    return;
+  }
+
+  if (side_back == 0) {
+    return;
+  }
+
+  cm_winding_t *out = Cm_AllocWinding(max_points);
+
+  Cm_EmitClippedWinding(in, clip_points, normal, dist, out, max_points);
 
   Cm_FreeWinding(in);
   *in_out = Cm_FixWinding(out);
@@ -559,7 +595,77 @@ cm_winding_t *Cm_ClipWindingToWinding(const cm_winding_t *in, const cm_winding_t
     // Clip against this edge plane (keep front side)
     Cm_ClipWinding(&current, edge_normal, edge_dist, epsilon);
   }
-  
+
+  return current;
+}
+
+/**
+ * @brief Clips a winding against all edges of another winding, alternating
+ * between the caller-supplied scratch windings `a` and `b`.
+ * @param in The winding to be clipped, which is never modified.
+ * @param clip The winding whose edges define the clipping region.
+ * @param normal The shared plane normal (must match for both windings).
+ * @param epsilon The epsilon for plane distance tests.
+ * @param a Scratch winding with capacity for `capacity` points.
+ * @param b Scratch winding with capacity for `capacity` points.
+ * @param capacity The number of points `a` and `b` can each hold, which MUST be
+ * at least `in->num_points + 4 * clip->num_points`.
+ * @return `in` if no edge clipped it, otherwise `a` or `b`, or `NULL` if it was
+ * clipped away entirely.
+ * @remarks Nothing is allocated or freed. Prefer this over
+ * `Cm_ClipWindingToWinding` on hot paths, and note the result is only valid
+ * until the next call reusing the same scratch windings.
+ */
+const cm_winding_t *Cm_ClipWindingToWindingInto(const cm_winding_t *in, const cm_winding_t *clip,
+                                                const vec3_t normal, double epsilon,
+                                                cm_winding_t *a, cm_winding_t *b,
+                                                int32_t capacity) {
+
+  assert(in);
+  assert(clip);
+  assert(in->num_points >= 3);
+  assert(clip->num_points >= 3);
+  assert(a);
+  assert(b);
+  assert(capacity >= in->num_points + 4 * clip->num_points);
+
+  const cm_winding_t *current = in;
+  cm_winding_t *spare = a;
+
+  for (int32_t edge = 0; edge < clip->num_points; edge++) {
+
+    const vec3_t edge_start = clip->points[edge];
+    const vec3_t edge_end = clip->points[(edge + 1) % clip->num_points];
+
+    const vec3_t edge_dir = Vec3_Normalize(Vec3_Subtract(edge_end, edge_start));
+    const vec3_t edge_normal = Vec3_Cross(edge_dir, normal);
+    const double edge_dist = Vec3_Dot(edge_normal, edge_start);
+
+    cm_clip_point_t clip_points[current->num_points];
+    memset(clip_points, 0, current->num_points * sizeof(cm_clip_point_t));
+
+    int32_t side_front, side_back;
+    Cm_ClassifyWindingPoints(current, edge_normal, edge_dist, epsilon, clip_points,
+                             &side_front, &side_back);
+
+    if (side_front == 0) {
+      return NULL;
+    }
+
+    if (side_back == 0) {
+      continue;
+    }
+
+    Cm_EmitClippedWinding(current, clip_points, edge_normal, edge_dist, spare, capacity);
+
+    if (!Cm_CompactWinding(spare)) {
+      return NULL;
+    }
+
+    current = spare;
+    spare = (spare == a) ? b : a;
+  }
+
   return current;
 }
 

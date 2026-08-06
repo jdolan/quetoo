@@ -29,4 +29,4 @@ const cm_entity_t *Sv_NextMap(void);
 void Sv_InitMapList(void);
 void Sv_ShutdownMapList(void);
 
-#endif /* __SV_LOCAL_H__ */
+#endif

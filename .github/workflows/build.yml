@@ -233,6 +233,8 @@ jobs:
         New-Item -ItemType Directory -Force -Path "$staging\bin" | Out-Null
         New-Item -ItemType Directory -Force -Path "$staging\lib\default\shaders" | Out-Null
         New-Item -ItemType Directory -Force -Path "$staging\lib\default\ui" | Out-Null
+        New-Item -ItemType Directory -Force -Path "$staging\lib\ctf" | Out-Null
+        New-Item -ItemType Directory -Force -Path "$staging\lib\lithium" | Out-Null
 
         # Executables and their PDBs
         Copy-Item "Quetoo.vs15\bin\x64Release\quetoo.exe" "$staging\bin\"
@@ -247,6 +249,14 @@ jobs:
         Copy-Item "Quetoo.vs15\bin\x64Release\cgame.pdb" "$staging\lib\default\"
         Copy-Item "Quetoo.vs15\bin\x64Release\game.dll" "$staging\lib\default\"
         Copy-Item "Quetoo.vs15\bin\x64Release\game.pdb" "$staging\lib\default\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\ctf\cgame.dll" "$staging\lib\ctf\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\ctf\cgame.pdb" "$staging\lib\ctf\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\ctf\game.dll" "$staging\lib\ctf\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\ctf\game.pdb" "$staging\lib\ctf\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\lithium\cgame.dll" "$staging\lib\lithium\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\lithium\cgame.pdb" "$staging\lib\lithium\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\lithium\game.dll" "$staging\lib\lithium\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\lithium\game.pdb" "$staging\lib\lithium\"
 
         # Objectively and ObjectivelyMVC and their PDBs
         Copy-Item "..\Objectively\Objectively.vs15\bin\x64Release\Objectively.dll" "$staging\bin\"
@@ -272,7 +282,7 @@ jobs:
         Copy-Item -Path "src\client\renderer\shaders\*" -Destination "$staging\lib\default\shaders\" -Recurse
 
         # UI files (CSS, JSON, PNG and WAV assets, preserving directory structure)
-        foreach ($uiSource in @("src\cgame\default\ui", "src\client\ui")) {
+        foreach ($uiSource in @("src\cgame\common\ui")) {
           Get-ChildItem -Path $uiSource -Include "*.css","*.json","*.png","*.wav" -Recurse | ForEach-Object {
             $relativePath = $_.FullName.Substring((Resolve-Path $uiSource).Path.Length).TrimStart('\')
             $destPath = Join-Path "$staging\lib\default\ui" $relativePath
