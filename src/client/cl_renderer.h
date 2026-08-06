@@ -26,4 +26,4 @@
 #if defined(__CL_LOCAL_H__)
 void Cl_R_Restart_f(void);
 void Cl_R_ToggleFullscreen_f(void);
-#endif /* __CL_LOCAL_H__ */
+#endif

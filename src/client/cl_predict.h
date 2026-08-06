@@ -31,4 +31,4 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, c
 void Cl_PredictMovement(void);
 void Cl_CheckPredictionError(void);
 void Cl_UpdatePrediction(void);
-#endif /* __CL_LOCAL_H__ */
+#endif

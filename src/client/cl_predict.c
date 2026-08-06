@@ -304,16 +304,24 @@ void Cl_UpdatePrediction(void) {
 
   // ensure the world model is loaded
   if (!Com_WasInit(QUETOO_SERVER) || cl.demo_server || !Cm_NumModels()) {
-    int64_t bs;
 
-    const char *bsp_name = cl.config_strings[CS_BSP];
-    const int64_t bsp_size = strtoll(cl.config_strings[CS_BSP_SIZE], NULL, 10);
+    Cm_LoadBspModel(cl.config_strings[CS_BSP], NULL);
 
-    Cm_LoadBspModel(bsp_name, &bs);
+    // prove it is the bsp the server loaded. The manifest can not answer this:
+    // maps/<name>.mf is read from our own filesystem, so a locally consistent but
+    // stale pair passes it. Only a hash the server computed is authoritative
+    const char *expected = cl.config_strings[CS_BSP_HASH];
+    if (*expected) {
 
-    if (bs != bsp_size) {
-      Com_Error(ERROR_DROP, "Local map version differs from server: "
-                "%" PRId64 " != %" PRId64 "\n", bs, bsp_size);
+      char hash[MAX_QPATH];
+      if (!Cm_HashFile(cl.config_strings[CS_BSP], hash, sizeof(hash))) {
+        Com_Error(ERROR_DROP, "Failed to hash %s\n", cl.config_strings[CS_BSP]);
+      }
+
+      if (q_strcmp(hash, expected)) {
+        Com_Error(ERROR_DROP, "%s differs from server (%s, expected %s)\n",
+                  cl.config_strings[CS_BSP], hash, expected);
+      }
     }
   }
 

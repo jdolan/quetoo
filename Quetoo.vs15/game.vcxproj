@@ -22,76 +22,13 @@
     <None Include="game.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\game\default\g_ai_goal.h" />
-    <ClInclude Include="..\src\game\default\g_ai_info.h" />
-    <ClInclude Include="..\src\game\default\g_ai_item.h" />
-    <ClInclude Include="..\src\game\default\g_ai_main.h" />
-    <ClInclude Include="..\src\game\default\g_ai_node.h" />
-    <ClInclude Include="..\src\game\default\g_ai_grid.h" />
-    <ClInclude Include="..\src\game\default\g_ai_types.h" />
-    <ClInclude Include="..\src\game\default\g_ballistics.h" />
-    <ClInclude Include="..\src\game\default\g_client.h" />
-    <ClInclude Include="..\src\game\default\g_client_chase.h" />
-    <ClInclude Include="..\src\game\default\g_client_stats.h" />
-    <ClInclude Include="..\src\game\default\g_client_view.h" />
-    <ClInclude Include="..\src\game\default\g_cmd.h" />
-    <ClInclude Include="..\src\game\default\g_combat.h" />
-    <ClInclude Include="..\src\game\default\g_entity.h" />
-    <ClInclude Include="..\src\game\default\g_entity_func.h" />
-    <ClInclude Include="..\src\game\default\g_entity_info.h" />
-    <ClInclude Include="..\src\game\default\g_entity_misc.h" />
-    <ClInclude Include="..\src\game\default\g_entity_target.h" />
-    <ClInclude Include="..\src\game\default\g_entity_trigger.h" />
-    <ClInclude Include="..\src\game\default\g_item.h" />
-    <ClInclude Include="..\src\game\default\g_local.h" />
-    <ClInclude Include="..\src\game\default\g_main.h" />
-    <ClInclude Include="..\src\game\default\g_physics.h" />
-    <ClInclude Include="..\src\game\default\g_sound.h" />
-    <ClInclude Include="..\src\game\default\g_types.h" />
-    <ClInclude Include="..\src\game\default\g_util.h" />
-    <ClInclude Include="..\src\game\default\g_weapon.h" />
     <ClInclude Include="..\src\game\game.h" />
+    <ClInclude Include="..\src\game\default\bg_item.h" />
+    <ClInclude Include="..\src\game\default\g_types.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\game\default\g_ai_goal.c" />
-    <ClCompile Include="..\src\game\default\g_ai_info.c" />
-    <ClCompile Include="..\src\game\default\g_ai_item.c" />
-    <ClCompile Include="..\src\game\default\g_ai_main.c" />
-    <ClCompile Include="..\src\game\default\g_ai_node.c" />
-    <ClCompile Include="..\src\game\default\g_ai_grid.c" />
-    <ClCompile Include="..\src\game\default\g_ballistics.c" />
-    <ClCompile Include="..\src\game\default\g_client.c" />
-    <ClCompile Include="..\src\game\default\g_client_chase.c" />
-    <ClCompile Include="..\src\game\default\g_client_stats.c" />
-    <ClCompile Include="..\src\game\default\g_client_view.c" />
-    <ClCompile Include="..\src\game\default\g_cmd.c" />
-    <ClCompile Include="..\src\game\default\g_combat.c" />
-    <ClCompile Include="..\src\game\default\g_entity.c" />
-    <ClCompile Include="..\src\game\default\g_entity_func.c" />
-    <ClCompile Include="..\src\game\default\g_entity_info.c" />
-    <ClCompile Include="..\src\game\default\g_entity_misc.c" />
-    <ClCompile Include="..\src\game\default\g_entity_target.c" />
-    <ClCompile Include="..\src\game\default\g_entity_trigger.c" />
-    <ClCompile Include="..\src\game\default\g_item.c" />
-    <ClCompile Include="..\src\game\default\g_main.c" />
-    <ClCompile Include="..\src\game\default\g_physics.c" />
-    <ClCompile Include="..\src\game\default\g_sound.c" />
-    <ClCompile Include="..\src\game\default\g_util.c" />
-    <ClCompile Include="..\src\game\default\g_weapon.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="libs\libitem.vcxproj">
-      <Project>{a2f31748-6b8c-4d5e-9e0f-b3c4d5e6f7a8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="libs\libpmove.vcxproj">
-      <Project>{B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="libs\libshared.vcxproj">
-      <Project>{2F1C792E-6243-462B-AF0D-E2554E77D5C5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Objectively\Objectively.vs15\Objectively.vcxproj">
-      <Project>{3e6b97c6-1f51-4d72-bdfe-1d492f5eda6c}</Project>
-    </ProjectReference>
+    <ClCompile Include="..\src\game\default\bg_item.c" />
+    <ClCompile Include="..\src\game\default\g_module.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A663B8E2-126D-45DA-B3F8-B381AB866E7D}</ProjectGuid>
@@ -99,6 +36,7 @@
   </PropertyGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="build_settings.props" />
+    <Import Project="game_common.props" />
   </ImportGroup>
   <PropertyGroup>
     <OutDir>$(QuetooOutDir)</OutDir>
@@ -117,6 +55,16 @@
     <LibraryPath>$(QuetooFullLibraryPath);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
+    <ClCompile>
+      <!-- This module's own directory comes first, then the common one. These
+           are per project rather than in QuetooFullIncludePath because every
+           module has a g_types.h: one global list would make it ambiguous. -->
+      <AdditionalIncludeDirectories>..\src\game\default;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <!-- g_client_s and g_entity_s embed the server's view of themselves as an
+           anonymous member, which needs this. clang-cl enables it by default; it
+           is spelled out so that a toolset change cannot take it away quietly. -->
+      <AdditionalOptions>%(AdditionalOptions) -fms-extensions -Wno-microsoft-anon-tag</AdditionalOptions>
+    </ClCompile>
     <Link>
       <AdditionalDependencies>Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>game.def</ModuleDefinitionFile>
@@ -125,5 +73,13 @@
       <Command>COPY_GAME "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="libs\libshared.vcxproj">
+      <Project>{2F1C792E-6243-462B-AF0D-E2554E77D5C5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Objectively\Objectively.vs15\Objectively.vcxproj">
+      <Project>{3e6b97c6-1f51-4d72-bdfe-1d492f5eda6c}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

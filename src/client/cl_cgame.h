@@ -23,7 +23,8 @@
 
 #include "cl_types.h"
 
-#if defined(__CL_LOCAL_H__)
 void Cl_InitCgame(void);
+
+#if defined(__CL_LOCAL_H__)
 void Cl_ShutdownCgame(void);
-#endif /* __CL_LOCAL_H__ */
+#endif

@@ -105,7 +105,7 @@ static void Installer_PruneStaleEntry(const HashTable *table, ident key, ident v
   const cm_manifest_entry_t *entry = value;
   if (entry->status == ENTRY_STALE) {
     char full_path[MAX_OS_PATH];
-    q_snprintf(full_path, sizeof(full_path), "%s/%s/%s", Fs_DataDir(), game->string, entry->path);
+    q_snprintf(full_path, sizeof(full_path), "%s/%s/%s", Fs_DataDir(), Com_Game(), entry->path);
     if (SDL_RemovePath(full_path)) {
       Com_Debug(DEBUG_COMMON, "Pruned stale file: %s\n", entry->path);
     } else {
@@ -179,7 +179,7 @@ static void Installer_Commit(void) {
 
   if (installer.remote_manifest) {
     char mf_path[MAX_OS_PATH];
-    q_snprintf(mf_path, sizeof(mf_path), "%s/%s/manifest.mf", Fs_DataDir(), game->string);
+    q_snprintf(mf_path, sizeof(mf_path), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
     Installer_WriteManifest(mf_path, installer.remote_manifest);
     Cm_FreeManifest(installer.remote_manifest);
     installer.remote_manifest = NULL;
@@ -207,7 +207,7 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
   *dst = '\0';
 
   char url[MAX_OS_PATH * 2];
-  q_snprintf(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s/%s", game->string, encoded);
+  q_snprintf(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s/%s", Com_Game(), encoded);
 
   Data *data = NULL;
 
@@ -219,7 +219,7 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
   }
 
   char path[MAX_OS_PATH];
-  q_snprintf(path, sizeof(path), "%s/%s/%s", Fs_DataDir(), game->string, entry->path);
+  q_snprintf(path, sizeof(path), "%s/%s/%s", Fs_DataDir(), Com_Game(), entry->path);
 
   {
     char dir[MAX_OS_PATH];
@@ -334,7 +334,7 @@ static int Installer_Thread(void *unused) {
       case INSTALLER_COMPARING: {
         Data *data = NULL;
         char manifest_url[MAX_OS_PATH];
-        q_snprintf(manifest_url, sizeof(manifest_url), QUETOO_DATA_BASE_URL "/%s/manifest.mf", game->string);
+        q_snprintf(manifest_url, sizeof(manifest_url), QUETOO_DATA_BASE_URL "/%s/manifest.mf", Com_Game());
         const int32_t http_status = $($$(RESTClient, sharedInstance), get, manifest_url, &data);
         if (http_status != 200 || !data) {
           SDL_LockMutex(installer.mutex);

@@ -9,7 +9,9 @@ EXTRA_DIST = \
 	md32obj.py \
 	objfu.py \
  	pyproject.toml \
-	skyfu.py
+	skyfu.py \
+	symbolicate_dmp.py \
+	verify_projects.py
 
 .PHONY: install-tools
 install-tools:

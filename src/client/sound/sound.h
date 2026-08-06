@@ -41,4 +41,4 @@ extern cvar_t *s_hrtf;
 extern cvar_t *s_rate;
 extern cvar_t *s_volume;
 
-#endif /* __SOUND_H__ */
+#endif

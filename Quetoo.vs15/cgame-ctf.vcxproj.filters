@@ -1,0 +1,510 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="deps">
+      <UniqueIdentifier>{31338922-3ea8-51ea-949a-07fa1f36ce3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\discord-rpc">
+      <UniqueIdentifier>{dc981ed0-e9e3-5a5e-9d39-7e98af7fcc07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\discord-rpc\include">
+      <UniqueIdentifier>{a43bf40f-47a6-5936-b98a-815343573446}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\discord-rpc\src">
+      <UniqueIdentifier>{efb61efd-098e-542f-91ad-7ca1d0d9551e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{3583a5f6-9733-4a0c-9019-f0da06fa5005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common">
+      <UniqueIdentifier>{f4c89d9d-7230-52e4-acc9-562c6261898e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common\ui">
+      <UniqueIdentifier>{760de3f6-c6b5-5093-9d41-fb1a440d74ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common\ui\controls">
+      <UniqueIdentifier>{c70d1c50-ff6c-5f39-a273-7073e1e9e837}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common\ui\credits">
+      <UniqueIdentifier>{d09c05d1-c8ea-5b86-9c46-1a25d7ea7242}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common\ui\editor">
+      <UniqueIdentifier>{894c890d-6146-56aa-8673-8d5007257b9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common\ui\home">
+      <UniqueIdentifier>{d615155f-3878-5711-8ca0-6eb2740fbca8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common\ui\main">
+      <UniqueIdentifier>{828c5368-ec98-5599-b0ae-108619f05e57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common\ui\play">
+      <UniqueIdentifier>{575ed58e-0580-570a-81b4-714bb1fb8281}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common\ui\settings">
+      <UniqueIdentifier>{782b6aa0-cf5f-5619-8cf3-19faebc2cbc0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common\ui\teams">
+      <UniqueIdentifier>{87e951aa-d9c1-50e5-af8a-9f8d57c4681a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ctf">
+      <UniqueIdentifier>{613ae598-9e30-5521-807f-7a2408c3ce80}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\game">
+      <UniqueIdentifier>{92a36082-a73f-542f-bf4c-5190a8a06168}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\game\common">
+      <UniqueIdentifier>{1b99d444-f798-5c2d-b3f6-7cf0fb3f99ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\game\ctf">
+      <UniqueIdentifier>{13e7ff26-6943-5736-b5e5-6149367f705a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\cgame\cgame.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_hud.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_score.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_client.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_discord.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_editor.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_effect.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_entity.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_entity_effect.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_entity_event.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_entity_misc.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_entity_trail.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_flare.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_hud_draw.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_input.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_inventory.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_light.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_local.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_main.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_media.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_module.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_ctf.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_tech.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_muzzle_flash.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_predict.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_sound.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_sprite.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_team_mode.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_temp_entity.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_types.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_ui.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_view.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_weapon.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\BindTextView.h">
+      <Filter>src\common\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\CvarCheckbox.h">
+      <Filter>src\common\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\CvarSelect.h">
+      <Filter>src\common\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\CvarSlider.h">
+      <Filter>src\common\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\CvarTextView.h">
+      <Filter>src\common\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\DialogViewController.h">
+      <Filter>src\common\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\controls\ControlsViewController.h">
+      <Filter>src\common\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\controls\CrosshairView.h">
+      <Filter>src\common\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\controls\MovementCombatViewController.h">
+      <Filter>src\common\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\controls\ResponseServiceViewController.h">
+      <Filter>src\common\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\credits\CreditsViewController.h">
+      <Filter>src\common\ui\credits</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\editor\EditorViewController.h">
+      <Filter>src\common\ui\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\editor\EntityView.h">
+      <Filter>src\common\ui\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\editor\EntityViewController.h">
+      <Filter>src\common\ui\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\editor\MaterialViewController.h">
+      <Filter>src\common\ui\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\editor\MeshViewController.h">
+      <Filter>src\common\ui\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\home\HomeViewController.h">
+      <Filter>src\common\ui\home</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\home\LeaderboardViewController.h">
+      <Filter>src\common\ui\home</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\home\StatsViewController.h">
+      <Filter>src\common\ui\home</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\main\LoadingViewController.h">
+      <Filter>src\common\ui\main</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\main\MainView.h">
+      <Filter>src\common\ui\main</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\main\MainViewController.h">
+      <Filter>src\common\ui\main</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\main\UpdateViewController.h">
+      <Filter>src\common\ui\main</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\play\CreateServerViewController.h">
+      <Filter>src\common\ui\play</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\play\JoinServerViewController.h">
+      <Filter>src\common\ui\play</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\play\MapListCollectionItemView.h">
+      <Filter>src\common\ui\play</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\play\MapListCollectionView.h">
+      <Filter>src\common\ui\play</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\play\PlayViewController.h">
+      <Filter>src\common\ui\play</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\play\PlayerModelView.h">
+      <Filter>src\common\ui\play</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\play\PlayerSetupViewController.h">
+      <Filter>src\common\ui\play</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\settings\SettingsViewController.h">
+      <Filter>src\common\ui\settings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\teams\TeamPlayerView.h">
+      <Filter>src\common\ui\teams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\teams\TeamView.h">
+      <Filter>src\common\ui\teams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\teams\TeamsViewController.h">
+      <Filter>src\common\ui\teams</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\include\discord_register.h">
+      <Filter>deps\discord-rpc\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\include\discord_rpc.h">
+      <Filter>deps\discord-rpc\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\src\backoff.h">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\src\connection.h">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\src\msg_queue.h">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\src\rpc_connection.h">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\discord-rpc\src\serialization.h">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\bg_pmove.h">
+      <Filter>src\game\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\ctf\bg_item.h">
+      <Filter>src\game\ctf</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\cgame\common\cg_hud.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_score.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\ctf\cg_module.c">
+      <Filter>src\ctf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\ctf\cg_team_mode.c">
+      <Filter>src\ctf</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_client.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_discord.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_editor.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_effect.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_entity.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_entity_effect.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_entity_event.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_entity_misc.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_entity_trail.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_flare.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_hud_draw.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_input.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_inventory.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_light.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_main.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_media.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_ctf.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_tech.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_muzzle_flash.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_predict.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_sound.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_sprite.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_temp_entity.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_ui.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_view.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_weapon.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\BindTextView.c">
+      <Filter>src\common\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\CvarCheckbox.c">
+      <Filter>src\common\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\CvarSelect.c">
+      <Filter>src\common\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\CvarSlider.c">
+      <Filter>src\common\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\CvarTextView.c">
+      <Filter>src\common\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\DialogViewController.c">
+      <Filter>src\common\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\controls\ControlsViewController.c">
+      <Filter>src\common\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\controls\CrosshairView.c">
+      <Filter>src\common\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\controls\MovementCombatViewController.c">
+      <Filter>src\common\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\controls\ResponseServiceViewController.c">
+      <Filter>src\common\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\credits\CreditsViewController.c">
+      <Filter>src\common\ui\credits</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\editor\EditorViewController.c">
+      <Filter>src\common\ui\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\editor\EntityView.c">
+      <Filter>src\common\ui\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\editor\EntityViewController.c">
+      <Filter>src\common\ui\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\editor\MaterialViewController.c">
+      <Filter>src\common\ui\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\editor\MeshViewController.c">
+      <Filter>src\common\ui\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\home\HomeViewController.c">
+      <Filter>src\common\ui\home</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\home\LeaderboardViewController.c">
+      <Filter>src\common\ui\home</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\home\StatsViewController.c">
+      <Filter>src\common\ui\home</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\main\LoadingViewController.c">
+      <Filter>src\common\ui\main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\main\MainView.c">
+      <Filter>src\common\ui\main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\main\MainViewController.c">
+      <Filter>src\common\ui\main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\main\UpdateViewController.c">
+      <Filter>src\common\ui\main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\play\CreateServerViewController.c">
+      <Filter>src\common\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\play\JoinServerViewController.c">
+      <Filter>src\common\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\play\MapListCollectionItemView.c">
+      <Filter>src\common\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\play\MapListCollectionView.c">
+      <Filter>src\common\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\play\PlayViewController.c">
+      <Filter>src\common\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\play\PlayerModelView.c">
+      <Filter>src\common\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\play\PlayerSetupViewController.c">
+      <Filter>src\common\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\settings\SettingsViewController.c">
+      <Filter>src\common\ui\settings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\teams\TeamPlayerView.c">
+      <Filter>src\common\ui\teams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\teams\TeamView.c">
+      <Filter>src\common\ui\teams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\teams\TeamsViewController.c">
+      <Filter>src\common\ui\teams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\discord-rpc\src\connection_win.cpp">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\discord-rpc\src\discord_register_win.cpp">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\discord-rpc\src\discord_rpc.cpp">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\discord-rpc\src\dllmain.cpp">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\discord-rpc\src\rpc_connection.cpp">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\discord-rpc\src\serialization.cpp">
+      <Filter>deps\discord-rpc\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove.c">
+      <Filter>src\game\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\ctf\bg_item.c">
+      <Filter>src\game\ctf</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

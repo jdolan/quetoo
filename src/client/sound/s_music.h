@@ -37,4 +37,4 @@ void S_RenderMusic(const s_stage_t *stage);
 void S_InitMusic(void);
 void S_ShutdownMusic(void);
 
-#endif /* __S_LOCAL_H__ */
+#endif

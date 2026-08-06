@@ -31,4 +31,4 @@ void Cl_Ping_f(void);
 void Cl_ParseServerInfo(void);
 void Cl_ParseServers(void);
 void Cl_Servers_List_f(void);
-#endif /* __CL_LOCAL_H__ */
+#endif

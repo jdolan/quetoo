@@ -29,4 +29,4 @@ void Sv_EditEditorEntity(int32_t number, const char *info);
 void Sv_FreeEditorEntity(int32_t number);
 void Sv_LoadEditorMap(void);
 void Sv_SaveEditorMap_f(void);
-#endif /* __SV_LOCAL_H__ */
+#endif

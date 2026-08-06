@@ -31,6 +31,8 @@
 
 #define FS_FILE_BUFFER (1024 * 1024 * 2)
 
+#define MAX_COMMAND_LINE_PATHS 8
+
 typedef struct {
 
   /**
@@ -68,6 +70,15 @@ typedef struct {
   char **base_search_paths;
 
   /**
+   * @brief Search paths given on the command line with `-path` or `-wpath`.
+   * @details These are roots that may contain game directories, exactly like
+   * the install directories, so that a development tree laid out the same way
+   * resolves modules and assets the same way.
+   */
+  char command_line_paths[MAX_COMMAND_LINE_PATHS][MAX_OS_PATH];
+  size_t num_command_line_paths;
+
+  /**
    * @brief For debugging purposes, track all loaded files to ensure that
    * they are freed (`Fs_Free`) in all code paths.
    */
@@ -75,6 +86,22 @@ typedef struct {
 } fs_state_t;
 
 static fs_state_t fs_state;
+
+/**
+ * @brief Adds a command line search path, remembering it as a root so that
+ * `Fs_SetGame` can resolve game directories beneath it.
+ */
+static void Fs_AddCommandLinePath(const char *path) {
+
+  Fs_AddToSearchPath(path);
+
+  if (fs_state.num_command_line_paths == MAX_COMMAND_LINE_PATHS) {
+    Com_Warn("Ignoring %s; only %d command line paths are supported\n", path, MAX_COMMAND_LINE_PATHS);
+    return;
+  }
+
+  q_strlcpy(fs_state.command_line_paths[fs_state.num_command_line_paths++], path, MAX_OS_PATH);
+}
 
 /**
  * @return The base directory, if running from a bundled application.
@@ -500,6 +527,42 @@ void Fs_CompleteFile(const char *pattern, List *matches) {
   Fs_Enumerate(pattern, Fs_CompleteFile_enumerate, matches);
 }
 
+/**
+ * @brief Console completion for game names.
+ * @details A game is a directory under the library directory that ships a client
+ * game. Only the game that is current is mounted, so this reads the real
+ * filesystem rather than the search path, and globs the module rather than naming
+ * it, so that the shared library extension stays the platform's business.
+ */
+void Fs_CompleteGame(const char *pattern, List *matches) {
+
+  int32_t count;
+  char **games = SDL_GlobDirectory(fs_state.lib_dir, pattern, SDL_GLOB_CASEINSENSITIVE, &count);
+  if (!games) {
+    return;
+  }
+
+  for (int32_t i = 0; i < count; i++) {
+    const char *dir = va("%s/%s", fs_state.lib_dir, games[i]);
+
+    SDL_PathInfo info;
+    if (!SDL_GetPathInfo(dir, &info) || info.type != SDL_PATHTYPE_DIRECTORY) {
+      continue;
+    }
+
+    int32_t modules;
+    char **module = SDL_GlobDirectory(dir, "cgame.*", SDL_GLOB_CASEINSENSITIVE, &modules);
+    if (module) {
+      if (modules) {
+        Con_AutocompleteMatch(matches, games[i], NULL);
+      }
+      SDL_free(module);
+    }
+  }
+
+  SDL_free(games);
+}
+
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
 
 /**
@@ -583,17 +646,37 @@ static void Fs_AddUserSearchPath(const char *dir) {
 }
 
 /**
- * @brief Sets the game path to a relative directory.
+ * @return True if `dir` names a game directory the filesystem will accept.
  */
-void Fs_SetGame(const char *dir) {
+bool Fs_ValidGame(const char *dir) {
 
   if (!dir || !*dir) {
     Com_Warn("Missing game name\n");
-    return;
+    return false;
+  }
+
+  if (q_strlen(dir) >= MAX_QPATH) {
+    Com_Warn("Game name is too long (%s)\n", dir);
+    return false;
   }
 
   if (q_strstr(dir, "..") || q_strstr(dir, "/") || q_strstr(dir, "\\") || q_strstr(dir, ":")) {
     Com_Warn("Game should be a directory name, not a path (%s)\n", dir);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Points the search path at the given game directory.
+ * @details `Com_SetGame` is the only caller, and it holds the game that is
+ * current and has already validated this name, so there is nothing to compare
+ * against here: this only does the work.
+ */
+void Fs_SetGame(const char *dir) {
+
+  if (!Fs_ValidGame(dir)) {
     return;
   }
 
@@ -625,6 +708,10 @@ void Fs_SetGame(const char *dir) {
   // now add new entries for the new game
   Fs_AddToSearchPathv(fs_state.lib_dir, dir, NULL);
   Fs_AddToSearchPathv(fs_state.data_dir, dir, NULL);
+
+  for (size_t p = 0; p < fs_state.num_command_line_paths; p++) {
+    Fs_AddToSearchPathv(fs_state.command_line_paths[p], dir, NULL);
+  }
 
   Fs_AddUserSearchPath(dir);
 }
@@ -805,15 +892,21 @@ void Fs_Init(const uint32_t flags) {
   for (i = 1; i < Com_Argc(); i++) {
 
     if (!q_strcmp(Com_Argv(i), "-p") || !q_strcmp(Com_Argv(i), "-path")) {
-      Fs_AddToSearchPath(Com_Argv(i + 1));
+      Fs_AddCommandLinePath(Com_Argv(i + 1));
       continue;
     }
 
     if (!q_strcmp(Com_Argv(i), "-w") || !q_strcmp(Com_Argv(i), "-wpath")) {
-      Fs_AddToSearchPath(Com_Argv(i + 1));
+      Fs_AddCommandLinePath(Com_Argv(i + 1));
       Fs_SetWriteDir(Com_Argv(i + 1));
       continue;
     }
+  }
+
+  // as with the install directories, the default game beneath them is a base
+  // path, present whichever game is later selected
+  for (size_t p = 0; p < fs_state.num_command_line_paths; p++) {
+    Fs_AddToSearchPathv(fs_state.command_line_paths[p], DEFAULT_GAME, NULL);
   }
 
   // these paths will be retained across all game modules

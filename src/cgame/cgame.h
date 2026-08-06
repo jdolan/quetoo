@@ -35,7 +35,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 33
+#define CGAME_API_VERSION 34
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -963,6 +963,17 @@ typedef struct cg_export_s {
   int32_t protocol;
 
   /**
+   * @brief The name of the game module this image implements, e.g. `"ctf"`.
+   * @details The client compares this against the game directory the server
+   * advertises. It must come from the module itself, because the search path and
+   * the `game` cvar say only which module was *asked* for: `Sys_OpenLibrary`
+   * resolves `cgame.so` through the whole search path, so a client missing a mod
+   * silently loads `default/cgame.so` instead and would otherwise read the
+   * server's stats against the wrong layout.
+   */
+  const char *name;
+
+  /**
    * @brief Initializes the client game.
    * @details Called once when the client game module is loaded.
    */
@@ -1094,4 +1105,4 @@ typedef struct cg_export_s {
 
 } cg_export_t;
 
-#endif /* __CGAME_H__ */
+#endif

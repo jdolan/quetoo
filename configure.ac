@@ -200,7 +200,7 @@ dnl ---------------------------------
 
 AC_MSG_CHECKING(which game modules to build)
 
-GAME_MODULES="default"
+GAME_MODULES="default ctf lithium"
 
 AC_ARG_WITH(games,
 	AS_HELP_STRING([--with-games='default ...'],
@@ -384,18 +384,8 @@ AC_CONFIG_FILES([
 	src/collision/Makefile
 	src/cgame/Makefile
 	src/cgame/default/Makefile
-	src/cgame/default/ui/Makefile
-	src/cgame/default/ui/backgrounds/Makefile
-	src/cgame/default/ui/fonts/Makefile
-	src/cgame/default/ui/common/Makefile
-	src/cgame/default/ui/controls/Makefile
-	src/cgame/default/ui/credits/Makefile
-	src/cgame/default/ui/editor/Makefile
-	src/cgame/default/ui/home/Makefile
-	src/cgame/default/ui/main/Makefile
-	src/cgame/default/ui/play/Makefile
-	src/cgame/default/ui/settings/Makefile
-	src/cgame/default/ui/teams/Makefile
+	src/cgame/ctf/Makefile
+	src/cgame/lithium/Makefile
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile
@@ -404,6 +394,8 @@ AC_CONFIG_FILES([
 	src/common/Makefile
 	src/game/Makefile
 	src/game/default/Makefile
+	src/game/ctf/Makefile
+	src/game/lithium/Makefile
 	src/main/Makefile
 	src/master/Makefile
 	src/net/Makefile

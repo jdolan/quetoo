@@ -26,4 +26,4 @@
 #include "ui_main.h"
 #include "ui_types.h"
 
-#endif /* __UI_H__ */
+#endif

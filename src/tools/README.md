@@ -24,6 +24,8 @@ Run any of the installed commands:
 - `md32obj`
 - `objfu`
 - `skyfu`
+- `symbolicate-dmp`
+- `verify-projects`
 
 ## Tool scripts
 
@@ -34,6 +36,27 @@ Run any of the installed commands:
 - `md32obj.py`: Quake III MD3 to OBJ
 - `objfu.py`: OBJ viewer / muzzle helper
 - `skyfu.py`: Skybox cubemap packer
+- `symbolicate_dmp.py`: Symbolicate a Windows crash dump
+- `verify_projects.py`: Check that the three build systems agree
+
+## verify-projects
+
+Each game and client game module is described three times - in its `Makefile.am`,
+in the MSVS project and property sheet, and in the Xcode project - and a local
+build on macOS or Linux only exercises the first. This compares all three:
+
+```sh
+python3 src/tools/verify_projects.py --verbose
+```
+
+It reports a source present in one system and missing from another, a module
+building a sibling's manifest, duplicate entries, feature defines that disagree
+between a module's three descriptions, and a file in `src/{game,cgame}/common`
+that no project references. None of those fail a local build, and the middle two
+present at runtime as a network fault or as the wrong game modes in a menu.
+
+It needs no dependencies beyond the standard library, so it runs without the
+virtual environment the other tools want.
 
 ## matfu
 

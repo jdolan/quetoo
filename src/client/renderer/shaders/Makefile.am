@@ -33,9 +33,13 @@ shaders_DATA = \
  	voxel.glsl
 
 # SDL_gpu shader transpilation via glslc and SDL_shadercross. The output
-# (.dxil, .metal, .spv) are all versioned, so your typical build does not
-# need to worry about these. But for users who modify the .glsl sources,
-# run `make -C src/client/renderer/shaders shaders` to transpile.
+# (.metal, .spv) is versioned, so your typical build does not need to worry
+# about these. But for users who modify the .glsl sources, run
+# `make -C src/client/renderer/shaders shaders` to transpile.
+#
+# DXIL is not generated: D3D12 is unusable pending an SDL_gpu fix, so only
+# Vulkan and Metal are exercised. The committed .dxil blobs are retained
+# because ObjectivelyGPU resolves that extension for a D3D12 device.
 
 VERTEX_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs shadow_clear_vs sky_vs sprite_vs decal_vs occlude_vs
 FRAGMENT_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs shadow_clear_fs sky_fs sprite_fs decal_fs
@@ -68,20 +72,16 @@ shaders:
 	for s in $(VERTEX_SHADERS); do \
 		$(GLSLC) -DVERTEX_SHADER -I$(srcdir) -fshader-stage=vertex $(srcdir)/$$s.glsl -o $$s.spv || exit 1; \
 		$(SHADERCROSS) $$s.spv -s SPIRV -d MSL -t vertex --msl-version 2.2.0 -o $$s.metal || exit 1; \
-		$(SHADERCROSS) $$s.spv -s SPIRV -d DXIL -t vertex -o $$s.dxil || exit 1; \
 	done
 	for s in $(FRAGMENT_SHADERS); do \
 		$(GLSLC) -DFRAGMENT_SHADER -I$(srcdir) -fshader-stage=fragment $(srcdir)/$$s.glsl -o $$s.spv || exit 1; \
 		$(SHADERCROSS) $$s.spv -s SPIRV -d MSL -t fragment --msl-version 2.2.0 -o $$s.metal || exit 1; \
-		$(SHADERCROSS) $$s.spv -s SPIRV -d DXIL -t fragment -o $$s.dxil || exit 1; \
 	done
 	for s in $(ALPHA_TEST_FRAGMENT_SHADERS); do \
 		$(GLSLC) -DFRAGMENT_SHADER -DALPHA_TEST -I$(srcdir) -fshader-stage=fragment $(srcdir)/$$s.glsl -o $${s}_alpha_test.spv || exit 1; \
 		$(SHADERCROSS) $${s}_alpha_test.spv -s SPIRV -d MSL -t fragment --msl-version 2.2.0 -o $${s}_alpha_test.metal || exit 1; \
-		$(SHADERCROSS) $${s}_alpha_test.spv -s SPIRV -d DXIL -t fragment -o $${s}_alpha_test.dxil || exit 1; \
 	done
 	for s in $(ALPHA_TEST_VERTEX_SHADERS); do \
 		$(GLSLC) -DVERTEX_SHADER -DALPHA_TEST -I$(srcdir) -fshader-stage=vertex $(srcdir)/$$s.glsl -o $${s}_alpha_test.spv || exit 1; \
 		$(SHADERCROSS) $${s}_alpha_test.spv -s SPIRV -d MSL -t vertex --msl-version 2.2.0 -o $${s}_alpha_test.metal || exit 1; \
-		$(SHADERCROSS) $${s}_alpha_test.spv -s SPIRV -d DXIL -t vertex -o $${s}_alpha_test.dxil || exit 1; \
 	done

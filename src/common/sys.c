@@ -135,32 +135,106 @@ const char *Sys_UserDir(void) {
 }
 
 /**
- * @brief Loads a shared library by name, searching the game filesystem for the .so/.dll file.
- * @return A handle to the loaded library, or aborts with `ERROR_DROP` on failure.
+ * @brief Warns if the image that loaded is not the one at the given path.
+ * @details dyld searches DYLD_LIBRARY_PATH for a library's leaf name before it
+ * honors the path it was given, so a module of the same name in another
+ * directory silently wins. Every game module is named game.so or cgame.so, so
+ * this is a real hazard wherever that variable is set, as Xcode sets it.
  */
-void *Sys_OpenLibrary(const char *name, bool global) {
+static void Sys_CheckLibrary(const char *path) {
+#if defined(__APPLE__)
+
+  char *expected = realpath(path, NULL);
+  if (!expected) {
+    return;
+  }
+
+  bool loaded = false;
+  for (uint32_t i = 0; i < _dyld_image_count() && !loaded; i++) {
+
+    const char *image = _dyld_get_image_name(i);
+    if (!image) {
+      continue;
+    }
+
+    char *actual = realpath(image, NULL);
+    if (actual) {
+      loaded = !q_strcmp(actual, expected);
+      free(actual);
+    }
+  }
+
+  if (!loaded) {
+    Com_Warn("%s is not the image that loaded; check DYLD_LIBRARY_PATH\n", path);
+  }
+
+  free(expected);
+#endif
+}
+
+/**
+ * @return The platform's file name for the named module.
+ */
+static const char *Sys_LibraryName(const char *name) {
 
 #if defined(_WIN32)
-  const char *so_name = va("%s.dll", name);
+  return va("%s.dll", name);
 #else
-  const char *so_name = va("%s.so", name);
+  return va("%s.so", name);
 #endif
+}
 
-  if (Fs_Exists(so_name)) {
+/**
+ * @brief Resolves a module the current game provides.
+ * @return The real directory holding `so_name`, or `NULL` if this game has none.
+ * @details The module must come from the game's own directory. Every module is
+ * named game.so or cgame.so and <lib_dir>/default stays mounted as a base path
+ * for the shared UI, so accepting whatever the search path resolves would run
+ * another game's module under this game's name. Directories are prepended as they
+ * are mounted and Fs_SetGame mounts the game's own last, so the game's copy wins
+ * wherever it exists: resolving anything else means it has none.
+ */
+static const char *Sys_LibraryDir(const char *so_name) {
+
+  const char *real_dir = Fs_Exists(so_name) ? Fs_RealDir(so_name) : NULL;
+
+  return real_dir && !q_strcmp(Basename(real_dir), Com_Game()) ? real_dir : NULL;
+}
+
+/**
+ * @return True if the current game provides the named module.
+ * @details Lets a game change be refused before it tears anything down, rather
+ * than dropping to the console from inside the load.
+ */
+bool Sys_HasLibrary(const char *name) {
+  return Sys_LibraryDir(Sys_LibraryName(name)) != NULL;
+}
+
+/**
+ * @brief Loads a shared library by name from the game that is current.
+ * @return A handle to the loaded library, or aborts with `ERROR_DROP` on failure.
+ */
+void *Sys_OpenLibrary(const char *name) {
+
+  const char *so_name = Sys_LibraryName(name);
+  const char *real_dir = Sys_LibraryDir(so_name);
+
+  if (real_dir) {
     char path[MAX_OS_PATH];
 
-    q_snprintf(path, sizeof(path), "%s/%s", Fs_RealDir(so_name), so_name);
+    q_snprintf(path, sizeof(path), "%s/%s", real_dir, so_name);
     Com_Print("  Loading %s...\n", path);
 
-    void *handle = dlopen(path, RTLD_LAZY | (global ? RTLD_GLOBAL : RTLD_LOCAL));
+    void *handle = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
     if (handle) {
+      Sys_CheckLibrary(path);
       return handle;
     }
 
     Com_Error(ERROR_DROP, "%s\n", dlerror());
   }
 
-  Com_Error(ERROR_DROP, "Couldn't find %s\n", so_name);
+  Com_Error(ERROR_DROP, "Couldn't find %s for game %s\n", so_name, Com_Game());
 }
 
 /**
@@ -186,6 +260,17 @@ void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
   if (!EntryPoint) {
     Com_Error(ERROR_DROP, "Failed to resolve entry point: %s\n", entry_point);
   }
+
+#if defined(__APPLE__)
+  // dlopen may resolve an image already in the process rather than the file it
+  // was handed, so report where the entry point actually came from. dladdr and
+  // Dl_info are a glibc extension gated behind _GNU_SOURCE, and only dyld
+  // redirects a path by its leaf name, so this stays where it is needed.
+  Dl_info info;
+  if (dladdr((void *) EntryPoint, &info) && info.dli_fname) {
+    Com_Print("  %s from %s\n", entry_point, info.dli_fname);
+  }
+#endif
 
   return EntryPoint(params);
 }

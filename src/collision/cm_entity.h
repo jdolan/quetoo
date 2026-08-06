@@ -102,4 +102,4 @@ cm_entity_t *Cm_EntityFromInfoString(const char *str);
 void Cm_ParseMapBrushes(const char *map_text, cm_entity_t **entities, int32_t num_entities);
 
 #if defined(__CM_LOCAL_H__)
-#endif /* __CM_LOCAL_H__ */
+#endif

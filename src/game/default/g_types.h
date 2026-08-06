@@ -21,16 +21,25 @@
 
 #pragma once
 
+#include <Objectively/Vector.h>
+
 #include "shared/shared.h"
 #include "collision/cm_types.h"
 #include "bg_item.h"
-#include <Objectively/Vector.h>
+#include "bg_pmove.h"
+#include "game/game.h"
+
+/**
+ * @brief The name this module answers to: its directory under lib/quetoo, and
+ * the game_name it advertises.
+ */
+#define GAME_NAME "default"
 
 /**
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1043
+#define PROTOCOL_MINOR 1044
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -63,22 +72,19 @@ typedef enum {
  * @brief ConfigStrings that are local to the game module.
  */
 #define CS_GAMEPLAY        (CS_GAME + 0)  // gameplay string
-#define CS_CTF             (CS_GAME + 1)  // is capture enabled?
-#define CS_TEAM_INFO       (CS_GAME + 2)  // team info, separated by \ (name\color\name\color, etc)
-#define CS_TIME            (CS_GAME + 3)  // map time
-#define CS_HOOK_PULL_SPEED (CS_GAME + 4)  // hook speed
-#define CS_MAX_CLIENTS     (CS_GAME + 5)  // max clients of server
-#define CS_NUM_CLIENTS     (CS_GAME + 6)  // number of players in server
-#define CS_NUM_TEAMS       (CS_GAME + 7)  // number of teams (0 - MAX_TEAMS)
-#define CS_NAV_EDIT        (CS_GAME + 9)  // nav edit mode
-#define CS_ITEM_SET        (CS_GAME + 10) // active item set (g_items_t)
+#define CS_TEAM_INFO       (CS_GAME + 1)  // team info, separated by \ (name\color\name\color, etc)
+#define CS_TIME            (CS_GAME + 2)  // map time
+#define CS_MAX_CLIENTS     (CS_GAME + 3)  // max clients of server
+#define CS_NUM_CLIENTS     (CS_GAME + 4)  // number of players in server
+#define CS_NUM_TEAMS       (CS_GAME + 5)  // number of teams (0 - MAX_TEAMS)
+#define CS_NAV_EDIT        (CS_GAME + 6)  // nav edit mode
+#define CS_ITEM_SET        (CS_GAME + 7)  // active item set (g_items_t)
 
 /**
  * @brief Player state statistics (inventory, score, etc).
  */
 typedef enum {
   STAT_ARMOR,
-  STAT_CAPTURES,
   STAT_CHASE,
   STAT_DAMAGE_ARMOR,
   STAT_DAMAGE_HEALTH,
@@ -93,7 +99,6 @@ typedef enum {
   STAT_SCORES,
   STAT_SPECTATOR,
   STAT_TEAM,
-  STAT_TECH,
   STAT_TIME,
   STAT_WEAPON
 } g_stat_t;
@@ -151,7 +156,6 @@ typedef enum {
   TE_BFG,
   TE_GIB,
   TE_RIPPLE,
-  TE_HOOK_IMPACT,
   TE_NAIL,
   TE_AI_NODE,
   TE_AI_NODE_LINK
@@ -227,18 +231,13 @@ typedef struct {
    */
   int16_t score;
 
-  /**
-   * @brief Number of flag captures.
-   */
-  int16_t captures;
-
-  /**
+    /**
    * @brief Number of deaths.
    */
   uint16_t deaths;
 
   /**
-   * @brief Score flags (`SCORE_CTF_FLAG`, etc.).
+   * @brief Score flags.
    */
   uint8_t flags;
 
@@ -251,7 +250,6 @@ typedef struct {
 /**
  * @brief Player scores flags.
  */
-#define SCORE_CTF_FLAG  (1 << 0)
 #define SCORE_SPECTATOR (1 << 2)
 #define SCORE_AGGREGATE (1 << 3)
 
@@ -283,18 +281,12 @@ typedef enum {
 #define EF_CORPSE          (EF_GAME << 4) // to differentiate own corpse from self
 #define EF_RESPAWN         (EF_GAME << 5) // yellow shell
 #define EF_QUAD            (EF_GAME << 6) // blue-green shell
-#define EF_CTF_RED         (EF_GAME << 7) // carrying the red flag
-#define EF_CTF_BLUE        (EF_GAME << 8) // carrying the blue flag
-#define EF_CTF_GREEN       (EF_GAME << 9) // carrying the green flag
-#define EF_CTF_YELLOW      (EF_GAME << 10) // carrying the yellow flag
 #define EF_DESPAWN         (EF_GAME << 11) // translucent
 #define EF_LIGHT           (EF_GAME << 12) // colored light
 #define EF_LIGHT_PULSE     (EF_GAME << 13) // pulse EF_LIGHT radius
 #define EF_TEAM_TINT       (EF_GAME << 14) // tint by the team color provided
 #define EF_INVISIBILITY    (EF_GAME << 15) // ring of shadows (invisible shell)
 #define EF_INVULNERABILITY (EF_GAME << 16) // invulnerability shell
-
-#define EF_CTF_MASK   (EF_CTF_RED | EF_CTF_BLUE | EF_CTF_YELLOW | EF_CTF_GREEN)
 
 /**
  * @brief The lightning gun overrides animation1 to inform the client what
@@ -316,7 +308,6 @@ typedef enum {
   TRAIL_TELEPORTER,
   TRAIL_GIB,
   TRAIL_FIREBALL,
-  TRAIL_HOOK,
   TRAIL_PLAYER_SPAWN,
   TRAIL_QUAKE_NAIL,
   TRAIL_QUAKE_GRENADE,
@@ -375,15 +366,6 @@ typedef enum {
   ITEMS_QUAKE
 } g_items_t;
 
-/**
- * @brief Hook style.
- */
-typedef enum {
-  HOOK_PULL,
-  HOOK_SWING_MANUAL,
-  HOOK_SWING_AUTO
-} g_hook_style_t;
-
 // g_item_type_t and g_item_tag_t are defined in bg_item.h
 
 /**
@@ -420,7 +402,7 @@ typedef struct {
   float energy_protection;
 } g_armor_info_t;
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__G_LOCAL_H__)
 
 /**
  * @brief This file will define the game-visible definitions of `g_client_t`
@@ -647,7 +629,6 @@ typedef struct {
     uint16_t quake_nail;
     uint16_t rocket;
     uint16_t quake_rocket;
-    uint16_t hook;
 
     uint16_t fireball;
   } models;
@@ -673,13 +654,6 @@ typedef struct {
     uint16_t quad_attack;
     uint16_t quad_expire;
 
-    uint16_t hook_fire;
-    uint16_t hook_hit;
-    uint16_t hook_pull;
-    uint16_t hook_fly;
-    uint16_t hook_detach;
-    uint16_t hook_gibhit;
-
     uint16_t teleport;
     uint16_t quake_teleport[5];
 
@@ -690,13 +664,8 @@ typedef struct {
     uint16_t weapon_switch;
 
     uint16_t countdown[11];
-    uint16_t ctf_capture;
-    uint16_t ctf_return;
-    uint16_t ctf_steal;
 
     uint16_t roar;
-
-    uint16_t techs[TECH_TOTAL];
 
     uint16_t chat;
 
@@ -775,37 +744,12 @@ typedef struct {
    */
   bool teams;
 
-  /**
-   * @brief True if capture the flag is active.
-   */
-  bool ctf;
-
-  /**
-   * @brief True if tech powerups are enabled.
-   */
-  bool techs;
-
-  /**
-   * @brief True if the grappling hook is enabled.
-   */
-  bool hook;
-
-  /**
+      /**
    * @brief Number of active teams.
    */
   int32_t num_teams;
 
-  /**
-   * @brief Map-specified hook allowance, used for voting and restarts.
-   */
-  int32_t hook_map;
-
-  /**
-   * @brief Map-specified techs allowance.
-   */
-  int32_t techs_map;
-
-  /**
+    /**
    * @brief Map-specified minimum clients override.
    */
   int32_t min_clients_map;
@@ -815,20 +759,10 @@ typedef struct {
    */
   int32_t frag_limit;
 
-  /**
-   * @brief Capture limit; game ends when a team reaches this.
-   */
-  int32_t capture_limit;
-
-  /**
+    /**
    * @brief Time limit in minutes; game ends when exceeded.
    */
   int32_t time_limit;
-
-  /**
-   * @brief Items to give all players on spawn.
-   */
-  char give[MAX_STRING_CHARS];
 
   /**
    * @brief Background music track.
@@ -870,11 +804,7 @@ typedef struct {
    */
   Vector *frags;
 
-  /**
-   * @brief Accumulated capture events for this CTF map, POSTed at intermission.
-   */
-  Vector *captures;
-} g_level_t;
+  } g_level_t;
 
 /**
  * @brief Means of death.
@@ -920,7 +850,6 @@ typedef struct {
   MOD_HANDGRENADE_SUICIDE,
   MOD_HANDGRENADE_KAMIKAZE,
   MOD_FIREBALL,
-  MOD_HOOK,
   MOD_ACT_OF_GOD,
   MOD_BOB,
   MOD_FRIENDLY_FIRE = 0x8000000
@@ -1016,12 +945,7 @@ typedef struct {
    */
   char skin[MAX_QPATH];
 
-  /**
-   * @brief Flag entity classname.
-   */
-  char flag[MAX_QPATH];
-
-  /**
+    /**
    * @brief Spawn point classname.
    */
   char spawn[MAX_QPATH];
@@ -1036,31 +960,17 @@ typedef struct {
    */
   int16_t color;
 
-  /**
-   * @brief Entity effect for the team flag.
-   */
-  int16_t effect;
-
-  /**
+    /**
    * @brief Team score.
    */
   int16_t score;
 
-  /**
-   * @brief Team capture count.
-   */
-  int16_t captures;
-
-  /**
+    /**
    * @brief Spawn points for this team.
    */
   g_spawn_points_t spawn_points;
 
-  /**
-   * @brief The team's flag entity.
-   */
-  g_entity_t *flag_entity;
-} g_team_t;
+  } g_team_t;
 
 /**
  * @brief The default player model
@@ -1122,12 +1032,7 @@ typedef struct {
    */
   uint16_t auto_switch;
 
-  /**
-   * @brief The player's selected hook style.
-   */
-  g_hook_style_t hook_style;
-
-  /**
+    /**
    * @brief Current team assignment.
    */
   g_team_t *team;
@@ -1147,12 +1052,7 @@ typedef struct {
    */
   int16_t score;
 
-  /**
-   * @brief Number of flag captures.
-   */
-  int16_t captures;
-
-  /**
+    /**
    * @brief Number of deaths.
    */
   uint16_t deaths;
@@ -1187,39 +1087,12 @@ typedef struct {
 struct g_client_s {
 
   /**
-   * @brief The entity bound to this client.
+   * @brief What the server reads out of a client. This MUST be the first member:
+   * the server reads these fields at offset zero, and C guarantees a pointer to
+   * a structure points at its first member. Its fields are reached without
+   * naming it, so `cl->entity` is the entity bound to this client.
    */
-  g_entity_t *entity;
-
-  /**
-   * @brief Player state communicated to clients by the server.
-   */
-  player_state_t ps;
-
-  /**
-   * @brief Current round-trip latency in milliseconds.
-   */
-  uint32_t ping;
-
-  /**
-   * @brief Current score (frags, points, etc.), mirrored for the server.
-   */
-  int16_t score;
-
-  /**
-   * @brief Raw user info key-value string.
-   */
-  char user_info[MAX_INFO_STRING_STRING];
-
-  /**
-   * @brief True if this client slot is currently active.
-   */
-  bool in_use;
-
-  /**
-   * @brief Non-null if this client is a bot.
-   */
-  struct ai_s *ai;
+  sv_game_client_t;
 
   /**
    * @brief Data that persists across respawns.
@@ -1296,27 +1169,7 @@ struct g_client_s {
    */
   pm_water_level_t old_water_level;
 
-  /**
-   * @brief Level time when the hook think was last called.
-   */
-  uint32_t hook_think_time;
-
-  /**
-   * @brief Hook may fire again when time exceeds this.
-   */
-  uint32_t hook_fire_time;
-
-  /**
-   * @brief The hook entity the client is attached to.
-   */
-  g_entity_t *hook_entity;
-
-  /**
-   * @brief True if the client is currently pulling toward the hook.
-   */
-  bool hook_pull;
-
-  /**
+          /**
    * @brief Alternating barrel index for the Quake nailgun.
    * Odd = right barrel (+2 units), even = left barrel (-2 units).
    */
@@ -1521,16 +1374,7 @@ struct g_client_s {
    */
   uint32_t scores_time;
 
-  /**
-   * @brief Next regeneration tick time.
-   */
-  uint32_t regen_time;
-
-  /**
-   * @brief Next time a tech powerup sound may play.
-   */
-  uint32_t tech_sound_time;
-};
+  };
 
 typedef struct g_client_s g_client_t;
 
@@ -1541,64 +1385,12 @@ typedef struct g_client_s g_client_t;
 struct g_entity_s {
 
   /**
-   * @brief Entity definition parsed from the BSP file.
+   * @brief What the server reads out of an entity. This MUST be the first member:
+   * the server reads these fields at offset zero, and C guarantees a pointer to
+   * a structure points at its first member. Its fields are reached without
+   * naming it, so `ent->s.origin` is this entity's state origin.
    */
-  const cm_entity_t *def;
-
-  /**
-   * @brief Entity class name; guaranteed set through `G_Spawn`.
-   */
-  const char *classname;
-
-  /**
-   * @brief Model name; for `SOLID_BSP` entities this is the inline model name.
-   */
-  const char *model;
-
-  /**
-   * @brief Entity state written by the game and delta-compressed by the server.
-   */
-  entity_state_t s;
-
-  /**
-   * @brief True if the entity is currently allocated and active.
-   */
-  bool in_use;
-
-  /**
-   * @brief Server-specific flags bitmask (e.g. `SVF_NO_CLIENT`).
-   */
-  uint32_t sv_flags;
-
-  /**
-   * @brief Game-set bounding box in entity-local space.
-   */
-  box3_t bounds;
-
-  /**
-   * @brief Server-set bounding box in world space; set by `gi.LinkEntity`.
-   */
-  box3_t abs_bounds;
-
-  /**
-   * @brief Server-set entity size; set by `gi.LinkEntity`.
-   */
-  vec3_t size;
-
-  /**
-   * @brief Solid type defining clipping behavior.
-   */
-  solid_t solid;
-
-  /**
-   * @brief Entity that spawned this one (e.g. player for projectiles).
-   */
-  g_entity_t *owner;
-
-  /**
-   * @brief Non-null for entities 1..`sv_max_clients`.
-   */
-  g_client_t *client;
+  sv_game_entity_t;
 
   /**
    * @brief Spawn flags (`SF_ITEM_HOVER`, etc.).
@@ -1858,6 +1650,4 @@ struct g_entity_s {
 
 typedef struct g_entity_s g_entity_t;
 
-#include "game/game.h"
-
-#endif /* __GAME_LOCAL_H__ */
+#endif

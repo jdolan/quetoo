@@ -427,4 +427,4 @@ typedef struct {
   g_export_t *game;
 } sv_static_t;
 
-#endif /* __SV_LOCAL_H__ */
+#endif
