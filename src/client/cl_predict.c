@@ -305,9 +305,24 @@ void Cl_UpdatePrediction(void) {
   // ensure the world model is loaded
   if (!Com_WasInit(QUETOO_SERVER) || cl.demo_server || !Cm_NumModels()) {
 
-    // a bsp that differs from the server's is fatal in Cl_CheckManifestEntry_,
-    // which compares its hash rather than only its size
     Cm_LoadBspModel(cl.config_strings[CS_BSP], NULL);
+
+    // prove it is the bsp the server loaded. The manifest can not answer this:
+    // maps/<name>.mf is read from our own filesystem, so a locally consistent but
+    // stale pair passes it. Only a hash the server computed is authoritative
+    const char *expected = cl.config_strings[CS_BSP_HASH];
+    if (*expected) {
+
+      char hash[MAX_QPATH];
+      if (!Cm_HashFile(cl.config_strings[CS_BSP], hash, sizeof(hash))) {
+        Com_Error(ERROR_DROP, "Failed to hash %s\n", cl.config_strings[CS_BSP]);
+      }
+
+      if (q_strcmp(hash, expected)) {
+        Com_Error(ERROR_DROP, "%s differs from server (%s, expected %s)\n",
+                  cl.config_strings[CS_BSP], hash, expected);
+      }
+    }
   }
 
   // load the BSP models for prediction as well

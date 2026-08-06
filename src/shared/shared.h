@@ -38,7 +38,8 @@
 #define CS_PK3      1 // pk3 name
 #define CS_MANIFEST 2 // map manifest
 #define CS_BSP      3 // bsp name
-#define CS_MODELS   4 // bsp inline models and mesh models
+#define CS_BSP_HASH 4 // md5 of the bsp the server loaded, for catching incompatible bsps
+#define CS_MODELS   5 // bsp inline models and mesh models
 #define CS_SOUNDS   (CS_MODELS + MAX_MODELS)
 #define CS_MUSICS   (CS_SOUNDS + MAX_SOUNDS)
 #define CS_IMAGES   (CS_MUSICS + MAX_MUSICS)

@@ -83,6 +83,7 @@ void Cm_AddManifestEntry(HashTable *manifest, const char *path, const void *data
  * @return true if the local file exists and its `MD5` matches the entry's hash.
  */
 bool Cm_CheckManifestEntry(const cm_manifest_entry_t *entry);
+bool Cm_HashFile(const char *path, char *hex, size_t hex_size);
 
 /**
  * @brief Writes a manifest table to a file, sorted by path.

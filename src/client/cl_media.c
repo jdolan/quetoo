@@ -32,13 +32,12 @@ static void Cl_CheckManifestEntry_(const HashTable *table, ident key, ident val,
   if (Fs_Exists(entry->path)) {
     if (!Cm_CheckManifestEntry(entry)) {
 
-      // the bsp is the one asset a mismatch on is not cosmetic: the client
-      // predicts against its own collision model, so a different bsp desyncs
-      if (!q_strcmp(entry->path, cl.config_strings[CS_BSP])) {
-        Com_Error(ERROR_DROP, "%s differs from server (expected %s)\n", entry->path, entry->hash);
-      }
-
-      Com_Warn("%s differs from server (expected %s)\n", entry->path, entry->hash);
+      // the manifest is our own file, so this only says our copy disagrees with
+      // what our copy claims. The bsp is proven against the server's hash in
+      // Cl_UpdatePrediction, which is the only comparison that can be
+      // authoritative, so nothing here needs to be fatal
+      Com_Warn("%s differs from %s (expected %s)\n", entry->path,
+               cl.config_strings[CS_MANIFEST], entry->hash);
     }
   } else {
     Cl_CheckOrDownloadFile(entry->path);

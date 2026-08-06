@@ -283,6 +283,13 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
 
     sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_BSP], NULL);
 
+    // advertise the bsp we actually loaded, so that a client can prove it loaded
+    // the same one. Hashing the file rather than trusting our own manifest: a
+    // stale .mf would otherwise have us reject correct clients
+    if (!Cm_HashFile(sv.config_strings[CS_BSP], sv.config_strings[CS_BSP_HASH], MAX_STRING_CHARS)) {
+      Com_Error(ERROR_DROP, "Failed to hash %s\n", sv.config_strings[CS_BSP]);
+    }
+
     const char *dir = Fs_RealDir(sv.config_strings[CS_BSP]);
     const size_t dir_len = q_strlen(dir);
     if (dir_len >= 4 && !q_strcmp(dir + dir_len - 4, ".pk3")) {

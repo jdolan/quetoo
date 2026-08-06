@@ -40,6 +40,29 @@ static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hex_size) 
 }
 
 /**
+ * @brief Computes the `MD5` hex digest of the file at `path`.
+ * @return True on success, false if the file could not be read.
+ * @details Both sides of the wire hash the same way, so that the server can
+ * advertise what it loaded and the client can prove it loaded the same thing.
+ */
+bool Cm_HashFile(const char *path, char *hex, size_t hex_size) {
+
+	void *data = NULL;
+	const int64_t len = Fs_Load(path, &data);
+	if (len <= 0 || !data) {
+		if (data) {
+			Fs_Free(data);
+		}
+		return false;
+	}
+
+	Cm_Md5Hex(data, len, hex, hex_size);
+	Fs_Free(data);
+
+	return true;
+}
+
+/**
  * @brief Allocates an empty manifest table.
  */
 HashTable *Cm_AllocManifest(void) {
