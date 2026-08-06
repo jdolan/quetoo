@@ -489,6 +489,49 @@ of calls:
   in chain order, rather than interleaved with the core ones. `restart` is acted
   on at the same point either way.
 
+### Features that were removed on purpose
+
+These are deletions rather than consequences, and they read as regressions from
+the diff alone - two reviewers reported them as bugs. The reasoning is in
+`e7acf31e8`; it is repeated here because that is not where anyone will look.
+
+- **Per-map gameplay settings are gone.** `maps.lst` and the worldspawn could
+  each set `ctf`, `techs`, `teams`, `num_teams` and `give`, so the mode could
+  change from one map to the next and leave players guessing what they were
+  playing. These belong to the module and its cvars. `num_teams` needs no map
+  input either: a map that supports three or four teams says so by defining
+  their spawn points, which `G_InitSpawnPoints` and `G_InitNumTeams` already
+  read. The per-map `give` string was a workaround from before item sets
+  existed. Map metadata keeps what genuinely varies per map: gravity, gameplay,
+  music, the limits and `min_clients`.
+- **`G_CreateTeamSpawnPoints` is gone.** It existed to make CTF playable on maps
+  never built for it, running an O(n squared) search for the two furthest-apart
+  deathmatch spawns and repurposing them as flag positions - its own comment
+  conceded the flags "will be in crap positions". Purpose-built CTF levels
+  supply their own. Team play in a module without flags now simply uses
+  `info_player_deathmatch` for everyone, because `G_SelectRandomSpawnPoint`
+  already recurses into `g_level.spawn_points` when a team's pool is empty.
+- **The `g_ctf` cvar is gone**, along with `g_level.ctf` and the `CS_CTF`
+  config string. A ctf server runs capture the flag; it will never run team
+  deathmatch. The `G_CTF` define the module compiles with says the same thing
+  at build time. The cvar defaulted to 0, so out of the box the ctf module was
+  not actually playing capture the flag.
+
+### What a module must ship
+
+`Sys_OpenLibrary` resolves `game.so` and `cgame.so` only within the directories
+that *are* the game that is current. Every module carries those same two file
+names and `<lib_dir>/default` stays mounted as a base path for the shared UI, so
+searching the whole path would silently load another module under this one's
+name. A module that ships no `cgame` is therefore refused rather than
+substituted, and `Cl_ParseServerData` checks the `GAME_NAME` the loaded image
+advertises against the game directory the server sent, so a client missing a mod
+gets a refused connection instead of a misparsed one.
+
+Changing games is a command, not a cvar: `game <name>` brings any session down
+first, because both modules are loaded from the game that is current.
+`Com_Game()` is the state.
+
 ## The client game
 
 The client game now has the same three mechanisms, and its fork was already gone
@@ -647,7 +690,7 @@ a dedicated server holding the same port:
 
     printf 'wait\n%.0s' {1..1400} > "$WRITE_DIR/probe.cfg"
     echo 'r_screenshot' >> "$WRITE_DIR/probe.cfg" && echo quit >> "$WRITE_DIR/probe.cfg"
-    quetoo +set game lithium +set sv_min_clients 4 +map edge +exec probe.cfg
+    quetoo +game lithium +set sv_min_clients 4 +map edge +exec probe.cfg
 
 then read `$WRITE_DIR/screenshots/`. Enough `wait` lines to get past the map load,
 or the screenshot is of the console. What the three modules should show, and did:
