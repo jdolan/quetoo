@@ -652,7 +652,7 @@ jobs:
         | .deb | [quetoo-x86_64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.deb) | [quetoo-aarch64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.deb) |
         | .rpm | [quetoo-x86_64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.rpm) | [quetoo-aarch64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.rpm) |
 
-        > .deb and .rpm are for **dedicated servers only** — not for game clients. Also install the matching [quetoo-data $VERSION](https://github.com/jdolan/quetoo-data/releases/tag/$VERSION) release.
+        > .deb and .rpm are for **dedicated servers only** — not for game clients. Also install the latest [quetoo-data](https://github.com/jdolan/quetoo-data/releases) release.
 
         ## Changelog
 
