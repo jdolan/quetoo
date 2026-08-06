@@ -24,7 +24,7 @@
 
 static struct {
   DrawHudElements DrawHudElements;
-} super;
+} previous;
 
 /**
  * @brief Draws the flag the client is carrying.
@@ -94,7 +94,7 @@ static int32_t Cg_DrawCaptures(const player_state_t *ps, int32_t y) {
  */
 static void Cg_DrawHudElements_Ctf(const player_state_t *ps, cg_hud_layout_t *layout) {
 
-  super.DrawHudElements(ps, layout);
+  previous.DrawHudElements(ps, layout);
 
   Cg_DrawHeldFlag(ps);
 
@@ -106,7 +106,7 @@ static void Cg_DrawHudElements_Ctf(const player_state_t *ps, cg_hud_layout_t *la
  * image.
  * @details The guard is load bearing rather than defensive: `Cg_Init` runs again
  * on a game change and on `r_restart`, and the client game image survives
- * `dlclose`, so a second install would point this function's super at itself.
+ * `dlclose`, so a second install would point this function's previous at itself.
  */
 void Cg_Ctf_Init(void) {
   static bool installed;
@@ -115,7 +115,7 @@ void Cg_Ctf_Init(void) {
     return;
   }
 
-  super.DrawHudElements = Cg_DrawHudElements;
+  previous.DrawHudElements = Cg_DrawHudElements;
   Cg_DrawHudElements = Cg_DrawHudElements_Ctf;
 
   installed = true;

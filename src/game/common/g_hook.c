@@ -37,7 +37,7 @@ static struct {
   InitMedia InitMedia;
   ConfigureLevel ConfigureLevel;
   PrepareMove PrepareMove;
-} super;
+} previous;
 
 static bool installed;
 
@@ -74,12 +74,12 @@ static bool G_Hook_Enabled(void) {
 
 /**
  * @brief Takes the client's movement over while they are pulling on the hook,
- * and otherwise defers to super.
+ * and otherwise defers to previous.
  */
 static void G_PrepareMove_Hook(g_client_t *cl, pm_move_t *pm) {
 
   if (!cl->hook.pull) {
-    super.PrepareMove(cl, pm);
+    previous.PrepareMove(cl, pm);
     return;
   }
 
@@ -103,7 +103,7 @@ static void G_PrepareMove_Hook(g_client_t *cl, pm_move_t *pm) {
  */
 static void G_InitMedia_Hook(void) {
 
-  super.InitMedia();
+  previous.InitMedia();
 
   g_hook_media.model = gi.ModelIndex("models/grapplehook/tris");
 
@@ -125,7 +125,7 @@ static void G_ConfigureLevel_Hook(void) {
 
   gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
 
-  super.ConfigureLevel();
+  previous.ConfigureLevel();
 }
 
 /**
@@ -166,7 +166,7 @@ static bool G_CheckCvars_Hook(void) {
     gi.BroadcastPrint(PRINT_HIGH, "Hook style has been changed to %s\n", g_hook_style->string);
   }
 
-  return super.CheckCvars();
+  return previous.CheckCvars();
 }
 
 /**
@@ -176,7 +176,7 @@ static void G_TossInventory_Hook(g_client_t *cl) {
 
   G_HookDetach(cl);
 
-  super.TossInventory(cl);
+  previous.TossInventory(cl);
 }
 
 /**
@@ -185,22 +185,22 @@ static void G_TossInventory_Hook(g_client_t *cl) {
 void G_Hook_Init(void) {
 
   // G_Init runs on every server initialization, and the module is not always
-  // unloaded in between, so installing twice would point super at ourselves.
+  // unloaded in between, so installing twice would point previous at ourselves.
   if (!installed) {
     installed = true;
 
-    super.CheckCvars = G_CheckCvars;
+    previous.CheckCvars = G_CheckCvars;
     G_CheckCvars = G_CheckCvars_Hook;
-    super.TossInventory = G_TossInventory;
+    previous.TossInventory = G_TossInventory;
     G_TossInventory = G_TossInventory_Hook;
 
-    super.InitMedia = G_InitMedia;
+    previous.InitMedia = G_InitMedia;
     G_InitMedia = G_InitMedia_Hook;
 
-    super.ConfigureLevel = G_ConfigureLevel;
+    previous.ConfigureLevel = G_ConfigureLevel;
     G_ConfigureLevel = G_ConfigureLevel_Hook;
 
-    super.PrepareMove = G_PrepareMove;
+    previous.PrepareMove = G_PrepareMove;
     G_PrepareMove = G_PrepareMove_Hook;
   }
 

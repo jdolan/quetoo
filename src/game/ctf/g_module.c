@@ -22,16 +22,13 @@
 #include "g_local.h"
 
 /**
- * @brief This module adds no behaviour of its own: capture the flag, the
- * grappling hook and the techs are features of the common sources, which
- * `G_Init` installs from the defines in this module's Makefile.am.
+ * @brief Module initialization and hook registration.
  */
 void G_Module_Init(void) {
 }
 
 /**
- * @brief This module holds nothing of its own to release; the features it builds
- * own what they allocate.
+ * @brief Module shutdown.
  */
 void G_Module_Shutdown(void) {
 }

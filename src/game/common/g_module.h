@@ -37,8 +37,8 @@
  * Variation points that several optional features may each want a say in are
  * chainable hooks rather than named functions. Common holds the default
  * behaviour; a feature installs itself over the top in its own `_Init`, keeping
- * the previous value to call as super. Composition then falls out: a module with
- * flags and techs gets both, one with only techs gets only that, and neither
+ * the value it displaced to call as `previous`. Composition then falls out: a
+ * module with flags and techs gets both, one with only techs gets only that, and neither
  * feature has to know the other exists.
  *
  * Hooks MUST be installed from `G_Init`, once per module load. Installing from
@@ -153,7 +153,7 @@ extern ResetDroppedItem G_ResetDroppedItem;
  * it can be seen and touched.
  * @details The whole of the deathmatch placement is the default, and a feature
  * that has more to say about its own items installs over the top. Anything it
- * changes after deferring to super MUST be linked again, because super links.
+ * changes after deferring to previous MUST be linked again, because previous links.
  */
 typedef void (*ResetItem)(g_entity_t *ent);
 
@@ -205,7 +205,7 @@ extern TossInventory G_TossInventory;
  * before friendly fire and self damage are resolved.
  * @details The quad damage powerup is the default. A feature carrying its own
  * modifiers, such as the resist and strength techs, installs over the top;
- * because the modifiers multiply, where it calls super decides only how the
+ * because the modifiers multiply, where it calls previous decides only how the
  * integer truncation falls.
  */
 typedef void (*ModifyDamage)(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback);
@@ -224,7 +224,7 @@ extern ModifyDamage G_ModifyDamage;
  * client's command is applied.
  * @details The default hands the move the entity's own velocity. A feature that
  * takes the movement over, as the grapple does while pulling, sets the move type
- * and the velocity it wants and does not defer to super.
+ * and the velocity it wants and does not defer to previous.
  */
 typedef void (*PrepareMove)(g_client_t *cl, pm_move_t *pm);
 
@@ -267,7 +267,7 @@ extern CheckWinner G_CheckWinner;
  * @param name The buffer to format into, holding the gameplay name.
  * @param size The size of that buffer.
  * @details Chainable so that a feature can qualify what it was handed, but a
- * feature that renames the gameplay outright does not defer to super.
+ * feature that renames the gameplay outright does not defer to previous.
  */
 typedef void (*FormatGameName)(char *name, size_t size);
 

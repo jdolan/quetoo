@@ -58,7 +58,7 @@ Pick by what kind of difference it is. In rough order of preference:
 
 4. **A hook that is not chained.** Where exactly one answer is possible - a win
    condition, the name of the gameplay - the mechanism is still a hook, but the
-   feature installing it does not call super. Nothing enforces that, so the
+   feature installing it does not call previous. Nothing enforces that, so the
    docblock on the hook MUST say which kind it is.
 
 5. **A contract.** A plain function declared in `g_module.h` that every module
@@ -87,7 +87,7 @@ else.
 ## The chainable hook
 
 Common holds the default; a feature installs itself over the top, keeping the
-previous value to call as super.
+value it displaced to call as `previous`.
 
 ```c
 /* g_module.h — the contract, and the single authoritative list of hooks */
@@ -110,7 +110,7 @@ ResetDroppedItem G_ResetDroppedItem = G_ResetDroppedItem_Common;
 static struct {
   ResetDroppedItem ResetDroppedItem;
   ResolveInventoryItem ResolveInventoryItem;
-} super;
+} previous;
 
 static void G_ResetDroppedItem_Tech(g_entity_t *ent) {
 
@@ -119,11 +119,11 @@ static void G_ResetDroppedItem_Tech(g_entity_t *ent) {
     return;
   }
 
-  super.ResetDroppedItem(ent);
+  previous.ResetDroppedItem(ent);
 }
 
 /* in G_Tech_Init */
-super.ResetDroppedItem = G_ResetDroppedItem;
+previous.ResetDroppedItem = G_ResetDroppedItem;
 G_ResetDroppedItem = G_ResetDroppedItem_Tech;
 ```
 
@@ -144,15 +144,15 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
   initialization, not once per process — a single short session shows two
   `Game module initialization` cycles before the first map even loads — and
   `dlclose` does not reliably unload the module on macOS, so the file statics
-  survive. Installing a second time sets `super.X = G_X` when `G_X` is already
+  survive. Installing a second time sets `previous.X = G_X` when `G_X` is already
   this feature's own function: the chain points at itself and the first call
   spins forever. Guard the installs with a `static bool installed`. This is not
   theoretical; it hung `drop tech` with a beachball.
 - **Install from `G_Init`**, behind that guard. Never from anything per-level.
 - **Chain order is installation order**, so the order of the `_Init` calls in a
   module's `G_Init` is part of its behaviour. Document it when it matters.
-- **Call super, not the default.** Super is "let whoever installed before me
-  decide". Calling the default directly instead gives last-writer-wins: with
+- **Call `previous`, not the default.** `previous` is "let whoever installed before
+  me decide". Calling the default directly instead gives last-writer-wins: with
   flags and techs both installed, whichever went second would swallow the
   other's item type. This is why the defaults are not public.
 - **Switching modules mid-session is safe.** `default/game.so` and
@@ -162,8 +162,8 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
   `edge`. The rule to remember is that *persisting* state is harmless — media
   indices, enabled flags and `g_items` are reassigned on every init — while
   *accumulating* state is not, which is what makes the guard above necessary.
-- **A feature holds only the hooks it replaced**, in its own local `super`
-  struct. Do not thread a shared table of every hook — `super` would then be a
+- **A feature holds only the hooks it replaced**, in its own local `previous`
+  struct. Do not thread a shared table of every hook — `previous` would then be a
   snapshot of hooks you never touched, and correctness would depend on install
   order invisibly.
 
@@ -479,10 +479,10 @@ of calls:
   argument. Every caller passed `true`, and with the features compiled in per
   module, compiling one in is the module saying it wants it.
 - Resist, quad and strength still scale damage in that order, because the tech
-  implementation calls super between them. Chain order is behaviour.
+  implementation calls previous between them. Chain order is behaviour.
 - A flag whose team is not playing is now hidden outright. It used to be hidden
   before `G_ResetItem` read `SF_ITEM_NO_TOUCH`, so a map that set that flag on
-  such a flag got `SOLID_BOX` back; the hook runs after super, so `SOLID_NOT`
+  such a flag got `SOLID_BOX` back; the hook runs after previous, so `SOLID_NOT`
   wins. Reachable only for a map that marks an out-of-play team's flag
   no-touch.
 - The feature cvar announcements now all print at the end of `G_CheckRules`,
@@ -589,8 +589,8 @@ both mattered:
 one hook per element, and the elements it arranges - `Cg_DrawFrags`,
 `Cg_DrawPowerups`, `Cg_DrawTime` and the rest - are **public in `cg_hud.h`** so
 that a module may arrange all of it rather than only insert into the arrangement
-common ships. A feature calls super and draws after it; a module that arranges the
-HUD itself does not defer to super at all, and then owns every element it declines
+common ships. A feature calls previous and draws after it; a module that arranges the
+HUD itself does not defer to previous at all, and then owns every element it declines
 to call.
 
 The layout was the interesting part, and it is *not* the shape an earlier draft of

@@ -22,14 +22,13 @@
 #include "g_local.h"
 
 /**
- * @brief Plain deathmatch adds no behaviour of its own, and switches on none of
- * the optional features, so every hook runs its `_Common` tail.
+ * @brief Module initialization and hook registration.
  */
 void G_Module_Init(void) {
 }
 
 /**
- * @brief Plain deathmatch holds nothing of its own to release.
+ * @brief Module shutdown.
  */
 void G_Module_Shutdown(void) {
 }

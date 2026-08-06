@@ -42,7 +42,7 @@ static struct {
   InitItem InitItem;
   InitMedia InitMedia;
   ConfigureLevel ConfigureLevel;
-} super;
+} previous;
 
 static bool installed;
 
@@ -76,7 +76,7 @@ static void G_ResetDroppedItem_Tech(g_entity_t *ent) {
     return;
   }
 
-  super.ResetDroppedItem(ent);
+  previous.ResetDroppedItem(ent);
 }
 
 /**
@@ -91,12 +91,12 @@ static const g_item_t *G_ResolveInventoryItem_Tech(g_client_t *cl, const char *n
     }
   }
 
-  return super.ResolveInventoryItem(cl, name);
+  return previous.ResolveInventoryItem(cl, name);
 }
 
 /**
  * @brief Applies the resist and strength modifiers, deferring the powerups to
- * super so that the three keep the order they had before resist and strength
+ * previous so that the three keep the order they had before resist and strength
  * were a hook.
  */
 static void G_ModifyDamage_Tech(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback) {
@@ -108,7 +108,7 @@ static void G_ModifyDamage_Tech(g_entity_t *target, g_entity_t *attacker, int32_
     G_PlayTechSound(target->client);
   }
 
-  super.ModifyDamage(target, attacker, damage, knockback);
+  previous.ModifyDamage(target, attacker, damage, knockback);
 
   if (attacker->client && G_HasTech(attacker->client, TECH_STRENGTH)) {
     *damage *= TECH_STRENGTH_DAMAGE_FACTOR;
@@ -123,7 +123,7 @@ static void G_ModifyDamage_Tech(g_entity_t *target, g_entity_t *attacker, int32_
  */
 static void G_InitMedia_Tech(void) {
 
-  super.InitMedia();
+  previous.InitMedia();
 
   g_tech_media.sounds[TECH_HASTE    - TECH_FIRST] = gi.SoundIndex("techs/haste/haste");
   g_tech_media.sounds[TECH_REGEN    - TECH_FIRST] = gi.SoundIndex("techs/regen/regen");
@@ -139,7 +139,7 @@ static void G_ConfigureLevel_Tech(void) {
 
   G_Tech_CheckState();
 
-  super.ConfigureLevel();
+  previous.ConfigureLevel();
 }
 
 /**
@@ -158,7 +158,7 @@ static bool G_CheckCvars_Tech(void) {
     restart = true;
   }
 
-  return super.CheckCvars() || restart;
+  return previous.CheckCvars() || restart;
 }
 
 /**
@@ -172,7 +172,7 @@ static void G_InitItem_Tech(g_item_t *it) {
     return;
   }
 
-  super.InitItem(it);
+  previous.InitItem(it);
 }
 
 /**
@@ -182,7 +182,7 @@ static void G_TossInventory_Tech(g_client_t *cl) {
 
   G_TossTech(cl);
 
-  super.TossInventory(cl);
+  previous.TossInventory(cl);
 }
 
 /**
@@ -191,31 +191,31 @@ static void G_TossInventory_Tech(g_client_t *cl) {
 void G_Tech_Init(void) {
 
   // G_Init runs on every server initialization, and the module is not always
-  // unloaded in between, so installing twice would point super at ourselves.
+  // unloaded in between, so installing twice would point previous at ourselves.
   if (!installed) {
     installed = true;
 
-    super.ResetDroppedItem = G_ResetDroppedItem;
+    previous.ResetDroppedItem = G_ResetDroppedItem;
     G_ResetDroppedItem = G_ResetDroppedItem_Tech;
 
-    super.ResolveInventoryItem = G_ResolveInventoryItem;
+    previous.ResolveInventoryItem = G_ResolveInventoryItem;
     G_ResolveInventoryItem = G_ResolveInventoryItem_Tech;
 
-    super.ModifyDamage = G_ModifyDamage;
+    previous.ModifyDamage = G_ModifyDamage;
     G_ModifyDamage = G_ModifyDamage_Tech;
 
-    super.CheckCvars = G_CheckCvars;
+    previous.CheckCvars = G_CheckCvars;
     G_CheckCvars = G_CheckCvars_Tech;
-    super.TossInventory = G_TossInventory;
+    previous.TossInventory = G_TossInventory;
     G_TossInventory = G_TossInventory_Tech;
 
-    super.InitItem = G_InitItem;
+    previous.InitItem = G_InitItem;
     G_InitItem = G_InitItem_Tech;
 
-    super.InitMedia = G_InitMedia;
+    previous.InitMedia = G_InitMedia;
     G_InitMedia = G_InitMedia_Tech;
 
-    super.ConfigureLevel = G_ConfigureLevel;
+    previous.ConfigureLevel = G_ConfigureLevel;
     G_ConfigureLevel = G_ConfigureLevel_Tech;
   }
 

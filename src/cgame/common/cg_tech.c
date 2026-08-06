@@ -24,14 +24,14 @@
 
 static struct {
   DrawHudElements DrawHudElements;
-} super;
+} previous;
 
 /**
  * @brief Draws the tech the client holds, beneath whatever powerups they hold.
  */
 static void Cg_DrawHudElements_Tech(const player_state_t *ps, cg_hud_layout_t *layout) {
 
-  super.DrawHudElements(ps, layout);
+  previous.DrawHudElements(ps, layout);
 
   const int16_t tech = ps->stats[STAT_TECH];
   if (tech > ITEM_NONE && tech < ITEM_TOTAL && cg_items[tech].icon) {
@@ -55,7 +55,7 @@ void Cg_Tech_Init(void) {
     return;
   }
 
-  super.DrawHudElements = Cg_DrawHudElements;
+  previous.DrawHudElements = Cg_DrawHudElements;
   Cg_DrawHudElements = Cg_DrawHudElements_Tech;
 
   installed = true;

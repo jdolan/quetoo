@@ -22,16 +22,13 @@
 #include "g_local.h"
 
 /**
- * @brief Lithium is deathmatch with the grappling hook and the techs, both of
- * which are features of the common sources that `G_Init` installs from the
- * defines in this module's Makefile.am. It adds no behaviour of its own yet;
- * anything it invents installs its hooks from here.
+ * @brief Module initialization and hook registration.
  */
 void G_Module_Init(void) {
 }
 
 /**
- * @brief Nothing of its own to release; the features own what they allocate.
+ * @brief Module shutdown.
  */
 void G_Module_Shutdown(void) {
 }

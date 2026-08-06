@@ -33,7 +33,7 @@ static struct {
   ResetItem ResetItem;
   InhibitItem InhibitItem;
   InitItem InitItem;
-} super;
+} previous;
 
 static bool installed;
 
@@ -144,7 +144,7 @@ static void G_ResetDroppedItem_Ctf(g_entity_t *ent) {
     return;
   }
 
-  super.ResetDroppedItem(ent);
+  previous.ResetDroppedItem(ent);
 }
 
 /**
@@ -159,7 +159,7 @@ static const g_item_t *G_ResolveInventoryItem_Ctf(g_client_t *cl, const char *na
     }
   }
 
-  return super.ResolveInventoryItem(cl, name);
+  return previous.ResolveInventoryItem(cl, name);
 }
 
 /**
@@ -174,11 +174,11 @@ static bool G_CheckCvars_Ctf(void) {
     gi.BroadcastPrint(PRINT_HIGH, "Capture limit has been changed to %d\n", g_level.capture_limit);
   }
 
-  return super.CheckCvars();
+  return previous.CheckCvars();
 }
 
 /**
- * @brief Plays for captures rather than frags, and so does not defer to super.
+ * @brief Plays for captures rather than frags, and so does not defer to previous.
  */
 static bool G_CheckWinner_Ctf(void) {
 
@@ -197,7 +197,7 @@ static bool G_CheckWinner_Ctf(void) {
 
 /**
  * @brief Names the gameplay for captures, which replaces rather than qualifies
- * what it was handed, and so does not defer to super.
+ * what it was handed, and so does not defer to previous.
  */
 static void G_FormatGameName_Ctf(char *name, size_t size) {
 
@@ -374,7 +374,7 @@ static g_entity_t *G_DropFlag(g_client_t *cl, const g_item_t *item) {
  */
 static void G_InitMedia_Ctf(void) {
 
-  super.InitMedia();
+  previous.InitMedia();
 
   g_ctf_media.capture = gi.SoundIndex("ctf/capture");
   g_ctf_media.return_ = gi.SoundIndex("ctf/return");
@@ -386,7 +386,7 @@ static void G_InitMedia_Ctf(void) {
  */
 static void G_ResetItem_Ctf(g_entity_t *ent) {
 
-  super.ResetItem(ent);
+  previous.ResetItem(ent);
 
   if (ent->item->def.type == ITEM_TYPE_FLAG) {
     const g_team_id_t flag_team = ent->item->def.tag - FLAG_FIRST;
@@ -410,7 +410,7 @@ static bool G_InhibitItem_Ctf(const g_entity_t *ent) {
     return false;
   }
 
-  return super.InhibitItem(ent);
+  return previous.InhibitItem(ent);
 }
 
 /**
@@ -424,7 +424,7 @@ static void G_InitItem_Ctf(g_item_t *it) {
     return;
   }
 
-  super.InitItem(it);
+  previous.InitItem(it);
 }
 
 /**
@@ -434,7 +434,7 @@ static void G_TossInventory_Ctf(g_client_t *cl) {
 
   G_TossFlag(cl);
 
-  super.TossInventory(cl);
+  previous.TossInventory(cl);
 }
 
 /**
@@ -443,35 +443,35 @@ static void G_TossInventory_Ctf(g_client_t *cl) {
 void G_Ctf_Init(void) {
 
   // G_Init runs on every server initialization, and the module is not always
-  // unloaded in between, so installing twice would point super at ourselves.
+  // unloaded in between, so installing twice would point previous at ourselves.
   if (!installed) {
     installed = true;
 
-    super.ResetDroppedItem = G_ResetDroppedItem;
+    previous.ResetDroppedItem = G_ResetDroppedItem;
     G_ResetDroppedItem = G_ResetDroppedItem_Ctf;
 
-    super.ResolveInventoryItem = G_ResolveInventoryItem;
+    previous.ResolveInventoryItem = G_ResolveInventoryItem;
     G_ResolveInventoryItem = G_ResolveInventoryItem_Ctf;
 
-    super.CheckCvars = G_CheckCvars;
+    previous.CheckCvars = G_CheckCvars;
     G_CheckCvars = G_CheckCvars_Ctf;
 
     G_CheckWinner = G_CheckWinner_Ctf;
 
     G_FormatGameName = G_FormatGameName_Ctf;
-    super.TossInventory = G_TossInventory;
+    previous.TossInventory = G_TossInventory;
     G_TossInventory = G_TossInventory_Ctf;
 
-    super.ResetItem = G_ResetItem;
+    previous.ResetItem = G_ResetItem;
     G_ResetItem = G_ResetItem_Ctf;
 
-    super.InhibitItem = G_InhibitItem;
+    previous.InhibitItem = G_InhibitItem;
     G_InhibitItem = G_InhibitItem_Ctf;
 
-    super.InitItem = G_InitItem;
+    previous.InitItem = G_InitItem;
     G_InitItem = G_InitItem_Ctf;
 
-    super.InitMedia = G_InitMedia;
+    previous.InitMedia = G_InitMedia;
     G_InitMedia = G_InitMedia_Ctf;
   }
 

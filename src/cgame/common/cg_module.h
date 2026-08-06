@@ -34,7 +34,7 @@
  * several optional features may each want a say in is a chainable hook rather
  * than a named function. Common holds the default behaviour as a `_Common` tail
  * in the domain file that calls it; a feature installs itself over the top in its
- * own `_Init`, keeping the previous value to call as super.
+ * own `_Init`, keeping the value it displaced to call as `previous`.
  *
  * A hook MUST be installed from `Cg_Init`, behind a `static bool installed`, and
  * never from anything per-level or per-connection. `Cg_Init` runs more than once
@@ -42,7 +42,7 @@
  * a server reports a different game directory, and on `r_restart` - which
  * re-initializes the *same* module image. `dlclose` does not unload the client
  * game on macOS, so the file statics survive all four, and installing a second
- * time would set `super.X` to this feature's own function and spin the first call
+ * time would set `previous.X` to this feature's own function and spin the first call
  * forever.
  *
  * @remarks A guard MUST name a feature - `G_CTF`, `G_HOOK`, `G_TECH` - and never
@@ -106,9 +106,9 @@ void Cg_Module_Shutdown(void);
  * arranges - `Cg_DrawFrags`, `Cg_DrawPowerups` and the rest - are public in
  * `cg_hud.h` for exactly that reason.
  *
- * Chainable, and a feature adding an element MUST call super first and draw
+ * Chainable, and a feature adding an element MUST call previous first and draw
  * after it, so that what it draws lands below what it did not write. A module
- * that arranges the whole HUD itself does not defer to super at all, and then
+ * that arranges the whole HUD itself does not defer to previous at all, and then
  * owns every element: nothing it declines to call gets drawn.
  *
  * What this does not decide is the framing - the `cg_draw_hud` cvar, the
