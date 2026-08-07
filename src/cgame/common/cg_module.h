@@ -124,5 +124,26 @@ extern DrawHudElements Cg_DrawHudElements;
 
 /**
  * @}
+ * @defgroup hooks-gameplay Gameplay
+ * @brief What modes this module offers in the create-server menu. Tail in cg_main.c.
+ * @{
+ */
+
+/**
+ * @brief Returns the gameplay modes this module's server actually supports, for
+ * the create-server menu's gameplay Select.
+ * @param count The number of modes returned.
+ * @return The modes, `GAME_TEAMS` included where a mode is team play.
+ * @details A single owner, like `G_ClampGameplay` on the game side: a module
+ * that plays exactly one mode replaces this outright rather than adding to the
+ * list common offers. The menu MUST NOT assume a fixed set - a mod that plays
+ * only one mode should not have to hide options it will never honor.
+ */
+typedef const g_gameplay_t *(*ListGameplayModes)(size_t *count);
+
+extern ListGameplayModes Cg_ListGameplayModes;
+
+/**
+ * @}
  */
 #endif

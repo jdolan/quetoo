@@ -102,6 +102,22 @@ static void Cg_DrawHudElements_Ctf(const player_state_t *ps, cg_hud_layout_t *la
 }
 
 /**
+ * @brief Captures is always team deathmatch: instagib and arena do not apply,
+ * and teams are not optional. A single owner, like the game side's
+ * `G_ClampGameplay_Ctf`, so it does not add to what `previous` offers.
+ */
+static const g_gameplay_t cg_gameplay_modes_ctf[] = {
+  GAME_TEAM_DEATHMATCH
+};
+
+static const g_gameplay_t *Cg_ListGameplayModes_Ctf(size_t *count) {
+
+  *count = lengthof(cg_gameplay_modes_ctf);
+
+  return cg_gameplay_modes_ctf;
+}
+
+/**
  * @brief Installs the capture the flag feature's client side, once per module
  * image.
  * @details The guard is load bearing rather than defensive: `Cg_Init` runs again
@@ -117,6 +133,8 @@ void Cg_Ctf_Init(void) {
 
   previous.DrawHudElements = Cg_DrawHudElements;
   Cg_DrawHudElements = Cg_DrawHudElements_Ctf;
+
+  Cg_ListGameplayModes = Cg_ListGameplayModes_Ctf;
 
   installed = true;
 }

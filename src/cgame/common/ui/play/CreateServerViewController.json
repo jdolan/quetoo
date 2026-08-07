@@ -116,6 +116,7 @@
                     "subviews": [
                       {
                         "class": "Input",
+                        "identifier": "gameplayInput",
                         "label": {
                           "text": {
                             "text": "Gameplay"

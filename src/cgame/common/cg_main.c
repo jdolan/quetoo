@@ -376,6 +376,71 @@ float Cg_GetHookPullSpeed(void) {
 #endif
 
 /**
+ * @brief The display label and `g_gameplay` cvar string for one of the six
+ * canonical gameplay modes. Display data, not logic, so it is the same for
+ * every module regardless of which modes `Cg_ListGameplayModes` offers.
+ */
+static const struct {
+  g_gameplay_t gameplay;
+  const char *label;
+  const char *cvar;
+} cg_gameplay_modes[] = {
+  { GAME_DEATHMATCH, "Deathmatch", "deathmatch" },
+  { GAME_TEAM_DEATHMATCH, "Team Deathmatch", "team_deathmatch" },
+  { GAME_INSTAGIB, "Instagib", "instagib" },
+  { GAME_TEAM_INSTAGIB, "Team Instagib", "team_instagib" },
+  { GAME_ARENA, "Arena", "arena" },
+  { GAME_TEAM_ARENA, "Team Arena", "team_arena" },
+};
+
+/**
+ * @brief Returns the menu label for one of the six canonical gameplay modes.
+ */
+const char *Cg_GameplayLabel(g_gameplay_t gameplay) {
+
+  for (size_t i = 0; i < lengthof(cg_gameplay_modes); i++) {
+    if (cg_gameplay_modes[i].gameplay == gameplay) {
+      return cg_gameplay_modes[i].label;
+    }
+  }
+
+  return "Deathmatch";
+}
+
+/**
+ * @brief Returns the `g_gameplay` cvar string for one of the six canonical
+ * gameplay modes.
+ */
+const char *Cg_GameplayCvarString(g_gameplay_t gameplay) {
+
+  for (size_t i = 0; i < lengthof(cg_gameplay_modes); i++) {
+    if (cg_gameplay_modes[i].gameplay == gameplay) {
+      return cg_gameplay_modes[i].cvar;
+    }
+  }
+
+  return "deathmatch";
+}
+
+/**
+ * @brief The tail of the `Cg_ListGameplayModes` hook, offering all six modes.
+ */
+static const g_gameplay_t cg_gameplay_modes_common[] = {
+  GAME_DEATHMATCH, GAME_TEAM_DEATHMATCH,
+  GAME_INSTAGIB, GAME_TEAM_INSTAGIB,
+  GAME_ARENA, GAME_TEAM_ARENA
+};
+
+static const g_gameplay_t *Cg_ListGameplayModes_Common(size_t *count) {
+
+  *count = lengthof(cg_gameplay_modes_common);
+
+  return cg_gameplay_modes_common;
+}
+
+ListGameplayModes Cg_ListGameplayModes = Cg_ListGameplayModes_Common;
+
+/**
  * @brief Clear any state that should not persist over multiple server connections.
  */
 static void Cg_ClearState(void) {

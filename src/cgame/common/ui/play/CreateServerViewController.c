@@ -102,6 +102,7 @@ static void loadView(ViewController *self) {
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("bots", &this->bots),
     MakeOutlet("gameplay", &this->gameplay),
+    MakeOutlet("gameplayInput", &this->gameplayInput),
     MakeOutlet("mapList", &this->mapList),
     MakeOutlet("create", &this->create)
   );
@@ -119,12 +120,17 @@ static void loadView(ViewController *self) {
   this->bots->delegate.didEndEditing = botsDidEndEditing;
 
   $(this->gameplay, addOption, "Default", "default");
-  $(this->gameplay, addOption, "Deathmatch", "deathmatch");
-  $(this->gameplay, addOption, "Team Deathmatch", "team_deathmatch");
-  $(this->gameplay, addOption, "Instagib", "instagib");
-  $(this->gameplay, addOption, "Team Instagib", "team_instagib");
-  $(this->gameplay, addOption, "Arena", "arena");
-  $(this->gameplay, addOption, "Team Arena", "team_arena");
+
+  size_t num_modes;
+  const g_gameplay_t *modes = Cg_ListGameplayModes(&num_modes);
+
+  for (size_t i = 0; i < num_modes; i++) {
+    $(this->gameplay, addOption, Cg_GameplayLabel(modes[i]), (ident) Cg_GameplayCvarString(modes[i]));
+  }
+
+  // a module offering exactly one mode has nothing for the operator to choose;
+  // the server clamps to it regardless, so hiding the control is purely cosmetic
+  this->gameplayInput->stackView.view.hidden = num_modes <= 1;
 
   this->create->delegate.didClick = createServer;
   this->create->delegate.self = this;
