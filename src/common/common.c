@@ -115,7 +115,6 @@ bool Com_SetGame(const char *game) {
   const bool initial = *quetoo.game == '\0';
 
   if (!Fs_SetGame(game)) {
-    Com_Warn("Failed to set game: %s\n", game);
     return false;
   }
 
