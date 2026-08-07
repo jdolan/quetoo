@@ -592,6 +592,31 @@ pm_params_t G_MovementParams(void) {
 }
 
 /**
+ * @brief Parses `g_gameplay`, lets the module clamp it to a mode it actually
+ * supports, and coerces the cvar string itself back to whichever canonical
+ * value results.
+ * @return The resulting gameplay mode, `GAME_TEAMS` included.
+ * @details This is the one place that owns the parse-clamp-coerce logic, so
+ * `G_Init` (to fix the string at startup, before anything has changed it) and
+ * `G_CheckRules` (when the cvar changes at runtime) share it rather than
+ * keeping two copies that could drift.
+ */
+static g_gameplay_t G_CoerceGameplay(void) {
+
+  // parse, then let the module coerce it to a mode it actually supports
+  // (e.g. captures is always GAME_TEAM_DEATHMATCH, regardless of what was asked for)
+  const g_gameplay_t gameplay = G_ClampGameplay(G_GameplayByName(g_gameplay->string));
+
+  // "default" is itself a meaningful, canonical value (it defers to map/worldspawn
+  // metadata in G_worldspawn), so leave it alone rather than coercing it to "deathmatch"
+  if (q_strcmp(g_gameplay->string, "default")) {
+    gi.SetCvarString(g_gameplay->name, G_GameplayCvarString(gameplay)); // reject garbage values
+  }
+
+  return gameplay;
+}
+
+/**
  * @brief Inspects and enforces gameplay rules each server frame, including the win
  * condition, time limits and live cvar-driven gameplay changes.
  */
@@ -619,15 +644,7 @@ static void G_CheckRules(void) {
 
   if (g_gameplay->modified) { // change gameplay and teams, fix items, respawn clients
 
-    // parse, then let the module coerce it to a mode it actually supports
-    // (e.g. captures is always GAME_TEAM_DEATHMATCH, regardless of what was asked for)
-    const g_gameplay_t gameplay = G_ClampGameplay(G_GameplayByName(g_gameplay->string));
-
-    // "default" is itself a meaningful, canonical value (it defers to map/worldspawn
-    // metadata in G_worldspawn), so leave it alone rather than coercing it to "deathmatch"
-    if (q_strcmp(g_gameplay->string, "default")) {
-      gi.SetCvarString(g_gameplay->name, G_GameplayCvarString(gameplay)); // reject garbage values
-    }
+    const g_gameplay_t gameplay = G_CoerceGameplay();
 
     // SetCvarString above re-marks modified whenever the string actually changed
     // (i.e. whenever we just coerced garbage, or the module clamped it to something
@@ -1052,6 +1069,12 @@ void G_Init(void) {
   g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "If enabled, weapons will remain when picked up rather than respawn with delay.");
 
   G_Ai_Init();
+
+  // fix the cvar string itself before anything runs, so e.g. a ctf server
+  // started with "+set g_gameplay arena" advertises "team_deathmatch" from the
+  // first frame rather than whatever garbage/unsupported value it was started
+  // with; the level's own gameplay resolution (G_worldspawn) is unaffected
+  G_CoerceGameplay();
 
   // set these to false to avoid spurious game restarts and alerts on init
       g_cheats->modified =
