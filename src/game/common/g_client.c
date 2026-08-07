@@ -1177,7 +1177,7 @@ void G_ClientBegin(g_client_t *cl) {
     }
 
     q_strlcat(welcome, "\n^2Gameplay is ^1", sizeof(welcome));
-    q_strlcat(welcome, G_GameplayName(g_level.gameplay), sizeof(welcome));
+    q_strlcat(welcome, G_GameplayById(g_level.gameplay)->label, sizeof(welcome));
 
     if (g_level.teams) {
       q_strlcat(welcome, "\n^2Teams are enabled", sizeof(welcome));

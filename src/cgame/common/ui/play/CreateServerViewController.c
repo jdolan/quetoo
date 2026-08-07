@@ -125,7 +125,7 @@ static void loadView(ViewController *self) {
   const g_gameplay_t *modes = Cg_ListGameplayModes(&num_modes);
 
   for (size_t i = 0; i < num_modes; i++) {
-    $(this->gameplay, addOption, Cg_GameplayLabel(modes[i]), (ident) Cg_GameplayCvarString(modes[i]));
+    $(this->gameplay, addOption, modes[i].label, (ident) modes[i].name);
   }
 
   // a module offering exactly one mode has nothing for the operator to choose;

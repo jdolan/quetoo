@@ -267,7 +267,7 @@ static void Cg_UpdateConfigString(int32_t i) {
 
   switch (i) {
     case CS_GAMEPLAY:
-      cg_state.gameplay = (g_gameplay_t) strtol(s, NULL, 10);
+      cg_state.gameplay = (g_gameplay_id_t) strtol(s, NULL, 10);
       return;
     case CS_NUM_TEAMS:
       cg_state.num_teams = Clampf(atoi(s), 0, MAX_TEAMS);
@@ -376,66 +376,16 @@ float Cg_GetHookPullSpeed(void) {
 #endif
 
 /**
- * @brief The display label and `g_gameplay` cvar string for one of the six
- * canonical gameplay modes. Display data, not logic, so it is the same for
- * every module regardless of which modes `Cg_ListGameplayModes` offers.
+ * @brief The tail of the `Cg_ListGameplayModes` hook, offering every mode in
+ * `g_gameplay_modes` - the same table `g_gameplay` is parsed against on the
+ * game side, so the name and label a module offers can never drift from what
+ * the server will actually coerce it to.
  */
-static const struct {
-  g_gameplay_t gameplay;
-  const char *label;
-  const char *cvar;
-} cg_gameplay_modes[] = {
-  { GAME_DEATHMATCH, "Deathmatch", "deathmatch" },
-  { GAME_TEAM_DEATHMATCH, "Team Deathmatch", "team_deathmatch" },
-  { GAME_INSTAGIB, "Instagib", "instagib" },
-  { GAME_TEAM_INSTAGIB, "Team Instagib", "team_instagib" },
-  { GAME_ARENA, "Arena", "arena" },
-  { GAME_TEAM_ARENA, "Team Arena", "team_arena" },
-};
-
-/**
- * @brief Returns the menu label for one of the six canonical gameplay modes.
- */
-const char *Cg_GameplayLabel(g_gameplay_t gameplay) {
-
-  for (size_t i = 0; i < lengthof(cg_gameplay_modes); i++) {
-    if (cg_gameplay_modes[i].gameplay == gameplay) {
-      return cg_gameplay_modes[i].label;
-    }
-  }
-
-  return "Deathmatch";
-}
-
-/**
- * @brief Returns the `g_gameplay` cvar string for one of the six canonical
- * gameplay modes.
- */
-const char *Cg_GameplayCvarString(g_gameplay_t gameplay) {
-
-  for (size_t i = 0; i < lengthof(cg_gameplay_modes); i++) {
-    if (cg_gameplay_modes[i].gameplay == gameplay) {
-      return cg_gameplay_modes[i].cvar;
-    }
-  }
-
-  return "deathmatch";
-}
-
-/**
- * @brief The tail of the `Cg_ListGameplayModes` hook, offering all six modes.
- */
-static const g_gameplay_t cg_gameplay_modes_common[] = {
-  GAME_DEATHMATCH, GAME_TEAM_DEATHMATCH,
-  GAME_INSTAGIB, GAME_TEAM_INSTAGIB,
-  GAME_ARENA, GAME_TEAM_ARENA
-};
-
 static const g_gameplay_t *Cg_ListGameplayModes_Common(size_t *count) {
 
-  *count = lengthof(cg_gameplay_modes_common);
+  *count = lengthof(g_gameplay_modes);
 
-  return cg_gameplay_modes_common;
+  return g_gameplay_modes;
 }
 
 ListGameplayModes Cg_ListGameplayModes = Cg_ListGameplayModes_Common;

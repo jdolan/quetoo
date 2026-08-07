@@ -636,13 +636,13 @@ static void G_worldspawn(g_entity_t *ent) {
 
   const cm_entity_t *gameplay_map = G_MapValue("gameplay");
   if (q_strcmp(g_gameplay->string, "default")) { // prefer g_gameplay
-    g_level.gameplay = G_GameplayByName(g_gameplay->string);
+    g_level.gameplay = G_GameplayByName(g_gameplay->string)->id;
   } else if (gameplay_map && (gameplay_map->parsed & ENTITY_INTEGER) && gameplay_map->integer > -1) { // then map metadata gameplay
     g_level.gameplay = gameplay_map->integer;
   } else { // or fall back on worldspawn
     const cm_entity_t *gameplay = gi.EntityValue(ent->def, "gameplay");
     if (*gameplay->string) {
-      g_level.gameplay = G_GameplayByName(gameplay->string);
+      g_level.gameplay = G_GameplayByName(gameplay->string)->id;
     } else {
       g_level.gameplay = GAME_DEATHMATCH;
     }

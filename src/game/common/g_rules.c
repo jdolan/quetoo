@@ -66,19 +66,20 @@ static bool G_CheckWinner_Common(void) {
 CheckWinner G_CheckWinner = G_CheckWinner_Common;
 
 /**
- * @brief The tail of the `G_ClampGameplay` hook: every mode `g_gameplay_t`
+ * @brief The tail of the `G_ClampGameplay` hook: every mode `g_gameplay_id_t`
  * defines is one this module supports, so there is nothing to coerce.
  */
-static g_gameplay_t G_ClampGameplay_Common(g_gameplay_t gameplay) {
+static g_gameplay_id_t G_ClampGameplay_Common(g_gameplay_id_t gameplay) {
   return gameplay;
 }
 
 ClampGameplay G_ClampGameplay = G_ClampGameplay_Common;
 
 /**
- * @brief The tail of the `G_FormatGameName` chain. `G_GameplayName` already
- * qualifies the name with team play via the `GAME_TEAMS` bit, so this has
- * nothing to add; a feature can still hook this chain to name its own mode.
+ * @brief The tail of the `G_FormatGameName` chain. The label looked up from
+ * `g_gameplay_modes` already qualifies the name with team play via the
+ * `GAME_TEAMS` bit, so this has nothing to add; a feature can still hook this
+ * chain to name its own mode.
  */
 static void G_FormatGameName_Common(char *name, size_t size) {
 }

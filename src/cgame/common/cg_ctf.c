@@ -107,7 +107,7 @@ static void Cg_DrawHudElements_Ctf(const player_state_t *ps, cg_hud_layout_t *la
  * `G_ClampGameplay_Ctf`, so it does not add to what `previous` offers.
  */
 static const g_gameplay_t cg_gameplay_modes_ctf[] = {
-  GAME_TEAM_DEATHMATCH
+  { GAME_TEAM_DEATHMATCH, "team_deathmatch", "Team Deathmatch" }
 };
 
 static const g_gameplay_t *Cg_ListGameplayModes_Ctf(size_t *count) {

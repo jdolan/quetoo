@@ -209,7 +209,7 @@ static void G_FormatGameName_Ctf(char *name, size_t size) {
  * and teams are not optional. Replaces rather than qualifies, and so does not
  * defer to previous.
  */
-static g_gameplay_t G_ClampGameplay_Ctf(g_gameplay_t gameplay) {
+static g_gameplay_id_t G_ClampGameplay_Ctf(g_gameplay_id_t gameplay) {
   return GAME_TEAM_DEATHMATCH;
 }
 

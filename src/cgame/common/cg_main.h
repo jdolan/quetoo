@@ -28,9 +28,6 @@
 float Cg_GetHookPullSpeed(void);
 #endif
 
-const char *Cg_GameplayLabel(g_gameplay_t gameplay);
-const char *Cg_GameplayCvarString(g_gameplay_t gameplay);
-
 extern cvar_t *cg_add_atmospheric;
 extern cvar_t *cg_add_decals;
 extern cvar_t *cg_add_entities;

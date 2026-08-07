@@ -972,7 +972,7 @@ ResetItem G_ResetItem = G_ResetItem_Common;
  * whatever the client spawns with.
  */
 static bool G_InhibitItem_Common(const g_entity_t *ent) {
-  const g_gameplay_t gameplay = g_level.gameplay & ~GAME_TEAMS;
+  const g_gameplay_id_t gameplay = g_level.gameplay & ~GAME_TEAMS;
   return gameplay == GAME_ARENA || gameplay == GAME_INSTAGIB;
 }
 

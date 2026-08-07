@@ -601,19 +601,19 @@ pm_params_t G_MovementParams(void) {
  * `G_CheckRules` (when the cvar changes at runtime) share it rather than
  * keeping two copies that could drift.
  */
-static g_gameplay_t G_CoerceGameplay(void) {
+static g_gameplay_id_t G_CoerceGameplay(void) {
 
   // parse, then let the module coerce it to a mode it actually supports
   // (e.g. captures is always GAME_TEAM_DEATHMATCH, regardless of what was asked for)
-  const g_gameplay_t gameplay = G_ClampGameplay(G_GameplayByName(g_gameplay->string));
+  const g_gameplay_id_t id = G_ClampGameplay(G_GameplayByName(g_gameplay->string)->id);
 
   // "default" is itself a meaningful, canonical value (it defers to map/worldspawn
   // metadata in G_worldspawn), so leave it alone rather than coercing it to "deathmatch"
   if (q_strcmp(g_gameplay->string, "default")) {
-    gi.SetCvarString(g_gameplay->name, G_GameplayCvarString(gameplay)); // reject garbage values
+    gi.SetCvarString(g_gameplay->name, G_GameplayById(id)->name); // reject garbage values
   }
 
-  return gameplay;
+  return id;
 }
 
 /**
@@ -644,7 +644,7 @@ static void G_CheckRules(void) {
 
   if (g_gameplay->modified) { // change gameplay and teams, fix items, respawn clients
 
-    const g_gameplay_t gameplay = G_CoerceGameplay();
+    const g_gameplay_id_t gameplay = G_CoerceGameplay();
 
     // SetCvarString above re-marks modified whenever the string actually changed
     // (i.e. whenever we just coerced garbage, or the module clamped it to something
@@ -661,7 +661,7 @@ static void G_CheckRules(void) {
 
     restart = true;
 
-    gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GameplayName(g_level.gameplay));
+    gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GameplayById(g_level.gameplay)->label);
   }
 
   if (g_friendly_fire->modified) {
@@ -834,7 +834,7 @@ static const char *G_GameName(void) {
   static char name[64];
   const size_t size = sizeof(name);
 
-  q_strlcpy(name, G_GameplayName(g_level.gameplay), size);
+  q_strlcpy(name, G_GameplayById(g_level.gameplay)->label, size);
 
   G_FormatGameName(name, size);
 

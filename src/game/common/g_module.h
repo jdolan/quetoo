@@ -270,7 +270,7 @@ extern CheckWinner G_CheckWinner;
  * @details A single owner, like `CheckWinner`: a module that plays exactly one
  * mode replaces this outright rather than qualifying whatever it was handed.
  */
-typedef g_gameplay_t (*ClampGameplay)(g_gameplay_t gameplay);
+typedef g_gameplay_id_t (*ClampGameplay)(g_gameplay_id_t gameplay);
 
 extern ClampGameplay G_ClampGameplay;
 

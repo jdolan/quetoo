@@ -449,79 +449,50 @@ void G_Gib(g_entity_t *ent) {
 }
 
 /**
- * @brief Returns a short display name for the given gameplay mode, honoring
- * the `GAME_TEAMS` bit with a "Team " prefix.
+ * @brief Returns the `g_gameplay_modes` entry whose `->name` matches the given
+ * cvar string, case-insensitively. Anything that doesn't match - including
+ * empty strings, garbage, and "default" itself - falls back to the table's
+ * first entry (plain deathmatch, no teams). "default" is deliberately not a
+ * row in the table: it is the cvar's own sentinel for "defer to map metadata",
+ * handled by callers that check for it explicitly before ever calling this.
  */
-char *G_GameplayName(int32_t g) {
-  const char *base;
+const g_gameplay_t *G_GameplayByName(const char *c) {
 
-  switch (g & ~GAME_TEAMS) {
-    case GAME_INSTAGIB:
-      base = "Instagib";
-      break;
-    case GAME_ARENA:
-      base = "Arena";
-      break;
-    default:
-      base = "DM";
-      break;
+  if (c && *c) {
+    char lower[64];
+    q_strlcpy(lower, c, sizeof(lower));
+    for (char *p = lower; *p; p++) {
+      *p = (char) tolower((unsigned char) *p);
+    }
+
+    for (size_t i = 0; i < lengthof(g_gameplay_modes); i++) {
+      if (!q_strcmp(lower, g_gameplay_modes[i].name)) {
+        return &g_gameplay_modes[i];
+      }
+    }
   }
 
-  return va("%s%s", (g & GAME_TEAMS) ? "Team " : "", base);
+  return &g_gameplay_modes[0];
 }
 
 /**
- * @brief Returns the gameplay mode, including the `GAME_TEAMS` bit, for the
- * given cvar string. Anything that doesn't parse coerces to `GAME_DEATHMATCH`.
+ * @brief Returns the `g_gameplay_modes` entry for the given mode id. Used
+ * after `G_ClampGameplay`, which operates on the scalar id, to recover the
+ * `->name` and `->label` for the id it decided on.
+ * @details A module's `ClampGameplay` MUST only ever return an id that is
+ * actually one of the six rows in `g_gameplay_modes`, so this should never
+ * miss; it falls back to the first entry rather than asserting, matching
+ * `G_GameplayByName`'s own fallback.
  */
-g_gameplay_t G_GameplayByName(const char *c) {
-  int32_t gameplay = GAME_DEATHMATCH;
+const g_gameplay_t *G_GameplayById(g_gameplay_id_t id) {
 
-  if (!c || *c == '\0') {
-    return (g_gameplay_t) gameplay;
+  for (size_t i = 0; i < lengthof(g_gameplay_modes); i++) {
+    if (g_gameplay_modes[i].id == id) {
+      return &g_gameplay_modes[i];
+    }
   }
 
-  char lower[64];
-  q_strlcpy(lower, c, sizeof(lower));
-  for (char *p = lower; *p; p++) {
-    *p = (char) tolower((unsigned char) *p);
-  }
-
-  const char *mode = lower;
-  if (!q_strncmp(lower, "team_", 5)) {
-    gameplay |= GAME_TEAMS;
-    mode = lower + 5;
-  }
-
-  if (!q_strncmp(mode, "insta", 5)) {
-    gameplay |= GAME_INSTAGIB;
-  } else if (!q_strncmp(mode, "arena", 5)) {
-    gameplay |= GAME_ARENA;
-  }
-
-  return (g_gameplay_t) gameplay;
-}
-
-/**
- * @brief Returns the canonical cvar string for the given gameplay mode, so
- * `g_gameplay` can be coerced back to a value it will itself parse.
- */
-const char *G_GameplayCvarString(g_gameplay_t gameplay) {
-  const char *base;
-
-  switch (gameplay & ~GAME_TEAMS) {
-    case GAME_INSTAGIB:
-      base = "instagib";
-      break;
-    case GAME_ARENA:
-      base = "arena";
-      break;
-    default:
-      base = "deathmatch";
-      break;
-  }
-
-  return va("%s%s", (gameplay & GAME_TEAMS) ? "team_" : "", base);
+  return &g_gameplay_modes[0];
 }
 
 /**
