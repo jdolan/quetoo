@@ -1704,6 +1704,13 @@ typedef struct {
 #define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
 
 /**
+ * @brief Mirrors the game modules' `EF_MODULATE` (`g_types.h`), which is identical
+ * across all three modules. The renderer has no visibility into a per-module
+ * header, so this bit is redeclared here rather than shared by inclusion.
+ */
+#define EF_MODULATE (EF_GAME << 17)
+
+/**
  * @brief Renderer-local entity effect bits.
  */
 #define EF_SELF      (1 << 23)
