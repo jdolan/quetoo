@@ -673,11 +673,14 @@ bool Fs_ValidGame(const char *dir) {
  * @details `Com_SetGame` is the only caller, and it holds the game that is
  * current and has already validated this name, so there is nothing to compare
  * against here: this only does the work.
+ * @return True if the search path now reflects `dir`, false if a mount that was
+ * still open (e.g. an open demo) could not be unmounted, leaving the search path
+ * partially torn down and the new game's paths never mounted.
  */
-void Fs_SetGame(const char *dir) {
+bool Fs_SetGame(const char *dir) {
 
   if (!Fs_ValidGame(dir)) {
-    return;
+    return false;
   }
 
   Com_Debug(DEBUG_FILESYSTEM, "Setting game: %s\n", dir);
@@ -697,7 +700,8 @@ void Fs_SetGame(const char *dir) {
       Com_Debug(DEBUG_FILESYSTEM, "Removing %s\n", *path);
       if (PHYSFS_unmount(*path) == 0) {
         Com_Warn("%s: %s\n", *path, Fs_LastError());
-        return;
+        PHYSFS_freeList(paths);
+        return false;
       }
     }
     path++;
@@ -714,6 +718,7 @@ void Fs_SetGame(const char *dir) {
   }
 
   Fs_AddUserSearchPath(dir);
+  return true;
 }
 
 /**

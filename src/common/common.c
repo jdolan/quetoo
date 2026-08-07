@@ -114,7 +114,9 @@ bool Com_SetGame(const char *game) {
   // game to another has to run the new game's config itself
   const bool initial = *quetoo.game == '\0';
 
-  Fs_SetGame(game);
+  if (!Fs_SetGame(game)) {
+    return false;
+  }
 
   q_strlcpy(quetoo.game, game, sizeof(quetoo.game));
 
