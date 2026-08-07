@@ -455,6 +455,11 @@ void G_Gib(g_entity_t *ent) {
  * first entry (plain deathmatch, no teams). "default" is deliberately not a
  * row in the table: it is the cvar's own sentinel for "defer to map metadata",
  * handled by callers that check for it explicitly before ever calling this.
+ * @details Falls back to a legacy abbreviation match - an optional "team_"
+ * prefix, then the first 5 characters of what remains against "insta" or
+ * "arena" - before giving up, so values like "insta" or "team_insta" that
+ * predate this table (and are shorter than the canonical "instagib") still
+ * resolve, exactly as the original hand-rolled parser accepted them.
  */
 const g_gameplay_t *G_GameplayByName(const char *c) {
 
@@ -470,6 +475,22 @@ const g_gameplay_t *G_GameplayByName(const char *c) {
         return &g_gameplay_modes[i];
       }
     }
+
+    const char *mode = lower;
+    int32_t id = GAME_DEATHMATCH;
+
+    if (!q_strncmp(lower, "team_", 5)) {
+      id |= GAME_TEAMS;
+      mode = lower + 5;
+    }
+
+    if (!q_strncmp(mode, "insta", 5)) {
+      id |= GAME_INSTAGIB;
+    } else if (!q_strncmp(mode, "arena", 5)) {
+      id |= GAME_ARENA;
+    }
+
+    return G_GameplayById((g_gameplay_id_t) id);
   }
 
   return &g_gameplay_modes[0];

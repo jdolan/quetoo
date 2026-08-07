@@ -105,16 +105,22 @@ static void Cg_DrawHudElements_Ctf(const player_state_t *ps, cg_hud_layout_t *la
  * @brief Captures is always team deathmatch: instagib and arena do not apply,
  * and teams are not optional. A single owner, like the game side's
  * `G_ClampGameplay_Ctf`, so it does not add to what `previous` offers.
+ * @details Points directly at the `GAME_TEAM_DEATHMATCH` row of the shared
+ * `g_gameplay_modes` table rather than copying its `name`/`label` into a
+ * duplicate row - there is nothing here to drift out of sync with the game
+ * side, since it is the same static data.
  */
-static const g_gameplay_t cg_gameplay_modes_ctf[] = {
-  { GAME_TEAM_DEATHMATCH, "team_deathmatch", "Team Deathmatch" }
-};
-
 static const g_gameplay_t *Cg_ListGameplayModes_Ctf(size_t *count) {
 
-  *count = lengthof(cg_gameplay_modes_ctf);
+  *count = 1;
 
-  return cg_gameplay_modes_ctf;
+  for (size_t i = 0; i < lengthof(g_gameplay_modes); i++) {
+    if (g_gameplay_modes[i].id == GAME_TEAM_DEATHMATCH) {
+      return &g_gameplay_modes[i];
+    }
+  }
+
+  return g_gameplay_modes; // unreachable: GAME_TEAM_DEATHMATCH is always in the table
 }
 
 /**
