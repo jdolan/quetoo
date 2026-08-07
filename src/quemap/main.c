@@ -227,6 +227,7 @@ static void PrintHelpMessage(void) {
   Com_Print("-t --threads <int> - Specify the number of worker threads (default auto)\n");
   Com_Print("-p --path <game directory> - add the path to the search directory\n");
   Com_Print("-w --wpath <game directory> - add the write path to the search directory\n");
+  Com_Print("-game <name> - compile against the given game/mod, e.g. ctf\n");
   Com_Print("\n");
 
   Com_Print("-bsp               BSP stage options:\n");
@@ -265,6 +266,7 @@ static void PrintHelpMessage(void) {
  */
 int32_t main(int32_t argc, char **argv) {
   int32_t num_threads = 0;
+  const char *game = DEFAULT_GAME;
 
   printf("Quemap %s %s\n", VERSION, BUILD);
 
@@ -313,6 +315,15 @@ int32_t main(int32_t argc, char **argv) {
       num_threads = atoi(Com_Argv(i + 1));
       continue;
     }
+
+    if (!q_strcmp(Com_Argv(i), "-game")) {
+      game = Com_Argv(i + 1);
+      continue;
+    }
+  }
+
+  if (!Com_SetGame(game)) {
+    Com_Error(ERROR_FATAL, "Invalid game: %s\n", game);
   }
 
   // read compiling options
