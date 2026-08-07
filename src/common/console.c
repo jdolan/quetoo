@@ -432,7 +432,11 @@ void Con_AutocompleteMatch(List *matches, const char *name, const char *descript
     }
   }
 
-  $(matches, insertAfter, insert_after, match);
+  if (insert_after) {
+    $(matches, insertAfter, insert_after, match);
+  } else {
+    $(matches, prepend, match);
+  }
 }
 
 /**
