@@ -225,8 +225,8 @@ static void PrintHelpMessage(void) {
   Com_Print("-v --verbose\n");
   Com_Print("-d --debug\n");
   Com_Print("-t --threads <int> - Specify the number of worker threads (default auto)\n");
-  Com_Print("-p --path <game directory> - add the path to the search directory\n");
-  Com_Print("-w --wpath <game directory> - add the write path to the search directory\n");
+Com_Print("-p --path <path> - add the path to the search directory\n");
+Com_Print("-w --wpath <path> - add the write path to the search directory\n");
   Com_Print("-g --game <name> - compile against the given game/mod, e.g. ctf\n");
   Com_Print("\n");
 
