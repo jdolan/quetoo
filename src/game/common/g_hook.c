@@ -132,6 +132,7 @@ static void G_ConfigureLevel_Hook(void) {
  * @brief Applies the hook's own cvars.
  */
 static bool G_CheckCvars_Hook(void) {
+  bool restart = false;
 
   if (g_hook->modified) {
     g_hook->modified = false;
@@ -139,6 +140,8 @@ static bool G_CheckCvars_Hook(void) {
     G_Hook_CheckState();
 
     gi.BroadcastPrint(PRINT_HIGH, "Hook has been %s\n", G_Hook_Enabled() ? "enabled" : "disabled");
+
+    restart = true;
   }
 
   if (g_hook_speed->modified) {
@@ -166,7 +169,7 @@ static bool G_CheckCvars_Hook(void) {
     gi.BroadcastPrint(PRINT_HIGH, "Hook style has been changed to %s\n", g_hook_style->string);
   }
 
-  return previous.CheckCvars();
+  return previous.CheckCvars() || restart;
 }
 
 /**
