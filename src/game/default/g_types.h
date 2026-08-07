@@ -351,11 +351,20 @@ typedef enum {
 
 /**
  * @brief Game modes. These are selected via `g_gameplay` and sent to client via ConfigString.
+ * @details `GAME_TEAMS` is a high bit OR'd onto a base mode to indicate that
+ * teams are enabled, e.g. `GAME_TEAM_DEATHMATCH` is `GAME_DEATHMATCH | GAME_TEAMS`.
+ * Code that needs only the base mode MUST mask it off, e.g. `gameplay & ~GAME_TEAMS`.
  */
 typedef enum {
-  GAME_DEATHMATCH,
-  GAME_INSTAGIB,
-  GAME_ARENA
+  GAME_DEATHMATCH = 0,
+  GAME_INSTAGIB = 1,
+  GAME_ARENA = 2,
+
+  GAME_TEAMS = (1 << 3),
+
+  GAME_TEAM_DEATHMATCH = GAME_DEATHMATCH | GAME_TEAMS,
+  GAME_TEAM_INSTAGIB = GAME_INSTAGIB | GAME_TEAMS,
+  GAME_TEAM_ARENA = GAME_ARENA | GAME_TEAMS
 } g_gameplay_t;
 
 /**

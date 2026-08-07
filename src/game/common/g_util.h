@@ -40,6 +40,7 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator);
 void G_SetMoveDir(g_entity_t *ent);
 char *G_GameplayName(int32_t g);
 g_gameplay_t G_GameplayByName(const char *c);
+const char *G_GameplayCvarString(g_gameplay_t gameplay);
 g_team_t *G_TeamByName(const char *c);
 size_t G_TeamSize(const g_team_t *team);
 g_team_t *G_SmallestTeam(void);

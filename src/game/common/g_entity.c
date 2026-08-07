@@ -647,6 +647,9 @@ static void G_worldspawn(g_entity_t *ent) {
       g_level.gameplay = GAME_DEATHMATCH;
     }
   }
+#if defined(G_CTF)
+  g_level.gameplay |= GAME_TEAMS; // playing for captures is playing for teams
+#endif
 
   gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
@@ -659,10 +662,7 @@ static void G_worldspawn(g_entity_t *ent) {
 
   gi.SetConfigString(CS_ITEM_SET, va("%d", g_level.items));
 
-  g_level.teams = g_teams->integer;
-#if defined(G_CTF)
-  g_level.teams = true; // playing for captures is playing for teams
-#endif
+  g_level.teams = (g_level.gameplay & GAME_TEAMS) != 0;
 
   if (q_strcmp(g_num_teams->string, "default")) {
     g_level.num_teams = Clampf(g_num_teams->integer, 2, MAX_TEAMS);

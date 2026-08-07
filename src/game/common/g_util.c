@@ -449,29 +449,36 @@ void G_Gib(g_entity_t *ent) {
 }
 
 /**
- * @brief Returns a short display name for the given gameplay mode integer.
+ * @brief Returns a short display name for the given gameplay mode, honoring
+ * the `GAME_TEAMS` bit with a "Team " prefix.
  */
 char *G_GameplayName(int32_t g) {
-  switch (g) {
-    case GAME_DEATHMATCH:
-      return "DM";
+  const char *base;
+
+  switch (g & ~GAME_TEAMS) {
     case GAME_INSTAGIB:
-      return "Instagib";
+      base = "Instagib";
+      break;
     case GAME_ARENA:
-      return "Arena";
+      base = "Arena";
+      break;
     default:
-      return "DM";
+      base = "DM";
+      break;
   }
+
+  return va("%s%s", (g & GAME_TEAMS) ? "Team " : "", base);
 }
 
 /**
- * @brief Returns the gameplay mode for the given name string.
+ * @brief Returns the gameplay mode, including the `GAME_TEAMS` bit, for the
+ * given cvar string. Anything that doesn't parse coerces to `GAME_DEATHMATCH`.
  */
 g_gameplay_t G_GameplayByName(const char *c) {
-  g_gameplay_t gameplay = GAME_DEATHMATCH;
+  int32_t gameplay = GAME_DEATHMATCH;
 
   if (!c || *c == '\0') {
-    return gameplay;
+    return (g_gameplay_t) gameplay;
   }
 
   char lower[64];
@@ -480,12 +487,41 @@ g_gameplay_t G_GameplayByName(const char *c) {
     *p = (char) tolower((unsigned char) *p);
   }
 
-  if (!q_strncmp(lower, "insta", 5)) {
-    gameplay = GAME_INSTAGIB;
-  } else if (!q_strncmp(lower, "arena", 5)) {
-    gameplay = GAME_ARENA;
+  const char *mode = lower;
+  if (!q_strncmp(lower, "team_", 5)) {
+    gameplay |= GAME_TEAMS;
+    mode = lower + 5;
   }
-  return gameplay;
+
+  if (!q_strncmp(mode, "insta", 5)) {
+    gameplay |= GAME_INSTAGIB;
+  } else if (!q_strncmp(mode, "arena", 5)) {
+    gameplay |= GAME_ARENA;
+  }
+
+  return (g_gameplay_t) gameplay;
+}
+
+/**
+ * @brief Returns the canonical cvar string for the given gameplay mode, so
+ * `g_gameplay` can be coerced back to a value it will itself parse.
+ */
+const char *G_GameplayCvarString(g_gameplay_t gameplay) {
+  const char *base;
+
+  switch (gameplay & ~GAME_TEAMS) {
+    case GAME_INSTAGIB:
+      base = "instagib";
+      break;
+    case GAME_ARENA:
+      base = "arena";
+      break;
+    default:
+      base = "deathmatch";
+      break;
+  }
+
+  return va("%s%s", (gameplay & GAME_TEAMS) ? "team_" : "", base);
 }
 
 /**

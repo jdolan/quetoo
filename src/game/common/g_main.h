@@ -189,7 +189,6 @@ extern cvar_t *g_self_knockback;
 extern cvar_t *g_show_attacker_stats;
 extern cvar_t *g_spawn_farthest;
 extern cvar_t *g_spectator_chat;
-extern cvar_t *g_teams;
 extern cvar_t *g_time_limit;
 extern cvar_t *g_weapon_respawn_time;
 extern cvar_t *g_weapon_stay;

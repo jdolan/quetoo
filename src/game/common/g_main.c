@@ -172,7 +172,6 @@ cvar_t *g_self_knockback;
 cvar_t *g_show_attacker_stats;
 cvar_t *g_spawn_farthest;
 cvar_t *g_spectator_chat;
-cvar_t *g_teams;
 cvar_t *g_time_limit;
 cvar_t *g_weapon_respawn_time;
 cvar_t *g_weapon_stay;
@@ -618,11 +617,21 @@ static void G_CheckRules(void) {
     return;
   }
 
-  if (g_gameplay->modified) { // change gameplay, fix items, respawn clients
+  if (g_gameplay->modified) { // change gameplay and teams, fix items, respawn clients
     g_gameplay->modified = false;
 
-    g_level.gameplay = G_GameplayByName(g_gameplay->string);
+    const g_gameplay_t gameplay = G_GameplayByName(g_gameplay->string);
+    gi.SetCvarString(g_gameplay->name, G_GameplayCvarString(gameplay)); // reject garbage values
+
+    g_level.gameplay = gameplay;
+#if defined(G_CTF)
+    g_level.gameplay |= GAME_TEAMS; // playing for captures is playing for teams
+#endif
+    g_level.teams = (g_level.gameplay & GAME_TEAMS) != 0;
+
     gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
+
+    G_InitNumTeams();
 
     restart = true;
 
@@ -682,20 +691,6 @@ static void G_CheckRules(void) {
         restart = true;
       }
     }
-  }
-
-  if (g_teams->modified) { // reset teams, scores
-    g_teams->modified = false;
-
-    g_level.teams = g_teams->integer;
-#if defined(G_CTF)
-    g_level.teams = true; // playing for captures is playing for teams
-#else
-    gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n", g_level.teams ? "enabled" : "disabled");
-#endif
-    G_InitNumTeams();
-
-    restart = true;
   }
 
   if (g_cheats->modified) { // notify when cheats changes
@@ -1002,7 +997,9 @@ void G_Init(void) {
     , CVAR_SERVER_INFO, NULL);
   g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
   g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
-  g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, instagib or arena combat.");
+  g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO,
+    "Selects deathmatch, instagib or arena combat. Prefix with team_ for team play, "
+    "e.g. team_deathmatch, team_instagib or team_arena.");
 
   // player movement parameters (hydrated into pm_params_t by G_MovementParams)
   g_air_acceleration = gi.AddCvar("g_air_acceleration", "2.0", 0, "Acceleration applied while airborne. Default 2.0; set 0 for classic-Quake2 movement.");
@@ -1041,7 +1038,6 @@ void G_Init(void) {
   g_show_attacker_stats = gi.AddCvar("g_show_attacker_stats", "0", CVAR_SERVER_INFO, "Allows can see their attackers' health and armor when they die.");
   g_spawn_farthest = gi.AddCvar("g_spawn_farthest", "1", CVAR_SERVER_INFO, NULL);
   g_spectator_chat = gi.AddCvar("g_spectator_chat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators.");
-  g_teams = gi.AddCvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play.");
   g_time_limit = gi.AddCvar("g_time_limit", "20", CVAR_SERVER_INFO, "The time limit per level in minutes.");
   g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
   g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "If enabled, weapons will remain when picked up rather than respawn with delay.");
@@ -1056,7 +1052,6 @@ void G_Init(void) {
       g_num_teams->modified =
       g_self_damage->modified =
       g_self_knockback->modified =
-      g_teams->modified =
       g_time_limit->modified =
       g_weapon_stay->modified = false;
 

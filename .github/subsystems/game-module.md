@@ -509,8 +509,7 @@ g_item_t g_items[] = {
 ## Console Variables
 
 ```
-g_gameplay 0          # Game mode (0=DM, 1=instagib, 2=arena, etc.)
-g_teams 0             # Teams enabled
+g_gameplay deathmatch # deathmatch, instagib or arena; prefix team_ for team play
 g_friendly_fire 1     # Team damage enabled
 g_frag_limit 30       # Score to win
 g_time_limit 20       # Minutes per map
