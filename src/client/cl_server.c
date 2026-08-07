@@ -123,7 +123,12 @@ void Cl_ParseServerInfo(void) {
 
       if (player[0]) {
         server->clients++;
-        if (atoi(InfoString_Get(player, "ai"))) {
+
+        char player_name[MAX_TOKEN_CHARS];
+        q_strcolorstrip(InfoString_Get(player, "name"), player_name);
+
+        // legacy (pre-v1.0.30) servers don't send \ai\1; fall back to the [BOT] name prefix
+        if (atoi(InfoString_Get(player, "ai")) || !q_strncmp(player_name, "[BOT]", 5)) {
           server->bots++;
         }
       }
