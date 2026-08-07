@@ -317,7 +317,11 @@ int32_t main(int32_t argc, char **argv) {
     }
 
     if (!q_strcmp(Com_Argv(i), "-game")) {
-      game = Com_Argv(i + 1);
+      const char *arg = Com_Argv(i + 1);
+      if (i + 1 >= Com_Argc() || *arg == '-' || *arg == '\0') {
+        Com_Error(ERROR_FATAL, "Missing game name for -game\n");
+      }
+      game = arg;
       continue;
     }
   }
