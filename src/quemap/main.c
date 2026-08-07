@@ -227,7 +227,7 @@ static void PrintHelpMessage(void) {
   Com_Print("-t --threads <int> - Specify the number of worker threads (default auto)\n");
   Com_Print("-p --path <game directory> - add the path to the search directory\n");
   Com_Print("-w --wpath <game directory> - add the write path to the search directory\n");
-  Com_Print("-game <name> - compile against the given game/mod, e.g. ctf\n");
+  Com_Print("-g --game <name> - compile against the given game/mod, e.g. ctf\n");
   Com_Print("\n");
 
   Com_Print("-bsp               BSP stage options:\n");
@@ -316,10 +316,10 @@ int32_t main(int32_t argc, char **argv) {
       continue;
     }
 
-    if (!q_strcmp(Com_Argv(i), "-game")) {
+    if (!q_strcmp(Com_Argv(i), "-g") || !q_strcmp(Com_Argv(i), "--game")) {
       const char *arg = Com_Argv(i + 1);
       if (i + 1 >= Com_Argc() || *arg == '-' || *arg == '\0') {
-        Com_Error(ERROR_FATAL, "Missing game name for -game\n");
+        Com_Error(ERROR_FATAL, "Missing game name for -g\n");
       }
       game = arg;
       continue;
