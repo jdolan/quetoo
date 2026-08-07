@@ -66,14 +66,11 @@ static bool G_CheckWinner_Common(void) {
 CheckWinner G_CheckWinner = G_CheckWinner_Common;
 
 /**
- * @brief The tail of the `G_FormatGameName` chain, qualifying the gameplay with
- * team play when the module is playing it.
+ * @brief The tail of the `G_FormatGameName` chain. `G_GameplayName` already
+ * qualifies the name with team play via the `GAME_TEAMS` bit, so this has
+ * nothing to add; a feature can still hook this chain to name its own mode.
  */
 static void G_FormatGameName_Common(char *name, size_t size) {
-
-  if (g_level.teams) {
-    q_strlcpy(name, va("Team %s", name), size);
-  }
 }
 
 FormatGameName G_FormatGameName = G_FormatGameName_Common;

@@ -618,15 +618,24 @@ static void G_CheckRules(void) {
   }
 
   if (g_gameplay->modified) { // change gameplay and teams, fix items, respawn clients
+
+    g_gameplay_t gameplay = G_GameplayByName(g_gameplay->string);
+#if defined(G_CTF)
+    gameplay |= GAME_TEAMS; // playing for captures is playing for teams
+#endif
+
+    // "default" is itself a meaningful, canonical value (it defers to map/worldspawn
+    // metadata in G_worldspawn), so leave it alone rather than coercing it to "deathmatch"
+    if (q_strcmp(g_gameplay->string, "default")) {
+      gi.SetCvarString(g_gameplay->name, G_GameplayCvarString(gameplay)); // reject garbage values
+    }
+
+    // SetCvarString above re-marks modified whenever the string actually changed
+    // (i.e. whenever we just coerced garbage); clear it last so that settles here
+    // instead of re-running this whole block again next frame
     g_gameplay->modified = false;
 
-    const g_gameplay_t gameplay = G_GameplayByName(g_gameplay->string);
-    gi.SetCvarString(g_gameplay->name, G_GameplayCvarString(gameplay)); // reject garbage values
-
     g_level.gameplay = gameplay;
-#if defined(G_CTF)
-    g_level.gameplay |= GAME_TEAMS; // playing for captures is playing for teams
-#endif
     g_level.teams = (g_level.gameplay & GAME_TEAMS) != 0;
 
     gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
