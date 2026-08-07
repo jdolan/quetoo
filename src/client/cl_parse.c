@@ -286,7 +286,9 @@ static void Cl_ParseServerData(void) {
     Com_Error(ERROR_DROP, "Server sent an invalid game directory\n");
   }
 
-  Com_SetGame(str);
+  if (!Com_SetGame(str)) {
+    Com_Error(ERROR_DROP, "Failed to set game: %s\n", str);
+  }
 
   if (q_strcmp(cls.cgame_game, str)) {
     Cl_InitCgame();
