@@ -78,7 +78,7 @@ ClampGameplay G_ClampGameplay = G_ClampGameplay_Common;
 /**
  * @brief The tail of the `G_FormatGameName` chain. The label looked up from
  * `g_gameplay_modes` already qualifies the name with team play via the
- * `GAME_TEAMS` bit, so this has nothing to add; a feature can still hook this
+ * `GAMEPLAY_TEAMS` bit, so this has nothing to add; a feature can still hook this
  * chain to name its own mode.
  */
 static void G_FormatGameName_Common(char *name, size_t size) {

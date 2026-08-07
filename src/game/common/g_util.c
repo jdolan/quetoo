@@ -477,17 +477,17 @@ const g_gameplay_t *G_GameplayByName(const char *c) {
     }
 
     const char *mode = lower;
-    int32_t id = GAME_DEATHMATCH;
+    int32_t id = GAMEPLAY_DEATHMATCH;
 
     if (!q_strncmp(lower, "team_", 5)) {
-      id |= GAME_TEAMS;
+      id |= GAMEPLAY_TEAMS;
       mode = lower + 5;
     }
 
     if (!q_strncmp(mode, "insta", 5)) {
-      id |= GAME_INSTAGIB;
+      id |= GAMEPLAY_INSTAGIB;
     } else if (!q_strncmp(mode, "arena", 5)) {
-      id |= GAME_ARENA;
+      id |= GAMEPLAY_ARENA;
     }
 
     return G_GameplayById((g_gameplay_id_t) id);

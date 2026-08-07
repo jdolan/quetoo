@@ -342,9 +342,9 @@ void G_Damage(const g_damage_t *dmg) {
 
   // there is no self damage in instagib or arena, but there is knockback
   if (target == attacker) {
-    switch (g_level.gameplay & ~GAME_TEAMS) {
-      case GAME_INSTAGIB:
-      case GAME_ARENA:
+    switch (g_level.gameplay & ~GAMEPLAY_TEAMS) {
+      case GAMEPLAY_INSTAGIB:
+      case GAMEPLAY_ARENA:
         damage = 0;
         break;
       default:

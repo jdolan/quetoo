@@ -265,7 +265,7 @@ extern CheckWinner G_CheckWinner;
 /**
  * @brief Coerces a requested gameplay mode to one this module actually
  * supports, before it is written back to `g_gameplay` or applied to the level.
- * @param gameplay The mode `g_gameplay` parsed to, `GAME_TEAMS` included.
+ * @param gameplay The mode `g_gameplay` parsed to, `GAMEPLAY_TEAMS` included.
  * @return The mode this module will actually play.
  * @details A single owner, like `CheckWinner`: a module that plays exactly one
  * mode replaces this outright rather than qualifying whatever it was handed.

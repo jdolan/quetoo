@@ -595,7 +595,7 @@ pm_params_t G_MovementParams(void) {
  * @brief Parses `g_gameplay`, lets the module clamp it to a mode it actually
  * supports, and coerces the cvar string itself back to whichever canonical
  * value results.
- * @return The resulting gameplay mode, `GAME_TEAMS` included.
+ * @return The resulting gameplay mode, `GAMEPLAY_TEAMS` included.
  * @details This is the one place that owns the parse-clamp-coerce logic, so
  * `G_Init` (to fix the string at startup, before anything has changed it) and
  * `G_CheckRules` (when the cvar changes at runtime) share it rather than
@@ -604,7 +604,7 @@ pm_params_t G_MovementParams(void) {
 static g_gameplay_id_t G_CoerceGameplay(void) {
 
   // parse, then let the module coerce it to a mode it actually supports
-  // (e.g. captures is always GAME_TEAM_DEATHMATCH, regardless of what was asked for)
+  // (e.g. captures is always GAMEPLAY_TEAM_DEATHMATCH, regardless of what was asked for)
   const g_gameplay_id_t id = G_ClampGameplay(G_GameplayByName(g_gameplay->string)->id);
 
   // "default" is itself a meaningful, canonical value (it defers to map/worldspawn
@@ -653,7 +653,7 @@ static void G_CheckRules(void) {
     g_gameplay->modified = false;
 
     g_level.gameplay = gameplay;
-    g_level.teams = (g_level.gameplay & GAME_TEAMS) != 0;
+    g_level.teams = (g_level.gameplay & GAMEPLAY_TEAMS) != 0;
 
     gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 

@@ -210,7 +210,7 @@ static void G_FormatGameName_Ctf(char *name, size_t size) {
  * defer to previous.
  */
 static g_gameplay_id_t G_ClampGameplay_Ctf(g_gameplay_id_t gameplay) {
-  return GAME_TEAM_DEATHMATCH;
+  return GAMEPLAY_TEAM_DEATHMATCH;
 }
 
 /**

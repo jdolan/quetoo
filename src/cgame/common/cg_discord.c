@@ -158,11 +158,11 @@ static const char *Cg_GetGameMode(void) {
 #else
   const char *mode;
 
-  switch (cg_state.gameplay & ~GAME_TEAMS) {
-    case GAME_ARENA:
+  switch (cg_state.gameplay & ~GAMEPLAY_TEAMS) {
+    case GAMEPLAY_ARENA:
       mode = "Arena";
       break;
-    case GAME_INSTAGIB:
+    case GAMEPLAY_INSTAGIB:
       mode = "Instagib";
       break;
     default:

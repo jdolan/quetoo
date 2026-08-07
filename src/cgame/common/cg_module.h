@@ -133,7 +133,7 @@ extern DrawHudElements Cg_DrawHudElements;
  * @brief Returns the gameplay modes this module's server actually supports, for
  * the create-server menu's gameplay Select.
  * @param count The number of modes returned.
- * @return The modes, `GAME_TEAMS` included where a mode is team play.
+ * @return The modes, `GAMEPLAY_TEAMS` included where a mode is team play.
  * @details A single owner, like `G_ClampGameplay` on the game side: a module
  * that plays exactly one mode replaces this outright rather than adding to the
  * list common offers. The menu MUST NOT assume a fixed set - a mod that plays

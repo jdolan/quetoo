@@ -40,7 +40,7 @@ void Cg_DrawVitals(const player_state_t *ps) {
     Cg_DrawVital(x, ch, health, Cg_HealthIcon(health), HUD_HEALTH_MED, HUD_HEALTH_LOW);
   }
 
-  if ((cg_state.gameplay & ~GAME_TEAMS) != GAME_INSTAGIB) {
+  if ((cg_state.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
 
     const int16_t ammo = Cg_ActiveAmmo(ps);
 

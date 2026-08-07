@@ -543,7 +543,7 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
   G_TossInvisibility(cl);
   G_TossInvulnerability(cl);
 
-  if ((g_level.gameplay & ~GAME_TEAMS) == GAME_DEATHMATCH && mod != MOD_TRIGGER_HURT) {
+  if ((g_level.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_DEATHMATCH && mod != MOD_TRIGGER_HURT) {
     G_TossWeapon(cl);
   }
 
@@ -669,13 +669,13 @@ static void G_InitClientInventory(g_client_t *cl) {
   const g_item_t *item;
 
   // instagib gets railgun and slugs, both in normal mode and warmup
-  if ((g_level.gameplay & ~GAME_TEAMS) == GAME_INSTAGIB) {
+  if ((g_level.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) {
     G_Give(cl, "Railgun", 1);
     G_Give(cl, "Grenades", 1);
     item = &g_items[WEAPON_RAILGUN];
   }
   // arena yields all weapons, health, etc..
-  else if ((g_level.gameplay & ~GAME_TEAMS) == GAME_ARENA) {
+  else if ((g_level.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_ARENA) {
     G_Give(cl, "Railgun", 50);
     G_Give(cl, "Lightning Gun", 200);
     G_Give(cl, "Hyperblaster", 200);
