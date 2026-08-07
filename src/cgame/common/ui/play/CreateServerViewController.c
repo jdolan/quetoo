@@ -99,16 +99,28 @@ static void loadView(ViewController *self) {
 
   CreateServerViewController *this = (CreateServerViewController *) self;
 
+  View *gameplayInput, *hookInput, *techsInput;
+
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("bots", &this->bots),
     MakeOutlet("gameplay", &this->gameplay),
-    MakeOutlet("gameplayInput", &this->gameplayInput),
+    MakeOutlet("gameplayInput", &gameplayInput),
+    MakeOutlet("hookInput", &hookInput),
+    MakeOutlet("techsInput", &techsInput),
     MakeOutlet("mapList", &this->mapList),
     MakeOutlet("create", &this->create)
   );
 
   $(self->view, awakeWithResourceName, "ui/play/CreateServerViewController.json");
   $(self->view, resolve, outlets);
+
+#if !defined(G_HOOK)
+  $(hookInput, removeFromSuperview);
+#endif
+  
+#if !defined(G_TECH)
+  $(techsInput, removeFromSuperview);
+#endif
 
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/CreateServerViewController.css");
   assert(self->view->stylesheet);
@@ -123,14 +135,13 @@ static void loadView(ViewController *self) {
 
   size_t num_modes;
   const g_gameplay_t *modes = Cg_ListGameplayModes(&num_modes);
-
-  for (size_t i = 0; i < num_modes; i++) {
-    $(this->gameplay, addOption, modes[i].label, (ident) modes[i].name);
+  if (num_modes <= 1) {
+    $(gameplayInput, removeFromSuperview);
+  } else {
+    for (size_t i = 0; i < num_modes; i++) {
+      $(this->gameplay, addOption, modes[i].label, (ident) modes[i].name);
+    }
   }
-
-  // a module offering exactly one mode has nothing for the operator to choose;
-  // the server clamps to it regardless, so hiding the control is purely cosmetic
-  this->gameplayInput->stackView.view.hidden = num_modes <= 1;
 
   this->create->delegate.didClick = createServer;
   this->create->delegate.self = this;
