@@ -205,6 +205,15 @@ static void G_FormatGameName_Ctf(char *name, size_t size) {
 }
 
 /**
+ * @brief Captures are always team deathmatch: instagib and arena do not apply,
+ * and teams are not optional. Replaces rather than qualifies, and so does not
+ * defer to previous.
+ */
+static g_gameplay_t G_ClampGameplay_Ctf(g_gameplay_t gameplay) {
+  return GAME_TEAM_DEATHMATCH;
+}
+
+/**
  * @brief Steal the enemy's flag. If our own flag is dropped, return it. Else, if we are
  * carrying the enemy's flag and touch our own flag, that is a capture.
  */
@@ -457,6 +466,8 @@ void G_Ctf_Init(void) {
     G_CheckCvars = G_CheckCvars_Ctf;
 
     G_CheckWinner = G_CheckWinner_Ctf;
+
+    G_ClampGameplay = G_ClampGameplay_Ctf;
 
     G_FormatGameName = G_FormatGameName_Ctf;
     previous.TossInventory = G_TossInventory;

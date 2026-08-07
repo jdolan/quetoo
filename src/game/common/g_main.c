@@ -619,10 +619,9 @@ static void G_CheckRules(void) {
 
   if (g_gameplay->modified) { // change gameplay and teams, fix items, respawn clients
 
-    g_gameplay_t gameplay = G_GameplayByName(g_gameplay->string);
-#if defined(G_CTF)
-    gameplay |= GAME_TEAMS; // playing for captures is playing for teams
-#endif
+    // parse, then let the module coerce it to a mode it actually supports
+    // (e.g. captures is always GAME_TEAM_DEATHMATCH, regardless of what was asked for)
+    const g_gameplay_t gameplay = G_ClampGameplay(G_GameplayByName(g_gameplay->string));
 
     // "default" is itself a meaningful, canonical value (it defers to map/worldspawn
     // metadata in G_worldspawn), so leave it alone rather than coercing it to "deathmatch"
@@ -631,8 +630,9 @@ static void G_CheckRules(void) {
     }
 
     // SetCvarString above re-marks modified whenever the string actually changed
-    // (i.e. whenever we just coerced garbage); clear it last so that settles here
-    // instead of re-running this whole block again next frame
+    // (i.e. whenever we just coerced garbage, or the module clamped it to something
+    // else); clear it last so that settles here instead of re-running this whole
+    // block again next frame
     g_gameplay->modified = false;
 
     g_level.gameplay = gameplay;

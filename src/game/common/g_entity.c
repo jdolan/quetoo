@@ -647,9 +647,7 @@ static void G_worldspawn(g_entity_t *ent) {
       g_level.gameplay = GAME_DEATHMATCH;
     }
   }
-#if defined(G_CTF)
-  g_level.gameplay |= GAME_TEAMS; // playing for captures is playing for teams
-#endif
+  g_level.gameplay = G_ClampGameplay(g_level.gameplay); // coerce to a mode this module supports
 
   gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
