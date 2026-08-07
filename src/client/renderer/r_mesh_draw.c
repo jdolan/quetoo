@@ -341,6 +341,12 @@ static void R_BindMeshEntityFace(const r_entity_t *e, const r_mesh_model_t *mesh
     .color = e->color,
   };
 
+  // scale rgb only, CPU-side, for entities the server has opted in to boosting
+  // (players, items); alpha is left untouched
+  if (e->effects & EF_MODULATE) {
+    locals.color.xyz = Vec3_Scale(locals.color.xyz, r_modulate_mesh->value);
+  }
+
   memcpy(&locals.active_dynamic_lights, r_mesh_draw.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
 
   switch (r_mesh_draw.material->cm->surface & SURF_MASK_BLEND) {

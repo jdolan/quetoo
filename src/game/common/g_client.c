@@ -1008,7 +1008,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
 
   ent->velocity = Vec3_Zero();
 
-  ent->s.effects = EF_CLIENT;
+  ent->s.effects = EF_CLIENT | EF_MODULATE;
   ent->s.model1 = 0;
   ent->s.model2 = 0;
   ent->s.model3 = 0;
@@ -1140,7 +1140,7 @@ void G_ClientBegin(g_client_t *cl) {
   cl->entity = G_AllocEntity("client");
   cl->entity->client = cl;
   cl->entity->s.client = cl->ps.client;
-  cl->entity->s.effects = EF_CLIENT;
+  cl->entity->s.effects = EF_CLIENT | EF_MODULATE;
   cl->ps.entity = cl->entity->s.number;
 
   cl->cmd_angles = Vec3_Zero();

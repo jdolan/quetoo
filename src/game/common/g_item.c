@@ -815,7 +815,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
   it->spawn_flags |= SF_ITEM_DROPPED;
   it->move_type = MOVE_TYPE_BOUNCE;
   it->Touch = G_TouchItem;
-  it->s.effects = item->def.effects;
+  it->s.effects = item->def.effects | EF_MODULATE;
 
   if (item->def.light_radius) {
     it->s.effects |= EF_LIGHT | EF_LIGHT_PULSE;
@@ -1127,7 +1127,7 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
     ent->s.model1 = ent->item->model_index;
   }
 
-  ent->s.effects = item->def.effects;
+  ent->s.effects = item->def.effects | EF_MODULATE;
 
   if (item->def.light_radius) {
     ent->s.effects |= EF_LIGHT | EF_LIGHT_PULSE;
