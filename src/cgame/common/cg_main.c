@@ -266,6 +266,9 @@ static void Cg_UpdateConfigString(int32_t i) {
   const char *s = cgi.ConfigString(i);
 
   switch (i) {
+    case CS_GAMEPLAY:
+      cg_state.gameplay = (g_gameplay_t) strtol(s, NULL, 10);
+      return;
     case CS_NUM_TEAMS:
       cg_state.num_teams = Clampf(atoi(s), 0, MAX_TEAMS);
       return;

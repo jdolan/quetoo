@@ -27,7 +27,6 @@
     <ClCompile Include="..\src\game\default\bg_item.c" />
     <ClCompile Include="..\src\game\common\bg_pmove.c" />
     <ClCompile Include="..\src\cgame\default\cg_module.c" />
-    <ClCompile Include="..\src\cgame\default\cg_team_mode.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C8CF2939-7614-4820-9CF5-B433456764D3}</ProjectGuid>

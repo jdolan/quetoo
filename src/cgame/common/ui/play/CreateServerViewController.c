@@ -20,7 +20,6 @@
  */
 
 #include "cg_local.h"
-#include "cg_team_mode.h"
 
 #include "CreateServerViewController.h"
 #include "MapListCollectionItemView.h"
@@ -38,18 +37,6 @@ static void botsDidEndEditing(TextView *textView) {
 
   const String *string = (String *) textView->attributedText;
   cgi.SetCvarInteger("sv_min_clients", atoi(string->chars) + 1);
-}
-
-/**
- * @brief Select teams mode.
- */
-static void selectTeams(Select *select, Option *option) {
-
-  const cg_team_mode_t *mode = option->value;
-
-  for (const cg_team_mode_cvar_t *cvar = mode->cvars; cvar->var; cvar++) {
-    cgi.SetCvarString(cvar->var, cvar->value);
-  }
 }
 
 /**
@@ -115,7 +102,6 @@ static void loadView(ViewController *self) {
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("bots", &this->bots),
     MakeOutlet("gameplay", &this->gameplay),
-    MakeOutlet("teams", &this->teams),
     MakeOutlet("mapList", &this->mapList),
     MakeOutlet("create", &this->create)
   );
@@ -134,18 +120,11 @@ static void loadView(ViewController *self) {
 
   $(this->gameplay, addOption, "Default", "default");
   $(this->gameplay, addOption, "Deathmatch", "deathmatch");
+  $(this->gameplay, addOption, "Team Deathmatch", "team_deathmatch");
   $(this->gameplay, addOption, "Instagib", "instagib");
+  $(this->gameplay, addOption, "Team Instagib", "team_instagib");
   $(this->gameplay, addOption, "Arena", "arena");
-
-  size_t num_team_modes;
-  const cg_team_mode_t *team_modes = Cg_TeamModes(&num_team_modes);
-  if (num_team_modes) {
-    for (size_t i = 0; i < num_team_modes; i++) {
-      $(this->teams, addOption, team_modes[i].name, (ident) &team_modes[i]);
-    }
-    $(this->teams, selectOptionWithValue, (ident) &team_modes[0]);
-  }
-  this->teams->delegate.didSelectOption = selectTeams;
+  $(this->gameplay, addOption, "Team Arena", "team_arena");
 
   this->create->delegate.didClick = createServer;
   this->create->delegate.self = this;

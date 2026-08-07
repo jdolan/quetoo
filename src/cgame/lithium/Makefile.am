@@ -64,7 +64,6 @@ cgame_la_SOURCES = \
 	cg_score.c \
 	cg_sound.c \
 	cg_sprite.c \
-	cg_team_mode.c \
 	cg_tech.c \
 	cg_temp_entity.c \
 	cg_ui.c \

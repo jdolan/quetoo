@@ -74,11 +74,6 @@ struct CreateServerViewController {
    * @brief The MapListCollectionView.
    */
   MapListCollectionView *mapList;
-
-  /**
-   * @brief The teamsplay Select.
-   */
-  Select *teams;
 };
 
 /**

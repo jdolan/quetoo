@@ -132,18 +132,6 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Teams"
-                          }
-                        },
-                        "control": {
-                          "class": "Select",
-                          "identifier": "teams"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
                             "text": "Time limit"
                           }
                         },

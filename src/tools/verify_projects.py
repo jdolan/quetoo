@@ -25,7 +25,6 @@ PER_MODULE_FILES = (
   "bg_item.c",
   "bg_item.h",
   "cg_module.c",
-  "cg_team_mode.c",
   "g_module.c",
   "g_types.h",
 )

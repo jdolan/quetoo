@@ -325,8 +325,9 @@ and make the block additive instead.
 `cg_hud.c` and `cg_score.c` were the same fork on the client, and moved the same
 way, on `G_CTF` and `G_TECH` guards. `cg_hud.c`'s have since become the
 `DrawHudElements` chain and the two cgame feature files - see
-[The client game](#the-client-game). `cg_team_mode.c` stays per-module: the list of
-team modes a mod offers is a manifest, like the item roster.
+[The client game](#the-client-game). The team modes a mod offers used to be a
+per-module manifest in `cg_team_mode.c`; that file is gone now that team play is
+a bit on `g_gameplay_t` (`GAME_TEAMS`) rather than a mode a menu had to enumerate.
 
 The cgame gets the **same** feature defines as its game module, in all three build
 systems, and it includes that module's own `g_types.h`. That is what keeps the two
@@ -537,7 +538,7 @@ first, because both modules are loaded from the game that is current.
 The client game now has the same three mechanisms, and its fork was already gone
 before any of this. Each cgame module holds two files:
 
-    src/cgame/{default,ctf,lithium}/  cg_module.c  cg_team_mode.c  Makefile.am
+    src/cgame/{default,ctf,lithium}/  cg_module.c  Makefile.am
 
 `cg_module.h` is the client half of `g_module.h`: the authoritative list of the
 client's variation points and the two contracts, `Cg_Module_Init` and
@@ -645,8 +646,8 @@ are driven by a JSON resource rather than by code. `cg_main.{c,h}`'s are wiring 
 the `hook_style` cvar, the config string, the accessor - and the two in
 `cg_local.h` are the feature includes, which are guards like any other.
 
-`cg_team_mode.c` stays per-module. A list of the team modes a mod offers is a
-manifest, like the item roster.
+`cg_team_mode.c` no longer exists: team play is now the `GAME_TEAMS` bit on
+`g_gameplay_t`, so there is no per-module manifest of team modes to guard.
 
 ### Where the guards went
 
@@ -771,7 +772,7 @@ The client game is the same shape with its own names: `cgame_common.props`,
 `QuetooCgameCtf` and `QuetooCgameTech`, `cgame{,-ctf,-lithium}.vcxproj.filters`,
 and the `src/cgame/common` group in Xcode. A per-module file such as `cg_module.c`
 is listed in each module's own `.vcxproj` rather than in the props sheet, as
-`cg_team_mode.c` is.
+`bg_item.c` is on the game side.
 
 Cross-check afterwards that each module's source list matches its `Makefile.am`
 in both directions. Verifying a list is complete is not the same as verifying its
