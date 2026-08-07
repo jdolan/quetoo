@@ -151,6 +151,10 @@ void Cl_InitCgame(void) {
 
   if (cls.cgame) {
     Cl_ShutdownCgame();
+  } else if (cgame_handle) {
+    removeClassImage(cgame_handle);
+    Sys_CloseLibrary(cgame_handle);
+    cgame_handle = NULL;
   }
 
   Com_Print("Client game initialization...\n");
