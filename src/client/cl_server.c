@@ -124,10 +124,27 @@ void Cl_ParseServerInfo(void) {
       if (player[0]) {
         server->clients++;
 
-        char player_name[MAX_TOKEN_CHARS];
-        q_strcolorstrip(InfoString_Get(player, "name"), player_name);
+        char player_name[MAX_TOKEN_CHARS] = "";
 
-        // legacy (pre-v1.0.30) servers don't send \ai\1; fall back to the [BOT] name prefix
+        if (q_strchr(player, '\\')) { // current status protocol: an info string
+          q_strcolorstrip(InfoString_Get(player, "name"), player_name);
+        } else { // legacy status protocol: `<score> <ping> "<name>"`, no \ai\1 key exists,
+                  // and InfoString_Get can't extract "name" from this format either, since
+                  // it requires backslash-delimited pairs; parse the quoted name directly
+          const char *quote = q_strchr(player, '"');
+          if (quote) {
+            const char *end_quote = q_strrchr(quote + 1, '"');
+            const size_t name_len = end_quote ? (size_t) (end_quote - (quote + 1)) : q_strlen(quote + 1);
+
+            char raw_name[MAX_TOKEN_CHARS];
+            q_strlcpy(raw_name, quote + 1, Minz(name_len + 1, sizeof(raw_name)));
+            q_strcolorstrip(raw_name, player_name);
+          }
+        }
+
+        // bots are marked with \ai\1 on current servers; servers running an older status
+        // protocol (either pre-v1.0.30, or simply predating the \ai\1 rewrite) instead
+        // prefix the bot's name with [BOT], which we detect regardless of wire format
         if (atoi(InfoString_Get(player, "ai")) || !q_strncmp(player_name, "[BOT]", 5)) {
           server->bots++;
         }
