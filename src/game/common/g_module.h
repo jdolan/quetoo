@@ -263,6 +263,18 @@ typedef bool (*CheckWinner)(void);
 extern CheckWinner G_CheckWinner;
 
 /**
+ * @brief Coerces a requested gameplay mode to one this module actually
+ * supports, before it is written back to `g_gameplay` or applied to the level.
+ * @param gameplay The mode `g_gameplay` parsed to, `GAME_TEAMS` included.
+ * @return The mode this module will actually play.
+ * @details A single owner, like `CheckWinner`: a module that plays exactly one
+ * mode replaces this outright rather than qualifying whatever it was handed.
+ */
+typedef g_gameplay_id_t (*ClampGameplay)(g_gameplay_id_t gameplay);
+
+extern ClampGameplay G_ClampGameplay;
+
+/**
  * @brief Names the gameplay the server is running, for its info strings.
  * @param name The buffer to format into, holding the gameplay name.
  * @param size The size of that buffer.

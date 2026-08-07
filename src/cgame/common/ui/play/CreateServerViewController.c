@@ -20,7 +20,6 @@
  */
 
 #include "cg_local.h"
-#include "cg_team_mode.h"
 
 #include "CreateServerViewController.h"
 #include "MapListCollectionItemView.h"
@@ -38,18 +37,6 @@ static void botsDidEndEditing(TextView *textView) {
 
   const String *string = (String *) textView->attributedText;
   cgi.SetCvarInteger("sv_min_clients", atoi(string->chars) + 1);
-}
-
-/**
- * @brief Select teams mode.
- */
-static void selectTeams(Select *select, Option *option) {
-
-  const cg_team_mode_t *mode = option->value;
-
-  for (const cg_team_mode_cvar_t *cvar = mode->cvars; cvar->var; cvar++) {
-    cgi.SetCvarString(cvar->var, cvar->value);
-  }
 }
 
 /**
@@ -115,7 +102,7 @@ static void loadView(ViewController *self) {
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("bots", &this->bots),
     MakeOutlet("gameplay", &this->gameplay),
-    MakeOutlet("teams", &this->teams),
+    MakeOutlet("gameplayInput", &this->gameplayInput),
     MakeOutlet("mapList", &this->mapList),
     MakeOutlet("create", &this->create)
   );
@@ -133,19 +120,17 @@ static void loadView(ViewController *self) {
   this->bots->delegate.didEndEditing = botsDidEndEditing;
 
   $(this->gameplay, addOption, "Default", "default");
-  $(this->gameplay, addOption, "Deathmatch", "deathmatch");
-  $(this->gameplay, addOption, "Instagib", "instagib");
-  $(this->gameplay, addOption, "Arena", "arena");
 
-  size_t num_team_modes;
-  const cg_team_mode_t *team_modes = Cg_TeamModes(&num_team_modes);
-  if (num_team_modes) {
-    for (size_t i = 0; i < num_team_modes; i++) {
-      $(this->teams, addOption, team_modes[i].name, (ident) &team_modes[i]);
-    }
-    $(this->teams, selectOptionWithValue, (ident) &team_modes[0]);
+  size_t num_modes;
+  const g_gameplay_t *modes = Cg_ListGameplayModes(&num_modes);
+
+  for (size_t i = 0; i < num_modes; i++) {
+    $(this->gameplay, addOption, modes[i].label, (ident) modes[i].name);
   }
-  this->teams->delegate.didSelectOption = selectTeams;
+
+  // a module offering exactly one mode has nothing for the operator to choose;
+  // the server clamps to it regardless, so hiding the control is purely cosmetic
+  this->gameplayInput->stackView.view.hidden = num_modes <= 1;
 
   this->create->delegate.didClick = createServer;
   this->create->delegate.self = this;

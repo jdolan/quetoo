@@ -636,17 +636,18 @@ static void G_worldspawn(g_entity_t *ent) {
 
   const cm_entity_t *gameplay_map = G_MapValue("gameplay");
   if (q_strcmp(g_gameplay->string, "default")) { // prefer g_gameplay
-    g_level.gameplay = G_GameplayByName(g_gameplay->string);
+    g_level.gameplay = G_GameplayByName(g_gameplay->string)->id;
   } else if (gameplay_map && (gameplay_map->parsed & ENTITY_INTEGER) && gameplay_map->integer > -1) { // then map metadata gameplay
     g_level.gameplay = gameplay_map->integer;
   } else { // or fall back on worldspawn
     const cm_entity_t *gameplay = gi.EntityValue(ent->def, "gameplay");
     if (*gameplay->string) {
-      g_level.gameplay = G_GameplayByName(gameplay->string);
+      g_level.gameplay = G_GameplayByName(gameplay->string)->id;
     } else {
       g_level.gameplay = GAME_DEATHMATCH;
     }
   }
+  g_level.gameplay = G_ClampGameplay(g_level.gameplay); // coerce to a mode this module supports
 
   gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
@@ -659,10 +660,7 @@ static void G_worldspawn(g_entity_t *ent) {
 
   gi.SetConfigString(CS_ITEM_SET, va("%d", g_level.items));
 
-  g_level.teams = g_teams->integer;
-#if defined(G_CTF)
-  g_level.teams = true; // playing for captures is playing for teams
-#endif
+  g_level.teams = (g_level.gameplay & GAME_TEAMS) != 0;
 
   if (q_strcmp(g_num_teams->string, "default")) {
     g_level.num_teams = Clampf(g_num_teams->integer, 2, MAX_TEAMS);

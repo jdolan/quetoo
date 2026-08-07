@@ -71,14 +71,15 @@ struct CreateServerViewController {
   Select *gameplay;
 
   /**
+   * @brief The Input row wrapping the gameplay Select, hidden when the module's
+   * server only supports one mode.
+   */
+  Input *gameplayInput;
+
+  /**
    * @brief The MapListCollectionView.
    */
   MapListCollectionView *mapList;
-
-  /**
-   * @brief The teamsplay Select.
-   */
-  Select *teams;
 };
 
 /**

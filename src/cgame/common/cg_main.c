@@ -266,6 +266,9 @@ static void Cg_UpdateConfigString(int32_t i) {
   const char *s = cgi.ConfigString(i);
 
   switch (i) {
+    case CS_GAMEPLAY:
+      cg_state.gameplay = (g_gameplay_id_t) strtol(s, NULL, 10);
+      return;
     case CS_NUM_TEAMS:
       cg_state.num_teams = Clampf(atoi(s), 0, MAX_TEAMS);
       return;
@@ -371,6 +374,21 @@ float Cg_GetHookPullSpeed(void) {
   return cg_state.hook_pull_speed;
 }
 #endif
+
+/**
+ * @brief The tail of the `Cg_ListGameplayModes` hook, offering every mode in
+ * `g_gameplay_modes` - the same table `g_gameplay` is parsed against on the
+ * game side, so the name and label a module offers can never drift from what
+ * the server will actually coerce it to.
+ */
+static const g_gameplay_t *Cg_ListGameplayModes_Common(size_t *count) {
+
+  *count = lengthof(g_gameplay_modes);
+
+  return g_gameplay_modes;
+}
+
+ListGameplayModes Cg_ListGameplayModes = Cg_ListGameplayModes_Common;
 
 /**
  * @brief Clear any state that should not persist over multiple server connections.

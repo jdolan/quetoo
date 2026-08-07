@@ -156,18 +156,25 @@ static const char *Cg_GetGameMode(void) {
 #if defined(G_CTF)
   return va("%i-Team CTF", cg_state.num_teams);
 #else
-  if (cg_state.num_teams) {
-    return va("%i-Team Deathmatch", cg_state.num_teams);
-  } else switch (cg_state.gameplay) {
-    case GAME_DEATHMATCH:
-      return "Deathmatch";
+  const char *mode;
+
+  switch (cg_state.gameplay & ~GAME_TEAMS) {
     case GAME_ARENA:
-      return "Arena";
+      mode = "Arena";
+      break;
     case GAME_INSTAGIB:
-      return "Instagib";
+      mode = "Instagib";
+      break;
+    default:
+      mode = "Deathmatch";
+      break;
   }
 
-  return va("Deathmatch");
+  if (cg_state.num_teams) {
+    return va("%i-Team %s", cg_state.num_teams, mode);
+  }
+
+  return mode;
 #endif
 }
 

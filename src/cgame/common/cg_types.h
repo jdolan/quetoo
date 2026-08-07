@@ -153,7 +153,7 @@ typedef struct {
   /**
    * @brief The gameplay mode.
    */
-  g_gameplay_t gameplay;
+  g_gameplay_id_t gameplay;
 
   /**
    * @brief Active item set.

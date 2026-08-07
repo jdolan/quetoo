@@ -449,43 +449,71 @@ void G_Gib(g_entity_t *ent) {
 }
 
 /**
- * @brief Returns a short display name for the given gameplay mode integer.
+ * @brief Returns the `g_gameplay_modes` entry whose `->name` matches the given
+ * cvar string, case-insensitively. Anything that doesn't match - including
+ * empty strings, garbage, and "default" itself - falls back to the table's
+ * first entry (plain deathmatch, no teams). "default" is deliberately not a
+ * row in the table: it is the cvar's own sentinel for "defer to map metadata",
+ * handled by callers that check for it explicitly before ever calling this.
+ * @details Falls back to a legacy abbreviation match - an optional "team_"
+ * prefix, then the first 5 characters of what remains against "insta" or
+ * "arena" - before giving up, so values like "insta" or "team_insta" that
+ * predate this table (and are shorter than the canonical "instagib") still
+ * resolve, exactly as the original hand-rolled parser accepted them.
  */
-char *G_GameplayName(int32_t g) {
-  switch (g) {
-    case GAME_DEATHMATCH:
-      return "DM";
-    case GAME_INSTAGIB:
-      return "Instagib";
-    case GAME_ARENA:
-      return "Arena";
-    default:
-      return "DM";
+const g_gameplay_t *G_GameplayByName(const char *c) {
+
+  if (c && *c) {
+    char lower[64];
+    q_strlcpy(lower, c, sizeof(lower));
+    for (char *p = lower; *p; p++) {
+      *p = (char) tolower((unsigned char) *p);
+    }
+
+    for (size_t i = 0; i < lengthof(g_gameplay_modes); i++) {
+      if (!q_strcmp(lower, g_gameplay_modes[i].name)) {
+        return &g_gameplay_modes[i];
+      }
+    }
+
+    const char *mode = lower;
+    int32_t id = GAME_DEATHMATCH;
+
+    if (!q_strncmp(lower, "team_", 5)) {
+      id |= GAME_TEAMS;
+      mode = lower + 5;
+    }
+
+    if (!q_strncmp(mode, "insta", 5)) {
+      id |= GAME_INSTAGIB;
+    } else if (!q_strncmp(mode, "arena", 5)) {
+      id |= GAME_ARENA;
+    }
+
+    return G_GameplayById((g_gameplay_id_t) id);
   }
+
+  return &g_gameplay_modes[0];
 }
 
 /**
- * @brief Returns the gameplay mode for the given name string.
+ * @brief Returns the `g_gameplay_modes` entry for the given mode id. Used
+ * after `G_ClampGameplay`, which operates on the scalar id, to recover the
+ * `->name` and `->label` for the id it decided on.
+ * @details A module's `ClampGameplay` MUST only ever return an id that is
+ * actually one of the six rows in `g_gameplay_modes`, so this should never
+ * miss; it falls back to the first entry rather than asserting, matching
+ * `G_GameplayByName`'s own fallback.
  */
-g_gameplay_t G_GameplayByName(const char *c) {
-  g_gameplay_t gameplay = GAME_DEATHMATCH;
+const g_gameplay_t *G_GameplayById(g_gameplay_id_t id) {
 
-  if (!c || *c == '\0') {
-    return gameplay;
+  for (size_t i = 0; i < lengthof(g_gameplay_modes); i++) {
+    if (g_gameplay_modes[i].id == id) {
+      return &g_gameplay_modes[i];
+    }
   }
 
-  char lower[64];
-  q_strlcpy(lower, c, sizeof(lower));
-  for (char *p = lower; *p; p++) {
-    *p = (char) tolower((unsigned char) *p);
-  }
-
-  if (!q_strncmp(lower, "insta", 5)) {
-    gameplay = GAME_INSTAGIB;
-  } else if (!q_strncmp(lower, "arena", 5)) {
-    gameplay = GAME_ARENA;
-  }
-  return gameplay;
+  return &g_gameplay_modes[0];
 }
 
 /**

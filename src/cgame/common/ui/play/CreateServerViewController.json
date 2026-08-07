@@ -116,6 +116,7 @@
                     "subviews": [
                       {
                         "class": "Input",
+                        "identifier": "gameplayInput",
                         "label": {
                           "text": {
                             "text": "Gameplay"
@@ -126,18 +127,6 @@
                           "expectsStringValue": true,
                           "identifier": "gameplay",
                           "var": "g_gameplay"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Teams"
-                          }
-                        },
-                        "control": {
-                          "class": "Select",
-                          "identifier": "teams"
                         }
                       },
                       {

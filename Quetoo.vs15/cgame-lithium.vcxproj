@@ -27,7 +27,6 @@
     <ClCompile Include="..\src\game\lithium\bg_item.c" />
     <ClCompile Include="..\src\game\common\bg_pmove.c" />
     <ClCompile Include="..\src\cgame\lithium\cg_module.c" />
-    <ClCompile Include="..\src\cgame\lithium\cg_team_mode.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2b8d4ea1-5c63-4f9f-a042-7d3e6b9f8c12}</ProjectGuid>

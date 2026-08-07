@@ -172,7 +172,6 @@ cvar_t *g_self_knockback;
 cvar_t *g_show_attacker_stats;
 cvar_t *g_spawn_farthest;
 cvar_t *g_spectator_chat;
-cvar_t *g_teams;
 cvar_t *g_time_limit;
 cvar_t *g_weapon_respawn_time;
 cvar_t *g_weapon_stay;
@@ -593,6 +592,31 @@ pm_params_t G_MovementParams(void) {
 }
 
 /**
+ * @brief Parses `g_gameplay`, lets the module clamp it to a mode it actually
+ * supports, and coerces the cvar string itself back to whichever canonical
+ * value results.
+ * @return The resulting gameplay mode, `GAME_TEAMS` included.
+ * @details This is the one place that owns the parse-clamp-coerce logic, so
+ * `G_Init` (to fix the string at startup, before anything has changed it) and
+ * `G_CheckRules` (when the cvar changes at runtime) share it rather than
+ * keeping two copies that could drift.
+ */
+static g_gameplay_id_t G_CoerceGameplay(void) {
+
+  // parse, then let the module coerce it to a mode it actually supports
+  // (e.g. captures is always GAME_TEAM_DEATHMATCH, regardless of what was asked for)
+  const g_gameplay_id_t id = G_ClampGameplay(G_GameplayByName(g_gameplay->string)->id);
+
+  // "default" is itself a meaningful, canonical value (it defers to map/worldspawn
+  // metadata in G_worldspawn), so leave it alone rather than coercing it to "deathmatch"
+  if (q_strcmp(g_gameplay->string, "default")) {
+    gi.SetCvarString(g_gameplay->name, G_GameplayById(id)->name); // reject garbage values
+  }
+
+  return id;
+}
+
+/**
  * @brief Inspects and enforces gameplay rules each server frame, including the win
  * condition, time limits and live cvar-driven gameplay changes.
  */
@@ -618,15 +642,26 @@ static void G_CheckRules(void) {
     return;
   }
 
-  if (g_gameplay->modified) { // change gameplay, fix items, respawn clients
+  if (g_gameplay->modified) { // change gameplay and teams, fix items, respawn clients
+
+    const g_gameplay_id_t gameplay = G_CoerceGameplay();
+
+    // SetCvarString above re-marks modified whenever the string actually changed
+    // (i.e. whenever we just coerced garbage, or the module clamped it to something
+    // else); clear it last so that settles here instead of re-running this whole
+    // block again next frame
     g_gameplay->modified = false;
 
-    g_level.gameplay = G_GameplayByName(g_gameplay->string);
+    g_level.gameplay = gameplay;
+    g_level.teams = (g_level.gameplay & GAME_TEAMS) != 0;
+
     gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
+
+    G_InitNumTeams();
 
     restart = true;
 
-    gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GameplayName(g_level.gameplay));
+    gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GameplayById(g_level.gameplay)->label);
   }
 
   if (g_friendly_fire->modified) {
@@ -682,20 +717,6 @@ static void G_CheckRules(void) {
         restart = true;
       }
     }
-  }
-
-  if (g_teams->modified) { // reset teams, scores
-    g_teams->modified = false;
-
-    g_level.teams = g_teams->integer;
-#if defined(G_CTF)
-    g_level.teams = true; // playing for captures is playing for teams
-#else
-    gi.BroadcastPrint(PRINT_HIGH, "Teams have been %s\n", g_level.teams ? "enabled" : "disabled");
-#endif
-    G_InitNumTeams();
-
-    restart = true;
   }
 
   if (g_cheats->modified) { // notify when cheats changes
@@ -813,7 +834,7 @@ static const char *G_GameName(void) {
   static char name[64];
   const size_t size = sizeof(name);
 
-  q_strlcpy(name, G_GameplayName(g_level.gameplay), size);
+  q_strlcpy(name, G_GameplayById(g_level.gameplay)->label, size);
 
   G_FormatGameName(name, size);
 
@@ -1002,7 +1023,9 @@ void G_Init(void) {
     , CVAR_SERVER_INFO, NULL);
   g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
   g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
-  g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, instagib or arena combat.");
+  g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO,
+    "Selects deathmatch, instagib or arena combat. Prefix with team_ for team play, "
+    "e.g. team_deathmatch, team_instagib or team_arena.");
 
   // player movement parameters (hydrated into pm_params_t by G_MovementParams)
   g_air_acceleration = gi.AddCvar("g_air_acceleration", "2.0", 0, "Acceleration applied while airborne. Default 2.0; set 0 for classic-Quake2 movement.");
@@ -1041,12 +1064,17 @@ void G_Init(void) {
   g_show_attacker_stats = gi.AddCvar("g_show_attacker_stats", "0", CVAR_SERVER_INFO, "Allows can see their attackers' health and armor when they die.");
   g_spawn_farthest = gi.AddCvar("g_spawn_farthest", "1", CVAR_SERVER_INFO, NULL);
   g_spectator_chat = gi.AddCvar("g_spectator_chat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators.");
-  g_teams = gi.AddCvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play.");
   g_time_limit = gi.AddCvar("g_time_limit", "20", CVAR_SERVER_INFO, "The time limit per level in minutes.");
   g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
   g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "If enabled, weapons will remain when picked up rather than respawn with delay.");
 
   G_Ai_Init();
+
+  // fix the cvar string itself before anything runs, so e.g. a ctf server
+  // started with "+set g_gameplay arena" advertises "team_deathmatch" from the
+  // first frame rather than whatever garbage/unsupported value it was started
+  // with; the level's own gameplay resolution (G_worldspawn) is unaffected
+  G_CoerceGameplay();
 
   // set these to false to avoid spurious game restarts and alerts on init
       g_cheats->modified =
@@ -1056,7 +1084,6 @@ void G_Init(void) {
       g_num_teams->modified =
       g_self_damage->modified =
       g_self_knockback->modified =
-      g_teams->modified =
       g_time_limit->modified =
       g_weapon_stay->modified = false;
 

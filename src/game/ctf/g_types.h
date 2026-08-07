@@ -372,12 +372,46 @@ typedef enum {
 
 /**
  * @brief Game modes. These are selected via `g_gameplay` and sent to client via ConfigString.
+ * @details `GAME_TEAMS` is a high bit OR'd onto a base mode to indicate that
+ * teams are enabled, e.g. `GAME_TEAM_DEATHMATCH` is `GAME_DEATHMATCH | GAME_TEAMS`.
+ * Code that needs only the base mode MUST mask it off, e.g. `gameplay & ~GAME_TEAMS`.
  */
 typedef enum {
-  GAME_DEATHMATCH,
-  GAME_INSTAGIB,
-  GAME_ARENA
+  GAME_DEATHMATCH = 0,
+  GAME_INSTAGIB = 1,
+  GAME_ARENA = 2,
+
+  GAME_TEAMS = (1 << 3),
+
+  GAME_TEAM_DEATHMATCH = GAME_DEATHMATCH | GAME_TEAMS,
+  GAME_TEAM_INSTAGIB = GAME_INSTAGIB | GAME_TEAMS,
+  GAME_TEAM_ARENA = GAME_ARENA | GAME_TEAMS
+} g_gameplay_id_t;
+
+/**
+ * @brief One of the six modes `g_gameplay_id_t` defines, paired with the
+ * canonical `g_gameplay` cvar string and menu label for it.
+ */
+typedef struct {
+  g_gameplay_id_t id;
+  const char *name;
+  const char *label;
 } g_gameplay_t;
+
+/**
+ * @brief The canonical table of every gameplay mode, in menu order. Defined
+ * identically in every module's `g_types.h`, so `game.so` and `cgame.so` each
+ * get their own compiled copy through header inclusion - no cross-binary
+ * linkage, and no drift, since it is one source text.
+ */
+static const g_gameplay_t g_gameplay_modes[] = {
+  { GAME_DEATHMATCH,      "deathmatch",      "Deathmatch" },
+  { GAME_TEAM_DEATHMATCH, "team_deathmatch", "Team Deathmatch" },
+  { GAME_INSTAGIB,        "instagib",        "Instagib" },
+  { GAME_TEAM_INSTAGIB,   "team_instagib",   "Team Instagib" },
+  { GAME_ARENA,           "arena",           "Arena" },
+  { GAME_TEAM_ARENA,      "team_arena",      "Team Arena" },
+};
 
 /**
  * @brief Item sets select which weapon and ammo roster a map uses.
@@ -751,7 +785,7 @@ typedef struct {
   /**
    * @brief Active gameplay mode.
    */
-  g_gameplay_t gameplay;
+  g_gameplay_id_t gameplay;
 
   /**
    * @brief Active item set.

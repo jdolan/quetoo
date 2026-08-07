@@ -141,9 +141,6 @@
     <ClInclude Include="..\src\cgame\common\cg_sprite.h">
       <Filter>src\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\common\cg_team_mode.h">
-      <Filter>src\common</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\common\cg_temp_entity.h">
       <Filter>src\common</Filter>
     </ClInclude>
@@ -297,9 +294,6 @@
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\ctf\cg_module.c">
-      <Filter>src\ctf</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\ctf\cg_team_mode.c">
       <Filter>src\ctf</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\cg_client.c">

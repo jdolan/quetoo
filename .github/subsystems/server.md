@@ -223,8 +223,7 @@ net_max_rate 0        # Per-client bandwidth cap (0=unlimited)
 
 ### Gameplay  
 ```
-g_gameplay 0          # Game mode (0=deathmatch, 1=instagib, etc.)
-g_teams 0             # Enable team play
+g_gameplay deathmatch # deathmatch, instagib or arena; prefix team_ for team play
 g_match 0             # Match mode (warmup, ready-up)
 g_frag_limit 30       # Score limit
 g_time_limit 20       # Time limit (minutes)

@@ -866,7 +866,7 @@ void G_DropInventoryItem(g_client_t *cl, const g_item_t *it) {
   const char *name = it->def.name;
 
   // we don't drop in instagib or arena
-  if (g_level.gameplay) {
+  if (g_level.gameplay & ~GAME_TEAMS) {
     return;
   }
 
@@ -972,7 +972,8 @@ ResetItem G_ResetItem = G_ResetItem_Common;
  * whatever the client spawns with.
  */
 static bool G_InhibitItem_Common(const g_entity_t *ent) {
-  return g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB;
+  const g_gameplay_id_t gameplay = g_level.gameplay & ~GAME_TEAMS;
+  return gameplay == GAME_ARENA || gameplay == GAME_INSTAGIB;
 }
 
 InhibitItem G_InhibitItem = G_InhibitItem_Common;
