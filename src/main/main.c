@@ -246,7 +246,9 @@ static bool HasGameModule(void) {
 
   const char *module = dedicated->value ? "game" : "cgame";
 
-  if (Sys_HasLibrary(module)) {
+  void *handle = Sys_OpenLibrary(module, Com_Game());
+  if (handle) {
+    Sys_CloseLibrary(handle);
     return true;
   }
 
@@ -281,8 +283,6 @@ static void Game_f(void) {
     return;
   }
 
-  // nothing may outlive the change: a session carried across it would be parsing
-  // another module's protocol against this one's layout
   if (Com_WasInit(QUETOO_SERVER)) {
     Sv_ShutdownServer("Game changed\n");
   }
@@ -298,14 +298,12 @@ static void Game_f(void) {
     return;
   }
 
-  // a game that ships no module is the one thing Com_SetGame can not see, and
-  // loading it would drop to the console with no module at all
   if (!HasGameModule()) {
     Com_SetGame(previous);
   }
 
   if (Com_WasInit(QUETOO_CLIENT)) {
-    Cl_InitCgame();
+    Cl_InitCgame(Com_Game());
   }
 }
 

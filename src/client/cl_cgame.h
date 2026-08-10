@@ -23,7 +23,7 @@
 
 #include "cl_types.h"
 
-void Cl_InitCgame(void);
+void Cl_InitCgame(const char *dir);
 
 #if defined(__CL_LOCAL_H__)
 void Cl_ShutdownCgame(void);

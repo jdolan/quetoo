@@ -46,6 +46,7 @@ static void Sv_New_f(void) {
   Net_WriteLong(&sv_client->net_chan.message, svs.game->protocol);
   Net_WriteByte(&sv_client->net_chan.message, 0);
   Net_WriteString(&sv_client->net_chan.message, Com_Game());
+  Net_WriteString(&sv_client->net_chan.message, svs.game->cgame ? : Com_Game());
 
   // send level title
   Net_WriteString(&sv_client->net_chan.message, sv.config_strings[CS_MESSAGE]);

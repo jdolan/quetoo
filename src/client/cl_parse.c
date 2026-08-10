@@ -280,18 +280,46 @@ static void Cl_ParseServerData(void) {
   // when it is not already the server's module. Asking the second question of
   // the cvar or the search path does not work, because a listen server shares
   // both with us and has already switched them.
-  char *str = Net_ReadString(&net_message);
+  char *game = Net_ReadString(&net_message);
 
-  if (!Fs_ValidGame(str)) {
+  if (!Fs_ValidGame(game)) {
     Com_Error(ERROR_DROP, "Server sent an invalid game directory\n");
   }
 
-  if (!Com_SetGame(str)) {
-    Com_Error(ERROR_DROP, "Failed to set game: %s\n", str);
+  // the game the server wants loaded for its client game module. This comes
+  // from the game module itself (g_export_t.cgame), not a cvar the server
+  // operator can set, so a hostile or careless server can only name a game
+  // that isn't installed or doesn't provide cgame.so - never an arbitrary
+  // string
+  char *cgame_dir = Net_ReadString(&net_message);
+
+  char previous_game[MAX_QPATH];
+  q_strlcpy(previous_game, Com_Game(), sizeof(previous_game));
+
+  // Sys_OpenLibrary only ever resolves modules through the mounted search
+  // path, so game and cgame_dir must both be mounted before we can even ask
+  // whether either provides a client game - probing first would just ask the
+  // question of whatever game was previously running
+  if (!Com_SetGame(game)) {
+    Com_Error(ERROR_DROP, "Failed to set game: %s\n", game);
   }
 
-  if (q_strcmp(cls.cgame_game, str)) {
-    Cl_InitCgame();
+  Fs_AddCgameSearchPath(cgame_dir);
+
+  void *probe = Sys_OpenLibrary("cgame", cgame_dir);
+  if (!probe) {
+    cgame_dir = game;
+    probe = Sys_OpenLibrary("cgame", cgame_dir);
+  }
+
+  if (!probe) {
+    Com_SetGame(previous_game);
+    Com_Error(ERROR_DROP, "%s provides no client game module\n", game);
+  }
+  Sys_CloseLibrary(probe);
+
+  if (q_strcmp(cls.cgame_dir, cgame_dir)) {
+    Cl_InitCgame(cgame_dir);
   }
 
   // ensure the module we loaded is the module the server is running. Sys_OpenLibrary
@@ -299,8 +327,8 @@ static void Cl_ParseServerData(void) {
   // retained base path, so a client without the server's module loads default's
   // instead. Only the module can answer for itself; the game cvar and the search
   // path record what was asked for, not what was found
-  if (q_strcmp(cls.cgame->name, str)) {
-    Com_Error(ERROR_DROP, "Server is running the %s game module, you loaded %s\n", str, cls.cgame->name);
+  if (q_strcmp(cls.cgame->name, cgame_dir)) {
+    Com_Error(ERROR_DROP, "Server requires client game %s, you loaded %s\n", cgame_dir, cls.cgame->name);
   }
 
   // ensure protocol minor matches
@@ -309,9 +337,9 @@ static void Cl_ParseServerData(void) {
   }
 
   // get the full level name
-  str = Net_ReadString(&net_message);
+  const char *name = Net_ReadString(&net_message);
   Com_Print("\n");
-  Com_Print("^2%s^7\n", str);
+  Com_Print("^2%s^7\n", name);
 }
 
 /**

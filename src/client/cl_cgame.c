@@ -144,9 +144,10 @@ static char *Cl_ConfigString(int32_t index) {
 }
 
 /**
- * @brief Initializes the client game subsystem
+ * @brief Initializes the client game subsystem.
+ * @param dir The directory to load `cgame.so` from.
  */
-void Cl_InitCgame(void) {
+void Cl_InitCgame(const char *dir) {
   cg_import_t import;
 
   if (cls.cgame) {
@@ -317,8 +318,10 @@ void Cl_InitCgame(void) {
   import.Draw3DLines = R_Draw3DLines;
   import.Draw3DBox = R_Draw3DBox;
 
-  cgame_handle = Sys_OpenLibrary("cgame");
-  assert(cgame_handle);
+  cgame_handle = Sys_OpenLibrary("cgame", dir);
+  if (!cgame_handle) {
+    Com_Error(ERROR_DROP, "%s provides no client game module\n", dir);
+  }
 
   // ObjectivelyMVC binds Views by class name, from JSON hierarchies and CSS
   // selectors, and the module is opened RTLD_LOCAL so that two modules' symbols
@@ -338,7 +341,7 @@ void Cl_InitCgame(void) {
 
   cls.cgame->Init();
 
-  q_strlcpy(cls.cgame_game, Com_Game(), sizeof(cls.cgame_game));
+  q_strlcpy(cls.cgame_dir, dir, sizeof(cls.cgame_dir));
 
   Com_Print("Client game initialized\n");
   Com_InitSubsystem(QUETOO_CGAME);
@@ -357,7 +360,7 @@ void Cl_ShutdownCgame(void) {
 
   cls.cgame->Shutdown();
   cls.cgame = NULL;
-  cls.cgame_game[0] = '\0';
+  cls.cgame_dir[0] = '\0';
 
   Cmd_RemoveAll(CMD_CGAME);
 

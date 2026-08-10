@@ -793,7 +793,7 @@ void Cl_Init(void) {
 
   Cl_ClearState();
 
-  Cl_InitCgame();
+  Cl_InitCgame(Com_Game());
 
   Cl_SetKeyDest(KEY_UI);
 

@@ -109,18 +109,13 @@ bool Com_SetGame(const char *game) {
     return true;
   }
 
-  // startup establishes the first game before the console has execed anything,
-  // and the default binds exec autoexec.cfg for us there; only a change from one
-  // game to another has to run the new game's config itself
-  const bool initial = *quetoo.game == '\0';
-
   if (!Fs_SetGame(game)) {
     return false;
   }
 
   q_strlcpy(quetoo.game, game, sizeof(quetoo.game));
 
-  if (!initial && Fs_Exists("autoexec.cfg")) {
+  if (Fs_Exists("autoexec.cfg")) {
     Cbuf_AddText("exec autoexec.cfg\n");
   }
 

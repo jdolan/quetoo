@@ -690,6 +690,20 @@ typedef struct g_export_s {
   int32_t protocol;
 
   /**
+   * @brief The client game module this game pairs with, e.g. `"default"`.
+   * @details Many game directories exist only to separate configs, maps and
+   * demos from `default` and ship no client game of their own; this lets such
+   * a game declare `default`, or any other installed client game, as the one
+   * clients should load, rather than forcing every game directory to also be
+   * a full UI/HUD mod. This comes from the game module, not the server admin,
+   * because it is a statement about which client game this game's protocol
+   * and stats layout were written against, not a runtime setting: a hostile
+   * or careless `set` at the console must not be able to steer clients into
+   * loading an arbitrary module.
+   */
+  const char *cgame;
+
+  /**
    * @brief Client array, `sv_max_clients` in length; allocated by the game.
    */
   g_client_t *clients[MAX_CLIENTS];

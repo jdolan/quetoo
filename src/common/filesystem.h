@@ -55,6 +55,8 @@ void Fs_CompleteGame(const char *pattern, List *matches);
 void Fs_AddToSearchPath(const char *path);
 void Fs_AddToSearchPathv(const char *dir, ...) __attribute__((sentinel));
 bool Fs_SetGame(const char *dir);
+void Fs_AddCgameSearchPath(const char *cgame_dir);
+bool Fs_FindLibrary(const char *name, const char *dir, char *path, size_t len);
 void Fs_SetWriteDir(const char *dir);
 bool Fs_ValidGame(const char *dir);
 const char *Fs_WriteDir(void);

@@ -42,7 +42,7 @@ void Cl_R_Restart_f(void) {
 
   Ui_Init();
   
-  Cl_InitCgame();
+  Cl_InitCgame(Com_Game());
 
   if (cls.state == CL_ACTIVE) {
     Cl_LoadMedia();

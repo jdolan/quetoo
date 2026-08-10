@@ -381,8 +381,10 @@ void Sv_InitGame(void) {
 
   import.PostStats = Sv_PostStats;
 
-  game_handle = Sys_OpenLibrary("game");
-  assert(game_handle);
+  game_handle = Sys_OpenLibrary("game", Com_Game());
+  if (!game_handle) {
+    Com_Error(ERROR_DROP, "%s provides no game module\n", Com_Game());
+  }
   
   svs.game = (g_export_t *) Sys_LoadLibrary(game_handle, "G_LoadGame", &import);
 
