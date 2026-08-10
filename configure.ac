@@ -66,7 +66,15 @@ case "$host" in
 			export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:/usr/local/opt/openal-soft/lib/pkgconfig"
 		fi
 
-		HOST_LDFLAGS="-headerpad_max_install_names"
+		dnl Some dependencies (e.g. a manually built SDL3 family, as
+		dnl opposed to a Homebrew bottle) install their shared libraries
+		dnl with an @rpath-relative install name and no absolute-path
+		dnl fixup. Without an LC_RPATH entry in the consuming binary,
+		dnl dyld cannot resolve those libraries at runtime, even though
+		dnl they're perfectly discoverable at link time via pkg-config.
+		dnl Embed rpaths for both common prefixes so this works
+		dnl regardless of which SDL3 (or other) build pkg-config finds.
+		HOST_LDFLAGS="-headerpad_max_install_names -Wl,-rpath,/usr/local/lib -Wl,-rpath,/opt/homebrew/lib"
 		HOST_LIBS="-ldl -rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
 		;;
