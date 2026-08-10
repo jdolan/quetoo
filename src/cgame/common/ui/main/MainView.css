@@ -19,8 +19,8 @@
 
 #contentView {
   autoresizing-mask: fill;
-  padding-top: 36;
-  padding-bottom: 36;
+  padding-top: 48;
+  padding-bottom: 48;
 }
 
 #contentView > View > * {
