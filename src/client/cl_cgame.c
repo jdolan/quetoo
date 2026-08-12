@@ -328,22 +328,24 @@ void Cl_InitCgame(void) {
 
   cgame_handle = handle;
 
+  cg_export_t *cgame = Sys_LoadLibrary(cgame_handle, "Cg_LoadCgame", &import);
+
+  if (!cgame) {
+    cgame_handle = Sys_CloseLibrary(cgame_handle);
+    Com_Error(ERROR_FATAL, "Failed to load %s's client game\n", dir);
+  }
+
+  if (cgame->api_version != CGAME_API_VERSION) {
+    const int32_t version = cgame->api_version;
+    cgame_handle = Sys_CloseLibrary(cgame_handle);
+    Com_Error(ERROR_FATAL, "%s's client game is version %i, not %i\n", dir, version, CGAME_API_VERSION);
+  }
+
   // ObjectivelyMVC binds Views by class name, from JSON hierarchies and CSS
   // selectors, and the module is opened RTLD_LOCAL so that two modules' symbols
   // cannot coalesce - which leaves it out of the namespace Objectively would
   // otherwise search, and Windows has no such namespace at all.
   addClassImage(cgame_handle);
-
-  cg_export_t *cgame = Sys_LoadLibrary(cgame_handle, "Cg_LoadCgame", &import);
-
-  if (!cgame) {
-    Com_Error(ERROR_FATAL, "Failed to load %s's client game\n", dir);
-  }
-
-  if (cgame->api_version != CGAME_API_VERSION) {
-    Com_Error(ERROR_FATAL, "%s's client game is version %i, not %i\n", dir,
-              cgame->api_version, CGAME_API_VERSION);
-  }
 
   cls.cgame = cgame;
   cls.cgame->Init();

@@ -798,6 +798,10 @@ bool Fs_FindLibrary(const char *game, const char *name, char *path, size_t len) 
   roots[num_roots++] = fs_state.data_dir;
   roots[num_roots++] = fs_state.lib_dir;
 
+  if (*fs_state.resources_dir) {
+    roots[num_roots++] = fs_state.resources_dir;
+  }
+
   for (size_t r = 0; r < num_roots; r++) {
     q_snprintf(path, len, "%s/%s/%s", roots[r], game, name);
 
