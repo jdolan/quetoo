@@ -89,33 +89,88 @@ const char *Com_Game(void) {
 }
 
 /**
- * @brief Makes the given game current: points the filesystem at it, records it,
- * and runs its autoexec.cfg.
- * @return True if the game is current on return, false if the name was rejected.
- * @details This is the whole of the state change, and the only writer of
- * `quetoo.game`. It carries no policy: deciding whether a change is allowed, and
- * tearing down whatever is running, belongs to the `game` command, which is the
- * only place that knows about both the server and the client. Startup and a
- * server telling us its game reach this directly.
+ * @return The game module providing the client game.
  */
-bool Com_SetGame(const char *game) {
+const char *Com_Cgame(void) {
+  return quetoo.cgame;
+}
 
-  if (!Fs_ValidGame(game)) {
-    Com_Warn("Invalid game: %s\n", game);
+/**
+ * @return True if `game` names a game directory that may be made current.
+ */
+bool Com_IsValidGame(const char *game) {
+
+  return game && *game
+         && q_strlen(game) < MAX_GAME
+         && q_strcmp(game, ".")
+         && !q_strstr(game, "..")
+         && !q_strstr(game, "/")
+         && !q_strstr(game, "\\")
+         && !q_strstr(game, ":");
+}
+
+/**
+ * @return True if `filename` may be transferred between a client and a server.
+ */
+bool Com_IsValidDownload(const char *filename) {
+
+  if (!filename || !*filename || *filename == '/') {
     return false;
   }
 
-  if (!q_strcmp(quetoo.game, game)) {
+  if (q_strstr(filename, "..") || q_strchr(filename, ' ') || q_strchr(filename, ':')) {
+    return false;
+  }
+
+  const char *base = Basename(filename);
+  const size_t len = q_strlen(base);
+
+  if (len && base[len - 1] == '.') {
+    return false;
+  }
+
+  const char *ext = q_strrchr(base, '.');
+
+  if (ext && (!q_strcasecmp(ext, ".so") ||
+              !q_strcasecmp(ext, ".dll") ||
+              !q_strcasecmp(ext, ".dylib"))) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Makes the given game current: points the filesystem at it, records it,
+ * and runs its autoexec.cfg.
+ * @param game The game directory to make current.
+ * @param cgame The game directory providing the client game, or `NULL`.
+ * @return True if the game is current on return, false if the name was rejected.
+ */
+bool Com_SetGame(const char *game, const char *cgame) {
+
+  if (!Com_IsValidGame(game)) {
+    Com_Warn("Invalid game: %s\n", game ? : "(null)");
+    return false;
+  }
+
+  if (!q_strcmp(quetoo.game, game) && !q_strcmp(quetoo.cgame, cgame ? : "")) {
     return true;
   }
 
-  if (!Fs_SetGame(game)) {
+  // startup queues the first game's autoexec.cfg itself, once the default binds
+  // have queued quetoo.cfg ahead of it; only a change from one game to another
+  // has to run the new game's config from here
+  const bool initial = *quetoo.game == '\0';
+
+  if (!Fs_SetGame(game, cgame)) {
     return false;
   }
 
   q_strlcpy(quetoo.game, game, sizeof(quetoo.game));
+  q_strlcpy(quetoo.cgame, cgame ? : "", sizeof(quetoo.cgame));
 
-  if (Fs_Exists("autoexec.cfg")) {
+  if (!initial && Fs_Exists("autoexec.cfg")) {
     Cbuf_AddText("exec autoexec.cfg\n");
   }
 
@@ -446,7 +501,9 @@ void Com_Init(int32_t argc, char *argv[]) {
 
     // if we specified debug mode, quickly set it to all here
     // so that early systems prior to init can write stuff out
-    if (!q_strcmp(Com_Argv(i), "-debug") || !q_strcmp(Com_Argv(i), "+debug")) {
+    if (!q_strcmp(Com_Argv(i), "-d") ||
+        !q_strcmp(Com_Argv(i), "--debug") ||
+        !q_strcmp(Com_Argv(i), "+debug")) {
       Com_SetDebug("all");
       continue;
     }

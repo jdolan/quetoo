@@ -381,21 +381,30 @@ void Sv_InitGame(void) {
 
   import.PostStats = Sv_PostStats;
 
-  game_handle = Sys_OpenLibrary("game", Com_Game());
+  const char *dir = Sys_LibraryDir(Com_Game(), "game");
+  if (!dir) {
+    Com_Error(ERROR_DROP, "Neither %s nor %s provides a game module\n", Com_Game(), DEFAULT_GAME);
+  }
+
+  game_handle = Sys_OpenLibrary(dir, "game");
   if (!game_handle) {
-    Com_Error(ERROR_DROP, "%s provides no game module\n", Com_Game());
+    Com_Error(ERROR_DROP, "Failed to open %s's game module\n", dir);
   }
   
-  svs.game = (g_export_t *) Sys_LoadLibrary(game_handle, "G_LoadGame", &import);
+  g_export_t *game = (g_export_t *) Sys_LoadLibrary(game_handle, "G_LoadGame", &import);
 
-  if (!svs.game) {
-    Com_Error(ERROR_DROP, "Failed to load game module\n");
+  if (!game) {
+    game_handle = Sys_CloseLibrary(game_handle);
+    Com_Error(ERROR_DROP, "Failed to load %s's game module\n", dir);
   }
 
-  if (svs.game->api_version != GAME_API_VERSION) {
-    Com_Error(ERROR_DROP, "Game is version %i, not %i\n", svs.game->api_version, GAME_API_VERSION);
+  if (game->api_version != GAME_API_VERSION) {
+    const int32_t version = game->api_version;
+    game_handle = Sys_CloseLibrary(game_handle);
+    Com_Error(ERROR_DROP, "%s's game module is version %i, not %i\n", dir, version, GAME_API_VERSION);
   }
 
+  svs.game = game;
   svs.game->Init();
 
   Com_Print("Game initialized, starting...\n");
@@ -427,5 +436,5 @@ void Sv_ShutdownGame(void) {
   Com_Print("Game down\n");
   Com_QuitSubsystem(QUETOO_GAME);
 
-  Sys_CloseLibrary(game_handle);
+  game_handle = Sys_CloseLibrary(game_handle);
 }

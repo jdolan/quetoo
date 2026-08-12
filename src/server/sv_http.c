@@ -87,7 +87,7 @@ static void Sv_HttpHandleRequest(sv_http_client_t *http) {
 	}
 
 	// validate the filename
-	if (IS_INVALID_DOWNLOAD(filename)) {
+	if (!Com_IsValidDownload(filename)) {
 		Com_Warn("HTTP: Invalid download request: %s\n", filename);
 		Sv_HttpSendError(http, 403, "Forbidden");
 		return;

@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 31
+#define GAME_API_VERSION 32
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -685,7 +685,7 @@ typedef struct g_export_s {
   int32_t api_version;
 
   /**
-   * @brief Minor protocol version; must match the engine.
+   * @brief Minor protocol version; must match that of `cgame`.
    */
   int32_t protocol;
 

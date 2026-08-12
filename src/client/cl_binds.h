@@ -84,7 +84,6 @@ static const char *DEFAULT_BINDS =
     // now execute the "default" configuration file
     "exec quetoo.cfg\n"
 
-
     // bind these last in case somebody is using a Quake 2 config
     "bind ` cl_toggle_console\n"
     "bind f8 cl_toggle_console\n";

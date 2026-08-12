@@ -29,9 +29,11 @@ const char *Sys_ExecutablePath(void);
 const char *Sys_Username(void);
 const char *Sys_UserDir(void);
 
-void *Sys_OpenLibrary(const char *name, const char *dir);
+bool Sys_HasLibrary(const char *game, const char *name);
+const char *Sys_LibraryDir(const char *game, const char *name);
+void *Sys_OpenLibrary(const char *game, const char *name);
 void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params);
-void Sys_CloseLibrary(void *handle);
+void *Sys_CloseLibrary(void *handle);
 
 #if defined(__linux__)
 void Sys_InstallDesktopEntry(void);

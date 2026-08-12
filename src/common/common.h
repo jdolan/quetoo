@@ -48,7 +48,7 @@
  * of core net messages or serialized data types change. The game and client
  * game maintain `PROTOCOL_MINOR` as well.
  */
-#define PROTOCOL_MAJOR 2028
+#define PROTOCOL_MAJOR 2029
 
 /**
  * @brief The IP address of the master server, where the authoritative list of
@@ -81,11 +81,6 @@
 #define PACKET_MASK   (PACKET_BACKUP - 1)
 
 /**
- * @brief Disallow dangerous downloads for both the client and server.
- */
-#define IS_INVALID_DOWNLOAD(f) (!*f || *f == '/' || q_strstr(f, "..") || q_strchr(f, ' '))
-
-/**
  * @brief Error categories.
  */
 typedef enum {
@@ -104,7 +99,10 @@ bool Com_IsDebug(const debug_t debug);
 const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
 const char *Com_Game(void);
-bool Com_SetGame(const char *game);
+const char *Com_Cgame(void);
+bool Com_IsValidGame(const char *game);
+bool Com_IsValidDownload(const char *filename);
+bool Com_SetGame(const char *game, const char *cgame);
 
 void Com_LogString(const char *str);
 
@@ -176,6 +174,11 @@ typedef struct {
    * there is no cvar to assign.
    */
   char game[MAX_QPATH];
+
+  /**
+   * @brief The game module providing the client game, e.g. `"default"`.
+   */
+  char cgame[MAX_QPATH];
 
   /**
    * @brief The enabled debug categories.

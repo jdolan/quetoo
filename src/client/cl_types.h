@@ -767,12 +767,6 @@ typedef struct {
    * @brief The loaded client game module exports.
    */
   struct cg_export_s *cgame;
-
-  /**
-   * @brief The game directory `cgame` was loaded from, dictated by the server.
-   * @details This is not necessarily @c Com_Game, as some servers run server-side-only mods.
-   */
-  char cgame_dir[MAX_QPATH];
 } cl_static_t;
 
 #if defined(__CL_LOCAL_H__)

@@ -593,12 +593,12 @@ int32_t quetoo_main(int32_t argc, char **argv) {
   int32_t i;
   for (i = 0; i < Com_Argc(); i++) {
 
-    if (!q_strcmp(Com_Argv(i), "-v") || !q_strcmp(Com_Argv(i), "-verbose")) {
+    if (!q_strcmp(Com_Argv(i), "-v") || !q_strcmp(Com_Argv(i), "--verbose")) {
       verbose = true;
       continue;
     }
 
-    if (!q_strcmp(Com_Argv(i), "-d") || !q_strcmp(Com_Argv(i), "-debug")) {
+    if (!q_strcmp(Com_Argv(i), "-d") || !q_strcmp(Com_Argv(i), "--debug")) {
       debug = true;
       continue;
     }

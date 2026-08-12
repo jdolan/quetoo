@@ -63,6 +63,11 @@ typedef struct {
   char data_dir[MAX_OS_PATH];
 
   /**
+   * @brief The bundled resources directory, or empty if not running from a bundle.
+   */
+  char resources_dir[MAX_OS_PATH];
+
+  /**
    * @brief The base search paths (all those present after invoking `Fs_Init`).
    * When calling `Fs_SetGameDir`, all paths following the base paths are
    * unloaded.
@@ -70,7 +75,7 @@ typedef struct {
   char **base_search_paths;
 
   /**
-   * @brief Search paths given on the command line with `-path` or `-wpath`.
+   * @brief Search paths given on the command line with `-p` or `--path`.
    * @details These are roots that may contain game directories, exactly like
    * the install directories, so that a development tree laid out the same way
    * resolves modules and assets the same way.
@@ -80,8 +85,10 @@ typedef struct {
 
   /**
    * @brief An explicit write directory given on the command line with
-   * `-w` or `-wpath`, overriding the per-game user directory that
+   * `-w` or `--wpath`, overriding the per-game user directory that
    * `Fs_SetGame` would otherwise select. Empty if none was given.
+   * @remarks Deliberately not one of `command_line_paths`: a root resolves
+   * modules, and this is where server-named downloads are written.
    */
   char write_dir_override[MAX_OS_PATH];
 
@@ -535,39 +542,70 @@ void Fs_CompleteFile(const char *pattern, List *matches) {
 }
 
 /**
- * @brief Console completion for game names.
- * @details A game is a directory under the library directory that ships a client
- * game. Only the game that is current is mounted, so this reads the real
- * filesystem rather than the search path, and globs the module rather than naming
- * it, so that the shared library extension stays the platform's business.
+ * @return True if `path` is itself one of the roots that hold game directories.
  */
-void Fs_CompleteGame(const char *pattern, List *matches) {
+static bool Fs_IsRoot(const char *path) {
+
+  for (size_t p = 0; p < fs_state.num_command_line_paths; p++) {
+    if (!q_strcmp(path, fs_state.command_line_paths[p])) {
+      return true;
+    }
+  }
+
+  if (!q_strcmp(path, fs_state.lib_dir)) {
+    return true;
+  }
+  
+  if (!q_strcmp(path, fs_state.data_dir)) {
+    return true;
+  }
+  
+  if (*fs_state.resources_dir && !q_strcmp(path, fs_state.resources_dir)) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
+ * @brief Adds every game directory matching `pattern` beneath `root` to `matches`.
+ */
+static void Fs_CompleteGame_root(const char *root, const char *pattern, List *matches) {
 
   int32_t count;
-  char **games = SDL_GlobDirectory(fs_state.lib_dir, pattern, SDL_GLOB_CASEINSENSITIVE, &count);
+  char **games = SDL_GlobDirectory(root, pattern, SDL_GLOB_CASEINSENSITIVE, &count);
   if (!games) {
     return;
   }
 
   for (int32_t i = 0; i < count; i++) {
-    const char *dir = va("%s/%s", fs_state.lib_dir, games[i]);
+    const char *path = va("%s/%s", root, games[i]);
 
     SDL_PathInfo info;
-    if (!SDL_GetPathInfo(dir, &info) || info.type != SDL_PATHTYPE_DIRECTORY) {
-      continue;
-    }
-
-    int32_t modules;
-    char **module = SDL_GlobDirectory(dir, "cgame.*", SDL_GLOB_CASEINSENSITIVE, &modules);
-    if (module) {
-      if (modules) {
-        Con_AutocompleteMatch(matches, games[i], NULL);
-      }
-      SDL_free(module);
+    if (SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_DIRECTORY && !Fs_IsRoot(path)) {
+      Con_AutocompleteMatch(matches, games[i], NULL);
     }
   }
 
   SDL_free(games);
+}
+
+/**
+ * @brief Console completion for game names.
+ */
+void Fs_CompleteGame(const char *pattern, List *matches) {
+
+  for (size_t p = 0; p < fs_state.num_command_line_paths; p++) {
+    Fs_CompleteGame_root(fs_state.command_line_paths[p], pattern, matches);
+  }
+
+  Fs_CompleteGame_root(fs_state.lib_dir, pattern, matches);
+  Fs_CompleteGame_root(Sys_UserDir(), pattern, matches);
+  Fs_CompleteGame_root(fs_state.data_dir, pattern, matches);
+
+  if (*fs_state.resources_dir) {
+    Fs_CompleteGame_root(fs_state.resources_dir, pattern, matches);
+  }
 }
 
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
@@ -637,7 +675,7 @@ static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
 /**
  * @brief Adds the user-specific search path, setting the write dir in the
  * process. This is where all files produced by the game are written to.
- * @details If `-w` or `-wpath` was given on the command line, that path is
+ * @details If `-w` or `--wpath` was given on the command line, that path is
  * used as the write dir instead of the per-game user directory; the user
  * directory is still mounted as a read-only fallback for configs and such
  * that may already live there.
@@ -662,49 +700,40 @@ static void Fs_AddUserSearchPath(const char *dir) {
 }
 
 /**
- * @return True if `dir` names a game directory the filesystem will accept.
+ * @brief Mounts every root that may hold `dir`'s assets.
  */
-bool Fs_ValidGame(const char *dir) {
+static void Fs_AddGameSearchPath(const char *dir) {
 
-  if (!dir || !*dir) {
-    Com_Warn("Missing game name\n");
-    return false;
+  if (*fs_state.resources_dir) {
+    Fs_AddToSearchPathv(fs_state.resources_dir, dir, NULL);
   }
 
-  if (q_strlen(dir) >= MAX_QPATH) {
-    Com_Warn("Game name is too long (%s)\n", dir);
-    return false;
-  }
+  Fs_AddToSearchPathv(fs_state.lib_dir, dir, NULL);
+  Fs_AddToSearchPathv(fs_state.data_dir, dir, NULL);
 
-  if (q_strstr(dir, "..") || q_strstr(dir, "/") || q_strstr(dir, "\\") || q_strstr(dir, ":")) {
-    Com_Warn("Game should be a directory name, not a path (%s)\n", dir);
-    return false;
+  for (size_t p = 0; p < fs_state.num_command_line_paths; p++) {
+    Fs_AddToSearchPathv(fs_state.command_line_paths[p], dir, NULL);
   }
-
-  return true;
 }
+
 
 /**
  * @brief Points the search path at the given game directory.
- * @details `Com_SetGame` is the only caller, and it holds the game that is
- * current and has already validated this name, so there is nothing to compare
- * against here: this only does the work.
- * @return True if the search path now reflects `dir`, false if a mount that was
- * still open (e.g. an open demo) could not be unmounted, leaving the search path
- * partially torn down and the new game's paths never mounted.
+ * @param game The game directory to mount.
+ * @param cgame The game directory providing the client game, or `NULL`.
+ * @return True if the search path now reflects `game`, false if the name was rejected.
  */
-bool Fs_SetGame(const char *dir) {
+bool Fs_SetGame(const char *game, const char *cgame) {
 
-  if (!Fs_ValidGame(dir)) {
+  if (!Com_IsValidGame(game)) {
     return false;
   }
 
-  Com_Debug(DEBUG_FILESYSTEM, "Setting game: %s\n", dir);
+  Com_Debug(DEBUG_FILESYSTEM, "Setting game: %s\n", game);
 
   // iterate the current search path, removing those which are not base paths
   char **paths = PHYSFS_getSearchPath();
-  char **path = paths;
-  while (*path != NULL) {
+  for (char **path = paths; *path; path++) {
     char **p = fs_state.base_search_paths;
     while (*p != NULL) {
       if (!q_strcmp(*path, *p)) {
@@ -716,96 +745,70 @@ bool Fs_SetGame(const char *dir) {
       Com_Debug(DEBUG_FILESYSTEM, "Removing %s\n", *path);
       if (PHYSFS_unmount(*path) == 0) {
         Com_Warn("%s: %s\n", *path, Fs_LastError());
-        PHYSFS_freeList(paths);
-        return false;
       }
     }
-    path++;
   }
 
   PHYSFS_freeList(paths);
 
-  // the install and command-line roots for DEFAULT_GAME were already mounted
-  // permanently by Fs_Init as the base fallback layer; mounting them again
-  // here would just duplicate them, so only do this for a non-default game
-  if (q_strcmp(dir, DEFAULT_GAME)) {
-    Fs_AddToSearchPathv(fs_state.lib_dir, dir, NULL);
-    Fs_AddToSearchPathv(fs_state.data_dir, dir, NULL);
+  const bool provider = Com_IsValidGame(cgame)
+      && q_strcmp(cgame, game)
+      && q_strcmp(cgame, DEFAULT_GAME);
 
-    for (size_t p = 0; p < fs_state.num_command_line_paths; p++) {
-      Fs_AddToSearchPathv(fs_state.command_line_paths[p], dir, NULL);
-    }
+  if (provider) {
+    Fs_AddGameSearchPath(cgame);
+    Fs_AddToSearchPathv(Sys_UserDir(), cgame, NULL);
   }
 
-  Fs_AddUserSearchPath(dir);
+  // the install and command-line roots for DEFAULT_GAME were already mounted
+  // permanently by Fs_Init as the base fallback layer; mounting them again here
+  // would just duplicate them. A provider is the exception: it was mounted above
+  // those base layers, so the game itself has to go above it in turn
+  if (q_strcmp(game, DEFAULT_GAME) || provider) {
+    Fs_AddGameSearchPath(game);
+  }
+
+  Fs_AddUserSearchPath(game);
   return true;
 }
 
 /**
- * @brief Mounts a client game provider's assets alongside the game that is current.
- * @details A game may declare a different, already-installed game as the one
- * whose cgame.so and UI/HUD assets clients should use (`g_export_t.cgame`).
- * That provider is not necessarily `dir`, so its lib/data paths are not
- * otherwise on the search path; mount them beneath the active game's own
- * paths, above the permanent `DEFAULT_GAME` base layer, so cgame.so and its
- * assets resolve without shadowing anything the active game itself provides.
- */
-void Fs_AddCgameSearchPath(const char *cgame_dir) {
-
-  if (!Fs_ValidGame(cgame_dir) || !q_strcmp(cgame_dir, DEFAULT_GAME)) {
-    return; // DEFAULT_GAME is already a permanent base layer
-  }
-
-  Fs_AddToSearchPathv(fs_state.lib_dir, cgame_dir, NULL);
-  Fs_AddToSearchPathv(fs_state.data_dir, cgame_dir, NULL);
-
-  for (size_t p = 0; p < fs_state.num_command_line_paths; p++) {
-    Fs_AddToSearchPathv(fs_state.command_line_paths[p], cgame_dir, NULL);
-  }
-}
-
-/**
- * @brief Resolves the real, on-disk path of a shared library named by `name`,
- * mounted beneath the search path root whose leaf name is `dir`.
+ * @brief Resolves the real, on-disk path of the module `name` within game directory `game`.
+ * @param game The game directory name, e.g. @c "ctf".
  * @param name The library file name, e.g. @c "cgame.so".
- * @param dir The search path directory name, e.g. @c "ctf".
  * @param path A buffer to receive the resolved path, if found.
  * @param len The size of `path`.
  * @return True if `path` was resolved, false otherwise.
- * @details `dir` is a game directory name, not necessarily the game that is
- * current (e.g. a `g_export_t.cgame` provider mounted by
- * `Fs_AddCgameSearchPath`). Rather than asking PhysFS to search its whole
- * virtual search path for `name` and then guessing whether the directory it
- * resolved to was really `dir`, this walks the real, mounted search path
- * roots directly and only considers the one(s) whose leaf name is exactly
- * `dir`, so callers outside this file never need to touch PhysFS directly.
  */
-bool Fs_FindLibrary(const char *name, const char *dir, char *path, size_t len) {
+bool Fs_FindLibrary(const char *game, const char *name, char *path, size_t len) {
 
-  if (!Fs_ValidGame(dir)) {
+  if (!Com_IsValidGame(game)) {
     return false;
   }
 
-  bool found = false;
+  const char *roots[MAX_COMMAND_LINE_PATHS + 3];
+  size_t num_roots = 0;
 
-  char **paths = PHYSFS_getSearchPath();
-  for (char **p = paths; *p; p++) {
-    if (!q_strcmp(Basename(*p), dir)) {
-      q_snprintf(path, len, "%s/%s", *p, name);
+  roots[num_roots++] = Sys_UserDir();
 
-      SDL_PathInfo info;
-      if (SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_FILE) {
-        found = true;
-        break;
-      }
+  for (size_t p = fs_state.num_command_line_paths; p > 0; p--) {
+    roots[num_roots++] = fs_state.command_line_paths[p - 1];
+  }
+
+  roots[num_roots++] = fs_state.data_dir;
+  roots[num_roots++] = fs_state.lib_dir;
+
+  for (size_t r = 0; r < num_roots; r++) {
+    q_snprintf(path, len, "%s/%s/%s", roots[r], game, name);
+
+    SDL_PathInfo info;
+    if (SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_FILE) {
+      return true;
     }
   }
-  PHYSFS_freeList(paths);
 
-  if (!found) {
-    *path = '\0';
-  }
-  return found;
+  *path = '\0';
+  return false;
 }
 
 /**
@@ -940,10 +943,9 @@ void Fs_Init(const uint32_t flags) {
       q_snprintf(data_default, MAX_OS_PATH, "%s/%s", fs_state.data_dir, DEFAULT_GAME);
       SDL_CreateDirectory(data_default);
 
-      char resources[MAX_OS_PATH];
-      q_snprintf(resources, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
-      Fs_AddToSearchPathv(resources, NULL);
-      Fs_AddToSearchPathv(resources, DEFAULT_GAME, NULL);
+      q_snprintf(fs_state.resources_dir, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
+      Fs_AddToSearchPathv(fs_state.resources_dir, NULL);
+      Fs_AddToSearchPathv(fs_state.resources_dir, DEFAULT_GAME, NULL);
     }
 #elif defined(__linux__)
     if ((c = q_strstr(path, "/bin/"))) {
@@ -977,27 +979,19 @@ void Fs_Init(const uint32_t flags) {
   Fs_AddToSearchPathv(fs_state.lib_dir, DEFAULT_GAME, NULL);
   Fs_AddToSearchPathv(fs_state.data_dir, DEFAULT_GAME, NULL);
 
-  // the user-specific search path and write dir are not established here:
-  // Com_SetGame is always called immediately after Fs_Init returns (by
-  // main's Init, quemap's main, etc.), and it alone owns that via
-  // Fs_SetGame / Fs_AddUserSearchPath. Doing it here too would just mount
-  // and create the same directory twice, and would be immediately
-  // clobbered by that first Com_SetGame call anyway.
-
   // finally add any paths specified on the command line
   int32_t i;
   for (i = 1; i < Com_Argc(); i++) {
 
-    if (!q_strcmp(Com_Argv(i), "-p") || !q_strcmp(Com_Argv(i), "-path")) {
+    if (!q_strcmp(Com_Argv(i), "-p") || !q_strcmp(Com_Argv(i), "--path")) {
       Fs_AddCommandLinePath(Com_Argv(i + 1));
       continue;
     }
 
-    if (!q_strcmp(Com_Argv(i), "-w") || !q_strcmp(Com_Argv(i), "-wpath")) {
-      Fs_AddCommandLinePath(Com_Argv(i + 1));
-      // remembered, not applied yet: Fs_AddUserSearchPath applies this as
-      // the write dir once Com_SetGame runs, so it isn't clobbered by the
-      // per-game user directory that would otherwise be selected instead
+    if (!q_strcmp(Com_Argv(i), "-w") || !q_strcmp(Com_Argv(i), "--wpath")) {
+      // mounted, but deliberately not remembered as a root: roots resolve
+      // modules, and the engine writes server-named downloads here
+      Fs_AddToSearchPath(Com_Argv(i + 1));
       q_strlcpy(fs_state.write_dir_override, Com_Argv(i + 1), sizeof(fs_state.write_dir_override));
       continue;
     }

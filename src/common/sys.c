@@ -185,19 +185,44 @@ static const char *Sys_LibraryName(const char *name) {
 }
 
 /**
- * @brief Opens a shared library by name from the named directory.
- * @param name The library basename, e.g. @c "game".
- * @param dir The search path directory name, e.g. @c "ctf".
- * @return A handle to the library, or `NULL`.
- * @details `dir` is a game directory name, not necessarily the currently
- * active game (e.g. a `g_export_t.cgame` provider). Resolution of the real,
- * on-disk path is delegated to `Fs_FindLibrary`, which owns the PhysFS search
- * path and is the only place in the engine that touches it directly.
+ * @return True if `game` provides the module `name`, with no fallback.
  */
-void *Sys_OpenLibrary(const char *name, const char *dir) {
+bool Sys_HasLibrary(const char *game, const char *name) {
+  char path[MAX_OS_PATH];
+
+  return Fs_FindLibrary(game, Sys_LibraryName(name), path, sizeof(path));
+}
+
+/**
+ * @return The game directory providing the module `name` for `game`, or `NULL`
+ * if neither it nor the default game does.
+ */
+const char *Sys_LibraryDir(const char *game, const char *name) {
 
   char path[MAX_OS_PATH];
-  if (!Fs_FindLibrary(Sys_LibraryName(name), dir, path, sizeof(path))) {
+  const char *so_name = Sys_LibraryName(name);
+
+  if (Fs_FindLibrary(game, so_name, path, sizeof(path))) {
+    return game;
+  }
+
+  if (Fs_FindLibrary(DEFAULT_GAME, so_name, path, sizeof(path))) {
+    return DEFAULT_GAME;
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Opens a shared library by name from the named game directory.
+ * @param game The game directory name, e.g. @c "ctf".
+ * @param name The library basename, e.g. @c "game".
+ * @return A handle to the library, or `NULL`.
+ */
+void *Sys_OpenLibrary(const char *game, const char *name) {
+
+  char path[MAX_OS_PATH];
+  if (!Fs_FindLibrary(game, Sys_LibraryName(name), path, sizeof(path))) {
     return NULL;
   }
 
@@ -215,9 +240,15 @@ void *Sys_OpenLibrary(const char *name, const char *dir) {
 
 /**
  * @brief Closes an open game module.
+ * @return `NULL`, so that a handle may be cleared as it is closed.
  */
-void Sys_CloseLibrary(void *handle) {
-  dlclose(handle);
+void *Sys_CloseLibrary(void *handle) {
+
+  if (handle) {
+    dlclose(handle);
+  }
+
+  return NULL;
 }
 
 /**
@@ -234,7 +265,8 @@ void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
 
   EntryPoint = (EntryPointFunc *) dlsym(handle, entry_point);
   if (!EntryPoint) {
-    Com_Error(ERROR_DROP, "Failed to resolve entry point: %s\n", entry_point);
+    Com_Warn("Failed to resolve entry point: %s\n", entry_point);
+    return NULL;
   }
 
 #if defined(__APPLE__)

@@ -39,6 +39,7 @@ static void Cl_WriteDemoHeader(void) {
   Net_WriteLong(&msg, cls.cgame->protocol);
   Net_WriteByte(&msg, 1); // demo_server byte
   Net_WriteString(&msg, Com_Game());
+  Net_WriteString(&msg, Com_Cgame());
   Net_WriteString(&msg, cl.config_strings[CS_MESSAGE]);
 
   // and config_strings

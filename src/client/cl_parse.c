@@ -77,7 +77,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
     return;
   }
 
-  if (IS_INVALID_DOWNLOAD(filename)) {
+  if (!Com_IsValidDownload(filename)) {
     Com_Warn("Refusing to download \"%s\"\n", filename);
     return;
   }
@@ -258,7 +258,6 @@ int32_t Cl_ParseConfigString(void) {
  */
 static void Cl_ParseServerData(void) {
 
-  // wipe the cl_client_t struct
   Cl_ClearState();
 
   Cl_SetKeyDest(KEY_CONSOLE);
@@ -275,60 +274,45 @@ static void Cl_ParseServerData(void) {
   // determine if we're viewing a demo
   cl.demo_server = Net_ReadByte(&net_message);
 
-  // game directory. Two separate questions: the search path and the game cvar
-  // must always follow the server, while the client game only needs reloading
-  // when it is not already the server's module. Asking the second question of
-  // the cvar or the search path does not work, because a listen server shares
-  // both with us and has already switched them.
-  char *game = Net_ReadString(&net_message);
+  // the game and client game directories, validated before being copied off:
+  // truncating first would turn an over-long name into a legal one
+  const char *s = Net_ReadString(&net_message);
 
-  if (!Fs_ValidGame(game)) {
-    Com_Error(ERROR_DROP, "Server sent an invalid game directory\n");
+  if (!Com_IsValidGame(s)) {
+    Com_Error(ERROR_DROP, "Server sent an invalid game directory: %s\n", s);
   }
 
-  // the game the server wants loaded for its client game module. This comes
-  // from the game module itself (g_export_t.cgame), not a cvar the server
-  // operator can set, so a hostile or careless server can only name a game
-  // that isn't installed or doesn't provide cgame.so - never an arbitrary
-  // string
-  char *cgame_dir = Net_ReadString(&net_message);
+  char game[MAX_QPATH];
+  q_strlcpy(game, s, sizeof(game));
 
-  char previous_game[MAX_QPATH];
-  q_strlcpy(previous_game, Com_Game(), sizeof(previous_game));
+  s = Net_ReadString(&net_message);
 
-  // Sys_OpenLibrary only ever resolves modules through the mounted search
-  // path, so game and cgame_dir must both be mounted before we can even ask
-  // whether either provides a client game - probing first would just ask the
-  // question of whatever game was previously running
-  if (!Com_SetGame(game)) {
+  if (!Com_IsValidGame(s)) {
+    Com_Error(ERROR_DROP, "Server sent an invalid cgame directory: %s\n", s);
+  }
+
+  char cgame[MAX_QPATH];
+  q_strlcpy(cgame, s, sizeof(cgame));
+
+  // ensure we have the required cgame installed
+  if (!Sys_HasLibrary(cgame, "cgame")) {
+    Com_Error(ERROR_DROP, "Server requires uninstalled client game: %s\n", cgame);
+  }
+
+  // set the game directory
+  if (!Com_SetGame(game, cgame)) {
     Com_Error(ERROR_DROP, "Failed to set game: %s\n", game);
   }
 
-  Fs_AddCgameSearchPath(cgame_dir);
-
-  void *probe = Sys_OpenLibrary("cgame", cgame_dir);
-  if (!probe) {
-    cgame_dir = game;
-    probe = Sys_OpenLibrary("cgame", cgame_dir);
+  // only the module we hold can say which one it is, and it says so only once a
+  // load has succeeded, so a load that failed is retried rather than remembered
+  if (!cls.cgame || q_strcmp(cls.cgame->name, cgame)) {
+    Cl_InitCgame();
   }
 
-  if (!probe) {
-    Com_SetGame(previous_game);
-    Com_Error(ERROR_DROP, "%s provides no client game module\n", game);
-  }
-  Sys_CloseLibrary(probe);
-
-  if (q_strcmp(cls.cgame_dir, cgame_dir)) {
-    Cl_InitCgame(cgame_dir);
-  }
-
-  // ensure the module we loaded is the module the server is running. Sys_OpenLibrary
-  // resolves cgame.so through the whole search path, and lib/quetoo/default is a
-  // retained base path, so a client without the server's module loads default's
-  // instead. Only the module can answer for itself; the game cvar and the search
-  // path record what was asked for, not what was found
-  if (q_strcmp(cls.cgame->name, cgame_dir)) {
-    Com_Error(ERROR_DROP, "Server requires client game %s, you loaded %s\n", cgame_dir, cls.cgame->name);
+  // ensure the module we loaded is the module the server expects
+  if (q_strcmp(cls.cgame->name, cgame)) {
+    Com_Error(ERROR_DROP, "Server requires client game %s, you loaded %s\n", cgame, cls.cgame->name);
   }
 
   // ensure protocol minor matches

@@ -54,7 +54,7 @@ void Cl_Frame(const uint32_t msec) {
 /**
  * @brief Null client stub: no client game to load.
  */
-void Cl_InitCgame(const char *dir) {
+void Cl_InitCgame(void) {
 
 }
 

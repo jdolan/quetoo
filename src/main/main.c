@@ -239,30 +239,15 @@ static const char *StartupGame(void) {
 }
 
 /**
- * @return True if the game that is current provides the module this executable
- * loads: the client game for a client, the game module for a dedicated server.
- */
-static bool HasGameModule(void) {
-
-  const char *module = dedicated->value ? "game" : "cgame";
-
-  void *handle = Sys_OpenLibrary(module, Com_Game());
-  if (handle) {
-    Sys_CloseLibrary(handle);
-    return true;
-  }
-
-  Com_Warn("%s provides no %s module\n", Com_Game(), module);
-  return false;
-}
-
-/**
  * @brief Console command to change the game module that is current.
  * @details Changing games is an operation, not an assignment: the game and client
  * game modules are both loaded from the game that is current, so whatever is
  * running has to come down first. This is the only place that knows about both the
  * server and the client, which is why the policy lives here and `Com_SetGame`
  * carries none.
+ *
+ * Any game directory is accepted: one that ships no module of its own runs the
+ * default game's, so there is nothing left to refuse.
  */
 static void Game_f(void) {
 
@@ -273,13 +258,17 @@ static void Game_f(void) {
 
   const char *game = Cmd_Argv(1);
 
-  if (!q_strcmp(game, Com_Game())) {
-    Com_Print("Game is already ^2%s^7\n", game);
+  if (!Com_IsValidGame(game)) {
+    Com_Print("^1Invalid game: %s^7\n", game);
     return;
   }
 
-  if (!Fs_ValidGame(game)) {
-    Com_Print("^1Invalid game: %s^7\n", game);
+  const char *cgame = Sys_LibraryDir(game, "cgame");
+
+  // the provider is part of what is current, so a game that has since gained a
+  // client game of its own is still a change worth making
+  if (!q_strcmp(game, Com_Game()) && !q_strcmp(cgame ? : "", Com_Cgame())) {
+    Com_Print("Game is already ^2%s^7\n", game);
     return;
   }
 
@@ -291,19 +280,12 @@ static void Game_f(void) {
     Cl_Disconnect();
   }
 
-  char previous[MAX_QPATH];
-  q_strlcpy(previous, Com_Game(), sizeof(previous));
-
-  if (!Com_SetGame(game)) {
+  if (!Com_SetGame(game, cgame)) {
     return;
   }
 
-  if (!HasGameModule()) {
-    Com_SetGame(previous);
-  }
-
   if (Com_WasInit(QUETOO_CLIENT)) {
-    Cl_InitCgame(Com_Game());
+    Cl_InitCgame();
   }
 }
 
@@ -428,10 +410,10 @@ static void Init(void) {
 
   Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
-  // fall back rather than failing inside the load, so that a mistyped +game
-  // behaves as the game command does
-  if (!Com_SetGame(StartupGame()) || !HasGameModule()) {
-    Com_SetGame(DEFAULT_GAME);
+  const char *game = StartupGame();
+
+  if (!Com_SetGame(game, Sys_LibraryDir(game, "cgame"))) {
+    Com_SetGame(DEFAULT_GAME, Sys_LibraryDir(DEFAULT_GAME, "cgame"));
   }
 
   Thread_Init(threads->integer);
@@ -461,6 +443,12 @@ static void Init(void) {
   // Re-add data search paths in case the installer just created them
   Fs_AddToSearchPathv(Fs_DataDir(), NULL);
   Fs_AddToSearchPathv(Fs_DataDir(), Com_Game(), NULL);
+
+  // after Cl_Init has queued the default binds and their quetoo.cfg, so that
+  // autoexec.cfg has the last word, and a dedicated server reaches it too
+  if (Fs_Exists("autoexec.cfg")) {
+    Cbuf_AddText("exec autoexec.cfg\n");
+  }
 
   // execute any +commands specified on the command line
   Cbuf_InsertFromDefer();
