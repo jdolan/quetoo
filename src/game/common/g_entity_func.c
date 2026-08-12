@@ -699,15 +699,22 @@ static void G_func_bob_Bottom(g_entity_t *ent);
 static void G_func_bob_Ease(g_entity_t *ent) {
   g_move_info_t *move = &ent->move_info;
 
+  const float total_distance = Vec3_Distance(move->start_origin, move->end_origin);
+
   vec3_t dir;
   const float remaining = Vec3_DistanceDir(move->dest, ent->s.origin, &dir);
 
-  if (remaining <= .25f || Vec3_Dot(dir, move->dir) < 0.f) {
+  // G_MoveInfo_Linear_Done snaps position exactly to `dest`, so this threshold is the size of
+  // that final pop. A fixed .25 units is invisible on a long mover but reads as a visible jump
+  // on a short leg (e.g. .25 is ~3% of an 8-unit travel) - scale it down for short legs instead,
+  // capped at the old constant so long legs keep the same tolerance as before.
+  const float arrival_epsilon = Clampf(total_distance * .01f, .01f, .25f);
+
+  if (remaining <= arrival_epsilon || Vec3_Dot(dir, move->dir) < 0.f) {
     G_MoveInfo_Linear_Done(ent);
     return;
   }
 
-  const float total_distance = Vec3_Distance(move->start_origin, move->end_origin);
   const float traveled = total_distance - remaining;
 
   const float t = traveled / total_distance;
@@ -807,13 +814,18 @@ static void G_func_bob_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activ
  velocity : The direction and distance to travel from the spawn origin, e.g. "0 0 32".
  speed : The peak speed reached at the midpoint of travel (default 100). Motion eases from 0 up
          to this and back down to 0 at each end, like a pendulum or a floating object bobbing.
- compression : Shapes the ease curve (default 1, pure sine). Greater than 1 narrows the peak and
-               adds "hang time" at each end; less than 1 flattens/widens the peak.
+ compression : Shapes the ease curve. Greater than 1 narrows the peak and adds "hang time" at each
+               end; less than 1 flattens/widens the peak. If unset, auto-derived from how long the
+               leg takes to traverse (velocity's distance divided by speed) so legs far from a ~1
+               second sweet spot in either direction - too short (stutters) or too long (a slow
+               crawl before the entity gets moving) - get a flatter curve instead of always
+               defaulting to a pure sine; set explicitly to override.
  wait : Seconds to pause at each end before reversing (default 0, i.e. continuous bobbing).
- drift : Multiplier (default 1) on the entity's own natural cycle length, used to pick a random
-         startup delay so multiple func_bobs with identical keys don't move in lockstep. 1 spans
-         one full cycle (complete phase coverage); raise it for extra margin, lower it to allow
-         more visible clustering.
+ drift : Multiplier (default 0, i.e. no startup delay) on the entity's own natural cycle length,
+         used to pick a random startup delay so multiple func_bobs with identical keys don't move
+         in lockstep - set this on an array of identical func_bobs to desync them. 1 spans one
+         full cycle (complete phase coverage); raise it for extra margin, lower it to allow more
+         visible clustering.
  dmg : The damage inflicted on players who block the entity (default 2).
  sound : The looping sound to play while moving.
  targetname : The target name of this entity if it is to be triggered, to toggle it on or off.
@@ -839,11 +851,6 @@ void G_func_bob(g_entity_t *ent) {
     ent->speed = 100.0;
   }
 
-  // reuse the generic `random` field to cache the "compression" exponent, read once here rather
-  // than every tick in G_func_bob_Ease
-  const float compression = gi.EntityValue(ent->def, "compression")->value;
-  ent->random = compression > 0.f ? compression : 1.f;
-
   if (!ent->damage) {
     ent->damage = 2;
   }
@@ -851,8 +858,30 @@ void G_func_bob(g_entity_t *ent) {
   ent->pos1 = ent->s.origin;
   ent->pos2 = Vec3_Add(ent->pos1, gi.EntityValue(ent->def, "velocity")->vec3);
 
-  if (Vec3_Equal(ent->pos1, ent->pos2)) {
+  const float total_distance = Vec3_Distance(ent->pos1, ent->pos2);
+  if (total_distance == 0.f) {
     G_Warn("%s @ %s has no \"velocity\" and will not move\n", ent->classname, vtos(ent->s.origin));
+  }
+
+  // Average speed of a half-sine leg is (2/pi) * peak, giving leg_time = distance * pi / (2 * speed).
+  const float leg_time = total_distance > 0.f ? (total_distance * (float) M_PI) / (2.f * ent->speed) : 0.f;
+
+  // reuse the generic `random` field to cache the "compression" exponent, read once here rather
+  // than every tick in G_func_bob_Ease. If unset, auto-derive it from the leg's duration instead of
+  // defaulting to a flat 1 (pure sine): a full sine only reads right for a leg lasting roughly a
+  // second. Shorter legs (too few ticks to render the ease smoothly) and longer legs (the sine's
+  // slow "wings" become a disproportionate chunk of real time, e.g. a multi-second crawl before a
+  // platform gets moving) both want a flatter curve; a continuous falloff in log(leg_time) treats
+  // "half as long" and "twice as long" symmetrically, tapering toward a floor the farther the leg
+  // is from that ~1s sweet spot in either direction. Calibrated against two tested legs: ~1s
+  // (wants ~1.0) and ~7s (wants ~0.5) - solving for the width that fits both against a 0.35 floor.
+  // log(0) degrades gracefully to the floor for a zero-velocity leg, no special case needed.
+  const float compression = gi.EntityValue(ent->def, "compression")->value;
+  if (compression > 0.f) {
+    ent->random = compression;
+  } else {
+    const float z = logf(leg_time) / 1.61f;
+    ent->random = .35f + .65f * expf(-z * z);
   }
 
   ent->move_info.speed = ent->speed;
@@ -868,23 +897,23 @@ void G_func_bob(g_entity_t *ent) {
   gi.LinkEntity(ent);
 
   if (!(ent->spawn_flags & BOB_START_OFF)) {
-    // Stagger the initial phase across identical func_bobs so they don't move in lockstep.
+    // Stagger the initial phase across identical func_bobs so they don't move in lockstep, but
+    // only when the mapper opts in via "drift" - absent means a single (or non-array) func_bob
+    // starts moving immediately, same as every other func_* entity, rather than picking a hidden
+    // random delay across its own cycle by default.
+    //
     // A random startup delay only decorrelates phase if it spans a full cycle - a flat number
     // of seconds looks random for some speed/distance/wait combos and barely-desynced for
     // others, since the mapper has no easy way to know the entity's actual cycle length. So
-    // derive the window from the entity's own numbers: average speed of a half-sine leg is
-    // (2/pi) * peak, giving leg_time = distance * pi / (2 * speed); the full up-down-wait cycle
-    // is twice that plus twice the wait.
-    const float total_distance = Vec3_Distance(ent->pos1, ent->pos2);
-    const float leg_time = total_distance > 0.f ? (total_distance * (float) M_PI) / (2.f * ent->speed) : 0.f;
+    // derive the window from the entity's own numbers: the full up-down-wait cycle is twice
+    // the leg time (computed above, alongside the auto-compression derivation) plus twice the wait.
     const float cycle_time = 2.f * (leg_time + ent->wait);
 
-    const float drift = gi.EntityValue(ent->def, "drift")->value;
-    const float drift_scale = drift > 0.f ? drift : 1.f;
+    const float drift_scale = gi.EntityValue(ent->def, "drift")->value;
 
     ent->Think = G_func_bob_GoingUp;
     ent->next_think = g_level.time + QUETOO_TICK_MILLIS +
-                       (uint32_t) (RandomRangef(0.f, drift_scale * cycle_time) * 1000.f);
+                       (uint32_t) (RandomRangef(0.f, Maxf(drift_scale, 0.f) * cycle_time) * 1000.f);
   }
 }
 
