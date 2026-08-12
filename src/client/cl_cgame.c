@@ -144,17 +144,21 @@ static char *Cl_ConfigString(int32_t index) {
 }
 
 /**
- * @brief Initializes the client game subsystem
+ * @brief Initializes the client game subsystem, running the client game that
+ * `Com_Cgame` names.
  */
 void Cl_InitCgame(void) {
   cg_import_t import;
 
-  if (cls.cgame) {
-    Cl_ShutdownCgame();
-  } else if (cgame_handle) {
-    removeClassImage(cgame_handle);
-    Sys_CloseLibrary(cgame_handle);
-    cgame_handle = NULL;
+  const char *dir = Com_Cgame();
+
+  if (!*dir) {
+    Com_Error(ERROR_DROP, "Neither %s nor %s provides a client game module\n", Com_Game(), DEFAULT_GAME);
+  }
+
+  void *handle = Sys_OpenLibrary(dir, "cgame");
+  if (!handle) {
+    Com_Error(ERROR_DROP, "Failed to open %s's client game module\n", dir);
   }
 
   Com_Print("Client game initialization...\n");
@@ -317,28 +321,34 @@ void Cl_InitCgame(void) {
   import.Draw3DLines = R_Draw3DLines;
   import.Draw3DBox = R_Draw3DBox;
 
-  cgame_handle = Sys_OpenLibrary("cgame");
-  assert(cgame_handle);
+  // the module we hold comes down before the new one is asked for anything, so
+  // that its Cg_LoadCgame cannot have work undone by the outgoing module's
+  // teardown. Nothing below may fail without leaving us no client game at all
+  Cl_ShutdownCgame();
+
+  cgame_handle = handle;
+
+  cg_export_t *cgame = Sys_LoadLibrary(cgame_handle, "Cg_LoadCgame", &import);
+
+  if (!cgame) {
+    cgame_handle = Sys_CloseLibrary(cgame_handle);
+    Com_Error(ERROR_FATAL, "Failed to load %s's client game\n", dir);
+  }
+
+  if (cgame->api_version != CGAME_API_VERSION) {
+    const int32_t version = cgame->api_version;
+    cgame_handle = Sys_CloseLibrary(cgame_handle);
+    Com_Error(ERROR_FATAL, "%s's client game is version %i, not %i\n", dir, version, CGAME_API_VERSION);
+  }
 
   // ObjectivelyMVC binds Views by class name, from JSON hierarchies and CSS
   // selectors, and the module is opened RTLD_LOCAL so that two modules' symbols
   // cannot coalesce - which leaves it out of the namespace Objectively would
   // otherwise search, and Windows has no such namespace at all.
   addClassImage(cgame_handle);
-  
-  cls.cgame = Sys_LoadLibrary(cgame_handle, "Cg_LoadCgame", &import);
 
-  if (!cls.cgame) {
-    Com_Error(ERROR_DROP, "Failed to load client game\n");
-  }
-
-  if (cls.cgame->api_version != CGAME_API_VERSION) {
-    Com_Error(ERROR_DROP, "Client game is version %i, not %i\n", cls.cgame->api_version, CGAME_API_VERSION);
-  }
-
+  cls.cgame = cgame;
   cls.cgame->Init();
-
-  q_strlcpy(cls.cgame_game, Com_Game(), sizeof(cls.cgame_game));
 
   Com_Print("Client game initialized\n");
   Com_InitSubsystem(QUETOO_CGAME);
@@ -357,7 +367,6 @@ void Cl_ShutdownCgame(void) {
 
   cls.cgame->Shutdown();
   cls.cgame = NULL;
-  cls.cgame_game[0] = '\0';
 
   Cmd_RemoveAll(CMD_CGAME);
 
@@ -371,6 +380,5 @@ void Cl_ShutdownCgame(void) {
   // the Classes this image declared must not outlive it
   removeClassImage(cgame_handle);
 
-  Sys_CloseLibrary(cgame_handle);
-  cgame_handle = NULL;
+  cgame_handle = Sys_CloseLibrary(cgame_handle);
 }

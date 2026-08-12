@@ -249,6 +249,15 @@ void Cl_ClearState(void) {
   if (Com_WasInit(QUETOO_CGAME)) {
     cls.cgame->ClearState();
   }
+  
+  if (cls.demo_file) {
+    Cl_Stop_f();
+  }
+  
+  if (cls.download.file) {
+    Fs_Close(cls.download.file);
+    memset(&cls.download, 0, sizeof(cls.download));
+  }
 
   Cl_ClearInput();
 
@@ -290,18 +299,11 @@ void Cl_Disconnect(void) {
   Cl_SendDisconnect();
 
   Cl_ClearState();
+  
   RESTClient *client = $$(RESTClient, sharedInstance);
+  
   if (client->session->configuration->urlCache) {
     $(client->session->configuration->urlCache, removeAllCachedResponses);
-  }
-
-  if (cls.demo_file) {
-    Cl_Stop_f();
-  }
-
-  if (cls.download.file) {
-    Fs_Close(cls.download.file);
-    memset(&cls.download, 0, sizeof(cls.download));
   }
 
   memset(cls.server_name, 0, sizeof(cls.server_name));

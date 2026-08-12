@@ -1154,6 +1154,7 @@ g_export_t *G_LoadGame(g_import_t *import) {
 
   ge.api_version = GAME_API_VERSION;
   ge.protocol = PROTOCOL_MINOR;
+  ge.cgame = GAME_NAME;
 
   ge.Init = G_Init;
   ge.Shutdown = G_Shutdown;

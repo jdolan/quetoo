@@ -326,7 +326,7 @@ int32_t main(int32_t argc, char **argv) {
     }
   }
 
-  if (!Com_SetGame(game)) {
+  if (!Com_SetGame(game, NULL)) {
     Com_Error(ERROR_FATAL, "Invalid game: %s\n", game);
   }
 

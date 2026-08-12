@@ -185,63 +185,70 @@ static const char *Sys_LibraryName(const char *name) {
 }
 
 /**
- * @brief Resolves a module the current game provides.
- * @return The real directory holding `so_name`, or `NULL` if this game has none.
- * @details The module must come from the game's own directory. Every module is
- * named game.so or cgame.so and <lib_dir>/default stays mounted as a base path
- * for the shared UI, so accepting whatever the search path resolves would run
- * another game's module under this game's name. Directories are prepended as they
- * are mounted and Fs_SetGame mounts the game's own last, so the game's copy wins
- * wherever it exists: resolving anything else means it has none.
+ * @return True if `game` provides the module `name`, with no fallback.
  */
-static const char *Sys_LibraryDir(const char *so_name) {
+bool Sys_HasLibrary(const char *game, const char *name) {
+  char path[MAX_OS_PATH];
 
-  const char *real_dir = Fs_Exists(so_name) ? Fs_RealDir(so_name) : NULL;
-
-  return real_dir && !q_strcmp(Basename(real_dir), Com_Game()) ? real_dir : NULL;
+  return Fs_FindLibrary(game, Sys_LibraryName(name), path, sizeof(path));
 }
 
 /**
- * @return True if the current game provides the named module.
- * @details Lets a game change be refused before it tears anything down, rather
- * than dropping to the console from inside the load.
+ * @return The game directory providing the module `name` for `game`, or `NULL`
+ * if neither it nor the default game does.
  */
-bool Sys_HasLibrary(const char *name) {
-  return Sys_LibraryDir(Sys_LibraryName(name)) != NULL;
-}
+const char *Sys_LibraryDir(const char *game, const char *name) {
 
-/**
- * @brief Loads a shared library by name from the game that is current.
- * @return A handle to the loaded library, or aborts with `ERROR_DROP` on failure.
- */
-void *Sys_OpenLibrary(const char *name) {
-
+  char path[MAX_OS_PATH];
   const char *so_name = Sys_LibraryName(name);
-  const char *real_dir = Sys_LibraryDir(so_name);
 
-  if (real_dir) {
-    char path[MAX_OS_PATH];
-
-    q_snprintf(path, sizeof(path), "%s/%s", real_dir, so_name);
-    Com_Print("  Loading %s...\n", path);
-
-    void *handle = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
-    if (handle) {
-      Sys_CheckLibrary(path);
-      return handle;
-    }
-
-    Com_Error(ERROR_DROP, "%s\n", dlerror());
+  if (Fs_FindLibrary(game, so_name, path, sizeof(path))) {
+    return game;
   }
 
-  Com_Error(ERROR_DROP, "Couldn't find %s for game %s\n", so_name, Com_Game());
+  if (Fs_FindLibrary(DEFAULT_GAME, so_name, path, sizeof(path))) {
+    return DEFAULT_GAME;
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Opens a shared library by name from the named game directory.
+ * @param game The game directory name, e.g. @c "ctf".
+ * @param name The library basename, e.g. @c "game".
+ * @return A handle to the library, or `NULL`.
+ */
+void *Sys_OpenLibrary(const char *game, const char *name) {
+
+  char path[MAX_OS_PATH];
+  if (!Fs_FindLibrary(game, Sys_LibraryName(name), path, sizeof(path))) {
+    return NULL;
+  }
+
+  Com_Print("  Loading %s...\n", path);
+
+  void *handle = dlopen(path, RTLD_LAZY | RTLD_LOCAL);
+  if (!handle) {
+    Com_Warn("%s\n", dlerror());
+    return NULL;
+  }
+
+  Sys_CheckLibrary(path);
+  return handle;
 }
 
 /**
  * @brief Closes an open game module.
+ * @return `NULL`, so that a handle may be cleared as it is closed.
  */
-void Sys_CloseLibrary(void *handle) {
-  dlclose(handle);
+void *Sys_CloseLibrary(void *handle) {
+
+  if (handle) {
+    dlclose(handle);
+  }
+
+  return NULL;
 }
 
 /**
@@ -258,7 +265,8 @@ void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
 
   EntryPoint = (EntryPointFunc *) dlsym(handle, entry_point);
   if (!EntryPoint) {
-    Com_Error(ERROR_DROP, "Failed to resolve entry point: %s\n", entry_point);
+    Com_Warn("Failed to resolve entry point: %s\n", entry_point);
+    return NULL;
   }
 
 #if defined(__APPLE__)

@@ -767,15 +767,6 @@ typedef struct {
    * @brief The loaded client game module exports.
    */
   struct cg_export_s *cgame;
-
-  /**
-   * @brief The game directory `cgame` was loaded from.
-   * @details The server's game directory alone can't tell us whether we need to
-   * reload: on a listen server the game cvar and the search path are shared
-   * with the server, which has already switched them by the time we parse its
-   * server data. Only the module we actually hold says what we are running.
-   */
-  char cgame_game[MAX_QPATH];
 } cl_static_t;
 
 #if defined(__CL_LOCAL_H__)
