@@ -55,7 +55,8 @@ $(STAGING): compile
 	$(MAKE) -C .. DESTDIR=$(abspath $(STAGING)) install
 
 $(LINUXDEPLOY):
-	curl -fsSL -o $@ \
+	curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
+		-o $@ \
 		https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-$(ARCH).AppImage
 	chmod +x $@
 
