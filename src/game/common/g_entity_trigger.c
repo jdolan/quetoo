@@ -221,6 +221,8 @@ void G_trigger_always(g_entity_t *ent) {
 
 #define PUSH_ONCE 1
 #define PUSH_EFFECT 2
+#define PUSH_START_OFF 4
+#define PUSH_TOGGLE 8
 
 /**
  * @brief Handles touch events on a `trigger_push`, applying velocity to the touching entity.
@@ -251,6 +253,26 @@ static void G_trigger_push_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
 }
 
 /**
+ * @brief Handles use activation of a `trigger_push`, toggling its solidity on or off.
+ */
+static void G_trigger_push_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
+
+  if (ent->solid == SOLID_NOT) {
+    ent->solid = SOLID_TRIGGER;
+  } else {
+    ent->solid = SOLID_NOT;
+  }
+
+  gi.LinkEntity(ent);
+
+  G_Debug("%s is now %s\n", etos(ent), ent->solid == SOLID_NOT ? "off" : "on");
+
+  if (!(ent->spawn_flags & PUSH_TOGGLE)) {
+    ent->Use = NULL;
+  }
+}
+
+/**
  * @brief Creates an effect trail for the specified entity.
  */
 static void G_trigger_push_Effect(g_entity_t *ent) {
@@ -265,17 +287,20 @@ static void G_trigger_push_Effect(g_entity_t *ent) {
   gi.LinkEntity(effect);
 }
 
-/*QUAKED trigger_push (.5 .5 .5) ? push_once push_effects
+/*QUAKED trigger_push (.5 .5 .5) ? push_once push_effects start_off toggle
  Pushes the player in any direction. These are commonly used to make jump pads to send the player upwards. Using the angles key, you can project the player in any direction using "pitch yaw roll."
 
  -------- Keys --------
  angles : The direction to push the player in "pitch yaw roll" notation (e.g. -80 270 0).
  sound : The sound effect to play when the player is pushed (default "trigger/push").
  speed : The speed with which to push the player (default 100).
+ targetname : The target name of this entity, if it is to be triggered.
 
  -------- Spawn flags --------
  push_once : If set, the pusher is freed after it is used once.
  push_effects : If set, emit particle effects to indicate that a pusher is here.
+ start_off : If set, this entity must be activated before it will push players.
+ toggle : If set, this entity is toggled each time it is activated.
  */
 void G_trigger_push(g_entity_t *ent) {
 
@@ -292,6 +317,13 @@ void G_trigger_push(g_entity_t *ent) {
 
   if (!ent->speed) {
     ent->speed = 100;
+  }
+
+  if (ent->spawn_flags & (PUSH_START_OFF | PUSH_TOGGLE)) {
+    if (ent->spawn_flags & PUSH_START_OFF) {
+      ent->solid = SOLID_NOT;
+    }
+    ent->Use = G_trigger_push_Use;
   }
 
   gi.LinkEntity(ent);
