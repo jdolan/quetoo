@@ -100,6 +100,41 @@ static vec4_t Cg_AddEditorEntity_Light(cg_editor_entity_t *edit) {
 }
 
 /**
+ * @brief Resolves the transform from world space to the entity's model space, in which
+ * the BSP brushes of an entity with an origin are stored.
+ */
+static mat4_t Cg_EditorEntityInverseMatrix(const cg_editor_entity_t *edit) {
+
+  const cl_entity_t *ent = edit->ent;
+  const float scale = cgi.EntityValue(edit->def, "scale")->value ?: 1.f;
+
+  return Mat4_Inverse(Mat4_FromRotationTranslationScale(ent->angles, ent->origin, scale));
+}
+
+/**
+ * @brief Draws a brush wireframe in the entity's frame of reference.
+ * @details BSP brushes of an entity with an origin are stored in model space, so they
+ * must be transformed by the entity's matrix to be drawn where the entity is.
+ */
+static void Cg_DrawEditorBrush(const box3_t bounds, const mat4_t matrix, const color_t color) {
+  static const int32_t edges[] = {
+    0, 1, 1, 3, 3, 2, 2, 0,
+    4, 5, 5, 7, 7, 6, 6, 4,
+    0, 4, 1, 5, 2, 6, 3, 7
+  };
+
+  vec3_t points[8];
+  Box3_ToPoints(bounds, points);
+
+  vec3_t lines[lengthof(edges)];
+  for (size_t i = 0; i < lengthof(edges); i++) {
+    lines[i] = Mat4_Transform(matrix, points[edges[i]]);
+  }
+
+  cgi.Draw3DLines(SDL_GPU_PRIMITIVETYPE_LINELIST, lines, lengthof(lines), color, true);
+}
+
+/**
  * @brief Populates the view and sound stage for the given editor frame.
  */
 void Cg_PopulateEditorScene(const cl_frame_t *frame) {
@@ -111,6 +146,9 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
     cgi.Print("^5To move a selected entity, use W, A, S, D, E, C\n");
     cgi.Print("^5Use your normal hotkeys to cut, copy and paste entities\n");
     cgi.Print("^5To toggle func_group entities, use G\n");
+    cgi.Print("^5To activate a selected mover, use U\n");
+    cgi.Print("^5Movers are previewed with their real behavior; a func_train will\n");
+    cgi.Print("^5relocate to its first path_corner, as it does in game\n");
     cgi.Print("^6To select a material, place your crosshair over it and press ESC\n");
 
     did_print_help = true;
@@ -154,7 +192,7 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
     const bool is_selected = cg_editor.selected == edit->number;
 
     if (edit->brushes) {
-      cgi.AddEntity(cgi.view, &(const r_entity_t) {
+      const r_entity_t *e = cgi.AddEntity(cgi.view, &(const r_entity_t) {
         .id = edit,
         .origin = ent->origin,
         .angles = ent->angles,
@@ -166,15 +204,11 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
         .model = edit->model
       });
 
-      if (is_selected) {
+      if (is_selected || q_strcmp(classname, "worldspawn")) {
+        const color_t color = is_selected ? color_red : Color4fv(debug_color);
         for (uint32_t j = 0; j < edit->brushes->count; j++) {
           const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
-          cgi.Draw3DBox(brush->bounds, color_red, true);
-        }
-      } else if (q_strcmp(classname, "worldspawn")) {
-        for (uint32_t j = 0; j < edit->brushes->count; j++) {
-          const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
-          cgi.Draw3DBox(brush->bounds, Color4fv(debug_color), true);
+          Cg_DrawEditorBrush(brush->bounds, e->matrix, color);
         }
       }
 
@@ -397,10 +431,15 @@ cg_editor_trace_t Cg_EntitySelectionTrace(const vec3_t start, const vec3_t end) 
     }
 
     if (edit->brushes) {
+      const mat4_t inverse = Cg_EditorEntityInverseMatrix(edit);
+
+      const vec3_t model_start = Mat4_Transform(inverse, start);
+      const vec3_t model_end = Mat4_Transform(inverse, end);
+
       for (uint32_t j = 0; j < edit->brushes->count; j++) {
         const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
 
-        const cm_trace_t tr = cgi.TraceToBrush(start, end, brush);
+        const cm_trace_t tr = cgi.TraceToBrush(model_start, model_end, brush);
 
         if (tr.start_solid || tr.fraction >= out.trace.fraction) {
           continue;
@@ -408,6 +447,7 @@ cg_editor_trace_t Cg_EntitySelectionTrace(const vec3_t start, const vec3_t end) 
 
         out.ent = edit;
         out.trace = tr;
+        out.trace.end = Vec3_Mix(start, end, tr.fraction);
       }
     } else {
 
@@ -450,10 +490,15 @@ cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end
     }
 
     if (edit->brushes) {
+      const mat4_t inverse = Cg_EditorEntityInverseMatrix(edit);
+
+      const vec3_t model_start = Mat4_Transform(inverse, start);
+      const vec3_t model_end = Mat4_Transform(inverse, end);
+
       for (uint32_t j = 0; j < edit->brushes->count; j++) {
         const cm_bsp_brush_t *brush = VectorValue(edit->brushes, cm_bsp_brush_t *, j);
 
-        const cm_trace_t tr = cgi.TraceToBrush(start, end, brush);
+        const cm_trace_t tr = cgi.TraceToBrush(model_start, model_end, brush);
 
         if (tr.start_solid || tr.fraction >= out.trace.fraction) {
           continue;
@@ -461,6 +506,7 @@ cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end
 
         out.ent = edit;
         out.trace = tr;
+        out.trace.end = Vec3_Mix(start, end, tr.fraction);
       }
     } else if (IS_MESH_MODEL(edit->model)) {
 

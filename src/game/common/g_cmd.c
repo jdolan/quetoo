@@ -666,6 +666,42 @@ static void G_Admin_f(g_client_t *cl) {
   }
 }
 
+/**
+ * @brief Fires the specified entity on behalf of the editor client, so that movers
+ * can be previewed without a functioning trigger.
+ */
+static void G_EditorUse_f(g_client_t *cl) {
+
+  if (!editor->value) {
+    return;
+  }
+
+  if (gi.Argc() != 2) {
+    gi.ClientPrint(cl, PRINT_HIGH, "Usage: editor_use <entity>\n");
+    return;
+  }
+
+  const int32_t number = atoi(gi.Argv(1));
+
+  if (number < 0 || number >= sv_max_entities->integer) {
+    gi.ClientPrint(cl, PRINT_HIGH, "Invalid entity %d\n", number);
+    return;
+  }
+
+  g_entity_t *ent = ge.entities[number];
+
+  if (!ent->in_use) {
+    gi.ClientPrint(cl, PRINT_HIGH, "Entity %d is not in use\n", number);
+    return;
+  }
+
+  if (ent->Use) {
+    ent->Use(ent, cl->entity, cl->entity);
+  } else {
+    G_UseTargets(ent, cl->entity);
+  }
+}
+
 #if defined(_DEBUG)
 void G_RecordPmove(void);
 void G_PlayPmove(void);
@@ -725,6 +761,8 @@ void G_ClientCommand(g_client_t *cl) {
     G_ClientChasePrevious(cl);
   } else if (q_strcmp(cmd, "chase_next") == 0) {
     G_ClientChaseNext(cl);
+  } else if (q_strcmp(cmd, "editor_use") == 0) {
+    G_EditorUse_f(cl);
   }
 #if defined(_DEBUG)
   else if (q_strcmp(cmd, "pmove_record") == 0) {

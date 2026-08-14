@@ -313,24 +313,40 @@ void G_SetMoveDir(g_entity_t *ent) {
 }
 
 /**
+ * @brief Allocates the entity at the specified index, which must be free.
+ */
+g_entity_t *G_AllocEntityAt(int32_t number, const char *classname) {
+  static uint8_t g_spawn_id;
+
+  if (number < 0 || number >= sv_max_entities->integer) {
+    G_Error("Entity %d out of range (sv_max_entities=%d)\n", number, sv_max_entities->integer);
+  }
+
+  g_entity_t *e = ge.entities[number];
+
+  if (e->in_use) {
+    G_Error("Entity %d is already in use: %s\n", number, etos(e));
+  }
+
+  e->classname = classname;
+  e->in_use = true;
+  e->water_level = WATER_UNKNOWN;
+  e->timestamp = g_level.time;
+  e->s.number = number;
+  e->s.spawn_id = g_spawn_id++;
+
+  return e;
+}
+
+/**
  * @brief Allocates an entity for use.
  */
 g_entity_t *G_AllocEntity(const char *classname) {
-  static uint8_t g_spawn_id;
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
 
-    g_entity_t *e = ge.entities[i];
-    if (!e->in_use) {
-
-      e->classname = classname;
-      e->in_use = true;
-      e->water_level = WATER_UNKNOWN;
-      e->timestamp = g_level.time;
-      e->s.number = i;
-      e->s.spawn_id = g_spawn_id++;
-
-      return e;
+    if (!ge.entities[i]->in_use) {
+      return G_AllocEntityAt(i, classname);
     }
   }
 

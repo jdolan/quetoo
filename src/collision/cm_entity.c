@@ -39,6 +39,9 @@ void Cm_FreeEntity(cm_entity_t *entity) {
 
   while (e) {
     next = e->next;
+    if (e->brushes) {
+      Mem_Free(e->brushes);
+    }
     Mem_Free(e);
     e = next;
   }
