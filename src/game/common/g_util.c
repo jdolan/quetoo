@@ -318,11 +318,11 @@ void G_SetMoveDir(g_entity_t *ent) {
 g_entity_t *G_AllocEntityAt(int32_t number, const char *classname) {
   static uint8_t g_spawn_id;
 
-if (number < 0 || number >= sv_max_entities->integer) {
-  G_Error("Entity %d out of range (sv_max_entities=%d)\n", number, sv_max_entities->integer);
-}
+  if (number < 0 || number >= sv_max_entities->integer) {
+    G_Error("Entity %d out of range (sv_max_entities=%d)\n", number, sv_max_entities->integer);
+  }
 
-g_entity_t *e = ge.entities[number];
+  g_entity_t *e = ge.entities[number];
 
   if (e->in_use) {
     G_Error("Entity %d is already in use: %s\n", number, etos(e));

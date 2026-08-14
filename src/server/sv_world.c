@@ -117,11 +117,12 @@ void Sv_SpawnEntities(const char *name, const cm_entity_t *props) {
   if (editor->value) {
     Sv_LoadEditorMap();
 
-const int32_t num_entities = Cm_Bsp()->num_entities;
+    const int32_t num_entities = Cm_Bsp()->num_entities;
 
-if (num_entities > sv_max_entities->integer) {
-  Com_Error(ERROR_DROP, "Map has %d entities but sv_max_entities is %d\n", num_entities, sv_max_entities->integer);
-}
+    if (num_entities > sv_max_entities->integer) {
+      Com_Error(ERROR_DROP, "Map has %d entities but sv_max_entities is %d\n",
+        num_entities, sv_max_entities->integer);
+    }
 
     cm_entity_t **defs = Mem_TagMalloc(sizeof(cm_entity_t *) * num_entities, MEM_TAG_SERVER);
     for (int32_t i = 0; i < num_entities; i++) {
