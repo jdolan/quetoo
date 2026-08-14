@@ -1059,7 +1059,7 @@ void G_Init(void) {
   g_water_jump_speed = gi.AddCvar("g_water_jump_speed", "420.0", 0, "Upward velocity when jumping out of water. Default 420.0.");
   g_water_speed = gi.AddCvar("g_water_speed", "140.0", 0, "Maximum swimming speed. Default 140.0.");
 
-  g_death_cam = gi.AddCvar("g_death_cam", "1", CVAR_SERVER_INFO, "Detach the view and watch your corpse for deaths not caused by another player's weapon.");
+  g_death_cam = gi.AddCvar("g_death_cam", "1", CVAR_SERVER_INFO, "Detach the view and watch your corpse after certain deaths (0 off, 1 selected MODs, 2 always).");
   g_death_cam_distance = gi.AddCvar("g_death_cam_distance", "120", 0, "Distance the death camera settles behind the point of death.");
   g_death_cam_height = gi.AddCvar("g_death_cam_height", "80", 0, "Height the death camera settles above the point of death.");
   g_death_cam_rise = gi.AddCvar("g_death_cam_rise", "90", 0, "Initial upward speed of the death camera, in units per second.");
