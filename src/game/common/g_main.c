@@ -132,7 +132,6 @@ cvar_t *g_balance_supershotgun_refire;
 cvar_t *g_balance_supershotgun_spread_x;
 cvar_t *g_balance_supershotgun_spread_y;
 cvar_t *g_cheats;
-cvar_t *g_editor_simulate;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
@@ -817,7 +816,7 @@ static void G_Frame(void) {
 
     if (ent->client) {
       G_ClientBeginFrame(ent->client);
-    } else if (!editor->value || g_editor_simulate->value) {
+    } else {
       G_RunEntity(ent);
     }
 
@@ -1028,8 +1027,6 @@ void G_Init(void) {
     "0"
 #endif
     , CVAR_SERVER_INFO, NULL);
-  g_editor_simulate = gi.AddCvar("g_editor_simulate", "1", 0,
-    "Runs entity physics and thinking in editor mode, so that movers can be previewed.");
   g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
   g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
   g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO,
