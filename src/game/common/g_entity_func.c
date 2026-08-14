@@ -2276,25 +2276,67 @@ static vec3_t G_func_train_Offset(const g_entity_t *ent) {
 }
 
 /**
- * @brief Resolves the angles a train should hold on arriving at `corner`, defaulting to its
- * current angles when the corner specifies none. Rotation requires an origin brush to pivot
- * about, so it is ignored for legacy trains.
+ * @brief Whether `corner` orients the train explicitly, by either key an editor might write for
+ * it: `angle` for the rotation widget, or `angles` for all three axes.
  */
-static vec3_t G_func_train_Angles(const g_entity_t *ent, const g_entity_t *corner) {
+static bool G_path_corner_HasAngles(const g_entity_t *corner) {
 
-  const bool has_angles = gi.EntityValue(corner->def, "angles")->parsed & ENTITY_VEC3;
-  const bool has_angle = gi.EntityValue(corner->def, "angle")->parsed & ENTITY_FLOAT;
+  return (gi.EntityValue(corner->def, "angles")->parsed & ENTITY_VEC3) ||
+         (gi.EntityValue(corner->def, "angle")->parsed & ENTITY_FLOAT);
+}
 
-  if (!has_angles && !has_angle) {
-    return ent->s.angles;
-  }
+/**
+ * @brief The angles that face a train travelling from `from` towards `to`, or its current angles
+ * if the two coincide and there is no direction to face.
+ */
+static vec3_t G_func_train_AnglesForLeg(const g_entity_t *ent, const vec3_t from, const vec3_t to) {
+
+  const vec3_t dir = Vec3_Subtract(to, from);
+
+  return Vec3_Equal(dir, Vec3_Zero()) ? ent->s.angles : Vec3_Euler(dir);
+}
+
+/**
+ * @brief The angles a train holds on arriving at `corner` from `from`. A corner that orients the
+ * train explicitly wins; otherwise the train faces the leg it just travelled, so that a cart
+ * follows its rails without the mapper angling every corner by hand. Rotation pivots about the
+ * train's origin, so it requires an origin brush and is skipped for legacy trains.
+ */
+static vec3_t G_func_train_Angles(const g_entity_t *ent, const g_entity_t *corner, const vec3_t from) {
 
   if (!G_func_train_HasOrigin(ent)) {
-    G_Debug("%s has angles but %s has no origin brush to rotate about\n", etos(corner), etos(ent));
+    if (G_path_corner_HasAngles(corner)) {
+      G_Debug("%s has angles but %s has no origin brush to rotate about\n", etos(corner), etos(ent));
+    }
     return ent->s.angles;
   }
 
-  return corner->s.angles;
+  if (G_path_corner_HasAngles(corner)) {
+    return corner->s.angles;
+  }
+
+  return G_func_train_AnglesForLeg(ent, from, corner->s.origin);
+}
+
+/**
+ * @brief The angles a train holds while standing at `corner` with no leg behind it to face, as
+ * when it spawns or teleports. Having nothing to look back on, it looks ahead to the corner it
+ * will depart towards, so that it starts out aligned with its route rather than snapping around
+ * over its first leg.
+ */
+static vec3_t G_func_train_AnglesAt(const g_entity_t *ent, const g_entity_t *corner) {
+
+  if (!G_func_train_HasOrigin(ent)) {
+    return ent->s.angles;
+  }
+
+  if (G_path_corner_HasAngles(corner)) {
+    return corner->s.angles;
+  }
+
+  const g_entity_t *next = corner->target ? G_PickTarget(corner->target) : NULL;
+
+  return next ? G_func_train_AnglesForLeg(ent, corner->s.origin, next->s.origin) : ent->s.angles;
 }
 
 /**
@@ -2379,7 +2421,7 @@ again:
     first = false;
     ent->s.origin = Vec3_Add(target->s.origin, G_func_train_Offset(ent));
 
-    ent->s.angles = G_func_train_Angles(ent, target);
+    ent->s.angles = G_func_train_AnglesAt(ent, target);
     ent->avelocity = Vec3_Zero();
     ent->move_info.speed = target->speed ? : ent->speed;
 
@@ -2411,7 +2453,7 @@ again:
   ent->move_info.end_origin = dest;
 
   ent->move_info.start_angles = ent->s.angles;
-  ent->move_info.end_angles = G_func_train_Angles(ent, target);
+  ent->move_info.end_angles = G_func_train_Angles(ent, target, ent->s.origin);
   ent->avelocity = Vec3_Zero();
 
   const float dest_speed = target->speed ? : ent->speed;
@@ -2470,7 +2512,7 @@ static void G_func_train_Find(g_entity_t *ent) {
 
   ent->s.origin = Vec3_Add(target->s.origin, G_func_train_Offset(ent));
 
-  ent->s.angles = G_func_train_Angles(ent, target);
+  ent->s.angles = G_func_train_AnglesAt(ent, target);
   ent->move_info.start_angles = ent->s.angles;
   ent->move_info.end_angles = ent->s.angles;
   ent->move_info.speed = target->speed ? : ent->speed;
@@ -2522,12 +2564,14 @@ static void G_func_train_Use(g_entity_t *ent, g_entity_t *other,
  rotates about. Without one, the origin of each corner specifies the lower bounding point of the
  train, and the train cannot rotate.
 
+ An origin brush is therefore all it takes to make a train turn: it will face along each leg of
+ its route, turning and pitching to follow the rails, without any corner being angled by hand.
+ Angle a corner explicitly only where that is not what you want.
+
  -------- Keys --------
  speed : The speed with which the train moves (default 100).
  dmg : The damage inflicted on players who block the train (default 2).
  sound : The looping sound to play while the train is in motion.
- angles : The initial orientation of the train. Requires an origin brush, and is overridden by
- the angles of the first path_corner if it specifies any.
  targetname : The target name of this entity if it is to be triggered.
 
  -------- Spawn flags --------
@@ -2542,7 +2586,8 @@ static void G_func_train_Use(g_entity_t *ent, g_entity_t *other,
  own speed. Because the client stops interpolating an entity that moves more than 60 units in a
  single frame, speeds much above 2400 will render as a stutter rather than as motion.
  angles : The orientation the train holds on arriving here, rotating into it over the length of
- the leg. Requires the train to have an origin brush.
+ the leg. Requires the train to have an origin brush. `angle` is accepted for yaw alone. Omit both
+ and the train faces the leg it travelled to get here, which is usually what you want.
  pathtarget : Fired when the train arrives here.
  target : The next corner in the route. Point the last corner back at the first to loop.
 
