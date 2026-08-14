@@ -115,6 +115,12 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 
   const box3_t bounds = Box3f(32.f, 32.f, 32.f);
 
+  if (ps->pm_state.flags & PMF_DEATH_CAM) {
+    // the game has already resolved the camera into the view offset
+    cgi.client->third_person = true;
+    return;
+  }
+
   if (cg_third_person->value && Cg_Self()->current.model1) {
     cgi.client->third_person = true;
   } else if (cg_third_person_chasecam->value && ps->stats[STAT_CHASE]) {
@@ -329,7 +335,9 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
   cgi.view->angles = Vec3_Add(cgi.view->angles, angles);
 
   if (ps1->pm_state.type == PM_DEAD) {
-    cgi.view->angles.x = 0.0;
+    if (!(ps1->pm_state.flags & PMF_DEATH_CAM)) { // the death camera needs its pitch
+      cgi.view->angles.x = 0.0;
+    }
   } else if (ps1->pm_state.type == PM_FREEZE) {
     cgi.client->angles = cgi.view->angles;
   }

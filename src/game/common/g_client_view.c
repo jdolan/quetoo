@@ -234,6 +234,81 @@ static void G_ClientWorldAngles(g_client_t *cl) {
 }
 
 /**
+ * @brief Advances the death camera, which is armed by `G_ClientDie` for deaths
+ * that aren't a frag by another player's weapon. The camera drifts up and away
+ * from the point of death, carrying a fraction of the velocity the player died
+ * with, and watches the corpse until they respawn.
+ *
+ * @remarks The camera is resolved entirely here, as an eye offset from the
+ * corpse. Nothing about it is sent to the client beyond `PMF_DEATH_CAM`, so it
+ * interpolates, replays in demos and propagates to chase cameras for free.
+ */
+static void G_ClientDeathCam(g_client_t *cl) {
+
+  if (!(cl->ps.pm_state.flags & PMF_DEATH_CAM)) {
+    return;
+  }
+
+  const g_entity_t *ent = cl->entity;
+
+  // resolve the corpse's eyes directly, mirroring Pm_CheckDuck. the view offset
+  // can't be used here: we overwrite it below, and pmove only reclaims its z
+  // for the dead, so its x and y would feed the camera back into itself
+  const vec3_t eyes = Vec3_Add(ent->s.origin,
+                               Vec3(0.f, 0.f, (cl->ps.pm_state.flags & PMF_GIBLET) ? 0.f : -16.f));
+
+  const float duration = Maxf(g_death_cam_time->value, QUETOO_TICK_MILLIS);
+
+  const float elapsed = g_level.time - cl->death_cam_time;
+
+  const float frac = Clampf01(elapsed / duration);
+  const float prev = Clampf01((elapsed - QUETOO_TICK_MILLIS) / duration);
+
+  // ease out towards the settled offset, applied as a delta so that it
+  // composes with the inherited velocity rather than fighting it
+  const float ease = (1.f - (1.f - frac) * (1.f - frac)) - (1.f - (1.f - prev) * (1.f - prev));
+
+  cl->death_cam_origin = Vec3_Fmaf(cl->death_cam_origin, ease, cl->death_cam_offset);
+
+  // and coast the inherited velocity to a stop over the same interval
+  cl->death_cam_origin = Vec3_Fmaf(cl->death_cam_origin, QUETOO_TICK_SECONDS, cl->death_cam_velocity);
+  cl->death_cam_velocity = Vec3_Scale(cl->death_cam_velocity, expf(-3.f * QUETOO_TICK_MILLIS / duration));
+
+  // don't let the camera escape the room we died in. the trace runs from the
+  // corpse's origin rather than its eyes, which sit close enough to the floor
+  // to start solid, and the clamp is applied to the resolved position only, so
+  // that grazing a wall doesn't permanently arrest the camera
+  vec3_t origin = cl->death_cam_origin;
+
+  const cm_trace_t tr = gi.Trace(ent->s.origin, origin, Box3f(16.f, 16.f, 16.f), ent,
+                                 CONTENTS_MASK_CLIP_PLAYER);
+  if (!tr.start_solid && !tr.all_solid) {
+    origin = tr.end;
+  }
+
+  cl->ps.pm_state.view_offset = Vec3_Subtract(origin, ent->s.origin);
+
+  // look at the corpse, in absolute terms
+  const vec3_t dir = Vec3_Subtract(eyes, origin);
+
+  if (Vec3_Length(dir) > 1.f) {
+    const vec3_t angles = Vec3_Euler(Vec3_Normalize(dir));
+
+    cl->death_cam_angles.x = angles.x;
+    cl->death_cam_angles.z = 0.f;
+
+    // yaw is meaningless when we're looking straight down at ourselves, and
+    // solving for it anyway swings the camera through half a turn in a frame
+    if (Vec3_Length(Vec3(dir.x, dir.y, 0.f)) > 16.f) {
+      cl->death_cam_angles.y = angles.y;
+    }
+  }
+
+  cl->ps.pm_state.view_angles = cl->death_cam_angles;
+  cl->ps.pm_state.delta_angles = Vec3_Zero();
+}
+
+/**
  * @brief Adds view kick in the specified direction to the specified client.
  */
 void G_ClientDamageKick(g_client_t *cl, const vec3_t dir, const float kick) {
@@ -434,6 +509,9 @@ void G_ClientEndFrame(g_client_t *cl) {
 
   // and the angles on the world model
   G_ClientWorldAngles(cl);
+
+  // detach the view if we died an inglorious death
+  G_ClientDeathCam(cl);
 
   // update the player's animations
   G_ClientAnimation(cl);

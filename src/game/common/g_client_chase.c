@@ -62,6 +62,11 @@ void G_ClientChaseThink(g_client_t *cl) {
   } else {
     cl->ps.pm_state.delta_angles.z = -cl->ps.pm_state.delta_angles.z;
 
+    // drop any death camera inherited from the client we were chasing, which
+    // pmove won't reclaim for a spectator
+    cl->ps.pm_state.flags &= ~PMF_DEATH_CAM;
+    cl->ps.pm_state.view_offset = Vec3_Zero();
+
     // enable the spectator's input
     cl->ps.pm_state.type = PM_SPECTATOR;
   }
