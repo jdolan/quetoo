@@ -2461,6 +2461,7 @@ again:
   if (speed != dest_speed) {
     G_MoveInfo_Linear_Init_Ramp(ent, dest, speed, dest_speed, G_func_train_Wait);
   } else {
+    ent->move_info.start_speed = dest_speed;
     ent->move_info.speed = dest_speed;
     G_MoveInfo_Linear_Init(ent, dest, G_func_train_Wait);
     G_MoveInfo_Angular_Lerp(ent, Vec3_Distance(dest, ent->move_info.start_origin), dest_speed);
@@ -2470,7 +2471,9 @@ again:
 }
 
 /**
- * @brief Resumes train movement toward the current target `path_corner` after a stop.
+ * @brief Resumes train movement toward the current target `path_corner` after a stop. A ramped leg
+ * picks up where it left off: the ramp is a function of how far along the leg we are, so retaining
+ * the leg's original `start_origin` is all it takes to resume at the speed we stopped at.
  */
 static void G_func_train_Resume(g_entity_t *ent) {
   g_entity_t *target;
@@ -2480,15 +2483,19 @@ static void G_func_train_Resume(g_entity_t *ent) {
 
   dest = Vec3_Add(target->s.origin, G_func_train_Offset(ent));
   ent->move_info.state = MOVE_STATE_TOP;
-  ent->move_info.start_origin = ent->s.origin;
   ent->move_info.end_origin = dest;
 
   ent->move_info.start_angles = ent->s.angles;
-  ent->move_info.speed = target->speed ? : ent->speed;
   ent->avelocity = Vec3_Zero();
 
-  G_MoveInfo_Linear_Init(ent, dest, G_func_train_Wait);
-  G_MoveInfo_Angular_Lerp(ent, Vec3_Distance(dest, ent->s.origin), ent->move_info.speed);
+  const float speed = ent->move_info.speed;
+
+  if (ent->move_info.start_speed != speed) {
+    G_MoveInfo_Linear_Init_Ramp(ent, dest, ent->move_info.start_speed, speed, G_func_train_Wait);
+  } else {
+    G_MoveInfo_Linear_Init(ent, dest, G_func_train_Wait);
+    G_MoveInfo_Angular_Lerp(ent, Vec3_Distance(dest, ent->s.origin), speed);
+  }
 
   ent->spawn_flags |= TRAIN_START_ON;
 }
