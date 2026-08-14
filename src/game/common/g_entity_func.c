@@ -85,6 +85,8 @@ static void G_MoveInfo_Linear_Constant(g_entity_t *ent) {
   const float distance = Vec3_Distance(move->dest, ent->s.origin);
   move->const_frames = distance / move->speed * QUETOO_TICK_RATE;
 
+  move->current_speed = move->speed;
+
   ent->velocity = Vec3_Scale(move->dir, move->speed);
 
   ent->next_think = g_level.time + move->const_frames * QUETOO_TICK_MILLIS;
@@ -224,11 +226,50 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 }
 
 /**
- * @brief Sets up movement for the specified entity. Both constant and
- * accelerative movements are initiated through this function. Animations are
- * also kicked off here.
+ * @brief The angular delta from `a` to `b`, per axis, taking the shortest arc. This matches the
+ * convention in `Vec3_MixEuler`, so the server's rotation follows the path the client renders.
  */
-static void G_MoveInfo_Linear_Init(g_entity_t *ent, const vec3_t dest, void (*Done)(g_entity_t *)) {
+static vec3_t G_MoveInfo_Angular_Delta(const vec3_t a, const vec3_t b) {
+
+  vec3_t delta = Vec3_Subtract(b, a);
+
+  for (size_t i = 0; i < 3; i++) {
+    delta.xyz[i] = fmodf(delta.xyz[i], 360.f);
+    if (delta.xyz[i] >= 180.f) {
+      delta.xyz[i] -= 360.f;
+    } else if (delta.xyz[i] <= -180.f) {
+      delta.xyz[i] += 360.f;
+    }
+  }
+
+  return delta;
+}
+
+/**
+ * @brief Solves the angular velocity that lands the entity on `move_info.end_angles` exactly as it
+ * covers the remaining `distance` of its move at `speed`. Because this is derived from the speed the
+ * entity is travelling *right now*, it is safe to call each tick of a ramped move, whose duration is
+ * not simply distance over speed.
+ */
+static void G_MoveInfo_Angular_Lerp(g_entity_t *ent, float distance, float speed) {
+  g_move_info_t *move = &ent->move_info;
+
+  if (Vec3_Equal(move->start_angles, move->end_angles)) {
+    return;
+  }
+
+  const float time = Maxf(distance / Maxf(speed, 1.f), QUETOO_TICK_SECONDS);
+
+  const vec3_t delta = G_MoveInfo_Angular_Delta(ent->s.angles, move->end_angles);
+
+  ent->avelocity = Vec3_Scale(delta, 1.f / time);
+}
+
+/**
+ * @brief Resets velocity and resolves the direction of travel towards `dest`, common to all
+ * linear movement.
+ */
+static void G_MoveInfo_Linear_Setup(g_entity_t *ent, const vec3_t dest, void (*Done)(g_entity_t *)) {
   g_move_info_t *move = &ent->move_info;
 
   ent->velocity = Vec3_Zero();
@@ -239,6 +280,61 @@ static void G_MoveInfo_Linear_Init(g_entity_t *ent, const vec3_t dest, void (*Do
   move->dir = Vec3_Normalize(move->dir);
 
   move->Done = Done;
+}
+
+/**
+ * @brief Mixes speed from `move_info.start_speed` to `move_info.speed` as a function of the
+ * distance covered, which is what a mapper means by a mover that speeds up over its run.
+ */
+static void G_MoveInfo_Linear_Ramp(g_entity_t *ent) {
+  g_move_info_t *move = &ent->move_info;
+
+  const float distance = Vec3_Distance(move->dest, ent->s.origin);
+  const float total = Vec3_Distance(move->end_origin, move->start_origin);
+
+  const float frac = total > 0.f ? Clampf01(1.f - distance / total) : 1.f;
+
+  move->current_speed = Mixf(move->start_speed, move->speed, frac);
+
+  ent->velocity = Vec3_Scale(move->dir, move->current_speed);
+
+  G_MoveInfo_Angular_Lerp(ent, distance, move->current_speed);
+
+  if (distance <= move->current_speed * QUETOO_TICK_SECONDS) {
+    ent->Think = G_MoveInfo_Linear_Final;
+  } else {
+    ent->Think = G_MoveInfo_Linear_Ramp;
+  }
+
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+}
+
+/**
+ * @brief Sets up a move that ramps linearly from `speed_start` to `speed_end` over its length. The
+ * caller must have set `move_info.start_origin` and `end_origin`, from which the ramp resolves how
+ * far along the move the entity is.
+ */
+static void G_MoveInfo_Linear_Init_Ramp(g_entity_t *ent, const vec3_t dest, float speed_start,
+                                        float speed_end, void (*Done)(g_entity_t *)) {
+  g_move_info_t *move = &ent->move_info;
+
+  G_MoveInfo_Linear_Setup(ent, dest, Done);
+
+  move->start_speed = Maxf(speed_start, 1.f);
+  move->speed = Maxf(speed_end, 1.f);
+
+  G_MoveInfo_Linear_Ramp(ent);
+}
+
+/**
+ * @brief Sets up movement for the specified entity. Both constant and
+ * accelerative movements are initiated through this function. Animations are
+ * also kicked off here.
+ */
+static void G_MoveInfo_Linear_Init(g_entity_t *ent, const vec3_t dest, void (*Done)(g_entity_t *)) {
+  g_move_info_t *move = &ent->move_info;
+
+  G_MoveInfo_Linear_Setup(ent, dest, Done);
 
   if (move->accel == 0.0 && move->decel == 0.0) { // constant
     const g_entity_t *master = (ent->flags & FL_TEAM_SLAVE) ? ent->team_master : ent;
@@ -2154,12 +2250,63 @@ void G_func_water(g_entity_t *ent) {
 #define TRAIN_TOGGLE    2
 #define TRAIN_BLOCK_STOPS  4
 
+#define PATH_CORNER_TELEPORT  1
+#define PATH_CORNER_SILENT    2
+
 static void G_func_train_Next(g_entity_t *ent);
+
+/**
+ * @brief Trains built around a `common/origin` brush are positioned by that origin, which is also
+ * the point they rotate about. Trains without one are positioned by their lower bounding corner,
+ * as they always have been.
+ */
+static bool G_func_train_HasOrigin(const g_entity_t *ent) {
+
+  const cm_entity_t *origin = gi.EntityValue(ent->def, "origin");
+
+  return (origin->parsed & ENTITY_VEC3) && !Vec3_Equal(origin->vec3, Vec3_Zero());
+}
+
+/**
+ * @brief The offset from a `path_corner`'s origin to the train's own origin.
+ */
+static vec3_t G_func_train_Offset(const g_entity_t *ent) {
+
+  return G_func_train_HasOrigin(ent) ? Vec3_Zero() : Vec3_Negate(ent->bounds.mins);
+}
+
+/**
+ * @brief Resolves the angles a train should hold on arriving at `corner`, defaulting to its
+ * current angles when the corner specifies none. Rotation requires an origin brush to pivot
+ * about, so it is ignored for legacy trains.
+ */
+static vec3_t G_func_train_Angles(const g_entity_t *ent, const g_entity_t *corner) {
+
+  const bool has_angles = gi.EntityValue(corner->def, "angles")->parsed & ENTITY_VEC3;
+  const bool has_angle = gi.EntityValue(corner->def, "angle")->parsed & ENTITY_FLOAT;
+
+  if (!has_angles && !has_angle) {
+    return ent->s.angles;
+  }
+
+  if (!G_func_train_HasOrigin(ent)) {
+    G_Debug("%s has angles but %s has no origin brush to rotate about\n", etos(corner), etos(ent));
+    return ent->s.angles;
+  }
+
+  return corner->s.angles;
+}
 
 /**
  * @brief Called when a train arrives at a `path_corner`, firing pathtargets and scheduling the next segment.
  */
 static void G_func_train_Wait(g_entity_t *ent) {
+
+  if (!Vec3_Equal(ent->s.angles, ent->move_info.end_angles)) {
+    ent->s.angles = ent->move_info.end_angles;
+    ent->avelocity = Vec3_Zero();
+    gi.LinkEntity(ent);
+  }
 
   const char *path_target = gi.EntityValue(ent->target_ent->def, "pathtarget")->nullable_string;
   if (path_target) {
@@ -2183,6 +2330,7 @@ static void G_func_train_Wait(g_entity_t *ent) {
       G_func_train_Next(ent);
       ent->spawn_flags &= ~TRAIN_START_ON;
       ent->velocity = Vec3_Zero();
+      ent->avelocity = Vec3_Zero();
       ent->next_think = 0;
     }
 
@@ -2223,19 +2371,26 @@ again:
   ent->target = target->target;
 
   // check for a teleport path_corner
-  if (target->spawn_flags & 1) {
+  if (target->spawn_flags & PATH_CORNER_TELEPORT) {
     if (!first) {
       G_Debug("%s has teleport path_corner %s\n", etos(ent), etos(target));
       return;
     }
     first = false;
-    ent->s.origin = Vec3_Subtract(target->s.origin, ent->bounds.mins);
-    if (!(target->spawn_flags & 2)) {
+    ent->s.origin = Vec3_Add(target->s.origin, G_func_train_Offset(ent));
+
+    ent->s.angles = G_func_train_Angles(ent, target);
+    ent->avelocity = Vec3_Zero();
+    ent->move_info.speed = target->speed ? : ent->speed;
+
+    if (!(target->spawn_flags & PATH_CORNER_SILENT)) {
       ent->s.event = EV_CLIENT_TELEPORT;
     }
     gi.LinkEntity(ent);
     goto again;
   }
+
+  const float speed = ent->move_info.speed;
 
   ent->move_info.wait = target->wait;
   ent->target_ent = target;
@@ -2250,11 +2405,25 @@ again:
     ent->s.sound = ent->move_info.sound_middle;
   }
 
-  dest = Vec3_Subtract(target->s.origin, ent->bounds.mins);
+  dest = Vec3_Add(target->s.origin, G_func_train_Offset(ent));
   ent->move_info.state = MOVE_STATE_TOP;
   ent->move_info.start_origin = ent->s.origin;
   ent->move_info.end_origin = dest;
-  G_MoveInfo_Linear_Init(ent, dest, G_func_train_Wait);
+
+  ent->move_info.start_angles = ent->s.angles;
+  ent->move_info.end_angles = G_func_train_Angles(ent, target);
+  ent->avelocity = Vec3_Zero();
+
+  const float dest_speed = target->speed ? : ent->speed;
+
+  if (speed != dest_speed) {
+    G_MoveInfo_Linear_Init_Ramp(ent, dest, speed, dest_speed, G_func_train_Wait);
+  } else {
+    ent->move_info.speed = dest_speed;
+    G_MoveInfo_Linear_Init(ent, dest, G_func_train_Wait);
+    G_MoveInfo_Angular_Lerp(ent, Vec3_Distance(dest, ent->move_info.start_origin), dest_speed);
+  }
+
   ent->spawn_flags |= TRAIN_START_ON;
 }
 
@@ -2267,11 +2436,18 @@ static void G_func_train_Resume(g_entity_t *ent) {
 
   target = ent->target_ent;
 
-  dest = Vec3_Subtract(target->s.origin, ent->bounds.mins);
+  dest = Vec3_Add(target->s.origin, G_func_train_Offset(ent));
   ent->move_info.state = MOVE_STATE_TOP;
   ent->move_info.start_origin = ent->s.origin;
   ent->move_info.end_origin = dest;
+
+  ent->move_info.start_angles = ent->s.angles;
+  ent->move_info.speed = target->speed ? : ent->speed;
+  ent->avelocity = Vec3_Zero();
+
   G_MoveInfo_Linear_Init(ent, dest, G_func_train_Wait);
+  G_MoveInfo_Angular_Lerp(ent, Vec3_Distance(dest, ent->s.origin), ent->move_info.speed);
+
   ent->spawn_flags |= TRAIN_START_ON;
 }
 
@@ -2292,7 +2468,13 @@ static void G_func_train_Find(g_entity_t *ent) {
   }
   ent->target = target->target;
 
-  ent->s.origin = Vec3_Subtract(target->s.origin, ent->bounds.mins);
+  ent->s.origin = Vec3_Add(target->s.origin, G_func_train_Offset(ent));
+
+  ent->s.angles = G_func_train_Angles(ent, target);
+  ent->move_info.start_angles = ent->s.angles;
+  ent->move_info.end_angles = ent->s.angles;
+  ent->move_info.speed = target->speed ? : ent->speed;
+
   gi.LinkEntity(ent);
 
   // if not triggered, start immediately
@@ -2320,6 +2502,7 @@ static void G_func_train_Use(g_entity_t *ent, g_entity_t *other,
     }
     ent->spawn_flags &= ~TRAIN_START_ON;
     ent->velocity = Vec3_Zero();
+    ent->avelocity = Vec3_Zero();
     ent->next_think = 0;
   } else {
     if (ent->target_ent) {
@@ -2331,25 +2514,52 @@ static void G_func_train_Use(g_entity_t *ent, g_entity_t *other,
 }
 
 /*QUAKED func_train (0 .5 .8) ? start_on toggle block_stops
- Trains are moving solids that players can ride along a series of path_corners. The origin of
- each corner specifies the lower bounding point of the train at that corner. If the train is
+ Trains are moving solids that players can ride along a series of path_corners. If the train is
  the target of a button or trigger, it will not begin moving until activated.
+
+ Trains are positioned one of two ways. Given a `common/origin` brush, the origin of each corner
+ specifies the train's own origin at that corner, and that origin is also the point the train
+ rotates about. Without one, the origin of each corner specifies the lower bounding point of the
+ train, and the train cannot rotate.
 
  -------- Keys --------
  speed : The speed with which the train moves (default 100).
  dmg : The damage inflicted on players who block the train (default 2).
  sound : The looping sound to play while the train is in motion.
+ angles : The initial orientation of the train. Requires an origin brush, and is overridden by
+ the angles of the first path_corner if it specifies any.
  targetname : The target name of this entity if it is to be triggered.
 
  -------- Spawn flags --------
  start_on : If set, the train will begin moving once spawned.
  toggle : If set, the train will start or stop each time it is activated.
  block_stops : When blocked, stop moving and inflict no damage.
+
+ -------- Path corner keys --------
+ wait : The time in seconds to wait at this corner before moving on.
+ speed : The speed the train travels at as it arrives here, mixed from the speed of the corner it
+ departed, so that a cart can pick up speed downhill and lose it climbing. Defaults to the train's
+ own speed. Because the client stops interpolating an entity that moves more than 60 units in a
+ single frame, speeds much above 2400 will render as a stutter rather than as motion.
+ angles : The orientation the train holds on arriving here, rotating into it over the length of
+ the leg. Requires the train to have an origin brush.
+ pathtarget : Fired when the train arrives here.
+ target : The next corner in the route. Point the last corner back at the first to loop.
+
+ -------- Path corner spawn flags --------
+ teleport : The train jumps to this corner rather than travelling to it, restoring the corner's
+ angles, and carries straight on to the corner's own target. Combine with a looping route to send
+ a train back to its start: flag the first corner `teleport` + `silent` and give the last corner
+ a `wait` and a `target` back to it. Riders are not carried through the jump, and the mapper is
+ responsible for hiding both corners from view.
+ silent : Suppress the teleport effect.
  */
 void G_func_train(g_entity_t *ent) {
   ent->move_type = MOVE_TYPE_PUSH;
 
-  ent->s.angles = Vec3_Zero();
+  if (!G_func_train_HasOrigin(ent)) {
+    ent->s.angles = Vec3_Zero();
+  }
 
   if (ent->spawn_flags & TRAIN_BLOCK_STOPS) {
     ent->damage = 0;

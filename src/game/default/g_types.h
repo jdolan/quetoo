@@ -589,9 +589,15 @@ typedef struct {
   float accel;
 
   /**
-   * @brief Constant travel speed.
+   * @brief Constant travel speed. For a ramped move, the speed at the end of the move.
    */
   float speed;
+
+  /**
+   * @brief The speed at the start of a ramped move, from which the entity is mixed towards
+   * `speed` over the course of the move.
+   */
+  float start_speed;
 
   /**
    * @brief Deceleration rate.
