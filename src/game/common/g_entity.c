@@ -237,9 +237,11 @@ static const g_entity_class_t *G_EditorEntityClass(const g_entity_t *ent) {
 }
 
 /**
- * @brief Frees the editor entity at the given number, as well as any entities it owns.
+ * @brief Frees the editor entity at the given number, as well as any entities it owns
+ * or that share its definition.
  * @details Movers such as doors and platforms allocate their own proximity triggers,
- * which must not outlive them.
+ * which must not outlive them. `G_UseTargets` delay temporaries alias the firing
+ * entity's definition, which the server frees once this returns.
  */
 void G_FreeEditorEntity(int32_t number) {
 
@@ -253,7 +255,7 @@ void G_FreeEditorEntity(int32_t number) {
       continue;
     }
 
-    if (e->owner == ent || e->enemy == ent) {
+    if (e->owner == ent || e->enemy == ent || (ent->def && e->def == ent->def)) {
       G_FreeEntity(e);
     }
   }

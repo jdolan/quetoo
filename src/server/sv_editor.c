@@ -99,13 +99,23 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
 
   cm_entity_t *def = Cm_EntityFromInfoString(info);
 
+  if (!def) {
+    Com_Warn("Invalid entity info string for %d\n", number);
+    return;
+  }
+
   if (number > -1) {
     g_entity_t *entity = sv.entities[number].gent;
     cm_entity_t *ent = (cm_entity_t *) entity->def;
-    def->brushes = ent->brushes;
-    ent->brushes = NULL;
+
+    if (ent) {
+      def->brushes = ent->brushes;
+      ent->brushes = NULL;
+    }
+
+    svs.game->FreeEditorEntity(number);
+
     Cm_FreeEntity(ent);
-    entity->def = NULL;
   } else {
     for (int32_t i = Cm_Bsp()->num_entities; i < sv_max_entities->integer; i++) {
       if (sv.entities[i].gent->in_use == false) {
@@ -121,22 +131,23 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
     }
   }
 
-if (!def) {
-  Com_Warn("Invalid entity info string for %d\n", number);
-  return;
-}
+  svs.game->SpawnEditorEntity(number, def);
 
-svs.game->SpawnEditorEntity(number, def);
-
-Sv_ConfigureEditorEntity(number);
+  Sv_ConfigureEditorEntity(number);
 }
 
 /**
  * @brief Removes an editor entity from the world and clears its config string slot.
+ * @details The definition is server owned, so it is freed here, after the game module
+ * has torn down every entity referencing it.
  */
 void Sv_FreeEditorEntity(int32_t number) {
 
+  cm_entity_t *def = (cm_entity_t *) sv.entities[number].gent->def;
+
   svs.game->FreeEditorEntity(number);
+
+  Cm_FreeEntity(def);
 
   Sv_SetConfigString(CS_ENTITIES + number, "");
 }
