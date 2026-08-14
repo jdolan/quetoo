@@ -22,30 +22,26 @@
 #include "sv_local.h"
 
 /**
- * @brief Spawn an editor entity; a non-functional bounding box.
+ * @brief Applies editor presentation to the entity the game module spawned, and
+ * publishes its definition to the client.
+ * @details Entities the game left as `SOLID_EDITOR` are non-functional bounding
+ * boxes, and are sized here. Movers are fully initialized by the game module, and
+ * keep the bounds and solidity it gave them.
  */
-void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
+void Sv_ConfigureEditorEntity(int32_t number) {
 
   g_entity_t *ent = sv.entities[number].gent;
 
-  ent->def = Cm_CopyEntity(def);
-  ent->in_use = true;
-  ent->classname = Cm_EntityValue(ent->def, "classname")->string;
-  ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
-  ent->solid = SOLID_EDITOR;
+  if (!ent->in_use) {
+    return;
+  }
 
-  ent->s.number = number;
-  ent->s.origin = Cm_EntityValue(ent->def, "origin")->vec3;
-  ent->s.angles = Cm_EntityValue(ent->def, "angles")->vec3;
   ent->s.color = Color32i(0xffffffff);
 
   if (!q_strcmp(ent->classname, "worldspawn")) {
     ent->s.effects = EF_WORLD;
   } else if (!q_strncmp(ent->classname, "info_player", q_strlen("info_player"))) {
-    ent->bounds = Box3(Vec3(-16.f, -16.f, -24.f), Vec3(16.f, 16.f, 36.f));
     ent->s.color = Color32i(0xffff00ff);
-  } else if (!q_strncmp(ent->classname, "light", q_strlen("light"))) {
-    ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
   } else if (!q_strncmp(ent->classname, "trigger_", q_strlen("trigger_"))) {
     ent->s.color = Color32i(0xff0088ff);
   } else if (!q_strncmp(ent->classname, "func_", q_strlen("func_"))) {
@@ -56,27 +52,38 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
     ent->s.color = Color32i(0xffffff00);
   }
 
-  // use the BSP inline model to set bounds
-  const char *model = Cm_EntityValue(ent->def, "model")->string;
-  if (*model == '*') {
-    const cm_bsp_model_t *mod = Cm_Model(model);
-    ent->bounds = mod->bounds;
-  } else {
-    // entity may have brushes without an inline model (e.g. misc_dust, brushes merged into worldspawn)
-    // brush->entity always points to the original Cm_Bsp() entity; def may be a re-parsed copy after edits
-    const cm_entity_t *bsp_def = number < Cm_Bsp()->num_entities ? Cm_Bsp()->entities[number] : def;
-    Vector *brushes = Cm_EntityBrushes(bsp_def);
-    if (brushes->count) {
-      ent->bounds = Box3_Null();
-      for (uint32_t j = 0; j < brushes->count; j++) {
-        const cm_bsp_brush_t *brush = VectorValue(brushes, cm_bsp_brush_t *, j);
-        ent->bounds = Box3_Union(ent->bounds, brush->bounds);
-      }
-    }
-    release(brushes);
-  }
+  if (ent->solid == SOLID_EDITOR) {
 
-  Sv_LinkEntity(ent);
+    ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
+
+    if (!q_strncmp(ent->classname, "info_player", q_strlen("info_player"))) {
+      ent->bounds = Box3(Vec3(-16.f, -16.f, -24.f), Vec3(16.f, 16.f, 36.f));
+    } else if (!q_strncmp(ent->classname, "light", q_strlen("light"))) {
+      ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
+    }
+
+    // use the BSP inline model to set bounds
+    const char *model = Cm_EntityValue(ent->def, "model")->string;
+    if (*model == '*') {
+      const cm_bsp_model_t *mod = Cm_Model(model);
+      ent->bounds = mod->bounds;
+    } else {
+      // entity may have brushes without an inline model (e.g. misc_dust, brushes merged into worldspawn)
+      // brush->entity always points to the original Cm_Bsp() entity; def may be a re-parsed copy after edits
+      const cm_entity_t *bsp_def = number < Cm_Bsp()->num_entities ? Cm_Bsp()->entities[number] : ent->def;
+      Vector *brushes = Cm_EntityBrushes(bsp_def);
+      if (brushes->count) {
+        ent->bounds = Box3_Null();
+        for (uint32_t j = 0; j < brushes->count; j++) {
+          const cm_bsp_brush_t *brush = VectorValue(brushes, cm_bsp_brush_t *, j);
+          ent->bounds = Box3_Union(ent->bounds, brush->bounds);
+        }
+      }
+      release(brushes);
+    }
+
+    Sv_LinkEntity(ent);
+  }
 
   char *info = Cm_EntityToInfoString(ent->def);
 
@@ -98,6 +105,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
     def->brushes = ent->brushes;
     ent->brushes = NULL;
     Cm_FreeEntity(ent);
+    entity->def = NULL;
   } else {
     for (int32_t i = Cm_Bsp()->num_entities; i < sv_max_entities->integer; i++) {
       if (sv.entities[i].gent->in_use == false) {
@@ -113,7 +121,9 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
     }
   }
 
-  Sv_SpawnEditorEntity(number, def);
+  svs.game->SpawnEditorEntity(number, def);
+
+  Sv_ConfigureEditorEntity(number);
 }
 
 /**
@@ -121,9 +131,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
  */
 void Sv_FreeEditorEntity(int32_t number) {
 
-  g_entity_t *entity = sv.entities[number].gent;
-
-  memset(entity, 0, sizeof(*entity));
+  svs.game->FreeEditorEntity(number);
 
   Sv_SetConfigString(CS_ENTITIES + number, "");
 }

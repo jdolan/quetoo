@@ -114,14 +114,9 @@ static const cm_entity_t *G_MapValue(const char *key) {
 }
 
 /**
- * @brief Populates common entity fields and then dispatches the class initializer.
+ * @brief Populates the entity fields which are common to all classes from its definition.
  */
-static void G_SpawnEntity(cm_entity_t *def) {
-
-  const char *classname = gi.EntityValue(def, "classname")->string;
-  g_entity_t *ent = G_AllocEntity(classname);
-
-  ent->def = def;
+static void G_InitEntityFields(g_entity_t *ent) {
 
   ent->s.origin = gi.EntityValue(ent->def, "origin")->vec3;
   ent->s.angles = gi.EntityValue(ent->def, "angles")->vec3;
@@ -152,6 +147,19 @@ static void G_SpawnEntity(cm_entity_t *def) {
   ent->health = gi.EntityValue(ent->def, "health")->integer;
   ent->damage = gi.EntityValue(ent->def, "dmg")->integer;
   ent->mass = gi.EntityValue(ent->def, "mass")->value;
+}
+
+/**
+ * @brief Populates common entity fields and then dispatches the class initializer.
+ */
+static void G_SpawnEntity(cm_entity_t *def) {
+
+  const char *classname = gi.EntityValue(def, "classname")->string;
+  g_entity_t *ent = G_AllocEntity(classname);
+
+  ent->def = def;
+
+  G_InitEntityFields(ent);
 
   // check item spawn functions
   const g_item_t *it = G_FindItemByClassName(ent->classname);
@@ -173,6 +181,113 @@ static void G_SpawnEntity(cm_entity_t *def) {
   G_Warn("%s doesn't have a spawn function\n", etos(ent));
 
   G_FreeEntity(ent);
+}
+
+/**
+ * @brief The entity classes which are fully initialized in editor mode, so that
+ * their movement can be previewed. All other classes are left as inert editor
+ * placeholders.
+ */
+static const struct {
+  const char *classname;
+  bool inline_model;
+} g_editor_entity_classes[] = {
+
+  { "func_bob", true },
+  { "func_button", true },
+  { "func_conveyor", true },
+  { "func_door", true },
+  { "func_door_rotating", true },
+  { "func_door_secret", true },
+  { "func_plat", true },
+  { "func_rotating", true },
+  { "func_timer", false },
+  { "func_train", true },
+};
+
+/**
+ * @brief Resolves the class initializer to run for the given editor entity, or `NULL`
+ * if it should remain an inert placeholder.
+ */
+static const g_entity_class_t *G_EditorEntityClass(const g_entity_t *ent) {
+
+  for (size_t i = 0; i < lengthof(g_editor_entity_classes); i++) {
+
+    if (q_strcmp(g_editor_entity_classes[i].classname, ent->classname)) {
+      continue;
+    }
+
+    if (g_editor_entity_classes[i].inline_model) {
+      if (!ent->model || ent->model[0] != '*') {
+        G_Warn("%s has no inline model\n", etos(ent));
+        return NULL;
+      }
+    }
+
+    for (size_t j = 0; j < lengthof(g_entity_classes); j++) {
+      if (!q_strcmp(g_entity_classes[j].classname, ent->classname)) {
+        return g_entity_classes + j;
+      }
+    }
+
+    G_Error("%s has no spawn function\n", etos(ent));
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Frees the editor entity at the given number, as well as any entities it owns.
+ * @details Movers such as doors and platforms allocate their own proximity triggers,
+ * which must not outlive them.
+ */
+void G_FreeEditorEntity(int32_t number) {
+
+  g_entity_t *ent = ge.entities[number];
+
+  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+
+    g_entity_t *e = ge.entities[i];
+
+    if (e == ent || !e->in_use || e->client) {
+      continue;
+    }
+
+    if (e->owner == ent || e->enemy == ent) {
+      G_FreeEntity(e);
+    }
+  }
+
+  G_FreeEntity(ent);
+}
+
+/**
+ * @brief Spawns the editor entity at its BSP entity index, so that entity numbers
+ * and config string slots remain stable for the editor.
+ * @details Movers are fully initialized so that they can be previewed in motion.
+ * All other classes become inert placeholders, which the server configures for
+ * presentation in `Sv_ConfigureEditorEntity`.
+ */
+void G_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
+
+  if (ge.entities[number]->in_use) {
+    G_FreeEditorEntity(number);
+  }
+
+  const char *classname = gi.EntityValue(def, "classname")->string;
+  g_entity_t *ent = G_AllocEntityAt(number, classname);
+
+  ent->def = def;
+
+  G_InitEntityFields(ent);
+
+  const g_entity_class_t *clazz = G_EditorEntityClass(ent);
+  if (clazz) {
+    clazz->Init(ent);
+  } else {
+    ent->solid = SOLID_EDITOR;
+    gi.LinkEntity(ent);
+  }
 }
 
 /**
@@ -482,7 +597,11 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
   G_InitMedia();
 
   for (size_t i = 0; i < num_entities; i++) {
-    G_SpawnEntity(entities[i]);
+    if (editor->value) {
+      G_SpawnEditorEntity((int32_t) i, entities[i]);
+    } else {
+      G_SpawnEntity(entities[i]);
+    }
   }
 
   G_InitEntityTeams();

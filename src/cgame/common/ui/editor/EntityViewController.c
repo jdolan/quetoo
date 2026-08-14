@@ -211,6 +211,10 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
       cgi.Print("func_group entities %s\n", self->show_func_groups ? "^2shown" : "^1hidden");
     }
 
+    if (key == SDLK_U && cgi.GetKeyDest() == KEY_UI && self->entity) {
+      cgi.Cbuf(va("editor_use %d\n", self->entity->number));
+    }
+
     if (cgi.GetKeyDest() == KEY_UI && e) {
 
       vec3_t move = Vec3_Zero();

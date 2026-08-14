@@ -117,10 +117,19 @@ void Sv_SpawnEntities(const char *name, const cm_entity_t *props) {
   if (editor->value) {
     Sv_LoadEditorMap();
 
-    svs.game->SpawnEntities(name, props, NULL, 0);
+    const int32_t num_entities = Cm_Bsp()->num_entities;
 
-    for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++) {
-      Sv_SpawnEditorEntity(i, Cm_Bsp()->entities[i]);
+    cm_entity_t **defs = Mem_TagMalloc(sizeof(cm_entity_t *) * num_entities, MEM_TAG_SERVER);
+    for (int32_t i = 0; i < num_entities; i++) {
+      defs[i] = Cm_CopyEntity(Cm_Bsp()->entities[i]);
+    }
+
+    svs.game->SpawnEntities(name, props, defs, num_entities);
+
+    Mem_Free(defs);
+
+    for (int32_t i = 0; i < num_entities; i++) {
+      Sv_ConfigureEditorEntity(i);
     }
   } else {
     svs.game->SpawnEntities(name, props, Cm_Bsp()->entities, Cm_Bsp()->num_entities);

@@ -132,6 +132,7 @@ cvar_t *g_balance_supershotgun_refire;
 cvar_t *g_balance_supershotgun_spread_x;
 cvar_t *g_balance_supershotgun_spread_y;
 cvar_t *g_cheats;
+cvar_t *g_editor_simulate;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
@@ -816,7 +817,7 @@ static void G_Frame(void) {
 
     if (ent->client) {
       G_ClientBeginFrame(ent->client);
-    } else {
+    } else if (!editor->value || g_editor_simulate->value) {
       G_RunEntity(ent);
     }
 
@@ -1027,6 +1028,8 @@ void G_Init(void) {
     "0"
 #endif
     , CVAR_SERVER_INFO, NULL);
+  g_editor_simulate = gi.AddCvar("g_editor_simulate", "1", 0,
+    "Runs entity physics and thinking in editor mode, so that movers can be previewed.");
   g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
   g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
   g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO,
@@ -1171,6 +1174,8 @@ g_export_t *G_LoadGame(g_import_t *import) {
   ge.Init = G_Init;
   ge.Shutdown = G_Shutdown;
   ge.SpawnEntities = G_SpawnEntities;
+  ge.SpawnEditorEntity = G_SpawnEditorEntity;
+  ge.FreeEditorEntity = G_FreeEditorEntity;
   ge.ClientThink = G_ClientThink;
   ge.ClientConnect = G_ClientConnect;
   ge.ClientUserInfoChanged = G_ClientUserInfoChanged;

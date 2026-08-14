@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 32
+#define GAME_API_VERSION 33
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -728,6 +728,18 @@ typedef struct g_export_s {
    * @param name The map name, e.g. "edge"
    */
   void (*SpawnEntities)(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities);
+
+  /**
+   * @brief Called in editor mode to spawn or respawn a single entity at the given
+   * entity number, taking ownership of `def`.
+   */
+  void (*SpawnEditorEntity)(int32_t number, cm_entity_t *def);
+
+  /**
+   * @brief Called in editor mode to free the entity at the given entity number,
+   * as well as any entities it owns.
+   */
+  void (*FreeEditorEntity)(int32_t number);
 
   /**
    * @brief Called when a client connects with valid user info; return false to reject.
