@@ -24,8 +24,11 @@
 
 /**
  * @brief Returns true if the given means of death should detach the view and
- * play a death camera. These are deaths that aren't a frag by another player's
- * weapon, where there's nothing interesting to look at from the first person.
+ * play a death camera.
+ *
+ * @remarks This is a MOD-based heuristic for deaths that are typically more
+ * interesting to watch in third person (environmental / self-inflicted / indirect
+ * damage), rather than from the first person.
  */
 static bool G_IsDeathCamMod(uint32_t mod) {
 
