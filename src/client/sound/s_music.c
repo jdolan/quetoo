@@ -184,6 +184,10 @@ s_music_t *S_LoadMusic(const char *name) {
  */
 void S_StopMusic(void) {
 
+  if (s_music_state.current_music == NULL) {
+    return;
+  }
+  
   Com_Debug(DEBUG_SOUND, "Stopping\n");
 
   alSourceStop(s_music_state.source);

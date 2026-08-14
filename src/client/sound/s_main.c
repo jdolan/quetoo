@@ -256,6 +256,8 @@ void S_RenderStage(const s_stage_t *stage) {
   S_RenderMusic(stage);
 
   S_MixChannels(stage);
+  
+  s_volume->modified = false;
 }
 
 /**
