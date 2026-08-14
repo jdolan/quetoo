@@ -177,13 +177,13 @@ void Sv_SaveEditorMap_f(void) {
   Fs_Print(file, "// Format: Quake3\n");
 
   int32_t entity_num = 0;
-  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
+  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
 
-    const g_entity_t *ent = sv.entities[i].gent;
-    if (!ent->in_use) {
+    if (!sv.config_strings[CS_ENTITIES + i][0]) {
       continue;
     }
 
+    const g_entity_t *ent = sv.entities[i].gent;
     if (!ent->def) {
       continue;
     }
