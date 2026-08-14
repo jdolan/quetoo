@@ -1422,6 +1422,28 @@ struct g_client_s {
   const g_item_t *last_dropped;
 
   /**
+   * @brief Death camera position and velocity, in world space. Valid while
+   * `PMF_DEATH_CAM` is set on the player state.
+   */
+  vec3_t death_cam_origin, death_cam_velocity;
+
+  /**
+   * @brief The displacement the camera eases through as it settles, away from
+   * the point of death.
+   */
+  vec3_t death_cam_offset;
+
+  /**
+   * @brief The angles the death camera is looking through.
+   */
+  vec3_t death_cam_angles;
+
+  /**
+   * @brief The level time at which the death camera was armed.
+   */
+  uint32_t death_cam_time;
+
+  /**
    * @brief True if the scoreboard layout flag should be set.
    */
   bool show_scores;

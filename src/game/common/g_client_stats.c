@@ -39,6 +39,7 @@ void G_ClientToIntermission(g_client_t *cl) {
   cl->ps.pm_state.view_offset = Vec3_Zero();
   cl->ps.pm_state.step_offset = 0.f;
 
+  cl->ps.pm_state.flags &= ~PMF_DEATH_CAM;
   cl->ps.pm_state.type = PM_FREEZE;
 
   cl->entity->s.model1 = 0;

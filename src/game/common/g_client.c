@@ -23,6 +23,46 @@
 #include "bg_pmove.h"
 
 /**
+ * @brief Returns true if the given means of death should detach the view and
+ * play a death camera.
+ *
+ * @remarks This is a MOD-based heuristic for deaths that are typically more
+ * interesting to watch in third person (environmental / self-inflicted / indirect
+ * damage), rather than from the first person.
+ */
+static bool G_IsDeathCamMod(uint32_t mod) {
+
+  if (g_death_cam->integer == 2) {
+    return true;
+  }
+
+  switch (mod & ~MOD_FRIENDLY_FIRE) {
+    case MOD_UNKNOWN:
+    case MOD_QUAKE_THUNDERBOLT_DISCHARGE:
+    case MOD_LIGHTNING_DISCHARGE:
+    case MOD_WATER:
+    case MOD_SLIME:
+    case MOD_LAVA:
+    case MOD_CRUSH:
+#if defined(G_HOOK)
+    case MOD_HOOK:
+#endif
+    case MOD_TELEFRAG:
+    case MOD_FALLING:
+    case MOD_SUICIDE:
+    case MOD_EXPLOSIVE:
+    case MOD_TRIGGER_HURT:
+    case MOD_HANDGRENADE_SUICIDE:
+    case MOD_FIREBALL:
+    case MOD_ACT_OF_GOD:
+    case MOD_BOB:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
  * @brief Make a tasteless death announcement and record scores.
  */
 static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod) {
@@ -537,6 +577,10 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
 
   g_client_t *cl = ent->client;
 
+  // gibbing randomizes the corpse velocity, so seed the death camera from the
+  // velocity we actually died with
+  const vec3_t velocity = ent->velocity;
+
   G_ClientObituary(cl, attacker, mod);
 
   G_TossInventory(cl);
@@ -615,7 +659,30 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
   cl->show_scores = true;
   cl->persistent.deaths++;
 
-  G_ClientDamageKick(cl, cl->right, 60.0);
+  if (g_death_cam->integer && G_IsDeathCamMod(mod)) {
+
+    // capture the eye position before the corpse's view offset takes effect
+    cl->death_cam_origin = Vec3_Add(ent->s.origin, cl->ps.pm_state.view_offset);
+
+    cl->death_cam_velocity = Vec3_Fmaf(
+      Vec3_Scale(Vec3_Up(), g_death_cam_rise->value),
+      g_death_cam_velocity->value,
+      velocity
+    );
+
+    // settle behind and above where we were looking when we died
+    cl->death_cam_offset = Vec3_Fmaf(
+      Vec3_Scale(Vec3_Up(), g_death_cam_height->value),
+      -g_death_cam_distance->value,
+      cl->forward
+    );
+
+    cl->death_cam_angles = cl->angles;
+    cl->death_cam_time = g_level.time;
+    cl->ps.pm_state.flags |= PMF_DEATH_CAM;
+  } else {
+    G_ClientDamageKick(cl, cl->right, 60.0);
+  }
 
   gi.LinkEntity(ent);
 }

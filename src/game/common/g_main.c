@@ -161,6 +161,12 @@ cvar_t *g_water_friction;
 cvar_t *g_water_gravity;
 cvar_t *g_water_jump_speed;
 cvar_t *g_water_speed;
+cvar_t *g_death_cam;
+cvar_t *g_death_cam_distance;
+cvar_t *g_death_cam_height;
+cvar_t *g_death_cam_rise;
+cvar_t *g_death_cam_time;
+cvar_t *g_death_cam_velocity;
 cvar_t *g_motd;
 cvar_t *g_num_teams;
 cvar_t *g_password;
@@ -1053,6 +1059,12 @@ void G_Init(void) {
   g_water_jump_speed = gi.AddCvar("g_water_jump_speed", "420.0", 0, "Upward velocity when jumping out of water. Default 420.0.");
   g_water_speed = gi.AddCvar("g_water_speed", "140.0", 0, "Maximum swimming speed. Default 140.0.");
 
+  g_death_cam = gi.AddCvar("g_death_cam", "1", CVAR_SERVER_INFO, "Detach the view and watch your corpse after certain deaths (0 off, 1 selected MODs, 2 always).");
+  g_death_cam_distance = gi.AddCvar("g_death_cam_distance", "120", 0, "Distance the death camera settles behind the point of death.");
+  g_death_cam_height = gi.AddCvar("g_death_cam_height", "80", 0, "Height the death camera settles above the point of death.");
+  g_death_cam_rise = gi.AddCvar("g_death_cam_rise", "90", 0, "Initial upward speed of the death camera, in units per second.");
+  g_death_cam_time = gi.AddCvar("g_death_cam_time", "800", 0, "Time in milliseconds for the death camera to settle.");
+  g_death_cam_velocity = gi.AddCvar("g_death_cam_velocity", "0.25", 0, "Fraction of the player's velocity inherited by the death camera.");
   g_num_teams = gi.AddCvar("g_num_teams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
   g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
   g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");
