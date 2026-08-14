@@ -121,9 +121,14 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
     }
   }
 
-  svs.game->SpawnEditorEntity(number, def);
+if (!def) {
+  Com_Warn("Invalid entity info string for %d\n", number);
+  return;
+}
 
-  Sv_ConfigureEditorEntity(number);
+svs.game->SpawnEditorEntity(number, def);
+
+Sv_ConfigureEditorEntity(number);
 }
 
 /**
