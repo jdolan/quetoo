@@ -207,7 +207,7 @@ void G_trigger_relay(g_entity_t *ent) {
  delay : The delay in seconds between activation and firing of targets (default 0.2).
  message : An optional message to display when this trigger fires.
  target : The name of the entity or team to use on activation.
- kill_target : The name of the entity or team to kill on activation.
+ killtarget : The name of the entity or team to kill on activation.
  */
 void G_trigger_always(g_entity_t *ent) {
 

@@ -172,6 +172,7 @@ static void G_misc_teleporter_Think(g_entity_t *ent) {
  Warps players who touch this entity to the targeted misc_teleporter_dest entity.
 
  -------- Keys --------
+ target : The misc_teleporter_dest to warp players to. Required.
  sound : The sound to play at the teleporter and destination on use (default "misc/teleport").
 
  -------- Spawn flags --------

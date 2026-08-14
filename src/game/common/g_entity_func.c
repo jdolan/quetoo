@@ -2576,6 +2576,7 @@ static void G_func_train_Use(g_entity_t *ent, g_entity_t *other,
  Angle a corner explicitly only where that is not what you want.
 
  -------- Keys --------
+ target : The first path_corner of the train's route. Required.
  speed : The speed with which the train moves (default 100).
  dmg : The damage inflicted on players who block the train (default 2).
  sound : The looping sound to play while the train is in motion.
@@ -2687,6 +2688,7 @@ static void G_func_timer_Use(g_entity_t *ent, g_entity_t *other,
  Time delay trigger that will continuously fire its targets after a preset time delay. The time delay can also be randomized. When triggered, the timer will toggle on/off.
 
  -------- Keys --------
+ target : The entities to fire on each tick of the timer.
  wait : Delay in seconds between each triggering of all targets (default 1).
  random : Random time variance in seconds added to "wait" delay (default 0).
  delay :  Additional delay before the first firing when start_on (default 0).
