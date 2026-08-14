@@ -258,7 +258,7 @@ static void G_MoveInfo_Angular_Lerp(g_entity_t *ent, float distance, float speed
     return;
   }
 
-  const float time = Maxf(distance / Maxf(speed, __FLT_EPSILON__), QUETOO_TICK_SECONDS);
+  const float time = Maxf(distance / Maxf(speed, FLT_EPSILON), QUETOO_TICK_SECONDS);
 
   const vec3_t delta = G_MoveInfo_Angular_Delta(ent->s.angles, move->end_angles);
 
