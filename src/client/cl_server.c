@@ -87,7 +87,11 @@ void Cl_ParseServerInfo(void) {
     server->ping_time = cls.broadcast_time;
   }
 
-  q_strlcpy(string, Net_ReadString(&net_message), sizeof(string));
+  const size_t length = net_message.read < net_message.size
+                        ? Minz(net_message.size - net_message.read, sizeof(string) - 1)
+                        : 0;
+  Net_ReadData(&net_message, string, length);
+  string[length] = '\0';
 
   // First line is the server infostring; subsequent lines are player entries.
   char *player_start = q_strchr(string, '\n');
@@ -116,10 +120,12 @@ void Cl_ParseServerInfo(void) {
     const char *line = player_start;
     while (line && *line) {
       const char *end = q_strchr(line, '\n');
+      if (!end) {
+        break;
+      }
 
       char player[MAX_TOKEN_CHARS];
-      const size_t len = end ? (size_t) (end - line) : q_strlen(line);
-      q_strlcpy(player, line, Minz(len + 1, sizeof(player)));
+      q_strlcpy(player, line, Minz((size_t) (end - line) + 1, sizeof(player)));
 
       if (player[0]) {
         server->clients++;
@@ -128,7 +134,7 @@ void Cl_ParseServerInfo(void) {
         }
       }
 
-      line = end ? end + 1 : NULL;
+      line = end + 1;
     }
 
     server->ping = Clampf(quetoo.ticks - server->ping_time, 1u, 999u);
