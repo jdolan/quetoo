@@ -172,6 +172,38 @@ static void G_ItemRespawn(g_entity_t *ent) {
 }
 
 /**
+ * @brief Returns an item flagged `hazard_respawn` to its map origin if it has ended up
+ * in lava or slime. Called from `G_CheckWater`, so that only items that are actually
+ * moving through the world are considered.
+ */
+void G_CheckItemHazard(g_entity_t *ent) {
+
+  if (!ent->item) {
+    return;
+  }
+
+  if (!(ent->spawn_flags & SF_ITEM_HAZARD_RESPAWN)) {
+    return;
+  }
+
+  if (!(ent->water_type & (CONTENTS_LAVA | CONTENTS_SLIME))) {
+    return;
+  }
+
+  if (!G_ItemRestoreOrigin(ent)) {
+    return;
+  }
+
+  ent->water_level = WATER_NONE;
+  ent->water_type = 0;
+
+  gi.LinkEntity(ent);
+
+  ent->s.event = EV_ITEM_RESPAWN;
+  ent->s.event_data = ent->item->def.tag;
+}
+
+/**
  * @brief Schedules an item entity to respawn after the specified delay in milliseconds.
  */
 void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
