@@ -2250,8 +2250,8 @@ void G_func_water(g_entity_t *ent) {
 #define TRAIN_TOGGLE    2
 #define TRAIN_BLOCK_STOPS  4
 
-#define PATH_CORNER_TELEPORT  1
-#define PATH_CORNER_SILENT    2
+#define PATH_CORNER_TELEPORT    1
+#define PATH_CORNER_NO_EFFECTS  2
 
 static void G_func_train_Next(g_entity_t *ent);
 
@@ -2425,7 +2425,7 @@ again:
     ent->avelocity = Vec3_Zero();
     ent->move_info.speed = target->speed ? : ent->speed;
 
-    if (!(target->spawn_flags & PATH_CORNER_SILENT)) {
+    if (!(target->spawn_flags & PATH_CORNER_NO_EFFECTS)) {
       ent->s.event = EV_CLIENT_TELEPORT;
     }
     gi.LinkEntity(ent);
@@ -2602,10 +2602,10 @@ static void G_func_train_Use(g_entity_t *ent, g_entity_t *other,
  -------- Path corner spawn flags --------
  teleport : The train jumps to this corner rather than travelling to it, restoring the corner's
  angles, and carries straight on to the corner's own target. Combine with a looping route to send
- a train back to its start: flag the first corner `teleport` + `silent` and give the last corner
- a `wait` and a `target` back to it. Riders are not carried through the jump, and the mapper is
- responsible for hiding both corners from view.
- silent : Suppress the teleport effect.
+ a train back to its start: flag the first corner `teleport` + `no_effects`, and give the last
+ corner a `wait` and a `target` back to that first corner. Riders are not carried through the
+ jump, and the mapper is responsible for hiding both corners from view.
+ no_effects : Suppress the teleport effect.
  */
 void G_func_train(g_entity_t *ent) {
   ent->move_type = MOVE_TYPE_PUSH;
