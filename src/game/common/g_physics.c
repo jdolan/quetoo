@@ -136,6 +136,8 @@ static void G_CheckWater(g_entity_t *ent) {
       }
     }
   }
+
+  G_CheckItemHazard(ent);
 }
 
 /**

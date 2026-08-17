@@ -41,6 +41,7 @@
   extern const box3_t ITEM_BOUNDS;
 
   bool G_AddAmmo(g_client_t *cl, const g_item_t *item, int16_t count);
+  void G_CheckItemHazard(g_entity_t *ent);
   g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item);
   void G_DropInventoryItem(g_client_t *cl, const g_item_t *item);
   bool G_ItemAvailable(const g_item_t *item);

@@ -125,6 +125,31 @@ const g_item_t *G_ClientArmor(const g_client_t *cl) {
 }
 
 /**
+ * @brief Returns the item to the origin authored in the map, so that an item carried
+ * away by a mover comes back where the mapper placed it. Callers that are visible
+ * should expect the item to settle back onto the floor under its own physics.
+ * @return True if the item was moved.
+ */
+static bool G_ItemRestoreOrigin(g_entity_t *ent) {
+
+  const cm_entity_t *origin = gi.EntityValue(ent->def, "origin");
+  if (!(origin->parsed & ENTITY_VEC3)) {
+    return false;
+  }
+
+  if (Vec3_Equal(ent->s.origin, origin->vec3)) {
+    return false;
+  }
+
+  ent->s.origin = origin->vec3;
+  ent->velocity = Vec3_Zero();
+  ent->avelocity = Vec3_Zero();
+  memset(&ent->ground, 0, sizeof(ent->ground));
+
+  return true;
+}
+
+/**
  * @brief Think function that respawns an item entity after its delay expires.
  */
 static void G_ItemRespawn(g_entity_t *ent) {
@@ -148,6 +173,38 @@ static void G_ItemRespawn(g_entity_t *ent) {
 }
 
 /**
+ * @brief Returns an item flagged `hazard_respawn` to its map origin if it has ended up
+ * in lava or slime. Called from `G_CheckWater`, so that only items that are actually
+ * moving through the world are considered.
+ */
+void G_CheckItemHazard(g_entity_t *ent) {
+
+  if (!ent->item) {
+    return;
+  }
+
+  if (!(ent->spawn_flags & SF_ITEM_HAZARD_RESPAWN)) {
+    return;
+  }
+
+  if (!(ent->water_type & (CONTENTS_LAVA | CONTENTS_SLIME))) {
+    return;
+  }
+
+  if (!G_ItemRestoreOrigin(ent)) {
+    return;
+  }
+
+  ent->water_level = WATER_NONE;
+  ent->water_type = 0;
+
+  gi.LinkEntity(ent);
+
+  ent->s.event = EV_ITEM_RESPAWN;
+  ent->s.event_data = ent->item->def.tag;
+}
+
+/**
  * @brief Schedules an item entity to respawn after the specified delay in milliseconds.
  */
 void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
@@ -157,6 +214,8 @@ void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
 
   ent->solid = SOLID_NOT;
   ent->sv_flags |= SVF_NO_CLIENT;
+
+  G_ItemRestoreOrigin(ent);
 
   gi.LinkEntity(ent);
 }
