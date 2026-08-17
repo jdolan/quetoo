@@ -143,7 +143,8 @@ static bool G_ItemRestoreOrigin(g_entity_t *ent) {
 
   ent->s.origin = origin->vec3;
   ent->velocity = Vec3_Zero();
-  ent->ground.ent = NULL;
+  ent->avelocity = Vec3_Zero();
+  memset(&ent->ground, 0, sizeof(ent->ground));
 
   return true;
 }
