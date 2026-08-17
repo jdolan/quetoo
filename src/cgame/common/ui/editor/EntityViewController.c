@@ -22,6 +22,7 @@
 #include "cg_local.h"
 
 static cvar_t *editor_grid_size;
+static cvar_t *editor_select_dist;
 
 #include "EntityViewController.h"
 #include "EntityView.h"
@@ -147,6 +148,46 @@ static void loadView(ViewController *self) {
 
   this->teamAdd->delegate.self = this;
   this->teamAdd->delegate.didEditEntity = didEditTeamEntity;
+}
+
+/**
+ * @brief Selects the next entity along the selection ray.
+ * @details This is a no-op unless the entity tab is the visible one, so that the mouse wheel
+ *   remains free to scroll the material and mesh tabs.
+ * @param dir A positive value to select a nearer entity, negative for a farther one.
+ */
+static void cycleCandidate(EntityViewController *self, int32_t dir) {
+
+  if (self->numCandidates < 2 || ((ViewController *) self)->view->hidden) {
+    return;
+  }
+
+  size_t candidate = self->candidate;
+
+  if (dir > 0) {
+    if (candidate == 0) {
+      return;
+    }
+    candidate--;
+  } else if (dir < 0) {
+    if (candidate + 1 == self->numCandidates) {
+      return;
+    }
+    candidate++;
+  } else {
+    return;
+  }
+
+  self->candidate = candidate;
+
+  cg_editor_entity_t *entity = &cg_editor.entities[self->candidates[candidate]];
+
+  $(self, setEntity, entity);
+
+  cgi.Print("Selected %s (%d of %d)\n",
+            cgi.EntityValue(entity->def, "classname")->string,
+            (int32_t) (candidate + 1),
+            (int32_t) self->numCandidates);
 }
 
 /**
@@ -297,6 +338,10 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
   if (event->type == MVC_NOTIFICATION_EVENT) {
 
     switch (event->user.code) {
+      case NOTIFICATION_EDITOR_SELECTION_CYCLE:
+        cycleCandidate(this, (int32_t) (intptr_t) event->user.data1);
+        break;
+
       case NOTIFICATION_ENTITY_PARSED: {
 
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
@@ -328,11 +373,12 @@ static void viewWillAppear(ViewController *self) {
   EntityViewController *this = (EntityViewController *) self;
 
   const vec3_t start = cgi.view->origin;
-  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cgi.view->forward);
+  const vec3_t end = Vec3_Fmaf(start, editor_select_dist->value, cgi.view->forward);
 
-  const cg_editor_trace_t tr = Cg_EntitySelectionTrace(start, end);
+  this->numCandidates = Cg_EntitySelectionCandidates(start, end, this->candidates);
+  this->candidate = 0;
 
-  $(this, setEntity, tr.ent);
+  $(this, setEntity, this->numCandidates ? &cg_editor.entities[this->candidates[0]] : &cg_editor.entities[0]);
 
   super(ViewController, self, viewWillAppear);
 }
@@ -488,6 +534,7 @@ static void initialize(Class *clazz) {
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
 
   editor_grid_size = cgi.AddCvar("editor_grid_size", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
+  editor_select_dist = cgi.AddCvar("editor_select_dist", "512", CVAR_ARCHIVE, "The maximum distance, in world units, at which entities may be selected in the editor.");
 }
 
 /**

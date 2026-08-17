@@ -93,6 +93,21 @@ struct EntityViewController {
    */
   bool show_func_groups;
 
+  /**
+   * @brief The entity numbers intersected by the selection ray, nearest first.
+   */
+  int16_t candidates[CG_EDITOR_MAX_CANDIDATES];
+
+  /**
+   * @brief The number of valid entries in `candidates`.
+   */
+  size_t numCandidates;
+
+  /**
+   * @brief The index in `candidates` of the selected entity, cycled with the mouse wheel.
+   */
+  size_t candidate;
+
 };
 
 /**

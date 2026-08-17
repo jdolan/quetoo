@@ -143,6 +143,7 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
   if (!did_print_help) {
     cgi.Print("^5In-game editor enabled\n");
     cgi.Print("^5To select an entity, place your crosshair over it and press ESC\n");
+    cgi.Print("^5To cycle through the entities behind your crosshair, use the mouse wheel\n");
     cgi.Print("^5To move a selected entity, use W, A, S, D, E, C\n");
     cgi.Print("^5Use your normal hotkeys to cut, copy and paste entities\n");
     cgi.Print("^5To toggle func_group entities, use G\n");
@@ -402,22 +403,19 @@ void Cg_FreeEditorEntities(void) {
 }
 
 /**
- * @brief Traces the view ray against each editor entity's brush list, falling back to a
- *   ray-AABB slab test for point entities that have no brushes.
+ * @brief Collects the editor entities intersected by the given ray for entity selection.
+ * @details Each entity is traced against its brush list, falling back to a ray-AABB slab test
+ *   for point entities that have no brushes. Worldspawn is skipped, as its brushes would occlude
+ *   every other candidate.
+ * @param out Receives the entity numbers of the intersected entities, nearest first.
+ * @return The number of entity numbers written to `out`.
  */
-/**
- * @brief Traces the view ray for entity selection.
- * @details Skips worldspawn (it is the default fallback and has many brushes) and includes
- *   point entities via a ray-AABB slab test.
- */
-cg_editor_trace_t Cg_EntitySelectionTrace(const vec3_t start, const vec3_t end) {
+size_t Cg_EntitySelectionCandidates(const vec3_t start, const vec3_t end, int16_t out[CG_EDITOR_MAX_CANDIDATES]) {
 
-  cg_editor_trace_t out = {
-    .ent = NULL,
-    .trace = { .fraction = 1.f }
-  };
+  float fractions[CG_EDITOR_MAX_CANDIDATES];
+  size_t count = 0;
 
-  cg_editor_entity_t *edit = cg_editor.entities;
+  cg_editor_entity_t *edit = cg_editor.entities + 1;
   for (int32_t i = 1; i < MAX_ENTITIES; i++, edit++) {
 
     if (edit->def == NULL) {
@@ -430,6 +428,8 @@ cg_editor_trace_t Cg_EntitySelectionTrace(const vec3_t start, const vec3_t end) 
       }
     }
 
+    float fraction = 1.f;
+
     if (edit->brushes) {
       const mat4_t inverse = Cg_EditorEntityInverseMatrix(edit);
 
@@ -441,33 +441,40 @@ cg_editor_trace_t Cg_EntitySelectionTrace(const vec3_t start, const vec3_t end) 
 
         const cm_trace_t tr = cgi.TraceToBrush(model_start, model_end, brush);
 
-        if (tr.start_solid || tr.fraction >= out.trace.fraction) {
+        if (tr.start_solid || tr.fraction >= fraction) {
           continue;
         }
 
-        out.ent = edit;
-        out.trace = tr;
-        out.trace.end = Vec3_Mix(start, end, tr.fraction);
+        fraction = tr.fraction;
       }
     } else {
 
       const entity_state_t *s = &edit->ent->current;
       const box3_t bounds = Box3_Translate(s->bounds, s->origin);
 
-      const float frac = Box3_RayFraction(start, end, bounds);
-      if (frac >= out.trace.fraction) {
-        continue;
-      }
-
-      out.ent = edit;
-      out.trace = (cm_trace_t) {
-        .fraction = frac,
-        .end = Vec3_Mix(start, end, frac)
-      };
+      fraction = Box3_RayFraction(start, end, bounds);
     }
+
+    if (fraction >= 1.f) {
+      continue;
+    }
+
+    if (count == CG_EDITOR_MAX_CANDIDATES && fraction >= fractions[count - 1]) {
+      continue;
+    }
+
+    size_t j = count < CG_EDITOR_MAX_CANDIDATES ? count++ : CG_EDITOR_MAX_CANDIDATES - 1;
+    while (j > 0 && fractions[j - 1] > fraction) {
+      fractions[j] = fractions[j - 1];
+      out[j] = out[j - 1];
+      j--;
+    }
+
+    fractions[j] = fraction;
+    out[j] = edit->number;
   }
 
-  return out;
+  return count;
 }
 
 /**
@@ -536,6 +543,25 @@ cg_editor_trace_t Cg_MaterialSelectionTrace(const vec3_t start, const vec3_t end
   return out;
 }
 
+
+/**
+ * @brief Broadcasts a request to cycle the entity selection along the selection ray.
+ * @details ObjectivelyMVC delivers mouse wheel events to the View beneath the cursor, so the
+ *   EntityViewController never sees them; they reach it as a notification instead.
+ * @param dir A positive value to select a nearer entity, negative for a farther one.
+ */
+void Cg_CycleEditorSelection(int32_t dir) {
+
+  if (!editor->integer || cgi.GetKeyDest() != KEY_UI) {
+    return;
+  }
+
+  SDL_PushEvent(&(SDL_Event) {
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = NOTIFICATION_EDITOR_SELECTION_CYCLE,
+    .user.data1 = (void *) (intptr_t) dir
+  });
+}
 
 /**
  * @brief Pushes or pops the editor view controller based on the current editor cvar state.

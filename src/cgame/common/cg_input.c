@@ -35,16 +35,24 @@ typedef struct {
 static cg_kick_t cg_kick;
 
 /**
- * @brief Handles SDL events, recreating the framebuffer on window resize or expose.
+ * @brief Handles SDL events, recreating the framebuffer on window resize or expose, and
+ *   forwarding the mouse wheel to the editor's entity selection.
  */
 void Cg_HandleEvent(const SDL_Event *event) {
-  
+
   switch (event->type) {
     case SDL_EVENT_WINDOW_EXPOSED:
     case SDL_EVENT_WINDOW_RESIZED:
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
       Cg_CreateFramebuffer();
       break;
+
+    case SDL_EVENT_MOUSE_WHEEL:
+      if (event->wheel.y != 0.f) {
+        Cg_CycleEditorSelection(event->wheel.y > 0.f ? 1 : -1);
+      }
+      break;
+
     default:
       break;
   }
