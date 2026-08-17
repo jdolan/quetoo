@@ -223,7 +223,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
 
   R_RegisterMedia((r_media_t *) material);
 
-  material->texture = (r_image_t *) R_AllocMedia(va("%s_texture", material->cm->basename), sizeof(r_image_t), R_MEDIA_IMAGE);
+  material->texture = (r_image_t *) R_AllocMedia(va("%s_texture", material->media.name), sizeof(r_image_t), R_MEDIA_IMAGE);
   material->texture->type = IMG_MATERIAL;
 
   R_RegisterDependency((r_media_t *) material, (r_media_t *) material->texture);
