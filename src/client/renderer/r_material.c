@@ -45,7 +45,7 @@ static void R_FreeMaterial(r_media_t *self) {
 /**
  * @brief Loads an animation for a material stage.
  */
-static r_animation_t *R_LoadStageAnimation(const cm_material_t *material, r_stage_t *stage) {
+static r_animation_t *R_LoadStageAnimation(const r_material_t *material, r_stage_t *stage, int32_t index) {
 
   const r_image_t *images[stage->cm->animation.num_frames];
   const r_image_t **out = images;
@@ -61,7 +61,7 @@ static r_animation_t *R_LoadStageAnimation(const cm_material_t *material, r_stag
     }
   }
 
-  return R_CreateAnimation(va("%s_%s_animation", material->name, stage->cm->asset.name), stage->cm->animation.num_frames, images);
+  return R_CreateAnimation(va("%s_%d_animation", material->media.name, index), stage->cm->animation.num_frames, images);
 }
 
 /**
@@ -191,7 +191,7 @@ static void R_ResolveMaterialStages(r_material_t *material) {
 
     if (*stage->cm->asset.path) {
       if (stage->cm->flags & STAGE_ANIMATION) {
-        stage->media = (r_media_t *) R_LoadStageAnimation(cm, stage);
+        stage->media = (r_media_t *) R_LoadStageAnimation(material, stage, num_stages);
       } else {
         stage->media = (r_media_t *) R_LoadImage(stage->cm->asset.path, IMG_MATERIAL);
       }
