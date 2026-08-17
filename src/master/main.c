@@ -203,7 +203,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
       q_strcolorstrip(name, stripped);
       Ms_InfoValue(cur_line, "ai", ai_val, sizeof(ai_val));
       Com_Verbose("Player: %s ai=%s\n", stripped, ai_val[0] ? ai_val : "(none)");
-      if (!atoi(ai_val) && q_strncmp(stripped, "[BOT]", 5)) {
+      if (!atoi(ai_val)) {
         q_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
         new_count++;
       }
