@@ -291,6 +291,9 @@ void R_DrawMainView(r_view_t *view) {
   assert(view);
 
   CommandBuffer *commands = r_context.device->commands;
+  if (!commands) {
+    return;
+  }
 
   {
     CopyPass *pass = $(commands, beginCopyPass);
@@ -342,11 +345,14 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   assert(view);
 
+  CommandBuffer *commands = r_context.device->commands;
+  if (!commands) {
+    return;
+  }
+
   R_UpdateUniforms(view);
 
   R_UpdateEntities(view, NULL);
-
-  CommandBuffer *commands = r_context.device->commands;
 
   Framebuffer *framebuffer = view->framebuffer;
 
@@ -373,7 +379,9 @@ void R_EndFrame(void) {
 
   R_Draw2D();
 
-  $(r_context.device, endFrame);
+  if (r_context.device->commands) {
+    $(r_context.device, endFrame);
+  }
 }
 
 /**
