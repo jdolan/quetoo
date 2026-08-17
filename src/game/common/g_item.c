@@ -125,6 +125,30 @@ const g_item_t *G_ClientArmor(const g_client_t *cl) {
 }
 
 /**
+ * @brief Returns the item to the origin authored in the map, so that an item carried
+ * away by a mover comes back where the mapper placed it. Callers that are visible
+ * should expect the item to settle back onto the floor under its own physics.
+ * @return True if the item was moved.
+ */
+static bool G_ItemRestoreOrigin(g_entity_t *ent) {
+
+  const cm_entity_t *origin = gi.EntityValue(ent->def, "origin");
+  if (!(origin->parsed & ENTITY_VEC3)) {
+    return false;
+  }
+
+  if (Vec3_Equal(ent->s.origin, origin->vec3)) {
+    return false;
+  }
+
+  ent->s.origin = origin->vec3;
+  ent->velocity = Vec3_Zero();
+  ent->ground.ent = NULL;
+
+  return true;
+}
+
+/**
  * @brief Think function that respawns an item entity after its delay expires.
  */
 static void G_ItemRespawn(g_entity_t *ent) {
@@ -157,6 +181,8 @@ void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
 
   ent->solid = SOLID_NOT;
   ent->sv_flags |= SVF_NO_CLIENT;
+
+  G_ItemRestoreOrigin(ent);
 
   gi.LinkEntity(ent);
 }
