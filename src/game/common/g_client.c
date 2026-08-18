@@ -356,7 +356,7 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
 static void G_ClientGiblet_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
   // G_TouchOccupy passes no trace, and is the only way a giblet reaches a player
-  if (ent->damage && other != ent->owner && other->take_damage) {
+  if (ent->damage && other->client && other != ent->owner && other->take_damage) {
     if ((uint32_t) ent->count <= g_level.time) {
       ent->count = g_level.time + 500;
 
@@ -556,13 +556,6 @@ void G_Giblets(const g_giblets_t *giblets) {
  */
 static void G_ClientCorpse_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
 
-  const box3_t bounds[NUM_GIB_MODELS] = {
-    Box3f(12.f, 12.f, 12.f),
-    Box3f(12.f, 12.f, 12.f),
-    Box3f(8.f, 8.f, 8.f),
-    Box3f(16.f, 16.f, 16.f),
-  };
-
   G_Giblets(&(const g_giblets_t) {
     .origin = ent->s.origin,
     .velocity = ent->velocity,
@@ -572,7 +565,7 @@ static void G_ClientCorpse_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t m
   });
 
   if (ent->client) {
-    ent->bounds = bounds[2];
+    ent->bounds = Box3f(8.f, 8.f, 8.f);
 
     const int32_t h = Clampf(-5.0 * ent->health, 100, 500);
     

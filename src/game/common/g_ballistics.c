@@ -1159,7 +1159,7 @@ void G_RailgunProjectile(g_entity_t *ent, g_entity_t *attacker, const vec3_t sta
     }
 
     // we've hit something, so damage it
-    if ((tr.ent != ent) && G_TakesDamage(tr.ent)) {
+    if ((tr.ent != ent) && (tr.ent != attacker) && G_TakesDamage(tr.ent)) {
       G_Damage(&(g_damage_t) {
         .target = tr.ent,
         .inflictor = ent,

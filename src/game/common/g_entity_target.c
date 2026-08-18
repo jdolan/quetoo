@@ -235,8 +235,10 @@ static void G_target_ballistics_Laser(g_entity_t *ent, g_entity_t *attacker, con
  */
 static void G_target_ballistics_Giblets(g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
 
+  const cm_trace_t tr = gi.Trace(ent->s.origin, start, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
+
   G_Giblets(&(const g_giblets_t) {
-    .origin = start,
+    .origin = tr.fraction < 1.f ? ent->s.origin : start,
     .velocity = Vec3_Scale(dir, ent->speed),
     .count = RandomRangei(2, 5),
     .head = true,
@@ -353,17 +355,15 @@ static void G_target_ballistics_Fire(g_entity_t *ent, g_entity_t *attacker, cons
  */
 static vec3_t G_target_ballistics_Dir(g_entity_t *ent) {
 
-  if (ent->target && ent->enemy == NULL) {
-    ent->enemy = G_PickTarget(ent->target);
+  if (ent->target) {
+    const g_entity_t *target = G_PickTarget(ent->target);
 
-    if (ent->enemy == NULL) {
-      G_Warn("%s has invalid target %s\n", etos(ent), ent->target);
-      ent->target = NULL;
+    if (target) {
+      return Vec3_Normalize(Vec3_Subtract(Box3_Center(target->abs_bounds), ent->s.origin));
     }
-  }
 
-  if (ent->enemy) {
-    return Vec3_Normalize(Vec3_Subtract(Box3_Center(ent->enemy->abs_bounds), ent->s.origin));
+    G_Warn("%s has invalid target %s\n", etos(ent), ent->target);
+    ent->target = NULL;
   }
 
   return ent->move_dir;
@@ -477,6 +477,12 @@ static void G_target_ballistics_Init(g_entity_t *ent) {
     ent->wait = 1.f;
   }
 
+  // only the laser is hitscan; the rest would exhaust the entity pool at zero
+  ent->wait = Maxf(ent->wait, type->Fire == G_target_ballistics_Laser ? 0.f : .1f);
+  ent->random = Maxf(ent->random, 0.f);
+  ent->delay = Maxf(ent->delay, 0.f);
+
+  ent->count = 0;
   ent->s.client = MAX_CLIENTS;
 
   G_SetMoveDir(ent);
@@ -498,7 +504,7 @@ static void G_target_ballistics_Init(g_entity_t *ent) {
  spread : The cone of fire, from 0.0 for pinpoint to 1.0 for wild (default 0).
  target : An entity to aim at, re-evaluated on every shot. Overrides "angles".
  targetname : The target name of this entity.
- wait : The interval in seconds between shots (default 1.0).
+ wait : The interval in seconds between shots (default 1.0). Only the laser may set 0.
 
  -------- Spawn flags --------
  start_on : Fires on its own from level start, without being used.

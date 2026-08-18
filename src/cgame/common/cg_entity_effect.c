@@ -44,6 +44,7 @@ vec3_t Cg_EffectColor(float *hue, const float default_hue) {
 vec3_t Cg_ClientEffectColor(const int32_t client, float *hue, const float default_hue) {
 
   assert(client >= 0);
+  assert(client <= MAX_CLIENTS);
 
   float client_hue = -1.f;
 
