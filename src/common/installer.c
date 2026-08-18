@@ -71,7 +71,7 @@ static int32_t Installer_GetVersion(const char *version_url) {
   int32_t version;
 
   Data *data = NULL;
-  const int32_t status = $($$(RESTClient, sharedInstance), get, version_url, &data);
+  const int32_t status = $($$(RESTClient, sharedInstance), get, version_url, NULL, &data);
   if (status == 200 && data) {
     version = (int32_t) strtol((const char *) data->bytes, NULL, 10);
     Com_Debug(DEBUG_COMMON, "%s == %d\n", version_url, version);
@@ -211,7 +211,7 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
 
   Data *data = NULL;
 
-  const int32_t status = $($$(RESTClient, sharedInstance), get, url, &data);
+  const int32_t status = $($$(RESTClient, sharedInstance), get, url, NULL, &data);
   if (status != 200) {
     Com_Warn("Downloading %s failed: HTTP %d\n", url, status);
     release(data);
@@ -335,7 +335,7 @@ static int Installer_Thread(void *unused) {
         Data *data = NULL;
         char manifest_url[MAX_OS_PATH];
         q_snprintf(manifest_url, sizeof(manifest_url), QUETOO_DATA_BASE_URL "/%s/manifest.mf", Com_Game());
-        const int32_t http_status = $($$(RESTClient, sharedInstance), get, manifest_url, &data);
+        const int32_t http_status = $($$(RESTClient, sharedInstance), get, manifest_url, NULL, &data);
         if (http_status != 200 || !data) {
           SDL_LockMutex(installer.mutex);
           in->state = INSTALLER_ERROR;

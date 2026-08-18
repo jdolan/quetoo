@@ -146,7 +146,7 @@ static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name)
     ip, port);
 
   Data *body = $$(Data, dataWithBytes, (const uint8_t *) json, q_strlen(json));
-  $($$(RESTClient, sharedInstance), postAsync, ms_discord_webhook, body, NULL, NULL);
+  $($$(RESTClient, sharedInstance), postAsync, ms_discord_webhook, body, NULL, NULL, NULL);
   release(body);
 }
 

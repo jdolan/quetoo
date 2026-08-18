@@ -98,7 +98,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
   cl_download.status = 0;
   cl_download.data = release(cl_download.data);
 
-  $($$(RESTClient, sharedInstance), getAsync, url, Cl_DownloadComplete, NULL);
+  $($$(RESTClient, sharedInstance), getAsync, url, NULL, Cl_DownloadComplete, NULL);
 
   const char *base = Basename(filename);
   while (!SDL_GetAtomicInt(&cl_download.complete)) {

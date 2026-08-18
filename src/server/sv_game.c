@@ -220,12 +220,25 @@ static void Sv_PostStatsCallback(int32_t status, Data *data, void *user_data) {
 /**
  * @brief Serializes frag events from the game module to JSON and POSTs them
  * asynchronously to `sv_stats_url`. Gated on `sv_public` and a non-empty URL.
+ *
+ * Each request also carries `X-Quetoo-Port` and `X-Quetoo-Hostname` headers so
+ * that the stats service can disambiguate multiple server instances sharing a
+ * single public IP, which it cannot otherwise distinguish (payloads only ever
+ * identify a player, not the reporting server).
  */
 static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_capture_t *captures, size_t captures_len) {
 
   if (!sv_stats_url->string[0] || sv_public->integer <= 0) {
     return;
   }
+
+  const cvar_t *net_port = Cvar_Get("net_port");
+
+  const char *headers[] = {
+    "X-Quetoo-Port",     net_port->string,
+    "X-Quetoo-Hostname", sv_hostname->string,
+    NULL
+  };
 
   if (frags_len) {
 
@@ -251,7 +264,7 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
     assert(data);
 
     Com_Print("POSTing %zd frags to %s\n", frags_len, frags_url);
-    $($$(RESTClient, sharedInstance), postAsync, frags_url, data, Sv_PostStatsCallback, frags_url);
+    $($$(RESTClient, sharedInstance), postAsync, frags_url, data, headers, Sv_PostStatsCallback, frags_url);
 
     release(data);
   }
@@ -276,7 +289,7 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
     assert(data);
 
     Com_Print("POSTing %zd captures to %s\n", captures_len, captures_url);
-    $($$(RESTClient, sharedInstance), postAsync, captures_url, data, Sv_PostStatsCallback, captures_url);
+    $($$(RESTClient, sharedInstance), postAsync, captures_url, data, headers, Sv_PostStatsCallback, captures_url);
 
     release(data);
   }

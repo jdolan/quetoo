@@ -141,7 +141,7 @@ static void fetchStats(StatsViewController *this) {
   char url[MAX_STRING_CHARS];
   q_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hash);
 
-  $(cgi.restClient, getAsync, url, fetchStatsComplete, NULL);
+  $(cgi.restClient, getAsync, url, NULL, fetchStatsComplete, NULL);
 }
 
 #pragma mark - TableViewDataSource

@@ -740,7 +740,7 @@ static void Cl_InitGuid(void) {
   q_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
 
   Data *data;
-  const int32_t status = $($$(RESTClient, sharedInstance), get, url, &data);
+  const int32_t status = $($$(RESTClient, sharedInstance), get, url, NULL, &data);
   if (status == 200) {
 
     JSONContext *ctx = $(alloc(JSONContext), init);

@@ -129,7 +129,7 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
     n += q_snprintf(url + n, sizeof(url) - n, "&sort=%s&dir=%s", sort, dir);
   }
 
-  $(cgi.restClient, getAsync, url, fetchLeaderboardComplete, NULL);
+  $(cgi.restClient, getAsync, url, NULL, fetchLeaderboardComplete, NULL);
 }
 
 /**

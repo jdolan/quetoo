@@ -338,7 +338,7 @@ START_TEST(check_Net_Http_roundtrip) {
 	SDL_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.txt", port);
 
 	Data *data = NULL;
-	const int32_t status = $($$(RESTClient, sharedInstance), get, url, &data);
+	const int32_t status = $($$(RESTClient, sharedInstance), get, url, NULL, &data);
 
 	ck_assert_int_eq(status, 200);
 	ck_assert(data != NULL);
