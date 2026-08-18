@@ -344,8 +344,10 @@ void Cl_InitCgame(void) {
   // ObjectivelyMVC binds Views by class name, from JSON hierarchies and CSS
   // selectors, and the module is opened RTLD_LOCAL so that two modules' symbols
   // cannot coalesce - which leaves it out of the namespace Objectively would
-  // otherwise search, and Windows has no such namespace at all.
-  addClassImage(cgame_handle);
+  // otherwise search, and Windows has no such namespace at all. The export
+  // table is a static within the module, which is the address Objectively
+  // resolves the module by, so that it can drop its Classes when it comes down.
+  addClassImage(cgame_handle, cgame);
 
   cls.cgame = cgame;
   cls.cgame->Init();
