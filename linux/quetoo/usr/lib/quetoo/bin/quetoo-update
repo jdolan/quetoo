@@ -3,6 +3,7 @@
 #
 # Usage:
 #   quetoo-update                  Update immediately and restart all instances.
+#                                  The master server is restarted too, if configured.
 #   quetoo-update --wait-for-empty Defer until all instances have no human clients.
 #
 # Recommended crontab (every 15 minutes, restart as soon as server empties):
@@ -88,6 +89,13 @@ if [[ $WAIT_FOR_EMPTY -eq 1 ]]; then
   done
 fi
 
+# Capture the master server state now, before package scripts stop services.
+RESTART_MASTER=0
+if systemctl is-active --quiet quetoo-master.service ||
+   systemctl is-enabled --quiet quetoo-master.service; then
+  RESTART_MASTER=1
+fi
+
 # Capture dedicated instances now, before package scripts stop services.
 # Include both enabled and currently loaded instances, but skip the
 # template unit itself (quetoo-dedicated@.service).
@@ -120,6 +128,13 @@ else
   curl -fsSL -o "$TMPDIR/quetoo.rpm"      "$QUETOO_BASE/quetoo-${BUILD}.rpm"
   curl -fsSL -o "$TMPDIR/quetoo-data.rpm" "$DATA_BASE/quetoo-data-${DATA_LATEST}-1.noarch.rpm"
   dnf install -y "$TMPDIR/quetoo.rpm" "$TMPDIR/quetoo-data.rpm"
+fi
+
+# Restart the master server before the instances, so they re-register on start.
+if [[ $RESTART_MASTER -eq 1 ]]; then
+  echo "Restarting quetoo-master..."
+  systemctl reset-failed quetoo-master.service 2>/dev/null || true
+  systemctl restart quetoo-master.service || true
 fi
 
 # Restart each enabled instance after the update.
