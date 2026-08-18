@@ -98,6 +98,24 @@ static const char *G_WeaponNameForMod(g_means_of_death mod) {
       return "Quake Thunderbolt";
     case MOD_FIREBALL:
       return "Fireball";
+    case MOD_TRAP_BLASTER:
+    case MOD_TURRET_BLASTER:
+      return "Blaster";
+    case MOD_TRAP_NAIL:
+    case MOD_TURRET_NAIL:
+      return "Nailgun";
+    case MOD_TRAP_ROCKET:
+    case MOD_TURRET_ROCKET:
+      return "Rocket Launcher";
+    case MOD_TRAP_GRENADE:
+    case MOD_TURRET_GRENADE:
+      return "Grenade Launcher";
+    case MOD_TRAP_LASER:
+    case MOD_TURRET_LASER:
+      return "Railgun";
+    case MOD_TRAP_GIBLETS:
+    case MOD_TURRET_GIBLETS:
+      return "Giblets";
 #if defined(G_HOOK)
     case MOD_HOOK:
       return "Hook";

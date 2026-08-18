@@ -41,7 +41,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1045
+#define PROTOCOL_MINOR 1046
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -117,7 +117,14 @@ typedef enum {
 /**
  * @brief Muzzle flashes are bound to the entity that created them. This allows
  * the protocol to forego sending the origin and angles for the effect, as they
- * can be inferred from the referenced entity.
+ * can be inferred from the referenced entity. Entities that the server does not
+ * transmit send `MUZZLE_FLASH_WORLD` in place of an entity number, followed by
+ * the origin and direction of the flash.
+ */
+#define MUZZLE_FLASH_WORLD -1
+
+/**
+ * @brief The muzzle flash effects the client game can render.
  */
 typedef enum {
   MZ_BLASTER,
@@ -923,6 +930,18 @@ typedef struct {
   MOD_HOOK,
   MOD_ACT_OF_GOD,
   MOD_BOB,
+  MOD_TRAP_BLASTER,
+  MOD_TRAP_NAIL,
+  MOD_TRAP_ROCKET,
+  MOD_TRAP_GRENADE,
+  MOD_TRAP_LASER,
+  MOD_TRAP_GIBLETS,
+  MOD_TURRET_BLASTER,
+  MOD_TURRET_NAIL,
+  MOD_TURRET_ROCKET,
+  MOD_TURRET_GRENADE,
+  MOD_TURRET_LASER,
+  MOD_TURRET_GIBLETS,
   MOD_FRIENDLY_FIRE = 0x8000000
 } g_means_of_death;
 
@@ -990,6 +1009,54 @@ typedef struct {
   */
 	g_means_of_death mod;
 } g_damage_t;
+
+/**
+ * @brief Parameters for a burst of giblets, as scattered by a dying corpse or a
+ * `target_ballistics`.
+ */
+typedef struct {
+
+  /**
+   * @brief The origin the giblets are scattered from.
+   */
+  vec3_t origin;
+
+  /**
+   * @brief The velocity the giblets inherit, before randomization.
+   */
+  vec3_t velocity;
+
+  /**
+   * @brief The number of giblets to scatter.
+   */
+  int32_t count;
+
+  /**
+   * @brief Upward velocity added to each giblet.
+   */
+  float lift;
+
+  /**
+   * @brief True to include a head among the giblets.
+   */
+  bool head;
+
+  /**
+   * @brief Damage each giblet inflicts on contact, or zero for harmless giblets.
+   */
+  int32_t damage;
+
+  /**
+   * @brief The entity credited with damage the giblets inflict.
+   */
+  g_entity_t *attacker;
+
+  /**
+   * @brief The means of death the giblets inflict.
+   */
+  uint32_t mod;
+
+} g_giblets_t;
 
 /**
  * @brief The name for the CTF skin used in team games.
@@ -1527,6 +1594,11 @@ struct g_entity_s {
    * @brief Spawn flags (`SF_ITEM_HOVER`, etc.).
    */
   uint32_t spawn_flags;
+
+  /**
+   * @brief Means of death this entity inflicts, for projectiles and other inflictors.
+   */
+  uint32_t mod;
 
   /**
    * @brief Entity flags (`FL_GOD_MODE`, etc.).

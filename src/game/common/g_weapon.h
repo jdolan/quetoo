@@ -47,5 +47,6 @@ void G_FireQuakeSuperNailgun(g_client_t *cl);
 void G_FireQuakeGrenadeLauncher(g_client_t *cl);
 void G_FireQuakeRocketLauncher(g_client_t *cl);
 void G_FireQuakeThunderbolt(g_client_t *cl);
+void G_WorldMuzzleFlash(const vec3_t org, const vec3_t dir, g_muzzle_flash_t flash);
 void G_ClientWeaponThink(g_client_t *cl);
 #endif
