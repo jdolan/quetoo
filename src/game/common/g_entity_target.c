@@ -243,8 +243,10 @@ static void G_target_ballistics_Giblets(g_entity_t *ent, g_entity_t *attacker, c
     .count = RandomRangei(2, 5),
     .head = true,
     .damage = ent->damage,
+    .knockback = ent->knockback,
     .attacker = attacker,
-    .mod = mod
+    .mod = mod,
+    .lifetime = 3000
   });
 }
 
@@ -254,6 +256,7 @@ typedef struct {
   g_muzzle_flash_t flash;
   uint32_t trap_mod;
   uint32_t turret_mod;
+  float min_wait;
   cvar_t **damage;
   cvar_t **knockback;
   cvar_t **speed;
@@ -265,6 +268,7 @@ typedef struct {
 static const g_ballistics_type_t g_ballistics_types[] = {
   {
     .spawn_flag = BALLISTICS_BLASTER,
+    .min_wait = .1f,
     .Fire = G_target_ballistics_Blaster,
     .flash = MZ_BLASTER,
     .trap_mod = MOD_TRAP_BLASTER,
@@ -274,6 +278,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .speed = &g_balance_blaster_speed,
   }, {
     .spawn_flag = BALLISTICS_NAIL,
+    .min_wait = .1f,
     .Fire = G_target_ballistics_Nail,
     .flash = MZ_QUAKE_NAILGUN,
     .trap_mod = MOD_TRAP_NAIL,
@@ -283,6 +288,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .speed = &g_balance_quake_nailgun_speed,
   }, {
     .spawn_flag = BALLISTICS_ROCKET,
+    .min_wait = .1f,
     .Fire = G_target_ballistics_Rocket,
     .flash = MZ_ROCKET_LAUNCHER,
     .trap_mod = MOD_TRAP_ROCKET,
@@ -293,6 +299,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .radius = &g_balance_rocketlauncher_radius,
   }, {
     .spawn_flag = BALLISTICS_GRENADE,
+    .min_wait = .1f,
     .Fire = G_target_ballistics_Grenade,
     .flash = MZ_GRENADE_LAUNCHER,
     .trap_mod = MOD_TRAP_GRENADE,
@@ -315,6 +322,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .flash = MZ_LOGOUT,
     .trap_mod = MOD_TRAP_GIBLETS,
     .turret_mod = MOD_TURRET_GIBLETS,
+    .min_wait = .25f,
     .default_damage = 10,
     .default_speed = 500,
   }
@@ -478,7 +486,7 @@ static void G_target_ballistics_Init(g_entity_t *ent) {
   }
 
   // only the laser is hitscan; the rest would exhaust the entity pool at zero
-  ent->wait = Maxf(ent->wait, type->Fire == G_target_ballistics_Laser ? 0.f : .1f);
+  ent->wait = Maxf(ent->wait, type->min_wait);
   ent->random = Maxf(ent->random, 0.f);
   ent->delay = Maxf(ent->delay, 0.f);
 

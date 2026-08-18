@@ -1018,6 +1018,11 @@ typedef struct {
   int32_t damage;
 
   /**
+   * @brief Knockback each giblet applies on contact.
+   */
+  int32_t knockback;
+
+  /**
    * @brief The entity credited with damage the giblets inflict.
    */
   g_entity_t *attacker;
@@ -1026,6 +1031,12 @@ typedef struct {
    * @brief The means of death the giblets inflict.
    */
   uint32_t mod;
+
+  /**
+   * @brief Milliseconds until each giblet is removed, or zero to linger and sink
+   * through the floor as a corpse's giblets do.
+   */
+  uint32_t lifetime;
 
 } g_giblets_t;
 

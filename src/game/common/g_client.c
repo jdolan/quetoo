@@ -368,7 +368,7 @@ static void G_ClientGiblet_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
         .point = ent->s.origin,
         .normal = trace ? trace->plane.normal : Vec3_Zero(),
         .damage = ent->damage,
-        .knockback = ent->damage,
+        .knockback = ent->knockback,
         .mod = ent->mod
       });
     }
@@ -532,13 +532,20 @@ void G_Giblets(const g_giblets_t *giblets) {
     gib->dead = true;
     gib->mass = (gib_index + 1) * 20.0;
     gib->move_type = MOVE_TYPE_BOUNCE;
-    gib->next_think = g_level.time + QUETOO_TICK_MILLIS;
     gib->take_damage = true;
     gib->owner = giblets->attacker;
     gib->damage = giblets->damage;
+    gib->knockback = giblets->knockback;
     gib->mod = giblets->mod;
-    gib->Think = G_ClientCorpse_Think;
     gib->Touch = G_ClientGiblet_Touch;
+
+    if (giblets->lifetime) {
+      gib->Think = G_FreeEntity;
+      gib->next_think = g_level.time + giblets->lifetime;
+    } else {
+      gib->Think = G_ClientCorpse_Think;
+      gib->next_think = g_level.time + QUETOO_TICK_MILLIS;
+    }
 
     gi.LinkEntity(gib);
   }
