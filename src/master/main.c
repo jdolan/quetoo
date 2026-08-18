@@ -412,8 +412,8 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   mem_buf_t buf;
   byte buffer[0xffff];
 
-  // parse optional protocol version from command (e.g. "getservers 2026")
-  int32_t protocol = PROTOCOL_MAJOR;
+  // parse optional protocol version from command (e.g. "getservers 2026"), zero for all
+  int32_t protocol = 0;
   const char *p = cmd + q_strlen("getservers");
   while (*p == ' ') p++;
   if (*p) {
@@ -431,7 +431,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   uint32_t i = 0;
   for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
     const ms_server_t *server = (ms_server_t *) s->element;
-    if (server->validated && server->protocol == protocol) {
+    if (server->validated && (protocol == 0 || server->protocol == protocol)) {
       Mem_WriteBuffer(&buf, &server->addr.sin_addr, sizeof(server->addr.sin_addr));
       Mem_WriteBuffer(&buf, &server->addr.sin_port, sizeof(server->addr.sin_port));
       i++;
