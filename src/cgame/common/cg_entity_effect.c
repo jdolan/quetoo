@@ -38,14 +38,19 @@ vec3_t Cg_EffectColor(float *hue, const float default_hue) {
 
 /**
  * @brief Returns the effect color for the given client, using their team or personal hue.
+ * @param client A client number, or any value `>= MAX_CLIENTS` for effects owned by the world,
+ * which resolve to `default_hue`.
  */
 vec3_t Cg_ClientEffectColor(const int32_t client, float *hue, const float default_hue) {
 
   assert(client >= 0);
-  assert(client < MAX_CLIENTS);
 
-  const cg_client_info_t *ci = &cg_state.clients[client];
-  float client_hue = ci->team ? ci->team->hue : ci->hue;
+  float client_hue = -1.f;
+
+  if (client < MAX_CLIENTS) {
+    const cg_client_info_t *ci = &cg_state.clients[client];
+    client_hue = ci->team ? ci->team->hue : ci->hue;
+  }
 
   const vec3_t color = Cg_EffectColor(&client_hue, default_hue);
 

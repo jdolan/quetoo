@@ -24,11 +24,11 @@
 /**
  * @brief Renders the blaster muzzle flash with a dynamic light and optional bubble trail.
  */
-static void Cg_BlasterFlash(const cl_entity_t *ent) {
+static void Cg_BlasterFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  const vec3_t color = Cg_ClientEffectColor(ent->current.client, NULL, color_hue_orange);
+  const vec3_t color = Cg_ClientEffectColor(client, NULL, color_hue_orange);
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
@@ -39,9 +39,9 @@ static void Cg_BlasterFlash(const cl_entity_t *ent) {
   });
 
   vec3_t org2, forward, right;
-  Vec3_Vectors(ent->angles, &forward, &right, NULL);
-  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-    org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
+  Vec3_Vectors(angles, &forward, &right, NULL);
+  if (cgi.PointContents(origin) & CONTENTS_MASK_LIQUID) {
+    org2 = Vec3_Fmaf(origin, 40.f, forward);
     Cg_BubbleTrail(NULL, org, org2, 8.f);
     return;
   }
@@ -74,12 +74,12 @@ static void Cg_BlasterFlash(const cl_entity_t *ent) {
 /**
  * @brief Shotgun muzzle flash.
  */
-static void Cg_ShotgunFlash(const cl_entity_t *ent) {
+static void Cg_ShotgunFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   vec3_t forward, right;
-  Vec3_Vectors(ent->angles, &forward, &right, NULL);
+  Vec3_Vectors(angles, &forward, &right, NULL);
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
@@ -89,8 +89,8 @@ static void Cg_ShotgunFlash(const cl_entity_t *ent) {
     .decay = 250,
   });
 
-  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(ent->origin, 40.f, forward), 4.f);
+  if (cgi.PointContents(origin) & CONTENTS_MASK_LIQUID) {
+    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(origin, 40.f, forward), 4.f);
     return;
   }
 
@@ -147,12 +147,12 @@ static void Cg_ShotgunFlash(const cl_entity_t *ent) {
 /**
  * @brief Quake shotgun muzzle flash.
  */
-static void Cg_QuakeShotgunFlash(const cl_entity_t *ent) {
+static void Cg_QuakeShotgunFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   vec3_t forward, right;
-  Vec3_Vectors(ent->angles, &forward, &right, NULL);
+  Vec3_Vectors(angles, &forward, &right, NULL);
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
@@ -162,8 +162,8 @@ static void Cg_QuakeShotgunFlash(const cl_entity_t *ent) {
     .decay = 250,
   });
 
-  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(ent->origin, 40.f, forward), 4.f);
+  if (cgi.PointContents(origin) & CONTENTS_MASK_LIQUID) {
+    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(origin, 40.f, forward), 4.f);
     return;
   }
 
@@ -220,12 +220,12 @@ static void Cg_QuakeShotgunFlash(const cl_entity_t *ent) {
 /**
  * @brief Super shotgun muzzle flash.
  */
-static void Cg_SuperShotgunFlash(const cl_entity_t *ent) {
+static void Cg_SuperShotgunFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   vec3_t forward, right;
-  Vec3_Vectors(ent->angles, &forward, &right, NULL);
+  Vec3_Vectors(angles, &forward, &right, NULL);
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
@@ -235,8 +235,8 @@ static void Cg_SuperShotgunFlash(const cl_entity_t *ent) {
     .decay = 300,
   });
 
-  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(ent->origin, 40.f, forward), 8.f);
+  if (cgi.PointContents(origin) & CONTENTS_MASK_LIQUID) {
+    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(origin, 40.f, forward), 8.f);
     return;
   }
 
@@ -297,12 +297,12 @@ static void Cg_SuperShotgunFlash(const cl_entity_t *ent) {
 /**
  * @brief Quake super shotgun muzzle flash.
  */
-static void Cg_QuakeSuperShotgunFlash(const cl_entity_t *ent) {
+static void Cg_QuakeSuperShotgunFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   vec3_t forward, right;
-  Vec3_Vectors(ent->angles, &forward, &right, NULL);
+  Vec3_Vectors(angles, &forward, &right, NULL);
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
@@ -312,8 +312,8 @@ static void Cg_QuakeSuperShotgunFlash(const cl_entity_t *ent) {
     .decay = 300,
   });
 
-  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(ent->origin, 40.f, forward), 8.f);
+  if (cgi.PointContents(origin) & CONTENTS_MASK_LIQUID) {
+    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(origin, 40.f, forward), 8.f);
     return;
   }
 
@@ -370,12 +370,12 @@ static void Cg_QuakeSuperShotgunFlash(const cl_entity_t *ent) {
 /**
  * @brief Machinegun muzzle flash.
  */
-static void Cg_MachinegunFlash(const cl_entity_t *ent) {
+static void Cg_MachinegunFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   vec3_t forward, right;
-  Vec3_Vectors(ent->angles, &forward, &right, NULL);
+  Vec3_Vectors(angles, &forward, &right, NULL);
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
@@ -385,8 +385,8 @@ static void Cg_MachinegunFlash(const cl_entity_t *ent) {
     .decay = 150,
   });
 
-  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(ent->origin, 40.f, forward), 2.f);
+  if (cgi.PointContents(origin) & CONTENTS_MASK_LIQUID) {
+    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(origin, 40.f, forward), 2.f);
     return;
   }
 
@@ -433,12 +433,12 @@ static void Cg_MachinegunFlash(const cl_entity_t *ent) {
 /**
  * @brief Grenade launcher muzzle flash.
  */
-static void Cg_GrenadeFlash(const cl_entity_t *ent) {
+static void Cg_GrenadeFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   vec3_t forward, right;
-  Vec3_Vectors(ent->angles, &forward, &right, NULL);
+  Vec3_Vectors(angles, &forward, &right, NULL);
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
@@ -448,8 +448,8 @@ static void Cg_GrenadeFlash(const cl_entity_t *ent) {
     .decay = 350,
   });
 
-  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(ent->origin, 40.f, forward), 4.f);
+  if (cgi.PointContents(origin) & CONTENTS_MASK_LIQUID) {
+    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(origin, 40.f, forward), 4.f);
     return;
   }
 
@@ -495,12 +495,12 @@ static void Cg_GrenadeFlash(const cl_entity_t *ent) {
 /**
  * @brief Quake grenade launcher muzzle flash.
  */
-static void Cg_QuakeGrenadeFlash(const cl_entity_t *ent) {
+static void Cg_QuakeGrenadeFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   vec3_t forward, right;
-  Vec3_Vectors(ent->angles, &forward, &right, NULL);
+  Vec3_Vectors(angles, &forward, &right, NULL);
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
@@ -510,8 +510,8 @@ static void Cg_QuakeGrenadeFlash(const cl_entity_t *ent) {
     .decay = 350,
   });
 
-  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(ent->origin, 40.f, forward), 4.f);
+  if (cgi.PointContents(origin) & CONTENTS_MASK_LIQUID) {
+    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(origin, 40.f, forward), 4.f);
     return;
   }
 
@@ -554,12 +554,12 @@ static void Cg_QuakeGrenadeFlash(const cl_entity_t *ent) {
 /**
  * @brief Renders the rocket launcher muzzle flash with a dynamic light and optional bubble trail.
  */
-static void Cg_RocketFlash(const cl_entity_t *ent) {
+static void Cg_RocketFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   vec3_t forward, right;
-  Vec3_Vectors(ent->angles, &forward, &right, NULL);
+  Vec3_Vectors(angles, &forward, &right, NULL);
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
@@ -569,8 +569,8 @@ static void Cg_RocketFlash(const cl_entity_t *ent) {
     .decay = 400
   });
 
-  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-    const vec3_t org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
+  if (cgi.PointContents(origin) & CONTENTS_MASK_LIQUID) {
+    const vec3_t org2 = Vec3_Fmaf(origin, 40.f, forward);
     Cg_BubbleTrail(NULL, org, org2, 2.f);
     return;
   }
@@ -630,12 +630,12 @@ static void Cg_RocketFlash(const cl_entity_t *ent) {
 /**
  * @brief Quake rocket launcher muzzle flash.
  */
-static void Cg_QuakeRocketFlash(const cl_entity_t *ent) {
+static void Cg_QuakeRocketFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   vec3_t forward, right;
-  Vec3_Vectors(ent->angles, &forward, &right, NULL);
+  Vec3_Vectors(angles, &forward, &right, NULL);
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
@@ -645,8 +645,8 @@ static void Cg_QuakeRocketFlash(const cl_entity_t *ent) {
     .decay = 400
   });
 
-  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-    const vec3_t org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
+  if (cgi.PointContents(origin) & CONTENTS_MASK_LIQUID) {
+    const vec3_t org2 = Vec3_Fmaf(origin, 40.f, forward);
     Cg_BubbleTrail(NULL, org, org2, 2.f);
     return;
   }
@@ -702,14 +702,14 @@ static void Cg_QuakeRocketFlash(const cl_entity_t *ent) {
 /**
  * @brief Hyperblaster muzzle flash.
  */
-static void Cg_HyperblasterFlash(const cl_entity_t *ent) {
+static void Cg_HyperblasterFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   const vec3_t color = ColorHSV(204.f, .8f, 1.f).vec3;
 
   vec3_t forward;
-  Vec3_Vectors(ent->angles, &forward, NULL, NULL);
+  Vec3_Vectors(angles, &forward, NULL, NULL);
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
@@ -745,9 +745,9 @@ static void Cg_HyperblasterFlash(const cl_entity_t *ent) {
 /**
  * @brief BFG muzzle flash.
  */
-static void Cg_BfgFlash(const cl_entity_t *ent) {
+static void Cg_BfgFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   const vec3_t color = ColorHSV(85.f, .9f, 1.f).vec3;
 
@@ -759,10 +759,10 @@ static void Cg_BfgFlash(const cl_entity_t *ent) {
     .decay = 500,
   });
 
-  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
+  if (cgi.PointContents(origin) & CONTENTS_MASK_LIQUID) {
     vec3_t forward;
-    Vec3_Vectors(ent->angles, &forward, NULL, NULL);
-    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(ent->origin, 40.f, forward), 4.f);
+    Vec3_Vectors(angles, &forward, NULL, NULL);
+    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(origin, 40.f, forward), 4.f);
     return;
   }
 
@@ -818,12 +818,12 @@ static void Cg_BfgFlash(const cl_entity_t *ent) {
 /**
  * @brief Quake nailgun muzzle flash — small, sharp, no big flame cone.
  */
-static void Cg_QuakeNailgunFlash(const cl_entity_t *ent) {
+static void Cg_QuakeNailgunFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   vec3_t forward;
-  Vec3_Vectors(ent->angles, &forward, NULL, NULL);
+  Vec3_Vectors(angles, &forward, NULL, NULL);
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
@@ -833,8 +833,8 @@ static void Cg_QuakeNailgunFlash(const cl_entity_t *ent) {
     .decay = 100,
   });
 
-  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(ent->origin, 30.f, forward), 2.f);
+  if (cgi.PointContents(origin) & CONTENTS_MASK_LIQUID) {
+    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(origin, 30.f, forward), 2.f);
     return;
   }
 
@@ -864,12 +864,12 @@ static void Cg_QuakeNailgunFlash(const cl_entity_t *ent) {
 /**
  * @brief Quake super nailgun muzzle flash.
  */
-static void Cg_QuakeSuperNailgunFlash(const cl_entity_t *ent) {
+static void Cg_QuakeSuperNailgunFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
 
-  vec3_t org = cg_state.clients[ent->current.client].weapon_muzzle;
+  vec3_t org = muzzle;
 
   vec3_t forward;
-  Vec3_Vectors(ent->angles, &forward, NULL, NULL);
+  Vec3_Vectors(angles, &forward, NULL, NULL);
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
@@ -879,8 +879,8 @@ static void Cg_QuakeSuperNailgunFlash(const cl_entity_t *ent) {
     .decay = 100,
   });
 
-  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
-    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(ent->origin, 30.f, forward), 2.f);
+  if (cgi.PointContents(origin) & CONTENTS_MASK_LIQUID) {
+    Cg_BubbleTrail(NULL, org, Vec3_Fmaf(origin, 30.f, forward), 2.f);
     return;
   }
 
@@ -910,8 +910,8 @@ static void Cg_QuakeSuperNailgunFlash(const cl_entity_t *ent) {
 /**
  * @brief FIXME: This should be a tentity instead; would make more sense.
  */
-static void Cg_LogoutFlash(const cl_entity_t *ent) {
-  Cg_GibEffect(ent->origin, 12);
+static void Cg_LogoutFlash(const vec3_t muzzle, const vec3_t origin, const vec3_t angles, const int32_t client) {
+  Cg_GibEffect(origin, 12);
 }
 
 /**
@@ -922,16 +922,32 @@ void Cg_ParseMuzzleFlash(void) {
   const int16_t entity = cgi.ReadShort();
   const uint8_t flash = cgi.ReadByte();
 
-  if (entity < 0 || entity >= MAX_ENTITIES) {
-    Cg_Warn("Bad entity %u\n", entity);
-    return;
-  }
+  vec3_t muzzle, origin, angles;
+  int32_t client;
+  const cl_entity_t *ent = NULL;
 
-  const cl_entity_t *ent = &cgi.client->entities[entity];
+  if (entity == MUZZLE_FLASH_WORLD) { // the world is shooting; the origin and dir follow
+    origin = muzzle = cgi.ReadPosition();
+    angles = Vec3_Euler(cgi.ReadDir());
+    client = MAX_CLIENTS;
+  } else {
 
-  if (ent->current.client >= MAX_CLIENTS) {
-    Cg_Warn("Bad client %u for entity %d\n", ent->current.client, entity);
-    return;
+    if (entity < 0 || entity >= MAX_ENTITIES) {
+      Cg_Warn("Bad entity %u\n", entity);
+      return;
+    }
+
+    ent = &cgi.client->entities[entity];
+
+    if (ent->current.client >= MAX_CLIENTS) {
+      Cg_Warn("Bad client %u for entity %d\n", ent->current.client, entity);
+      return;
+    }
+
+    client = ent->current.client;
+    muzzle = cg_state.clients[client].weapon_muzzle;
+    origin = ent->origin;
+    angles = ent->angles;
   }
 
   const s_sample_t *sample;
@@ -940,37 +956,37 @@ void Cg_ParseMuzzleFlash(void) {
   switch (flash) {
     case MZ_BLASTER:
       sample = cg_sample_blaster_fire;
-      Cg_BlasterFlash(ent);
+      Cg_BlasterFlash(muzzle, origin, angles, client);
       pitch = 5;
       break;
     case MZ_SHOTGUN:
       sample = cg_sample_shotgun_fire;
-      Cg_ShotgunFlash(ent);
+      Cg_ShotgunFlash(muzzle, origin, angles, client);
       pitch = 3;
       break;
     case MZ_SUPER_SHOTGUN:
       sample = cg_sample_supershotgun_fire;
-      Cg_SuperShotgunFlash(ent);
+      Cg_SuperShotgunFlash(muzzle, origin, angles, client);
       pitch = 3;
       break;
     case MZ_MACHINEGUN:
       sample = cg_sample_machinegun_fire[RandomRangeu(0, lengthof(cg_sample_machinegun_fire))];
-      Cg_MachinegunFlash(ent);
+      Cg_MachinegunFlash(muzzle, origin, angles, client);
       pitch = 5;
       break;
     case MZ_ROCKET_LAUNCHER:
       sample = cg_sample_rocketlauncher_fire;
-      Cg_RocketFlash(ent);
+      Cg_RocketFlash(muzzle, origin, angles, client);
       pitch = 3;
       break;
     case MZ_GRENADE_LAUNCHER:
       sample = cg_sample_grenadelauncher_fire;
-      Cg_GrenadeFlash(ent);
+      Cg_GrenadeFlash(muzzle, origin, angles, client);
       pitch = 3;
       break;
     case MZ_HYPERBLASTER:
       sample = cg_sample_hyperblaster_fire;
-      Cg_HyperblasterFlash(ent);
+      Cg_HyperblasterFlash(muzzle, origin, angles, client);
       pitch = 5;
       break;
     case MZ_LIGHTNING:
@@ -983,42 +999,42 @@ void Cg_ParseMuzzleFlash(void) {
       break;
     case MZ_BFG10K:
       sample = cg_sample_bfg_fire;
-      Cg_BfgFlash(ent);
+      Cg_BfgFlash(muzzle, origin, angles, client);
       pitch = 2;
       break;
     case MZ_LOGOUT:
       sample = cg_sample_teleport;
-      Cg_LogoutFlash(ent);
+      Cg_LogoutFlash(muzzle, origin, angles, client);
       pitch = 4;
       break;
     case MZ_QUAKE_SHOTGUN:
       sample = cg_sample_quake_shotgun_fire;
-      Cg_QuakeShotgunFlash(ent);
+      Cg_QuakeShotgunFlash(muzzle, origin, angles, client);
       pitch = 3;
       break;
     case MZ_QUAKE_SUPER_SHOTGUN:
       sample = cg_sample_quake_supershotgun_fire;
-      Cg_QuakeSuperShotgunFlash(ent);
+      Cg_QuakeSuperShotgunFlash(muzzle, origin, angles, client);
       pitch = 3;
       break;
     case MZ_QUAKE_NAILGUN:
       sample = cg_sample_quake_nailgun_fire;
-      Cg_QuakeNailgunFlash(ent);
+      Cg_QuakeNailgunFlash(muzzle, origin, angles, client);
       pitch = 5;
       break;
     case MZ_QUAKE_SUPER_NAILGUN:
       sample = cg_sample_quake_supernailgun_fire;
-      Cg_QuakeSuperNailgunFlash(ent);
+      Cg_QuakeSuperNailgunFlash(muzzle, origin, angles, client);
       pitch = 5;
       break;
     case MZ_QUAKE_GRENADE_LAUNCHER:
       sample = cg_sample_quake_grenadelauncher_fire;
-      Cg_QuakeGrenadeFlash(ent);
+      Cg_QuakeGrenadeFlash(muzzle, origin, angles, client);
       pitch = 3;
       break;
     case MZ_QUAKE_ROCKET_LAUNCHER:
       sample = cg_sample_quake_rocketlauncher_fire;
-      Cg_QuakeRocketFlash(ent);
+      Cg_QuakeRocketFlash(muzzle, origin, angles, client);
       pitch = 3;
       break;
     default:
@@ -1027,7 +1043,7 @@ void Cg_ParseMuzzleFlash(void) {
   }
 
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
-    .origin = ent->current.origin,
+    .origin = ent ? ent->current.origin : origin,
     .sample = sample,
     .entity = ent,
     .pitch = RandomRangei(-pitch, pitch + 1)

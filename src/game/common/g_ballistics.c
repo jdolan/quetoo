@@ -171,7 +171,7 @@ static void G_BlasterProjectile_Touch(g_entity_t *ent, g_entity_t *other, const 
       .damage = ent->damage,
       .knockback = ent->knockback,
       .flags = DMG_ENERGY,
-      .mod = MOD_BLASTER
+      .mod = ent->mod ?: MOD_BLASTER
     });
 
     if (G_IsStructural(trace)) {
@@ -190,13 +190,16 @@ static void G_BlasterProjectile_Touch(g_entity_t *ent, g_entity_t *other, const 
 
 /**
  * @brief Fires a blaster projectile from the specified entity in the given direction.
+ * @param ent The entity the projectile leaves, providing its origin and effect color.
+ * @param attacker The entity credited with any damage the projectile inflicts.
  */
-void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback) {
+void G_BlasterProjectile(g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, uint32_t mod) {
 
   const box3_t bounds = Box3f(2.f, 2.f, 2.f);
 
   g_entity_t *projectile = G_AllocEntity(__func__);
-  projectile->owner = ent;
+  projectile->owner = attacker;
+  projectile->mod = mod;
 
   projectile->s.origin = start;
   projectile->bounds = bounds;
@@ -249,7 +252,7 @@ static void G_NailProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_
       .normal = trace->plane.normal,
       .damage = ent->damage,
       .knockback = ent->knockback,
-      .mod = ent->spawn_flags ?: MOD_QUAKE_NAILGUN
+      .mod = ent->mod ?: MOD_QUAKE_NAILGUN
     });
 
     if (G_IsStructural(trace)) {
@@ -266,14 +269,16 @@ static void G_NailProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_
 
 /**
  * @brief Fires a nail projectile from the specified entity in the given direction.
+ * @param ent The entity the projectile leaves, providing its origin and effect color.
+ * @param attacker The entity credited with any damage the projectile inflicts.
  */
-void G_NailProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, int32_t mod) {
+void G_NailProjectile(g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, uint32_t mod) {
 
   const box3_t bounds = Box3f(1.f, 1.f, 1.f);
 
   g_entity_t *projectile = G_AllocEntity(__func__);
-  projectile->owner = ent;
-  projectile->spawn_flags = mod;
+  projectile->owner = attacker;
+  projectile->mod = mod;
 
   projectile->s.origin = start;
   projectile->bounds = bounds;
@@ -367,11 +372,13 @@ void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir,
  * @brief Detonates a grenade projectile, dealing direct and splash radius damage.
  */
 static void G_GrenadeProjectile_Explode(g_entity_t *ent) {
-  int32_t mod;
+  uint32_t mod;
 
   if (ent->enemy) { // direct hit
 
-    if (ent->spawn_flags & HAND_GRENADE) {
+    if (ent->mod) {
+      mod = ent->mod;
+    } else if (ent->spawn_flags & HAND_GRENADE) {
       mod = MOD_HANDGRENADE;
     } else if (ent->spawn_flags & QUAKE_GRENADE) {
       mod = MOD_QUAKE_GRENADE;
@@ -393,7 +400,9 @@ static void G_GrenadeProjectile_Explode(g_entity_t *ent) {
     });
   }
 
-  if (ent->spawn_flags & HAND_GRENADE) {
+  if (ent->mod) {
+    mod = ent->mod;
+  } else if (ent->spawn_flags & HAND_GRENADE) {
     if (ent->spawn_flags & HAND_GRENADE_HELD) {
       mod = MOD_HANDGRENADE_KAMIKAZE;
     } else {
@@ -495,15 +504,18 @@ static void G_QuakeGrenadeProjectile_Touch(g_entity_t *ent, g_entity_t *other, c
 
 /**
  * @brief Fires a grenade projectile with bounce physics and a timed fuse.
+ * @param ent The entity the projectile leaves, providing its origin and effect color.
+ * @param attacker The entity credited with any damage the projectile inflicts.
  */
-void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius, uint32_t timer) {
+void G_GrenadeProjectile(g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius, uint32_t timer, uint32_t mod) {
 
   const box3_t bounds = Box3f(6.f, 6.f, 6.f);
 
   vec3_t forward, right, up;
 
   g_entity_t *projectile = G_AllocEntity(__func__);
-  projectile->owner = ent;
+  projectile->owner = attacker;
+  projectile->mod = mod;
 
   projectile->s.origin = start;
   projectile->bounds = bounds;
@@ -649,8 +661,8 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, vec3_t con
 
 static void G_RocketProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
   const bool quake_rocket = (ent->spawn_flags & QUAKE_ROCKET) != 0;
-  const g_means_of_death direct_mod = quake_rocket ? MOD_QUAKE_ROCKET : MOD_ROCKET;
-  const g_means_of_death splash_mod = quake_rocket ? MOD_QUAKE_ROCKET_SPLASH : MOD_ROCKET_SPLASH;
+  const uint32_t direct_mod = ent->mod ?: (quake_rocket ? MOD_QUAKE_ROCKET : MOD_ROCKET);
+  const uint32_t splash_mod = ent->mod ?: (quake_rocket ? MOD_QUAKE_ROCKET_SPLASH : MOD_ROCKET_SPLASH);
 
   if (other == ent->owner) {
     return;
@@ -696,13 +708,16 @@ static void G_RocketProjectile_Touch(g_entity_t *ent, g_entity_t *other, const c
 
 /**
  * @brief Fires a rocket projectile that explodes with radius damage on impact.
+ * @param ent The entity the projectile leaves, providing its origin and effect color.
+ * @param attacker The entity credited with any damage the projectile inflicts.
  */
-void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius) {
+void G_RocketProjectile(g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius, uint32_t mod) {
 
   const box3_t bounds = Box3f(8.f, 8.f, 8.f);
 
   g_entity_t *projectile = G_AllocEntity(__func__);
-  projectile->owner = ent;
+  projectile->owner = attacker;
+  projectile->mod = mod;
 
   projectile->s.origin = start;
   projectile->bounds = bounds;
@@ -1018,7 +1033,7 @@ static void G_LightningProjectile_Think(g_entity_t *ent) {
         .damage = ent->damage,
         .knockback = ent->knockback,
         .flags = DMG_ENERGY,
-        .mod = ent->spawn_flags ? ent->spawn_flags : MOD_LIGHTNING
+        .mod = ent->mod ?: MOD_LIGHTNING
       });
       ent->damage = 0;
     } else { // or leave a mark
@@ -1082,15 +1097,17 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
   projectile->next_think = g_level.time + 1;
   projectile->timestamp = g_level.time;
   projectile->water_level = WATER_NONE;
-  projectile->spawn_flags = mod;
+  projectile->mod = mod;
   projectile->count = discharge_mod;
 }
 
 /**
  * @brief Fires a railgun slug that traces through multiple targets, dealing damage to each.
+ * @param ent The entity the slug leaves, providing its origin and effect color.
+ * @param attacker The entity credited with any damage the slug inflicts.
  */
-void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
-             int32_t knockback) {
+void G_RailgunProjectile(g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, int32_t damage,
+             int32_t knockback, uint32_t mod) {
   vec3_t pos, end;
 
   pos = start;
@@ -1142,18 +1159,18 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
     }
 
     // we've hit something, so damage it
-    if ((tr.ent != ent) && G_TakesDamage(tr.ent)) {
+    if ((tr.ent != ent) && (tr.ent != attacker) && G_TakesDamage(tr.ent)) {
       G_Damage(&(g_damage_t) {
         .target = tr.ent,
         .inflictor = ent,
-        .attacker = ent,
+        .attacker = attacker,
         .dir = dir,
         .point = tr.end,
         .normal = tr.plane.normal,
         .damage = damage,
         .knockback = knockback,
         .flags = 0,
-        .mod = MOD_RAILGUN
+        .mod = mod ?: MOD_RAILGUN
       });
     }
 

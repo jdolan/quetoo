@@ -56,6 +56,12 @@ static bool G_IsDeathCamMod(uint32_t mod) {
     case MOD_FIREBALL:
     case MOD_ACT_OF_GOD:
     case MOD_BOB:
+    case MOD_TRAP_BLASTER:
+    case MOD_TRAP_NAIL:
+    case MOD_TRAP_ROCKET:
+    case MOD_TRAP_GRENADE:
+    case MOD_TRAP_LASER:
+    case MOD_TRAP_GIBLETS:
       return true;
     default:
       return false;
@@ -163,6 +169,24 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
       case MOD_QUAKE_THUNDERBOLT_DISCHARGE:
         msg = "%s accepts %s's discharge :lightning:";
         break;
+      case MOD_TURRET_BLASTER:
+        msg = "%s was lit up by %s's turret :blaster:";
+        break;
+      case MOD_TURRET_NAIL:
+        msg = "%s was stapled down by %s's turret :nailgun:";
+        break;
+      case MOD_TURRET_ROCKET:
+        msg = "%s was shelled by %s's turret :rocket:";
+        break;
+      case MOD_TURRET_GRENADE:
+        msg = "%s caught %s's care package :grenade:";
+        break;
+      case MOD_TURRET_LASER:
+        msg = "%s was traced by %s's turret :railgun:";
+        break;
+      case MOD_TURRET_GIBLETS:
+        msg = "%s was fed %s's leftovers :death:";
+        break;
       case MOD_TELEFRAG:
         msg = "%s tried to invade %s's personal space :telefrag:";
         break;
@@ -213,6 +237,24 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
         break;
       case MOD_TRIGGER_HURT:
         msg = "%s was in the wrong place :actofgod:";
+        break;
+      case MOD_TRAP_BLASTER:
+        msg = "%s got a face full of trap :blaster:";
+        break;
+      case MOD_TRAP_NAIL:
+        msg = "%s was nailed to the wall :nailgun:";
+        break;
+      case MOD_TRAP_ROCKET:
+        msg = "%s should have taken the other tunnel :rocket:";
+        break;
+      case MOD_TRAP_GRENADE:
+        msg = "%s stepped on it :grenade:";
+        break;
+      case MOD_TRAP_LASER:
+        msg = "%s was cut down to size :railgun:";
+        break;
+      case MOD_TRAP_GIBLETS:
+        msg = "%s was pelted to death with meat :death:";
         break;
       case MOD_ACT_OF_GOD:
         msg = "%s was killed by an act of god :actofgod:";
@@ -312,6 +354,25 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
  * @brief Play a sloppy sound when impacting the world.
  */
 static void G_ClientGiblet_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+
+  // G_TouchOccupy passes no trace, and is the only way a giblet reaches a player
+  if (ent->damage && other->client && other != ent->owner && other->take_damage) {
+    if ((uint32_t) ent->count <= g_level.time) {
+      ent->count = g_level.time + 500;
+
+      G_Damage(&(g_damage_t) {
+        .target = other,
+        .inflictor = ent,
+        .attacker = ent->owner,
+        .dir = ent->velocity,
+        .point = ent->s.origin,
+        .normal = trace ? trace->plane.normal : Vec3_Zero(),
+        .damage = ent->damage,
+        .knockback = ent->knockback,
+        .mod = ent->mod
+      });
+    }
+  }
 
   if (trace == NULL) {
     return;
@@ -419,11 +480,11 @@ static void G_ClientCorpse_Pain(g_entity_t *ent, g_entity_t *attacker, int16_t d
 }
 
 /**
- * @brief Corpses explode into giblets when killed. Giblets receive the
- * velocity of the corpse, and bounce when damaged. They eventually sink
- * through the floor and disappear.
+ * @brief Scatters a burst of giblets from the given origin, inheriting the given velocity.
+ * Giblets bounce when damaged, and eventually sink through the floor and disappear. When
+ * `damage` is set they also injure whatever they strike, credited to `attacker`.
  */
-static void G_ClientCorpse_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
+void G_Giblets(const g_giblets_t *giblets) {
 
   const box3_t bounds[NUM_GIB_MODELS] = {
     Box3f(12.f, 12.f, 12.f),
@@ -432,13 +493,12 @@ static void G_ClientCorpse_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t m
     Box3f(16.f, 16.f, 16.f),
   };
 
-  const int32_t count = RandomRangei(4, 8);
-  for (int32_t i = 0; i < count; i++) {
+  for (int32_t i = 0; i < giblets->count; i++) {
 
     int32_t gib_index;
     if (i == 0) { // 0 is always chest
       gib_index = (NUM_GIB_MODELS - 1);
-    } else if (i == 1 && !ent->client) { // if we're not client, drop a head
+    } else if (i == 1 && giblets->head) {
       gib_index = 2;
     } else { // pick forearm/femur
       gib_index = RandomRangei(0, NUM_GIB_MODELS - 2);
@@ -446,22 +506,22 @@ static void G_ClientCorpse_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t m
 
     g_entity_t *gib = G_AllocEntity(__func__);
 
-    gib->s.origin = ent->s.origin;
+    gib->s.origin = giblets->origin;
 
     gib->bounds = bounds[gib_index];
 
-    gib->solid = SOLID_DEAD;
+    gib->solid = giblets->damage ? SOLID_TRIGGER : SOLID_DEAD;
 
     gib->s.model1 = g_media.models.gibs[gib_index];
     gib->sound = g_media.sounds.gib_hits[i % NUM_GIB_SOUNDS];
 
-    gib->velocity = ent->velocity;
+    gib->velocity = giblets->velocity;
 
     const int32_t h = Clampf(-5.0 * gib->health, 100, 500);
 
     gib->velocity.x += RandomRangef(-h, h);
     gib->velocity.y += RandomRangef(-h, h);
-    gib->velocity.z += RandomRangef(100.f, 100.f + h);
+    gib->velocity.z += RandomRangef(giblets->lift, giblets->lift + h);
 
     for (int32_t i = 0; i < 3; ++i) {
       gib->avelocity.xyz[i] = RandomRangef(-100.f, 100.f);
@@ -472,21 +532,47 @@ static void G_ClientCorpse_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t m
     gib->dead = true;
     gib->mass = (gib_index + 1) * 20.0;
     gib->move_type = MOVE_TYPE_BOUNCE;
-    gib->next_think = g_level.time + QUETOO_TICK_MILLIS;
     gib->take_damage = true;
-    gib->Think = G_ClientCorpse_Think;
+    gib->owner = giblets->attacker;
+    gib->damage = giblets->damage;
+    gib->knockback = giblets->knockback;
+    gib->mod = giblets->mod;
     gib->Touch = G_ClientGiblet_Touch;
+
+    if (giblets->lifetime) {
+      gib->Think = G_FreeEntity;
+      gib->next_think = g_level.time + giblets->lifetime;
+    } else {
+      gib->Think = G_ClientCorpse_Think;
+      gib->next_think = g_level.time + QUETOO_TICK_MILLIS;
+    }
 
     gi.LinkEntity(gib);
   }
 
   gi.WriteByte(SV_CMD_TEMP_ENTITY);
   gi.WriteByte(TE_GIB);
-  gi.WritePosition(ent->s.origin);
-  gi.Multicast(ent->s.origin, MULTICAST_PVS);
+  gi.WritePosition(giblets->origin);
+  gi.Multicast(giblets->origin, MULTICAST_PVS);
+}
+
+/**
+ * @brief Corpses explode into giblets when killed. Giblets receive the
+ * velocity of the corpse, and bounce when damaged. They eventually sink
+ * through the floor and disappear.
+ */
+static void G_ClientCorpse_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
+
+  G_Giblets(&(const g_giblets_t) {
+    .origin = ent->s.origin,
+    .velocity = ent->velocity,
+    .count = RandomRangei(4, 8),
+    .head = ent->client == NULL,
+    .lift = 100.f,
+  });
 
   if (ent->client) {
-    ent->bounds = bounds[2];
+    ent->bounds = Box3f(8.f, 8.f, 8.f);
 
     const int32_t h = Clampf(-5.0 * ent->health, 100, 500);
     

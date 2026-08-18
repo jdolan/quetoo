@@ -31,4 +31,5 @@ void G_ClientDisconnect(g_client_t *cl);
 void G_ClientRespawn(g_client_t *cl, bool voluntary);
 void G_ClientThink(g_client_t *cl, pm_cmd_t *cmd);
 void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info);
+void G_Giblets(const g_giblets_t *giblets);
 #endif
