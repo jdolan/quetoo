@@ -516,7 +516,6 @@ void G_GrenadeProjectile(g_entity_t *ent, g_entity_t *attacker, const vec3_t sta
   g_entity_t *projectile = G_AllocEntity(__func__);
   projectile->owner = attacker;
   projectile->mod = mod;
-  projectile->spawn_flags = QUAKE_GRENADE;
 
   projectile->s.origin = start;
   projectile->bounds = bounds;
@@ -567,6 +566,7 @@ void G_QuakeGrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t 
 
   g_entity_t *projectile = G_AllocEntity(__func__);
   projectile->owner = ent;
+  projectile->spawn_flags = QUAKE_GRENADE;
 
   projectile->s.origin = start;
   projectile->bounds = bounds;
@@ -718,7 +718,6 @@ void G_RocketProjectile(g_entity_t *ent, g_entity_t *attacker, const vec3_t star
   g_entity_t *projectile = G_AllocEntity(__func__);
   projectile->owner = attacker;
   projectile->mod = mod;
-  projectile->spawn_flags = QUAKE_ROCKET;
 
   projectile->s.origin = start;
   projectile->bounds = bounds;
@@ -756,6 +755,7 @@ void G_QuakeRocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
 
   g_entity_t *projectile = G_AllocEntity(__func__);
   projectile->owner = ent;
+  projectile->spawn_flags = QUAKE_ROCKET;
 
   projectile->s.origin = start;
   projectile->bounds = bounds;
