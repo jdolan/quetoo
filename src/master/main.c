@@ -569,6 +569,8 @@ static void Shutdown(const char *msg) {
  */
 int32_t quetoo_main(int32_t argc, char **argv) {
 
+  setvbuf(stdout, NULL, _IOLBF, 0);
+
   printf("Quetoo Master Server %s %s\n", VERSION, BUILD);
 
   memset(&quetoo, 0, sizeof(quetoo));
