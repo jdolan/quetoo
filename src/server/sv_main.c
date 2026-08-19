@@ -93,7 +93,7 @@ const char *Sv_StatusString(void) {
 
     const sv_client_t *cl = &svs.clients[i];
 
-    if (cl->state == SV_CLIENT_CONNECTED || cl->state == SV_CLIENT_ACTIVE) {
+    if ((cl->state == SV_CLIENT_CONNECTED || cl->state == SV_CLIENT_ACTIVE) && cl->gclient->in_use) {
       char player[MAX_TOKEN_CHARS];
 
       char name[sizeof(cl->name)];
