@@ -123,7 +123,7 @@ static void Ms_JsonEscape(const char *src, char *buf, size_t buf_size) {
 /**
  * @brief Posts a Discord webhook notification for a player joining a server.
  */
-static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name) {
+static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name, int32_t num_clients) {
   if (!ms_discord_webhook) {
     return;
   }
@@ -142,7 +142,7 @@ static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name)
   q_snprintf(json, sizeof(json),
     "{\"embeds\":[{\"description\":\"\xF0\x9F\x8E\xAE **%s** joined **%s** on **%s** \xC2\xB7 %d/%d players \xC2\xB7 [Join](https://quetoo.org/join/?%s:%d)\",\"color\":3066993}]}",
     escaped_player, escaped_host, escaped_map,
-    server->num_clients, server->max_clients,
+    num_clients, server->max_clients,
     ip, port);
 
   Data *body = $$(Data, dataWithBytes, (const uint8_t *) json, q_strlen(json));
@@ -212,20 +212,20 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     line = line_end;
   }
 
-  const bool initialized = (server->num_clients >= 0);
+  const int32_t old_count = server->num_clients;
+  const bool initialized = (old_count >= 0);
 
   if (initialized) {
     for (int32_t i = 0; i < new_count; i++) {
       bool found = false;
-      for (int32_t j = 0; j < server->num_clients; j++) {
+      for (int32_t j = 0; j < old_count; j++) {
         if (!q_strcmp(new_players[i], server->players[j])) {
           found = true;
           break;
         }
       }
       if (!found) {
-        server->num_clients = new_count; // update before notify so count is current
-        Ms_DiscordNotify(server, new_players[i]);
+        Ms_DiscordNotify(server, new_players[i], new_count);
       }
     }
   }
