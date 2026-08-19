@@ -56,12 +56,19 @@ jobs:
           openal-soft libsndfile physfs \
           curl dylibbundler
 
+    - name: Pin SDL3
+      run: |
+        git clone --depth 1 --branch release-3.4.12 https://github.com/libsdl-org/SDL.git SDL3
+        cmake -S SDL3 -B SDL3/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${HOMEBREW_PREFIX}
+        cmake --build SDL3/build -j$(sysctl -n hw.logicalcpu)
+        sudo cmake --install SDL3/build
+
     - name: Cache Objectively and ObjectivelyMVC
       id: cache-deps
       uses: actions/cache@v5
       with:
         path: /usr/local
-        key: macos-deps-${{ matrix.arch }}-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelygpu-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
+        key: macos-deps-${{ matrix.arch }}-sdl3.4.12-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelygpu-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
 
     - name: Checkout Objectively
       if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -318,7 +325,7 @@ jobs:
 
     - name: Build SDL3
       run: |
-        git clone --depth 1 --branch release-3.4.8 https://github.com/libsdl-org/SDL.git SDL3
+        git clone --depth 1 --branch release-3.4.12 https://github.com/libsdl-org/SDL.git SDL3
         cmake -S SDL3 -B SDL3/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
         cmake --build SDL3/build -j$(nproc)
         sudo cmake --install SDL3/build
