@@ -172,7 +172,9 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     server->max_clients = atoi(val);
   }
 
+  bool map_changed = false;
   if (Ms_InfoValue(status, "sv_map", val, sizeof(val))) {
+    map_changed = q_strcmp(server->map, val) != 0;
     q_strlcpy(server->map, val, sizeof(server->map));
   }
 
@@ -215,7 +217,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
   const int32_t old_count = server->num_clients;
   const bool initialized = (old_count >= 0);
 
-  if (initialized) {
+  if (initialized && !map_changed) {
     for (int32_t i = 0; i < new_count; i++) {
       bool found = false;
       for (int32_t j = 0; j < old_count; j++) {
