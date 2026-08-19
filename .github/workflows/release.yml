@@ -59,7 +59,7 @@ jobs:
     - name: Pin SDL3
       run: |
         git clone --depth 1 --branch release-3.4.12 https://github.com/libsdl-org/SDL.git SDL3
-        cmake -S SDL3 -B SDL3/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${HOMEBREW_PREFIX}
+        cmake -S SDL3 -B SDL3/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${HOMEBREW_PREFIX} -DCMAKE_INSTALL_NAME_DIR=${HOMEBREW_PREFIX}/lib
         cmake --build SDL3/build -j$(sysctl -n hw.logicalcpu)
         sudo cmake --install SDL3/build
 
