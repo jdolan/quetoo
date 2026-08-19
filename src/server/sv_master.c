@@ -25,10 +25,10 @@
 
 #include "sv_local.h"
 
-#define HEARTBEAT_SECONDS 300
+#define HEARTBEAT_SECONDS 5
 
 /**
- * @brief Sends heartbeat messages to master servers every 300s.
+ * @brief Sends heartbeat messages to master servers every 5s.
  */
 void Sv_HeartbeatMasters(void) {
   const char *string;
@@ -53,7 +53,7 @@ void Sv_HeartbeatMasters(void) {
   // send to each master server
   for (int32_t i = 0; i < MAX_MASTERS; i++) {
     if (svs.masters[i].port) {
-      Com_Print("Sending heartbeat to %s\n", Net_NetaddrToString(&svs.masters[i]));
+      Com_Debug(DEBUG_SERVER, "Sending heartbeat to %s\n", Net_NetaddrToString(&svs.masters[i]));
       Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "heartbeat\n%s", string);
     }
   }
