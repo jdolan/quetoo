@@ -23,6 +23,7 @@
 #include <signal.h>
 
 #include <SDL3/SDL_assert.h>
+#include <SDL3/SDL_version.h>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -522,6 +523,13 @@ int32_t main(int32_t argc, char *argv[]) {
   uint32_t msec;
 
   printf("Quetoo %s %s\n", VERSION, BUILD);
+
+  const int sdl_linked = SDL_GetVersion();
+  printf("SDL %d.%d.%d (compiled %d.%d.%d)\n",
+         SDL_VERSIONNUM_MAJOR(sdl_linked),
+         SDL_VERSIONNUM_MINOR(sdl_linked),
+         SDL_VERSIONNUM_MICRO(sdl_linked),
+         SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_MICRO_VERSION);
 
   memset(&quetoo, 0, sizeof(quetoo));
 
