@@ -471,6 +471,10 @@ static void reloadServers(JoinServerViewController *self) {
     $(self->servers, append, server);
   }
 
+  Cg_Debug("%d servers known to the client\n", (int32_t) self->servers->count);
+
+  uint32_t hidden = 0;
+
   for (ListNode *node = self->servers->head; node; ) {
     ListNode *next = node->next;
 
@@ -479,11 +483,18 @@ static void reloadServers(JoinServerViewController *self) {
     const int32_t clients = cg_join_server_hide_bots->value ? server->clients - server->bots : server->clients;
 
     if (clients == 0 && (cg_join_server_hide_empty->value || cg_join_server_hide_bots->value)) {
+      Cg_Debug("Hiding %s: %d clients, %d bots, hide_empty %d, hide_bots %d\n",
+               server->hostname, server->clients, server->bots,
+               cg_join_server_hide_empty->integer, cg_join_server_hide_bots->integer);
+
       $(self->servers, removeNode, node);
+      hidden++;
     }
 
     node = next;
   }
+
+  Cg_Debug("Showing %d servers, %u hidden by filters\n", (int32_t) self->servers->count, hidden);
 
   sortingJoinServerViewController = self;
   $(self->servers, sort, comparator);

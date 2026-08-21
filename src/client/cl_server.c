@@ -93,6 +93,9 @@ void Cl_ParseServerInfo(void) {
   Net_ReadData(&net_message, string, length);
   string[length] = '\0';
 
+  Com_Debug(DEBUG_CLIENT, "Status from %s: %" PRIuPTR " bytes\n",
+            Net_NetaddrToString(&net_from), (uintptr_t) length);
+
   // First line is the server infostring; subsequent lines are player entries.
   char *player_start = q_strchr(string, '\n');
   if (player_start) {
@@ -140,6 +143,10 @@ void Cl_ParseServerInfo(void) {
     server->ping = Clampf(quetoo.ticks - server->ping_time, 1u, 999u);
     server->error[0] = '\0';
 
+    Com_Debug(DEBUG_CLIENT, "Status from %s: \"%s\" map %s, %d/%d clients (%d bots), %dms\n",
+              Net_NetaddrToString(&net_from), server->hostname, server->name,
+              server->clients, server->max_clients, server->bots, server->ping);
+
   } else {
     server->hostname[0] = '\0';
     server->name[0] = '\0';
@@ -150,6 +157,10 @@ void Cl_ParseServerInfo(void) {
     server->bots = 0;
 
     q_snprintf(server->error, sizeof(server->error), "Invalid response from %s\n", Net_NetaddrToString(&server->addr));
+
+    Com_Debug(DEBUG_CLIENT, "Status from %s rejected: sv_hostname %s, sv_map %s\n",
+              Net_NetaddrToString(&net_from),
+              hostname[0] ? "present" : "MISSING", name[0] ? "present" : "MISSING");
   }
 
   SDL_PushEvent(&(SDL_Event) {
@@ -221,6 +232,8 @@ static void Cl_SendBroadcast(void) {
   addr.type = NA_BROADCAST;
   addr.port = htons(PORT_SERVER);
 
+  Com_Debug(DEBUG_CLIENT, "Broadcasting status to %s\n", Net_NetaddrToString(&addr));
+
   Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "status");
 
   cls.broadcast_time = quetoo.ticks;
@@ -242,6 +255,9 @@ void Cl_Servers_f(void) {
   addr.type = NA_DATAGRAM;
   addr.port = htons(PORT_MASTER);
 
+  Com_Debug(DEBUG_CLIENT, "Requesting servers from %s (%s) for protocol %d\n",
+            HOST_MASTER, Net_NetaddrToString(&addr), PROTOCOL_MAJOR);
+
   Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "getservers %d", PROTOCOL_MAJOR);
 
   Cl_SendBroadcast();
@@ -253,12 +269,19 @@ void Cl_Servers_f(void) {
 void Cl_ParseServers(void) {
   cl_server_info_t *server;
 
+  Com_Debug(DEBUG_CLIENT, "Servers list from %s: %" PRIuPTR " bytes\n",
+            Net_NetaddrToString(&net_from), (uintptr_t) net_message.size);
+
   if (net_message.size <= 12) {
+    Com_Debug(DEBUG_CLIENT, "Servers list is empty (the master knows of no servers "
+              "for protocol %d)\n", PROTOCOL_MAJOR);
     return;
   }
 
   byte *buffptr = net_message.data + 12;
   byte *buffend = buffptr + net_message.size - 12;
+
+  uint32_t parsed = 0;
 
   // parse the list
   while (buffptr + 1 < buffend) {
@@ -284,6 +307,7 @@ void Cl_ParseServers(void) {
     }
 
     if (!addr.port) { // 0's mean we're done
+      Com_Debug(DEBUG_CLIENT, "Zero port terminates the list after %u entries\n", parsed);
       break;
     }
 
@@ -294,11 +318,14 @@ void Cl_ParseServers(void) {
     }
 
     server->source = SERVER_SOURCE_INTERNET;
+    parsed++;
   }
 
   net_message.read = net_message.size;
 
   // then ping them
+
+  uint32_t queried = 0;
 
   const ListNode *e = cls.servers ? cls.servers->head : NULL;
 
@@ -310,10 +337,13 @@ void Cl_ParseServers(void) {
       server->ping = 0;
 
       Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
+      queried++;
     }
 
     e = e->next;
   }
+
+  Com_Debug(DEBUG_CLIENT, "Parsed %u servers, queried %u for status\n", parsed, queried);
 
   // and inform the user interface
 
