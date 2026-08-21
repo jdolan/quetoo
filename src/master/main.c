@@ -416,6 +416,20 @@ static void Ms_SendChallenge(ms_server_t *server, time_t now) {
 }
 
 /**
+ * @brief Returns the challenge echoed after the given command name, or zero if
+ * none was supplied. The caller has already matched `name` as a prefix of `cmd`.
+ */
+static uint32_t Ms_ParseChallenge(const char *cmd, const char *name) {
+
+  const char *c = cmd + q_strlen(name);
+  while (*c == ' ') {
+    c++;
+  }
+
+  return (uint32_t) strtoul(c, NULL, 10);
+}
+
+/**
  * @brief Adds the specified server to the master.
  * @return The newly registered server, or `NULL` if it was rejected.
  */
@@ -468,11 +482,19 @@ static ms_server_t *Ms_AddServer(struct sockaddr_in *from) {
 /**
  * @brief Removes the specified server.
  */
-static void Ms_RemoveServer(struct sockaddr_in *from) {
+static void Ms_RemoveServer(struct sockaddr_in *from, const char *cmd) {
   ms_server_t *server = Ms_GetServer(from);
 
   if (!server) {
     Com_Warn("Shutdown from unregistered server %s\n", atos(from));
+    return;
+  }
+
+  // a delisting must be authenticated too, or one forged packet unlists anyone
+  const uint32_t challenge = Ms_ParseChallenge(cmd, "shutdown");
+
+  if (!challenge || challenge != server->challenge) {
+    Com_Warn("Shutdown from %s without its challenge\n", stos(server));
     return;
   }
 
@@ -551,13 +573,7 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
 static void Ms_Heartbeat(struct sockaddr_in *from, const char *cmd, const char *status) {
   const time_t now = time(NULL);
 
-  // the echoed challenge, if any, follows the command name
-  const char *c = cmd + q_strlen("heartbeat");
-  while (*c == ' ') {
-    c++;
-  }
-
-  const uint32_t challenge = (uint32_t) strtoul(c, NULL, 10);
+  const uint32_t challenge = Ms_ParseChallenge(cmd, "heartbeat");
 
   ms_server_t *server = Ms_GetServer(from);
 
@@ -567,15 +583,18 @@ static void Ms_Heartbeat(struct sockaddr_in *from, const char *cmd, const char *
     }
   }
 
+  // every heartbeat carries the challenge, not just the one that validates, so
+  // that a forged packet can neither keep a listing alive nor restate it. A
+  // mismatch only re-issues the challenge; it never unlists a server, or a
+  // spoofer could delist one at will
+  if (!challenge || challenge != server->challenge) {
+    Ms_SendChallenge(server, now);
+    return;
+  }
+
   server->last_heartbeat = now;
 
   if (!server->validated) {
-
-    if (!challenge || challenge != server->challenge) {
-      Ms_SendChallenge(server, now);
-      return;
-    }
-
     server->validated = true;
     Com_Print("Server %s validated\n", stos(server));
   }
@@ -589,7 +608,8 @@ static void Ms_Heartbeat(struct sockaddr_in *from, const char *cmd, const char *
 }
 
 /**
- * @brief Parses and dispatches an incoming UDP message (heartbeat, ping, ack, or getservers) from a game server.
+ * @brief Parses and dispatches an incoming UDP message (heartbeat, shutdown or
+ * getservers) from a game server.
  */
 static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
   char *cmd = data;
@@ -608,7 +628,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
   if (!q_strncasecmp(cmd, "heartbeat", 9)) {
     Ms_Heartbeat(from, cmd, line);
   } else if (!q_strncasecmp(cmd, "shutdown", 8)) {
-    Ms_RemoveServer(from);
+    Ms_RemoveServer(from, cmd);
   } else if (!q_strncasecmp(cmd, "getservers", 10) || !q_strncasecmp(cmd, "y", 1)) {
     Ms_GetServers(from, cmd);
   } else {

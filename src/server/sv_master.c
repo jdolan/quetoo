@@ -64,6 +64,11 @@ void Sv_HeartbeatMaster(void) {
  */
 void Sv_Challenge(const net_addr_t *from, uint32_t challenge) {
 
+  if (!challenge) {
+    Com_Debug(DEBUG_SERVER, "Empty challenge from %s\n", Net_NetaddrToString(from));
+    return; // the master never issues zero, so this can only be noise or forgery
+  }
+
   if (!svs.master.addr.port || !Net_CompareNetaddr(from, &svs.master.addr)) {
     Com_Debug(DEBUG_SERVER, "Challenge from %s, which is not our master\n",
               Net_NetaddrToString(from));
@@ -120,5 +125,5 @@ void Sv_ShutdownMaster(void) {
   }
 
   Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(&svs.master.addr));
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.master.addr, "shutdown");
+  Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.master.addr, "shutdown %u", svs.master.challenge);
 }
