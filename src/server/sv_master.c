@@ -28,13 +28,17 @@
 #define HEARTBEAT_SECONDS 5
 
 /**
- * @brief Sends heartbeat messages to master servers every 5s.
+ * @brief Sends a heartbeat to the master server every 5s, echoing whatever
+ * challenge it last issued so that it will list us.
  */
-void Sv_HeartbeatMasters(void) {
-  const char *string;
+void Sv_HeartbeatMaster(void) {
 
   if (!sv_public->value) {
     return; // a private dedicated game
+  }
+
+  if (!svs.master.addr.port) {
+    return; // no master configured
   }
 
   if (svs.state != SV_ACTIVE_GAME) { // we're not up yet
@@ -47,44 +51,79 @@ void Sv_HeartbeatMasters(void) {
 
   svs.next_heartbeat = quetoo.ticks + HEARTBEAT_SECONDS * 1000;
 
-  // send the same string that we would give for a status command
-  string = Sv_StatusString();
+  Com_Debug(DEBUG_SERVER, "Sending heartbeat to %s\n", Net_NetaddrToString(&svs.master.addr));
 
-  // send to each master server
-  for (int32_t i = 0; i < MAX_MASTERS; i++) {
-    if (svs.masters[i].port) {
-      Com_Debug(DEBUG_SERVER, "Sending heartbeat to %s\n", Net_NetaddrToString(&svs.masters[i]));
-      Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "heartbeat\n%s", string);
-    }
+  // send the same string that we would give for a status command
+  Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.master.addr, "heartbeat %u\n%s",
+                         svs.master.challenge, Sv_StatusString());
+}
+
+/**
+ * @brief Records the challenge issued by the master server, to be echoed in our
+ * heartbeats until it lists us.
+ */
+void Sv_Challenge(const net_addr_t *from, uint32_t challenge) {
+
+  if (!challenge) {
+    Com_Debug(DEBUG_SERVER, "Empty challenge from %s\n", Net_NetaddrToString(from));
+    return; // the master never issues zero, so this can only be noise or forgery
+  }
+
+  if (!svs.master.addr.port || !Net_CompareNetaddr(from, &svs.master.addr)) {
+    Com_Debug(DEBUG_SERVER, "Challenge from %s, which is not our master\n",
+              Net_NetaddrToString(from));
+    return;
+  }
+
+  svs.master.challenge = challenge;
+
+  // answer at once, but throttled, so that a flood of forged challenges
+  // cannot turn us into a heartbeat flood aimed at the master
+  if (quetoo.ticks >= svs.master.challenge_time) {
+    svs.master.challenge_time = quetoo.ticks + 1000;
+    svs.next_heartbeat = 0;
   }
 }
 
 /**
- * @brief Initializes the master server list with the default master address.
+ * @brief Resolves the master server named by `sv_master`.
  */
-void Sv_InitMasters(void) {
+void Sv_InitMaster(void) {
 
-  memset(&svs.masters, 0, sizeof(svs.masters));
+  memset(&svs.master, 0, sizeof(svs.master));
 
-  // set default master server
-  Net_StringToNetaddr(HOST_MASTER, &svs.masters[0]);
-  svs.masters[0].port = htons(PORT_MASTER);
+  if (!q_strlen(sv_master->string)) {
+    Com_Print("Master server disabled\n");
+    return;
+  }
+
+  if (!Net_StringToNetaddr(sv_master->string, &svs.master.addr)) {
+    Com_Warn("Failed to resolve master server %s\n", sv_master->string);
+    return;
+  }
+
+  if (!svs.master.addr.port) {
+    svs.master.addr.port = htons(PORT_MASTER);
+  }
+
+  svs.master.addr.type = NA_DATAGRAM;
+
+  Com_Print("Master server at %s\n", Net_NetaddrToString(&svs.master.addr));
 }
 
 /**
- * @brief Informs master servers that this server is halting.
+ * @brief Informs the master server that this server is halting.
  */
-void Sv_ShutdownMasters(void) {
+void Sv_ShutdownMaster(void) {
 
   if (!sv_public->value) {
     return;    // a private dedicated game
   }
 
-  // send to group master
-  for (int32_t i = 0; i < MAX_MASTERS; i++) {
-    if (svs.masters[i].port) {
-      Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(&svs.masters[i]));
-      Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "shutdown");
-    }
+  if (!svs.master.addr.port) {
+    return; // no master configured
   }
+
+  Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(&svs.master.addr));
+  Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.master.addr, "shutdown %u", svs.master.challenge);
 }

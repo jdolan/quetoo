@@ -25,8 +25,9 @@
 
 #if defined(__SV_LOCAL_H__)
 
-void Sv_HeartbeatMasters(void);
-void Sv_InitMasters(void);
-void Sv_ShutdownMasters(void);
+void Sv_Challenge(const net_addr_t *from, uint32_t challenge);
+void Sv_HeartbeatMaster(void);
+void Sv_InitMaster(void);
+void Sv_ShutdownMaster(void);
 
 #endif
