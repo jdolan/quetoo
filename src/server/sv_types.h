@@ -332,6 +332,17 @@ typedef struct {
 } sv_challenge_t;
 
 /**
+ * @brief A master server we advertise to, and the challenge it most recently
+ * issued. The challenge must be echoed in our heartbeats before the master will
+ * list us, which proves that we receive traffic at the address we send from.
+ */
+typedef struct {
+  net_addr_t addr;
+  uint32_t challenge;
+  uint32_t challenge_time;
+} sv_master_t;
+
+/**
  * @brief `MAX_CHALLENGES` is large to prevent a denial of service attack that
  * could cycle all of them out before legitimate users connected.
  */
@@ -397,9 +408,9 @@ typedef struct {
   uint32_t next_entity_state;
 
   /**
-   * @brief Configured master server addresses for heartbeat broadcasts.
+   * @brief Configured master servers, and their outstanding challenges.
    */
-  net_addr_t masters[MAX_MASTERS];
+  sv_master_t masters[MAX_MASTERS];
 
   /**
    * @brief Server time after which the next heartbeat is sent to master servers.

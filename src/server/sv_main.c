@@ -132,20 +132,6 @@ static void Sv_Status_f(void) {
 }
 
 /**
- * @brief Acknowledges a ping by printing the sender's address.
- */
-static void Sv_Ack_f(void) {
-  Com_Print("Ping acknowledge from %s\n", Net_NetaddrToString(&net_from));
-}
-
-/**
- * @brief Just responds with an acknowledgment.
- */
-static void Sv_Ping_f(void) {
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "ack");
-}
-
-/**
  * @brief Returns a challenge number that can be used in a subsequent `client_connect`
  * command.
  *
@@ -424,10 +410,8 @@ static void Sv_ConnectionlessPacket(void) {
 
   Com_Debug(DEBUG_SERVER, "Packet from %s: %s\n", a, c);
 
-  if (!q_strcmp(c, "ping")) {
-    Sv_Ping_f();
-  } else if (!q_strcmp(c, "ack")) {
-    Sv_Ack_f();
+  if (!q_strcmp(c, "challenge")) {
+    Sv_Challenge(&net_from, (uint32_t) strtoul(Cmd_Argv(1), NULL, 10));
   } else if (!q_strcmp(c, "status")) {
     Sv_Status_f();
   } else if (!q_strcmp(c, "get_challenge")) {

@@ -50,13 +50,43 @@ void Sv_HeartbeatMasters(void) {
   // send the same string that we would give for a status command
   string = Sv_StatusString();
 
-  // send to each master server
+  // send to each master server, echoing whatever challenge it last issued
   for (int32_t i = 0; i < MAX_MASTERS; i++) {
-    if (svs.masters[i].port) {
-      Com_Debug(DEBUG_SERVER, "Sending heartbeat to %s\n", Net_NetaddrToString(&svs.masters[i]));
-      Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "heartbeat\n%s", string);
+    sv_master_t *master = &svs.masters[i];
+
+    if (master->addr.port) {
+      Com_Debug(DEBUG_SERVER, "Sending heartbeat to %s\n", Net_NetaddrToString(&master->addr));
+      Netchan_OutOfBandPrint(NS_UDP_SERVER, &master->addr, "heartbeat %u\n%s",
+                             master->challenge, string);
     }
   }
+}
+
+/**
+ * @brief Records a challenge issued by a master server, to be echoed in our
+ * heartbeats until that master lists us.
+ */
+void Sv_Challenge(const net_addr_t *from, uint32_t challenge) {
+
+  for (int32_t i = 0; i < MAX_MASTERS; i++) {
+    sv_master_t *master = &svs.masters[i];
+
+    if (master->addr.port && Net_CompareNetaddr(from, &master->addr)) {
+
+      master->challenge = challenge;
+
+      // answer at once, but throttled, so that a flood of forged challenges
+      // cannot turn us into a heartbeat flood aimed at the master
+      if (quetoo.ticks >= master->challenge_time) {
+        master->challenge_time = quetoo.ticks + 1000;
+        svs.next_heartbeat = 0;
+      }
+
+      return;
+    }
+  }
+
+  Com_Debug(DEBUG_SERVER, "Challenge from unknown master %s\n", Net_NetaddrToString(from));
 }
 
 /**
@@ -67,8 +97,8 @@ void Sv_InitMasters(void) {
   memset(&svs.masters, 0, sizeof(svs.masters));
 
   // set default master server
-  Net_StringToNetaddr(HOST_MASTER, &svs.masters[0]);
-  svs.masters[0].port = htons(PORT_MASTER);
+  Net_StringToNetaddr(HOST_MASTER, &svs.masters[0].addr);
+  svs.masters[0].addr.port = htons(PORT_MASTER);
 }
 
 /**
@@ -82,9 +112,9 @@ void Sv_ShutdownMasters(void) {
 
   // send to group master
   for (int32_t i = 0; i < MAX_MASTERS; i++) {
-    if (svs.masters[i].port) {
-      Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(&svs.masters[i]));
-      Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "shutdown");
+    if (svs.masters[i].addr.port) {
+      Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(&svs.masters[i].addr));
+      Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i].addr, "shutdown");
     }
   }
 }

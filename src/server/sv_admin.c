@@ -26,11 +26,11 @@
 #include "sv_local.h"
 
 /**
- * @brief Sets the master servers for this dedicated server and sends an initial ping.
+ * @brief Sets the master servers for this dedicated server.
  */
 static void Sv_SetMaster_f(void) {
   int32_t i, slot;
-  net_addr_t *addr;
+  sv_master_t *master;
 
   // only dedicated servers send heartbeats
   if (!dedicated->value) {
@@ -42,8 +42,8 @@ static void Sv_SetMaster_f(void) {
   Cvar_ForceSetInteger("sv_public", 1);
 
   for (i = 1; i < MAX_MASTERS; i++) {
-    addr = &svs.masters[i];
-    memset(addr, 0, sizeof(*addr));
+    master = &svs.masters[i];
+    memset(master, 0, sizeof(*master));
   }
 
   // the first slot will always contain the default master
@@ -53,19 +53,18 @@ static void Sv_SetMaster_f(void) {
       break;
     }
 
-    addr = &svs.masters[slot];
+    master = &svs.masters[slot];
 
-    if (!Net_StringToNetaddr(Cmd_Argv(i), addr)) {
+    if (!Net_StringToNetaddr(Cmd_Argv(i), &master->addr)) {
       Com_Print("Bad address: %s\n", Cmd_Argv(i));
       continue;
     }
 
-    if (addr->port == 0) {
-      addr->port = htons(PORT_MASTER);
+    if (master->addr.port == 0) {
+      master->addr.port = htons(PORT_MASTER);
     }
 
-    Com_Print("Master server at %s\n", Net_NetaddrToString(addr));
-    Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "ping");
+    Com_Print("Master server at %s\n", Net_NetaddrToString(&master->addr));
 
     slot++;
   }

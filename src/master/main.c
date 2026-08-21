@@ -18,6 +18,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if defined(_WIN32)
+  #define _CRT_RAND_S
+#endif
+
 #include <ctype.h>
 #include <errno.h>
 #include <signal.h>
@@ -42,9 +46,11 @@
 #else
 
   #include <arpa/inet.h>
+  #include <fcntl.h>
   #include <netinet/in.h>
   #include <sys/select.h>
   #include <sys/socket.h>
+  #include <unistd.h>
 
 #endif
 
@@ -53,11 +59,38 @@
 
 quetoo_t quetoo;
 
+/**
+ * @brief A server must heartbeat within this window or be probed with pings.
+ */
+#define SERVER_TIMEOUT_SECONDS 30
+
+/**
+ * @brief Grace period for a newly registered server to answer its challenge.
+ */
+#define VALIDATION_TIMEOUT_SECONDS 30
+
+/**
+ * @brief Minimum spacing between challenges issued to the same server.
+ */
+#define CHALLENGE_INTERVAL_SECONDS 1
+
+/**
+ * @brief Upper bound on concurrently registered servers.
+ */
+#define MAX_SERVERS 1024
+
+/**
+ * @brief Upper bound on servers awaiting validation, so that forged heartbeats
+ * cannot crowd out registrations from servers that can actually answer.
+ */
+#define MAX_PENDING_SERVERS 256
+
 typedef struct ms_server_s {
   struct sockaddr_in addr;
-  uint16_t queued_pings;
+  time_t registered;
   time_t last_heartbeat;
-  time_t last_ping;
+  uint32_t challenge;
+  time_t last_challenge;
   bool validated;
   char hostname[256];
   char map[64];
@@ -69,6 +102,10 @@ typedef struct ms_server_s {
 
 static List *ms_servers;
 static int32_t ms_sock;
+
+#if !defined(_WIN32)
+static int32_t ms_urandom = -1;
+#endif
 
 static bool verbose;
 static bool debug;
@@ -330,34 +367,102 @@ static bool Ms_BlacklistServer(struct sockaddr_in *from) {
 }
 
 /**
- * @brief Adds the specified server to the master.
+ * @brief Returns an unpredictable non-zero challenge value. A guessable
+ * challenge would let a spoofer validate an address it cannot receive at,
+ * which is the entire attack this handshake exists to stop.
  */
-static void Ms_AddServer(struct sockaddr_in *from) {
+static uint32_t Ms_Challenge(void) {
+  uint32_t challenge = 0;
+
+  while (challenge == 0) {
+#if defined(_WIN32)
+    if (rand_s(&challenge)) {
+      Com_Error(ERROR_FATAL, "Failed to generate a challenge\n");
+    }
+#else
+    if (read(ms_urandom, &challenge, sizeof(challenge)) != (ssize_t) sizeof(challenge)) {
+      Com_Error(ERROR_FATAL, "Failed to read /dev/urandom: %s\n", strerror(errno));
+    }
+#endif
+  }
+
+  return challenge;
+}
+
+/**
+ * @brief Issues the specified server's challenge, which it must echo in a
+ * subsequent heartbeat to be listed.
+ */
+static void Ms_SendChallenge(ms_server_t *server, time_t now) {
+
+  if (server->last_challenge && now - server->last_challenge < CHALLENGE_INTERVAL_SECONDS) {
+    return; // do not let a heartbeat flood become a challenge flood
+  }
+
+  if (!server->challenge) {
+    server->challenge = Ms_Challenge();
+  }
+
+  server->last_challenge = now;
+
+  char buffer[32];
+  memcpy(buffer, "\xFF\xFF\xFF\xFF", 4);
+
+  const int32_t len = q_snprintf(buffer + 4, sizeof(buffer) - 4, "challenge %u", server->challenge);
+
+  Com_Verbose("Challenging %s\n", stos(server));
+
+  sendto(ms_sock, buffer, 4 + len, 0, (struct sockaddr *) &server->addr, sizeof(server->addr));
+}
+
+/**
+ * @brief Adds the specified server to the master.
+ * @return The newly registered server, or `NULL` if it was rejected.
+ */
+static ms_server_t *Ms_AddServer(struct sockaddr_in *from) {
 
   if (Ms_GetServer(from)) {
-    Com_Warn("Duplicate ping from %s\n", atos(from));
-    return;
+    Com_Warn("Duplicate registration from %s\n", atos(from));
+    return NULL;
+  }
+
+  // bound the list before touching the filesystem for the blacklist
+  if (ms_servers && ms_servers->count >= MAX_SERVERS) {
+    Com_Warn("Server list is full, rejecting %s\n", atos(from));
+    return NULL;
+  }
+
+  size_t pending = 0;
+  for (const ListNode *s = ms_servers ? ms_servers->head : NULL; s; s = s->next) {
+    if (!((const ms_server_t *) s->element)->validated) {
+      pending++;
+    }
+  }
+
+  if (pending >= MAX_PENDING_SERVERS) {
+    Com_Warn("Too many servers awaiting validation, rejecting %s\n", atos(from));
+    return NULL;
   }
 
   if (Ms_BlacklistServer(from)) {
     Com_Warn("Server %s has been blacklisted\n", atos(from));
-    return;
+    return NULL;
   }
 
   ms_server_t *server = Mem_Malloc(sizeof(ms_server_t));
 
   server->addr = *from;
-  server->last_heartbeat = time(NULL);
+  server->registered = time(NULL);
+  server->last_heartbeat = server->registered;
   server->num_clients = -1;
 
   if (!ms_servers) {
     ms_servers = $(alloc(List), init);
   }
   $(ms_servers, append, server);
-  Com_Print("Server %s registered\n", stos(server));
+  Com_Print("Server %s registered, awaiting validation\n", stos(server));
 
-  // send an acknowledgment
-  sendto(ms_sock, "\xFF\xFF\xFF\xFF" "ack", 7, 0, (struct sockaddr *) from, sizeof(*from));
+  return server;
 }
 
 /**
@@ -376,7 +481,8 @@ static void Ms_RemoveServer(struct sockaddr_in *from) {
 }
 
 /**
- * @brief Processes one master-server tick: evicts stale servers, handles pending pings, and cycles to the next server.
+ * @brief Processes one master-server tick, evicting servers that have gone quiet
+ * and those that never answered their challenge.
  */
 static void Ms_Frame(void) {
   const time_t now = time(NULL);
@@ -384,23 +490,13 @@ static void Ms_Frame(void) {
   for (ListNode *s = ms_servers ? ms_servers->head : NULL; s; ) {
     ListNode *next = s->next;
     ms_server_t *server = (ms_server_t *) s->element;
-    if (now - server->last_heartbeat > 30) {
 
-      if (server->queued_pings > 6) {
-        Com_Print("Server %s timed out\n", stos(server));
-        Ms_DropServer(server);
-      } else {
-        if (now - server->last_ping >= 10) {
-          server->queued_pings++;
-          server->last_ping = now;
-
-          Com_Verbose("Pinging %s\n", stos(server));
-
-          const char *ping = "\xFF\xFF\xFF\xFF" "ping";
-          sendto(ms_sock, ping, (int32_t) q_strlen(ping), 0, (struct sockaddr *) &server->addr,
-                 sizeof(server->addr));
-        }
-      }
+    if (now - server->last_heartbeat > SERVER_TIMEOUT_SECONDS) {
+      Com_Print("Server %s timed out\n", stos(server));
+      Ms_DropServer(server);
+    } else if (!server->validated && now - server->registered > VALIDATION_TIMEOUT_SECONDS) {
+      Com_Print("Server %s failed to validate\n", stos(server));
+      Ms_DropServer(server);
     }
 
     s = next;
@@ -448,41 +544,47 @@ static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
 }
 
 /**
- * @brief Acknowledge the server from the specified address.
+ * @brief Accept a "heartbeat" from the specified server address. The command is
+ * `heartbeat <challenge>`; a server is listed only once it echoes the challenge
+ * we issued to the address it heartbeats from.
  */
-static void Ms_Ack(struct sockaddr_in *from) {
-  ms_server_t *server = Ms_GetServer(from);
+static void Ms_Heartbeat(struct sockaddr_in *from, const char *cmd, const char *status) {
+  const time_t now = time(NULL);
 
-  if (server) {
-    Com_Verbose("Ack from %s (%d)\n", stos(server), server->queued_pings);
-
-    server->validated = true;
-    server->queued_pings = 0;
-
-  } else {
-    Com_Warn("Ack from unregistered server %s\n", atos(from));
+  // the echoed challenge, if any, follows the command name
+  const char *c = cmd + q_strlen("heartbeat");
+  while (*c == ' ') {
+    c++;
   }
-}
 
-/**
- * @brief Accept a "heartbeat" from the specified server address.
- */
-static void Ms_Heartbeat(struct sockaddr_in *from, const char *status) {
+  const uint32_t challenge = (uint32_t) strtoul(c, NULL, 10);
+
   ms_server_t *server = Ms_GetServer(from);
 
-  if (server) {
-    server->last_heartbeat = time(NULL);
+  if (!server) {
+    if (!(server = Ms_AddServer(from))) {
+      return;
+    }
+  }
 
-    Com_Verbose("Heartbeat from %s\n", stos(server));
+  server->last_heartbeat = now;
 
-    if (status && *status) {
-      Ms_ParseStatusString(server, status);
+  if (!server->validated) {
+
+    if (!challenge || challenge != server->challenge) {
+      Ms_SendChallenge(server, now);
+      return;
     }
 
-    const void *ack = "\xFF\xFF\xFF\xFF" "ack";
-    sendto(ms_sock, ack, 7, 0, (struct sockaddr *) &server->addr, sizeof(server->addr));
-  } else {
-    Ms_AddServer(from);
+    server->validated = true;
+    Com_Print("Server %s validated\n", stos(server));
+  }
+
+  Com_Verbose("Heartbeat from %s\n", stos(server));
+
+  // only a validated server may shape what we publish or announce
+  if (status && *status) {
+    Ms_ParseStatusString(server, status);
   }
 }
 
@@ -503,12 +605,8 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 
   cmd += 4;
 
-  if (!q_strncasecmp(cmd, "ping", 4)) {
-    Ms_AddServer(from);
-  } else if (!q_strncasecmp(cmd, "heartbeat", 9) || !q_strncasecmp(cmd, "print", 5)) {
-    Ms_Heartbeat(from, line);
-  } else if (!q_strncasecmp(cmd, "ack", 3)) {
-    Ms_Ack(from);
+  if (!q_strncasecmp(cmd, "heartbeat", 9)) {
+    Ms_Heartbeat(from, cmd, line);
   } else if (!q_strncasecmp(cmd, "shutdown", 8)) {
     Ms_RemoveServer(from);
   } else if (!q_strncasecmp(cmd, "getservers", 10) || !q_strncasecmp(cmd, "y", 1)) {
@@ -615,6 +713,12 @@ int32_t quetoo_main(int32_t argc, char **argv) {
   if (ms_discord_webhook) {
     Com_Print("Discord webhook configured\n");
   }
+
+#if !defined(_WIN32)
+  if ((ms_urandom = open("/dev/urandom", O_RDONLY)) == -1) {
+    Com_Error(ERROR_FATAL, "Failed to open /dev/urandom: %s\n", strerror(errno));
+  }
+#endif
 
   ms_sock = (int32_t) socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
