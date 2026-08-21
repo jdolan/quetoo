@@ -37,11 +37,10 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
   q_strlcpy(s->hostname, Net_NetaddrToString(&s->addr), sizeof(s->hostname));
 
   if (!cls.servers) {
-    cls.servers = $(alloc(List), init);
-    cls.servers->destroy = Mem_Free;
+    cls.servers = $(alloc(PointerArray), initWithDestroy, Mem_Free);
   }
 
-  $(cls.servers, prepend, s);
+  $(cls.servers, add, s);
 
   return s;
 }
@@ -50,16 +49,13 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
  * @brief Finds the server info entry matching the given network address.
  */
 static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
-  const ListNode *e = cls.servers ? cls.servers->head : NULL;
 
-  while (e) {
-    cl_server_info_t *s = (cl_server_info_t *) e->element;
+  for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
+    cl_server_info_t *s = (cl_server_info_t *) $(cls.servers, get, i);
 
     if (Net_CompareNetaddr(addr, &s->addr)) {
       return s;
     }
-
-    e = e->next;
   }
 
   return NULL;
@@ -212,18 +208,13 @@ void Cl_Ping_f(void) {
  * @brief Sends a LAN broadcast and resets ping times for all broadcast servers.
  */
 static void Cl_SendBroadcast(void) {
-  const ListNode *e = cls.servers ? cls.servers->head : NULL;
-
-
-  while (e) { // update old ping times
-    cl_server_info_t *s = (cl_server_info_t *) e->element;
+  for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) { // update old ping times
+    cl_server_info_t *s = (cl_server_info_t *) $(cls.servers, get, i);
 
     if (s->source == SERVER_SOURCE_BCAST) {
       s->ping_time = quetoo.ticks;
       s->ping = 999;
     }
-
-    e = e->next;
   }
 
   net_addr_t addr;
@@ -327,10 +318,8 @@ void Cl_ParseServers(void) {
 
   uint32_t queried = 0;
 
-  const ListNode *e = cls.servers ? cls.servers->head : NULL;
-
-  while (e) {
-    server = (cl_server_info_t *) e->element;
+  for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
+    server = (cl_server_info_t *) $(cls.servers, get, i);
 
     if (server->source == SERVER_SOURCE_INTERNET) {
       server->ping_time = quetoo.ticks;
@@ -339,8 +328,6 @@ void Cl_ParseServers(void) {
       Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
       queried++;
     }
-
-    e = e->next;
   }
 
   Com_Debug(DEBUG_CLIENT, "Parsed %u servers, queried %u for status\n", parsed, queried);
@@ -359,15 +346,12 @@ void Cl_ParseServers(void) {
 void Cl_Servers_List_f(void) {
   char string[256];
 
-  const ListNode *e = cls.servers ? cls.servers->head : NULL;
-
-  while (e) {
-    const cl_server_info_t *s = (const cl_server_info_t *) e->element;
+  for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
+    const cl_server_info_t *s = (const cl_server_info_t *) $(cls.servers, get, i);
 
     q_snprintf(string, sizeof(string), "%-40.40s %-20.20s %-16.16s %-24.24s %02d/%02d %5dms",
                s->hostname, Net_NetaddrToString(&s->addr), s->name, s->gameplay, s->clients,
                s->max_clients, s->ping);
     Com_Print("%s\n", string);
-    e = e->next;
   }
 }

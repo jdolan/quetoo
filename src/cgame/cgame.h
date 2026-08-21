@@ -32,10 +32,11 @@
 
 #include "client/cl_types.h"
 #include "common/installer.h"
+#include <Objectively/PointerArray.h>
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 34
+#define CGAME_API_VERSION 35
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -405,7 +406,7 @@ typedef struct cg_import_s {
   /**
    * @return The list of known servers (`cl_server_info_t`).
    */
-  List *(*Servers)(void);
+  PointerArray *(*Servers)(void);
 
   /**
    * @brief Refreshes the list of known servers from the master and LAN.

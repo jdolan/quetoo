@@ -55,7 +55,7 @@ struct JoinServerViewController {
   /**
    * @brief A copy of the client's servers list, for sorting, filtering, etc.
    */
-  List *servers;
+  PointerArray *servers;
 
   /**
    * @brief The servers TableView.

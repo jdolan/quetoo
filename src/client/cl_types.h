@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <Objectively/PointerArray.h>
+
 #include "net/net_types.h"
 #include "renderer/r_types.h"
 #include "sound/s_types.h"
@@ -757,7 +759,7 @@ typedef struct {
   /**
    * @brief List of `cl_server_info_t` discovered from all sources.
    */
-  List *servers;
+  PointerArray *servers;
 
   /**
    * @brief System time when the last LAN broadcast ping was sent.
