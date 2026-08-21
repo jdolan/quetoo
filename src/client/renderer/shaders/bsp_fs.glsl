@@ -21,22 +21,20 @@
 
 #version 450
 
+#include "uniforms.glsl"
+
+/**
+ * @brief See material.glsl sampler bindings.
+ */
+#define BINDING_SAMPLER_WARP                 12
+#define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS  13
+#define BINDING_UNIFORMS_MATERIAL            2
+
 /**
  * @brief BSP surfaces support parallax occlusion mapping and self-shadowing
  * from their heightmaps; mesh entities do not (see mesh_fs.glsl).
  */
 #define PARALLAX_SELF_SHADOW
-
-#include "uniforms.glsl"
-
-// material.glsl declares the canonical BINDING_SAMPLER_MATERIAL..STAGE_NEXT
-// family unconditionally; BSP additionally has its own liquid-warp sampler
-// after them (mesh/sky never set STAGE_WARP). This stage samples all 12 plus
-// warp (13 total), so storage bindings must follow those 13 -- see
-// material.glsl's BINDING_STORAGE_NUM_ACTIVE_SAMPLERS comment.
-#define BINDING_SAMPLER_WARP                 12
-#define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS  13
-#define BINDING_UNIFORMS_MATERIAL            2
 
 #include "common.glsl"
 #include "material.glsl"
@@ -56,11 +54,13 @@ layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_WARP) uniform sampler2D tex
 layout (location = 0) in common_vertex_t vertex;
 
 layout (location = 0) out vec4 out_color;
-
-// A float depth copy for the sprite pass to sample (soft particles); see r_framebuffer.c.
 layout (location = 1) out float out_depth;
 
 common_fragment_t fragment;
+
+#define PARALLAX_SAMPLES_PER_TEXEL 6.0
+#define PARALLAX_MIN_SAMPLES 24.0
+#define PARALLAX_MAX_SAMPLES 96.0
 
 /**
  * @brief Applies parallax occlusion mapping to the fragment texcoord.
@@ -74,12 +74,15 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
     return;
   }
 
-  float num_samples = mix(32.0, 8.0, min(fragment.texture_lod * 0.25, 1.0));
+  vec3 dir = normalize(fragment.view_dir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
 
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-  vec3 dir = normalize(fragment.view_dir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
-  dir.z = max(dir.z, 0.1);
-  vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
+  vec2 p = ((dir.xy * texel) / max(dir.z, 0.1)) * material.parallax * material.parallax;
+
+  float sweep = length(p / texel) / exp2(fragment.texture_lod);
+  float budget = mix(PARALLAX_MAX_SAMPLES, PARALLAX_MIN_SAMPLES, fragment.texture_lod_normalized);
+  float num_samples = clamp(ceil(sweep * PARALLAX_SAMPLES_PER_TEXEL), 1.0, budget);
+
   vec2 delta = p / num_samples;
 
   vec2 texcoord = vertex.diffusemap;
@@ -112,6 +115,8 @@ void main(void) {
   fragment.view_dir = normalize(-vertex.position);
   fragment.view_dist = length(vertex.position);
   fragment.texture_lod = textureQueryLod(texture_material, vertex.diffusemap).x;
+  int num_mipmap_levels = textureQueryLevels(texture_material);
+  fragment.texture_lod_normalized = clamp(fragment.texture_lod / float(num_mipmap_levels - 1), 0.0, 1.0);
 
   parallax_occlusion_mapping(vertex, fragment);
 

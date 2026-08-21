@@ -103,6 +103,7 @@ struct common_fragment_t {
   vec3 view_dir;
   float view_dist;
   float texture_lod;
+  float texture_lod_normalized;
   vec3 normal;
   vec3 tangent;
   vec3 bitangent;
