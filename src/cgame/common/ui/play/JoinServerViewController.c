@@ -401,11 +401,15 @@ static void viewWillAppear(ViewController *self) {
 
   JoinServerViewController *this = (JoinServerViewController *) self;
 
-  if (this->servers == NULL) {
-    cgi.GetServers();
-  } else {
+  // show what we already know at once, then ask the master again; querying only
+  // when nothing was cached meant the first answer of a session was the only one,
+  // so a list that was empty when the menu first opened stayed empty until the
+  // Refresh button was pressed
+  if (this->servers) {
     $(this, reloadServers);
   }
+
+  cgi.GetServers();
 }
 
 #pragma mark - JoinServerViewController
