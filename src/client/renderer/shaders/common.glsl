@@ -103,6 +103,7 @@ struct CommonFragment {
   vec3 viewDir;
   float viewDist;
   float texLod;
+  float texLodNormalized;
   vec3 normal;
   vec3 tangent;
   vec3 bitangent;

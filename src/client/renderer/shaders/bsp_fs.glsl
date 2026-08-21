@@ -85,6 +85,10 @@ layout (location = 1) out float outDepth;
 
 CommonFragment fragment;
 
+#define PARALLAX_SAMPLES_PER_TEXEL 6.0
+#define PARALLAX_MIN_SAMPLES 24.0
+#define PARALLAX_MAX_SAMPLES 96.0
+
 /**
  * @brief Applies parallax occlusion mapping to the fragment texcoord.
  */
@@ -97,12 +101,15 @@ void parallaxOcclusionMapping(in CommonVertex vertex, inout CommonFragment fragm
     return;
   }
 
-  float numSamples = mix(32.0, 8.0, min(fragment.texLod * 0.25, 1.0));
+  vec3 dir = normalize(fragment.viewDir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
 
   vec2 texel = 1.0 / textureSize(textureMaterial, 0).xy;
-  vec3 dir = normalize(fragment.viewDir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
-  dir.z = max(dir.z, 0.1);
-  vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
+  vec2 p = ((dir.xy * texel) / max(dir.z, 0.1)) * material.parallax * material.parallax;
+
+  float sweep = length(p / texel) / exp2(fragment.texLod);
+  float budget = mix(PARALLAX_MAX_SAMPLES, PARALLAX_MIN_SAMPLES, fragment.texLodNormalized);
+  float numSamples = clamp(ceil(sweep * PARALLAX_SAMPLES_PER_TEXEL), 1.0, budget);
+
   vec2 delta = p / numSamples;
 
   vec2 texcoord = vertex.diffusemap;
@@ -168,6 +175,8 @@ void main(void) {
   fragment.viewDir = normalize(-vertex.position);
   fragment.viewDist = length(vertex.position);
   fragment.texLod = textureQueryLod(textureMaterial, vertex.diffusemap).x;
+  int numMipmapLevels = textureQueryLevels(textureMaterial);
+  fragment.texLodNormalized = clamp(fragment.texLod / float(numMipmapLevels - 1), 0.0, 1.0);
 
   parallaxOcclusionMapping(vertex, fragment);
 
