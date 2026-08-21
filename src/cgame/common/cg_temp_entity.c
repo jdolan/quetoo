@@ -555,9 +555,13 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
       break;
     }
 
+    if (i % 6) {
+      continue;
+    }
+
     Cg_AddDecal(&(r_decal_t) {
       .image = cg_decal_blood[Randomi() % lengthof(cg_decal_blood)],
-      .origin = org,
+      .origin = Vec3_Add(org, Vec3_RandomRange(-8.f, 8.f)),
       .radius = RandomRangef(32.f, 64.f),
       .color = Color3f(.6f, 0.f, 0.f),
       .lifetime = 6000 + Randomf() * 6000,
