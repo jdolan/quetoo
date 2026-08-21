@@ -497,7 +497,10 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
     line++;
   }
 
-  *(line++) = '\0';
+  if (*line == '\n') {
+    *(line++) = '\0';
+  }
+
   cmd += 4;
 
   if (!q_strncasecmp(cmd, "ping", 4)) {
@@ -654,10 +657,12 @@ int32_t quetoo_main(int32_t argc, char **argv) {
 
         socklen_t from_len = sizeof(from);
 
-        const ssize_t len = recvfrom(ms_sock, buffer, sizeof(buffer), 0,
+        const ssize_t len = recvfrom(ms_sock, buffer, sizeof(buffer) - 1, 0,
                                      (struct sockaddr *) &from, &from_len);
 
         if (len > 0) {
+          buffer[len] = '\0';
+
           if (len > 4) {
             Ms_ParseMessage(&from, buffer);
           } else {
