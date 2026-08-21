@@ -315,12 +315,6 @@ typedef struct {
 } sv_client_t;
 
 /**
- * @brief Public servers may broadcast their status to as many as 8 master
- * servers.
- */
-#define MAX_MASTERS  8
-
-/**
  * @brief Challenges are a request for a connection. The client must receive
  * and then re-use a valid challenge in order to receive a client slot. This
  * provides basic protection against simple UDP DoS attacks.
@@ -332,7 +326,7 @@ typedef struct {
 } sv_challenge_t;
 
 /**
- * @brief A master server we advertise to, and the challenge it most recently
+ * @brief The master server we advertise to, and the challenge it most recently
  * issued. The challenge must be echoed in our heartbeats before the master will
  * list us, which proves that we receive traffic at the address we send from.
  */
@@ -408,9 +402,9 @@ typedef struct {
   uint32_t next_entity_state;
 
   /**
-   * @brief Configured master servers, and their outstanding challenges.
+   * @brief The configured master server, and its outstanding challenge.
    */
-  sv_master_t masters[MAX_MASTERS];
+  sv_master_t master;
 
   /**
    * @brief Server time after which the next heartbeat is sent to master servers.

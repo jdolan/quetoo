@@ -26,53 +26,6 @@
 #include "sv_local.h"
 
 /**
- * @brief Sets the master servers for this dedicated server.
- */
-static void Sv_SetMaster_f(void) {
-  int32_t i, slot;
-  sv_master_t *master;
-
-  // only dedicated servers send heartbeats
-  if (!dedicated->value) {
-    Com_Print("Only dedicated servers use masters\n");
-    return;
-  }
-
-  // make sure the server is listed public
-  Cvar_ForceSetInteger("sv_public", 1);
-
-  for (i = 1; i < MAX_MASTERS; i++) {
-    master = &svs.masters[i];
-    memset(master, 0, sizeof(*master));
-  }
-
-  // the first slot will always contain the default master
-  for (slot = i = 1; i < Cmd_Argc(); i++) {
-
-    if (slot == MAX_MASTERS) {
-      break;
-    }
-
-    master = &svs.masters[slot];
-
-    if (!Net_StringToNetaddr(Cmd_Argv(i), &master->addr)) {
-      Com_Print("Bad address: %s\n", Cmd_Argv(i));
-      continue;
-    }
-
-    if (master->addr.port == 0) {
-      master->addr.port = htons(PORT_MASTER);
-    }
-
-    Com_Print("Master server at %s\n", Net_NetaddrToString(&master->addr));
-
-    slot++;
-  }
-
-  svs.next_heartbeat = 0;
-}
-
-/**
  * @brief Forces an immediate heartbeat to all registered master servers.
  */
 static void Sv_Heartbeat_f(void) {
@@ -435,7 +388,6 @@ void Sv_InitAdmin(void) {
 
   Cmd_Add("next_map", Sv_NextMap_f, CMD_SERVER, "Advance to the next map in sv_map_list.");
 
-  Cmd_Add("set_master", Sv_SetMaster_f, CMD_SERVER, "Set the master server(s) for the dedicated server");
   Cmd_Add("heartbeat", Sv_Heartbeat_f, CMD_SERVER, "Send a heartbeat to the master server.");
 
   Cmd_Add("save_editor_map", Sv_SaveEditorMap_f, CMD_SERVER, "Saves editor changes to the .map file.");

@@ -40,6 +40,7 @@ cvar_t *sv_map_list_shuffle;
 cvar_t *sv_max_clients;
 cvar_t *sv_max_entities;
 cvar_t *sv_min_clients;
+cvar_t *sv_master;
 cvar_t *sv_public;
 cvar_t *sv_stats_url;
 cvar_t *sv_timeout;
@@ -831,7 +832,7 @@ void Sv_Frame(const uint32_t msec) {
   Sv_UpdatePings();
 
   // send a heartbeat to the master if needed
-  Sv_HeartbeatMasters();
+  Sv_HeartbeatMaster();
 
   // let everything in the world think and move
   const uint64_t sim_start = SDL_GetTicks();
@@ -883,6 +884,7 @@ static void Sv_InitLocal(void) {
   sv_map = Cvar_Add("sv_map", "", CVAR_SERVER_INFO | CVAR_NO_SET, "The name of the current map.");
   sv_map_list = Cvar_Add("sv_map_list", "maps.lst", 0, "The map list filename.");
   sv_map_list_shuffle = Cvar_Add("sv_map_list_shuffle", "0", 0, "Enables map shuffling.");
+  sv_master = Cvar_Add("sv_master", HOST_MASTER, CVAR_NO_SET, "The master server to advertise on, or \"\" to advertise nowhere");
   sv_max_clients = Cvar_Add("sv_max_clients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow");
   sv_max_entities = Cvar_Add("sv_max_entities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow");
   sv_min_clients = Cvar_Add("sv_min_clients", "0", CVAR_SERVER_INFO, "The minimum number of clients the server will allow");
@@ -916,7 +918,7 @@ void Sv_Init(void) {
 
   Sv_InitAdmin();
 
-  Sv_InitMasters();
+  Sv_InitMaster();
 
   Sv_InitHttp();
 

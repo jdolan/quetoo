@@ -377,7 +377,7 @@ void Sv_ShutdownServer(const char *msg) {
 
   Sv_ShutdownClients();
 
-  Sv_ShutdownMasters();
+  Sv_ShutdownMaster();
 
   Sv_ClearState();
 
