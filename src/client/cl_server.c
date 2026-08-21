@@ -104,7 +104,8 @@ void Cl_ParseServerInfo(void) {
 
   q_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
   q_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
-  q_strlcpy(gameplay, InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
+  const char *mode = InfoString_Get(string, "g_gameplay_mode");
+  q_strlcpy(gameplay, *mode ? mode : InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
   const int32_t max_clients = atoi(InfoString_Get(string, "sv_max_clients"));
 
   if (hostname[0] && name[0]) {
@@ -139,8 +140,8 @@ void Cl_ParseServerInfo(void) {
     server->ping = Clampf(quetoo.ticks - server->ping_time, 1u, 999u);
     server->error[0] = '\0';
 
-    Com_Debug(DEBUG_CLIENT, "Status from %s: \"%s\" map %s, %d/%d clients (%d bots), %dms\n",
-              Net_NetaddrToString(&net_from), server->hostname, server->name,
+    Com_Debug(DEBUG_CLIENT, "Status from %s: \"%s\" map %s, gameplay %s, %d/%d clients (%d bots), %dms\n",
+              Net_NetaddrToString(&net_from), server->hostname, server->name, server->gameplay,
               server->clients, server->max_clients, server->bots, server->ping);
 
   } else {

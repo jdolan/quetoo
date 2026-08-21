@@ -348,6 +348,8 @@ void Sv_InitGame(void) {
   import.SetCvarInteger = Cvar_SetInteger;
   import.SetCvarString = Cvar_SetString;
   import.SetCvarValue = Cvar_SetValue;
+  import.ForceSetCvarString = Cvar_ForceSetString;
+  import.ForceSetCvarValue = Cvar_ForceSetValue;
   import.AddCmd = Cmd_Add;
   import.Argc = Cmd_Argc;
   import.Argv = Cmd_Argv;

@@ -774,6 +774,11 @@ static void G_worldspawn(g_entity_t *ent) {
 
   gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
 
+  // g_gameplay holds what the admin asked for, which may be an alias, or "default"
+  // to defer to this level's worldspawn; publish what it resolved to as well, since
+  // that is the only form a server browser can present
+  gi.ForceSetCvarString("g_gameplay_mode", G_GameplayById(g_level.gameplay)->name);
+
   const cm_entity_t *items = gi.EntityValue(ent->def, "items");
   if (q_strcasecmp(items->string, "quake") == 0) {
     g_level.items = ITEMS_QUAKE;

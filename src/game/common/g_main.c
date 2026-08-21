@@ -1032,6 +1032,9 @@ void G_Init(void) {
   g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO,
     "Selects deathmatch, instagib or arena combat. Prefix with team_ for team play, "
     "e.g. team_deathmatch, team_instagib or team_arena.");
+  gi.AddCvar("g_gameplay_mode", "", CVAR_SERVER_INFO | CVAR_NO_SET,
+    "The gameplay mode this level actually resolved to, published for the server browser. "
+    "Read g_gameplay for what was requested.");
 
   // player movement parameters (hydrated into pm_params_t by G_MovementParams)
   g_air_acceleration = gi.AddCvar("g_air_acceleration", "2.0", 0, "Acceleration applied while airborne. Default 2.0; set 0 for classic-Quake2 movement.");
