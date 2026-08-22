@@ -114,6 +114,34 @@ struct sprite_locals_block
     uint4 active_dynamic_lights[2];
 };
 
+struct sprite_instance_t
+{
+    float4 center;
+    float4 a;
+    float4 b;
+    float4 texcoords;
+    float4 next_texcoords;
+    float4 color;
+};
+
+struct sprite_instance_t_1
+{
+    float4 center;
+    float4 a;
+    float4 b;
+    float4 texcoords;
+    float4 next_texcoords;
+    float4 color;
+};
+
+struct sprite_instances_block
+{
+    sprite_instance_t_1 sprite_instances[1];
+};
+
+constant spvUnsafeArray<float2, 4> _332 = spvUnsafeArray<float2, 4>({ float2(1.0, -1.0), float2(1.0), float2(-1.0, 1.0), float2(-1.0) });
+constant spvUnsafeArray<float2, 4> _367 = spvUnsafeArray<float2, 4>({ float2(0.0), float2(1.0, 0.0), float2(1.0), float2(0.0, 1.0) });
+
 struct main0_out
 {
     float2 out_diffusemap [[user(locn0)]];
@@ -123,15 +151,6 @@ struct main0_out
     float out_lighting [[user(locn4)]];
     float3 out_diffuse [[user(locn5)]];
     float4 gl_Position [[position, invariant]];
-};
-
-struct main0_in
-{
-    float3 in_position [[attribute(0)]];
-    float2 in_diffusemap [[attribute(1)]];
-    float2 in_next_diffusemap [[attribute(2)]];
-    float4 in_color [[attribute(3)]];
-    float2 in_lerp_lighting [[attribute(4)]];
 };
 
 static inline __attribute__((always_inline))
@@ -202,20 +221,31 @@ float3 sprite_lighting(thread const float3& position, constant uniforms_block& _
     return diffuse;
 }
 
-vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _60 [[buffer(0)]], constant sprite_locals_block& _256 [[buffer(1)]], const device bsp_lights_block& _210 [[buffer(2)]], const device dynamic_lights_block& _249 [[buffer(3)]], const device voxel_light_data_block& _182 [[buffer(4)]], const device voxel_light_indices_block& _214 [[buffer(5)]])
+vertex main0_out main0(constant uniforms_block& _60 [[buffer(0)]], constant sprite_locals_block& _256 [[buffer(1)]], const device bsp_lights_block& _210 [[buffer(2)]], const device dynamic_lights_block& _249 [[buffer(3)]], const device voxel_light_data_block& _182 [[buffer(4)]], const device voxel_light_indices_block& _214 [[buffer(5)]], const device sprite_instances_block& _304 [[buffer(6)]], uint gl_VertexIndex [[vertex_id]])
 {
     main0_out out = {};
-    out.out_diffusemap = in.in_diffusemap;
-    out.out_next_diffusemap = in.in_next_diffusemap;
-    out.out_color = in.in_color.xyz;
-    out.out_lerp = in.in_lerp_lighting.x;
-    out.out_lighting = in.in_lerp_lighting.y;
-    float3 param = in.in_position;
+    uint corner = uint(int(gl_VertexIndex)) & 3u;
+    uint _307 = uint(int(gl_VertexIndex)) >> uint(2);
+    sprite_instance_t instance;
+    instance.center = _304.sprite_instances[_307].center;
+    instance.a = _304.sprite_instances[_307].a;
+    instance.b = _304.sprite_instances[_307].b;
+    instance.texcoords = _304.sprite_instances[_307].texcoords;
+    instance.next_texcoords = _304.sprite_instances[_307].next_texcoords;
+    instance.color = _304.sprite_instances[_307].color;
+    float2 signs = _332[corner];
+    float3 position = (instance.center.xyz + (instance.a.xyz * signs.x)) + (instance.b.xyz * signs.y);
+    out.out_diffusemap = mix(instance.texcoords.xy, instance.texcoords.zw, _367[corner]);
+    out.out_next_diffusemap = mix(instance.next_texcoords.xy, instance.next_texcoords.zw, _367[corner]);
+    out.out_color = instance.color.xyz;
+    out.out_lerp = instance.center.w;
+    out.out_lighting = instance.a.w;
+    float3 param = position;
     out.out_diffuse = sprite_lighting(param, _60, _182, _210, _214, _249, _256);
-    float4x4 _329 = _60.projection3D * _60.view;
-    float4 _334 = float4(in.in_position, 1.0);
-    float4 _335 = _329 * _334;
-    out.gl_Position = _335;
+    float4x4 _410 = _60.projection3D * _60.view;
+    float4 _415 = float4(position, 1.0);
+    float4 _416 = _410 * _415;
+    out.gl_Position = _416;
     return out;
 }
 

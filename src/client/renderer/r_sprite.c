@@ -43,15 +43,10 @@ typedef struct {
 static struct {
   
   /**
-   * @brief The sprite vertex cache.
+   * @brief The sprite instance cache, and the buffer it uploads to.
    */
-  r_sprite_vertex_t vertexes[MAX_SPRITE_INSTANCES * 4];
-
-  /**
-   * @brief The vertex buffer.
-   */
-  Buffer *vertex_buffer;
-  int32_t vertex_buffer_capacity;
+  r_sprite_instance_t instances[MAX_SPRITE_INSTANCES];
+  Buffer *instance_buffer;
 
   /**
    * @brief The index buffer.
@@ -75,22 +70,25 @@ static struct {
 } r_sprite_draw;
 
 /**
- * @brief Computes texture coordinates for a sprite image.
+ * @brief Resolves the texture coordinate rect for a sprite image.
  */
-static void R_SpriteTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2_t *tr, vec2_t *br, vec2_t *bl) {
+static vec4_t R_SpriteTextureCoordinates(const r_image_t *image) {
 
   if (image->media.type == R_MEDIA_ATLAS_IMAGE) {
-    const r_atlas_image_t *atlas_image = (r_atlas_image_t *) image;
-    *tl = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.y);
-    *tr = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.y);
-    *br = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.w);
-    *bl = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.w);
-  } else {
-    *tl = Vec2(0.f, 0.f);
-    *tr = Vec2(1.f, 0.f);
-    *br = Vec2(1.f, 1.f);
-    *bl = Vec2(0.f, 1.f);
+    return ((const r_atlas_image_t *) image)->texcoords;
   }
+
+  return Vec4(0.f, 0.f, 1.f, 1.f);
+}
+
+/**
+ * @brief Resolves the bounds of the quad `center + (±a) + (±b)`.
+ */
+static box3_t R_SpriteBounds(const vec3_t center, const vec3_t a, const vec3_t b) {
+
+  const vec3_t extents = Vec3_Add(Vec3_Fabsf(a), Vec3_Fabsf(b));
+
+  return Box3(Vec3_Subtract(center, extents), Vec3_Add(center, extents));
 }
 
 /**
@@ -145,8 +143,9 @@ r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *b) {
 
 /**
  * @brief Allocates the next available sprite instance slot in the view.
+ * @param instance Filled with the instance to be uploaded, parallel by index.
  */
-static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
+static r_sprite_batch_t *R_AllocSpriteInstance(r_view_t *view, r_sprite_instance_t **instance) {
 
   if (view->num_sprite_instances == MAX_SPRITE_INSTANCES) {
     Com_Debug(DEBUG_RENDERER, "MAX_SPRITE_INSTANCES\n");
@@ -155,13 +154,13 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
 
   const int32_t index = view->num_sprite_instances++;
 
-  r_sprite_instance_t *in = &view->sprite_instances[index];
-  memset(in, 0, sizeof(*in));
+  r_sprite_batch_t *batch = &view->sprite_batches[index];
+  memset(batch, 0, sizeof(*batch));
 
-  in->vertexes = r_sprite_draw.vertexes + 4 * index;
-  in->elements = (void *) (sizeof(uint32_t) * 6 * index);
+  *instance = &r_sprite_draw.instances[index];
+  memset(*instance, 0, sizeof(**instance));
 
-  return in;
+  return batch;
 }
 
 /**
@@ -170,80 +169,44 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
 static void R_UpdateSpriteQuad(r_view_t *view, const r_sprite_t *s,
                               const vec3_t right, const vec3_t up) {
 
-  r_sprite_instance_t *in = R_AllocSpriteInstance(view);
-  if (!in) {
+  r_sprite_instance_t *instance;
+
+  r_sprite_batch_t *batch = R_AllocSpriteInstance(view, &instance);
+  if (!batch) {
     return;
   }
 
-  in->flags = s->flags;
-  in->diffusemap = R_ResolveSpriteImage(s->media, s->life);
+  batch->diffusemap = R_ResolveSpriteImage(s->media, s->life);
 
-  const float aspect_ratio = (float) in->diffusemap->width / (float) in->diffusemap->height;
+  const float aspect_ratio = (float) batch->diffusemap->width / (float) batch->diffusemap->height;
   const float half_width = (s->size ?: s->width) * .5f;
   const float half_height = (s->size ?: s->height) * .5f;
 
-  const vec3_t u = Vec3_Scale(up, half_height),
-         d = Vec3_Scale(up, -half_height),
-         l = Vec3_Scale(right, -half_width * aspect_ratio),
-         r = Vec3_Scale(right, half_width * aspect_ratio);
+  const vec3_t a = Vec3_Scale(up, half_height);
+  const vec3_t b = Vec3_Scale(right, half_width * aspect_ratio);
 
-  in->vertexes[0].position = Vec3_Add(Vec3_Add(s->origin, u), l);
-  in->vertexes[1].position = Vec3_Add(Vec3_Add(s->origin, u), r);
-  in->vertexes[2].position = Vec3_Add(Vec3_Add(s->origin, d), r);
-  in->vertexes[3].position = Vec3_Add(Vec3_Add(s->origin, d), l);
+  instance->center = Vec3_ToVec4(s->origin, 0.f);
+  instance->a = Vec3_ToVec4(a, Clampf01(s->lighting));
+  instance->b = Vec3_ToVec4(b, 0.f);
 
-  R_SpriteTextureCoordinates(in->diffusemap, &in->vertexes[0].diffusemap,
-                         &in->vertexes[1].diffusemap,
-                         &in->vertexes[2].diffusemap,
-                         &in->vertexes[3].diffusemap);
+  instance->texcoords = R_SpriteTextureCoordinates(batch->diffusemap);
 
   if (s->media->type == R_MEDIA_ANIMATION) {
     const r_animation_t *anim = (const r_animation_t *) s->media;
 
-    in->next_diffusemap = R_ResolveAnimation(anim, s->life, 1);
-
-    R_SpriteTextureCoordinates(in->next_diffusemap, &in->vertexes[0].next_diffusemap,
-                            &in->vertexes[1].next_diffusemap,
-                            &in->vertexes[2].next_diffusemap,
-                            &in->vertexes[3].next_diffusemap);
+    batch->next_diffusemap = R_ResolveAnimation(anim, s->life, 1);
+    instance->next_texcoords = R_SpriteTextureCoordinates(batch->next_diffusemap);
 
     const float frame = s->life * anim->num_frames;
-    const float lerp = Clampf01(frame - floorf(frame));
-
-    in->vertexes[0].lerp =
-    in->vertexes[1].lerp =
-    in->vertexes[2].lerp =
-    in->vertexes[3].lerp = lerp * 255;
+    instance->center.w = Clampf01(frame - floorf(frame));
   } else {
-    in->next_diffusemap = in->diffusemap;
-
-    in->vertexes[0].next_diffusemap = in->vertexes[0].diffusemap;
-    in->vertexes[1].next_diffusemap = in->vertexes[1].diffusemap;
-    in->vertexes[2].next_diffusemap = in->vertexes[2].diffusemap;
-    in->vertexes[3].next_diffusemap = in->vertexes[3].diffusemap;
-
-    in->vertexes[0].lerp =
-    in->vertexes[1].lerp =
-    in->vertexes[2].lerp =
-    in->vertexes[3].lerp = 0;
+    batch->next_diffusemap = batch->diffusemap;
+    instance->next_texcoords = instance->texcoords;
   }
 
-  in->vertexes[0].color =
-  in->vertexes[1].color =
-  in->vertexes[2].color =
-  in->vertexes[3].color = Color_Color24(Color3fv(s->color));
+  instance->color = Vec3_ToVec4(Vec3_Maxf(s->color, Vec3_Zero()), 1.f);
 
-  in->vertexes[0].reserved =
-  in->vertexes[1].reserved =
-  in->vertexes[2].reserved =
-  in->vertexes[3].reserved = 0;
-
-  in->vertexes[0].lighting =
-  in->vertexes[1].lighting =
-  in->vertexes[2].lighting =
-  in->vertexes[3].lighting = Clampf01(s->lighting) * 255;
-
-  in->bounds = Box3_FromPointsStride(in->vertexes, 4, sizeof(r_sprite_vertex_t));
+  batch->bounds = R_SpriteBounds(s->origin, a, b);
 }
 
 /**
@@ -296,7 +259,7 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 }
 
 static void R_UpdateBeamQuad(r_view_t *view, const r_beam_t *b,
-                            const vec3_t right, const vec2_t texcoords[4]) {
+                            const vec3_t right, const vec4_t texcoords) {
 
   float step = 1.f;
   for (float frac = 0.f; frac < 1.f; ) {
@@ -304,59 +267,30 @@ static void R_UpdateBeamQuad(r_view_t *view, const r_beam_t *b,
     const vec3_t x = Vec3_Mix(b->start, b->end, frac);
     const vec3_t y = Vec3_Mix(b->start, b->end, frac + step);
 
-    vec3_t positions[4];
-    positions[0] = Vec3_Add(x, right);
-    positions[1] = Vec3_Add(y, right);
-    positions[2] = Vec3_Subtract(y, right);
-    positions[3] = Vec3_Subtract(x, right);
+    r_sprite_instance_t *instance;
 
-    r_sprite_instance_t *in = R_AllocSpriteInstance(view);
-    if (!in) {
+    r_sprite_batch_t *batch = R_AllocSpriteInstance(view, &instance);
+    if (!batch) {
       return;
     }
 
-    in->flags = b->flags;
-    in->diffusemap = in->next_diffusemap = b->image;
+    batch->diffusemap = batch->next_diffusemap = b->image;
 
-    in->vertexes[0].position = positions[0];
-    in->vertexes[1].position = positions[1];
-    in->vertexes[2].position = positions[2];
-    in->vertexes[3].position = positions[3];
+    const vec3_t center = Vec3_Mix(x, y, .5f);
+    const vec3_t half = Vec3_Scale(Vec3_Subtract(y, x), .5f);
 
-    in->vertexes[0].diffusemap = in->vertexes[0].next_diffusemap = texcoords[0];
-    in->vertexes[1].diffusemap = in->vertexes[1].next_diffusemap = texcoords[1];
-    in->vertexes[2].diffusemap = in->vertexes[2].next_diffusemap = texcoords[2];
-    in->vertexes[3].diffusemap = in->vertexes[3].next_diffusemap = texcoords[3];
+    instance->center = Vec3_ToVec4(center, 0.f);
+    instance->a = Vec3_ToVec4(right, Clampf01(b->lighting));
+    instance->b = Vec3_ToVec4(half, 0.f);
 
-    const float xs = (texcoords[0].x * (1.f - frac)) + (texcoords[1].x * frac);
-    const float ys = (texcoords[0].x * (1.f - (frac + step))) + (texcoords[1].x * (frac + step));
+    const float xs = Mixf(texcoords.x, texcoords.z, frac);
+    const float ys = Mixf(texcoords.x, texcoords.z, frac + step);
 
-    in->vertexes[0].diffusemap.x = in->vertexes[0].next_diffusemap.x = xs;
-    in->vertexes[1].diffusemap.x = in->vertexes[1].next_diffusemap.x = ys;
-    in->vertexes[2].diffusemap.x = in->vertexes[2].next_diffusemap.x = ys;
-    in->vertexes[3].diffusemap.x = in->vertexes[3].next_diffusemap.x = xs;
+    instance->texcoords = instance->next_texcoords = Vec4(xs, texcoords.y, ys, texcoords.w);
 
-    in->vertexes[0].color =
-    in->vertexes[1].color =
-    in->vertexes[2].color =
-    in->vertexes[3].color = Color_Color24(Color3fv(b->color));
+    instance->color = Vec3_ToVec4(Vec3_Maxf(b->color, Vec3_Zero()), 1.f);
 
-    in->vertexes[0].reserved =
-    in->vertexes[1].reserved =
-    in->vertexes[2].reserved =
-    in->vertexes[3].reserved = 0;
-
-    in->vertexes[0].lerp =
-    in->vertexes[1].lerp =
-    in->vertexes[2].lerp =
-    in->vertexes[3].lerp = 0.f;
-
-    in->vertexes[0].lighting =
-    in->vertexes[1].lighting =
-    in->vertexes[2].lighting =
-    in->vertexes[3].lighting = b->lighting;
-
-    in->bounds = Box3_FromPointsStride(in->vertexes, 4, sizeof(r_sprite_vertex_t));
+    batch->bounds = R_SpriteBounds(center, right, half);
 
     frac += step;
     step = 1.f - frac;
@@ -378,8 +312,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
   const vec3_t right1 = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, arbitrary)), half_size);
   const vec3_t right2 = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, right1)), half_size);
 
-  vec2_t texcoords[4];
-  R_SpriteTextureCoordinates(b->image, &texcoords[0], &texcoords[1], &texcoords[2], &texcoords[3]);
+  vec4_t texcoords = R_SpriteTextureCoordinates(b->image);
 
   if (b->flags & SPRITE_BEAM_REPEAT) {
 
@@ -387,13 +320,11 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
       length *= b->stretch;
     }
 
-    texcoords[1].x *= length;
-    texcoords[2].x = texcoords[1].x;
+    texcoords.z *= length;
 
     if (b->translate) {
-      for (int32_t i = 0; i < 4; i++) {
-        texcoords[i].x += b->translate;
-      }
+      texcoords.x += b->translate;
+      texcoords.z += b->translate;
     }
   }
 
@@ -420,19 +351,8 @@ void R_UpdateSprites(r_view_t *view, CopyPass *copyPass) {
     return;
   }
 
-  const uint32_t count = (uint32_t) view->num_sprite_instances * 4;
-
-  if ((int32_t) count > r_sprite_draw.vertex_buffer_capacity) {
-    r_sprite_draw.vertex_buffer = release(r_sprite_draw.vertex_buffer);
-    r_sprite_draw.vertex_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
-      .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-      .size = count * sizeof(r_sprite_vertex_t),
-    });
-    r_sprite_draw.vertex_buffer_capacity = (int32_t) count;
-  }
-
-  $(copyPass, uploadData, r_sprite_draw.vertex_buffer->buffer, r_sprite_draw.vertexes,
-    count * sizeof(r_sprite_vertex_t), 0, true);
+  $(r_sprite_draw.instance_buffer, uploadWithPass, copyPass, r_sprite_draw.instances,
+    (uint32_t) view->num_sprite_instances * sizeof(r_sprite_instance_t), 0, true);
 }
 
 /**
@@ -462,7 +382,6 @@ void R_DrawSprites(const r_view_t *view, RenderPass *pass) {
   $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
   $(pass, bindPipeline, r_sprite_draw.pipeline);
-  $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.vertex_buffer->buffer }, 1);
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) { .buffer = r_sprite_draw.elements_buffer->buffer }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
   Texture *depth_texture = $(framebuffer, previousColorTexture, 1);
@@ -476,13 +395,14 @@ void R_DrawSprites(const r_view_t *view, RenderPass *pass) {
     r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
     bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
+    r_sprite_draw.instance_buffer->buffer,
   };
-  $(pass, bindVertexStorageBuffers, 0, storage, 4);
+  $(pass, bindVertexStorageBuffers, 0, storage, 5);
 
   int32_t i = 0;
   while (i < view->num_sprite_instances) {
 
-    const r_sprite_instance_t *in = view->sprite_instances + i;
+    const r_sprite_batch_t *in = view->sprite_batches + i;
 
     if (!in->diffusemap || !in->diffusemap->texture || !in->next_diffusemap || !in->next_diffusemap->texture) {
       i++;
@@ -492,7 +412,7 @@ void R_DrawSprites(const r_view_t *view, RenderPass *pass) {
     int32_t batch_size = 1;
     box3_t batch_bounds = in->bounds;
     for (int32_t j = i + 1; j < view->num_sprite_instances; j++) {
-      const r_sprite_instance_t *batch = view->sprite_instances + j;
+      const r_sprite_batch_t *batch = view->sprite_batches + j;
       if (batch->diffusemap != in->diffusemap || batch->next_diffusemap != in->next_diffusemap) {
         break;
       }
@@ -533,48 +453,6 @@ static void R_InitSpritePipeline(void) {
     .enable_depth_write = false,
   };
 
-  info.vertex_input_state = (SDL_GPUVertexInputState) {
-    .vertex_buffer_descriptions = &(SDL_GPUVertexBufferDescription) {
-      .slot = 0,
-      .pitch = sizeof(r_sprite_vertex_t),
-      .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
-    },
-    .num_vertex_buffers = 1,
-    .vertex_attributes = (SDL_GPUVertexAttribute[]) {
-      {
-        .location = 0,
-        .buffer_slot = 0,
-        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-        .offset = offsetof(r_sprite_vertex_t, position),
-      },
-      {
-        .location = 1,
-        .buffer_slot = 0,
-        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-        .offset = offsetof(r_sprite_vertex_t, diffusemap),
-      },
-      {
-        .location = 2,
-        .buffer_slot = 0,
-        .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-        .offset = offsetof(r_sprite_vertex_t, next_diffusemap),
-      },
-      {
-        .location = 3,
-        .buffer_slot = 0,
-        .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
-        .offset = offsetof(r_sprite_vertex_t, color),
-      },
-      {
-        .location = 4,
-        .buffer_slot = 0,
-        .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE2_NORM,
-        .offset = offsetof(r_sprite_vertex_t, lerp),
-      },
-    },
-    .num_vertex_attributes = 5,
-  };
-
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
       {
@@ -594,7 +472,7 @@ static void R_InitSpritePipeline(void) {
   r_sprite_draw.pipeline = $(r_context.device, loadGraphicsPipeline,
     "shaders/sprite_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
-      .num_storage_buffers = 4,
+      .num_storage_buffers = 5,
       .num_uniform_buffers = 2,
     },
     "shaders/sprite_fs", &(SDL_GPUShaderCreateInfo) {
@@ -632,6 +510,11 @@ void R_InitSprites(void) {
 
   free(elements);
 
+  r_sprite_draw.instance_buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+    .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
+    .size = sizeof(r_sprite_draw.instances),
+  });
+
   R_InitSpritePipeline();
 }
 
@@ -643,7 +526,7 @@ void R_ShutdownSprites(void) {
   r_sprite_draw.pipeline = release(r_sprite_draw.pipeline);
   r_sprite_draw.sampler = release(r_sprite_draw.sampler);
   r_sprite_draw.depth_sampler = release(r_sprite_draw.depth_sampler);
-  r_sprite_draw.vertex_buffer = release(r_sprite_draw.vertex_buffer);
+  r_sprite_draw.instance_buffer = release(r_sprite_draw.instance_buffer);
   r_sprite_draw.elements_buffer = release(r_sprite_draw.elements_buffer);
 }
 
