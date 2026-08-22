@@ -1540,7 +1540,8 @@ typedef struct {
   float rotation;
 
   /**
-   * @brief The sprite color.
+   * @brief The sprite color. Components above 1 are permitted, and reach the
+   * HDR scene target unscaled.
    */
   vec3_t color;
 
@@ -1598,7 +1599,8 @@ typedef struct {
   r_image_t *image;
 
   /**
-   * @brief The beam color.
+   * @brief The beam color. Components above 1 are permitted, and reach the
+   * HDR scene target unscaled.
    */
   vec3_t color;
 
@@ -1626,55 +1628,51 @@ typedef struct {
 #define MAX_BEAMS 0x200
 
 /**
- * @brief The sprite instance vertex structure.
+ * @brief Vec4-aligned instance of a sprite or beam quad, as consumed by sprite_vs.
+ * @remarks Sprites and beams reduce to the same quad, a center and two half
+ * axes, so both are drawn from this one type. The four corners are
+ * `center + (±a) + (±b)`, which sprite_vs derives from `gl_VertexIndex`. Must
+ * match `sprite_instance_t` in sprite_vs.glsl.
  */
 typedef struct {
 
   /**
-   * @brief The vertex position.
+   * @brief The quad center, and the animation interpolation factor in `w`.
    */
-  vec3_t position;
+  alignas(16) vec4_t center;
 
   /**
-   * @brief The diffusemap texture coordinate.
+   * @brief The first half axis, and the lighting intensity in `w`.
    */
-  vec2_t diffusemap;
+  vec4_t a;
 
   /**
-   * @brief The next diffusemap texture coordinate, for animation.
+   * @brief The second half axis.
    */
-  vec2_t next_diffusemap;
+  vec4_t b;
 
   /**
-   * @brief The vertex color.
+   * @brief The diffusemap rect: `xy` min, `zw` max.
    */
-  color24_t color;
+  vec4_t texcoords;
 
   /**
-   * @brief Padding for vertex attribute alignment.
+   * @brief The next diffusemap rect, for animation.
    */
-  uint8_t reserved;
+  vec4_t next_texcoords;
 
   /**
-   * @brief The animation interpolation factor.
+   * @brief The quad color.
    */
-  uint8_t lerp;
+  vec4_t color;
+} r_sprite_instance_t;
 
-  /**
-   * @brief The lighting intensity.
-   */
-  uint8_t lighting;
-} r_sprite_vertex_t;
+static_assert(sizeof(r_sprite_instance_t) == 96, "r_sprite_instance_t must match sprite_instance_t in sprite_vs.glsl");
 
 /**
- * @brief An instance of a renderable sprite.
+ * @brief The batching state for a sprite instance, parallel to it by index.
  */
 typedef struct {
-
-  /**
-   * @brief The sprite flags.
-   */
-  r_sprite_flags_t flags;
 
   /**
    * @brief The diffusemap texture.
@@ -1687,20 +1685,10 @@ typedef struct {
   const r_image_t *next_diffusemap;
 
   /**
-   * @brief The sprite vertexes in the shared array.
-   */
-  r_sprite_vertex_t *vertexes;
-
-  /**
-   * @brief An offset pointer (in bytes) in the shared array.
-   */
-  void *elements;
-
-  /**
    * @brief The sprite bounds.
    */
   box3_t bounds;
-} r_sprite_instance_t;
+} r_sprite_batch_t;
 
 #define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
 
@@ -2041,9 +2029,9 @@ typedef struct {
   int32_t num_beams;
 
   /**
-   * @brief The sprite instances (sprites and beams) for the current frame.
+   * @brief The batching state for the current frame's sprite instances.
    */
-  r_sprite_instance_t sprite_instances[MAX_SPRITE_INSTANCES];
+  r_sprite_batch_t sprite_batches[MAX_SPRITE_INSTANCES];
 
   /**
    * @brief The count of sprite instances.

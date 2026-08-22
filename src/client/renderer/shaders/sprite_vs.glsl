@@ -31,6 +31,7 @@
 #define BINDING_STORAGE_DYNAMIC_LIGHTS       1
 #define BINDING_STORAGE_VOXEL_LIGHT_DATA     2
 #define BINDING_STORAGE_VOXEL_LIGHT_INDICES  3
+#define BINDING_STORAGE_SPRITE_INSTANCES     4
 
 #include "light_types.glsl"
 
@@ -50,11 +51,34 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform sprite_loca
   uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
 };
 
-layout (location = 0) in vec3 in_position;
-layout (location = 1) in vec2 in_diffusemap;
-layout (location = 2) in vec2 in_next_diffusemap;
-layout (location = 3) in vec4 in_color;
-layout (location = 4) in vec2 in_lerp_lighting;
+/*
+ * Sprites and beams reduce to the same quad, a center and two half axes, so both
+ * arrive as one instance type. There is no vertex buffer: the four corners are
+ * `center + (±a) + (±b)`, expanded here from gl_VertexIndex against the static
+ * quad index buffer.
+ */
+
+/**
+ * @brief One sprite or beam quad. Must match `r_sprite_instance_t`.
+ */
+struct sprite_instance_t {
+  vec4 center;
+  vec4 a;
+  vec4 b;
+  vec4 texcoords;
+  vec4 next_texcoords;
+  vec4 color;
+};
+
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_SPRITE_INSTANCES) readonly buffer sprite_instances_block {
+  sprite_instance_t sprite_instances[];
+};
+
+/**
+ * @brief The half axis signs and texture coordinate corners, by corner index.
+ */
+const vec2 SPRITE_SIGNS[4] = { vec2(1.0, -1.0), vec2(1.0, 1.0), vec2(-1.0, 1.0), vec2(-1.0, -1.0) };
+const vec2 SPRITE_CORNERS[4] = { vec2(0.0, 0.0), vec2(1.0, 0.0), vec2(1.0, 1.0), vec2(0.0, 1.0) };
 
 layout (location = 0) out vec2 out_diffusemap;
 layout (location = 1) out vec2 out_next_diffusemap;
@@ -112,12 +136,19 @@ vec3 sprite_lighting(in vec3 position) {
  */
 void main(void) {
 
-  out_diffusemap = in_diffusemap;
-  out_next_diffusemap = in_next_diffusemap;
-  out_color = in_color.rgb;
-  out_lerp = in_lerp_lighting.x;
-  out_lighting = in_lerp_lighting.y;
-  out_diffuse = sprite_lighting(in_position);
+  const uint corner = uint(gl_VertexIndex) & 3u;
 
-  gl_Position = projection3D * view * vec4(in_position, 1.0);
+  const sprite_instance_t instance = sprite_instances[uint(gl_VertexIndex) >> 2];
+
+  const vec2 signs = SPRITE_SIGNS[corner];
+  const vec3 position = instance.center.xyz + instance.a.xyz * signs.x + instance.b.xyz * signs.y;
+
+  out_diffusemap = mix(instance.texcoords.xy, instance.texcoords.zw, SPRITE_CORNERS[corner]);
+  out_next_diffusemap = mix(instance.next_texcoords.xy, instance.next_texcoords.zw, SPRITE_CORNERS[corner]);
+  out_color = instance.color.rgb;
+  out_lerp = instance.center.w;
+  out_lighting = instance.a.w;
+  out_diffuse = sprite_lighting(position);
+
+  gl_Position = projection3D * view * vec4(position, 1.0);
 }
