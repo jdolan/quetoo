@@ -79,7 +79,7 @@ struct main0_in
     uint in_instance [[attribute(1)]];
 };
 
-vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _66 [[buffer(0)]], constant locals_block& _88 [[buffer(1)]], const device decal_instances_block& _17 [[buffer(2)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _58 [[buffer(0)]], constant locals_block& _86 [[buffer(1)]], const device decal_instances_block& _17 [[buffer(2)]])
 {
     main0_out out = {};
     uint _24 = in.in_instance & 16777215u;
@@ -91,24 +91,20 @@ vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _66 [[
     instance.texcoords = _17.decal_instances[_24].texcoords;
     instance.color = _17.decal_instances[_24].color;
     instance.params = _17.decal_instances[_24].params;
-    uint time = instance.params.x;
+    uint age = uint(_58.ticks) - instance.params.x;
     uint lifetime = instance.params.y;
-    uint age = uint(_66.ticks) - time;
     float4 position = float4(in.in_position, 1.0);
-    out.out_model_position = float3((_88.model * position).xyz);
-    out.out_model_normal = fast::normalize(float3((_88.model * float4(instance.normal.xyz, 0.0)).xyz));
+    out.out_model_position = float3((_86.model * position).xyz);
+    out.out_model_normal = fast::normalize(float3((_86.model * float4(instance.normal.xyz, 0.0)).xyz));
     float3 delta = in.in_position - instance.origin.xyz;
     float2 st = ((float2(dot(delta, instance.tangent.xyz), dot(delta, instance.bitangent.xyz)) / float2(instance.origin.w)) * 0.5) + float2(0.5);
     out.out_texcoord = mix(instance.texcoords.xy, instance.texcoords.zw, st);
     out.out_color = instance.color;
-    if (lifetime > 0u)
-    {
-        out.out_color.w *= (1.0 - fast::clamp(float(age) / float(lifetime), 0.0, 1.0));
-    }
-    float4x4 _184 = _66.projection3D * _66.view;
-    float4x4 _187 = _184 * _88.model;
-    float4 _189 = _187 * position;
-    out.gl_Position = _189;
+    out.out_color.w *= (1.0 - fast::clamp(float(age) / float(lifetime), 0.0, 1.0));
+    float4x4 _177 = _58.projection3D * _58.view;
+    float4x4 _180 = _177 * _86.model;
+    float4 _182 = _180 * position;
+    out.gl_Position = _182;
     if ((in.in_instance >> uint(24)) != instance.params.z)
     {
         out.gl_Position = float4(2.0, 2.0, 2.0, 1.0);

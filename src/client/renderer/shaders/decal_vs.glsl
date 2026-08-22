@@ -77,9 +77,8 @@ void main(void) {
 
   const decal_instance_t instance = decal_instances[in_instance & 0xffffffu];
 
-  const uint time = instance.params[DECAL_TIME];
+  const uint age = uint(ticks) - instance.params[DECAL_TIME];
   const uint lifetime = instance.params[DECAL_LIFETIME];
-  const uint age = uint(ticks) - time;
 
   const vec4 position = vec4(in_position, 1.0);
 
@@ -93,10 +92,7 @@ void main(void) {
   out_texcoord = mix(instance.texcoords.xy, instance.texcoords.zw, st);
 
   out_color = instance.color;
-
-  if (lifetime > 0u) {
-    out_color.a *= 1.0 - clamp(float(age) / float(lifetime), 0.0, 1.0);
-  }
+  out_color.a *= 1.0 - clamp(float(age) / float(lifetime), 0.0, 1.0);
 
   gl_Position = projection3D * view * model * position;
 

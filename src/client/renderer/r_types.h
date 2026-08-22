@@ -292,7 +292,7 @@ typedef struct r_decal_s {
   uint32_t time;
 
   /**
-   * @brief The decal lifetime in ticks (0 = permanent).
+   * @brief The decal lifetime in ticks.
    */
   uint32_t lifetime;
 
