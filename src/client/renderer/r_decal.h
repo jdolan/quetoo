@@ -31,29 +31,52 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal);
 #define DECAL_TEXTURE_LAYERS 64
 
 /**
- * @brief Decal vertex.
+ * @brief The capacity of the decal instance ring shared by all blocks.
+ * @remarks Instances are immutable once written and the ring is only appended
+ * to, so each frame's new instances upload without cycling. That is only safe
+ * while the ring cannot wrap onto instances a frame still in flight may read,
+ * hence a capacity far beyond what any one frame can allocate.
+ */
+#define MAX_DECAL_INSTANCES 0x8000
+
+/**
+ * @brief Vec4-aligned instance of a decal: the decal as clipped to a single
+ * face, holding everything it contributes to that face's triangles which does
+ * not vary per vertex.
+ * @remarks Written once when the decal is clipped and never modified. Must
+ * match `decal_instance_t` in decal_vs.glsl.
  */
 typedef struct {
 
   /**
-   * @brief Vertex position.
+   * @brief The origin projected onto the face, and the projected radius in `w`.
    */
-  vec3_t position;
+  alignas(16) vec4_t origin;
 
   /**
-   * @brief Vertex normal.
+   * @brief The face normal.
    */
-  vec3_t normal;
+  vec4_t normal;
 
   /**
-   * @brief Diffuse texture coordinate.
+   * @brief The rotated face tangent.
    */
-  vec2_t texcoord;
+  vec4_t tangent;
 
   /**
-   * @brief Vertex color.
+   * @brief The rotated face bitangent.
    */
-  color32_t color;
+  vec4_t bitangent;
+
+  /**
+   * @brief The atlas rect of the decal image: `xy` min, `zw` max.
+   */
+  vec4_t texcoords;
+
+  /**
+   * @brief The decal color.
+   */
+  vec4_t color;
 
   /**
    * @brief Decal creation time.
@@ -64,6 +87,33 @@ typedef struct {
    * @brief Decal lifetime.
    */
   uint32_t lifetime;
+
+  /**
+   * @brief The ring generation this instance was written in, so that a triangle
+   * that outlived its instance is discarded rather than adopting whichever
+   * decal reused the slot.
+   */
+  uint32_t generation;
+} r_decal_instance_t;
+
+static_assert(sizeof(r_decal_instance_t) == 112, "r_decal_instance_t must match decal_instance_t in decal_vs.glsl");
+static_assert(MAX_DECAL_INSTANCES <= 0x1000000, "MAX_DECAL_INSTANCES exceeds the 24 bit instance index");
+
+/**
+ * @brief Decal vertex.
+ */
+typedef struct {
+
+  /**
+   * @brief Vertex position.
+   */
+  vec3_t position;
+
+  /**
+   * @brief The instance this vertex draws its decal from: generation in the
+   * high 8 bits, instance index in the low 24.
+   */
+  uint32_t instance;
 } r_decal_vertex_t;
 
 /**

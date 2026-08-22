@@ -23,12 +23,38 @@
 
 #include "uniforms.glsl"
 
+/*
+ * Decal vertices carry only a position and a reference into the shared decal
+ * instance buffer, which holds everything a decal contributes that does not vary
+ * per vertex: the face basis it was clipped against, its atlas rect, its colour
+ * and its lifespan. Texture coordinates are projected here rather than baked on
+ * the CPU, so the geometry a block uploads is position plus one index.
+ */
+#define BINDING_STORAGE_DECAL_INSTANCES 0
+
+/**
+ * @brief One decal clipped to one face. Must match `r_decal_instance_t`.
+ */
+struct decal_instance_t {
+  vec4 origin;
+  vec4 normal;
+  vec4 tangent;
+  vec4 bitangent;
+  vec4 texcoords;
+  vec4 color;
+  uvec4 params;
+};
+
+#define DECAL_TIME       0
+#define DECAL_LIFETIME   1
+#define DECAL_GENERATION 2
+
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_DECAL_INSTANCES) readonly buffer decal_instances_block {
+  decal_instance_t decal_instances[];
+};
+
 layout (location = 0) in vec3 in_position;
-layout (location = 1) in vec3 in_normal;
-layout (location = 2) in vec2 in_texcoord;
-layout (location = 3) in vec4 in_color;
-layout (location = 4) in uint in_time;
-layout (location = 5) in uint in_lifetime;
+layout (location = 1) in uint in_instance;
 
 /**
  * @brief Per-draw model transform.
@@ -41,8 +67,6 @@ layout (location = 0) out vec3 out_model_position;
 layout (location = 1) out vec3 out_model_normal;
 layout (location = 2) out vec2 out_texcoord;
 layout (location = 3) out vec4 out_color;
-layout (location = 4) flat out uint out_time;
-layout (location = 5) flat out uint out_lifetime;
 
 invariant gl_Position;
 
@@ -51,14 +75,33 @@ invariant gl_Position;
  */
 void main(void) {
 
+  const decal_instance_t instance = decal_instances[in_instance & 0xffffffu];
+
+  const uint age = uint(ticks) - instance.params[DECAL_TIME];
+  const uint lifetime = instance.params[DECAL_LIFETIME];
+
   const vec4 position = vec4(in_position, 1.0);
 
   out_model_position = vec3(model * position);
-  out_model_normal = normalize(vec3(model * vec4(in_normal, 0.0)));
-  out_texcoord = in_texcoord;
-  out_color = in_color;
-  out_time = in_time;
-  out_lifetime = in_lifetime;
+  out_model_normal = normalize(vec3(model * vec4(instance.normal.xyz, 0.0)));
+
+  const vec3 delta = in_position - instance.origin.xyz;
+  const vec2 st = vec2(dot(delta, instance.tangent.xyz),
+                       dot(delta, instance.bitangent.xyz)) / instance.origin.w * 0.5 + 0.5;
+
+  out_texcoord = mix(instance.texcoords.xy, instance.texcoords.zw, st);
+
+  out_color = instance.color;
+  out_color.a *= 1.0 - clamp(float(age) / float(lifetime), 0.0, 1.0);
 
   gl_Position = projection3D * view * model * position;
+
+  /*
+   * An instance slot is reclaimed once the ring wraps onto it, so a vertex can
+   * outlive the decal it describes. Collapse the triangle rather than draw it
+   * with whatever decal holds the slot now.
+   */
+  if ((in_instance >> 24) != instance.params[DECAL_GENERATION]) {
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+  }
 }

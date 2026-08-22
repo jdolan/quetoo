@@ -125,8 +125,6 @@ struct main0_in
     float3 in_model_normal [[user(locn1)]];
     float2 in_texcoord [[user(locn2)]];
     float4 in_color [[user(locn3)]];
-    uint in_time [[user(locn4)]];
-    uint in_lifetime [[user(locn5)]];
 };
 
 static inline __attribute__((always_inline))
@@ -209,12 +207,6 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _56 
     out.out_color.x = _336.x;
     out.out_color.y = _336.y;
     out.out_color.z = _336.z;
-    if (in.in_lifetime > 0u)
-    {
-        float age = float(uint(_56.ticks) - in.in_time);
-        float fade = 1.0 - fast::clamp(age / float(in.in_lifetime), 0.0, 1.0);
-        out.out_color.w *= fade;
-    }
     return out;
 }
 

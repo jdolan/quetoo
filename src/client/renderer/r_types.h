@@ -21,13 +21,14 @@
 
 #pragma once
 
+#include <stdalign.h>
+
 #include <SDL3/SDL_video.h>
 
 #include <ObjectivelyGPU.h>
 
 #include "common/atlas.h"
 #include "collision/cm_bsp.h"
-
 
 /**
  * @brief Media types.
@@ -291,7 +292,7 @@ typedef struct r_decal_s {
   uint32_t time;
 
   /**
-   * @brief The decal lifetime in ticks (0 = permanent).
+   * @brief The decal lifetime in ticks.
    */
   uint32_t lifetime;
 
