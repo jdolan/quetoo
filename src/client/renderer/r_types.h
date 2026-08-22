@@ -21,13 +21,14 @@
 
 #pragma once
 
+#include <stdalign.h>
+
 #include <SDL3/SDL_video.h>
 
 #include <ObjectivelyGPU.h>
 
 #include "common/atlas.h"
 #include "collision/cm_bsp.h"
-
 
 /**
  * @brief Media types.

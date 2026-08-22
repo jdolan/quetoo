@@ -35,6 +35,31 @@ static struct {
 } r_decal_pipeline;
 
 /**
+ * @brief The decal instances, shared by every block and read by decal_vs.
+ * @remarks A ring: instances are appended as decals are clipped, and are never
+ * revisited afterwards. A block's triangles reference their instance by index,
+ * rather than each vertex carrying its own copy of the decal.
+ */
+static struct {
+  r_decal_instance_t instances[MAX_DECAL_INSTANCES];
+
+  Buffer *buffer;
+
+  /**
+   * @brief The ring cursor, and the generation it is presently writing.
+   */
+  uint32_t next;
+  uint32_t generation;
+
+  /**
+   * @brief The instances appended since the last upload.
+   */
+  uint32_t first_pending;
+  uint32_t num_pending;
+
+} r_decals;
+
+/**
  * @brief Adds a decal to the view for rendering in the current frame.
  */
 void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
@@ -91,6 +116,80 @@ static void R_ReserveDecalWindings(int32_t face_points) {
     r_decal_windings.b = Cm_AllocWinding(r_decal_windings.capacity);
     r_decal_windings.max_face_points = face_points;
   }
+}
+
+/**
+ * @brief Appends the instance for a decal clipped to a single face.
+ * @return The reference for the decal's vertexes to carry.
+ */
+static uint32_t R_AddDecalInstance(const r_decal_t *decal,
+                                   const vec3_t normal,
+                                   const vec3_t tangent,
+                                   const vec3_t bitangent) {
+
+  const uint32_t index = r_decals.next;
+  const uint32_t generation = r_decals.generation;
+
+  r_decal_instance_t *instance = r_decals.instances + index;
+
+  instance->origin = Vec3_ToVec4(decal->origin, decal->radius);
+  instance->normal = Vec3_ToVec4(normal, 0.f);
+  instance->tangent = Vec3_ToVec4(tangent, 0.f);
+  instance->bitangent = Vec3_ToVec4(bitangent, 0.f);
+  instance->texcoords = decal->image->texcoords;
+  instance->color = decal->color.vec4;
+  instance->time = decal->time;
+  instance->lifetime = decal->lifetime;
+  instance->generation = generation;
+
+  if (r_decals.num_pending == 0) {
+    r_decals.first_pending = index;
+  }
+
+  if (r_decals.num_pending < MAX_DECAL_INSTANCES) {
+    r_decals.num_pending++;
+  }
+
+  r_decals.next++;
+
+  if (r_decals.next == MAX_DECAL_INSTANCES) {
+    r_decals.next = 0;
+    r_decals.generation = (r_decals.generation + 1) & 0xff;
+  }
+
+  return (generation << 24) | index;
+}
+
+/**
+ * @brief Resolves the instance a decal vertex references.
+ */
+static const r_decal_instance_t *R_DecalInstance(uint32_t reference) {
+  return r_decals.instances + (reference & 0xffffff);
+}
+
+/**
+ * @brief Uploads the instances appended since the last frame.
+ * @remarks This does not cycle, because an instance is never written twice, and
+ * the ring cannot have wrapped onto instances an in-flight frame may still read.
+ */
+static void R_UploadDecalInstances(CopyPass *pass) {
+
+  if (r_decals.num_pending == 0) {
+    return;
+  }
+
+  const uint32_t first = r_decals.num_pending == MAX_DECAL_INSTANCES ? 0 : r_decals.first_pending;
+  const uint32_t head = (uint32_t) Mini((int32_t) r_decals.num_pending, (int32_t) (MAX_DECAL_INSTANCES - first));
+
+  $(r_decals.buffer, uploadWithPass, pass, r_decals.instances + first,
+    head * sizeof(r_decal_instance_t), first * sizeof(r_decal_instance_t), false);
+
+  if (r_decals.num_pending > head) {
+    $(r_decals.buffer, uploadWithPass, pass, r_decals.instances,
+      (r_decals.num_pending - head) * sizeof(r_decal_instance_t), 0, false);
+  }
+
+  r_decals.num_pending = 0;
 }
 
 /**
@@ -161,11 +260,6 @@ static void R_ClipDecalToFace(const r_view_t *view,
     return;
   }
 
-  const color32_t color = Color_Color32(decal->color);
-  const vec2_t atlas_min = decal->image->texcoords.xy;
-  const vec2_t atlas_max = decal->image->texcoords.zw;
-  const vec2_t atlas_size = Vec2_Subtract(atlas_max, atlas_min);
-
   const int32_t num_triangles = w->num_points - 2;
   const int32_t overflow = (int32_t) decals->triangles->count + num_triangles - MAX_BSP_BLOCK_DECALS;
   if (overflow > 0) {
@@ -174,31 +268,23 @@ static void R_ClipDecalToFace(const r_view_t *view,
       $(decals->triangles, removeAtFast, 0);
     }
   }
-  
+
+  const uint32_t instance = R_AddDecalInstance(decal, normal, t, b);
+
   for (int32_t i = 0; i < num_triangles; i++) {
     if (decals->triangles->count == MAX_BSP_BLOCK_DECALS) {
       break;
     }
 
     r_decal_triangle_t triangle;
-    
+
     const int32_t indices[3] = { 0, i + 1, i + 2 };
 
     for (int32_t j = 0; j < 3; j++) {
-      const vec3_t pos = w->points[indices[j]];
-      triangle.vertexes[j].position = pos;
-      triangle.vertexes[j].normal = normal;
-
-      const vec3_t delta = Vec3_Subtract(pos, org);
-      const float x = (Vec3_Dot(delta, t) / r) * 0.5f + 0.5f;
-      const float y = (Vec3_Dot(delta, b) / r) * 0.5f + 0.5f;
-
-      triangle.vertexes[j].texcoord = Vec2_Add(atlas_min, Vec2(x * atlas_size.x, y * atlas_size.y));
-      triangle.vertexes[j].color = color;
-      triangle.vertexes[j].time = decal->time;
-      triangle.vertexes[j].lifetime = decal->lifetime;
+      triangle.vertexes[j].position = w->points[indices[j]];
+      triangle.vertexes[j].instance = instance;
     }
-    
+
     decals->image = (r_image_t *) decal->image;
     $(decals->triangles, add, &triangle);
   }
@@ -372,9 +458,13 @@ void R_UpdateDecals(const r_view_t *view, CopyPass *pass) {
       r_bsp_block_decals_t *decals = &block->decals;
 
       for (size_t k = decals->triangles->count; k > 0; ) {
-        const r_decal_triangle_t *v = VectorElement(decals->triangles, r_decal_triangle_t, --k);
+        const r_decal_triangle_t *t = VectorElement(decals->triangles, r_decal_triangle_t, --k);
 
-        if (view->ticks - v->vertexes->time >= v->vertexes->lifetime) {
+        const uint32_t reference = t->vertexes->instance;
+        const r_decal_instance_t *instance = R_DecalInstance(reference);
+
+        if (view->ticks - instance->time >= instance->lifetime ||
+            (reference >> 24) != instance->generation) {
           $(decals->triangles, removeAtFast, k);
           decals->dirty = true;
         }
@@ -413,6 +503,8 @@ void R_UpdateDecals(const r_view_t *view, CopyPass *pass) {
       decals->dirty = false;
     }
   }
+
+  R_UploadDecalInstances(pass);
 }
 
 /**
@@ -447,6 +539,9 @@ void R_DrawDecals(const r_view_t *view, RenderPass *pass) {
     bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, 0, storage, 4);
+
+  SDL_GPUBuffer *instances[] = { r_decals.buffer->buffer };
+  $(pass, bindVertexStorageBuffers, 0, instances, 1);
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -503,7 +598,7 @@ void R_DrawDecals(const r_view_t *view, RenderPass *pass) {
 /**
  * @brief Builds the decal pipeline (decal_vs/decal_fs) and its samplers.
  */
-void R_InitDecals(void) {
+static void R_InitDecalPipeline(void) {
 
   SDL_GPUGraphicsPipelineCreateInfo info = GPU_GraphicsPipeline3D;
   info.multisample_state.sample_count = r_scene_samples;
@@ -524,13 +619,9 @@ void R_InitDecals(void) {
     .num_vertex_buffers = 1,
     .vertex_attributes = (SDL_GPUVertexAttribute[]) {
       { .location = 0, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_decal_vertex_t, position) },
-      { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, .offset = offsetof(r_decal_vertex_t, normal) },
-      { .location = 2, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, .offset = offsetof(r_decal_vertex_t, texcoord) },
-      { .location = 3, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM, .offset = offsetof(r_decal_vertex_t, color) },
-      { .location = 4, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_UINT, .offset = offsetof(r_decal_vertex_t, time) },
-      { .location = 5, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_UINT, .offset = offsetof(r_decal_vertex_t, lifetime) },
+      { .location = 1, .buffer_slot = 0, .format = SDL_GPU_VERTEXELEMENTFORMAT_UINT, .offset = offsetof(r_decal_vertex_t, instance) },
     },
-    .num_vertex_attributes = 6,
+    .num_vertex_attributes = 2,
   };
 
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
@@ -552,6 +643,7 @@ void R_InitDecals(void) {
   r_decal_pipeline.pipeline = $(r_context.device, loadGraphicsPipeline,
     "shaders/decal_vs", &(SDL_GPUShaderCreateInfo) {
       .stage = SDL_GPU_SHADERSTAGE_VERTEX,
+      .num_storage_buffers = 1,
       .num_uniform_buffers = 2,
     },
     "shaders/decal_fs", &(SDL_GPUShaderCreateInfo) {
@@ -568,16 +660,42 @@ void R_InitDecals(void) {
 /**
  * @brief Releases the decal pipeline and samplers.
  */
-void R_ShutdownDecals(void) {
+static void R_ShutdownDecalPipeline(void) {
 
   r_decal_pipeline.pipeline = release(r_decal_pipeline.pipeline);
   r_decal_pipeline.diffusemap_sampler = release(r_decal_pipeline.diffusemap_sampler);
 }
 
 /**
- * @brief Rebuilds the decal pipeline and samplers.
+ * @brief Rebuilds the decal pipeline and samplers, leaving the instances that
+ * the decals presently in the world reference intact.
  */
 void R_UpdateDecalPipeline(void) {
-  R_ShutdownDecals();
-  R_InitDecals();
+  R_ShutdownDecalPipeline();
+  R_InitDecalPipeline();
+}
+
+/**
+ * @brief Builds the decal instance buffer and pipeline.
+ */
+void R_InitDecals(void) {
+
+  memset(&r_decals, 0, sizeof(r_decals));
+
+  r_decals.buffer = $(r_context.device, createBuffer, &(SDL_GPUBufferCreateInfo) {
+    .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
+    .size = sizeof(r_decals.instances),
+  });
+
+  R_InitDecalPipeline();
+}
+
+/**
+ * @brief Releases the decal instance buffer and pipeline.
+ */
+void R_ShutdownDecals(void) {
+
+  R_ShutdownDecalPipeline();
+
+  r_decals.buffer = release(r_decals.buffer);
 }

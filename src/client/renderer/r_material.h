@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include <stdalign.h>
-
 #include "r_types.h"
 
 r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context);

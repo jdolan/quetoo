@@ -31,6 +31,9 @@
  * RG32I isampler3D because D3D12 cannot sample integer formats. No shadows
  * or normal maps -- decals take clustered voxel diffuse plus a per-draw
  * dynamic light tail, both unshadowed Lambert.
+ *
+ * The lifetime fade is applied to the vertex colour in decal_vs, which is where
+ * the decal's instance is read.
  */
 #define BINDING_STORAGE_BSP_LIGHTS           1
 #define BINDING_STORAGE_DYNAMIC_LIGHTS       2
@@ -60,8 +63,6 @@ layout (location = 0) in vec3 in_model_position;
 layout (location = 1) in vec3 in_model_normal;
 layout (location = 2) in vec2 in_texcoord;
 layout (location = 3) in vec4 in_color;
-layout (location = 4) flat in uint in_time;
-layout (location = 5) flat in uint in_lifetime;
 
 layout (location = 0) out vec4 out_color;
 
@@ -121,10 +122,4 @@ void main(void) {
 
   out_color = diffuse * in_color;
   out_color.rgb *= light;
-
-  if (in_lifetime > 0u) {
-    const float age = float(uint(ticks) - in_time);
-    const float fade = 1.0 - clamp(age / float(in_lifetime), 0.0, 1.0);
-    out_color.a *= fade;
-  }
 }
