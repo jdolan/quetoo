@@ -32,9 +32,9 @@ Packages are written to `/out/` (and also left in `linux/target/`).
 
 ## Dedicated server image (`Dockerfile.dedicated`)
 
-`quetoo-dedicated` is a minimal Debian bookworm-slim image with the quetoo
-`.deb` installed. It runs `quetoo-dedicated` directly (not via the init
-script).
+`quetoo-dedicated` is a minimal Debian bookworm-slim image with the
+`quetoo-server` `.deb` installed. It runs `quetoo-dedicated` directly (not via
+the init script).
 
 ### Build the image
 

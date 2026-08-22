@@ -424,7 +424,7 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: quetoo-${{ matrix.build }}-deb
-        path: quetoo/linux/target/quetoo_*.deb
+        path: quetoo/linux/target/quetoo-*.deb
 
     - name: Upload .rpm artifact
       uses: actions/upload-artifact@v7
@@ -630,10 +630,21 @@ jobs:
         GH_REPO: ${{ github.repository }}
         VERSION: ${{ github.event.inputs.version || github.ref_name }}
       run: |
-        cp quetoo-x86_64-pc-linux-deb/quetoo_*_amd64.deb quetoo-x86_64-pc-linux-deb/quetoo-x86_64-pc-linux.deb
-        cp quetoo-x86_64-pc-linux-rpm/quetoo-*.x86_64.rpm quetoo-x86_64-pc-linux-rpm/quetoo-x86_64-pc-linux.rpm
-        cp quetoo-aarch64-pc-linux-deb/quetoo_*_arm64.deb quetoo-aarch64-pc-linux-deb/quetoo-aarch64-pc-linux.deb
-        cp quetoo-aarch64-pc-linux-rpm/quetoo-*.aarch64.rpm quetoo-aarch64-pc-linux-rpm/quetoo-aarch64-pc-linux.rpm
+        cp quetoo-x86_64-pc-linux-deb/quetoo-client_*_amd64.deb quetoo-x86_64-pc-linux-deb/quetoo-client-x86_64-pc-linux.deb
+        cp quetoo-x86_64-pc-linux-deb/quetoo-server_*_amd64.deb quetoo-x86_64-pc-linux-deb/quetoo-server-x86_64-pc-linux.deb
+        cp quetoo-x86_64-pc-linux-rpm/quetoo-client-*.x86_64.rpm quetoo-x86_64-pc-linux-rpm/quetoo-client-x86_64-pc-linux.rpm
+        cp quetoo-x86_64-pc-linux-rpm/quetoo-server-*.x86_64.rpm quetoo-x86_64-pc-linux-rpm/quetoo-server-x86_64-pc-linux.rpm
+        cp quetoo-aarch64-pc-linux-deb/quetoo-client_*_arm64.deb quetoo-aarch64-pc-linux-deb/quetoo-client-aarch64-pc-linux.deb
+        cp quetoo-aarch64-pc-linux-deb/quetoo-server_*_arm64.deb quetoo-aarch64-pc-linux-deb/quetoo-server-aarch64-pc-linux.deb
+        cp quetoo-aarch64-pc-linux-rpm/quetoo-client-*.aarch64.rpm quetoo-aarch64-pc-linux-rpm/quetoo-client-aarch64-pc-linux.rpm
+        cp quetoo-aarch64-pc-linux-rpm/quetoo-server-*.aarch64.rpm quetoo-aarch64-pc-linux-rpm/quetoo-server-aarch64-pc-linux.rpm
+
+        # quetoo-common bundles architecture-specific shared libraries and game.so
+        # modules, so it ships per-arch just like quetoo-client/quetoo-server.
+        cp quetoo-x86_64-pc-linux-deb/quetoo-common_*_amd64.deb quetoo-x86_64-pc-linux-deb/quetoo-common-x86_64-pc-linux.deb
+        cp quetoo-x86_64-pc-linux-rpm/quetoo-common-*.x86_64.rpm quetoo-x86_64-pc-linux-rpm/quetoo-common-x86_64-pc-linux.rpm
+        cp quetoo-aarch64-pc-linux-deb/quetoo-common_*_arm64.deb quetoo-aarch64-pc-linux-deb/quetoo-common-aarch64-pc-linux.deb
+        cp quetoo-aarch64-pc-linux-rpm/quetoo-common-*.aarch64.rpm quetoo-aarch64-pc-linux-rpm/quetoo-common-aarch64-pc-linux.rpm
 
         prev_tag=$(git describe --tags --abbrev=0 "$VERSION^" 2>/dev/null || true)
         if [ -n "$prev_tag" ]; then
@@ -648,18 +659,20 @@ jobs:
         | Platform | New Install | Update |
         |---|---|---|
         | Windows x86-64 | [quetoo-bundle-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-windows.zip) | [quetoo-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-windows.zip) |
-        | Linux x86-64 | [quetoo-bundle-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-linux.tar.gz) | [quetoo-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.tar.gz) |
-        | Linux arm64 | [quetoo-bundle-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-aarch64-pc-linux.tar.gz) | [quetoo-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.tar.gz) |
+        | Linux x86-64 | [quetoo-bundle-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-linux.tar.gz) | [quetoo-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.tar.gz), [.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-x86_64-pc-linux.deb), [.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-x86_64-pc-linux.rpm) |
+        | Linux arm64 | [quetoo-bundle-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-aarch64-pc-linux.tar.gz) | [quetoo-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.tar.gz), [.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-aarch64-pc-linux.deb), [.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-aarch64-pc-linux.rpm) |
         | macOS Universal | [quetoo-bundle-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-universal-apple-darwin.dmg) | [quetoo-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-universal-apple-darwin.dmg) |
+
+        > Linux `.deb`/`.rpm` installs also require the matching `quetoo-common` package (e.g. [quetoo-common-x86_64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-common-x86_64-pc-linux.deb)) — download it alongside the `.deb`/`.rpm` above and pass both to `apt install`/`dnf install` together. [quetoo-data](https://github.com/jdolan/quetoo-data/releases) is pulled in automatically via package recommends. The `.tar.gz` archive does not include game data.
 
         ## Dedicated Server Packages
 
         | Package | x86-64 | arm64 |
         |---|---|---|
-        | .deb | [quetoo-x86_64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.deb) | [quetoo-aarch64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.deb) |
-        | .rpm | [quetoo-x86_64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.rpm) | [quetoo-aarch64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.rpm) |
+        | .deb | [quetoo-server-x86_64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-x86_64-pc-linux.deb) | [quetoo-server-aarch64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-aarch64-pc-linux.deb) |
+        | .rpm | [quetoo-server-x86_64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-x86_64-pc-linux.rpm) | [quetoo-server-aarch64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-aarch64-pc-linux.rpm) |
 
-        > .deb and .rpm are for **dedicated servers only** — not for game clients. Also install the latest [quetoo-data](https://github.com/jdolan/quetoo-data/releases) release.
+        > Also requires the matching `quetoo-common` package (install together) and the latest [quetoo-data](https://github.com/jdolan/quetoo-data/releases) release.
 
         ## Changelog
 
@@ -674,11 +687,19 @@ jobs:
           quetoo-bundle-x86_64-pc-windows.zip
           quetoo-universal-apple-darwin/quetoo-universal-apple-darwin.dmg
           quetoo-x86_64-pc-linux-archive/quetoo-x86_64-pc-linux.tar.gz
-          quetoo-x86_64-pc-linux-deb/quetoo-x86_64-pc-linux.deb
-          quetoo-x86_64-pc-linux-rpm/quetoo-x86_64-pc-linux.rpm
+          quetoo-x86_64-pc-linux-deb/quetoo-client-x86_64-pc-linux.deb
+          quetoo-x86_64-pc-linux-deb/quetoo-server-x86_64-pc-linux.deb
+          quetoo-x86_64-pc-linux-rpm/quetoo-client-x86_64-pc-linux.rpm
+          quetoo-x86_64-pc-linux-rpm/quetoo-server-x86_64-pc-linux.rpm
           quetoo-aarch64-pc-linux-archive/quetoo-aarch64-pc-linux.tar.gz
-          quetoo-aarch64-pc-linux-deb/quetoo-aarch64-pc-linux.deb
-          quetoo-aarch64-pc-linux-rpm/quetoo-aarch64-pc-linux.rpm
+          quetoo-aarch64-pc-linux-deb/quetoo-client-aarch64-pc-linux.deb
+          quetoo-aarch64-pc-linux-deb/quetoo-server-aarch64-pc-linux.deb
+          quetoo-aarch64-pc-linux-rpm/quetoo-client-aarch64-pc-linux.rpm
+          quetoo-aarch64-pc-linux-rpm/quetoo-server-aarch64-pc-linux.rpm
+          quetoo-x86_64-pc-linux-deb/quetoo-common-x86_64-pc-linux.deb
+          quetoo-x86_64-pc-linux-rpm/quetoo-common-x86_64-pc-linux.rpm
+          quetoo-aarch64-pc-linux-deb/quetoo-common-aarch64-pc-linux.deb
+          quetoo-aarch64-pc-linux-rpm/quetoo-common-aarch64-pc-linux.rpm
           quetoo-x86_64-pc-windows/quetoo-x86_64-pc-windows.zip
         )
 
