@@ -453,6 +453,13 @@ static void R_InitSpritePipeline(void) {
     .enable_depth_write = false,
   };
 
+  /*
+   * Sprites have no vertex buffer at all; sprite_vs expands each quad from
+   * gl_VertexIndex against the static index buffer. Stated explicitly so the
+   * pipeline cannot acquire vertex attributes from the shared template.
+   */
+  info.vertex_input_state = (SDL_GPUVertexInputState) { 0 };
+
   info.target_info = (SDL_GPUGraphicsPipelineTargetInfo) {
     .color_target_descriptions = (SDL_GPUColorTargetDescription[]) {
       {
