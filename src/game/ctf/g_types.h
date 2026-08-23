@@ -1092,8 +1092,8 @@ typedef struct {
   uint32_t mod;
 
   /**
-   * @brief Milliseconds until each giblet is removed, or zero to linger and sink
-   * through the floor as a corpse's giblets do.
+   * @brief Milliseconds each giblet is visible for, after which it sinks and fades as a
+   * corpse's giblets do; zero to linger the full lifetime of a corpse's instead.
    */
   uint32_t lifetime;
 

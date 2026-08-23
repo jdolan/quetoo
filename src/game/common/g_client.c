@@ -487,19 +487,43 @@ static void G_ClientGiblet_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
 }
 
 /**
- * @brief Think for giblets spawned with an explicit lifetime, which do not linger and sink as a
- * corpse's giblets do. Bleeds while in flight and frees itself at the deadline held in `timestamp`.
+ * @brief The window a giblet spends fading out once its lifetime is up, which must outlast the
+ * three seconds the client takes to fade it.
+ */
+#define GIBLET_DESPAWN_TIME 4000
+
+/**
+ * @brief Think for giblets spawned with an explicit lifetime. Bleeds while in flight, then sinks
+ * and fades from the deadline held in `timestamp`, and frees itself once faded.
  * @remarks Giblets only bleed while their think is running, so giblets given a lifetime would
- * otherwise fly clean; the trail is assigned by `G_ClientCorpse_Think`, which they never run.
+ * otherwise fly clean; the trail is assigned by `G_ClientCorpse_Think`, which they never run,
+ * along with the despawn this mirrors.
  */
 static void G_Giblet_Think(g_entity_t *ent) {
 
   if (g_level.time >= ent->timestamp) {
-    G_FreeEntity(ent);
-    return;
-  }
 
-  ent->s.trail = Vec3_Length(ent->velocity) > 30.f ? TRAIL_GIB : TRAIL_NONE;
+    if (g_level.time >= ent->timestamp + GIBLET_DESPAWN_TIME) {
+      G_FreeEntity(ent);
+      return;
+    }
+
+    // sink and fade out as a corpse's giblets do, rather than blinking out of the world
+    ent->s.effects |= EF_DESPAWN;
+    ent->s.trail = TRAIL_NONE;
+
+    ent->move_type = MOVE_TYPE_NONE;
+    ent->take_damage = false;
+    ent->solid = SOLID_NOT;
+
+    if (ent->ground.ent) {
+      ent->s.origin.z -= QUETOO_TICK_SECONDS * 4.f;
+    }
+
+    gi.LinkEntity(ent);
+  } else {
+    ent->s.trail = Vec3_Length(ent->velocity) > 30.f ? TRAIL_GIB : TRAIL_NONE;
+  }
 
   ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
