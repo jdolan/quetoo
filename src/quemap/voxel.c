@@ -705,7 +705,7 @@ void OccludeVoxel(int32_t voxel_num) {
     const vec3_t dir = Vec3_Scale(sphere_vectors[i], OCCLUSION_RADIUS);
     const vec3_t end = Vec3_Add(start, dir);
 
-    const cm_trace_t trace = Light_Trace(start, end, 0, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
+    const cm_trace_t trace = Light_Trace(start, end, 0, CONTENTS_MASK_SOLID);
     fraction_sum += trace.fraction;
   }
 
