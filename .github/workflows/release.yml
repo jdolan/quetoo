@@ -652,8 +652,6 @@ jobs:
         - New Install: [quetoo-bundle-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-windows.zip)
         - Update: [quetoo-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-windows.zip)
 
-        > This is a standalone file, not served from a repository, so also download and install the latest [quetoo-data](https://github.com/jdolan/quetoo-data/releases) release. The update .zip does not include game data either.
-
         ## Linux Client Packages
 
         | Package | x86-64 | arm64 |
@@ -663,14 +661,10 @@ jobs:
         | .deb | [quetoo-client-x86_64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-x86_64-pc-linux.deb) | [quetoo-client-aarch64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-aarch64-pc-linux.deb) |
         | .rpm | [quetoo-client-x86_64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-x86_64-pc-linux.rpm) | [quetoo-client-aarch64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-aarch64-pc-linux.rpm) |
 
-        > These are standalone files, not served from a repository, so \`Recommends: quetoo-data\` won't auto-install it — also download and install the latest [quetoo-data](https://github.com/jdolan/quetoo-data/releases) release. The \`.tar.gz\` archive does not include game data either.
-
         ## Apple macOS Packages
 
         - New Install: [quetoo-bundle-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-universal-apple-darwin.dmg)
         - Update: [quetoo-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-universal-apple-darwin.dmg)
-
-        > This is a standalone file, not served from a repository, so also download and install the latest [quetoo-data](https://github.com/jdolan/quetoo-data/releases) release. The update .dmg does not include game data either.
 
         ## Linux Server Packages
 
