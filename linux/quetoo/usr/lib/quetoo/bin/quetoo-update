@@ -28,9 +28,18 @@ esac
 
 if command -v dpkg &>/dev/null && command -v apt &>/dev/null; then
   PKG_MANAGER=deb
-  CLIENT_VERSION=$(dpkg-query -W -f='${Version}' quetoo-client 2>/dev/null || true)
-  SERVER_VERSION=$(dpkg-query -W -f='${Version}' quetoo-server 2>/dev/null || true)
-  DATA_VERSION=$(dpkg-query -W -f='${Version}' quetoo-data 2>/dev/null || true)
+
+  # A package removed (but not purged) while it still has conffiles lingers in
+  # dpkg's database in "config-files" state; dpkg-query -W would still report
+  # its old Version, so require the fully-installed status explicitly.
+  deb_version() {
+    { dpkg-query -W -f='${Status}\t${Version}\n' "$1" 2>/dev/null || true; } \
+      | awk -F'\t' '{n = split($1, s, " "); if (s[n] == "installed") print $2}'
+  }
+
+  CLIENT_VERSION=$(deb_version quetoo-client)
+  SERVER_VERSION=$(deb_version quetoo-server)
+  DATA_VERSION=$(deb_version quetoo-data)
 elif command -v rpm &>/dev/null && command -v dnf &>/dev/null; then
   PKG_MANAGER=rpm
   CLIENT_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo-client 2>/dev/null || true)

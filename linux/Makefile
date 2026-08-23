@@ -96,7 +96,6 @@ $(APPDIR_CLIENT): $(STAGING) $(LINUXDEPLOY)
 	for bin in $(CLIENT_BINARIES); do cp -a $(STAGING)/bin/$$bin $(APPDIR_CLIENT)/usr/bin/; done
 	install -d $(APPDIR_CLIENT)/usr/lib/quetoo
 	for mod in $$(ls $(STAGING)/lib/quetoo); do cp -a $(STAGING)/lib/quetoo/$$mod $(APPDIR_CLIENT)/usr/lib/quetoo/; done
-	cp -a $(STAGING)/share $(APPDIR_CLIENT)/usr/
 
 	convert ../src/main/quetoo.ico[0] $(APPDIR_CLIENT)/quetoo.png
 
