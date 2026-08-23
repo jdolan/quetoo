@@ -1010,7 +1010,7 @@ typedef struct {
 
 /**
  * @brief Parameters for a burst of giblets, as scattered by a dying corpse or a
- * `target_ballistics`.
+ * `ballistics_giblets`.
  */
 typedef struct {
 
@@ -1819,9 +1819,9 @@ struct g_entity_s {
 
   /**
    * @brief Projectile definition for `ballistics_*` and `turret_*` entities, resolved from their
-   * classname at spawn time. Opaque here; the definition is private to g_entity_target.c.
+   * classname at spawn time. Incomplete here; the definition is private to g_entity_target.c.
    */
-  const void *ballistics;
+  const struct g_ballistics_type_s *ballistics;
 
   /**
    * @brief AI navigation node for item path tracking.
