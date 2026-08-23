@@ -15,8 +15,8 @@ make compile
 make deb rpm
 
 if [[ -d /out ]]; then
-  cp target/quetoo_*.deb target/quetoo-*.rpm /out/
+  cp target/quetoo-*.deb target/quetoo-*.rpm /out/
   echo ""
   echo "Packages written to /out/:"
-  ls -lh /out/quetoo_*.deb /out/quetoo-*.rpm
+  ls -lh /out/quetoo-*.deb /out/quetoo-*.rpm
 fi

@@ -1,5 +1,5 @@
 #!/bin/bash
-# quetoo-update — update Quetoo engine and game data packages.
+# quetoo-update — update installed quetoo-client/quetoo-server and game data packages.
 #
 # Usage:
 #   quetoo-update                  Update immediately and restart all instances.
@@ -20,28 +20,41 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Detect architecture.
 case "$(uname -m)" in
   x86_64)  BUILD="x86_64-pc-linux" ;;
   aarch64) BUILD="aarch64-pc-linux" ;;
   *) echo "error: unsupported architecture: $(uname -m)" >&2; exit 1 ;;
 esac
 
-# Detect package manager.
 if command -v dpkg &>/dev/null && command -v apt &>/dev/null; then
   PKG_MANAGER=deb
-  INSTALLED_VERSION=$(dpkg-query -W -f='${Version}' quetoo 2>/dev/null || true)
-  INSTALLED_DATA_VERSION=$(dpkg-query -W -f='${Version}' quetoo-data 2>/dev/null || true)
+
+  # A package removed (but not purged) while it still has conffiles lingers in
+  # dpkg's database in "config-files" state; dpkg-query -W would still report
+  # its old Version, so require the fully-installed status explicitly.
+  deb_version() {
+    { dpkg-query -W -f='${Status}\t${Version}\n' "$1" 2>/dev/null || true; } \
+      | awk -F'\t' '{n = split($1, s, " "); if (s[n] == "installed") print $2}'
+  }
+
+  CLIENT_VERSION=$(deb_version quetoo-client)
+  SERVER_VERSION=$(deb_version quetoo-server)
+  DATA_VERSION=$(deb_version quetoo-data)
 elif command -v rpm &>/dev/null && command -v dnf &>/dev/null; then
   PKG_MANAGER=rpm
-  INSTALLED_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo 2>/dev/null || true)
-  INSTALLED_DATA_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo-data 2>/dev/null || true)
+  CLIENT_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo-client 2>/dev/null || true)
+  SERVER_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo-server 2>/dev/null || true)
+  DATA_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo-data 2>/dev/null || true)
 else
   echo "error: no supported package manager found (apt or dnf required)" >&2
   exit 1
 fi
 
-# Fetch latest release tags from GitHub (quetoo and quetoo-data have independent release cycles).
+if [[ -z "$CLIENT_VERSION" && -z "$SERVER_VERSION" ]]; then
+  echo "error: neither quetoo-client nor quetoo-server is installed" >&2
+  exit 1
+fi
+
 gh_latest() {
   curl -fsSL "https://api.github.com/repos/jdolan/$1/releases/latest" \
     | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'].lstrip('v'))"
@@ -59,23 +72,31 @@ if [[ -z "$DATA_LATEST" ]]; then
   exit 1
 fi
 
+UPDATE_CLIENT=0
+UPDATE_SERVER=0
 NEED_UPDATE=0
-if [[ "$INSTALLED_VERSION" != "$LATEST" ]]; then
-  echo "quetoo update available: $INSTALLED_VERSION -> $LATEST"
+
+if [[ -n "$CLIENT_VERSION" && "$CLIENT_VERSION" != "$LATEST" ]]; then
+  echo "quetoo-client update available: $CLIENT_VERSION -> $LATEST"
+  UPDATE_CLIENT=1
   NEED_UPDATE=1
 fi
-if [[ "$INSTALLED_DATA_VERSION" != "$DATA_LATEST" ]]; then
-  echo "quetoo-data update available: $INSTALLED_DATA_VERSION -> $DATA_LATEST"
+if [[ -n "$SERVER_VERSION" && "$SERVER_VERSION" != "$LATEST" ]]; then
+  echo "quetoo-server update available: $SERVER_VERSION -> $LATEST"
+  UPDATE_SERVER=1
+  NEED_UPDATE=1
+fi
+if [[ "$DATA_VERSION" != "$DATA_LATEST" ]]; then
+  echo "quetoo-data update available: $DATA_VERSION -> $DATA_LATEST"
   NEED_UPDATE=1
 fi
 
 if [[ $NEED_UPDATE -eq 0 ]]; then
-  echo "quetoo $INSTALLED_VERSION and quetoo-data $INSTALLED_DATA_VERSION are already up to date."
+  echo "quetoo-client ${CLIENT_VERSION:-not installed}, quetoo-server ${SERVER_VERSION:-not installed}, and quetoo-data $DATA_VERSION are already up to date."
   exit 0
 fi
 
-# If --wait-for-empty, check every instance for human clients.
-if [[ $WAIT_FOR_EMPTY -eq 1 ]]; then
+if [[ -n "$SERVER_VERSION" && $WAIT_FOR_EMPTY -eq 1 ]]; then
   for cfg in /etc/quetoo-dedicated/*.cfg; do
     instance=$(basename "$cfg" .cfg)
     port=$(grep -E '^set net_port[[:space:]]' "$cfg" 2>/dev/null | head -1 | awk '{print $3}' | tr -d '"' || true)
@@ -89,55 +110,73 @@ if [[ $WAIT_FOR_EMPTY -eq 1 ]]; then
   done
 fi
 
-# Capture the master server state now, before package scripts stop services.
 RESTART_MASTER=0
-if systemctl is-active --quiet quetoo-master.service ||
-   systemctl is-enabled --quiet quetoo-master.service; then
-  RESTART_MASTER=1
+INSTANCES=()
+
+if [[ -n "$SERVER_VERSION" ]]; then
+  if systemctl is-active --quiet quetoo-master.service ||
+     systemctl is-enabled --quiet quetoo-master.service; then
+    RESTART_MASTER=1
+  fi
+
+  while IFS= read -r unit; do
+    INSTANCES+=("${unit}")
+  done < <(
+    {
+      systemctl list-unit-files --plain --no-legend 'quetoo-dedicated@*.service' \
+        | awk '$1 ~ /^quetoo-dedicated@.+\.service$/ && $2 == "enabled" {print $1}'
+      systemctl list-units --all --plain --no-legend 'quetoo-dedicated@*.service' \
+        | awk '$1 ~ /^quetoo-dedicated@.+\.service$/ {print $1}'
+    } | sort -u
+  )
 fi
 
-# Capture dedicated instances now, before package scripts stop services.
-# Include both enabled and currently loaded instances, but skip the
-# template unit itself (quetoo-dedicated@.service).
-INSTANCES=()
-while IFS= read -r unit; do
-  INSTANCES+=("${unit}")
-done < <(
-  {
-    systemctl list-unit-files --plain --no-legend 'quetoo-dedicated@*.service' \
-      | awk '$1 ~ /^quetoo-dedicated@.+\.service$/ && $2 == "enabled" {print $1}'
-    systemctl list-units --all --plain --no-legend 'quetoo-dedicated@*.service' \
-      | awk '$1 ~ /^quetoo-dedicated@.+\.service$/ {print $1}'
-  } | sort -u
-)
-
-# Download and install packages.
 TMPDIR=$(mktemp -d -p /var/tmp)
 trap 'rm -rf "$TMPDIR"' EXIT
 
 QUETOO_BASE="https://github.com/jdolan/quetoo/releases/download/v${LATEST}"
 DATA_BASE="https://github.com/jdolan/quetoo-data/releases/download/v${DATA_LATEST}"
 
-echo "Downloading quetoo $LATEST and quetoo-data $DATA_LATEST..."
+echo "Downloading updates..."
+
+PACKAGES=()
 
 if [[ "$PKG_MANAGER" == "deb" ]]; then
-  curl -fsSL -o "$TMPDIR/quetoo.deb"      "$QUETOO_BASE/quetoo-${BUILD}.deb"
-  curl -fsSL -o "$TMPDIR/quetoo-data.deb" "$DATA_BASE/quetoo-data_${DATA_LATEST}_all.deb"
-  apt install -y "$TMPDIR/quetoo.deb" "$TMPDIR/quetoo-data.deb"
+  if [[ $UPDATE_CLIENT -eq 1 ]]; then
+    curl -fsSL -o "$TMPDIR/quetoo-client.deb" "$QUETOO_BASE/quetoo-client-${BUILD}.deb"
+    PACKAGES+=("$TMPDIR/quetoo-client.deb")
+  fi
+  if [[ $UPDATE_SERVER -eq 1 ]]; then
+    curl -fsSL -o "$TMPDIR/quetoo-server.deb" "$QUETOO_BASE/quetoo-server-${BUILD}.deb"
+    PACKAGES+=("$TMPDIR/quetoo-server.deb")
+  fi
+  if [[ "$DATA_VERSION" != "$DATA_LATEST" ]]; then
+    curl -fsSL -o "$TMPDIR/quetoo-data.deb" "$DATA_BASE/quetoo-data_${DATA_LATEST}_all.deb"
+    PACKAGES+=("$TMPDIR/quetoo-data.deb")
+  fi
+  apt install -y "${PACKAGES[@]}"
 else
-  curl -fsSL -o "$TMPDIR/quetoo.rpm"      "$QUETOO_BASE/quetoo-${BUILD}.rpm"
-  curl -fsSL -o "$TMPDIR/quetoo-data.rpm" "$DATA_BASE/quetoo-data-${DATA_LATEST}-1.noarch.rpm"
-  dnf install -y "$TMPDIR/quetoo.rpm" "$TMPDIR/quetoo-data.rpm"
+  if [[ $UPDATE_CLIENT -eq 1 ]]; then
+    curl -fsSL -o "$TMPDIR/quetoo-client.rpm" "$QUETOO_BASE/quetoo-client-${BUILD}.rpm"
+    PACKAGES+=("$TMPDIR/quetoo-client.rpm")
+  fi
+  if [[ $UPDATE_SERVER -eq 1 ]]; then
+    curl -fsSL -o "$TMPDIR/quetoo-server.rpm" "$QUETOO_BASE/quetoo-server-${BUILD}.rpm"
+    PACKAGES+=("$TMPDIR/quetoo-server.rpm")
+  fi
+  if [[ "$DATA_VERSION" != "$DATA_LATEST" ]]; then
+    curl -fsSL -o "$TMPDIR/quetoo-data.rpm" "$DATA_BASE/quetoo-data-${DATA_LATEST}-1.noarch.rpm"
+    PACKAGES+=("$TMPDIR/quetoo-data.rpm")
+  fi
+  dnf install -y "${PACKAGES[@]}"
 fi
 
-# Restart the master server before the instances, so they re-register on start.
 if [[ $RESTART_MASTER -eq 1 ]]; then
   echo "Restarting quetoo-master..."
   systemctl reset-failed quetoo-master.service 2>/dev/null || true
   systemctl restart quetoo-master.service || true
 fi
 
-# Restart each enabled instance after the update.
 for unit in "${INSTANCES[@]}"; do
   instance="${unit#quetoo-dedicated@}"
   instance="${instance%.service}"

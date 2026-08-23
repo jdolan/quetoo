@@ -168,7 +168,7 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: quetoo-x86_64-pc-linux-deb
-        path: quetoo/linux/target/quetoo_*_amd64.deb
+        path: quetoo/linux/target/quetoo-*_amd64.deb
 
     - name: Upload .rpm artifact
       uses: actions/upload-artifact@v7

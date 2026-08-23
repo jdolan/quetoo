@@ -1,13 +1,16 @@
 # Makefile for Quetoo Linux distributable packages.
-# Produces: AppImage, .deb, and .rpm
+# Produces: AppImage-style archive, and quetoo-client / quetoo-server .deb + .rpm
 # Requires: linuxdeploy, fpm, imagemagick
 
 ARCH     := $(shell uname -m)
 BUILD    := $(ARCH)-pc-linux
 TARGET    = target
 STAGING   = $(TARGET)/staging
-APPDIR    = $(TARGET)/Quetoo.AppDir
-PKGDIR    = $(TARGET)/pkg
+APPDIR          = $(TARGET)/Quetoo.AppDir
+APPDIR_CLIENT   = $(TARGET)/Quetoo-Client.AppDir
+APPDIR_SERVER   = $(TARGET)/Quetoo-Server.AppDir
+PKGDIR_CLIENT   = $(TARGET)/pkg-client
+PKGDIR_SERVER   = $(TARGET)/pkg-server
 VERSION  := $(shell cd .. && git rev-list --count HEAD 2>/dev/null || echo 0)
 
 # Debian uses amd64/arm64; rpm uses the uname names directly.
@@ -22,17 +25,19 @@ BINARIES = \
 	$(STAGING)/bin/quetoo-dedicated \
 	$(STAGING)/bin/quetoo-master
 
-MODULES = \
-	$(STAGING)/lib/default/cgame.so \
-	$(STAGING)/lib/default/game.so \
-	$(STAGING)/lib/ctf/cgame.so \
-	$(STAGING)/lib/ctf/game.so \
-	$(STAGING)/lib/lithium/cgame.so \
-	$(STAGING)/lib/lithium/game.so
+# quetoo-client and quetoo-server are independent, fully self-contained
+# packages that both include quetoo-dedicated (a player may want to run a
+# local dedicated instance without pulling in quetoo-server's systemd/sudoers
+# footprint). They are declared Conflicts of one another below since they'd
+# otherwise both try to install the same files under /usr/lib/quetoo.
+CLIENT_BINARIES = quemap quetoo quetoo-dedicated
+SERVER_BINARIES = quetoo-dedicated quetoo-master
 
-ARCHIVE  = $(TARGET)/quetoo-$(BUILD).tar.gz
-DEB      = $(TARGET)/quetoo_$(VERSION)_$(DEB_ARCH).deb
-RPM      = $(TARGET)/quetoo-$(VERSION)-1.$(ARCH).rpm
+ARCHIVE     = $(TARGET)/quetoo-$(BUILD).tar.gz
+DEB_CLIENT  = $(TARGET)/quetoo-client_$(VERSION)_$(DEB_ARCH).deb
+DEB_SERVER  = $(TARGET)/quetoo-server_$(VERSION)_$(DEB_ARCH).deb
+RPM_CLIENT  = $(TARGET)/quetoo-client-$(VERSION)-1.$(ARCH).rpm
+RPM_SERVER  = $(TARGET)/quetoo-server-$(VERSION)-1.$(ARCH).rpm
 
 LINUXDEPLOY     = $(TARGET)/linuxdeploy-$(ARCH).AppImage
 
@@ -84,6 +89,39 @@ $(APPDIR): $(STAGING) $(LINUXDEPLOY)
 	install -Dm644 $(APPDIR)/quetoo.png \
 		$(APPDIR)/usr/share/icons/hicolor/256x256/apps/quetoo.png
 
+$(APPDIR_CLIENT): $(STAGING) $(LINUXDEPLOY)
+	rm -rf $(APPDIR_CLIENT)
+	install -d $(APPDIR_CLIENT)/usr/bin $(APPDIR_CLIENT)/usr/lib $(APPDIR_CLIENT)/usr/share
+
+	for bin in $(CLIENT_BINARIES); do cp -a $(STAGING)/bin/$$bin $(APPDIR_CLIENT)/usr/bin/; done
+	install -d $(APPDIR_CLIENT)/usr/lib/quetoo
+	for mod in $$(ls $(STAGING)/lib/quetoo); do cp -a $(STAGING)/lib/quetoo/$$mod $(APPDIR_CLIENT)/usr/lib/quetoo/; done
+
+	convert ../src/main/quetoo.ico[0] $(APPDIR_CLIENT)/quetoo.png
+
+	ARCH=$(ARCH) LINUXDEPLOY_DISABLE_STRIP=1 $(LINUXDEPLOY) --appimage-extract-and-run \
+		--appdir $(APPDIR_CLIENT) \
+		$(foreach b,$(CLIENT_BINARIES),--executable $(APPDIR_CLIENT)/usr/bin/$(b)) \
+		--desktop-file quetoo/Quetoo.desktop \
+		--icon-file $(APPDIR_CLIENT)/quetoo.png
+
+	install -Dm644 $(APPDIR_CLIENT)/quetoo.png \
+		$(APPDIR_CLIENT)/usr/share/icons/hicolor/256x256/apps/quetoo.png
+
+$(APPDIR_SERVER): $(STAGING) $(LINUXDEPLOY)
+	rm -rf $(APPDIR_SERVER)
+	install -d $(APPDIR_SERVER)/usr/bin $(APPDIR_SERVER)/usr/lib $(APPDIR_SERVER)/usr/share
+
+	for bin in $(SERVER_BINARIES); do cp -a $(STAGING)/bin/$$bin $(APPDIR_SERVER)/usr/bin/; done
+	for mod in $$(ls $(STAGING)/lib/quetoo); do \
+		install -d $(APPDIR_SERVER)/usr/lib/quetoo/$$mod; \
+		cp -a $(STAGING)/lib/quetoo/$$mod/game.so $(APPDIR_SERVER)/usr/lib/quetoo/$$mod/; \
+	done
+
+	ARCH=$(ARCH) LINUXDEPLOY_DISABLE_STRIP=1 $(LINUXDEPLOY) --appimage-extract-and-run \
+		--appdir $(APPDIR_SERVER) \
+		$(foreach b,$(SERVER_BINARIES),--executable $(APPDIR_SERVER)/usr/bin/$(b))
+
 # ---------------------------------------------------------------------------
 # Archive
 
@@ -94,52 +132,72 @@ archive: $(APPDIR)
 # .deb / .rpm — reuse the linuxdeploy-bundled AppDir content so we don't
 # need a separate library-bundling pass.
 
-$(TARGET)/.pkg-stamp: $(APPDIR)
-	rm -rf $(PKGDIR)
+$(TARGET)/.pkg-client-stamp: $(APPDIR_CLIENT)
+	rm -rf $(PKGDIR_CLIENT)
 
 	# Install game under private prefix /usr/lib/quetoo so that the engine's
 	# runtime path detection (strip at /bin/) resolves to /usr/lib/quetoo/lib.
-	install -d $(PKGDIR)/usr/lib/quetoo
-	cp -a $(APPDIR)/usr/bin $(PKGDIR)/usr/lib/quetoo/
-	cp -a $(APPDIR)/usr/lib $(PKGDIR)/usr/lib/quetoo/
+	install -d $(PKGDIR_CLIENT)/usr/lib/quetoo
+	cp -a $(APPDIR_CLIENT)/usr/bin $(PKGDIR_CLIENT)/usr/lib/quetoo/
+	cp -a $(APPDIR_CLIENT)/usr/lib $(PKGDIR_CLIENT)/usr/lib/quetoo/
+	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-update $(PKGDIR_CLIENT)/usr/lib/quetoo/bin/quetoo-update
+	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-status $(PKGDIR_CLIENT)/usr/lib/quetoo/bin/quetoo-status
 
 	# Desktop integration
 	install -Dm644 quetoo/Quetoo.desktop \
-		$(PKGDIR)/usr/share/applications/quetoo.desktop
-	install -d $(PKGDIR)/usr/share/icons/hicolor/256x256/apps
+		$(PKGDIR_CLIENT)/usr/share/applications/quetoo.desktop
+	install -Dm644 quetoo/org.quetoo.Quetoo.metainfo.xml \
+		$(PKGDIR_CLIENT)/usr/share/metainfo/org.quetoo.Quetoo.metainfo.xml
+	install -d $(PKGDIR_CLIENT)/usr/share/icons/hicolor/256x256/apps
 	convert ../src/main/quetoo.ico[0] \
-		$(PKGDIR)/usr/share/icons/hicolor/256x256/apps/quetoo.png
+		$(PKGDIR_CLIENT)/usr/share/icons/hicolor/256x256/apps/quetoo.png
 
 	# Symlinks in /usr/bin pointing at the real binaries under /usr/lib/quetoo/bin/.
 	# The kernel resolves /proc/self/exe to the real path, so the engine correctly
 	# derives lib_dir and data_dir from /usr/lib/quetoo regardless of how it was invoked.
 	# The RPATH ($ORIGIN/../lib) baked in by linuxdeploy also resolves from the real
 	# binary location, so no LD_LIBRARY_PATH wrapper is needed.
-	for bin in quetoo quetoo-dedicated quemap quetoo-master quetoo-attach quetoo-update quetoo-status; do \
-		install -d $(PKGDIR)/usr/bin; \
-		ln -sf /usr/lib/quetoo/bin/$$bin $(PKGDIR)/usr/bin/$$bin; \
+	install -d $(PKGDIR_CLIENT)/usr/bin
+	for bin in quetoo quemap quetoo-dedicated quetoo-update quetoo-status; do \
+		ln -sf /usr/lib/quetoo/bin/$$bin $(PKGDIR_CLIENT)/usr/bin/$$bin; \
 	done
+
+	touch $@
+
+$(TARGET)/.pkg-server-stamp: $(APPDIR_SERVER)
+	rm -rf $(PKGDIR_SERVER)
+
+	install -d $(PKGDIR_SERVER)/usr/lib/quetoo
+	cp -a $(APPDIR_SERVER)/usr/bin $(PKGDIR_SERVER)/usr/lib/quetoo/
+	cp -a $(APPDIR_SERVER)/usr/lib $(PKGDIR_SERVER)/usr/lib/quetoo/
 
 	# Server management: systemd units, start wrapper, default config, update script.
 	install -Dm644 quetoo/usr/lib/systemd/system/quetoo-dedicated@.service \
-		$(PKGDIR)/usr/lib/systemd/system/quetoo-dedicated@.service
+		$(PKGDIR_SERVER)/usr/lib/systemd/system/quetoo-dedicated@.service
 	install -Dm644 quetoo/usr/lib/systemd/system/quetoo-master.service \
-		$(PKGDIR)/usr/lib/systemd/system/quetoo-master.service
-	install -Dm644 quetoo/etc/quetoo-dedicated/default.cfg       $(PKGDIR)/etc/quetoo-dedicated/default.cfg
-	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-dedicated-start $(PKGDIR)/usr/lib/quetoo/bin/quetoo-dedicated-start
-	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-update       $(PKGDIR)/usr/lib/quetoo/bin/quetoo-update
-	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-status       $(PKGDIR)/usr/lib/quetoo/bin/quetoo-status
-	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-attach       $(PKGDIR)/usr/lib/quetoo/bin/quetoo-attach
-	install -Dm440 quetoo/etc/sudoers.d/quetoo                   $(PKGDIR)/etc/sudoers.d/quetoo
+		$(PKGDIR_SERVER)/usr/lib/systemd/system/quetoo-master.service
+	install -Dm644 quetoo/etc/quetoo-dedicated/default.cfg          $(PKGDIR_SERVER)/etc/quetoo-dedicated/default.cfg
+	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-dedicated-start $(PKGDIR_SERVER)/usr/lib/quetoo/bin/quetoo-dedicated-start
+	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-update          $(PKGDIR_SERVER)/usr/lib/quetoo/bin/quetoo-update
+	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-status          $(PKGDIR_SERVER)/usr/lib/quetoo/bin/quetoo-status
+	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-attach          $(PKGDIR_SERVER)/usr/lib/quetoo/bin/quetoo-attach
+	install -Dm440 quetoo/etc/sudoers.d/quetoo                      $(PKGDIR_SERVER)/etc/sudoers.d/quetoo
+
+	install -d $(PKGDIR_SERVER)/usr/bin
+	for bin in quetoo-dedicated quetoo-master quetoo-attach quetoo-update quetoo-status; do \
+		ln -sf /usr/lib/quetoo/bin/$$bin $(PKGDIR_SERVER)/usr/bin/$$bin; \
+	done
 
 	touch $@
 
 # ---------------------------------------------------------------------------
 # .deb
 
-deb: $(TARGET)/.pkg-stamp
+deb: deb-client deb-server
+
+deb-client: $(TARGET)/.pkg-client-stamp
 	fpm -s dir -t deb \
-		-n quetoo -v $(VERSION) \
+		-n quetoo-client -v $(VERSION) \
 		--architecture $(DEB_ARCH) \
 		--description "Free, open-source arena first-person shooter" \
 		--url "https://quetoo.org" \
@@ -148,21 +206,51 @@ deb: $(TARGET)/.pkg-stamp
 		--depends "libc6 (>= 2.31)" \
 		--depends "libstdc++6" \
 		--depends "libgl1 | libgles2" \
+		--depends "libfreetype6" \
+		--depends "libharfbuzz0b" \
+		--depends "bash" \
+		--depends "curl" \
+		--depends "python3" \
+		--deb-recommends "quetoo-data" \
+		--replaces "quetoo" \
+		--conflicts "quetoo" \
+		--conflicts "quetoo-server" \
+		-p $(DEB_CLIENT) \
+		-C $(PKGDIR_CLIENT) .
+
+deb-server: $(TARGET)/.pkg-server-stamp
+	fpm -s dir -t deb \
+		-n quetoo-server -v $(VERSION) \
+		--architecture $(DEB_ARCH) \
+		--description "Free, open-source arena first-person shooter (dedicated server)" \
+		--url "https://quetoo.org" \
+		--license "GPL-2.0" \
+		--maintainer "jdolan <jdolan@jdolan.net>" \
+		--depends "libc6 (>= 2.31)" \
+		--depends "libstdc++6" \
 		--depends "screen" \
+		--depends "bash" \
+		--depends "curl" \
+		--depends "python3" \
 		--deb-recommends "quetoo-data" \
 		--config-files /etc/quetoo-dedicated/default.cfg \
 		--config-files /etc/sudoers.d/quetoo \
 		--after-install quetoo/postinstall.sh \
 		--before-remove quetoo/preremove.sh \
-		-p $(DEB) \
-		-C $(PKGDIR) .
+		--replaces "quetoo" \
+		--conflicts "quetoo" \
+		--conflicts "quetoo-client" \
+		-p $(DEB_SERVER) \
+		-C $(PKGDIR_SERVER) .
 
 # ---------------------------------------------------------------------------
 # .rpm
 
-rpm: $(TARGET)/.pkg-stamp
+rpm: rpm-client rpm-server
+
+rpm-client: $(TARGET)/.pkg-client-stamp
 	fpm -s dir -t rpm \
-		-n quetoo -v $(VERSION) \
+		-n quetoo-client -v $(VERSION) \
 		--architecture $(ARCH) \
 		--description "Free, open-source arena first-person shooter" \
 		--url "https://quetoo.org" \
@@ -171,14 +259,42 @@ rpm: $(TARGET)/.pkg-stamp
 		--depends "glibc >= 2.31" \
 		--depends "libstdc++" \
 		--depends "mesa-libGL" \
+		--depends "freetype" \
+		--depends "harfbuzz" \
+		--depends "bash" \
+		--depends "curl" \
+		--depends "python3" \
+		--rpm-tag "Recommends: quetoo-data" \
+		--replaces "quetoo" \
+		--conflicts "quetoo" \
+		--conflicts "quetoo-server" \
+		-p $(RPM_CLIENT) \
+		-C $(PKGDIR_CLIENT) .
+
+rpm-server: $(TARGET)/.pkg-server-stamp
+	fpm -s dir -t rpm \
+		-n quetoo-server -v $(VERSION) \
+		--architecture $(ARCH) \
+		--description "Free, open-source arena first-person shooter (dedicated server)" \
+		--url "https://quetoo.org" \
+		--license "GPL-2.0" \
+		--maintainer "jdolan <jdolan@jdolan.net>" \
+		--depends "glibc >= 2.31" \
+		--depends "libstdc++" \
 		--depends "screen" \
+		--depends "bash" \
+		--depends "curl" \
+		--depends "python3" \
 		--rpm-tag "Recommends: quetoo-data" \
 		--config-files /etc/quetoo-dedicated/default.cfg \
 		--config-files /etc/sudoers.d/quetoo \
 		--after-install quetoo/postinstall.sh \
 		--before-remove quetoo/preremove.sh \
-		-p $(RPM) \
-		-C $(PKGDIR) .
+		--replaces "quetoo" \
+		--conflicts "quetoo" \
+		--conflicts "quetoo-client" \
+		-p $(RPM_SERVER) \
+		-C $(PKGDIR_SERVER) .
 
 # ---------------------------------------------------------------------------
 # S3 publishing
@@ -187,9 +303,11 @@ release: all
 	aws s3 sync --delete $(STAGING) $(QUETOO_S3_BUCKET)/$(BUILD)
 	git rev-list --count HEAD > $(TARGET)/version
 	aws s3 cp $(TARGET)/version $(QUETOO_S3_BUCKET)/versions/$(BUILD)
-	aws s3 cp $(ARCHIVE) $(QUETOO_S3_BUCKET)/snapshots/
-	aws s3 cp $(DEB)     $(QUETOO_S3_BUCKET)/snapshots/
-	aws s3 cp $(RPM)     $(QUETOO_S3_BUCKET)/snapshots/
+	aws s3 cp $(ARCHIVE)    $(QUETOO_S3_BUCKET)/snapshots/
+	aws s3 cp $(DEB_CLIENT) $(QUETOO_S3_BUCKET)/snapshots/
+	aws s3 cp $(DEB_SERVER) $(QUETOO_S3_BUCKET)/snapshots/
+	aws s3 cp $(RPM_CLIENT) $(QUETOO_S3_BUCKET)/snapshots/
+	aws s3 cp $(RPM_SERVER) $(QUETOO_S3_BUCKET)/snapshots/
 
 install-data:
 	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(STAGING)/share
@@ -197,4 +315,4 @@ install-data:
 clean:
 	rm -rf $(TARGET)
 
-.PHONY: all configure compile archive deb rpm release install-data clean
+.PHONY: all configure compile archive deb deb-client deb-server rpm rpm-client rpm-server release install-data clean

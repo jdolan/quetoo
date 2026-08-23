@@ -4,13 +4,13 @@
 FROM quetoo-build AS builder
 COPY . /src
 RUN /usr/local/bin/build-pkgs.sh \
-  && cp /src/linux/target/quetoo_*.deb /tmp/quetoo.deb
+  && cp /src/linux/target/quetoo-server_*.deb /tmp/quetoo-server.deb
 
 FROM debian:bookworm-slim
-COPY --from=builder /tmp/quetoo.deb /tmp/quetoo.deb
+COPY --from=builder /tmp/quetoo-server.deb /tmp/quetoo-server.deb
 RUN apt-get update \
-  && apt-get install -y /tmp/quetoo.deb \
-  && rm -rf /var/lib/apt/lists/* /tmp/quetoo.deb
+  && apt-get install -y /tmp/quetoo-server.deb \
+  && rm -rf /var/lib/apt/lists/* /tmp/quetoo-server.deb
 
 VOLUME ["/usr/lib/quetoo/share/quetoo/default"]
 VOLUME ["/etc/quetoo-dedicated"]
