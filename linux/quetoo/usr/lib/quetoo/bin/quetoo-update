@@ -132,13 +132,7 @@ echo "Downloading updates..."
 
 PACKAGES=()
 
-# quetoo-client/quetoo-server pin an exact-version dependency on quetoo-common,
-# so any client/server update must bring a matching quetoo-common along.
 if [[ "$PKG_MANAGER" == "deb" ]]; then
-  if [[ $UPDATE_CLIENT -eq 1 || $UPDATE_SERVER -eq 1 ]]; then
-    curl -fsSL -o "$TMPDIR/quetoo-common.deb" "$QUETOO_BASE/quetoo-common-${BUILD}.deb"
-    PACKAGES+=("$TMPDIR/quetoo-common.deb")
-  fi
   if [[ $UPDATE_CLIENT -eq 1 ]]; then
     curl -fsSL -o "$TMPDIR/quetoo-client.deb" "$QUETOO_BASE/quetoo-client-${BUILD}.deb"
     PACKAGES+=("$TMPDIR/quetoo-client.deb")
@@ -153,10 +147,6 @@ if [[ "$PKG_MANAGER" == "deb" ]]; then
   fi
   apt install -y "${PACKAGES[@]}"
 else
-  if [[ $UPDATE_CLIENT -eq 1 || $UPDATE_SERVER -eq 1 ]]; then
-    curl -fsSL -o "$TMPDIR/quetoo-common.rpm" "$QUETOO_BASE/quetoo-common-${BUILD}.rpm"
-    PACKAGES+=("$TMPDIR/quetoo-common.rpm")
-  fi
   if [[ $UPDATE_CLIENT -eq 1 ]]; then
     curl -fsSL -o "$TMPDIR/quetoo-client.rpm" "$QUETOO_BASE/quetoo-client-${BUILD}.rpm"
     PACKAGES+=("$TMPDIR/quetoo-client.rpm")
