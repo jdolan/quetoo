@@ -39,32 +39,20 @@ if command -v dpkg &>/dev/null && command -v apt &>/dev/null; then
 
   CLIENT_VERSION=$(deb_version quetoo-client)
   SERVER_VERSION=$(deb_version quetoo-server)
-  LEGACY_VERSION=$(deb_version quetoo)
   DATA_VERSION=$(deb_version quetoo-data)
 elif command -v rpm &>/dev/null && command -v dnf &>/dev/null; then
   PKG_MANAGER=rpm
   CLIENT_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo-client 2>/dev/null || true)
   SERVER_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo-server 2>/dev/null || true)
-  LEGACY_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo 2>/dev/null || true)
   DATA_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo-data 2>/dev/null || true)
 else
   echo "error: no supported package manager found (apt or dnf required)" >&2
   exit 1
 fi
 
-if [[ -z "$CLIENT_VERSION" && -z "$SERVER_VERSION" && -z "$LEGACY_VERSION" ]]; then
-  echo "error: none of quetoo-client, quetoo-server, or quetoo is installed" >&2
+if [[ -z "$CLIENT_VERSION" && -z "$SERVER_VERSION" ]]; then
+  echo "error: neither quetoo-client nor quetoo-server is installed" >&2
   exit 1
-fi
-
-# The old single-package `quetoo` predates the quetoo-client/quetoo-server
-# split (#953). Every quetoo .deb/.rpm install in the wild is a dedicated
-# server (the client is never distributed this way), so migrate it to
-# quetoo-server unconditionally rather than trying to detect intent.
-MIGRATE_LEGACY=0
-if [[ -z "$CLIENT_VERSION" && -z "$SERVER_VERSION" && -n "$LEGACY_VERSION" ]]; then
-  echo "quetoo (legacy) $LEGACY_VERSION detected; migrating to quetoo-server."
-  MIGRATE_LEGACY=1
 fi
 
 gh_latest() {
@@ -98,12 +86,6 @@ if [[ -n "$SERVER_VERSION" && "$SERVER_VERSION" != "$LATEST" ]]; then
   UPDATE_SERVER=1
   NEED_UPDATE=1
 fi
-if [[ $MIGRATE_LEGACY -eq 1 ]]; then
-  # Migrate even if $LEGACY_VERSION already equals $LATEST (e.g. this box
-  # just picked up the transitional quetoo package for this same release).
-  UPDATE_SERVER=1
-  NEED_UPDATE=1
-fi
 if [[ "$DATA_VERSION" != "$DATA_LATEST" ]]; then
   echo "quetoo-data update available: $DATA_VERSION -> $DATA_LATEST"
   NEED_UPDATE=1
@@ -114,7 +96,7 @@ if [[ $NEED_UPDATE -eq 0 ]]; then
   exit 0
 fi
 
-if [[ ( -n "$SERVER_VERSION" || $MIGRATE_LEGACY -eq 1 ) && $WAIT_FOR_EMPTY -eq 1 ]]; then
+if [[ -n "$SERVER_VERSION" && $WAIT_FOR_EMPTY -eq 1 ]]; then
   for cfg in /etc/quetoo-dedicated/*.cfg; do
     instance=$(basename "$cfg" .cfg)
     port=$(grep -E '^set net_port[[:space:]]' "$cfg" 2>/dev/null | head -1 | awk '{print $3}' | tr -d '"' || true)
@@ -132,7 +114,7 @@ RESTART_MASTER=0
 INSTANCES=()
 ENABLED_INSTANCES=()
 
-if [[ -n "$SERVER_VERSION" || $MIGRATE_LEGACY -eq 1 ]]; then
+if [[ -n "$SERVER_VERSION" ]]; then
   if systemctl is-active --quiet quetoo-master.service ||
      systemctl is-enabled --quiet quetoo-master.service; then
     RESTART_MASTER=1

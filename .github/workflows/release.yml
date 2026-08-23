@@ -639,15 +639,6 @@ jobs:
         cp quetoo-aarch64-pc-linux-rpm/quetoo-client-*.aarch64.rpm quetoo-aarch64-pc-linux-rpm/quetoo-client-aarch64-pc-linux.rpm
         cp quetoo-aarch64-pc-linux-rpm/quetoo-server-*.aarch64.rpm quetoo-aarch64-pc-linux-rpm/quetoo-server-aarch64-pc-linux.rpm
 
-        # Transitional shim: registers as package "quetoo" so the auto-updater
-        # already installed on pre-#953 servers (which fetches quetoo-${BUILD}.deb
-        # under the old name) can still find it and self-migrate to quetoo-server.
-        # Drop once servers have had a release cycle to pick this up.
-        cp quetoo-x86_64-pc-linux-deb/quetoo-shim_*_amd64.deb quetoo-x86_64-pc-linux-deb/quetoo-x86_64-pc-linux.deb
-        cp quetoo-x86_64-pc-linux-rpm/quetoo-shim-*.x86_64.rpm quetoo-x86_64-pc-linux-rpm/quetoo-x86_64-pc-linux.rpm
-        cp quetoo-aarch64-pc-linux-deb/quetoo-shim_*_arm64.deb quetoo-aarch64-pc-linux-deb/quetoo-aarch64-pc-linux.deb
-        cp quetoo-aarch64-pc-linux-rpm/quetoo-shim-*.aarch64.rpm quetoo-aarch64-pc-linux-rpm/quetoo-aarch64-pc-linux.rpm
-
         prev_tag=$(git describe --tags --abbrev=0 "$VERSION^" 2>/dev/null || true)
         if [ -n "$prev_tag" ]; then
           changelog=$(git log "$prev_tag..$VERSION" --pretty=format:"- [\`%h\`](https://github.com/${{ github.repository }}/commit/%H) %s" --no-merges)
@@ -676,8 +667,6 @@ jobs:
 
         > Also requires the latest [quetoo-data](https://github.com/jdolan/quetoo-data/releases) release.
 
-        > Servers still on the old combined \`quetoo\` package (pre-1.0.81) auto-migrate to \`quetoo-server\` over their next two \`quetoo-update\` runs, no action needed. This transitional package is dropped in a future release once existing servers have picked it up.
-
         ## Changelog
 
         $changelog
@@ -701,10 +690,6 @@ jobs:
           quetoo-aarch64-pc-linux-rpm/quetoo-client-aarch64-pc-linux.rpm
           quetoo-aarch64-pc-linux-rpm/quetoo-server-aarch64-pc-linux.rpm
           quetoo-x86_64-pc-windows/quetoo-x86_64-pc-windows.zip
-          quetoo-x86_64-pc-linux-deb/quetoo-x86_64-pc-linux.deb
-          quetoo-x86_64-pc-linux-rpm/quetoo-x86_64-pc-linux.rpm
-          quetoo-aarch64-pc-linux-deb/quetoo-aarch64-pc-linux.deb
-          quetoo-aarch64-pc-linux-rpm/quetoo-aarch64-pc-linux.rpm
         )
 
         if gh release view "$VERSION" >/dev/null 2>&1; then
