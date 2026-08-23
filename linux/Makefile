@@ -29,16 +29,6 @@ BINARIES = \
 CLIENT_BINARIES = quemap quetoo
 SERVER_BINARIES = quetoo-dedicated quetoo-master
 
-MODULES = \
-	$(STAGING)/lib/default/cgame.so \
-	$(STAGING)/lib/default/game.so \
-	$(STAGING)/lib/ctf/cgame.so \
-	$(STAGING)/lib/ctf/game.so \
-	$(STAGING)/lib/lithium/cgame.so \
-	$(STAGING)/lib/lithium/game.so
-
-MODS = default ctf lithium
-
 ARCHIVE     = $(TARGET)/quetoo-$(BUILD).tar.gz
 DEB_CLIENT  = $(TARGET)/quetoo-client_$(VERSION)_$(DEB_ARCH).deb
 DEB_SERVER  = $(TARGET)/quetoo-server_$(VERSION)_$(DEB_ARCH).deb
@@ -103,7 +93,7 @@ $(APPDIR_CLIENT): $(STAGING) $(LINUXDEPLOY)
 
 	for bin in $(CLIENT_BINARIES); do cp -a $(STAGING)/bin/$$bin $(APPDIR_CLIENT)/usr/bin/; done
 	install -d $(APPDIR_CLIENT)/usr/lib/quetoo
-	for mod in $(MODS); do cp -a $(STAGING)/lib/quetoo/$$mod $(APPDIR_CLIENT)/usr/lib/quetoo/; done
+	for mod in $$(ls $(STAGING)/lib/quetoo); do cp -a $(STAGING)/lib/quetoo/$$mod $(APPDIR_CLIENT)/usr/lib/quetoo/; done
 	cp -a $(STAGING)/share $(APPDIR_CLIENT)/usr/
 
 	convert ../src/main/quetoo.ico[0] $(APPDIR_CLIENT)/quetoo.png
@@ -122,7 +112,7 @@ $(APPDIR_SERVER): $(STAGING) $(LINUXDEPLOY)
 	install -d $(APPDIR_SERVER)/usr/bin $(APPDIR_SERVER)/usr/lib $(APPDIR_SERVER)/usr/share
 
 	for bin in $(SERVER_BINARIES); do cp -a $(STAGING)/bin/$$bin $(APPDIR_SERVER)/usr/bin/; done
-	for mod in $(MODS); do \
+	for mod in $$(ls $(STAGING)/lib/quetoo); do \
 		install -d $(APPDIR_SERVER)/usr/lib/quetoo/$$mod; \
 		cp -a $(STAGING)/lib/quetoo/$$mod/game.so $(APPDIR_SERVER)/usr/lib/quetoo/$$mod/; \
 	done
@@ -169,7 +159,7 @@ $(TARGET)/.pkg-common-stamp: $(TARGET)/.common-libs
 		cp -a $(APPDIR_SERVER)/usr/lib/$$lib $(PKGDIR_COMMON)/usr/lib/quetoo/lib/; \
 	done < $(TARGET)/.common-libs
 
-	for mod in $(MODS); do \
+	for mod in $$(ls $(STAGING)/lib/quetoo); do \
 		install -d $(PKGDIR_COMMON)/usr/lib/quetoo/lib/quetoo/$$mod; \
 		cp -a $(APPDIR_SERVER)/usr/lib/quetoo/$$mod/game.so $(PKGDIR_COMMON)/usr/lib/quetoo/lib/quetoo/$$mod/; \
 	done
@@ -187,7 +177,7 @@ $(TARGET)/.pkg-client-stamp: $(APPDIR_CLIENT) $(TARGET)/.pkg-common-stamp
 
 	# Libraries and game.so shipped by quetoo-common; don't duplicate them here.
 	while read -r lib; do rm -f $(PKGDIR_CLIENT)/usr/lib/quetoo/lib/$$lib; done < $(TARGET)/.common-libs
-	for mod in $(MODS); do rm -f $(PKGDIR_CLIENT)/usr/lib/quetoo/lib/quetoo/$$mod/game.so; done
+	for mod in $$(ls $(STAGING)/lib/quetoo); do rm -f $(PKGDIR_CLIENT)/usr/lib/quetoo/lib/quetoo/$$mod/game.so; done
 
 	# Desktop integration
 	install -Dm644 quetoo/Quetoo.desktop \
@@ -251,6 +241,11 @@ deb-common: $(TARGET)/.pkg-common-stamp
 		--url "https://quetoo.org" \
 		--license "GPL-2.0" \
 		--maintainer "jdolan <jdolan@jdolan.net>" \
+		--depends "bash" \
+		--depends "curl" \
+		--depends "python3" \
+		--replaces "quetoo" \
+		--conflicts "quetoo" \
 		-p $(DEB_COMMON) \
 		-C $(PKGDIR_COMMON) .
 
@@ -269,6 +264,8 @@ deb-client: $(TARGET)/.pkg-client-stamp
 		--depends "libharfbuzz0b" \
 		--depends "quetoo-common (= $(VERSION))" \
 		--deb-recommends "quetoo-data" \
+		--replaces "quetoo" \
+		--conflicts "quetoo" \
 		-p $(DEB_CLIENT) \
 		-C $(PKGDIR_CLIENT) .
 
@@ -289,6 +286,8 @@ deb-server: $(TARGET)/.pkg-server-stamp
 		--config-files /etc/sudoers.d/quetoo \
 		--after-install quetoo/postinstall.sh \
 		--before-remove quetoo/preremove.sh \
+		--replaces "quetoo" \
+		--conflicts "quetoo" \
 		-p $(DEB_SERVER) \
 		-C $(PKGDIR_SERVER) .
 
@@ -305,6 +304,11 @@ rpm-common: $(TARGET)/.pkg-common-stamp
 		--url "https://quetoo.org" \
 		--license "GPL-2.0" \
 		--maintainer "jdolan <jdolan@jdolan.net>" \
+		--depends "bash" \
+		--depends "curl" \
+		--depends "python3" \
+		--replaces "quetoo" \
+		--conflicts "quetoo" \
 		-p $(RPM_COMMON) \
 		-C $(PKGDIR_COMMON) .
 
@@ -323,6 +327,8 @@ rpm-client: $(TARGET)/.pkg-client-stamp
 		--depends "harfbuzz" \
 		--depends "quetoo-common = $(VERSION)" \
 		--rpm-tag "Recommends: quetoo-data" \
+		--replaces "quetoo" \
+		--conflicts "quetoo" \
 		-p $(RPM_CLIENT) \
 		-C $(PKGDIR_CLIENT) .
 
@@ -343,6 +349,8 @@ rpm-server: $(TARGET)/.pkg-server-stamp
 		--config-files /etc/sudoers.d/quetoo \
 		--after-install quetoo/postinstall.sh \
 		--before-remove quetoo/preremove.sh \
+		--replaces "quetoo" \
+		--conflicts "quetoo" \
 		-p $(RPM_SERVER) \
 		-C $(PKGDIR_SERVER) .
 
