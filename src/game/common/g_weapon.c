@@ -418,15 +418,17 @@ static void G_ClientMuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
 /**
  * @brief Broadcasts a muzzle flash for a shooter the server does not transmit, such as a
  * `target_ballistics`. The origin and direction accompany the flash, as there is no entity
- * for the client to infer them from.
+ * for the client to infer them from, as does the client to colorize it for, which is the
+ * operator of a `target_turret` and `MAX_CLIENTS` for anything firing on its own account.
  */
-void G_WorldMuzzleFlash(const vec3_t org, const vec3_t dir, g_muzzle_flash_t flash) {
+void G_WorldMuzzleFlash(const vec3_t org, const vec3_t dir, g_muzzle_flash_t flash, uint8_t client) {
 
   gi.WriteByte(SV_CMD_MUZZLE_FLASH);
   gi.WriteShort(MUZZLE_FLASH_WORLD);
   gi.WriteByte(flash);
   gi.WritePosition(org);
   gi.WriteDir(dir);
+  gi.WriteByte(client);
 
   gi.Multicast(org, MULTICAST_PHS);
 }

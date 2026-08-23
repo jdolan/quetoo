@@ -926,10 +926,15 @@ void Cg_ParseMuzzleFlash(void) {
   int32_t client;
   const cl_entity_t *ent = NULL;
 
-  if (entity == MUZZLE_FLASH_WORLD) { // the world is shooting; the origin and dir follow
+  if (entity == MUZZLE_FLASH_WORLD) { // the world is shooting; the origin, dir and client follow
     origin = muzzle = cgi.ReadPosition();
     angles = Vec3_Euler(cgi.ReadDir());
-    client = MAX_CLIENTS;
+    client = cgi.ReadByte();
+
+    if (client > MAX_CLIENTS) {
+      Cg_Warn("Bad client %d for world muzzle flash\n", client);
+      client = MAX_CLIENTS;
+    }
   } else {
 
     if (entity < 0 || entity >= MAX_ENTITIES) {

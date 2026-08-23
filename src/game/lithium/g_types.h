@@ -325,6 +325,7 @@ typedef enum {
   TRAIL_PLAYER_SPAWN,
   TRAIL_QUAKE_NAIL,
   TRAIL_QUAKE_GRENADE,
+  TRAIL_LASER,
 } g_entity_trail_t;
 
 /**
@@ -908,16 +909,42 @@ typedef struct {
   MOD_FIREBALL,
   MOD_ACT_OF_GOD,
   MOD_BOB,
-  MOD_TRAP_BLASTER,
-  MOD_TRAP_NAIL,
-  MOD_TRAP_ROCKET,
-  MOD_TRAP_GRENADE,
-  MOD_TRAP_LASER,
-  MOD_TRAP_GIBLETS,
+  MOD_BALLISTICS_BLASTER,
+  MOD_BALLISTICS_SHOTGUN,
+  MOD_BALLISTICS_SUPER_SHOTGUN,
+  MOD_BALLISTICS_MACHINEGUN,
+  MOD_BALLISTICS_GRENADE,
+  MOD_BALLISTICS_ROCKET,
+  MOD_BALLISTICS_HYPERBLASTER,
+  MOD_BALLISTICS_LIGHTNING,
+  MOD_BALLISTICS_RAILGUN,
+  MOD_BALLISTICS_BFG,
+  MOD_BALLISTICS_QUAKE_SHOTGUN,
+  MOD_BALLISTICS_QUAKE_SUPER_SHOTGUN,
+  MOD_BALLISTICS_QUAKE_NAILGUN,
+  MOD_BALLISTICS_QUAKE_SUPER_NAILGUN,
+  MOD_BALLISTICS_QUAKE_GRENADE,
+  MOD_BALLISTICS_QUAKE_ROCKET,
+  MOD_BALLISTICS_QUAKE_THUNDERBOLT,
+  MOD_BALLISTICS_LASER,
+  MOD_BALLISTICS_GIBLETS,
   MOD_TURRET_BLASTER,
-  MOD_TURRET_NAIL,
-  MOD_TURRET_ROCKET,
+  MOD_TURRET_SHOTGUN,
+  MOD_TURRET_SUPER_SHOTGUN,
+  MOD_TURRET_MACHINEGUN,
   MOD_TURRET_GRENADE,
+  MOD_TURRET_ROCKET,
+  MOD_TURRET_HYPERBLASTER,
+  MOD_TURRET_LIGHTNING,
+  MOD_TURRET_RAILGUN,
+  MOD_TURRET_BFG,
+  MOD_TURRET_QUAKE_SHOTGUN,
+  MOD_TURRET_QUAKE_SUPER_SHOTGUN,
+  MOD_TURRET_QUAKE_NAILGUN,
+  MOD_TURRET_QUAKE_SUPER_NAILGUN,
+  MOD_TURRET_QUAKE_GRENADE,
+  MOD_TURRET_QUAKE_ROCKET,
+  MOD_TURRET_QUAKE_THUNDERBOLT,
   MOD_TURRET_LASER,
   MOD_TURRET_GIBLETS,
   MOD_FRIENDLY_FIRE = 0x8000000
@@ -1592,6 +1619,12 @@ struct g_entity_s {
   uint32_t timestamp;
 
   /**
+   * @brief Time of the last muzzle flash, throttling the flash rate of rapid
+   * firing entities independently of how often they actually fire.
+   */
+  uint32_t flash_time;
+
+  /**
    * @brief Target name to fire when triggered.
    */
   const char *target;
@@ -1805,6 +1838,12 @@ struct g_entity_s {
    * @brief Item definition for bonus item entities.
    */
   const g_item_t *item;
+
+  /**
+   * @brief Projectile definition for `ballistics_*` and `turret_*` entities, resolved from their
+   * classname at spawn time. Opaque here; the definition is private to g_entity_target.c.
+   */
+  const void *ballistics;
 
   /**
    * @brief AI navigation node for item path tracking.
