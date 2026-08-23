@@ -213,6 +213,24 @@ struct g_ballistics_type_s {
   uint32_t min_wait;
 
   /**
+   * @brief The interval an entity fires at when it does not ask for one, taken from the weapon's
+   * own refire so that a turret behaves exactly like the weapon it mounts. Mappers tune from
+   * there, down to `min_wait`.
+   */
+  cvar_t **refire;
+
+  /**
+   * @brief The same, in millis, for the two projectiles that have no weapon to inherit from.
+   */
+  uint32_t default_wait;
+
+  /**
+   * @brief The weapon's wind-up, if it has one, inserted between being used and firing so that
+   * the entity primes exactly as the weapon does. Only the BFG has one.
+   */
+  cvar_t **prefire;
+
+  /**
    * @brief Milliseconds between muzzle flashes, throttling types that fire faster than their
    * flash and its sample can be tolerated at. Zero flashes on every shot.
    */
@@ -321,14 +339,15 @@ static void G_ballistics_Rail(const g_ballistics_type_t *type, g_entity_t *ent, 
  * @brief Creates or refreshes a laser beam.
  */
 static void G_ballistics_Laser(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
-  G_BeamProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod, TRAIL_LASER);
+  G_BeamProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod, TRAIL_LASER, 0);
 }
 
 /**
  * @brief Creates or refreshes a lightning beam.
  */
 static void G_ballistics_Lightning(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
-  G_BeamProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod, TRAIL_LIGHTNING);
+  G_BeamProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod, TRAIL_LIGHTNING,
+    g_media.sounds.lightning_fly);
 }
 
 /**
@@ -354,6 +373,7 @@ static void G_ballistics_Giblets(const g_ballistics_type_t *type, g_entity_t *en
 static const g_ballistics_type_t g_ballistics_types[] = {
   {
     .name = "blaster",
+    .refire = &g_balance_blaster_refire,
     .min_wait = 200,
     .Fire = G_ballistics_Blaster,
     .flash = MZ_BLASTER,
@@ -364,6 +384,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .speed = &g_balance_blaster_speed,
   }, {
     .name = "shotgun",
+    .refire = &g_balance_shotgun_refire,
     .min_wait = 200,
     .Fire = G_ballistics_Shotgun,
     .flash = MZ_SHOTGUN,
@@ -376,6 +397,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .pellets = &g_balance_shotgun_pellets,
   }, {
     .name = "supershotgun",
+    .refire = &g_balance_supershotgun_refire,
     .min_wait = 200,
     .Fire = G_ballistics_Shotgun,
     .flash = MZ_SUPER_SHOTGUN,
@@ -388,7 +410,8 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .pellets = &g_balance_supershotgun_pellets,
   }, {
     .name = "machinegun",
-    .min_wait = 100,
+    .refire = &g_balance_machinegun_refire,
+    .min_wait = 20,
     .Fire = G_ballistics_Machinegun,
     .flash = MZ_MACHINEGUN,
     .ballistics_mod = MOD_BALLISTICS_MACHINEGUN,
@@ -399,6 +422,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .spread_y = &g_balance_machinegun_spread_y,
   }, {
     .name = "grenadelauncher",
+    .refire = &g_balance_grenadelauncher_refire,
     .min_wait = 400,
     .Fire = G_ballistics_Grenade,
     .flash = MZ_GRENADE_LAUNCHER,
@@ -410,6 +434,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .radius = &g_balance_grenadelauncher_radius,
   }, {
     .name = "rocketlauncher",
+    .refire = &g_balance_rocketlauncher_refire,
     .min_wait = 400,
     .Fire = G_ballistics_Rocket,
     .flash = MZ_ROCKET_LAUNCHER,
@@ -421,7 +446,8 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .radius = &g_balance_rocketlauncher_radius,
   }, {
     .name = "hyperblaster",
-    .min_wait = 100,
+    .refire = &g_balance_hyperblaster_refire,
+    .min_wait = 40,
     .Fire = G_ballistics_Hyperblaster,
     .flash = MZ_HYPERBLASTER,
     .ballistics_mod = MOD_BALLISTICS_HYPERBLASTER,
@@ -431,6 +457,9 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .speed = &g_balance_hyperblaster_speed,
   }, {
     .name = "lightning",
+    .flash = MZ_LIGHTNING,
+    .flash_interval = 100,
+    .refire = &g_balance_lightning_refire,
     .Fire = G_ballistics_Lightning,
     .ballistics_mod = MOD_BALLISTICS_LIGHTNING,
     .turret_mod = MOD_TURRET_LIGHTNING,
@@ -439,6 +468,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .knockback = &g_balance_lightning_knockback,
   }, {
     .name = "railgun",
+    .refire = &g_balance_railgun_refire,
     .min_wait = 400,
     .Fire = G_ballistics_Rail,
     .flash = MZ_RAILGUN,
@@ -448,6 +478,8 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .knockback = &g_balance_railgun_knockback,
   }, {
     .name = "bfg",
+    .refire = &g_balance_bfg_refire,
+    .prefire = &g_balance_bfg_prefire,
     .min_wait = 1000,
     .Fire = G_ballistics_Bfg,
     .flash = MZ_BFG10K,
@@ -459,6 +491,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .radius = &g_balance_bfg_radius,
   }, {
     .name = "quake_shotgun",
+    .refire = &g_balance_quake_shotgun_refire,
     .min_wait = 200,
     .Fire = G_ballistics_Shotgun,
     .flash = MZ_QUAKE_SHOTGUN,
@@ -471,6 +504,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .pellets = &g_balance_quake_shotgun_pellets,
   }, {
     .name = "quake_supershotgun",
+    .refire = &g_balance_quake_supershotgun_refire,
     .min_wait = 200,
     .Fire = G_ballistics_Shotgun,
     .flash = MZ_QUAKE_SUPER_SHOTGUN,
@@ -483,7 +517,8 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .pellets = &g_balance_quake_supershotgun_pellets,
   }, {
     .name = "quake_nailgun",
-    .min_wait = 100,
+    .refire = &g_balance_quake_nailgun_refire,
+    .min_wait = 40,
     .Fire = G_ballistics_Nail,
     .flash = MZ_QUAKE_NAILGUN,
     .ballistics_mod = MOD_BALLISTICS_QUAKE_NAILGUN,
@@ -493,7 +528,8 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .speed = &g_balance_quake_nailgun_speed,
   }, {
     .name = "quake_supernailgun",
-    .min_wait = 100,
+    .refire = &g_balance_quake_supernailgun_refire,
+    .min_wait = 60,
     .Fire = G_ballistics_Nail,
     .flash = MZ_QUAKE_SUPER_NAILGUN,
     .ballistics_mod = MOD_BALLISTICS_QUAKE_SUPER_NAILGUN,
@@ -503,6 +539,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .speed = &g_balance_quake_supernailgun_speed,
   }, {
     .name = "quake_grenadelauncher",
+    .refire = &g_balance_quake_grenadelauncher_refire,
     .min_wait = 400,
     .Fire = G_ballistics_QuakeGrenade,
     .flash = MZ_QUAKE_GRENADE_LAUNCHER,
@@ -514,6 +551,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .radius = &g_balance_quake_grenadelauncher_radius,
   }, {
     .name = "quake_rocketlauncher",
+    .refire = &g_balance_quake_rocketlauncher_refire,
     .min_wait = 400,
     .Fire = G_ballistics_QuakeRocket,
     .flash = MZ_QUAKE_ROCKET_LAUNCHER,
@@ -525,6 +563,9 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .radius = &g_balance_quake_rocketlauncher_radius,
   }, {
     .name = "quake_thunderbolt",
+    .flash = MZ_LIGHTNING,
+    .flash_interval = 50,
+    .refire = &g_balance_quake_thunderbolt_refire,
     .Fire = G_ballistics_Lightning,
     .ballistics_mod = MOD_BALLISTICS_QUAKE_THUNDERBOLT,
     .turret_mod = MOD_TURRET_QUAKE_THUNDERBOLT,
@@ -533,6 +574,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .knockback = &g_balance_quake_thunderbolt_knockback,
   }, {
     .name = "laser",
+    .default_wait = 100,
     .Fire = G_ballistics_Laser,
     .ballistics_mod = MOD_BALLISTICS_LASER,
     .turret_mod = MOD_TURRET_LASER,
@@ -540,11 +582,12 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .default_damage = 20,
   }, {
     .name = "giblets",
+    .default_wait = 500,
     .Fire = G_ballistics_Giblets,
     .flash = MZ_LOGOUT,
     .ballistics_mod = MOD_BALLISTICS_GIBLETS,
     .turret_mod = MOD_TURRET_GIBLETS,
-    .min_wait = 250,
+    .min_wait = 100,
     .flash_interval = 500,
     .default_damage = 10,
     .default_speed = 500,
@@ -600,7 +643,8 @@ static void G_ballistics_Fire(g_entity_t *ent, g_entity_t *attacker, const vec3_
 
   type->Fire(type, ent, attacker, start, aim, mod);
 
-  if (type->sustained) {
+  // a sustained beam is not a shot, so it sounds only if its type asks for an interval
+  if (type->sustained && type->flash_interval == 0) {
     return;
   }
 
@@ -612,13 +656,42 @@ static void G_ballistics_Fire(g_entity_t *ent, g_entity_t *attacker, const vec3_
 }
 
 /**
+ * @brief Resolves the wind-up before a shot leaves, and primes the weapon if it has one.
+ * @return The millis to wait before firing, or zero to fire at once.
+ */
+static uint32_t G_ballistics_Prefire(g_entity_t *ent) {
+
+  const g_ballistics_type_t *type = ent->ballistics;
+
+  if (type->prefire == NULL) {
+    return 0;
+  }
+
+  const uint32_t prefire = (uint32_t) SECONDS_TO_MILLIS((*type->prefire)->value);
+
+  if (prefire) {
+    G_MulticastSound(&(const g_play_sound_t) {
+      .index = g_media.sounds.bfg_prime,
+      .origin = &ent->s.origin,
+    }, MULTICAST_PHS);
+  }
+
+  return prefire;
+}
+
+/**
  * @brief Think callback for a free-running trap; fires and re-arms itself.
  */
 static void G_ballistics_Think(g_entity_t *ent) {
 
   const g_ballistics_type_t *type = ent->ballistics;
 
-  G_ballistics_Fire(ent, ent, G_ballistics_Dir(ent), type->ballistics_mod);
+  if (ent->activator && ent->activator->client) {
+    G_ballistics_Fire(ent, ent->activator, ent->activator->client->forward, type->turret_mod);
+    ent->activator = NULL;
+  } else {
+    G_ballistics_Fire(ent, ent, G_ballistics_Dir(ent), type->ballistics_mod);
+  }
 
   if (ent->count) {
     // a sustained type holds its beam, so it refreshes every tick rather than at "wait"
@@ -662,8 +735,10 @@ static void G_ballistics_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *act
 
   ent->timestamp = g_level.time + SECONDS_TO_MILLIS(ent->wait);
 
-  if (ent->delay) {
-    ent->next_think = g_level.time + (uint32_t) Maxf(SECONDS_TO_MILLIS(ent->delay), QUETOO_TICK_MILLIS);
+  const uint32_t delay = (uint32_t) SECONDS_TO_MILLIS(ent->delay) + G_ballistics_Prefire(ent);
+
+  if (delay) {
+    ent->next_think = g_level.time + (uint32_t) Maxi((int32_t) delay, QUETOO_TICK_MILLIS);
   } else {
     const g_ballistics_type_t *type = ent->ballistics;
 
@@ -690,12 +765,27 @@ static void G_turret_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activat
     ent->timestamp = g_level.time + SECONDS_TO_MILLIS(ent->wait);
   }
 
+  const uint32_t prefire = G_ballistics_Prefire(ent);
+
   if (activator && activator->client) {
     ent->s.client = activator->s.client;
-    G_ballistics_Fire(ent, activator, activator->client->forward, type->turret_mod);
+
+    if (prefire) {
+      // hold the operator, and aim where they are looking when it goes off
+      ent->activator = activator;
+      ent->next_think = g_level.time + prefire;
+    } else {
+      G_ballistics_Fire(ent, activator, activator->client->forward, type->turret_mod);
+    }
   } else {
     ent->s.client = MAX_CLIENTS;
-    G_ballistics_Fire(ent, ent, ent->move_dir, type->ballistics_mod);
+
+    if (prefire) {
+      ent->activator = NULL;
+      ent->next_think = g_level.time + prefire;
+    } else {
+      G_ballistics_Fire(ent, ent, ent->move_dir, type->ballistics_mod);
+    }
   }
 }
 
@@ -730,8 +820,10 @@ static void G_ballistics_Init(g_entity_t *ent, const g_ballistics_type_t *type) 
 
   ent->accel = Clampf(gi.EntityValue(ent->def, "spread")->value, 0.f, 1.f);
 
+  // an entity that asks for no interval fires at the weapon's own rate, so that a turret behaves
+  // exactly like the weapon it mounts; one that does is honoured, down to the type's floor
   if (!(gi.EntityValue(ent->def, "wait")->parsed & ENTITY_FLOAT)) {
-    ent->wait = 1.f;
+    ent->wait = type->refire ? (*type->refire)->value : MILLIS_TO_SECONDS(type->default_wait);
   }
 
   ent->wait = Maxf(ent->wait, MILLIS_TO_SECONDS(type->min_wait));
@@ -816,6 +908,7 @@ bool G_ballistics(g_entity_t *ent) {
 
   if (turret) {
     ent->Use = G_turret_Use;
+    ent->Think = G_ballistics_Think;
   } else {
     ent->Use = G_ballistics_Use;
     ent->Think = G_ballistics_Think;
