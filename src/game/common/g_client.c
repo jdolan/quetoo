@@ -396,6 +396,24 @@ static void G_ClientGiblet_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
 }
 
 /**
+ * @brief Think for giblets spawned with an explicit lifetime, which do not linger and sink as a
+ * corpse's giblets do. Bleeds while in flight and frees itself at the deadline held in `timestamp`.
+ * @remarks Giblets only bleed while their think is running, so giblets given a lifetime would
+ * otherwise fly clean; the trail is assigned by `G_ClientCorpse_Think`, which they never run.
+ */
+static void G_Giblet_Think(g_entity_t *ent) {
+
+  if (g_level.time >= ent->timestamp) {
+    G_FreeEntity(ent);
+    return;
+  }
+
+  ent->s.trail = Vec3_Length(ent->velocity) > 30.f ? TRAIL_GIB : TRAIL_NONE;
+
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+}
+
+/**
  * @brief Sink into the floor after a few seconds, providing a window of time for us to be made into
  * giblets or knocked around. This is called by corpses and giblets alike.
  */
@@ -540,8 +558,9 @@ void G_Giblets(const g_giblets_t *giblets) {
     gib->Touch = G_ClientGiblet_Touch;
 
     if (giblets->lifetime) {
-      gib->Think = G_FreeEntity;
-      gib->next_think = g_level.time + giblets->lifetime;
+      gib->timestamp = g_level.time + giblets->lifetime;
+      gib->Think = G_Giblet_Think;
+      gib->next_think = g_level.time + QUETOO_TICK_MILLIS;
     } else {
       gib->Think = G_ClientCorpse_Think;
       gib->next_think = g_level.time + QUETOO_TICK_MILLIS;
