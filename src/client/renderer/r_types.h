@@ -1904,6 +1904,11 @@ typedef struct {
    * @brief The shadow atlas tile origin in pixels.
    */
   vec2_t tile;
+
+  /**
+   * @brief The hash of this light's shadow map inputs, or `0` if it casts none this frame.
+   */
+  uint64_t hash;
 } r_light_t;
 
 /**

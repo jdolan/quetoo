@@ -250,6 +250,8 @@ void R_EndLoading(void) {
   R_FreeMediaEntries(NULL);
 
   R_LoadOcclusionQueries();
+
+  R_ClearShadows();
 }
 
 /**
