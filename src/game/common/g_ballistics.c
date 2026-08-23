@@ -1104,12 +1104,12 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 /**
  * @brief Locates the sustained beam belonging to the given owner, if it has one.
  */
-static g_entity_t *G_BeamProjectile_Find(const g_entity_t *ent) {
+static g_entity_t *G_BeamProjectile_Find(const g_entity_t *emitter) {
 
   g_entity_t *projectile = NULL;
 
   while ((projectile = G_Find(projectile, EOFS(classname), "G_BeamProjectile"))) {
-    if (projectile->owner == ent) {
+    if (projectile->owner == emitter) {
       return projectile;
     }
   }
@@ -1118,20 +1118,75 @@ static g_entity_t *G_BeamProjectile_Find(const g_entity_t *ent) {
 }
 
 /**
- * @brief Creates or refreshes the sustained beam belonging to the given owner, tracing it to
- * whatever it lands on and burning what it finds there.
+ * @brief Re-traces the beam from its emitter and burns whatever it lands on.
+ * @remarks This runs every tick, rather than only when the emitter refreshes the beam. An
+ * operator holding a turret aims continuously, and a trigger_multiple only re-uses the turret as
+ * often as its own wait allows, so a beam that took its direction from the refresh would lag the
+ * operator's view badly. `touch_time` holds the deadline the emitter keeps pushing forward; the
+ * beam frees itself once the emitter stops asking.
+ */
+static void G_BeamProjectile_Think(g_entity_t *ent) {
+
+  const g_entity_t *emitter = ent->owner;
+
+  if (g_level.time >= ent->touch_time || !emitter->in_use) {
+    G_FreeEntity(ent);
+    return;
+  }
+
+  vec3_t dir = ent->move_dir;
+
+  if (ent->activator && ent->activator->client) {
+    dir = ent->activator->client->forward;
+  }
+
+  const vec3_t start = Vec3_Fmaf(emitter->s.origin, 8.f, dir);
+  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, dir);
+
+  const cm_trace_t tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+
+  if (g_level.time >= ent->timestamp && G_TakesDamage(tr.ent)) {
+
+    ent->timestamp = g_level.time + (uint32_t) Maxf(SECONDS_TO_MILLIS(emitter->wait), QUETOO_TICK_MILLIS);
+
+    G_Damage(&(g_damage_t) {
+      .target = tr.ent,
+      .inflictor = ent,
+      .attacker = ent->activator ?: ent->owner,
+      .dir = dir,
+      .point = tr.end,
+      .normal = tr.plane.normal,
+      .damage = ent->damage,
+      .knockback = ent->knockback,
+      .flags = DMG_ENERGY,
+      .mod = ent->mod
+    });
+  }
+
+  ent->s.origin = start;
+  ent->s.termination = tr.end;
+
+  gi.LinkEntity(ent);
+
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+}
+
+/**
+ * @brief Creates or refreshes the sustained beam belonging to the given emitter.
  * @param emitter The entity the beam emanates from, providing its color and damage interval.
- * @param attacker The entity credited with any damage the beam inflicts.
+ * @param attacker The entity credited with any damage the beam inflicts, and whose view aims it
+ * when it is a player operating a turret.
  * @param trail The trail the client renders the beam with, which is what distinguishes a laser
  * from lightning; the two differ in appearance and in nothing else here.
+ * @param sound The looping sound the beam carries while it exists, or zero for a silent one.
  * @remarks The beam is a persistent entity rather than an effect repeated per shot, so it costs a
- * delta only on the ticks its endpoint actually moves. It expires shortly after its owner stops
- * refreshing it, which is what lets a turret's operator simply walk away from it.
+ * delta only on the ticks its endpoint actually moves. Its own think does the work; this only
+ * hands over the parameters and pushes the deadline out.
  * @remarks `G_LightningProjectile` cannot serve here: its think resolves the muzzle through
- * `emitter->owner->client`, which a trap does not have.
+ * `ent->owner->client`, which a trap does not have.
  */
 void G_BeamProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t start, const vec3_t dir,
-             int32_t damage, int32_t knockback, uint32_t mod, uint8_t trail) {
+             int32_t damage, int32_t knockback, uint32_t mod, uint8_t trail, uint16_t sound) {
 
   g_entity_t *projectile = G_BeamProjectile_Find(emitter);
 
@@ -1142,9 +1197,10 @@ void G_BeamProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t st
     projectile->solid = SOLID_NOT;
     projectile->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
     projectile->move_type = MOVE_TYPE_THINK;
-    projectile->Think = G_FreeEntity;
+    projectile->Think = G_BeamProjectile_Think;
     projectile->s.effects = EF_BEAM;
     projectile->s.trail = trail;
+    projectile->s.sound = sound;
     projectile->s.color = emitter->s.color;
 
     // the beam leaves its emitter, never a player, so it must not be attributed to one;
@@ -1154,41 +1210,21 @@ void G_BeamProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t st
     projectile->timestamp = 0;
   }
 
-  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, dir);
+  projectile->activator = attacker && attacker->client ? attacker : NULL;
+  projectile->move_dir = dir;
+  projectile->damage = damage;
+  projectile->knockback = knockback;
+  projectile->mod = mod;
 
-  const cm_trace_t tr = gi.Trace(start, end, Box3_Zero(), projectile, CONTENTS_MASK_CLIP_PROJECTILE);
+  // the deadline the emitter keeps pushing out; it must comfortably exceed the interval its
+  // refresher runs at, a trap being every tick but a turret only as often as its trigger fires
+  projectile->touch_time = g_level.time + 500;
 
-  if (g_level.time >= projectile->timestamp && G_TakesDamage(tr.ent)) {
-
-    projectile->timestamp = g_level.time + (uint32_t) Maxf(SECONDS_TO_MILLIS(emitter->wait), QUETOO_TICK_MILLIS);
-
-    G_Damage(&(g_damage_t) {
-      .target = tr.ent,
-      .inflictor = projectile,
-      .attacker = attacker,
-      .dir = dir,
-      .point = tr.end,
-      .normal = tr.plane.normal,
-      .damage = damage,
-      .knockback = knockback,
-      .flags = DMG_ENERGY,
-      .mod = mod
-    });
-  }
-
-  projectile->s.origin = start;
-  projectile->s.termination = tr.end;
-
-  gi.LinkEntity(projectile);
-
-  // Expire unless refreshed, so that a beam outlives neither its owner nor its operator. This
-  // must comfortably exceed the interval its refresher runs at: a trap refreshes every tick, but
-  // a turret only as often as the trigger_multiple behind it fires.
-  projectile->next_think = g_level.time + 250;
+  G_BeamProjectile_Think(projectile);
 }
 
 /**
- * @brief Frees the sustained beam belonging to the given owner, if it has one.
+ * @brief Frees the sustained beam belonging to the given emitter, if it has one.
  */
 void G_FreeBeamProjectile(g_entity_t *emitter) {
 

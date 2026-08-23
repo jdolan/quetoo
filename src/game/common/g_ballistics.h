@@ -34,7 +34,7 @@ void G_QuakeGrenadeProjectile(g_entity_t *emitter, g_entity_t *attacker, const v
 void G_RocketProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius, uint32_t mod);
 void G_QuakeRocketProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius);
 void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage, int32_t knockback, int32_t mod, int32_t discharge_mod);
-void G_BeamProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t start, const vec3_t dir, int32_t damage, int32_t knockback, uint32_t mod, uint8_t trail);
+void G_BeamProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t start, const vec3_t dir, int32_t damage, int32_t knockback, uint32_t mod, uint8_t trail, uint16_t sound);
 void G_FreeBeamProjectile(g_entity_t *emitter);
 void G_RailgunProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t start, const vec3_t dir, int32_t damage, int32_t knockback, uint32_t mod);
 void G_BfgProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius);
