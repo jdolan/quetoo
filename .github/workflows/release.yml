@@ -652,11 +652,20 @@ jobs:
         | Platform | New Install | Update |
         |---|---|---|
         | Windows x86-64 | [quetoo-bundle-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-windows.zip) | [quetoo-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-windows.zip) |
-        | Linux x86-64 | [quetoo-bundle-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-linux.tar.gz) | [quetoo-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.tar.gz), [.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-x86_64-pc-linux.deb), [.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-x86_64-pc-linux.rpm) |
-        | Linux arm64 | [quetoo-bundle-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-aarch64-pc-linux.tar.gz) | [quetoo-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.tar.gz), [.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-aarch64-pc-linux.deb), [.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-aarch64-pc-linux.rpm) |
+        | Linux x86-64 | [quetoo-bundle-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-linux.tar.gz) | [quetoo-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.tar.gz) |
+        | Linux arm64 | [quetoo-bundle-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-aarch64-pc-linux.tar.gz) | [quetoo-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.tar.gz) |
         | macOS Universal | [quetoo-bundle-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-universal-apple-darwin.dmg) | [quetoo-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-universal-apple-darwin.dmg) |
 
         > These are standalone files, not served from a repository, so `Recommends: quetoo-data` won't auto-install it — also download and install the latest [quetoo-data](https://github.com/jdolan/quetoo-data/releases) release. The `.tar.gz` archive does not include game data either.
+
+        ## Linux Client Packages (.deb / .rpm)
+
+        | Package | x86-64 | arm64 |
+        |---|---|---|
+        | .deb | [quetoo-client-x86_64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-x86_64-pc-linux.deb) | [quetoo-client-aarch64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-aarch64-pc-linux.deb) |
+        | .rpm | [quetoo-client-x86_64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-x86_64-pc-linux.rpm) | [quetoo-client-aarch64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-aarch64-pc-linux.rpm) |
+
+        > Also requires the latest [quetoo-data](https://github.com/jdolan/quetoo-data/releases) release.
 
         ## Dedicated Server Packages
 
