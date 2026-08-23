@@ -487,10 +487,15 @@ static void G_ClientGiblet_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
 }
 
 /**
- * @brief The window a giblet spends fading out once its lifetime is up, which must outlast the
- * three seconds the client takes to fade it.
+ * @brief How long a corpse and its giblets remain before they begin to despawn.
  */
-#define GIBLET_DESPAWN_TIME 4000
+#define CORPSE_LIFETIME 30000
+
+/**
+ * @brief The window a corpse or giblet spends fading out once its time is up, which must outlast
+ * the three seconds the client takes to fade it.
+ */
+#define DESPAWN_TIME 4000
 
 /**
  * @brief Think for giblets spawned with an explicit lifetime. Bleeds while in flight, then sinks
@@ -503,7 +508,7 @@ static void G_Giblet_Think(g_entity_t *ent) {
 
   if (g_level.time >= ent->timestamp) {
 
-    if (g_level.time >= ent->timestamp + GIBLET_DESPAWN_TIME) {
+    if (g_level.time >= ent->timestamp + DESPAWN_TIME) {
       G_FreeEntity(ent);
       return;
     }
@@ -580,13 +585,13 @@ static void G_ClientCorpse_Think(g_entity_t *ent) {
     }
   }
 
-  if (age > 30000 + 4000) {
+  if (age > CORPSE_LIFETIME + DESPAWN_TIME) {
     G_FreeEntity(ent);
     return;
   }
 
   // sink into the floor after a while
-  if (age > 30000) {
+  if (age > CORPSE_LIFETIME) {
 
     ent->s.effects |= EF_DESPAWN;
 
