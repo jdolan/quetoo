@@ -1160,7 +1160,7 @@ void G_BeamProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t st
 
   if (g_level.time >= projectile->timestamp && G_TakesDamage(tr.ent)) {
 
-    projectile->timestamp = g_level.time + (uint32_t) Maxf(emitter->wait * 1000.f, QUETOO_TICK_MILLIS);
+    projectile->timestamp = g_level.time + (uint32_t) Maxf(SECONDS_TO_MILLIS(emitter->wait), QUETOO_TICK_MILLIS);
 
     G_Damage(&(g_damage_t) {
       .target = tr.ent,

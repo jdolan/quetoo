@@ -181,13 +181,7 @@ void G_target_string(g_entity_t *ent) {
 
   // the rest is handled by G_UseTargets
 }
-/*
- * One classname per weapon, `ballistics_$weapon` and `turret_$weapon`, resolved from the
- * classname suffix. The weapon is a one-of-N choice, which spawnflags model badly: as flags they
- * were eighteen mutually exclusive checkboxes that the spawn function had to police at runtime.
- * Classnames make the invalid combinations unrepresentable, and editors group them by prefix.
- * They are ordered as the weapons themselves are in `g_item_t` (`bg_item.h`).
- */
+
 #define BALLISTICS_START_ON 0x1
 #define BALLISTICS_TOGGLE   0x2
 
@@ -211,7 +205,12 @@ struct g_ballistics_type_s {
   g_muzzle_flash_t flash;
   uint32_t ballistics_mod;
   uint32_t turret_mod;
-  float min_wait;
+
+  /**
+   * @brief The shortest interval in millis this projectile may be fired at, below which it would
+   * exhaust the entity pool or drown itself in sound.
+   */
+  uint32_t min_wait;
 
   /**
    * @brief Milliseconds between muzzle flashes, throttling types that fire faster than their
@@ -355,7 +354,7 @@ static void G_ballistics_Giblets(const g_ballistics_type_t *type, g_entity_t *en
 static const g_ballistics_type_t g_ballistics_types[] = {
   {
     .name = "blaster",
-    .min_wait = .1f,
+    .min_wait = 200,
     .Fire = G_ballistics_Blaster,
     .flash = MZ_BLASTER,
     .ballistics_mod = MOD_BALLISTICS_BLASTER,
@@ -365,7 +364,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .speed = &g_balance_blaster_speed,
   }, {
     .name = "shotgun",
-    .min_wait = .1f,
+    .min_wait = 200,
     .Fire = G_ballistics_Shotgun,
     .flash = MZ_SHOTGUN,
     .ballistics_mod = MOD_BALLISTICS_SHOTGUN,
@@ -377,7 +376,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .pellets = &g_balance_shotgun_pellets,
   }, {
     .name = "supershotgun",
-    .min_wait = .1f,
+    .min_wait = 200,
     .Fire = G_ballistics_Shotgun,
     .flash = MZ_SUPER_SHOTGUN,
     .ballistics_mod = MOD_BALLISTICS_SUPER_SHOTGUN,
@@ -389,19 +388,18 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .pellets = &g_balance_supershotgun_pellets,
   }, {
     .name = "machinegun",
-    .min_wait = .1f,
+    .min_wait = 100,
     .Fire = G_ballistics_Machinegun,
     .flash = MZ_MACHINEGUN,
     .ballistics_mod = MOD_BALLISTICS_MACHINEGUN,
     .turret_mod = MOD_TURRET_MACHINEGUN,
-    .flash_interval = 100,
     .damage = &g_balance_machinegun_damage,
     .knockback = &g_balance_machinegun_knockback,
     .spread_x = &g_balance_machinegun_spread_x,
     .spread_y = &g_balance_machinegun_spread_y,
   }, {
     .name = "grenadelauncher",
-    .min_wait = .1f,
+    .min_wait = 400,
     .Fire = G_ballistics_Grenade,
     .flash = MZ_GRENADE_LAUNCHER,
     .ballistics_mod = MOD_BALLISTICS_GRENADE,
@@ -412,7 +410,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .radius = &g_balance_grenadelauncher_radius,
   }, {
     .name = "rocketlauncher",
-    .min_wait = .1f,
+    .min_wait = 400,
     .Fire = G_ballistics_Rocket,
     .flash = MZ_ROCKET_LAUNCHER,
     .ballistics_mod = MOD_BALLISTICS_ROCKET,
@@ -423,12 +421,11 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .radius = &g_balance_rocketlauncher_radius,
   }, {
     .name = "hyperblaster",
-    .min_wait = .1f,
+    .min_wait = 100,
     .Fire = G_ballistics_Hyperblaster,
     .flash = MZ_HYPERBLASTER,
     .ballistics_mod = MOD_BALLISTICS_HYPERBLASTER,
     .turret_mod = MOD_TURRET_HYPERBLASTER,
-    .flash_interval = 100,
     .damage = &g_balance_hyperblaster_damage,
     .knockback = &g_balance_hyperblaster_knockback,
     .speed = &g_balance_hyperblaster_speed,
@@ -442,16 +439,16 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .knockback = &g_balance_lightning_knockback,
   }, {
     .name = "railgun",
+    .min_wait = 400,
     .Fire = G_ballistics_Rail,
     .flash = MZ_RAILGUN,
     .ballistics_mod = MOD_BALLISTICS_RAILGUN,
     .turret_mod = MOD_TURRET_RAILGUN,
-    .flash_interval = 250,
     .damage = &g_balance_railgun_damage,
     .knockback = &g_balance_railgun_knockback,
   }, {
     .name = "bfg",
-    .min_wait = .5f,
+    .min_wait = 1000,
     .Fire = G_ballistics_Bfg,
     .flash = MZ_BFG10K,
     .ballistics_mod = MOD_BALLISTICS_BFG,
@@ -462,7 +459,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .radius = &g_balance_bfg_radius,
   }, {
     .name = "quake_shotgun",
-    .min_wait = .1f,
+    .min_wait = 200,
     .Fire = G_ballistics_Shotgun,
     .flash = MZ_QUAKE_SHOTGUN,
     .ballistics_mod = MOD_BALLISTICS_QUAKE_SHOTGUN,
@@ -474,7 +471,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .pellets = &g_balance_quake_shotgun_pellets,
   }, {
     .name = "quake_supershotgun",
-    .min_wait = .1f,
+    .min_wait = 200,
     .Fire = G_ballistics_Shotgun,
     .flash = MZ_QUAKE_SUPER_SHOTGUN,
     .ballistics_mod = MOD_BALLISTICS_QUAKE_SUPER_SHOTGUN,
@@ -486,7 +483,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .pellets = &g_balance_quake_supershotgun_pellets,
   }, {
     .name = "quake_nailgun",
-    .min_wait = .1f,
+    .min_wait = 100,
     .Fire = G_ballistics_Nail,
     .flash = MZ_QUAKE_NAILGUN,
     .ballistics_mod = MOD_BALLISTICS_QUAKE_NAILGUN,
@@ -496,7 +493,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .speed = &g_balance_quake_nailgun_speed,
   }, {
     .name = "quake_supernailgun",
-    .min_wait = .1f,
+    .min_wait = 100,
     .Fire = G_ballistics_Nail,
     .flash = MZ_QUAKE_SUPER_NAILGUN,
     .ballistics_mod = MOD_BALLISTICS_QUAKE_SUPER_NAILGUN,
@@ -506,7 +503,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .speed = &g_balance_quake_supernailgun_speed,
   }, {
     .name = "quake_grenadelauncher",
-    .min_wait = .1f,
+    .min_wait = 400,
     .Fire = G_ballistics_QuakeGrenade,
     .flash = MZ_QUAKE_GRENADE_LAUNCHER,
     .ballistics_mod = MOD_BALLISTICS_QUAKE_GRENADE,
@@ -517,7 +514,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .radius = &g_balance_quake_grenadelauncher_radius,
   }, {
     .name = "quake_rocketlauncher",
-    .min_wait = .1f,
+    .min_wait = 400,
     .Fire = G_ballistics_QuakeRocket,
     .flash = MZ_QUAKE_ROCKET_LAUNCHER,
     .ballistics_mod = MOD_BALLISTICS_QUAKE_ROCKET,
@@ -547,8 +544,8 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .flash = MZ_LOGOUT,
     .ballistics_mod = MOD_BALLISTICS_GIBLETS,
     .turret_mod = MOD_TURRET_GIBLETS,
-    .min_wait = .25f,
-    .flash_interval = 400,
+    .min_wait = 250,
+    .flash_interval = 500,
     .default_damage = 10,
     .default_speed = 500,
   }
@@ -626,7 +623,7 @@ static void G_ballistics_Think(g_entity_t *ent) {
   if (ent->count) {
     // a sustained type holds its beam, so it refreshes every tick rather than at "wait"
     const float wait = type->sustained ? 0.f
-      : ent->wait * 1000.f + ent->random * 1000.f * RandomRangef(-1.f, 1.f);
+      : SECONDS_TO_MILLIS(ent->wait) + SECONDS_TO_MILLIS(ent->random) * RandomRangef(-1.f, 1.f);
 
     ent->next_think = g_level.time + (uint32_t) Maxf(wait, QUETOO_TICK_MILLIS);
   } else {
@@ -645,7 +642,7 @@ static void G_ballistics_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *act
     ent->count = !ent->count;
 
     if (ent->count) {
-      ent->next_think = g_level.time + (uint32_t) Maxf(ent->delay * 1000.f, QUETOO_TICK_MILLIS);
+      ent->next_think = g_level.time + (uint32_t) Maxf(SECONDS_TO_MILLIS(ent->delay), QUETOO_TICK_MILLIS);
     } else {
       ent->next_think = 0;
 
@@ -663,10 +660,10 @@ static void G_ballistics_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *act
     return;
   }
 
-  ent->timestamp = g_level.time + ent->wait * 1000.f;
+  ent->timestamp = g_level.time + SECONDS_TO_MILLIS(ent->wait);
 
   if (ent->delay) {
-    ent->next_think = g_level.time + (uint32_t) Maxf(ent->delay * 1000.f, QUETOO_TICK_MILLIS);
+    ent->next_think = g_level.time + (uint32_t) Maxf(SECONDS_TO_MILLIS(ent->delay), QUETOO_TICK_MILLIS);
   } else {
     const g_ballistics_type_t *type = ent->ballistics;
 
@@ -690,7 +687,7 @@ static void G_turret_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activat
       return;
     }
 
-    ent->timestamp = g_level.time + ent->wait * 1000.0;
+    ent->timestamp = g_level.time + SECONDS_TO_MILLIS(ent->wait);
   }
 
   if (activator && activator->client) {
@@ -737,8 +734,7 @@ static void G_ballistics_Init(g_entity_t *ent, const g_ballistics_type_t *type) 
     ent->wait = 1.f;
   }
 
-  // the hitscan and sustained types would otherwise exhaust the entity pool at zero
-  ent->wait = Maxf(ent->wait, type->min_wait);
+  ent->wait = Maxf(ent->wait, MILLIS_TO_SECONDS(type->min_wait));
   ent->random = Maxf(ent->random, 0.f);
   ent->delay = Maxf(ent->delay, 0.f);
 
