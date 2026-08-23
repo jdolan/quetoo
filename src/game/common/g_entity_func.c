@@ -2246,8 +2246,8 @@ void G_func_water(g_entity_t *ent) {
   gi.LinkEntity(ent);
 }
 
-#define TRAIN_START_ON    1
-#define TRAIN_TOGGLE    2
+#define TRAIN_START_ON     1
+#define TRAIN_TOGGLE       2
 #define TRAIN_BLOCK_STOPS  4
 
 #define PATH_CORNER_TELEPORT    1
@@ -2286,14 +2286,44 @@ static bool G_path_corner_HasAngles(const g_entity_t *corner) {
 }
 
 /**
- * @brief The angles that face a train travelling from `from` towards `to`, or its current angles
- * if the two coincide and there is no direction to face.
+ * @brief The compass heading of the train's own brushwork at rest (`angles 0 0 0`), as declared by
+ * the `angle`/`angles` key on the train itself. A cart is rarely modeled facing world east, so this
+ * lets a mapper record which way it actually faces, letting auto-computed leg angles below be
+ * expressed relative to that resting pose rather than to world east.
+ */
+static float G_func_train_Heading(const g_entity_t *ent) {
+
+  const cm_entity_t *angle = gi.EntityValue(ent->def, "angle");
+  if (angle->parsed & ENTITY_FLOAT) {
+    return angle->value;
+  }
+
+  const cm_entity_t *angles = gi.EntityValue(ent->def, "angles");
+  if (angles->parsed & ENTITY_VEC3) {
+    return angles->vec3.y;
+  }
+
+  return 0.f;
+}
+
+/**
+ * @brief The angles that face a train travelling from `from` towards `to`, relative to the train's
+ * own resting heading, or its current angles if the leg has no horizontal component to face, as
+ * when riding straight up or down a shaft.
  */
 static vec3_t G_func_train_AnglesForLeg(const g_entity_t *ent, const vec3_t from, const vec3_t to) {
 
   const vec3_t dir = Vec3_Subtract(to, from);
 
-  return Vec3_Equal(dir, Vec3_Zero()) ? ent->s.angles : Vec3_Euler(dir);
+  if (dir.x == 0.f && dir.y == 0.f) {
+    return ent->s.angles;
+  }
+
+  vec3_t angles = Vec3_Euler(dir);
+
+  angles.y = fmodf(angles.y - G_func_train_Heading(ent) + 360.f, 360.f);
+
+  return angles;
 }
 
 /**
@@ -2575,11 +2605,17 @@ static void G_func_train_Use(g_entity_t *ent, g_entity_t *other,
  its route, turning and pitching to follow the rails, without any corner being angled by hand.
  Angle a corner explicitly only where that is not what you want.
 
+ A cart is rarely modeled facing world east, though. Give the train its own `angle` key to declare
+ the compass heading its brushwork actually faces at rest, and every auto-computed leg above turns
+ relative to that heading instead of world east.
+
  -------- Keys --------
  target : The first path_corner of the train's route. Required.
  speed : The speed with which the train moves (default 100).
  dmg : The damage inflicted on players who block the train (default 2).
  sound : The looping sound to play while the train is in motion.
+ angle : The compass heading the train's brushwork faces at rest (`angles 0 0 0`). Requires an
+ origin brush. `angles` is accepted in its place; only its yaw component is used.
  targetname : The target name of this entity if it is to be triggered.
 
  -------- Spawn flags --------
@@ -2610,9 +2646,7 @@ static void G_func_train_Use(g_entity_t *ent, g_entity_t *other,
 void G_func_train(g_entity_t *ent) {
   ent->move_type = MOVE_TYPE_PUSH;
 
-  if (!G_func_train_HasOrigin(ent)) {
-    ent->s.angles = Vec3_Zero();
-  }
+  ent->s.angles = Vec3_Zero();
 
   if (ent->spawn_flags & TRAIN_BLOCK_STOPS) {
     ent->damage = 0;
