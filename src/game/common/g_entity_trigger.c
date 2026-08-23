@@ -58,13 +58,13 @@ static void G_trigger_multiple_Think(g_entity_t *ent) {
 
   G_UseTargets(ent, ent->activator);
 
-  if (ent->wait > 0) {
-    ent->Think = G_trigger_multiple_Wait;
-    ent->next_think = g_level.time + ent->wait * 1000;
-  } else {
+  if (ent->wait < 0) { // a trigger_once, which fires the once and is gone
     ent->Touch = NULL;
     ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
     ent->Think = G_FreeEntity;
+  } else { // otherwise re-arm, at zero meaning as often as we are touched
+    ent->Think = G_trigger_multiple_Wait;
+    ent->next_think = g_level.time + (uint32_t) Maxi((int32_t) SECONDS_TO_MILLIS(ent->wait), QUETOO_TICK_MILLIS);
   }
 }
 
@@ -122,7 +122,8 @@ static void G_trigger_multiple_Enable(g_entity_t *ent, g_entity_t *other,
 
  -------- Keys --------
  delay : Delay in seconds between activation and firing of targets (default 0).
- wait : Interval in seconds between activations (default 0.2).
+ wait : Interval in seconds between activations (default 0, activating for as long as it is
+ touched). Give it a value to debounce, e.g. "wait" "3".
  message : An optional string to display when activated.
  target : The name of the entity or team to use on activation.
  killtarget : The name of the entity or team to kill on activation.
@@ -135,10 +136,6 @@ static void G_trigger_multiple_Enable(g_entity_t *ent, g_entity_t *other,
 void G_trigger_multiple(g_entity_t *ent) {
 
   ent->sound = gi.SoundIndex("misc/chat");
-
-  if (!ent->wait) {
-    ent->wait = 0.2;
-  }
 
   ent->Touch = G_trigger_multiple_Touch;
   ent->move_type = MOVE_TYPE_NONE;
