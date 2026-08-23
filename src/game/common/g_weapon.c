@@ -460,7 +460,7 @@ void G_FireShotgun(g_client_t *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
-    G_ShotgunProjectiles(cl->entity, org, forward, g_balance_shotgun_damage->integer,
+    G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, g_balance_shotgun_damage->integer,
       g_balance_shotgun_knockback->integer, g_balance_shotgun_spread_x->integer,
       g_balance_shotgun_spread_y->integer, g_balance_shotgun_pellets->integer, MOD_SHOTGUN);
 
@@ -480,7 +480,7 @@ void G_FireSuperShotgun(g_client_t *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
-    G_ShotgunProjectiles(cl->entity, org, forward, g_balance_supershotgun_damage->integer,
+    G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, g_balance_supershotgun_damage->integer,
       g_balance_supershotgun_knockback->integer, g_balance_supershotgun_spread_x->integer,
       g_balance_supershotgun_spread_y->integer, g_balance_supershotgun_pellets->integer, MOD_SUPER_SHOTGUN);
 
@@ -500,7 +500,7 @@ void G_FireMachinegun(g_client_t *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
-    G_BulletProjectile(cl->entity, org, forward, g_balance_machinegun_damage->integer,
+    G_BulletProjectile(cl->entity, cl->entity, org, forward, g_balance_machinegun_damage->integer,
       g_balance_machinegun_knockback->integer, g_balance_machinegun_spread_x->integer,
       g_balance_machinegun_spread_y->integer, MOD_MACHINEGUN);
 
@@ -721,7 +721,7 @@ void G_FireHyperblaster(g_client_t *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
-    G_HyperblasterProjectile(cl->entity, org, forward, g_balance_hyperblaster_speed->integer,
+    G_HyperblasterProjectile(cl->entity, cl->entity, org, forward, g_balance_hyperblaster_speed->integer,
       g_balance_hyperblaster_damage->integer, g_balance_hyperblaster_knockback->value);
 
     G_ClientMuzzleFlash(cl->entity, MZ_HYPERBLASTER);
@@ -792,7 +792,7 @@ void G_FireQuakeShotgun(g_client_t *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
-    G_ShotgunProjectiles(cl->entity, org, forward, g_balance_quake_shotgun_damage->integer,
+    G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, g_balance_quake_shotgun_damage->integer,
       g_balance_quake_shotgun_knockback->integer, g_balance_quake_shotgun_spread_x->integer,
       g_balance_quake_shotgun_spread_y->integer, g_balance_quake_shotgun_pellets->integer,
       MOD_QUAKE_SHOTGUN);
@@ -813,7 +813,7 @@ void G_FireQuakeSuperShotgun(g_client_t *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
-    G_ShotgunProjectiles(cl->entity, org, forward, g_balance_quake_supershotgun_damage->integer,
+    G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, g_balance_quake_supershotgun_damage->integer,
       g_balance_quake_supershotgun_knockback->integer, g_balance_quake_supershotgun_spread_x->integer,
       g_balance_quake_supershotgun_spread_y->integer, g_balance_quake_supershotgun_pellets->integer,
       MOD_QUAKE_SUPER_SHOTGUN);
@@ -886,7 +886,7 @@ void G_FireQuakeGrenadeLauncher(g_client_t *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
-    G_QuakeGrenadeProjectile(cl->entity, org, forward, g_balance_quake_grenadelauncher_speed->integer,
+    G_QuakeGrenadeProjectile(cl->entity, cl->entity, org, forward, g_balance_quake_grenadelauncher_speed->integer,
       g_balance_quake_grenadelauncher_damage->integer, g_balance_quake_grenadelauncher_knockback->integer,
       g_balance_quake_grenadelauncher_radius->value, SECONDS_TO_MILLIS(g_balance_quake_grenadelauncher_timer->value));
 
@@ -906,7 +906,7 @@ void G_FireQuakeRocketLauncher(g_client_t *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
-    G_QuakeRocketProjectile(cl->entity, org, forward, g_balance_quake_rocketlauncher_speed->integer,
+    G_QuakeRocketProjectile(cl->entity, cl->entity, org, forward, g_balance_quake_rocketlauncher_speed->integer,
       g_balance_quake_rocketlauncher_damage->integer, g_balance_quake_rocketlauncher_knockback->integer,
       g_balance_quake_rocketlauncher_radius->value);
 
@@ -958,7 +958,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 
       G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
-      G_BfgProjectile(ent->owner, org, forward, g_balance_bfg_speed->integer,
+      G_BfgProjectile(ent->owner, ent->owner, org, forward, g_balance_bfg_speed->integer,
         g_balance_bfg_damage->integer, g_balance_bfg_knockback->integer,
         g_balance_bfg_radius->value);
 
