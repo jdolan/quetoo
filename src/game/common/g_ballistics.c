@@ -1102,9 +1102,11 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 }
 
 /**
- * @brief Locates the sustained beam belonging to the given owner, if it has one.
+ * @brief Locates the sustained beam belonging to the given emitter, if it has one.
+ * @remarks Callers use this to tell striking a beam up from sustaining one, the two sounding
+ * differently: it is struck up once and hums thereafter.
  */
-static g_entity_t *G_BeamProjectile_Find(const g_entity_t *emitter) {
+g_entity_t *G_FindBeamProjectile(const g_entity_t *emitter) {
 
   g_entity_t *projectile = NULL;
 
@@ -1188,7 +1190,7 @@ static void G_BeamProjectile_Think(g_entity_t *ent) {
 void G_BeamProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t start, const vec3_t dir,
              int32_t damage, int32_t knockback, uint32_t mod, uint8_t trail, uint16_t sound) {
 
-  g_entity_t *projectile = G_BeamProjectile_Find(emitter);
+  g_entity_t *projectile = G_FindBeamProjectile(emitter);
 
   if (!projectile) {
     projectile = G_AllocEntity(__func__);
@@ -1228,7 +1230,7 @@ void G_BeamProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t st
  */
 void G_FreeBeamProjectile(g_entity_t *emitter) {
 
-  g_entity_t *projectile = G_BeamProjectile_Find(emitter);
+  g_entity_t *projectile = G_FindBeamProjectile(emitter);
 
   if (projectile) {
     G_FreeEntity(projectile);

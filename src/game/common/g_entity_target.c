@@ -339,7 +339,8 @@ static void G_ballistics_Rail(const g_ballistics_type_t *type, g_entity_t *ent, 
  * @brief Creates or refreshes a laser beam.
  */
 static void G_ballistics_Laser(const g_ballistics_type_t *type, g_entity_t *ent, g_entity_t *attacker, const vec3_t start, const vec3_t dir, uint32_t mod) {
-  G_BeamProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod, TRAIL_LASER, 0);
+  G_BeamProjectile(ent, attacker, start, dir, ent->damage, ent->knockback, mod, TRAIL_LASER,
+    g_media.sounds.laser_fly);
 }
 
 /**
@@ -458,7 +459,6 @@ static const g_ballistics_type_t g_ballistics_types[] = {
   }, {
     .name = "lightning",
     .flash = MZ_LIGHTNING,
-    .flash_interval = 100,
     .refire = &g_balance_lightning_refire,
     .Fire = G_ballistics_Lightning,
     .ballistics_mod = MOD_BALLISTICS_LIGHTNING,
@@ -564,7 +564,6 @@ static const g_ballistics_type_t g_ballistics_types[] = {
   }, {
     .name = "quake_thunderbolt",
     .flash = MZ_LIGHTNING,
-    .flash_interval = 50,
     .refire = &g_balance_quake_thunderbolt_refire,
     .Fire = G_ballistics_Lightning,
     .ballistics_mod = MOD_BALLISTICS_QUAKE_THUNDERBOLT,
@@ -574,6 +573,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .knockback = &g_balance_quake_thunderbolt_knockback,
   }, {
     .name = "laser",
+    .flash = MZ_LASER,
     .default_wait = 100,
     .Fire = G_ballistics_Laser,
     .ballistics_mod = MOD_BALLISTICS_LASER,

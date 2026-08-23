@@ -139,6 +139,8 @@ typedef enum {
   MZ_QUAKE_SUPER_NAILGUN,
   MZ_QUAKE_GRENADE_LAUNCHER,
   MZ_QUAKE_ROCKET_LAUNCHER,
+
+  MZ_LASER,
 } g_muzzle_flash_t;
 
 /**
@@ -701,6 +703,7 @@ typedef struct {
     uint16_t quake_nail_hit;
     uint16_t rocket_fly;
     uint16_t lightning_fly;
+    uint16_t laser_fly;
     uint16_t quad_attack;
     uint16_t quad_expire;
 

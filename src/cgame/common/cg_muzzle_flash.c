@@ -1042,6 +1042,10 @@ void Cg_ParseMuzzleFlash(void) {
       Cg_QuakeRocketFlash(muzzle, origin, angles, client);
       pitch = 3;
       break;
+    case MZ_LASER:
+      sample = cg_sample_laser_fire;
+      pitch = 2;
+      break;
     default:
       sample = NULL;
       break;
