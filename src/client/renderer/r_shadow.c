@@ -214,28 +214,30 @@ static bool R_LightShadowDirty(const r_light_t *l, int32_t index) {
 
 /**
  * @brief Draws one BSP draw elements entry for shadow casting, binding the alpha-test pipeline
- * and diffuse texture if the entry has a material, or the opaque pipeline otherwise.
+ * and diffuse texture for alpha-tested entries, or the opaque pipeline otherwise.
+ * @details The surface flags are consulted rather than the presence of a material, so that
+ * this accepts a block's draw elements, which are batched per material, as well as the
+ * depth pass elements, which lump all opaque faces under no material at all.
  * @return The pipeline now bound, so the caller can avoid redundant re-binds across calls.
  */
 static GraphicsPipeline *R_DrawBspDrawElementsShadow(RenderPass *pass, const r_bsp_draw_elements_t *draw, GraphicsPipeline *pipeline) {
 
-  GraphicsPipeline *draw_pipeline = r_shadow_draw.bsp_opaque_pipeline;
-
-  if (draw->material) {
-
-    if (draw->material->cm->surface & (SURF_SKY | SURF_MASK_BLEND | SURF_MATERIAL)) {
-      return pipeline;
-    }
-
-    draw_pipeline = r_shadow_draw.bsp_alpha_test_pipeline;
+  if (draw->surface & (SURF_SKY | SURF_MASK_BLEND | SURF_MATERIAL | SURF_LIQUID | SURF_MASK_NO_DRAW_ELEMENTS)) {
+    return pipeline;
   }
+
+  const bool alpha_test = (draw->surface & SURF_ALPHA_TEST) && draw->material;
+
+  GraphicsPipeline *draw_pipeline = alpha_test
+    ? r_shadow_draw.bsp_alpha_test_pipeline
+    : r_shadow_draw.bsp_opaque_pipeline;
 
   if (pipeline != draw_pipeline) {
     pipeline = draw_pipeline;
     $(pass, bindPipeline, pipeline);
   }
 
-  if (draw->material) {
+  if (alpha_test) {
     $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
       .texture = draw->material->texture->texture->texture,
       .sampler = r_shadow_draw.repeat_sampler->sampler,
@@ -268,6 +270,36 @@ static void R_DrawBspDrawElementsShadows(RenderPass *pass, const r_bsp_draw_elem
 }
 
 /**
+ * @brief Draws the shadow geometry of the blocks the light reaches.
+ * @details Geometry beyond the light's radius can neither receive its light nor occlude it,
+ * so only the blocks intersecting its bounds need be drawn. This is what quemap precomputes
+ * per BSP light, done at runtime instead, for lights that have no such geometry: dynamic
+ * lights, and the lights of a map being edited, which move.
+ * @remarks Block bounds are in model space, so this is only valid for worldspawn.
+ */
+static void R_DrawBspBlocksShadows(RenderPass *pass, const r_light_t *l, const r_bsp_inline_model_t *in) {
+
+  GraphicsPipeline *pipeline = r_shadow_draw.bsp_opaque_pipeline;
+
+  const r_bsp_block_t *block = in->blocks;
+  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+
+    if (!Box3_Intersects(l->bounds, block->visible_bounds)) {
+      continue;
+    }
+
+    const r_bsp_draw_elements_t *draw = block->draw_elements;
+    for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+      pipeline = R_DrawBspDrawElementsShadow(pass, draw, pipeline);
+    }
+  }
+
+  if (pipeline != r_shadow_draw.bsp_opaque_pipeline) {
+    $(pass, bindPipeline, r_shadow_draw.bsp_opaque_pipeline);
+  }
+}
+
+/**
  * @brief Draws BSP inline-model shadow geometry for one light and entity.
  */
 static void R_DrawBspEntityShadows(const r_light_t *l, const r_entity_t *e, RenderPass *pass) {
@@ -285,8 +317,12 @@ static void R_DrawBspEntityShadows(const r_light_t *l, const r_entity_t *e, Rend
     .lerp = 0.f,
   }, sizeof(r_shadow_locals_t));
 
-  if (IS_WORLDSPAWN(e->model) && l->bsp_light && l->bsp_light->num_draw_elements) {
-    R_DrawBspDrawElementsShadows(pass, l->bsp_light->draw_elements, l->bsp_light->num_draw_elements);
+  if (IS_WORLDSPAWN(e->model)) {
+    if (l->bsp_light && l->bsp_light->num_draw_elements) {
+      R_DrawBspDrawElementsShadows(pass, l->bsp_light->draw_elements, l->bsp_light->num_draw_elements);
+    } else {
+      R_DrawBspBlocksShadows(pass, l, in);
+    }
   } else {
     R_DrawBspDrawElementsShadows(pass, in->depth_pass_elements, in->num_depth_pass_elements);
   }
