@@ -1024,20 +1024,30 @@ static void Cg_LaserTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end
 
   const vec3_t color = Color32_Vec4(ent->current.color).xyz;
 
+  // a wide, dim sheath around a bright core, which is what gives the BFG's lasers their heft
+  cgi.AddBeam(cgi.view, &(const r_beam_t) {
+    .start = start,
+    .end = end,
+    .color = Vec3_Scale(color, .4f),
+    .image = cg_beam_rail,
+    .size = 14.f,
+    .lighting = .5f,
+  });
+
   cgi.AddBeam(cgi.view, &(const r_beam_t) {
     .start = start,
     .end = end,
     .color = color,
     .image = cg_beam_rail,
-    .size = 4.f,
+    .size = 5.f,
     .lighting = .5f,
   });
 
   Cg_AddLight(&(cg_light_t) {
     .origin = end,
-    .radius = 100.f,
+    .radius = 150.f,
     .color = color,
-    .intensity = 2.f,
+    .intensity = 3.f,
     .decay = 50,
   });
 
