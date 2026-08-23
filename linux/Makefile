@@ -36,8 +36,11 @@ SERVER_BINARIES = quetoo-dedicated quetoo-master
 ARCHIVE     = $(TARGET)/quetoo-$(BUILD).tar.gz
 DEB_CLIENT  = $(TARGET)/quetoo-client_$(VERSION)_$(DEB_ARCH).deb
 DEB_SERVER  = $(TARGET)/quetoo-server_$(VERSION)_$(DEB_ARCH).deb
+DEB_SHIM    = $(TARGET)/quetoo-shim_$(VERSION)_$(DEB_ARCH).deb
 RPM_CLIENT  = $(TARGET)/quetoo-client-$(VERSION)-1.$(ARCH).rpm
 RPM_SERVER  = $(TARGET)/quetoo-server-$(VERSION)-1.$(ARCH).rpm
+RPM_SHIM    = $(TARGET)/quetoo-shim-$(VERSION)-1.$(ARCH).rpm
+PKGDIR_SHIM = $(TARGET)/pkg-shim
 
 LINUXDEPLOY     = $(TARGET)/linuxdeploy-$(ARCH).AppImage
 
@@ -190,10 +193,48 @@ $(TARGET)/.pkg-server-stamp: $(APPDIR_SERVER)
 
 	touch $@
 
+# quetoo-shim is a transitional package, published only while migrating
+# existing single-package `quetoo` installs to quetoo-client/quetoo-server
+# (see #952/#953). It carries the full old-style monolithic file layout so
+# that upgrading in place from `quetoo` doesn't drop any files dpkg/rpm no
+# longer considers part of the package; only its quetoo-update learns to
+# self-migrate. Drop this target once servers have had a release cycle to
+# pick it up.
+$(TARGET)/.pkg-shim-stamp: $(APPDIR)
+	rm -rf $(PKGDIR_SHIM)
+
+	install -d $(PKGDIR_SHIM)/usr/lib/quetoo
+	cp -a $(APPDIR)/usr/bin $(PKGDIR_SHIM)/usr/lib/quetoo/
+	cp -a $(APPDIR)/usr/lib $(PKGDIR_SHIM)/usr/lib/quetoo/
+
+	install -Dm644 quetoo/Quetoo.desktop \
+		$(PKGDIR_SHIM)/usr/share/applications/quetoo.desktop
+	install -d $(PKGDIR_SHIM)/usr/share/icons/hicolor/256x256/apps
+	convert ../src/main/quetoo.ico[0] \
+		$(PKGDIR_SHIM)/usr/share/icons/hicolor/256x256/apps/quetoo.png
+
+	install -d $(PKGDIR_SHIM)/usr/bin
+	for bin in quetoo quetoo-dedicated quemap quetoo-master quetoo-attach quetoo-update quetoo-status; do \
+		ln -sf /usr/lib/quetoo/bin/$$bin $(PKGDIR_SHIM)/usr/bin/$$bin; \
+	done
+
+	install -Dm644 quetoo/usr/lib/systemd/system/quetoo-dedicated@.service \
+		$(PKGDIR_SHIM)/usr/lib/systemd/system/quetoo-dedicated@.service
+	install -Dm644 quetoo/usr/lib/systemd/system/quetoo-master.service \
+		$(PKGDIR_SHIM)/usr/lib/systemd/system/quetoo-master.service
+	install -Dm644 quetoo/etc/quetoo-dedicated/default.cfg          $(PKGDIR_SHIM)/etc/quetoo-dedicated/default.cfg
+	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-dedicated-start $(PKGDIR_SHIM)/usr/lib/quetoo/bin/quetoo-dedicated-start
+	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-update          $(PKGDIR_SHIM)/usr/lib/quetoo/bin/quetoo-update
+	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-status          $(PKGDIR_SHIM)/usr/lib/quetoo/bin/quetoo-status
+	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-attach          $(PKGDIR_SHIM)/usr/lib/quetoo/bin/quetoo-attach
+	install -Dm440 quetoo/etc/sudoers.d/quetoo                      $(PKGDIR_SHIM)/etc/sudoers.d/quetoo
+
+	touch $@
+
 # ---------------------------------------------------------------------------
 # .deb
 
-deb: deb-client deb-server
+deb: deb-client deb-server deb-shim
 
 deb-client: $(TARGET)/.pkg-client-stamp
 	fpm -s dir -t deb \
@@ -243,10 +284,33 @@ deb-server: $(TARGET)/.pkg-server-stamp
 		-p $(DEB_SERVER) \
 		-C $(PKGDIR_SERVER) .
 
+deb-shim: $(TARGET)/.pkg-shim-stamp
+	fpm -s dir -t deb \
+		-n quetoo -v $(VERSION) \
+		--architecture $(DEB_ARCH) \
+		--description "Free, open-source arena first-person shooter" \
+		--url "https://quetoo.org" \
+		--license "GPL-2.0" \
+		--maintainer "jdolan <jdolan@jdolan.net>" \
+		--depends "libc6 (>= 2.31)" \
+		--depends "libstdc++6" \
+		--depends "libgl1 | libgles2" \
+		--depends "screen" \
+		--depends "bash" \
+		--depends "curl" \
+		--depends "python3" \
+		--deb-recommends "quetoo-data" \
+		--config-files /etc/quetoo-dedicated/default.cfg \
+		--config-files /etc/sudoers.d/quetoo \
+		--after-install quetoo/postinstall.sh \
+		--before-remove quetoo/preremove.sh \
+		-p $(DEB_SHIM) \
+		-C $(PKGDIR_SHIM) .
+
 # ---------------------------------------------------------------------------
 # .rpm
 
-rpm: rpm-client rpm-server
+rpm: rpm-client rpm-server rpm-shim
 
 rpm-client: $(TARGET)/.pkg-client-stamp
 	fpm -s dir -t rpm \
@@ -296,6 +360,29 @@ rpm-server: $(TARGET)/.pkg-server-stamp
 		-p $(RPM_SERVER) \
 		-C $(PKGDIR_SERVER) .
 
+rpm-shim: $(TARGET)/.pkg-shim-stamp
+	fpm -s dir -t rpm \
+		-n quetoo -v $(VERSION) \
+		--architecture $(ARCH) \
+		--description "Free, open-source arena first-person shooter" \
+		--url "https://quetoo.org" \
+		--license "GPL-2.0" \
+		--maintainer "jdolan <jdolan@jdolan.net>" \
+		--depends "glibc >= 2.31" \
+		--depends "libstdc++" \
+		--depends "mesa-libGL" \
+		--depends "screen" \
+		--depends "bash" \
+		--depends "curl" \
+		--depends "python3" \
+		--rpm-tag "Recommends: quetoo-data" \
+		--config-files /etc/quetoo-dedicated/default.cfg \
+		--config-files /etc/sudoers.d/quetoo \
+		--after-install quetoo/postinstall.sh \
+		--before-remove quetoo/preremove.sh \
+		-p $(RPM_SHIM) \
+		-C $(PKGDIR_SHIM) .
+
 # ---------------------------------------------------------------------------
 # S3 publishing
 
@@ -315,4 +402,4 @@ install-data:
 clean:
 	rm -rf $(TARGET)
 
-.PHONY: all configure compile archive deb deb-client deb-server rpm rpm-client rpm-server release install-data clean
+.PHONY: all configure compile archive deb deb-client deb-server deb-shim rpm rpm-client rpm-server rpm-shim release install-data clean
