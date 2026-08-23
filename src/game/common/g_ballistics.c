@@ -1376,6 +1376,13 @@ static void G_BfgProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_t
  */
 static void G_BfgProjectile_Think(g_entity_t *ent) {
 
+  // every other projectile frees itself on a timer; this one only ever re-armed, so a ball that
+  // never touched anything, having been spawned inside the brushwork it left, hung about forever
+  if (g_level.time >= ent->timestamp) {
+    G_FreeEntity(ent);
+    return;
+  }
+
   const int32_t frame_damage = ent->damage * QUETOO_TICK_SECONDS;
   const int32_t frame_knockback = ent->knockback * QUETOO_TICK_SECONDS;
 
@@ -1452,6 +1459,7 @@ void G_BfgProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t sta
   projectile->knockback = knockback;
   projectile->move_type = MOVE_TYPE_FLY;
   projectile->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  projectile->timestamp = g_level.time + 8000;
   projectile->Think = G_BfgProjectile_Think;
   projectile->Touch = G_BfgProjectile_Touch;
   projectile->s.trail = TRAIL_BFG;

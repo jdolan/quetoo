@@ -231,6 +231,13 @@ struct g_ballistics_type_s {
   cvar_t **prefire;
 
   /**
+   * @brief How far in units the projectile leaves the entity, which must clear its own bounds or
+   * `G_ImmediateWall` plants it back on the entity, embedded in whatever it was fired past. Eight
+   * when unset, which suits everything but the BFG's 48 unit ball.
+   */
+  uint32_t muzzle;
+
+  /**
    * @brief Milliseconds between muzzle flashes, throttling types that fire faster than their
    * flash and its sample can be tolerated at. Zero flashes on every shot.
    */
@@ -480,6 +487,7 @@ static const g_ballistics_type_t g_ballistics_types[] = {
     .name = "bfg",
     .refire = &g_balance_bfg_refire,
     .prefire = &g_balance_bfg_prefire,
+    .muzzle = 48,
     .min_wait = 1000,
     .Fire = G_ballistics_Bfg,
     .flash = MZ_BFG10K,
@@ -639,12 +647,15 @@ static void G_ballistics_Fire(g_entity_t *ent, g_entity_t *attacker, const vec3_
   const g_ballistics_type_t *type = ent->ballistics;
 
   const vec3_t aim = Vec3_RandomizeDir(dir, ent->accel);
-  const vec3_t start = Vec3_Fmaf(ent->s.origin, 8.f, aim);
+  const vec3_t start = Vec3_Fmaf(ent->s.origin, type->muzzle ? (float) type->muzzle : 8.f, aim);
+
+  // a beam is struck up once and hums thereafter, as the lightning weapons do, so it sounds
+  // only on the tick that creates it and not on the ticks that sustain it
+  const bool sustaining = type->sustained && G_FindBeamProjectile(ent);
 
   type->Fire(type, ent, attacker, start, aim, mod);
 
-  // a sustained beam is not a shot, so it sounds only if its type asks for an interval
-  if (type->sustained && type->flash_interval == 0) {
+  if (sustaining) {
     return;
   }
 
