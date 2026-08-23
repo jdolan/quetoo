@@ -611,8 +611,11 @@ typedef struct {
 
 /**
  * @brief The maximum number of dynamic lights per scene.
+ * @remarks MUST be a multiple of 128, which the shaders' `uvec4` bitmask assumes, and
+ * MUST leave `MAX_LIGHTS` within the shadow atlas, which holds
+ * `SHADOW_ATLAS_LIGHTS_PER_ROW` squared tiles.
  */
-#define MAX_DYNAMIC_LIGHTS 256
+#define MAX_DYNAMIC_LIGHTS 512
 typedef struct {
   uint32_t mask[MAX_DYNAMIC_LIGHTS / 32];
 } r_active_dynamic_lights_t;
