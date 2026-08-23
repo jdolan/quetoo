@@ -98,22 +98,61 @@ static const char *G_WeaponNameForMod(g_means_of_death mod) {
       return "Quake Thunderbolt";
     case MOD_FIREBALL:
       return "Fireball";
-    case MOD_TRAP_BLASTER:
+    case MOD_BALLISTICS_BLASTER:
     case MOD_TURRET_BLASTER:
       return "Blaster";
-    case MOD_TRAP_NAIL:
-    case MOD_TURRET_NAIL:
-      return "Nailgun";
-    case MOD_TRAP_ROCKET:
-    case MOD_TURRET_ROCKET:
-      return "Rocket Launcher";
-    case MOD_TRAP_GRENADE:
+    case MOD_BALLISTICS_SHOTGUN:
+    case MOD_TURRET_SHOTGUN:
+      return "Shotgun";
+    case MOD_BALLISTICS_SUPER_SHOTGUN:
+    case MOD_TURRET_SUPER_SHOTGUN:
+      return "Super Shotgun";
+    case MOD_BALLISTICS_MACHINEGUN:
+    case MOD_TURRET_MACHINEGUN:
+      return "Machinegun";
+    case MOD_BALLISTICS_GRENADE:
     case MOD_TURRET_GRENADE:
       return "Grenade Launcher";
-    case MOD_TRAP_LASER:
-    case MOD_TURRET_LASER:
+    case MOD_BALLISTICS_ROCKET:
+    case MOD_TURRET_ROCKET:
+      return "Rocket Launcher";
+    case MOD_BALLISTICS_HYPERBLASTER:
+    case MOD_TURRET_HYPERBLASTER:
+      return "Hyperblaster";
+    case MOD_BALLISTICS_LIGHTNING:
+    case MOD_TURRET_LIGHTNING:
+      return "Lightning";
+    case MOD_BALLISTICS_RAILGUN:
+    case MOD_TURRET_RAILGUN:
       return "Railgun";
-    case MOD_TRAP_GIBLETS:
+    case MOD_BALLISTICS_BFG:
+    case MOD_TURRET_BFG:
+      return "BFG10K";
+    case MOD_BALLISTICS_QUAKE_SHOTGUN:
+    case MOD_TURRET_QUAKE_SHOTGUN:
+      return "Quake Shotgun";
+    case MOD_BALLISTICS_QUAKE_SUPER_SHOTGUN:
+    case MOD_TURRET_QUAKE_SUPER_SHOTGUN:
+      return "Quake Super Shotgun";
+    case MOD_BALLISTICS_QUAKE_NAILGUN:
+    case MOD_TURRET_QUAKE_NAILGUN:
+      return "Nailgun";
+    case MOD_BALLISTICS_QUAKE_SUPER_NAILGUN:
+    case MOD_TURRET_QUAKE_SUPER_NAILGUN:
+      return "Super Nailgun";
+    case MOD_BALLISTICS_QUAKE_GRENADE:
+    case MOD_TURRET_QUAKE_GRENADE:
+      return "Quake Grenade Launcher";
+    case MOD_BALLISTICS_QUAKE_ROCKET:
+    case MOD_TURRET_QUAKE_ROCKET:
+      return "Quake Rocket Launcher";
+    case MOD_BALLISTICS_QUAKE_THUNDERBOLT:
+    case MOD_TURRET_QUAKE_THUNDERBOLT:
+      return "Quake Thunderbolt";
+    case MOD_BALLISTICS_LASER:
+    case MOD_TURRET_LASER:
+      return "Laser";
+    case MOD_BALLISTICS_GIBLETS:
     case MOD_TURRET_GIBLETS:
       return "Giblets";
 #if defined(G_HOOK)

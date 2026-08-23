@@ -74,11 +74,9 @@ static const g_entity_class_t g_entity_classes[] = {
 
   { "path_corner", G_info_notnull },
 
-  { "target_ballistics", G_target_ballistics },
   { "target_light", G_target_light },
   { "target_speaker", G_target_speaker },
   { "target_string", G_target_string },
-  { "target_turret", G_target_turret },
 
   { "trigger_always", G_trigger_always },
   { "trigger_exec", G_trigger_exec },
@@ -167,6 +165,11 @@ static void G_SpawnEntity(cm_entity_t *def) {
   const g_item_t *it = G_FindItemByClassName(ent->classname);
   if (it) {
     G_SpawnItem(ent, it);
+    return;
+  }
+
+  // check the ballistics entities, which are one classname per weapon
+  if (G_ballistics(ent)) {
     return;
   }
 

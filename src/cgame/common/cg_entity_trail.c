@@ -1017,6 +1017,45 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 }
 
 /**
+ * @brief Renders a laser beam between its emitter and whatever it lands on, in the color the
+ * entity carries, with a light and a scorch mark at the far end.
+ */
+static void Cg_LaserTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+
+  const vec3_t color = Color32_Vec4(ent->current.color).xyz;
+
+  cgi.AddBeam(cgi.view, &(const r_beam_t) {
+    .start = start,
+    .end = end,
+    .color = color,
+    .image = cg_beam_rail,
+    .size = 4.f,
+    .lighting = .5f,
+  });
+
+  Cg_AddLight(&(cg_light_t) {
+    .origin = end,
+    .radius = 100.f,
+    .color = color,
+    .intensity = 2.f,
+    .decay = 50,
+  });
+
+  if (Cg_TrailCount(end, 24.f, ent, TRAIL_PRIMARY, NULL, NULL)) {
+
+    Cg_AddSprite(&(cg_sprite_t) {
+      .atlas_image = cg_sprite_particle,
+      .lifetime = 300,
+      .size = RandomRangef(4.f, 8.f),
+      .rotation = RandomRadian(),
+      .origin = end,
+      .velocity = Vec3_RandomRange(-20.f, 20.f),
+      .color = color,
+    });
+  }
+}
+
+/**
  * @brief Renders the nail projectile trail as a thin metallic streak.
  */
 static void Cg_NailTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
@@ -1236,6 +1275,9 @@ void Cg_EntityTrail(cl_entity_t *ent) {
       break;
     case TRAIL_QUAKE_GRENADE:
       Cg_QuakeGrenadeTrail(ent, start, end);
+      break;
+    case TRAIL_LASER:
+      Cg_LaserTrail(ent, start, end);
       break;
     case TRAIL_ROCKET:
       Cg_RocketTrail(ent, start, end);
