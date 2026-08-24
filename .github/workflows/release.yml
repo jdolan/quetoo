@@ -647,31 +647,31 @@ jobs:
         fi
 
         notes=$(cat <<EOF
-        ## Windows Packages
+        ## Windows
 
         - Full Install: [quetoo-bundle-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-windows.zip)
         - Binaries Only: [quetoo-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-windows.zip)
 
-        ## Apple macOS Packages
+        ## Apple macOS
 
         - Full Install: [quetoo-bundle-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-universal-apple-darwin.dmg)
         - Binaries Only: [quetoo-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-universal-apple-darwin.dmg)
 
-        ## Linux Client Packages (requires [quetoo-data](https://github.com/jdolan/quetoo-data/releases))
+        ## Linux
 
         | Package | x86-64 | arm64 |
         |---|---|---|
         | Full Install (.tar.gz bundle) | [quetoo-bundle-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-linux.tar.gz) | [quetoo-bundle-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-aarch64-pc-linux.tar.gz) |
         | Binaries Only (.tar.gz) | [quetoo-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.tar.gz) | [quetoo-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.tar.gz) |
-        | .deb | [quetoo-client-x86_64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-x86_64-pc-linux.deb) | [quetoo-client-aarch64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-aarch64-pc-linux.deb) |
-        | .rpm | [quetoo-client-x86_64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-x86_64-pc-linux.rpm) | [quetoo-client-aarch64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-aarch64-pc-linux.rpm) |
 
-        ## Linux Server Packages (requires [quetoo-data](https://github.com/jdolan/quetoo-data/releases))
+        ## Linux Packages (requires [quetoo-data](https://github.com/jdolan/quetoo-data/releases))
 
         | Package | x86-64 | arm64 |
         |---|---|---|
-        | .deb | [quetoo-server-x86_64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-x86_64-pc-linux.deb) | [quetoo-server-aarch64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-aarch64-pc-linux.deb) |
-        | .rpm | [quetoo-server-x86_64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-x86_64-pc-linux.rpm) | [quetoo-server-aarch64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-aarch64-pc-linux.rpm) |
+        | Client .deb | [quetoo-client-x86_64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-x86_64-pc-linux.deb) | [quetoo-client-aarch64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-aarch64-pc-linux.deb) |
+        | Client .rpm | [quetoo-client-x86_64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-x86_64-pc-linux.rpm) | [quetoo-client-aarch64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-client-aarch64-pc-linux.rpm) |
+        | Server .deb | [quetoo-server-x86_64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-x86_64-pc-linux.deb) | [quetoo-server-aarch64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-aarch64-pc-linux.deb) |
+        | Server .rpm | [quetoo-server-x86_64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-x86_64-pc-linux.rpm) | [quetoo-server-aarch64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-aarch64-pc-linux.rpm) |
 
         ## Changelog
 
