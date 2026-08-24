@@ -196,8 +196,13 @@ void R_InitContext(void) {
 
 /**
  * @brief Releases the render device and destroys the SDL window.
+ * @details Releasing a GPU resource only queues its destruction, which the device performs
+ * once no submitted work refers to it. The device is drained first, so that everything the
+ * renderer released on the way here is destroyed while the device that owns it still lives.
  */
 void R_ShutdownContext(void) {
+
+  $(r_context.device, waitForIdle);
 
   r_context.null_texture = release(r_context.null_texture);
   r_context.device = release(r_context.device);
