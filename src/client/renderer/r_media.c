@@ -245,9 +245,15 @@ void R_BeginLoading(void) {
 
 /**
  * @brief Ends a media loading pass and frees stale media.
+ * @details Releasing a GPU resource only queues its destruction, which the backend performs
+ * once no submitted work refers to it. The GPU is drained after the release, so that the
+ * destruction of the media freed here is carried out rather than left pending.
  */
 void R_EndLoading(void) {
+
   R_FreeMediaEntries(NULL);
+
+  $(r_context.device, waitForIdle);
 
   R_LoadOcclusionQueries();
 
