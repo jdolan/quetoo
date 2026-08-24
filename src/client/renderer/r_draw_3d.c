@@ -75,6 +75,13 @@ static struct {
 
   Buffer *vertex_buffer;
   int32_t vertex_buffer_capacity;
+
+  /**
+   * @brief The transfer buffer sourcing the vertex upload, held for the subsystem's
+   * lifetime because the vertexes are uploaded every frame. Grown with the buffer it
+   * sources.
+   */
+  TransferBuffer *transfer_buffer;
 } r_draw_3d;
 
 /**
@@ -352,11 +359,23 @@ void R_UpdateDraw3D(const r_view_t *view, CopyPass *copyPass) {
       .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
       .size = count * sizeof(r_draw_3d_vertex_t),
     });
+    r_draw_3d.transfer_buffer = release(r_draw_3d.transfer_buffer);
+    r_draw_3d.transfer_buffer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+      .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+      .size = count * sizeof(r_draw_3d_vertex_t),
+    });
+
     r_draw_3d.vertex_buffer_capacity = (int32_t) count;
   }
 
-  $(copyPass, uploadData, r_draw_3d.vertex_buffer->buffer, r_draw_3d.vertexes,
-    count * sizeof(r_draw_3d_vertex_t), 0, true);
+  const uint32_t size = count * sizeof(r_draw_3d_vertex_t);
+
+  $(r_draw_3d.transfer_buffer, write, r_draw_3d.vertexes, size, true);
+
+  $(copyPass, uploadBuffer,
+    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = r_draw_3d.transfer_buffer->buffer },
+    &(SDL_GPUBufferRegion) { .buffer = r_draw_3d.vertex_buffer->buffer, .size = size },
+    true);
 }
 
 /**
@@ -497,6 +516,7 @@ void R_ShutdownDraw3D(void) {
   r_draw_3d_pipeline.line_strip_no_depth = release(r_draw_3d_pipeline.line_strip_no_depth);
 
   r_draw_3d.vertex_buffer = release(r_draw_3d.vertex_buffer);
+  r_draw_3d.transfer_buffer = release(r_draw_3d.transfer_buffer);
 }
 
 /**
