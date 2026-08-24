@@ -331,7 +331,9 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
     image->texture = $(r_context.device, createTextureFromSurface, surface, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
   }
-    
+
+  $(image->texture, setName, image->media.name);
+
   R_RegisterMedia((r_media_t *) image);
 
   SDL_DestroySurface(surface);

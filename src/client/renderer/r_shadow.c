@@ -569,6 +569,8 @@ void R_InitShadows(void) {
       .num_levels = 1,
       .sample_count = SDL_GPU_SAMPLECOUNT_1,
     }, NULL);
+
+    $(r_shadow_atlas.textures[face], setName, va("shadow atlas %d", face));
   }
 
   r_shadow_atlas.sampler = $(r_context.device, createSamplerShadowCompare);
