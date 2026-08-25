@@ -34,6 +34,9 @@ static void dealloc(Object *self) {
 
   PlayerModelView *this = (PlayerModelView *) self;
 
+  cgi.DestroyFramebuffer(this->framebuffer);
+  this->framebuffer = NULL;
+
   release(this->modelView);
   release(this->iconView);
 
