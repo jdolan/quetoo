@@ -34,9 +34,11 @@ typedef struct {
  */
 static struct {
   /**
-   * @brief If a given BSP light's only shadow caster is worldspawn, its shadowmap may be cached indefinitely.
+   * @brief The shadow hash of the atlas tile contents, per light index.
+   * @details A light whose hash is unchanged from the frame its tile was last drawn
+   * may reuse that tile indefinitely. Zero for tiles that have never been drawn.
    */
-  bool cache[MAX_LIGHTS];
+  uint64_t hashes[MAX_LIGHTS];
 
   /**
    * @brief The opaque BSP shadow pipeline.
@@ -97,32 +99,52 @@ static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 }
 
 /**
- * @brief Tests whether an entity's shadow bounds are outside the view.
+ * @brief Mixes the given bytes into an FNV-1a hash.
  */
-static bool R_CullLightEntity(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
+static uint64_t R_HashShadowBytes(uint64_t hash, const void *bytes, size_t size) {
 
-  vec3_t corners[8];
-  Box3_ToPoints(e->abs_model_bounds, corners);
+  const byte *b = bytes;
 
-  box3_t shadow_bounds = e->abs_model_bounds;
-  for (int32_t i = 0; i < 8; i++) {
-    const vec3_t to_corner = Vec3_Subtract(corners[i], light->origin);
-    const vec3_t dir = Vec3_Normalize(to_corner);
-    shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, dir));
+  while (size--) {
+    hash = (hash ^ *b++) * 0x100000001b3ull;
   }
 
-  shadow_bounds = Box3_Expand(shadow_bounds, 32.f);
-
-  return R_CulludeBox(view, shadow_bounds);
+  return hash;
 }
 
 /**
- * @brief Collects shadow-casting entities for one light, and marks its
- * shadow cache dirty if any non-worldspawn caster is present.
+ * @brief Mixes everything the shadow pass reads for one caster into the light's hash.
+ */
+static uint64_t R_HashLightEntity(uint64_t hash, const r_entity_t *e) {
+
+  hash = R_HashShadowBytes(hash, &e->model, sizeof(e->model));
+  hash = R_HashShadowBytes(hash, &e->matrix, sizeof(e->matrix));
+
+  if (IS_MESH_MODEL(e->model)) {
+    hash = R_HashShadowBytes(hash, &e->frame, sizeof(e->frame));
+    hash = R_HashShadowBytes(hash, &e->old_frame, sizeof(e->old_frame));
+    hash = R_HashShadowBytes(hash, &e->lerp, sizeof(e->lerp));
+    hash = R_HashShadowBytes(hash, e->skins, e->model->mesh->num_faces * sizeof(e->skins[0]));
+  }
+
+  return hash;
+}
+
+/**
+ * @brief Collects shadow-casting entities for one light, and hashes the inputs of its
+ * shadow map so that an unchanged light may reuse its atlas tile.
+ * @details The caster set is deliberately not culled against the view, so that the atlas
+ * remains a function of world state alone and the hash holds still as the camera moves.
+ * A hash of zero means the tile is left exactly as it is, which is only safe where the
+ * shader cannot sample it: an occluded light illuminates nothing visible, and a light
+ * that casts no shadows at all is given no tile. A light beyond the lighting distance
+ * still hashes, and so still clears its tile once, because `bounds` may be clipped far
+ * tighter than `radius`, by which the shader alone attenuates.
  */
 void R_UpdateLightEntities(const r_view_t *view, r_light_t *l, int32_t index) {
 
   l->num_entities = 0;
+  l->hash = 0;
 
   if (l->flags & R_LIGHT_NO_SHADOW) {
     return;
@@ -132,76 +154,90 @@ void R_UpdateLightEntities(const r_view_t *view, r_light_t *l, int32_t index) {
     return;
   }
 
+  uint64_t hash = 0xcbf29ce484222325ull;
+
+  hash = R_HashShadowBytes(hash, &l->origin, sizeof(l->origin));
+  hash = R_HashShadowBytes(hash, &l->radius, sizeof(l->radius));
+  hash = R_HashShadowBytes(hash, &l->tile, sizeof(l->tile));
+  hash = R_HashShadowBytes(hash, &r_alpha_test->value, sizeof(r_alpha_test->value));
+
+  const bool bsp_light_geometry = l->bsp_light && l->bsp_light->num_draw_elements;
+  hash = R_HashShadowBytes(hash, &bsp_light_geometry, sizeof(bsp_light_geometry));
+
   const vec3_t closest_point = Box3_ClampPoint(l->bounds, view->origin);
   const float dist = Vec3_Distance(closest_point, view->origin);
 
-  if (dist > r_lighting_distance->value + LIGHTING_LOD_BLEND_DIST) {
-    return;
-  }
+  if (dist <= r_lighting_distance->value + LIGHTING_LOD_BLEND_DIST) {
 
-  const r_entity_t *e = view->entities;
-  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+    const r_entity_t *e = view->entities;
+    for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-    if (e->model == NULL) {
-      continue;
-    }
+      if (e->model == NULL) {
+        continue;
+      }
 
-    if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
-      continue;
-    }
+      if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
+        continue;
+      }
 
-    if (IS_MESH_MODEL(e->model) && !r_shadows->value) {
-      continue;
-    }
+      if (IS_MESH_MODEL(e->model) && !r_shadows->value) {
+        continue;
+      }
 
-    if (R_IsLightSource(l, e)) {
-      continue;
-    }
+      if (R_IsLightSource(l, e)) {
+        continue;
+      }
 
-    if (!Box3_Intersects(l->bounds, e->abs_model_bounds)) {
-      continue;
-    }
+      if (!Box3_Intersects(l->bounds, e->abs_model_bounds)) {
+        continue;
+      }
 
-    if (R_CullLightEntity(view, l, e)) {
-      continue;
-    }
+      l->entities[l->num_entities++] = e;
 
-    l->entities[l->num_entities++] = e;
-
-    if (!IS_WORLDSPAWN(e->model)) {
-      r_shadow_draw.cache[index] = false;
+      hash = R_HashLightEntity(hash, e);
     }
   }
 
-  if (r_shadow_draw.cache[index]) {
+  l->hash = hash ?: 1;
+
+  if (l->hash == r_shadow_draw.hashes[index]) {
     r_stats.lights_cached++;
   }
 }
 
 /**
+ * @brief Whether the light's atlas tile must be redrawn this frame.
+ */
+static bool R_LightShadowDirty(const r_light_t *l, int32_t index) {
+  return l->hash && l->hash != r_shadow_draw.hashes[index];
+}
+
+/**
  * @brief Draws one BSP draw elements entry for shadow casting, binding the alpha-test pipeline
- * and diffuse texture if the entry has a material, or the opaque pipeline otherwise.
+ * and diffuse texture for alpha-tested entries, or the opaque pipeline otherwise.
+ * @details The surface flags are consulted rather than the presence of a material, so that
+ * this accepts a block's draw elements, which are batched per material, as well as the
+ * depth pass elements, which lump all opaque faces under no material at all.
  * @return The pipeline now bound, so the caller can avoid redundant re-binds across calls.
  */
 static GraphicsPipeline *R_DrawBspDrawElementsShadow(RenderPass *pass, const r_bsp_draw_elements_t *draw, GraphicsPipeline *pipeline) {
 
-  GraphicsPipeline *draw_pipeline = r_shadow_draw.bsp_opaque_pipeline;
-
-  if (draw->material) {
-
-    if (draw->material->cm->surface & (SURF_SKY | SURF_MASK_BLEND | SURF_MATERIAL)) {
-      return pipeline;
-    }
-
-    draw_pipeline = r_shadow_draw.bsp_alpha_test_pipeline;
+  if (draw->surface & (SURF_SKY | SURF_MASK_BLEND | SURF_MATERIAL | SURF_LIQUID | SURF_MASK_NO_DRAW_ELEMENTS)) {
+    return pipeline;
   }
+
+  const bool alpha_test = (draw->surface & SURF_ALPHA_TEST) && draw->material;
+
+  GraphicsPipeline *draw_pipeline = alpha_test
+    ? r_shadow_draw.bsp_alpha_test_pipeline
+    : r_shadow_draw.bsp_opaque_pipeline;
 
   if (pipeline != draw_pipeline) {
     pipeline = draw_pipeline;
     $(pass, bindPipeline, pipeline);
   }
 
-  if (draw->material) {
+  if (alpha_test) {
     $(pass, bindFragmentSamplers, 0, &(SDL_GPUTextureSamplerBinding) {
       .texture = draw->material->texture->texture->texture,
       .sampler = r_shadow_draw.repeat_sampler->sampler,
@@ -234,6 +270,36 @@ static void R_DrawBspDrawElementsShadows(RenderPass *pass, const r_bsp_draw_elem
 }
 
 /**
+ * @brief Draws the shadow geometry of the blocks the light reaches.
+ * @details Geometry beyond the light's radius can neither receive its light nor occlude it,
+ * so only the blocks intersecting its bounds need be drawn. This is what quemap precomputes
+ * per BSP light, done at runtime instead, for lights that have no such geometry: dynamic
+ * lights, and the lights of a map being edited, which move.
+ * @remarks Block bounds are in model space, so this is only valid for worldspawn.
+ */
+static void R_DrawBspBlocksShadows(RenderPass *pass, const r_light_t *l, const r_bsp_inline_model_t *in) {
+
+  GraphicsPipeline *pipeline = r_shadow_draw.bsp_opaque_pipeline;
+
+  const r_bsp_block_t *block = in->blocks;
+  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+
+    if (!Box3_Intersects(l->bounds, block->visible_bounds)) {
+      continue;
+    }
+
+    const r_bsp_draw_elements_t *draw = block->draw_elements;
+    for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+      pipeline = R_DrawBspDrawElementsShadow(pass, draw, pipeline);
+    }
+  }
+
+  if (pipeline != r_shadow_draw.bsp_opaque_pipeline) {
+    $(pass, bindPipeline, r_shadow_draw.bsp_opaque_pipeline);
+  }
+}
+
+/**
  * @brief Draws BSP inline-model shadow geometry for one light and entity.
  */
 static void R_DrawBspEntityShadows(const r_light_t *l, const r_entity_t *e, RenderPass *pass) {
@@ -251,8 +317,12 @@ static void R_DrawBspEntityShadows(const r_light_t *l, const r_entity_t *e, Rend
     .lerp = 0.f,
   }, sizeof(r_shadow_locals_t));
 
-  if (IS_WORLDSPAWN(e->model) && l->bsp_light && l->bsp_light->num_draw_elements) {
-    R_DrawBspDrawElementsShadows(pass, l->bsp_light->draw_elements, l->bsp_light->num_draw_elements);
+  if (IS_WORLDSPAWN(e->model)) {
+    if (l->bsp_light && l->bsp_light->num_draw_elements) {
+      R_DrawBspDrawElementsShadows(pass, l->bsp_light->draw_elements, l->bsp_light->num_draw_elements);
+    } else {
+      R_DrawBspBlocksShadows(pass, l, in);
+    }
   } else {
     R_DrawBspDrawElementsShadows(pass, in->depth_pass_elements, in->num_depth_pass_elements);
   }
@@ -405,11 +475,7 @@ void R_DrawShadows(const r_view_t *view) {
     const r_light_t *l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-      if (l->occluded) {
-        continue;
-      }
-
-      if (r_shadow_draw.cache[i]) {
+      if (!R_LightShadowDirty(l, i)) {
         continue;
       }
 
@@ -443,11 +509,7 @@ void R_DrawShadows(const r_view_t *view) {
     l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-      if (l->occluded) {
-        continue;
-      }
-
-      if (r_shadow_draw.cache[i]) {
+      if (!R_LightShadowDirty(l, i)) {
         continue;
       }
 
@@ -457,11 +519,7 @@ void R_DrawShadows(const r_view_t *view) {
     l = view->lights;
     for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-      if (l->occluded) {
-        continue;
-      }
-
-      if (r_shadow_draw.cache[i]) {
+      if (!R_LightShadowDirty(l, i)) {
         continue;
       }
 
@@ -473,10 +531,18 @@ void R_DrawShadows(const r_view_t *view) {
 
   const r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
-    if (l->bsp_light && l->num_entities == 1 && IS_WORLDSPAWN(l->entities[0]->model)) {
-      r_shadow_draw.cache[i] = true;
+    if (R_LightShadowDirty(l, i)) {
+      r_shadow_draw.hashes[i] = l->hash;
     }
   }
+}
+
+/**
+ * @brief Invalidates all cached shadow atlas tiles.
+ */
+void R_ClearShadows(void) {
+
+  memset(r_shadow_draw.hashes, 0, sizeof(r_shadow_draw.hashes));
 }
 
 /**
@@ -503,6 +569,8 @@ void R_InitShadows(void) {
       .num_levels = 1,
       .sample_count = SDL_GPU_SAMPLECOUNT_1,
     }, NULL);
+
+    $(r_shadow_atlas.textures[face], setName, va("shadow atlas %d", face));
   }
 
   r_shadow_atlas.sampler = $(r_context.device, createSamplerShadowCompare);

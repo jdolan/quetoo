@@ -309,13 +309,16 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
       SDL_DestroySurface(side);
     }
 
+    const int32_t levels = Mini(IMG_CUBEMAP_LEVELS,
+                                (int32_t) floorf(log2f((float) Mini(image->width, image->height))) + 1);
+
     image->texture = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
       .type = SDL_GPU_TEXTURETYPE_CUBE,
       .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
       .width = image->width,
       .height = image->height,
       .layer_count_or_depth = 6,
-      .num_levels = IMG_CUBEMAP_LEVELS,
+      .num_levels = levels,
       .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
     }, data);
 
@@ -331,7 +334,9 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
     image->texture = $(r_context.device, createTextureFromSurface, surface, SDL_GPU_TEXTUREUSAGE_SAMPLER, true);
   }
-    
+
+  $(image->texture, setName, image->media.name);
+
   R_RegisterMedia((r_media_t *) image);
 
   SDL_DestroySurface(surface);

@@ -104,6 +104,12 @@ typedef struct {
    * @brief CPU copy of the dynamic light block.
    */
   r_dynamic_lights_uniform_block_t dynamic_block;
+
+  /**
+   * @brief The transfer buffer sourcing both blocks' uploads, held for the renderer's
+   * lifetime because they are uploaded every frame.
+   */
+  TransferBuffer *transfer_buffer;
 } r_lights_t;
 
 /**

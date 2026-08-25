@@ -95,6 +95,13 @@ static struct {
   Buffer *vertex_buffer;
   uint32_t vertex_buffer_capacity;
 
+  /**
+   * @brief The transfer buffer sourcing the vertex upload, held for the subsystem's
+   * lifetime because the vertexes are uploaded every frame. Grown with the buffer it
+   * sources.
+   */
+  TransferBuffer *transfer_buffer;
+
 } r_draw_2d;
 
 /**
@@ -601,14 +608,26 @@ void R_Draw2D(void) {
       .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
       .size = count * sizeof(r_draw_2d_vertex_t),
     });
+    r_draw_2d.transfer_buffer = release(r_draw_2d.transfer_buffer);
+    r_draw_2d.transfer_buffer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+      .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+      .size = count * sizeof(r_draw_2d_vertex_t),
+    });
+
     r_draw_2d.vertex_buffer_capacity = count;
   }
 
   {
+    const uint32_t size = count * sizeof(r_draw_2d_vertex_t);
+
+    $(r_draw_2d.transfer_buffer, write, r_draw_2d.game.vertexes, size, true);
+
     CopyPass *copyPass = $(commands, beginCopyPass);
 
-    $(copyPass, uploadData, r_draw_2d.vertex_buffer->buffer, r_draw_2d.game.vertexes,
-      count * sizeof(r_draw_2d_vertex_t), 0, true);
+    $(copyPass, uploadBuffer,
+      &(SDL_GPUTransferBufferLocation) { .transfer_buffer = r_draw_2d.transfer_buffer->buffer },
+      &(SDL_GPUBufferRegion) { .buffer = r_draw_2d.vertex_buffer->buffer, .size = size },
+      true);
 
     release(copyPass);
   }
@@ -758,4 +777,5 @@ void R_ShutdownDraw2D(void) {
   r_draw_2d.pipeline = release(r_draw_2d.pipeline);
   r_draw_2d.sampler = release(r_draw_2d.sampler);
   r_draw_2d.vertex_buffer = release(r_draw_2d.vertex_buffer);
+  r_draw_2d.transfer_buffer = release(r_draw_2d.transfer_buffer);
 }

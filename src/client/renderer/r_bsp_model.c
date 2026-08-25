@@ -605,6 +605,9 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 
   bsp->elements_buffer = $(r_context.device, createBufferWithConstMem, SDL_GPU_BUFFERUSAGE_INDEX,
                            bsp->elements, bsp->num_elements * sizeof(uint32_t));
+
+  $(bsp->vertex_buffer, setName, va("%s vertexes", mod->media.name));
+  $(bsp->elements_buffer, setName, va("%s elements", mod->media.name));
 }
 
 /**

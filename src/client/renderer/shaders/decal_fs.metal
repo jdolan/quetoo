@@ -111,7 +111,7 @@ struct dynamic_lights_block
 
 struct decal_locals_block
 {
-    uint4 active_dynamic_lights[2];
+    uint4 active_dynamic_lights[4];
 };
 
 struct main0_out
@@ -160,12 +160,12 @@ float3 decal_light(thread const light_t& light, thread const float3& normal, con
 }
 
 static inline __attribute__((always_inline))
-bool dynamic_light_active(thread const spvUnsafeArray<uint4, 2>& mask, thread const int& j)
+bool dynamic_light_active(thread const spvUnsafeArray<uint4, 4>& mask, thread const int& j)
 {
     return (mask[j >> 7][(j >> 5) & 3] & (1u << uint(j & 31))) != 0u;
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _56 [[buffer(0)]], constant decal_locals_block& _294 [[buffer(1)]], const device bsp_lights_block& _257 [[buffer(2)]], const device dynamic_lights_block& _287 [[buffer(3)]], const device voxel_light_data_block& _218 [[buffer(4)]], const device voxel_light_indices_block& _246 [[buffer(5)]], texture2d<float> texture_diffusemap [[texture(0)]], sampler texture_diffusemapSmplr [[sampler(0)]])
+fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _56 [[buffer(0)]], constant decal_locals_block& _295 [[buffer(1)]], const device bsp_lights_block& _258 [[buffer(2)]], const device dynamic_lights_block& _288 [[buffer(3)]], const device voxel_light_data_block& _219 [[buffer(4)]], const device voxel_light_indices_block& _247 [[buffer(5)]], texture2d<float> texture_diffusemap [[texture(0)]], sampler texture_diffusemapSmplr [[sampler(0)]])
 {
     main0_out out = {};
     float4 diffuse = texture_diffusemap.sample(texture_diffusemapSmplr, in.in_texcoord);
@@ -174,39 +174,41 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _56 
     float3 param = in.in_model_position;
     int3 voxel = decal_voxel_xyz(param, _56);
     int voxel_index = (((voxel.z * int(_56.voxels.size.y)) + voxel.y) * int(_56.voxels.size.x)) + voxel.x;
-    int2 data = int2(_218.voxel_light_data_elements[(voxel_index * 2) + 0], _218.voxel_light_data_elements[(voxel_index * 2) + 1]);
+    int2 data = int2(_219.voxel_light_data_elements[(voxel_index * 2) + 0], _219.voxel_light_data_elements[(voxel_index * 2) + 1]);
     light_t param_1;
     for (int i = 0; i < data.y; i++)
     {
-        int index = _246.voxel_light_indices[data.x + i];
-        param_1.origin = _257.bsp_lights[index].origin;
-        param_1.color = _257.bsp_lights[index].color;
-        param_1.tile = _257.bsp_lights[index].tile;
+        int index = _247.voxel_light_indices[data.x + i];
+        param_1.origin = _258.bsp_lights[index].origin;
+        param_1.color = _258.bsp_lights[index].color;
+        param_1.tile = _258.bsp_lights[index].tile;
         float3 param_2 = normal;
         light += decal_light(param_1, param_2, _56, in.in_model_position);
     }
-    spvUnsafeArray<uint4, 2> param_3;
+    spvUnsafeArray<uint4, 4> param_3;
     light_t param_5;
-    for (int j = 0; j < _287.num_dynamic_lights; j++)
+    for (int j = 0; j < _288.num_dynamic_lights; j++)
     {
-        param_3[0] = _294.active_dynamic_lights[0];
-        param_3[1] = _294.active_dynamic_lights[1];
+        param_3[0] = _295.active_dynamic_lights[0];
+        param_3[1] = _295.active_dynamic_lights[1];
+        param_3[2] = _295.active_dynamic_lights[2];
+        param_3[3] = _295.active_dynamic_lights[3];
         int param_4 = j;
         if (dynamic_light_active(param_3, param_4))
         {
-            param_5.origin = _287.dynamic_lights[j].origin;
-            param_5.color = _287.dynamic_lights[j].color;
-            param_5.tile = _287.dynamic_lights[j].tile;
+            param_5.origin = _288.dynamic_lights[j].origin;
+            param_5.color = _288.dynamic_lights[j].color;
+            param_5.tile = _288.dynamic_lights[j].tile;
             float3 param_6 = normal;
             light += decal_light(param_5, param_6, _56, in.in_model_position);
         }
     }
     out.out_color = diffuse * in.in_color;
-    float4 _334 = out.out_color;
-    float3 _336 = _334.xyz * light;
-    out.out_color.x = _336.x;
-    out.out_color.y = _336.y;
-    out.out_color.z = _336.z;
+    float4 _339 = out.out_color;
+    float3 _341 = _339.xyz * light;
+    out.out_color.x = _341.x;
+    out.out_color.y = _341.y;
+    out.out_color.z = _341.z;
     return out;
 }
 
