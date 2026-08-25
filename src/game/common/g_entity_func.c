@@ -1246,8 +1246,9 @@ void G_func_button(g_entity_t *ent) {
 
   gi.LinkEntity(ent);
 
-  if (gi.EntityValue(ent->def, "sounds")->integer != -1) {
-    ent->move_info.sound_start = gi.SoundIndex("func/switch");
+  const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
+  if (s != -1) {
+    ent->move_info.sound_start = gi.SoundIndex(va("func/button_%d", s + 1));
   }
 
   if (!ent->speed) {
