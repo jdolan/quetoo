@@ -67,6 +67,19 @@ void R_ActiveDynamicLights(const r_view_t *view, const box3_t bounds, r_active_d
 }
 
 /**
+ * @brief Uploads one light block through the transfer buffer held for that purpose.
+ */
+static void R_UploadLightBlock(CopyPass *copyPass, Buffer *buffer, const void *block, uint32_t size) {
+
+  $(r_lights.transfer_buffer, write, block, size, true);
+
+  $(copyPass, uploadBuffer,
+    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = r_lights.transfer_buffer->buffer },
+    &(SDL_GPUBufferRegion) { .buffer = buffer->buffer, .size = size },
+    true);
+}
+
+/**
  * @brief Uploads light buffers and caches per-block and per-entity dynamic
  * light masks for the frame.
  */
@@ -129,10 +142,10 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
   dynamic_lights->num_lights = num_dynamic_lights;
 
   const uint32_t bsp_size = offsetof(r_bsp_lights_uniform_block_t, lights) + bsp_lights->num_lights * sizeof(r_light_uniform_t);
-  $(r_lights.bsp_buffer, uploadWithPass, copyPass, bsp_lights, bsp_size, 0, true);
+  R_UploadLightBlock(copyPass, r_lights.bsp_buffer, bsp_lights, bsp_size);
 
   const uint32_t dynamic_size = offsetof(r_dynamic_lights_uniform_block_t, lights) + dynamic_lights->num_lights * sizeof(r_light_uniform_t);
-  $(r_lights.dynamic_buffer, uploadWithPass, copyPass, dynamic_lights, dynamic_size, 0, true);
+  R_UploadLightBlock(copyPass, r_lights.dynamic_buffer, dynamic_lights, dynamic_size);
 
   if (r_models.world) {
     const r_bsp_inline_model_t *in = &r_models.world->bsp->inline_models[0];
@@ -165,6 +178,11 @@ void R_InitLights(void) {
     .usage = SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
     .size = sizeof(r_lights.dynamic_block),
   });
+
+  r_lights.transfer_buffer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+    .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+    .size = Maxi(sizeof(r_lights.bsp_block), sizeof(r_lights.dynamic_block)),
+  });
 }
 
 /**
@@ -174,4 +192,5 @@ void R_ShutdownLights(void) {
 
   r_lights.bsp_buffer = release(r_lights.bsp_buffer);
   r_lights.dynamic_buffer = release(r_lights.dynamic_buffer);
+  r_lights.transfer_buffer = release(r_lights.transfer_buffer);
 }

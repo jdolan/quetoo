@@ -49,6 +49,12 @@ static struct {
   Buffer *instance_buffer;
 
   /**
+   * @brief The transfer buffer sourcing the instance upload, held for the subsystem's
+   * lifetime because the instances are uploaded every frame.
+   */
+  TransferBuffer *transfer_buffer;
+
+  /**
    * @brief The index buffer.
    */
   Buffer *elements_buffer;
@@ -351,8 +357,14 @@ void R_UpdateSprites(r_view_t *view, CopyPass *copyPass) {
     return;
   }
 
-  $(r_sprite_draw.instance_buffer, uploadWithPass, copyPass, r_sprite_draw.instances,
-    (uint32_t) view->num_sprite_instances * sizeof(r_sprite_instance_t), 0, true);
+  const uint32_t size = (uint32_t) view->num_sprite_instances * sizeof(r_sprite_instance_t);
+
+  $(r_sprite_draw.transfer_buffer, write, r_sprite_draw.instances, size, true);
+
+  $(copyPass, uploadBuffer,
+    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = r_sprite_draw.transfer_buffer->buffer },
+    &(SDL_GPUBufferRegion) { .buffer = r_sprite_draw.instance_buffer->buffer, .size = size },
+    true);
 }
 
 /**
@@ -522,6 +534,11 @@ void R_InitSprites(void) {
     .size = sizeof(r_sprite_draw.instances),
   });
 
+  r_sprite_draw.transfer_buffer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+    .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+    .size = sizeof(r_sprite_draw.instances),
+  });
+
   R_InitSpritePipeline();
 }
 
@@ -535,6 +552,7 @@ void R_ShutdownSprites(void) {
   r_sprite_draw.depth_sampler = release(r_sprite_draw.depth_sampler);
   r_sprite_draw.instance_buffer = release(r_sprite_draw.instance_buffer);
   r_sprite_draw.elements_buffer = release(r_sprite_draw.elements_buffer);
+  r_sprite_draw.transfer_buffer = release(r_sprite_draw.transfer_buffer);
 }
 
 /**

@@ -341,8 +341,10 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
       break;
   }
 
+  $(material->texture->texture, setName, material->texture->media.name);
+
   material->color = Img_Color(diffusemap);
-  
+
   SDL_DestroySurface(diffusemap);
 
   R_ResolveMaterialStages(material);

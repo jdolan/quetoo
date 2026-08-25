@@ -46,6 +46,12 @@ static struct {
   Buffer *buffer;
 
   /**
+   * @brief The transfer buffer sourcing the instance uploads, held for the subsystem's
+   * lifetime because they run for as long as decals are pending.
+   */
+  TransferBuffer *transfer_buffer;
+
+  /**
    * @brief The ring cursor, and the generation it is presently writing.
    */
   uint32_t next;
@@ -168,6 +174,19 @@ static const r_decal_instance_t *R_DecalInstance(uint32_t reference) {
 }
 
 /**
+ * @brief Uploads one range of instances through the transfer buffer held for that purpose.
+ */
+static void R_UploadDecalInstanceRange(CopyPass *pass, const void *instances, uint32_t size, uint32_t offset) {
+
+  $(r_decals.transfer_buffer, write, instances, size, true);
+
+  $(pass, uploadBuffer,
+    &(SDL_GPUTransferBufferLocation) { .transfer_buffer = r_decals.transfer_buffer->buffer },
+    &(SDL_GPUBufferRegion) { .buffer = r_decals.buffer->buffer, .offset = offset, .size = size },
+    false);
+}
+
+/**
  * @brief Uploads the instances appended since the last frame.
  * @remarks This does not cycle, because an instance is never written twice, and
  * the ring cannot have wrapped onto instances an in-flight frame may still read.
@@ -181,12 +200,12 @@ static void R_UploadDecalInstances(CopyPass *pass) {
   const uint32_t first = r_decals.num_pending == MAX_DECAL_INSTANCES ? 0 : r_decals.first_pending;
   const uint32_t head = (uint32_t) Mini((int32_t) r_decals.num_pending, (int32_t) (MAX_DECAL_INSTANCES - first));
 
-  $(r_decals.buffer, uploadWithPass, pass, r_decals.instances + first,
-    head * sizeof(r_decal_instance_t), first * sizeof(r_decal_instance_t), false);
+  R_UploadDecalInstanceRange(pass, r_decals.instances + first,
+    head * sizeof(r_decal_instance_t), first * sizeof(r_decal_instance_t));
 
   if (r_decals.num_pending > head) {
-    $(r_decals.buffer, uploadWithPass, pass, r_decals.instances,
-      (r_decals.num_pending - head) * sizeof(r_decal_instance_t), 0, false);
+    R_UploadDecalInstanceRange(pass, r_decals.instances,
+      (r_decals.num_pending - head) * sizeof(r_decal_instance_t), 0);
   }
 
   r_decals.num_pending = 0;
@@ -687,6 +706,11 @@ void R_InitDecals(void) {
     .size = sizeof(r_decals.instances),
   });
 
+  r_decals.transfer_buffer = $(r_context.device, createTransferBuffer, &(SDL_GPUTransferBufferCreateInfo) {
+    .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+    .size = sizeof(r_decals.instances),
+  });
+
   R_InitDecalPipeline();
 }
 
@@ -698,4 +722,5 @@ void R_ShutdownDecals(void) {
   R_ShutdownDecalPipeline();
 
   r_decals.buffer = release(r_decals.buffer);
+  r_decals.transfer_buffer = release(r_decals.transfer_buffer);
 }
