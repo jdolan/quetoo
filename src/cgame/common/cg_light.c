@@ -191,11 +191,9 @@ static void Cg_AddBspLights(void) {
 }
 
 /**
- * @brief Adds all BSP and allocated dynamic lights to the current view.
+ * @brief Adds all allocated dynamic lights to the current view, draining those that have decayed.
  */
-void Cg_AddLights(void) {
-
-  Cg_AddBspLights();
+void Cg_AddDynamicLights(void) {
 
   for (ListNode *node = cg_lights.allocated->head; node; ) {
     ListNode *next = node->next;
@@ -226,6 +224,16 @@ void Cg_AddLights(void) {
 
     node = next;
   }
+}
+
+/**
+ * @brief Adds all BSP and allocated dynamic lights to the current view.
+ */
+void Cg_AddLights(void) {
+
+  Cg_AddBspLights();
+
+  Cg_AddDynamicLights();
 }
 
 /**
