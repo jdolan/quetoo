@@ -163,7 +163,7 @@ dnl ------------------------
 dnl Check for ObjectivelyGPU
 dnl ------------------------
 
-PKG_CHECK_MODULES([OBJECTIVELYGPU], [ObjectivelyGPU >= 0.4.0])
+PKG_CHECK_MODULES([OBJECTIVELYGPU], [ObjectivelyGPU >= 1.0.0])
 
 dnl ------------------------
 dnl Check for ObjectivelyMVC
