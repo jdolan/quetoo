@@ -1556,6 +1556,27 @@ static uint32_t G_Ai_Turn(g_client_t *cl, pm_cmd_t *cmd) {
 }
 
 /**
+ * @brief Clears any goal of the given AI that references the given entity.
+ * Called by `G_InvalidateEntityReferences` before an entity is freed, so that
+ * a bot doesn't retain a dangling reference to it (e.g. a bot targeting a
+ * player who disconnects).
+ */
+void G_Ai_InvalidateReferences(ai_t *ai, const g_entity_t *ent) {
+
+  if (G_Ai_GoalHasEntity(&ai->combat_target, ent)) {
+    G_Ai_ClearGoal(&ai->combat_target);
+  }
+
+  if (G_Ai_GoalHasEntity(&ai->move_target, ent)) {
+    G_Ai_ClearGoal(&ai->move_target);
+  }
+
+  if (G_Ai_GoalHasEntity(&ai->backup_move_target, ent)) {
+    G_Ai_ClearGoal(&ai->backup_move_target);
+  }
+}
+
+/**
  * @brief Called just before an AI leaves this mortal plane.
  */
 void G_Ai_Disconnect(g_client_t *cl) {

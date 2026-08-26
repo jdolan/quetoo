@@ -39,6 +39,7 @@ extern cvar_t *g_ai_no_target;
 extern cvar_t *g_ai_node_dev;
 
 void G_Ai_Disconnect(g_client_t *cl);
+void G_Ai_InvalidateReferences(ai_t *ai, const g_entity_t *ent);
 void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd);
 void G_Ai_Respawn(g_client_t *cl);
 void G_Ai_Begin(g_client_t *cl);

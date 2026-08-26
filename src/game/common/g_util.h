@@ -52,6 +52,7 @@ void G_SetAnimation(g_client_t *cl, entity_animation_t anim, bool restart);
 bool G_IsAnimation(g_client_t *cl, entity_animation_t anim);
 g_entity_t *G_AllocEntity(const char *classname);
 g_entity_t *G_AllocEntityAt(int32_t number, const char *classname);
+void G_InvalidateEntityReferences(const g_entity_t *ent);
 void G_FreeEntity(g_entity_t *ent);
 void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 

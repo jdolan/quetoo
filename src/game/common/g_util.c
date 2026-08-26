@@ -354,6 +354,48 @@ g_entity_t *G_AllocEntity(const char *classname) {
 }
 
 /**
+ * @brief Clears any cached reference to the given entity, on any other entity.
+ * Must be called before an entity is freed: its slot stays allocated and gets
+ * recycled, so any lingering pointer to it (a bot's target, a projectile's
+ * enemy, an entity it's standing on, etc.) would otherwise dangle or silently
+ * come to mean something else entirely.
+ */
+void G_InvalidateEntityReferences(const g_entity_t *ent) {
+
+  G_ForEachEntity(other, {
+
+    if (other == ent) {
+      continue;
+    }
+
+    if (other->owner == ent) {
+      other->owner = NULL;
+    }
+    if (other->enemy == ent) {
+      other->enemy = NULL;
+    }
+    if (other->activator == ent) {
+      other->activator = NULL;
+    }
+    if (other->target_ent == ent) {
+      other->target_ent = NULL;
+    }
+    if (other->ground.ent == ent) {
+      other->ground.ent = NULL;
+    }
+
+    if (other->client) {
+      if (other->client->held_grenade == ent) {
+        other->client->held_grenade = NULL;
+      }
+      if (other->client->ai) {
+        G_Ai_InvalidateReferences(other->client->ai, ent);
+      }
+    }
+  });
+}
+
+/**
  * @brief Frees the specified entity.
  */
 void G_FreeEntity(g_entity_t *ent) {
@@ -361,6 +403,8 @@ void G_FreeEntity(g_entity_t *ent) {
   if (ent->classname) {
     G_Debug("%s\n", etos(ent));
   }
+
+  G_InvalidateEntityReferences(ent);
 
   gi.UnlinkEntity(ent);
 
