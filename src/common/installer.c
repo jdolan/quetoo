@@ -325,7 +325,7 @@ static int Installer_Thread(void *unused) {
           q_snprintf(in->error, sizeof(in->error), "Failed to fetch %s", QUETOO_BUILD_URL);
         } else {
           in->bin_version = v;
-          in->state = in->bin_version > build_number->integer ? INSTALLER_UPDATE_AVAILABLE : INSTALLER_COMPARING;
+          in->state = in->bin_version > version->integer ? INSTALLER_UPDATE_AVAILABLE : INSTALLER_COMPARING;
         }
         SDL_UnlockMutex(installer.mutex);
       }
@@ -418,7 +418,7 @@ static int Installer_Thread(void *unused) {
  */
 void Installer_Init(Installer_FrameFunction frame) {
 
-  if (build_number->integer == -1) {
+  if (version->integer == -1) {
     return;
   }
 
