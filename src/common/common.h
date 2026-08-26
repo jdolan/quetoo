@@ -219,7 +219,7 @@ void Com_InitSubsystem(uint32_t s);
 void Com_QuitSubsystem(uint32_t s);
 
 extern cvar_t *version;
-extern cvar_t *release_version;
+extern cvar_t *build_number;
 extern cvar_t *build;
 extern cvar_t *dedicated;
 extern cvar_t *developer;
