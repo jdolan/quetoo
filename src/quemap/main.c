@@ -189,12 +189,7 @@ static void Check_BSP_Options(int32_t argc) {
 static void Check_LIGHT_Options(int32_t argc) {
 
   for (int32_t i = argc; i < Com_Argc(); i++) {
-    if (!q_strcmp(Com_Argv(i), "--antialias")) {
-      antialias = true;
-      Com_Verbose("antialias: true\n");
-    } else {
-      break;
-    }
+    
   }
 }
 
@@ -225,8 +220,8 @@ static void PrintHelpMessage(void) {
   Com_Print("-v --verbose\n");
   Com_Print("-d --debug\n");
   Com_Print("-t --threads <int> - Specify the number of worker threads (default auto)\n");
-Com_Print("-p --path <path> - add the path to the search directory\n");
-Com_Print("-w --wpath <path> - add the write path to the search directory\n");
+  Com_Print("-p --path <path> - add the path to the search directory\n");
+  Com_Print("-w --wpath <path> - add the write path to the search directory\n");
   Com_Print("-g --game <name> - compile against the given game/mod, e.g. ctf\n");
   Com_Print("\n");
 
@@ -241,22 +236,14 @@ Com_Print("-w --wpath <path> - add the write path to the search directory\n");
   Com_Print(" --only-ents - only update the entity string from the .map\n");
   Com_Print("\n");
 
-  Com_Print("-light             LIGHT stage options:\n");
-  Com_Print(" --antialias - calculate extra lighting samples and average them\n");
-  Com_Print("\n");
-
   Com_Print("-zip               ZIP stage options:\n");
   Com_Print(" --include-shared - include assets from shared archives\n");
   Com_Print(" --update - Update the existing archive instead of authoring a new one\n");
   Com_Print("\n");
 
   Com_Print("Examples:\n");
-  Com_Print("Development compile:\n"
-        " quemap -bsp -light maps/my.map\n");
-  Com_Print("Release compile with high quality lighting:\n"
-            " quemap -bsp -light --antialias maps/my.map\n");
-  Com_Print("Zip file generation:\n"
-        " quemap -zip maps/my.bsp\n");
+  Com_Print("BSP compile:\n quemap -bsp maps/my.map\n");
+  Com_Print("ZIP compile:\n quemap -zip maps/my.bsp\n");
   Com_Print("\n");
 }
 

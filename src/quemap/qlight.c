@@ -21,8 +21,6 @@
 
 #include "qlight.h"
 
-bool antialias = false;
-
 // we use a subset of the collision detection facilities for lighting
 static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
 
