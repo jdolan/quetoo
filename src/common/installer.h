@@ -49,7 +49,7 @@ typedef enum {
  */
 typedef struct {
 	installer_state_t state;
-  int32_t bin_version;
+  int32_t build_number;
 	int32_t files_done;
 	int32_t files_total;
 	int32_t kbytes_done;
