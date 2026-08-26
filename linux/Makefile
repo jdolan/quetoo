@@ -143,10 +143,15 @@ $(TARGET)/.pkg-client-stamp: $(APPDIR_CLIENT)
 	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-update $(PKGDIR_CLIENT)/usr/lib/quetoo/bin/quetoo-update
 	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-status $(PKGDIR_CLIENT)/usr/lib/quetoo/bin/quetoo-status
 
-	# Desktop integration
+	# Desktop integration. The metainfo's <release> is stamped with this
+	# build's version/date rather than committed, since it changes every release.
 	install -Dm644 quetoo/Quetoo.desktop \
 		$(PKGDIR_CLIENT)/usr/share/applications/quetoo.desktop
-	install -Dm644 quetoo/org.quetoo.Quetoo.metainfo.xml \
+	sed \
+		-e 's/@VERSION@/$(VERSION)/' \
+		-e 's/@RELEASE_DATE@/$(shell date +%Y-%m-%d)/' \
+		quetoo/org.quetoo.Quetoo.metainfo.xml > $(TARGET)/org.quetoo.Quetoo.metainfo.xml
+	install -Dm644 $(TARGET)/org.quetoo.Quetoo.metainfo.xml \
 		$(PKGDIR_CLIENT)/usr/share/metainfo/org.quetoo.Quetoo.metainfo.xml
 	install -d $(PKGDIR_CLIENT)/usr/share/icons/hicolor/256x256/apps
 	convert ../src/main/quetoo.ico[0] \
