@@ -91,7 +91,12 @@
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
-/* Version number of package */
+/* Monotonic build number, used by the installer */
+#ifndef BUILD_NUMBER
+#define BUILD_NUMBER "-1"
+#endif
+
+/* Human-readable release version */
 #ifndef VERSION
 #define VERSION "-1"
 #endif

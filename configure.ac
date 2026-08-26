@@ -94,11 +94,17 @@ esac
 BUILD="${host_cpu}-${host_vendor}-${host_os}"
 AC_DEFINE_UNQUOTED(BUILD, "${BUILD}", [The canonical name of the build])
 
-AC_ARG_WITH([version],
-  [AS_HELP_STRING([--with-version=N], [game version number; -1 disables the installer (default: -1)])],
+AC_ARG_WITH([build-number],
+  [AS_HELP_STRING([--with-build-number=N], [monotonic build number; -1 disables the installer (default: -1)])],
+  [BUILD_NUMBER=$withval],
+  [BUILD_NUMBER=$PACKAGE_VERSION])
+AC_DEFINE_UNQUOTED(BUILD_NUMBER, "${BUILD_NUMBER}", [The monotonic build number, used by the installer])
+
+AC_ARG_WITH([release],
+  [AS_HELP_STRING([--with-release=X.Y.Z], [human-readable release version, e.g. the git tag (default: `git describe`)])],
   [VERSION=$withval],
-  [VERSION=$PACKAGE_VERSION])
-AC_DEFINE_UNQUOTED(VERSION, "${VERSION}", [The game version number])
+  [VERSION=`git describe --tags --always 2>/dev/null || echo $PACKAGE_VERSION`])
+AC_DEFINE_UNQUOTED(VERSION, "${VERSION}", [The human-readable release version])
 
 AC_SUBST(ARCH)
 AC_SUBST(HOST)
@@ -421,6 +427,7 @@ Automatic configuration OK.
 
   Configuration summary:
     Version: ........... $VERSION
+    Build number: ...... $BUILD_NUMBER
     Build: ............. $BUILD
     Compiler: .......... $CC
     C flags: ........... $BASE_CFLAGS

@@ -41,6 +41,7 @@ quetoo_t quetoo;
 static cvar_t *verbose;
 
 cvar_t *version;
+cvar_t *build_number;
 cvar_t *build;
 cvar_t *dedicated;
 cvar_t *developer;
@@ -380,6 +381,7 @@ static void Init(void) {
   Cvar_Init();
 
   version = Cvar_Add("version", VERSION, CVAR_SERVER_INFO, NULL);
+  build_number = Cvar_Add("build_number", BUILD_NUMBER, CVAR_NO_SET, NULL);
   build = Cvar_Add("build", BUILD, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
   dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");

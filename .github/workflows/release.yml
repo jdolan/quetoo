@@ -135,9 +135,11 @@ jobs:
 
     - name: Build Quetoo
       working-directory: quetoo
+      env:
+        VERSION: ${{ github.event.inputs.version || github.ref_name }}
       run: |
         autoreconf -i
-        ./configure --with-version=$(git rev-list --count HEAD) CFLAGS='-g -O2' --with-homebrew=${HOMEBREW_PREFIX} --prefix=/
+        ./configure --with-build-number=$(git rev-list --count HEAD) --with-release=${VERSION#v} CFLAGS='-g -O2' --with-homebrew=${HOMEBREW_PREFIX} --prefix=/
         make -j$(sysctl -n hw.logicalcpu)
 
     - name: Install Quetoo
@@ -400,10 +402,12 @@ jobs:
 
     - name: Build Quetoo
       working-directory: quetoo
+      env:
+        VERSION: ${{ github.event.inputs.version || github.ref_name }}
       run: |
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
         autoreconf -i
-        ./configure --with-version=$(git rev-list --count HEAD) CFLAGS='-g -O2' LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --prefix=/
+        ./configure --with-build-number=$(git rev-list --count HEAD) --with-release=${VERSION#v} CFLAGS='-g -O2' LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --prefix=/
         make -j$(nproc)
 
     - name: Package Quetoo
@@ -477,9 +481,12 @@ jobs:
     - name: Build
       working-directory: ${{ github.workspace }}/quetoo
       shell: pwsh
+      env:
+        RELEASE_TAG: ${{ github.event.inputs.version || github.ref_name }}
       run: |
-        $version = (git rev-list --count HEAD).Trim()
-        msbuild /m /p:Configuration=$env:BUILD_CONFIGURATION /p:DebugSymbols=true /p:DebugType=full "/p:ExtraPreprocessorDefinitions=VERSION=`"$version`"" $env:SOLUTION_FILE_PATH
+        $buildNumber = (git rev-list --count HEAD).Trim()
+        $release = $env:RELEASE_TAG.TrimStart('v')
+        msbuild /m /p:Configuration=$env:BUILD_CONFIGURATION /p:DebugSymbols=true /p:DebugType=full "/p:ExtraPreprocessorDefinitions=BUILD_NUMBER=`"$buildNumber`"%3BVERSION=`"$release`"" $env:SOLUTION_FILE_PATH
 
     - name: Install Quetoo
       working-directory: ${{ github.workspace }}/quetoo
@@ -572,14 +579,18 @@ jobs:
     - name: Download all artifacts
       uses: actions/download-artifact@v8
 
-    - name: Publish version to S3
+    - name: Publish build number to S3
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: us-east-1
       run: |
-        git rev-list --count HEAD > version
-        aws s3 cp version s3://quetoo/version
+        git rev-list --count HEAD > build
+        aws s3 cp build s3://quetoo/build
+        # Also publish the legacy `version` key so pre-existing installs
+        # (built before the build-number/release split) keep getting
+        # correct update checks. Safe to remove once those have aged out.
+        aws s3 cp build s3://quetoo/version
 
     - name: Checkout quetoo-data
       uses: actions/checkout@v6
