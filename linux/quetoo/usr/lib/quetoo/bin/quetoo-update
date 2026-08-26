@@ -42,9 +42,18 @@ if command -v dpkg &>/dev/null && command -v apt &>/dev/null; then
   DATA_VERSION=$(deb_version quetoo-data)
 elif command -v rpm &>/dev/null && command -v dnf &>/dev/null; then
   PKG_MANAGER=rpm
-  CLIENT_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo-client 2>/dev/null || true)
-  SERVER_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo-server 2>/dev/null || true)
-  DATA_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo-data 2>/dev/null || true)
+
+  # rpm -q --queryformat writes "package X is not installed" to stdout (not
+  # stderr) when the package is missing, so 2>/dev/null alone doesn't
+  # suppress it; check installation with --quiet first.
+  rpm_version() {
+    rpm -q --quiet "$1" || return 0
+    rpm -q --queryformat '%{VERSION}' "$1" 2>/dev/null
+  }
+
+  CLIENT_VERSION=$(rpm_version quetoo-client)
+  SERVER_VERSION=$(rpm_version quetoo-server)
+  DATA_VERSION=$(rpm_version quetoo-data)
 else
   echo "error: no supported package manager found (apt or dnf required)" >&2
   exit 1
