@@ -139,7 +139,7 @@ jobs:
         VERSION: ${{ github.event.inputs.version || github.ref_name }}
       run: |
         autoreconf -i
-        ./configure --with-build-number=$(git rev-list --count HEAD) --with-release=${VERSION#v} CFLAGS='-g -O2' --with-homebrew=${HOMEBREW_PREFIX} --prefix=/
+        ./configure --with-build-number=$(git rev-list --count HEAD) --with-version=${VERSION#v} CFLAGS='-g -O2' --with-homebrew=${HOMEBREW_PREFIX} --prefix=/
         make -j$(sysctl -n hw.logicalcpu)
 
     - name: Install Quetoo
@@ -407,7 +407,7 @@ jobs:
       run: |
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
         autoreconf -i
-        ./configure --with-build-number=$(git rev-list --count HEAD) --with-release=${VERSION#v} CFLAGS='-g -O2' LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --prefix=/
+        ./configure --with-build-number=$(git rev-list --count HEAD) --with-version=${VERSION#v} CFLAGS='-g -O2' LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --prefix=/
         make -j$(nproc)
 
     - name: Package Quetoo

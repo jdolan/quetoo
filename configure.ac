@@ -100,11 +100,11 @@ AC_ARG_WITH([build-number],
   [BUILD_NUMBER=$PACKAGE_VERSION])
 AC_DEFINE_UNQUOTED(BUILD_NUMBER, "${BUILD_NUMBER}", [The monotonic build number, used by the installer])
 
-AC_ARG_WITH([release],
-  [AS_HELP_STRING([--with-release=X.Y.Z], [human-readable release version, e.g. the git tag (default: `git describe`)])],
+AC_ARG_WITH([version],
+  [AS_HELP_STRING([--with-version=X.Y.Z], [semantic version, e.g. the git tag (default: `git describe`)])],
   [VERSION=$withval],
   [VERSION=`git describe --tags --always 2>/dev/null || echo $PACKAGE_VERSION`])
-AC_DEFINE_UNQUOTED(VERSION, "${VERSION}", [The human-readable release version])
+AC_DEFINE_UNQUOTED(VERSION, "${VERSION}", [The semantic version])
 
 AC_SUBST(ARCH)
 AC_SUBST(HOST)
