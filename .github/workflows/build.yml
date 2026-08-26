@@ -141,7 +141,7 @@ jobs:
       run: |
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
         autoreconf -i
-        ./configure --with-version=$(git rev-list --count HEAD) --enable-optimizations LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --prefix=/
+        ./configure --with-build-number=$(git rev-list --count HEAD) --enable-optimizations LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --prefix=/
         make -j$(nproc)
 
     - name: Package Quetoo
@@ -222,8 +222,9 @@ jobs:
       working-directory: ${{ github.workspace }}/quetoo
       shell: pwsh
       run: |
-        $version = (git rev-list --count HEAD).Trim()
-        msbuild /m /p:Configuration=$env:BUILD_CONFIGURATION /p:DebugSymbols=true /p:DebugType=full "/p:ExtraPreprocessorDefinitions=VERSION=`"$version`"" $env:SOLUTION_FILE_PATH
+        $buildNumber = (git rev-list --count HEAD).Trim()
+        $release = (git describe --tags --always).Trim()
+        msbuild /m /p:Configuration=$env:BUILD_CONFIGURATION /p:DebugSymbols=true /p:DebugType=full "/p:ExtraPreprocessorDefinitions=BUILD_NUMBER=`"$buildNumber`"%3BVERSION=`"$release`"" $env:SOLUTION_FILE_PATH
 
     - name: Install Quetoo
       working-directory: ${{ github.workspace }}/quetoo

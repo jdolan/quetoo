@@ -527,7 +527,11 @@ static void G_Giblet_Think(g_entity_t *ent) {
 
     gi.LinkEntity(ent);
   } else {
-    ent->s.trail = Vec3_Length(ent->velocity) > 30.f ? TRAIL_GIB : TRAIL_NONE;
+    if (Vec3_Length(ent->velocity) > 30.f) {
+      ent->s.trail = TRAIL_GIB;
+    } else {
+      ent->s.trail = TRAIL_NONE;
+    }
   }
 
   ent->next_think = g_level.time + QUETOO_TICK_MILLIS;

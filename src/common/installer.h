@@ -26,7 +26,7 @@
 #include <SDL3/SDL_mutex.h>
 
 #define QUETOO_RELEASES_URL     "https://github.com/jdolan/quetoo/releases/latest"
-#define QUETOO_VERSION_URL      "https://quetoo.s3.amazonaws.com/version"
+#define QUETOO_BUILD_URL        "https://quetoo.s3.amazonaws.com/build"
 #define QUETOO_MOTD_URL         "https://quetoo.s3.amazonaws.com/motd"
 #define QUETOO_DATA_BASE_URL    "https://quetoo-data.s3.amazonaws.com"
 
@@ -49,7 +49,7 @@ typedef enum {
  */
 typedef struct {
 	installer_state_t state;
-  int32_t bin_version;
+  int32_t build_number;
 	int32_t files_done;
 	int32_t files_total;
 	int32_t kbytes_done;

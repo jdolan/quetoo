@@ -67,24 +67,24 @@ static struct {
 /**
  * @brief Performs a blocking HTTP `GET` and parses an integer from the response body.
  */
-static int32_t Installer_GetVersion(const char *version_url) {
-  int32_t version;
+static int32_t Installer_GetBuildNumber(const char *build_url) {
+  int32_t build;
 
   Data *data = NULL;
-  const int32_t status = $($$(RESTClient, sharedInstance), get, version_url, NULL, &data);
+  const int32_t status = $($$(RESTClient, sharedInstance), get, build_url, NULL, &data);
   if (status == 200 && data) {
-    version = (int32_t) strtol((const char *) data->bytes, NULL, 10);
-    Com_Debug(DEBUG_COMMON, "%s == %d\n", version_url, version);
+    build = (int32_t) strtol((const char *) data->bytes, NULL, 10);
+    Com_Debug(DEBUG_COMMON, "%s == %d\n", build_url, build);
   } else {
-    Com_Warn("%s: HTTP %d\n", version_url, status);
+    Com_Warn("%s: HTTP %d\n", build_url, status);
     if (data && data->length) {
       Com_Debug(DEBUG_COMMON, "%s\n", (const char *) data->bytes);
     }
-    version = -1;
+    build = -1;
   }
 
   release(data);
-  return version;
+  return build;
 }
 
 /**
@@ -225,7 +225,9 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
     char dir[MAX_OS_PATH];
     q_strlcpy(dir, path, sizeof(dir));
     char *slash = q_strrchr(dir, '/');
-    if (slash) { *slash = '\0'; }
+    if (slash) {
+      *slash = '\0';
+    }
     if (!SDL_CreateDirectory(dir)) {
       Com_Warn("Failed to create directory for: %s\n", path);
       release(data);
@@ -318,14 +320,14 @@ static int Installer_Thread(void *unused) {
     switch (in->state) {
 
       case INSTALLER_CHECKING: {
-        const int32_t v = Installer_GetVersion(QUETOO_VERSION_URL);
+        const int32_t b = Installer_GetBuildNumber(QUETOO_BUILD_URL);
         SDL_LockMutex(installer.mutex);
-        if (v < 0) {
+        if (b < 0) {
           in->state = INSTALLER_ERROR;
-          q_snprintf(in->error, sizeof(in->error), "Failed to fetch %s", QUETOO_VERSION_URL);
+          q_snprintf(in->error, sizeof(in->error), "Failed to fetch %s", QUETOO_BUILD_URL);
         } else {
-          in->bin_version = v;
-          in->state = in->bin_version > version->integer ? INSTALLER_UPDATE_AVAILABLE : INSTALLER_COMPARING;
+          in->build_number = b;
+          in->state = in->build_number > build_number->integer ? INSTALLER_UPDATE_AVAILABLE : INSTALLER_COMPARING;
         }
         SDL_UnlockMutex(installer.mutex);
       }
@@ -418,7 +420,7 @@ static int Installer_Thread(void *unused) {
  */
 void Installer_Init(Installer_FrameFunction frame) {
 
-  if (version->integer == -1) {
+  if (build_number->integer == -1) {
     return;
   }
 
