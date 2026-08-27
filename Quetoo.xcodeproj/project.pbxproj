@@ -280,7 +280,6 @@
 		CE05B3F030224900C0DE005F /* libdiscord-rpc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27E11527AC26E6003D56AC /* libdiscord-rpc.a */; };
 		CE05B3F030224900C0DE0060 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE05B3F030224900C0DE0061 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
-		CE05B3F030224900C0DE0062 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CE0C0752260CC75700FFE27B /* box.h in Headers */ = {isa = PBXBuildFile; fileRef = CE0C0751260CC75700FFE27B /* box.h */; };
 		CE12D7A91C5C5C3200CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D7D31C5C5D6A00CD0B13 /* g_ballistics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6471C5C58C300CD0B13 /* g_ballistics.c */; };
@@ -850,7 +849,6 @@
 		CEC0FF0020260103000001D9 /* libdiscord-rpc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27E11527AC26E6003D56AC /* libdiscord-rpc.a */; };
 		CEC0FF0020260103000001DD /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CEC0FF0020260103000001DE /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
-		CEC0FF0020260103000001DF /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CEC0FF0020260103000001E0 /* cg_client.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D55E1C5C58C300CD0B13 /* cg_client.c */; };
 		CEC0FF0020260103000001E1 /* cg_discord.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E6B727AC95D1003D56AC /* cg_discord.c */; };
 		CEC0FF0020260103000001E2 /* cg_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000022F9100000000C002 /* cg_editor.c */; };
@@ -975,7 +973,6 @@
 		CEF601C72FE711B7005C680C /* SDL3_ttf.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C62FE711B7005C680C /* SDL3_ttf.xcframework */; };
 		CEF75F412EB996E80026CCA4 /* sv_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF75F402EB996E80026CCA4 /* sv_editor.c */; };
 		CEF75F422EB996E80026CCA4 /* sv_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF75F3F2EB996E80026CCA4 /* sv_editor.h */; };
-		CEFC79A41D9CB1A6000FA6B2 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CEFC7A931D9CB75D000FA6B2 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CEFC7A941D9CB75D000FA6B2 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CEFC7B8B1D9D2E9C000FA6B2 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
@@ -1850,7 +1847,6 @@
 		CE12D8111C5C5EF000CD0B13 /* libminizip.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libminizip.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE12D8171C5C614600CD0B13 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		CE12D8191C5C614B00CD0B13 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
-		CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		CE12D8F41C5CF86600CD0B13 /* quetoo-dedicated */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "quetoo-dedicated"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE148DA6242A37B900B589D8 /* r_animation.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_animation.c; sourceTree = "<group>"; };
 		CE148DA7242A37BA00B589D8 /* r_animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_animation.h; sourceTree = "<group>"; };
@@ -2183,6 +2179,7 @@
 		CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = StatsViewController.json; sourceTree = "<group>"; };
 		CEAA77F02775333300EAC853 /* TeamsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamsViewController.h; sourceTree = "<group>"; };
 		CEAA78182775337300EAC853 /* TeamsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TeamsViewController.c; sourceTree = "<group>"; };
+		D1A5B0000000000000000214 /* VoteViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VoteViewController.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000205 /* VoteViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VoteViewController.c; sourceTree = "<group>"; };
 		CEAA78EA2775388700EAC853 /* TeamView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamView.h; sourceTree = "<group>"; };
 		CEAA78EB2775388700EAC853 /* TeamView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamView.c; sourceTree = "<group>"; };
@@ -2378,7 +2375,6 @@
 				CE05B3F030224900C0DE005F /* libdiscord-rpc.a in Frameworks */,
 				CE05B3F030224900C0DE0060 /* libshared.a in Frameworks */,
 				CE05B3F030224900C0DE0061 /* AppKit.framework in Frameworks */,
-				CE05B3F030224900C0DE0062 /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2425,7 +2421,6 @@
 				CE27E42927AC8F24003D56AC /* libdiscord-rpc.a in Frameworks */,
 				CEF18C3E23F43D6B00B85FD8 /* libshared.a in Frameworks */,
 				CE27E82427AC98F0003D56AC /* AppKit.framework in Frameworks */,
-				CEFC79A41D9CB1A6000FA6B2 /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2684,7 +2679,6 @@
 				CEC0FF0020260103000001D9 /* libdiscord-rpc.a in Frameworks */,
 				CEC0FF0020260103000001DD /* libshared.a in Frameworks */,
 				CEC0FF0020260103000001DE /* AppKit.framework in Frameworks */,
-				CEC0FF0020260103000001DF /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3425,7 +3419,6 @@
 				CE12D8191C5C614B00CD0B13 /* AppKit.framework */,
 				CE12D8171C5C614600CD0B13 /* GLUT.framework */,
 				CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */,
-				CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -3633,6 +3626,7 @@
 				CE58707E1F5CDFE0004CAAB2 /* play */,
 				CE5870861F5CDFE0004CAAB2 /* settings */,
 				CEAA78172775337300EAC853 /* teams */,
+				D1A5B0000000000000000215 /* vote */,
 				CE32529C1F760D3F00512523 /* BindTextView.h */,
 				CE32529B1F760D3F00512523 /* BindTextView.c */,
 				CE58709D1F5CE97C004CAAB2 /* CvarCheckbox.h */,
@@ -3785,6 +3779,17 @@
 			path = backgrounds;
 			sourceTree = "<group>";
 		};
+		D1A5B0000000000000000215 /* vote */ = {
+			isa = PBXGroup;
+			children = (
+				D1A5B0000000000000000214 /* VoteViewController.h */,
+				D1A5B0000000000000000205 /* VoteViewController.c */,
+				D1A5B0000000000000000211 /* VoteViewController.css */,
+				D1A5B0000000000000000209 /* VoteViewController.json */,
+			);
+			path = vote;
+			sourceTree = "<group>";
+		};
 		CEAA78172775337300EAC853 /* teams */ = {
 			isa = PBXGroup;
 			children = (
@@ -3792,12 +3797,9 @@
 				CEFF1378277FB721001E1500 /* TeamPlayerView.h */,
 				CEFF1377277FB721001E1500 /* TeamPlayerView.json */,
 				CEAA78182775337300EAC853 /* TeamsViewController.c */,
-				D1A5B0000000000000000205 /* VoteViewController.c */,
 				CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */,
-				D1A5B0000000000000000211 /* VoteViewController.css */,
 				CEAA77F02775333300EAC853 /* TeamsViewController.h */,
 				CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */,
-				D1A5B0000000000000000209 /* VoteViewController.json */,
 				CEAA78EB2775388700EAC853 /* TeamView.c */,
 				CEAA78EA2775388700EAC853 /* TeamView.h */,
 				CEAA79542775396800EAC853 /* TeamView.json */,
@@ -6484,6 +6486,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/play",
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
+					"$(SRCROOT)/src/cgame/common/ui/vote",
 				);
 			};
 			name = Debug;
@@ -6524,6 +6527,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/play",
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
+					"$(SRCROOT)/src/cgame/common/ui/vote",
 				);
 			};
 			name = Release;
@@ -6573,7 +6577,6 @@
 					"$(SRCROOT)/src/**",
 				);
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 			};
 			name = Debug;
 		};
@@ -6621,7 +6624,6 @@
 					"$(SRCROOT)/src/**",
 				);
 				USE_HEADERMAP = NO;
-				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 			};
 			name = Release;
 		};
@@ -6738,6 +6740,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/play",
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
+					"$(SRCROOT)/src/cgame/common/ui/vote",
 				);
 			};
 			name = Debug;
@@ -6773,6 +6776,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/play",
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
+					"$(SRCROOT)/src/cgame/common/ui/vote",
 				);
 			};
 			name = Release;
@@ -7504,6 +7508,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/play",
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
+					"$(SRCROOT)/src/cgame/common/ui/vote",
 				);
 			};
 			name = Debug;
@@ -7545,6 +7550,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/play",
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
+					"$(SRCROOT)/src/cgame/common/ui/vote",
 				);
 			};
 			name = Release;
