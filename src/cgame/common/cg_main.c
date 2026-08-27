@@ -405,6 +405,8 @@ static void Cg_ClearState(void) {
 
   Cg_ClearHud();
 
+  Cg_ClearScores();
+
   Cg_ClearUi();
 }
 

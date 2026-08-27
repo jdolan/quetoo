@@ -25,5 +25,6 @@
 
 #if defined(__CG_LOCAL_H__)
 void Cg_ParseScores(void);
+void Cg_ClearScores(void);
 void Cg_DrawScores(const player_state_t *ps);
 #endif
