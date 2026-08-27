@@ -46,6 +46,7 @@ static vec3_t Pm_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce
 
   return Vec3_Subtract(in, Vec3_Scale(normal, backoff));
 }
+
 /**
  * @brief Collide with the results of the trace, clipping our velocity along the normal.
  */
@@ -78,6 +79,7 @@ static void Pm_ClipMove(const cm_trace_t *trace) {
     pm->s.velocity = Pm_ClipVelocity(pm->s.velocity, pm_locals.clip_planes[i].normal, PM_CLIP_BOUNCE);
   }
 }
+
 /**
  * @brief Slide through the world, clipping to impacted planes.
  */
@@ -128,6 +130,7 @@ static float Pm_SlideMove(void) {
 
   return fabsf(Vec2_Distance(Vec3_XY(org0), Vec3_XY(org1)));
 }
+
 /**
  * @return True if the downward trace yielded a step, false otherwise.
  */
@@ -141,6 +144,7 @@ static bool Pm_CheckStep(const cm_trace_t *trace) {
 
   return false;
 }
+
 /**
  * @brief Moves the player origin to the end of a step-down trace and records the step height.
  */
@@ -154,6 +158,7 @@ static void Pm_StepDown(const cm_trace_t *trace) {
     pm->step = step_height;
   }
 }
+
 /**
  * @brief Performs a slide move with stair stepping, attempting to step up over obstacles.
  */
@@ -214,6 +219,7 @@ static void Pm_StepSlideMove(void) {
   pm->s.origin = org1;
   pm->s.velocity = vel1;
 }
+
 /**
  * @brief Applies water and conveyor belt current velocities to the player.
  */
@@ -270,6 +276,7 @@ static void Pm_Currents(void) {
 
   pm->s.velocity = Vec3_Fmaf(pm->s.velocity, PM_SPEED_CURRENT, current);
 }
+
 /**
  * @return True if the player will be eligible for trick jumping should they
  * impact the ground on this frame, false otherwise.
@@ -298,6 +305,7 @@ static bool Pm_CheckTrickJump(void) {
 
   return true;
 }
+
 /**
  * @return True if the player is attempting to leave the ground via grappling hook.
  */
@@ -313,6 +321,7 @@ static bool Pm_CheckHookJump(void) {
 
   return false;
 }
+
 /**
  * @brief Validates and processes grappling hook state, updating movement type as needed.
  */
@@ -412,6 +421,7 @@ static void Pm_CheckHook(void) {
     }
   }
 }
+
 /**
  * @brief Checks for ground interaction, enabling trick jumping and dealing with landings.
  */
@@ -489,6 +499,7 @@ static void Pm_CheckGround(void) {
   // always touch the entity, even if we couldn't stand on it
   Pm_TouchEntity(&trace);
 }
+
 /**
  * @brief Checks for water interaction, accounting for player ducking, etc.
  */
@@ -528,6 +539,7 @@ static void Pm_CheckWater(void) {
     }
   }
 }
+
 /**
  * @brief Handles ducking, adjusting both the player's bounding box and view
  * offset accordingly. Players must be on the ground in order to duck.
@@ -586,6 +598,7 @@ static void Pm_CheckDuck(void) {
 
   pm->s.view_offset = pm->s.view_offset;
 }
+
 /**
  * @brief Check for jumping and trick jumping.
  *
@@ -651,6 +664,7 @@ static bool Pm_CheckJump(void) {
 
   return true;
 }
+
 /**
  * @brief Check for ladder interaction, setting `PMF_ON_LADDER` when the player is on one.
  */
@@ -674,6 +688,7 @@ static void Pm_CheckLadder(void) {
     pm->s.flags &= ~(PMF_ON_GROUND | PMF_DUCKED);
   }
 }
+
 /**
  * @brief Checks for water exit. The player may exit the water when they can
  * see a usable step out of the water.
@@ -732,6 +747,7 @@ static bool Pm_CheckWaterJump(void) {
 
   return false;
 }
+
 /**
  * @brief Handles player movement while climbing a ladder.
  */
@@ -790,6 +806,7 @@ static void Pm_LadderMove(void) {
 
   Pm_StepSlideMove();
 }
+
 /**
  * @brief Handles player movement during a water jump, propelling the player out of the water.
  */
@@ -817,6 +834,7 @@ static void Pm_WaterJumpMove(void) {
 
   Pm_StepSlideMove();
 }
+
 /**
  * @brief Handles player movement while submerged or wading in water.
  */
@@ -883,6 +901,7 @@ static void Pm_WaterMove(void) {
     Pm_StepSlideMove();
   }
 }
+
 /**
  * @brief Handles player movement while airborne, applying friction, gravity, and air acceleration.
  */
@@ -924,6 +943,7 @@ static void Pm_AirMove(void) {
 
   Pm_StepSlideMove();
 }
+
 /**
  * @brief Called for movements where player is on ground, regardless of water level.
  */
@@ -1006,6 +1026,7 @@ static void Pm_WalkMove(void) {
     Pm_StepSlideMove();
   }
 }
+
 /**
  * @brief Quetoo's movement, from the checks that classify the player through
  * the move itself.

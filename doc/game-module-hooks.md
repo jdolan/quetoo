@@ -415,9 +415,10 @@ Two rules come out of the way they used to be written:
 ### `bg_` is for what both sides use
 
 `bg_pmove.{c,h}`, `bg_pmove_*.c` and `bg_item.{c,h}` are compiled into the game
-*and* the client game, and that is what the prefix means. `g_types.h` is not `bg_` despite the
-client game including it, because it is the game module's own manifest, which the
-client game borrows wholesale - so the two prefixes are not in conflict.
+*and* the client game, and that is what the prefix means. `g_types.h` is not
+`bg_` despite the client game including it, because it is the game module's own
+manifest, which the client game borrows wholesale - so the two prefixes are not
+in conflict.
 
 ### The movement kernel is a selection, not a hook
 
@@ -426,16 +427,17 @@ carries a `kernel`, `Pm_Move` dispatches on it, and each kernel is a whole
 `bg_pmove_*.c` that owns everything after the move is initialized: the ground,
 water, ladder and duck checks, the slide, the step. `bg_pmove.c` keeps only what
 every kernel shares - the trace, the touch list, the prologue, the spectator and
-frozen cases - and `bg_pmove_internal.h` is the contract between the two.
+frozen cases, and the friction, acceleration, gravity and view-step primitives -
+and `bg_pmove_internal.h` is the contract between the two.
 
 Three things drove that shape rather than a `Move` function pointer, which is
 what this started as:
 
 1. **A kernel cannot be networked, but a selection can.** `pm_params_t` already
-   travels per-player inside `pm_state_t`, delta-compressed as a unit, so the id
-   reaches the client with the parameters it belongs to and prediction cannot
-   disagree about which physics is running. A function pointer has to be
-   installed on both sides separately, by two modules that might not.
+   travels per-player inside `pm_state_t`, delta-compressed as a unit, so the
+   id reaches the client with the parameters it belongs to and prediction
+   cannot disagree about which physics is running. A function pointer has to
+   be installed on both sides separately, by two modules that might not.
 2. **Movement forks wholesale.** Porting Quake II's kernel reused five of the
    twenty-odd steps `bg_pmove_internal.h` offered and rewrote the rest. A seam
    made of steps earns very little; the honest seam is the whole kernel.

@@ -387,6 +387,9 @@ void Pm_Move(pm_move_t *pm_move) {
       Pm_QuetooMove();
       break;
     default:
+      // the value arrives over the network, so it is clamped rather than
+      // trusted; both sides clamp alike, so prediction stays consistent even
+      // when a client and a server disagree about what ids exist
       Pm_Debug("Unknown movement kernel %u\n", pm->s.params.kernel);
       Pm_QuetooMove();
       break;

@@ -288,13 +288,13 @@ typedef enum {
  *
  * These values are networked. The list is append-only: an id names a ruleset
  * forever, and reordering it would silently move every client onto different
- * physics. `PM_KERNEL_GAME` begins the range a module may define for itself,
- * as `CS_GAME` and `EF_GAME` do for their own spaces.
+ * physics. Every kernel is in this tree and available to every module, so
+ * there is no module-defined range: unlike `CS_GAME` or `EF_GAME`, which the
+ * engine forwards without interpreting, an id has to resolve to code that
+ * both the game and the client game hold.
  */
 typedef enum {
-  PM_KERNEL_QUETOO,  // Quetoo's own, in bg_pmove_quetoo.c
-
-  PM_KERNEL_GAME = 32 // the game may extend from here
+  PM_KERNEL_QUETOO, // Quetoo's own, in bg_pmove_quetoo.c
 } pm_kernel_t;
 
 /**
