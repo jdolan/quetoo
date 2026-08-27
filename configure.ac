@@ -400,6 +400,7 @@ AC_CONFIG_FILES([
 	src/cgame/default/Makefile
 	src/cgame/ctf/Makefile
 	src/cgame/lithium/Makefile
+	src/cgame/race/Makefile
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile
@@ -410,6 +411,7 @@ AC_CONFIG_FILES([
 	src/game/default/Makefile
 	src/game/ctf/Makefile
 	src/game/lithium/Makefile
+	src/game/race/Makefile
 	src/main/Makefile
 	src/master/Makefile
 	src/net/Makefile

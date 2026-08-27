@@ -1,0 +1,231 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{3583a5f6-9733-4a0c-9019-f0da06fa5005}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common">
+      <UniqueIdentifier>{f4c89d9d-7230-52e4-acc9-562c6261898e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\race">
+      <UniqueIdentifier>{613ae598-9e30-5521-807f-7a2408c3ce80}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="game.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\game\game.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\race\bg_item.h">
+      <Filter>src\race</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_client.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_client_stats.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_cmd.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_entity.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_item.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_local.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_main.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\race\g_types.h">
+      <Filter>src\race</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_weapon.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\bg_pmove.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\bg_vote.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\bg_pmove_internal.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_ai_goal.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_ai_grid.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_ai_info.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_ai_item.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_ai_main.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_ai_node.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_ai_types.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_ballistics.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_client_chase.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_client_view.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_effect.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_entity_func.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_entity_info.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_entity_misc.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_entity_target.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_entity_trigger.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_module.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_physics.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_sound.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_util.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_hook.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_vote.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\bg_hook.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\game\common\g_client.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_client_stats.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_cmd.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_entity.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_item.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_main.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_weapon.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_ai_goal.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_ai_grid.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_ai_info.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_ai_item.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_ai_main.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_ai_node.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_ballistics.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_client_chase.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_client_view.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_combat.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClInclude Include="..\src\game\common\g_combat.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClCompile Include="..\src\game\common\g_effect.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_entity_func.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_entity_info.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_entity_misc.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_entity_target.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_entity_trigger.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_rules.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_vote.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_physics.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_sound.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_util.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_hook.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\race\bg_item.c">
+      <Filter>src\race</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\race\g_module.c">
+      <Filter>src\race</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

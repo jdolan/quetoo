@@ -40,7 +40,7 @@ MSVS_ONLY = {
   "serialization.cpp",
 }
 
-MODULES = ("default", "ctf", "lithium")
+MODULES = ("default", "ctf", "lithium", "race")
 
 # The MSVS project is named for the module except for default, which predates
 # the others and is simply "game" / "cgame".
