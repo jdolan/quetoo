@@ -165,6 +165,10 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
       continue;
     }
 
+    if (cls.cgame && !cls.cgame->ClipEntity(trace->skip, ent, trace->start, trace->end, trace->bounds)) {
+      continue;
+    }
+
     const int32_t head_node = Cl_HullForEntity(s);
 
     cm_trace_t tr;

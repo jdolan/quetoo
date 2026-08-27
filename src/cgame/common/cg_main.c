@@ -540,6 +540,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
   cge.UpdateScreen = Cg_UpdateScreen;
   cge.UpdateInstaller = Cg_UpdateInstaller;
   cge.UpdateDiscord = Cg_UpdateDiscord;
+  cge.ClipEntity = Cg_ExportClipEntity;
 
   return &cge;
 }

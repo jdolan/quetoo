@@ -471,6 +471,10 @@ static void Sv_ClipTraceToEntity(sv_trace_t *trace, const g_entity_t *ent) {
     }
   }
 
+  if (!svs.game->ClipEntity(trace->skip, ent, trace->start, trace->end, trace->bounds)) {
+    return;
+  }
+
   const int32_t head_node = Sv_HullForEntity(ent);
   if (head_node == -1) {
     return;
