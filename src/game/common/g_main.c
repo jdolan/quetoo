@@ -1122,6 +1122,12 @@ void G_Shutdown(void) {
 
   G_Ai_Shutdown();
 
+  g_level.frags = release(g_level.frags);
+
+#if defined(G_CTF)
+  g_level.captures = release(g_level.captures);
+#endif
+
   gi.FreeTag(MEM_TAG_GAME_LEVEL);
   gi.FreeTag(MEM_TAG_GAME);
 }

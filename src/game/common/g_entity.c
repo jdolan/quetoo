@@ -568,6 +568,12 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
     }
   });
 
+  g_level.frags = release(g_level.frags);
+
+#if defined(G_CTF)
+  g_level.captures = release(g_level.captures);
+#endif
+
   gi.FreeTag(MEM_TAG_GAME_LEVEL);
 
   memset(&g_level, 0, sizeof(g_level));
