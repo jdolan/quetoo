@@ -24,11 +24,14 @@
   <ItemGroup>
     <ClInclude Include="..\src\game\game.h" />
     <ClInclude Include="..\src\game\race\bg_item.h" />
+    <ClInclude Include="..\src\game\race\g_race.h" />
     <ClInclude Include="..\src\game\race\g_types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\game\race\bg_item.c" />
     <ClCompile Include="..\src\game\race\g_module.c" />
+    <ClCompile Include="..\src\game\race\g_race.c" />
+    <ClCompile Include="..\src\game\race\g_race_entity.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3c9e5fb2-6d74-4a1b-9153-8e4f7cab9d23}</ProjectGuid>

@@ -42,6 +42,9 @@
     <ClInclude Include="..\src\game\common\g_main.h">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\game\race\g_race.h">
+      <Filter>src\race</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\game\race\g_types.h">
       <Filter>src\race</Filter>
     </ClInclude>
@@ -240,6 +243,12 @@
       <Filter>src\race</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\race\g_module.c">
+      <Filter>src\race</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\race\g_race.c">
+      <Filter>src\race</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\race\g_race_entity.c">
       <Filter>src\race</Filter>
     </ClCompile>
   </ItemGroup>

@@ -82,6 +82,7 @@ typedef enum {
 #define CS_ITEM_SET        (CS_GAME + 7)  // active item set (g_items_t)
 #define CS_HOOK_PULL_SPEED (CS_GAME + 8)  // hook speed
 #define CS_VOTE            (CS_GAME + 9)  // the vote in progress (bg_vote.h)
+#define CS_RACE_COURSE     (CS_GAME + 10) // checkpoints\finishes\valid, for the HUD
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -103,13 +104,104 @@ typedef enum {
   STAT_SPECTATOR,
   STAT_TEAM,
   STAT_TIME,
-  STAT_WEAPON
+  STAT_WEAPON,
+
+  // racing, written by G_WriteStats_Race; the time is milliseconds split in two
+  STAT_RACE_MODE,        // g_race_mode_t
+  STAT_RACE_RUN,         // g_race_run_state_t
+  STAT_RACE_TIME_LOW,
+  STAT_RACE_TIME_HIGH,
+  STAT_RACE_CHECKPOINTS, // reached; the total is on CS_RACE_COURSE
+  STAT_RACE_FLAGS        // g_race_invalid_t
 } g_stat_t;
 
 /**
  * @brief Forces a statistic field to be re-sent, even if the value has not changed.
  */
 #define STAT_TOGGLE_BIT 0x4000
+
+_Static_assert(STAT_RACE_FLAGS < MAX_STATS, "the race stats must fit the stat array");
+
+/**
+ * @brief The most checkpoints a course may have. A course is contiguous
+ * checkpoints 1 through N and at least one finish; a start is optional.
+ */
+#define RACE_MAX_CHECKPOINTS 64
+
+/**
+ * @brief How a client is taking part. Spectating is derived from
+ * `g_client_persistent_t.spectator` rather than stored, so the two cannot
+ * disagree; the other two are the client's choice and persist across respawns.
+ */
+typedef enum {
+  RACE_MODE_RACE,      // finishes count, and the hook and noclip are refused
+  RACE_MODE_PRACTICE,  // nothing counts, and everything is allowed
+  RACE_MODE_SPECTATOR
+} g_race_mode_t;
+
+/**
+ * @brief Where a run is.
+ */
+typedef enum {
+  RACE_RUN_IDLE,
+  RACE_RUN_ACTIVE,
+  RACE_RUN_FINISHED
+} g_race_run_state_t;
+
+/**
+ * @brief Why a finished run in race mode cannot count.
+ */
+typedef enum {
+  RACE_INVALID_NOCLIP = 1 << 0
+} g_race_invalid_t;
+
+/**
+ * @brief When a `trigger_race_start` begins the run, kept in the trigger's `count`.
+ */
+typedef enum {
+  RACE_START_TOUCH, // on entering
+  RACE_START_EXIT,  // on leaving
+  RACE_START_JUMP   // on the first jump from inside
+} g_race_start_mode_t;
+
+/**
+ * @brief The course the level's triggers describe, gathered as they spawn and
+ * validated once they all have.
+ */
+typedef struct {
+  uint64_t checkpoints; // bit N - 1 is set once checkpoint N has spawned
+  uint16_t checkpoint_count;
+  uint16_t start_count;
+  uint16_t finish_count;
+  bool malformed; // a checkpoint number out of range was seen
+  bool valid;
+} g_race_course_t;
+
+/**
+ * @brief One attempt at the course. Lives on `g_client_t`, so a respawn clears
+ * it, which is what a death means to a run.
+ */
+typedef struct {
+  g_race_run_state_t state;
+  g_race_mode_t mode; // the mode the run was started in, which is what decides whether it counts
+  uint16_t checkpoint_count;
+  uint32_t start_time;
+  uint32_t elapsed; // set on finish
+  uint32_t checkpoint_times[RACE_MAX_CHECKPOINTS]; // from the start
+  float start_speed, end_speed, top_speed;
+  float speed_sum; // over speed_samples, for the average
+  uint32_t speed_samples;
+  uint8_t invalid; // g_race_invalid_t
+} g_race_run_t;
+
+/**
+ * @brief A position a practicing client asked to return to, in the spawn
+ * point's terms: the origin is the floor, as `g_client_spawn_t.origin` is.
+ */
+typedef struct {
+  vec3_t origin, angles;
+  bool set;
+} g_race_spawn_t;
 
 /**
  * @brief Muzzle flashes are bound to the entity that created them. This allows
@@ -867,6 +959,11 @@ typedef struct {
    */
   Vector *frags;
 
+  /**
+   * @brief The course the triggers describe, validated in `G_ConfigureLevel`.
+   */
+  g_race_course_t race_course;
+
   } g_level_t;
 
 /**
@@ -1242,6 +1339,16 @@ typedef struct {
    * @brief Per-install GUID sent via userinfo, used for stats reporting.
    */
   char guid[MAX_QPATH];
+
+  /**
+   * @brief Racing or practicing, chosen by the client and kept across respawns.
+   */
+  g_race_mode_t race_mode;
+
+  /**
+   * @brief Where `kill` returns a practicing client to, once they have `store`d.
+   */
+  g_race_spawn_t race_spawn;
 } g_client_persistent_t;
 
 /**
@@ -1274,6 +1381,24 @@ struct g_client_s {
    * @brief Most recently received movement command.
    */
   pm_cmd_t cmd;
+
+  /**
+   * @brief The run in progress, cleared with the rest of this structure on respawn.
+   */
+  g_race_run_t race_run;
+
+  /**
+   * @brief The race trigger last touched and when, so that standing in one does
+   * not fire it every frame.
+   */
+  const g_entity_t *race_trigger;
+  uint32_t race_trigger_time;
+
+  /**
+   * @brief A start zone entered but not yet left or jumped out of, for the
+   * start modes that begin the run on the way out rather than on the way in.
+   */
+  const g_entity_t *race_start;
 
   /**
    * @brief Item inventory counts indexed by item index.
