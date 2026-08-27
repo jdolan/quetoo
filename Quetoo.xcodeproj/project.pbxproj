@@ -258,6 +258,7 @@
 		D2A5C1000000000000000029 /* g_module.c in Sources */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000003 /* g_module.c */; };
 		D8A5C100000000000000000B /* g_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A1 /* g_race.c */; };
 		D8A5C100000000000000000C /* g_race_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A2 /* g_race_entity.c */; };
+		D8A5C100000000000000000D /* g_race_records.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A4 /* g_race_records.c */; };
 		CE05B2F0302248070012F003 /* bg_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE05B23D302248070012862B /* bg_item.h */; };
 		D2A5C1000000000000000033 /* bg_item.h in Headers */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000001 /* bg_item.h */; };
 		CE05B2F0302248070012F004 /* g_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE05B27C302248070012862B /* g_types.h */; };
@@ -1782,6 +1783,7 @@
 		D8A5C10000000000000000A1 /* g_race.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_race.c; sourceTree = "<group>"; };
 		D8A5C10000000000000000A2 /* g_race_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_race_entity.c; sourceTree = "<group>"; };
 		D8A5C10000000000000000A3 /* g_race.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_race.h; sourceTree = "<group>"; };
+		D8A5C10000000000000000A4 /* g_race_records.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_race_records.c; sourceTree = "<group>"; };
 		CE05B27C302248070012862B /* g_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_types.h; sourceTree = "<group>"; };
 		D2A5C1000000000000000004 /* g_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_types.h; sourceTree = "<group>"; };
 		CE05B283302248070012862B /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -3066,6 +3068,7 @@
 				D2A5C1000000000000000003 /* g_module.c */,
 				D8A5C10000000000000000A1 /* g_race.c */,
 				D8A5C10000000000000000A2 /* g_race_entity.c */,
+				D8A5C10000000000000000A4 /* g_race_records.c */,
 				D8A5C10000000000000000A3 /* g_race.h */,
 				D2A5C1000000000000000004 /* g_types.h */,
 				D2A5C1000000000000000005 /* Makefile.am */,
@@ -5922,6 +5925,7 @@
 				D2A5C1000000000000000029 /* g_module.c in Sources */,
 				D8A5C100000000000000000B /* g_race.c in Sources */,
 				D8A5C100000000000000000C /* g_race_entity.c in Sources */,
+				D8A5C100000000000000000D /* g_race_records.c in Sources */,
 				D2A5C100000000000000002A /* g_physics.c in Sources */,
 				D2A5C100000000000000002B /* g_rules.c in Sources */,
 				D2A5C100000000000000002C /* g_vote.c in Sources */,

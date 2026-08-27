@@ -213,6 +213,7 @@ bool G_Race_Start(g_client_t *cl) {
 
   run->state = RACE_RUN_ACTIVE;
   run->mode = G_Race_Mode(cl);
+  run->movement = cl->ps.pm_state.params.movement;
   run->stage = 1;
   run->start_time = g_level.time;
   run->start_speed = run->top_speed = speed;
@@ -354,6 +355,10 @@ bool G_Race_Finish(g_client_t *cl) {
     run->invalid |= RACE_INVALID_NOCLIP;
   }
 
+  if (cl->ps.pm_state.params.movement != run->movement) {
+    run->invalid |= RACE_INVALID_MOVEMENT;
+  }
+
   run->state = RACE_RUN_FINISHED;
   run->elapsed = g_level.time - run->start_time;
   run->end_speed = Vec3_Length(cl->entity->velocity);
@@ -365,6 +370,7 @@ bool G_Race_Finish(g_client_t *cl) {
   // it counts only if it was raced from start to finish with nothing to disqualify it
   if (run->mode == RACE_MODE_RACE && G_Race_Mode(cl) == RACE_MODE_RACE && !run->invalid) {
     gi.BroadcastPrint(PRINT_HIGH, "%s finished in %s\n", cl->persistent.net_name, time);
+    G_Race_SubmitRecord(cl);
   } else if (run->mode == RACE_MODE_PRACTICE) {
     gi.ClientPrint(cl, PRINT_HIGH, "Finished in %s, practicing\n", time);
   } else {
@@ -519,6 +525,13 @@ static void G_Race_Status_f(g_client_t *cl) {
                  course->finish_count, course->finish_count == 1 ? "" : "es",
                  course->valid ? "" : " ^1(invalid)^7");
 
+  const g_race_record_t *record = G_Race_Record(cl->persistent.guid, g_level.movement);
+  if (record) {
+    size_t count;
+    const size_t rank = G_Race_Rank(record, &count);
+    gi.ClientPrint(cl, PRINT_HIGH, "Best: %s, #%zu of %zu\n", G_Race_FormatTime(record->time), rank, count);
+  }
+
   switch (run->state) {
     case RACE_RUN_ACTIVE:
       gi.ClientPrint(cl, PRINT_HIGH, "Running: %s, checkpoint %u of %u%s\n",
@@ -543,6 +556,7 @@ static void G_ConfigureLevel_Race(void) {
 
   G_Race_ValidateCourse();
   G_Race_ResolveStages();
+  G_Race_LoadRecords();
 
   const g_race_course_t *course = &g_level.race_course;
 

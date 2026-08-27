@@ -83,6 +83,29 @@ bool G_Race_Debounced(g_client_t *cl, const g_entity_t *ent, float wait);
 bool G_Race_SpawnEntity(g_entity_t *ent);
 
 /**
+ * @brief The records for this map, read from `records/<map>.rec` when the
+ * level is configured and published as `CS_RACE_RECORDS`.
+ */
+void G_Race_LoadRecords(void);
+
+/**
+ * @brief Files the finished run on `cl` as a personal best if it is one, and
+ * says so; a course record is said to everyone.
+ */
+void G_Race_SubmitRecord(g_client_t *cl);
+
+/**
+ * @brief The record `guid` holds under `movement`, or NULL.
+ */
+const g_race_record_t *G_Race_Record(const char *guid, pm_movement_t movement);
+
+/**
+ * @brief Where `record` stands among the records under its movement, from 1,
+ * and how many there are.
+ */
+size_t G_Race_Rank(const g_race_record_t *record, size_t *count);
+
+/**
  * @brief Finds each stage's `restart_target` once every entity has spawned,
  * and spoils the stages if any is missing. Called from `ConfigureLevel`.
  */

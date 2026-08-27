@@ -83,6 +83,7 @@ typedef enum {
 #define CS_HOOK_PULL_SPEED (CS_GAME + 8)  // hook speed
 #define CS_VOTE            (CS_GAME + 9)  // the vote in progress (bg_vote.h)
 #define CS_RACE_COURSE     (CS_GAME + 10) // checkpoints\finishes\valid, for the HUD
+#define CS_RACE_RECORDS    (CS_GAME + 11) // the top times under this movement, name\time pairs
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -153,7 +154,8 @@ typedef enum {
  * @brief Why a finished run in race mode cannot count.
  */
 typedef enum {
-  RACE_INVALID_NOCLIP = 1 << 0
+  RACE_INVALID_NOCLIP = 1 << 0,
+  RACE_INVALID_MOVEMENT = 1 << 1 // the movement changed under the run
 } g_race_invalid_t;
 
 /**
@@ -213,6 +215,7 @@ typedef struct {
 typedef struct {
   g_race_run_state_t state;
   g_race_mode_t mode; // the mode the run was started in, which is what decides whether it counts
+  pm_movement_t movement; // the movement it was started under, which is what a record is comparable within
   uint16_t checkpoint_count;
   uint16_t split_count;
   uint16_t stage; // the one under way, from 1
@@ -226,6 +229,27 @@ typedef struct {
   uint32_t speed_samples;
   uint8_t invalid; // g_race_invalid_t
 } g_race_run_t;
+
+/**
+ * @brief A personal best on this map: one per client per movement, kept in
+ * `records/<map>.rec` as brace-delimited key-value blocks, the format of
+ * `maps.lst`. Keyed by the client's GUID and shown by name, so that a rename
+ * keeps the record.
+ */
+typedef struct {
+  char guid[MAX_QPATH];
+  char name[MAX_QPATH];
+  char ip[64];
+  char date[32]; // ISO 8601, UTC
+  pm_movement_t movement;
+  uint32_t params; // a hash of the pm_params_t the run was made under, for information
+  uint32_t time;
+  uint16_t checkpoint_count, split_count, stage_count;
+  uint32_t checkpoint_times[RACE_MAX_CHECKPOINTS];
+  uint32_t split_times[RACE_MAX_CHECKPOINTS];
+  uint32_t stage_times[RACE_MAX_CHECKPOINTS];
+  float start_speed, top_speed, average_speed;
+} g_race_record_t;
 
 /**
  * @brief A position a practicing client asked to return to, in the spawn
@@ -996,6 +1020,13 @@ typedef struct {
    * @brief The course the triggers describe, validated in `G_ConfigureLevel`.
    */
   g_race_course_t race_course;
+
+  /**
+   * @brief Every personal best on record for this map, all movements, sorted
+   * by movement and then time. Level memory, so the change of level frees it.
+   */
+  g_race_record_t *race_records;
+  size_t race_record_count, race_record_capacity;
 
   } g_level_t;
 
