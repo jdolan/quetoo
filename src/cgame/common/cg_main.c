@@ -565,13 +565,13 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
   cge.ClearState = Cg_ClearState;
   cge.HandleEvent = Cg_HandleEvent;
   cge.Look = Cg_Look;
-  cge.Move = Cg_Move;
+  cge.Move = Cg_ExportMove;
   cge.LoadMedia = Cg_LoadMedia;
   cge.FreeMedia = Cg_FreeMedia;
   cge.ParsedMessage = Cg_ParsedMessage;
   cge.ParseMessage = Cg_ParseMessage;
   cge.Interpolate = Cg_Interpolate;
-  cge.UsePrediction = Cg_UsePrediction;
+  cge.UsePrediction = Cg_ExportUsePrediction;
   cge.PredictMovement = Cg_PredictMovement;
   cge.UpdateLoading = Cg_UpdateLoading;
   cge.PrepareScene = Cg_PrepareScene;

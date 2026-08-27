@@ -25,7 +25,7 @@
 /**
  * @brief Returns true if client side prediction should be used.
  */
-bool Cg_UsePrediction(void) {
+static bool Cg_UsePrediction_Common(void) {
 
   if (!cg_predict->value) {
     return false;
@@ -53,6 +53,32 @@ bool Cg_UsePrediction(void) {
 
   return true;
 }
+
+UsePrediction Cg_UsePrediction = Cg_UsePrediction_Common;
+
+/**
+ * @brief The `UsePrediction` export. The client holds this rather than the chain head, so
+ * that the chain a module installs from `Cg_Module_Init` is the one that gets
+ * called.
+ */
+bool Cg_ExportUsePrediction(void) {
+  return Cg_UsePrediction();
+}
+
+static void Cg_MoveCommandWillRun_Common(pm_move_t *pm, const cl_cmd_t *cmd) {
+}
+
+MoveCommandWillRun Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
+
+static void Cg_MoveCommandDidRun_Common(const pm_move_t *pm, const cl_cmd_t *cmd) {
+}
+
+MoveCommandDidRun Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
+
+static void Cg_PredictionDidComplete_Common(const pm_move_t *pm) {
+}
+
+PredictionDidComplete Cg_PredictionDidComplete = Cg_PredictionDidComplete_Common;
 
 /**
  * @brief Trace wrapper for `Pm_Move`.
@@ -119,12 +145,19 @@ void Cg_PredictMovement(const Vector *cmds) {
 
       // simulate the movement
       pm.cmd = cmd->cmd;
+
+      Cg_MoveCommandWillRun(&pm, cmd);
+
       Pm_Move(&pm);
+
+      Cg_MoveCommandDidRun(&pm, cmd);
     }
 
     // save for error detection
     cmd->prediction.origin = pm.s.origin;
   }
+
+  Cg_PredictionDidComplete(&pm);
 
   // save for rendering
   if (Vec3_Distance(pr->view.origin, pm.s.origin) > TRACE_EPSILON) {

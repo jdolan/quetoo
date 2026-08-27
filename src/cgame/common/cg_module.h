@@ -162,6 +162,59 @@ typedef bool (*ClipEntity)(const cl_entity_t *mover, const cl_entity_t *ent, con
 extern ClipEntity Cg_ClipEntity;
 
 /**
+ * @brief Whether the client predicts its own movement this frame. The default
+ * says no for demos, the third person view, a dead or frozen player, a frame
+ * with nothing to delta from, or when `cg_predict` is off.
+ * @details Chainable. A feature that cannot vouch for its prediction - one whose
+ * physics the server has not yet confirmed, say - answers false and otherwise
+ * defers to previous.
+ * @return True to predict.
+ */
+typedef bool (*UsePrediction)(void);
+
+extern UsePrediction Cg_UsePrediction;
+
+/**
+ * @brief Builds the movement command from the client's input: the movement,
+ * the buttons, and the muzzle for an attack. The default reads the bound keys.
+ * @details Chainable. A feature adding an input reads its own key, sets what it
+ * sets on `cmd` and defers to previous.
+ */
+typedef void (*Move)(pm_cmd_t *cmd);
+
+extern Move Cg_Move;
+
+/**
+ * @brief A pending command with time is about to be run through `Pm_Move` for
+ * prediction. The move is set up once from the last server frame and carried
+ * through every pending command, so whatever a feature sets on it here - a
+ * training aid installing `pm->Accelerate`, say - stays set for the commands
+ * that follow.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*MoveCommandWillRun)(pm_move_t *pm, const cl_cmd_t *cmd);
+
+extern MoveCommandWillRun Cg_MoveCommandWillRun;
+
+/**
+ * @brief A pending command with time has been run through `Pm_Move` for
+ * prediction.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*MoveCommandDidRun)(const pm_move_t *pm, const cl_cmd_t *cmd);
+
+extern MoveCommandDidRun Cg_MoveCommandDidRun;
+
+/**
+ * @brief Every pending command has been predicted and `pm` holds the result
+ * the view will be rendered from.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*PredictionDidComplete)(const pm_move_t *pm);
+
+extern PredictionDidComplete Cg_PredictionDidComplete;
+
+/**
  * @}
  * @defgroup cg-hooks-messages Messages
  * @brief What the server sends. Tails in cg_main.c.
