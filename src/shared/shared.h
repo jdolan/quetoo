@@ -323,6 +323,22 @@ typedef struct {
 } pm_params_t;
 
 /**
+ * @brief This layout is the wire format. `Net_WriteDeltaPlayerState` sends
+ * `gravity` and `kernel` on their own bits and compares everything from
+ * `gravity_water` on with one `memcmp`, so two things must stay true: `kernel`
+ * must keep sitting in the padding `gravity` leaves, or the compared region
+ * moves, and that region must hold nothing but the floats the encoder writes,
+ * or the comparison reads padding and resends the block at random. A field
+ * added anywhere but the end breaks the first; a field of another width breaks
+ * the second. Both are asserted rather than commented so that the build says so.
+ */
+_Static_assert(offsetof(pm_params_t, gravity_water) == sizeof(float),
+               "pm_params_t.kernel must fit in the padding after gravity");
+_Static_assert(sizeof(pm_params_t) - offsetof(pm_params_t, gravity_water) ==
+               25 * sizeof(float),
+               "the delta-compared region of pm_params_t must be floats only");
+
+/**
  * @brief The player movement state contains quantized snapshots of player
  * position, orientation, velocity and world interaction state. This should
  * be modified only through invoking `Pm_Move`.
