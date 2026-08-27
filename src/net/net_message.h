@@ -41,7 +41,7 @@
 #define PS_PM_HOOK_LENGTH   (1 << 12)
 #define PS_PM_STEP_OFFSET   (1 << 13)
 #define PS_PM_PARAMS        (1 << 14)
-#define PS_PM_MOVEMENT        (1 << 15)
+#define PS_PM_MOVEMENT      (1 << 15)
 
 /**
  * @brief Delta compression flags for `user_cmd_t`.

@@ -41,6 +41,9 @@ quetoo_t quetoo;
 // a full-strength movement intent, above any movement's own cap
 #define TEST_INTENT 400
 
+// the upward speed above which Quake stops considering a player grounded
+#define PM_QUAKE_UP_SPEED_FOR_TEST 180.f
+
 static void *test_ground_ent = (void *) (intptr_t) 1;
 
 /**
@@ -178,15 +181,22 @@ START_TEST(check_Quake_Jump) {
   Test_Command(&pm, 0, 0, 0);
   ck_assert_msg(pm.s.flags & PMF_ON_GROUND, "did not start on the ground");
 
+  // already rising, but not fast enough to have left the ground: a jump that
+  // assigned 270 rather than adding it would be indistinguishable from a correct
+  // one at rest, so the two are only told apart from here
+  const float rising = 100.f;
+  ck_assert_msg(rising < PM_QUAKE_UP_SPEED_FOR_TEST, "the setup left the ground");
+  pm.s.velocity.z = rising;
+
   Test_Command(&pm, 0, 0, 1);
 
   ck_assert_msg(!(pm.s.flags & PMF_ON_GROUND), "stayed on the ground after jumping");
-  ck_assert_msg(pm.s.velocity.z > 0.f, "jumped downward, at %g", pm.s.velocity.z);
 
   // one command of gravity has already been taken out of it
-  const float expected = 270.f - 800.f * .1f;
+  const float expected = rising + 270.f - 800.f * .1f;
   ck_assert_msg(fabsf(pm.s.velocity.z - expected) < 1.f,
-                "jumped at %g, expected %g", pm.s.velocity.z, expected);
+                "jumped to %g, expected %g: Quake adds to the vertical speed it "
+                "finds rather than replacing it", pm.s.velocity.z, expected);
 } END_TEST
 
 /**

@@ -40,6 +40,11 @@
  * There is no ducking. Quake had none, and adding one would not be Quake, so
  * the kernel never raises `PMF_DUCKED` and the standing box is the only box.
  *
+ * There is no grappling hook either, for the same reason, so this kernel does
+ * not implement the `PM_HOOK_*` movement types. `G_AllowHook` declines the hook
+ * for any movement but Quetoo's, which keeps a player from being handed a hook
+ * that nothing here would honour.
+ *
  * Being finished is the point: this file matches what it imitates and should
  * not acquire improvements. A change to how Quake moves is a new movement.
  */
@@ -124,8 +129,12 @@ static vec3_t Pm_QuakeClipVelocity(const vec3_t in, const vec3_t normal) {
  */
 static void Pm_QuakeFlyMove(void) {
 
+  // both are the velocity the move began with, and neither is re-based inside
+  // the loop: each bump re-derives the slide from it rather than from the
+  // already-clipped velocity, which is what lets a second plane give back speed
+  // the first one took
   const vec3_t primal_velocity = pm->s.velocity;
-  vec3_t original_velocity = pm->s.velocity;
+  const vec3_t original_velocity = pm->s.velocity;
 
   cm_bsp_plane_t planes[PM_QUAKE_CLIP_PLANES];
   int32_t num_planes = 0;
@@ -144,7 +153,6 @@ static void Pm_QuakeFlyMove(void) {
 
     if (trace.fraction > 0.f) { // covered some distance
       pm->s.origin = trace.end;
-      original_velocity = pm->s.velocity;
       num_planes = 0;
     }
 
@@ -266,6 +274,9 @@ static void Pm_QuakeGroundMove(void) {
     pm->s.velocity = down_velocity;
   } else { // the stepped move went farther, but its vertical speed is the flat one's
     pm->s.velocity.z = down_velocity.z;
+
+    // tell the view how far it climbed, or stairs snap the camera
+    pm->step = pm->s.origin.z - pm_locals.previous_origin.z;
   }
 }
 
@@ -295,7 +306,10 @@ static void Pm_QuakeFriction(void) {
                               pm->s.origin.z + pm->bounds.mins.z);
     const vec3_t below = Vec3(ahead.x, ahead.y, ahead.z - PM_QUAKE_EDGE_DROP);
 
-    if (Pm_Trace(ahead, below, Box3_Zero()).fraction == 1.f) {
+    // the hull, as upstream traces it: a point here would find a dropoff far
+    // more often than QuakeWorld does, since a box at foot level usually starts
+    // solid and so never reports a clean miss
+    if (Pm_Trace(ahead, below, pm->bounds).fraction == 1.f) {
       friction *= PM_QUAKE_EDGE_FRICTION;
     }
   }
@@ -321,10 +335,6 @@ static void Pm_QuakeAccelerate(const vec3_t dir, float speed, float accel) {
     return;
   }
 
-  if (pm->Accelerate) {
-    pm->Accelerate(pm, dir, speed, accel);
-  }
-
   const float add_speed = speed - Vec3_Dot(pm->s.velocity, dir);
   if (add_speed <= 0.f) {
     return;
@@ -333,6 +343,10 @@ static void Pm_QuakeAccelerate(const vec3_t dir, float speed, float accel) {
   const float accel_speed = Minf(accel * pm_locals.time * speed, add_speed);
 
   pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accel_speed, dir);
+
+  if (pm->Accelerate) {
+    pm->Accelerate(pm, dir, speed, accel);
+  }
 }
 
 /**
@@ -350,10 +364,6 @@ static void Pm_QuakeAirAccelerate(const vec3_t dir, float speed, float accel) {
     return;
   }
 
-  if (pm->Accelerate) {
-    pm->Accelerate(pm, dir, speed, accel);
-  }
-
   const float wish_speed = Minf(speed, PM_QUAKE_AIR_WISH_SPEED);
 
   const float add_speed = wish_speed - Vec3_Dot(pm->s.velocity, dir);
@@ -364,6 +374,10 @@ static void Pm_QuakeAirAccelerate(const vec3_t dir, float speed, float accel) {
   const float accel_speed = Minf(accel * speed * pm_locals.time, add_speed);
 
   pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accel_speed, dir);
+
+  if (pm->Accelerate) {
+    pm->Accelerate(pm, dir, speed, accel);
+  }
 }
 
 /**
@@ -421,6 +435,8 @@ static void Pm_QuakeAirMove(void) {
   wish_velocity = Vec3_Fmaf(wish_velocity, pm->cmd.right, right);
   wish_velocity.z = 0.f;
 
+  // the ground speed bounds the wish in the air as well, because upstream bounds
+  // both with `movevars.maxspeed`; `speed_air` is deliberately unread here
   float speed;
   const vec3_t dir = Vec3_NormalizeLength(wish_velocity, &speed);
   speed = Minf(speed, pm->s.params.speed_ground);
@@ -444,22 +460,32 @@ static void Pm_QuakeAirMove(void) {
  */
 static void Pm_QuakeCategorizePosition(void) {
 
-  if (pm->s.velocity.z > PM_QUAKE_UP_SPEED) { // rising too fast to be standing
+  // a push, a knockback or a fresh spawn asks the plumbing not to be re-grounded
+  // for a moment; QuakeWorld had nothing of the kind, so it says nothing about
+  // this, and honouring it is what keeps rocket knockback from being taken
+  // straight back off by ground friction
+  if (pm->s.flags & PMF_TIME_PUSHED) {
     pm->s.flags &= ~PMF_ON_GROUND;
-    pm->ground.ent = NULL;
+    memset(&pm->ground, 0, sizeof(pm->ground));
+  } else if (pm->s.velocity.z > PM_QUAKE_UP_SPEED) { // rising too fast to be standing
+    pm->s.flags &= ~PMF_ON_GROUND;
+    memset(&pm->ground, 0, sizeof(pm->ground));
   } else {
     const vec3_t below = Vec3(pm->s.origin.x, pm->s.origin.y, pm->s.origin.z - 1.f);
     const cm_trace_t trace = Pm_Trace(pm->s.origin, below, pm->bounds);
 
     if (trace.plane.normal.z < PM_QUAKE_GROUND_NORMAL) { // too steep
       pm->s.flags &= ~PMF_ON_GROUND;
-      pm->ground.ent = NULL;
+      memset(&pm->ground, 0, sizeof(pm->ground));
     } else {
       pm->s.flags |= PMF_ON_GROUND;
       pm->ground = trace;
       pm_locals.ground = trace;
 
-      pm->s.flags &= ~PMF_TIME_WATER_JUMP;
+      if (pm->s.flags & PMF_TIME_WATER_JUMP) {
+        pm->s.flags &= ~PMF_TIME_WATER_JUMP;
+        pm->s.time = 0;
+      }
 
       if (!trace.start_solid && !trace.all_solid) {
         pm->s.origin = trace.end;
@@ -515,7 +541,7 @@ static void Pm_QuakeJump(void) {
 
   if (pm->water_level >= WATER_WAIST) { // swimming, not jumping
     pm->s.flags &= ~PMF_ON_GROUND;
-    pm->ground.ent = NULL;
+    memset(&pm->ground, 0, sizeof(pm->ground));
 
     if (pm->water_type & CONTENTS_LAVA) {
       pm->s.velocity.z = 50.f;
@@ -536,7 +562,7 @@ static void Pm_QuakeJump(void) {
   }
 
   pm->s.flags &= ~PMF_ON_GROUND;
-  pm->ground.ent = NULL;
+  memset(&pm->ground, 0, sizeof(pm->ground));
 
   pm->s.velocity.z += pm->s.params.speed_jump;
 
@@ -580,18 +606,22 @@ static void Pm_QuakeCheckWaterJump(void) {
 }
 
 /**
- * @brief Cuts the origin to the precision the network carries, then looks for a
- * free position nearby if that landed inside something.
+ * @brief Looks for a free position within an eighth of a unit of where the
+ * player is, in the order QuakeWorld looked.
+ * @details Upstream appears to quantize the origin to eighths first, but does
+ * not: its `base` is the unquantized origin, its first candidate is `base`
+ * itself, and its fallback restores `base`, so the quantized value never
+ * survives. This does what it does rather than what it looks like it does.
+ *
+ * The probe is `pm->Trace` and not `Pm_Trace`, because the latter jitters the
+ * start by up to a whole unit to escape a solid - eight times the precision
+ * being searched for here, which would report a blocked candidate as free.
  */
 static void Pm_QuakeNudgePosition(void) {
 
-  const vec3_t base = Vec3(truncf(pm->s.origin.x * PM_QUAKE_SNAP) / PM_QUAKE_SNAP,
-                           truncf(pm->s.origin.y * PM_QUAKE_SNAP) / PM_QUAKE_SNAP,
-                           truncf(pm->s.origin.z * PM_QUAKE_SNAP) / PM_QUAKE_SNAP);
+  const vec3_t base = pm->s.origin;
 
   static const float offsets[] = { 0.f, -1.f / PM_QUAKE_SNAP, 1.f / PM_QUAKE_SNAP };
-
-  pm->s.origin = base;
 
   for (size_t z = 0; z < lengthof(offsets); z++) {
     for (size_t x = 0; x < lengthof(offsets); x++) {
@@ -600,13 +630,15 @@ static void Pm_QuakeNudgePosition(void) {
                                       base.y + offsets[y],
                                       base.z + offsets[z]);
 
-        if (!Pm_Trace(candidate, candidate, pm->bounds).start_solid) {
+        if (!pm->Trace(candidate, candidate, pm->bounds).start_solid) {
           pm->s.origin = candidate;
           return;
         }
       }
     }
   }
+
+  pm->s.origin = base;
 }
 
 /**
@@ -638,12 +670,18 @@ void Pm_QuakeMove(void) {
     Pm_QuakeCheckWaterJump();
   }
 
-  if (pm->s.velocity.z < 0.f) {
+  if (pm->s.velocity.z < 0.f && (pm->s.flags & PMF_TIME_WATER_JUMP)) {
     pm->s.flags &= ~PMF_TIME_WATER_JUMP;
+    pm->s.time = 0;
   }
 
   if (pm->cmd.up > 0) {
     Pm_QuakeJump();
+  }
+
+  if (pm->s.flags & PMF_TIME_TELEPORT) { // held in place briefly, as Quetoo does
+    Pm_QuakeCategorizePosition();
+    return;
   }
 
   Pm_QuakeFriction();

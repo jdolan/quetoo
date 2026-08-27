@@ -45,7 +45,9 @@ void teardown(void) {
  */
 static void Fill_TestParams(pm_params_t *p) {
   p->gravity = 750;
-  p->movement = PM_MOVEMENT_QUAKE;
+  // a byte no `pm_movement_t` owns: what is under test is that the field reaches
+  // the other side intact, not what it selects once it arrives
+  p->movement = 200;
   p->gravity_water = 0.5f;
   p->accel_ground = 11.f;       p->accel_ground_slick = 4.5f;
   p->accel_air = 3.f;           p->accel_water = 3.5f;
@@ -133,7 +135,7 @@ START_TEST(check_PlayerState_Movement_DeltaCompressed) {
   Fill_TestParams(&from.pm_state.params);
 
   player_state_t to = from;
-  to.pm_state.params.movement = PM_MOVEMENT_QUETOO; // Fill_TestParams left it on quake
+  to.pm_state.params.movement = PM_MOVEMENT_QUAKE; // Fill_TestParams left it elsewhere
 
   player_state_t zero;
   memset(&zero, 0, sizeof(zero));

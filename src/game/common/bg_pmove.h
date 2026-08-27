@@ -249,7 +249,15 @@ typedef struct {
   const pm_params_t *params;
 } pm_movement_info_t;
 
+/**
+ * @brief Resolves a movement by id.
+ * @return `NULL` if `movement` names none.
+ */
 const pm_movement_info_t *Pm_Movement(pm_movement_t movement);
+
+/**
+ * @brief The number of movements, for offering them all.
+ */
 size_t Pm_MovementCount(void);
 
 /**
