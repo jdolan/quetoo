@@ -131,6 +131,7 @@ void Pm_CheckViewStep(void);
 void Pm_QuetooMove(void);
 void Pm_QuakeMove(void);
 void Pm_Quake2Move(void);
+void Pm_RaceMove(void);
 
 /**
  * @brief The parameters each movement that has its own is defined by, exported
@@ -138,3 +139,4 @@ void Pm_Quake2Move(void);
  */
 extern const pm_params_t pm_quake_params;
 extern const pm_params_t pm_quake2_params;
+extern const pm_params_t pm_race_params;

@@ -68,6 +68,7 @@ static const pm_movement_info_t pm_movements[] = {
   [PM_MOVEMENT_QUETOO] = { .name = "quetoo", .label = "Quetoo",   .params = NULL },
   [PM_MOVEMENT_QUAKE]  = { .name = "quake",  .label = "Quake",    .params = &pm_quake_params },
   [PM_MOVEMENT_QUAKE2] = { .name = "quake2", .label = "Quake II", .params = &pm_quake2_params },
+  [PM_MOVEMENT_RACE]   = { .name = "race",   .label = "Race",     .params = &pm_race_params },
 };
 
 const pm_movement_info_t *Pm_Movement(pm_movement_t movement) {
@@ -433,6 +434,9 @@ void Pm_Move(pm_move_t *pm_move) {
       break;
     case PM_MOVEMENT_QUAKE2:
       Pm_Quake2Move();
+      break;
+    case PM_MOVEMENT_RACE:
+      Pm_RaceMove();
       break;
     default:
       // the value arrives over the network, so it is clamped rather than

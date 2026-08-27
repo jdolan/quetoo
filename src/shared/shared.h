@@ -299,6 +299,7 @@ typedef enum {
   PM_MOVEMENT_QUETOO, // Quetoo's own, in bg_pmove_quetoo.c
   PM_MOVEMENT_QUAKE,  // QuakeWorld's, in bg_pmove_quake.c
   PM_MOVEMENT_QUAKE2, // Quake II's, in bg_pmove_quake2.c
+  PM_MOVEMENT_RACE,   // the race mod's own, in bg_pmove_race.c
 } pm_movement_t;
 
 /**

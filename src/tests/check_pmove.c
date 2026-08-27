@@ -419,6 +419,61 @@ START_TEST(check_Quake2_Ducks) {
 } END_TEST
 
 /**
+ * @brief Racing keeps the ground under a player rising off a slope, as long as
+ * they are not holding jump. Quake II, which it grew from, takes it away.
+ * @details This is what carries speed up and off a ramp instead of scrubbing it,
+ * and it is the single most important thing racing changed.
+ */
+START_TEST(check_Race_KeepsGroundOnRamps) {
+
+  const pm_movement_t movements[] = { PM_MOVEMENT_QUAKE2, PM_MOVEMENT_RACE };
+  bool grounded[2];
+
+  for (size_t i = 0; i < lengthof(movements); i++) {
+    pm_move_t pm = Test_Move(movements[i]);
+    Test_Command(&pm, 0, 0, 0);
+
+    // rising faster than the cutoff, with the jump key up
+    pm.s.velocity = Vec3(0.f, 0.f, 300.f);
+    Test_Command(&pm, 0, 0, 0);
+
+    grounded[i] = pm.s.flags & PMF_ON_GROUND;
+  }
+
+  ck_assert_msg(!grounded[0], "Quake II kept the ground while rising at 300");
+  ck_assert_msg(grounded[1], "racing lost the ground while rising at 300, which "
+                             "is what a ramp launch needs it to keep");
+} END_TEST
+
+/**
+ * @brief A racing jump adds to the vertical speed already there, up to a
+ * ceiling, so jumps stack off ramps and lifts rather than replacing each other.
+ */
+START_TEST(check_Race_JumpStacks) {
+
+  pm_move_t pm = Test_Move(PM_MOVEMENT_RACE);
+  Test_Command(&pm, 0, 0, 0);
+
+  // rising, and below the ceiling: the jump is clamped to reach it exactly
+  pm.s.velocity.z = 300.f;
+  Test_Command(&pm, 0, 0, TEST_INTENT);
+
+  const float expected = 450.f - 80.f; // the ceiling, less a command of gravity
+  ck_assert_msg(fabsf(pm.s.velocity.z - expected) < 1.f,
+                "stacked to %g, expected the ceiling of %g", pm.s.velocity.z, expected);
+
+  // already at the ceiling: nothing is added
+  pm_move_t topped = Test_Move(PM_MOVEMENT_RACE);
+  Test_Command(&topped, 0, 0, 0);
+  topped.s.velocity.z = 500.f;
+  Test_Command(&topped, 0, 0, TEST_INTENT);
+
+  ck_assert_msg(topped.s.velocity.z < 500.f,
+                "a jump above the ceiling added speed, reaching %g",
+                topped.s.velocity.z);
+} END_TEST
+
+/**
  * @brief Quetoo's movement is unaffected by any of the above.
  */
 START_TEST(check_Quetoo_GroundSpeed) {
@@ -503,6 +558,8 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, check_Air_ControlAngles);
   tcase_add_test(tcase, check_Quake2_LandingLocksJump);
   tcase_add_test(tcase, check_Quake2_Ducks);
+  tcase_add_test(tcase, check_Race_KeepsGroundOnRamps);
+  tcase_add_test(tcase, check_Race_JumpStacks);
   tcase_add_test(tcase, check_Quetoo_GroundSpeed);
   tcase_add_test(tcase, check_Movement_BoxAndEye);
   tcase_add_test(tcase, check_Movement_Names);

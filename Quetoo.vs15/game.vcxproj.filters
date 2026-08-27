@@ -221,6 +221,9 @@
     <ClCompile Include="..\src\game\common\bg_pmove_quake2.c">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove_race.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\game\default\bg_item.c">
       <Filter>src\default</Filter>
     </ClCompile>

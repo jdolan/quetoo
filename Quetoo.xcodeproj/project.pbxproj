@@ -114,10 +114,12 @@
 		D3A5C100000000000000000B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
 		D4A5C100000000000000000B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D5A5C100000000000000000B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
+		D6A5C100000000000000000B /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
 		D2A5C1000000000000000011 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D3A5C100000000000000001B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
 		D4A5C100000000000000001B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D5A5C100000000000000001B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
+		D6A5C100000000000000001B /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
 		CE05B28A3022486E0012862B /* g_ai_goal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */; };
 		D2A5C1000000000000000012 /* g_ai_goal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */; };
 		CE05B28B3022486E0012862B /* g_ai_grid.c in Sources */ = {isa = PBXBuildFile; fileRef = CE4E05402FDAE2CE00B92C32 /* g_ai_grid.c */; };
@@ -262,10 +264,12 @@
 		D3A5C100000000000000002B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
 		D4A5C100000000000000002B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D5A5C100000000000000002B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
+		D6A5C100000000000000002B /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
 		D2A5C1000000000000000086 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D3A5C100000000000000003B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
 		D4A5C100000000000000003B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D5A5C100000000000000003B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
+		D6A5C100000000000000003B /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
 		CE05B3F030224900C0DE0003 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE32529B1F760D3F00512523 /* BindTextView.c */; };
 		D2A5C1000000000000000062 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE32529B1F760D3F00512523 /* BindTextView.c */; };
 		CE05B3F030224900C0DE0004 /* cg_client.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D55E1C5C58C300CD0B13 /* cg_client.c */; };
@@ -1163,18 +1167,22 @@
 		D3A5C100000000000000004B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
 		D4A5C100000000000000004B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D5A5C100000000000000004B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
+		D6A5C100000000000000004B /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
 		CEFEED000000000000000001 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D3A5C100000000000000005B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
 		D4A5C100000000000000005B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D5A5C100000000000000005B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
+		D6A5C100000000000000005B /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
 		CEFEED000000000000000002 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D3A5C100000000000000006B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
 		D4A5C100000000000000006B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D5A5C100000000000000006B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
+		D6A5C100000000000000006B /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
 		CEFEED000000000000000003 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D3A5C100000000000000007B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
 		D4A5C100000000000000007B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D5A5C100000000000000007B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
+		D6A5C100000000000000007B /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
 		CEFEED000000000000000004 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = 7966EA6596003F9303BC00FA /* bg_item.c */; };
 		CEFEED000000000000000005 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000004 /* bg_item.c */; };
 		CEFEEE0000000000000000D1 /* g_tech.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000C1 /* g_tech.c */; };
@@ -1929,6 +1937,7 @@
 		D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_quetoo.c; sourceTree = "<group>"; };
 		D4A5C10000000000000000A1 /* bg_pmove_quake.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_quake.c; sourceTree = "<group>"; };
 		D5A5C10000000000000000A1 /* bg_pmove_quake2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_quake2.c; sourceTree = "<group>"; };
+		D6A5C10000000000000000A1 /* bg_pmove_race.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_race.c; sourceTree = "<group>"; };
 		CE12D6421C5C58C300CD0B13 /* bg_pmove.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_pmove.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000105 /* bg_vote.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_vote.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000001 /* bg_pmove_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_pmove_local.h; sourceTree = "<group>"; };
@@ -4157,6 +4166,7 @@
 				D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */,
 				D4A5C10000000000000000A1 /* bg_pmove_quake.c */,
 				D5A5C10000000000000000A1 /* bg_pmove_quake2.c */,
+				D6A5C10000000000000000A1 /* bg_pmove_race.c */,
 				CEFEEE0000000000000000C3 /* bg_tech.h */,
 				CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */,
 				CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */,
@@ -5821,6 +5831,7 @@
 				D3A5C100000000000000000B /* bg_pmove_quetoo.c in Sources */,
 				D4A5C100000000000000000B /* bg_pmove_quake.c in Sources */,
 				D5A5C100000000000000000B /* bg_pmove_quake2.c in Sources */,
+				D6A5C100000000000000000B /* bg_pmove_race.c in Sources */,
 				CE05B28A3022486E0012862B /* g_ai_goal.c in Sources */,
 				CE05B28B3022486E0012862B /* g_ai_grid.c in Sources */,
 				CE05B28C3022486E0012862B /* g_ai_info.c in Sources */,
@@ -5864,6 +5875,7 @@
 				D3A5C100000000000000001B /* bg_pmove_quetoo.c in Sources */,
 				D4A5C100000000000000001B /* bg_pmove_quake.c in Sources */,
 				D5A5C100000000000000001B /* bg_pmove_quake2.c in Sources */,
+				D6A5C100000000000000001B /* bg_pmove_race.c in Sources */,
 				D2A5C1000000000000000012 /* g_ai_goal.c in Sources */,
 				D2A5C1000000000000000013 /* g_ai_grid.c in Sources */,
 				D2A5C1000000000000000014 /* g_ai_info.c in Sources */,
@@ -5941,6 +5953,7 @@
 				D3A5C100000000000000002B /* bg_pmove_quetoo.c in Sources */,
 				D4A5C100000000000000002B /* bg_pmove_quake.c in Sources */,
 				D5A5C100000000000000002B /* bg_pmove_quake2.c in Sources */,
+				D6A5C100000000000000002B /* bg_pmove_race.c in Sources */,
 				CE05B3F030224900C0DE0004 /* cg_client.c in Sources */,
 				CE05B3F030224900C0DE0005 /* cg_discord.c in Sources */,
 				CE05B3F030224900C0DE0006 /* cg_editor.c in Sources */,
@@ -6017,6 +6030,7 @@
 				D3A5C100000000000000003B /* bg_pmove_quetoo.c in Sources */,
 				D4A5C100000000000000003B /* bg_pmove_quake.c in Sources */,
 				D5A5C100000000000000003B /* bg_pmove_quake2.c in Sources */,
+				D6A5C100000000000000003B /* bg_pmove_race.c in Sources */,
 				D2A5C1000000000000000087 /* cg_client.c in Sources */,
 				D2A5C1000000000000000088 /* cg_discord.c in Sources */,
 				D2A5C1000000000000000089 /* cg_editor.c in Sources */,
@@ -6065,6 +6079,7 @@
 				D3A5C100000000000000004B /* bg_pmove_quetoo.c in Sources */,
 				D4A5C100000000000000004B /* bg_pmove_quake.c in Sources */,
 				D5A5C100000000000000004B /* bg_pmove_quake2.c in Sources */,
+				D6A5C100000000000000004B /* bg_pmove_race.c in Sources */,
 				CE27E9FC27BDA2AE003D56AC /* g_ai_goal.c in Sources */,
 				CE4E05422FDAE2CE00B92C32 /* g_ai_grid.c in Sources */,
 				CE27E9FF27BDA2AE003D56AC /* g_ai_info.c in Sources */,
@@ -6141,6 +6156,7 @@
 				D3A5C100000000000000006B /* bg_pmove_quetoo.c in Sources */,
 				D4A5C100000000000000006B /* bg_pmove_quake.c in Sources */,
 				D5A5C100000000000000006B /* bg_pmove_quake2.c in Sources */,
+				D6A5C100000000000000006B /* bg_pmove_race.c in Sources */,
 				CE12D7EF1C5C5E0200CD0B13 /* cg_client.c in Sources */,
 				CE27E6B927AC95D1003D56AC /* cg_discord.c in Sources */,
 				CFA000142F9100000000C014 /* cg_editor.c in Sources */,
@@ -6491,6 +6507,7 @@
 				D3A5C100000000000000005B /* bg_pmove_quetoo.c in Sources */,
 				D4A5C100000000000000005B /* bg_pmove_quake.c in Sources */,
 				D5A5C100000000000000005B /* bg_pmove_quake2.c in Sources */,
+				D6A5C100000000000000005B /* bg_pmove_race.c in Sources */,
 				CEC0FF0020260103000000EF /* g_ai_goal.c in Sources */,
 				CEC0FF0020260103000000F0 /* g_ai_grid.c in Sources */,
 				CEC0FF0020260103000000F1 /* g_ai_info.c in Sources */,
@@ -6570,6 +6587,7 @@
 				D3A5C100000000000000007B /* bg_pmove_quetoo.c in Sources */,
 				D4A5C100000000000000007B /* bg_pmove_quake.c in Sources */,
 				D5A5C100000000000000007B /* bg_pmove_quake2.c in Sources */,
+				D6A5C100000000000000007B /* bg_pmove_race.c in Sources */,
 				CEC0FF0020260103000001E0 /* cg_client.c in Sources */,
 				CEC0FF0020260103000001E1 /* cg_discord.c in Sources */,
 				CEC0FF0020260103000001E2 /* cg_editor.c in Sources */,
