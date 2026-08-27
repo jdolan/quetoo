@@ -185,7 +185,7 @@ static void loadView(ViewController *self) {
   $(this->map, addOption, "next", NULL);
   cgi.EnumerateFiles("maps/*.bsp", enumerateMaps, this->map);
 
-  this->value->labelFormat = "%.0f";
+  $(this->value, setLabelFormat, "%.0f");
 
   $(self, setView, view);
   release(view);
