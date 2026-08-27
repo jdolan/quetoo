@@ -149,7 +149,6 @@ cvar_t *g_air_friction;
 cvar_t *g_air_speed;
 cvar_t *g_duck_speed;
 cvar_t *g_duck_stand_speed;
-cvar_t *g_duck_height;
 cvar_t *g_gravity;
 cvar_t *g_ground_acceleration;
 cvar_t *g_ground_acceleration_slick;
@@ -163,7 +162,6 @@ cvar_t *g_ladder_speed;
 cvar_t *g_spectator_acceleration;
 cvar_t *g_spectator_friction;
 cvar_t *g_spectator_speed;
-cvar_t *g_stand_height;
 cvar_t *g_stop_speed;
 cvar_t *g_water_acceleration;
 cvar_t *g_water_friction;
@@ -605,13 +603,12 @@ pm_params_t G_MovementParams(void) {
     .speed_duck_stand = g_duck_stand_speed->value,
     .speed_water_jump = g_water_jump_speed->value,
 
-    // the cvars name the top of the box, which is the only part of it a server
-    // has ever been able to move; the rest comes from the default box
-    .bounds = { .mins = PM_BOUNDS.mins,
-                .maxs = { { PM_BOUNDS.maxs.x, PM_BOUNDS.maxs.y, g_stand_height->value } } },
-    .bounds_ducked = { .mins = PM_CROUCHED_BOUNDS.mins,
-                       .maxs = { { PM_CROUCHED_BOUNDS.maxs.x, PM_CROUCHED_BOUNDS.maxs.y,
-                                   g_duck_height->value } } },
+    // no cvars for these, unlike every other parameter here: a box is a shape
+    // rather than a scalar, and one a server could only move by its top would
+    // leave the rendered model, sized from PM_BOUNDS, disagreeing with the hull.
+    // A mod that wants another shape writes these three
+    .bounds = PM_BOUNDS,
+    .bounds_ducked = PM_CROUCHED_BOUNDS,
     .bounds_dead = PM_DEAD_BOUNDS,
     .movement = g_level.movement,
   };
@@ -1141,7 +1138,6 @@ void G_Init(void) {
   g_air_speed = gi.AddCvar("g_air_speed", "350", 0, "Wish-speed cap while airborne. Default 350.");
   g_duck_speed = gi.AddCvar("g_duck_speed", "140.0", 0, "Maximum ground speed while ducked. Default 140.0.");
   g_duck_stand_speed = gi.AddCvar("g_duck_stand_speed", "200.0", 0, "Rate the view rises/falls when standing/ducking. Default 200.0.");
-  g_duck_height = gi.AddCvar("g_duck_height", "6.0", 0, "Top of the player bounding box while ducked. Default 6.0.");
   g_gravity = gi.AddCvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
   g_movement = gi.AddCvar("g_movement", "default", CVAR_SERVER_INFO, "The player movement to run: \"default\" defers to the level, otherwise a movement name such as \"quetoo\" or \"quake\".");
   g_ground_acceleration = gi.AddCvar("g_ground_acceleration", "10.0", 0, "Ground acceleration. Default 10.0.");
@@ -1156,7 +1152,6 @@ void G_Init(void) {
   g_spectator_acceleration = gi.AddCvar("g_spectator_acceleration", "2.5", 0, "Spectator free-fly acceleration. Default 2.5.");
   g_spectator_friction = gi.AddCvar("g_spectator_friction", "2.5", 0, "Spectator free-fly friction. Default 2.5.");
   g_spectator_speed = gi.AddCvar("g_spectator_speed", "500.0", 0, "Maximum spectator free-fly speed. Default 500.0.");
-  g_stand_height = gi.AddCvar("g_stand_height", "36.0", 0, "Top of the player bounding box while standing. Default 36.0.");
   g_stop_speed = gi.AddCvar("g_stop_speed", "100.0", 0, "Speed below which friction is amplified to stop the player. Default 100.0.");
   g_water_acceleration = gi.AddCvar("g_water_acceleration", "3.0", 0, "Acceleration applied underwater. Default 3.0.");
   g_water_friction = gi.AddCvar("g_water_friction", "2.0", 0, "Friction applied underwater. Default 2.0.");
