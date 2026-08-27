@@ -307,8 +307,8 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
     bits |= PS_PM_STEP_OFFSET;
   }
 
-  if (memcmp(&to->pm_state.params.gravity_water, &from->pm_state.params.gravity_water,
-             sizeof(pm_params_t) - offsetof(pm_params_t, gravity_water)) != 0) {
+  if (memcmp(&to->pm_state.params.accel_ground, &from->pm_state.params.accel_ground,
+             sizeof(pm_params_t) - offsetof(pm_params_t, accel_ground)) != 0) {
     bits |= PS_PM_PARAMS;
   }
 
@@ -375,7 +375,6 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
   }
 
   if (bits & PS_PM_PARAMS) {
-    Net_WriteFloat(msg, to->pm_state.params.gravity_water);
     Net_WriteFloat(msg, to->pm_state.params.accel_ground);
     Net_WriteFloat(msg, to->pm_state.params.accel_ground_slick);
     Net_WriteFloat(msg, to->pm_state.params.accel_air);
@@ -906,7 +905,6 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
   }
 
   if (bits & PS_PM_PARAMS) {
-    to->pm_state.params.gravity_water = Net_ReadFloat(msg);
     to->pm_state.params.accel_ground = Net_ReadFloat(msg);
     to->pm_state.params.accel_ground_slick = Net_ReadFloat(msg);
     to->pm_state.params.accel_air = Net_ReadFloat(msg);

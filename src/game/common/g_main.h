@@ -177,7 +177,6 @@ extern cvar_t *g_spectator_speed;
 extern cvar_t *g_stop_speed;
 extern cvar_t *g_water_acceleration;
 extern cvar_t *g_water_friction;
-extern cvar_t *g_water_gravity;
 extern cvar_t *g_water_jump_speed;
 extern cvar_t *g_water_speed;
 extern cvar_t *g_death_cam;

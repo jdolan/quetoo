@@ -314,7 +314,6 @@ typedef enum {
 typedef struct {
   int16_t gravity;     // world gravity; default from g_gravity / map (int16)
   uint8_t movement;      // pm_movement_t; which movement Pm_Move runs
-  float gravity_water; // PM_GRAVITY_WATER
 
   float accel_ground, accel_ground_slick, accel_air, accel_water,
         accel_spectator, accel_ladder;
@@ -325,28 +324,23 @@ typedef struct {
   float speed_ground, speed_air, speed_water, speed_ladder, speed_spectator,
         speed_stop, speed_jump, speed_ducked, speed_duck_stand, speed_water_jump;
 
-  // the whole player box, standing, ducked and dead, rather than only its top:
-  // a movement whose box is not its own is not really its own. `PM_BOUNDS`,
-  // `PM_CROUCHED_BOUNDS` and `PM_DEAD_BOUNDS` are what these default to. The
-  // giblet box stays in `bg_pmove.c`: a giblet is a form Quetoo's game gives a
-  // player rather than a box any movement stands in
   box3_t bounds, bounds_ducked, bounds_dead;
 } pm_params_t;
 
 /**
  * @brief This layout is the wire format. `Net_WriteDeltaPlayerState` sends
  * `gravity` and `movement` on their own bits and compares everything from
- * `gravity_water` on with one `memcmp`, so two things must stay true: `movement`
+ * `accel_ground` on with one `memcmp`, so two things must stay true: `movement`
  * must keep sitting in the padding `gravity` leaves, or the compared region
  * moves, and that region must hold nothing but the floats the encoder writes,
  * or the comparison reads padding and resends the block at random. A field
  * added anywhere but the end breaks the first; a field of another width breaks
  * the second. Both are asserted rather than commented so that the build says so.
  */
-_Static_assert(offsetof(pm_params_t, gravity_water) == sizeof(float),
+_Static_assert(offsetof(pm_params_t, accel_ground) == sizeof(float),
                "pm_params_t.movement must fit in the padding after gravity");
-_Static_assert(sizeof(pm_params_t) - offsetof(pm_params_t, gravity_water) ==
-               41 * sizeof(float),
+_Static_assert(sizeof(pm_params_t) - offsetof(pm_params_t, accel_ground) ==
+               40 * sizeof(float),
                "the delta-compared region of pm_params_t must be floats only");
 
 /**

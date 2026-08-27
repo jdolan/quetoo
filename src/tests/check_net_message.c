@@ -48,7 +48,6 @@ static void Fill_TestParams(pm_params_t *p) {
   // a byte no `pm_movement_t` owns: what is under test is that the field reaches
   // the other side intact, not what it selects once it arrives
   p->movement = 200;
-  p->gravity_water = 0.5f;
   p->accel_ground = 11.f;       p->accel_ground_slick = 4.5f;
   p->accel_air = 3.f;           p->accel_water = 3.5f;
   p->accel_spectator = 2.75f;   p->accel_ladder = 17.f;
@@ -97,8 +96,8 @@ START_TEST(check_PlayerState_Params_RoundTrip) {
   ck_assert_int_eq(result.pm_state.params.gravity, to.pm_state.params.gravity);
   ck_assert_int_eq(result.pm_state.params.movement, to.pm_state.params.movement);
 
-  ck_assert_msg(memcmp(&result.pm_state.params.gravity_water, &to.pm_state.params.gravity_water,
-                       sizeof(pm_params_t) - offsetof(pm_params_t, gravity_water)) == 0,
+  ck_assert_msg(memcmp(&result.pm_state.params.accel_ground, &to.pm_state.params.accel_ground,
+                       sizeof(pm_params_t) - offsetof(pm_params_t, accel_ground)) == 0,
                 "pm_params_t (non-gravity) did not survive the round-trip");
 } END_TEST
 

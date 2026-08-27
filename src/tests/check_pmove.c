@@ -112,7 +112,6 @@ static pm_move_t Test_Move(pm_movement_t movement) {
   } else { // Quetoo's follows the server's cvars, which a test has none of
     pm.s.params = (pm_params_t) {
       .gravity = 800,
-      .gravity_water = PM_GRAVITY_WATER,
       .accel_ground = PM_ACCEL_GROUND,
       .accel_air = PM_ACCEL_AIR,
       .friction_ground = PM_FRICT_GROUND,
