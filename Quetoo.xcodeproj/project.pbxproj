@@ -2179,6 +2179,7 @@
 		CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = StatsViewController.json; sourceTree = "<group>"; };
 		CEAA77F02775333300EAC853 /* TeamsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamsViewController.h; sourceTree = "<group>"; };
 		CEAA78182775337300EAC853 /* TeamsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TeamsViewController.c; sourceTree = "<group>"; };
+		D1A5B0000000000000000214 /* VoteViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VoteViewController.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000205 /* VoteViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VoteViewController.c; sourceTree = "<group>"; };
 		CEAA78EA2775388700EAC853 /* TeamView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamView.h; sourceTree = "<group>"; };
 		CEAA78EB2775388700EAC853 /* TeamView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamView.c; sourceTree = "<group>"; };
@@ -3625,6 +3626,7 @@
 				CE58707E1F5CDFE0004CAAB2 /* play */,
 				CE5870861F5CDFE0004CAAB2 /* settings */,
 				CEAA78172775337300EAC853 /* teams */,
+				D1A5B0000000000000000215 /* vote */,
 				CE32529C1F760D3F00512523 /* BindTextView.h */,
 				CE32529B1F760D3F00512523 /* BindTextView.c */,
 				CE58709D1F5CE97C004CAAB2 /* CvarCheckbox.h */,
@@ -3777,6 +3779,17 @@
 			path = backgrounds;
 			sourceTree = "<group>";
 		};
+		D1A5B0000000000000000215 /* vote */ = {
+			isa = PBXGroup;
+			children = (
+				D1A5B0000000000000000214 /* VoteViewController.h */,
+				D1A5B0000000000000000205 /* VoteViewController.c */,
+				D1A5B0000000000000000211 /* VoteViewController.css */,
+				D1A5B0000000000000000209 /* VoteViewController.json */,
+			);
+			path = vote;
+			sourceTree = "<group>";
+		};
 		CEAA78172775337300EAC853 /* teams */ = {
 			isa = PBXGroup;
 			children = (
@@ -3784,12 +3797,9 @@
 				CEFF1378277FB721001E1500 /* TeamPlayerView.h */,
 				CEFF1377277FB721001E1500 /* TeamPlayerView.json */,
 				CEAA78182775337300EAC853 /* TeamsViewController.c */,
-				D1A5B0000000000000000205 /* VoteViewController.c */,
 				CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */,
-				D1A5B0000000000000000211 /* VoteViewController.css */,
 				CEAA77F02775333300EAC853 /* TeamsViewController.h */,
 				CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */,
-				D1A5B0000000000000000209 /* VoteViewController.json */,
 				CEAA78EB2775388700EAC853 /* TeamView.c */,
 				CEAA78EA2775388700EAC853 /* TeamView.h */,
 				CEAA79542775396800EAC853 /* TeamView.json */,
@@ -6476,6 +6486,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/play",
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
+					"$(SRCROOT)/src/cgame/common/ui/vote",
 				);
 			};
 			name = Debug;
@@ -6516,6 +6527,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/play",
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
+					"$(SRCROOT)/src/cgame/common/ui/vote",
 				);
 			};
 			name = Release;
@@ -6728,6 +6740,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/play",
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
+					"$(SRCROOT)/src/cgame/common/ui/vote",
 				);
 			};
 			name = Debug;
@@ -6763,6 +6776,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/play",
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
+					"$(SRCROOT)/src/cgame/common/ui/vote",
 				);
 			};
 			name = Release;
@@ -7494,6 +7508,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/play",
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
+					"$(SRCROOT)/src/cgame/common/ui/vote",
 				);
 			};
 			name = Debug;
@@ -7535,6 +7550,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/play",
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
+					"$(SRCROOT)/src/cgame/common/ui/vote",
 				);
 			};
 			name = Release;
