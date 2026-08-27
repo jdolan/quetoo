@@ -20,7 +20,7 @@
  */
 
 #include "bg_pmove.h"
-#include "bg_pmove_internal.h"
+#include "bg_pmove_local.h"
 
 /**
  * @file
