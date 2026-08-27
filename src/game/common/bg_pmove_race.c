@@ -45,10 +45,8 @@
  *    ground, so speed carries up and off a slope instead of being scrubbed.
  *  - A jump adds to the vertical speed already present, up to a ceiling, so
  *    jumps can be stacked off ramps and lifts rather than replacing each other.
- *  - Small upward speed is absorbed and larger speed is kept, so bumps do not
- *    launch a player but ramps do.
- *  - A step that finds nowhere to settle retries with a slightly narrower box,
- *    so a ramp lip does not swallow a fast move.
+ *  - Rising slower than that same threshold is given up rather than kept, so a
+ *    bump does not launch a player where a ramp does.
  *
  * Tuning this changes what times mean, which will matter once anyone is racing
  * for them. It does not matter yet.
@@ -121,11 +119,12 @@ const pm_params_t pm_race_params = {
 
 // what racing adds. These are the tuning surface: they are named for what they
 // do rather than for where they came from, because they are expected to move
+// PM_RACE_UP_SPEED has to stay below what a jump leaves after a command of
+// gravity, or the second categorize re-grounds the player and the next move
+// gives their climb away
 #define PM_RACE_JUMP_CEILING     450.f // the most vertical speed a jump may leave
-#define PM_RACE_BUMP_SPEED       150.f // upward speed below this is absorbed
 #define PM_RACE_SLIDE_ACCEL      1.f   // how a slope accelerates while contact holds
 #define PM_RACE_SLIDE_ALIGNMENT  .01f  // how aligned the wish must be to keep sliding
-#define PM_RACE_STEP_INSET       1.f   // how much the box is pulled in to retry a step
 
 /**
  * @brief Whether the player is riding a slope upward with the ground still under
@@ -256,7 +255,9 @@ static void Pm_RaceStepSlideMove(void) {
   const vec3_t up = Vec3(start_origin.x, start_origin.y,
                          start_origin.z + PM_RACE_STEP_SIZE);
 
-  if (Pm_Trace(up, up, pm->bounds).all_solid) {
+  // pm->Trace and not Pm_Trace: the latter jitters the start by up to a unit to
+  // escape a solid, so it cannot answer whether the box fits where it is
+  if (pm->Trace(up, up, pm->bounds).all_solid) {
     return; // no room to step up
   }
 
@@ -269,20 +270,7 @@ static void Pm_RaceStepSlideMove(void) {
   const vec3_t down = Vec3(pm->s.origin.x, pm->s.origin.y,
                            pm->s.origin.z - PM_RACE_STEP_SIZE);
 
-  cm_trace_t trace = Pm_Trace(pm->s.origin, down, pm->bounds);
-
-  if (trace.all_solid) {
-
-    // nowhere to settle, which on a ramp lip means the corners are caught: pull
-    // the box in slightly and ask again rather than abandoning the step
-    box3_t inset = pm->bounds;
-    inset.mins.x += PM_RACE_STEP_INSET;
-    inset.mins.y += PM_RACE_STEP_INSET;
-    inset.maxs.x -= PM_RACE_STEP_INSET;
-    inset.maxs.y -= PM_RACE_STEP_INSET;
-
-    trace = Pm_Trace(pm->s.origin, down, inset);
-  }
+  const cm_trace_t trace = Pm_Trace(pm->s.origin, down, pm->bounds);
 
   if (!trace.all_solid) {
     pm->s.origin = trace.end;
@@ -319,7 +307,11 @@ static void Pm_RaceFriction(void) {
 
   const bool slick = pm_locals.ground.surface & SURF_SLICK;
 
-  if (((pm->s.flags & PMF_ON_GROUND) && !slick) || (pm->s.flags & PMF_ON_LADDER)) {
+  // not while riding a slope: the whole point of keeping the ground there is to
+  // carry speed off it, and ground friction applies to all three axes, so it
+  // would scrub the climb as well as the run
+  if (((pm->s.flags & PMF_ON_GROUND) && !slick && !pm_race_sliding) ||
+      (pm->s.flags & PMF_ON_LADDER)) {
     const float control = Maxf(speed, pm->s.params.speed_stop);
     drop += control * pm->s.params.friction_ground * pm_locals.time;
   }
@@ -512,12 +504,6 @@ static void Pm_RaceAirMove(void) {
 
   } else if (pm->s.flags & PMF_ON_GROUND) {
 
-    // a bump is absorbed, a ramp is not: small upward speed is flattened while
-    // anything worth launching on is kept
-    if (pm->s.velocity.z > 0.f && pm->s.velocity.z < PM_RACE_BUMP_SPEED) {
-      pm->s.velocity.z = 0.f;
-    }
-
     float accel = pm->s.params.accel_ground;
 
     if (pm_race_sliding) {
@@ -525,31 +511,23 @@ static void Pm_RaceAirMove(void) {
       along.z = 0.f;
       along = Vec3_Normalize(along);
 
+      // asking for roughly where we are already going keeps the slide, and the
+      // slope then accelerates like air so the speed carries off it. Asking for
+      // anything else - or for nothing, which normalizes to zero - gives it up
       if (Vec3_Dot(along, dir) > PM_RACE_SLIDE_ALIGNMENT) {
-
-        // asking for roughly where we are already going keeps the slide, and the
-        // slope accelerates like air so the speed carries off it
         accel = PM_RACE_SLIDE_ACCEL;
       } else {
-
-        // asking for anything else gives it up, and this is ordinary ground again
         pm_race_sliding = false;
-        Pm_RaceFriction();
-        pm->s.velocity.z = 0.f;
-        Pm_RaceAccelerate(dir, speed, pm->s.params.accel_ground);
-        pm->s.velocity.z = pm->s.params.gravity > 0 ? 0.f : -gravity;
-
-        if (pm->s.velocity.x || pm->s.velocity.y) {
-          Pm_RaceStepSlideMove();
-        }
-        return;
       }
-    } else {
-      pm->s.velocity.z = pm->s.params.gravity > 0 ? 0.f : pm->s.velocity.z;
     }
 
-    // gravity applies even with the ground under us, which is what lets a rising
-    // slope contact arc rather than hold
+    // gravity applies with the ground under us, which is what lets a rising
+    // slope contact arc rather than hold. Sliding keeps the vertical speed it
+    // arrived with; not sliding gives it up, as ordinary ground does
+    if (!pm_race_sliding) {
+      pm->s.velocity.z = 0.f;
+    }
+
     pm->s.velocity.z -= gravity;
 
     Pm_RaceAccelerate(dir, speed, accel);
@@ -560,9 +538,8 @@ static void Pm_RaceAirMove(void) {
 
   } else {
 
-    // vanilla Quake II leaves pm_airaccelerate at zero, so this is a plain
-    // acceleration at 1 rather than QuakeWorld's capped-wish path: there is no
-    // strafe jumping in Quake II
+    // a plain acceleration at 1, with no cap on the wished speed, so strafing
+    // gains over a wide arc - which is what racing wants
     Pm_RaceAccelerate(dir, speed, pm->s.params.accel_air);
 
     pm->s.velocity.z -= gravity;
@@ -714,16 +691,20 @@ static void Pm_RaceCheckJump(void) {
     return;
   }
 
+  // already above the ceiling, a jump does nothing at all - and must not take
+  // the ground away or announce itself either, or it would cost the player the
+  // slope contact it is refusing to add to
+  if (pm->s.velocity.z >= PM_RACE_JUMP_CEILING) {
+    pm->s.flags |= PMF_JUMP_HELD;
+    return;
+  }
+
   pm->s.flags |= PMF_JUMP_HELD | PMF_JUMPED;
   pm->s.flags &= ~PMF_ON_GROUND;
   memset(&pm->ground, 0, sizeof(pm->ground));
 
   // a jump adds to the vertical speed already present rather than replacing it,
-  // up to a ceiling, so jumps can be stacked off a ramp or a lift; already above
-  // the ceiling, it does nothing at all
-  if (pm->s.velocity.z >= PM_RACE_JUMP_CEILING) {
-    return;
-  }
+  // so jumps can be stacked off a ramp or a lift
 
   const float jump = Minf(pm->s.params.speed_jump,
                           PM_RACE_JUMP_CEILING - pm->s.velocity.z);
@@ -798,7 +779,8 @@ static void Pm_RaceCheckDuck(void) {
   } else if (pm->s.flags & PMF_DUCKED) { // stand up if there is room
     pm->bounds = Pm_Bounds(&pm->s.params, false);
 
-    if (!Pm_Trace(pm->s.origin, pm->s.origin, pm->bounds).all_solid) {
+    // again pm->Trace, so a ceiling cannot be jittered out from under us
+    if (!pm->Trace(pm->s.origin, pm->s.origin, pm->bounds).all_solid) {
       pm->s.flags &= ~PMF_DUCKED;
     }
   }

@@ -240,7 +240,9 @@ static void Pm_Quake2StepSlideMove(void) {
   const vec3_t up = Vec3(start_origin.x, start_origin.y,
                          start_origin.z + PM_QUAKE2_STEP_SIZE);
 
-  if (Pm_Trace(up, up, pm->bounds).all_solid) {
+  // pm->Trace and not Pm_Trace: the latter jitters the start by up to a unit to
+  // escape a solid, so it cannot answer whether the box fits where it is
+  if (pm->Trace(up, up, pm->bounds).all_solid) {
     return; // no room to step up
   }
 
@@ -631,12 +633,15 @@ static void Pm_Quake2CheckJump(void) {
       return;
     }
 
-    if (pm->water_type & CONTENTS_LAVA) {
-      pm->s.velocity.z = 50.f;
-    } else if (pm->water_type & CONTENTS_SLIME) {
+    // by exact equality, as upstream has it: a water brush carrying any other
+    // contents bit - a current, most often - falls through to the slowest of
+    // these rather than the fastest. That is Quake II, quirk and all
+    if (pm->water_type == CONTENTS_WATER) {
+      pm->s.velocity.z = 100.f;
+    } else if (pm->water_type == CONTENTS_SLIME) {
       pm->s.velocity.z = 80.f;
     } else {
-      pm->s.velocity.z = 100.f;
+      pm->s.velocity.z = 50.f;
     }
     return;
   }
@@ -719,7 +724,8 @@ static void Pm_Quake2CheckDuck(void) {
   } else if (pm->s.flags & PMF_DUCKED) { // stand up if there is room
     pm->bounds = Pm_Bounds(&pm->s.params, false);
 
-    if (!Pm_Trace(pm->s.origin, pm->s.origin, pm->bounds).all_solid) {
+    // again pm->Trace, so a ceiling cannot be jittered out from under us
+    if (!pm->Trace(pm->s.origin, pm->s.origin, pm->bounds).all_solid) {
       pm->s.flags &= ~PMF_DUCKED;
     }
   }

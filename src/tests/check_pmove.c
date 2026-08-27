@@ -419,35 +419,13 @@ START_TEST(check_Quake2_Ducks) {
 } END_TEST
 
 /**
- * @brief Racing keeps the ground under a player rising off a slope, as long as
- * they are not holding jump. Quake II, which it grew from, takes it away.
- * @details This is what carries speed up and off a ramp instead of scrubbing it,
- * and it is the single most important thing racing changed.
- */
-START_TEST(check_Race_KeepsGroundOnRamps) {
-
-  const pm_movement_t movements[] = { PM_MOVEMENT_QUAKE2, PM_MOVEMENT_RACE };
-  bool grounded[2];
-
-  for (size_t i = 0; i < lengthof(movements); i++) {
-    pm_move_t pm = Test_Move(movements[i]);
-    Test_Command(&pm, 0, 0, 0);
-
-    // rising faster than the cutoff, with the jump key up
-    pm.s.velocity = Vec3(0.f, 0.f, 300.f);
-    Test_Command(&pm, 0, 0, 0);
-
-    grounded[i] = pm.s.flags & PMF_ON_GROUND;
-  }
-
-  ck_assert_msg(!grounded[0], "Quake II kept the ground while rising at 300");
-  ck_assert_msg(grounded[1], "racing lost the ground while rising at 300, which "
-                             "is what a ramp launch needs it to keep");
-} END_TEST
-
-/**
  * @brief A racing jump adds to the vertical speed already there, up to a
  * ceiling, so jumps stack off ramps and lifts rather than replacing each other.
+ * @details The second half is also the only execution-level evidence that the
+ * slope path works at all: 420 is reachable only if the ground was kept while
+ * rising, and if ground friction was exempted while it was kept. Break either
+ * and the climb is scrubbed instead. What no flat floor can show is whether the
+ * mechanic is worth having, which is a question for a real ramp.
  */
 START_TEST(check_Race_JumpStacks) {
 
@@ -462,15 +440,25 @@ START_TEST(check_Race_JumpStacks) {
   ck_assert_msg(fabsf(pm.s.velocity.z - expected) < 1.f,
                 "stacked to %g, expected the ceiling of %g", pm.s.velocity.z, expected);
 
-  // already at the ceiling: nothing is added
+  // already above the ceiling: nothing is added, and nothing is announced
   pm_move_t topped = Test_Move(PM_MOVEMENT_RACE);
   Test_Command(&topped, 0, 0, 0);
-  topped.s.velocity.z = 500.f;
-  Test_Command(&topped, 0, 0, TEST_INTENT);
 
-  ck_assert_msg(topped.s.velocity.z < 500.f,
-                "a jump above the ceiling added speed, reaching %g",
-                topped.s.velocity.z);
+  // travelling, so that the slide holds and the climb is not given up for
+  // reasons unrelated to the jump
+  topped.s.velocity = Vec3(200.f, 0.f, 500.f);
+  topped.cmd = (pm_cmd_t) { .msec = 100, .forward = TEST_INTENT, .up = TEST_INTENT };
+  Pm_Move(&topped);
+
+  // it must be untouched but for gravity: asserting merely "less than 500" also
+  // passes when the ceiling test is deleted, because the arithmetic that follows
+  // still lands on 450
+  ck_assert_msg(fabsf(topped.s.velocity.z - (500.f - 80.f)) < 1.f,
+                "a jump above the ceiling changed the speed to %g, expected %g",
+                topped.s.velocity.z, 500.f - 80.f);
+  ck_assert_msg(!(topped.s.flags & PMF_JUMPED),
+                "a jump above the ceiling still announced itself, which would "
+                "sound and animate a jump that did nothing");
 } END_TEST
 
 /**
@@ -512,6 +500,14 @@ START_TEST(check_Movement_BoxAndEye) {
 
   ck_assert_msg(quake.s.view_offset.z == 22.f,
                 "Quake's eye was at %g, expected 22", quake.s.view_offset.z);
+
+  pm_move_t race = Test_Move(PM_MOVEMENT_RACE);
+  Test_Command(&race, 0, 0, 0);
+
+  ck_assert_msg(race.bounds.maxs.z == 32.f,
+                "racing stood %g tall, expected 32", race.bounds.maxs.z);
+  ck_assert_msg(race.s.view_offset.z == 22.f,
+                "racing's eye was at %g, expected 22", race.s.view_offset.z);
   ck_assert_msg(fabsf(quetoo.s.view_offset.z - 30.f) < .01f,
                 "Quetoo's eye was at %g, expected 30", quetoo.s.view_offset.z);
 } END_TEST
@@ -558,7 +554,6 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, check_Air_ControlAngles);
   tcase_add_test(tcase, check_Quake2_LandingLocksJump);
   tcase_add_test(tcase, check_Quake2_Ducks);
-  tcase_add_test(tcase, check_Race_KeepsGroundOnRamps);
   tcase_add_test(tcase, check_Race_JumpStacks);
   tcase_add_test(tcase, check_Quetoo_GroundSpeed);
   tcase_add_test(tcase, check_Movement_BoxAndEye);
