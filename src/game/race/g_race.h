@@ -49,6 +49,8 @@ g_race_mode_t G_Race_Mode(const g_client_t *cl);
  */
 void G_Race_AddStart(void);
 bool G_Race_AddCheckpoint(int32_t checkpoint);
+bool G_Race_AddSplit(int32_t split);
+bool G_Race_AddStage(int32_t stage);
 void G_Race_AddFinish(void);
 
 /**
@@ -57,6 +59,8 @@ void G_Race_AddFinish(void);
  */
 bool G_Race_Start(g_client_t *cl);
 bool G_Race_Checkpoint(g_client_t *cl, uint16_t checkpoint);
+bool G_Race_Split(g_client_t *cl, uint16_t split, const char *label);
+bool G_Race_Stage(g_client_t *cl, uint16_t stage, const char *label, const g_entity_t *anchor);
 bool G_Race_Finish(g_client_t *cl);
 
 /**
@@ -77,3 +81,15 @@ bool G_Race_Debounced(g_client_t *cl, const g_entity_t *ent, float wait);
  * that is not one. Chained under `SpawnEntity` by `G_Race_Init`.
  */
 bool G_Race_SpawnEntity(g_entity_t *ent);
+
+/**
+ * @brief Finds each stage's `restart_target` once every entity has spawned,
+ * and spoils the stages if any is missing. Called from `ConfigureLevel`.
+ */
+void G_Race_ResolveStages(void);
+
+/**
+ * @brief Whether `ent` clips `mover`, which is where a gate or one-way wall
+ * decides. Pure, and chained under `ClipEntity` by `G_Race_Init`.
+ */
+bool G_Race_ClipEntity(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);

@@ -46,6 +46,7 @@
 static struct {
   ConfigureLevel ConfigureLevel;
   SpawnEntity SpawnEntity;
+  ClipEntity ClipEntity;
   PrepareSpawn PrepareSpawn;
   TossInventory TossInventory;
   ModifyDamage ModifyDamage;
@@ -109,15 +110,31 @@ void G_Race_AddStart(void) {
   g_level.race_course.start_count++;
 }
 
-bool G_Race_AddCheckpoint(int32_t checkpoint) {
+/**
+ * @brief Records number `n` of a sequence that runs from `first`, or marks the
+ * sequence malformed for an `n` that cannot be one of it.
+ */
+static bool G_Race_AddToSequence(uint64_t *sequence, bool *malformed, int32_t n, int32_t first) {
 
-  if (checkpoint < 1 || checkpoint > RACE_MAX_CHECKPOINTS) {
-    g_level.race_course.malformed = true;
+  if (n < first || n > RACE_MAX_CHECKPOINTS) {
+    *malformed = true;
     return false;
   }
 
-  g_level.race_course.checkpoints |= UINT64_C(1) << (checkpoint - 1);
+  *sequence |= UINT64_C(1) << (n - 1);
   return true;
+}
+
+bool G_Race_AddCheckpoint(int32_t checkpoint) {
+  return G_Race_AddToSequence(&g_level.race_course.checkpoints, &g_level.race_course.malformed, checkpoint, 1);
+}
+
+bool G_Race_AddSplit(int32_t split) {
+  return G_Race_AddToSequence(&g_level.race_course.splits, &g_level.race_course.splits_malformed, split, 1);
+}
+
+bool G_Race_AddStage(int32_t stage) {
+  return G_Race_AddToSequence(&g_level.race_course.stages, &g_level.race_course.stages_malformed, stage, 2);
 }
 
 void G_Race_AddFinish(void) {
@@ -125,25 +142,44 @@ void G_Race_AddFinish(void) {
 }
 
 /**
- * @brief A course is valid when its checkpoints are exactly 1 through N with
- * none missing, and it has somewhere to finish.
+ * @brief The lowest `n` bits.
  */
-static void G_Race_ValidateCourse(void) {
-  g_race_course_t *course = &g_level.race_course;
+static uint64_t G_Race_Bits(int32_t n) {
+  return n >= 64 ? UINT64_MAX : (UINT64_C(1) << n) - 1;
+}
 
-  course->checkpoint_count = 0;
+/**
+ * @brief Whether `sequence` is exactly `first` through N with none missing,
+ * for an N it reports. An empty sequence is a valid one with N of zero.
+ */
+static bool G_Race_ValidateSequence(uint64_t sequence, bool malformed, int32_t first, uint16_t *count) {
+
+  *count = 0;
   for (int32_t i = RACE_MAX_CHECKPOINTS; i > 0; i--) {
-    if (course->checkpoints & (UINT64_C(1) << (i - 1))) {
-      course->checkpoint_count = i;
+    if (sequence & (UINT64_C(1) << (i - 1))) {
+      *count = i;
       break;
     }
   }
 
-  const uint64_t expected = course->checkpoint_count == RACE_MAX_CHECKPOINTS
-                            ? UINT64_MAX
-                            : (UINT64_C(1) << course->checkpoint_count) - 1;
+  const uint64_t expected = *count ? G_Race_Bits(*count) & ~G_Race_Bits(first - 1) : 0;
 
-  course->valid = !course->malformed && course->checkpoints == expected && course->finish_count > 0;
+  return !malformed && sequence == expected;
+}
+
+/**
+ * @brief A course is valid when its checkpoints are exactly 1 through N with
+ * none missing, and it has somewhere to finish. Splits and stages are valid
+ * on their own terms and spoil only themselves.
+ */
+static void G_Race_ValidateCourse(void) {
+  g_race_course_t *course = &g_level.race_course;
+
+  course->valid = G_Race_ValidateSequence(course->checkpoints, course->malformed, 1, &course->checkpoint_count) &&
+                  course->finish_count > 0;
+
+  course->splits_valid = G_Race_ValidateSequence(course->splits, course->splits_malformed, 1, &course->split_count);
+  course->stages_valid = G_Race_ValidateSequence(course->stages, course->stages_malformed, 2, &course->stage_count);
 }
 
 // ---------------------------------------------------------------- the run
@@ -177,6 +213,7 @@ bool G_Race_Start(g_client_t *cl) {
 
   run->state = RACE_RUN_ACTIVE;
   run->mode = G_Race_Mode(cl);
+  run->stage = 1;
   run->start_time = g_level.time;
   run->start_speed = run->top_speed = speed;
 
@@ -231,6 +268,73 @@ bool G_Race_Checkpoint(g_client_t *cl, uint16_t checkpoint) {
   }, MULTICAST_PHS);
 
   return true;
+}
+
+/**
+ * @brief A split times the run without judging it: one reached out of order
+ * is simply not a split of this run.
+ */
+bool G_Race_Split(g_client_t *cl, uint16_t split, const char *label) {
+  g_race_run_t *run = &cl->race_run;
+
+  if (!G_Race_CanRun(cl) || run->state != RACE_RUN_ACTIVE || !g_level.race_course.splits_valid) {
+    return false;
+  }
+
+  if (split != run->split_count + 1) {
+    return false;
+  }
+
+  const uint32_t time = g_level.time - run->start_time;
+  const uint32_t previous = run->split_count ? run->split_times[run->split_count - 1] : 0;
+
+  run->split_times[run->split_count++] = time;
+
+  gi.ClientPrint(cl, PRINT_HIGH, "%s  %s  (+%s)\n", label && *label ? label : va("Split %u", split),
+                 G_Race_FormatTime(time), G_Race_FormatTime(time - previous));
+  return true;
+}
+
+/**
+ * @brief A stage is timed as a split is, and is also where a practicing client
+ * returns to: reaching one stores its anchor, as `store` would.
+ */
+bool G_Race_Stage(g_client_t *cl, uint16_t stage, const char *label, const g_entity_t *anchor) {
+  g_race_run_t *run = &cl->race_run;
+
+  if (!G_Race_CanRun(cl) || !g_level.race_course.stages_valid) {
+    return false;
+  }
+
+  const char *name = label && *label ? label : va("Stage %u", stage);
+  bool counted = false;
+
+  if (run->state == RACE_RUN_ACTIVE && stage == run->stage + 1) {
+    run->stage_times[stage - 2] = g_level.time - run->start_time;
+    run->stage = stage;
+
+    gi.ClientPrint(cl, PRINT_HIGH, "%s  %s\n", name, G_Race_FormatTime(run->stage_times[stage - 2]));
+    counted = true;
+  }
+
+  if (G_Race_Mode(cl) == RACE_MODE_PRACTICE) {
+    g_race_spawn_t *spawn = &cl->persistent.race_spawn;
+
+    if (!spawn->set || !Vec3_Equal(spawn->origin, anchor->s.origin)) {
+      *spawn = (g_race_spawn_t) {
+        .origin = anchor->s.origin,
+        .angles = anchor->s.angles,
+        .set = true,
+      };
+
+      if (!counted) {
+        gi.ClientPrint(cl, PRINT_HIGH, "%s. ^2kill^7 returns here\n", name);
+      }
+      counted = true;
+    }
+  }
+
+  return counted;
 }
 
 bool G_Race_Finish(g_client_t *cl) {
@@ -417,9 +521,10 @@ static void G_Race_Status_f(g_client_t *cl) {
 
   switch (run->state) {
     case RACE_RUN_ACTIVE:
-      gi.ClientPrint(cl, PRINT_HIGH, "Running: %s, checkpoint %u of %u\n",
+      gi.ClientPrint(cl, PRINT_HIGH, "Running: %s, checkpoint %u of %u%s\n",
                      G_Race_FormatTime(g_level.time - run->start_time),
-                     run->checkpoint_count, course->checkpoint_count);
+                     run->checkpoint_count, course->checkpoint_count,
+                     course->stages_valid && course->stage_count ? va(", stage %u of %u", run->stage, course->stage_count) : "");
       break;
     case RACE_RUN_FINISHED:
       gi.ClientPrint(cl, PRINT_HIGH, "Finished: %s\n", G_Race_FormatTime(run->elapsed));
@@ -437,6 +542,7 @@ static void G_ConfigureLevel_Race(void) {
   previous.ConfigureLevel();
 
   G_Race_ValidateCourse();
+  G_Race_ResolveStages();
 
   const g_race_course_t *course = &g_level.race_course;
 
@@ -461,6 +567,15 @@ static bool G_SpawnEntity_Race(g_entity_t *ent) {
   }
 
   return previous.SpawnEntity(ent);
+}
+
+static bool G_ClipEntity_Race(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
+
+  if (!G_Race_ClipEntity(mover, ent, start, end, bounds)) {
+    return false;
+  }
+
+  return previous.ClipEntity(mover, ent, start, end, bounds);
 }
 
 /**
@@ -649,6 +764,9 @@ void G_Race_Init(void) {
 
   previous.SpawnEntity = G_SpawnEntity;
   G_SpawnEntity = G_SpawnEntity_Race;
+
+  previous.ClipEntity = G_ClipEntity;
+  G_ClipEntity = G_ClipEntity_Race;
 
   previous.PrepareSpawn = G_PrepareSpawn;
   G_PrepareSpawn = G_PrepareSpawn_Race;
