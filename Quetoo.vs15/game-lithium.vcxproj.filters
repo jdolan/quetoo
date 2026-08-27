@@ -233,6 +233,9 @@
     <ClCompile Include="..\src\game\common\bg_pmove_quetoo.c">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove_quake.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\game\lithium\bg_item.c">
       <Filter>src\lithium</Filter>
     </ClCompile>

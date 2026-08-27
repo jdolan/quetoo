@@ -279,23 +279,26 @@ typedef enum {
 #define PMF_GAME (1 << 0)
 
 /**
- * @brief The movement kernels `Pm_Move` can run, selected per-player through
- * `pm_params_t.kernel`.
- * @details A kernel owns everything about how a player moves once the move is
- * initialized: the ground, water and duck checks, the slide and the step. Each
- * lives in its own `bg_pmove_*.c` and is finished rather than maintained, so
- * that a ruleset a record was set under cannot drift.
+ * @brief The movements `Pm_Move` can run, selected per-player through
+ * `pm_params_t.movement`.
+ * @details One of these owns everything about how a player moves once the move
+ * is initialized: the ground, water and duck checks, the slide and the step, and
+ * the parameters it moves by. Each lives in its own `bg_pmove_*.c` and is
+ * finished rather than maintained, so that a movement a record was set under
+ * cannot drift. This changes how a player moves, not how the world behaves.
  *
- * These values are networked. The list is append-only: an id names a ruleset
- * forever, and reordering it would silently move every client onto different
- * physics. Every kernel is in this tree and available to every module, so
+ * These values are networked. The list is append-only: an id names a movement
+ * forever, and reordering it would silently put every client on a different
+ * one. It is the name `g_movement`, the worldspawn `movement` key and the menu
+ * all use. Every kernel is in this tree and available to every module, so
  * there is no module-defined range: unlike `CS_GAME` or `EF_GAME`, which the
  * engine forwards without interpreting, an id has to resolve to code that
  * both the game and the client game hold.
  */
 typedef enum {
-  PM_KERNEL_QUETOO, // Quetoo's own, in bg_pmove_quetoo.c
-} pm_kernel_t;
+  PM_MOVEMENT_QUETOO, // Quetoo's own, in bg_pmove_quetoo.c
+  PM_MOVEMENT_QUAKE,  // QuakeWorld's, in bg_pmove_quake.c
+} pm_movement_t;
 
 /**
  * @brief Server-tunable player-movement parameters, networked per-player
@@ -307,7 +310,7 @@ typedef enum {
  */
 typedef struct {
   int16_t gravity;     // world gravity; default from g_gravity / map (int16)
-  uint8_t kernel;      // pm_kernel_t; which movement kernel Pm_Move runs
+  uint8_t movement;      // pm_movement_t; which movement kernel Pm_Move runs
   float gravity_water; // PM_GRAVITY_WATER
 
   float accel_ground, accel_ground_slick, accel_air, accel_water,
@@ -324,8 +327,8 @@ typedef struct {
 
 /**
  * @brief This layout is the wire format. `Net_WriteDeltaPlayerState` sends
- * `gravity` and `kernel` on their own bits and compares everything from
- * `gravity_water` on with one `memcmp`, so two things must stay true: `kernel`
+ * `gravity` and `movement` on their own bits and compares everything from
+ * `gravity_water` on with one `memcmp`, so two things must stay true: `movement`
  * must keep sitting in the padding `gravity` leaves, or the compared region
  * moves, and that region must hold nothing but the floats the encoder writes,
  * or the comparison reads padding and resends the block at random. A field
@@ -333,7 +336,7 @@ typedef struct {
  * the second. Both are asserted rather than commented so that the build says so.
  */
 _Static_assert(offsetof(pm_params_t, gravity_water) == sizeof(float),
-               "pm_params_t.kernel must fit in the padding after gravity");
+               "pm_params_t.movement must fit in the padding after gravity");
 _Static_assert(sizeof(pm_params_t) - offsetof(pm_params_t, gravity_water) ==
                25 * sizeof(float),
                "the delta-compared region of pm_params_t must be floats only");

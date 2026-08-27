@@ -28,6 +28,7 @@
     <ClCompile Include="..\src\game\default\bg_item.c" />
     <ClCompile Include="..\src\game\common\bg_pmove.c" />
     <ClCompile Include="..\src\game\common\bg_pmove_quetoo.c" />
+    <ClCompile Include="..\src\game\common\bg_pmove_quake.c" />
     <ClCompile Include="..\src\cgame\default\cg_module.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

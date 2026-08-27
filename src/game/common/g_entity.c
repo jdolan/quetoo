@@ -820,6 +820,25 @@ static void G_worldspawn(g_entity_t *ent) {
 
   gi.SetConfigString(CS_ITEM_SET, va("%d", g_level.items));
 
+  // the movement takes the same precedence gameplay does: what the admin asked
+  // for, else this level's metadata, else its worldspawn, else Quetoo's. It needs
+  // no config string, because it reaches the client inside the movement
+  // parameters, which are networked per-player
+  g_level.movement = PM_MOVEMENT_QUETOO;
+
+  const cm_entity_t *movement_map = G_MapValue("movement");
+  if (q_strcmp(g_movement->string, "default")) { // prefer the admin's choice
+    Pm_MovementByName(g_movement->string, &g_level.movement);
+  } else if (movement_map && *movement_map->string) { // then map metadata
+    Pm_MovementByName(movement_map->string, &g_level.movement);
+  } else { // or fall back on worldspawn
+    Pm_MovementByName(gi.EntityValue(ent->def, "movement")->string, &g_level.movement);
+  }
+
+  // as with g_gameplay_mode, publish what it resolved to, since that is the only
+  // form a server browser can present
+  gi.ForceSetCvarString("g_movement_mode", Pm_Movement(g_level.movement)->name);
+
   g_level.teams = (g_level.gameplay & GAMEPLAY_TEAMS) != 0;
 
   if (q_strcmp(g_num_teams->string, "default")) {

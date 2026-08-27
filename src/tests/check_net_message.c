@@ -45,9 +45,7 @@ void teardown(void) {
  */
 static void Fill_TestParams(pm_params_t *p) {
   p->gravity = 750;
-  // an arbitrary non-default byte rather than a real `pm_kernel_t`: what is
-  // under test is that the field reaches the other side, not what it selects
-  p->kernel = 3;
+  p->movement = PM_MOVEMENT_QUAKE;
   p->gravity_water = 0.5f;
   p->accel_ground = 11.f;       p->accel_ground_slick = 4.5f;
   p->accel_air = 3.f;           p->accel_water = 3.5f;
@@ -86,7 +84,7 @@ START_TEST(check_PlayerState_Params_RoundTrip) {
   Net_ReadDeltaPlayerState(&buf, &from, &result);
 
   ck_assert_int_eq(result.pm_state.params.gravity, to.pm_state.params.gravity);
-  ck_assert_int_eq(result.pm_state.params.kernel, to.pm_state.params.kernel);
+  ck_assert_int_eq(result.pm_state.params.movement, to.pm_state.params.movement);
 
   ck_assert_msg(memcmp(&result.pm_state.params.gravity_water, &to.pm_state.params.gravity_water,
                        sizeof(pm_params_t) - offsetof(pm_params_t, gravity_water)) == 0,
@@ -121,13 +119,13 @@ START_TEST(check_PlayerState_Params_DeltaCompressed) {
 } END_TEST
 
 /**
- * @brief The movement kernel is delta-compressed on its own bit: a change to it
- * alone must reach the client, and must not cost the whole parameter block.
+ * @brief The movement is delta-compressed on its own bit: a change to it alone
+ * must reach the client, and must not cost the whole parameter block.
  */
-START_TEST(check_PlayerState_Kernel_DeltaCompressed) {
+START_TEST(check_PlayerState_Movement_DeltaCompressed) {
   byte buf_a[MAX_MSG_SIZE], buf_b[MAX_MSG_SIZE];
-  mem_buf_t kernel_only, everything;
-  Mem_InitBuffer(&kernel_only, buf_a, sizeof(buf_a));
+  mem_buf_t movement_only, everything;
+  Mem_InitBuffer(&movement_only, buf_a, sizeof(buf_a));
   Mem_InitBuffer(&everything, buf_b, sizeof(buf_b));
 
   player_state_t from;
@@ -135,24 +133,24 @@ START_TEST(check_PlayerState_Kernel_DeltaCompressed) {
   Fill_TestParams(&from.pm_state.params);
 
   player_state_t to = from;
-  to.pm_state.params.kernel = from.pm_state.params.kernel + 1;
+  to.pm_state.params.movement = PM_MOVEMENT_QUETOO; // Fill_TestParams left it on quake
 
   player_state_t zero;
   memset(&zero, 0, sizeof(zero));
 
-  Net_WriteDeltaPlayerState(&kernel_only, &from, &to);
+  Net_WriteDeltaPlayerState(&movement_only, &from, &to);
   Net_WriteDeltaPlayerState(&everything, &zero, &to);
 
-  ck_assert_msg(kernel_only.size < everything.size,
-                "a kernel change wrote the whole parameter block (%zu vs %zu)",
-                kernel_only.size, everything.size);
+  ck_assert_msg(movement_only.size < everything.size,
+                "a movement change wrote the whole parameter block (%zu vs %zu)",
+                movement_only.size, everything.size);
 
-  kernel_only.read = 0;
+  movement_only.read = 0;
 
   player_state_t result = from;
-  Net_ReadDeltaPlayerState(&kernel_only, &from, &result);
+  Net_ReadDeltaPlayerState(&movement_only, &from, &result);
 
-  ck_assert_int_eq(result.pm_state.params.kernel, to.pm_state.params.kernel);
+  ck_assert_int_eq(result.pm_state.params.movement, to.pm_state.params.movement);
   ck_assert_int_eq(result.pm_state.params.gravity, from.pm_state.params.gravity);
 } END_TEST
 
@@ -168,7 +166,7 @@ int32_t main(int32_t argc, char **argv) {
 
   tcase_add_test(tcase, check_PlayerState_Params_RoundTrip);
   tcase_add_test(tcase, check_PlayerState_Params_DeltaCompressed);
-  tcase_add_test(tcase, check_PlayerState_Kernel_DeltaCompressed);
+  tcase_add_test(tcase, check_PlayerState_Movement_DeltaCompressed);
 
   Suite *suite = suite_create("check_net_message");
   suite_add_tcase(suite, tcase);

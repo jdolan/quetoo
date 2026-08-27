@@ -224,6 +224,41 @@ typedef struct pm_move_s {
 } pm_move_t;
 
 /**
+ * @brief One movement: the name it answers to, and the parameters that define
+ * it.
+ */
+typedef struct {
+
+  /**
+   * @brief The name used by `g_movement`, the worldspawn `movement` key and the
+   * menu. Never "default", which those reserve to mean "whatever the level
+   * asks for".
+   */
+  const char *name;
+
+  /**
+   * @brief What the menu shows, which may say more than the key does.
+   */
+  const char *label;
+
+  /**
+   * @brief The parameters this movement is defined by, or `NULL` for the one
+   * that follows the server's own movement cvars. A movement that let a cvar
+   * move it would not be a movement anyone could set a record under.
+   */
+  const pm_params_t *params;
+} pm_movement_info_t;
+
+const pm_movement_info_t *Pm_Movement(pm_movement_t movement);
+size_t Pm_MovementCount(void);
+
+/**
+ * @brief Resolves a movement by name.
+ * @return False if nothing answers to `name`, leaving `movement` alone.
+ */
+bool Pm_MovementByName(const char *name, pm_movement_t *movement);
+
+/**
  * @brief Performs one discrete movement of the player through the world.
  * @details Initializes the move, clamps the angles, handles the frozen,
  * spectator and dead cases, and hands the rest to the kernel that

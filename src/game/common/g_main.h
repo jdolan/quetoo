@@ -161,6 +161,7 @@ extern cvar_t *g_duck_speed;
 extern cvar_t *g_duck_stand_speed;
 extern cvar_t *g_duck_height;
 extern cvar_t *g_gravity;
+extern cvar_t *g_movement;
 extern cvar_t *g_ground_acceleration;
 extern cvar_t *g_ground_acceleration_slick;
 extern cvar_t *g_ground_friction;

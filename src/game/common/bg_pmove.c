@@ -59,6 +59,47 @@ box3_t Pm_Bounds(const pm_params_t *params, bool ducked) {
   return Box3_Scale(bounds, PM_SCALE);
 }
 
+/**
+ * @brief Keyed by `pm_movement_t` so that the ids and this table cannot drift
+ * apart. Quetoo's carries no parameters of its own: it is the one that follows
+ * the server's movement cvars, which is what makes it the default.
+ */
+static const pm_movement_info_t pm_movements[] = {
+  [PM_MOVEMENT_QUETOO] = { .name = "quetoo", .label = "Quetoo", .params = NULL },
+  [PM_MOVEMENT_QUAKE]  = { .name = "quake",  .label = "QuakeWorld", .params = &pm_quake_params },
+};
+
+const pm_movement_info_t *Pm_Movement(pm_movement_t movement) {
+
+  if ((size_t) movement >= lengthof(pm_movements)) {
+    return NULL;
+  }
+
+  return &pm_movements[movement];
+}
+
+size_t Pm_MovementCount(void) {
+  return lengthof(pm_movements);
+}
+
+bool Pm_MovementByName(const char *name, pm_movement_t *movement) {
+
+  assert(movement);
+
+  if (!name || !*name) {
+    return false;
+  }
+
+  for (size_t i = 0; i < lengthof(pm_movements); i++) {
+    if (!q_strcasecmp(pm_movements[i].name, name)) {
+      *movement = (pm_movement_t) i;
+      return true;
+    }
+  }
+
+  return false;
+}
+
 pm_move_t *pm;
 
 pm_locals_t pm_locals;
@@ -382,15 +423,18 @@ void Pm_Move(pm_move_t *pm_move) {
     pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
   }
 
-  switch (pm->s.params.kernel) {
-    case PM_KERNEL_QUETOO:
+  switch (pm->s.params.movement) {
+    case PM_MOVEMENT_QUETOO:
       Pm_QuetooMove();
+      break;
+    case PM_MOVEMENT_QUAKE:
+      Pm_QuakeMove();
       break;
     default:
       // the value arrives over the network, so it is clamped rather than
       // trusted; both sides clamp alike, so prediction stays consistent even
       // when a client and a server disagree about what ids exist
-      Pm_Debug("Unknown movement kernel %u\n", pm->s.params.kernel);
+      Pm_Debug("Unknown movement kernel %u\n", pm->s.params.movement);
       Pm_QuetooMove();
       break;
   }

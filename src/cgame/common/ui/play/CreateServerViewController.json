@@ -131,6 +131,21 @@
                       },
                       {
                         "class": "Input",
+                        "identifier": "movementInput",
+                        "label": {
+                          "text": {
+                            "text": "Movement"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "expectsStringValue": true,
+                          "identifier": "movement",
+                          "var": "g_movement"
+                        }
+                      },
+                      {
+                        "class": "Input",
                         "label": {
                           "text": {
                             "text": "Time limit"

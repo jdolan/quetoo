@@ -25,8 +25,8 @@
 
 /**
  * @file
- * @brief The movement plumbing, and the working state it keeps, for the kernels
- * that `Pm_Move` dispatches to.
+ * @brief The movement plumbing, and the working state it keeps, for the movement
+ * kernels that `Pm_Move` dispatches to.
  *
  * `Pm_Move` initializes the move, clamps the angles, handles the frozen,
  * spectator and dead cases, and then hands everything else to the kernel named
@@ -46,7 +46,7 @@
  *
  * A kernel SHOULD be finished rather than maintained. A record is only
  * comparable to another record set under the same movement, so changing what a
- * kernel does is a new kernel, appended to `pm_kernel_t`, not an edit to an
+ * kernel does is a new kernel, appended to `pm_movement_t`, not an edit to an
  * existing one. Fixes to this file are the exception: it is shared, and a fault
  * in the plumbing is a fault in every ruleset.
  */
@@ -126,6 +126,13 @@ void Pm_Gravity(void);
 void Pm_CheckViewStep(void);
 
 /**
- * @brief The kernels, one per `pm_kernel_t`. `Pm_Move` calls exactly one.
+ * @brief The kernels, one per `pm_movement_t`. `Pm_Move` calls exactly one.
  */
 void Pm_QuetooMove(void);
+void Pm_QuakeMove(void);
+
+/**
+ * @brief The parameters each movement that has its own is defined by, exported
+ * by the kernel that implements it.
+ */
+extern const pm_params_t pm_quake_params;

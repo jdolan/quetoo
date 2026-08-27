@@ -24,7 +24,7 @@
 
 /**
  * @file
- * @brief Quetoo's own movement kernel, `PM_KERNEL_QUETOO`.
+ * @brief Quetoo's own movement kernel, `PM_MOVEMENT_QUETOO`.
  *
  * Everything here was `bg_pmove.c` before the kernel became a selection rather
  * than the only option; the move it performs is unchanged. What stayed behind

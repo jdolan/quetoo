@@ -45,6 +45,7 @@ TESTS = \
 	check_master \
 	check_mem \
 	check_net_message \
+	check_pmove \
 	check_r_media \
 	check_shared \
 	check_thread \
@@ -166,6 +167,20 @@ check_net_message_CFLAGS = \
 check_net_message_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/net/libnet.la
+
+check_pmove_SOURCES = \
+	check_pmove.c \
+	$(top_srcdir)/src/game/common/bg_pmove.c \
+	$(top_srcdir)/src/game/common/bg_pmove_quake.c \
+	$(top_srcdir)/src/game/common/bg_pmove_quetoo.c
+check_pmove_CFLAGS = \
+	-I$(top_srcdir)/src \
+	-fms-extensions \
+	-Wno-microsoft-anon-tag \
+	$(TESTS_CFLAGS)
+check_pmove_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la
 
 check_r_media_SOURCES = \
 	check_r_media.c

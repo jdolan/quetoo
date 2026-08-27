@@ -71,6 +71,11 @@ struct CreateServerViewController {
   Select *gameplay;
 
   /**
+   * @brief The player movement to run.
+   */
+  Select *movement;
+
+  /**
    * @brief The MapListCollectionView.
    */
   MapListCollectionView *mapList;
