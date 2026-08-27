@@ -51,6 +51,9 @@
     <ClInclude Include="..\src\game\common\bg_pmove.h">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\game\common\bg_pmove_internal.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\game\common\g_ai_goal.h">
       <Filter>src\common</Filter>
     </ClInclude>

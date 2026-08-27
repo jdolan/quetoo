@@ -20,6 +20,7 @@
  */
 
 #include "bg_pmove.h"
+#include "bg_pmove_internal.h"
 
 /**
  * @brief The default bounding boxes. `Pm_Bounds` applies the height the movement
@@ -58,77 +59,15 @@ box3_t Pm_Bounds(const pm_params_t *params, bool ducked) {
   return Box3_Scale(bounds, PM_SCALE);
 }
 
-static pm_move_t *pm;
+pm_move_t *pm;
 
-#define MAX_CLIP_PLANES  6
-
-/**
- * @brief A structure containing full floating point precision copies of all
- * movement variables. This is initialized with the player's last movement
- * at each call to `Pm_Move` (this is obviously not thread-safe).
- */
-static struct {
-
-  /**
-   * @brief Previous (incoming) origin, in case movement fails and must be reverted.
-   */
-  vec3_t previous_origin;
-
-  /**
-   * @brief Previous (incoming) velocity, used for detecting landings.
-   */
-  vec3_t previous_velocity;
-
-  /**
-   * @brief Directional vectors based on command angles, with Z component.
-   */
-  vec3_t forward, right, up;
-
-  /**
-   * @brief Directional vectors without Z component, for air and ground movement.
-   */
-  vec3_t forward_xy, right_xy;
-
-  /**
-   * @brief The current movement command duration, in seconds.
-   */
-  float time;
-
-  /**
-   * @brief The player's ground interaction.
-   */
-  cm_trace_t ground;
-
-  /**
-   * @brief The clipping planes per slide-move.
-   */
-  cm_bsp_plane_t clip_planes[MAX_CLIP_PLANES];
-
-  /**
-   * @brief The number of clipping planes per slide-move.
-   */
-  int32_t num_clip_planes;
-
-} pm_locals;
-
-/**
- * @brief Unlike the game and the client game, this keeps its own mask test: it is
- * called per move, from the movement loop, where the arguments it would otherwise
- * format are worth skipping. `do while` rather than a statement expression, so it
- * is standard C.
- */
-#define Pm_Debug(...) \
-  do { \
-    if (pm->DebugMask() & pm->debug_mask) { \
-      pm->Debug(pm->debug_mask, __func__, __VA_ARGS__); \
-    } \
-  } while (0)
+pm_locals_t pm_locals;
 
 /**
  * @brief Mark the specified entity as touched. This enables the game module to
  * detect player -> entity interactions.
  */
-static void Pm_TouchEntity(const cm_trace_t *trace) {
+void Pm_TouchEntity(const cm_trace_t *trace) {
 
   if (trace->ent == NULL) {
     return;
@@ -153,7 +92,7 @@ static void Pm_TouchEntity(const cm_trace_t *trace) {
  * it is adjusted so that the trace begins outside of the solid it impacts.
  * @return The actual trace.
  */
-static cm_trace_t Pm_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
+cm_trace_t Pm_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
 
   const float offsets[] = { 0.f, 1.f, -1.f };
 
@@ -183,7 +122,7 @@ static cm_trace_t Pm_Trace(const vec3_t start, const vec3_t end, const box3_t bo
 /**
  * @brief Slide off of the impacted plane.
  */
-static vec3_t Pm_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce) {
+vec3_t Pm_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce) {
 
   float backoff = Vec3_Dot(in, normal);
 
@@ -199,7 +138,7 @@ static vec3_t Pm_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce
 /**
  * @brief Collide with the results of the trace, clipping our velocity along the normal.
  */
-static void Pm_ClipMove(const cm_trace_t *trace) {
+void Pm_ClipMove(const cm_trace_t *trace) {
 
   if (trace->ent == NULL) {
     return;
@@ -232,7 +171,7 @@ static void Pm_ClipMove(const cm_trace_t *trace) {
 /**
  * @brief Slide through the world, clipping to impacted planes.
  */
-static float Pm_SlideMove(void) {
+float Pm_SlideMove(void) {
 
   const vec3_t org0 = pm->s.origin;
 
@@ -283,7 +222,7 @@ static float Pm_SlideMove(void) {
 /**
  * @return True if the downward trace yielded a step, false otherwise.
  */
-static bool Pm_CheckStep(const cm_trace_t *trace) {
+bool Pm_CheckStep(const cm_trace_t *trace) {
 
   if (!trace->all_solid) {
     if (trace->ent && trace->plane.normal.z >= PM_STEP_NORMAL) {
@@ -297,7 +236,7 @@ static bool Pm_CheckStep(const cm_trace_t *trace) {
 /**
  * @brief Moves the player origin to the end of a step-down trace and records the step height.
  */
-static void Pm_StepDown(const cm_trace_t *trace) {
+void Pm_StepDown(const cm_trace_t *trace) {
 
   pm->s.origin = trace->end;
   
@@ -311,7 +250,7 @@ static void Pm_StepDown(const cm_trace_t *trace) {
 /**
  * @brief Performs a slide move with stair stepping, attempting to step up over obstacles.
  */
-static void Pm_StepSlideMove(void) {
+void Pm_StepSlideMove(void) {
 
   // store pre-move parameters
   const vec3_t org0 = pm->s.origin;
@@ -373,7 +312,7 @@ static void Pm_StepSlideMove(void) {
  * @brief Handles friction against user intentions, and based on contents.
  * @param flying Whether we should clear Z velocity as well if we are going to stop
  */
-static void Pm_Friction(const bool flying) {
+void Pm_Friction(const bool flying) {
   vec3_t vel = pm->s.velocity;
 
   if (pm->s.flags & PMF_ON_GROUND) {
@@ -423,27 +362,29 @@ static void Pm_Friction(const bool flying) {
 /**
  * @brief Handles user intended acceleration.
  */
-static void Pm_Accelerate(const vec3_t dir, float speed, float accel) {
+void Pm_Accelerate(const vec3_t dir, float speed, float accel) {
   const float current_speed = Vec3_Dot(pm->s.velocity, dir);
   const float add_speed = speed - current_speed;
 
-  if (add_speed <= 0.f) {
-    return;
+  if (add_speed > 0.f) {
+    float accel_speed = accel * pm_locals.time * speed;
+
+    if (accel_speed > add_speed) {
+      accel_speed = add_speed;
+    }
+
+    pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accel_speed, dir);
   }
 
-  float accel_speed = accel * pm_locals.time * speed;
-
-  if (accel_speed > add_speed) {
-    accel_speed = add_speed;
+  if (pm->Accelerate) {
+    pm->Accelerate(pm, dir, speed, accel);
   }
-
-  pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accel_speed, dir);
 }
 
 /**
  * @brief Applies gravity to the current movement.
  */
-static void Pm_Gravity(void) {
+void Pm_Gravity(void) {
 
   if (pm->s.type == PM_HOOK_PULL) {
     return;
@@ -461,7 +402,7 @@ static void Pm_Gravity(void) {
 /**
  * @brief Applies water and conveyor belt current velocities to the player.
  */
-static void Pm_Currents(void) {
+void Pm_Currents(void) {
   vec3_t current = Vec3_Zero();
 
   // add water currents
@@ -519,7 +460,7 @@ static void Pm_Currents(void) {
  * @return True if the player will be eligible for trick jumping should they
  * impact the ground on this frame, false otherwise.
  */
-static bool Pm_CheckTrickJump(void) {
+bool Pm_CheckTrickJump(void) {
 
   if (pm->ground.ent) {
     return false;
@@ -547,7 +488,7 @@ static bool Pm_CheckTrickJump(void) {
 /**
  * @return True if the player is attempting to leave the ground via grappling hook.
  */
-static bool Pm_CheckHookJump(void) {
+bool Pm_CheckHookJump(void) {
 
   if ((pm->s.type >= PM_HOOK_PULL && pm->s.type <= PM_HOOK_SWING_AUTO) && (pm->s.velocity.z > 1.f)) {
 
@@ -563,7 +504,7 @@ static bool Pm_CheckHookJump(void) {
 /**
  * @brief Validates and processes grappling hook state, updating movement type as needed.
  */
-static void Pm_CheckHook(void) {
+void Pm_CheckHook(void) {
 
   // hookers only
   if (pm->s.type < PM_HOOK_PULL || pm->s.type > PM_HOOK_SWING_AUTO) {
@@ -663,7 +604,7 @@ static void Pm_CheckHook(void) {
 /**
  * @brief Checks for ground interaction, enabling trick jumping and dealing with landings.
  */
-static void Pm_CheckGround(void) {
+void Pm_CheckGround(void) {
 
   if (Pm_CheckHookJump()) {
     return;
@@ -741,7 +682,7 @@ static void Pm_CheckGround(void) {
 /**
  * @brief Checks for water interaction, accounting for player ducking, etc.
  */
-static void Pm_CheckWater(void) {
+void Pm_CheckWater(void) {
 
   pm->water_level = WATER_NONE;
   pm->water_type = 0;
@@ -782,7 +723,7 @@ static void Pm_CheckWater(void) {
  * @brief Handles ducking, adjusting both the player's bounding box and view
  * offset accordingly. Players must be on the ground in order to duck.
  */
-static void Pm_CheckDuck(void) {
+void Pm_CheckDuck(void) {
 
   if (pm->s.type == PM_DEAD) {
     if (pm->s.flags & PMF_GIBLET) {
@@ -842,7 +783,7 @@ static void Pm_CheckDuck(void) {
  *
  * @return True if a jump occurs, false otherwise.
  */
-static bool Pm_CheckJump(void) {
+bool Pm_CheckJump(void) {
 
   if (Pm_CheckHookJump()) {
     return true;
@@ -904,11 +845,9 @@ static bool Pm_CheckJump(void) {
 }
 
 /**
- * @brief Check for ladder interaction.
- *
- * @return True if the player is on a ladder, false otherwise.
+ * @brief Check for ladder interaction, setting `PMF_ON_LADDER` when the player is on one.
  */
-static void Pm_CheckLadder(void) {
+void Pm_CheckLadder(void) {
 
   if (pm->s.flags & PMF_TIME_MASK) {
     return;
@@ -935,7 +874,7 @@ static void Pm_CheckLadder(void) {
  *
  * @return True if a water jump has occurred, false otherwise.
  */
-static bool Pm_CheckWaterJump(void) {
+bool Pm_CheckWaterJump(void) {
 
   if (pm->s.type >= PM_HOOK_PULL && pm->s.type <= PM_HOOK_SWING_AUTO) {
     return false;
@@ -991,7 +930,7 @@ static bool Pm_CheckWaterJump(void) {
 /**
  * @brief Handles player movement while climbing a ladder.
  */
-static void Pm_LadderMove(void) {
+void Pm_LadderMove(void) {
 
   Pm_Debug("%s\n", vtos(pm->s.origin));
 
@@ -1050,7 +989,7 @@ static void Pm_LadderMove(void) {
 /**
  * @brief Handles player movement during a water jump, propelling the player out of the water.
  */
-static void Pm_WaterJumpMove(void) {
+void Pm_WaterJumpMove(void) {
 
   Pm_Debug("%s\n", vtos(pm->s.origin));
 
@@ -1078,7 +1017,7 @@ static void Pm_WaterJumpMove(void) {
 /**
  * @brief Handles player movement while submerged or wading in water.
  */
-static void Pm_WaterMove(void) {
+void Pm_WaterMove(void) {
 
   if (Pm_CheckWaterJump()) {
     Pm_WaterJumpMove();
@@ -1145,7 +1084,7 @@ static void Pm_WaterMove(void) {
 /**
  * @brief Handles player movement while airborne, applying friction, gravity, and air acceleration.
  */
-static void Pm_AirMove(void) {
+void Pm_AirMove(void) {
 
   Pm_Debug("%s\n", vtos(pm->s.origin));
 
@@ -1187,7 +1126,7 @@ static void Pm_AirMove(void) {
 /**
  * @brief Called for movements where player is on ground, regardless of water level.
  */
-static void Pm_WalkMove(void) {
+void Pm_WalkMove(void) {
 
   // check for beginning of a jump
   if (Pm_CheckJump()) {
@@ -1270,7 +1209,7 @@ static void Pm_WalkMove(void) {
 /**
  * @brief Handles spectator movement, allowing free-fly navigation through the world.
  */
-static void Pm_SpectatorMove(void) {
+void Pm_SpectatorMove(void) {
 
   Pm_Friction(true);
 
@@ -1300,7 +1239,7 @@ static void Pm_SpectatorMove(void) {
 /**
  * @brief Handles movement for a frozen or dead player, suppressing all movement.
  */
-static void Pm_FreezeMove(void) {
+void Pm_FreezeMove(void) {
 
   Pm_Debug("%s\n", vtos(pm->s.origin));
 }
@@ -1392,7 +1331,7 @@ static void Pm_InitLocal(void) {
 /**
  * @brief Updates the view step offset to smoothly interpolate the camera over stair steps.
  */
-static void Pm_CheckViewStep(void) {
+void Pm_CheckViewStep(void) {
 
   // add the step offset we've made on this frame
   if (pm->step) {
@@ -1437,6 +1376,11 @@ void Pm_Move(pm_move_t *pm_move) {
 
   if (pm->s.type == PM_DEAD) { // no control
     pm->cmd.forward = pm->cmd.right = pm->cmd.up = 0;
+  }
+
+  if (pm->Move) {
+    pm->Move(pm);
+    return;
   }
 
   // check for ladders

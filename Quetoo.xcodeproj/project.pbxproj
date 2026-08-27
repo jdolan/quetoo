@@ -138,6 +138,7 @@
 		CE05B2AA3022486E0012862B /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
 		CE05B2AB3022486E0012862B /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE05B2AE3022486E0012862B /* bg_pmove.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6421C5C58C300CD0B13 /* bg_pmove.h */; };
+		D1A5B0000000000000000002 /* bg_pmove_internal.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_internal.h */; };
 		CE05B2AF3022486E0012862B /* g_ai_goal.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */; };
 		CE05B2B03022486E0012862B /* g_ai_grid.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */; };
 		CE05B2B13022486E0012862B /* g_ai_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9FB27BDA2AE003D56AC /* g_ai_info.h */; };
@@ -786,6 +787,7 @@
 		CEC0FF002026010300000120 /* g_util.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66E1C5C58C300CD0B13 /* g_util.h */; };
 		CEC0FF002026010300000121 /* g_weapon.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6701C5C58C300CD0B13 /* g_weapon.h */; };
 		CEC0FF002026010300000122 /* bg_pmove.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6421C5C58C300CD0B13 /* bg_pmove.h */; };
+		D1A5B0000000000000000003 /* bg_pmove_internal.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_internal.h */; };
 		CEC0FF002026010300000123 /* g_effect.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000003 /* g_effect.h */; };
 		CEC0FF002026010300000124 /* g_entity_func.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6581C5C58C300CD0B13 /* g_entity_func.h */; };
 		CEC0FF002026010300000125 /* g_entity_misc.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D65C1C5C58C300CD0B13 /* g_entity_misc.h */; };
@@ -1690,6 +1692,7 @@
 		CE12D63E1C5C58C300CD0B13 /* filesystem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = filesystem.h; sourceTree = "<group>"; };
 		CE12D6411C5C58C300CD0B13 /* bg_pmove.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove.c; sourceTree = "<group>"; };
 		CE12D6421C5C58C300CD0B13 /* bg_pmove.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_pmove.h; sourceTree = "<group>"; };
+		D1A5B0000000000000000001 /* bg_pmove_internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_pmove_internal.h; sourceTree = "<group>"; };
 		CE12D6471C5C58C300CD0B13 /* g_ballistics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ballistics.c; sourceTree = "<group>"; };
 		CE12D6481C5C58C300CD0B13 /* g_ballistics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ballistics.h; sourceTree = "<group>"; };
 		CE12D6491C5C58C300CD0B13 /* g_client.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_client.c; sourceTree = "<group>"; };
@@ -3846,6 +3849,7 @@
 			children = (
 				CEC011002026010200000009 /* bg_hook.h */,
 				CE12D6421C5C58C300CD0B13 /* bg_pmove.h */,
+				D1A5B0000000000000000001 /* bg_pmove_internal.h */,
 				CE12D6411C5C58C300CD0B13 /* bg_pmove.c */,
 				CEFEEE0000000000000000C3 /* bg_tech.h */,
 				CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */,
@@ -3990,6 +3994,7 @@
 				CE05B2C63022486E0012862B /* bg_hook.h in Headers */,
 				CE05B2F0302248070012F003 /* bg_item.h in Headers */,
 				CE05B2AE3022486E0012862B /* bg_pmove.h in Headers */,
+				D1A5B0000000000000000002 /* bg_pmove_internal.h in Headers */,
 				CE05B2CD3022486E0012862B /* bg_tech.h in Headers */,
 				CE05B2AF3022486E0012862B /* g_ai_goal.h in Headers */,
 				CE05B2B03022486E0012862B /* g_ai_grid.h in Headers */,
@@ -4300,6 +4305,7 @@
 				CEC0FF002026010300000128 /* bg_hook.h in Headers */,
 				CEC0FF00202601030000010A /* bg_item.h in Headers */,
 				CEC0FF002026010300000122 /* bg_pmove.h in Headers */,
+				D1A5B0000000000000000003 /* bg_pmove_internal.h in Headers */,
 				CEFEEE0000000000000000D3 /* bg_tech.h in Headers */,
 				CEC0FF00202601030000010B /* g_ai_goal.h in Headers */,
 				CEC0FF00202601030000010C /* g_ai_grid.h in Headers */,

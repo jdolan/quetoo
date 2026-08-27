@@ -15,6 +15,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\game\common\bg_pmove.c" />
     <ClInclude Include="..\src\game\common\bg_pmove.h" />
+    <ClInclude Include="..\src\game\common\bg_pmove_internal.h" />
     <ClCompile Include="..\src\game\common\g_ai_goal.c" />
     <ClInclude Include="..\src\game\common\g_ai_goal.h" />
     <ClCompile Include="..\src\game\common\g_ai_grid.c" />

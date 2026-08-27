@@ -282,6 +282,9 @@
     <ClInclude Include="..\src\game\common\bg_pmove.h">
       <Filter>src\game\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\game\common\bg_pmove_internal.h">
+      <Filter>src\game\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\game\ctf\bg_item.h">
       <Filter>src\game\ctf</Filter>
     </ClInclude>
