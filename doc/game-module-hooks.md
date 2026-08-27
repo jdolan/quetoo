@@ -289,6 +289,13 @@ have produced a module that did not compile.
 | `ClientDidMove` | `g_client.c` | — |
 | `HandleClientCommand` | `g_cmd.c` | — |
 | `ClientDidChat` | `g_cmd.c` | — |
+| `WriteStats` | `g_client_stats.c` | — |
+| `WriteScore` | `g_client_stats.c` | — |
+| `LevelWillSpawn` | `g_entity.c` | — |
+| `SpawnEntity` | `g_entity.c` | — |
+| `AllowNextMap` | `g_rules.c` | — |
+| `AllowHook` | `g_hook.c` | — |
+| `FrameDidEnd` | `g_client_view.c` | — |
 
 The tail of each chain lives beside the code that calls it, never in a catch-all:
 `g_module.c` was deleted once its last default moved out, because a file that

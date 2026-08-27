@@ -150,27 +150,21 @@ static void G_InitEntityFields(g_entity_t *ent) {
 }
 
 /**
- * @brief Populates common entity fields and then dispatches the class initializer.
+ * @brief The tail of the `G_SpawnEntity` chain: the items, the weapons'
+ * projectiles and the built-in classes.
  */
-static void G_SpawnEntity(cm_entity_t *def) {
-
-  const char *classname = gi.EntityValue(def, "classname")->string;
-  g_entity_t *ent = G_AllocEntity(classname);
-
-  ent->def = def;
-
-  G_InitEntityFields(ent);
+static bool G_SpawnEntity_Common(g_entity_t *ent) {
 
   // check item spawn functions
   const g_item_t *it = G_FindItemByClassName(ent->classname);
   if (it) {
     G_SpawnItem(ent, it);
-    return;
+    return true;
   }
 
   // check the ballistics entities, which are one classname per weapon
   if (G_ballistics(ent)) {
-    return;
+    return true;
   }
 
   // check normal spawn functions
@@ -179,8 +173,34 @@ static void G_SpawnEntity(cm_entity_t *def) {
 
     if (!q_strcmp(clazz->classname, ent->classname)) {
       clazz->Init(ent);
-      return;
+      return true;
     }
+  }
+
+  return false;
+}
+
+SpawnEntity G_SpawnEntity = G_SpawnEntity_Common;
+
+static void G_LevelWillSpawn_Common(const char *name) {
+}
+
+LevelWillSpawn G_LevelWillSpawn = G_LevelWillSpawn_Common;
+
+/**
+ * @brief Populates common entity fields and then dispatches the class initializer.
+ */
+static void G_SpawnEntityDef(cm_entity_t *def) {
+
+  const char *classname = gi.EntityValue(def, "classname")->string;
+  g_entity_t *ent = G_AllocEntity(classname);
+
+  ent->def = def;
+
+  G_InitEntityFields(ent);
+
+  if (G_SpawnEntity(ent)) {
+    return;
   }
 
   G_Warn("%s doesn't have a spawn function\n", etos(ent));
@@ -580,6 +600,8 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
 
   q_strlcpy(g_level.name, name, sizeof(g_level.name));
 
+  G_LevelWillSpawn(name);
+
   g_level.frags    = $(alloc(Vector), initWithSize, sizeof(g_frag_t));
 
 #if defined(G_CTF)
@@ -614,7 +636,7 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
     if (editor->value) {
       G_SpawnEditorEntity((int32_t) i, entities[i]);
     } else {
-      G_SpawnEntity(entities[i]);
+      G_SpawnEntityDef(entities[i]);
     }
   }
 
