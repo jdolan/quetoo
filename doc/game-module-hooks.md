@@ -287,6 +287,8 @@ have produced a module that did not compile.
 | `ClientWillDisconnect` | `g_client.c` | — |
 | `ClientWillThink` | `g_client.c` | — |
 | `ClientDidMove` | `g_client.c` | — |
+| `HandleClientCommand` | `g_cmd.c` | — |
+| `ClientDidChat` | `g_cmd.c` | — |
 
 The tail of each chain lives beside the code that calls it, never in a catch-all:
 `g_module.c` was deleted once its last default moved out, because a file that

@@ -502,6 +502,8 @@ static void G_Say_f(g_client_t *cl) {
   if (dedicated->value) { // print to the console
     gi.Print("%s", text);
   }
+
+  G_ClientDidChat(cl, text, team);
 }
 
 /**
@@ -708,11 +710,29 @@ void G_PlayPmove(void);
 #endif
 
 /**
+ * @brief The tail of the `G_HandleClientCommand` chain, which handles nothing.
+ */
+static bool G_HandleClientCommand_Common(g_client_t *cl, const char *cmd, bool intermission) {
+  return false;
+}
+
+HandleClientCommand G_HandleClientCommand = G_HandleClientCommand_Common;
+
+static void G_ClientDidChat_Common(g_client_t *cl, const char *text, bool team) {
+}
+
+ClientDidChat G_ClientDidChat = G_ClientDidChat_Common;
+
+/**
  * @brief Dispatches an incoming client command string to the appropriate handler.
  */
 void G_ClientCommand(g_client_t *cl) {
 
   const char *cmd = gi.Argv(0);
+
+  if (G_HandleClientCommand(cl, cmd, g_level.intermission_time != 0)) {
+    return;
+  }
 
   if (q_strcmp(cmd, "say") == 0) {
     G_Say_f(cl);

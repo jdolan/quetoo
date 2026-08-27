@@ -162,7 +162,8 @@ extern ResetItem G_ResetItem;
 /**
  * @}
  * @defgroup hooks-inventory Inventory
- * @brief Parting a client from what they are carrying. Tails in g_item.c.
+ * @brief What a client carries: given at the spawn, parted from on death or
+ * disconnect. Tails in g_item.c, and in g_client.c for the spawn.
  * @{
  */
 
@@ -411,6 +412,32 @@ extern ClientWillThink G_ClientWillThink;
 typedef void (*ClientDidMove)(g_client_t *cl, const pm_cmd_t *cmd);
 
 extern ClientDidMove G_ClientDidMove;
+
+/**
+ * @brief Handles a command the client sent, ahead of the built-in commands.
+ * @details Chainable. A feature that adds commands answers true for the ones it
+ * owns and defers to previous for the rest; one that overrides a built-in
+ * command answers true for that name and the built-in never sees it. The tail
+ * handles nothing, so an unclaimed command falls through to the built-in table
+ * and, failing that, to chat. `intermission` is true while the level is ending,
+ * when the built-in table ignores everything but chat. `cmd` is `gi.Argv(0)`;
+ * an implementation MUST NOT call `gi.TokenizeString`, which would replace it
+ * under the built-in table that runs next.
+ * @return True if the command was handled.
+ */
+typedef bool (*HandleClientCommand)(g_client_t *cl, const char *cmd, bool intermission);
+
+extern HandleClientCommand G_HandleClientCommand;
+
+/**
+ * @brief The client said something, and it was delivered. `text` is the line as
+ * the other clients saw it: the name, its color escapes and a trailing newline.
+ * A muted, empty or flood-limited message is not delivered and not reported.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*ClientDidChat)(g_client_t *cl, const char *text, bool team);
+
+extern ClientDidChat G_ClientDidChat;
 
 /**
  * @}
