@@ -667,25 +667,8 @@ START_TEST(check_Movement_BoxWidth) {
                   pm.bounds.maxs.x - pm.bounds.mins.x);
   }
 
-  // the corpse box travels too, so Quake III's corpse is id's -8 where every
-  // other movement keeps Quetoo's -4
-  pm_move_t dead = Test_Move(PM_MOVEMENT_QUAKE3);
-  dead.s.type = PM_DEAD;
-  Test_Command(&dead, 0, 0, 0);
-
-  ck_assert_msg(dead.bounds.maxs.z == -8.f,
-                "Quake III's corpse topped out at %g, expected id's -8",
-                dead.bounds.maxs.z);
-
-  pm_move_t dead_quetoo = Test_Move(PM_MOVEMENT_QUETOO);
-  dead_quetoo.s.type = PM_DEAD;
-  Test_Command(&dead_quetoo, 0, 0, 0);
-
-  ck_assert_msg(dead_quetoo.bounds.maxs.z == -4.f,
-                "Quetoo's corpse topped out at %g, expected -4",
-                dead_quetoo.bounds.maxs.z);
-
-  // and the floor of the box is the same everywhere, which the view offset, the
+  // the corpse boxes are check_Movement_CorpseBox's; the floor of the standing
+  // box is the same everywhere, which the view offset, the
   // step height and spawn placement all assume
   for (size_t i = 0; i < Pm_MovementCount(); i++) {
     pm_move_t pm = Test_Move((pm_movement_t) i);
@@ -693,6 +676,44 @@ START_TEST(check_Movement_BoxWidth) {
 
     ck_assert_msg(pm.bounds.mins.z == -24.f, "%s stood on %g, expected -24",
                   Pm_Movement((pm_movement_t) i)->name, pm.bounds.mins.z);
+  }
+} END_TEST
+
+/**
+ * @brief A corpse stands in `bounds_dead` under every movement, which is what
+ * lets a ruleset change it. Quake II and racing have no corpse box of their own
+ * - a dead player there is simply ducked - so theirs is the ducked box, and this
+ * pins the sizes so that routing them through the parameter cannot have moved
+ * any of them.
+ */
+START_TEST(check_Movement_CorpseBox) {
+
+  const struct {
+    pm_movement_t movement;
+    float maxs_z, eye_z;
+  } expected[] = {
+    { PM_MOVEMENT_QUETOO, -4.f, -16.f }, // Quetoo's own corpse
+    { PM_MOVEMENT_QUAKE,  -4.f, -16.f }, // QuakeWorld resized nothing on death
+    { PM_MOVEMENT_QUAKE2,  4.f,  -2.f }, // the ducked box and the ducked eye
+    { PM_MOVEMENT_RACE,    4.f,  -2.f },
+    { PM_MOVEMENT_QUAKE3, -8.f, -16.f }, // id's own, which only travels now
+  };
+
+  for (size_t i = 0; i < lengthof(expected); i++) {
+    pm_move_t pm = Test_Move(expected[i].movement);
+    pm.s.type = PM_DEAD;
+    Test_Command(&pm, 0, 0, 0);
+
+    const char *name = Pm_Movement(expected[i].movement)->name;
+
+    ck_assert_msg(pm.bounds.maxs.z == expected[i].maxs_z,
+                  "%s's corpse topped out at %g, expected %g",
+                  name, pm.bounds.maxs.z, expected[i].maxs_z);
+    ck_assert_msg(pm.bounds.mins.z == -24.f,
+                  "%s's corpse stood on %g, expected -24", name, pm.bounds.mins.z);
+    ck_assert_msg(pm.s.view_offset.z == expected[i].eye_z,
+                  "%s's corpse looked from %g, expected %g",
+                  name, pm.s.view_offset.z, expected[i].eye_z);
   }
 } END_TEST
 
@@ -747,6 +768,7 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, check_Quetoo_GroundSpeed);
   tcase_add_test(tcase, check_Movement_BoxAndEye);
   tcase_add_test(tcase, check_Movement_BoxWidth);
+  tcase_add_test(tcase, check_Movement_CorpseBox);
   tcase_add_test(tcase, check_Movement_Names);
 
   Suite *suite = suite_create("check_pmove");

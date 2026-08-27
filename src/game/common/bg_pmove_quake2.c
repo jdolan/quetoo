@@ -68,11 +68,6 @@
   .maxs = { {  16.f,  16.f,   4.f } }  /* against Quetoo's 6 */ \
 }
 
-#define PM_QUAKE2_BOUNDS_DEAD { \
-  .mins = { { -16.f, -16.f, -24.f } }, \
-  .maxs = { {  16.f,  16.f,  -4.f } }  /* Quetoo's corpse: overwritten below, since a corpse ducks here */ \
-}
-
 const pm_params_t pm_quake2_params = {
   .gravity = 800,
   .gravity_water = 1.f,         // unused: this movement applies no gravity in water
@@ -100,7 +95,7 @@ const pm_params_t pm_quake2_params = {
   .speed_water_jump = 350.f,
   .bounds = PM_QUAKE2_BOUNDS,        // 32 tall, against Quetoo's 36
   .bounds_ducked = PM_QUAKE2_BOUNDS_DUCKED, // and 4, against Quetoo's 6
-  .bounds_dead = PM_QUAKE2_BOUNDS_DEAD      // overwritten: a corpse ducks here
+  .bounds_dead = PM_QUAKE2_BOUNDS_DUCKED    // a corpse is simply ducked here
 };
 
 #define PM_QUAKE2_STEP_SIZE        18.f  // STEPSIZE
@@ -731,7 +726,13 @@ static void Pm_Quake2CheckDuck(void) {
       return;
     }
 
+    // Quake II has no corpse box of its own: a dead player is simply ducked,
+    // so its bounds_dead is the ducked box. Setting the flag and stopping here
+    // leaves the box Pm_Init took from the parameters, which is the same box and
+    // is the one a ruleset can actually change
     pm->s.flags |= PMF_DUCKED;
+    pm->s.view_offset.z = PM_QUAKE2_VIEW_HEIGHT_DUCK;
+    return;
   } else if (pm->cmd.up < 0 && pm->ground.ent) {
     // Quake II reads its own ON_GROUND flag here, which persists between moves;
     // Quetoo clears that flag in Pm_Init, so the ground this move was handed is
