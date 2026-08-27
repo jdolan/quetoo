@@ -25,6 +25,12 @@
 
 #include "common/common.h"
 
+/**
+ * @brief The game directory fixtures select, so that anything a test writes
+ * lands in its own user directory rather than the player's.
+ */
+#define TEST_GAME "tests"
+
 int Test_Run(Suite *suite);
 void Test_Init(int32_t argc, char **argv);
 void Test_Shutdown(void);
