@@ -353,6 +353,11 @@ and make the block additive instead.
 | `DrawHudElements` | `cg_hud.c` | ctf, techs |
 | `ListGameplayModes` | `cg_main.c` | ctf |
 | `ClipEntity` | `cg_predict.c` | — |
+| `UsePrediction` | `cg_predict.c` | — |
+| `Move` | `cg_input.c` | — |
+| `MoveCommandWillRun` | `cg_predict.c` | — |
+| `MoveCommandDidRun` | `cg_predict.c` | — |
+| `PredictionDidComplete` | `cg_predict.c` | — |
 | `ParseServerCommand` | `cg_main.c` | — |
 | `ParseConfigString` | `cg_main.c` | — |
 | `StateDidClear` | `cg_main.c` | — |

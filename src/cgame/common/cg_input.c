@@ -224,7 +224,7 @@ void Cg_Look(pm_cmd_t *cmd) {
 /**
  * @brief Accumulate movement and button interactions for the specified command.
  */
-void Cg_Move(pm_cmd_t *cmd) {
+static void Cg_Move_Common(pm_cmd_t *cmd) {
 
   if (in_attack.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
     if (!((in_attack.state & BUTTON_STATE_DOWN) && Cg_AttemptSelectWeapon(&cgi.client->frame.ps))) {
@@ -273,6 +273,17 @@ void Cg_Move(pm_cmd_t *cmd) {
       }
     }
   }
+}
+
+Move Cg_Move = Cg_Move_Common;
+
+/**
+ * @brief The `Move` export. The client holds this rather than the chain head, so
+ * that the chain a module installs from `Cg_Module_Init` is the one that gets
+ * called.
+ */
+void Cg_ExportMove(pm_cmd_t *cmd) {
+  Cg_Move(cmd);
 }
 
 /**
