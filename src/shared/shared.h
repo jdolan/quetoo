@@ -290,7 +290,7 @@ typedef enum {
  * These values are networked. The list is append-only: an id names a movement
  * forever, and reordering it would silently put every client on a different
  * one. It is the name `g_movement`, the worldspawn `movement` key and the menu
- * all use. Every kernel is in this tree and available to every module, so
+ * all use. Every movement is in this tree and available to every module, so
  * there is no module-defined range: unlike `CS_GAME` or `EF_GAME`, which the
  * engine forwards without interpreting, an id has to resolve to code that
  * both the game and the client game hold.
@@ -310,7 +310,7 @@ typedef enum {
  */
 typedef struct {
   int16_t gravity;     // world gravity; default from g_gravity / map (int16)
-  uint8_t movement;      // pm_movement_t; which movement kernel Pm_Move runs
+  uint8_t movement;      // pm_movement_t; which movement Pm_Move runs
   float gravity_water; // PM_GRAVITY_WATER
 
   float accel_ground, accel_ground_slick, accel_air, accel_water,
