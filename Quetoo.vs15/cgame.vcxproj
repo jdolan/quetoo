@@ -59,6 +59,7 @@
            every module has a cg_local.h and a g_types.h: one global list
            would make them ambiguous. -->
       <AdditionalIncludeDirectories>..\src\cgame\default;..\src\cgame\common;..\src\cgame\common\ui;..\src\cgame\common\ui\controls;..\src\cgame\common\ui\credits;..\src\cgame\common\ui\editor;..\src\cgame\common\ui\home;..\src\cgame\common\ui\main;..\src\cgame\common\ui\play;..\src\cgame\common\ui\settings;..\src\cgame\common\ui\teams;..\src\cgame;..\src\game\default;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(AdditionalOptions) -ffp-contract=off</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;SDL3.lib;SDL3_image.lib;%(AdditionalDependencies)</AdditionalDependencies>

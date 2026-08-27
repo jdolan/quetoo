@@ -72,6 +72,7 @@
            $(ExtraPreprocessorDefinitions), which expands empty by the time
            build_settings.props' item definition is evaluated. -->
       <PreprocessorDefinitions>G_HOOK;G_TECH;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>%(AdditionalOptions) -ffp-contract=off</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;SDL3.lib;SDL3_image.lib;%(AdditionalDependencies)</AdditionalDependencies>

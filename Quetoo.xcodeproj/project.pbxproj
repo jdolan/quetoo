@@ -6353,6 +6353,7 @@
 				MACH_O_TYPE = mh_bundle;
 				OTHER_CFLAGS = (
 					"$(inherited)",
+					"-ffp-contract=off",
 					"-fms-extensions",
 					"-Wno-microsoft-anon-tag",
 				);
@@ -6381,6 +6382,7 @@
 				MACH_O_TYPE = mh_bundle;
 				OTHER_CFLAGS = (
 					"$(inherited)",
+					"-ffp-contract=off",
 					"-fms-extensions",
 					"-Wno-microsoft-anon-tag",
 				);
@@ -6407,6 +6409,10 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				MACH_O_TYPE = mh_bundle;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-ffp-contract=off",
+				);
 				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "cgame-lithium";
 				USER_HEADER_SEARCH_PATHS = (
@@ -6443,6 +6449,10 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				MACH_O_TYPE = mh_bundle;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-ffp-contract=off",
+				);
 				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "cgame-lithium";
 				USER_HEADER_SEARCH_PATHS = (
@@ -6607,6 +6617,7 @@
 				MACH_O_TYPE = mh_bundle;
 				OTHER_CFLAGS = (
 					"$(inherited)",
+					"-ffp-contract=off",
 					"-fms-extensions",
 					"-Wno-microsoft-anon-tag",
 				);
@@ -6630,6 +6641,7 @@
 				MACH_O_TYPE = mh_bundle;
 				OTHER_CFLAGS = (
 					"$(inherited)",
+					"-ffp-contract=off",
 					"-fms-extensions",
 					"-Wno-microsoft-anon-tag",
 				);
@@ -6651,6 +6663,10 @@
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				MACH_O_TYPE = mh_bundle;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-ffp-contract=off",
+				);
 				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "cgame-default";
 				USER_HEADER_SEARCH_PATHS = (
@@ -6682,6 +6698,10 @@
 				EXECUTABLE_EXTENSION = so;
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				MACH_O_TYPE = mh_bundle;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-ffp-contract=off",
+				);
 				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "cgame-default";
 				USER_HEADER_SEARCH_PATHS = (
@@ -7351,6 +7371,7 @@
 				MACH_O_TYPE = mh_bundle;
 				OTHER_CFLAGS = (
 					"$(inherited)",
+					"-ffp-contract=off",
 					"-fms-extensions",
 					"-Wno-microsoft-anon-tag",
 				);
@@ -7380,6 +7401,7 @@
 				MACH_O_TYPE = mh_bundle;
 				OTHER_CFLAGS = (
 					"$(inherited)",
+					"-ffp-contract=off",
 					"-fms-extensions",
 					"-Wno-microsoft-anon-tag",
 				);
@@ -7407,6 +7429,10 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				MACH_O_TYPE = mh_bundle;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-ffp-contract=off",
+				);
 				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "cgame-ctf";
 				USER_HEADER_SEARCH_PATHS = (
@@ -7444,6 +7470,10 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				MACH_O_TYPE = mh_bundle;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-ffp-contract=off",
+				);
 				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "cgame-ctf";
 				USER_HEADER_SEARCH_PATHS = (

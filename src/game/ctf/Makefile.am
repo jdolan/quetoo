@@ -10,6 +10,7 @@ AM_CPPFLAGS = \
 	-I$(GAME_COMMON_DIR)
 
 AM_CFLAGS = \
+	-ffp-contract=off \
 	-fms-extensions \
 	-Wno-microsoft-anon-tag \
 	@SO_CFLAGS@ \
