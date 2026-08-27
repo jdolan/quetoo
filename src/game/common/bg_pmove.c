@@ -23,8 +23,7 @@
 #include "bg_pmove_local.h"
 
 /**
- * @brief The default bounding boxes. `Pm_Bounds` applies the height the movement
- * parameters carry and `PM_SCALE`; these are what those parameters default to,
+ * @brief The default bounding boxes: what the movement parameters default to,
  * and what code with no parameters to hand, such as the client's model setup,
  * may use.
  */
@@ -38,7 +37,7 @@ const box3_t PM_CROUCHED_BOUNDS = {
   .maxs = { {  16.f,  16.f,  6.f } }
 };
 
-static const box3_t PM_DEAD_BOUNDS = {
+const box3_t PM_DEAD_BOUNDS = {
   .mins = { { -16.f, -16.f, -24.f } },
   .maxs = { {  16.f,  16.f,  -4.f } }
 };
@@ -53,10 +52,9 @@ static const box3_t PM_GIBLET_BOUNDS = {
  */
 box3_t Pm_Bounds(const pm_params_t *params, bool ducked) {
 
-  box3_t bounds = ducked ? PM_CROUCHED_BOUNDS : PM_BOUNDS;
-  bounds.maxs.z = ducked ? params->height_ducked : params->height;
-
-  return Box3_Scale(bounds, PM_SCALE);
+  // the box arrives whole, so the parameters are the only thing that decides it.
+  // A movement that wants a bigger player declares a bigger box
+  return ducked ? params->bounds_ducked : params->bounds;
 }
 
 /**
@@ -69,6 +67,7 @@ static const pm_movement_info_t pm_movements[] = {
   [PM_MOVEMENT_QUAKE]  = { .name = "quake",  .label = "QuakeWorld", .params = &pm_quake_params },
   [PM_MOVEMENT_QUAKE2] = { .name = "quake2", .label = "Quake II",   .params = &pm_quake2_params },
   [PM_MOVEMENT_RACE]   = { .name = "race",   .label = "Race",       .params = &pm_race_params },
+  [PM_MOVEMENT_QUAKE3] = { .name = "quake3", .label = "Quake III",  .params = &pm_quake3_params },
 };
 
 const pm_movement_info_t *Pm_Movement(pm_movement_t movement) {
@@ -302,7 +301,7 @@ static void Pm_Init(void) {
     if (pm->s.flags & PMF_GIBLET) {
       pm->bounds = PM_GIBLET_BOUNDS;
     } else {
-      pm->bounds = Box3_Scale(PM_DEAD_BOUNDS, PM_SCALE);
+      pm->bounds = pm->s.params.bounds_dead;
     }
   } else {
     pm->bounds = Pm_Bounds(&pm->s.params, false);
@@ -437,6 +436,9 @@ void Pm_Move(pm_move_t *pm_move) {
       break;
     case PM_MOVEMENT_RACE:
       Pm_RaceMove();
+      break;
+    case PM_MOVEMENT_QUAKE3:
+      Pm_Quake3Move();
       break;
     default:
       // the value arrives over the network, so it is clamped rather than

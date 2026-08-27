@@ -248,6 +248,9 @@
     <ClCompile Include="..\src\game\common\bg_pmove_race.c">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove_quake3.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\game\ctf\bg_item.c">
       <Filter>src\ctf</Filter>
     </ClCompile>

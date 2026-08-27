@@ -320,7 +320,7 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
       }
     }
 
-    ci->legs->bounds = Box3_Scale(PM_BOUNDS, PM_SCALE);
+    ci->legs->bounds = PM_BOUNDS;
 
     ci->legs->radius = Box3_Size(ci->legs->bounds).z / 2.0;
 

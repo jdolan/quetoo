@@ -55,6 +55,16 @@
  * player box. A server selecting this movement takes these rather than its own
  * movement cvars; they reach the client inside `pm_state_t`, like any others.
  */
+#define PM_QUAKE_BOUNDS { \
+  .mins = { { -16.f, -16.f, -24.f } }, /* player_mins */ \
+  .maxs = { {  16.f,  16.f,  32.f } }  /* player_maxs, against Quetoo's 36 */ \
+}
+
+#define PM_QUAKE_BOUNDS_DEAD { \
+  .mins = { { -16.f, -16.f, -24.f } }, \
+  .maxs = { {  16.f,  16.f,  -4.f } }  /* Quetoo's corpse: QuakeWorld resized nothing on death */ \
+}
+
 const pm_params_t pm_quake_params = {
   .gravity = 800,               // sv_gravity
   .gravity_water = 1.f,         // unused: this kernel applies no gravity in water
@@ -80,8 +90,9 @@ const pm_params_t pm_quake_params = {
   .speed_ducked = 320.f,        // unused: there is no ducking
   .speed_duck_stand = 320.f,    // unused
   .speed_water_jump = 310.f,
-  .height = 32.f,               // player_maxs, against Quetoo's 36
-  .height_ducked = 32.f         // never ducks, so never consulted
+  .bounds = PM_QUAKE_BOUNDS,
+  .bounds_ducked = PM_QUAKE_BOUNDS, // never ducks, so never consulted
+  .bounds_dead = PM_QUAKE_BOUNDS_DEAD // a corpse is Quetoo's; QuakeWorld had none
 };
 
 #define PM_QUAKE_STEP_SIZE       18.f  // STEPSIZE
@@ -317,7 +328,7 @@ static void Pm_QuakeFriction(void) {
   float drop = 0.f;
 
   if (pm->water_level >= WATER_WAIST) {
-    drop = speed * pm->s.params.friction_water * pm->water_level * pm_locals.time;
+    drop = speed * pm->s.params.friction_water * (float) pm->water_level * pm_locals.time;
   } else if (pm->s.flags & PMF_ON_GROUND) {
     const float control = Maxf(speed, pm->s.params.speed_stop);
     drop = control * friction * pm_locals.time;

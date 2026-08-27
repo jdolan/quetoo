@@ -132,6 +132,7 @@ void Pm_QuetooMove(void);
 void Pm_QuakeMove(void);
 void Pm_Quake2Move(void);
 void Pm_RaceMove(void);
+void Pm_Quake3Move(void);
 
 /**
  * @brief The parameters each movement that has its own is defined by, exported
@@ -140,3 +141,4 @@ void Pm_RaceMove(void);
 extern const pm_params_t pm_quake_params;
 extern const pm_params_t pm_quake2_params;
 extern const pm_params_t pm_race_params;
+extern const pm_params_t pm_quake3_params;

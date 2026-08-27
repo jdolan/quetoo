@@ -173,6 +173,7 @@ check_pmove_SOURCES = \
 	$(top_srcdir)/src/game/common/bg_pmove.c \
 	$(top_srcdir)/src/game/common/bg_pmove_quake.c \
 	$(top_srcdir)/src/game/common/bg_pmove_quake2.c \
+	$(top_srcdir)/src/game/common/bg_pmove_quake3.c \
 	$(top_srcdir)/src/game/common/bg_pmove_quetoo.c \
 	$(top_srcdir)/src/game/common/bg_pmove_race.c
 check_pmove_CFLAGS = \

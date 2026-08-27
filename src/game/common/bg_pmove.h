@@ -120,15 +120,12 @@
 #define PM_SNAP_DISTANCE PM_GROUND_DIST
 
 /**
- * @brief Player bounding box scaling.
+ * @brief The default player bounding boxes: what `pm_params_t.bounds`,
+ * `.bounds_ducked` and `.bounds_dead` default to, and what code with no
+ * parameters to hand may use. `Pm_Bounds` gives the live box for a set of
+ * parameters; the dead box is read straight from them, by `Pm_Init`.
  */
-#define PM_SCALE 1.f
-
-/**
- * @brief The default player bounding boxes. The heights are the defaults for
- * `pm_params_t.height` and `.height_ducked`; `Pm_Bounds` gives the live box.
- */
-extern const box3_t PM_BOUNDS, PM_CROUCHED_BOUNDS;
+extern const box3_t PM_BOUNDS, PM_CROUCHED_BOUNDS, PM_DEAD_BOUNDS;
 
 /**
  * @brief Resolves the player bounding box for the given movement parameters.

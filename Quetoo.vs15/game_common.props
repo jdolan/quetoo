@@ -18,6 +18,7 @@
     <ClCompile Include="..\src\game\common\bg_pmove_quake.c" />
     <ClCompile Include="..\src\game\common\bg_pmove_quake2.c" />
     <ClCompile Include="..\src\game\common\bg_pmove_race.c" />
+    <ClCompile Include="..\src\game\common\bg_pmove_quake3.c" />
     <ClInclude Include="..\src\game\common\bg_pmove.h" />
     <ClInclude Include="..\src\game\common\bg_vote.h" />
     <ClInclude Include="..\src\game\common\g_vote.h" />

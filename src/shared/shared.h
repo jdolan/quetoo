@@ -300,6 +300,7 @@ typedef enum {
   PM_MOVEMENT_QUAKE,  // QuakeWorld's, in bg_pmove_quake.c
   PM_MOVEMENT_QUAKE2, // Quake II's, in bg_pmove_quake2.c
   PM_MOVEMENT_RACE,   // the race mod's own, in bg_pmove_race.c
+  PM_MOVEMENT_QUAKE3, // Quake III Arena's, in bg_pmove_quake3.c
 } pm_movement_t;
 
 /**
@@ -324,7 +325,12 @@ typedef struct {
   float speed_ground, speed_air, speed_water, speed_ladder, speed_spectator,
         speed_stop, speed_jump, speed_ducked, speed_duck_stand, speed_water_jump;
 
-  float height, height_ducked; // top of the bounding box; PM_BOUNDS, PM_CROUCHED_BOUNDS
+  // the whole player box, standing, ducked and dead, rather than only its top:
+  // a movement whose box is not its own is not really its own. `PM_BOUNDS`,
+  // `PM_CROUCHED_BOUNDS` and `PM_DEAD_BOUNDS` are what these default to. The
+  // giblet box stays in `bg_pmove.c`: a giblet is a form Quetoo's game gives a
+  // player rather than a box any movement stands in
+  box3_t bounds, bounds_ducked, bounds_dead;
 } pm_params_t;
 
 /**
@@ -340,8 +346,16 @@ typedef struct {
 _Static_assert(offsetof(pm_params_t, gravity_water) == sizeof(float),
                "pm_params_t.movement must fit in the padding after gravity");
 _Static_assert(sizeof(pm_params_t) - offsetof(pm_params_t, gravity_water) ==
-               25 * sizeof(float),
+               41 * sizeof(float),
                "the delta-compared region of pm_params_t must be floats only");
+
+/**
+ * @brief And the boxes are part of that region, so they must be plain floats
+ * too: a `vec3_t` that ever acquired an alignment wider than a float would pad
+ * `box3_t` and put unwritten bytes inside the block `memcmp` compares.
+ */
+_Static_assert(sizeof(box3_t) == 6 * sizeof(float),
+               "box3_t must be six floats for pm_params_t to travel");
 
 /**
  * @brief The player movement state contains quantized snapshots of player
