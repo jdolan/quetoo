@@ -199,7 +199,10 @@ void Cg_UpdateDiscord(void) {
         presence.largeImageKey = "default";
         presence.state = "Playing";
 
-        q_snprintf(details, sizeof(details), "%s - %s", Cg_GetGameMode(), cgi.ConfigString(CS_MESSAGE));
+        char message[MAX_STRING_CHARS];
+        q_strcolorstrip(cgi.ConfigString(CS_MESSAGE), message);
+
+        q_snprintf(details, sizeof(details), "%s - %s", Cg_GetGameMode(), message);
         presence.details = details;
 
         if (q_strcmp(cgi.server_name, "localhost")) {
