@@ -50,6 +50,7 @@ game_la_SOURCES = \
 	g_rules.c \
 	g_sound.c \
 	g_util.c \
+	g_vote.c \
 	g_weapon.c
 
 game_la_LDFLAGS = \

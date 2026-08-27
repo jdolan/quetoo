@@ -79,6 +79,7 @@ typedef enum {
 #define CS_NUM_TEAMS       (CS_GAME + 5)  // number of teams (0 - MAX_TEAMS)
 #define CS_NAV_EDIT        (CS_GAME + 6)  // nav edit mode
 #define CS_ITEM_SET        (CS_GAME + 7)  // active item set (g_items_t)
+#define CS_VOTE            (CS_GAME + 8)  // the vote in progress (bg_vote.h)
 
 /**
  * @brief Player state statistics (inventory, score, etc).

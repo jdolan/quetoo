@@ -56,6 +56,7 @@ game_la_SOURCES = \
 	g_sound.c \
 	g_tech.c \
 	g_util.c \
+	g_vote.c \
 	g_weapon.c
 
 game_la_LDFLAGS = \

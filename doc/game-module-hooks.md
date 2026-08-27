@@ -294,6 +294,8 @@ have produced a module that did not compile.
 | `LevelWillSpawn` | `g_entity.c` | — |
 | `SpawnEntity` | `g_entity.c` | — |
 | `AllowNextMap` | `g_rules.c` | — |
+| `PrepareVote` | `g_vote.c` | — |
+| `ApplyVote` | `g_vote.c` | — |
 | `AllowHook` | `g_hook.c` | — |
 | `FrameDidEnd` | `g_client_view.c` | — |
 

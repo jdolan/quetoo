@@ -347,6 +347,29 @@ typedef bool (*AllowNextMap)(void);
 extern AllowNextMap G_AllowNextMap;
 
 /**
+ * @brief Validates a vote a client is calling, writing the argument in the
+ * form the vote will be applied and announced with. The default knows the
+ * votes in `bg_vote.h`.
+ * @details Chainable. A feature with votes of its own validates the types it
+ * owns and defers to previous for the rest.
+ * @return True if the vote may be called.
+ */
+typedef bool (*PrepareVote)(const g_client_t *cl, const char *type, const char *arg, char *canonical, size_t size);
+
+extern PrepareVote G_PrepareVote;
+
+/**
+ * @brief Applies a vote that passed. The default applies the votes in
+ * `bg_vote.h`.
+ * @details Chainable. A feature applies the types it owns and defers to
+ * previous for the rest.
+ * @return True if the vote was applied.
+ */
+typedef bool (*ApplyVote)(const char *type, const char *arg);
+
+extern ApplyVote G_ApplyVote;
+
+/**
  * @brief Coerces a requested gameplay mode to one this module actually
  * supports, before it is written back to `g_gameplay` or applied to the level.
  * @param gameplay The mode `g_gameplay` parsed to, `GAMEPLAY_TEAMS` included.
