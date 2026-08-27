@@ -1061,6 +1061,89 @@ void G_Ai_Node_Render(void) {
 #define AI_NODE_MAGIC ('Q' | '2' << 8 | 'N' << 16 | 'S' << 24)
 #define AI_NODE_VERSION 2
 
+_Static_assert(sizeof(ai_link_t) == 8, "ai_link_t is the on-disk link record; changing it requires a new AI_NODE_VERSION");
+
+/**
+ * @brief Reads the nodes and links from an open .nav file into `g_ai_nodes`.
+ * @return False if the file is malformed, in which case the nodes read so far
+ * must be discarded.
+ */
+static bool G_Ai_ReadNodes(file_t *file) {
+  int32_t magic, version;
+
+  if (gi.ReadFile(file, &magic, sizeof(magic), 1) != 1 || magic != AI_NODE_MAGIC) {
+    G_Warn("Nav file invalid format!\n");
+    return false;
+  }
+
+  if (gi.ReadFile(file, &version, sizeof(version), 1) != 1 || version != AI_NODE_VERSION) {
+    G_Warn("Nav file out of date!\n");
+    return false;
+  }
+
+  uint32_t num_nodes;
+  if (gi.ReadFile(file, &num_nodes, sizeof(num_nodes), 1) != 1 || num_nodes >= AI_NODE_INVALID) {
+    G_Warn("Nav file has an invalid node count\n");
+    return false;
+  }
+
+  g_ai_nodes = $(alloc(Vector), initWithSize, sizeof(ai_node_t));
+
+  for (size_t i = 0; i < num_nodes; i++) {
+    ai_node_t node = { 0 };
+    $(g_ai_nodes, add, &node);
+  }
+
+  G_Ai_Node_InvalidateSpatialIndex();
+
+  size_t total_links = 0;
+
+  for (size_t i = 0; i < g_ai_nodes->count; i++) {
+    ai_node_t *node = AI_NODE(g_ai_nodes, i);
+
+    if (gi.ReadFile(file, &node->position, sizeof(node->position), 1) != 1) {
+      G_Warn("Nav file is truncated at node %zu\n", i);
+      return false;
+    }
+
+    uint32_t num_links;
+    if (gi.ReadFile(file, &num_links, sizeof(num_links), 1) != 1 || num_links > num_nodes) {
+      G_Warn("Nav file has an invalid link count at node %zu\n", i);
+      return false;
+    }
+
+    if (num_links) {
+      node->links = $(alloc(Vector), initWithSize, sizeof(ai_link_t));
+
+      for (size_t l = 0; l < num_links; l++) {
+        ai_link_t link;
+
+        if (gi.ReadFile(file, &link, sizeof(link), 1) != 1) {
+          G_Warn("Nav file is truncated at node %zu\n", i);
+          return false;
+        }
+
+        if (link.id >= num_nodes) {
+          G_Warn("Nav file links node %zu to nonexistent node %u\n", i, link.id);
+          return false;
+        }
+
+        $(node->links, add, &link);
+      }
+
+      total_links += num_links;
+
+      G_Ai_Node_Unlink(i, i);
+    } else {
+      node->links = NULL;
+    }
+  }
+
+  gi.Print("  Loaded %u nodes with %zu total links.\n", num_nodes, total_links);
+
+  return true;
+}
+
 /**
  * @brief Initializes the navigation node system and loads the .nav file for the current map.
  */
@@ -1082,68 +1165,21 @@ void G_Ai_InitNodes(void) {
   }
 
   file_t *file = gi.OpenFile(filename);
-  int32_t magic, version;
-  
-  gi.ReadFile(file, &magic, sizeof(magic), 1);
-
-  if (magic != AI_NODE_MAGIC) {
-    G_Warn("Nav file invalid format!\n");
-    gi.CloseFile(file);
+  if (!file) {
+    G_Warn("Failed to open %s\n", filename);
     return;
   }
 
-  gi.ReadFile(file, &version, sizeof(version), 1);
-
-  if (version != AI_NODE_VERSION) {
-    G_Warn("Nav file out of date!\n");
-    gi.CloseFile(file);
-    return;
-  }
-
-  uint32_t num_nodes;
-  gi.ReadFile(file, &num_nodes, sizeof(num_nodes), 1);
-
-  g_ai_nodes = $(alloc(Vector), initWithSize, sizeof(ai_node_t));
-
-  for (size_t i = 0; i < num_nodes; i++) {
-    ai_node_t node = { 0 };
-    $(g_ai_nodes, add, &node);
-  }
-
-  G_Ai_Node_InvalidateSpatialIndex();
-
-  size_t total_links = 0;
-
-  for (size_t i = 0; i < g_ai_nodes->count; i++) {
-    ai_node_t *node = AI_NODE(g_ai_nodes, i);
-
-    gi.ReadFile(file, &node->position, sizeof(node->position), 1);
-
-    uint32_t num_links;
-  
-    gi.ReadFile(file, &num_links, sizeof(num_links), 1);
-
-    if (num_links) {
-      node->links = $(alloc(Vector), initWithSize, sizeof(ai_link_t));
-
-      for (size_t l = 0; l < num_links; l++) {
-        ai_link_t link = { 0 };
-        $(node->links, add, &link);
-      }
-
-      gi.ReadFile(file, node->links->elements, sizeof(ai_link_t), num_links);
-      total_links += num_links;
-
-      G_Ai_Node_Unlink(i, i);
-    } else {
-      node->links = NULL;
-    }
-  }
+  const bool loaded = G_Ai_ReadNodes(file);
 
   gi.CloseFile(file);
-  gi.Print("  Loaded %u nodes with %zu total links.\n", num_nodes, total_links);
 
-  g_ai_player_roam.file_nodes = num_nodes;
+  if (!loaded) {
+    G_Ai_ShutdownNodes();
+    return;
+  }
+
+  g_ai_player_roam.file_nodes = (uint32_t) g_ai_nodes->count;
   g_ai_player_roam.file_links = 0;
 
   for (size_t i = 0; i < g_ai_nodes->count; i++) {
