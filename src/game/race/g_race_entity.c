@@ -279,6 +279,7 @@ static void G_func_race_Init(g_entity_t *ent, g_race_barrier_t barrier) {
   ent->race_barrier = barrier;
   ent->solid = SOLID_BSP;
   ent->move_type = MOVE_TYPE_NONE;
+  ent->sv_flags |= SVF_NO_CLIENT;
 
   gi.SetModel(ent, ent->model);
   gi.LinkEntity(ent);
