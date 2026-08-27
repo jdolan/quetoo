@@ -82,6 +82,7 @@
 #define PM_SPEED_WATER_JUMP  420.f
 #define PM_SPEED_WATER_SINK -16.f
 #define PM_SPEED_STEP        150.f
+#define PM_SPEED_HOOK_PULL   800.f
 
 /**
  * @brief The walk modifier slows all user-controlled speeds.

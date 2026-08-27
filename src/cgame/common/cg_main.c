@@ -279,9 +279,15 @@ static void Cg_UpdateConfigString(int32_t i) {
       cg_state.items = (g_items_t) strtol(s, NULL, 10);
       return;
 #if defined(G_HOOK)
-    case CS_HOOK_PULL_SPEED:
-      cg_state.hook_pull_speed = strtof(s, NULL);
+    case CS_HOOK_PULL_SPEED: {
+      char *end;
+      cg_state.hook_pull_speed = strtof(s, &end);
+      if (end == s || *end || !isfinite(cg_state.hook_pull_speed) || cg_state.hook_pull_speed <= 0.f) {
+        Cg_Warn("Invalid hook pull speed \"%s\"\n", s);
+        cg_state.hook_pull_speed = PM_SPEED_HOOK_PULL;
+      }
       return;
+    }
 #endif
     case CS_MAX_CLIENTS:
       cg_state.max_clients = (int32_t) strtol(s, NULL, 10);

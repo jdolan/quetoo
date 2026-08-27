@@ -116,6 +116,22 @@ static void G_InitMedia_Hook(void) {
 }
 
 /**
+ * @brief Publishes the pull speed the client predicts with. The cvar's value,
+ * not its string, is what the game moves players by, so that is what goes on
+ * the wire; a string that does not parse as a positive speed is reset first.
+ */
+static void G_Hook_PublishPullSpeed(void) {
+
+  if (!isfinite(g_hook_pull_speed->value) || g_hook_pull_speed->value <= 0.f) {
+    G_Warn("Invalid g_hook_pull_speed \"%s\", resetting to %g\n", g_hook_pull_speed->string, PM_SPEED_HOOK_PULL);
+    gi.SetCvarValue("g_hook_pull_speed", PM_SPEED_HOOK_PULL);
+    g_hook_pull_speed->modified = false;
+  }
+
+  gi.SetConfigString(CS_HOOK_PULL_SPEED, va("%.9g", g_hook_pull_speed->value));
+}
+
+/**
  * @brief Resolves whether the hook is available this level, and publishes the
  * pull speed the client predicts with.
  */
@@ -123,7 +139,7 @@ static void G_ConfigureLevel_Hook(void) {
 
   G_Hook_CheckState();
 
-  gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
+  G_Hook_PublishPullSpeed();
 
   previous.ConfigureLevel();
 }
@@ -153,9 +169,9 @@ static bool G_CheckCvars_Hook(void) {
   if (g_hook_pull_speed->modified) {
     g_hook_pull_speed->modified = false;
 
-    gi.BroadcastPrint(PRINT_HIGH, "Hook pull speed has been changed to %g\n", g_hook_pull_speed->value);
+    G_Hook_PublishPullSpeed();
 
-    gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
+    gi.BroadcastPrint(PRINT_HIGH, "Hook pull speed has been changed to %g\n", g_hook_pull_speed->value);
   }
 
   if (g_hook_style->modified) {
@@ -211,7 +227,7 @@ void G_Hook_Init(void) {
   g_hook_style = gi.AddCvar("g_hook_style", "default", 0, "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
   g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", 0, "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
   g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), 0, "The maximum distance the hook will travel.");
-  g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "800", 0, "The speed that you get pulled towards the hook.");
+  g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", va("%g", PM_SPEED_HOOK_PULL), 0, "The speed that you get pulled towards the hook.");
   g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", 0, "The refire delay on the grapple hook in seconds.");
   g_hook_sky = gi.AddCvar("g_hook_sky", "0", CVAR_SERVER_INFO, "If enabled, the grapple hook attaches to sky surfaces rather than detaching.");
   g_hook_speed = gi.AddCvar("g_hook_speed", "1200", 0, "The speed that the hook will fly at.");
