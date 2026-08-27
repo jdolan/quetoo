@@ -54,6 +54,8 @@ game_la_SOURCES = \
 	g_main.c \
 	g_module.c \
 	g_physics.c \
+	g_race.c \
+	g_race_entity.c \
 	g_rules.c \
 	g_sound.c \
 	g_util.c \
