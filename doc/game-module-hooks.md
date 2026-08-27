@@ -346,6 +346,26 @@ brace so that the two branches of the preprocessor close different blocks,
 compiles and then breaks the next person to edit around it. Restate the condition
 and make the block additive instead.
 
+### The client game's hooks
+
+| hook | tail lives in | installed by |
+| --- | --- | --- |
+| `DrawHudElements` | `cg_hud.c` | ctf, techs |
+| `ListGameplayModes` | `cg_main.c` | ctf |
+| `ClipEntity` | `cg_predict.c` | — |
+| `ParseServerCommand` | `cg_main.c` | — |
+| `ParseConfigString` | `cg_main.c` | — |
+| `StateDidClear` | `cg_main.c` | — |
+| `MediaDidLoad` | `cg_media.c` | — |
+| `SceneDidPopulate` | `cg_main.c` | — |
+| `ScreenDidUpdate` | `cg_main.c` | — |
+| `FilterEntity` | `cg_entity.c` | — |
+| `DescribeGameMode` | `cg_discord.c` | — |
+| `DrawScores` | `cg_score.c` | — |
+
+`cg_hud_layout_t.draw_time` lets a module that arranges the whole HUD keep the
+clock or place it itself, where it used to have to push `stat_y` off screen.
+
 ### The client side
 
 `cg_hud.c` and `cg_score.c` were the same fork on the client, and moved the same

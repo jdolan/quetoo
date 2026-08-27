@@ -257,11 +257,21 @@ static void Cg_ParseTeamInfo(const char *s) {
   release(info);
 }
 
+static bool Cg_ParseConfigString_Common(int32_t index) {
+  return false;
+}
+
+ParseConfigString Cg_ParseConfigString = Cg_ParseConfigString_Common;
+
 /**
  * @brief An updated configuration string has just been received from the server.
  * Refresh related variables and media that aren't managed by the engine.
  */
 static void Cg_UpdateConfigString(int32_t i) {
+
+  if (Cg_ParseConfigString(i)) {
+    return;
+  }
 
   const char *s = cgi.ConfigString(i);
 
@@ -329,10 +339,20 @@ static void Cg_ParsedMessage(int32_t cmd, void *data) {
   }
 }
 
+static bool Cg_ParseServerCommand_Common(int32_t cmd) {
+  return false;
+}
+
+ParseServerCommand Cg_ParseServerCommand = Cg_ParseServerCommand_Common;
+
 /**
  * @brief Parse a single server command, returning true on success.
  */
 static bool Cg_ParseMessage(int32_t cmd) {
+
+  if (Cg_ParseServerCommand(cmd)) {
+    return true;
+  }
 
   switch (cmd) {
     case SV_CMD_SOUND:
@@ -414,7 +434,14 @@ static void Cg_ClearState(void) {
   Cg_ClearScores();
 
   Cg_ClearUi();
+
+  Cg_StateDidClear();
 }
+
+static void Cg_StateDidClear_Common(void) {
+}
+
+StateDidClear Cg_StateDidClear = Cg_StateDidClear_Common;
 
 /**
  * @brief Prepares the scene so that early rendering operations may begin.
@@ -440,7 +467,14 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
   Cg_AddSprites();
 
   Cg_AddLights();
+
+  Cg_SceneDidPopulate(frame);
 }
+
+static void Cg_SceneDidPopulate_Common(const cl_frame_t *frame) {
+}
+
+SceneDidPopulate Cg_SceneDidPopulate = Cg_SceneDidPopulate_Common;
 
 /**
  * @brief Returns the colored key name bound to the given command, or red "`UNBOUND`" if not set.
@@ -505,7 +539,14 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
   }
 
   Cg_CheckEditor();
+
+  Cg_ScreenDidUpdate(frame);
 }
+
+static void Cg_ScreenDidUpdate_Common(const cl_frame_t *frame) {
+}
+
+ScreenDidUpdate Cg_ScreenDidUpdate = Cg_ScreenDidUpdate_Common;
 
 /**
  * @brief Entry point that populates and returns the cgame export table with all function pointers.

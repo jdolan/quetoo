@@ -225,6 +225,12 @@ static void Cg_EntitySound(cl_entity_t *ent) {
   s->sound = 0;
 }
 
+static bool Cg_FilterEntity_Common(const cl_entity_t *ent) {
+  return true;
+}
+
+FilterEntity Cg_FilterEntity = Cg_FilterEntity_Common;
+
 /**
  * @brief Interpolate the current frame, processing any new events and advancing the simulation.
  */
@@ -239,13 +245,14 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 
     cl_entity_t *ent = &cgi.client->entities[s->number];
 
-    Cg_EntitySound(ent);
+    if (Cg_FilterEntity(ent)) {
+      Cg_EntitySound(ent);
+      Cg_EntityEvent(ent);
+    }
 
-    Cg_EntityEvent(ent);
-
-    // Also clear the event in the circular buffer to prevent it from being restored
-    // by the spawn_id validation in Cg_AddEntities()
-    s->event = 0;
+    // the event is consumed whether or not it was shown, so that parsing the
+    // same frame again does not fire it twice
+    ent->current.event = s->event = 0;
   }
 }
 
@@ -333,6 +340,10 @@ void Cg_AddEntities(const cl_frame_t *frame) {
     const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
     const entity_state_t *s = &cgi.client->entity_states[snum];
     cl_entity_t *ent = &cgi.client->entities[s->number];
+
+    if (!Cg_FilterEntity(ent)) {
+      continue;
+    }
 
     Cg_EntityTrail(ent);
 

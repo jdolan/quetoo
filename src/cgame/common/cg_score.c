@@ -304,9 +304,9 @@ static void Cg_DrawDmScores(const int32_t start_y) {
 }
 
 /**
- * @brief Draws the full scores overlay when the scores stat is active.
+ * @brief The tail of the `Cg_DrawScores` hook: the frags, deaths and teams.
  */
-void Cg_DrawScores(const player_state_t *ps) {
+static void Cg_DrawScores_Common(const player_state_t *ps) {
 
   if (!ps->stats[STAT_SCORES]) {
     return;
@@ -324,3 +324,5 @@ void Cg_DrawScores(const player_state_t *ps) {
     Cg_DrawDmScores(start_y);
   }
 }
+
+DrawScores Cg_DrawScores = Cg_DrawScores_Common;

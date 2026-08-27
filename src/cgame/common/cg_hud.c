@@ -360,11 +360,14 @@ void Cg_DrawHud(const player_state_t *ps) {
   cg_hud_layout_t layout = {
     .powerup_y = cgi.context->h / 2,
     .stat_y = HUD_PIC_HEIGHT + ch, // the pickup holds the first row
+    .draw_time = true,
   };
 
   Cg_DrawHudElements(ps, &layout);
 
-  Cg_DrawTime(ps, layout.stat_y);
+  if (layout.draw_time) {
+    Cg_DrawTime(ps, layout.stat_y);
+  }
 
   Cg_DrawCenterPrint(ps);
 
