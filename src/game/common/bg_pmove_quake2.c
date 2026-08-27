@@ -498,8 +498,9 @@ static void Pm_Quake2AirMove(void) {
   } else {
 
     // vanilla Quake II leaves pm_airaccelerate at zero, so this is a plain
-    // acceleration at 1 rather than QuakeWorld's capped-wish path: there is no
-    // strafe jumping in Quake II
+    // acceleration at 1 rather than QuakeWorld's capped-wish path. That is not
+    // the absence of air control: with no cap on the wished speed the headroom
+    // is the whole of it, which is where Quake II strafe jumping comes from
     Pm_Quake2Accelerate(dir, speed, pm->s.params.accel_air);
 
     pm->s.velocity.z -= gravity;
