@@ -62,6 +62,24 @@ static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end,
 }
 
 /**
+ * @brief The tail of the `Cg_ClipEntity` chain: every entity clips.
+ */
+static bool Cg_ClipEntity_Common(const cl_entity_t *mover, const cl_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
+  return true;
+}
+
+ClipEntity Cg_ClipEntity = Cg_ClipEntity_Common;
+
+/**
+ * @brief The `ClipEntity` export. The client holds this rather than the chain
+ * head, so that the chain a module installs from `Cg_Module_Init` is the one
+ * that gets called.
+ */
+bool Cg_ExportClipEntity(const cl_entity_t *mover, const cl_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
+  return Cg_ClipEntity(mover, ent, start, end, bounds);
+}
+
+/**
  * @brief Run recent movement commands through the player movement code locally, storing the
  * resulting state so that it may be interpolated to and reconciled later.
  */

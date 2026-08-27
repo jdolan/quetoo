@@ -231,6 +231,20 @@ typedef void (*PrepareMove)(g_client_t *cl, pm_move_t *pm);
 extern PrepareMove G_PrepareMove;
 
 /**
+ * @brief Decides whether `ent` clips a trace made on behalf of `mover`, after the
+ * server has applied its own skip rules. The default clips everything.
+ * @details Chainable. A feature that makes an entity solid to some movers and not
+ * others, such as a one-way wall, returns false for the movers it lets through
+ * and defers to previous otherwise. `mover` is `NULL` for a trace with no
+ * entity behind it. An implementation MUST be pure: the server and the client
+ * both call it, from `Sv_Trace` and `Cl_Trace`, and speculative traces such as
+ * the bots' lookahead run it many times for a move that never happens.
+ */
+typedef bool (*ClipEntity)(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
+
+extern ClipEntity G_ClipEntity;
+
+/**
  * @}
  * @defgroup hooks-rules Rules
  * @brief The rules a module enforces, once per frame or once per level. Tails in

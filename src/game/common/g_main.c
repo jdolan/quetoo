@@ -1192,6 +1192,7 @@ g_export_t *G_LoadGame(g_import_t *import) {
   ge.Frame = G_Frame;
 
   ge.GameName = G_GameName;
+  ge.ClipEntity = G_ExportClipEntity;
 
   return &ge;
 }

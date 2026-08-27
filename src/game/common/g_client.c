@@ -1828,6 +1828,24 @@ static void G_PrepareMove_Common(g_client_t *cl, pm_move_t *pm) {
 PrepareMove G_PrepareMove = G_PrepareMove_Common;
 
 /**
+ * @brief The tail of the `G_ClipEntity` chain: every entity clips.
+ */
+static bool G_ClipEntity_Common(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
+  return true;
+}
+
+ClipEntity G_ClipEntity = G_ClipEntity_Common;
+
+/**
+ * @brief The `ClipEntity` export. The server holds this rather than the chain
+ * head, so that the chain a module installs from `G_Module_Init` is the one
+ * that gets called.
+ */
+bool G_ExportClipEntity(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
+  return G_ClipEntity(mover, ent, start, end, bounds);
+}
+
+/**
  * @brief Process the movement command, call `Pm_Move` and act on the result.
  */
 static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {

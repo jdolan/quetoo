@@ -145,5 +145,23 @@ extern ListGameplayModes Cg_ListGameplayModes;
 
 /**
  * @}
+ * @defgroup cg-hooks-movement Movement
+ * @brief How the client predicts movement. Tails in cg_predict.c.
+ * @{
+ */
+
+/**
+ * @brief Decides whether `ent` clips a trace made on behalf of `mover`, after the
+ * client has applied its own skip rules. The default clips everything.
+ * @details Chainable, and the reciprocal of the game's `ClipEntity`: a feature
+ * installs the same rule on both sides, or prediction disagrees with the server.
+ * An implementation MUST be pure.
+ */
+typedef bool (*ClipEntity)(const cl_entity_t *mover, const cl_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
+
+extern ClipEntity Cg_ClipEntity;
+
+/**
+ * @}
  */
 #endif

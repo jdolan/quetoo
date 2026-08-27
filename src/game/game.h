@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 33
+#define GAME_API_VERSION 34
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -780,4 +780,13 @@ typedef struct g_export_s {
    * @brief Returns the game name advertised to server browsers.
    */
   const char *(*GameName)(void);
+
+  /**
+   * @brief Called by `Sv_Trace` for each solid entity a trace could clip, after
+   * the server's own skip rules, and by `Sv_Clip` for the entity it tests.
+   * Returning false leaves `ent` out of the trace, which is how a module makes
+   * an entity solid to some movers and not others.
+   * @param mover The entity the trace is on behalf of, or `NULL`.
+   */
+  bool (*ClipEntity)(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
 } g_export_t;

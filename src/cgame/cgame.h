@@ -36,7 +36,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 35
+#define CGAME_API_VERSION 36
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -1104,6 +1104,13 @@ typedef struct cg_export_s {
    */
   void (*UpdateDiscord)(void);
 
+  /**
+   * @brief Called by `Cl_Trace` for each solid entity a trace could clip, after
+   * the client's own skip rules. The reciprocal of the game's `ClipEntity`, so
+   * that prediction clips exactly what the server does.
+   * @param mover The entity the trace is on behalf of, or `NULL`.
+   */
+  bool (*ClipEntity)(const cl_entity_t *mover, const cl_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
 } cg_export_t;
 
 #endif

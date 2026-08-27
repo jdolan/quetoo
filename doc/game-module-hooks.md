@@ -270,6 +270,7 @@ have produced a module that did not compile.
 | `InitMedia` | `g_entity.c` | ctf, techs, hook |
 | `ConfigureLevel` | `g_entity.c` | techs, hook |
 | `PrepareMove` | `g_client.c` | hook |
+| `ClipEntity` | `g_client.c` | — |
 
 The tail of each chain lives beside the code that calls it, never in a catch-all:
 `g_module.c` was deleted once its last default moved out, because a file that
