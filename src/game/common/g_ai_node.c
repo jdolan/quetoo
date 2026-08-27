@@ -540,7 +540,7 @@ bool G_Ai_Node_CanPathTo(const vec3_t position) {
   const vec3_t end = Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f));
 
   // check if the destination has ground
-  cm_trace_t tr = gi.Trace(position, end, Box3_Expand3(PM_BOUNDS, Vec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+  cm_trace_t tr = gi.Trace(position, end, Box3_Expand3(G_PlayerBounds(false), Vec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
 
   // bad ground
   bool stuck_in_mover = tr.ent
@@ -557,9 +557,10 @@ bool G_Ai_Node_CanPathTo(const vec3_t position) {
   if (stuck_in_mover) {
 
     // check with a thinner box; it might be a button press or rotating thing
+    const box3_t bounds = G_PlayerBounds(false);
     tr = gi.Trace(position,
                Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f)),
-               Box3(Vec3(-4.f, -4.f, PM_BOUNDS.mins.z), Vec3(4.f, 4.f, PM_BOUNDS.maxs.z)),
+               Box3(Vec3(-4.f, -4.f, bounds.mins.z), Vec3(4.f, 4.f, bounds.maxs.z)),
                NULL,
                CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
     stuck_in_mover = tr.ent
@@ -751,7 +752,7 @@ void G_Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd) {
       node->position = ent->s.origin;
 
       if (cmd->up < 0) {
-        const cm_trace_t tr = gi.Trace(node->position, Vec3_Subtract(node->position, Vec3(0.f, 0.f, MAX_WORLD_COORD)), PM_BOUNDS, ent, CONTENTS_MASK_SOLID);
+        const cm_trace_t tr = gi.Trace(node->position, Vec3_Subtract(node->position, Vec3(0.f, 0.f, MAX_WORLD_COORD)), Pm_Bounds(&ent->client->ps.pm_state.params, false), ent, CONTENTS_MASK_SOLID);
         node->position = tr.end;
       }
 
@@ -1739,7 +1740,7 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
   if (down.fraction == 1.0) {
     pos = ent->s.origin;
   } else {
-    pos = Vec3_Subtract(down.end, Vec3(0.f, 0.f, PM_BOUNDS.mins.z));
+    pos = Vec3_Subtract(down.end, Vec3(0.f, 0.f, G_PlayerBounds(false).mins.z));
   }
 
   // grab all the links of the node that brought us here

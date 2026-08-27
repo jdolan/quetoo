@@ -189,11 +189,18 @@ cl_entity_t *Cg_Self(void) {
 }
 
 /**
+ * @brief The player bounding box under the movement parameters the server sent.
+ */
+box3_t Cg_PlayerBounds(bool ducked) {
+  return Pm_Bounds(&cgi.client->frame.ps.pm_state.params, ducked);
+}
+
+/**
  * @return True if the entity is ducking, false otherwise.
  */
 bool Cg_IsDucking(const cl_entity_t *ent) {
 
-  const float standing_height = Box3_Size(PM_BOUNDS).z * PM_SCALE;
+  const float standing_height = Box3_Size(Cg_PlayerBounds(false)).z;
   const float height = Box3_Size(ent->current.bounds).z;
 
   return standing_height - height > PM_STOP_EPSILON;

@@ -65,6 +65,16 @@ void G_SetSpawnPoints(g_spawn_points_t *points, const Vector *spawns) {
 }
 
 /**
+ * @brief The player bounding box under the current movement parameters.
+ */
+box3_t G_PlayerBounds(bool ducked) {
+
+  const pm_params_t params = G_MovementParams();
+
+  return Pm_Bounds(&params, ducked);
+}
+
+/**
  * @brief Initializes a player spawn point entity, adjusting origin and angle for the spawn preview model.
  */
 void G_InitPlayerSpawn(g_entity_t *ent) {

@@ -124,7 +124,16 @@
  */
 #define PM_SCALE 1.f
 
+/**
+ * @brief The default player bounding boxes. The heights are the defaults for
+ * `pm_params_t.height` and `.height_ducked`; `Pm_Bounds` gives the live box.
+ */
 extern const box3_t PM_BOUNDS, PM_CROUCHED_BOUNDS;
+
+/**
+ * @brief Resolves the player bounding box for the given movement parameters.
+ */
+box3_t Pm_Bounds(const pm_params_t *params, bool ducked);
 
 /**
  * @brief Game-specific button hits.

@@ -22,9 +22,10 @@
 #include "bg_pmove.h"
 
 /**
- * @brief `PM_BOUNDS` is the default bounding box, scaled by `PM_SCALE`
- * in `Pm_Init`. They are referenced in a few other places e.g. to create effects
- * at a certain body position on the player model.
+ * @brief The default bounding boxes. `Pm_Bounds` applies the height the movement
+ * parameters carry and `PM_SCALE`; these are what those parameters default to,
+ * and what code with no parameters to hand, such as the client's model setup,
+ * may use.
  */
 const box3_t PM_BOUNDS = {
   .mins = { { -16.f, -16.f, -24.f } },
@@ -45,6 +46,17 @@ static const box3_t PM_GIBLET_BOUNDS = {
   .mins = { { -8.f, -8.f, -8.f } },
   .maxs = { {  8.f,  8.f,  8.f } }
 };
+
+/**
+ * @see bg_pmove.h
+ */
+box3_t Pm_Bounds(const pm_params_t *params, bool ducked) {
+
+  box3_t bounds = ducked ? PM_CROUCHED_BOUNDS : PM_BOUNDS;
+  bounds.maxs.z = ducked ? params->height_ducked : params->height;
+
+  return Box3_Scale(bounds, PM_SCALE);
+}
 
 static pm_move_t *pm;
 
@@ -808,7 +820,7 @@ static void Pm_CheckDuck(void) {
       }
 
       // change the bounding box to reflect ducking
-      pm->bounds = PM_CROUCHED_BOUNDS;
+      pm->bounds = Pm_Bounds(&pm->s.params, true);
     } else {
       const float target = pm->bounds.mins.z + height * 0.9f;
 
@@ -1307,7 +1319,7 @@ static void Pm_Init(void) {
       pm->bounds = Box3_Scale(PM_DEAD_BOUNDS, PM_SCALE);
     }
   } else {
-    pm->bounds = Box3_Scale(PM_BOUNDS, PM_SCALE);
+    pm->bounds = Pm_Bounds(&pm->s.params, false);
   }
 
   pm->angles = Vec3_Zero();

@@ -295,6 +295,8 @@ typedef struct {
 
   float speed_ground, speed_air, speed_water, speed_ladder, speed_spectator,
         speed_stop, speed_jump, speed_ducked, speed_duck_stand, speed_water_jump;
+
+  float height, height_ducked; // top of the bounding box; PM_BOUNDS, PM_CROUCHED_BOUNDS
 } pm_params_t;
 
 /**

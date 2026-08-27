@@ -135,6 +135,7 @@ void Cg_FreeEntities(void);
 
 cl_entity_t *Cg_Self(void);
 bool Cg_IsDucking(const cl_entity_t *ent);
+box3_t Cg_PlayerBounds(bool ducked);
 void Cg_Interpolate(const cl_frame_t *frame);
 void Cg_AddEntities(const cl_frame_t *frame);
 

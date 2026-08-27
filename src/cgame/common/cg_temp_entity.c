@@ -180,14 +180,16 @@ static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint1
   });
 
   // draw bbox representation
-  cm_trace_t tr = cgi.Trace(start, Vec3_Subtract(start, Vec3(0, 0, MAX_WORLD_DIST)), PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MASK_LIQUID);
+  const box3_t bounds = Cg_PlayerBounds(false);
+
+  cm_trace_t tr = cgi.Trace(start, Vec3_Subtract(start, Vec3(0, 0, MAX_WORLD_DIST)), bounds, NULL, CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MASK_LIQUID);
 
   if (tr.start_solid) {
-    tr = cgi.Trace(start, Vec3_Subtract(start, Vec3(0, 0, MAX_WORLD_DIST)), PM_CROUCHED_BOUNDS, NULL, CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MASK_LIQUID);
+    tr = cgi.Trace(start, Vec3_Subtract(start, Vec3(0, 0, MAX_WORLD_DIST)), Cg_PlayerBounds(true), NULL, CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MASK_LIQUID);
   }
 
-  box3_t box = Box3_Translate(PM_BOUNDS, tr.end);
-  box.maxs.z = box.mins.z = tr.end.z + PM_BOUNDS.mins.z;
+  box3_t box = Box3_Translate(bounds, tr.end);
+  box.maxs.z = box.mins.z = tr.end.z + bounds.mins.z;
   vec3_t points[8];
   Box3_ToPoints(box, points);
 
