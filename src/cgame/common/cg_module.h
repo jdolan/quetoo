@@ -91,7 +91,7 @@ void Cg_Module_Shutdown(void);
 
 /**
  * @}
- * @defgroup hooks-hud Heads up display
+ * @defgroup cg-hooks-hud Heads up display
  * @brief What the HUD is made of, and how it is arranged. Tail in cg_hud.c.
  * @{
  */
@@ -124,7 +124,7 @@ extern DrawHudElements Cg_DrawHudElements;
 
 /**
  * @}
- * @defgroup hooks-gameplay Gameplay
+ * @defgroup cg-hooks-gameplay Gameplay
  * @brief What modes this module offers in the create-server menu. Tail in cg_main.c.
  * @{
  */
@@ -160,6 +160,133 @@ extern ListGameplayModes Cg_ListGameplayModes;
 typedef bool (*ClipEntity)(const cl_entity_t *mover, const cl_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
 
 extern ClipEntity Cg_ClipEntity;
+
+/**
+ * @}
+ * @defgroup cg-hooks-messages Messages
+ * @brief What the server sends. Tails in cg_main.c.
+ * @{
+ */
+
+/**
+ * @brief Parses a server command, ahead of the built-in ones. A module numbers
+ * its commands from `SV_CMD_CGAME` in its `g_types.h`.
+ * @details Chainable. A feature reads the payload of the commands it owns and
+ * answers true; it defers to previous for the rest. The tail parses nothing, so
+ * an unclaimed command falls through to the built-in ones. A feature that
+ * answers true for a built-in command replaces its parsing entirely. A feature
+ * MUST read exactly the payload its game half wrote, or every message after it
+ * is misparsed.
+ * @return True if the command was parsed.
+ */
+typedef bool (*ParseServerCommand)(int32_t cmd);
+
+extern ParseServerCommand Cg_ParseServerCommand;
+
+/**
+ * @brief Applies a config string that changed, ahead of the built-in handling.
+ * A module's config strings start at `CS_GAME` in its `g_types.h`.
+ * @details Chainable. A feature applies the indices it owns and answers true;
+ * it defers to previous for the rest. The tail applies nothing.
+ * @return True if the config string was applied.
+ */
+typedef bool (*ParseConfigString)(int32_t index);
+
+extern ParseConfigString Cg_ParseConfigString;
+
+/**
+ * @}
+ * @defgroup cg-hooks-lifecycle Lifecycle
+ * @brief The client game's life across connections and frames. Tails in
+ * cg_main.c and cg_media.c.
+ *
+ * These are notifications: the module is told what happened and MUST NOT try
+ * to change it.
+ * @{
+ */
+
+/**
+ * @brief The client game state was cleared, on connecting to a server or
+ * leaving one. A feature drops what it knew about the last server here.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*StateDidClear)(void);
+
+extern StateDidClear Cg_StateDidClear;
+
+/**
+ * @brief The level's media are loaded. A feature loads its own here.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*MediaDidLoad)(void);
+
+extern MediaDidLoad Cg_MediaDidLoad;
+
+/**
+ * @brief The scene holds every entity, effect, flare, sprite and light the
+ * client game adds for this frame. A feature adds its own here.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*SceneDidPopulate)(const cl_frame_t *frame);
+
+extern SceneDidPopulate Cg_SceneDidPopulate;
+
+/**
+ * @brief The HUD, the scoreboard and the editor are drawn for this frame. A
+ * feature that draws an overlay of its own does so here, over the top.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*ScreenDidUpdate)(const cl_frame_t *frame);
+
+extern ScreenDidUpdate Cg_ScreenDidUpdate;
+
+/**
+ * @}
+ * @defgroup cg-hooks-entities Entities
+ * @brief The entities the server sends. Tails in cg_entity.c.
+ * @{
+ */
+
+/**
+ * @brief Whether an entity the server sent is shown at all: interpolated, given
+ * its sounds and events, trailed and added to the scene. The default shows
+ * everything.
+ * @details Chainable. A feature that hides other players, say, answers false
+ * for them and defers to previous for the rest.
+ * @return True to show the entity.
+ */
+typedef bool (*FilterEntity)(const cl_entity_t *ent);
+
+extern FilterEntity Cg_FilterEntity;
+
+/**
+ * @}
+ * @defgroup cg-hooks-presentation Presentation
+ * @brief What the client game says about the game. Tails in cg_discord.c and
+ * cg_score.c.
+ * @{
+ */
+
+/**
+ * @brief Describes the game being played, for Discord and the like: "Arena",
+ * "2-Team CTF".
+ * @details Chainable so that a feature can qualify what it was handed, but a
+ * feature that names its mode outright does not defer to previous.
+ * @return A static or `va` string.
+ */
+typedef const char *(*DescribeGameMode)(void);
+
+extern DescribeGameMode Cg_DescribeGameMode;
+
+/**
+ * @brief Draws the scoreboard when the player state asks for it.
+ * @details Not chained: exactly one arrangement is possible. A module with its
+ * own board installs over the top and does not call previous; the parsed scores
+ * are still assembled by common, so it only replaces the drawing.
+ */
+typedef void (*DrawScores)(const player_state_t *ps);
+
+extern DrawScores Cg_DrawScores;
 
 /**
  * @}

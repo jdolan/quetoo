@@ -151,7 +151,11 @@ static void Cg_DiscordReady(const DiscordUser *user) {
   cg_discord_state.initialized = true;
 }
 
-static const char *Cg_GetGameMode(void) {
+/**
+ * @brief The tail of the `Cg_DescribeGameMode` chain: the gameplay and the
+ * team count, or the flag mode.
+ */
+static const char *Cg_DescribeGameMode_Common(void) {
 
 #if defined(G_CTF)
   return va("%i-Team CTF", cg_state.num_teams);
@@ -178,6 +182,8 @@ static const char *Cg_GetGameMode(void) {
 #endif
 }
 
+DescribeGameMode Cg_DescribeGameMode = Cg_DescribeGameMode_Common;
+
 void Cg_UpdateDiscord(void) {
 
   if (cg_discord_state.failed) {
@@ -202,7 +208,7 @@ void Cg_UpdateDiscord(void) {
         char message[MAX_STRING_CHARS];
         q_strcolorstrip(cgi.ConfigString(CS_MESSAGE), message);
 
-        q_snprintf(details, sizeof(details), "%s - %s", Cg_GetGameMode(), message);
+        q_snprintf(details, sizeof(details), "%s - %s", Cg_DescribeGameMode(), message);
         presence.details = details;
 
         if (q_strcmp(cgi.server_name, "localhost")) {

@@ -61,6 +61,13 @@ typedef struct {
    * @brief The y of the next stat row.
    */
   int32_t stat_y;
+
+  /**
+   * @brief Whether the match time is drawn beneath the stat column once the
+   * elements have been arranged. A module that places the clock itself, or has
+   * no use for it, clears this.
+   */
+  bool draw_time;
 } cg_hud_layout_t;
 
 #if defined(__CG_LOCAL_H__)

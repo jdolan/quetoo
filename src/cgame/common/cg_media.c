@@ -377,8 +377,15 @@ void Cg_LoadMedia(void) {
   
   Cg_CreateFramebuffer();
 
+  Cg_MediaDidLoad();
+
   Cg_Debug("Complete\n");
 }
+
+static void Cg_MediaDidLoad_Common(void) {
+}
+
+MediaDidLoad Cg_MediaDidLoad = Cg_MediaDidLoad_Common;
 
 /**
  * @brief Frees all client game media and resets per-level subsystem state.
