@@ -500,6 +500,9 @@
     <ClCompile Include="..\src\game\common\bg_pmove_quetoo.c">
       <Filter>src\game\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove_quake.c">
+      <Filter>src\game\common</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\game\default\bg_item.c">
       <Filter>src\game\default</Filter>
     </ClCompile>

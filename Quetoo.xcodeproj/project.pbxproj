@@ -112,8 +112,10 @@
 		D2A5C100000000000000002C /* g_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000101 /* g_vote.c */; };
 		CE05B2893022486E0012862B /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D3A5C100000000000000000B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
+		D4A5C100000000000000000B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D2A5C1000000000000000011 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D3A5C100000000000000001B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
+		D4A5C100000000000000001B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		CE05B28A3022486E0012862B /* g_ai_goal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */; };
 		D2A5C1000000000000000012 /* g_ai_goal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */; };
 		CE05B28B3022486E0012862B /* g_ai_grid.c in Sources */ = {isa = PBXBuildFile; fileRef = CE4E05402FDAE2CE00B92C32 /* g_ai_grid.c */; };
@@ -256,8 +258,10 @@
 		D2A5C1000000000000000085 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000002 /* bg_item.c */; };
 		CE05B3F030224900C0DE0002 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D3A5C100000000000000002B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
+		D4A5C100000000000000002B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D2A5C1000000000000000086 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D3A5C100000000000000003B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
+		D4A5C100000000000000003B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		CE05B3F030224900C0DE0003 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE32529B1F760D3F00512523 /* BindTextView.c */; };
 		D2A5C1000000000000000062 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE32529B1F760D3F00512523 /* BindTextView.c */; };
 		CE05B3F030224900C0DE0004 /* cg_client.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D55E1C5C58C300CD0B13 /* cg_client.c */; };
@@ -1153,12 +1157,16 @@
 		CEFC7A941D9CB75D000FA6B2 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CEFC7B8B1D9D2E9C000FA6B2 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D3A5C100000000000000004B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
+		D4A5C100000000000000004B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		CEFEED000000000000000001 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D3A5C100000000000000005B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
+		D4A5C100000000000000005B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		CEFEED000000000000000002 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D3A5C100000000000000006B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
+		D4A5C100000000000000006B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		CEFEED000000000000000003 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D3A5C100000000000000007B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
+		D4A5C100000000000000007B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		CEFEED000000000000000004 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = 7966EA6596003F9303BC00FA /* bg_item.c */; };
 		CEFEED000000000000000005 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000004 /* bg_item.c */; };
 		CEFEEE0000000000000000D1 /* g_tech.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000C1 /* g_tech.c */; };
@@ -1911,6 +1919,7 @@
 		CE12D63E1C5C58C300CD0B13 /* filesystem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = filesystem.h; sourceTree = "<group>"; };
 		CE12D6411C5C58C300CD0B13 /* bg_pmove.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove.c; sourceTree = "<group>"; };
 		D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_quetoo.c; sourceTree = "<group>"; };
+		D4A5C10000000000000000A1 /* bg_pmove_quake.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_quake.c; sourceTree = "<group>"; };
 		CE12D6421C5C58C300CD0B13 /* bg_pmove.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_pmove.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000105 /* bg_vote.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_vote.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000001 /* bg_pmove_internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_pmove_internal.h; sourceTree = "<group>"; };
@@ -4137,6 +4146,7 @@
 				D1A5B0000000000000000001 /* bg_pmove_internal.h */,
 				CE12D6411C5C58C300CD0B13 /* bg_pmove.c */,
 				D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */,
+				D4A5C10000000000000000A1 /* bg_pmove_quake.c */,
 				CEFEEE0000000000000000C3 /* bg_tech.h */,
 				CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */,
 				CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */,
@@ -5799,6 +5809,7 @@
 				CE05B2F0302248070012F001 /* bg_item.c in Sources */,
 				CE05B2893022486E0012862B /* bg_pmove.c in Sources */,
 				D3A5C100000000000000000B /* bg_pmove_quetoo.c in Sources */,
+				D4A5C100000000000000000B /* bg_pmove_quake.c in Sources */,
 				CE05B28A3022486E0012862B /* g_ai_goal.c in Sources */,
 				CE05B28B3022486E0012862B /* g_ai_grid.c in Sources */,
 				CE05B28C3022486E0012862B /* g_ai_info.c in Sources */,
@@ -5840,6 +5851,7 @@
 				D2A5C1000000000000000010 /* bg_item.c in Sources */,
 				D2A5C1000000000000000011 /* bg_pmove.c in Sources */,
 				D3A5C100000000000000001B /* bg_pmove_quetoo.c in Sources */,
+				D4A5C100000000000000001B /* bg_pmove_quake.c in Sources */,
 				D2A5C1000000000000000012 /* g_ai_goal.c in Sources */,
 				D2A5C1000000000000000013 /* g_ai_grid.c in Sources */,
 				D2A5C1000000000000000014 /* g_ai_info.c in Sources */,
@@ -5915,6 +5927,7 @@
 				CE05B3F030224900C0DE0001 /* bg_item.c in Sources */,
 				CE05B3F030224900C0DE0002 /* bg_pmove.c in Sources */,
 				D3A5C100000000000000002B /* bg_pmove_quetoo.c in Sources */,
+				D4A5C100000000000000002B /* bg_pmove_quake.c in Sources */,
 				CE05B3F030224900C0DE0004 /* cg_client.c in Sources */,
 				CE05B3F030224900C0DE0005 /* cg_discord.c in Sources */,
 				CE05B3F030224900C0DE0006 /* cg_editor.c in Sources */,
@@ -5989,6 +6002,7 @@
 				D2A5C1000000000000000085 /* bg_item.c in Sources */,
 				D2A5C1000000000000000086 /* bg_pmove.c in Sources */,
 				D3A5C100000000000000003B /* bg_pmove_quetoo.c in Sources */,
+				D4A5C100000000000000003B /* bg_pmove_quake.c in Sources */,
 				D2A5C1000000000000000087 /* cg_client.c in Sources */,
 				D2A5C1000000000000000088 /* cg_discord.c in Sources */,
 				D2A5C1000000000000000089 /* cg_editor.c in Sources */,
@@ -6035,6 +6049,7 @@
 				08962C395D0FB0E620F78625 /* bg_item.c in Sources */,
 				CEFC7B8B1D9D2E9C000FA6B2 /* bg_pmove.c in Sources */,
 				D3A5C100000000000000004B /* bg_pmove_quetoo.c in Sources */,
+				D4A5C100000000000000004B /* bg_pmove_quake.c in Sources */,
 				CE27E9FC27BDA2AE003D56AC /* g_ai_goal.c in Sources */,
 				CE4E05422FDAE2CE00B92C32 /* g_ai_grid.c in Sources */,
 				CE27E9FF27BDA2AE003D56AC /* g_ai_info.c in Sources */,
@@ -6109,6 +6124,7 @@
 				CEFEED000000000000000004 /* bg_item.c in Sources */,
 				CEFEED000000000000000002 /* bg_pmove.c in Sources */,
 				D3A5C100000000000000006B /* bg_pmove_quetoo.c in Sources */,
+				D4A5C100000000000000006B /* bg_pmove_quake.c in Sources */,
 				CE12D7EF1C5C5E0200CD0B13 /* cg_client.c in Sources */,
 				CE27E6B927AC95D1003D56AC /* cg_discord.c in Sources */,
 				CFA000142F9100000000C014 /* cg_editor.c in Sources */,
@@ -6457,6 +6473,7 @@
 				CEC0FF0020260103000000D6 /* bg_item.c in Sources */,
 				CEFEED000000000000000001 /* bg_pmove.c in Sources */,
 				D3A5C100000000000000005B /* bg_pmove_quetoo.c in Sources */,
+				D4A5C100000000000000005B /* bg_pmove_quake.c in Sources */,
 				CEC0FF0020260103000000EF /* g_ai_goal.c in Sources */,
 				CEC0FF0020260103000000F0 /* g_ai_grid.c in Sources */,
 				CEC0FF0020260103000000F1 /* g_ai_info.c in Sources */,
@@ -6534,6 +6551,7 @@
 				CEFEED000000000000000005 /* bg_item.c in Sources */,
 				CEFEED000000000000000003 /* bg_pmove.c in Sources */,
 				D3A5C100000000000000007B /* bg_pmove_quetoo.c in Sources */,
+				D4A5C100000000000000007B /* bg_pmove_quake.c in Sources */,
 				CEC0FF0020260103000001E0 /* cg_client.c in Sources */,
 				CEC0FF0020260103000001E1 /* cg_discord.c in Sources */,
 				CEC0FF0020260103000001E2 /* cg_editor.c in Sources */,

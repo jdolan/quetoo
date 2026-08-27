@@ -15,6 +15,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\game\common\bg_pmove.c" />
     <ClCompile Include="..\src\game\common\bg_pmove_quetoo.c" />
+    <ClCompile Include="..\src\game\common\bg_pmove_quake.c" />
     <ClInclude Include="..\src\game\common\bg_pmove.h" />
     <ClInclude Include="..\src\game\common\bg_vote.h" />
     <ClInclude Include="..\src\game\common\g_vote.h" />

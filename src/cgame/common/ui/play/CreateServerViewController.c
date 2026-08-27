@@ -99,12 +99,14 @@ static void loadView(ViewController *self) {
 
   CreateServerViewController *this = (CreateServerViewController *) self;
 
-  View *gameplayInput, *hookInput, *techsInput;
+  View *gameplayInput, *movementInput, *hookInput, *techsInput;
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("bots", &this->bots),
     MakeOutlet("gameplay", &this->gameplay),
     MakeOutlet("gameplayInput", &gameplayInput),
+    MakeOutlet("movement", &this->movement),
+    MakeOutlet("movementInput", &movementInput),
     MakeOutlet("hookInput", &hookInput),
     MakeOutlet("techsInput", &techsInput),
     MakeOutlet("mapList", &this->mapList),
@@ -140,6 +142,19 @@ static void loadView(ViewController *self) {
   } else {
     for (size_t i = 0; i < num_modes; i++) {
       $(this->gameplay, addOption, modes[i].label, (ident) modes[i].name);
+    }
+  }
+
+  // "Default" defers to the level, as it does for gameplay
+  $(this->movement, addOption, "Default", "default");
+
+  const size_t num_movements = Pm_MovementCount();
+  if (num_movements <= 1) {
+    $(movementInput, removeFromSuperview);
+  } else {
+    for (size_t i = 0; i < num_movements; i++) {
+      const pm_movement_info_t *movement = Pm_Movement((pm_movement_t) i);
+      $(this->movement, addOption, movement->label, (ident) movement->name);
     }
   }
 

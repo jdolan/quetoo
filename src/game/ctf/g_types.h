@@ -41,7 +41,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1047
+#define PROTOCOL_MINOR 1048
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -811,6 +811,11 @@ typedef struct {
    * @brief Active item set.
    */
   g_items_t items;
+
+  /**
+   * @brief The player movement this level runs.
+   */
+  pm_movement_t movement;
 
   /**
    * @brief True if team play is active.

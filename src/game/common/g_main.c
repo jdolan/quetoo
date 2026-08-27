@@ -135,6 +135,13 @@ cvar_t *g_cheats;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
+cvar_t *g_movement;
+
+/**
+ * @brief What this level asked for, remembered so that setting `g_movement`
+ * back to "default" returns to it rather than to Quetoo's.
+ */
+static pm_movement_t g_movement_level;
 
 // player movement parameters (hydrated into pm_params_t by G_MovementParams)
 cvar_t *g_air_acceleration;
@@ -568,9 +575,9 @@ static char *G_FormatTime(uint32_t time) {
  * sanitization (clamping, divide-by-zero guards).
  */
 pm_params_t G_MovementParams(void) {
-  return (pm_params_t) {
+
+  pm_params_t params = (pm_params_t) {
     .gravity = g_level.gravity,
-    .kernel = PM_KERNEL_QUETOO,
     .gravity_water = g_water_gravity->value,
 
     .accel_ground = g_ground_acceleration->value,
@@ -600,7 +607,63 @@ pm_params_t G_MovementParams(void) {
 
     .height = g_stand_height->value,
     .height_ducked = g_duck_height->value,
+    .movement = g_level.movement,
   };
+
+  // every movement but Quetoo's is defined by its own parameters rather than by
+  // this server's cvars: one that drifted with a cvar would not be a movement
+  // anyone could set a comparable record under
+  const pm_movement_info_t *movement = Pm_Movement(g_level.movement);
+  if (movement && movement->params) {
+    params = *movement->params;
+    params.movement = g_level.movement;
+  }
+
+  return params;
+}
+
+/**
+ * @brief Parses `g_movement` over what the level asked for, and coerces the cvar
+ * itself to whichever canonical name results.
+ * @details A name nothing answers to is warned about and falls back rather than
+ * silently running something else, which is the whole reason this coerces: an
+ * unknown movement that quietly behaved like Quetoo's would be indistinguishable
+ * from a working one.
+ */
+static pm_movement_t G_CoerceMovement(void) {
+
+  pm_movement_t movement = g_movement_level;
+
+  if (q_strcmp(g_movement->string, "default")) { // "default" defers to the level
+    if (!Pm_MovementByName(g_movement->string, &movement)) {
+      G_Warn("Unknown movement \"%s\", using %s\n",
+              g_movement->string, Pm_Movement(movement)->name);
+    }
+
+    gi.SetCvarString(g_movement->name, Pm_Movement(movement)->name);
+  }
+
+  gi.ForceSetCvarString("g_movement_mode", Pm_Movement(movement)->name);
+
+  return movement;
+}
+
+/**
+ * @brief Resolves the movement for a level that asks for `name`, which may be
+ * empty. `g_movement` still wins if the admin named one.
+ */
+pm_movement_t G_ResolveMovement(const char *name) {
+
+  g_movement_level = PM_MOVEMENT_QUETOO;
+
+  if (name && *name) {
+    if (!Pm_MovementByName(name, &g_movement_level)) {
+      G_Warn("Unknown movement \"%s\" in this level, using %s\n",
+              name, Pm_Movement(g_movement_level)->name);
+    }
+  }
+
+  return G_CoerceMovement();
 }
 
 /**
@@ -674,6 +737,25 @@ static void G_CheckRules(void) {
     restart = true;
 
     gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GameplayById(g_level.gameplay)->label);
+  }
+
+  if (g_movement->modified) { // change how players move, with no restart
+
+    const pm_movement_t movement = G_CoerceMovement();
+
+    // as above, the coercion re-marks modified whenever it changed the string
+    g_movement->modified = false;
+
+    if (movement != g_level.movement) {
+      g_level.movement = movement;
+
+      // the parameters are hydrated per client per frame and travel inside the
+      // player state, so the change reaches everyone without a restart; the one
+      // cost is a frame of misprediction, and a taller box has to fit where the
+      // player is standing
+      gi.BroadcastPrint(PRINT_HIGH, "Movement has changed to %s\n",
+                        Pm_Movement(movement)->label);
+    }
   }
 
   if (g_friendly_fire->modified) {
@@ -1043,6 +1125,9 @@ void G_Init(void) {
   gi.AddCvar("g_gameplay_mode", "", CVAR_SERVER_INFO | CVAR_NO_SET,
     "The gameplay mode this level actually resolved to, published for the server browser. "
     "Read g_gameplay for what was requested.");
+  gi.AddCvar("g_movement_mode", "", CVAR_SERVER_INFO | CVAR_NO_SET,
+    "The player movement this level actually resolved to, published for the server browser. "
+    "Read g_movement for what was requested.");
 
   // player movement parameters (hydrated into pm_params_t by G_MovementParams)
   g_air_acceleration = gi.AddCvar("g_air_acceleration", "2.0", 0, "Acceleration applied while airborne. Default 2.0; set 0 for classic-Quake2 movement.");
@@ -1052,6 +1137,7 @@ void G_Init(void) {
   g_duck_stand_speed = gi.AddCvar("g_duck_stand_speed", "200.0", 0, "Rate the view rises/falls when standing/ducking. Default 200.0.");
   g_duck_height = gi.AddCvar("g_duck_height", "6.0", 0, "Top of the player bounding box while ducked. Default 6.0.");
   g_gravity = gi.AddCvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
+  g_movement = gi.AddCvar("g_movement", "default", CVAR_SERVER_INFO, "The player movement to run: \"default\" defers to the level, otherwise a movement name such as \"quetoo\" or \"quake\".");
   g_ground_acceleration = gi.AddCvar("g_ground_acceleration", "10.0", 0, "Ground acceleration. Default 10.0.");
   g_ground_acceleration_slick = gi.AddCvar("g_ground_acceleration_slick", "4.375", 0, "Ground acceleration on slick surfaces. Default 4.375.");
   g_ground_friction = gi.AddCvar("g_ground_friction", "6.0", 0, "Ground friction. Default 6.0.");

@@ -445,7 +445,7 @@ what this started as:
    another record set under the same movement, and shared code that everyone
    edits can never offer that. A kernel in its own file is finished once it
    matches what it is imitating. Changing what one does is a new id appended to
-   `pm_kernel_t`, never an edit; the exception is `bg_pmove.c` itself, where a
+   `pm_movement_t`, never an edit; the exception is `bg_pmove.c` itself, where a
    fault is a fault in every ruleset.
 
 The cost is duplication between kernels, accepted deliberately: two kernels that
