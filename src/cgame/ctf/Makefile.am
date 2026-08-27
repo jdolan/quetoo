@@ -21,6 +21,7 @@ AM_CPPFLAGS = \
 	-I$(CGAME_COMMON_DIR)/ui/play \
 	-I$(CGAME_COMMON_DIR)/ui/settings \
 	-I$(CGAME_COMMON_DIR)/ui/teams \
+	-I$(CGAME_COMMON_DIR)/ui/vote \
 	-I$(GAME_DIR) \
 	-I$(GAME_COMMON_DIR)
 
@@ -71,6 +72,7 @@ cgame_la_SOURCES = \
 	cg_temp_entity.c \
 	cg_ui.c \
 	cg_view.c \
+	cg_vote.c \
 	cg_weapon.c \
 	ui/BindTextView.c \
 	ui/CvarCheckbox.c \
@@ -105,7 +107,8 @@ cgame_la_SOURCES = \
 	ui/settings/SettingsViewController.c \
 	ui/teams/TeamPlayerView.c \
 	ui/teams/TeamView.c \
-	ui/teams/TeamsViewController.c
+	ui/teams/TeamsViewController.c \
+	ui/vote/VoteViewController.c
 
 cgame_la_LDFLAGS = \
 	-avoid-version \

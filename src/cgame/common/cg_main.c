@@ -195,6 +195,8 @@ static void Cg_Init(void) {
   Cg_Ctf_Init();
 #endif
 
+  Cg_Vote_Init();
+
   Cg_Module_Init();
 
   cgi.Print("Client game module initialized\n");

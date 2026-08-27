@@ -369,6 +369,7 @@ and make the block additive instead.
 | `FilterEntity` | `cg_entity.c` | — |
 | `DescribeGameMode` | `cg_discord.c` | — |
 | `DrawScores` | `cg_score.c` | — |
+| `ListVoteTypes` | `cg_vote.c` | — |
 
 `cg_hud_layout_t.draw_time` lets a module that arranges the whole HUD keep the
 clock or place it itself, where it used to have to push `stat_y` off screen.

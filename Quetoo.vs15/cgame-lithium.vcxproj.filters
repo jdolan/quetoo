@@ -368,6 +368,9 @@
     <ClCompile Include="..\src\cgame\common\cg_view.c">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_vote.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\cgame\common\cg_weapon.c">
       <Filter>src\common</Filter>
     </ClCompile>
@@ -472,6 +475,9 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\teams\TeamsViewController.c">
       <Filter>src\common\ui\teams</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\vote\VoteViewController.c">
+      <Filter>src\common\ui\vote</Filter>
     </ClCompile>
     <ClCompile Include="..\deps\discord-rpc\src\connection_win.cpp">
       <Filter>deps\discord-rpc\src</Filter>
