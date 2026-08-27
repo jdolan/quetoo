@@ -324,11 +324,6 @@ typedef struct {
   float speed_ground, speed_air, speed_water, speed_ladder, speed_spectator,
         speed_stop, speed_jump, speed_ducked, speed_duck_stand, speed_water_jump;
 
-  // the whole player box, standing, ducked and dead, rather than only its top:
-  // a movement whose box is not its own is not really its own. `PM_BOUNDS`,
-  // `PM_CROUCHED_BOUNDS` and `PM_DEAD_BOUNDS` are what these default to. The
-  // giblet box stays in `bg_pmove.c`: a giblet is a form Quetoo's game gives a
-  // player rather than a box any movement stands in
   box3_t bounds, bounds_ducked, bounds_dead;
 } pm_params_t;
 
