@@ -899,6 +899,8 @@ void G_Init(void) {
   G_Ctf_Init();
 #endif
 
+  G_Vote_Init();
+
   G_Module_Init();
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {

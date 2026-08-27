@@ -51,6 +51,9 @@
     <ClInclude Include="..\src\game\common\bg_pmove.h">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\game\common\bg_vote.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\game\common\bg_pmove_internal.h">
       <Filter>src\common</Filter>
     </ClInclude>
@@ -115,6 +118,9 @@
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\common\g_hook.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_vote.h">
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\common\bg_hook.h">
@@ -201,6 +207,9 @@
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\g_rules.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_vote.c">
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\g_physics.c">
