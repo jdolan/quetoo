@@ -24,15 +24,14 @@
 
 /**
  * @brief Race draws the grappling hook, a feature of the common sources that
- * `Cg_Init` installs from the define in this module's Makefile.am. The run
- * timer, the HUD arrangement and the training tools it owns install their
- * hooks from here.
+ * `Cg_Init` installs from the define in this module's Makefile.am. It draws
+ * nothing of its own yet; anything it invents installs its hooks from here.
  */
 void Cg_Module_Init(void) {
 }
 
 /**
- * @brief Nothing of its own to release yet; the hook feature owns what it loads.
+ * @brief Nothing of its own to release; the hook feature owns what it loads.
  */
 void Cg_Module_Shutdown(void) {
 }

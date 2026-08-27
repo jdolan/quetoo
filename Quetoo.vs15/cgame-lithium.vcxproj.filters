@@ -150,6 +150,9 @@
     <ClInclude Include="..\src\cgame\common\cg_view.h">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_vote.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\cg_weapon.h">
       <Filter>src\common</Filter>
     </ClInclude>
