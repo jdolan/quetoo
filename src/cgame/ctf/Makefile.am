@@ -46,6 +46,7 @@ cgame_la_SOURCES = \
 	bg_pmove.c \
 	bg_pmove_quetoo.c \
 	bg_pmove_quake.c \
+	bg_pmove_quake2.c \
 	cg_client.c \
 	cg_ctf.c \
 	cg_discord.c \

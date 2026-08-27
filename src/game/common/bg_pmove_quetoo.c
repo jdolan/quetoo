@@ -20,7 +20,7 @@
  */
 
 #include "bg_pmove.h"
-#include "bg_pmove_internal.h"
+#include "bg_pmove_local.h"
 
 /**
  * @file
@@ -28,7 +28,7 @@
  *
  * Everything here was `bg_pmove.c` before the kernel became a selection rather
  * than the only option; the move it performs is unchanged. What stayed behind
- * is the plumbing every kernel shares, which `bg_pmove_internal.h` declares.
+ * is the plumbing every kernel shares, which `bg_pmove_local.h` declares.
  */
 
 /**

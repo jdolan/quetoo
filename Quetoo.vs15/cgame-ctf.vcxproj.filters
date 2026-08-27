@@ -285,7 +285,7 @@
     <ClInclude Include="..\src\game\common\bg_pmove.h">
       <Filter>src\game\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\common\bg_pmove_internal.h">
+    <ClInclude Include="..\src\game\common\bg_pmove_local.h">
       <Filter>src\game\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\ctf\bg_item.h">
@@ -513,6 +513,9 @@
       <Filter>src\game\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\bg_pmove_quake.c">
+      <Filter>src\game\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_pmove_quake2.c">
       <Filter>src\game\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\ctf\bg_item.c">

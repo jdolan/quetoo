@@ -27,6 +27,7 @@ game_la_SOURCES = \
 	bg_pmove.c \
 	bg_pmove_quetoo.c \
 	bg_pmove_quake.c \
+	bg_pmove_quake2.c \
 	g_ai_goal.c \
 	g_ai_grid.c \
 	g_ai_info.c \

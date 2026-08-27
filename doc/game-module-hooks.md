@@ -428,7 +428,7 @@ carries a `kernel`, `Pm_Move` dispatches on it, and each kernel is a whole
 water, ladder and duck checks, the slide, the step. `bg_pmove.c` keeps only what
 every kernel shares - the trace, the touch list, the prologue, the spectator and
 frozen cases, and the friction, acceleration, gravity and view-step primitives -
-and `bg_pmove_internal.h` is the contract between the two.
+and `bg_pmove_local.h` is the contract between the two.
 
 Three things drove that shape rather than a `Move` function pointer, which is
 what this started as:
@@ -439,7 +439,7 @@ what this started as:
    cannot disagree about which physics is running. A function pointer has to
    be installed on both sides separately, by two modules that might not.
 2. **Movement forks wholesale.** Porting Quake II's kernel reused five of the
-   twenty-odd steps `bg_pmove_internal.h` offered and rewrote the rest. A seam
+   twenty-odd steps `bg_pmove_local.h` offered and rewrote the rest. A seam
    made of steps earns very little; the honest seam is the whole kernel.
 3. **A ruleset must be able to stop changing.** A record is comparable only to
    another record set under the same movement, and shared code that everyone

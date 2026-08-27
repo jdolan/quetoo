@@ -22,13 +22,14 @@
     <ClInclude Include="..\src\cgame\cgame.h" />
     <ClInclude Include="..\src\game\default\bg_item.h" />
     <ClInclude Include="..\src\game\common\bg_pmove.h" />
-    <ClInclude Include="..\src\game\common\bg_pmove_internal.h" />
+    <ClInclude Include="..\src\game\common\bg_pmove_local.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\game\default\bg_item.c" />
     <ClCompile Include="..\src\game\common\bg_pmove.c" />
     <ClCompile Include="..\src\game\common\bg_pmove_quetoo.c" />
     <ClCompile Include="..\src\game\common\bg_pmove_quake.c" />
+    <ClCompile Include="..\src\game\common\bg_pmove_quake2.c" />
     <ClCompile Include="..\src\cgame\default\cg_module.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
