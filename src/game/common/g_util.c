@@ -75,30 +75,14 @@ box3_t G_PlayerBounds(bool ducked) {
 }
 
 /**
- * @brief Initializes a player spawn point entity, adjusting origin and angle for the spawn preview model.
+ * @brief Initializes a player spawn point entity.
+ * @details This used to nudge the spawn preview up and forward, dating from when
+ * Quake II BSPs were supported and a spawn point meant something else. Both
+ * nudges were scaled by a global box scale that was always 1, so both were
+ * `ceilf(0)` and neither moved anything.
  */
 void G_InitPlayerSpawn(g_entity_t *ent) {
-  // up
-  const float up = ceilf(fabs(PM_SCALE * PM_BOUNDS.mins.z - PM_BOUNDS.mins.z));
-  ent->s.origin.z += up;
 
-  // forward, find the old x/y size
-  box3_t bounds = PM_BOUNDS;
-  bounds.mins.z = bounds.maxs.z = 0.0;
-
-  vec3_t delta = Box3_Size(bounds);
-  const float len0 = Vec3_Length(delta);
-
-  // and the new x/y size
-  delta = Vec3_Scale(delta, PM_SCALE);
-  const float len1 = Vec3_Length(delta);
-
-  const float fwd = ceilf(len1 - len0);
-
-  vec3_t forward;
-  Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
-  ent->s.origin = Vec3_Fmaf(ent->s.origin, fwd, forward);
-  
   if (!q_strcmp(ent->classname, "info_player_intermission")) {
     G_Ai_DropItemLikeNode(ent);
   }

@@ -120,11 +120,6 @@
 #define PM_SNAP_DISTANCE PM_GROUND_DIST
 
 /**
- * @brief Player bounding box scaling.
- */
-#define PM_SCALE 1.f
-
-/**
  * @brief The default player bounding boxes. The heights are the defaults for
  * `pm_params_t.height` and `.height_ducked`; `Pm_Bounds` gives the live box.
  */
