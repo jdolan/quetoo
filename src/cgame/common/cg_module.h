@@ -22,6 +22,7 @@
 #pragma once
 
 #include "cg_types.h"
+#include "bg_vote.h"
 
 #if defined(__CG_LOCAL_H__)
 
@@ -340,6 +341,18 @@ extern DescribeGameMode Cg_DescribeGameMode;
 typedef void (*DrawScores)(const player_state_t *ps);
 
 extern DrawScores Cg_DrawScores;
+
+/**
+ * @brief The kinds of vote the Vote screen offers. The default is the common
+ * list in `bg_vote.h`.
+ * @details Not chained: a module with votes of its own returns a list holding
+ * the common ones and its own, so that the screen shows everything the game
+ * accepts, and the game's `PrepareVote` chain must accept every name listed.
+ * The list MUST be static storage; the screen keeps pointers into it.
+ */
+typedef const vote_type_t *(*ListVoteTypes)(size_t *count);
+
+extern ListVoteTypes Cg_ListVoteTypes;
 
 /**
  * @}

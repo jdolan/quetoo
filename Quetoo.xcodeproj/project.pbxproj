@@ -202,6 +202,7 @@
 		CE05B3F030224900C0DE0015 /* cg_muzzle_flash.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */; };
 		CE05B3F030224900C0DE0016 /* cg_predict.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5771C5C58C300CD0B13 /* cg_predict.c */; };
 		CE05B3F030224900C0DE0017 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5791C5C58C300CD0B13 /* cg_score.c */; };
+		D1A5B0000000000000000202 /* cg_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000201 /* cg_vote.c */; };
 		CE05B3F030224900C0DE0018 /* cg_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDD1B525A0C2710055860E /* cg_sound.c */; };
 		CE05B3F030224900C0DE0019 /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
 		CE05B3FC30224E3E0012870B /* cg_module.c in Sources */ = {isa = PBXBuildFile; fileRef = CE05B3FC30224E3E0012870A /* cg_module.c */; };
@@ -240,6 +241,7 @@
 		CE05B3F030224900C0DE003B /* StatsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */; };
 		CE05B3F030224900C0DE003C /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		CE05B3F030224900C0DE003D /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
+		D1A5B0000000000000000206 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
 		CE05B3F030224900C0DE003E /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
 		CE05B3F030224900C0DE003F /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
 		CE05B3F030224900C0DE0040 /* cg_client.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D55F1C5C58C300CD0B13 /* cg_client.h */; };
@@ -312,6 +314,7 @@
 		CE12D7F91C5C5E0200CD0B13 /* cg_muzzle_flash.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */; };
 		CE12D7FB1C5C5E0200CD0B13 /* cg_predict.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5771C5C58C300CD0B13 /* cg_predict.c */; };
 		CE12D7FC1C5C5E0200CD0B13 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5791C5C58C300CD0B13 /* cg_score.c */; };
+		D1A5B0000000000000000203 /* cg_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000201 /* cg_vote.c */; };
 		CE12D7FD1C5C5E0200CD0B13 /* cg_temp_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */; };
 		CE12D7FE1C5C5E0200CD0B13 /* cg_view.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57E1C5C58C300CD0B13 /* cg_view.c */; };
 		CE12D8C41C5CF86600CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
@@ -682,10 +685,13 @@
 		CEA9B3A76C6E4B3A9F010001 /* LeaderboardViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B76C6E4B3A9F010001 /* LeaderboardViewController.json */; };
 		CEA9B3A86C6E4B3A9F010001 /* StatsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */; };
 		CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
+		D1A5B0000000000000000207 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
 		CEAA78ED2775388700EAC853 /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
 		CEAA797827753A5500EAC853 /* TeamView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA79542775396800EAC853 /* TeamView.json */; };
 		CEAA7A0C27753C7300EAC853 /* TeamsViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */; };
+		D1A5B0000000000000000212 /* VoteViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000211 /* VoteViewController.css */; };
 		CEAA7A2F27753C7500EAC853 /* TeamsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */; };
+		D1A5B0000000000000000210 /* VoteViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000209 /* VoteViewController.json */; };
 		CEAB00032EC1A00000000003 /* sv_http.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAB00012EC1A00000000001 /* sv_http.c */; };
 		CEAB00042EC1A00000000004 /* sv_http.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAB00022EC1A00000000002 /* sv_http.h */; };
 		CEAB00052EC1A00000000005 /* sv_map_list.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAB00072EC1A00000000007 /* sv_map_list.c */; };
@@ -732,6 +738,7 @@
 		CEC0FD002026010500000002 /* cg_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D56C1C5C58C300CD0B13 /* cg_hud.c */; };
 		CEC0FD002026010500000004 /* cg_hud.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D56D1C5C58C300CD0B13 /* cg_hud.h */; };
 		CEC0FD002026010500000006 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5791C5C58C300CD0B13 /* cg_score.c */; };
+		D1A5B0000000000000000204 /* cg_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000201 /* cg_vote.c */; };
 		CEC0FD002026010500000008 /* cg_score.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57A1C5C58C300CD0B13 /* cg_score.h */; };
 		CEC0FD00202601050000000A /* cg_hud_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000009 /* cg_hud_draw.c */; };
 		CEC0FD00202601050000000C /* cg_hud_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC0FD002026010500000009 /* cg_hud_draw.c */; };
@@ -834,6 +841,7 @@
 		CEC0FF00202601030000019C /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		CEC0FF00202601030000019D /* TeamView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78EB2775388700EAC853 /* TeamView.c */; };
 		CEC0FF00202601030000019E /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
+		D1A5B0000000000000000208 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
 		CEC0FF00202601030000019F /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
 		CEC0FF0020260103000001D5 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		CEC0FF0020260103000001D6 /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
@@ -1493,7 +1501,9 @@
 			files = (
 				CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */,
 				CEAA7A0C27753C7300EAC853 /* TeamsViewController.css in CopyFiles */,
+				D1A5B0000000000000000212 /* VoteViewController.css in CopyFiles */,
 				CEAA7A2F27753C7500EAC853 /* TeamsViewController.json in CopyFiles */,
+				D1A5B0000000000000000210 /* VoteViewController.json in CopyFiles */,
 				CEAA797827753A5500EAC853 /* TeamView.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1583,6 +1593,7 @@
 		CE12D5721C5C58C300CD0B13 /* cg_media.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_media.h; sourceTree = "<group>"; };
 		CE12D5721C5C58C300CD0D01 /* cg_ctf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_ctf.c; sourceTree = "<group>"; };
 		CE12D5721C5C58C300CD0D02 /* cg_ctf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_ctf.h; sourceTree = "<group>"; };
+		D1A5B0000000000000000213 /* cg_vote.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_vote.h; sourceTree = "<group>"; };
 		CE12D5721C5C58C300CD0D03 /* cg_tech.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_tech.c; sourceTree = "<group>"; };
 		CE12D5721C5C58C300CD0D04 /* cg_tech.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_tech.h; sourceTree = "<group>"; };
 		CE12D5721C5C58C300CD0C21 /* cg_module.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_module.h; sourceTree = "<group>"; };
@@ -1591,6 +1602,7 @@
 		CE12D5771C5C58C300CD0B13 /* cg_predict.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = cg_predict.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D5781C5C58C300CD0B13 /* cg_predict.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_predict.h; sourceTree = "<group>"; };
 		CE12D5791C5C58C300CD0B13 /* cg_score.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_score.c; sourceTree = "<group>"; };
+		D1A5B0000000000000000201 /* cg_vote.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_vote.c; sourceTree = "<group>"; };
 		CE12D57A1C5C58C300CD0B13 /* cg_score.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_score.h; sourceTree = "<group>"; };
 		CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_temp_entity.c; sourceTree = "<group>"; };
 		CE12D57C1C5C58C300CD0B13 /* cg_temp_entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_temp_entity.h; sourceTree = "<group>"; };
@@ -2171,11 +2183,14 @@
 		CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = StatsViewController.json; sourceTree = "<group>"; };
 		CEAA77F02775333300EAC853 /* TeamsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamsViewController.h; sourceTree = "<group>"; };
 		CEAA78182775337300EAC853 /* TeamsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TeamsViewController.c; sourceTree = "<group>"; };
+		D1A5B0000000000000000205 /* VoteViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VoteViewController.c; sourceTree = "<group>"; };
 		CEAA78EA2775388700EAC853 /* TeamView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamView.h; sourceTree = "<group>"; };
 		CEAA78EB2775388700EAC853 /* TeamView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamView.c; sourceTree = "<group>"; };
 		CEAA79542775396800EAC853 /* TeamView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TeamView.json; sourceTree = "<group>"; };
 		CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TeamsViewController.json; sourceTree = "<group>"; };
+		D1A5B0000000000000000209 /* VoteViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VoteViewController.json; sourceTree = "<group>"; };
 		CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = TeamsViewController.css; sourceTree = "<group>"; };
+		D1A5B0000000000000000211 /* VoteViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = VoteViewController.css; sourceTree = "<group>"; };
 		CEAAA50C25C6E75000EE81B3 /* Quetoo.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Quetoo.app; sourceTree = "<group>"; };
 		CEAB00012EC1A00000000001 /* sv_http.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_http.c; sourceTree = "<group>"; };
 		CEAB00022EC1A00000000002 /* sv_http.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_http.h; sourceTree = "<group>"; };
@@ -3777,9 +3792,12 @@
 				CEFF1378277FB721001E1500 /* TeamPlayerView.h */,
 				CEFF1377277FB721001E1500 /* TeamPlayerView.json */,
 				CEAA78182775337300EAC853 /* TeamsViewController.c */,
+				D1A5B0000000000000000205 /* VoteViewController.c */,
 				CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */,
+				D1A5B0000000000000000211 /* VoteViewController.css */,
 				CEAA77F02775333300EAC853 /* TeamsViewController.h */,
 				CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */,
+				D1A5B0000000000000000209 /* VoteViewController.json */,
 				CEAA78EB2775388700EAC853 /* TeamView.c */,
 				CEAA78EA2775388700EAC853 /* TeamView.h */,
 				CEAA79542775396800EAC853 /* TeamView.json */,
@@ -3815,6 +3833,7 @@
 				CE12D56C1C5C58C300CD0B13 /* cg_hud.c */,
 				CE12D56D1C5C58C300CD0B13 /* cg_hud.h */,
 				CE12D5791C5C58C300CD0B13 /* cg_score.c */,
+				D1A5B0000000000000000201 /* cg_vote.c */,
 				CE12D57A1C5C58C300CD0B13 /* cg_score.h */,
 				CEC0FD002026010500000009 /* cg_hud_draw.c */,
 				CEB8D6241E00B72100043814 /* cg_input.h */,
@@ -3829,6 +3848,7 @@
 				CE12D5721C5C58C300CD0B13 /* cg_media.h */,
 				CE12D5721C5C58C300CD0D01 /* cg_ctf.c */,
 				CE12D5721C5C58C300CD0D02 /* cg_ctf.h */,
+				D1A5B0000000000000000213 /* cg_vote.h */,
 				CE12D5721C5C58C300CD0D03 /* cg_tech.c */,
 				CE12D5721C5C58C300CD0D04 /* cg_tech.h */,
 				CE12D5721C5C58C300CD0C21 /* cg_module.h */,
@@ -5447,6 +5467,7 @@
 				CE05B3F030224900C0DE003B /* StatsViewController.c in Sources */,
 				CE05B3F030224900C0DE003C /* TeamPlayerView.c in Sources */,
 				CE05B3F030224900C0DE003D /* TeamsViewController.c in Sources */,
+				D1A5B0000000000000000206 /* VoteViewController.c in Sources */,
 				CE05B3F030224900C0DE003E /* TeamView.c in Sources */,
 				CE05B3F030224900C0DE003F /* UpdateViewController.c in Sources */,
 				CE05B3F030224900C0DE0001 /* bg_item.c in Sources */,
@@ -5472,6 +5493,7 @@
 				CE05B3F030224900C0DE0015 /* cg_muzzle_flash.c in Sources */,
 				CE05B3F030224900C0DE0016 /* cg_predict.c in Sources */,
 				CE05B3F030224900C0DE0017 /* cg_score.c in Sources */,
+				D1A5B0000000000000000202 /* cg_vote.c in Sources */,
 				CE05B3F030224900C0DE0018 /* cg_sound.c in Sources */,
 				CE05B3F030224900C0DE0019 /* cg_sprite.c in Sources */,
 				CE05B3FC30224E3E0012870B /* cg_module.c in Sources */,
@@ -5564,6 +5586,7 @@
 				CEA9B3A36C6E4B3A9F010001 /* StatsViewController.c in Sources */,
 				CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */,
 				CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */,
+				D1A5B0000000000000000207 /* VoteViewController.c in Sources */,
 				CEAA78ED2775388700EAC853 /* TeamView.c in Sources */,
 				CEAD8FBC2F93A4990087A850 /* UpdateViewController.c in Sources */,
 				CEFEED000000000000000004 /* bg_item.c in Sources */,
@@ -5588,6 +5611,7 @@
 				CE12D7F91C5C5E0200CD0B13 /* cg_muzzle_flash.c in Sources */,
 				CE12D7FB1C5C5E0200CD0B13 /* cg_predict.c in Sources */,
 				CE12D7FC1C5C5E0200CD0B13 /* cg_score.c in Sources */,
+				D1A5B0000000000000000203 /* cg_vote.c in Sources */,
 				CEBDD1B725A0C2710055860E /* cg_sound.c in Sources */,
 				CEAC32B9242124BB007E1253 /* cg_sprite.c in Sources */,
 				CE12D55D1C5C58C300CD0C12 /* cg_module.c in Sources */,
@@ -5985,6 +6009,7 @@
 				CEC0FF00202601030000019B /* StatsViewController.c in Sources */,
 				CEC0FF00202601030000019C /* TeamPlayerView.c in Sources */,
 				CEC0FF00202601030000019E /* TeamsViewController.c in Sources */,
+				D1A5B0000000000000000208 /* VoteViewController.c in Sources */,
 				CEC0FF00202601030000019D /* TeamView.c in Sources */,
 				CEC0FF00202601030000019F /* UpdateViewController.c in Sources */,
 				CEFEED000000000000000005 /* bg_item.c in Sources */,
@@ -6011,6 +6036,7 @@
 				CEC0FF0020260103000001F0 /* cg_muzzle_flash.c in Sources */,
 				CEC0FF0020260103000001F1 /* cg_predict.c in Sources */,
 				CEC0FD002026010500000006 /* cg_score.c in Sources */,
+				D1A5B0000000000000000204 /* cg_vote.c in Sources */,
 				CEC0FF0020260103000001F3 /* cg_sound.c in Sources */,
 				CEC0FF0020260103000001F4 /* cg_sprite.c in Sources */,
 				CEC0FF0020260103000000A2 /* cg_module.c in Sources */,

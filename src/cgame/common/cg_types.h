@@ -205,6 +205,18 @@ typedef struct {
    * @brief The view angles to snap to.
    */
   vec3_t snap_view_angles;
+
+  /**
+   * @brief The vote in progress, from `CS_VOTE`.
+   */
+  struct {
+    bool active;
+    char type[MAX_QPATH];
+    char arg[MAX_QPATH];
+    char initiator[MAX_QPATH];
+    int32_t yes, no, eligible;
+    uint32_t deadline;
+  } vote;
 } cg_state_t;
 
 extern cg_state_t cg_state;

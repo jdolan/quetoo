@@ -1,0 +1,9 @@
+Panel#vote > .contentView .container {
+  axis: vertical;
+  spacing: 16;
+}
+
+Panel#vote .ballots {
+  axis: horizontal;
+  spacing: 16;
+}

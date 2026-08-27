@@ -67,6 +67,7 @@
     <ClInclude Include="..\src\cgame\common\cg_ui.h" />
     <ClCompile Include="..\src\cgame\common\cg_view.c" />
     <ClInclude Include="..\src\cgame\common\cg_view.h" />
+    <ClCompile Include="..\src\cgame\common\cg_vote.c" />
     <ClCompile Include="..\src\cgame\common\cg_weapon.c" />
     <ClInclude Include="..\src\cgame\common\cg_weapon.h" />
   </ItemGroup>
@@ -139,6 +140,8 @@
     <ClInclude Include="..\src\cgame\common\ui\teams\TeamView.h" />
     <ClCompile Include="..\src\cgame\common\ui\teams\TeamsViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\teams\TeamsViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\vote\VoteViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\vote\VoteViewController.h" />
   </ItemGroup>
   <!-- Capture the flag, for modules that opt in by setting QuetooCgameCtf and
        defining G_CTF; the counterpart of listing cg_ctf.c in a module's
@@ -146,6 +149,7 @@
   <ItemGroup Condition="'$(QuetooCgameCtf)'=='true'">
     <ClCompile Include="..\src\cgame\common\cg_ctf.c" />
     <ClInclude Include="..\src\cgame\common\cg_ctf.h" />
+    <ClInclude Include="..\src\cgame\common\cg_vote.h" />
   </ItemGroup>
   <!-- The tech powerups, on the same terms: QuetooCgameTech and G_TECH. -->
   <ItemGroup Condition="'$(QuetooCgameTech)'=='true'">

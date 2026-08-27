@@ -30,6 +30,7 @@
 #include "SettingsViewController.h"
 
 #include "TeamsViewController.h"
+#include "VoteViewController.h"
 
 #include "DialogViewController.h"
 
@@ -190,6 +191,12 @@ static void loadView(ViewController *self) {
     .didClick = didClickNavigateViewController,
     .self = self,
     .data = _TeamsViewController()
+  });
+
+  $(this, secondaryButton, "Vote", &(const ButtonDelegate) {
+    .didClick = didClickNavigateViewController,
+    .self = self,
+    .data = _VoteViewController()
   });
 
   $(this, secondaryButton, "Disconnect", &(const ButtonDelegate) {

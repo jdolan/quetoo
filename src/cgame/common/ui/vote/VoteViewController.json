@@ -1,0 +1,122 @@
+{
+  "class": "Panel",
+  "identifier": "vote",
+  "classNames": [
+    "menu"
+  ],
+  "contentView": {
+    "subviews": [
+      {
+        "class": "StackView",
+        "classNames": [
+          "container"
+        ],
+        "subviews": [
+          {
+            "class": "Label",
+            "identifier": "status",
+            "text": {
+              "text": "No vote is in progress"
+            }
+          },
+          {
+            "class": "StackView",
+            "classNames": [
+              "ballots"
+            ],
+            "subviews": [
+              {
+                "class": "Button",
+                "identifier": "yes",
+                "title": {
+                  "text": "Yes"
+                }
+              },
+              {
+                "class": "Button",
+                "identifier": "no",
+                "title": {
+                  "text": "No"
+                }
+              }
+            ]
+          },
+          {
+            "class": "Box",
+            "label": {
+              "text": {
+                "text": "Call a vote"
+              }
+            },
+            "contentView": {
+              "subviews": [
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Vote"
+                    }
+                  },
+                  "control": {
+                    "class": "Select",
+                    "identifier": "type"
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Map"
+                    }
+                  },
+                  "control": {
+                    "class": "Select",
+                    "identifier": "map"
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Player"
+                    }
+                  },
+                  "control": {
+                    "class": "Select",
+                    "identifier": "client"
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Value"
+                    }
+                  },
+                  "control": {
+                    "class": "Slider",
+                    "identifier": "value"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "accessoryView": {
+    "style": {
+      "hidden": false
+    },
+    "subviews": [
+      {
+        "class": "Button",
+        "identifier": "call",
+        "title": {
+          "text": "Call"
+        }
+      }
+    ]
+  }
+}
