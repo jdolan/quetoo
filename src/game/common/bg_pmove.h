@@ -183,7 +183,7 @@ box3_t Pm_Bounds(const pm_params_t *params, bool ducked);
  * @brief The player movement structure provides context management between the
  * game modules and the player movement code.
  */
-typedef struct {
+typedef struct pm_move_s {
   pm_cmd_t cmd; // movement command (in)
 
   pm_state_t s; // movement state (in / out)
@@ -214,6 +214,24 @@ typedef struct {
   debug_t (*DebugMask)(void);
   void (*Debug)(const debug_t debug, const char *func, const char *fmt, ...);
   debug_t debug_mask;
+
+  /**
+   * @brief The movement kernel, or `NULL` for Quetoo's. Runs once the move is
+   * initialized and the frozen, spectator and dead cases are handled, and owns
+   * everything after that: the ground, water, ladder and duck checks, the move
+   * itself, and `Pm_CheckViewStep` if it wants step smoothing. Spectator flight
+   * stays Quetoo's. A module supplying its own kernel builds it from
+   * `bg_pmove_internal.h`, which is how both sides run the same one, and it
+   * MUST NOT call `Pm_Move`.
+   */
+  void (*Move)(struct pm_move_s *pm);
+
+  /**
+   * @brief Called on each user-intended acceleration, or `NULL`, whether or not
+   * the move was already at the wished speed. For training aids that sample the
+   * move as it happens; it MUST NOT change it.
+   */
+  void (*Accelerate)(const struct pm_move_s *pm, const vec3_t dir, float speed, float accel);
 } pm_move_t;
 
 /**
