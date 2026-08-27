@@ -66,6 +66,15 @@ static bool G_CheckWinner_Common(void) {
 CheckWinner G_CheckWinner = G_CheckWinner_Common;
 
 /**
+ * @brief The tail of the `G_AllowNextMap` chain: the level may always advance.
+ */
+static bool G_AllowNextMap_Common(void) {
+  return true;
+}
+
+AllowNextMap G_AllowNextMap = G_AllowNextMap_Common;
+
+/**
  * @brief The tail of the `G_ClampGameplay` hook: every mode `g_gameplay_id_t`
  * defines is one this module supports, so there is nothing to coerce.
  */

@@ -805,7 +805,7 @@ static void G_Frame(void) {
 
   // check for level change after running intermission
   if (g_level.intermission_time) {
-    if (g_level.time > g_level.intermission_time + INTERMISSION) {
+    if (g_level.time > g_level.intermission_time + INTERMISSION && G_AllowNextMap()) {
       g_level.intermission_time = 0;
 
       gi.Cbuf("next_map\n");

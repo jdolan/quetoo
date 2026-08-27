@@ -544,4 +544,11 @@ void G_EndClientFrames(void) {
       G_ClientSpectatorStats(cl);
     }
   });
+
+  G_FrameDidEnd();
 }
+
+static void G_FrameDidEnd_Common(void) {
+}
+
+FrameDidEnd G_FrameDidEnd = G_FrameDidEnd_Common;

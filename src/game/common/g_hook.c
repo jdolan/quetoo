@@ -549,6 +549,15 @@ static void G_HookCheckFire(g_client_t *cl, const bool refire) {
 }
 
 /**
+ * @brief The tail of the `G_AllowHook` chain: every client may hook.
+ */
+static bool G_AllowHook_Common(const g_client_t *cl) {
+  return true;
+}
+
+AllowHook G_AllowHook = G_AllowHook_Common;
+
+/**
  * @brief Handles management of the hook for a given player.
  */
 void G_HookThink(g_client_t *cl, const bool refire) {
@@ -566,7 +575,7 @@ void G_HookThink(g_client_t *cl, const bool refire) {
     return;
   }
 
-  if (G_Ai_InDeveloperMode()) {
+  if (G_Ai_InDeveloperMode() || !G_AllowHook(cl)) {
     if (cl->hook.entity) {
       G_HookDetach(cl);
     }

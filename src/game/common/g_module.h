@@ -111,6 +111,30 @@ typedef void (*InitMedia)(void);
 extern InitMedia G_InitMedia;
 
 /**
+ * @brief The level is about to be spawned: `g_level` is reset and named, the
+ * previous level's entities are about to be freed, and nothing of the new one,
+ * not even the worldspawn, exists yet. A feature that layers per-level
+ * settings over cvars the worldspawn reads does so here.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*LevelWillSpawn)(const char *name);
+
+extern LevelWillSpawn G_LevelWillSpawn;
+
+/**
+ * @brief Spawns an entity by its class name. The default knows the items, the
+ * weapons' projectiles and the built-in classes.
+ * @details Chainable. A feature adding entities spawns the class names it owns
+ * and defers to previous for the rest. An entity nobody spawns is warned about
+ * and freed by the caller. The editor spawns its inert placeholders without
+ * consulting the chain.
+ * @return True if the entity was spawned.
+ */
+typedef bool (*SpawnEntity)(g_entity_t *ent);
+
+extern SpawnEntity G_SpawnEntity;
+
+/**
  * @}
  * @defgroup hooks-items Items
  * @brief Placing items in the world, and what becomes of them. Tails in g_item.c.
@@ -268,6 +292,18 @@ typedef bool (*ClipEntity)(const g_entity_t *mover, const g_entity_t *ent, const
 extern ClipEntity G_ClipEntity;
 
 /**
+ * @brief Whether a client may use the grapple hook right now. The default says
+ * yes whenever the hook feature is built and enabled; a client refused here has
+ * their hook detached. Exists only when the module builds `G_HOOK`.
+ * @details Chainable. A mode that allows the hook only some of the time answers
+ * for its cases and defers to previous.
+ * @return True if the client may hook.
+ */
+typedef bool (*AllowHook)(const g_client_t *cl);
+
+extern AllowHook G_AllowHook;
+
+/**
  * @}
  * @defgroup hooks-rules Rules
  * @brief The rules a module enforces, once per frame or once per level. Tails in
@@ -298,6 +334,17 @@ extern CheckCvars G_CheckCvars;
 typedef bool (*CheckWinner)(void);
 
 extern CheckWinner G_CheckWinner;
+
+/**
+ * @brief Whether the level may advance now that the intermission has run its
+ * course. The default says yes.
+ * @details Chainable. A feature that holds the level for a vote answers false
+ * until the vote is in, then defers to previous.
+ * @return True to advance to the next map.
+ */
+typedef bool (*AllowNextMap)(void);
+
+extern AllowNextMap G_AllowNextMap;
 
 /**
  * @brief Coerces a requested gameplay mode to one this module actually
@@ -431,13 +478,51 @@ extern HandleClientCommand G_HandleClientCommand;
 
 /**
  * @brief The client said something, and it was delivered. `text` is the line as
- * the other clients saw it: the name, its color escapes and a trailing newline.
+ * the other clients saw it: the name, its color escapes and a trailing newline,
+ * in a buffer that lives only for this call; a feature that keeps it copies it.
  * A muted, empty or flood-limited message is not delivered and not reported.
  * @details Notification; the tail does nothing.
  */
 typedef void (*ClientDidChat)(g_client_t *cl, const char *text, bool team);
 
 extern ClientDidChat G_ClientDidChat;
+
+/**
+ * @brief Writes a client's stats for this frame, after the built-in ones. A
+ * feature that shows something on the HUD writes its stat here, into the slots
+ * its module's `g_types.h` numbers. A spectator chasing another client inherits
+ * that client's stats wholesale and does not run the chain.
+ * @details Chainable; call previous, then write.
+ */
+typedef void (*WriteStats)(g_client_t *cl);
+
+extern WriteStats G_WriteStats;
+
+/**
+ * @brief Writes a client's scoreboard entry, after the built-in fields. A
+ * feature with its own columns fills the fields its module's `g_score_t`
+ * carries.
+ * @details Chainable; call previous, then write.
+ */
+typedef void (*WriteScore)(const g_client_t *cl, g_score_t *s);
+
+extern WriteScore G_WriteScore;
+
+/**
+ * @}
+ * @defgroup hooks-frame Frame
+ * @brief The server frame. Tail in g_client_view.c.
+ * @{
+ */
+
+/**
+ * @brief The frame is complete: every entity has run, the rules are checked and
+ * every client's player state is built.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*FrameDidEnd)(void);
+
+extern FrameDidEnd G_FrameDidEnd;
 
 /**
  * @}

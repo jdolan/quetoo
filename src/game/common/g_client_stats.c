@@ -94,7 +94,19 @@ static void G_UpdateScore(const g_client_t *cl, g_score_t *s) {
 #if defined(G_CTF)
   s->captures = cl->persistent.captures;
 #endif
+
+  G_WriteScore(cl, s);
 }
+
+static void G_WriteScore_Common(const g_client_t *cl, g_score_t *s) {
+}
+
+WriteScore G_WriteScore = G_WriteScore_Common;
+
+static void G_WriteStats_Common(g_client_t *cl) {
+}
+
+WriteStats G_WriteStats = G_WriteStats_Common;
 
 /**
  * @brief Returns the number of scores written to the buffer.
@@ -274,6 +286,8 @@ void G_ClientStats(g_client_t *cl) {
 
   // copy full inventory to player state for delta-compression over the wire
   memcpy(cl->ps.inventory, cl->inventory, sizeof(cl->inventory));
+
+  G_WriteStats(cl);
 }
 
 /**
