@@ -32,6 +32,8 @@ void setup(void) {
 
   Fs_Init(FS_NONE);
 
+  ck_assert(Fs_SetGame(TEST_GAME, NULL));
+
   Cmd_Init();
 
   Cvar_Init();
