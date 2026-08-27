@@ -27,16 +27,25 @@ quetoo_t quetoo;
 cvar_t *developer;
 cvar_t *editor;
 
+static bool Test_WaitForIdle(const RenderDevice *self) {
+  return true;
+}
+
 /**
  * @brief Setup fixture.
  */
 void setup(void) {
   static cvar_t null_cvar;
+  static RenderDeviceInterface interface = { .waitForIdle = Test_WaitForIdle };
+  static RenderDevice device = { .interface = &interface };
 
   developer = &null_cvar;
   editor = &null_cvar;
 
   Mem_Init();
+
+  r_context.device = &device;
+  r_occlusion.boxes = $(alloc(Vector), initWithSize, sizeof(box3_t));
 
   R_InitMedia();
 }
@@ -47,6 +56,9 @@ void setup(void) {
 void teardown(void) {
 
   R_ShutdownMedia();
+
+  r_occlusion.boxes = release(r_occlusion.boxes);
+  r_context.device = NULL;
 
   Mem_Shutdown();
 }
