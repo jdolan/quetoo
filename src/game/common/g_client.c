@@ -961,7 +961,7 @@ static void G_Give(g_client_t *cl, char *it, int16_t quantity) {
 /**
  * @brief Initializes a client's starting inventory based on the current game mode.
  */
-static void G_InitClientInventory(g_client_t *cl) {
+static void G_InitInventory_Common(g_client_t *cl) {
   const g_item_t *item;
 
   // instagib gets railgun and slugs, both in normal mode and warmup
@@ -998,6 +998,8 @@ static void G_InitClientInventory(g_client_t *cl) {
 
   G_UseWeapon(cl, item);
 }
+
+InitInventory G_InitInventory = G_InitInventory_Common;
 
 /**
  * @brief Returns the distance to the nearest enemy from the given spot.
@@ -1245,7 +1247,40 @@ static g_entity_t *G_SelectSpawnPoint(g_client_t *cl) {
 }
 
 /**
- * @brief The grunt work of putting the client into the server on [re]spawn.
+ * @brief The tail of the `G_PrepareSpawn` chain: the spawn point as selected.
+ */
+static void G_PrepareSpawn_Common(g_client_t *cl, g_client_spawn_t *spawn) {
+}
+
+PrepareSpawn G_PrepareSpawn = G_PrepareSpawn_Common;
+
+static void G_ClientDidBegin_Common(g_client_t *cl) {
+}
+
+ClientDidBegin G_ClientDidBegin = G_ClientDidBegin_Common;
+
+static void G_ClientDidChangeUserInfo_Common(g_client_t *cl) {
+}
+
+ClientDidChangeUserInfo G_ClientDidChangeUserInfo = G_ClientDidChangeUserInfo_Common;
+
+static void G_ClientWillDisconnect_Common(g_client_t *cl) {
+}
+
+ClientWillDisconnect G_ClientWillDisconnect = G_ClientWillDisconnect_Common;
+
+static void G_ClientWillThink_Common(g_client_t *cl, const pm_cmd_t *cmd) {
+}
+
+ClientWillThink G_ClientWillThink = G_ClientWillThink_Common;
+
+static void G_ClientDidMove_Common(g_client_t *cl, const pm_cmd_t *cmd) {
+}
+
+ClientDidMove G_ClientDidMove = G_ClientDidMove_Common;
+
+/**
+ * @brief Spawns the client's entity, as a player or a spectator.
  */
 static void G_ClientRespawn_(g_client_t *cl) {
 
@@ -1280,25 +1315,34 @@ static void G_ClientRespawn_(g_client_t *cl) {
   const g_entity_t *spawn = G_SelectSpawnPoint(cl);
   assert(spawn);
 
+  g_client_spawn_t place = {
+    .origin = spawn->s.origin,
+    .angles = spawn->s.angles,
+    .clip_mask = cl->ai ? CONTENTS_MASK_CLIP_MONSTER : CONTENTS_MASK_CLIP_PLAYER,
+    .kill_box = true,
+  };
+
+  G_PrepareSpawn(cl, &place);
+
   // move to the spawn origin
-  ent->s.origin = spawn->s.origin;
+  ent->s.origin = place.origin;
   ent->s.origin.z += PM_STEP_HEIGHT;
 
   // snap view angles directly to the spawn point; the client will snap
   // cl.angles to match, so no delta_angles compensation is needed
   ent->s.angles = Vec3_Zero();
-  cl->angles = spawn->s.angles;
+  cl->angles = place.angles;
 
   // pack the new origin and view angles into the player state
   cl->ps.pm_state.origin = ent->s.origin;
-  cl->ps.pm_state.view_angles = spawn->s.angles;
+  cl->ps.pm_state.view_angles = place.angles;
   cl->ps.pm_state.delta_angles = Vec3_Zero();
   cl->ps.entity = ent->s.number;
 
   // signal the client to snap to view_angles; only for player spawns, not spectators
   if (!cl->persistent.spectator && !editor->value) {
     gi.WriteByte(SV_CMD_SNAP_ANGLES);
-    gi.WriteAngles(spawn->s.angles);
+    gi.WriteAngles(place.angles);
     gi.Unicast(cl, true);
   }
 
@@ -1349,11 +1393,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
     G_SetAnimation(cl, ANIM_TORSO_STAND1, true);
     G_SetAnimation(cl, ANIM_LEGS_JUMP1, true);
 
-    ent->clip_mask = CONTENTS_MASK_CLIP_PLAYER;
-
-    if (cl->ai) {
-      ent->clip_mask = CONTENTS_MASK_CLIP_MONSTER;
-    }
+    ent->clip_mask = place.clip_mask;
 
     ent->dead = false;
     ent->Die = G_ClientDie;
@@ -1377,13 +1417,15 @@ static void G_ClientRespawn_(g_client_t *cl) {
 
     // setup inventory/weapon
     if (!G_Ai_InDeveloperMode()) {
-      G_InitClientInventory(cl);
+      G_InitInventory(cl);
     }
 
     // briefly disable firing, since we likely just clicked to respawn
     cl->weapon_fire_time = g_level.time + 250;
 
-    G_KillBox(ent); // kill anyone in our spot
+    if (place.kill_box) {
+      G_KillBox(ent); // kill anyone in our spot
+    }
   }
 
   gi.LinkEntity(ent);
@@ -1489,6 +1531,8 @@ void G_ClientBegin(g_client_t *cl) {
 
   // make sure all view stuff is valid
   G_ClientEndFrame(cl);
+
+  G_ClientDidBegin(cl);
 }
 
 /**
@@ -1672,6 +1716,8 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 
   // stats guid
   q_strlcpy(cl->persistent.guid, InfoString_Get(user_info, "guid"), sizeof(cl->persistent.guid));
+
+  G_ClientDidChangeUserInfo(cl);
 }
 
 /**
@@ -1716,6 +1762,8 @@ bool G_ClientConnect(g_client_t *cl, char *user_info) {
  * @brief Called when a player drops from the server. Not be called between levels.
  */
 void G_ClientDisconnect(g_client_t *cl) {
+
+  G_ClientWillDisconnect(cl);
 
   if (cl->entity) {
     G_TossInventory(cl);
@@ -2169,6 +2217,8 @@ void G_ClientThink(g_client_t *cl, pm_cmd_t *cmd) {
   cl->buttons = cmd->buttons;
   cl->latched_buttons |= cl->buttons & ~cl->old_buttons;
 
+  G_ClientWillThink(cl, cmd);
+
   if (!cl->chase_target) { // move through the world
 
 #if defined(G_HOOK)
@@ -2178,6 +2228,8 @@ void G_ClientThink(g_client_t *cl, pm_cmd_t *cmd) {
 #endif
 
     G_ClientMove(cl, cmd);
+
+    G_ClientDidMove(cl, cmd);
   }
 
   cl->cmd = *cmd;

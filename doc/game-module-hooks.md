@@ -183,6 +183,14 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
   live in `common` and serve every module, so naming them after one of the three
   would invite the question of why default's code is in common.
 - Avoid a leading underscore: C reserves `_` followed by an uppercase letter.
+- **Verb-first decides; SubjectWill/Did informs.** Every hook above is a decision
+  the chain makes, and VerbSubject fits those. A hook that only tells the module
+  something happened is a *notification*: it is named `SubjectWillVerb` or
+  `SubjectDidVerb` — `ClientDidBegin`, `ClientWillDisconnect` — in the shape
+  ObjectivelyMVC already uses (`viewWillAppear`, `viewDidLoad`). `Will` runs
+  before the thing and `Did` after it, the tail does nothing, and an
+  implementation MUST NOT try to change the outcome from a notification. So a
+  verb-first name means you decide; `Will`/`Did` means you are told.
 
 ### Where things live
 
@@ -190,7 +198,8 @@ Neither feature mentions the other, and no module hand-writes a dispatcher.
   authoritative list of every variation point.
 - **Tails** go in the domain file that owns the behaviour — `g_item.c` for items
   and for parting a client from them, `g_combat.c` for damage, `g_entity.c` for the
-  level, `g_client.c` for movement, `g_rules.c` for the rules. Never a catch-all:
+  level, `g_client.c` for movement and the spawn, `g_rules.c` for the rules. Never a
+  catch-all:
   `g_module.c` existed for exactly two tails and was deleted, because a file that
   accumulates every hookable function in the game is what this design exists to
   prevent.
@@ -271,6 +280,13 @@ have produced a module that did not compile.
 | `ConfigureLevel` | `g_entity.c` | techs, hook |
 | `PrepareMove` | `g_client.c` | hook |
 | `ClipEntity` | `g_client.c` | — |
+| `InitInventory` | `g_client.c` | — |
+| `PrepareSpawn` | `g_client.c` | — |
+| `ClientDidBegin` | `g_client.c` | — |
+| `ClientDidChangeUserInfo` | `g_client.c` | — |
+| `ClientWillDisconnect` | `g_client.c` | — |
+| `ClientWillThink` | `g_client.c` | — |
+| `ClientDidMove` | `g_client.c` | — |
 
 The tail of each chain lives beside the code that calls it, never in a catch-all:
 `g_module.c` was deleted once its last default moved out, because a file that

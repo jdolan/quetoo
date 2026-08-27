@@ -167,6 +167,17 @@ extern ResetItem G_ResetItem;
  */
 
 /**
+ * @brief Gives a client their starting inventory when they spawn.
+ * @details The default is the machinegun with its ammo, or the item set's
+ * equivalent. Chainable: a feature that adds to the loadout calls previous and
+ * then gives; a mode with no weapons at all does not defer to previous. The
+ * tail lives in g_client.c, beside the spawn.
+ */
+typedef void (*InitInventory)(g_client_t *cl);
+
+extern InitInventory G_InitInventory;
+
+/**
  * @brief Resolves the item a client named to one they are carrying, or `NULL`
  * when the name means nothing here.
  * @details Deathmatch resolves the name against the item list. Features that
@@ -309,6 +320,97 @@ extern ClampGameplay G_ClampGameplay;
 typedef void (*FormatGameName)(char *name, size_t size);
 
 extern FormatGameName G_FormatGameName;
+
+/**
+ * @}
+ * @defgroup hooks-clients Clients
+ * @brief A client's life on the server, from connection to disconnection. Tails
+ * in g_client.c.
+ *
+ * Most of these are notifications: the module is told what happened and MUST
+ * NOT try to change it. Their names say so - `ClientDidBegin` - where a hook
+ * the module decides is named for the decision - `PrepareSpawn`.
+ * @{
+ */
+
+/**
+ * @brief Where and how a client is about to spawn.
+ */
+typedef struct {
+
+  /**
+   * @brief The spawn origin and view angles, from the selected spawn point. The
+   * origin is the floor, as a spawn point's is; `PM_STEP_HEIGHT` is added once
+   * the chain has run.
+   */
+  vec3_t origin, angles;
+
+  /**
+   * @brief The clip mask the client's entity moves with.
+   */
+  int32_t clip_mask;
+
+  /**
+   * @brief Whether whatever occupies the spawn is telefragged.
+   */
+  bool kill_box;
+} g_client_spawn_t;
+
+/**
+ * @brief Adjusts where and how a client spawns, after the spawn point has been
+ * selected and before the entity is placed. The default changes nothing.
+ * @details Chainable. A feature that spawns players somewhere of its own, or
+ * lets them pass through each other, edits `spawn` and calls previous.
+ */
+typedef void (*PrepareSpawn)(g_client_t *cl, g_client_spawn_t *spawn);
+
+extern PrepareSpawn G_PrepareSpawn;
+
+/**
+ * @brief The client has entered the game: their entity exists and is placed.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*ClientDidBegin)(g_client_t *cl);
+
+extern ClientDidBegin G_ClientDidBegin;
+
+/**
+ * @brief The client's user info was applied: name, skin, colors and the rest
+ * are current on `cl->persistent`.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*ClientDidChangeUserInfo)(g_client_t *cl);
+
+extern ClientDidChangeUserInfo G_ClientDidChangeUserInfo;
+
+/**
+ * @brief The client is about to leave: their inventory is still intact, and so
+ * is their entity if they ever began, so a feature may still read them.
+ * `cl->entity` is `NULL` for a client that connected and left without spawning.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*ClientWillDisconnect)(g_client_t *cl);
+
+extern ClientWillDisconnect G_ClientWillDisconnect;
+
+/**
+ * @brief A movement command has arrived and the buttons are latched, before
+ * the client moves or fires. Not called during the intermission, when commands
+ * are ignored.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*ClientWillThink)(g_client_t *cl, const pm_cmd_t *cmd);
+
+extern ClientWillThink G_ClientWillThink;
+
+/**
+ * @brief The client's entity has moved for this command and is linked, before
+ * weapons are handled. Not called for a client chasing another.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*ClientDidMove)(g_client_t *cl, const pm_cmd_t *cmd);
+
+extern ClientDidMove G_ClientDidMove;
 
 /**
  * @}
