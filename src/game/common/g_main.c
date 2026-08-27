@@ -137,6 +137,12 @@ cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
 cvar_t *g_movement;
 
+/**
+ * @brief What this level asked for, remembered so that setting `g_movement`
+ * back to "default" returns to it rather than to Quetoo's.
+ */
+static pm_movement_t g_movement_level;
+
 // player movement parameters (hydrated into pm_params_t by G_MovementParams)
 cvar_t *g_air_acceleration;
 cvar_t *g_air_friction;
@@ -617,6 +623,50 @@ pm_params_t G_MovementParams(void) {
 }
 
 /**
+ * @brief Parses `g_movement` over what the level asked for, and coerces the cvar
+ * itself to whichever canonical name results.
+ * @details A name nothing answers to is warned about and falls back rather than
+ * silently running something else, which is the whole reason this coerces: an
+ * unknown movement that quietly behaved like Quetoo's would be indistinguishable
+ * from a working one.
+ */
+static pm_movement_t G_CoerceMovement(void) {
+
+  pm_movement_t movement = g_movement_level;
+
+  if (q_strcmp(g_movement->string, "default")) { // "default" defers to the level
+    if (!Pm_MovementByName(g_movement->string, &movement)) {
+      G_Warn("Unknown movement \"%s\", using %s\n",
+              g_movement->string, Pm_Movement(movement)->name);
+    }
+
+    gi.SetCvarString(g_movement->name, Pm_Movement(movement)->name);
+  }
+
+  gi.ForceSetCvarString("g_movement_mode", Pm_Movement(movement)->name);
+
+  return movement;
+}
+
+/**
+ * @brief Resolves the movement for a level that asks for `name`, which may be
+ * empty. `g_movement` still wins if the admin named one.
+ */
+pm_movement_t G_ResolveMovement(const char *name) {
+
+  g_movement_level = PM_MOVEMENT_QUETOO;
+
+  if (name && *name) {
+    if (!Pm_MovementByName(name, &g_movement_level)) {
+      G_Warn("Unknown movement \"%s\" in this level, using %s\n",
+              name, Pm_Movement(g_movement_level)->name);
+    }
+  }
+
+  return G_CoerceMovement();
+}
+
+/**
  * @brief Parses `g_gameplay`, lets the module clamp it to a mode it actually
  * supports, and coerces the cvar string itself back to whichever canonical
  * value results.
@@ -687,6 +737,25 @@ static void G_CheckRules(void) {
     restart = true;
 
     gi.BroadcastPrint(PRINT_HIGH, "Gameplay has changed to %s\n", G_GameplayById(g_level.gameplay)->label);
+  }
+
+  if (g_movement->modified) { // change how players move, with no restart
+
+    const pm_movement_t movement = G_CoerceMovement();
+
+    // as above, the coercion re-marks modified whenever it changed the string
+    g_movement->modified = false;
+
+    if (movement != g_level.movement) {
+      g_level.movement = movement;
+
+      // the parameters are hydrated per client per frame and travel inside the
+      // player state, so the change reaches everyone without a restart; the one
+      // cost is a frame of misprediction, and a taller box has to fit where the
+      // player is standing
+      gi.BroadcastPrint(PRINT_HIGH, "Movement has changed to %s\n",
+                        Pm_Movement(movement)->label);
+    }
   }
 
   if (g_friendly_fire->modified) {

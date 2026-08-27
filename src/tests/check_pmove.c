@@ -288,6 +288,31 @@ START_TEST(check_Quetoo_GroundSpeed) {
 } END_TEST
 
 /**
+ * @brief The two movements stand in different boxes and look out of them from
+ * different heights, which is a large part of why they feel different.
+ */
+START_TEST(check_Movement_BoxAndEye) {
+
+  pm_move_t quake = Test_Move(PM_MOVEMENT_QUAKE);
+  Test_Command(&quake, 0, 0, 0);
+
+  pm_move_t quetoo = Test_Move(PM_MOVEMENT_QUETOO);
+  for (int32_t i = 0; i < 20; i++) { // Quetoo lerps its eye, so let it settle
+    Test_Command(&quetoo, 0, 0, 0);
+  }
+
+  ck_assert_msg(quake.bounds.maxs.z == 32.f,
+                "Quake stood %g tall, expected 32", quake.bounds.maxs.z);
+  ck_assert_msg(quetoo.bounds.maxs.z == 36.f,
+                "Quetoo stood %g tall, expected 36", quetoo.bounds.maxs.z);
+
+  ck_assert_msg(quake.s.view_offset.z == 22.f,
+                "Quake's eye was at %g, expected 22", quake.s.view_offset.z);
+  ck_assert_msg(fabsf(quetoo.s.view_offset.z - 30.f) < .01f,
+                "Quetoo's eye was at %g, expected 30", quetoo.s.view_offset.z);
+} END_TEST
+
+/**
  * @brief Every movement must answer to the name its cvar and worldspawn key use,
  * and none of them to "default", which those reserve.
  */
@@ -325,6 +350,7 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, check_Quake_NoAirFriction);
   tcase_add_test(tcase, check_Quake_BunnyHop);
   tcase_add_test(tcase, check_Quetoo_GroundSpeed);
+  tcase_add_test(tcase, check_Movement_BoxAndEye);
   tcase_add_test(tcase, check_Movement_Names);
 
   Suite *suite = suite_create("check_pmove");

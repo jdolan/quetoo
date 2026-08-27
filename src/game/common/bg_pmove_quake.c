@@ -14,7 +14,7 @@
  *
  * See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Above License
+ * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
@@ -24,12 +24,12 @@
 
 /**
  * @file
- * @brief QuakeWorld's movement, `PM_KERNEL_QUAKE`.
+ * @brief QuakeWorld's movement, `PM_MOVEMENT_QUAKE`.
  *
  * Ported from id's `QW/client/pmove.c`, which QuakeWorld shared between its
  * client and its server for exactly the reason we do. It is QuakeWorld's rather
  * than NetQuake's: the two differ, and it is QuakeWorld that people played and
- * that bunny hopping belongs to. NetQuake would be a separate kernel.
+ * that bunny hopping belongs to. NetQuake would be a separate movement.
  *
  * The bunny hop is not emulated, it falls out. `Pm_QuakeAirAccelerate` caps the
  * *wished* speed at 30 units, but scales the acceleration by the uncapped wish
@@ -41,13 +41,13 @@
  * the kernel never raises `PMF_DUCKED` and the standing box is the only box.
  *
  * Being finished is the point: this file matches what it imitates and should
- * not acquire improvements. A change to how Quake moves is a new kernel.
+ * not acquire improvements. A change to how Quake moves is a new movement.
  */
 
 /**
- * @brief The parameters that make this kernel QuakeWorld rather than merely
+ * @brief The parameters that make this QuakeWorld rather than merely
  * QuakeWorld-shaped, from `sv_main.c`'s movement variables and `pmove.c`'s
- * player box. A server selecting this kernel takes these rather than its own
+ * player box. A server selecting this movement takes these rather than its own
  * movement cvars; they reach the client inside `pm_state_t`, like any others.
  */
 const pm_params_t pm_quake_params = {
@@ -96,6 +96,7 @@ const pm_params_t pm_quake_params = {
 #define PM_QUAKE_WATER_JUMP_DIST 24.f  // how far ahead the ledge is looked for
 #define PM_QUAKE_WATER_JUMP_PUSH 50.f  // and how hard the player is pushed at it
 #define PM_QUAKE_SNAP            8.f   // the network precision origins are cut to
+#define PM_QUAKE_VIEW_HEIGHT     22.f  // Quake's eye, against Quetoo's 30
 
 /**
  * @brief Slides `in` along `normal`, killing components that round to nothing.
@@ -609,9 +610,25 @@ static void Pm_QuakeNudgePosition(void) {
 }
 
 /**
+ * @brief Quake's eye height, which is simply a height: there is no duck to lerp
+ * between, so nothing here moves. The dead cases are Quetoo's, because a corpse
+ * is presentation rather than movement.
+ */
+static void Pm_QuakeViewOffset(void) {
+
+  if (pm->s.type == PM_DEAD) {
+    pm->s.view_offset.z = (pm->s.flags & PMF_GIBLET) ? 0.f : -16.f;
+  } else {
+    pm->s.view_offset.z = PM_QUAKE_VIEW_HEIGHT;
+  }
+}
+
+/**
  * @brief QuakeWorld's movement, in the order `PlayerMove` ran it.
  */
 void Pm_QuakeMove(void) {
+
+  Pm_QuakeViewOffset();
 
   Pm_QuakeNudgePosition();
 

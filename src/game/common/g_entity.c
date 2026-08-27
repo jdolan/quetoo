@@ -824,20 +824,20 @@ static void G_worldspawn(g_entity_t *ent) {
   // for, else this level's metadata, else its worldspawn, else Quetoo's. It needs
   // no config string, because it reaches the client inside the movement
   // parameters, which are networked per-player
-  g_level.movement = PM_MOVEMENT_QUETOO;
-
   const cm_entity_t *movement_map = G_MapValue("movement");
-  if (q_strcmp(g_movement->string, "default")) { // prefer the admin's choice
-    Pm_MovementByName(g_movement->string, &g_level.movement);
-  } else if (movement_map && *movement_map->string) { // then map metadata
-    Pm_MovementByName(movement_map->string, &g_level.movement);
-  } else { // or fall back on worldspawn
-    Pm_MovementByName(gi.EntityValue(ent->def, "movement")->string, &g_level.movement);
+  const char *movement = (movement_map && *movement_map->string)
+                         ? movement_map->string
+                         : gi.EntityValue(ent->def, "movement")->string;
+
+  g_level.movement = G_ResolveMovement(movement);
+
+  // say so when it is not the usual one, because a player who does not know they
+  // are on Quake movement will think the server is broken
+  if (g_level.movement != PM_MOVEMENT_QUETOO) {
+    gi.BroadcastPrint(PRINT_HIGH, "Movement is %s\n", Pm_Movement(g_level.movement)->label);
   }
 
-  // as with g_gameplay_mode, publish what it resolved to, since that is the only
-  // form a server browser can present
-  gi.ForceSetCvarString("g_movement_mode", Pm_Movement(g_level.movement)->name);
+  gi.Print("  Movement:   ^2%s^7\n", Pm_Movement(g_level.movement)->name);
 
   g_level.teams = (g_level.gameplay & GAMEPLAY_TEAMS) != 0;
 
