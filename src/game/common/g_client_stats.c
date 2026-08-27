@@ -155,7 +155,7 @@ void G_ClientScores(g_client_t *cl) {
     if (len > 512) {
       gi.WriteByte(SV_CMD_SCORES);
       gi.WriteShort((int32_t) j);
-      gi.WriteShort((int32_t) i);
+      gi.WriteShort((int32_t) (i - j));
       gi.WriteData((const void *) (scores + j), len);
       gi.WriteByte(0); // sequence is incomplete
       gi.Unicast(cl, true);
@@ -169,7 +169,7 @@ void G_ClientScores(g_client_t *cl) {
 
   gi.WriteByte(SV_CMD_SCORES);
   gi.WriteShort((int32_t) j);
-  gi.WriteShort((int32_t) i);
+  gi.WriteShort((int32_t) (i - j));
   gi.WriteData((const void *) (scores + j), len);
   gi.WriteByte(1); // sequence is complete
   gi.Unicast(cl, true);

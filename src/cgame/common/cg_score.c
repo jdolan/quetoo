@@ -28,6 +28,9 @@
 typedef struct {
   g_score_t scores[MAX_CLIENTS + MAX_TEAMS];
   size_t num_scores;
+
+  g_score_t pending[MAX_CLIENTS + MAX_TEAMS];
+  size_t num_pending;
 } cg_score_state_t;
 
 static cg_score_state_t cg_score_state;
@@ -61,22 +64,39 @@ void Cg_ParseScores(void) {
   }
 
   if (index == 0) {
-    memset(&cg_score_state, 0, sizeof(cg_score_state));
+    cg_score_state.num_pending = 0;
+  } else if ((size_t) index != cg_score_state.num_pending) {
+    Cg_Warn("Score packet %d arrived with %zu pending\n", index, cg_score_state.num_pending);
+    cg_score_state.num_pending = 0;
+    return;
   }
 
-  cgi.ReadData(cg_score_state.scores + index, count * sizeof(g_score_t));
+  cgi.ReadData(cg_score_state.pending + index, count * sizeof(g_score_t));
+  cg_score_state.num_pending = index + count;
 
   if (cgi.ReadByte()) { // last packet in sequence
 
-    cg_score_state.num_scores = index + count;
+    cg_score_state.num_scores = cg_score_state.num_pending;
+    cg_score_state.num_pending = 0;
 
     // the aggregate scores are the last set in the array
     if (cg_state.num_teams) {
       cg_score_state.num_scores -= MAX_TEAMS;
     }
-  }
 
-  qsort(cg_score_state.scores, cg_score_state.num_scores, sizeof(g_score_t), Cg_ParseScores_Compare);
+    memcpy(cg_score_state.scores, cg_score_state.pending, sizeof(cg_score_state.scores));
+
+    qsort(cg_score_state.scores, cg_score_state.num_scores, sizeof(g_score_t), Cg_ParseScores_Compare);
+  }
+}
+
+/**
+ * @brief Discards the scores, so that a board from the previous server is not
+ * drawn on the next.
+ */
+void Cg_ClearScores(void) {
+
+  memset(&cg_score_state, 0, sizeof(cg_score_state));
 }
 
 /**
