@@ -201,14 +201,25 @@ extern TossInventory G_TossInventory;
  */
 
 /**
- * @brief Scales the damage and the knockback an attack is about to impart,
- * before friendly fire and self damage are resolved.
+ * @brief Scales the damage and the knockback an attack is about to impart, or
+ * vetoes the attack outright. Runs once the target is known to take damage and
+ * is not under respawn protection, before invulnerability, friendly fire and
+ * self damage are resolved, so that a veto precedes every side effect of being
+ * hit. Respawn protection runs first because it has no side effects of its own,
+ * and a hook that ran ahead of it would fire its own for a hit that never lands.
  * @details The quad damage powerup is the default. A feature carrying its own
  * modifiers, such as the resist and strength techs, installs over the top;
  * because the modifiers multiply, where it calls previous decides only how the
- * integer truncation falls.
+ * integer truncation falls, and whether its own side effects precede a veto
+ * further down the chain. A feature that forbids an attack entirely, one in
+ * which players never hurt each other, say, returns false without calling
+ * previous, and `G_Damage` does nothing at all: no pain, no blood, no knockback.
+ * A link that calls previous MUST return false when previous does.
+ * `dmg->inflictor` and `dmg->attacker` are resolved to the world entity when the
+ * attack had none.
+ * @return False to abort the attack.
  */
-typedef void (*ModifyDamage)(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback);
+typedef bool (*ModifyDamage)(const g_damage_t *dmg, int32_t *damage, int32_t *knockback);
 
 extern ModifyDamage G_ModifyDamage;
 
