@@ -24,6 +24,7 @@ AM_CPPFLAGS = \
 	-I$(GAME_COMMON_DIR)
 
 AM_CFLAGS = \
+	-ffp-contract=off \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@ \

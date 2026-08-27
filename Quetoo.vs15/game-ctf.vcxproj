@@ -73,7 +73,7 @@
       <!-- g_client_s and g_entity_s embed the server's view of themselves as an
            anonymous member, which needs this. clang-cl enables it by default; it
            is spelled out so that a toolset change cannot take it away quietly. -->
-      <AdditionalOptions>%(AdditionalOptions) -fms-extensions -Wno-microsoft-anon-tag</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions) -fms-extensions -Wno-microsoft-anon-tag -ffp-contract=off</AdditionalOptions>
       <!-- These switch the optional features on in the common sources. Set
            here rather than through
            $(ExtraPreprocessorDefinitions), which expands empty by the time
