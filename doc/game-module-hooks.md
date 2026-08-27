@@ -135,6 +135,7 @@ which features a module builds:
 | default | `_Common` |
 | ctf | ctf → tech → hook → `_Common` |
 | lithium | tech → hook → `_Common` |
+| race | hook → `_Common` |
 
 Neither feature mentions the other, and no module hand-writes a dispatcher.
 
@@ -592,7 +593,7 @@ first, because both modules are loaded from the game that is current.
 The client game now has the same three mechanisms, and its fork was already gone
 before any of this. Each cgame module holds two files:
 
-    src/cgame/{default,ctf,lithium}/  cg_module.c  Makefile.am
+    src/cgame/{default,ctf,lithium,race}/  cg_module.c  Makefile.am
 
 `cg_module.h` is the client half of `g_module.h`: the authoritative list of the
 client's variation points and the two contracts, `Cg_Module_Init` and
@@ -812,18 +813,18 @@ out and no warning.
 
 All three build systems, or the Windows build rots silently. For the game:
 
-1. `src/game/{default,ctf,lithium}/Makefile.am` — add to `_SOURCES`
+1. `src/game/{default,ctf,lithium,race}/Makefile.am` — add to `_SOURCES`
    (alphabetical), in the modules that build it.
 2. `Quetoo.vs15/game_common.props` — add a `ClCompile`; use a
    `Condition="'$(QuetooGameX)'=='true'"` group if it is an opt-in feature, and
    set that property in each module's `.vcxproj` that wants it.
-3. `Quetoo.vs15/game{,-ctf,-lithium}.vcxproj.filters` — add under `src\common`.
+3. `Quetoo.vs15/game{,-ctf,-lithium,-race}.vcxproj.filters` — add under `src\common`.
 4. `Quetoo.xcodeproj/project.pbxproj` — one `PBXFileReference`, one
    `PBXBuildFile` *per target*, add to the `src/game/common` group and to each
    target's Sources phase. Keep the phase entries alphabetical.
 
 The client game is the same shape with its own names: `cgame_common.props`,
-`QuetooCgameCtf` and `QuetooCgameTech`, `cgame{,-ctf,-lithium}.vcxproj.filters`,
+`QuetooCgameCtf` and `QuetooCgameTech`, `cgame{,-ctf,-lithium,-race}.vcxproj.filters`,
 and the `src/cgame/common` group in Xcode. A per-module file such as `cg_module.c`
 is listed in each module's own `.vcxproj` rather than in the props sheet, as
 `bg_item.c` is on the game side.

@@ -68,6 +68,7 @@
     <ClCompile Include="..\src\cgame\common\cg_view.c" />
     <ClInclude Include="..\src\cgame\common\cg_view.h" />
     <ClCompile Include="..\src\cgame\common\cg_vote.c" />
+    <ClInclude Include="..\src\cgame\common\cg_vote.h" />
     <ClCompile Include="..\src\cgame\common\cg_weapon.c" />
     <ClInclude Include="..\src\cgame\common\cg_weapon.h" />
   </ItemGroup>
@@ -149,7 +150,6 @@
   <ItemGroup Condition="'$(QuetooCgameCtf)'=='true'">
     <ClCompile Include="..\src\cgame\common\cg_ctf.c" />
     <ClInclude Include="..\src\cgame\common\cg_ctf.h" />
-    <ClInclude Include="..\src\cgame\common\cg_vote.h" />
   </ItemGroup>
   <!-- The tech powerups, on the same terms: QuetooCgameTech and G_TECH. -->
   <ItemGroup Condition="'$(QuetooCgameTech)'=='true'">

@@ -46,7 +46,7 @@
     <Filter Include="src\common\ui\teams">
       <UniqueIdentifier>{87e951aa-d9c1-50e5-af8a-9f8d57c4681a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\lithium">
+    <Filter Include="src\race">
       <UniqueIdentifier>{613ae598-9e30-5521-807f-7a2408c3ce80}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\game">
@@ -55,7 +55,7 @@
     <Filter Include="src\game\common">
       <UniqueIdentifier>{1b99d444-f798-5c2d-b3f6-7cf0fb3f99ed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\game\lithium">
+    <Filter Include="src\game\race">
       <UniqueIdentifier>{13e7ff26-6943-5736-b5e5-6149367f705a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -121,9 +121,6 @@
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\cg_module.h">
-      <Filter>src\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\common\cg_tech.h">
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\cg_muzzle_flash.h">
@@ -285,8 +282,8 @@
     <ClInclude Include="..\src\game\common\bg_pmove_internal.h">
       <Filter>src\game\common</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\game\lithium\bg_item.h">
-      <Filter>src\game\lithium</Filter>
+    <ClInclude Include="..\src\game\race\bg_item.h">
+      <Filter>src\game\race</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -296,8 +293,8 @@
     <ClCompile Include="..\src\cgame\common\cg_score.c">
       <Filter>src\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\lithium\cg_module.c">
-      <Filter>src\lithium</Filter>
+    <ClCompile Include="..\src\cgame\race\cg_module.c">
+      <Filter>src\race</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\cg_client.c">
       <Filter>src\common</Filter>
@@ -345,9 +342,6 @@
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\cg_media.c">
-      <Filter>src\common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\common\cg_tech.c">
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\cg_muzzle_flash.c">
@@ -503,8 +497,8 @@
     <ClCompile Include="..\src\game\common\bg_pmove.c">
       <Filter>src\game\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\game\lithium\bg_item.c">
-      <Filter>src\game\lithium</Filter>
+    <ClCompile Include="..\src\game\race\bg_item.c">
+      <Filter>src\game\race</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
