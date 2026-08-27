@@ -317,7 +317,7 @@ static void Pm_QuakeFriction(void) {
   float drop = 0.f;
 
   if (pm->water_level >= WATER_WAIST) {
-    drop = speed * pm->s.params.friction_water * pm->water_level * pm_locals.time;
+    drop = speed * pm->s.params.friction_water * (float) pm->water_level * pm_locals.time;
   } else if (pm->s.flags & PMF_ON_GROUND) {
     const float control = Maxf(speed, pm->s.params.speed_stop);
     drop = control * friction * pm_locals.time;

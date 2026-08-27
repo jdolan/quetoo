@@ -317,7 +317,7 @@ static void Pm_RaceFriction(void) {
   }
 
   if (pm->water_level && !(pm->s.flags & PMF_ON_LADDER)) {
-    drop += speed * pm->s.params.friction_water * pm->water_level * pm_locals.time;
+    drop += speed * pm->s.params.friction_water * (float) pm->water_level * pm_locals.time;
   }
 
   pm->s.velocity = Vec3_Scale(pm->s.velocity, Maxf(0.f, speed - drop) / speed);
