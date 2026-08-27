@@ -126,8 +126,9 @@ static pm_move_t Test_Move(pm_movement_t movement) {
       .speed_jump = PM_SPEED_JUMP,
       .speed_ducked = PM_SPEED_DUCKED,
       .speed_duck_stand = PM_SPEED_DUCK_STAND,
-      .height = 36.f,
-      .height_ducked = 6.f,
+      .bounds = PM_BOUNDS,
+      .bounds_ducked = PM_CROUCHED_BOUNDS,
+      .bounds_dead = PM_DEAD_BOUNDS,
     };
   }
 
@@ -513,6 +514,45 @@ START_TEST(check_Movement_BoxAndEye) {
 } END_TEST
 
 /**
+ * @brief The whole box travels in the parameters, not just its top, so a
+ * movement that wants another shape declares one rather than inheriting it.
+ */
+START_TEST(check_Movement_BoxWidth) {
+
+  const pm_movement_t movements[] = {
+    PM_MOVEMENT_QUETOO, PM_MOVEMENT_QUAKE, PM_MOVEMENT_QUAKE2, PM_MOVEMENT_RACE
+  };
+
+  for (size_t i = 0; i < lengthof(movements); i++) {
+    pm_move_t pm = Test_Move(movements[i]);
+    Test_Command(&pm, 0, 0, 0);
+
+    ck_assert_msg(pm.bounds.mins.x == -16.f && pm.bounds.maxs.x == 16.f,
+                  "%s stood %g wide, expected 32", Pm_Movement(movements[i])->name,
+                  pm.bounds.maxs.x - pm.bounds.mins.x);
+  }
+
+  // the corpse box travels too
+  pm_move_t dead_quetoo = Test_Move(PM_MOVEMENT_QUETOO);
+  dead_quetoo.s.type = PM_DEAD;
+  Test_Command(&dead_quetoo, 0, 0, 0);
+
+  ck_assert_msg(dead_quetoo.bounds.maxs.z == -4.f,
+                "Quetoo's corpse topped out at %g, expected -4",
+                dead_quetoo.bounds.maxs.z);
+
+  // and the floor of the box is the same everywhere, which the view offset, the
+  // step height and spawn placement all assume
+  for (size_t i = 0; i < Pm_MovementCount(); i++) {
+    pm_move_t pm = Test_Move((pm_movement_t) i);
+    Test_Command(&pm, 0, 0, 0);
+
+    ck_assert_msg(pm.bounds.mins.z == -24.f, "%s stood on %g, expected -24",
+                  Pm_Movement((pm_movement_t) i)->name, pm.bounds.mins.z);
+  }
+} END_TEST
+
+/**
  * @brief Every movement must answer to the name its cvar and worldspawn key use,
  * and none of them to "default", which those reserve.
  */
@@ -557,6 +597,7 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, check_Race_JumpStacks);
   tcase_add_test(tcase, check_Quetoo_GroundSpeed);
   tcase_add_test(tcase, check_Movement_BoxAndEye);
+  tcase_add_test(tcase, check_Movement_BoxWidth);
   tcase_add_test(tcase, check_Movement_Names);
 
   Suite *suite = suite_create("check_pmove");

@@ -58,6 +58,21 @@
  * current pushes at. The two are different constants there and stay different
  * here.
  */
+#define PM_QUAKE2_BOUNDS { \
+  .mins = { { -16.f, -16.f, -24.f } }, \
+  .maxs = { {  16.f,  16.f,  32.f } }  /* against Quetoo's 36 */ \
+}
+
+#define PM_QUAKE2_BOUNDS_DUCKED { \
+  .mins = { { -16.f, -16.f, -24.f } }, \
+  .maxs = { {  16.f,  16.f,   4.f } }  /* against Quetoo's 6 */ \
+}
+
+#define PM_QUAKE2_BOUNDS_DEAD { \
+  .mins = { { -16.f, -16.f, -24.f } }, \
+  .maxs = { {  16.f,  16.f,  -4.f } }  /* Quetoo's corpse: overwritten below, since a corpse ducks here */ \
+}
+
 const pm_params_t pm_quake2_params = {
   .gravity = 800,
   .gravity_water = 1.f,         // unused: this movement applies no gravity in water
@@ -83,8 +98,9 @@ const pm_params_t pm_quake2_params = {
   .speed_ducked = 100.f,        // pm_duckspeed
   .speed_duck_stand = 0.f,      // unused: Quake II's duck is instant
   .speed_water_jump = 350.f,
-  .height = 32.f,               // maxs, against Quetoo's 36
-  .height_ducked = 4.f          // and ducked, against Quetoo's 6
+  .bounds = PM_QUAKE2_BOUNDS,        // 32 tall, against Quetoo's 36
+  .bounds_ducked = PM_QUAKE2_BOUNDS_DUCKED, // and 4, against Quetoo's 6
+  .bounds_dead = PM_QUAKE2_BOUNDS_DEAD      // overwritten: a corpse ducks here
 };
 
 #define PM_QUAKE2_STEP_SIZE        18.f  // STEPSIZE

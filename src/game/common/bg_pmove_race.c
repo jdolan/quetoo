@@ -57,6 +57,21 @@
  * above changes how the movement behaves rather than how fast it runs. These
  * are ours to tune, unlike the imitating movements' numbers.
  */
+#define PM_RACE_BOUNDS { \
+  .mins = { { -16.f, -16.f, -24.f } }, \
+  .maxs = { {  16.f,  16.f,  32.f } } \
+}
+
+#define PM_RACE_BOUNDS_DUCKED { \
+  .mins = { { -16.f, -16.f, -24.f } }, \
+  .maxs = { {  16.f,  16.f,   4.f } } \
+}
+
+#define PM_RACE_BOUNDS_DEAD { \
+  .mins = { { -16.f, -16.f, -24.f } }, \
+  .maxs = { {  16.f,  16.f,  -4.f } }  /* Quetoo's corpse: overwritten below, as in Quake II */ \
+}
+
 const pm_params_t pm_race_params = {
   .gravity = 800,
   .gravity_water = 1.f,
@@ -82,8 +97,9 @@ const pm_params_t pm_race_params = {
   .speed_ducked = 100.f,
   .speed_duck_stand = 0.f,
   .speed_water_jump = 350.f,
-  .height = 32.f,
-  .height_ducked = 4.f
+  .bounds = PM_RACE_BOUNDS,
+  .bounds_ducked = PM_RACE_BOUNDS_DUCKED,
+  .bounds_dead = PM_RACE_BOUNDS_DEAD // overwritten: a corpse ducks here, as in Quake II
 };
 
 #define PM_RACE_STEP_SIZE        18.f  // STEPSIZE

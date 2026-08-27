@@ -23,8 +23,9 @@
 #include "bg_pmove_local.h"
 
 /**
- * @brief The default bounding boxes: what those parameters default to, and what
- * code with no parameters to hand, such as the client's model setup, may use.
+ * @brief The default bounding boxes: what the movement parameters default to,
+ * and what code with no parameters to hand, such as the client's model setup,
+ * may use.
  */
 const box3_t PM_BOUNDS = {
   .mins = { { -16.f, -16.f, -24.f } },
@@ -36,7 +37,7 @@ const box3_t PM_CROUCHED_BOUNDS = {
   .maxs = { {  16.f,  16.f,  6.f } }
 };
 
-static const box3_t PM_DEAD_BOUNDS = {
+const box3_t PM_DEAD_BOUNDS = {
   .mins = { { -16.f, -16.f, -24.f } },
   .maxs = { {  16.f,  16.f,  -4.f } }
 };
@@ -51,10 +52,9 @@ static const box3_t PM_GIBLET_BOUNDS = {
  */
 box3_t Pm_Bounds(const pm_params_t *params, bool ducked) {
 
-  box3_t bounds = ducked ? PM_CROUCHED_BOUNDS : PM_BOUNDS;
-  bounds.maxs.z = ducked ? params->height_ducked : params->height;
-
-  return bounds;
+  // the box arrives whole, so the parameters are the only thing that decides it.
+  // A movement that wants a bigger player declares a bigger box
+  return ducked ? params->bounds_ducked : params->bounds;
 }
 
 /**
@@ -300,7 +300,7 @@ static void Pm_Init(void) {
     if (pm->s.flags & PMF_GIBLET) {
       pm->bounds = PM_GIBLET_BOUNDS;
     } else {
-      pm->bounds = PM_DEAD_BOUNDS;
+      pm->bounds = pm->s.params.bounds_dead;
     }
   } else {
     pm->bounds = Pm_Bounds(&pm->s.params, false);

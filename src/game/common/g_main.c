@@ -605,8 +605,14 @@ pm_params_t G_MovementParams(void) {
     .speed_duck_stand = g_duck_stand_speed->value,
     .speed_water_jump = g_water_jump_speed->value,
 
-    .height = g_stand_height->value,
-    .height_ducked = g_duck_height->value,
+    // the cvars name the top of the box, which is the only part of it a server
+    // has ever been able to move; the rest comes from the default box
+    .bounds = { .mins = PM_BOUNDS.mins,
+                .maxs = { { PM_BOUNDS.maxs.x, PM_BOUNDS.maxs.y, g_stand_height->value } } },
+    .bounds_ducked = { .mins = PM_CROUCHED_BOUNDS.mins,
+                       .maxs = { { PM_CROUCHED_BOUNDS.maxs.x, PM_CROUCHED_BOUNDS.maxs.y,
+                                   g_duck_height->value } } },
+    .bounds_dead = PM_DEAD_BOUNDS,
     .movement = g_level.movement,
   };
 

@@ -60,6 +60,15 @@ static void Fill_TestParams(pm_params_t *p) {
   p->speed_spectator = 510.f;   p->speed_stop = 110.f;
   p->speed_jump = 280.f;        p->speed_ducked = 145.f;
   p->speed_duck_stand = 205.f;  p->speed_water_jump = 430.f;
+  // every component distinct, so a dropped or transposed one shows, and every
+  // one fractional, so a serializer that quantized the box to whole units - as
+  // Net_WriteBounds does - would fail here rather than in someone's prediction
+  p->bounds = (box3_t) { .mins = { { -17.25f, -18.5f, -25.75f } },
+                         .maxs = { {  19.25f,  20.5f,  37.75f } } };
+  p->bounds_ducked = (box3_t) { .mins = { { -21.25f, -22.5f, -26.75f } },
+                                .maxs = { {  23.25f,  24.5f,   7.75f } } };
+  p->bounds_dead = (box3_t) { .mins = { { -27.25f, -28.5f, -29.75f } },
+                              .maxs = { {  30.25f,  31.5f,  -3.25f } } };
 }
 
 /**
