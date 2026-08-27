@@ -299,16 +299,18 @@ static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
 
 /**
  * @brief The tail of the `G_ModifyDamage` chain, applying the quad damage
- * powerup. Features holding their own modifiers install over the top.
+ * powerup. Never vetoes. Features holding their own modifiers install over the top.
  */
-static void G_ModifyDamage_Common(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback) {
+static bool G_ModifyDamage_Common(const g_damage_t *dmg, int32_t *damage, int32_t *knockback) {
 
-  if (attacker->client) {
-    if (attacker->client->inventory[POWERUP_QUAD]) {
+  if (dmg->attacker->client) {
+    if (dmg->attacker->client->inventory[POWERUP_QUAD]) {
       *damage *= QUAD_DAMAGE_FACTOR;
       *knockback *= QUAD_KNOCKBACK_FACTOR;
     }
   }
+
+  return true;
 }
 
 ModifyDamage G_ModifyDamage = G_ModifyDamage_Common;
@@ -367,6 +369,14 @@ void G_Damage(const g_damage_t *dmg) {
     }
   }
 
+  g_damage_t resolved = *dmg;
+  resolved.inflictor = inflictor;
+  resolved.attacker = attacker;
+
+  if (!G_ModifyDamage(&resolved, &damage, &knockback)) {
+    return;
+  }
+
   if (target->client && !(dflags & DMG_NO_GOD)) { // invulnerability
     if (target->client->inventory[POWERUP_INVULNERABILITY]) {
       G_MulticastSound(&(const g_play_sound_t) {
@@ -377,8 +387,6 @@ void G_Damage(const g_damage_t *dmg) {
       // knockback is intentionally preserved so rocket jumping still works
     }
   }
-
-  G_ModifyDamage(target, attacker, &damage, &knockback);
 
   // friendly fire avoidance
   if (target != attacker && g_level.teams) {
