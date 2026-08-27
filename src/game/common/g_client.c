@@ -1042,7 +1042,7 @@ static float G_EnemyRangeFromSpot(g_client_t *cl, g_entity_t *spot) {
  */
 static bool G_WouldTelefrag(const vec3_t spot) {
   g_entity_t *ents[MAX_ENTITIES];
-  box3_t bounds = Box3_Translate(PM_BOUNDS, spot);
+  box3_t bounds = Box3_Translate(G_PlayerBounds(false), spot);
 
   bounds.mins.z -= PM_STEP_HEIGHT;
   bounds.maxs.z += PM_STEP_HEIGHT;
@@ -1332,7 +1332,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
     ent->solid = SOLID_BOX;
     ent->sv_flags = 0;
 
-    ent->bounds = Box3_Scale(PM_BOUNDS, PM_SCALE);
+    ent->bounds = G_PlayerBounds(false);
 
     ent->s.model1 = MODEL_CLIENT;
     ent->s.event = EV_CLIENT_TELEPORT;

@@ -1212,7 +1212,7 @@ static uint32_t G_Ai_Move(g_client_t *cl, pm_cmd_t *cmd) {
     // if we're on a ladder and the node is a bbox below us, crouch to get down,
     // otherwise hold jump
     } else if (cl->ps.pm_state.flags & PMF_ON_LADDER) {
-      if ((cl->ai->move_target.path.path_position.z - ent->s.origin.z) < -Box3_Size(PM_BOUNDS).z) {
+      if ((cl->ai->move_target.path.path_position.z - ent->s.origin.z) < -Box3_Size(Pm_Bounds(&cl->ps.pm_state.params, false)).z) {
         cmd->up = -PM_SPEED_DUCKED;
       } else {
         cmd->up = PM_SPEED_JUMP;
@@ -1496,7 +1496,7 @@ static uint32_t G_Ai_Turn(g_client_t *cl, pm_cmd_t *cmd) {
       // (you get less forward momentum on a jump if you are looking up/down)
       // so for now this is hardcoded to ladders
       if (cl->ps.pm_state.flags & PMF_ON_LADDER) {
-        if ((cl->ai->move_target.path.path_position.z - cl->entity->s.origin.z) < -Box3_Size(PM_BOUNDS).z) {
+        if ((cl->ai->move_target.path.path_position.z - cl->entity->s.origin.z) < -Box3_Size(Pm_Bounds(&cl->ps.pm_state.params, false)).z) {
           ideal_angles.x = Clampf(ideal_angles.x, -10.f, -180.f);
         } else {
           ideal_angles.x = Clampf(ideal_angles.x, 10.f, 180.f);

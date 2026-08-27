@@ -390,6 +390,8 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
     Net_WriteFloat(msg, to->pm_state.params.speed_ducked);
     Net_WriteFloat(msg, to->pm_state.params.speed_duck_stand);
     Net_WriteFloat(msg, to->pm_state.params.speed_water_jump);
+    Net_WriteFloat(msg, to->pm_state.params.height);
+    Net_WriteFloat(msg, to->pm_state.params.height_ducked);
   }
 
   uint32_t stat_bits = 0;
@@ -908,6 +910,8 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
     to->pm_state.params.speed_ducked = Net_ReadFloat(msg);
     to->pm_state.params.speed_duck_stand = Net_ReadFloat(msg);
     to->pm_state.params.speed_water_jump = Net_ReadFloat(msg);
+    to->pm_state.params.height = Net_ReadFloat(msg);
+    to->pm_state.params.height_ducked = Net_ReadFloat(msg);
   }
 
   const int32_t stat_bits = Net_ReadLong(msg);
