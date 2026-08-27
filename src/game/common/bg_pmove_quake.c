@@ -67,7 +67,6 @@
 
 const pm_params_t pm_quake_params = {
   .gravity = 800,               // sv_gravity
-  .gravity_water = 1.f,         // unused: this kernel applies no gravity in water
   .accel_ground = 10.f,         // sv_accelerate
   .accel_ground_slick = 10.f,   // unused: Quake has no slick surfaces
   .accel_air = 10.f,            // sv_accelerate again; PM_AirMove passes it to both

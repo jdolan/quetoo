@@ -113,7 +113,6 @@
 
 const pm_params_t pm_quake3_params = {
   .gravity = 800,
-  .gravity_water = 1.f,         // unused: this movement applies no gravity while swimming
   .accel_ground = 10.f,         // pm_accelerate
   .accel_ground_slick = 1.f,    // pm_airaccelerate, which is what slick ground gets
   .accel_air = 1.f,             // pm_airaccelerate

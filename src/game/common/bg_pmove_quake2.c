@@ -70,7 +70,6 @@
 
 const pm_params_t pm_quake2_params = {
   .gravity = 800,
-  .gravity_water = 1.f,         // unused: this movement applies no gravity in water
   .accel_ground = 10.f,         // pm_accelerate
   .accel_ground_slick = 10.f,   // Quake II does not accelerate differently on slick
   .accel_air = 1.f,             // the literal 1 the airborne case passes

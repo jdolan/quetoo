@@ -165,7 +165,6 @@ cvar_t *g_spectator_speed;
 cvar_t *g_stop_speed;
 cvar_t *g_water_acceleration;
 cvar_t *g_water_friction;
-cvar_t *g_water_gravity;
 cvar_t *g_water_jump_speed;
 cvar_t *g_water_speed;
 cvar_t *g_death_cam;
@@ -576,7 +575,6 @@ pm_params_t G_MovementParams(void) {
 
   pm_params_t params = (pm_params_t) {
     .gravity = g_level.gravity,
-    .gravity_water = g_water_gravity->value,
 
     .accel_ground = g_ground_acceleration->value,
     .accel_ground_slick = g_ground_acceleration_slick->value,
@@ -1155,7 +1153,6 @@ void G_Init(void) {
   g_stop_speed = gi.AddCvar("g_stop_speed", "100.0", 0, "Speed below which friction is amplified to stop the player. Default 100.0.");
   g_water_acceleration = gi.AddCvar("g_water_acceleration", "3.0", 0, "Acceleration applied underwater. Default 3.0.");
   g_water_friction = gi.AddCvar("g_water_friction", "2.0", 0, "Friction applied underwater. Default 2.0.");
-  g_water_gravity = gi.AddCvar("g_water_gravity", "0.33", 0, "Fraction of gravity applied underwater. Default 0.33.");
   g_water_jump_speed = gi.AddCvar("g_water_jump_speed", "420.0", 0, "Upward velocity when jumping out of water. Default 420.0.");
   g_water_speed = gi.AddCvar("g_water_speed", "140.0", 0, "Maximum swimming speed. Default 140.0.");
 

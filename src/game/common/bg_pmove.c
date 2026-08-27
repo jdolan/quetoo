@@ -243,13 +243,7 @@ void Pm_Gravity(void) {
     return;
   }
 
-  float gravity = pm->s.params.gravity;
-
-  if (pm->water_level > WATER_WAIST) {
-    gravity *= pm->s.params.gravity_water;
-  }
-
-  pm->s.velocity.z -= gravity * pm_locals.time;
+  pm->s.velocity.z -= pm->s.params.gravity * pm_locals.time;
 }
 
 /**

@@ -69,7 +69,6 @@
 
 const pm_params_t pm_race_params = {
   .gravity = 800,
-  .gravity_water = 1.f,
   .accel_ground = 10.f,
   .accel_ground_slick = 10.f,
   .accel_air = 1.f,             // uncapped wish, so strafing gains over a wide arc
