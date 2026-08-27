@@ -1930,8 +1930,8 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
       gi.Print("PMove frame %8" PRIu64 " / %8" PRIu64, pmove_frame, pmove_frames);
       pmove_frame++;
 
-      // the recording holds the pointers of whatever module made it
-      pm.Move = NULL;
+      // the recording holds the pointers of whatever module made it; the
+      // movement kernel travels as an id in the parameters, so it survives
       pm.Accelerate = NULL;
     }
   }

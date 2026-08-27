@@ -414,10 +414,49 @@ Two rules come out of the way they used to be written:
 
 ### `bg_` is for what both sides use
 
-`bg_pmove.{c,h}` and `bg_item.{c,h}` are compiled into the game *and* the client
-game, and that is what the prefix means. `g_types.h` is not `bg_` despite the
+`bg_pmove.{c,h}`, `bg_pmove_*.c` and `bg_item.{c,h}` are compiled into the game
+*and* the client game, and that is what the prefix means. `g_types.h` is not `bg_` despite the
 client game including it, because it is the game module's own manifest, which the
 client game borrows wholesale - so the two prefixes are not in conflict.
+
+### The movement kernel is a selection, not a hook
+
+How a player moves is the one variation point that is not a hook. `pm_params_t`
+carries a `kernel`, `Pm_Move` dispatches on it, and each kernel is a whole
+`bg_pmove_*.c` that owns everything after the move is initialized: the ground,
+water, ladder and duck checks, the slide, the step. `bg_pmove.c` keeps only what
+every kernel shares - the trace, the touch list, the prologue, the spectator and
+frozen cases - and `bg_pmove_internal.h` is the contract between the two.
+
+Three things drove that shape rather than a `Move` function pointer, which is
+what this started as:
+
+1. **A kernel cannot be networked, but a selection can.** `pm_params_t` already
+   travels per-player inside `pm_state_t`, delta-compressed as a unit, so the id
+   reaches the client with the parameters it belongs to and prediction cannot
+   disagree about which physics is running. A function pointer has to be
+   installed on both sides separately, by two modules that might not.
+2. **Movement forks wholesale.** Porting Quake II's kernel reused five of the
+   twenty-odd steps `bg_pmove_internal.h` offered and rewrote the rest. A seam
+   made of steps earns very little; the honest seam is the whole kernel.
+3. **A ruleset must be able to stop changing.** A record is comparable only to
+   another record set under the same movement, and shared code that everyone
+   edits can never offer that. A kernel in its own file is finished once it
+   matches what it is imitating. Changing what one does is a new id appended to
+   `pm_kernel_t`, never an edit; the exception is `bg_pmove.c` itself, where a
+   fault is a fault in every ruleset.
+
+The cost is duplication between kernels, accepted deliberately: two kernels that
+differ are meant to differ, and a shared "fix" between them would be a change in
+behaviour rather than a repair. What a kernel MUST NOT do is read a cvar, keep
+state between moves, look at the clock, or use a random number - the server and
+the client both run it. Anything a ruleset needs in order to vary travels in
+`pm_params_t` or is a constant in the kernel's own file.
+
+Because the parameters are per-player rather than per-server, this is also what a
+class-based mod uses: each class gets its movement, and a mod with several
+rulesets gives each player the one their map or their vote selected, by writing
+those fields in `G_PrepareMove`.
 
 `bg_hook.h` and `bg_tech.h` were `g_hook_types.h` and `g_tech_types.h`. They exist
 because `g_types.h` must embed `g_client_hook_t` in `g_client_t`, and `g_hook.h`

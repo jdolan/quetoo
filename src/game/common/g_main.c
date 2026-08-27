@@ -570,6 +570,7 @@ static char *G_FormatTime(uint32_t time) {
 pm_params_t G_MovementParams(void) {
   return (pm_params_t) {
     .gravity = g_level.gravity,
+    .kernel = PM_KERNEL_QUETOO,
     .gravity_water = g_water_gravity->value,
 
     .accel_ground = g_ground_acceleration->value,

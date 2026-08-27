@@ -279,12 +279,35 @@ typedef enum {
 #define PMF_GAME (1 << 0)
 
 /**
+ * @brief The movement kernels `Pm_Move` can run, selected per-player through
+ * `pm_params_t.kernel`.
+ * @details A kernel owns everything about how a player moves once the move is
+ * initialized: the ground, water and duck checks, the slide and the step. Each
+ * lives in its own `bg_pmove_*.c` and is finished rather than maintained, so
+ * that a ruleset a record was set under cannot drift.
+ *
+ * These values are networked. The list is append-only: an id names a ruleset
+ * forever, and reordering it would silently move every client onto different
+ * physics. `PM_KERNEL_GAME` begins the range a module may define for itself,
+ * as `CS_GAME` and `EF_GAME` do for their own spaces.
+ */
+typedef enum {
+  PM_KERNEL_QUETOO,  // Quetoo's own, in bg_pmove_quetoo.c
+
+  PM_KERNEL_GAME = 32 // the game may extend from here
+} pm_kernel_t;
+
+/**
  * @brief Server-tunable player-movement parameters, networked per-player
  * inside `pm_state_t` so that client-side prediction matches the server.
  * Each field defaults to the `PM_*` constant it replaces (see bg_pmove.h).
+ * @details Being per-player is the point: a class-based mod gives each class
+ * its own movement, and a mod with several rulesets gives each player the one
+ * their map or vote selected, by writing these fields in `G_PrepareMove`.
  */
 typedef struct {
   int16_t gravity;     // world gravity; default from g_gravity / map (int16)
+  uint8_t kernel;      // pm_kernel_t; which movement kernel Pm_Move runs
   float gravity_water; // PM_GRAVITY_WATER
 
   float accel_ground, accel_ground_slick, accel_air, accel_water,

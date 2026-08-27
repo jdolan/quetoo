@@ -164,6 +164,7 @@ cgamelib_LTLIBRARIES = \
 cgame_la_SOURCES = \
 	bg_item.c \
 	bg_pmove.c \
+	bg_pmove_quetoo.c \
 	cg_client.c \
 	cg_discord.c \
 	cg_editor.c \
