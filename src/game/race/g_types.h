@@ -123,8 +123,9 @@ typedef enum {
 _Static_assert(STAT_RACE_FLAGS < MAX_STATS, "the race stats must fit the stat array");
 
 /**
- * @brief The most checkpoints a course may have. A course is contiguous
- * checkpoints 1 through N and at least one finish; a start is optional.
+ * @brief The most checkpoints a course may have, and likewise splits and
+ * stages. A course is contiguous checkpoints 1 through N and at least one
+ * finish; a start is optional, and so are splits and stages.
  */
 #define RACE_MAX_CHECKPOINTS 64
 
@@ -165,16 +166,44 @@ typedef enum {
 } g_race_start_mode_t;
 
 /**
+ * @brief What a `func_race_*` brush is to a racer's movement, kept on the
+ * entity so that `G_Race_ClipEntity` can tell one at a glance.
+ */
+typedef enum {
+  RACE_BARRIER_NONE,
+  RACE_BARRIER_GATE, // solid until the run's checkpoints satisfy it
+  RACE_BARRIER_WALL  // solid from one side only
+} g_race_barrier_t;
+
+/**
+ * @brief When a `func_race_checkpoint_gate` opens.
+ */
+typedef enum {
+  RACE_GATE_AT_LEAST, // once the checkpoint has been reached
+  RACE_GATE_EXACT     // only while it is the last one reached
+} g_race_gate_mode_t;
+
+typedef struct {
+  uint16_t checkpoint;
+  g_race_gate_mode_t mode;
+  bool invert; // closed under the condition rather than open
+} g_race_gate_t;
+
+/**
  * @brief The course the level's triggers describe, gathered as they spawn and
  * validated once they all have.
  */
 typedef struct {
   uint64_t checkpoints; // bit N - 1 is set once checkpoint N has spawned
-  uint16_t checkpoint_count;
+  uint64_t splits;      // likewise for splits 1 through N
+  uint64_t stages;      // likewise for stages 2 through N; a run begins in stage 1
+  uint16_t checkpoint_count, split_count, stage_count;
   uint16_t start_count;
   uint16_t finish_count;
-  bool malformed; // a checkpoint number out of range was seen
-  bool valid;
+  bool malformed, splits_malformed, stages_malformed; // a number out of range was seen
+  bool valid;        // checkpoints 1 through N and a finish; nothing else bears on it
+  bool splits_valid; // splits 1 through N, so they time
+  bool stages_valid; // stages 2 through N, each with somewhere to return to
 } g_race_course_t;
 
 /**
@@ -185,9 +214,13 @@ typedef struct {
   g_race_run_state_t state;
   g_race_mode_t mode; // the mode the run was started in, which is what decides whether it counts
   uint16_t checkpoint_count;
+  uint16_t split_count;
+  uint16_t stage; // the one under way, from 1
   uint32_t start_time;
   uint32_t elapsed; // set on finish
   uint32_t checkpoint_times[RACE_MAX_CHECKPOINTS]; // from the start
+  uint32_t split_times[RACE_MAX_CHECKPOINTS];
+  uint32_t stage_times[RACE_MAX_CHECKPOINTS]; // stage_times[N - 2] is when stage N began
   float start_speed, end_speed, top_speed;
   float speed_sum; // over speed_samples, for the average
   uint32_t speed_samples;
@@ -1981,6 +2014,12 @@ struct g_entity_s {
    * @brief True if the entity should advance along the item path.
    */
   bool move_node;
+
+  /**
+   * @brief What this brush is to a racer's movement, for the `func_race_*` classes.
+   */
+  g_race_barrier_t race_barrier;
+  g_race_gate_t race_gate;
 };
 
 typedef struct g_entity_s g_entity_t;
