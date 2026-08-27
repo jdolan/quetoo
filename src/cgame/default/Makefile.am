@@ -166,6 +166,7 @@ cgame_la_SOURCES = \
 	bg_pmove.c \
 	bg_pmove_quake.c \
 	bg_pmove_quake2.c \
+	bg_pmove_quake3.c \
 	bg_pmove_quetoo.c \
 	bg_pmove_race.c \
 	cg_client.c \

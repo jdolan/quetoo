@@ -463,6 +463,133 @@ START_TEST(check_Race_JumpStacks) {
 } END_TEST
 
 /**
+ * @brief Quake III runs at 320, as QuakeWorld did and Quake II did not.
+ */
+START_TEST(check_Quake3_GroundSpeed) {
+
+  pm_move_t pm = Test_Move(PM_MOVEMENT_QUAKE3);
+
+  for (int32_t i = 0; i < 60; i++) {
+    Test_Command(&pm, TEST_INTENT, 0, 0);
+  }
+
+  const float speed = Vec2_Length(Vec3_XY(pm.s.velocity));
+
+  ck_assert_msg(pm.s.flags & PMF_ON_GROUND, "did not stay on the ground");
+  ck_assert_msg(fabsf(speed - 320.f) < 1.f,
+                "Quake III ran at %g, expected its own 320", speed);
+} END_TEST
+
+/**
+ * @brief Quake III assigns the jump speed rather than adding it, so a jump off a
+ * ramp or a lift does not stack, which is the whole difference from both of the
+ * movements before it.
+ */
+START_TEST(check_Quake3_JumpAssigns) {
+
+  pm_move_t pm = Test_Move(PM_MOVEMENT_QUAKE3);
+  Test_Command(&pm, 0, 0, 0);
+  ck_assert_msg(pm.s.flags & PMF_ON_GROUND, "did not start on the ground");
+
+  // already rising, but not so hard that the kickoff has taken the ground away:
+  // a jump that added would leave this much more than one that assigns. On a
+  // flat floor the kickoff dot is just the vertical speed, so 10 is all the rise
+  // this can be given - a ramp is where the difference is worth anything
+  pm.s.velocity.z = 9.f;
+
+  Test_Command(&pm, 0, 0, TEST_INTENT);
+
+  ck_assert_msg(!(pm.s.flags & PMF_ON_GROUND), "stayed on the ground after jumping");
+
+  // the slide takes the whole command of gravity out of what survives
+  const float expected = 270.f - 80.f;
+  ck_assert_msg(fabsf(pm.s.velocity.z - expected) < 1.f,
+                "jumped to %g, expected %g: Quake III assigns the jump speed "
+                "rather than adding to what it finds", pm.s.velocity.z, expected);
+} END_TEST
+
+/**
+ * @brief Landing hard runs Quake III's timer, but nothing tests the flag, so the
+ * jump is not locked out: a player may jump the instant they land, which is what
+ * chaining strafe jumps depends on and what separates this from Quake II.
+ */
+START_TEST(check_Quake3_LandingDoesNotLockJump) {
+
+  pm_move_t pm = Test_Move(PM_MOVEMENT_QUAKE3);
+
+  // dropped, and left to fall until the floor stops it. The state has to be
+  // arrived at rather than assigned: this movement never zeroes the vertical
+  // speed on the ground, so a player planted on the floor still falling at 500
+  // is a state it does not reach, and the walk path would turn that speed back
+  // up the plane it clips against
+  pm.s.origin.z = 256.f;
+
+  int32_t commands = 0;
+  while (!(pm.s.flags & PMF_ON_GROUND)) {
+    Test_Command(&pm, 0, 0, 0);
+    ck_assert_msg(++commands < 100, "never landed");
+  }
+
+  ck_assert_msg(pm.s.flags & PMF_TIME_LAND, "a hard landing started no timer");
+
+  Test_Command(&pm, 0, 0, TEST_INTENT);
+
+  ck_assert_msg(pm.s.velocity.z > 0.f,
+                "the landing timer refused the jump, leaving %g: Quake II does "
+                "that and Quake III does not", pm.s.velocity.z);
+} END_TEST
+
+/**
+ * @brief Quake III ducks, and unlike Quake II it ducks in mid-air too, which is
+ * what makes a crouch slide over a gap possible.
+ */
+START_TEST(check_Quake3_DucksInAir) {
+
+  pm_move_t pm = Test_Move(PM_MOVEMENT_QUAKE3);
+  Test_Command(&pm, 0, 0, 0);
+
+  Test_Command(&pm, 0, 0, -1);
+
+  ck_assert_msg(pm.s.flags & PMF_DUCKED, "did not duck on the ground");
+  ck_assert_msg(pm.bounds.maxs.z == 16.f, "ducked to %g, expected 16", pm.bounds.maxs.z);
+  ck_assert_msg(pm.s.view_offset.z == 12.f,
+                "the ducked eye was at %g, expected 12", pm.s.view_offset.z);
+
+  Test_Command(&pm, 0, 0, 0);
+
+  ck_assert_msg(!(pm.s.flags & PMF_DUCKED), "did not stand back up");
+  ck_assert_msg(pm.s.view_offset.z == 26.f,
+                "the standing eye was at %g, expected 26", pm.s.view_offset.z);
+
+  // and airborne, where Quake II refuses
+  pm_move_t air = Test_Move(PM_MOVEMENT_QUAKE3);
+  air.s.origin.z = 256.f;
+  Test_Command(&air, 0, 0, -1);
+
+  ck_assert_msg(!(air.s.flags & PMF_ON_GROUND), "was on the ground");
+  ck_assert_msg(air.s.flags & PMF_DUCKED, "did not duck in mid-air");
+} END_TEST
+
+/**
+ * @brief Quake III's velocity is rounded to whole units at the end of every
+ * move, as `trap_SnapVector` did, which is observable in the movement.
+ */
+START_TEST(check_Quake3_SnapsVelocity) {
+
+  pm_move_t pm = Test_Move(PM_MOVEMENT_QUAKE3);
+
+  pm.s.origin.z = 8192.f;
+  pm.s.velocity = Vec3(123.456f, -78.9f, 0.f);
+
+  Test_Command(&pm, 0, 0, 0);
+
+  ck_assert_msg(pm.s.velocity.x == roundf(pm.s.velocity.x) &&
+                pm.s.velocity.y == roundf(pm.s.velocity.y) &&
+                pm.s.velocity.z == roundf(pm.s.velocity.z),
+                "the velocity was left at %s", vtos(pm.s.velocity));
+} END_TEST
+
+/**
  * @brief Quetoo's movement is unaffected by any of the above.
  */
 START_TEST(check_Quetoo_GroundSpeed) {
@@ -514,25 +641,42 @@ START_TEST(check_Movement_BoxAndEye) {
 } END_TEST
 
 /**
- * @brief The whole box travels in the parameters, not just its top, so a
- * movement that wants another shape declares one rather than inheriting it.
+ * @brief The whole box travels in the parameters, not just its top, which is why
+ * Quake III can be the 30 units across that it actually is while every other
+ * movement here is 32.
  */
 START_TEST(check_Movement_BoxWidth) {
 
-  const pm_movement_t movements[] = {
+  pm_move_t quake3 = Test_Move(PM_MOVEMENT_QUAKE3);
+  Test_Command(&quake3, 0, 0, 0);
+
+  ck_assert_msg(quake3.bounds.mins.x == -15.f && quake3.bounds.maxs.x == 15.f,
+                "Quake III stood %g wide, expected id's 30",
+                quake3.bounds.maxs.x - quake3.bounds.mins.x);
+
+  const pm_movement_t others[] = {
     PM_MOVEMENT_QUETOO, PM_MOVEMENT_QUAKE, PM_MOVEMENT_QUAKE2, PM_MOVEMENT_RACE
   };
 
-  for (size_t i = 0; i < lengthof(movements); i++) {
-    pm_move_t pm = Test_Move(movements[i]);
+  for (size_t i = 0; i < lengthof(others); i++) {
+    pm_move_t pm = Test_Move(others[i]);
     Test_Command(&pm, 0, 0, 0);
 
     ck_assert_msg(pm.bounds.mins.x == -16.f && pm.bounds.maxs.x == 16.f,
-                  "%s stood %g wide, expected 32", Pm_Movement(movements[i])->name,
+                  "%s stood %g wide, expected 32", Pm_Movement(others[i])->name,
                   pm.bounds.maxs.x - pm.bounds.mins.x);
   }
 
-  // the corpse box travels too
+  // the corpse box travels too, so Quake III's corpse is id's -8 where every
+  // other movement keeps Quetoo's -4
+  pm_move_t dead = Test_Move(PM_MOVEMENT_QUAKE3);
+  dead.s.type = PM_DEAD;
+  Test_Command(&dead, 0, 0, 0);
+
+  ck_assert_msg(dead.bounds.maxs.z == -8.f,
+                "Quake III's corpse topped out at %g, expected id's -8",
+                dead.bounds.maxs.z);
+
   pm_move_t dead_quetoo = Test_Move(PM_MOVEMENT_QUETOO);
   dead_quetoo.s.type = PM_DEAD;
   Test_Command(&dead_quetoo, 0, 0, 0);
@@ -595,6 +739,11 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, check_Quake2_LandingLocksJump);
   tcase_add_test(tcase, check_Quake2_Ducks);
   tcase_add_test(tcase, check_Race_JumpStacks);
+  tcase_add_test(tcase, check_Quake3_GroundSpeed);
+  tcase_add_test(tcase, check_Quake3_JumpAssigns);
+  tcase_add_test(tcase, check_Quake3_LandingDoesNotLockJump);
+  tcase_add_test(tcase, check_Quake3_DucksInAir);
+  tcase_add_test(tcase, check_Quake3_SnapsVelocity);
   tcase_add_test(tcase, check_Quetoo_GroundSpeed);
   tcase_add_test(tcase, check_Movement_BoxAndEye);
   tcase_add_test(tcase, check_Movement_BoxWidth);
