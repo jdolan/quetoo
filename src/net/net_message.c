@@ -279,6 +279,10 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
     bits |= PS_PM_GRAVITY;
   }
 
+  if (to->pm_state.params.kernel != from->pm_state.params.kernel) {
+    bits |= PS_PM_KERNEL;
+  }
+
   if (!Vec3_Equal(to->pm_state.view_offset, from->pm_state.view_offset)) {
     bits |= PS_PM_VIEW_OFFSET;
   }
@@ -340,6 +344,10 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 
   if (bits & PS_PM_GRAVITY) {
     Net_WriteShort(msg, to->pm_state.params.gravity);
+  }
+
+  if (bits & PS_PM_KERNEL) {
+    Net_WriteByte(msg, to->pm_state.params.kernel);
   }
 
   if (bits & PS_PM_VIEW_OFFSET) {
@@ -860,6 +868,10 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
 
   if (bits & PS_PM_GRAVITY) {
     to->pm_state.params.gravity = Net_ReadShort(msg);
+  }
+
+  if (bits & PS_PM_KERNEL) {
+    to->pm_state.params.kernel = Net_ReadByte(msg);
   }
 
   if (bits & PS_PM_VIEW_OFFSET) {

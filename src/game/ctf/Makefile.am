@@ -26,6 +26,7 @@ gamelib_LTLIBRARIES = \
 game_la_SOURCES = \
 	bg_item.c \
 	bg_pmove.c \
+	bg_pmove_quetoo.c \
 	g_ai_goal.c \
 	g_ai_grid.c \
 	g_ai_info.c \

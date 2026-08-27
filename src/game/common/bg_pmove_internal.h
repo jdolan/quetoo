@@ -25,12 +25,30 @@
 
 /**
  * @file
- * @brief The movement kernel's working state and the steps it is built from,
- * for a module that supplies its own kernel through `pm_move_t::Move`.
+ * @brief The movement plumbing, and the working state it keeps, for the kernels
+ * that `Pm_Move` dispatches to.
  *
- * `Pm_Move` sets `pm` and `pm_locals` before it dispatches, and every step here
- * reads them rather than taking the move as a parameter, so a kernel is written
- * exactly as Quetoo's is. Nothing in this header is for callers of `Pm_Move`.
+ * `Pm_Move` initializes the move, clamps the angles, handles the frozen,
+ * spectator and dead cases, and then hands everything else to the kernel named
+ * by `pm_params_t.kernel`. A kernel owns the ground, water, ladder and duck
+ * checks, the move itself, and `Pm_CheckViewStep` if it wants step smoothing.
+ *
+ * `pm` and `pm_locals` are set before the dispatch, and every step here reads
+ * them rather than taking the move as a parameter, so a kernel is written the
+ * way Quetoo's is.
+ *
+ * A kernel MUST be a pure function of `pm_move_t` and `pm_params_t`. It MUST
+ * NOT read a cvar, keep state between moves, consult the clock, or use a random
+ * number: the server and the client both run it, and anything else desynchronizes
+ * prediction. Whatever a ruleset needs in order to vary MUST travel in
+ * `pm_params_t`, which is networked per-player, or be a constant in the kernel's
+ * own file.
+ *
+ * A kernel SHOULD be finished rather than maintained. A record is only
+ * comparable to another record set under the same movement, so changing what a
+ * kernel does is a new kernel, appended to `pm_kernel_t`, not an edit to an
+ * existing one. Fixes to this file are the exception: it is shared, and a fault
+ * in the plumbing is a fault in every ruleset.
  */
 
 #define MAX_CLIP_PLANES  6
@@ -102,30 +120,12 @@ extern pm_locals_t pm_locals;
 
 void Pm_TouchEntity(const cm_trace_t *trace);
 cm_trace_t Pm_Trace(const vec3_t start, const vec3_t end, const box3_t bounds);
-vec3_t Pm_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce);
-void Pm_ClipMove(const cm_trace_t *trace);
-float Pm_SlideMove(void);
-bool Pm_CheckStep(const cm_trace_t *trace);
-void Pm_StepDown(const cm_trace_t *trace);
-void Pm_StepSlideMove(void);
 void Pm_Friction(const bool flying);
 void Pm_Accelerate(const vec3_t dir, float speed, float accel);
 void Pm_Gravity(void);
-void Pm_Currents(void);
-bool Pm_CheckTrickJump(void);
-bool Pm_CheckHookJump(void);
-void Pm_CheckHook(void);
-void Pm_CheckGround(void);
-void Pm_CheckWater(void);
-void Pm_CheckDuck(void);
-bool Pm_CheckJump(void);
-void Pm_CheckLadder(void);
-bool Pm_CheckWaterJump(void);
-void Pm_LadderMove(void);
-void Pm_WaterJumpMove(void);
-void Pm_WaterMove(void);
-void Pm_AirMove(void);
-void Pm_WalkMove(void);
-void Pm_SpectatorMove(void);
-void Pm_FreezeMove(void);
 void Pm_CheckViewStep(void);
+
+/**
+ * @brief The kernels, one per `pm_kernel_t`. `Pm_Move` calls exactly one.
+ */
+void Pm_QuetooMove(void);

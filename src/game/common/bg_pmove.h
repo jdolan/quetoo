@@ -216,17 +216,6 @@ typedef struct pm_move_s {
   debug_t debug_mask;
 
   /**
-   * @brief The movement kernel, or `NULL` for Quetoo's. Runs once the move is
-   * initialized and the frozen, spectator and dead cases are handled, and owns
-   * everything after that: the ground, water, ladder and duck checks, the move
-   * itself, and `Pm_CheckViewStep` if it wants step smoothing. Spectator flight
-   * stays Quetoo's. A module supplying its own kernel builds it from
-   * `bg_pmove_internal.h`, which is how both sides run the same one, and it
-   * MUST NOT call `Pm_Move`.
-   */
-  void (*Move)(struct pm_move_s *pm);
-
-  /**
    * @brief Called on each user-intended acceleration, or `NULL`, whether or not
    * the move was already at the wished speed. For training aids that sample the
    * move as it happens; it MUST NOT change it.
@@ -236,5 +225,9 @@ typedef struct pm_move_s {
 
 /**
  * @brief Performs one discrete movement of the player through the world.
+ * @details Initializes the move, clamps the angles, handles the frozen,
+ * spectator and dead cases, and hands the rest to the kernel that
+ * `pm_params_t.kernel` names. The parameters travel with the player, so the
+ * server and the client run the same kernel over the same numbers.
  */
 void Pm_Move(pm_move_t *pm_move);
