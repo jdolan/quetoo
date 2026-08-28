@@ -305,6 +305,9 @@
     <ClCompile Include="..\src\cgame\race\cg_race_hud.c">
       <Filter>src\race</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cgame\race\cg_race_score.c">
+      <Filter>src\race</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\cgame\common\cg_client.c">
       <Filter>src\common</Filter>
     </ClCompile>

@@ -26,4 +26,9 @@
 #if defined(__CG_LOCAL_H__)
 void Cg_ParseScores(void);
 void Cg_ClearScores(void);
+
+/**
+ * @brief The scores as last parsed, sorted, for a module drawing its own board.
+ */
+const g_score_t *Cg_Scores(size_t *count);
 #endif

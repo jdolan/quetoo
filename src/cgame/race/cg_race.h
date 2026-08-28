@@ -41,6 +41,17 @@ void Cg_Race_Init(void);
 uint32_t Cg_Race_Time(const player_state_t *ps);
 
 /**
+ * @brief Formats a run time as the HUD and the board show it.
+ */
+const char *Cg_Race_FormatTime(uint32_t ms);
+
+/**
+ * @brief The scoreboard, arranged for racing. Installed over `DrawScores` by
+ * `Cg_Race_Init`, not chained.
+ */
+void Cg_Race_DrawScores(const player_state_t *ps);
+
+/**
  * @brief The whole HUD, arranged for racing: what common draws that a racer
  * needs, and the run in place of the frags and deaths. Installed over
  * `DrawHudElements` by `Cg_Race_Init`, not chained.

@@ -42,7 +42,7 @@
 
 static float cg_race_speed;
 
-static const char *Cg_Race_FormatTime(uint32_t ms) {
+const char *Cg_Race_FormatTime(uint32_t ms) {
   return va("%u:%02u.%03u", ms / 60000, ms / 1000 % 60, ms % 1000);
 }
 
