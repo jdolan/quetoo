@@ -62,14 +62,25 @@ static const char *G_Race_RecordTime(uint32_t ms) {
  * @brief FNV-1a over the parameters a run was made under: not a key, just a way
  * to tell two records under the same movement apart if its cvars were changed.
  */
-static uint32_t G_Race_HashParams(const pm_params_t *params) {
+static uint32_t G_Race_HashBytes(uint32_t hash, const void *data, size_t length) {
 
-  const uint8_t *bytes = (const uint8_t *) params;
-  uint32_t hash = 2166136261u;
+  const uint8_t *bytes = data;
 
-  for (size_t i = 0; i < sizeof(*params); i++) {
+  for (size_t i = 0; i < length; i++) {
     hash = (hash ^ bytes[i]) * 16777619u;
   }
+
+  return hash;
+}
+
+static uint32_t G_Race_HashParams(const pm_params_t *params) {
+
+  uint32_t hash = 2166136261u;
+
+  // the fields, not the struct: there is padding after movement
+  hash = G_Race_HashBytes(hash, &params->gravity, sizeof(params->gravity));
+  hash = G_Race_HashBytes(hash, &params->movement, sizeof(params->movement));
+  hash = G_Race_HashBytes(hash, &params->accel_ground, sizeof(*params) - offsetof(pm_params_t, accel_ground));
 
   return hash;
 }
@@ -118,8 +129,9 @@ static g_race_record_t *G_Race_AddRecord(void) {
     const size_t capacity = g_level.race_record_capacity ? g_level.race_record_capacity * 2 : 32;
     g_race_record_t *records = gi.Malloc(capacity * sizeof(g_race_record_t), MEM_TAG_GAME_LEVEL);
 
-    if (g_level.race_record_count) {
+    if (g_level.race_records) {
       memcpy(records, g_level.race_records, g_level.race_record_count * sizeof(g_race_record_t));
+      gi.Free(g_level.race_records);
     }
 
     g_level.race_records = records;
