@@ -40,8 +40,9 @@
  */
 
 // how the ghost is dressed until the client game reads CS_RACE_GHOST: as the
-// viewer, since a player model needs a client slot for its skin
-#define RACE_GHOST_EFFECTS (EF_CLIENT | EF_RACE_GHOST | EF_DESPAWN)
+// viewer, since a player model needs a client slot for its skin, and opaque,
+// since EF_DESPAWN fades from a timestamp a new entity never gets
+#define RACE_GHOST_EFFECTS (EF_CLIENT | EF_RACE_GHOST)
 
 static g_race_line_t g_race_lines[MAX_CLIENTS];
 
