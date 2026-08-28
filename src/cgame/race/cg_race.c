@@ -103,7 +103,9 @@ static void Cg_Race_ParseBarrier(int32_t slot) {
 
   switch (barrier) {
     case RACE_BARRIER_GATE:
-      if (sscanf(s + n, "%hu\\%d\\%d", &b->gate.checkpoint, &mode, &invert) != 3) {
+      if (sscanf(s + n, "%hu\\%d\\%d", &b->gate.checkpoint, &mode, &invert) != 3 ||
+          b->gate.checkpoint < 1 || b->gate.checkpoint > RACE_MAX_CHECKPOINTS ||
+          (mode != RACE_GATE_AT_LEAST && mode != RACE_GATE_EXACT)) {
         Cg_Warn("Invalid gate \"%s\"\n", s);
         return;
       }
