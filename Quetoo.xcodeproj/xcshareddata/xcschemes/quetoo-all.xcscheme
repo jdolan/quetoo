@@ -149,15 +149,15 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+game test"
-            isEnabled = "NO">
+            argument = "+game race"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map claustrophobopolis"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
+            argument = "+map cc_neox"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

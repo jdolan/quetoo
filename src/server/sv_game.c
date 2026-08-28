@@ -367,6 +367,8 @@ void Sv_InitGame(void) {
   import.Worldspawn = Cm_Worldspawn;
   import.EntityValue = Cm_EntityValue;
   import.EntityBrushes = Cm_EntityBrushes;
+  import.LoadEntities = Cm_LoadEntities;
+  import.FreeEntity = Cm_FreeEntity;
   import.PointContents = Sv_PointContents;
   import.BoxContents = Sv_BoxContents;
   import.PointInsideBrush = Cm_PointInsideBrush;

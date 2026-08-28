@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 34
+#define GAME_API_VERSION 35
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -553,6 +553,18 @@ typedef struct g_import_s {
    * contents merged into `worldspawn` during the compilation step are fully supported.
    */
   Vector *(*EntityBrushes)(const cm_entity_t *entity);
+
+  /**
+   * @brief Parses a string of brace-delimited key-value entity definitions, the
+   * format of a map's entity string and of `maps.lst`.
+   * @return A list of `cm_entity_t *`, each to be freed with `FreeEntity`.
+   */
+  List *(*LoadEntities)(const char *entity_string);
+
+  /**
+   * @brief Frees an entity definition from `LoadEntities`.
+   */
+  void (*FreeEntity)(cm_entity_t *entity);
 
   /**
    * @return The contents mask at the specific point. The point is tested
