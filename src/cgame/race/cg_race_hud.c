@@ -35,7 +35,8 @@
 // where the speed sits, from the middle of the view
 #define RACE_HUD_SPEED_OFFSET 48
 
-// how much of a frame's speed the readout takes on: it flickers at raw
+// how much of each frame's speed the readout takes on; shown raw, it flickers
+// with every frame at a high frame rate
 #define RACE_HUD_SPEED_LERP .2f
 
 static float cg_race_speed;

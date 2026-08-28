@@ -662,10 +662,6 @@ static void Cg_RotateClientLegs(cl_entity_t *ent, r_entity_t *legs) {
 }
 
 /**
- * @brief Adds the numerous render entities which comprise a given client (player)
- * entity: head, torso, legs, weapon, flags, etc.
- */
-/**
  * @brief The tail of the `Cg_ClientInfo` chain: the slot the entity names.
  */
 static cg_client_info_t *Cg_ClientInfo_Common(const cl_entity_t *ent) {
@@ -674,6 +670,10 @@ static cg_client_info_t *Cg_ClientInfo_Common(const cl_entity_t *ent) {
 
 ClientInfo Cg_ClientInfo = Cg_ClientInfo_Common;
 
+/**
+ * @brief Adds the numerous render entities which comprise a given client (player)
+ * entity: head, torso, legs, weapon, flags, etc.
+ */
 void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
   const entity_state_t *s = &ent->current;
