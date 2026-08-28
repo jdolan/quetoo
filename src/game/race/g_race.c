@@ -57,6 +57,7 @@ static struct {
   ClientDidMove ClientDidMove;
   ClientWillDisconnect ClientWillDisconnect;
   WriteStats WriteStats;
+  WriteScore WriteScore;
 } previous;
 
 static bool installed;
@@ -812,6 +813,29 @@ static void G_WriteStats_Race(g_client_t *cl) {
   cl->ps.stats[STAT_RACE_RUNS] = cl->persistent.race_runs;
 }
 
+/**
+ * @brief The racer's standing on the board: their best, their mode and their
+ * runs, and a score that sorts them by rank, since the common board sorts by
+ * score before the race board ever sees the rows.
+ */
+static void G_WriteScore_Race(const g_client_t *cl, g_score_t *s) {
+
+  previous.WriteScore(cl, s);
+
+  s->race_mode = G_Race_Mode(cl);
+  s->race_runs = cl->persistent.race_runs;
+
+  const g_race_record_t *record = G_Race_Record(cl->persistent.guid, g_level.movement);
+  if (record) {
+    size_t count;
+    s->race_best = record->time;
+    s->score = -(int16_t) G_Race_Rank(record, &count);
+  } else {
+    s->race_best = 0;
+    s->score = -9998; // beneath any rank, above the -9999 the board sorts spectators to
+  }
+}
+
 void G_Race_Init(void) {
 
   if (installed) {
@@ -858,4 +882,7 @@ void G_Race_Init(void) {
 
   previous.WriteStats = G_WriteStats;
   G_WriteStats = G_WriteStats_Race;
+
+  previous.WriteScore = G_WriteScore;
+  G_WriteScore = G_WriteScore_Race;
 }

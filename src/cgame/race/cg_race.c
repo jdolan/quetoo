@@ -118,6 +118,7 @@ void Cg_Race_Init(void) {
   installed = true;
 
   Cg_DrawHudElements = Cg_Race_DrawHud;
+  Cg_DrawScores = Cg_Race_DrawScores;
 
   previous.ParseConfigString = Cg_ParseConfigString;
   Cg_ParseConfigString = Cg_ParseConfigString_Race;

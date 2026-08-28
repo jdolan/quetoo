@@ -438,6 +438,14 @@ typedef struct {
    * @brief Team index.
    */
   uint8_t team;
+
+  /**
+   * @brief How the client is taking part, their best on this map under the
+   * level's movement in milliseconds or 0 for none, and their runs so far.
+   */
+  uint8_t race_mode; // g_race_mode_t
+  uint32_t race_best;
+  uint16_t race_runs;
 } g_score_t;
 
 /**

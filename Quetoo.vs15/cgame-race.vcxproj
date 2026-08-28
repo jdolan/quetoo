@@ -35,6 +35,7 @@
     <ClCompile Include="..\src\cgame\race\cg_module.c" />
     <ClCompile Include="..\src\cgame\race\cg_race.c" />
     <ClCompile Include="..\src\cgame\race\cg_race_hud.c" />
+    <ClCompile Include="..\src\cgame\race\cg_race_score.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4daf60c3-7e85-4b2c-a264-9f5a8dbcae34}</ProjectGuid>

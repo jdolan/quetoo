@@ -90,6 +90,11 @@ void Cg_ParseScores(void) {
   }
 }
 
+const g_score_t *Cg_Scores(size_t *count) {
+  *count = cg_score_state.num_scores;
+  return cg_score_state.scores;
+}
+
 /**
  * @brief Discards the scores, so that a board from the previous server is not
  * drawn on the next.
