@@ -156,10 +156,15 @@ void G_Race_LoadLine(void) {
     g_race_sample_t sample;
     int32_t animation1, animation2;
 
+    const uint32_t previous = g_level.race_line.count
+                              ? g_level.race_line.samples[g_level.race_line.count - 1].time
+                              : 0;
+
     if (sscanf(line, "%u %f %f %f %f %f %f %d %d", &sample.time,
                &sample.origin.x, &sample.origin.y, &sample.origin.z,
                &sample.angles.x, &sample.angles.y, &sample.angles.z,
-               &animation1, &animation2) != 9) {
+               &animation1, &animation2) != 9 ||
+        sample.time < previous || animation1 < 0 || animation1 > UINT8_MAX || animation2 < 0 || animation2 > UINT8_MAX) {
       G_Warn("%s has a sample it should not: \"%s\"\n", path, line);
       valid = false;
       break;
@@ -259,14 +264,20 @@ void G_Race_SampleLine(g_client_t *cl) {
     return;
   }
 
-  g_race_sample_t *sample = G_Race_AddSample(G_Race_ClientLine(cl), MEM_TAG_GAME);
+  g_race_line_t *line = G_Race_ClientLine(cl);
+  const uint32_t time = g_level.time - cl->race_run.start_time;
+
+  // a client may move more than once a tick; the tick's sample is where it ended
+  g_race_sample_t *sample = line->count && line->samples[line->count - 1].time == time
+                            ? &line->samples[line->count - 1]
+                            : G_Race_AddSample(line, MEM_TAG_GAME);
   if (!sample) {
     return;
   }
 
   const g_entity_t *ent = cl->entity;
 
-  sample->time = g_level.time - cl->race_run.start_time;
+  sample->time = time;
   sample->origin = ent->s.origin;
   sample->angles = ent->s.angles;
   sample->animation1 = ent->s.animation1;
