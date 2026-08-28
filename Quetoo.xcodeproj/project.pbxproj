@@ -1143,6 +1143,8 @@
 		D2A5C100000000000000009C /* cg_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDD1B525A0C2710055860E /* cg_sound.c */; };
 		D2A5C100000000000000009D /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
 		D2A5C100000000000000009E /* cg_module.c in Sources */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000056 /* cg_module.c */; };
+		D9A5C100000000000000000B /* cg_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000A1 /* cg_race.c */; };
+		D9A5C100000000000000000C /* cg_race_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000A2 /* cg_race_hud.c */; };
 		D2A5C100000000000000009F /* cg_temp_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */; };
 		D2A5C10000000000000000A0 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
 		D2A5C10000000000000000A1 /* cg_view.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57E1C5C58C300CD0B13 /* cg_view.c */; };
@@ -2568,6 +2570,9 @@
 		D2A5C1000000000000000005 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		D2A5C100000000000000000F /* game-race.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "game-race.so"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2A5C1000000000000000056 /* cg_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_module.c; sourceTree = "<group>"; };
+		D9A5C10000000000000000A1 /* cg_race.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_race.c; sourceTree = "<group>"; };
+		D9A5C10000000000000000A2 /* cg_race_hud.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_race_hud.c; sourceTree = "<group>"; };
+		D9A5C10000000000000000A3 /* cg_race.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_race.h; sourceTree = "<group>"; };
 		D2A5C1000000000000000057 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		D2A5C1000000000000000061 /* cgame.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; name = cgame.so; path = "cgame-race.so"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_quetoo.c; sourceTree = "<group>"; };
@@ -4321,6 +4326,9 @@
 			isa = PBXGroup;
 			children = (
 				D2A5C1000000000000000056 /* cg_module.c */,
+				D9A5C10000000000000000A1 /* cg_race.c */,
+				D9A5C10000000000000000A2 /* cg_race_hud.c */,
+				D9A5C10000000000000000A3 /* cg_race.h */,
 				D2A5C1000000000000000057 /* Makefile.am */,
 			);
 			path = race;
@@ -6705,6 +6713,8 @@
 				D2A5C100000000000000009C /* cg_sound.c in Sources */,
 				D2A5C100000000000000009D /* cg_sprite.c in Sources */,
 				D2A5C100000000000000009E /* cg_module.c in Sources */,
+				D9A5C100000000000000000B /* cg_race.c in Sources */,
+				D9A5C100000000000000000C /* cg_race_hud.c in Sources */,
 				D2A5C100000000000000009F /* cg_temp_entity.c in Sources */,
 				D2A5C10000000000000000A0 /* cg_ui.c in Sources */,
 				D2A5C10000000000000000A1 /* cg_view.c in Sources */,

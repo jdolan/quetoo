@@ -58,7 +58,7 @@ typedef struct {
 /**
  * @brief The client game representation of clients (players).
  */
-typedef struct {
+typedef struct cg_client_info_s {
 
   /**
    * @brief The client info string, e.g. "newbie\qforcer/default."

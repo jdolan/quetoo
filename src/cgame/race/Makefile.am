@@ -65,6 +65,8 @@ cgame_la_SOURCES = \
 	cg_main.c \
 	cg_media.c \
 	cg_module.c \
+	cg_race.c \
+	cg_race_hud.c \
 	cg_muzzle_flash.c \
 	cg_predict.c \
 	cg_score.c \

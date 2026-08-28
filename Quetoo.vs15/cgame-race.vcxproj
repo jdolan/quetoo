@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\cgame\race\cg_race.h" />
     <ClInclude Include="..\src\cgame\cgame.h" />
     <ClInclude Include="..\src\game\race\bg_item.h" />
     <ClInclude Include="..\src\game\common\bg_pmove.h" />
@@ -32,6 +33,8 @@
     <ClCompile Include="..\src\game\common\bg_pmove_race.c" />
     <ClCompile Include="..\src\game\common\bg_pmove_quake3.c" />
     <ClCompile Include="..\src\cgame\race\cg_module.c" />
+    <ClCompile Include="..\src\cgame\race\cg_race.c" />
+    <ClCompile Include="..\src\cgame\race\cg_race_hud.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4daf60c3-7e85-4b2c-a264-9f5a8dbcae34}</ProjectGuid>
