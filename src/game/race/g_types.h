@@ -90,6 +90,7 @@ typedef enum {
 #define CS_RACE_COURSE     (CS_GAME + 10) // checkpoints\finishes\valid, for the HUD
 #define CS_RACE_RECORDS    (CS_GAME + 11) // the top times under this movement, name\time pairs
 #define CS_RACE_GHOST      (CS_GAME + 12) // the course record holder as a CS_CLIENTS string, for the ghost's skin
+#define CS_RACE_BARRIERS   (CS_GAME + 13) // RACE_MAX_BARRIERS of entity\\barrier\\params, so the client predicts them
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -136,6 +137,9 @@ _Static_assert(STAT_RACE_RUNS < MAX_STATS, "the race stats must fit the stat arr
  * finish; a start is optional, and so are splits and stages.
  */
 #define RACE_MAX_CHECKPOINTS 64
+
+// how many func_race_* brushes a level may have, one config string each
+#define RACE_MAX_BARRIERS 32
 
 /**
  * @brief How a client is taking part. Spectating is derived from
@@ -209,6 +213,7 @@ typedef struct {
   uint16_t checkpoint_count, split_count, stage_count;
   uint16_t start_count;
   uint16_t finish_count;
+  uint16_t barrier_count; // func_race_* brushes published so far
   bool malformed, splits_malformed, stages_malformed; // a number out of range was seen
   bool valid;        // checkpoints 1 through N and a finish; nothing else bears on it
   bool splits_valid; // splits 1 through N, so they time
