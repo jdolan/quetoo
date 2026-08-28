@@ -89,6 +89,7 @@ typedef enum {
 #define CS_VOTE            (CS_GAME + 9)  // the vote in progress (bg_vote.h)
 #define CS_RACE_COURSE     (CS_GAME + 10) // checkpoints\finishes\valid, for the HUD
 #define CS_RACE_RECORDS    (CS_GAME + 11) // the top times under this movement, name\time pairs
+#define CS_RACE_GHOST      (CS_GAME + 12) // the course record holder as a CS_CLIENTS string, for the ghost's skin
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -255,6 +256,30 @@ typedef struct {
   uint32_t stage_times[RACE_MAX_CHECKPOINTS];
   float start_speed, top_speed, average_speed;
 } g_race_record_t;
+
+/**
+ * @brief The most samples a raceline holds: ten minutes at the server's tick.
+ */
+#define RACE_MAX_SAMPLES (600 * QUETOO_TICK_RATE)
+
+/**
+ * @brief One tick of a run: where the racer was and how they stood, in the
+ * terms the ghost entity is driven in.
+ */
+typedef struct {
+  uint32_t time; // from the start of the run
+  vec3_t origin, angles;
+  uint8_t animation1, animation2;
+} g_race_sample_t;
+
+/**
+ * @brief A run as it was raced: the samples of a run in progress on the client,
+ * and of the course record on the level.
+ */
+typedef struct {
+  g_race_sample_t *samples;
+  size_t count, capacity;
+} g_race_line_t;
 
 /**
  * @brief A position a practicing client asked to return to, in the spawn
@@ -448,6 +473,7 @@ typedef enum {
 #define EF_CORPSE          (EF_GAME << 4) // to differentiate own corpse from self
 #define EF_RESPAWN         (EF_GAME << 5) // yellow shell
 #define EF_QUAD            (EF_GAME << 6) // blue-green shell
+#define EF_RACE_GHOST      (EF_GAME << 7) // the course record run, wearing the viewer's skin
 #define EF_DESPAWN         (EF_GAME << 11) // translucent
 #define EF_LIGHT           (EF_GAME << 12) // colored light
 #define EF_LIGHT_PULSE     (EF_GAME << 13) // pulse EF_LIGHT radius
@@ -1033,6 +1059,15 @@ typedef struct {
   g_race_record_t *race_records;
   size_t race_record_count, race_record_capacity;
 
+  /**
+   * @brief The course record's raceline under this level's movement, from
+   * `records/<map>-<movement>.ghost`, and whose it is. Level memory.
+   */
+  g_race_line_t race_line;
+  char race_line_holder[MAX_QPATH];
+  char race_line_client[MAX_STRING_CHARS]; // the holder's CS_CLIENTS string, for the ghost's skin
+  uint32_t race_line_time;
+
   } g_level_t;
 
 /**
@@ -1418,6 +1453,11 @@ typedef struct {
    * @brief Where `kill` returns a practicing client to, once they have `store`d.
    */
   g_race_spawn_t race_spawn;
+
+  /**
+   * @brief Whether the course record's ghost runs alongside this client's runs.
+   */
+  bool race_ghost;
 } g_client_persistent_t;
 
 /**
@@ -1468,6 +1508,11 @@ struct g_client_s {
    * start modes that begin the run on the way out rather than on the way in.
    */
   const g_entity_t *race_start;
+
+  /**
+   * @brief The course record's ghost running alongside this client, or NULL.
+   */
+  g_entity_t *race_ghost;
 
   /**
    * @brief Item inventory counts indexed by item index.

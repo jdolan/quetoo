@@ -91,8 +91,37 @@ void G_Race_LoadRecords(void);
 /**
  * @brief Files the finished run on `cl` as a personal best if it is one, and
  * says so; a course record is said to everyone.
+ * @return True if the run is the new course record.
  */
-void G_Race_SubmitRecord(g_client_t *cl);
+bool G_Race_SubmitRecord(g_client_t *cl);
+
+/**
+ * @brief The course record's raceline for this level, read from
+ * `records/<map>-<movement>.ghost` when the level is configured.
+ */
+void G_Race_LoadLine(void);
+
+/**
+ * @brief Frees every run in progress, for the module's shutdown.
+ */
+void G_Race_Shutdown(void);
+
+/**
+ * @brief The run in progress as it is raced: begun with the run, sampled every
+ * move, and either kept as the course record or dropped with the run.
+ */
+void G_Race_BeginLine(g_client_t *cl);
+void G_Race_SampleLine(g_client_t *cl);
+void G_Race_KeepLine(g_client_t *cl);
+void G_Race_DropLine(g_client_t *cl);
+
+/**
+ * @brief The course record's ghost: runs alongside `cl` from the start of a run
+ * if they asked for it, and is removed with the run.
+ */
+void G_Race_SpawnGhost(g_client_t *cl);
+void G_Race_RemoveGhost(g_client_t *cl);
+void G_Race_Ghost_f(g_client_t *cl);
 
 /**
  * @brief The record `guid` holds under `movement`, or NULL.

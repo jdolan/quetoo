@@ -44,6 +44,7 @@
 #define RACE_KILL_INTERVAL 300
 
 static struct {
+  LevelWillSpawn LevelWillSpawn;
   ConfigureLevel ConfigureLevel;
   SpawnEntity SpawnEntity;
   ClipEntity ClipEntity;
@@ -54,6 +55,7 @@ static struct {
   HandleClientCommand HandleClientCommand;
   ClientWillThink ClientWillThink;
   ClientDidMove ClientDidMove;
+  ClientWillDisconnect ClientWillDisconnect;
   WriteStats WriteStats;
 } previous;
 
@@ -98,6 +100,9 @@ static const char *G_Race_FormatTime(uint32_t ms) {
 }
 
 static void G_Race_Reset(g_client_t *cl) {
+
+  G_Race_DropLine(cl);
+  G_Race_RemoveGhost(cl);
 
   memset(&cl->race_run, 0, sizeof(cl->race_run));
   cl->race_start = NULL;
@@ -221,6 +226,9 @@ bool G_Race_Start(g_client_t *cl) {
   if (cl->entity->move_type == MOVE_TYPE_NO_CLIP) {
     run->invalid |= RACE_INVALID_NOCLIP;
   }
+
+  G_Race_BeginLine(cl);
+  G_Race_SpawnGhost(cl);
 
   gi.ClientPrint(cl, PRINT_HIGH, "^2Go!^7 %.0f ups\n", speed);
   return true;
@@ -370,7 +378,9 @@ bool G_Race_Finish(g_client_t *cl) {
   // it counts only if it was raced from start to finish with nothing to disqualify it
   if (run->mode == RACE_MODE_RACE && G_Race_Mode(cl) == RACE_MODE_RACE && !run->invalid) {
     gi.BroadcastPrint(PRINT_HIGH, "%s finished in %s\n", cl->persistent.net_name, time);
-    G_Race_SubmitRecord(cl);
+    if (G_Race_SubmitRecord(cl)) {
+      G_Race_KeepLine(cl);
+    }
   } else if (run->mode == RACE_MODE_PRACTICE) {
     gi.ClientPrint(cl, PRINT_HIGH, "Finished in %s, practicing\n", time);
   } else {
@@ -550,6 +560,19 @@ static void G_Race_Status_f(g_client_t *cl) {
 
 // ---------------------------------------------------------------- the hooks
 
+/**
+ * @brief The level's entities are about to go, the ghosts among them, and with
+ * them every run.
+ */
+static void G_LevelWillSpawn_Race(const char *name) {
+
+  G_ForEachClient(cl, {
+    G_Race_Reset(cl);
+  });
+
+  previous.LevelWillSpawn(name);
+}
+
 static void G_ConfigureLevel_Race(void) {
 
   previous.ConfigureLevel();
@@ -557,6 +580,7 @@ static void G_ConfigureLevel_Race(void) {
   G_Race_ValidateCourse();
   G_Race_ResolveStages();
   G_Race_LoadRecords();
+  G_Race_LoadLine();
 
   const g_race_course_t *course = &g_level.race_course;
 
@@ -664,6 +688,8 @@ static bool G_HandleClientCommand_Race(g_client_t *cl, const char *cmd, bool int
     G_Race_Kill_f(cl);
   } else if (!q_strcmp(cmd, "no_clip")) {
     G_Race_NoClip_f(cl);
+  } else if (!q_strcmp(cmd, "ghost")) {
+    G_Race_Ghost_f(cl);
   } else {
     return previous.HandleClientCommand(cl, cmd, intermission);
   }
@@ -732,6 +758,8 @@ static void G_ClientDidMove_Race(g_client_t *cl, const pm_cmd_t *cmd) {
     run->top_speed = Maxf(run->top_speed, speed);
     run->speed_sum += speed;
     run->speed_samples++;
+
+    G_Race_SampleLine(cl);
   }
 
   if (cl->race_start && !G_Race_Inside(cl, cl->race_start)) {
@@ -742,6 +770,13 @@ static void G_ClientDidMove_Race(g_client_t *cl, const pm_cmd_t *cmd) {
       G_UseTargets((g_entity_t *) start, cl->entity);
     }
   }
+}
+
+static void G_ClientWillDisconnect_Race(g_client_t *cl) {
+
+  G_Race_Reset(cl);
+
+  previous.ClientWillDisconnect(cl);
 }
 
 static void G_WriteStats_Race(g_client_t *cl) {
@@ -773,6 +808,9 @@ void G_Race_Init(void) {
 
   installed = true;
 
+  previous.LevelWillSpawn = G_LevelWillSpawn;
+  G_LevelWillSpawn = G_LevelWillSpawn_Race;
+
   previous.ConfigureLevel = G_ConfigureLevel;
   G_ConfigureLevel = G_ConfigureLevel_Race;
 
@@ -802,6 +840,9 @@ void G_Race_Init(void) {
 
   previous.ClientDidMove = G_ClientDidMove;
   G_ClientDidMove = G_ClientDidMove_Race;
+
+  previous.ClientWillDisconnect = G_ClientWillDisconnect;
+  G_ClientWillDisconnect = G_ClientWillDisconnect_Race;
 
   previous.WriteStats = G_WriteStats;
   G_WriteStats = G_WriteStats_Race;

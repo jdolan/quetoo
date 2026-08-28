@@ -342,7 +342,7 @@ static void G_Race_SaveRecords(void) {
   gi.CloseFile(file);
 }
 
-void G_Race_SubmitRecord(g_client_t *cl) {
+bool G_Race_SubmitRecord(g_client_t *cl) {
   const g_race_run_t *run = &cl->race_run;
 
   const g_race_record_t *best = NULL;
@@ -358,7 +358,7 @@ void G_Race_SubmitRecord(g_client_t *cl) {
   if (record && record->time <= run->elapsed) {
     gi.ClientPrint(cl, PRINT_HIGH, "Your best is %s (+%s)\n", G_Race_RecordTime(record->time),
                    G_Race_RecordTime(run->elapsed - record->time));
-    return;
+    return false;
   }
 
   const uint32_t previous = record ? record->time : 0;
@@ -394,7 +394,9 @@ void G_Race_SubmitRecord(g_client_t *cl) {
   G_Race_SaveRecords();
   G_Race_PublishRecords();
 
-  if (!best_time || run->elapsed < best_time) {
+  const bool course_record = !best_time || run->elapsed < best_time;
+
+  if (course_record) {
     if (best_time) {
       gi.BroadcastPrint(PRINT_HIGH, "^3%s set the course record, %s faster^7\n",
                         cl->persistent.net_name, G_Race_RecordTime(best_time - run->elapsed));
@@ -410,4 +412,6 @@ void G_Race_SubmitRecord(g_client_t *cl) {
   size_t count;
   const size_t rank = G_Race_Rank(G_Race_FindRecord(cl->persistent.guid, run->movement), &count);
   gi.ClientPrint(cl, PRINT_HIGH, "You are #%zu of %zu\n", rank, count);
+
+  return course_record;
 }

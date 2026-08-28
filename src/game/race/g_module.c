@@ -32,4 +32,5 @@ void G_Module_Init(void) {
  * @brief Module shutdown.
  */
 void G_Module_Shutdown(void) {
+  G_Race_Shutdown();
 }
