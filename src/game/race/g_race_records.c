@@ -356,8 +356,8 @@ bool G_Race_SubmitRecord(g_client_t *cl) {
   g_race_record_t *record = G_Race_FindRecord(cl->persistent.guid, run->movement);
 
   if (record && record->time <= run->elapsed) {
-    gi.ClientPrint(cl, PRINT_HIGH, "Your best is %s (+%s)\n", G_Race_RecordTime(record->time),
-                   G_Race_RecordTime(run->elapsed - record->time));
+    G_Race_CenterPrint(cl, "Finished in %s, your best is %s (+%s)", G_Race_RecordTime(run->elapsed),
+                       G_Race_RecordTime(record->time), G_Race_RecordTime(run->elapsed - record->time));
     return false;
   }
 
@@ -396,6 +396,11 @@ bool G_Race_SubmitRecord(g_client_t *cl) {
 
   const bool course_record = !best_time || run->elapsed < best_time;
 
+  size_t count;
+  const size_t rank = G_Race_Rank(G_Race_FindRecord(cl->persistent.guid, run->movement), &count);
+  const char *standing = va("#%zu of %zu", rank, count);
+  const char *time = G_Race_RecordTime(run->elapsed);
+
   if (course_record) {
     if (best_time) {
       gi.BroadcastPrint(PRINT_HIGH, "^3%s set the course record, %s faster^7\n",
@@ -403,15 +408,13 @@ bool G_Race_SubmitRecord(g_client_t *cl) {
     } else {
       gi.BroadcastPrint(PRINT_HIGH, "^3%s set the first course record^7\n", cl->persistent.net_name);
     }
+    G_Race_CenterPrint(cl, "^3Course record^7 %s, %s", time, standing);
   } else if (previous) {
-    gi.ClientPrint(cl, PRINT_HIGH, "^2Personal best^7, %s faster\n", G_Race_RecordTime(previous - run->elapsed));
+    G_Race_CenterPrint(cl, "^2Personal best^7 %s, %s faster, %s", time,
+                       G_Race_RecordTime(previous - run->elapsed), standing);
   } else {
-    gi.ClientPrint(cl, PRINT_HIGH, "^2Personal best^7\n");
+    G_Race_CenterPrint(cl, "^2Personal best^7 %s, %s", time, standing);
   }
-
-  size_t count;
-  const size_t rank = G_Race_Rank(G_Race_FindRecord(cl->persistent.guid, run->movement), &count);
-  gi.ClientPrint(cl, PRINT_HIGH, "You are #%zu of %zu\n", rank, count);
 
   return course_record;
 }

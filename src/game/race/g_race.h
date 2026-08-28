@@ -39,6 +39,12 @@
 void G_Race_Init(void);
 
 /**
+ * @brief What the run has to say to its racer goes to the screen, not the
+ * console: a racer runs the course a hundred times an hour.
+ */
+void G_Race_CenterPrint(const g_client_t *cl, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+
+/**
  * @brief How `cl` is taking part right now.
  */
 g_race_mode_t G_Race_Mode(const g_client_t *cl);
@@ -90,7 +96,7 @@ void G_Race_LoadRecords(void);
 
 /**
  * @brief Files the finished run on `cl` as a personal best if it is one, and
- * says so; a course record is said to everyone.
+ * tells the racer how it went; a course record is said to everyone.
  * @return True if the run is the new course record.
  */
 bool G_Race_SubmitRecord(g_client_t *cl);

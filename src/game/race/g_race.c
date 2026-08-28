@@ -99,6 +99,19 @@ static const char *G_Race_FormatTime(uint32_t ms) {
   return va("%u:%02u.%03u", ms / 60000, ms / 1000 % 60, ms % 1000);
 }
 
+void G_Race_CenterPrint(const g_client_t *cl, const char *fmt, ...) {
+  char string[MAX_STRING_CHARS];
+
+  va_list args;
+  va_start(args, fmt);
+  vsnprintf(string, sizeof(string), fmt, args);
+  va_end(args);
+
+  gi.WriteByte(SV_CMD_CENTER_PRINT);
+  gi.WriteString(string);
+  gi.Unicast(cl, true);
+}
+
 static void G_Race_Reset(g_client_t *cl) {
 
   G_Race_DropLine(cl);
@@ -230,7 +243,7 @@ bool G_Race_Start(g_client_t *cl) {
   G_Race_BeginLine(cl);
   G_Race_SpawnGhost(cl);
 
-  gi.ClientPrint(cl, PRINT_HIGH, "^2Go!^7 %.0f ups\n", speed);
+  G_Race_CenterPrint(cl, "^2Go!");
   return true;
 }
 
@@ -262,14 +275,13 @@ bool G_Race_Checkpoint(g_client_t *cl, uint16_t checkpoint) {
   }
 
   if (checkpoint > expected) {
-    gi.ClientPrint(cl, PRINT_HIGH, "Checkpoint %u skipped\n", expected);
+    G_Race_CenterPrint(cl, "Checkpoint %u skipped", expected);
     return false;
   }
 
   run->checkpoint_times[run->checkpoint_count++] = g_level.time - run->start_time;
 
-  gi.ClientPrint(cl, PRINT_HIGH, "Checkpoint %u  %s\n", checkpoint,
-                 G_Race_FormatTime(run->checkpoint_times[checkpoint - 1]));
+  G_Race_CenterPrint(cl, "Checkpoint %u  %s", checkpoint, G_Race_FormatTime(run->checkpoint_times[checkpoint - 1]));
 
   G_MulticastSound(&(const g_play_sound_t) {
     .index = g_media.sounds.teleport,
@@ -299,8 +311,8 @@ bool G_Race_Split(g_client_t *cl, uint16_t split, const char *label) {
 
   run->split_times[run->split_count++] = time;
 
-  gi.ClientPrint(cl, PRINT_HIGH, "%s  %s  (+%s)\n", label && *label ? label : va("Split %u", split),
-                 G_Race_FormatTime(time), G_Race_FormatTime(time - previous));
+  G_Race_CenterPrint(cl, "%s  %s  (+%s)", label && *label ? label : va("Split %u", split),
+                     G_Race_FormatTime(time), G_Race_FormatTime(time - previous));
   return true;
 }
 
@@ -322,7 +334,7 @@ bool G_Race_Stage(g_client_t *cl, uint16_t stage, const char *label, const g_ent
     run->stage_times[stage - 2] = g_level.time - run->start_time;
     run->stage = stage;
 
-    gi.ClientPrint(cl, PRINT_HIGH, "%s  %s\n", name, G_Race_FormatTime(run->stage_times[stage - 2]));
+    G_Race_CenterPrint(cl, "%s  %s", name, G_Race_FormatTime(run->stage_times[stage - 2]));
     counted = true;
   }
 
@@ -337,7 +349,7 @@ bool G_Race_Stage(g_client_t *cl, uint16_t stage, const char *label, const g_ent
       };
 
       if (!counted) {
-        gi.ClientPrint(cl, PRINT_HIGH, "%s. ^2kill^7 returns here\n", name);
+        G_Race_CenterPrint(cl, "%s. ^2kill^7 returns here", name);
       }
       counted = true;
     }
@@ -372,7 +384,6 @@ bool G_Race_Finish(g_client_t *cl) {
   run->end_speed = Vec3_Length(cl->entity->velocity);
   run->top_speed = Maxf(run->top_speed, run->end_speed);
 
-  const float average = run->speed_samples ? run->speed_sum / run->speed_samples : 0.f;
   const char *time = G_Race_FormatTime(run->elapsed);
 
   // it counts only if it was raced from start to finish with nothing to disqualify it
@@ -382,13 +393,10 @@ bool G_Race_Finish(g_client_t *cl) {
       G_Race_KeepLine(cl);
     }
   } else if (run->mode == RACE_MODE_PRACTICE) {
-    gi.ClientPrint(cl, PRINT_HIGH, "Finished in %s, practicing\n", time);
+    G_Race_CenterPrint(cl, "Finished in %s, practicing", time);
   } else {
-    gi.ClientPrint(cl, PRINT_HIGH, "Finished in %s, but ^1it does not count^7\n", time);
+    G_Race_CenterPrint(cl, "Finished in %s, but ^1it does not count^7", time);
   }
-
-  gi.ClientPrint(cl, PRINT_HIGH, "  start %.0f  finish %.0f  top %.0f  average %.0f ups\n",
-                 run->start_speed, run->end_speed, run->top_speed, average);
 
   G_MulticastSound(&(const g_play_sound_t) {
     .index = g_media.sounds.teleport,
