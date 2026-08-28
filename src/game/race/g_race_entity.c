@@ -266,7 +266,8 @@ static void G_trigger_race_finish(g_entity_t *ent) {
 
 /**
  * @brief The common half of every barrier's setup: an inline brush, solid,
- * whose conditions `G_Race_ClipEntity` applies.
+ * whose conditions `G_Race_ClipEntity` applies, published on the barrier's
+ * `CS_RACE_BARRIERS` slot so that the client applies them too.
  */
 static void G_func_race_Init(g_entity_t *ent, g_race_barrier_t barrier) {
 
@@ -276,13 +277,25 @@ static void G_func_race_Init(g_entity_t *ent, g_race_barrier_t barrier) {
     return;
   }
 
+  if (g_level.race_course.barrier_count == RACE_MAX_BARRIERS) {
+    G_Warn("%s is one func_race_* too many; the level may have %d\n", etos(ent), RACE_MAX_BARRIERS);
+    G_FreeEntity(ent);
+    return;
+  }
+
   ent->race_barrier = barrier;
   ent->solid = SOLID_BSP;
   ent->move_type = MOVE_TYPE_NONE;
-  ent->sv_flags |= SVF_NO_CLIENT;
 
   gi.SetModel(ent, ent->model);
   gi.LinkEntity(ent);
+
+  const char *params = barrier == RACE_BARRIER_GATE
+                       ? va("%u\\%d\\%d", ent->race_gate.checkpoint, ent->race_gate.mode, ent->race_gate.invert)
+                       : va("%g\\%g", ent->move_dir.x, ent->move_dir.y);
+
+  gi.SetConfigString(CS_RACE_BARRIERS + g_level.race_course.barrier_count++,
+                     va("%u\\%d\\%s", ent->s.number, barrier, params));
 }
 
 /*QUAKED func_race_checkpoint_gate (0 .5 .8) ?
