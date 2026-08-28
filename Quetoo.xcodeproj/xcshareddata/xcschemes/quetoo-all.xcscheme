@@ -138,7 +138,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set editor 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_ai_node_dev 1"
@@ -157,7 +157,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map cc_neox"
+            argument = "+map racetest"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
