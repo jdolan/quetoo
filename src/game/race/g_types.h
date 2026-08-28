@@ -119,7 +119,8 @@ typedef enum {
   STAT_RACE_TIME_LOW,
   STAT_RACE_TIME_HIGH,
   STAT_RACE_CHECKPOINTS, // reached; the total is on CS_RACE_COURSE
-  STAT_RACE_FLAGS        // g_race_invalid_t
+  STAT_RACE_FLAGS,       // g_race_invalid_t
+  STAT_RACE_RUNS         // started on this map
 } g_stat_t;
 
 /**
@@ -127,7 +128,7 @@ typedef enum {
  */
 #define STAT_TOGGLE_BIT 0x4000
 
-_Static_assert(STAT_RACE_FLAGS < MAX_STATS, "the race stats must fit the stat array");
+_Static_assert(STAT_RACE_RUNS < MAX_STATS, "the race stats must fit the stat array");
 
 /**
  * @brief The most checkpoints a course may have, and likewise splits and
@@ -1458,6 +1459,11 @@ typedef struct {
    * @brief Whether the course record's ghost runs alongside this client's runs.
    */
   bool race_ghost;
+
+  /**
+   * @brief The runs started on this map, for the HUD.
+   */
+  uint16_t race_runs;
 } g_client_persistent_t;
 
 /**

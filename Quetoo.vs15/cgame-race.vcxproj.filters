@@ -60,6 +60,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\cgame\race\cg_race.h">
+      <Filter>src\race</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\cgame.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -294,6 +297,12 @@
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\race\cg_module.c">
+      <Filter>src\race</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\race\cg_race.c">
+      <Filter>src\race</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\race\cg_race_hud.c">
       <Filter>src\race</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\cg_client.c">

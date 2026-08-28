@@ -79,9 +79,10 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 }
 
 /**
- * @brief Processes the entity's effects mask, augmenting the renderer entity.
+ * @brief The tail of the `Cg_EntityEffects` chain: processes the entity's
+ * effects mask, augmenting the renderer entity with the effects common knows.
  */
-void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
+static void Cg_EntityEffects_Common(cl_entity_t *ent, r_entity_t *e) {
 
   e->effects = ent->current.effects;
 
@@ -225,3 +226,5 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
     }
   }
 }
+
+EntityEffects Cg_EntityEffects = Cg_EntityEffects_Common;

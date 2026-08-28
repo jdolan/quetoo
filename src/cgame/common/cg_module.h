@@ -314,6 +314,30 @@ typedef bool (*FilterEntity)(const cl_entity_t *ent);
 extern FilterEntity Cg_FilterEntity;
 
 /**
+ * @brief Augments the renderer entity for an entity the server sent, from its
+ * effects: rotation, bobbing, lights, the shells. The default maps the effects
+ * common knows.
+ * @details Chainable. A feature that defines an effect of its own calls previous
+ * and then reads its flag, as `EF_GAME` leaves it room to.
+ */
+typedef void (*EntityEffects)(cl_entity_t *ent, r_entity_t *e);
+
+extern EntityEffects Cg_EntityEffects;
+
+/**
+ * @brief The client info that dresses an entity wearing a player model: its
+ * models, skins and colors. The default is the info of the client slot the
+ * entity names.
+ * @details Chainable. A feature whose entity is a player that is not a client -
+ * a ghost, a dummy - answers its own info for it and defers to previous for
+ * the rest.
+ */
+struct cg_client_info_s;
+typedef struct cg_client_info_s *(*ClientInfo)(const cl_entity_t *ent);
+
+extern ClientInfo Cg_ClientInfo;
+
+/**
  * @}
  * @defgroup cg-hooks-presentation Presentation
  * @brief What the client game says about the game. Tails in cg_discord.c and

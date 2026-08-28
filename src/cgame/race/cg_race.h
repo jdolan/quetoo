@@ -19,19 +19,30 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#pragma once
 
-#include "cg_race.h"
-
-/**
- * @brief Race draws the grappling hook, a feature of the common sources that
- * `Cg_Init` installs from the define in this module's Makefile.am, and the run.
- */
-void Cg_Module_Init(void) {
-  Cg_Race_Init();
-}
+#include "cg_local.h"
 
 /**
- * @brief Nothing of its own to release; the hook feature owns what it loads.
+ * @file
+ * @brief Racing, as the client shows it: the run on the HUD, and the course
+ * record's ghost dressed as its holder. `cg_race.c` installs the hooks;
+ * `cg_race_hud.c` draws.
  */
-void Cg_Module_Shutdown(void) {
-}
+
+/**
+ * @brief Installs racing over the hooks it needs, once per module image.
+ */
+void Cg_Race_Init(void);
+
+/**
+ * @brief The run's time from the two stats it is split across.
+ */
+uint32_t Cg_Race_Time(const player_state_t *ps);
+
+/**
+ * @brief The whole HUD, arranged for racing: what common draws that a racer
+ * needs, and the run in place of the frags and deaths. Installed over
+ * `DrawHudElements` by `Cg_Race_Init`, not chained.
+ */
+void Cg_Race_DrawHud(const player_state_t *ps, cg_hud_layout_t *layout);
