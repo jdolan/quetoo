@@ -254,5 +254,8 @@
     <ClCompile Include="..\src\game\race\g_race_records.c">
       <Filter>src\race</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\game\race\g_race_replay.c">
+      <Filter>src\race</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

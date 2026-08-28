@@ -1225,6 +1225,7 @@
 		D8A5C100000000000000000B /* g_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A1 /* g_race.c */; };
 		D8A5C100000000000000000C /* g_race_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A2 /* g_race_entity.c */; };
 		D8A5C100000000000000000D /* g_race_records.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A4 /* g_race_records.c */; };
+		D8A5C100000000000000000E /* g_race_replay.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A5 /* g_race_replay.c */; };
 		EC45E0FA2A80403C8FEA3834 /* cg_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = FCD76A809F00440F99BC0068 /* cg_inventory.c */; };
 		EEE815CF5A924D398351DF7C /* cm_voxel.h in Headers */ = {isa = PBXBuildFile; fileRef = 97BDA8A5C8DF41E290656B3D /* cm_voxel.h */; };
 		F53787C291008C7507AE5FF4 /* cm_manifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */; };
@@ -2578,6 +2579,7 @@
 		D8A5C10000000000000000A2 /* g_race_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_race_entity.c; sourceTree = "<group>"; };
 		D8A5C10000000000000000A3 /* g_race.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_race.h; sourceTree = "<group>"; };
 		D8A5C10000000000000000A4 /* g_race_records.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_race_records.c; sourceTree = "<group>"; };
+		D8A5C10000000000000000A5 /* g_race_replay.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_race_replay.c; sourceTree = "<group>"; };
 		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
 		F7E7256984E276048C2A155E /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
 		FCD76A809F00440F99BC0068 /* cg_inventory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_inventory.c; sourceTree = "<group>"; };
@@ -4307,6 +4309,7 @@
 				D8A5C10000000000000000A1 /* g_race.c */,
 				D8A5C10000000000000000A2 /* g_race_entity.c */,
 				D8A5C10000000000000000A4 /* g_race_records.c */,
+				D8A5C10000000000000000A5 /* g_race_replay.c */,
 				D8A5C10000000000000000A3 /* g_race.h */,
 				D2A5C1000000000000000004 /* g_types.h */,
 				D2A5C1000000000000000005 /* Makefile.am */,
@@ -6622,6 +6625,7 @@
 				D8A5C100000000000000000B /* g_race.c in Sources */,
 				D8A5C100000000000000000C /* g_race_entity.c in Sources */,
 				D8A5C100000000000000000D /* g_race_records.c in Sources */,
+				D8A5C100000000000000000E /* g_race_replay.c in Sources */,
 				D2A5C100000000000000002A /* g_physics.c in Sources */,
 				D2A5C100000000000000002B /* g_rules.c in Sources */,
 				D2A5C100000000000000002C /* g_vote.c in Sources */,
