@@ -655,7 +655,7 @@ static pm_movement_t G_CoerceMovement(void) {
  */
 pm_movement_t G_ResolveMovement(const char *name) {
 
-  g_movement_level = PM_MOVEMENT_QUETOO;
+  g_movement_level = G_MOVEMENT_DEFAULT;
 
   if (name && *name) {
     if (!Pm_MovementByName(name, &g_movement_level)) {

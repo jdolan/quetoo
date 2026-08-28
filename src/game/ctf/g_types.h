@@ -38,6 +38,11 @@
 #define GAME_NAME "ctf"
 
 /**
+ * @brief The movement a level runs when it names none and `g_movement` defers.
+ */
+#define G_MOVEMENT_DEFAULT PM_MOVEMENT_QUETOO
+
+/**
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
