@@ -147,6 +147,14 @@ dnl --------------------------
 
 PKG_CHECK_MODULES([SDL3], [sdl3 >= 3.2.0 sdl3-image sdl3-ttf])
 
+dnl Homebrew's sdl3.pc carries its own -Wl,-rpath for the Homebrew prefix,
+dnl which HOST_LDFLAGS already embeds on macOS; drop it to keep ld quiet.
+case "$host" in
+	*darwin*)
+		SDL3_LIBS=`echo "$SDL3_LIBS" | sed 's|-Wl,-rpath,/opt/homebrew/lib||;s|-Wl,-rpath,/usr/local/lib||'`
+		;;
+esac
+
 dnl --------------------
 dnl Check for libsndfile
 dnl --------------------

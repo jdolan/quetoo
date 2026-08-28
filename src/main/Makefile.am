@@ -29,7 +29,7 @@ quetoo_dedicated_LDADD = \
 	$(top_builddir)/src/server/libserver.la
 
 if APPLE
-all-local:
+all-local: $(bin_PROGRAMS)
 	@test -f quetoo && dsymutil quetoo -o quetoo.dSYM || true
 	@test -f quetoo-dedicated && dsymutil quetoo-dedicated -o quetoo-dedicated.dSYM || true
 
