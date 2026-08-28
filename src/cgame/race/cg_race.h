@@ -41,6 +41,8 @@ void Cg_Race_Init(void);
 uint32_t Cg_Race_Time(const player_state_t *ps);
 
 /**
- * @brief Draws the run: the time, the checkpoints and the speed.
+ * @brief The whole HUD, arranged for racing: what common draws that a racer
+ * needs, and the run in place of the frags and deaths. Installed over
+ * `DrawHudElements` by `Cg_Race_Init`, not chained.
  */
-void Cg_Race_DrawHud(const player_state_t *ps);
+void Cg_Race_DrawHud(const player_state_t *ps, cg_hud_layout_t *layout);

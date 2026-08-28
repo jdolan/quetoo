@@ -23,17 +23,18 @@
 
 /**
  * @file
- * @brief The run on the HUD: the time across the top with the checkpoints
- * beneath it, and the speed under the crosshair. Everything here is read from
- * the player state the server already sends, or measured on the client; the
- * speed in particular is the client's own, not the server's word for it.
+ * @brief The HUD, arranged for racing. Health, ammo, armor and the powerups stay
+ * as common draws them - a rocket jump wants both - and the frags and deaths
+ * go, since nobody is scoring any; in their column are the speed and the runs
+ * so far. The run's time sits across the top with the checkpoints beneath it.
+ *
+ * Everything here is read from the player state the server already sends, or
+ * measured on the client; the speed in particular is the client's own, not
+ * the server's word for it.
  */
 
 // where the run sits, from the top of the view
 #define RACE_HUD_TOP 32
-
-// where the speed sits, from the middle of the view
-#define RACE_HUD_SPEED_OFFSET 48
 
 // how much of each frame's speed the readout takes on; shown raw, it flickers
 // with every frame at a high frame rate
@@ -87,26 +88,54 @@ static void Cg_Race_DrawRun(const player_state_t *ps) {
 }
 
 /**
- * @brief The horizontal speed, smoothed over frames, beneath the crosshair.
+ * @brief A stat row in the right-hand column, in the shape of the frags and
+ * deaths it stands in for: the label small, the value large beneath it.
  */
-static void Cg_Race_DrawSpeed(const player_state_t *ps) {
+static int32_t Cg_Race_DrawStat(int32_t y, const char *label, int32_t value) {
+  int32_t cw, ch;
+
+  cgi.BindFont("small", NULL, &ch);
+  cgi.Draw2DString(cgi.context->w - cgi.StringWidth(label), y, label, color_green);
+
+  cgi.BindFont("large", &cw, NULL);
+  cgi.Draw2DString(cgi.context->w - 3 * cw, y + ch, va("%3d", value), HUD_COLOR_STAT);
+
+  cgi.BindFont(NULL, NULL, NULL);
+
+  return y + HUD_PIC_HEIGHT + ch;
+}
+
+/**
+ * @brief The horizontal speed, smoothed over frames.
+ */
+static int32_t Cg_Race_DrawSpeed(const player_state_t *ps, int32_t y) {
 
   vec3_t velocity = ps->pm_state.velocity;
   velocity.z = 0.f;
 
   cg_race_speed += (Vec3_Length(velocity) - cg_race_speed) * RACE_HUD_SPEED_LERP;
 
-  cgi.BindFont("medium", NULL, NULL);
-  Cg_Race_DrawCentered(cgi.context->h / 2 + RACE_HUD_SPEED_OFFSET, va("%.0f", cg_race_speed), color_white);
-  cgi.BindFont(NULL, NULL, NULL);
+  return Cg_Race_DrawStat(y, "Speed", (int32_t) cg_race_speed);
 }
 
-void Cg_Race_DrawHud(const player_state_t *ps) {
+void Cg_Race_DrawHud(const player_state_t *ps, cg_hud_layout_t *layout) {
+
+  Cg_DrawVitals(ps);
+
+  layout->powerup_y = Cg_DrawPowerups(ps, layout->powerup_y);
+
+  Cg_DrawPickup(ps);
+
+  Cg_DrawSpectator(ps);
+
+  Cg_DrawChase(ps);
 
   if (ps->stats[STAT_RACE_MODE] == RACE_MODE_SPECTATOR) {
     return;
   }
 
   Cg_Race_DrawRun(ps);
-  Cg_Race_DrawSpeed(ps);
+
+  layout->stat_y = Cg_Race_DrawSpeed(ps, layout->stat_y);
+  layout->stat_y = Cg_Race_DrawStat(layout->stat_y, "Runs", ps->stats[STAT_RACE_RUNS]);
 }

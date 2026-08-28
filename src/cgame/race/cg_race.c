@@ -35,7 +35,6 @@
 #define RACE_GHOST_ALPHA .5f
 
 static struct {
-  DrawHudElements DrawHudElements;
   ParseConfigString ParseConfigString;
   MediaDidLoad MediaDidLoad;
   FilterEntity FilterEntity;
@@ -59,13 +58,6 @@ static void Cg_Race_LoadGhost(void) {
 
 static bool Cg_Race_IsGhost(const cl_entity_t *ent) {
   return ent->current.effects & EF_RACE_GHOST;
-}
-
-static void Cg_DrawHudElements_Race(const player_state_t *ps, cg_hud_layout_t *layout) {
-
-  previous.DrawHudElements(ps, layout);
-
-  Cg_Race_DrawHud(ps);
 }
 
 static bool Cg_ParseConfigString_Race(int32_t index) {
@@ -125,8 +117,7 @@ void Cg_Race_Init(void) {
 
   installed = true;
 
-  previous.DrawHudElements = Cg_DrawHudElements;
-  Cg_DrawHudElements = Cg_DrawHudElements_Race;
+  Cg_DrawHudElements = Cg_Race_DrawHud;
 
   previous.ParseConfigString = Cg_ParseConfigString;
   Cg_ParseConfigString = Cg_ParseConfigString_Race;

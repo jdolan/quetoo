@@ -234,6 +234,8 @@ bool G_Race_Start(g_client_t *cl) {
   run->movement = cl->ps.pm_state.params.movement;
   run->stage = 1;
   run->start_time = g_level.time;
+
+  cl->persistent.race_runs++;
   run->start_speed = run->top_speed = speed;
 
   if (cl->entity->move_type == MOVE_TYPE_NO_CLIP) {
@@ -603,6 +605,7 @@ static void G_ConfigureLevel_Race(void) {
   G_ForEachClient(cl, {
     G_Race_Reset(cl);
     cl->persistent.race_spawn.set = false;
+    cl->persistent.race_runs = 0;
   });
 }
 
@@ -806,6 +809,7 @@ static void G_WriteStats_Race(g_client_t *cl) {
   cl->ps.stats[STAT_RACE_TIME_HIGH] = (int16_t) (uint16_t) (time >> 16);
   cl->ps.stats[STAT_RACE_CHECKPOINTS] = run->checkpoint_count;
   cl->ps.stats[STAT_RACE_FLAGS] = run->invalid;
+  cl->ps.stats[STAT_RACE_RUNS] = cl->persistent.race_runs;
 }
 
 void G_Race_Init(void) {
