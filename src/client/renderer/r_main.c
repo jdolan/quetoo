@@ -135,8 +135,11 @@ void R_UpdateUniforms(const r_view_t *view) {
     // a view that is not the main view - the player model preview - has no
     // relation to the world's lighting, and its lookups must all land on the
     // one voxel of the fallback buffers: clamping to a zero-sized grid would
-    // not, since clamp() with a low bound above its high bound is undefined
+    // not, since clamp() with a low bound above its high bound is undefined,
+    // and a zero-sized box would not either, since voxel_uvw divides by it
     if (view->type != VIEW_MAIN || !r_models.world) {
+      out->voxels.mins = Vec4(0.f, 0.f, 0.f, 0.f);
+      out->voxels.maxs = Vec4(1.f, 1.f, 1.f, 0.f);
       out->voxels.size = Vec4(1.f, 1.f, 1.f, 0.f);
     } else {
       const r_bsp_voxels_t *voxels = &r_models.world->bsp->voxels;
