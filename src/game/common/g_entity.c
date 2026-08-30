@@ -150,10 +150,10 @@ static void G_InitEntityFields(g_entity_t *ent) {
 }
 
 /**
- * @brief The tail of the `G_SpawnEntity` chain: the items, the weapons'
+ * @brief The tail of the `G_InitEntity` chain: the items, the weapons'
  * projectiles and the built-in classes.
  */
-static bool G_SpawnEntity_Common(g_entity_t *ent) {
+static bool G_InitEntity_Common(g_entity_t *ent) {
 
   // check item spawn functions
   const g_item_t *it = G_FindItemByClassName(ent->classname);
@@ -180,7 +180,7 @@ static bool G_SpawnEntity_Common(g_entity_t *ent) {
   return false;
 }
 
-SpawnEntity G_SpawnEntity = G_SpawnEntity_Common;
+InitEntity G_InitEntity = G_InitEntity_Common;
 
 /**
  * @brief The tail of the `G_LevelWillSpawn` chain: a notification, so it does nothing.
@@ -193,7 +193,7 @@ LevelWillSpawn G_LevelWillSpawn = G_LevelWillSpawn_Common;
 /**
  * @brief Populates common entity fields and then dispatches the class initializer.
  */
-static void G_SpawnEntityDef(cm_entity_t *def) {
+static void G_SpawnEntity(cm_entity_t *def) {
 
   const char *classname = gi.EntityValue(def, "classname")->string;
   g_entity_t *ent = G_AllocEntity(classname);
@@ -202,7 +202,7 @@ static void G_SpawnEntityDef(cm_entity_t *def) {
 
   G_InitEntityFields(ent);
 
-  if (G_SpawnEntity(ent)) {
+  if (G_InitEntity(ent)) {
     return;
   }
 
@@ -639,7 +639,7 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
     if (editor->value) {
       G_SpawnEditorEntity((int32_t) i, entities[i]);
     } else {
-      G_SpawnEntityDef(entities[i]);
+      G_SpawnEntity(entities[i]);
     }
   }
 

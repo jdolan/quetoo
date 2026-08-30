@@ -84,9 +84,9 @@ bool G_Race_Debounced(g_client_t *cl, const g_entity_t *ent, float wait);
 
 /**
  * @brief Spawns the race triggers by class name, or returns false for a class
- * that is not one. Chained under `SpawnEntity` by `G_Race_Init`.
+ * that is not one. Chained under `InitEntity` by `G_Race_Init`.
  */
-bool G_Race_SpawnEntity(g_entity_t *ent);
+bool G_Race_InitEntity(g_entity_t *ent);
 
 /**
  * @brief The records for this map, read from `records/<map>.rec` when the

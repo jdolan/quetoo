@@ -122,17 +122,17 @@ typedef void (*LevelWillSpawn)(void);
 extern LevelWillSpawn G_LevelWillSpawn;
 
 /**
- * @brief Spawns an entity by its class name. The default knows the items, the
- * weapons' projectiles and the built-in classes.
- * @details Chainable. A feature adding entities spawns the class names it owns
- * and defers to previous for the rest. An entity nobody spawns is warned about
- * and freed by the caller. The editor spawns its inert placeholders without
- * consulting the chain.
- * @return True if the entity was spawned.
+ * @brief Initializes a freshly spawned entity by its class name. The default
+ * knows the items, the weapons' projectiles and the built-in classes.
+ * @details Chainable. A feature adding entities initializes the class names it
+ * owns and defers to previous for the rest. An entity nobody claims is warned
+ * about and freed by `G_SpawnEntity`. The editor spawns its inert placeholders
+ * without consulting the chain.
+ * @return True if the entity was initialized.
  */
-typedef bool (*SpawnEntity)(g_entity_t *ent);
+typedef bool (*InitEntity)(g_entity_t *ent);
 
-extern SpawnEntity G_SpawnEntity;
+extern InitEntity G_InitEntity;
 
 /**
  * @}
