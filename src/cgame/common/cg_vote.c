@@ -24,7 +24,6 @@
 
 static struct {
   ParseConfigString ParseConfigString;
-  DrawHudElements DrawHudElements;
 } previous;
 
 /**
@@ -90,11 +89,9 @@ static bool Cg_ParseConfigString_Vote(int32_t index) {
 }
 
 /**
- * @brief Draws the vote in progress beneath the center of the screen.
+ * @see cg_vote.h
  */
-static void Cg_DrawHudElements_Vote(const player_state_t *ps, cg_hud_layout_t *layout) {
-
-  previous.DrawHudElements(ps, layout);
+void Cg_Vote_Draw(void) {
 
   if (!cg_state.vote.active) {
     return;
@@ -152,8 +149,6 @@ void Cg_Vote_Init(void) {
   previous.ParseConfigString = Cg_ParseConfigString;
   Cg_ParseConfigString = Cg_ParseConfigString_Vote;
 
-  previous.DrawHudElements = Cg_DrawHudElements;
-  Cg_DrawHudElements = Cg_DrawHudElements_Vote;
 
   installed = true;
 }

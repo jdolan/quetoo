@@ -109,6 +109,23 @@ void Cg_DrawVital(int32_t x, int32_t ch, const int16_t value, const r_image_t *i
 }
 
 /**
+ * @see cg_hud_draw.h
+ */
+int32_t Cg_DrawStat(int32_t y, const char *label, int32_t value) {
+  int32_t cw, ch;
+
+  cgi.BindFont("small", NULL, &ch);
+  cgi.Draw2DString(cgi.context->w - cgi.StringWidth(label), y, label, color_green);
+
+  cgi.BindFont("large", &cw, NULL);
+  cgi.Draw2DString(cgi.context->w - 3 * cw, y + ch, va("%3d", value), HUD_COLOR_STAT);
+
+  cgi.BindFont(NULL, NULL, NULL);
+
+  return y + HUD_PIC_HEIGHT + ch;
+}
+
+/**
  * @brief Draws the powerup and the time remaining
  */
 int32_t Cg_DrawPowerup(int32_t y, const int16_t value, const r_image_t *icon, const int32_t ch) {

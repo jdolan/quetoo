@@ -28,12 +28,8 @@
  * their best on this map and their runs, in the order the server ranked them.
  */
 
+// wider than the common board's column, for a best time beside a run count
 #define RACE_SCORES_COL_WIDTH 280
-#define RACE_SCORES_ROW_HEIGHT 48
-#define RACE_SCORES_ICON_WIDTH 48
-
-// the most records the config string carries, as the server publishes it
-#define RACE_SCORES_RECORDS 15
 
 static const char *Cg_Race_ModeName(g_race_mode_t mode) {
 
@@ -45,25 +41,6 @@ static const char *Cg_Race_ModeName(g_race_mode_t mode) {
     default:
       return "spectating";
   }
-}
-
-/**
- * @brief The map's title across the top, as the common board has it.
- * @return The y beneath it.
- */
-static int32_t Cg_Race_DrawScoresHeader(void) {
-  int32_t ch;
-
-  cgi.BindFont("medium", NULL, &ch);
-
-  const int32_t y = 64 - ch - 4;
-  const char *title = cgi.ConfigString(CS_MESSAGE);
-
-  cgi.Draw2DString((cgi.context->w - cgi.StringWidth(title)) / 2, y, title, color_white);
-
-  cgi.BindFont(NULL, NULL, NULL);
-
-  return y + ch;
 }
 
 /**
@@ -87,7 +64,7 @@ static void Cg_Race_DrawRecords(int32_t x, int32_t y) {
   }
 
   char *s = string;
-  for (int32_t rank = 1; rank <= RACE_SCORES_RECORDS && *s; rank++) {
+  for (int32_t rank = 1; rank <= RACE_RECORDS_SHOWN && *s; rank++) {
 
     char *name = s;
     char *time = strchr(name, '\\');
@@ -114,32 +91,17 @@ static void Cg_Race_DrawRecords(int32_t x, int32_t y) {
 }
 
 /**
- * @brief One racer: their icon and name with their ping, then what they are
- * doing, their best and their runs.
+ * @brief One racer: the row every board begins with, then what they are doing,
+ * their best and their runs.
  */
 static void Cg_Race_DrawScore(int32_t x, int32_t y, const g_score_t *s) {
-  int32_t cw, ch;
 
-  const cg_client_info_t *info = &cg_state.clients[s->client];
+  y = Cg_DrawScoreRow(x, y, RACE_SCORES_COL_WIDTH, s);
+  x += SCORES_ICON_WIDTH;
 
-  cgi.Draw2DImage(x + 1, y + 1, RACE_SCORES_ICON_WIDTH - 2, RACE_SCORES_ICON_WIDTH - 2, info->icon, color_white);
+  const int32_t fw = RACE_SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
 
-  x += RACE_SCORES_ICON_WIDTH;
-
-  const int32_t fw = RACE_SCORES_COL_WIDTH - RACE_SCORES_ICON_WIDTH - 1;
-
-  if (s->color >= 0) {
-    color_t c = ColorHSV(s->color, 1.f, 1.f);
-    c.a = s->client == cgi.client->frame.ps.client ? .3f : .15f;
-
-    cgi.Draw2DFill(x, y, fw, RACE_SCORES_ROW_HEIGHT - 1, c);
-  }
-
-  cgi.BindFont("small", &cw, &ch);
-
-  cgi.Draw2DString(x, y, info->name, color_white);
-  cgi.Draw2DString(x + fw - 5 * cw, y, va("%3dms", s->ping), color_white);
-  y += ch;
+  cgi.BindFont("small", NULL, NULL);
 
   cgi.Draw2DString(x, y, Cg_Race_ModeName(s->race_mode), color_white);
 
@@ -159,8 +121,8 @@ void Cg_Race_DrawScores(const player_state_t *ps) {
     return;
   }
 
-  const int32_t start_y = Cg_Race_DrawScoresHeader();
-  const int32_t gap = RACE_SCORES_ICON_WIDTH / 2;
+  const int32_t start_y = Cg_DrawScoresTitle();
+  const int32_t gap = SCORES_ICON_WIDTH / 2;
 
   const int32_t left = cgi.context->w / 2 - RACE_SCORES_COL_WIDTH - gap / 2;
   const int32_t right = cgi.context->w / 2 + gap / 2;
@@ -171,11 +133,11 @@ void Cg_Race_DrawScores(const player_state_t *ps) {
   const g_score_t *scores = Cg_Scores(&count);
 
   // a second column of racers opens to the right once the first is full
-  const size_t rows = Maxz(3, (cgi.context->h - 2 * start_y) / RACE_SCORES_ROW_HEIGHT);
+  const size_t rows = Maxz(3, (cgi.context->h - 2 * start_y) / SCORES_ROW_HEIGHT);
 
   for (size_t i = 0; i < count && i < 2 * rows; i++) {
     const int32_t x = right + (int32_t) (i / rows) * (RACE_SCORES_COL_WIDTH + gap);
-    const int32_t y = start_y + (int32_t) (i % rows) * RACE_SCORES_ROW_HEIGHT;
+    const int32_t y = start_y + (int32_t) (i % rows) * SCORES_ROW_HEIGHT;
 
     Cg_Race_DrawScore(x, y, &scores[i]);
   }

@@ -21,10 +21,6 @@
 
 #include "cg_local.h"
 
-#define SCORES_COL_WIDTH 240
-#define SCORES_ROW_HEIGHT 48
-#define SCORES_ICON_WIDTH 48
-
 typedef struct {
   g_score_t scores[MAX_CLIENTS + MAX_TEAMS];
   size_t num_scores;
@@ -105,23 +101,61 @@ void Cg_ClearScores(void) {
 }
 
 /**
+ * @see cg_score.h
+ */
+int32_t Cg_DrawScoresTitle(void) {
+  int32_t ch;
+
+  cgi.BindFont("medium", NULL, &ch);
+
+  const int32_t y = 64 - ch - 4;
+  const char *title = cgi.ConfigString(CS_MESSAGE);
+
+  cgi.Draw2DString((cgi.context->w - cgi.StringWidth(title)) / 2, y, title, color_white);
+
+  cgi.BindFont(NULL, NULL, NULL);
+
+  return y + ch;
+}
+
+/**
+ * @see cg_score.h
+ */
+int32_t Cg_DrawScoreRow(int32_t x, int32_t y, int32_t width, const g_score_t *s) {
+  int32_t cw, ch;
+
+  const cg_client_info_t *info = &cg_state.clients[s->client];
+
+  cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH - 2, SCORES_ICON_WIDTH - 2, info->icon, color_white);
+
+  x += SCORES_ICON_WIDTH;
+
+  const int32_t fw = width - SCORES_ICON_WIDTH - 1;
+
+  if (s->color >= 0) {
+    color_t c = ColorHSV(s->color, 1.f, 1.f);
+    c.a = s->client == cgi.client->frame.ps.client ? .3f : .15f;
+
+    cgi.Draw2DFill(x, y, fw, SCORES_ROW_HEIGHT - 1, c);
+  }
+
+  cgi.BindFont("small", &cw, &ch);
+
+  cgi.Draw2DString(x, y, info->name, color_white);
+  cgi.Draw2DString(x + fw + 1 - 6 * cw, y, va("%3dms", s->ping), color_white);
+
+  cgi.BindFont(NULL, NULL, NULL);
+
+  return y + ch;
+}
+
+/**
  * @brief Returns the vertical screen coordinate where scores should be drawn.
  */
 static int32_t Cg_DrawScoresHeader(void) {
-  int32_t cw, ch, x, y;
+  int32_t cw, ch, x;
 
-  cgi.BindFont("medium", &cw, &ch);
-
-  y = 64 - ch - 4;
-
-  const char *title = cgi.ConfigString(CS_MESSAGE);
-  const int32_t sw = cgi.StringWidth(title);
-
-  // map title
-  x = cgi.context->w / 2 - sw / 2;
-  cgi.Draw2DString(x, y, title, color_white);
-
-  y += ch;
+  int32_t y = Cg_DrawScoresTitle();
 
   // team names and scores
   if (cg_state.num_teams) {
@@ -156,47 +190,28 @@ static int32_t Cg_DrawScoresHeader(void) {
  * @brief Draws a single player score row including icon, name, frags, deaths, and captures.
  */
 static bool Cg_DrawScore(int32_t x, int32_t y, const g_score_t *s) {
-  int32_t cw, ch;
-
-  const cg_client_info_t *info = &cg_state.clients[s->client];
-
-  // icon
-  cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH - 2, SCORES_ICON_WIDTH - 2, info->icon, color_white);
+  int32_t ch;
 
 #if defined(G_CTF)
-  // flag carrier icon
+  const int32_t top = y;
+#endif
+
+  y = Cg_DrawScoreRow(x, y, SCORES_COL_WIDTH, s);
+
+#if defined(G_CTF)
+  // flag carrier icon, over the corner of the player's
   if (s->flags & SCORE_CTF_FLAG) {
     const int32_t team = s->team;
     const r_image_t *flag = cgi.LoadImage(va("pics/i_flag%d", team), IMG_PIC);
-    cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH * 0.3f, SCORES_ICON_WIDTH * .3f, flag, color_white);
+    cgi.Draw2DImage(x + 1, top + 1, SCORES_ICON_WIDTH * 0.3f, SCORES_ICON_WIDTH * .3f, flag, color_white);
   }
 #endif
 
   x += SCORES_ICON_WIDTH;
 
-  // background
-  const float fa = s->client == cgi.client->frame.ps.client ? 0.3 : 0.15;
   const int32_t fw = SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
-  const int32_t fh = SCORES_ROW_HEIGHT - 1;
 
-  if (s->color != 0) {
-    color_t c = ColorHSV(s->color, 1.0, 1.0);
-    c.a = fa;
-
-    cgi.Draw2DFill(x, y, fw, fh, c);
-  }
-
-  cgi.BindFont("small", &cw, &ch);
-
-  // name
-  cgi.Draw2DString(x, y, info->name, color_white);
-
-  // ping
-  {
-    const int32_t px = x + SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 6 * cw;
-    cgi.Draw2DString(px, y, va("%3dms", s->ping), color_white);
-    y += ch;
-  }
+  cgi.BindFont("small", NULL, &ch);
 
   // spectating
   if (s->flags & SCORE_SPECTATOR) {

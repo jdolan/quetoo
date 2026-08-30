@@ -550,14 +550,12 @@ static void G_HookCheckFire(g_client_t *cl, const bool refire) {
 
 /**
  * @brief The tail of the `G_AllowHook` chain: every client may hook, unless the
- * movement they are running has no hook to swing on.
- * @details The hook is a Quetoo feature, and a movement ported from another game
- * neither implements the `PM_HOOK_*` types nor honours `hook_length`. Declining
- * here is how the feature stays out of a ruleset that cannot carry it, rather
- * than the ruleset having to know the feature exists.
+ * movement they are running has no hook to swing on. Declining here is how the
+ * feature stays out of a ruleset that cannot carry it, rather than the ruleset
+ * having to know the feature exists.
  */
 static bool G_AllowHook_Common(const g_client_t *cl) {
-  return g_level.movement == PM_MOVEMENT_QUETOO;
+  return Pm_Movement(g_level.movement)->hook;
 }
 
 AllowHook G_AllowHook = G_AllowHook_Common;

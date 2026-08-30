@@ -22,6 +22,7 @@
 #include "tests.h"
 
 #include "net/net_message.h"
+#include "game/common/bg_pmove.h"
 
 quetoo_t quetoo;
 
@@ -134,9 +135,9 @@ START_TEST(check_PlayerState_Params_DeltaCompressed) {
  */
 START_TEST(check_PlayerState_Movement_DeltaCompressed) {
   byte buf_a[MAX_MSG_SIZE], buf_b[MAX_MSG_SIZE];
-  mem_buf_t movement_only, everything;
+  mem_buf_t movement_only, unchanged;
   Mem_InitBuffer(&movement_only, buf_a, sizeof(buf_a));
-  Mem_InitBuffer(&everything, buf_b, sizeof(buf_b));
+  Mem_InitBuffer(&unchanged, buf_b, sizeof(buf_b));
 
   player_state_t from;
   memset(&from, 0, sizeof(from));
@@ -145,15 +146,12 @@ START_TEST(check_PlayerState_Movement_DeltaCompressed) {
   player_state_t to = from;
   to.pm_state.params.movement = PM_MOVEMENT_QUAKE; // Fill_TestParams left it elsewhere
 
-  player_state_t zero;
-  memset(&zero, 0, sizeof(zero));
-
   Net_WriteDeltaPlayerState(&movement_only, &from, &to);
-  Net_WriteDeltaPlayerState(&everything, &zero, &to);
+  Net_WriteDeltaPlayerState(&unchanged, &from, &from);
 
-  ck_assert_msg(movement_only.size < everything.size,
-                "a movement change wrote the whole parameter block (%zu vs %zu)",
-                movement_only.size, everything.size);
+  ck_assert_msg(movement_only.size == unchanged.size + 1,
+                "a movement change should cost one byte over no change (%zu vs %zu)",
+                movement_only.size, unchanged.size);
 
   movement_only.read = 0;
 

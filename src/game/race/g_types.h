@@ -141,6 +141,9 @@ _Static_assert(STAT_RACE_RUNS < MAX_STATS, "the race stats must fit the stat arr
 // how many func_race_* brushes a level may have, one config string each
 #define RACE_MAX_BARRIERS 32
 
+// how many of a map's records CS_RACE_RECORDS carries, and the board shows
+#define RACE_RECORDS_SHOWN 15
+
 /**
  * @brief How a client is taking part. Spectating is derived from
  * `g_client_persistent_t.spectator` rather than stored, so the two cannot
