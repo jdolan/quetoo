@@ -369,6 +369,8 @@ void Cg_DrawHud(const player_state_t *ps) {
     Cg_DrawTime(ps, layout.stat_y);
   }
 
+  Cg_Vote_Draw();
+
   Cg_DrawCenterPrint(ps);
 
   Cg_DrawTargetName(ps);

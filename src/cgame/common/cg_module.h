@@ -113,8 +113,8 @@ void Cg_Module_Shutdown(void);
  * owns every element: nothing it declines to call gets drawn.
  *
  * What this does not decide is the framing - the `cg_draw_hud` cvar, the
- * intermission, the crosshair, the editor, the clock beneath the stat column, and
- * the overlays that place themselves. `Cg_DrawHud` keeps those, so that a module
+ * intermission, the crosshair, the editor, the clock beneath the stat column, the
+ * vote in progress, and the overlays that place themselves. `Cg_DrawHud` keeps those, so that a module
  * cannot lose the damage blend or the hit sound by forgetting to draw them. A
  * module that wants the clock somewhere else overrides `cg_hud.c` outright, which
  * vpath has always allowed.

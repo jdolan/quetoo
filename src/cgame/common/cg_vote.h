@@ -25,6 +25,12 @@
 
 #if defined(__CG_LOCAL_H__)
 void Cg_Vote_Init(void);
+
+/**
+ * @brief Draws the vote in progress beneath the center of the screen. Framing,
+ * drawn by `Cg_DrawHud` so that a module arranging its own HUD cannot lose it.
+ */
+void Cg_Vote_Draw(void);
 void Cg_Vote_Cast(bool yes);
 void Cg_Vote_Call(const char *type, const char *arg);
 #endif
