@@ -200,10 +200,11 @@ box3_t Cg_PlayerBounds(bool ducked) {
  */
 bool Cg_IsDucking(const cl_entity_t *ent) {
 
-  const float standing_height = Box3_Size(Cg_PlayerBounds(false)).z;
   const float height = Box3_Size(ent->current.bounds).z;
 
-  return standing_height - height > PM_STOP_EPSILON;
+  const cg_client_info_t *ci = Cg_ClientInfo(ent);
+
+  return (ci->standing_ceiling - ci->standing_floor) - height > PM_STOP_EPSILON;
 }
 
 /**

@@ -491,6 +491,11 @@ void G_ClientEndFrame(g_client_t *cl) {
     return;
   }
 
+  // a change of movement parameters is a change of client info
+  if (!Box3_Equal(G_ClientStandingBounds(cl), cl->persistent.standing_bounds)) {
+    G_ClientUserInfoChanged(cl, cl->persistent.user_info);
+  }
+
   // check for water entry / exit, burn from lava, slime, etc
   G_ClientWaterInteraction(cl);
 

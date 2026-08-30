@@ -123,6 +123,12 @@ typedef struct {
   float hue;
 
   /**
+   * @brief The floor and ceiling of the client's standing box, which their model
+   * is scaled and seated to.
+   */
+  float standing_floor, standing_ceiling;
+
+  /**
    * @brief The head model and materials.
    */
   r_model_t *head;

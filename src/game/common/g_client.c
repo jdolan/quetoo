@@ -1551,6 +1551,17 @@ void G_ClientBegin(g_client_t *cl) {
 }
 
 /**
+ * @brief The client's standing box, which the client game sizes their model by:
+ * their own movement parameters once they have moved, and the level's until then.
+ */
+box3_t G_ClientStandingBounds(const g_client_t *cl) {
+
+  const box3_t bounds = cl->ps.pm_state.params.bounds;
+
+  return Box3_Size(bounds).z > 0.f ? bounds : G_PlayerBounds();
+}
+
+/**
  * @brief Applies updates from a client's user info string to their persistent state.
  */
 void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
@@ -1704,6 +1715,12 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 
   q_strlcat(client_info, "\\", sizeof(client_info));
   q_strlcat(client_info, va("%i", cl->persistent.color), sizeof(client_info));
+
+  cl->persistent.standing_bounds = G_ClientStandingBounds(cl);
+
+  q_strlcat(client_info, "\\", sizeof(client_info));
+  q_strlcat(client_info, va("%g/%g", cl->persistent.standing_bounds.mins.z,
+                            cl->persistent.standing_bounds.maxs.z), sizeof(client_info));
 
   // send it to clients
   gi.SetConfigString(CS_CLIENTS + cl->ps.client, client_info);
