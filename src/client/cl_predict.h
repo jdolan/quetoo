@@ -25,6 +25,7 @@
 
 int32_t Cl_PointContents(const vec3_t point);
 int32_t Cl_BoxContents(const box3_t bounds);
+cm_trace_t Cl_Clip(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *test, int32_t contents);
 cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *skip, int32_t contents);
 
 #if defined(__CL_LOCAL_H__)

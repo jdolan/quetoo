@@ -269,6 +269,7 @@ void Cl_InitCgame(void) {
   import.BoxLeafnums = Cm_BoxLeafnums;
   import.PointInsideBrush = Cm_PointInsideBrush;
   import.Trace = Cl_Trace;
+  import.Clip = Cl_Clip;
   import.PointLeafnum = Cm_PointLeafnum;
   import.TraceToBrush = Cm_TraceToBrush;
 

@@ -141,6 +141,50 @@ typedef struct {
  * @brief Clips the specified trace to the specified entity.
  * @return True if the trace began in solid, so that the caller may stop.
  */
+static bool Cl_ClipTraceToEntity(cl_trace_t *trace, cl_entity_t *ent) {
+  const entity_state_t *s = &ent->current;
+
+  if (s->solid < SOLID_BOX) {
+    return false;
+  }
+
+  if (ent == trace->skip) {
+    return false;
+  }
+
+  if (ent == cl.entity) {
+    return false;
+  }
+
+  if (!Box3_Intersects(ent->abs_bounds, trace->abs_bounds)) {
+    return false;
+  }
+
+  if (cls.cgame->ClipEntity && !cls.cgame->ClipEntity(trace->skip, ent, trace->start, trace->end, trace->bounds)) {
+    return false;
+  }
+
+  const int32_t head_node = Cl_HullForEntity(s);
+
+  cm_trace_t tr;
+
+  if (Mat4_Equal(ent->matrix, Mat4_Identity())) {
+    tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents);
+  } else {
+    tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, ent->matrix, ent->inverse_matrix);
+  }
+
+  if (tr.start_solid || tr.fraction < trace->trace.fraction) {
+    trace->trace = tr;
+    trace->trace.ent = ent;
+  }
+
+  return tr.start_solid;
+}
+
+/**
+ * @brief Clips the specified trace to other solid entities in the frame.
+ */
 static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
   for (int32_t i = 0; i < cl.frame.num_entities; i++) {
@@ -148,47 +192,33 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
     const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
     const entity_state_t *s = &cl.entity_states[snum];
 
-    if (s->solid < SOLID_BOX) {
-      continue;
-    }
-
-    cl_entity_t *ent = &cl.entities[s->number];
-
-    if (ent == trace->skip) {
-      continue;
-    }
-
-    if (ent == cl.entity) {
-      continue;
-    }
-
-    if (!Box3_Intersects(ent->abs_bounds, trace->abs_bounds)) {
-      continue;
-    }
-
-    if (cls.cgame && !cls.cgame->ClipEntity(trace->skip, ent, trace->start, trace->end, trace->bounds)) {
-      continue;
-    }
-
-    const int32_t head_node = Cl_HullForEntity(s);
-
-    cm_trace_t tr;
-    
-    if (Mat4_Equal(ent->matrix, Mat4_Identity())) {
-      tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents);
-    } else {
-      tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, ent->matrix, ent->inverse_matrix);
-    }
-
-    if (tr.start_solid || tr.fraction < trace->trace.fraction) {
-      trace->trace = tr;
-      trace->trace.ent = ent;
-
-      if (tr.start_solid) {
-        return;
-      }
+    if (Cl_ClipTraceToEntity(trace, &cl.entities[s->number])) {
+      return;
     }
   }
+}
+
+/**
+ * @brief Tests a clip of the specified translation against the specified
+ * entity. This is the reciprocal of `Sv_Clip`.
+ */
+cm_trace_t Cl_Clip(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *test, int32_t contents) {
+
+  cl_trace_t trace = {
+    .start = start,
+    .end = end,
+    .bounds = bounds,
+    .abs_bounds = Cm_TraceBounds(start, end, bounds),
+    .contents = contents,
+    .trace = {
+      .fraction = 1.f,
+      .end = end,
+    }
+  };
+
+  Cl_ClipTraceToEntity(&trace, (cl_entity_t *) test);
+
+  return trace.trace;
 }
 
 /**
