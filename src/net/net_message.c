@@ -375,7 +375,8 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
   }
 
   if (bits & PS_PM_PARAMS) {
-    const float *params = &to->pm_state.params.accel_ground;
+    float params[PM_PARAMS_FLOATS];
+    memcpy(params, &to->pm_state.params.accel_ground, sizeof(params));
 
     for (size_t i = 0; i < PM_PARAMS_FLOATS; i++) {
       Net_WriteFloat(msg, params[i]);
@@ -879,11 +880,13 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
   }
 
   if (bits & PS_PM_PARAMS) {
-    float *params = &to->pm_state.params.accel_ground;
+    float params[PM_PARAMS_FLOATS];
 
     for (size_t i = 0; i < PM_PARAMS_FLOATS; i++) {
       params[i] = Net_ReadFloat(msg);
     }
+
+    memcpy(&to->pm_state.params.accel_ground, params, sizeof(params));
   }
 
   const int32_t stat_bits = Net_ReadLong(msg);

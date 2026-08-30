@@ -315,6 +315,8 @@ typedef struct {
 
 _Static_assert(offsetof(pm_params_t, accel_ground) == sizeof(float),
                "pm_params_t.movement must fit in the padding after gravity");
+_Static_assert(offsetof(pm_params_t, bounds_dead) + sizeof(box3_t) == sizeof(pm_params_t),
+               "pm_params_t must not end in padding, which the block would carry");
 _Static_assert(sizeof(box3_t) == 6 * sizeof(float),
                "box3_t must be six floats for pm_params_t to travel");
 
