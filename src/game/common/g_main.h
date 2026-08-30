@@ -29,6 +29,7 @@ extern g_level_t g_level;
 extern g_media_t g_media;
 
 pm_params_t G_MovementParams(void);
+float G_LevelGravity(void);
 pm_movement_t G_ResolveMovement(const char *name);
 
 extern g_import_t gi;

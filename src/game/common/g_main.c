@@ -567,60 +567,78 @@ static char *G_FormatTime(uint32_t time) {
 
 /**
  * @brief Factory for `pm_params_t`, hydrated fresh from the g_* movement cvars at
- * each `Pm_Move` call site. Gravity carries map/worldspawn precedence, so it is
- * taken from `g_level`. Values are passed through verbatim; `Pm_Move` performs all
- * sanitization (clamping, divide-by-zero guards).
+ * each `Pm_Move` call site. Values are passed through verbatim; `Pm_Move`
+ * performs all sanitization (clamping, divide-by-zero guards).
+ *
+ * Every movement but Quetoo's is defined by its own parameters rather than by
+ * this server's cvars: one that drifted with a cvar would not be a movement
+ * anyone could set a comparable record under. Gravity is the exception, as the
+ * level's when the level sets one; see `G_LevelGravity`.
  */
 pm_params_t G_MovementParams(void) {
 
-  pm_params_t params = (pm_params_t) {
-    .gravity = g_level.gravity,
-
-    .accel_ground = g_ground_acceleration->value,
-    .accel_ground_slick = g_ground_acceleration_slick->value,
-    .accel_air = g_air_acceleration->value,
-    .accel_water = g_water_acceleration->value,
-    .accel_spectator = g_spectator_acceleration->value,
-    .accel_ladder = g_ladder_acceleration->value,
-
-    .friction_ground = g_ground_friction->value,
-    .friction_ground_slick = g_ground_friction_slick->value,
-    .friction_air = g_air_friction->value,
-    .friction_water = g_water_friction->value,
-    .friction_spectator = g_spectator_friction->value,
-    .friction_ladder = g_ladder_friction->value,
-
-    .speed_ground = g_ground_speed->value,
-    .speed_air = g_air_speed->value,
-    .speed_water = g_water_speed->value,
-    .speed_ladder = g_ladder_speed->value,
-    .speed_spectator = g_spectator_speed->value,
-    .speed_stop = g_stop_speed->value,
-    .speed_jump = g_jump_speed->value,
-    .speed_ducked = g_duck_speed->value,
-    .speed_duck_stand = g_duck_stand_speed->value,
-    .speed_water_jump = g_water_jump_speed->value,
-
-    // no cvars for these, unlike every other parameter here: a box is a shape
-    // rather than a scalar, and one a server could only move by its top would
-    // leave the rendered model, sized from PM_BOUNDS, disagreeing with the hull.
-    // A mod that wants another shape writes these three
-    .bounds = PM_BOUNDS,
-    .bounds_ducked = PM_CROUCHED_BOUNDS,
-    .bounds_dead = PM_DEAD_BOUNDS,
-    .movement = g_level.movement,
-  };
-
-  // every movement but Quetoo's is defined by its own parameters rather than by
-  // this server's cvars: one that drifted with a cvar would not be a movement
-  // anyone could set a comparable record under
   const pm_movement_info_t *movement = Pm_Movement(g_level.movement);
-  if (movement && movement->params) {
+  pm_params_t params;
+
+  if (movement->params) {
     params = *movement->params;
-    params.movement = g_level.movement;
+  } else {
+    params = (pm_params_t) {
+      .gravity = DEFAULT_GRAVITY,
+
+      .accel_ground = g_ground_acceleration->value,
+      .accel_ground_slick = g_ground_acceleration_slick->value,
+      .accel_air = g_air_acceleration->value,
+      .accel_water = g_water_acceleration->value,
+      .accel_spectator = g_spectator_acceleration->value,
+      .accel_ladder = g_ladder_acceleration->value,
+
+      .friction_ground = g_ground_friction->value,
+      .friction_ground_slick = g_ground_friction_slick->value,
+      .friction_air = g_air_friction->value,
+      .friction_water = g_water_friction->value,
+      .friction_spectator = g_spectator_friction->value,
+      .friction_ladder = g_ladder_friction->value,
+
+      .speed_ground = g_ground_speed->value,
+      .speed_air = g_air_speed->value,
+      .speed_water = g_water_speed->value,
+      .speed_ladder = g_ladder_speed->value,
+      .speed_spectator = g_spectator_speed->value,
+      .speed_stop = g_stop_speed->value,
+      .speed_jump = g_jump_speed->value,
+      .speed_ducked = g_duck_speed->value,
+      .speed_duck_stand = g_duck_stand_speed->value,
+      .speed_water_jump = g_water_jump_speed->value,
+
+      .bounds = PM_BOUNDS,
+      .bounds_ducked = PM_CROUCHED_BOUNDS,
+      .bounds_dead = PM_DEAD_BOUNDS,
+    };
+  }
+
+  params.movement = g_level.movement;
+
+  if (g_level.gravity) {
+    params.gravity = g_level.gravity;
   }
 
   return params;
+}
+
+/**
+ * @brief The gravity in effect: the level's, if `g_gravity`, the map's metadata
+ * or its worldspawn set one, and otherwise the movement's own.
+ */
+float G_LevelGravity(void) {
+
+  if (g_level.gravity) {
+    return g_level.gravity;
+  }
+
+  const pm_movement_info_t *movement = Pm_Movement(g_level.movement);
+
+  return movement->params ? movement->params->gravity : DEFAULT_GRAVITY;
 }
 
 /**

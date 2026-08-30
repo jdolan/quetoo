@@ -308,7 +308,7 @@ static void G_Accelerate(g_entity_t *ent, const vec3_t dir, float speed, float a
 static void G_Gravity(g_entity_t *ent) {
 
   if (ent->ground.ent == NULL) {
-    float gravity = g_level.gravity;
+    float gravity = G_LevelGravity();
 
     if (ent->water_level) {
       gravity *= PM_GRAVITY_WATER;
