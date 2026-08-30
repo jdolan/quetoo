@@ -83,8 +83,8 @@ void G_Race_ArmStart(g_client_t *cl, const g_entity_t *start);
 bool G_Race_Debounced(g_client_t *cl, const g_entity_t *ent, float wait);
 
 /**
- * @brief Spawns the race triggers by class name, or returns false for a class
- * that is not one. Chained under `InitEntity` by `G_Race_Init`.
+ * @brief Initializes the race triggers and barriers by class name, or returns
+ * false for a class that is not one. Chained under `InitEntity` by `G_Race_Init`.
  */
 bool G_Race_InitEntity(g_entity_t *ent);
 
