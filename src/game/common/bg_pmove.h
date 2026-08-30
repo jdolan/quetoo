@@ -211,13 +211,6 @@ typedef struct pm_move_s {
   debug_t (*DebugMask)(void);
   void (*Debug)(const debug_t debug, const char *func, const char *fmt, ...);
   debug_t debug_mask;
-
-  /**
-   * @brief Called on each user-intended acceleration, or `NULL`, whether or not
-   * the move was already at the wished speed. For training aids that sample the
-   * move as it happens; it MUST NOT change it.
-   */
-  void (*Accelerate)(const struct pm_move_s *pm, const vec3_t dir, float speed, float accel);
 } pm_move_t;
 
 /**

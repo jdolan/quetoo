@@ -188,9 +188,8 @@ extern Move Cg_Move;
 /**
  * @brief A pending command with time is about to be run through `Pm_Move` for
  * prediction. The move is set up once from the last server frame and carried
- * through every pending command, so whatever a feature sets on it here - a
- * training aid installing `pm->Accelerate`, say - stays set for the commands
- * that follow.
+ * through every pending command, so whatever a feature sets on it here stays
+ * set for the commands that follow.
  * @details Notification; the tail does nothing.
  */
 typedef void (*MoveCommandWillRun)(pm_move_t *pm, const cl_cmd_t *cmd);
