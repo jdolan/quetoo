@@ -310,8 +310,8 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 
     switch (c) {
 
-      case CL_CMD_USER_INFO:
-        q_strlcpy(cl->user_info, Net_ReadString(&net_message), sizeof(cl->user_info));
+      case CL_CMD_USER_INFO: // leave room for ip stuffing, as the connect does
+        q_strlcpy(cl->user_info, Net_ReadString(&net_message), sizeof(cl->user_info) - 25);
         Sv_UserInfoChanged(cl);
         break;
 

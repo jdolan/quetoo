@@ -721,13 +721,15 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
     return;
   }
 
-  // force the ip so the game can filter on it, as the connect did: a client's
-  // update replaces the whole string, and the client never sends one
-  if (!InfoString_Set(cl->user_info, "ip", Sv_NetaddrToString(cl))) {
-    Com_Print("No room for ip in user_info from %s\n", Sv_NetaddrToString(cl));
+  if (q_strlen(InfoString_Get(cl->user_info, "ip"))) { // catch spoofed ips, as the connect does
+    Com_Print("Illegal user_info contained ip from %s\n", Sv_NetaddrToString(cl));
     Sv_KickClient(cl, "Bad user info");
     return;
   }
+
+  // force the ip so the game can filter on it, as the connect did: a client's
+  // update replaces the whole string, and the client never sends one
+  InfoString_Set(cl->user_info, "ip", Sv_NetaddrToString(cl));
 
   // call game code to allow overrides
   svs.game->ClientUserInfoChanged(cl->gclient, cl->user_info);
