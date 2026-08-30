@@ -32,10 +32,9 @@
  *
  * The barriers are the `func_race_*` brushes, whose conditions arrive on
  * `CS_RACE_BARRIERS` so that prediction clips them as the server will, from
- * the run the stats describe. The client predicts only itself, and with no
- * mover, so `G_Race_ClipEntity`'s "no mover, so solid" rule has no mirror;
- * and it has no clip to one entity, so the one-way wall's "already inside"
- * probe is a trace during which only that wall clips.
+ * the run the stats describe. The client predicts only itself, so the racer
+ * `G_Race_ClipEntity` asks after is this client's entity, and anything else
+ * that traces meets a wall.
  */
 
 // how much of the ghost is there
@@ -60,9 +59,6 @@ typedef struct {
 } cg_race_barrier_t;
 
 static cg_race_barrier_t cg_race_barriers[RACE_MAX_BARRIERS];
-
-// the one barrier a probe for "already inside" may clip, while it runs
-static const cl_entity_t *cg_race_probing;
 
 uint32_t Cg_Race_Time(const player_state_t *ps) {
   return (uint16_t) ps->stats[STAT_RACE_TIME_LOW] | ((uint32_t) (uint16_t) ps->stats[STAT_RACE_TIME_HIGH] << 16);
@@ -172,19 +168,18 @@ static void Cg_MediaDidLoad_Race(void) {
   Cg_Race_ParseBarriers();
 }
 
+static bool Cg_Race_ClipPrevious(const cl_entity_t *mover, const cl_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
+  return previous.ClipEntity ? previous.ClipEntity(mover, ent, start, end, bounds) : true;
+}
+
 /**
  * @brief `G_Race_ClipEntity`, as the client can apply it to itself.
  */
 static bool Cg_ClipEntity_Race(const cl_entity_t *mover, const cl_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
-
-  if (cg_race_probing) {
-    return ent == cg_race_probing;
-  }
-
   const cg_race_barrier_t *b = Cg_Race_BarrierFor(ent);
 
-  if (!b) {
-    return previous.ClipEntity(mover, ent, start, end, bounds);
+  if (!b || !mover || mover != cgi.client->entity) {
+    return Cg_Race_ClipPrevious(mover, ent, start, end, bounds);
   }
 
   const player_state_t *ps = &cgi.client->frame.ps;
@@ -203,14 +198,10 @@ static bool Cg_ClipEntity_Race(const cl_entity_t *mover, const cl_entity_t *ent,
       return false;
     }
 
-    return previous.ClipEntity(mover, ent, start, end, bounds);
+    return Cg_Race_ClipPrevious(mover, ent, start, end, bounds);
   }
 
-  cg_race_probing = ent;
-  const cm_trace_t tr = cgi.Trace(start, start, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
-  cg_race_probing = NULL;
-
-  if (tr.start_solid && tr.ent == ent) {
+  if (cgi.Clip(start, start, bounds, ent, CONTENTS_MASK_CLIP_PLAYER).start_solid) {
     return false;
   }
 
@@ -220,7 +211,7 @@ static bool Cg_ClipEntity_Race(const cl_entity_t *mover, const cl_entity_t *ent,
     return false;
   }
 
-  return previous.ClipEntity(mover, ent, start, end, bounds);
+  return Cg_Race_ClipPrevious(mover, ent, start, end, bounds);
 }
 
 static bool Cg_FilterEntity_Race(const cl_entity_t *ent) {

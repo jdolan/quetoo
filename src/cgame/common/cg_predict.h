@@ -26,5 +26,4 @@
 #if defined(__CG_LOCAL_H__)
 bool Cg_ExportUsePrediction(void);
 void Cg_PredictMovement(const Vector *cmds);
-bool Cg_ExportClipEntity(const cl_entity_t *mover, const cl_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
 #endif

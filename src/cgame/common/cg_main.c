@@ -84,6 +84,7 @@ cvar_t *cg_skin;
 cvar_t *editor;
 
 cg_import_t cgi;
+static cg_export_t cge;
 
 /**
  * @brief Called when the client first comes up or switches game directories. Client
@@ -198,6 +199,8 @@ static void Cg_Init(void) {
   Cg_Vote_Init();
 
   Cg_Module_Init();
+
+  cge.ClipEntity = Cg_ClipEntity;
 
   cgi.Print("Client game module initialized\n");
 }
@@ -554,7 +557,6 @@ ScreenDidUpdate Cg_ScreenDidUpdate = Cg_ScreenDidUpdate_Common;
  * @brief Entry point that populates and returns the cgame export table with all function pointers.
  */
 cg_export_t *Cg_LoadCgame(cg_import_t *import) {
-  static cg_export_t cge;
 
   cgi = *import;
 
@@ -583,7 +585,6 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
   cge.UpdateScreen = Cg_UpdateScreen;
   cge.UpdateInstaller = Cg_UpdateInstaller;
   cge.UpdateDiscord = Cg_UpdateDiscord;
-  cge.ClipEntity = Cg_ExportClipEntity;
 
   return &cge;
 }

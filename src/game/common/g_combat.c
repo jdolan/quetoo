@@ -301,10 +301,10 @@ static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
  * @brief The tail of the `G_ModifyDamage` chain, applying the quad damage
  * powerup. Never vetoes. Features holding their own modifiers install over the top.
  */
-static bool G_ModifyDamage_Common(const g_damage_t *dmg, int32_t *damage, int32_t *knockback) {
+static bool G_ModifyDamage_Common(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback) {
 
-  if (dmg->attacker->client) {
-    if (dmg->attacker->client->inventory[POWERUP_QUAD]) {
+  if (attacker->client) {
+    if (attacker->client->inventory[POWERUP_QUAD]) {
       *damage *= QUAD_DAMAGE_FACTOR;
       *knockback *= QUAD_KNOCKBACK_FACTOR;
     }
@@ -341,7 +341,6 @@ ModifyDamage G_ModifyDamage = G_ModifyDamage_Common;
 void G_Damage(const g_damage_t *dmg) {
 
   g_entity_t *target = dmg->target;
-  g_entity_t *inflictor = dmg->inflictor ?: ge.entities[0];
   g_entity_t *attacker = dmg->attacker ?: ge.entities[0];
 	const vec3_t dir = dmg->dir;
 	const vec3_t pos = dmg->point;
@@ -352,7 +351,6 @@ void G_Damage(const g_damage_t *dmg) {
 	g_means_of_death mod = dmg->mod;
 
   assert(target);
-  assert(inflictor);
   assert(attacker);
   assert(damage >= 0);
   assert(damage <= INT16_MAX);
@@ -369,11 +367,7 @@ void G_Damage(const g_damage_t *dmg) {
     }
   }
 
-  g_damage_t resolved = *dmg;
-  resolved.inflictor = inflictor;
-  resolved.attacker = attacker;
-
-  if (!G_ModifyDamage(&resolved, &damage, &knockback)) {
+  if (!G_ModifyDamage(target, attacker, &damage, &knockback)) {
     return;
   }
 

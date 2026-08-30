@@ -153,10 +153,13 @@ extern ListGameplayModes Cg_ListGameplayModes;
 
 /**
  * @brief Decides whether `ent` clips a trace made on behalf of `mover`, after the
- * client has applied its own skip rules. The default clips everything.
+ * client has applied its own skip rules. There is no tail: the chain is `NULL`
+ * until a feature installs a link, and the client does not call an empty one.
  * @details Chainable, and the reciprocal of the game's `ClipEntity`: a feature
  * installs the same rule on both sides, or prediction disagrees with the server.
- * An implementation MUST be pure.
+ * Prediction traces on behalf of `cgi.client->entity`; `mover` is `NULL` for a
+ * trace with no entity behind it, as it is for `cgi.Clip`. An implementation
+ * MUST be pure.
  */
 typedef bool (*ClipEntity)(const cl_entity_t *mover, const cl_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
 
@@ -188,9 +191,8 @@ extern Move Cg_Move;
 /**
  * @brief A pending command with time is about to be run through `Pm_Move` for
  * prediction. The move is set up once from the last server frame and carried
- * through every pending command, so whatever a feature sets on it here - a
- * training aid installing `pm->Accelerate`, say - stays set for the commands
- * that follow.
+ * through every pending command, so whatever a feature sets on it here stays
+ * set for the commands that follow.
  * @details Notification; the tail does nothing.
  */
 typedef void (*MoveCommandWillRun)(pm_move_t *pm, const cl_cmd_t *cmd);

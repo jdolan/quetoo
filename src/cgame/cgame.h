@@ -36,7 +36,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 36
+#define CGAME_API_VERSION 37
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -628,6 +628,19 @@ typedef struct cg_import_s {
    * @return A trace result.
    */
   cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *skip, int32_t contents);
+
+  /**
+   * @brief Clips a box trace against a single entity, the reciprocal of the
+   * game's `Clip`. The client's skip rules and `ClipEntity` still apply, the
+   * latter with no mover.
+   * @param start The trace start point.
+   * @param end The trace end point.
+   * @param bounds The trace bounds, or `Box3_Zero()` for point/line trace.
+   * @param test The entity to clip against.
+   * @param contents Solids matching this mask will clip the returned trace.
+   * @return A trace result.
+   */
+  cm_trace_t (*Clip)(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *test, int32_t contents);
 
   /**
    * @brief Traces a point ray from `start` to `end` against a single brush.

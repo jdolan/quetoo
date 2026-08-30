@@ -228,10 +228,6 @@ void Pm_Accelerate(const vec3_t dir, float speed, float accel) {
 
     pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accel_speed, dir);
   }
-
-  if (pm->Accelerate) {
-    pm->Accelerate(pm, dir, speed, accel);
-  }
 }
 
 /**

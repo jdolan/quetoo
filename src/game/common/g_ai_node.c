@@ -1606,7 +1606,7 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
 
       if (cl && cl->entity) {
         const int32_t water_level = (link_contents & CONTENTS_WATER) ? 1 : 0;
-        const float estimated_damage = G_Ai_EstimatedFallDamage(drop, g_level.gravity, water_level);
+        const float estimated_damage = G_Ai_EstimatedFallDamage(drop, G_LevelGravity(), water_level);
 
         if (estimated_damage + AI_DROP_HEALTH_MARGIN >= cl->entity->health) {
           continue;

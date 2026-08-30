@@ -346,10 +346,6 @@ static void Pm_RaceAccelerate(const vec3_t dir, float speed, float accel) {
   const float accel_speed = Minf(accel * pm_locals.time * speed, add_speed);
 
   pm->s.velocity = Vec3_Fmaf(pm->s.velocity, accel_speed, dir);
-
-  if (pm->Accelerate) {
-    pm->Accelerate(pm, dir, speed, accel);
-  }
 }
 
 /**

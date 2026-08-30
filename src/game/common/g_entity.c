@@ -734,7 +734,7 @@ static void G_worldspawn_Music(void) {
  message : The map title.
  sky : The sky environment map (default unit1_).
  ambient : The ambient light level (e.g. 0.14 0.11 0.12).
- gravity : Gravity for the level (default 800).
+ gravity : Gravity for the level; unset, the movement's applies, 800 for most.
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."
  hook : Enables the grappling hook (unset for gameplay default, 0 = disabled, 1 = enabled)."
  teams : Enables and enforces teams play (enabled = 1, auto-balance = 2).
@@ -776,12 +776,14 @@ static void G_worldspawn(g_entity_t *ent) {
     g_level.gravity = g_gravity->integer;
   } else if (gravity_map && (gravity_map->parsed & ENTITY_INTEGER) && gravity_map->integer > 0) { // then map metadata gravity
     g_level.gravity = gravity_map->integer;
-  } else { // or fall back on worldspawn
+  } else { // or worldspawn; unset, it stays zero, and the movement's gravity applies
     const cm_entity_t *gravity = gi.EntityValue(ent->def, "gravity");
     if (gravity->parsed & ENTITY_INTEGER) {
-      g_level.gravity = gravity->integer;
-    } else {
-      g_level.gravity = DEFAULT_GRAVITY;
+      if (gravity->integer) {
+        g_level.gravity = gravity->integer;
+      } else {
+        G_Warn("%s has gravity 0, which is unset: the movement's applies\n", g_level.name);
+      }
     }
   }
 
