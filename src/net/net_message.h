@@ -34,14 +34,14 @@
 #define PS_PM_FLAGS         (1 << 5)
 #define PS_PM_TIME          (1 << 6)
 #define PS_PM_GRAVITY       (1 << 7)
-#define PS_PM_VIEW_OFFSET   (1 << 8)
-#define PS_PM_VIEW_ANGLES   (1 << 9)
-#define PS_PM_DELTA_ANGLES  (1 << 10)
-#define PS_PM_HOOK_POSITION (1 << 11)
-#define PS_PM_HOOK_LENGTH   (1 << 12)
-#define PS_PM_STEP_OFFSET   (1 << 13)
-#define PS_PM_PARAMS        (1 << 14)
-#define PS_PM_MOVEMENT      (1 << 15)
+#define PS_PM_MOVEMENT      (1 << 8)
+#define PS_PM_VIEW_OFFSET   (1 << 9)
+#define PS_PM_VIEW_ANGLES   (1 << 10)
+#define PS_PM_DELTA_ANGLES  (1 << 11)
+#define PS_PM_HOOK_POSITION (1 << 12)
+#define PS_PM_HOOK_LENGTH   (1 << 13)
+#define PS_PM_STEP_OFFSET   (1 << 14)
+#define PS_PM_PARAMS        (1 << 15)
 
 /**
  * @brief Delta compression flags for `user_cmd_t`.

@@ -304,25 +304,17 @@ typedef struct {
 
 /**
  * @brief This layout is the wire format. `Net_WriteDeltaPlayerState` sends
- * `gravity` and `movement` on their own bits and compares everything from
- * `accel_ground` on with one `memcmp`, so two things must stay true: `movement`
- * must keep sitting in the padding `gravity` leaves, or the compared region
- * moves, and that region must hold nothing but the floats the encoder writes,
- * or the comparison reads padding and resends the block at random. A field
- * added anywhere but the end breaks the first; a field of another width breaks
- * the second. Both are asserted rather than commented so that the build says so.
+ * `gravity` and `movement` on their own bits, and everything from `accel_ground`
+ * on as one block of `PM_PARAMS_FLOATS` floats, compared with one `memcmp` and
+ * written in a loop. So `movement` must keep sitting in the padding `gravity`
+ * leaves, or the block moves; and the block must hold nothing but floats, or
+ * the loop sends padding as a parameter. Add a float at the end and the count
+ * follows; the boxes qualify only because a `box3_t` is six plain floats.
  */
+#define PM_PARAMS_FLOATS ((sizeof(pm_params_t) - offsetof(pm_params_t, accel_ground)) / sizeof(float))
+
 _Static_assert(offsetof(pm_params_t, accel_ground) == sizeof(float),
                "pm_params_t.movement must fit in the padding after gravity");
-_Static_assert(sizeof(pm_params_t) - offsetof(pm_params_t, accel_ground) ==
-               40 * sizeof(float),
-               "the delta-compared region of pm_params_t must be floats only");
-
-/**
- * @brief And the boxes are part of that region, so they must be plain floats
- * too: a `vec3_t` that ever acquired an alignment wider than a float would pad
- * `box3_t` and put unwritten bytes inside the block `memcmp` compares.
- */
 _Static_assert(sizeof(box3_t) == 6 * sizeof(float),
                "box3_t must be six floats for pm_params_t to travel");
 

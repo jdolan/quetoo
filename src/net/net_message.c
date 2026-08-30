@@ -375,37 +375,11 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
   }
 
   if (bits & PS_PM_PARAMS) {
-    Net_WriteFloat(msg, to->pm_state.params.accel_ground);
-    Net_WriteFloat(msg, to->pm_state.params.accel_ground_slick);
-    Net_WriteFloat(msg, to->pm_state.params.accel_air);
-    Net_WriteFloat(msg, to->pm_state.params.accel_water);
-    Net_WriteFloat(msg, to->pm_state.params.accel_spectator);
-    Net_WriteFloat(msg, to->pm_state.params.accel_ladder);
-    Net_WriteFloat(msg, to->pm_state.params.friction_ground);
-    Net_WriteFloat(msg, to->pm_state.params.friction_ground_slick);
-    Net_WriteFloat(msg, to->pm_state.params.friction_air);
-    Net_WriteFloat(msg, to->pm_state.params.friction_water);
-    Net_WriteFloat(msg, to->pm_state.params.friction_spectator);
-    Net_WriteFloat(msg, to->pm_state.params.friction_ladder);
-    Net_WriteFloat(msg, to->pm_state.params.speed_ground);
-    Net_WriteFloat(msg, to->pm_state.params.speed_air);
-    Net_WriteFloat(msg, to->pm_state.params.speed_water);
-    Net_WriteFloat(msg, to->pm_state.params.speed_ladder);
-    Net_WriteFloat(msg, to->pm_state.params.speed_spectator);
-    Net_WriteFloat(msg, to->pm_state.params.speed_stop);
-    Net_WriteFloat(msg, to->pm_state.params.speed_jump);
-    Net_WriteFloat(msg, to->pm_state.params.speed_ducked);
-    Net_WriteFloat(msg, to->pm_state.params.speed_duck_stand);
-    Net_WriteFloat(msg, to->pm_state.params.speed_water_jump);
-    // Net_WriteBounds is the obvious call and the wrong one: it casts each
-    // component to int16, and a box quantized on the way to the client is a
-    // client predicting against a box the server did not run
-    Net_WritePosition(msg, to->pm_state.params.bounds.mins);
-    Net_WritePosition(msg, to->pm_state.params.bounds.maxs);
-    Net_WritePosition(msg, to->pm_state.params.bounds_ducked.mins);
-    Net_WritePosition(msg, to->pm_state.params.bounds_ducked.maxs);
-    Net_WritePosition(msg, to->pm_state.params.bounds_dead.mins);
-    Net_WritePosition(msg, to->pm_state.params.bounds_dead.maxs);
+    const float *params = &to->pm_state.params.accel_ground;
+
+    for (size_t i = 0; i < PM_PARAMS_FLOATS; i++) {
+      Net_WriteFloat(msg, params[i]);
+    }
   }
 
   uint32_t stat_bits = 0;
@@ -905,34 +879,11 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
   }
 
   if (bits & PS_PM_PARAMS) {
-    to->pm_state.params.accel_ground = Net_ReadFloat(msg);
-    to->pm_state.params.accel_ground_slick = Net_ReadFloat(msg);
-    to->pm_state.params.accel_air = Net_ReadFloat(msg);
-    to->pm_state.params.accel_water = Net_ReadFloat(msg);
-    to->pm_state.params.accel_spectator = Net_ReadFloat(msg);
-    to->pm_state.params.accel_ladder = Net_ReadFloat(msg);
-    to->pm_state.params.friction_ground = Net_ReadFloat(msg);
-    to->pm_state.params.friction_ground_slick = Net_ReadFloat(msg);
-    to->pm_state.params.friction_air = Net_ReadFloat(msg);
-    to->pm_state.params.friction_water = Net_ReadFloat(msg);
-    to->pm_state.params.friction_spectator = Net_ReadFloat(msg);
-    to->pm_state.params.friction_ladder = Net_ReadFloat(msg);
-    to->pm_state.params.speed_ground = Net_ReadFloat(msg);
-    to->pm_state.params.speed_air = Net_ReadFloat(msg);
-    to->pm_state.params.speed_water = Net_ReadFloat(msg);
-    to->pm_state.params.speed_ladder = Net_ReadFloat(msg);
-    to->pm_state.params.speed_spectator = Net_ReadFloat(msg);
-    to->pm_state.params.speed_stop = Net_ReadFloat(msg);
-    to->pm_state.params.speed_jump = Net_ReadFloat(msg);
-    to->pm_state.params.speed_ducked = Net_ReadFloat(msg);
-    to->pm_state.params.speed_duck_stand = Net_ReadFloat(msg);
-    to->pm_state.params.speed_water_jump = Net_ReadFloat(msg);
-    to->pm_state.params.bounds.mins = Net_ReadPosition(msg);
-    to->pm_state.params.bounds.maxs = Net_ReadPosition(msg);
-    to->pm_state.params.bounds_ducked.mins = Net_ReadPosition(msg);
-    to->pm_state.params.bounds_ducked.maxs = Net_ReadPosition(msg);
-    to->pm_state.params.bounds_dead.mins = Net_ReadPosition(msg);
-    to->pm_state.params.bounds_dead.maxs = Net_ReadPosition(msg);
+    float *params = &to->pm_state.params.accel_ground;
+
+    for (size_t i = 0; i < PM_PARAMS_FLOATS; i++) {
+      params[i] = Net_ReadFloat(msg);
+    }
   }
 
   const int32_t stat_bits = Net_ReadLong(msg);
