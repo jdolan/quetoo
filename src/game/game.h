@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 35
+#define GAME_API_VERSION 36
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -800,5 +800,5 @@ typedef struct g_export_s {
    * an entity solid to some movers and not others.
    * @param mover The entity the trace is on behalf of, or `NULL`.
    */
-  bool (*ClipEntity)(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
+  bool (*ClipEntity)(const g_entity_t *mover, const g_entity_t *ent);
 } g_export_t;

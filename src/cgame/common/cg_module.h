@@ -160,7 +160,7 @@ extern ListGameplayModes Cg_ListGameplayModes;
  * Prediction traces on behalf of `cgi.client->entity`; `mover` is `NULL` for a
  * trace with no entity behind it. An implementation MUST be pure.
  */
-typedef bool (*ClipEntity)(const cl_entity_t *mover, const cl_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
+typedef bool (*ClipEntity)(const cl_entity_t *mover, const cl_entity_t *ent);
 
 extern ClipEntity Cg_ClipEntity;
 

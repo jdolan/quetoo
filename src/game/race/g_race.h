@@ -158,4 +158,4 @@ void G_Race_UpdateBarriers(g_client_t *cl);
  * `G_Race_UpdateBarriers` let the mover pass it. Chained under `ClipEntity` by
  * `G_Race_Init`.
  */
-bool G_Race_ClipEntity(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
+bool G_Race_ClipEntity(const g_entity_t *mover, const g_entity_t *ent);

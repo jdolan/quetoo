@@ -620,13 +620,13 @@ static bool G_InitEntity_Race(g_entity_t *ent) {
   return previous.InitEntity(ent);
 }
 
-static bool G_ClipEntity_Race(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
+static bool G_ClipEntity_Race(const g_entity_t *mover, const g_entity_t *ent) {
 
-  if (!G_Race_ClipEntity(mover, ent, start, end, bounds)) {
+  if (!G_Race_ClipEntity(mover, ent)) {
     return false;
   }
 
-  return previous.ClipEntity ? previous.ClipEntity(mover, ent, start, end, bounds) : true;
+  return previous.ClipEntity ? previous.ClipEntity(mover, ent) : true;
 }
 
 /**

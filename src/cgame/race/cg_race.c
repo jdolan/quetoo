@@ -131,7 +131,7 @@ static void Cg_MediaDidLoad_Race(void) {
  * server let this client pass does not clip this client's own moves; it clips
  * everything else, as it does on the server.
  */
-static bool Cg_ClipEntity_Race(const cl_entity_t *mover, const cl_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
+static bool Cg_ClipEntity_Race(const cl_entity_t *mover, const cl_entity_t *ent) {
 
   for (size_t i = 0; mover == cgi.client->entity && i < cg_race_passable_count; i++) {
     if (cg_race_passable[i] == ent->current.number) {
@@ -139,7 +139,7 @@ static bool Cg_ClipEntity_Race(const cl_entity_t *mover, const cl_entity_t *ent,
     }
   }
 
-  return previous.ClipEntity ? previous.ClipEntity(mover, ent, start, end, bounds) : true;
+  return previous.ClipEntity ? previous.ClipEntity(mover, ent) : true;
 }
 
 /**

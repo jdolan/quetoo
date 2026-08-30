@@ -430,7 +430,7 @@ void G_Race_UpdateBarriers(g_client_t *cl) {
  * answer is the one `G_Race_UpdateBarriers` settled and sent at the end of the
  * last frame, so that the client predicts against the same set.
  */
-bool G_Race_ClipEntity(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
+bool G_Race_ClipEntity(const g_entity_t *mover, const g_entity_t *ent) {
 
   if (ent->race_barrier == RACE_BARRIER_NONE || !mover || !mover->client) {
     return true;
