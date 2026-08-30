@@ -504,6 +504,20 @@ typedef bool (*HandleClientCommand)(g_client_t *cl, const char *cmd);
 extern HandleClientCommand G_HandleClientCommand;
 
 /**
+ * @brief The client is about to say `text`: their message after variable
+ * expansion, without their name, in a buffer of `size` that is theirs to edit.
+ * A feature that muzzles returns false, and nothing is delivered or reported;
+ * one that filters rewrites `text` in place. Empty, flooding and muted messages
+ * never get this far.
+ * @details Chainable. A link that calls previous MUST return false when previous
+ * does. The tail says yes.
+ * @return True to deliver the message.
+ */
+typedef bool (*ClientWillChat)(g_client_t *cl, char *text, size_t size, bool team);
+
+extern ClientWillChat G_ClientWillChat;
+
+/**
  * @brief The client said something, and it was delivered. `text` is the line as
  * the other clients saw it: the name, its color escapes and a trailing newline,
  * in a buffer that lives only for this call; a feature that keeps it copies it.
