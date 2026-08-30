@@ -292,10 +292,11 @@ typedef bool (*ClipEntity)(const g_entity_t *mover, const g_entity_t *ent, const
 
 extern ClipEntity G_ClipEntity;
 
+#if defined(G_HOOK)
 /**
  * @brief Whether a client may use the grapple hook right now. The default says
- * yes whenever the hook feature is built and enabled; a client refused here has
- * their hook detached. Exists only when the module builds `G_HOOK`.
+ * yes whenever the movement they are running has a hook; a client refused here
+ * has their hook detached.
  * @details Chainable. A mode that allows the hook only some of the time answers
  * for its cases and defers to previous.
  * @return True if the client may hook.
@@ -303,6 +304,7 @@ extern ClipEntity G_ClipEntity;
 typedef bool (*AllowHook)(const g_client_t *cl);
 
 extern AllowHook G_AllowHook;
+#endif
 
 /**
  * @}

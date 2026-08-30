@@ -237,6 +237,13 @@ typedef struct {
    * move it would not be a movement anyone could set a record under.
    */
   const pm_params_t *params;
+
+  /**
+   * @brief Whether this movement implements the `PM_HOOK_*` types and honours
+   * `hook_length`, so that the grapple has something to swing on. A movement
+   * ported from another game does not, and the hook feature stays out of it.
+   */
+  bool hook;
 } pm_movement_info_t;
 
 /**

@@ -63,7 +63,7 @@ box3_t Pm_Bounds(const pm_params_t *params, bool ducked) {
  * the server's movement cvars, which is what makes it the default.
  */
 static const pm_movement_info_t pm_movements[] = {
-  [PM_MOVEMENT_QUETOO] = { .name = "quetoo", .label = "Quetoo",      .params = NULL },
+  [PM_MOVEMENT_QUETOO] = { .name = "quetoo", .label = "Quetoo",      .params = NULL, .hook = true },
   [PM_MOVEMENT_RACE]   = { .name = "race",   .label = "Quetoo Race", .params = &pm_race_params },
   [PM_MOVEMENT_QUAKE]  = { .name = "quake",  .label = "Quake",       .params = &pm_quake_params },
   [PM_MOVEMENT_QUAKE2] = { .name = "quake2", .label = "Quake2",      .params = &pm_quake2_params },
