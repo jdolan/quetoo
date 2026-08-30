@@ -54,6 +54,9 @@ static cg_client_info_t cg_race_ghost;
 static int32_t cg_race_passable[RACE_MAX_BARRIERS];
 static size_t cg_race_passable_count;
 
+/**
+ * @see cg_race.h
+ */
 uint32_t Cg_Race_Time(const player_state_t *ps) {
   return (uint16_t) ps->stats[STAT_RACE_TIME_LOW] | ((uint32_t) (uint16_t) ps->stats[STAT_RACE_TIME_HIGH] << 16);
 }
@@ -66,10 +69,16 @@ static void Cg_Race_LoadGhost(void) {
   Cg_LoadClient(&cg_race_ghost, cgi.ConfigString(CS_RACE_GHOST));
 }
 
+/**
+ * @brief Whether `ent` is the course record's ghost, which the server marks.
+ */
 static bool Cg_Race_IsGhost(const cl_entity_t *ent) {
   return ent->current.effects & EF_RACE_GHOST;
 }
 
+/**
+ * @brief The ghost is dressed again whenever the record holder changes.
+ */
 static bool Cg_ParseConfigString_Race(int32_t index) {
 
   if (index == CS_RACE_GHOST) {
@@ -133,6 +142,9 @@ static bool Cg_ClipEntity_Race(const cl_entity_t *mover, const cl_entity_t *ent,
   return previous.ClipEntity ? previous.ClipEntity(mover, ent, start, end, bounds) : true;
 }
 
+/**
+ * @brief Another player's ghost is theirs to see and not ours.
+ */
 static bool Cg_FilterEntity_Race(const cl_entity_t *ent) {
 
   if (Cg_Race_IsGhost(ent) && ent->current.client != cgi.client->frame.ps.client) {
@@ -142,6 +154,9 @@ static bool Cg_FilterEntity_Race(const cl_entity_t *ent) {
   return previous.FilterEntity(ent);
 }
 
+/**
+ * @brief The ghost wears the record holder's client info, not the slot it names.
+ */
 static cg_client_info_t *Cg_ClientInfo_Race(const cl_entity_t *ent) {
 
   if (Cg_Race_IsGhost(ent)) {
@@ -151,6 +166,9 @@ static cg_client_info_t *Cg_ClientInfo_Race(const cl_entity_t *ent) {
   return previous.ClientInfo(ent);
 }
 
+/**
+ * @brief The ghost is drawn translucent, and casts no shadow.
+ */
 static void Cg_EntityEffects_Race(cl_entity_t *ent, r_entity_t *e) {
 
   previous.EntityEffects(ent, e);
@@ -161,6 +179,9 @@ static void Cg_EntityEffects_Race(cl_entity_t *ent, r_entity_t *e) {
   }
 }
 
+/**
+ * @see cg_race.h
+ */
 void Cg_Race_Init(void) {
   static bool installed;
 
