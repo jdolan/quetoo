@@ -182,7 +182,10 @@ static bool G_SpawnEntity_Common(g_entity_t *ent) {
 
 SpawnEntity G_SpawnEntity = G_SpawnEntity_Common;
 
-static void G_LevelWillSpawn_Common(const char *name) {
+/**
+ * @brief The tail of the `G_LevelWillSpawn` chain: a notification, so it does nothing.
+ */
+static void G_LevelWillSpawn_Common(void) {
 }
 
 LevelWillSpawn G_LevelWillSpawn = G_LevelWillSpawn_Common;
@@ -600,7 +603,7 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
 
   q_strlcpy(g_level.name, name, sizeof(g_level.name));
 
-  G_LevelWillSpawn(name);
+  G_LevelWillSpawn();
 
   g_level.frags    = $(alloc(Vector), initWithSize, sizeof(g_frag_t));
 

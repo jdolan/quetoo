@@ -575,13 +575,13 @@ static void G_Race_Status_f(g_client_t *cl) {
  * @brief The level's entities are about to go, the ghosts among them, and with
  * them every run.
  */
-static void G_LevelWillSpawn_Race(const char *name) {
+static void G_LevelWillSpawn_Race(void) {
 
   G_ForEachClient(cl, {
     G_Race_Reset(cl);
   });
 
-  previous.LevelWillSpawn(name);
+  previous.LevelWillSpawn();
 }
 
 static void G_ConfigureLevel_Race(void) {
@@ -684,10 +684,10 @@ static bool G_AllowHook_Race(const g_client_t *cl) {
   return previous.AllowHook(cl);
 }
 
-static bool G_HandleClientCommand_Race(g_client_t *cl, const char *cmd, bool intermission) {
+static bool G_HandleClientCommand_Race(g_client_t *cl, const char *cmd) {
 
-  if (intermission) {
-    return previous.HandleClientCommand(cl, cmd, intermission);
+  if (g_level.intermission_time) {
+    return previous.HandleClientCommand(cl, cmd);
   }
 
   if (!q_strcmp(cmd, "race")) {
@@ -703,7 +703,7 @@ static bool G_HandleClientCommand_Race(g_client_t *cl, const char *cmd, bool int
   } else if (!q_strcmp(cmd, "ghost")) {
     G_Race_Ghost_f(cl);
   } else {
-    return previous.HandleClientCommand(cl, cmd, intermission);
+    return previous.HandleClientCommand(cl, cmd);
   }
 
   return true;
