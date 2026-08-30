@@ -1044,7 +1044,7 @@ static float G_EnemyRangeFromSpot(g_client_t *cl, g_entity_t *spot) {
  */
 static bool G_WouldTelefrag(const vec3_t spot) {
   g_entity_t *ents[MAX_ENTITIES];
-  box3_t bounds = Box3_Translate(G_PlayerBounds(false), spot);
+  box3_t bounds = Box3_Translate(G_PlayerBounds(), spot);
 
   bounds.mins.z -= PM_STEP_HEIGHT;
   bounds.maxs.z += PM_STEP_HEIGHT;
@@ -1254,26 +1254,41 @@ static void G_PrepareSpawn_Common(g_client_t *cl, g_client_spawn_t *spawn) {
 
 PrepareSpawn G_PrepareSpawn = G_PrepareSpawn_Common;
 
+/**
+ * @brief The tail of the `G_ClientDidBegin` chain: a notification, so it does nothing.
+ */
 static void G_ClientDidBegin_Common(g_client_t *cl) {
 }
 
 ClientDidBegin G_ClientDidBegin = G_ClientDidBegin_Common;
 
+/**
+ * @brief The tail of the `G_ClientDidChangeUserInfo` chain: a notification, so it does nothing.
+ */
 static void G_ClientDidChangeUserInfo_Common(g_client_t *cl) {
 }
 
 ClientDidChangeUserInfo G_ClientDidChangeUserInfo = G_ClientDidChangeUserInfo_Common;
 
+/**
+ * @brief The tail of the `G_ClientWillDisconnect` chain: a notification, so it does nothing.
+ */
 static void G_ClientWillDisconnect_Common(g_client_t *cl) {
 }
 
 ClientWillDisconnect G_ClientWillDisconnect = G_ClientWillDisconnect_Common;
 
+/**
+ * @brief The tail of the `G_ClientWillThink` chain: a notification, so it does nothing.
+ */
 static void G_ClientWillThink_Common(g_client_t *cl, const pm_cmd_t *cmd) {
 }
 
 ClientWillThink G_ClientWillThink = G_ClientWillThink_Common;
 
+/**
+ * @brief The tail of the `G_ClientDidMove` chain: a notification, so it does nothing.
+ */
 static void G_ClientDidMove_Common(g_client_t *cl, const pm_cmd_t *cmd) {
 }
 
@@ -1376,7 +1391,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
     ent->solid = SOLID_BOX;
     ent->sv_flags = 0;
 
-    ent->bounds = G_PlayerBounds(false);
+    ent->bounds = G_PlayerBounds();
 
     ent->s.model1 = MODEL_CLIENT;
     ent->s.event = EV_CLIENT_TELEPORT;

@@ -540,7 +540,7 @@ bool G_Ai_Node_CanPathTo(const vec3_t position) {
   const vec3_t end = Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f));
 
   // check if the destination has ground
-  cm_trace_t tr = gi.Trace(position, end, Box3_Expand3(G_PlayerBounds(false), Vec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
+  cm_trace_t tr = gi.Trace(position, end, Box3_Expand3(G_PlayerBounds(), Vec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
 
   // bad ground
   bool stuck_in_mover = tr.ent
@@ -557,7 +557,7 @@ bool G_Ai_Node_CanPathTo(const vec3_t position) {
   if (stuck_in_mover) {
 
     // check with a thinner box; it might be a button press or rotating thing
-    const box3_t bounds = G_PlayerBounds(false);
+    const box3_t bounds = G_PlayerBounds();
     tr = gi.Trace(position,
                Vec3_Subtract(position, Vec3(0, 0, PM_GROUND_DIST * 3.f)),
                Box3(Vec3(-4.f, -4.f, bounds.mins.z), Vec3(4.f, 4.f, bounds.maxs.z)),
@@ -1740,7 +1740,7 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
   if (down.fraction == 1.0) {
     pos = ent->s.origin;
   } else {
-    pos = Vec3_Subtract(down.end, Vec3(0.f, 0.f, G_PlayerBounds(false).mins.z));
+    pos = Vec3_Subtract(down.end, Vec3(0.f, 0.f, G_PlayerBounds().mins.z));
   }
 
   // grab all the links of the node that brought us here

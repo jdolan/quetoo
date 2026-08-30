@@ -65,13 +65,14 @@ void G_SetSpawnPoints(g_spawn_points_t *points, const Vector *spawns) {
 }
 
 /**
- * @brief The player bounding box under the current movement parameters.
+ * @brief The standing player box under the level's movement. A client in hand
+ * has its own in `ps.pm_state.params`; this is for when there is none.
  */
-box3_t G_PlayerBounds(bool ducked) {
+box3_t G_PlayerBounds(void) {
 
-  const pm_params_t params = G_MovementParams();
+  const pm_movement_info_t *movement = Pm_Movement(g_level.movement);
 
-  return Pm_Bounds(&params, ducked);
+  return movement->params ? movement->params->bounds : PM_BOUNDS;
 }
 
 /**
