@@ -147,7 +147,15 @@ size_t G_Race_Rank(const g_race_record_t *record, size_t *count);
 void G_Race_ResolveStages(void);
 
 /**
- * @brief Whether `ent` clips `mover`, which is where a gate or one-way wall
- * decides. Pure, and chained under `ClipEntity` by `G_Race_Init`.
+ * @brief Decides which barriers pass `cl` as they stand now, keeps the answer
+ * for `G_Race_ClipEntity`, and sends it to them as `SV_CMD_RACE_BARRIERS`.
+ * Called for every client at the end of every frame, so nothing goes stale.
+ */
+void G_Race_UpdateBarriers(g_client_t *cl);
+
+/**
+ * @brief Whether `ent` clips `mover`: a barrier does unless the last
+ * `G_Race_UpdateBarriers` let the mover pass it. Chained under `ClipEntity` by
+ * `G_Race_Init`.
  */
 bool G_Race_ClipEntity(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);

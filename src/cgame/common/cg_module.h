@@ -158,8 +158,7 @@ extern ListGameplayModes Cg_ListGameplayModes;
  * @details Chainable, and the reciprocal of the game's `ClipEntity`: a feature
  * installs the same rule on both sides, or prediction disagrees with the server.
  * Prediction traces on behalf of `cgi.client->entity`; `mover` is `NULL` for a
- * trace with no entity behind it, as it is for `cgi.Clip`. An implementation
- * MUST be pure.
+ * trace with no entity behind it. An implementation MUST be pure.
  */
 typedef bool (*ClipEntity)(const cl_entity_t *mover, const cl_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
 

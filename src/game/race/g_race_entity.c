@@ -266,8 +266,7 @@ static void G_trigger_race_finish(g_entity_t *ent) {
 
 /**
  * @brief The common half of every barrier's setup: an inline brush, solid,
- * whose conditions `G_Race_ClipEntity` applies, published on the barrier's
- * `CS_RACE_BARRIERS` slot so that the client applies them too.
+ * listed with the course so that `G_Race_UpdateBarriers` can decide it.
  */
 static void G_func_race_Init(g_entity_t *ent, g_race_barrier_t barrier) {
 
@@ -284,24 +283,21 @@ static void G_func_race_Init(g_entity_t *ent, g_race_barrier_t barrier) {
   }
 
   ent->race_barrier = barrier;
+  ent->race_barrier_slot = g_level.race_course.barrier_count;
   ent->solid = SOLID_BSP;
   ent->move_type = MOVE_TYPE_NONE;
 
   gi.SetModel(ent, ent->model);
   gi.LinkEntity(ent);
 
-  const char *params = barrier == RACE_BARRIER_GATE
-                       ? va("%u\\%d\\%d", ent->race_gate.checkpoint, ent->race_gate.mode, ent->race_gate.invert)
-                       : va("%g\\%g", ent->move_dir.x, ent->move_dir.y);
-
-  gi.SetConfigString(CS_RACE_BARRIERS + g_level.race_course.barrier_count++,
-                     va("%u\\%d\\%s", ent->s.number, barrier, params));
+  g_level.race_course.barriers[g_level.race_course.barrier_count++] = ent;
 }
 
 /*QUAKED func_race_checkpoint_gate (0 .5 .8) ?
  A brush that is solid to a racer until the run satisfies its checkpoint
  condition, and solid to everything else always. A client with no run under way
- passes freely. Texture it with clip so that it is never seen.
+ passes freely. Texture it with clip so that it is never seen. The gate opens
+ the frame after its checkpoint is reached, so leave a stride between them.
 
  -------- Keys --------
  cp : The checkpoint the gate is about, from 1.
@@ -342,6 +338,9 @@ static void G_func_race_checkpoint_gate(g_entity_t *ent) {
 /*QUAKED func_race_oneway_wall (0 .5 .8) ?
  A brush that a racer passes through in one direction and not the other, and
  that is solid to everything else. Texture it with clip so that it is never seen.
+ The wall is judged by which side of its centre a racer stands: it passes them
+ from its entry side in any direction, and stops them from the far side. Make it
+ one thin brush from floor to ceiling, so that there is no over, under or gap.
 
  -------- Keys --------
  angle : The direction of travel that passes, in the horizontal plane.
@@ -361,25 +360,20 @@ static void G_func_race_oneway_wall(g_entity_t *ent) {
 }
 
 /**
- * @brief Called for every entity a trace considers, so the ones that are not
- * barriers, and everything that is not a client, are turned away first.
+ * @brief Whether `ent`, a barrier, lets `cl` pass as they stand right now.
  *
- * A wall the client is already inside never clips: the only way in was the way
- * it allows, and clipping it from within would wedge the client. The test asks
- * the server for this one brush, which asks back here with no mover and is told
- * the wall is a wall, so the recursion ends there.
+ * A gate opens on the run's checkpoints. A wall passes a client on its entry
+ * side or already inside it, and stops one on the far side, which is the one
+ * direction it allows without anyone measuring a direction: a client who is
+ * inside came in the way it permits, and one who has crossed is behind it.
  */
-bool G_Race_ClipEntity(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
-
-  if (ent->race_barrier == RACE_BARRIER_NONE || !mover || !mover->client) {
-    return true;
-  }
+static bool G_Race_Passes(const g_client_t *cl, const g_entity_t *ent) {
 
   if (ent->race_barrier == RACE_BARRIER_GATE) {
-    const g_race_run_t *run = &mover->client->race_run;
+    const g_race_run_t *run = &cl->race_run;
 
     if (run->state != RACE_RUN_ACTIVE) {
-      return false;
+      return true;
     }
 
     const g_race_gate_t *gate = &ent->race_gate;
@@ -387,16 +381,60 @@ bool G_Race_ClipEntity(const g_entity_t *mover, const g_entity_t *ent, const vec
                       ? run->checkpoint_count == gate->checkpoint
                       : run->checkpoint_count >= gate->checkpoint;
 
-    return open == gate->invert;
+    return open != gate->invert;
   }
 
-  if (gi.Clip(start, start, bounds, ent, CONTENTS_MASK_CLIP_PLAYER).start_solid) {
-    return false;
+  const g_entity_t *self = cl->entity;
+
+  if (gi.Clip(self->s.origin, self->s.origin, self->bounds, ent, CONTENTS_MASK_CLIP_PLAYER).start_solid) {
+    return true;
   }
 
-  const vec3_t travel = Vec3_Subtract(end, start);
+  const vec3_t offset = Vec3_Subtract(self->s.origin, Box3_Center(ent->abs_bounds));
 
-  return travel.x * ent->move_dir.x + travel.y * ent->move_dir.y <= 0.f;
+  return offset.x * ent->move_dir.x + offset.y * ent->move_dir.y < 0.f;
+}
+
+void G_Race_UpdateBarriers(g_client_t *cl) {
+  const g_race_course_t *course = &g_level.race_course;
+
+  if (!course->barrier_count) {
+    return;
+  }
+
+  cl->race_passable = 0;
+
+  for (uint16_t i = 0; i < course->barrier_count; i++) {
+    if (G_Race_Passes(cl, course->barriers[i])) {
+      cl->race_passable |= 1u << i;
+    }
+  }
+
+  gi.WriteByte(SV_CMD_RACE_BARRIERS);
+  gi.WriteByte(__builtin_popcount(cl->race_passable));
+
+  for (uint16_t i = 0; i < course->barrier_count; i++) {
+    if (cl->race_passable & (1u << i)) {
+      gi.WriteShort(course->barriers[i]->s.number);
+    }
+  }
+
+  gi.Unicast(cl, false);
+}
+
+/**
+ * @brief Called for every entity a trace considers, so the ones that are not
+ * barriers, and everything that is not a client, are turned away first. The
+ * answer is the one `G_Race_UpdateBarriers` settled and sent at the end of the
+ * last frame, so that the client predicts against the same set.
+ */
+bool G_Race_ClipEntity(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
+
+  if (ent->race_barrier == RACE_BARRIER_NONE || !mover || !mover->client) {
+    return true;
+  }
+
+  return !(mover->client->race_passable & (1u << ent->race_barrier_slot));
 }
 
 static const struct {
