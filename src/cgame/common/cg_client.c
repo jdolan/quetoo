@@ -22,7 +22,14 @@
 #include "cg_local.h"
 #include "game/common/bg_pmove.h"
 
-#define MAX_CLIENT_INFO_ENTRIES 7
+// team\name\model/skin\shirt\pants\helmet\hue, and the standing box's floor/ceiling
+// since 1.0.85; fields beyond these are ignored, so that a newer server still dresses
+#define MIN_CLIENT_INFO_ENTRIES 7
+#define MAX_CLIENT_INFO_ENTRIES 8
+
+// what a standing box may plausibly span, against a garbled field
+#define MIN_CLIENT_INFO_HEIGHT 16.f
+#define MAX_CLIENT_INFO_HEIGHT 128.f
 
 #define DEFAULT_MODEL "qforcer"
 #define DEFAULT_SKIN "default"
@@ -264,7 +271,9 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
   char *info[MAX_CLIENT_INFO_ENTRIES];
   q_strlcpy(info_string, s, sizeof(info_string));
 
-  if (Cg_SplitClientInfo(info_string, info, lengthof(info)) != MAX_CLIENT_INFO_ENTRIES) { // invalid info
+  const size_t entries = Cg_SplitClientInfo(info_string, info, lengthof(info));
+
+  if (entries < MIN_CLIENT_INFO_ENTRIES) { // invalid info
     Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
   } else {
 
@@ -310,6 +319,20 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
       ci->hue = hue;
     } else {
       ci->hue = -1;
+    }
+
+    ci->standing_floor = PM_BOUNDS.mins.z;
+    ci->standing_ceiling = PM_BOUNDS.maxs.z;
+
+    if (entries > MIN_CLIENT_INFO_ENTRIES) {
+      float floor, ceiling;
+      if (sscanf(info[7], "%f/%f", &floor, &ceiling) == 2 &&
+          ceiling - floor >= MIN_CLIENT_INFO_HEIGHT && ceiling - floor <= MAX_CLIENT_INFO_HEIGHT) {
+        ci->standing_floor = floor;
+        ci->standing_ceiling = ceiling;
+      } else {
+        Cg_Warn("Invalid standing box \"%s\" for %s\n", info[7], ci->name);
+      }
     }
 
     // ensure we were able to load everything
@@ -739,11 +762,10 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   legs.bounds = legs.model->bounds;
   memcpy(legs.skins, skin->legs_skins, sizeof(legs.skins));
 
-  // the model is built for PM_BOUNDS; under a movement with a shorter box, the
-  // whole rig shrinks to fit it, with its feet kept where the box's are
-  const box3_t standing = Cg_PlayerBounds(false);
-  legs.scale = e->scale * Box3_Size(standing).z / Box3_Size(PM_BOUNDS).z;
-  legs.origin.z += standing.mins.z - legs.scale * PM_BOUNDS.mins.z;
+  // the model is built for PM_BOUNDS; a client whose standing box is another
+  // size has the whole rig scaled to its height and seated on its floor
+  legs.scale = e->scale * (ci->standing_ceiling - ci->standing_floor) / Box3_Size(PM_BOUNDS).z;
+  legs.origin.z += ci->standing_floor - legs.scale * PM_BOUNDS.mins.z;
 
   torso.model = skin->torso;
   torso.origin = Vec3_Zero();

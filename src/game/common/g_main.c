@@ -772,8 +772,7 @@ static void G_CheckRules(void) {
       // player state, so the change reaches everyone without a restart; the one
       // cost is a frame of misprediction, and a taller box has to fit where the
       // player is standing
-      gi.BroadcastPrint(PRINT_HIGH, "Movement has changed to %s\n",
-                        Pm_Movement(movement)->label);
+      gi.BroadcastPrint(PRINT_HIGH, "Movement has changed to %s\n", Pm_Movement(movement)->label);
     }
   }
 

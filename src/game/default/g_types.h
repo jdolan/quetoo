@@ -1188,6 +1188,12 @@ typedef struct {
   g_hand_t hand;
 
   /**
+   * @brief The standing box last published on `CS_CLIENTS`, so that a change of
+   * movement parameters republishes it.
+   */
+  box3_t standing_bounds;
+
+  /**
    * @brief Non-zero if weapons should auto-switch on pickup.
    */
   uint16_t auto_switch;
