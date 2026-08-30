@@ -122,17 +122,17 @@ typedef void (*LevelWillSpawn)(void);
 extern LevelWillSpawn G_LevelWillSpawn;
 
 /**
- * @brief Spawns an entity by its class name. The default knows the items, the
- * weapons' projectiles and the built-in classes.
- * @details Chainable. A feature adding entities spawns the class names it owns
- * and defers to previous for the rest. An entity nobody spawns is warned about
- * and freed by the caller. The editor spawns its inert placeholders without
- * consulting the chain.
- * @return True if the entity was spawned.
+ * @brief Initializes a freshly spawned entity by its class name. The default
+ * knows the items, the weapons' projectiles and the built-in classes.
+ * @details Chainable. A feature adding entities initializes the class names it
+ * owns and defers to previous for the rest. An entity nobody claims is warned
+ * about and freed by `G_SpawnEntity`. The editor spawns its inert placeholders
+ * without consulting the chain.
+ * @return True if the entity was initialized.
  */
-typedef bool (*SpawnEntity)(g_entity_t *ent);
+typedef bool (*InitEntity)(g_entity_t *ent);
 
-extern SpawnEntity G_SpawnEntity;
+extern InitEntity G_InitEntity;
 
 /**
  * @}
@@ -502,6 +502,20 @@ extern ClientDidMove G_ClientDidMove;
 typedef bool (*HandleClientCommand)(g_client_t *cl, const char *cmd);
 
 extern HandleClientCommand G_HandleClientCommand;
+
+/**
+ * @brief The client is about to say `text`: their message after variable
+ * expansion, without their name, in a buffer of `size` that is theirs to edit.
+ * A feature that muzzles returns false, and nothing is delivered or reported;
+ * one that filters rewrites `text` in place. Empty, flooding and muted messages
+ * never get this far.
+ * @details Chainable. A link that calls previous MUST return false when previous
+ * does. The tail says yes.
+ * @return True to deliver the message.
+ */
+typedef bool (*ClientWillChat)(g_client_t *cl, char *text, size_t size, bool team);
+
+extern ClientWillChat G_ClientWillChat;
 
 /**
  * @brief The client said something, and it was delivered. `text` is the line as

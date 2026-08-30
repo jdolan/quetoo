@@ -412,7 +412,7 @@ static const struct {
   { "func_race_oneway_wall", G_func_race_oneway_wall },
 };
 
-bool G_Race_SpawnEntity(g_entity_t *ent) {
+bool G_Race_InitEntity(g_entity_t *ent) {
 
   for (size_t i = 0; i < lengthof(g_race_entity_classes); i++) {
     if (!q_strcmp(g_race_entity_classes[i].classname, ent->classname)) {

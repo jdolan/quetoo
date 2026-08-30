@@ -46,7 +46,7 @@
 static struct {
   LevelWillSpawn LevelWillSpawn;
   ConfigureLevel ConfigureLevel;
-  SpawnEntity SpawnEntity;
+  InitEntity InitEntity;
   ClipEntity ClipEntity;
   PrepareSpawn PrepareSpawn;
   TossInventory TossInventory;
@@ -610,13 +610,13 @@ static void G_ConfigureLevel_Race(void) {
   });
 }
 
-static bool G_SpawnEntity_Race(g_entity_t *ent) {
+static bool G_InitEntity_Race(g_entity_t *ent) {
 
-  if (G_Race_SpawnEntity(ent)) {
+  if (G_Race_InitEntity(ent)) {
     return true;
   }
 
-  return previous.SpawnEntity(ent);
+  return previous.InitEntity(ent);
 }
 
 static bool G_ClipEntity_Race(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
@@ -850,8 +850,8 @@ void G_Race_Init(void) {
   previous.ConfigureLevel = G_ConfigureLevel;
   G_ConfigureLevel = G_ConfigureLevel_Race;
 
-  previous.SpawnEntity = G_SpawnEntity;
-  G_SpawnEntity = G_SpawnEntity_Race;
+  previous.InitEntity = G_InitEntity;
+  G_InitEntity = G_InitEntity_Race;
 
   previous.ClipEntity = G_ClipEntity;
   G_ClipEntity = G_ClipEntity_Race;

@@ -150,10 +150,10 @@ static void G_InitEntityFields(g_entity_t *ent) {
 }
 
 /**
- * @brief The tail of the `G_SpawnEntity` chain: the items, the weapons'
+ * @brief The tail of the `G_InitEntity` chain: the items, the weapons'
  * projectiles and the built-in classes.
  */
-static bool G_SpawnEntity_Common(g_entity_t *ent) {
+static bool G_InitEntity_Common(g_entity_t *ent) {
 
   // check item spawn functions
   const g_item_t *it = G_FindItemByClassName(ent->classname);
@@ -180,7 +180,7 @@ static bool G_SpawnEntity_Common(g_entity_t *ent) {
   return false;
 }
 
-SpawnEntity G_SpawnEntity = G_SpawnEntity_Common;
+InitEntity G_InitEntity = G_InitEntity_Common;
 
 /**
  * @brief The tail of the `G_LevelWillSpawn` chain: a notification, so it does nothing.
@@ -193,7 +193,7 @@ LevelWillSpawn G_LevelWillSpawn = G_LevelWillSpawn_Common;
 /**
  * @brief Populates common entity fields and then dispatches the class initializer.
  */
-static void G_SpawnEntityDef(cm_entity_t *def) {
+static void G_SpawnEntity(cm_entity_t *def) {
 
   const char *classname = gi.EntityValue(def, "classname")->string;
   g_entity_t *ent = G_AllocEntity(classname);
@@ -202,7 +202,7 @@ static void G_SpawnEntityDef(cm_entity_t *def) {
 
   G_InitEntityFields(ent);
 
-  if (G_SpawnEntity(ent)) {
+  if (G_InitEntity(ent)) {
     return;
   }
 
@@ -639,7 +639,7 @@ void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *co
     if (editor->value) {
       G_SpawnEditorEntity((int32_t) i, entities[i]);
     } else {
-      G_SpawnEntityDef(entities[i]);
+      G_SpawnEntity(entities[i]);
     }
   }
 
@@ -794,27 +794,16 @@ static void G_worldspawn(g_entity_t *ent) {
   // can't overwrite the resolved value with g_gravity's default (runtime changes still apply)
   g_gravity->modified = false;
 
+  // the gameplay is g_gameplay if the admin named one, else this level's
+  // metadata, else its worldspawn, else deathmatch, as the movement is below
   const cm_entity_t *gameplay_map = G_MapValue("gameplay");
-  if (q_strcmp(g_gameplay->string, "default")) { // prefer g_gameplay
-    g_level.gameplay = G_GameplayByName(g_gameplay->string)->id;
-  } else if (gameplay_map && (gameplay_map->parsed & ENTITY_INTEGER) && gameplay_map->integer > -1) { // then map metadata gameplay
-    g_level.gameplay = gameplay_map->integer;
-  } else { // or fall back on worldspawn
-    const cm_entity_t *gameplay = gi.EntityValue(ent->def, "gameplay");
-    if (*gameplay->string) {
-      g_level.gameplay = G_GameplayByName(gameplay->string)->id;
-    } else {
-      g_level.gameplay = GAMEPLAY_DEATHMATCH;
-    }
-  }
-  g_level.gameplay = G_ClampGameplay(g_level.gameplay); // coerce to a mode this module supports
+  const char *gameplay = (gameplay_map && (gameplay_map->parsed & ENTITY_INTEGER) && gameplay_map->integer > -1)
+                         ? G_GameplayById(gameplay_map->integer)->name
+                         : gi.EntityValue(ent->def, "gameplay")->string;
+
+  g_level.gameplay = G_ResolveGameplay(gameplay);
 
   gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
-
-  // g_gameplay holds what the admin asked for, which may be an alias, or "default"
-  // to defer to this level's worldspawn; publish what it resolved to as well, since
-  // that is the only form a server browser can present
-  gi.ForceSetCvarString("g_gameplay_mode", G_GameplayById(g_level.gameplay)->name);
 
   const cm_entity_t *items = gi.EntityValue(ent->def, "items");
   if (q_strcasecmp(items->string, "quake") == 0) {
@@ -835,12 +824,6 @@ static void G_worldspawn(g_entity_t *ent) {
                          : gi.EntityValue(ent->def, "movement")->string;
 
   g_level.movement = G_ResolveMovement(movement);
-
-  // say so when it is not the usual one, because a player who does not know they
-  // are on Quake movement will think the server is broken
-  if (g_level.movement != PM_MOVEMENT_QUETOO) {
-    gi.BroadcastPrint(PRINT_HIGH, "Movement is %s\n", Pm_Movement(g_level.movement)->label);
-  }
 
   gi.Print("  Movement:   ^2%s^7\n", Pm_Movement(g_level.movement)->name);
 

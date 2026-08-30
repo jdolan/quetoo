@@ -142,6 +142,7 @@ cvar_t *g_movement;
  * back to "default" returns to it rather than to Quetoo's.
  */
 static pm_movement_t g_movement_level;
+static g_gameplay_id_t g_gameplay_level;
 
 // player movement parameters (hydrated into pm_params_t by G_MovementParams)
 cvar_t *g_air_acceleration;
@@ -686,28 +687,38 @@ pm_movement_t G_ResolveMovement(const char *name) {
 }
 
 /**
- * @brief Parses `g_gameplay`, lets the module clamp it to a mode it actually
- * supports, and coerces the cvar string itself back to whichever canonical
- * value results.
- * @return The resulting gameplay mode, `GAMEPLAY_TEAMS` included.
- * @details This is the one place that owns the parse-clamp-coerce logic, so
- * `G_Init` (to fix the string at startup, before anything has changed it) and
- * `G_CheckRules` (when the cvar changes at runtime) share it rather than
- * keeping two copies that could drift.
+ * @brief Parses `g_gameplay` over what the level asked for, lets the module
+ * clamp it to a mode it supports, and coerces the cvar itself to whichever
+ * canonical name results. "default" defers to the level, and is left alone.
  */
 static g_gameplay_id_t G_CoerceGameplay(void) {
 
-  // parse, then let the module coerce it to a mode it actually supports
-  // (e.g. captures is always GAMEPLAY_TEAM_DEATHMATCH, regardless of what was asked for)
-  const g_gameplay_id_t id = G_ClampGameplay(G_GameplayByName(g_gameplay->string)->id);
+  g_gameplay_id_t gameplay = g_gameplay_level;
 
-  // "default" is itself a meaningful, canonical value (it defers to map/worldspawn
-  // metadata in G_worldspawn), so leave it alone rather than coercing it to "deathmatch"
-  if (q_strcmp(g_gameplay->string, "default")) {
-    gi.SetCvarString(g_gameplay->name, G_GameplayById(id)->name); // reject garbage values
+  if (q_strcmp(g_gameplay->string, "default")) { // "default" defers to the level
+    gameplay = G_ClampGameplay(G_GameplayByName(g_gameplay->string)->id);
+
+    gi.SetCvarString(g_gameplay->name, G_GameplayById(gameplay)->name); // reject garbage values
+  } else {
+    gameplay = G_ClampGameplay(gameplay);
   }
 
-  return id;
+  // g_gameplay holds what the admin asked for, which may be an alias, or "default";
+  // publish what it resolved to as well, since that is what a server browser shows
+  gi.ForceSetCvarString("g_gameplay_mode", G_GameplayById(gameplay)->name);
+
+  return gameplay;
+}
+
+/**
+ * @brief Resolves the gameplay for a level that asks for `name`, which may be
+ * empty. `g_gameplay` still wins if the admin named one.
+ */
+g_gameplay_id_t G_ResolveGameplay(const char *name) {
+
+  g_gameplay_level = name && *name ? G_GameplayByName(name)->id : GAMEPLAY_DEATHMATCH;
+
+  return G_CoerceGameplay();
 }
 
 /**

@@ -183,6 +183,10 @@ void R_InitLights(void) {
     .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
     .size = Maxi(sizeof(r_lights.bsp_block), sizeof(r_lights.dynamic_block)),
   });
+
+  const int32_t no_lights[2] = { 0, 0 };
+  r_lights.voxel_fallback_buffer = $(r_context.device, createBufferWithConstMem,
+      SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ, no_lights, sizeof(no_lights));
 }
 
 /**
@@ -193,4 +197,5 @@ void R_ShutdownLights(void) {
   r_lights.bsp_buffer = release(r_lights.bsp_buffer);
   r_lights.dynamic_buffer = release(r_lights.dynamic_buffer);
   r_lights.transfer_buffer = release(r_lights.transfer_buffer);
+  r_lights.voxel_fallback_buffer = release(r_lights.voxel_fallback_buffer);
 }

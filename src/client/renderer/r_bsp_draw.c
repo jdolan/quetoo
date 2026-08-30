@@ -532,7 +532,7 @@ void R_DrawOpaqueBspEntities(const r_view_t *view, RenderPass *pass) {
     r_lights.bsp_buffer->buffer,
     r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.voxel_fallback_buffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
   $(pass, bindVertexStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
@@ -745,7 +745,7 @@ void R_DrawBlendBspEntities(const r_view_t *view, RenderPass *pass) {
     r_lights.bsp_buffer->buffer,
     r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.voxel_fallback_buffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
   $(pass, bindVertexStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);

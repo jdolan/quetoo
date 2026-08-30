@@ -485,8 +485,15 @@ static void G_Say_f(g_client_t *cl) {
     cl->chat_time = g_level.time + 250;
   }
 
+  char message[MAX_STRING_CHARS];
+  q_strlcpy(message, s, sizeof(message));
+
+  if (!G_ClientWillChat(cl, message, sizeof(message), team)) {
+    return;
+  }
+
   const int32_t color = team ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
-  q_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->persistent.net_name, color, s);
+  q_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->persistent.net_name, color, message);
 
   G_ForEachClient(other, {
     if (team) {
@@ -717,6 +724,15 @@ static bool G_HandleClientCommand_Common(g_client_t *cl, const char *cmd) {
 }
 
 HandleClientCommand G_HandleClientCommand = G_HandleClientCommand_Common;
+
+/**
+ * @brief The tail of the `G_ClientWillChat` chain: everyone may speak.
+ */
+static bool G_ClientWillChat_Common(g_client_t *cl, char *text, size_t size, bool team) {
+  return true;
+}
+
+ClientWillChat G_ClientWillChat = G_ClientWillChat_Common;
 
 /**
  * @brief The tail of the `G_ClientDidChat` chain: a notification, so it does nothing.
