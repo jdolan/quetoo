@@ -403,15 +403,17 @@ void G_Race_UpdateBarriers(g_client_t *cl) {
   }
 
   cl->race_passable = 0;
+  int32_t count = 0;
 
   for (uint16_t i = 0; i < course->barrier_count; i++) {
     if (G_Race_Passes(cl, course->barriers[i])) {
       cl->race_passable |= 1u << i;
+      count++;
     }
   }
 
   gi.WriteByte(SV_CMD_RACE_BARRIERS);
-  gi.WriteByte(__builtin_popcount(cl->race_passable));
+  gi.WriteByte(count);
 
   for (uint16_t i = 0; i < course->barrier_count; i++) {
     if (cl->race_passable & (1u << i)) {
