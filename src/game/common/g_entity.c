@@ -794,27 +794,16 @@ static void G_worldspawn(g_entity_t *ent) {
   // can't overwrite the resolved value with g_gravity's default (runtime changes still apply)
   g_gravity->modified = false;
 
+  // the gameplay is g_gameplay if the admin named one, else this level's
+  // metadata, else its worldspawn, else deathmatch, as the movement is below
   const cm_entity_t *gameplay_map = G_MapValue("gameplay");
-  if (q_strcmp(g_gameplay->string, "default")) { // prefer g_gameplay
-    g_level.gameplay = G_GameplayByName(g_gameplay->string)->id;
-  } else if (gameplay_map && (gameplay_map->parsed & ENTITY_INTEGER) && gameplay_map->integer > -1) { // then map metadata gameplay
-    g_level.gameplay = gameplay_map->integer;
-  } else { // or fall back on worldspawn
-    const cm_entity_t *gameplay = gi.EntityValue(ent->def, "gameplay");
-    if (*gameplay->string) {
-      g_level.gameplay = G_GameplayByName(gameplay->string)->id;
-    } else {
-      g_level.gameplay = GAMEPLAY_DEATHMATCH;
-    }
-  }
-  g_level.gameplay = G_ClampGameplay(g_level.gameplay); // coerce to a mode this module supports
+  const char *gameplay = (gameplay_map && (gameplay_map->parsed & ENTITY_INTEGER) && gameplay_map->integer > -1)
+                         ? G_GameplayById(gameplay_map->integer)->name
+                         : gi.EntityValue(ent->def, "gameplay")->string;
+
+  g_level.gameplay = G_ResolveGameplay(gameplay);
 
   gi.SetConfigString(CS_GAMEPLAY, va("%d", g_level.gameplay));
-
-  // g_gameplay holds what the admin asked for, which may be an alias, or "default"
-  // to defer to this level's worldspawn; publish what it resolved to as well, since
-  // that is the only form a server browser can present
-  gi.ForceSetCvarString("g_gameplay_mode", G_GameplayById(g_level.gameplay)->name);
 
   const cm_entity_t *items = gi.EntityValue(ent->def, "items");
   if (q_strcasecmp(items->string, "quake") == 0) {
