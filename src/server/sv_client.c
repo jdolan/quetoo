@@ -310,9 +310,20 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 
     switch (c) {
 
-      case CL_CMD_USER_INFO: // leave room for ip stuffing, as the connect does
-        q_strlcpy(cl->user_info, Net_ReadString(&net_message), sizeof(cl->user_info) - 25);
+      case CL_CMD_USER_INFO: {
+        const char *user_info = Net_ReadString(&net_message);
+
+        // leave room for ip stuffing, as the connect does; truncating instead
+        // could leave a dangling key for the ip to complete
+        if (q_strlen(user_info) >= sizeof(cl->user_info) - 25) {
+          Com_Print("Oversized user_info from %s\n", Sv_NetaddrToString(cl));
+          Sv_KickClient(cl, "Bad user info");
+          return;
+        }
+
+        q_strlcpy(cl->user_info, user_info, sizeof(cl->user_info));
         Sv_UserInfoChanged(cl);
+      }
         break;
 
       case CL_CMD_ENTITY_INFO: {
