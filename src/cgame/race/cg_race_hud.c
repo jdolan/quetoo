@@ -88,24 +88,6 @@ static void Cg_Race_DrawRun(const player_state_t *ps) {
 }
 
 /**
- * @brief A stat row in the right-hand column, in the shape of the frags and
- * deaths it stands in for: the label small, the value large beneath it.
- */
-static int32_t Cg_Race_DrawStat(int32_t y, const char *label, int32_t value) {
-  int32_t cw, ch;
-
-  cgi.BindFont("small", NULL, &ch);
-  cgi.Draw2DString(cgi.context->w - cgi.StringWidth(label), y, label, color_green);
-
-  cgi.BindFont("large", &cw, NULL);
-  cgi.Draw2DString(cgi.context->w - 3 * cw, y + ch, va("%3d", value), HUD_COLOR_STAT);
-
-  cgi.BindFont(NULL, NULL, NULL);
-
-  return y + HUD_PIC_HEIGHT + ch;
-}
-
-/**
  * @brief The horizontal speed, smoothed over frames.
  */
 static int32_t Cg_Race_DrawSpeed(const player_state_t *ps, int32_t y) {
@@ -115,7 +97,7 @@ static int32_t Cg_Race_DrawSpeed(const player_state_t *ps, int32_t y) {
 
   cg_race_speed += (Vec3_Length(velocity) - cg_race_speed) * RACE_HUD_SPEED_LERP;
 
-  return Cg_Race_DrawStat(y, "Speed", (int32_t) cg_race_speed);
+  return Cg_DrawStat(y, "Speed", (int32_t) cg_race_speed);
 }
 
 void Cg_Race_DrawHud(const player_state_t *ps, cg_hud_layout_t *layout) {
@@ -137,5 +119,5 @@ void Cg_Race_DrawHud(const player_state_t *ps, cg_hud_layout_t *layout) {
   Cg_Race_DrawRun(ps);
 
   layout->stat_y = Cg_Race_DrawSpeed(ps, layout->stat_y);
-  layout->stat_y = Cg_Race_DrawStat(layout->stat_y, "Runs", ps->stats[STAT_RACE_RUNS]);
+  layout->stat_y = Cg_DrawStat(layout->stat_y, "Runs", ps->stats[STAT_RACE_RUNS]);
 }

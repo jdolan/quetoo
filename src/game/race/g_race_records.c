@@ -44,9 +44,6 @@
  * `maps.lst` entry without a name is.
  */
 
-// how many of the best are published for the scoreboard
-#define RACE_RECORDS_SHOWN 15
-
 static const char *G_Race_RecordsPath(void) {
   return va("records/%s.rec", g_level.name);
 }

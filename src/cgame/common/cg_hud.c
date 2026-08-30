@@ -123,61 +123,40 @@ void Cg_DrawPickup(const player_state_t *ps) {
 }
 
 /**
- * @brief Draws the player's frag count in the top-right corner of the HUD.
+ * @brief Reserves a stat row without drawing it, so that a spectator sees the
+ * rows below it where a player would.
  */
-int32_t Cg_DrawFrags(const player_state_t *ps, int32_t y) {
-  const int16_t frags = ps->stats[STAT_FRAGS];
-  int32_t x, cw, ch;
+static int32_t Cg_ReserveStat(int32_t y) {
+  int32_t ch;
 
   cgi.BindFont("small", NULL, &ch);
-
-  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-    cgi.BindFont(NULL, NULL, NULL);
-    return y + HUD_PIC_HEIGHT + ch;
-  }
-
-  x = cgi.context->w - cgi.StringWidth("Frags");
-
-  cgi.Draw2DString(x, y, "Frags", color_green);
-
-  cgi.BindFont("large", &cw, NULL);
-
-  x = cgi.context->w - 3 * cw;
-
-  cgi.Draw2DString(x, y + ch, va("%3d", frags), HUD_COLOR_STAT);
-
   cgi.BindFont(NULL, NULL, NULL);
 
   return y + HUD_PIC_HEIGHT + ch;
 }
 
 /**
+ * @brief Draws the player's frag count in the top-right corner of the HUD.
+ */
+int32_t Cg_DrawFrags(const player_state_t *ps, int32_t y) {
+
+  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
+    return Cg_ReserveStat(y);
+  }
+
+  return Cg_DrawStat(y, "Frags", ps->stats[STAT_FRAGS]);
+}
+
+/**
  * @brief Draws the player's death count in the top-right corner of the HUD.
  */
 int32_t Cg_DrawDeaths(const player_state_t *ps, int32_t y) {
-  const int16_t deaths = ps->stats[STAT_DEATHS];
-  int32_t x, cw, ch;
-
-  cgi.BindFont("small", NULL, &ch);
 
   if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-    cgi.BindFont(NULL, NULL, NULL);
-    return y + HUD_PIC_HEIGHT + ch;
+    return Cg_ReserveStat(y);
   }
 
-  x = cgi.context->w - cgi.StringWidth("Deaths");
-
-  cgi.Draw2DString(x, y, "Deaths", color_green);
-
-  cgi.BindFont("large", &cw, NULL);
-
-  x = cgi.context->w - 3 * cw;
-
-  cgi.Draw2DString(x, y + ch, va("%3d", deaths), HUD_COLOR_STAT);
-
-  cgi.BindFont(NULL, NULL, NULL);
-
-  return y + HUD_PIC_HEIGHT + ch;
+  return Cg_DrawStat(y, "Deaths", ps->stats[STAT_DEATHS]);
 }
 
 /**
