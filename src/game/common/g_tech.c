@@ -99,10 +99,7 @@ static const g_item_t *G_ResolveInventoryItem_Tech(g_client_t *cl, const char *n
  * previous so that the three keep the order they had before resist and strength
  * were a hook.
  */
-static bool G_ModifyDamage_Tech(const g_damage_t *dmg, int32_t *damage, int32_t *knockback) {
-
-  g_entity_t *const target = dmg->target;
-  g_entity_t *const attacker = dmg->attacker;
+static bool G_ModifyDamage_Tech(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback) {
 
   if (target->client && G_HasTech(target->client, TECH_RESIST)) {
     *damage *= TECH_RESIST_DAMAGE_FACTOR;
@@ -111,7 +108,7 @@ static bool G_ModifyDamage_Tech(const g_damage_t *dmg, int32_t *damage, int32_t 
     G_PlayTechSound(target->client);
   }
 
-  if (!previous.ModifyDamage(dmg, damage, knockback)) {
+  if (!previous.ModifyDamage(target, attacker, damage, knockback)) {
     return false;
   }
 

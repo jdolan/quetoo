@@ -657,17 +657,17 @@ static void G_TossInventory_Race(g_client_t *cl) {
  * anything else keeps its knockback and loses its damage, which is what a
  * rocket jump needs and a lava pit does not get.
  */
-static bool G_ModifyDamage_Race(const g_damage_t *dmg, int32_t *damage, int32_t *knockback) {
+static bool G_ModifyDamage_Race(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback) {
 
-  if (!dmg->target->client) {
-    return previous.ModifyDamage(dmg, damage, knockback);
+  if (!target->client) {
+    return previous.ModifyDamage(target, attacker, damage, knockback);
   }
 
-  if (dmg->attacker->client && dmg->attacker != dmg->target) {
+  if (attacker->client && attacker != target) {
     return false;
   }
 
-  if (!previous.ModifyDamage(dmg, damage, knockback)) {
+  if (!previous.ModifyDamage(target, attacker, damage, knockback)) {
     return false;
   }
 

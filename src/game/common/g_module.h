@@ -250,12 +250,11 @@ extern TossInventory G_TossInventory;
  * further down the chain. A feature that forbids an attack entirely, one in
  * which players never hurt each other, say, returns false without calling
  * previous, and `G_Damage` does nothing at all: no pain, no blood, no knockback.
- * A link that calls previous MUST return false when previous does.
- * `dmg->inflictor` and `dmg->attacker` are resolved to the world entity when the
- * attack had none.
+ * A link that calls previous MUST return false when previous does. `attacker`
+ * is the world entity when the attack had none.
  * @return False to abort the attack.
  */
-typedef bool (*ModifyDamage)(const g_damage_t *dmg, int32_t *damage, int32_t *knockback);
+typedef bool (*ModifyDamage)(g_entity_t *target, g_entity_t *attacker, int32_t *damage, int32_t *knockback);
 
 extern ModifyDamage G_ModifyDamage;
 
