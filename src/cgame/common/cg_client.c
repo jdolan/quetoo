@@ -739,6 +739,12 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   legs.bounds = legs.model->bounds;
   memcpy(legs.skins, skin->legs_skins, sizeof(legs.skins));
 
+  // the model is built for PM_BOUNDS; under a movement with a shorter box, the
+  // whole rig shrinks to fit it, with its feet kept where the box's are
+  const box3_t standing = Cg_PlayerBounds(false);
+  legs.scale = e->scale * Box3_Size(standing).z / Box3_Size(PM_BOUNDS).z;
+  legs.origin.z += standing.mins.z - legs.scale * PM_BOUNDS.mins.z;
+
   torso.model = skin->torso;
   torso.origin = Vec3_Zero();
   torso.angles.y = ent->angles.y - legs.angles.y; // legs twisted already, we just need to pitch/roll
