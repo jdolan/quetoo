@@ -1551,9 +1551,6 @@ void G_ClientBegin(g_client_t *cl) {
 }
 
 /**
- * @brief Applies updates from a client's user info string to their persistent state.
- */
-/**
  * @brief The client's standing box, which the client game sizes their model by:
  * their own movement parameters once they have moved, and the level's until then.
  */
@@ -1564,6 +1561,9 @@ box3_t G_ClientStandingBounds(const g_client_t *cl) {
   return Box3_Size(bounds).z > 0.f ? bounds : G_PlayerBounds();
 }
 
+/**
+ * @brief Applies updates from a client's user info string to their persistent state.
+ */
 void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   char name[MAX_NET_NAME];
 

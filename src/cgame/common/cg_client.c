@@ -23,13 +23,14 @@
 #include "game/common/bg_pmove.h"
 
 // team\name\model/skin\shirt\pants\helmet\hue, and the standing box's floor/ceiling
-// since 1.0.85; fields beyond these are ignored, so that a newer server still dresses
+// since 1.0.85; fields beyond these are ignored, so that a newer server's string
+// still dresses a player here
 #define MIN_CLIENT_INFO_ENTRIES 7
 #define MAX_CLIENT_INFO_ENTRIES 8
 
-// what a standing box may plausibly span, against a garbled field
+// where a standing box may plausibly sit and how much it may span, against a garbled field
+#define MAX_CLIENT_INFO_EXTENT 128.f
 #define MIN_CLIENT_INFO_HEIGHT 16.f
-#define MAX_CLIENT_INFO_HEIGHT 128.f
 
 #define DEFAULT_MODEL "qforcer"
 #define DEFAULT_SKIN "default"
@@ -326,8 +327,10 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
 
     if (entries > MIN_CLIENT_INFO_ENTRIES) {
       float floor, ceiling;
-      if (sscanf(info[7], "%f/%f", &floor, &ceiling) == 2 &&
-          ceiling - floor >= MIN_CLIENT_INFO_HEIGHT && ceiling - floor <= MAX_CLIENT_INFO_HEIGHT) {
+      int32_t n = 0;
+      if (sscanf(info[7], "%f/%f%n", &floor, &ceiling, &n) == 2 && !info[7][n] &&
+          floor >= -MAX_CLIENT_INFO_EXTENT && ceiling <= MAX_CLIENT_INFO_EXTENT &&
+          ceiling - floor >= MIN_CLIENT_INFO_HEIGHT) {
         ci->standing_floor = floor;
         ci->standing_ceiling = ceiling;
       } else {
