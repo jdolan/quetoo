@@ -199,29 +199,6 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 }
 
 /**
- * @brief Tests a clip of the specified translation against the specified
- * entity. This is the reciprocal of `Sv_Clip`.
- */
-cm_trace_t Cl_Clip(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *test, int32_t contents) {
-
-  cl_trace_t trace = {
-    .start = start,
-    .end = end,
-    .bounds = bounds,
-    .abs_bounds = Cm_TraceBounds(start, end, bounds),
-    .contents = contents,
-    .trace = {
-      .fraction = 1.f,
-      .end = end,
-    }
-  };
-
-  Cl_ClipTraceToEntity(&trace, (cl_entity_t *) test);
-
-  return trace.trace;
-}
-
-/**
  * @brief Client-side collision model tracing. This is the reciprocal of
  * `Sv_Trace`.
  *

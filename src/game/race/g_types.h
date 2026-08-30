@@ -59,6 +59,7 @@ typedef enum {
   SV_CMD_CENTER_PRINT,
   SV_CMD_SCORES,
   SV_CMD_SNAP_ANGLES,
+  SV_CMD_RACE_BARRIERS, // [byte] count, [short] entity...: the barriers that pass this client
 } g_sv_packet_cmd_t;
 
 /**
@@ -90,7 +91,6 @@ typedef enum {
 #define CS_RACE_COURSE     (CS_GAME + 10) // checkpoints\finishes\valid, for the HUD
 #define CS_RACE_RECORDS    (CS_GAME + 11) // the top times under this movement, name\time pairs
 #define CS_RACE_GHOST      (CS_GAME + 12) // the course record holder as a CS_CLIENTS string, for the ghost's skin
-#define CS_RACE_BARRIERS   (CS_GAME + 13) // RACE_MAX_BARRIERS of entity\\barrier\\params, so the client predicts them
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -138,7 +138,7 @@ _Static_assert(STAT_RACE_RUNS < MAX_STATS, "the race stats must fit the stat arr
  */
 #define RACE_MAX_CHECKPOINTS 64
 
-// how many func_race_* brushes a level may have, one config string each
+// how many func_race_* brushes a level may have
 #define RACE_MAX_BARRIERS 32
 
 // how many of a map's records CS_RACE_RECORDS carries, and the board shows
@@ -216,7 +216,8 @@ typedef struct {
   uint16_t checkpoint_count, split_count, stage_count;
   uint16_t start_count;
   uint16_t finish_count;
-  uint16_t barrier_count; // func_race_* brushes published so far
+  struct g_entity_s *barriers[RACE_MAX_BARRIERS]; // the func_race_* brushes, in spawn order
+  uint16_t barrier_count;
   bool malformed, splits_malformed, stages_malformed; // a number out of range was seen
   bool valid;        // checkpoints 1 through N and a finish; nothing else bears on it
   bool splits_valid; // splits 1 through N, so they time
@@ -1525,6 +1526,12 @@ struct g_client_s {
   g_race_run_t race_run;
 
   /**
+   * @brief Bit N is set while `race_course.barriers[N]` lets this client pass,
+   * as decided at the end of the last frame and sent to them then.
+   */
+  uint32_t race_passable;
+
+  /**
    * @brief The race trigger last touched and when, so that standing in one does
    * not fire it every frame.
    */
@@ -2129,6 +2136,7 @@ struct g_entity_s {
    */
   g_race_barrier_t race_barrier;
   g_race_gate_t race_gate;
+  uint16_t race_barrier_slot; // its index in race_course.barriers
 };
 
 typedef struct g_entity_s g_entity_t;

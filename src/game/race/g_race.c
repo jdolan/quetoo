@@ -55,6 +55,7 @@ static struct {
   HandleClientCommand HandleClientCommand;
   ClientWillThink ClientWillThink;
   ClientDidMove ClientDidMove;
+  FrameDidEnd FrameDidEnd;
   ClientWillDisconnect ClientWillDisconnect;
   WriteStats WriteStats;
   WriteScore WriteScore;
@@ -751,6 +752,20 @@ static void G_ClientWillThink_Race(g_client_t *cl, const pm_cmd_t *cmd) {
 }
 
 /**
+ * @brief Every client is told which barriers pass them, every frame.
+ */
+static void G_FrameDidEnd_Race(void) {
+
+  previous.FrameDidEnd();
+
+  G_ForEachClient(cl, {
+    if (cl->entity) {
+      G_Race_UpdateBarriers(cl);
+    }
+  });
+}
+
+/**
  * @brief Samples the speed for the finish report, and starts the run for a
  * client who has just left an exit-mode start zone.
  */
@@ -876,6 +891,9 @@ void G_Race_Init(void) {
 
   previous.ClientDidMove = G_ClientDidMove;
   G_ClientDidMove = G_ClientDidMove_Race;
+
+  previous.FrameDidEnd = G_FrameDidEnd;
+  G_FrameDidEnd = G_FrameDidEnd_Race;
 
   previous.ClientWillDisconnect = G_ClientWillDisconnect;
   G_ClientWillDisconnect = G_ClientWillDisconnect_Race;
