@@ -153,7 +153,8 @@ extern ListGameplayModes Cg_ListGameplayModes;
 
 /**
  * @brief Decides whether `ent` clips a trace made on behalf of `mover`, after the
- * client has applied its own skip rules. The default clips everything.
+ * client has applied its own skip rules. There is no tail: the chain is `NULL`
+ * until a feature installs a link, and the client does not call an empty one.
  * @details Chainable, and the reciprocal of the game's `ClipEntity`: a feature
  * installs the same rule on both sides, or prediction disagrees with the server.
  * An implementation MUST be pure.

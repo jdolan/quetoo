@@ -172,6 +172,10 @@ static void Cg_MediaDidLoad_Race(void) {
   Cg_Race_ParseBarriers();
 }
 
+static bool Cg_Race_ClipPrevious(const cl_entity_t *mover, const cl_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds) {
+  return previous.ClipEntity ? previous.ClipEntity(mover, ent, start, end, bounds) : true;
+}
+
 /**
  * @brief `G_Race_ClipEntity`, as the client can apply it to itself.
  */
@@ -203,7 +207,7 @@ static bool Cg_ClipEntity_Race(const cl_entity_t *mover, const cl_entity_t *ent,
       return false;
     }
 
-    return previous.ClipEntity(mover, ent, start, end, bounds);
+    return Cg_Race_ClipPrevious(mover, ent, start, end, bounds);
   }
 
   cg_race_probing = ent;
@@ -220,7 +224,7 @@ static bool Cg_ClipEntity_Race(const cl_entity_t *mover, const cl_entity_t *ent,
     return false;
   }
 
-  return previous.ClipEntity(mover, ent, start, end, bounds);
+  return Cg_Race_ClipPrevious(mover, ent, start, end, bounds);
 }
 
 static bool Cg_FilterEntity_Race(const cl_entity_t *ent) {

@@ -138,7 +138,8 @@ typedef struct {
 } cl_trace_t;
 
 /**
- * @brief Clips the specified trace to other solid entities in the frame.
+ * @brief Clips the specified trace to the specified entity.
+ * @return True if the trace began in solid, so that the caller may stop.
  */
 static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 

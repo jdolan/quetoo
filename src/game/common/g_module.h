@@ -279,13 +279,15 @@ extern PrepareMove G_PrepareMove;
 
 /**
  * @brief Decides whether `ent` clips a trace made on behalf of `mover`, after the
- * server has applied its own skip rules. The default clips everything.
- * @details Chainable. A feature that makes an entity solid to some movers and not
- * others, such as a one-way wall, returns false for the movers it lets through
- * and defers to previous otherwise. `mover` is `NULL` for a trace with no
- * entity behind it. An implementation MUST be pure: the server and the client
- * both call it, from `Sv_Trace` and `Cl_Trace`, and speculative traces such as
- * the bots' lookahead run it many times for a move that never happens.
+ * server has applied its own skip rules. There is no tail: the chain is `NULL`
+ * until a feature installs a link, and the server does not call an empty one.
+ * @details Chainable; a link whose previous is `NULL` treats it as true. A
+ * feature that makes an entity solid to some movers and not others, such as a
+ * one-way wall, returns false for the movers it lets through and defers to
+ * previous otherwise. `mover` is `NULL` for a trace with no entity behind it.
+ * An implementation MUST be pure: the server and the client both call it, from
+ * `Sv_Trace` and `Cl_Trace`, and speculative traces such as the bots' lookahead
+ * run it many times for a move that never happens.
  */
 typedef bool (*ClipEntity)(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
 

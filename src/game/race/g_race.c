@@ -625,7 +625,7 @@ static bool G_ClipEntity_Race(const g_entity_t *mover, const g_entity_t *ent, co
     return false;
   }
 
-  return previous.ClipEntity(mover, ent, start, end, bounds);
+  return previous.ClipEntity ? previous.ClipEntity(mover, ent, start, end, bounds) : true;
 }
 
 /**

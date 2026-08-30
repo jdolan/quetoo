@@ -987,6 +987,8 @@ void G_Init(void) {
 
   G_Module_Init();
 
+  ge.ClipEntity = G_ClipEntity;
+
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
     ge.clients[i] = gi.Malloc(sizeof(g_client_t), MEM_TAG_GAME);
     ge.clients[i]->ps.client = i;
@@ -1286,7 +1288,6 @@ g_export_t *G_LoadGame(g_import_t *import) {
   ge.Frame = G_Frame;
 
   ge.GameName = G_GameName;
-  ge.ClipEntity = G_ExportClipEntity;
 
   return &ge;
 }

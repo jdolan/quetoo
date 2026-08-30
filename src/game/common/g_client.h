@@ -31,6 +31,5 @@ void G_ClientDisconnect(g_client_t *cl);
 void G_ClientRespawn(g_client_t *cl, bool voluntary);
 void G_ClientThink(g_client_t *cl, pm_cmd_t *cmd);
 void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info);
-bool G_ExportClipEntity(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
 void G_Giblets(const g_giblets_t *giblets);
 #endif
