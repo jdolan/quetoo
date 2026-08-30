@@ -712,12 +712,15 @@ void G_PlayPmove(void);
 /**
  * @brief The tail of the `G_HandleClientCommand` chain, which handles nothing.
  */
-static bool G_HandleClientCommand_Common(g_client_t *cl, const char *cmd, bool intermission) {
+static bool G_HandleClientCommand_Common(g_client_t *cl, const char *cmd) {
   return false;
 }
 
 HandleClientCommand G_HandleClientCommand = G_HandleClientCommand_Common;
 
+/**
+ * @brief The tail of the `G_ClientDidChat` chain: a notification, so it does nothing.
+ */
 static void G_ClientDidChat_Common(g_client_t *cl, const char *text, bool team) {
 }
 
@@ -730,7 +733,7 @@ void G_ClientCommand(g_client_t *cl) {
 
   const char *cmd = gi.Argv(0);
 
-  if (G_HandleClientCommand(cl, cmd, g_level.intermission_time != 0)) {
+  if (G_HandleClientCommand(cl, cmd)) {
     return;
   }
 

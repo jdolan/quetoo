@@ -54,7 +54,7 @@
  */
 
 /**
- * @defgroup module-contract Module contract
+ * @defgroup cg-module-contract Module contract
  * @brief What every client game module defines for itself. A missing definition is
  * a link error, which is how a new module learns what it owes.
  * @{
@@ -334,8 +334,7 @@ extern EntityEffects Cg_EntityEffects;
  * a ghost, a dummy - answers its own info for it and defers to previous for
  * the rest.
  */
-struct cg_client_info_s;
-typedef struct cg_client_info_s *(*ClientInfo)(const cl_entity_t *ent);
+typedef cg_client_info_t *(*ClientInfo)(const cl_entity_t *ent);
 
 extern ClientInfo Cg_ClientInfo;
 

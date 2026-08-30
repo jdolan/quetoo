@@ -28,6 +28,14 @@
 extern g_level_t g_level;
 extern g_media_t g_media;
 
+/**
+ * @brief The movement a level falls back to when neither `g_movement`, its
+ * metadata nor its worldspawn choose one. A module's `g_types.h` MAY say otherwise.
+ */
+#if !defined(G_MOVEMENT_DEFAULT)
+#define G_MOVEMENT_DEFAULT PM_MOVEMENT_QUETOO
+#endif
+
 pm_params_t G_MovementParams(void);
 float G_LevelGravity(void);
 pm_movement_t G_ResolveMovement(const char *name);

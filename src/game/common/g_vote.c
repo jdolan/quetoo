@@ -363,10 +363,10 @@ static void G_Vote_Call(g_client_t *cl, const char *type, const char *arg) {
 /**
  * @brief `vote yes`, `vote no`, or `vote <type> [argument]`.
  */
-static bool G_HandleClientCommand_Vote(g_client_t *cl, const char *cmd, bool intermission) {
+static bool G_HandleClientCommand_Vote(g_client_t *cl, const char *cmd) {
 
   if (q_strcmp(cmd, "vote")) {
-    return previous.HandleClientCommand(cl, cmd, intermission);
+    return previous.HandleClientCommand(cl, cmd);
   }
 
   if (gi.Argc() < 2) {
@@ -380,7 +380,7 @@ static bool G_HandleClientCommand_Vote(g_client_t *cl, const char *cmd, bool int
     G_Vote_Cast(cl, BALLOT_YES);
   } else if (!q_strcasecmp(what, "no")) {
     G_Vote_Cast(cl, BALLOT_NO);
-  } else if (intermission) {
+  } else if (g_level.intermission_time) {
     gi.ClientPrint(cl, PRINT_HIGH, "The level is ending\n");
   } else {
     G_Vote_Call(cl, what, gi.Argc() > 2 ? gi.Argv(2) : "");

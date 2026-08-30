@@ -117,7 +117,7 @@ extern InitMedia G_InitMedia;
  * settings over cvars the worldspawn reads does so here.
  * @details Notification; the tail does nothing.
  */
-typedef void (*LevelWillSpawn)(const char *name);
+typedef void (*LevelWillSpawn)(void);
 
 extern LevelWillSpawn G_LevelWillSpawn;
 
@@ -492,13 +492,14 @@ extern ClientDidMove G_ClientDidMove;
  * owns and defers to previous for the rest; one that overrides a built-in
  * command answers true for that name and the built-in never sees it. The tail
  * handles nothing, so an unclaimed command falls through to the built-in table
- * and, failing that, to chat. `intermission` is true while the level is ending,
- * when the built-in table ignores everything but chat. `cmd` is `gi.Argv(0)`;
+ * and, failing that, to chat. While the level is ending the built-in table
+ * ignores everything but chat; `g_level.intermission_time` says so. `cmd` is
+ * `gi.Argv(0)`;
  * an implementation MUST NOT call `gi.TokenizeString`, which would replace it
  * under the built-in table that runs next.
  * @return True if the command was handled.
  */
-typedef bool (*HandleClientCommand)(g_client_t *cl, const char *cmd, bool intermission);
+typedef bool (*HandleClientCommand)(g_client_t *cl, const char *cmd);
 
 extern HandleClientCommand G_HandleClientCommand;
 
