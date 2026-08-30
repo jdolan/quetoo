@@ -406,7 +406,7 @@ void R_DrawSprites(const r_view_t *view, RenderPass *pass) {
     r_lights.bsp_buffer->buffer,
     r_lights.dynamic_buffer->buffer,
     bsp->voxels.light_data_buffer->buffer,
-    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.bsp_buffer->buffer,
+    bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.voxel_fallback_buffer->buffer,
     r_sprite_draw.instance_buffer->buffer,
   };
   $(pass, bindVertexStorageBuffers, 0, storage, 5);

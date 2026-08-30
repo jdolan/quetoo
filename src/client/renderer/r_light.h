@@ -110,6 +110,12 @@ typedef struct {
    * lifetime because they are uploaded every frame.
    */
   TransferBuffer *transfer_buffer;
+
+  /**
+   * @brief One voxel with no lights, bound where a level has no clustered light
+   * data, or a view has no level.
+   */
+  Buffer *voxel_fallback_buffer;
 } r_lights_t;
 
 /**

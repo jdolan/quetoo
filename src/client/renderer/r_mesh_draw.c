@@ -87,7 +87,6 @@ static struct {
   Texture *voxel_caustics_fallback;
   Texture *voxel_occlusion_fallback;
   Texture *sky_fallback;
-  Buffer *voxel_lights_fallback;
 
   /**
    * @brief Cached stage pipelines keyed by blend function.
@@ -623,8 +622,8 @@ void R_DrawMeshEntities(const r_view_t *view, RenderPass *pass) {
   SDL_GPUBuffer *storage[] = {
     r_lights.bsp_buffer->buffer,
     r_lights.dynamic_buffer->buffer,
-    bsp && bsp->voxels.light_data_buffer ? bsp->voxels.light_data_buffer->buffer : r_mesh_draw.voxel_lights_fallback->buffer,
-    bsp && bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_mesh_draw.voxel_lights_fallback->buffer,
+    bsp && bsp->voxels.light_data_buffer ? bsp->voxels.light_data_buffer->buffer : r_lights.voxel_fallback_buffer->buffer,
+    bsp && bsp->voxels.light_indices_buffer ? bsp->voxels.light_indices_buffer->buffer : r_lights.voxel_fallback_buffer->buffer,
   };
   $(pass, bindFragmentStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
   $(pass, bindVertexStorageBuffers, R_STORAGE_BSP_LIGHTS, storage, R_STORAGE_MATERIAL_TOTAL);
@@ -754,11 +753,6 @@ void R_InitMeshPipeline(void) {
   }, NULL);
 
   r_mesh_draw.sky_fallback = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_CUBE, 6, 0x00000000);
-
-  // one voxel with no lights, for a view whose voxel uniforms name a 1x1x1 grid
-  static const int32_t no_lights[2];
-  r_mesh_draw.voxel_lights_fallback = $(r_context.device, createBufferWithConstMem,
-      SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ, no_lights, sizeof(no_lights));
 }
 
 /**
@@ -773,7 +767,6 @@ void R_ShutdownMeshPipeline(void) {
   r_mesh_draw.voxel_caustics_fallback = release(r_mesh_draw.voxel_caustics_fallback);
   r_mesh_draw.voxel_occlusion_fallback = release(r_mesh_draw.voxel_occlusion_fallback);
   r_mesh_draw.sky_fallback = release(r_mesh_draw.sky_fallback);
-  r_mesh_draw.voxel_lights_fallback = release(r_mesh_draw.voxel_lights_fallback);
 
   for (int32_t i = 0; i < r_mesh_draw.num_stage_pipelines; i++) {
     release(r_mesh_draw.stage_pipelines[i].pipeline);
