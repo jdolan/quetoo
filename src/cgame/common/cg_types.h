@@ -56,9 +56,41 @@ typedef struct {
 } cg_team_info_t;
 
 /**
+ * @brief The vote in progress, as `CS_VOTE` describes it.
+ */
+typedef struct {
+
+  /**
+   * @brief Whether a vote is under way.
+   */
+  bool active;
+
+  /**
+   * @brief What is being voted on, and its argument, if any.
+   */
+  char type[MAX_QPATH];
+  char arg[MAX_QPATH];
+
+  /**
+   * @brief Who called it.
+   */
+  char initiator[MAX_QPATH];
+
+  /**
+   * @brief The tally so far, and how many may cast one.
+   */
+  int32_t yes, no, eligible;
+
+  /**
+   * @brief When it closes, in client time.
+   */
+  uint32_t deadline;
+} cg_vote_state_t;
+
+/**
  * @brief The client game representation of clients (players).
  */
-typedef struct cg_client_info_s {
+typedef struct {
 
   /**
    * @brief The client info string, e.g. "newbie\qforcer/default."
@@ -209,14 +241,7 @@ typedef struct {
   /**
    * @brief The vote in progress, from `CS_VOTE`.
    */
-  struct {
-    bool active;
-    char type[MAX_QPATH];
-    char arg[MAX_QPATH];
-    char initiator[MAX_QPATH];
-    int32_t yes, no, eligible;
-    uint32_t deadline;
-  } vote;
+  cg_vote_state_t vote;
 } cg_state_t;
 
 extern cg_state_t cg_state;

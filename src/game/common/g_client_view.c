@@ -523,6 +523,14 @@ void G_ClientEndFrame(g_client_t *cl) {
 }
 
 /**
+ * @brief The tail of the `G_FrameDidEnd` chain: a notification, so it does nothing.
+ */
+static void G_FrameDidEnd_Common(void) {
+}
+
+FrameDidEnd G_FrameDidEnd = G_FrameDidEnd_Common;
+
+/**
  * @brief Finalizes all client frames and applies chase camera state.
  */
 void G_EndClientFrames(void) {
@@ -547,8 +555,3 @@ void G_EndClientFrames(void) {
 
   G_FrameDidEnd();
 }
-
-static void G_FrameDidEnd_Common(void) {
-}
-
-FrameDidEnd G_FrameDidEnd = G_FrameDidEnd_Common;

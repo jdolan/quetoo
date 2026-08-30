@@ -98,11 +98,17 @@ static void G_UpdateScore(const g_client_t *cl, g_score_t *s) {
   G_WriteScore(cl, s);
 }
 
+/**
+ * @brief The tail of the `G_WriteScore` chain: a notification, so it does nothing.
+ */
 static void G_WriteScore_Common(const g_client_t *cl, g_score_t *s) {
 }
 
 WriteScore G_WriteScore = G_WriteScore_Common;
 
+/**
+ * @brief The tail of the `G_WriteStats` chain: a notification, so it does nothing.
+ */
 static void G_WriteStats_Common(g_client_t *cl) {
 }
 
