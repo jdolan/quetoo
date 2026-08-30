@@ -22,6 +22,7 @@
 #include "tests.h"
 
 #include "net/net_message.h"
+#include "game/common/bg_pmove.h"
 
 quetoo_t quetoo;
 

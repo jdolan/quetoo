@@ -279,31 +279,6 @@ typedef enum {
 #define PMF_GAME (1 << 0)
 
 /**
- * @brief The movements `Pm_Move` can run, selected per-player through
- * `pm_params_t.movement`.
- * @details One of these owns everything about how a player moves once the move
- * is initialized: the ground, water and duck checks, the slide and the step, and
- * the parameters it moves by. Each lives in its own `bg_pmove_*.c` and is
- * finished rather than maintained, so that a movement a record was set under
- * cannot drift. This changes how a player moves, not how the world behaves.
- *
- * These values are networked. The list is append-only: an id names a movement
- * forever, and reordering it would silently put every client on a different
- * one. It is the name `g_movement`, the worldspawn `movement` key and the menu
- * all use. Every movement is in this tree and available to every module, so
- * there is no module-defined range: unlike `CS_GAME` or `EF_GAME`, which the
- * engine forwards without interpreting, an id has to resolve to code that
- * both the game and the client game hold.
- */
-typedef enum {
-  PM_MOVEMENT_QUETOO,
-  PM_MOVEMENT_RACE,
-  PM_MOVEMENT_QUAKE,
-  PM_MOVEMENT_QUAKE2,
-  PM_MOVEMENT_QUAKE3,
-} pm_movement_t;
-
-/**
  * @brief Server-tunable player-movement parameters, networked per-player
  * inside `pm_state_t` so that client-side prediction matches the server.
  * Each field defaults to the `PM_*` constant it replaces (see bg_pmove.h).
@@ -313,7 +288,7 @@ typedef enum {
  */
 typedef struct {
   int16_t gravity;     // world gravity; default from g_gravity / map (int16)
-  uint8_t movement;      // pm_movement_t; which movement Pm_Move runs
+  uint8_t movement;    // which movement Pm_Move runs; a pm_movement_t, see bg_pmove.h
 
   float accel_ground, accel_ground_slick, accel_air, accel_water,
         accel_spectator, accel_ladder;

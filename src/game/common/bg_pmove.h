@@ -214,6 +214,31 @@ typedef struct pm_move_s {
 } pm_move_t;
 
 /**
+ * @brief The movements `Pm_Move` can run, selected per-player through
+ * `pm_params_t.movement`, which carries one of these as a byte.
+ * @details One of these owns everything about how a player moves once the move
+ * is initialized: the ground, water and duck checks, the slide and the step, and
+ * the parameters it moves by. Each lives in its own `bg_pmove_*.c` and is
+ * finished rather than maintained, so that a movement a record was set under
+ * cannot drift. This changes how a player moves, not how the world behaves.
+ *
+ * These values are networked. The list is append-only: an id names a movement
+ * forever, and reordering it would silently put every client on a different
+ * one. It is the name `g_movement`, the worldspawn `movement` key and the menu
+ * all use. Every movement is in this tree and available to every module, so
+ * there is no module-defined range: unlike `CS_GAME` or `EF_GAME`, which the
+ * engine forwards without interpreting, an id has to resolve to code that
+ * both the game and the client game hold.
+ */
+typedef enum {
+  PM_MOVEMENT_QUETOO,
+  PM_MOVEMENT_RACE,
+  PM_MOVEMENT_QUAKE,
+  PM_MOVEMENT_QUAKE2,
+  PM_MOVEMENT_QUAKE3,
+} pm_movement_t;
+
+/**
  * @brief One movement: the name it answers to, and the parameters that define
  * it.
  */
