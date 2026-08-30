@@ -825,12 +825,6 @@ static void G_worldspawn(g_entity_t *ent) {
 
   g_level.movement = G_ResolveMovement(movement);
 
-  // say so when it is not the usual one, because a player who does not know they
-  // are on Quake movement will think the server is broken
-  if (g_level.movement != PM_MOVEMENT_QUETOO) {
-    gi.BroadcastPrint(PRINT_HIGH, "Movement is %s\n", Pm_Movement(g_level.movement)->label);
-  }
-
   gi.Print("  Movement:   ^2%s^7\n", Pm_Movement(g_level.movement)->name);
 
   g_level.teams = (g_level.gameplay & GAMEPLAY_TEAMS) != 0;

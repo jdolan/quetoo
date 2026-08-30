@@ -1532,16 +1532,14 @@ void G_ClientBegin(g_client_t *cl) {
     q_strlcat(welcome, "\n^2Gameplay is ^1", sizeof(welcome));
     q_strlcat(welcome, G_GameplayById(g_level.gameplay)->label, sizeof(welcome));
 
+    q_strlcat(welcome, "\n^2Movement is ^1", sizeof(welcome));
+    q_strlcat(welcome, Pm_Movement(g_level.movement)->label, sizeof(welcome));
+
     if (g_level.teams) {
       q_strlcat(welcome, "\n^2Teams are enabled", sizeof(welcome));
     }
 
-    // FIXME: Move these tidbits into ConfigStrings so that the client can display a menu
-#if 0
-    gi.WriteByte(SV_CMD_CENTER_PRINT);
-    gi.WriteString(welcome);
-    gi.Unicast(ent, true);
-#endif
+    gi.ClientPrint(cl, PRINT_HIGH, "%s\n", welcome);
   }
 
   // make sure all view stuff is valid
