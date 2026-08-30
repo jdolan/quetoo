@@ -476,7 +476,7 @@ static void Sv_ClipTraceToEntity(sv_trace_t *trace, const g_entity_t *ent) {
     return;
   }
 
-  if (svs.game->ClipEntity && !svs.game->ClipEntity(trace->skip, ent, trace->start, trace->end, trace->bounds)) {
+  if (svs.game->ClipEntity && !svs.game->ClipEntity(trace->skip, ent)) {
     return;
   }
 

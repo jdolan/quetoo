@@ -160,7 +160,7 @@ static bool Cl_ClipTraceToEntity(cl_trace_t *trace, cl_entity_t *ent) {
     return false;
   }
 
-  if (cls.cgame->ClipEntity && !cls.cgame->ClipEntity(trace->skip, ent, trace->start, trace->end, trace->bounds)) {
+  if (cls.cgame->ClipEntity && !cls.cgame->ClipEntity(trace->skip, ent)) {
     return false;
   }
 

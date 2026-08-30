@@ -288,7 +288,7 @@ extern PrepareMove G_PrepareMove;
  * `Sv_Trace` and `Cl_Trace`, and speculative traces such as the bots' lookahead
  * run it many times for a move that never happens.
  */
-typedef bool (*ClipEntity)(const g_entity_t *mover, const g_entity_t *ent, const vec3_t start, const vec3_t end, const box3_t bounds);
+typedef bool (*ClipEntity)(const g_entity_t *mover, const g_entity_t *ent);
 
 extern ClipEntity G_ClipEntity;
 
