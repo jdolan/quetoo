@@ -45,7 +45,7 @@ static struct {
   AddEntity AddEntity;
   ClientInfo ClientInfo;
   EntityEffects EntityEffects;
-  ClipEntity ClipEntity;
+  ClipClientEntity ClipEntity;
 } previous;
 
 static cg_client_info_t cg_race_ghost;
