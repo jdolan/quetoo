@@ -190,6 +190,9 @@ static void Test_FinishRun(g_client_t *cl, const char *guid, const char *name, u
   q_strlcpy(cl->persistent.guid, guid, sizeof(cl->persistent.guid));
   q_strlcpy(cl->persistent.net_name, name, sizeof(cl->persistent.net_name));
 
+  // a real run has real params behind it, not the zeroed struct a fresh fixture starts with
+  cl->ps.pm_state.params = *Pm_Movement(PM_MOVEMENT_RACE)->params;
+
   run->movement = PM_MOVEMENT_RACE;
   run->elapsed = elapsed;
 
@@ -215,10 +218,14 @@ START_TEST(check_G_Race_Records_RoundTrip) {
   ck_assert(G_Race_SubmitRecord(&test_client));
   ck_assert_uint_eq(g_level.race_record_count, 1);
 
-  // forget everything in memory and reload from what was just written
+  const uint32_t params = G_Race_Record("guid-alice", PM_MOVEMENT_RACE)->params;
+  ck_assert_uint_ne(params, 0); // the fixture's params are not the zeroed struct's hash
+
+  // forget everything in memory, and what was published, and reload from what was just written
   gi.Free(g_level.race_records);
   memset(&g_level.race_records, 0, sizeof(g_level.race_records));
   g_level.race_record_count = g_level.race_record_capacity = 0;
+  memset(test_cs_race_records, 0, sizeof(test_cs_race_records));
 
   G_Race_LoadRecords();
 
@@ -228,6 +235,7 @@ START_TEST(check_G_Race_Records_RoundTrip) {
   ck_assert_ptr_nonnull(record);
   ck_assert_str_eq(record->name, "Alice");
   ck_assert_uint_eq(record->time, 83412);
+  ck_assert_uint_eq(record->params, params);
   ck_assert_uint_eq(record->checkpoint_count, 2);
   ck_assert_uint_eq(record->checkpoint_times[0], 83412 / 3);
   ck_assert_uint_eq(record->checkpoint_times[1], 2 * 83412 / 3);
