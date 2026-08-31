@@ -302,6 +302,60 @@ void G_Race_ArmStart(g_client_t *cl, const g_entity_t *start) {
 }
 
 /**
+ * @brief How `time` compares to `record` at this milestone, or no answer when
+ * the record never got this far.
+ */
+static int32_t G_Race_Delta(const g_race_record_t *record, g_race_milestone_t kind, uint16_t number, uint32_t time) {
+
+  if (!record) {
+    return RACE_MILESTONE_NO_DELTA;
+  }
+
+  uint32_t reference;
+
+  switch (kind) {
+    case RACE_MILESTONE_CHECKPOINT:
+      if (record->checkpoint_count < number) {
+        return RACE_MILESTONE_NO_DELTA;
+      }
+      reference = record->checkpoint_times[number - 1];
+      break;
+    case RACE_MILESTONE_SPLIT:
+      if (record->split_count < number) {
+        return RACE_MILESTONE_NO_DELTA;
+      }
+      reference = record->split_times[number - 1];
+      break;
+    default:
+      if (record->stage_count < number - 1) {
+        return RACE_MILESTONE_NO_DELTA;
+      }
+      reference = record->stage_times[number - 2];
+      break;
+  }
+
+  return (int32_t) time - (int32_t) reference;
+}
+
+/**
+ * @brief Tells the racer what they just passed and how it compares, for the
+ * HUD to show: against their own best, and against the course record.
+ */
+static void G_Race_Milestone(g_client_t *cl, g_race_milestone_t kind, uint16_t number, const char *label, uint32_t time) {
+
+  const pm_movement_t movement = cl->race_run.movement;
+
+  gi.WriteByte(SV_CMD_RACE_MILESTONE);
+  gi.WriteByte(kind);
+  gi.WriteByte(number);
+  gi.WriteString(label ?: "");
+  gi.WriteLong(time);
+  gi.WriteLong(G_Race_Delta(G_Race_Record(cl->persistent.guid, movement), kind, number, time));
+  gi.WriteLong(G_Race_Delta(G_Race_BestRecord(movement), kind, number, time));
+  gi.Unicast(cl, true);
+}
+
+/**
  * @see g_race.h
  */
 bool G_Race_Checkpoint(g_client_t *cl, uint16_t checkpoint) {
@@ -324,7 +378,7 @@ bool G_Race_Checkpoint(g_client_t *cl, uint16_t checkpoint) {
 
   run->checkpoint_times[run->checkpoint_count++] = g_level.time - run->start_time;
 
-  G_Race_CenterPrint(cl, "Checkpoint %u  %s", checkpoint, G_Race_FormatTime(run->checkpoint_times[checkpoint - 1]));
+  G_Race_Milestone(cl, RACE_MILESTONE_CHECKPOINT, checkpoint, NULL, run->checkpoint_times[checkpoint - 1]);
 
   G_MulticastSound(&(const g_play_sound_t) {
     .index = g_media.sounds.teleport,
@@ -350,12 +404,11 @@ bool G_Race_Split(g_client_t *cl, uint16_t split, const char *label) {
   }
 
   const uint32_t time = g_level.time - run->start_time;
-  const uint32_t previous = run->split_count ? run->split_times[run->split_count - 1] : 0;
 
   run->split_times[run->split_count++] = time;
 
-  G_Race_CenterPrint(cl, "%s  %s  (+%s)", label && *label ? label : va("Split %u", split),
-                     G_Race_FormatTime(time), G_Race_FormatTime(time - previous));
+  G_Race_Milestone(cl, RACE_MILESTONE_SPLIT, split, label, time);
+
   return true;
 }
 
@@ -377,7 +430,7 @@ bool G_Race_Stage(g_client_t *cl, uint16_t stage, const char *label, const g_ent
     run->stage_times[stage - 2] = g_level.time - run->start_time;
     run->stage = stage;
 
-    G_Race_CenterPrint(cl, "%s  %s", name, G_Race_FormatTime(run->stage_times[stage - 2]));
+    G_Race_Milestone(cl, RACE_MILESTONE_STAGE, stage, label, run->stage_times[stage - 2]);
     counted = true;
   }
 

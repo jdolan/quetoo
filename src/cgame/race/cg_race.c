@@ -90,13 +90,29 @@ static bool Cg_ParseConfigString_Race(int32_t index) {
 }
 
 /**
- * @brief The barriers that pass this client, which the server sends every frame.
- * More than fit are read and dropped, so that the message stays in step.
+ * @brief The barriers that pass this client, sent every frame - more than fit
+ * are read and dropped, so that the message stays in step - and the run's
+ * milestones, sent as they are passed.
  */
 static bool Cg_ParseServerCommand_Race(int32_t cmd) {
 
-  if (cmd != SV_CMD_RACE_BARRIERS) {
+  if (cmd != SV_CMD_RACE_BARRIERS && cmd != SV_CMD_RACE_MILESTONE) {
     return previous.ParseServerCommand(cmd);
+  }
+
+  if (cmd == SV_CMD_RACE_MILESTONE) {
+    const g_race_milestone_t kind = cgi.ReadByte();
+    const uint16_t number = cgi.ReadByte();
+
+    char label[MAX_QPATH];
+    q_strlcpy(label, cgi.ReadString(), sizeof(label));
+
+    const uint32_t time = cgi.ReadLong();
+    const int32_t vs_best = cgi.ReadLong();
+    const int32_t vs_record = cgi.ReadLong();
+
+    Cg_Race_Milestone(kind, number, label, time, vs_best, vs_record);
+    return true;
   }
 
   const int32_t count = cgi.ReadByte();

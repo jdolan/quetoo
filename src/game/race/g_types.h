@@ -60,6 +60,7 @@ typedef enum {
   SV_CMD_SCORES,
   SV_CMD_SNAP_ANGLES,
   SV_CMD_RACE_BARRIERS, // [byte] count, [short] entity...: the barriers that pass this client
+  SV_CMD_RACE_MILESTONE, // [byte] kind, [byte] number, [string] label, [long] time, [long] vs best, [long] vs record
 } g_sv_packet_cmd_t;
 
 /**
@@ -140,6 +141,19 @@ _Static_assert(STAT_RACE_RUNS < MAX_STATS, "the race stats must fit the stat arr
 
 // how many func_race_* brushes a level may have
 #define RACE_MAX_BARRIERS 32
+
+/**
+ * @brief What a run just passed, reported to its racer as `SV_CMD_RACE_MILESTONE`
+ * with the time and how it compares: against their own best, and against the
+ * course record. A comparison with nothing to compare to is `RACE_MILESTONE_NO_DELTA`.
+ */
+typedef enum {
+  RACE_MILESTONE_CHECKPOINT,
+  RACE_MILESTONE_SPLIT,
+  RACE_MILESTONE_STAGE,
+} g_race_milestone_t;
+
+#define RACE_MILESTONE_NO_DELTA INT32_MIN
 
 // how many of a map's records CS_RACE_RECORDS carries, and the board shows
 #define RACE_RECORDS_SHOWN 15

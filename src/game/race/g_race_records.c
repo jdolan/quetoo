@@ -171,6 +171,20 @@ static g_race_record_t *G_Race_FindRecord(const char *guid, pm_movement_t moveme
 /**
  * @see g_race.h
  */
+const g_race_record_t *G_Race_BestRecord(pm_movement_t movement) {
+
+  for (size_t i = 0; i < g_level.race_record_count; i++) {
+    if (g_level.race_records[i].movement == movement) {
+      return &g_level.race_records[i];
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @see g_race.h
+ */
 const g_race_record_t *G_Race_Record(const char *guid, pm_movement_t movement) {
   return G_Race_FindRecord(guid, movement);
 }
@@ -378,13 +392,7 @@ static void G_Race_SaveRecords(void) {
 bool G_Race_SubmitRecord(g_client_t *cl) {
   const g_race_run_t *run = &cl->race_run;
 
-  const g_race_record_t *best = NULL;
-  for (size_t i = 0; i < g_level.race_record_count; i++) {
-    if (g_level.race_records[i].movement == run->movement) {
-      best = &g_level.race_records[i];
-      break;
-    }
-  }
+  const g_race_record_t *best = G_Race_BestRecord(run->movement);
 
   g_race_record_t *record = G_Race_FindRecord(cl->persistent.guid, run->movement);
 
