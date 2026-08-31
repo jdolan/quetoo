@@ -47,6 +47,7 @@ TESTS = \
 	check_net_message \
 	check_pmove \
 	check_r_media \
+	check_race \
 	check_shared \
 	check_thread \
 	check_vector
@@ -194,6 +195,27 @@ check_r_media_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/collision/libcollision.la \
 	$(top_builddir)/src/client/renderer/librenderer.la
+
+check_race_SOURCES = \
+	check_race.c \
+	$(top_srcdir)/src/game/common/bg_pmove.c \
+	$(top_srcdir)/src/game/common/bg_pmove_quake.c \
+	$(top_srcdir)/src/game/common/bg_pmove_quake2.c \
+	$(top_srcdir)/src/game/common/bg_pmove_quake3.c \
+	$(top_srcdir)/src/game/common/bg_pmove_quetoo.c \
+	$(top_srcdir)/src/game/common/bg_pmove_race.c \
+	$(top_srcdir)/src/game/race/g_race_records.c \
+	$(top_srcdir)/src/game/race/g_race_replay.c
+check_race_CFLAGS = \
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/src/game/common \
+	-I$(top_srcdir)/src/game/race \
+	-fms-extensions \
+	-Wno-microsoft-anon-tag \
+	$(TESTS_CFLAGS)
+check_race_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la
 
 check_shared_SOURCES = \
 	check_shared.c
