@@ -86,6 +86,9 @@ void Cg_ParseScores(void) {
   }
 }
 
+/**
+ * @see cg_score.h
+ */
 const g_score_t *Cg_Scores(size_t *count) {
   *count = cg_score_state.num_scores;
   return cg_score_state.scores;

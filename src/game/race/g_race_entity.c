@@ -65,6 +65,9 @@ static bool G_trigger_race_Accepts(g_entity_t *ent, g_entity_t *other) {
   return !G_Race_Debounced(other->client, ent, ent->wait);
 }
 
+/**
+ * @brief Arms, starts or restarts a run, as the start's mode asks.
+ */
 static void G_trigger_race_start_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
   if (!G_trigger_race_Accepts(ent, other)) {
@@ -111,6 +114,9 @@ static void G_trigger_race_start(g_entity_t *ent) {
   G_Race_AddStart();
 }
 
+/**
+ * @brief Counts the checkpoint when it is the next one in sequence.
+ */
 static void G_trigger_race_checkpoint_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
   if (G_trigger_race_Accepts(ent, other) && G_Race_Checkpoint(other->client, ent->count)) {
@@ -145,10 +151,16 @@ static void G_trigger_race_checkpoint(g_entity_t *ent) {
   G_trigger_race_Init(ent, G_trigger_race_checkpoint_Touch);
 }
 
+/**
+ * @brief The trigger's number as its milestones are announced.
+ */
 static const char *G_trigger_race_Label(const g_entity_t *ent) {
   return gi.EntityValue(ent->def, "label")->nullable_string;
 }
 
+/**
+ * @brief Records the split and tells the racer how it compares.
+ */
 static void G_trigger_race_split_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
   if (G_trigger_race_Accepts(ent, other) && G_Race_Split(other->client, ent->count, G_trigger_race_Label(ent))) {
@@ -183,6 +195,9 @@ static void G_trigger_race_split(g_entity_t *ent) {
   G_trigger_race_Init(ent, G_trigger_race_split_Touch);
 }
 
+/**
+ * @brief Advances the run to the stage and remembers where it restarts.
+ */
 static void G_trigger_race_stage_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
   if (G_trigger_race_Accepts(ent, other) &&
@@ -223,6 +238,9 @@ static void G_trigger_race_stage(g_entity_t *ent) {
   G_trigger_race_Init(ent, G_trigger_race_stage_Touch);
 }
 
+/**
+ * @see g_race.h
+ */
 void G_Race_ResolveStages(void) {
 
   g_entity_t *stage = NULL;
@@ -242,6 +260,9 @@ void G_Race_ResolveStages(void) {
   }
 }
 
+/**
+ * @brief Ends the run, submits the record, and says how it went.
+ */
 static void G_trigger_race_finish_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
   if (G_trigger_race_Accepts(ent, other) && G_Race_Finish(other->client)) {
@@ -395,6 +416,9 @@ static bool G_Race_Passes(const g_client_t *cl, const g_entity_t *ent) {
   return offset.x * ent->move_dir.x + offset.y * ent->move_dir.y < 0.f;
 }
 
+/**
+ * @see g_race.h
+ */
 void G_Race_UpdateBarriers(g_client_t *cl) {
   const g_race_course_t *course = &g_level.race_course;
 
@@ -452,6 +476,9 @@ static const struct {
   { "func_race_oneway_wall", G_func_race_oneway_wall },
 };
 
+/**
+ * @see g_race.h
+ */
 bool G_Race_InitEntity(g_entity_t *ent) {
 
   for (size_t i = 0; i < lengthof(g_race_entity_classes); i++) {

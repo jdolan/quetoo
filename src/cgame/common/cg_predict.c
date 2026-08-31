@@ -65,16 +65,25 @@ bool Cg_ExportUsePrediction(void) {
   return Cg_UsePrediction();
 }
 
+/**
+ * @brief The tail of the `Cg_MoveCommandWillRun` chain: a notification, so it does nothing.
+ */
 static void Cg_MoveCommandWillRun_Common(pm_move_t *pm, const cl_cmd_t *cmd) {
 }
 
 MoveCommandWillRun Cg_MoveCommandWillRun = Cg_MoveCommandWillRun_Common;
 
+/**
+ * @brief The tail of the `Cg_MoveCommandDidRun` chain: a notification, so it does nothing.
+ */
 static void Cg_MoveCommandDidRun_Common(const pm_move_t *pm, const cl_cmd_t *cmd) {
 }
 
 MoveCommandDidRun Cg_MoveCommandDidRun = Cg_MoveCommandDidRun_Common;
 
+/**
+ * @brief The tail of the `Cg_PredictionDidComplete` chain: a notification, so it does nothing.
+ */
 static void Cg_PredictionDidComplete_Common(const pm_move_t *pm) {
 }
 

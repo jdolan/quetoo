@@ -685,6 +685,9 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) 
   return NULL;
 }
 
+/**
+ * @brief Rotates the mover to `angles` and clips `ent` against it there.
+ */
 static cm_trace_t G_Physics_Push_Rotate_And_Trace(g_entity_t *ent, g_entity_t *mover, const vec3_t angles) {
   mover->s.angles = angles;
   

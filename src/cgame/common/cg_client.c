@@ -38,6 +38,9 @@
 //                         team name    skin             shirt    pants    helmet   hue
 #define DEFAULT_CLIENT_INFO "-1\\newbie\\qforcer/default\\default\\default\\default\\default"
 
+/**
+ * @brief Trims leading and trailing whitespace in place.
+ */
 static char *Cg_StripWhitespace(char *str) {
 
   while (isspace((unsigned char) *str)) {
@@ -54,6 +57,9 @@ static char *Cg_StripWhitespace(char *str) {
   return str;
 }
 
+/**
+ * @brief Splits a client info string on backslashes, in place, up to `len` fields.
+ */
 static size_t Cg_SplitClientInfo(char *str, char **info, size_t len) {
 
   size_t count = 0;

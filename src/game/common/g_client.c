@@ -1881,6 +1881,9 @@ static file_t *g_pmove_file;
 static uint64_t pmove_frame = 0;
 static uint64_t pmove_frames = 0;
 
+/**
+ * @brief Begins recording every `Pm_Move` to a file, for playback through `G_PlayPmove`.
+ */
 void G_RecordPmove(void) {
   if (g_play_pmove) {
     return;
@@ -1898,6 +1901,9 @@ void G_RecordPmove(void) {
   gi.Print("Starting pmove recording\n");
 }
 
+/**
+ * @brief Begins replaying a `G_RecordPmove` file through `Pm_Move`, frame for frame.
+ */
 void G_PlayPmove(void) {
   if (g_recording_pmove) {
     return;
