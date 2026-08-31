@@ -46,6 +46,13 @@ uint32_t Cg_Race_Time(const player_state_t *ps);
 const char *Cg_Race_FormatTime(uint32_t ms);
 
 /**
+ * @brief Keeps the run's latest milestone for the HUD to show a while:
+ * what was passed, the time, and how it compares against this racer's best
+ * and the course record, `RACE_MILESTONE_NO_DELTA` for no comparison.
+ */
+void Cg_Race_Milestone(g_race_milestone_t kind, uint16_t number, const char *label, uint32_t time, int32_t vs_best, int32_t vs_record);
+
+/**
  * @brief The scoreboard, arranged for racing. Installed over `DrawScores` by
  * `Cg_Race_Init`, not chained.
  */

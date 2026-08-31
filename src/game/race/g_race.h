@@ -141,6 +141,11 @@ const g_race_record_t *G_Race_Record(const char *guid, pm_movement_t movement);
 size_t G_Race_Rank(const g_race_record_t *record, size_t *count);
 
 /**
+ * @brief The course record under `movement`, or `NULL` for none yet.
+ */
+const g_race_record_t *G_Race_BestRecord(pm_movement_t movement);
+
+/**
  * @brief Finds each stage's `restart_target` once every entity has spawned,
  * and spoils the stages if any is missing. Called from `ConfigureLevel`.
  */

@@ -155,14 +155,15 @@ extern ListGameplayModes Cg_ListGameplayModes;
  * @brief Decides whether `ent` clips a trace made on behalf of `mover`, after the
  * client has applied its own skip rules. There is no tail: the chain is `NULL`
  * until a feature installs a link, and the client does not call an empty one.
- * @details Chainable, and the reciprocal of the game's `ClipEntity`: a feature
+ * @details Chainable, and the reciprocal of the game's `ClipEntity`, under a
+ * typedef of its own so that no one translation unit may ever meet both: a feature
  * installs the same rule on both sides, or prediction disagrees with the server.
  * Prediction traces on behalf of `cgi.client->entity`; `mover` is `NULL` for a
  * trace with no entity behind it. An implementation MUST be pure.
  */
-typedef bool (*ClipEntity)(const cl_entity_t *mover, const cl_entity_t *ent);
+typedef bool (*ClipClientEntity)(const cl_entity_t *mover, const cl_entity_t *ent);
 
-extern ClipEntity Cg_ClipEntity;
+extern ClipClientEntity Cg_ClipEntity;
 
 /**
  * @brief Whether the client predicts its own movement this frame. The default

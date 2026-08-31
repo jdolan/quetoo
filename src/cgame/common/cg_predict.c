@@ -101,7 +101,7 @@ static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end,
  * installs a link, and `Cg_Init` exports whatever is installed, so that a
  * client game with nothing to say is never asked.
  */
-ClipEntity Cg_ClipEntity = NULL;
+ClipClientEntity Cg_ClipEntity = NULL;
 
 /**
  * @brief Run recent movement commands through the player movement code locally, storing the
