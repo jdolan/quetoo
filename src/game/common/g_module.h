@@ -441,12 +441,29 @@ typedef void (*PrepareSpawn)(g_client_t *cl, g_client_spawn_t *spawn);
 extern PrepareSpawn G_PrepareSpawn;
 
 /**
+ * @brief The client is about to enter the game: nothing of their entity exists yet.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*ClientWillBegin)(g_client_t *cl);
+
+extern ClientWillBegin G_ClientWillBegin;
+
+/**
  * @brief The client has entered the game: their entity exists and is placed.
  * @details Notification; the tail does nothing.
  */
 typedef void (*ClientDidBegin)(g_client_t *cl);
 
 extern ClientDidBegin G_ClientDidBegin;
+
+/**
+ * @brief The client's user info is about to be applied: `cl->persistent` still
+ * holds what it held, and `user_info` what they sent.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*ClientWillChangeUserInfo)(g_client_t *cl, const char *user_info);
+
+extern ClientWillChangeUserInfo G_ClientWillChangeUserInfo;
 
 /**
  * @brief The client's user info was applied: name, skin, colors and the rest
@@ -466,6 +483,15 @@ extern ClientDidChangeUserInfo G_ClientDidChangeUserInfo;
 typedef void (*ClientWillDisconnect)(g_client_t *cl);
 
 extern ClientWillDisconnect G_ClientWillDisconnect;
+
+/**
+ * @brief The client has left: their entity is freed and their slot is about to
+ * be forgotten.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*ClientDidDisconnect)(g_client_t *cl);
+
+extern ClientDidDisconnect G_ClientDidDisconnect;
 
 /**
  * @brief A movement command has arrived and the buttons are latched, before
@@ -555,6 +581,15 @@ extern WriteScore G_WriteScore;
  * @brief The server frame. Tail in g_client_view.c.
  * @{
  */
+
+/**
+ * @brief The frame is about to run: the level's time has advanced, and nothing
+ * has thought yet.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*FrameWillBegin)(void);
+
+extern FrameWillBegin G_FrameWillBegin;
 
 /**
  * @brief The frame is complete: every entity has run, the rules are checked and

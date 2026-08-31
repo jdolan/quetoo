@@ -1255,12 +1255,28 @@ static void G_PrepareSpawn_Common(g_client_t *cl, g_client_spawn_t *spawn) {
 PrepareSpawn G_PrepareSpawn = G_PrepareSpawn_Common;
 
 /**
+ * @brief The tail of the `G_ClientWillBegin` chain: a notification, so it does nothing.
+ */
+static void G_ClientWillBegin_Common(g_client_t *cl) {
+}
+
+ClientWillBegin G_ClientWillBegin = G_ClientWillBegin_Common;
+
+/**
  * @brief The tail of the `G_ClientDidBegin` chain: a notification, so it does nothing.
  */
 static void G_ClientDidBegin_Common(g_client_t *cl) {
 }
 
 ClientDidBegin G_ClientDidBegin = G_ClientDidBegin_Common;
+
+/**
+ * @brief The tail of the `G_ClientWillChangeUserInfo` chain: a notification, so it does nothing.
+ */
+static void G_ClientWillChangeUserInfo_Common(g_client_t *cl, const char *user_info) {
+}
+
+ClientWillChangeUserInfo G_ClientWillChangeUserInfo = G_ClientWillChangeUserInfo_Common;
 
 /**
  * @brief The tail of the `G_ClientDidChangeUserInfo` chain: a notification, so it does nothing.
@@ -1277,6 +1293,14 @@ static void G_ClientWillDisconnect_Common(g_client_t *cl) {
 }
 
 ClientWillDisconnect G_ClientWillDisconnect = G_ClientWillDisconnect_Common;
+
+/**
+ * @brief The tail of the `G_ClientDidDisconnect` chain: a notification, so it does nothing.
+ */
+static void G_ClientDidDisconnect_Common(g_client_t *cl) {
+}
+
+ClientDidDisconnect G_ClientDidDisconnect = G_ClientDidDisconnect_Common;
 
 /**
  * @brief The tail of the `G_ClientWillThink` chain: a notification, so it does nothing.
@@ -1489,6 +1513,8 @@ void G_ClientRespawn(g_client_t *cl, bool voluntary) {
 void G_ClientBegin(g_client_t *cl) {
   char welcome[MAX_STRING_CHARS];
 
+  G_ClientWillBegin(cl);
+
   // setup the client's entity
   cl->entity = G_AllocEntity("client");
   cl->entity->client = cl;
@@ -1564,6 +1590,8 @@ box3_t G_ClientStandingBounds(const g_client_t *cl) {
  */
 void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   char name[MAX_NET_NAME];
+
+  G_ClientWillChangeUserInfo(cl, user_info);
 
   // check for malformed or illegal info strings
   if (!InfoString_Validate(user_info)) {
@@ -1830,6 +1858,8 @@ void G_ClientDisconnect(g_client_t *cl) {
   if (cl->entity) {
     G_FreeEntity(cl->entity);
   }
+
+  G_ClientDidDisconnect(cl);
 
   memset(cl, 0, sizeof(g_client_t));
   cl->ps.client = client;
