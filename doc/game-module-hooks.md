@@ -269,8 +269,8 @@ have produced a module that did not compile.
 | --- | --- | --- |
 | `ResetDroppedItem` | `g_item.c` | ctf, techs |
 | `ResolveInventoryItem` | `g_item.c` | ctf, techs |
-| `TossInventory` | `g_item.c` | ctf, techs, hook |
-| `ModifyDamage` | `g_combat.c` | techs |
+| `TossInventory` | `g_item.c` | ctf, techs, hook, race |
+| `ModifyDamage` | `g_combat.c` | techs, race |
 | `CheckCvars` | `g_rules.c` | ctf, techs, hook |
 | `CheckWinner` | `g_rules.c` | ctf |
 | `FormatGameName` | `g_rules.c` | ctf |
@@ -278,27 +278,32 @@ have produced a module that did not compile.
 | `InhibitItem` | `g_item.c` | ctf |
 | `InitItem` | `g_item.c` | ctf, techs |
 | `InitMedia` | `g_entity.c` | ctf, techs, hook |
-| `ConfigureLevel` | `g_entity.c` | techs, hook |
+| `ConfigureLevel` | `g_entity.c` | techs, hook, race |
 | `PrepareMove` | `g_client.c` | hook |
-| `ClipEntity` | `g_client.c` | — |
+| `ClipEntity` | `g_client.c` | race |
 | `InitInventory` | `g_client.c` | — |
-| `PrepareSpawn` | `g_client.c` | — |
+| `PrepareSpawn` | `g_client.c` | race |
+| `ClientWillBegin` | `g_client.c` | — |
 | `ClientDidBegin` | `g_client.c` | — |
+| `ClientWillChangeUserInfo` | `g_client.c` | — |
 | `ClientDidChangeUserInfo` | `g_client.c` | — |
-| `ClientWillDisconnect` | `g_client.c` | — |
-| `ClientWillThink` | `g_client.c` | — |
-| `ClientDidMove` | `g_client.c` | — |
-| `HandleClientCommand` | `g_cmd.c` | — |
+| `ClientWillDisconnect` | `g_client.c` | race |
+| `ClientDidDisconnect` | `g_client.c` | — |
+| `ClientWillThink` | `g_client.c` | race |
+| `ClientDidMove` | `g_client.c` | race |
+| `HandleClientCommand` | `g_cmd.c` | vote, race |
+| `ClientWillChat` | `g_cmd.c` | — |
 | `ClientDidChat` | `g_cmd.c` | — |
-| `WriteStats` | `g_client_stats.c` | — |
-| `WriteScore` | `g_client_stats.c` | — |
-| `LevelWillSpawn` | `g_entity.c` | — |
-| `SpawnEntity` | `g_entity.c` | — |
+| `WriteStats` | `g_client_stats.c` | race |
+| `WriteScore` | `g_client_stats.c` | race |
+| `LevelWillSpawn` | `g_entity.c` | race |
+| `InitEntity` | `g_entity.c` | race |
 | `AllowNextMap` | `g_rules.c` | — |
 | `PrepareVote` | `g_vote.c` | — |
 | `ApplyVote` | `g_vote.c` | — |
-| `AllowHook` | `g_hook.c` | — |
-| `FrameDidEnd` | `g_client_view.c` | — |
+| `AllowHook` | `g_hook.c` | race |
+| `FrameWillBegin` | `g_main.c` | — |
+| `FrameDidEnd` | `g_client_view.c` | vote, race |
 
 The tail of each chain lives beside the code that calls it, never in a catch-all:
 `g_module.c` was deleted once its last default moved out, because a file that
@@ -353,23 +358,25 @@ and make the block additive instead.
 
 | hook | tail lives in | installed by |
 | --- | --- | --- |
-| `DrawHudElements` | `cg_hud.c` | ctf, techs |
+| `DrawHudElements` | `cg_hud.c` | ctf, techs, race |
 | `ListGameplayModes` | `cg_main.c` | ctf |
-| `ClipEntity` | `cg_predict.c` | — |
+| `ClipEntity` | `cg_predict.c` | race |
 | `UsePrediction` | `cg_predict.c` | — |
 | `Move` | `cg_input.c` | — |
 | `MoveCommandWillRun` | `cg_predict.c` | — |
 | `MoveCommandDidRun` | `cg_predict.c` | — |
 | `PredictionDidComplete` | `cg_predict.c` | — |
-| `ParseServerCommand` | `cg_main.c` | — |
-| `ParseConfigString` | `cg_main.c` | — |
+| `ParseServerCommand` | `cg_main.c` | race |
+| `ParseConfigString` | `cg_main.c` | vote, race |
 | `StateDidClear` | `cg_main.c` | — |
-| `MediaDidLoad` | `cg_media.c` | — |
+| `MediaDidLoad` | `cg_media.c` | race |
 | `SceneDidPopulate` | `cg_main.c` | — |
 | `ScreenDidUpdate` | `cg_main.c` | — |
-| `FilterEntity` | `cg_entity.c` | — |
+| `AddEntity` | `cg_entity.c` | race |
+| `ClientInfo` | `cg_client.c` | race |
+| `EntityEffects` | `cg_entity_effect.c` | race |
 | `DescribeGameMode` | `cg_discord.c` | — |
-| `DrawScores` | `cg_score.c` | — |
+| `DrawScores` | `cg_score.c` | race |
 | `ListVoteTypes` | `cg_vote.c` | — |
 
 `cg_hud_layout_t.draw_time` lets a module that arranges the whole HUD keep the

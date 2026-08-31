@@ -274,8 +274,8 @@ typedef struct {
     void (*Init)(void);
     void (*Shutdown)(void);
     
-    // Entity spawning
-    void (*SpawnEntity)(g_entity_t *ent);
+    // Level spawning
+    void (*SpawnEntities)(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities);
     
     // Main game loop
     void (*Frame)(void);
@@ -349,7 +349,7 @@ struct g_entity_s {
 
 **Map loads**:
 1. Server parses BSP entities
-2. For each entity definition, server calls `ge->SpawnEntity()`
+2. Server hands every entity definition to `ge->SpawnEntities()`; the game spawns each through its `InitEntity` chain
 3. Game looks up spawn function by classname:
    - `"weapon_rocketlauncher"` → `G_weapon_rocketlauncher()`
    - `"func_door"` → `G_func_door()`
