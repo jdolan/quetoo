@@ -168,6 +168,9 @@ static const char *G_WeaponNameForMod(g_means_of_death mod) {
   }
 }
 
+/**
+ * @see g_combat.h
+ */
 bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
   vec3_t dest;
   cm_trace_t tr;

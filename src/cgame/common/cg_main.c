@@ -262,6 +262,9 @@ static void Cg_ParseTeamInfo(const char *s) {
   release(info);
 }
 
+/**
+ * @brief The tail of the `Cg_ParseConfigString` chain: nothing claimed, so common parses it.
+ */
 static bool Cg_ParseConfigString_Common(int32_t index) {
   return false;
 }
@@ -344,6 +347,9 @@ static void Cg_ParsedMessage(int32_t cmd, void *data) {
   }
 }
 
+/**
+ * @brief The tail of the `Cg_ParseServerCommand` chain: nothing claimed, so common parses it.
+ */
 static bool Cg_ParseServerCommand_Common(int32_t cmd) {
   return false;
 }
@@ -443,6 +449,9 @@ static void Cg_ClearState(void) {
   Cg_StateDidClear();
 }
 
+/**
+ * @brief The tail of the `Cg_StateDidClear` chain: a notification, so it does nothing.
+ */
 static void Cg_StateDidClear_Common(void) {
 }
 
@@ -476,6 +485,9 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
   Cg_SceneDidPopulate(frame);
 }
 
+/**
+ * @brief The tail of the `Cg_SceneDidPopulate` chain: a notification, so it does nothing.
+ */
 static void Cg_SceneDidPopulate_Common(const cl_frame_t *frame) {
 }
 
@@ -548,6 +560,9 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
   Cg_ScreenDidUpdate(frame);
 }
 
+/**
+ * @brief The tail of the `Cg_ScreenDidUpdate` chain: a notification, so it does nothing.
+ */
 static void Cg_ScreenDidUpdate_Common(const cl_frame_t *frame) {
 }
 

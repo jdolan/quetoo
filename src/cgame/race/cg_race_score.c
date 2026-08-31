@@ -31,6 +31,9 @@
 // wider than the common board's column, for a best time beside a run count
 #define RACE_SCORES_COL_WIDTH 280
 
+/**
+ * @brief What a racer is doing, as the board says it.
+ */
 static const char *Cg_Race_ModeName(g_race_mode_t mode) {
 
   switch (mode) {
@@ -115,6 +118,9 @@ static void Cg_Race_DrawScore(int32_t x, int32_t y, const g_score_t *s) {
   cgi.BindFont(NULL, NULL, NULL);
 }
 
+/**
+ * @see cg_race.h
+ */
 void Cg_Race_DrawScores(const player_state_t *ps) {
 
   if (!ps->stats[STAT_SCORES]) {

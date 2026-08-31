@@ -201,11 +201,6 @@ PKG_CHECK_MODULES([PHYSFS], [physfs])
 dnl PhysicsFS itself links zlib but its .pc doesn't declare the dependency.
 PHYSFS_LIBS="$PHYSFS_LIBS -lz"
 
-dnl -----------------------------------
-dnl Sort out OpenAL flags and libraries
-dnl -----------------------------------
-
-
 dnl -------------------------------
 dnl Check for execinfo.h (optional)
 dnl -------------------------------
@@ -222,7 +217,7 @@ dnl ---------------------------------
 
 AC_MSG_CHECKING(which game modules to build)
 
-GAME_MODULES="default ctf lithium"
+GAME_MODULES="ctf default lithium race"
 
 AC_ARG_WITH(games,
 	AS_HELP_STRING([--with-games='default ...'],

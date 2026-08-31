@@ -37,7 +37,7 @@ Module initialization and main loop:
 
 ### cg_entity.c / cg_entity.h
 Entity state management:
-- `Cg_AddEntity()` - Add entity to render view
+- `Cg_AddEntity` - Chainable hook presenting an entity: its trail, models and effects
 - `Cg_AddEntities()` - Process all entities for this frame
 - Entity interpolation (lerp between old and new state)
 - Bounding box visualization (`cg_draw_bbox`)

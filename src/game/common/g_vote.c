@@ -95,6 +95,9 @@ static g_client_t *G_Vote_ClientByName(const char *name) {
   return NULL;
 }
 
+/**
+ * @brief The common vote type `name` names, or `NULL`.
+ */
 static const vote_type_t *G_Vote_Type(const char *name) {
 
   for (size_t i = 0; i < lengthof(vote_types_common); i++) {
@@ -252,6 +255,9 @@ static void G_Vote_Publish(void) {
                                  g_vote_state.deadline, g_vote_state.initiator));
 }
 
+/**
+ * @brief Announces the verdict, applies a passed vote, and clears the state either way.
+ */
 static void G_Vote_End(bool passed) {
 
   gi.BroadcastPrint(PRINT_HIGH, "Vote %s%s%s %s\n", g_vote_state.type,
@@ -298,6 +304,9 @@ static void G_Vote_Check(void) {
   }
 }
 
+/**
+ * @brief Records a ballot, once per client per vote.
+ */
 static void G_Vote_Cast(g_client_t *cl, g_ballot_t ballot) {
 
   if (!g_vote_state.active) {
@@ -315,6 +324,9 @@ static void G_Vote_Cast(g_client_t *cl, g_ballot_t ballot) {
   G_Vote_Check();
 }
 
+/**
+ * @brief Opens a vote, if voting is enabled and nothing else is in progress.
+ */
 static void G_Vote_Call(g_client_t *cl, const char *type, const char *arg) {
 
   if (!g_vote->integer) {
@@ -389,6 +401,9 @@ static bool G_HandleClientCommand_Vote(g_client_t *cl, const char *cmd) {
   return true;
 }
 
+/**
+ * @brief Watches the deadline and the tally, and ends the vote that settles.
+ */
 static void G_FrameDidEnd_Vote(void) {
 
   G_Vote_Check();

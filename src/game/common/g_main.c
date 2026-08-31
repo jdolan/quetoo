@@ -907,13 +907,23 @@ static void G_CheckRules(void) {
 #define INTERMISSION (10.0 * 1000) // intermission duration
 
 /**
- * @brief The main game module "think" function, called once per server frame.
- * Nothing would happen in Quake land if this weren't called.
+ * @brief The tail of the `G_FrameWillBegin` chain: a notification, so it does nothing.
+ */
+static void G_FrameWillBegin_Common(void) {
+}
+
+FrameWillBegin G_FrameWillBegin = G_FrameWillBegin_Common;
+
+/**
+ * @brief Runs one server frame: the timers, every entity, the rules, and the
+ * client frames that close it.
  */
 static void G_Frame(void) {
 
   g_level.frame_num++;
   g_level.time = g_level.frame_num * QUETOO_TICK_MILLIS;
+
+  G_FrameWillBegin();
 
   // check for level change after running intermission
   if (g_level.intermission_time) {

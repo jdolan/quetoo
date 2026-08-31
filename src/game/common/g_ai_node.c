@@ -189,6 +189,9 @@ typedef struct {
   bool prefer_level;
 } ai_node_query_filter_t;
 
+/**
+ * @brief Whether a node qualifies for `G_Ai_Node_FindClosest`, and at what distance.
+ */
 static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float *distance) {
   const ai_node_query_filter_t *filter = data;
   const ai_node_t *node = AI_NODE(g_ai_nodes, nodenum);
@@ -1370,6 +1373,9 @@ static ai_node_priority_t *g_ai_node_path_entries;
 static size_t g_ai_node_path_capacity;
 static size_t g_ai_node_path_count;
 
+/**
+ * @brief Releases the pathfinding queue and its entries.
+ */
 static void G_Ai_Node_FreePathPool(void) {
 
   gheap_free(&g_ai_node_path_queue);
@@ -1379,6 +1385,9 @@ static void G_Ai_Node_FreePathPool(void) {
   g_ai_node_path_count = 0;
 }
 
+/**
+ * @brief Readies the pathfinding queue and entry pool for `capacity` nodes, reusing them when they suffice.
+ */
 static bool G_Ai_Node_EnsurePathPool(const size_t capacity) {
 
   if (g_ai_node_path_queue && g_ai_node_path_capacity >= capacity) {
@@ -1401,6 +1410,9 @@ static bool G_Ai_Node_EnsurePathPool(const size_t capacity) {
   return true;
 }
 
+/**
+ * @brief The next free pathfinding entry, or `NULL` when the pool is spent.
+ */
 static ai_node_priority_t *G_Ai_Node_AllocPathEntry(void) {
 
   if (g_ai_node_path_count == g_ai_node_path_capacity) {
@@ -1416,6 +1428,9 @@ static ai_node_priority_t *G_Ai_Node_AllocPathEntry(void) {
 #define AI_DROP_HEALTH_MARGIN 8.f
 #define AI_DROP_DAMAGE_PENALTY_SCALE 6.f
 
+/**
+ * @brief The stored cost of the link from `a` to `b`.
+ */
 static inline float G_Ai_LinkCost(const ai_node_id_t a, const ai_node_id_t b) {
   const ai_node_t *node = AI_NODE(g_ai_nodes, a);
 
@@ -1483,6 +1498,9 @@ static float G_Ai_EstimatedFallDamage(const float drop, const int32_t gravity, c
   return Maxf(0.f, damage);
 }
 
+/**
+ * @see g_ai_node.h
+ */
 Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const ai_node_id_t end, const G_Ai_NodeCostFunc heuristic, float *length) {
   
   if (length) {
@@ -1688,6 +1706,9 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
   return return_path;
 }
 
+/**
+ * @brief Translates every node by the given offset, for repairing a graph after a map shifts.
+ */
 void G_Ai_OffsetNodes_f(void) {
 
   vec3_t translate;

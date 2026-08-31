@@ -44,6 +44,9 @@
  * `maps.lst` entry without a name is.
  */
 
+/**
+ * @brief Where this level's records live in the write dir.
+ */
 static const char *G_Race_RecordsPath(void) {
   return va("records/%s.rec", g_level.name);
 }
@@ -70,6 +73,9 @@ static uint32_t G_Race_HashBytes(uint32_t hash, const void *data, size_t length)
   return hash;
 }
 
+/**
+ * @brief An FNV-1a hash of the fields, not the struct: there is padding after movement.
+ */
 static uint32_t G_Race_HashParams(const pm_params_t *params) {
 
   uint32_t hash = 2166136261u;
@@ -102,6 +108,9 @@ static uint16_t G_Race_ParseTimes(const cm_entity_t *def, const char *key, int32
   return count;
 }
 
+/**
+ * @brief Fastest first.
+ */
 static int32_t G_Race_CompareRecords(const void *a, const void *b) {
   const g_race_record_t *ra = a, *rb = b;
 
@@ -112,6 +121,9 @@ static int32_t G_Race_CompareRecords(const void *a, const void *b) {
   return ra->time < rb->time ? -1 : ra->time > rb->time ? 1 : 0;
 }
 
+/**
+ * @brief Keeps the records fastest first within each movement.
+ */
 static void G_Race_SortRecords(void) {
   qsort(g_level.race_records, g_level.race_record_count, sizeof(g_race_record_t), G_Race_CompareRecords);
 }
@@ -140,6 +152,9 @@ static g_race_record_t *G_Race_AddRecord(void) {
   return record;
 }
 
+/**
+ * @brief The client's record under `movement`, or `NULL` for none yet.
+ */
 static g_race_record_t *G_Race_FindRecord(const char *guid, pm_movement_t movement) {
 
   for (size_t i = 0; i < g_level.race_record_count; i++) {
@@ -153,10 +168,16 @@ static g_race_record_t *G_Race_FindRecord(const char *guid, pm_movement_t moveme
   return NULL;
 }
 
+/**
+ * @see g_race.h
+ */
 const g_race_record_t *G_Race_Record(const char *guid, pm_movement_t movement) {
   return G_Race_FindRecord(guid, movement);
 }
 
+/**
+ * @see g_race.h
+ */
 size_t G_Race_Rank(const g_race_record_t *record, size_t *count) {
   size_t rank = 0;
 
@@ -257,6 +278,9 @@ static bool G_Race_ParseRecord(const cm_entity_t *def, int32_t index) {
   return true;
 }
 
+/**
+ * @see g_race.h
+ */
 void G_Race_LoadRecords(void) {
 
   // the level's end freed the last map's, and this may be the same map again
@@ -290,6 +314,9 @@ void G_Race_LoadRecords(void) {
 
 static void G_Race_WriteLine(file_t *file, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
+/**
+ * @brief Formats one line into the records file.
+ */
 static void G_Race_WriteLine(file_t *file, const char *fmt, ...) {
   char line[MAX_STRING_CHARS];
 
@@ -301,6 +328,9 @@ static void G_Race_WriteLine(file_t *file, const char *fmt, ...) {
   gi.WriteFile(file, line, 1, Mini(len, (int32_t) sizeof(line) - 1));
 }
 
+/**
+ * @brief Writes a numbered key per time, `key_N` from `first` up, as the loader reads them.
+ */
 static void G_Race_WriteTimes(file_t *file, const char *key, int32_t first, const uint32_t *times, uint16_t count) {
 
   for (uint16_t i = 0; i < count; i++) {
@@ -308,6 +338,9 @@ static void G_Race_WriteTimes(file_t *file, const char *key, int32_t first, cons
   }
 }
 
+/**
+ * @brief Rewrites the level's records file whole, every record it holds.
+ */
 static void G_Race_SaveRecords(void) {
 
   file_t *file = gi.OpenFileWrite(G_Race_RecordsPath());
@@ -339,6 +372,9 @@ static void G_Race_SaveRecords(void) {
   gi.CloseFile(file);
 }
 
+/**
+ * @see g_race.h
+ */
 bool G_Race_SubmitRecord(g_client_t *cl) {
   const g_race_run_t *run = &cl->race_run;
 

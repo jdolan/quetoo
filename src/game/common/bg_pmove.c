@@ -70,6 +70,9 @@ static const pm_movement_info_t pm_movements[] = {
   [PM_MOVEMENT_QUAKE3] = { .name = "quake3", .label = "Quake3",      .params = &pm_quake3_params },
 };
 
+/**
+ * @see bg_pmove.h
+ */
 const pm_movement_info_t *Pm_Movement(pm_movement_t movement) {
 
   if ((size_t) movement >= lengthof(pm_movements)) {
@@ -79,10 +82,16 @@ const pm_movement_info_t *Pm_Movement(pm_movement_t movement) {
   return &pm_movements[movement];
 }
 
+/**
+ * @see bg_pmove.h
+ */
 size_t Pm_MovementCount(void) {
   return lengthof(pm_movements);
 }
 
+/**
+ * @see bg_pmove.h
+ */
 bool Pm_MovementByName(const char *name, pm_movement_t *movement) {
 
   assert(movement);

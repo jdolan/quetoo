@@ -42,10 +42,16 @@
 
 static float cg_race_speed;
 
+/**
+ * @see cg_race.h
+ */
 const char *Cg_Race_FormatTime(uint32_t ms) {
   return va("%u:%02u.%03u", ms / 60000, ms / 1000 % 60, ms % 1000);
 }
 
+/**
+ * @brief Draws a line centered on the view, as the run and its milestones are shown.
+ */
 static void Cg_Race_DrawCentered(int32_t y, const char *string, const color_t color) {
   cgi.Draw2DString((cgi.context->w - cgi.StringWidth(string)) / 2, y, string, color);
 }
@@ -100,6 +106,9 @@ static int32_t Cg_Race_DrawSpeed(const player_state_t *ps, int32_t y) {
   return Cg_DrawStat(y, "Speed", (int32_t) cg_race_speed);
 }
 
+/**
+ * @see cg_race.h
+ */
 void Cg_Race_DrawHud(const player_state_t *ps, cg_hud_layout_t *layout) {
 
   Cg_DrawVitals(ps);

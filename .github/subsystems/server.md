@@ -82,7 +82,7 @@ Game module interface (loads game.so/.dll):
 **Game module exports** (`game_export_t`):
 - `ge->Init()` - Game initialization
 - `ge->Shutdown()` - Game cleanup
-- `ge->SpawnEntity()` - Spawn entity from BSP entity definition
+- `ge->SpawnEntities()` - Spawn the level from its BSP entity definitions
 - `ge->Frame()` - Run game logic for one tick
 - `ge->ClientConnect()` / `ge->ClientDisconnect()` - Client events
 - `ge->ClientCommand()` - Handle client console commands
@@ -387,7 +387,7 @@ This separation allows different game modes/mods without changing server code.
 3. Load BSP with `Cm_LoadBSP()`
 4. Initialize game module: `ge->Init()`
 5. Parse BSP entities: `Cm_Entities()`
-6. Spawn each entity: `ge->SpawnEntity()` for each
+6. Spawn the level: `ge->SpawnEntities()` with every entity definition
 7. Server is now ready for client connections
 
 ## File Downloads

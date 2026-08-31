@@ -109,6 +109,9 @@ static const g_entity_class_t g_entity_classes[] = {
 
 static const cm_entity_t *g_map;
 
+/**
+ * @brief The value `key` holds in the map's own metadata, or `NULL` before it is loaded.
+ */
 static const cm_entity_t *G_MapValue(const char *key) {
   return g_map ? gi.EntityValue(g_map, key) : NULL;
 }

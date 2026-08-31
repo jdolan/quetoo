@@ -63,6 +63,9 @@ static struct {
 
 static bool installed;
 
+/**
+ * @see g_race.h
+ */
 g_race_mode_t G_Race_Mode(const g_client_t *cl) {
 
   if (cl->persistent.spectator) {
@@ -72,6 +75,9 @@ g_race_mode_t G_Race_Mode(const g_client_t *cl) {
   return cl->persistent.race_mode == RACE_MODE_PRACTICE ? RACE_MODE_PRACTICE : RACE_MODE_RACE;
 }
 
+/**
+ * @brief What a mode is called when it is announced or listed.
+ */
 static const char *G_Race_ModeName(g_race_mode_t mode) {
 
   switch (mode) {
@@ -101,6 +107,9 @@ static const char *G_Race_FormatTime(uint32_t ms) {
   return va("%u:%02u.%03u", ms / 60000, ms / 1000 % 60, ms % 1000);
 }
 
+/**
+ * @see g_race.h
+ */
 void G_Race_CenterPrint(const g_client_t *cl, const char *fmt, ...) {
   char string[MAX_STRING_CHARS];
 
@@ -114,6 +123,9 @@ void G_Race_CenterPrint(const g_client_t *cl, const char *fmt, ...) {
   gi.Unicast(cl, true);
 }
 
+/**
+ * @brief Abandons the run, wherever it stood.
+ */
 static void G_Race_Reset(g_client_t *cl) {
 
   G_Race_DropLine(cl);
@@ -126,6 +138,9 @@ static void G_Race_Reset(g_client_t *cl) {
 
 // ---------------------------------------------------------------- the course
 
+/**
+ * @see g_race.h
+ */
 void G_Race_AddStart(void) {
   g_level.race_course.start_count++;
 }
@@ -145,18 +160,30 @@ static bool G_Race_AddToSequence(uint64_t *sequence, bool *malformed, int32_t n,
   return true;
 }
 
+/**
+ * @see g_race.h
+ */
 bool G_Race_AddCheckpoint(int32_t checkpoint) {
   return G_Race_AddToSequence(&g_level.race_course.checkpoints, &g_level.race_course.malformed, checkpoint, 1);
 }
 
+/**
+ * @see g_race.h
+ */
 bool G_Race_AddSplit(int32_t split) {
   return G_Race_AddToSequence(&g_level.race_course.splits, &g_level.race_course.splits_malformed, split, 1);
 }
 
+/**
+ * @see g_race.h
+ */
 bool G_Race_AddStage(int32_t stage) {
   return G_Race_AddToSequence(&g_level.race_course.stages, &g_level.race_course.stages_malformed, stage, 2);
 }
 
+/**
+ * @see g_race.h
+ */
 void G_Race_AddFinish(void) {
   g_level.race_course.finish_count++;
 }
@@ -204,6 +231,9 @@ static void G_Race_ValidateCourse(void) {
 
 // ---------------------------------------------------------------- the run
 
+/**
+ * @see g_race.h
+ */
 bool G_Race_Debounced(g_client_t *cl, const g_entity_t *ent, float wait) {
 
   if (cl->race_trigger == ent && g_level.time - cl->race_trigger_time < wait * 1000.f) {
@@ -215,6 +245,9 @@ bool G_Race_Debounced(g_client_t *cl, const g_entity_t *ent, float wait) {
   return false;
 }
 
+/**
+ * @see g_race.h
+ */
 bool G_Race_Start(g_client_t *cl) {
 
   if (!G_Race_CanRun(cl)) {
@@ -251,6 +284,9 @@ bool G_Race_Start(g_client_t *cl) {
   return true;
 }
 
+/**
+ * @see g_race.h
+ */
 void G_Race_ArmStart(g_client_t *cl, const g_entity_t *start) {
 
   if (cl->race_start == start) {
@@ -265,6 +301,9 @@ void G_Race_ArmStart(g_client_t *cl, const g_entity_t *start) {
   cl->race_start = start;
 }
 
+/**
+ * @see g_race.h
+ */
 bool G_Race_Checkpoint(g_client_t *cl, uint16_t checkpoint) {
   g_race_run_t *run = &cl->race_run;
 
@@ -362,6 +401,9 @@ bool G_Race_Stage(g_client_t *cl, uint16_t stage, const char *label, const g_ent
   return counted;
 }
 
+/**
+ * @see g_race.h
+ */
 bool G_Race_Finish(g_client_t *cl) {
   g_race_run_t *run = &cl->race_run;
 
@@ -412,6 +454,9 @@ bool G_Race_Finish(g_client_t *cl) {
 
 // ---------------------------------------------------------------- the modes
 
+/**
+ * @brief Moves the client to `mode`, resetting whatever the old mode held.
+ */
 static void G_Race_SetMode(g_client_t *cl, g_race_mode_t mode) {
 
   if (G_Race_Mode(cl) == mode) {
@@ -442,6 +487,9 @@ static void G_Race_SetMode(g_client_t *cl, g_race_mode_t mode) {
   G_ClientRespawn(cl, false);
 }
 
+/**
+ * @brief `mode <race|practice|spectator>`, or with no argument, says which.
+ */
 static void G_Race_Mode_f(g_client_t *cl) {
 
   if (gi.Argc() < 2) {
@@ -537,6 +585,9 @@ static void G_Race_NoClip_f(g_client_t *cl) {
   }
 }
 
+/**
+ * @brief `race`: the course, the client's run and their best, in the console.
+ */
 static void G_Race_Status_f(g_client_t *cl) {
   const g_race_run_t *run = &cl->race_run;
   const g_race_course_t *course = &g_level.race_course;
@@ -585,6 +636,9 @@ static void G_LevelWillSpawn_Race(void) {
   previous.LevelWillSpawn();
 }
 
+/**
+ * @brief The course is validated and published, the records and the raceline loaded, and every client reset for the new level.
+ */
 static void G_ConfigureLevel_Race(void) {
 
   previous.ConfigureLevel();
@@ -611,6 +665,9 @@ static void G_ConfigureLevel_Race(void) {
   });
 }
 
+/**
+ * @brief The race classes first, then whatever common knows.
+ */
 static bool G_InitEntity_Race(g_entity_t *ent) {
 
   if (G_Race_InitEntity(ent)) {
@@ -620,6 +677,9 @@ static bool G_InitEntity_Race(g_entity_t *ent) {
   return previous.InitEntity(ent);
 }
 
+/**
+ * @brief The barriers first, then whatever previous says.
+ */
 static bool G_ClipEntity_Race(const g_entity_t *mover, const g_entity_t *ent) {
 
   if (!G_Race_ClipEntity(mover, ent)) {
@@ -646,6 +706,9 @@ static void G_PrepareSpawn_Race(g_client_t *cl, g_client_spawn_t *spawn) {
   previous.PrepareSpawn(cl, spawn);
 }
 
+/**
+ * @brief A death ends the run; the corpse tosses as usual.
+ */
 static void G_TossInventory_Race(g_client_t *cl) {
 
   G_Race_Reset(cl);
@@ -676,6 +739,9 @@ static bool G_ModifyDamage_Race(g_entity_t *target, g_entity_t *attacker, int32_
   return true;
 }
 
+/**
+ * @brief The grapple is practice equipment: never under a run.
+ */
 static bool G_AllowHook_Race(const g_client_t *cl) {
 
   if (G_Race_Mode(cl) != RACE_MODE_PRACTICE) {
@@ -685,6 +751,9 @@ static bool G_AllowHook_Race(const g_client_t *cl) {
   return previous.AllowHook(cl);
 }
 
+/**
+ * @brief The race commands, deferring the rest.
+ */
 static bool G_HandleClientCommand_Race(g_client_t *cl, const char *cmd) {
 
   if (g_level.intermission_time) {
@@ -799,6 +868,9 @@ static void G_ClientDidMove_Race(g_client_t *cl, const pm_cmd_t *cmd) {
   }
 }
 
+/**
+ * @brief A leaving client's run ends with them.
+ */
 static void G_ClientWillDisconnect_Race(g_client_t *cl) {
 
   G_Race_Reset(cl);
@@ -806,6 +878,9 @@ static void G_ClientWillDisconnect_Race(g_client_t *cl) {
   previous.ClientWillDisconnect(cl);
 }
 
+/**
+ * @brief The race stats: mode, run state, time, checkpoints, flags and runs.
+ */
 static void G_WriteStats_Race(g_client_t *cl) {
 
   previous.WriteStats(cl);
@@ -851,6 +926,9 @@ static void G_WriteScore_Race(const g_client_t *cl, g_score_t *s) {
   }
 }
 
+/**
+ * @see g_race.h
+ */
 void G_Race_Init(void) {
 
   if (installed) {
