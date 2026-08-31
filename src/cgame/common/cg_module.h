@@ -303,16 +303,17 @@ extern ScreenDidUpdate Cg_ScreenDidUpdate;
  */
 
 /**
- * @brief Whether an entity the server sent is shown at all: interpolated, given
- * its sounds and events, trailed and added to the scene. The default shows
- * everything.
- * @details Chainable. A feature that hides other players, say, answers false
- * for them and defers to previous for the rest.
- * @return True to show the entity.
+ * @brief Presents an entity the server sent: its trail, and the render entities
+ * its model and effects call for. The default presents everything as the server
+ * described it.
+ * @details Chainable. A feature that hides an entity - another player's ghost,
+ * say - returns without calling previous; one that augments what an entity shows
+ * adds around the call. Sounds and events are not decided here; they have played
+ * by the time the scene is populated.
  */
-typedef bool (*FilterEntity)(const cl_entity_t *ent);
+typedef void (*AddEntity)(cl_entity_t *ent);
 
-extern FilterEntity Cg_FilterEntity;
+extern AddEntity Cg_AddEntity;
 
 /**
  * @brief Augments the renderer entity for an entity the server sent, from its
