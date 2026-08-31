@@ -458,7 +458,7 @@ extern ClientDidBegin G_ClientDidBegin;
 
 /**
  * @brief The client's user info is about to be applied: `cl->persistent` still
- * holds what it held, and `user_info` what they sent.
+ * holds what it held, and `user_info` what they sent, unvalidated.
  * @details Notification; the tail does nothing.
  */
 typedef void (*ClientWillChangeUserInfo)(g_client_t *cl, const char *user_info);

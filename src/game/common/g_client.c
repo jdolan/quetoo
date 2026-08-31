@@ -1857,6 +1857,7 @@ void G_ClientDisconnect(g_client_t *cl) {
 
   if (cl->entity) {
     G_FreeEntity(cl->entity);
+    cl->entity = NULL;
   }
 
   G_ClientDidDisconnect(cl);
