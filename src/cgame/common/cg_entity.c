@@ -226,12 +226,6 @@ static void Cg_EntitySound(cl_entity_t *ent) {
   s->sound = 0;
 }
 
-static bool Cg_FilterEntity_Common(const cl_entity_t *ent) {
-  return true;
-}
-
-FilterEntity Cg_FilterEntity = Cg_FilterEntity_Common;
-
 /**
  * @brief Interpolate the current frame, processing any new events and advancing the simulation.
  */
@@ -246,10 +240,8 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 
     cl_entity_t *ent = &cgi.client->entities[s->number];
 
-    if (Cg_FilterEntity(ent)) {
-      Cg_EntitySound(ent);
-      Cg_EntityEvent(ent);
-    }
+    Cg_EntitySound(ent);
+    Cg_EntityEvent(ent);
 
     // the event is consumed whether or not it was shown, so that parsing the
     // same frame again does not fire it twice
@@ -258,9 +250,12 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 }
 
 /**
- * @brief Adds the specified client entity to the view.
+ * @brief The tail of the `Cg_AddEntity` chain: the entity's trail, and the
+ * render entities its model and effects call for.
  */
-static void Cg_AddEntity(cl_entity_t *ent) {
+static void Cg_AddEntity_Common(cl_entity_t *ent) {
+
+  Cg_EntityTrail(ent);
 
   // set the origin and angles so that we know where to add effects
   r_entity_t e = {
@@ -313,6 +308,8 @@ static void Cg_AddEntity(cl_entity_t *ent) {
   cgi.AddEntity(cgi.view, &e);
 }
 
+AddEntity Cg_AddEntity = Cg_AddEntity_Common;
+
 /**
  * @brief Iterate all entities in the current frame, adding models, sprites,
  * lights, and anything else associated with them.
@@ -341,12 +338,6 @@ void Cg_AddEntities(const cl_frame_t *frame) {
     const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
     const entity_state_t *s = &cgi.client->entity_states[snum];
     cl_entity_t *ent = &cgi.client->entities[s->number];
-
-    if (!Cg_FilterEntity(ent)) {
-      continue;
-    }
-
-    Cg_EntityTrail(ent);
 
     Cg_AddEntity(ent);
   }

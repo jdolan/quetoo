@@ -42,7 +42,7 @@ static struct {
   ParseConfigString ParseConfigString;
   ParseServerCommand ParseServerCommand;
   MediaDidLoad MediaDidLoad;
-  FilterEntity FilterEntity;
+  AddEntity AddEntity;
   ClientInfo ClientInfo;
   EntityEffects EntityEffects;
   ClipEntity ClipEntity;
@@ -145,13 +145,13 @@ static bool Cg_ClipEntity_Race(const cl_entity_t *mover, const cl_entity_t *ent)
 /**
  * @brief Another player's ghost is theirs to see and not ours.
  */
-static bool Cg_FilterEntity_Race(const cl_entity_t *ent) {
+static void Cg_AddEntity_Race(cl_entity_t *ent) {
 
   if (Cg_Race_IsGhost(ent) && ent->current.client != cgi.client->frame.ps.client) {
-    return false;
+    return;
   }
 
-  return previous.FilterEntity(ent);
+  previous.AddEntity(ent);
 }
 
 /**
@@ -203,8 +203,8 @@ void Cg_Race_Init(void) {
   previous.MediaDidLoad = Cg_MediaDidLoad;
   Cg_MediaDidLoad = Cg_MediaDidLoad_Race;
 
-  previous.FilterEntity = Cg_FilterEntity;
-  Cg_FilterEntity = Cg_FilterEntity_Race;
+  previous.AddEntity = Cg_AddEntity;
+  Cg_AddEntity = Cg_AddEntity_Race;
 
   previous.ClientInfo = Cg_ClientInfo;
   Cg_ClientInfo = Cg_ClientInfo_Race;
