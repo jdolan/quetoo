@@ -69,6 +69,36 @@ void Cl_FreeServers(void) {
 }
 
 /**
+ * @brief Drops any other known entry that is `server` reached a different way.
+ * @details A server broadcasting on the LAN and also listed by the master
+ * answers under two different addresses, so it shows twice. `Cl_ServerForNetaddr`
+ * already merges entries that share one address; this catches what that
+ * cannot - the same hostname, map and occupancy reported under two. `server`
+ * itself is never dropped: it is the one that just proved it is reachable and
+ * answering right now, so any duplicate loses to it rather than the reverse.
+ */
+static void Cl_MergeDuplicateServers(const cl_server_info_t *server) {
+
+  for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
+    const cl_server_info_t *other = (cl_server_info_t *) $(cls.servers, get, i);
+
+    if (other == server || Net_CompareNetaddr(&other->addr, &server->addr)) {
+      continue;
+    }
+
+    if (!server->hostname[0] || q_strcmp(other->hostname, server->hostname) ||
+        q_strcmp(other->name, server->name) ||
+        other->max_clients != server->max_clients ||
+        other->clients != server->clients) {
+      continue;
+    }
+
+    $(cls.servers, removeAt, i);
+    break;
+  }
+}
+
+/**
  * @brief Parses a server status response and updates or creates the matching server entry.
  */
 void Cl_ParseServerInfo(void) {
@@ -143,6 +173,8 @@ void Cl_ParseServerInfo(void) {
     Com_Debug(DEBUG_CLIENT, "Status from %s: \"%s\" map %s, gameplay %s, %d/%d clients (%d bots), %dms\n",
               Net_NetaddrToString(&net_from), server->hostname, server->name, server->gameplay,
               server->clients, server->max_clients, server->bots, server->ping);
+
+    Cl_MergeDuplicateServers(server);
 
   } else {
     server->hostname[0] = '\0';
