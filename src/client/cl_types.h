@@ -623,6 +623,11 @@ typedef struct {
   char gameplay[32];
 
   /**
+   * @brief The movement name.
+   */
+  char movement[32];
+
+  /**
    * @brief Error string if the server could not be queried.
    */
   char error[128];

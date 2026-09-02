@@ -131,17 +131,21 @@ void Cl_ParseServerInfo(void) {
   char hostname[sizeof(server->hostname)];
   char name[sizeof(server->name)];
   char gameplay[sizeof(server->gameplay)];
+  char movement[sizeof(server->movement)];
 
   q_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
   q_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
   const char *mode = InfoString_Get(string, "g_gameplay_mode");
   q_strlcpy(gameplay, *mode ? mode : InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
+  const char *move = InfoString_Get(string, "g_movement_mode");
+  q_strlcpy(movement, *move ? move : InfoString_Get(string, "g_movement"), sizeof(movement));
   const int32_t max_clients = atoi(InfoString_Get(string, "sv_max_clients"));
 
   if (hostname[0] && name[0]) {
     q_strlcpy(server->hostname, hostname, sizeof(server->hostname));
     q_strlcpy(server->name, name, sizeof(server->name));
     q_strlcpy(server->gameplay, gameplay, sizeof(server->gameplay));
+    q_strlcpy(server->movement, movement, sizeof(server->movement));
     server->max_clients = max_clients;
 
     server->clients = 0;
@@ -180,6 +184,7 @@ void Cl_ParseServerInfo(void) {
     server->hostname[0] = '\0';
     server->name[0] = '\0';
     server->gameplay[0] = '\0';
+    server->movement[0] = '\0';
 
     server->clients = 0;
     server->max_clients = 0;
