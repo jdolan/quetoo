@@ -27,7 +27,8 @@
 
 /**
  * @file
- * @brief Join server ViewController.
+ * @brief Join server ViewController: the known servers in one pane, and the
+ * selected one's details in the other.
  */
 
 typedef struct JoinServerViewController JoinServerViewController;
@@ -61,6 +62,49 @@ struct JoinServerViewController {
    * @brief The servers TableView.
    */
   TableView *serversTableView;
+
+  /**
+   * @brief The list's empty state, shown in place of the table rather than
+   * beside it, since one is meaningful only when the other is not.
+   */
+  Label *emptyLabel;
+
+  /**
+   * @brief The details pane, populated from the current selection.
+   */
+  Label *hostnameLabel, *addressLabel, *hintLabel, *sourceLabel;
+  Label *mapLabel, *gameplayLabel, *movementLabel, *playersLabel, *pingLabel;
+
+  /**
+   * @brief The selected server's mapshot, when its map is installed locally.
+   */
+  ImageView *mapshotView;
+
+  /**
+   * @brief The part of the details pane that only means something once a
+   * server is selected, hidden together until then.
+   */
+  View *detailGrid;
+
+  /**
+   * @brief The details pane's action.
+   */
+  Button *connectButton;
+
+  /**
+   * @brief The max ping slider, which doubles as the ping colour threshold.
+   * @remarks Typed as its Slider superclass: the JSON declares a CvarSlider,
+   * which writes `cg_quick_join_max_ping` itself, and `CvarSlider.h` is not
+   * part of the umbrella ObjectivelyMVC header this one includes.
+   */
+  Slider *maxPingSlider;
+
+  /**
+   * @brief The selected server's hostname.
+   * @details The selection is held by name rather than by row index, so that
+   * it survives a re-sort and a refresh. Empty when nothing is selected.
+   */
+  char selectedHostname[48];
 };
 
 /**

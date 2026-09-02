@@ -8,62 +8,340 @@
       ],
       "subviews": [
         {
-          "class": "TableView",
-          "identifier": "servers"
-        },
-        {
           "class": "StackView",
           "classNames": [
-            "accessoryView",
+            "columns",
             "container"
           ],
           "subviews": [
             {
-              "class": "Input",
-              "label": {
-                "text": {
-                  "text": "Hide empty"
+              "class": "StackView",
+              "classNames": [
+                "column-2",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Servers"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "TableView",
+                        "identifier": "servers"
+                      },
+                      {
+                        "class": "Label",
+                        "identifier": "servers_empty",
+                        "classNames": [
+                          "joinEmptyState"
+                        ],
+                        "text": {
+                          "text": "No servers match the current filters."
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "StackView",
+                  "classNames": [
+                    "accessoryView"
+                  ],
+                  "subviews": [
+                    {
+                      "class": "Input",
+                      "label": {
+                        "text": {
+                          "text": "Hide empty"
+                        }
+                      },
+                      "control": {
+                        "class": "CvarCheckbox",
+                        "identifier": "hideEmpty",
+                        "var": "cg_join_server_hide_empty"
+                      }
+                    },
+                    {
+                      "class": "Input",
+                      "label": {
+                        "text": {
+                          "text": "Hide bots"
+                        }
+                      },
+                      "control": {
+                        "class": "CvarCheckbox",
+                        "identifier": "hideBots",
+                        "var": "cg_join_server_hide_bots"
+                      }
+                    },
+                    {
+                      "class": "Input",
+                      "label": {
+                        "text": {
+                          "text": "Max ping"
+                        }
+                      },
+                      "control": {
+                        "class": "CvarSlider",
+                        "identifier": "maxPing",
+                        "var": "cg_quick_join_max_ping",
+                        "min": 30,
+                        "max": 300,
+                        "step": 10
+                      }
+                    },
+                    {
+                      "class": "Button",
+                      "identifier": "refresh",
+                      "title": {
+                        "text": "Refresh"
+                      }
+                    }
+                  ]
                 }
-              },
-              "control": {
-                "class": "CvarCheckbox",
-                "identifier": "hideEmpty",
-                "var": "cg_join_server_hide_empty"
-              }
+              ]
             },
             {
-              "class": "Input",
-              "label": {
-                "text": {
-                  "text": "Hide bots"
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Server details"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Label",
+                        "identifier": "server_hostname",
+                        "classNames": [
+                          "joinDetailTitle"
+                        ],
+                        "text": {
+                          "text": "Select a server"
+                        }
+                      },
+                      {
+                        "class": "Label",
+                        "identifier": "server_address",
+                        "classNames": [
+                          "joinDetailAddress"
+                        ],
+                        "text": {}
+                      },
+                      {
+                        "class": "Label",
+                        "identifier": "server_hint",
+                        "classNames": [
+                          "joinDetailHint"
+                        ],
+                        "text": {
+                          "text": "Choose a server from the list to see its details."
+                        }
+                      },
+                      {
+                        "class": "ImageView",
+                        "identifier": "server_mapshot",
+                        "classNames": [
+                          "joinDetailMapshot"
+                        ]
+                      },
+                      {
+                        "class": "StackView",
+                        "identifier": "server_grid",
+                        "classNames": [
+                          "joinDetailGrid"
+                        ],
+                        "subviews": [
+                          {
+                            "class": "StackView",
+                            "classNames": [
+                              "joinDetailRow"
+                            ],
+                            "subviews": [
+                              {
+                                "class": "Label",
+                                "classNames": [
+                                  "joinDetailCaption"
+                                ],
+                                "text": {
+                                  "text": "Source"
+                                }
+                              },
+                              {
+                                "class": "Label",
+                                "identifier": "server_source",
+                                "classNames": [
+                                  "joinDetailValue"
+                                ],
+                                "text": {}
+                              }
+                            ]
+                          },
+                          {
+                            "class": "StackView",
+                            "classNames": [
+                              "joinDetailRow"
+                            ],
+                            "subviews": [
+                              {
+                                "class": "Label",
+                                "classNames": [
+                                  "joinDetailCaption"
+                                ],
+                                "text": {
+                                  "text": "Map"
+                                }
+                              },
+                              {
+                                "class": "Label",
+                                "identifier": "server_map",
+                                "classNames": [
+                                  "joinDetailValue"
+                                ],
+                                "text": {}
+                              }
+                            ]
+                          },
+                          {
+                            "class": "StackView",
+                            "classNames": [
+                              "joinDetailRow"
+                            ],
+                            "subviews": [
+                              {
+                                "class": "Label",
+                                "classNames": [
+                                  "joinDetailCaption"
+                                ],
+                                "text": {
+                                  "text": "Gameplay"
+                                }
+                              },
+                              {
+                                "class": "Label",
+                                "identifier": "server_gameplay",
+                                "classNames": [
+                                  "joinDetailValue"
+                                ],
+                                "text": {}
+                              }
+                            ]
+                          },
+                          {
+                            "class": "StackView",
+                            "classNames": [
+                              "joinDetailRow"
+                            ],
+                            "subviews": [
+                              {
+                                "class": "Label",
+                                "classNames": [
+                                  "joinDetailCaption"
+                                ],
+                                "text": {
+                                  "text": "Movement"
+                                }
+                              },
+                              {
+                                "class": "Label",
+                                "identifier": "server_movement",
+                                "classNames": [
+                                  "joinDetailValue"
+                                ],
+                                "text": {}
+                              }
+                            ]
+                          },
+                          {
+                            "class": "StackView",
+                            "classNames": [
+                              "joinDetailRow"
+                            ],
+                            "subviews": [
+                              {
+                                "class": "Label",
+                                "classNames": [
+                                  "joinDetailCaption"
+                                ],
+                                "text": {
+                                  "text": "Players"
+                                }
+                              },
+                              {
+                                "class": "Label",
+                                "identifier": "server_players",
+                                "classNames": [
+                                  "joinDetailValue"
+                                ],
+                                "text": {}
+                              }
+                            ]
+                          },
+                          {
+                            "class": "StackView",
+                            "classNames": [
+                              "joinDetailRow"
+                            ],
+                            "subviews": [
+                              {
+                                "class": "Label",
+                                "classNames": [
+                                  "joinDetailCaption"
+                                ],
+                                "text": {
+                                  "text": "Ping"
+                                }
+                              },
+                              {
+                                "class": "Label",
+                                "identifier": "server_ping",
+                                "classNames": [
+                                  "joinDetailValue"
+                                ],
+                                "text": {}
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "StackView",
+                  "classNames": [
+                    "accessoryView"
+                  ],
+                  "subviews": [
+                    {
+                      "class": "Button",
+                      "identifier": "connect",
+                      "title": {
+                        "text": "Connect"
+                      }
+                    },
+                    {
+                      "class": "Button",
+                      "identifier": "quickJoin",
+                      "title": {
+                        "text": "Quick join"
+                      }
+                    }
+                  ]
                 }
-              },
-              "control": {
-                "class": "CvarCheckbox",
-                "identifier": "hideBots",
-                "var": "cg_join_server_hide_bots"
-              }
-            },
-            {
-              "class": "Button",
-              "identifier": "quickJoin",
-              "title": {
-                "text": "Quick join"
-              }
-            },
-            {
-              "class": "Button",
-              "identifier": "refresh",
-              "title": {
-                "text": "Refresh"
-              }
-            },
-            {
-              "class": "Button",
-              "identifier": "connect",
-              "title": {
-                "text": "Connect"
-              }
+              ]
             }
           ]
         }

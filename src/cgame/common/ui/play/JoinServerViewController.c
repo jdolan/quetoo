@@ -23,13 +23,25 @@
 
 #include "JoinServerViewController.h"
 #include "CvarCheckbox.h"
+#include "CvarSlider.h"
 
-static const char *_hostname = "Hostname";
-static const char *_source = "Source";
-static const char *_name = "Map";
-static const char *_gameplay = "Gameplay";
+static const char *_server = "Server";
+static const char *_map = "Map";
 static const char *_players = "Players";
 static const char *_ping = "Ping";
+
+/**
+ * @brief Stands in for a detail field the selected server did not report.
+ */
+static const char *_unset = "—";
+
+/**
+ * @brief A ping the client never got an answer for.
+ * @details `Cl_ParseServerInfo` clamps the measured round trip to 999, so 999
+ * is the timeout sentinel rather than a latency. Reading it as "slow but
+ * joinable" is the wrong story, so it renders unset and sorts last.
+ */
+#define JOIN_PING_UNANSWERED 999
 
 static cvar_t *cg_join_server_hide_empty;
 static cvar_t *cg_join_server_hide_bots;
@@ -46,44 +58,218 @@ static const cl_server_info_t *serverAtIndex(const PointerArray *servers, size_t
   return $(servers, get, index);
 }
 
-#pragma mark - Delegates
+/**
+ * @brief Returns the selected server, by hostname rather than by row index,
+ * so that the selection survives a re-sort and a refresh.
+ */
+static const cl_server_info_t *selectedServer(const JoinServerViewController *self) {
+
+  if (self->servers == NULL || *self->selectedHostname == '\0') {
+    return NULL;
+  }
+
+  for (size_t i = 0; i < self->servers->count; i++) {
+    const cl_server_info_t *server = $(self->servers, get, i);
+    if (q_strcmp(server->hostname, self->selectedHostname) == 0) {
+      return server;
+    }
+  }
+
+  return NULL;
+}
+
+static void setLabelText(Label *label, const char *text) {
+  $(label->text, setText, text && *text ? text : NULL);
+}
 
 /**
- * @brief CheckboxDelegate for Hide Bots.
+ * @brief The colour threshold and the quick join threshold are the same
+ * number, so that moving the slider visibly splits the list.
  */
+static int32_t maxPing(void) {
+  return Clampf(cg_quick_join_max_ping->integer, 1, 999);
+}
+
+/**
+ * @brief True when the client never got an answer from this server.
+ */
+static bool pingUnanswered(const cl_server_info_t *server) {
+  return server->ping <= 0 || server->ping >= JOIN_PING_UNANSWERED;
+}
+
+/**
+ * @brief Formats a server address for display.
+ * @details `Net_NetaddrToString` lives in the engine's socket layer, which
+ * the modules do not link, so the dotted quad is read straight out of the
+ * network byte order the address is stored in - no host byte order
+ * assumption.
+ */
+static const char *addressLabel(const net_addr_t *addr) {
+
+  const uint8_t *ip = (const uint8_t *) &addr->addr;
+  const uint8_t *port = (const uint8_t *) &addr->port;
+
+  return va("%u.%u.%u.%u:%u", ip[0], ip[1], ip[2], ip[3],
+            (uint32_t) port[0] << 8 | port[1]);
+}
+
+static const char *sourceLabel(const cl_server_info_t *server) {
+
+  switch (server->source) {
+    case SERVER_SOURCE_INTERNET:
+      return "Internet";
+    case SERVER_SOURCE_USER:
+      return "User";
+    case SERVER_SOURCE_BCAST:
+      return "LAN";
+  }
+
+  return _unset;
+}
+
+#pragma mark - Details pane
+
+/**
+ * @brief Shows or hides everything in the details pane that only means
+ * something once a server is selected.
+ */
+static void setDetailsPopulated(JoinServerViewController *self, const bool populated) {
+
+  $((View *) self->hintLabel, setHidden, populated);
+  $(self->detailGrid, setHidden, !populated);
+}
+
+/**
+ * @brief Shows the selected server's mapshot, when its map is installed locally.
+ */
+static void refreshMapshot(JoinServerViewController *self, const cl_server_info_t *server) {
+
+  SDL_Surface *surface = NULL;
+
+  if (server && *server->name) {
+    List *mapshots = cgi.Mapshots(server->name);
+
+    if (mapshots->count) {
+      surface = cgi.LoadSurface(mapshots->head->element);
+    }
+
+    release(mapshots);
+  }
+
+  $(self->mapshotView, setImageWithSurface, surface);
+  $((View *) self->mapshotView, setHidden, surface == NULL);
+
+  if (surface) {
+    SDL_DestroySurface(surface);
+  }
+}
+
+/**
+ * @brief Repopulates the details pane from the current selection.
+ */
+static void refreshDetails(JoinServerViewController *self) {
+
+  const cl_server_info_t *server = selectedServer(self);
+
+  setDetailsPopulated(self, server != NULL);
+  refreshMapshot(self, server);
+
+  if (server == NULL) {
+    setLabelText(self->hostnameLabel, "Select a server");
+    setLabelText(self->addressLabel, NULL);
+    $((View *) self->connectButton, setHidden, true);
+    return;
+  }
+
+  setLabelText(self->hostnameLabel, *server->hostname ? server->hostname : _unset);
+  setLabelText(self->addressLabel, addressLabel(&server->addr));
+
+  setLabelText(self->sourceLabel, sourceLabel(server));
+  setLabelText(self->mapLabel, *server->name ? server->name : _unset);
+  setLabelText(self->gameplayLabel, *server->gameplay ? server->gameplay : _unset);
+  setLabelText(self->movementLabel, *server->movement ? server->movement : _unset);
+  setLabelText(self->playersLabel, va("%d / %d", server->clients, server->max_clients));
+  setLabelText(self->pingLabel, pingUnanswered(server) ? _unset : va("%d ms", server->ping));
+
+  $((View *) self->connectButton, setHidden, false);
+}
+
+/**
+ * @brief Restores the selection after a sort or a refresh.
+ * @details The selection is held by hostname, so a re-sort keeps the same
+ * server rather than the same row. When the selected server has gone from the
+ * list entirely, the details pane empties rather than jumping to another one.
+ */
+static void restoreSelection(JoinServerViewController *self) {
+
+  TableView *tableView = self->serversTableView;
+
+  ssize_t index = -1;
+  const size_t count = self->servers ? self->servers->count : 0;
+  for (size_t row = 0; row < count; row++) {
+    const cl_server_info_t *server = $(self->servers, get, row);
+    if (q_strcmp(server->hostname, self->selectedHostname) == 0) {
+      index = (ssize_t) row;
+      break;
+    }
+  }
+
+  if (index < 0) {
+    self->selectedHostname[0] = '\0';
+  }
+
+  $(tableView, deselectAll);
+
+  if (index >= 0) {
+    $(tableView, selectRowAtIndex, (size_t) index);
+  }
+
+  refreshDetails(self);
+}
+
+#pragma mark - Delegates
+
 static void didToggleHideBots(Checkbox *checkbox) {
 
   cvarCheckboxDidToggle(checkbox);
 
-  JoinServerViewController *this = checkbox->delegate.self;
-
-  $(this, reloadServers);
+  $((JoinServerViewController *) checkbox->delegate.self, reloadServers);
 }
 
-/**
- * @brief CheckboxDelegate for Hide Empty.
- */
 static void didToggleHideEmpty(Checkbox *checkbox) {
 
   cvarCheckboxDidToggle(checkbox);
 
-  JoinServerViewController *this = checkbox->delegate.self;
+  $((JoinServerViewController *) checkbox->delegate.self, reloadServers);
+}
 
-  $(this, reloadServers);
+/**
+ * @brief SliderDelegate for the max ping slider.
+ * @details CvarSlider writes the cvar in its own `setValue`; the delegate
+ * slot is free, and is what repaints the ping column against the new
+ * threshold.
+ */
+static void didSetMaxPing(Slider *slider, double value) {
+
+  (void) value;
+
+  JoinServerViewController *this = slider->delegate.self;
+
+  $(this->serversTableView, reloadData);
 }
 
 /**
  * @brief ButtonDelegate for Quick Join.
- * @description Selects a server based on minumum ping and maximum players with
- * a bit of lovely random thrown in. Any server that matches the criteria will
- * be weighted by how much "better" they are by how much lower their ping is and
- * how many more players there are.
+ * @description Selects a server based on minumum ping and maximum players
+ * with a bit of lovely random thrown in. Any server that matches the
+ * criteria will be weighted by how much "better" they are by how much lower
+ * their ping is and how many more players there are.
  */
 static void didClickQuickJoin(Button *button) {
 
   JoinServerViewController *this = button->delegate.self;
 
-  const int32_t max_ping = Clampf(cg_quick_join_max_ping->integer, 0, 999);
+  const int32_t max_ping = maxPing();
   const int32_t min_clients = Clampf(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
 
   uint32_t total_weight = 0;
@@ -153,72 +339,33 @@ static void didClickRefresh(Button *button) {
 
 /**
  * @brief ButtonDelegate for the Connect button.
+ * @details Connect acts on the details pane's server, which is the selection
+ * held by hostname - not on whatever row happens to be at the selected index.
  */
 static void didClickConnect(Button *button) {
 
   JoinServerViewController *this = button->delegate.self;
 
-  IndexSet *selectedRowIndexes = $((TableView *) this->serversTableView, selectedRowIndexes);
-  if (selectedRowIndexes->count) {
-
-    const uint32_t index = (uint32_t) selectedRowIndexes->indexes[0];
-    const cl_server_info_t *server = serverAtIndex(this->servers, index);
-
-    if (server) {
-      cgi.Connect(&server->addr);
-    }
+  const cl_server_info_t *server = selectedServer(this);
+  if (server) {
+    cgi.Connect(&server->addr);
   }
-
-  release(selectedRowIndexes);
 }
 
 #pragma mark - TableViewDataSource
 
-/**
- * @see TableViewDataSource::numberOfRows
- */
 static size_t numberOfRows(const TableView *tableView) {
 
-  JoinServerViewController *this = tableView->dataSource.self;
+  const JoinServerViewController *this = tableView->dataSource.self;
 
   return this->servers ? this->servers->count : 0;
 }
 
-/**
- * @see TableViewDataSource::valueForColumnAndRow
- */
-static ident valueForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
-
-  JoinServerViewController *this = tableView->dataSource.self;
-
-  cl_server_info_t *server = (cl_server_info_t *) serverAtIndex(this->servers, row);
-  assert(server);
-
-  if (q_strcmp(column->identifier, _hostname) == 0) {
-    return server->hostname;
-  } else if (q_strcmp(column->identifier, _source) == 0) {
-    return &server->source;
-  } else if (q_strcmp(column->identifier, _name) == 0) {
-    return server->name;
-  } else if (q_strcmp(column->identifier, _gameplay) == 0) {
-    return server->gameplay;
-  } else if (q_strcmp(column->identifier, _players) == 0) {
-    return &server->clients;
-  } else if (q_strcmp(column->identifier, _ping) == 0) {
-    return &server->ping;
-  }
-
-  return NULL;
-}
-
 #pragma mark - TableViewDelegate
 
-/**
- * @see TableViewDelegate::cellForColumnAndRow
- */
 static TableCellView *cellForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
 
-  JoinServerViewController *this = tableView->dataSource.self;
+  const JoinServerViewController *this = tableView->dataSource.self;
 
   cl_server_info_t *server = (cl_server_info_t *) serverAtIndex(this->servers, row);
   assert(server);
@@ -226,79 +373,68 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
   if (q_strlen(server->error)) {
-    if (q_strcmp(column->identifier, _hostname) == 0) {
+    if (q_strcmp(column->identifier, _server) == 0) {
       $(cell->text, setText, server->error);
       $((View *) cell, addClassName, "error");
-    } else {
-      $(cell->text, setText, NULL);
     }
-  } else {
-    if (q_strcmp(column->identifier, _hostname) == 0) {
-      $(cell->text, setText, server->hostname);
-    } else if (q_strcmp(column->identifier, _source) == 0) {
-      switch (server->source) {
-        case SERVER_SOURCE_INTERNET:
-          $(cell->text, setText, "Internet");
-          break;
-        case SERVER_SOURCE_USER:
-          $(cell->text, setText, "User");
-          break;
-        case SERVER_SOURCE_BCAST:
-          $(cell->text, setText, "LAN");
-          break;
+    return cell;
+  }
+
+  if (q_strcmp(column->identifier, _server) == 0) {
+    $(cell->text, setText, server->hostname);
+  } else if (q_strcmp(column->identifier, _map) == 0) {
+    $(cell->text, setText, server->name);
+  } else if (q_strcmp(column->identifier, _players) == 0) {
+    $(cell->text, setText, va("%d / %d", server->clients, server->max_clients));
+  } else if (q_strcmp(column->identifier, _ping) == 0) {
+
+    if (pingUnanswered(server)) {
+      $(cell->text, setText, _unset);
+      $((View *) cell, addClassName, "pingUnanswered");
+    } else {
+      $(cell->text, setText, va("%d ms", server->ping));
+
+      const int32_t threshold = maxPing();
+      if (server->ping > threshold) {
+        $((View *) cell, addClassName, "pingOver");
+      } else if (server->ping <= threshold / 2) {
+        $((View *) cell, addClassName, "pingFast");
       }
-    } else if (q_strcmp(column->identifier, _name) == 0) {
-      $(cell->text, setText, server->name);
-    } else if (q_strcmp(column->identifier, _gameplay) == 0) {
-      $(cell->text, setText, server->gameplay);
-    } else if (q_strcmp(column->identifier, _players) == 0) {
-      if (cg_join_server_hide_bots->value) {
-        $(cell->text, setText, va("%d/%d", server->clients - server->bots, server->max_clients));
-      } else {
-        $(cell->text, setText, va("%d/%d", server->clients, server->max_clients));
-      }
-    } else if (q_strcmp(column->identifier, _ping) == 0) {
-      $(cell->text, setText, va("%3d", server->ping));
     }
   }
 
   return cell;
 }
 
-/**
- * @see TableViewDelegate::didSetSortColumn(TableView *)
- */
 static void didSetSortColumn(TableView *tableView) {
   $((JoinServerViewController *) tableView->delegate.self, reloadServers);
 }
 
-/**
- * @see TableViewDelegate::didSelectRowsAtIndexes(TableView *, const IndexSet *)
- */
 static void didSelectRowsAtIndexes(TableView *tableView, const IndexSet *indexes) {
 
   JoinServerViewController *this = tableView->delegate.self;
 
-  View *view = (View *) tableView;
+  if (indexes->count == 0) {
+    return;
+  }
 
-  const SDL_PropertiesID props = SDL_GetWindowProperties(view->window);
+  const cl_server_info_t *server = serverAtIndex(this->servers, indexes->indexes[0]);
+  if (server == NULL) {
+    return;
+  }
+
+  q_strlcpy(this->selectedHostname, server->hostname, sizeof(this->selectedHostname));
+  refreshDetails(this);
+
+  const SDL_PropertiesID props = SDL_GetWindowProperties(((View *) tableView)->window);
   const SDL_Event *event = SDL_GetPointerProperty(props, "event", NULL);
   if (event && event->button.clicks == 2) {
-
-    const uint32_t index = (uint32_t) indexes->indexes[0];
-    const cl_server_info_t *server = serverAtIndex(this->servers, index);
-
-    if (server) {
-      cgi.Connect(&server->addr);
-    }
+    cgi.Connect(&server->addr);
   }
 }
 
 #pragma mark - Object
 
-/**
- * @see Object::dealloc(Object *)
- */
 static void dealloc(Object *self) {
 
   JoinServerViewController *this = (JoinServerViewController *) self;
@@ -320,15 +456,28 @@ static void loadView(ViewController *self) {
   JoinServerViewController *this = (JoinServerViewController *) self;
 
   Checkbox *hideEmpty, *hideBots;
-  Button *quickJoin, *refresh, *connect;
+  Button *refresh, *quickJoin;
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("servers", &this->serversTableView),
-    MakeOutlet("hideEmpty", &hideEmpty),
-    MakeOutlet("hideBots", &hideBots),
+    MakeOutlet("servers_empty", &this->emptyLabel),
+    MakeOutlet("server_hostname", &this->hostnameLabel),
+    MakeOutlet("server_address", &this->addressLabel),
+    MakeOutlet("server_hint", &this->hintLabel),
+    MakeOutlet("server_grid", &this->detailGrid),
+    MakeOutlet("server_source", &this->sourceLabel),
+    MakeOutlet("server_map", &this->mapLabel),
+    MakeOutlet("server_gameplay", &this->gameplayLabel),
+    MakeOutlet("server_movement", &this->movementLabel),
+    MakeOutlet("server_mapshot", &this->mapshotView),
+    MakeOutlet("server_players", &this->playersLabel),
+    MakeOutlet("server_ping", &this->pingLabel),
+    MakeOutlet("connect", &this->connectButton),
     MakeOutlet("quickJoin", &quickJoin),
     MakeOutlet("refresh", &refresh),
-    MakeOutlet("connect", &connect)
+    MakeOutlet("hideEmpty", &hideEmpty),
+    MakeOutlet("hideBots", &hideBots),
+    MakeOutlet("maxPing", &this->maxPingSlider)
   );
 
   $(self->view, awakeWithResourceName, "ui/play/JoinServerViewController.json");
@@ -336,16 +485,13 @@ static void loadView(ViewController *self) {
 
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/JoinServerViewController.css");
   assert(self->view->stylesheet);
-  
-  $(this->serversTableView, addColumnWithIdentifier, _hostname);
-  $(this->serversTableView, addColumnWithIdentifier, _source);
-  $(this->serversTableView, addColumnWithIdentifier, _name);
-  $(this->serversTableView, addColumnWithIdentifier, _gameplay);
+
+  $(this->serversTableView, addColumnWithIdentifier, _server);
+  $(this->serversTableView, addColumnWithIdentifier, _map);
   $(this->serversTableView, addColumnWithIdentifier, _players);
   $(this->serversTableView, addColumnWithIdentifier, _ping);
 
   this->serversTableView->dataSource.numberOfRows = numberOfRows;
-  this->serversTableView->dataSource.valueForColumnAndRow = valueForColumnAndRow;
   this->serversTableView->dataSource.self = this;
 
   this->serversTableView->delegate.cellForColumnAndRow = cellForColumnAndRow;
@@ -359,14 +505,20 @@ static void loadView(ViewController *self) {
   hideEmpty->delegate.didToggle = didToggleHideEmpty;
   hideEmpty->delegate.self = this;
 
-  quickJoin->delegate.didClick = didClickQuickJoin;
-  quickJoin->delegate.self = this;
+  this->maxPingSlider->delegate.didSetValue = didSetMaxPing;
+  this->maxPingSlider->delegate.self = this;
+  $(this->maxPingSlider, setLabelFormat, "%g ms");
 
   refresh->delegate.didClick = didClickRefresh;
   refresh->delegate.self = this;
 
-  connect->delegate.didClick = didClickConnect;
-  connect->delegate.self = this;
+  this->connectButton->delegate.didClick = didClickConnect;
+  this->connectButton->delegate.self = this;
+
+  quickJoin->delegate.didClick = didClickQuickJoin;
+  quickJoin->delegate.self = this;
+
+  refreshDetails(this);
 }
 
 /**
@@ -390,13 +542,7 @@ static void viewWillAppear(ViewController *self) {
 
   JoinServerViewController *this = (JoinServerViewController *) self;
 
-  // show what we already know at once, then ask the master again; querying only
-  // when nothing was cached meant the first answer of a session was the only one,
-  // so a list that was empty when the menu first opened stayed empty until the
-  // Refresh button was pressed
-  if (this->servers) {
-    $(this, reloadServers);
-  }
+  $(this, reloadServers); // show what we already know at once, then ask the master again
 
   cgi.GetServers();
 }
@@ -404,16 +550,26 @@ static void viewWillAppear(ViewController *self) {
 #pragma mark - JoinServerViewController
 
 /**
- * @brief GCompareDataFunc for server sorting.
+ * @brief Comparator for server sorting.
  */
 static Order comparator(const ident a, const ident b) {
 
   JoinServerViewController *this = sortingJoinServerViewController;
+  const TableColumn *sortColumn = this->serversTableView->sortColumn;
 
-  if (this->serversTableView->sortColumn) {
+  // an unanswered server goes last, whichever way the ping column points
+  if (sortColumn && q_strcmp(sortColumn->identifier, _ping) == 0) {
+    const bool leftUnanswered = pingUnanswered((const cl_server_info_t *) a);
+    const bool rightUnanswered = pingUnanswered((const cl_server_info_t *) b);
+    if (leftUnanswered != rightUnanswered) {
+      return leftUnanswered ? OrderDescending : OrderAscending;
+    }
+  }
+
+  if (sortColumn) {
     const cl_server_info_t *s0, *s1;
 
-    switch (this->serversTableView->sortColumn->order) {
+    switch (sortColumn->order) {
       case OrderAscending:
         s0 = a; s1 = b;
         break;
@@ -426,17 +582,13 @@ static Order comparator(const ident a, const ident b) {
 
     int32_t cmp = 0;
 
-    if (q_strcmp(this->serversTableView->sortColumn->identifier, _hostname) == 0) {
+    if (q_strcmp(sortColumn->identifier, _server) == 0) {
       cmp = q_strcmp(s0->hostname, s1->hostname);
-    } else if (q_strcmp(this->serversTableView->sortColumn->identifier, _source) == 0) {
-      cmp = s0->source - s1->source;
-    } else if (q_strcmp(this->serversTableView->sortColumn->identifier, _name) == 0) {
+    } else if (q_strcmp(sortColumn->identifier, _map) == 0) {
       cmp = q_strcmp(s0->name, s1->name);
-    } else if (q_strcmp(this->serversTableView->sortColumn->identifier, _gameplay) == 0) {
-      cmp = q_strcmp(s0->gameplay, s1->gameplay);
-    } else if (q_strcmp(this->serversTableView->sortColumn->identifier, _players) == 0) {
+    } else if (q_strcmp(sortColumn->identifier, _players) == 0) {
       cmp = s0->clients - s1->clients;
-    } else if (q_strcmp(this->serversTableView->sortColumn->identifier, _ping) == 0) {
+    } else if (q_strcmp(sortColumn->identifier, _ping) == 0) {
       cmp = s0->ping - s1->ping;
     } else {
       assert(false);
@@ -488,7 +640,12 @@ static void reloadServers(JoinServerViewController *self) {
   $(self->servers, sort, comparator);
   sortingJoinServerViewController = NULL;
 
+  $((View *) self->emptyLabel, setHidden, self->servers->count > 0);
+  $((View *) self->serversTableView, setHidden, self->servers->count == 0);
+
   $(self->serversTableView, reloadData);
+
+  restoreSelection(self);
 }
 
 #pragma mark - Class lifecycle
