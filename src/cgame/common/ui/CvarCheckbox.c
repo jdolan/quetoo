@@ -131,7 +131,6 @@ Class *_CvarCheckbox(void) {
       .name = "CvarCheckbox",
       .superclass = _Checkbox(),
       .instanceSize = sizeof(CvarCheckbox),
-      .interfaceOffset = offsetof(CvarCheckbox, interface),
       .interfaceSize = sizeof(CvarCheckboxInterface),
       .initialize = initialize,
     });

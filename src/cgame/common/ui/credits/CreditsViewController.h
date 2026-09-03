@@ -47,10 +47,10 @@ struct CreditsViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  CreditsViewControllerInterface *interface;
+  CreditsViewControllerInterface *interface[0];
 };
 
 /**

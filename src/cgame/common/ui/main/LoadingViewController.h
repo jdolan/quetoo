@@ -48,10 +48,10 @@ struct LoadingViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  LoadingViewControllerInterface *interface;
+  LoadingViewControllerInterface *interface[0];
 
   /**
    * @brief The map shot.

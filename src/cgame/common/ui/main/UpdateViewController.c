@@ -269,7 +269,6 @@ Class *_UpdateViewController(void) {
 			.name = "UpdateViewController",
 			.superclass = _ViewController(),
 			.instanceSize = sizeof(UpdateViewController),
-			.interfaceOffset = offsetof(UpdateViewController, interface),
 			.interfaceSize = sizeof(UpdateViewControllerInterface),
 			.initialize = initialize,
 		});

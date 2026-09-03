@@ -43,10 +43,10 @@ struct TeamPlayerView {
   View view;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @protected
    */
-  TeamPlayerViewInterface *interface;
+  TeamPlayerViewInterface *interface[0];
 
   /**
    * @brief The player to render.

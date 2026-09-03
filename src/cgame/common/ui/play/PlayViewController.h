@@ -47,10 +47,10 @@ struct PlayViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  PlayViewControllerInterface *interface;
+  PlayViewControllerInterface *interface[0];
 
   /**
    * @brief TabViewController to contain tabs.

@@ -523,7 +523,6 @@ Class *_JoinServerViewController(void) {
       .name = "JoinServerViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(JoinServerViewController),
-      .interfaceOffset = offsetof(JoinServerViewController, interface),
       .interfaceSize = sizeof(JoinServerViewControllerInterface),
       .initialize = initialize,
     });

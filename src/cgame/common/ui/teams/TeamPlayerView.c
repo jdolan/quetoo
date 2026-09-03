@@ -115,7 +115,6 @@ Class *_TeamPlayerView(void) {
       .name = "TeamPlayerView",
       .superclass = _View(),
       .instanceSize = sizeof(TeamPlayerView),
-      .interfaceOffset = offsetof(TeamPlayerView, interface),
       .interfaceSize = sizeof(TeamPlayerViewInterface),
       .initialize = initialize,
     });

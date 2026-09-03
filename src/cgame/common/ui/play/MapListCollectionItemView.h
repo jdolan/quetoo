@@ -52,10 +52,10 @@ struct MapListCollectionItemView {
   CollectionItemView collectionItemView;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  MapListCollectionItemViewInterface *interface;
+  MapListCollectionItemViewInterface *interface[0];
 };
 
 /**

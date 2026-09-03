@@ -179,7 +179,6 @@ Class *_CreateServerViewController(void) {
       .name = "CreateServerViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(CreateServerViewController),
-      .interfaceOffset = offsetof(CreateServerViewController, interface),
       .interfaceSize = sizeof(CreateServerViewControllerInterface),
       .initialize = initialize,
     });

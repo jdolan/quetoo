@@ -184,7 +184,6 @@ Class *_TeamsViewController(void) {
       .name = "TeamsViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(TeamsViewController),
-      .interfaceOffset = offsetof(TeamsViewController, interface),
       .interfaceSize = sizeof(TeamsViewControllerInterface),
       .initialize = initialize,
     });

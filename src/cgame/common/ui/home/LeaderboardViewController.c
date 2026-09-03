@@ -308,7 +308,6 @@ Class *_LeaderboardViewController(void) {
       .name = "LeaderboardViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(LeaderboardViewController),
-      .interfaceOffset = offsetof(LeaderboardViewController, interface),
       .interfaceSize = sizeof(LeaderboardViewControllerInterface),
       .initialize = initialize,
     });

@@ -180,7 +180,6 @@ Class *_CvarSelect(void) {
       .name = "CvarSelect",
       .superclass = _Select(),
       .instanceSize = sizeof(CvarSelect),
-      .interfaceOffset = offsetof(CvarSelect, interface),
       .interfaceSize = sizeof(CvarSelectInterface),
       .initialize = initialize,
     });

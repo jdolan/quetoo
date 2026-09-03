@@ -47,10 +47,10 @@ struct TeamsViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  TeamsViewControllerInterface *interface;
+  TeamsViewControllerInterface *interface[0];
 
   /**
    * @brief The teams CollectionView.

@@ -267,7 +267,6 @@ Class *_PlayerSetupViewController(void) {
       .name = "PlayerSetupViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(PlayerSetupViewController),
-      .interfaceOffset = offsetof(PlayerSetupViewController, interface),
       .interfaceSize = sizeof(PlayerSetupViewControllerInterface),
       .initialize = initialize,
     });

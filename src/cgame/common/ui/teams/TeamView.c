@@ -124,7 +124,6 @@ Class *_TeamView(void) {
       .name = "TeamView",
       .superclass = _View(),
       .instanceSize = sizeof(TeamView),
-      .interfaceOffset = offsetof(TeamView, interface),
       .interfaceSize = sizeof(TeamViewInterface),
       .initialize = initialize,
     });

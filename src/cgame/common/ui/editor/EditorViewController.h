@@ -48,9 +48,9 @@ struct EditorViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface. @private
+   * @brief The interface type. @private
    */
-  EditorViewControllerInterface *interface;
+  EditorViewControllerInterface *interface[0];
 
   /**
    * @brief TabViewController containing the editor tabs.

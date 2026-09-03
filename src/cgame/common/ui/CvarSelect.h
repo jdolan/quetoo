@@ -49,11 +49,10 @@ struct CvarSelect {
   Select select;
 
   /**
-   * @brief The interface.
-   *
+   * @brief The interface type.
    * @private
    */
-  CvarSelectInterface *interface;
+  CvarSelectInterface *interface[0];
 
   /**
    * @brief The variable.

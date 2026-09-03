@@ -66,7 +66,6 @@ Class *_CreditsViewController(void) {
       .name = "CreditsViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(CreditsViewController),
-      .interfaceOffset = offsetof(CreditsViewController, interface),
       .interfaceSize = sizeof(CreditsViewControllerInterface),
       .initialize = initialize,
     });

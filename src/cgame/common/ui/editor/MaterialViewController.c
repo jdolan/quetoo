@@ -201,7 +201,6 @@ Class *_MaterialViewController(void) {
       .name = "MaterialViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(MaterialViewController),
-      .interfaceOffset = offsetof(MaterialViewController, interface),
       .interfaceSize = sizeof(MaterialViewControllerInterface),
       .initialize = initialize,
     });

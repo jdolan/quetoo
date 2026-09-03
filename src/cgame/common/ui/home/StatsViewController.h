@@ -74,10 +74,10 @@ struct StatsViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  StatsViewControllerInterface *interface;
+  StatsViewControllerInterface *interface[0];
 
   /**
    * @brief The StatsResponse.

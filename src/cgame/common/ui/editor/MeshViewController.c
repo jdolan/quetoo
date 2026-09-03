@@ -259,7 +259,6 @@ Class *_MeshViewController(void) {
       .name = "MeshViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(MeshViewController),
-      .interfaceOffset = offsetof(MeshViewController, interface),
       .interfaceSize = sizeof(MeshViewControllerInterface),
       .initialize = initialize,
     });

@@ -106,7 +106,6 @@ Class *_MainView(void) {
       .name = "MainView",
       .superclass = _View(),
       .instanceSize = sizeof(MainView),
-      .interfaceOffset = offsetof(MainView, interface),
       .interfaceSize = sizeof(MainViewInterface),
       .initialize = initialize,
     });

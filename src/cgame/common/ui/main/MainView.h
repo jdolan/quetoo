@@ -44,10 +44,10 @@ struct MainView {
   View view;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @protected
    */
-  MainViewInterface *interface;
+  MainViewInterface *interface[0];
 
   /**
    * @brief The background image.

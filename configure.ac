@@ -165,19 +165,19 @@ dnl ------------------------
 dnl Check for Objectively
 dnl ------------------------
 
-PKG_CHECK_MODULES([OBJECTIVELY], [Objectively >= 2.0.0])
+PKG_CHECK_MODULES([OBJECTIVELY], [Objectively >= 2.2.0])
 
 dnl ------------------------
 dnl Check for ObjectivelyGPU
 dnl ------------------------
 
-PKG_CHECK_MODULES([OBJECTIVELYGPU], [ObjectivelyGPU >= 1.0.0])
+PKG_CHECK_MODULES([OBJECTIVELYGPU], [ObjectivelyGPU >= 2.2.0])
 
 dnl ------------------------
 dnl Check for ObjectivelyMVC
 dnl ------------------------
 
-PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC >= 2.0.0])
+PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC >= 2.2.0])
 
 dnl ------------------------------------------------
 dnl Check for offline shader cross-compilation tools

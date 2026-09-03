@@ -49,10 +49,10 @@ struct MainViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  MainViewControllerInterface *interface;
+  MainViewControllerInterface *interface[0];
 
   /**
    * @brief The MainView.

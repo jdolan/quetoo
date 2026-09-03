@@ -127,7 +127,6 @@ Class *_DialogViewController(void) {
       .name = "DialogViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(DialogViewController),
-      .interfaceOffset = offsetof(DialogViewController, interface),
       .interfaceSize = sizeof(DialogViewControllerInterface),
       .initialize = initialize,
     });

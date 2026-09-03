@@ -47,9 +47,9 @@ struct MaterialViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface. @private
+   * @brief The interface type. @private
    */
-  MaterialViewControllerInterface *interface;
+  MaterialViewControllerInterface *interface[0];
 
   /**
    * @brief The material being edited.

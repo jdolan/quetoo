@@ -50,10 +50,10 @@ struct CreateServerViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  CreateServerViewControllerInterface *interface;
+  CreateServerViewControllerInterface *interface[0];
 
   /**
    * @brief The Bots TextView (displays bot count = sv_min_clients - 1).

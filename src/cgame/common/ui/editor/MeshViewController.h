@@ -47,9 +47,9 @@ struct MeshViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface. @private
+   * @brief The interface type. @private
    */
-  MeshViewControllerInterface *interface;
+  MeshViewControllerInterface *interface[0];
 
   /**
    * @brief The model being edited.

@@ -62,9 +62,9 @@ struct EntityView {
   StackView stackView;
 
   /**
-   * @brief The interface. @protected
+   * @brief The interface type. @protected
    */
-  EntityViewInterface *interface;
+  EntityViewInterface *interface[0];
 
   /**
    * @brief The EntityViewDelegate.

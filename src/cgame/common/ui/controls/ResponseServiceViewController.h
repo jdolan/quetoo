@@ -50,10 +50,10 @@ struct ResponseServiceViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  ResponseServiceViewControllerInterface *interface;
+  ResponseServiceViewControllerInterface *interface[0];
 
   /**
    * @brief The crosshair HueColorPicker.

@@ -103,7 +103,6 @@ Class *_PlayViewController(void) {
       .name = "PlayViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(PlayViewController),
-      .interfaceOffset = offsetof(PlayViewController, interface),
       .interfaceSize = sizeof(PlayViewControllerInterface),
       .initialize = initialize,
     });

@@ -198,7 +198,6 @@ Class *_EditorViewController(void) {
       .name = "EditorViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(EditorViewController),
-      .interfaceOffset = offsetof(EditorViewController, interface),
       .interfaceSize = sizeof(EditorViewControllerInterface),
       .initialize = initialize,
     });

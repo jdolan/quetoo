@@ -47,10 +47,10 @@ struct HomeViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  HomeViewControllerInterface *interface;
+  HomeViewControllerInterface *interface[0];
 
   /**
    * @brief TabViewController to contain tabs.

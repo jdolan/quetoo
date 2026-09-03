@@ -99,7 +99,6 @@ Class *_HomeViewController(void) {
       .name = "HomeViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(HomeViewController),
-      .interfaceOffset = offsetof(HomeViewController, interface),
       .interfaceSize = sizeof(HomeViewControllerInterface),
       .initialize = initialize,
     });

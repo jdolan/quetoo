@@ -52,10 +52,10 @@ struct CvarCheckbox {
   Checkbox checkbox;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  CvarCheckboxInterface *interface;
+  CvarCheckboxInterface *interface[0];
 
   /**
    * @brief The variable.

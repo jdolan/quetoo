@@ -407,7 +407,6 @@ Class *_PlayerModelView(void) {
       .name = "PlayerModelView",
       .superclass = _Control(),
       .instanceSize = sizeof(PlayerModelView),
-      .interfaceOffset = offsetof(PlayerModelView, interface),
       .interfaceSize = sizeof(PlayerModelViewInterface),
       .initialize = initialize,
     });

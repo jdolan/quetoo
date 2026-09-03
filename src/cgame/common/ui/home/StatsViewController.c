@@ -291,7 +291,6 @@ Class *_StatsViewController(void) {
       .name = "StatsViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(StatsViewController),
-      .interfaceOffset = offsetof(StatsViewController, interface),
       .interfaceSize = sizeof(StatsViewControllerInterface),
       .initialize = initialize,
     });
