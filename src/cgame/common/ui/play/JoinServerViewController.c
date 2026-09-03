@@ -45,6 +45,7 @@ static const char *_unset = "—";
 
 static cvar_t *cg_join_server_hide_empty;
 static cvar_t *cg_join_server_hide_bots;
+
 static JoinServerViewController *sortingJoinServerViewController;
 
 #define _Class _JoinServerViewController
@@ -398,8 +399,10 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
   }
 
   if (q_strcmp(column->identifier, _server) == 0) {
+    cell->text->colorEscapes = true;
     $(cell->text, setText, server->hostname);
   } else if (q_strcmp(column->identifier, _map) == 0) {
+    cell->text->colorEscapes = true;
     $(cell->text, setText, server->name);
   } else if (q_strcmp(column->identifier, _players) == 0) {
     $(cell->text, setText, va("%d / %d", server->clients, server->max_clients));
