@@ -59,18 +59,35 @@ static const cl_server_info_t *serverAtIndex(const PointerArray *servers, size_t
 }
 
 /**
- * @brief Returns the selected server, by hostname rather than by row index,
- * so that the selection survives a re-sort and a refresh.
+ * @brief Whether `addr` names a selected server, as opposed to the zeroed
+ * address that stands for no selection.
+ */
+static bool isSelectable(const net_addr_t *addr) {
+  return addr->addr || addr->port;
+}
+
+/**
+ * @brief Whether `a` and `b` are the same server, by address and port.
+ * @remarks `Net_CompareNetaddr` lives in the engine's socket layer, which the
+ * modules do not link, so the fields are compared directly.
+ */
+static bool sameAddr(const net_addr_t *a, const net_addr_t *b) {
+  return a->addr == b->addr && a->port == b->port;
+}
+
+/**
+ * @brief Returns the selected server, by address rather than by row index, so
+ * that the selection survives a re-sort and a refresh.
  */
 static const cl_server_info_t *selectedServer(const JoinServerViewController *self) {
 
-  if (self->servers == NULL || *self->selectedHostname == '\0') {
+  if (self->servers == NULL || !isSelectable(&self->selectedAddr)) {
     return NULL;
   }
 
   for (size_t i = 0; i < self->servers->count; i++) {
     const cl_server_info_t *server = $(self->servers, get, i);
-    if (q_strcmp(server->hostname, self->selectedHostname) == 0) {
+    if (sameAddr(&server->addr, &self->selectedAddr)) {
       return server;
     }
   }
@@ -196,7 +213,7 @@ static void refreshDetails(JoinServerViewController *self) {
 
 /**
  * @brief Restores the selection after a sort or a refresh.
- * @details The selection is held by hostname, so a re-sort keeps the same
+ * @details The selection is held by address, so a re-sort keeps the same
  * server rather than the same row. When the selected server has gone from the
  * list entirely, the details pane empties rather than jumping to another one.
  */
@@ -208,14 +225,14 @@ static void restoreSelection(JoinServerViewController *self) {
   const size_t count = self->servers ? self->servers->count : 0;
   for (size_t row = 0; row < count; row++) {
     const cl_server_info_t *server = $(self->servers, get, row);
-    if (q_strcmp(server->hostname, self->selectedHostname) == 0) {
+    if (sameAddr(&server->addr, &self->selectedAddr)) {
       index = (ssize_t) row;
       break;
     }
   }
 
   if (index < 0) {
-    self->selectedHostname[0] = '\0';
+    memset(&self->selectedAddr, 0, sizeof(self->selectedAddr));
   }
 
   $(tableView, deselectAll);
@@ -260,7 +277,7 @@ static void didSetMaxPing(Slider *slider, double value) {
 
 /**
  * @brief ButtonDelegate for Quick Join.
- * @description Selects a server based on minumum ping and maximum players
+ * @description Selects a server based on minimum ping and maximum players
  * with a bit of lovely random thrown in. Any server that matches the
  * criteria will be weighted by how much "better" they are by how much lower
  * their ping is and how many more players there are.
@@ -423,7 +440,7 @@ static void didSelectRowsAtIndexes(TableView *tableView, const IndexSet *indexes
     return;
   }
 
-  q_strlcpy(this->selectedHostname, server->hostname, sizeof(this->selectedHostname));
+  this->selectedAddr = server->addr;
   refreshDetails(this);
 
   const SDL_PropertiesID props = SDL_GetWindowProperties(((View *) tableView)->window);

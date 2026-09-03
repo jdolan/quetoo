@@ -100,11 +100,12 @@ struct JoinServerViewController {
   Slider *maxPingSlider;
 
   /**
-   * @brief The selected server's hostname.
-   * @details The selection is held by name rather than by row index, so that
-   * it survives a re-sort and a refresh. Empty when nothing is selected.
+   * @brief The selected server's address.
+   * @details The selection is held by address rather than by row index, so that
+   * it survives a re-sort and a refresh, and by address rather than by hostname,
+   * which servers do not advertise uniquely. Zeroed when nothing is selected.
    */
-  char selectedHostname[48];
+  net_addr_t selectedAddr;
 };
 
 /**

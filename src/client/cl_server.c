@@ -69,7 +69,7 @@ void Cl_FreeServers(void) {
 }
 
 /**
- * @brief Drops any other known entry that is `server` reached a different way.
+ * @brief Drops any other known entry for the same server reached a different way.
  * @details A server broadcasting on the LAN and also listed by the master
  * answers under two different addresses, so it shows twice. `Cl_ServerForNetaddr`
  * already merges entries that share one address; this catches what that

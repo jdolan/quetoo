@@ -36,7 +36,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 39
+#define CGAME_API_VERSION 40
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
