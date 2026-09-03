@@ -61,6 +61,8 @@ jobs:
         cmake --build openal-soft/build -j$(nproc)
         sudo cmake --install openal-soft/build
 
+    # Held at 3.4.12 in step with the macOS pin, so that a release bisects to
+    # the same SDL3 on every platform. See #945.
     - name: Build SDL3
       run: |
         git clone --depth 1 --branch release-3.4.12 https://github.com/libsdl-org/SDL.git SDL3
