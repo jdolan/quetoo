@@ -85,6 +85,34 @@
                             }
                           }
                         ]
+                      },
+                      {
+                        "class": "StackView",
+                        "classNames": [
+                          "credit"
+                        ],
+                        "subviews": [
+                          {
+                            "class": "Label",
+                            "classNames": [
+                              "name"
+                            ],
+                            "text": {
+                              "text": "^2MovoWR^7",
+                              "colorEscapes": true
+                            }
+                          },
+                          {
+                            "class": "Label",
+                            "classNames": [
+                              "role"
+                            ],
+                            "text": {
+                              "text": "Race: design, movement rulesets, replay format",
+                              "colorEscapes": true
+                            }
+                          }
+                        ]
                       }
                     ]
                   }
