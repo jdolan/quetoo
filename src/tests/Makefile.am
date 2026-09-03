@@ -210,6 +210,7 @@ check_race_CFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/game/common \
 	-I$(top_srcdir)/src/game/race \
+	-ffp-contract=off \
 	-fms-extensions \
 	-Wno-microsoft-anon-tag \
 	$(TESTS_CFLAGS)

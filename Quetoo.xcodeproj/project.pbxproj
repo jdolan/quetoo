@@ -27,6 +27,7 @@
 				CE052A9721483352003446C9 /* PBXTargetDependency */,
 				CE052A9921483352003446C9 /* PBXTargetDependency */,
 				CE052A9B21483352003446C9 /* PBXTargetDependency */,
+				D9A5C10000000000000000BA /* PBXTargetDependency */,
 				CE948B2D2235660C00D961FA /* PBXTargetDependency */,
 				CE052A9D21483352003446C9 /* PBXTargetDependency */,
 				CEB3850229A3D2E3006DEA13 /* PBXTargetDependency */,
@@ -645,6 +646,21 @@
 		CE89C2BD2FE56450000B6244 /* qstring.c in Sources */ = {isa = PBXBuildFile; fileRef = CE89C2BF2FE56452000B6244 /* qstring.c */; };
 		CE89C2BE2FE56451000B6244 /* qstring.h in Headers */ = {isa = PBXBuildFile; fileRef = CE89C2C02FE56453000B6244 /* qstring.h */; };
 		CE91924D2055731E007AC8FF /* tjunction.c in Sources */ = {isa = PBXBuildFile; fileRef = CE91924C2055731E007AC8FF /* tjunction.c */; };
+		D9A5C10000000000000000C0 /* check_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000B0 /* check_race.c */; };
+		D9A5C10000000000000000C1 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
+		D9A5C10000000000000000C2 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
+		D9A5C10000000000000000C3 /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
+		D9A5C10000000000000000C4 /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
+		D9A5C10000000000000000C5 /* bg_pmove_quake3.c in Sources */ = {isa = PBXBuildFile; fileRef = D7A5C10000000000000000A1 /* bg_pmove_quake3.c */; };
+		D9A5C10000000000000000C6 /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
+		D9A5C10000000000000000C7 /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
+		D9A5C10000000000000000C8 /* g_race_records.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A4 /* g_race_records.c */; };
+		D9A5C10000000000000000C9 /* g_race_replay.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A5 /* g_race_replay.c */; };
+		D9A5C10000000000000000D0 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		D9A5C10000000000000000D1 /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		D9A5C10000000000000000D2 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		D9A5C10000000000000000D3 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
+		D9A5C10000000000000000D4 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CE948B232235655700D961FA /* check_shared.c in Sources */ = {isa = PBXBuildFile; fileRef = CE948B0F223564E900D961FA /* check_shared.c */; };
 		CE948B2E2235699300D961FA /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE9A670E2D2589020068D720 /* check_box.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9A67092D2588B20068D720 /* check_box.c */; };
@@ -1343,6 +1359,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = CE4DCF8C256F0DAD00FECAFC;
 			remoteInfo = check_cm_test;
+		};
+		D9A5C10000000000000000B9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
+			remoteInfo = collision;
+		};
+		D9A5C10000000000000000BB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D9A5C10000000000000000B4;
+			remoteInfo = check_race;
 		};
 		CE4DCF8E256F0DAD00FECAFC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -2408,6 +2438,8 @@
 		CE92B3AA1D2FF77800E9153A /* quemap.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = quemap.ico; sourceTree = "<group>"; };
 		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
+		D9A5C10000000000000000B0 /* check_race.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_race.c; sourceTree = "<group>"; };
+		D9A5C10000000000000000B1 /* check_race */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_race; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE948B0F223564E900D961FA /* check_shared.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_shared.c; sourceTree = "<group>"; };
 		CE948B222235652600D961FA /* check_shared */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_shared; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE9A67092D2588B20068D720 /* check_box.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_box.c; sourceTree = "<group>"; };
@@ -2915,6 +2947,18 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D9A5C10000000000000000B3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D9A5C10000000000000000D0 /* SDL3.xcframework in Frameworks */,
+				D9A5C10000000000000000D1 /* Objectively.framework in Frameworks */,
+				D9A5C10000000000000000D2 /* libshared.a in Frameworks */,
+				D9A5C10000000000000000D3 /* libcommon.a in Frameworks */,
+				D9A5C10000000000000000D4 /* libcollision.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3623,6 +3667,7 @@
 				CE12D6D11C5C58C300CD0B13 /* check_master.c */,
 				CE12D6D31C5C58C300CD0B13 /* check_mem.c */,
 				CE12D6D51C5C58C300CD0B13 /* check_r_media.c */,
+				D9A5C10000000000000000B0 /* check_race.c */,
 				CE948B0F223564E900D961FA /* check_shared.c */,
 				CE12D6D71C5C58C300CD0B13 /* check_thread.c */,
 				CE9CFC9C23EB3BF50009DA65 /* check_vector.c */,
@@ -3750,6 +3795,7 @@
 				CE052A8421483255003446C9 /* check_thread */,
 				CEE3A10121EE2B3F0070FD3E /* check_cm_entity */,
 				CE354EFE22075132008AE0C2 /* check_atlas */,
+				D9A5C10000000000000000B1 /* check_race */,
 				CE948B222235652600D961FA /* check_shared */,
 				CE9CFCAF23EB3D020009DA65 /* check_vector */,
 				CE4DCF9F256F0DAD00FECAFC /* check_cm_test */,
@@ -5414,6 +5460,23 @@
 			productReference = CE80FF7F1C5E49C400A21A51 /* libserver.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		D9A5C10000000000000000B4 /* check_race */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D9A5C10000000000000000B5 /* Build configuration list for PBXNativeTarget "check_race" */;
+			buildPhases = (
+				D9A5C10000000000000000B2 /* Sources */,
+				D9A5C10000000000000000B3 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D9A5C10000000000000000B8 /* PBXTargetDependency */,
+			);
+			name = check_race;
+			productName = check_race;
+			productReference = D9A5C10000000000000000B1 /* check_race */;
+			productType = "com.apple.product-type.tool";
+		};
 		CE948B102235652600D961FA /* check_shared */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE948B1F2235652600D961FA /* Build configuration list for PBXNativeTarget "check_shared" */;
@@ -5761,6 +5824,7 @@
 				CE51FBE42148207700ABE14F /* check_master */,
 				CE052A5B214831FE003446C9 /* check_mem */,
 				CE51FB89214819B000ABE14F /* check_r_media */,
+				D9A5C10000000000000000B4 /* check_race */,
 				CE948B102235652600D961FA /* check_shared */,
 				CE052A7321483255003446C9 /* check_thread */,
 				CE9CFC9E23EB3D020009DA65 /* check_vector */,
@@ -5781,7 +5845,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_box &&\n$BUILT_PRODUCTS_DIR/check_cm_entity &&\n$BUILT_PRODUCTS_DIR/check_cm_polylib &&\n$BUILT_PRODUCTS_DIR/check_cm_test &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_color &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_http &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_thread &&\n$BUILT_PRODUCTS_DIR/check_vector\n";
+			shellScript = "$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_box &&\n$BUILT_PRODUCTS_DIR/check_cm_entity &&\n$BUILT_PRODUCTS_DIR/check_cm_polylib &&\n$BUILT_PRODUCTS_DIR/check_cm_test &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_color &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_http &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_race &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_thread &&\n$BUILT_PRODUCTS_DIR/check_vector\n";
 		};
 		CE05B2D13022486E0012862B /* Install module */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -6437,6 +6501,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D9A5C10000000000000000B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D9A5C10000000000000000C0 /* check_race.c in Sources */,
+				D9A5C10000000000000000C1 /* tests.c in Sources */,
+				D9A5C10000000000000000C2 /* bg_pmove.c in Sources */,
+				D9A5C10000000000000000C3 /* bg_pmove_quake.c in Sources */,
+				D9A5C10000000000000000C4 /* bg_pmove_quake2.c in Sources */,
+				D9A5C10000000000000000C5 /* bg_pmove_quake3.c in Sources */,
+				D9A5C10000000000000000C6 /* bg_pmove_quetoo.c in Sources */,
+				D9A5C10000000000000000C7 /* bg_pmove_race.c in Sources */,
+				D9A5C10000000000000000C8 /* g_race_records.c in Sources */,
+				D9A5C10000000000000000C9 /* g_race_replay.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CE948B132235652600D961FA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -6864,6 +6945,16 @@
 			isa = PBXTargetDependency;
 			target = CE4DCF8C256F0DAD00FECAFC /* check_cm_test */;
 			targetProxy = CE45F54F257733B8004DEFED /* PBXContainerItemProxy */;
+		};
+		D9A5C10000000000000000B8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE80FE0E1C5E421900A21A51 /* collision */;
+			targetProxy = D9A5C10000000000000000B9 /* PBXContainerItemProxy */;
+		};
+		D9A5C10000000000000000BA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D9A5C10000000000000000B4 /* check_race */;
+			targetProxy = D9A5C10000000000000000BB /* PBXContainerItemProxy */;
 		};
 		CE4DCF8D256F0DAD00FECAFC /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -7905,6 +7996,52 @@
 			};
 			name = Release;
 		};
+		D9A5C10000000000000000B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-ffp-contract=off",
+					"-fms-extensions",
+					"-Wno-microsoft-anon-tag",
+				);
+				OTHER_LDFLAGS = (
+					"-lcheck",
+					"-lphysfs",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/race",
+				);
+			};
+			name = Debug;
+		};
+		D9A5C10000000000000000B7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-ffp-contract=off",
+					"-fms-extensions",
+					"-Wno-microsoft-anon-tag",
+				);
+				OTHER_LDFLAGS = (
+					"-lcheck",
+					"-lphysfs",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/race",
+				);
+			};
+			name = Release;
+		};
 		CE948B202235652600D961FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -8656,6 +8793,15 @@
 			buildConfigurations = (
 				CE80FF7D1C5E49C400A21A51 /* Debug */,
 				CE80FF7E1C5E49C400A21A51 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D9A5C10000000000000000B5 /* Build configuration list for PBXNativeTarget "check_race" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D9A5C10000000000000000B6 /* Debug */,
+				D9A5C10000000000000000B7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
