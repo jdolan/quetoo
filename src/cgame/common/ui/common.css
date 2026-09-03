@@ -20,6 +20,8 @@ Checkbox > Control {
 }
 
 Control {
+  bevel-dark-color: #00000080;
+  bevel-light-color: #dedede40;
   -sound-on-click: #ui/click;
   -sound-on-change: #ui/change;
   -sound-on-mouse-enter: #ui/clack;
@@ -27,6 +29,8 @@ Control {
 
 Panel {
   background-color: #08151aaa;
+  border-color: #8fc7dc80;
+  border-radius: 12;
   -sound-on-mouse-enter: #ui/clack;
 }
 
@@ -47,6 +51,10 @@ Select {
 
 Slider > .bar > .handle {
   background-color: #1e4e62dd;
+}
+
+TabView > .tabPageView {
+  border-color: #8fc7dc50;
 }
 
 TabView > .tabSelectionView {
