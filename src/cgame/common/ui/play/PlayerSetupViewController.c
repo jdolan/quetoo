@@ -164,6 +164,7 @@ static void loadView(ViewController *self) {
   PlayerSetupViewController *this = (PlayerSetupViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
+    MakeOutlet("name", &this->name),
     MakeOutlet("skin", &this->skinSelect),
     MakeOutlet("helmet", &this->helmetColorPicker),
     MakeOutlet("shirt", &this->shirtColorPicker),
@@ -178,6 +179,8 @@ static void loadView(ViewController *self) {
 
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/PlayerSetupViewController.css");
   assert(self->view->stylesheet);
+  
+  this->name->text->colorEscapes = true;
 
   this->skinSelect->comparator = sortSkins;
   this->skinSelect->delegate.self = this;
