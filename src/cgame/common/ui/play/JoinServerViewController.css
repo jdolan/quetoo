@@ -29,11 +29,11 @@
 }
 
 #servers .pingOver > Text {
-  color: darkred;
+  color: #e06060;
 }
 
 #servers .pingFast > Text {
-  color: #1e4e62;
+  color: #8fc7dc;
 }
 
 .joinEmptyState {

@@ -57,6 +57,18 @@ Slider > .bar > .handle {
   background-color: #1e4e62dd;
 }
 
+TableHeaderView {
+  background-color: #1e4e62aa;
+}
+
+TableRowView:nth-child(even) TableCellView {
+  background-color: #1e4e6233;
+}
+
+TableRowView:selected {
+  background-color: #1e4e62;
+}
+
 TabView > .tabPageView {
   border-color: #8fc7dc50;
 }
