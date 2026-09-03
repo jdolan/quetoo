@@ -29,21 +29,10 @@ jobs:
 
   build-macos:
     needs: resolve-deps
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-15
-            arch: arm64
-            build: arm64-apple-darwin
-          - runner: macos-15-large
-            arch: x86_64
-            build: x86_64-apple-darwin
-
-    runs-on: ${{ matrix.runner }}
+    runs-on: macos-15
 
     env:
-      HOMEBREW_PREFIX: ${{ matrix.arch == 'arm64' && '/opt/homebrew' || '/usr/local' }}
+      HOMEBREW_PREFIX: /opt/homebrew
 
     steps:
     - name: Install dependencies
@@ -68,7 +57,7 @@ jobs:
       uses: actions/cache@v5
       with:
         path: /usr/local
-        key: macos-deps-${{ matrix.arch }}-sdl3.4.12-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelygpu-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
+        key: macos-deps-arm64-sdl3.4.12-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelygpu-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
 
     - name: Checkout Objectively
       if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -154,55 +143,6 @@ jobs:
       working-directory: quetoo
       run: make -C apple move-resources
 
-    - name: Create archive
-      working-directory: quetoo
-      run: |
-        cd apple/target
-        zip -r ../../quetoo-${{ matrix.build }}.zip Quetoo.app
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v7
-      with:
-        name: quetoo-${{ matrix.build }}
-        path: quetoo/quetoo-${{ matrix.build }}.zip
-
-  lipo-macos:
-    needs: build-macos
-    runs-on: macos-15
-
-    steps:
-    - name: Download arm64 artifact
-      uses: actions/download-artifact@v8
-      with:
-        name: quetoo-arm64-apple-darwin
-
-    - name: Download x86_64 artifact
-      uses: actions/download-artifact@v8
-      with:
-        name: quetoo-x86_64-apple-darwin
-
-    - name: Create universal binary
-      run: |
-        mkdir arm64 x86_64
-        unzip quetoo-arm64-apple-darwin.zip -d arm64
-        unzip quetoo-x86_64-apple-darwin.zip -d x86_64
-
-        find arm64/Quetoo.app -type f | while read -r f; do
-          if ! file "$f" | grep -q "Mach-O"; then
-            continue
-          fi
-          x86="x86_64/${f#arm64/}"
-          if [ -f "$x86" ]; then
-            lipo -create "$f" "$x86" -output "$f"
-          fi
-        done
-
-    - name: Checkout Quetoo
-      uses: actions/checkout@v6
-      with:
-        path: quetoo
-        fetch-depth: 1
-
     - name: Set up keychain
       env:
         APPLE_CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
@@ -219,19 +159,23 @@ jobs:
         rm certificate.p12
 
     - name: Sign application
-      run: make -C quetoo/apple sign INSTALL=$(pwd)/arm64/Quetoo.app
+      run: |
+        # codesign refuses a bundle carrying extended attributes, and the build
+        # tree keeps the ones the old unzip round trip discarded
+        xattr -cr quetoo/apple/target/Quetoo.app
+        make -C quetoo/apple sign
 
     - name: Create binary DMG
-      run: make -C quetoo/apple dmg INSTALL=$(pwd)/arm64/Quetoo.app \
-             SNAPSHOT=$(pwd)/quetoo-universal-apple-darwin.dmg
+      run: make -C quetoo/apple dmg \
+             SNAPSHOT=$(pwd)/quetoo-arm64-apple-darwin.dmg
 
     - name: Notarize binary DMG
       env:
         APPLE_ID: ${{ secrets.APPLE_ID }}
         APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
         APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      run: make -C quetoo/apple notarize INSTALL=$(pwd)/arm64/Quetoo.app \
-             SNAPSHOT=$(pwd)/quetoo-universal-apple-darwin.dmg
+      run: make -C quetoo/apple notarize \
+             SNAPSHOT=$(pwd)/quetoo-arm64-apple-darwin.dmg
 
     - name: Checkout quetoo-data
       uses: actions/checkout@v6
@@ -242,41 +186,41 @@ jobs:
         sparse-checkout: target
 
     - name: Bundle game data
-      run: make -C quetoo/apple bundle-data INSTALL=$(pwd)/arm64/Quetoo.app \
+      run: make -C quetoo/apple bundle-data \
              QUETOO_DATA_DIR=$(pwd)/quetoo-data
 
     - name: Re-sign bundle
       run: |
         security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-        make -C quetoo/apple bundle-sign INSTALL=$(pwd)/arm64/Quetoo.app
+        make -C quetoo/apple bundle-sign
 
     - name: Create bundle DMG
-      run: make -C quetoo/apple bundle-dmg INSTALL=$(pwd)/arm64/Quetoo.app \
-             BUNDLE_SNAPSHOT=$(pwd)/quetoo-bundle-universal-apple-darwin.dmg
+      run: make -C quetoo/apple bundle-dmg \
+             BUNDLE_SNAPSHOT=$(pwd)/quetoo-bundle-arm64-apple-darwin.dmg
 
     - name: Notarize bundle DMG
       env:
         APPLE_ID: ${{ secrets.APPLE_ID }}
         APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
         APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      run: make -C quetoo/apple bundle-notarize INSTALL=$(pwd)/arm64/Quetoo.app \
-             BUNDLE_SNAPSHOT=$(pwd)/quetoo-bundle-universal-apple-darwin.dmg
+      run: make -C quetoo/apple bundle-notarize \
+             BUNDLE_SNAPSHOT=$(pwd)/quetoo-bundle-arm64-apple-darwin.dmg
 
     - name: Tear down keychain
       if: always()
-      run: security delete-keychain build.keychain
+      run: security delete-keychain build.keychain || true
 
     - name: Upload binary DMG artifact
       uses: actions/upload-artifact@v7
       with:
-        name: quetoo-universal-apple-darwin
-        path: quetoo-universal-apple-darwin.dmg
+        name: quetoo-arm64-apple-darwin
+        path: quetoo-arm64-apple-darwin.dmg
 
     - name: Upload bundle artifact
       uses: actions/upload-artifact@v7
       with:
-        name: quetoo-bundle-universal-apple-darwin
-        path: quetoo-bundle-universal-apple-darwin.dmg
+        name: quetoo-bundle-arm64-apple-darwin
+        path: quetoo-bundle-arm64-apple-darwin.dmg
 
   build-linux:
     needs: resolve-deps
@@ -567,7 +511,7 @@ jobs:
         path: quetoo/quetoo-x86_64-pc-windows.zip
 
   release:
-    needs: [lipo-macos, build-linux, build-windows]
+    needs: [build-macos, build-linux, build-windows]
     runs-on: ubuntu-latest
 
     steps:
@@ -667,10 +611,10 @@ jobs:
 
         ## ![macOS](https://img.shields.io/badge/-%20-A2AAAD?style=flat-square&logo=apple&logoColor=white) macOS
 
-        | Type | Link |
+        | Type | Apple Silicon |
         |---|---|
-        | Full Install | [quetoo-bundle-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-universal-apple-darwin.dmg) |
-        | Binaries Only | [quetoo-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-universal-apple-darwin.dmg) |
+        | Full Install | [quetoo-bundle-arm64-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-arm64-apple-darwin.dmg) |
+        | Binaries Only | [quetoo-arm64-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-arm64-apple-darwin.dmg) |
 
         ## ![Linux](https://img.shields.io/badge/-%20-FCC624?style=flat-square&logo=linux&logoColor=black) Linux
 
@@ -695,11 +639,11 @@ jobs:
         )
 
         assets=(
-          quetoo-bundle-universal-apple-darwin/quetoo-bundle-universal-apple-darwin.dmg
+          quetoo-bundle-arm64-apple-darwin/quetoo-bundle-arm64-apple-darwin.dmg
           quetoo-bundle-x86_64-pc-linux.tar.gz
           quetoo-bundle-aarch64-pc-linux.tar.gz
           quetoo-bundle-x86_64-pc-windows.zip
-          quetoo-universal-apple-darwin/quetoo-universal-apple-darwin.dmg
+          quetoo-arm64-apple-darwin/quetoo-arm64-apple-darwin.dmg
           quetoo-x86_64-pc-linux-archive/quetoo-x86_64-pc-linux.tar.gz
           quetoo-x86_64-pc-linux-deb/quetoo-client-x86_64-pc-linux.deb
           quetoo-x86_64-pc-linux-deb/quetoo-server-x86_64-pc-linux.deb
@@ -728,7 +672,7 @@ jobs:
     - name: Download macOS bundle
       uses: actions/download-artifact@v8
       with:
-        name: quetoo-bundle-universal-apple-darwin
+        name: quetoo-bundle-arm64-apple-darwin
         path: itch/mac
 
     - name: Download Linux x86_64 bundle
@@ -755,6 +699,6 @@ jobs:
         BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
         VERSION: ${{ github.event.inputs.version || github.ref_name }}
       run: |
-        ./butler push itch/mac/quetoo-bundle-universal-apple-darwin.dmg    wickedoldgames/quetoo:mac     --userversion $VERSION
+        ./butler push itch/mac/quetoo-bundle-arm64-apple-darwin.dmg        wickedoldgames/quetoo:mac     --userversion $VERSION
         ./butler push itch/linux/quetoo-bundle-x86_64-pc-linux.tar.gz      wickedoldgames/quetoo:linux   --userversion $VERSION
         ./butler push itch/windows/quetoo-bundle-x86_64-pc-windows.zip     wickedoldgames/quetoo:windows --userversion $VERSION
