@@ -36,8 +36,11 @@ static bool Test_WaitForIdle(const RenderDevice *self) {
  */
 void setup(void) {
   static cvar_t null_cvar;
+
+  // Objectively dispatches through the instance's Class, so a stub device needs one
   static RenderDeviceInterface interface = { .waitForIdle = Test_WaitForIdle };
-  static RenderDevice device = { .interface = &interface };
+  static Class clazz = { .interface = &interface };
+  static RenderDevice device = { .object = { .clazz = &clazz } };
 
   developer = &null_cvar;
   editor = &null_cvar;

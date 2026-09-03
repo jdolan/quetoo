@@ -19,9 +19,11 @@
 				CE948B2B2235660C00D961FA /* PBXTargetDependency */,
 				CE45F550257733B8004DEFED /* PBXTargetDependency */,
 				CE052A9121483352003446C9 /* PBXTargetDependency */,
+				CEA509112EA5D20A00F27205 /* PBXTargetDependency */,
 				CEB3850029A3D2C6006DEA13 /* PBXTargetDependency */,
 				CE052A9321483352003446C9 /* PBXTargetDependency */,
 				CE052A9521483352003446C9 /* PBXTargetDependency */,
+				CED40A793049C6730090C57A /* PBXTargetDependency */,
 				CE052A9721483352003446C9 /* PBXTargetDependency */,
 				CE052A9921483352003446C9 /* PBXTargetDependency */,
 				CE052A9B21483352003446C9 /* PBXTargetDependency */,
@@ -697,7 +699,6 @@
 		CEAD8F952F8D765F0087A850 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CEAD8FA02F8D76830087A850 /* check_http.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8F8C2F8D76260087A850 /* check_http.c */; };
 		CEAD8FA12F8D76E60087A850 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
-		CEAD8FA22F8D76FC0087A850 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CEAD8FA82F8D8DE30087A850 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CEAD8FAB2F8D8DE30087A850 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CEAD8FAC2F8D8DE30087A850 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
@@ -891,6 +892,26 @@
 		CEC0FF0020260103000AD03 /* cg_tech.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0D03 /* cg_tech.c */; };
 		CEC0FF0020260103000AD04 /* cg_tech.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0D04 /* cg_tech.h */; };
 		CECA8CB01E50B5F1005E97E8 /* material.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA8CAE1E50B5F1005E97E8 /* material.c */; };
+		CED40A643049AFD00090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CED40A653049B0040090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CED40A663049B00C0090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CED40A673049B0280090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CED40A683049B0540090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CED40A693049B3200090C57A /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		CED40A6A3049B32E0090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CED40A6B3049B33B0090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CED40A6C3049B3420090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CED40A6D3049B3470090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CED40A6E3049B34E0090C57A /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		CED40A6F3049B3690090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CED40A703049B36F0090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CED40A713049B3830090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CED40A723049B38A0090C57A /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		CED40A733049B3F70090C57A /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		CED40A743049B3FB0090C57A /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		CED40A753049B4300090C57A /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
+		CED40A763049B4340090C57A /* libclient-renderer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* libclient-renderer.a */; };
+		CED40A773049B4840090C57A /* ObjectivelyGPU.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643932FF5A65900863996 /* ObjectivelyGPU.framework */; };
 		CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B61C5C58C300CD0B13 /* r_bsp_model.c */; };
 		CED4383C1D9D34450052BAFA /* r_bsp_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B81C5C58C300CD0B13 /* r_bsp_draw.c */; };
 		CED4383F1D9D34450052BAFA /* r_draw_2d.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5BE1C5C58C300CD0B13 /* r_draw_2d.c */; };
@@ -1143,9 +1164,6 @@
 		D2A5C100000000000000009C /* cg_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDD1B525A0C2710055860E /* cg_sound.c */; };
 		D2A5C100000000000000009D /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
 		D2A5C100000000000000009E /* cg_module.c in Sources */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000056 /* cg_module.c */; };
-		D9A5C100000000000000000B /* cg_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000A1 /* cg_race.c */; };
-		D9A5C100000000000000000C /* cg_race_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000A2 /* cg_race_hud.c */; };
-		D9A5C100000000000000000D /* cg_race_score.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000A4 /* cg_race_score.c */; };
 		D2A5C100000000000000009F /* cg_temp_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */; };
 		D2A5C10000000000000000A0 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
 		D2A5C10000000000000000A1 /* cg_view.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57E1C5C58C300CD0B13 /* cg_view.c */; };
@@ -1229,11 +1247,30 @@
 		D8A5C100000000000000000C /* g_race_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A2 /* g_race_entity.c */; };
 		D8A5C100000000000000000D /* g_race_records.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A4 /* g_race_records.c */; };
 		D8A5C100000000000000000E /* g_race_replay.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A5 /* g_race_replay.c */; };
+		D9A5C100000000000000000B /* cg_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000A1 /* cg_race.c */; };
+		D9A5C100000000000000000C /* cg_race_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000A2 /* cg_race_hud.c */; };
+		D9A5C100000000000000000D /* cg_race_score.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000A4 /* cg_race_score.c */; };
 		EC45E0FA2A80403C8FEA3834 /* cg_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = FCD76A809F00440F99BC0068 /* cg_inventory.c */; };
 		EEE815CF5A924D398351DF7C /* cm_voxel.h in Headers */ = {isa = PBXBuildFile; fileRef = 97BDA8A5C8DF41E290656B3D /* cm_voxel.h */; };
 		F53787C291008C7507AE5FF4 /* cm_manifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */; };
 		F7EBE32625F44EBF895E36BC /* cg_inventory.h in Headers */ = {isa = PBXBuildFile; fileRef = 066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */; };
 		F8D615462A724ECF9847D4CD /* r_post.h in Headers */ = {isa = PBXBuildFile; fileRef = B80C92655F5249E48131CB95 /* r_post.h */; };
+		549E7CC4A7BA476A2463B7CC /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		B8BC2CE87251BA0975026203 /* SDL3_image.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C42FE711B7005C680C /* SDL3_image.xcframework */; };
+		CF43CA06A122206F8CB8748A /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		B92B8EA5B4D9C775CF3C2541 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		7857EDF77E5E58CEFFD03198 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		033334174247678F654646CA /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		9C43D41506579A6ED4EE80F5 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		AF8056E19DEC77694B63EDD7 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		4E0DA0FBE7F88EC11A4CF033 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		B2B62AE1E7C09567B299F1AA /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		6B31320926D77CB87B783BDD /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		77DC97E1E9FDFCF8FD91B1BC /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		332CAA47FF0E8521C12DF852 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		FBA34330EDE55ADE01202579 /* SDL3_image.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C42FE711B7005C680C /* SDL3_image.xcframework */; };
+		C6BE5C361D7A11928CC7373B /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		3CBF190D5B00F3CCADD14B52 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1440,6 +1477,13 @@
 			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
 			remoteInfo = collision;
 		};
+		CEA509102EA5D20A00F27205 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CEA508F52EA5D20A00F27205;
+			remoteInfo = check_cm_polylib;
+		};
 		CEAD8F9E2F8D76790087A850 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
@@ -1530,6 +1574,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = CEC0FF0020260103000001CD;
 			remoteInfo = "cgame-ctf";
+		};
+		CED40A783049C6730090C57A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CEAD8F8D2F8D765F0087A850;
+			remoteInfo = check_http;
 		};
 		CEE3A10221EE2B570070FD3E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -2571,12 +2622,8 @@
 		D2A5C1000000000000000005 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		D2A5C100000000000000000F /* game-race.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "game-race.so"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2A5C1000000000000000056 /* cg_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_module.c; sourceTree = "<group>"; };
-		D9A5C10000000000000000A1 /* cg_race.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_race.c; sourceTree = "<group>"; };
-		D9A5C10000000000000000A2 /* cg_race_hud.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_race_hud.c; sourceTree = "<group>"; };
-		D9A5C10000000000000000A3 /* cg_race.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_race.h; sourceTree = "<group>"; };
-		D9A5C10000000000000000A4 /* cg_race_score.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_race_score.c; sourceTree = "<group>"; };
 		D2A5C1000000000000000057 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		D2A5C1000000000000000061 /* cgame.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; name = cgame.so; path = "cgame-race.so"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D2A5C1000000000000000061 /* cgame-race.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "cgame-race.so"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_quetoo.c; sourceTree = "<group>"; };
 		D4A5C10000000000000000A1 /* bg_pmove_quake.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_quake.c; sourceTree = "<group>"; };
 		D5A5C10000000000000000A1 /* bg_pmove_quake2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_quake2.c; sourceTree = "<group>"; };
@@ -2587,6 +2634,10 @@
 		D8A5C10000000000000000A3 /* g_race.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_race.h; sourceTree = "<group>"; };
 		D8A5C10000000000000000A4 /* g_race_records.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_race_records.c; sourceTree = "<group>"; };
 		D8A5C10000000000000000A5 /* g_race_replay.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_race_replay.c; sourceTree = "<group>"; };
+		D9A5C10000000000000000A1 /* cg_race.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_race.c; sourceTree = "<group>"; };
+		D9A5C10000000000000000A2 /* cg_race_hud.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_race_hud.c; sourceTree = "<group>"; };
+		D9A5C10000000000000000A3 /* cg_race.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_race.h; sourceTree = "<group>"; };
+		D9A5C10000000000000000A4 /* cg_race_score.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_race_score.c; sourceTree = "<group>"; };
 		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
 		F7E7256984E276048C2A155E /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
 		FCD76A809F00440F99BC0068 /* cg_inventory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_inventory.c; sourceTree = "<group>"; };
@@ -2597,8 +2648,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE052A62214831FE003446C9 /* libcommon.a in Frameworks */,
+				77DC97E1E9FDFCF8FD91B1BC /* SDL3.xcframework in Frameworks */,
+				CED40A703049B36F0090C57A /* Objectively.framework in Frameworks */,
 				CE2B083C23F9EDEA007C77B6 /* libshared.a in Frameworks */,
+				CE052A62214831FE003446C9 /* libcommon.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2606,6 +2659,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CBF190D5B00F3CCADD14B52 /* SDL3.xcframework in Frameworks */,
+				CED40A713049B3830090C57A /* Objectively.framework in Frameworks */,
 				CE052A88214832E1003446C9 /* libcommon.a in Frameworks */,
 				CE2B083B23F9EDD7007C77B6 /* libshared.a in Frameworks */,
 			);
@@ -2713,6 +2768,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B8BC2CE87251BA0975026203 /* SDL3_image.xcframework in Frameworks */,
+				549E7CC4A7BA476A2463B7CC /* SDL3.xcframework in Frameworks */,
+				CED40A733049B3F70090C57A /* Objectively.framework in Frameworks */,
+				CED40A743049B3FB0090C57A /* libshared.a in Frameworks */,
 				CE04F56525CAE12B00C31433 /* libcommon.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2721,9 +2780,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE312F48256F1278001A62A5 /* libcollision.a in Frameworks */,
-				CE4DCF94256F0DAD00FECAFC /* libcommon.a in Frameworks */,
+				033334174247678F654646CA /* SDL3.xcframework in Frameworks */,
+				CED40A6D3049B3470090C57A /* Objectively.framework in Frameworks */,
 				CE4DCF97256F0DAD00FECAFC /* libshared.a in Frameworks */,
+				CE4DCF94256F0DAD00FECAFC /* libcommon.a in Frameworks */,
+				CE312F48256F1278001A62A5 /* libcollision.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2731,8 +2792,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE51FB9621481B8100ABE14F /* libcommon.a in Frameworks */,
+				FBA34330EDE55ADE01202579 /* SDL3_image.xcframework in Frameworks */,
+				332CAA47FF0E8521C12DF852 /* SDL3.xcframework in Frameworks */,
+				CED40A643049AFD00090C57A /* Objectively.framework in Frameworks */,
+				CED40A773049B4840090C57A /* ObjectivelyGPU.framework in Frameworks */,
 				CE2B085223F9EEEE007C77B6 /* libshared.a in Frameworks */,
+				CE51FB9621481B8100ABE14F /* libcommon.a in Frameworks */,
+				CED40A753049B4300090C57A /* libcollision.a in Frameworks */,
+				CED40A763049B4340090C57A /* libclient-renderer.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2740,6 +2807,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9C43D41506579A6ED4EE80F5 /* SDL3.xcframework in Frameworks */,
+				CED40A673049B0280090C57A /* Objectively.framework in Frameworks */,
 				CE51FBA321481DD300ABE14F /* libcommon.a in Frameworks */,
 				CE04F5AA25CAE14500C31433 /* libshared.a in Frameworks */,
 			);
@@ -2749,8 +2818,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE51FBB821481F2500ABE14F /* libcommon.a in Frameworks */,
+				AF8056E19DEC77694B63EDD7 /* SDL3.xcframework in Frameworks */,
+				CED40A683049B0540090C57A /* Objectively.framework in Frameworks */,
 				CE2B084D23F9EEBC007C77B6 /* libshared.a in Frameworks */,
+				CE51FBB821481F2500ABE14F /* libcommon.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2758,8 +2829,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE51FBD321481FC100ABE14F /* libcommon.a in Frameworks */,
+				4E0DA0FBE7F88EC11A4CF033 /* SDL3.xcframework in Frameworks */,
+				CED40A663049B00C0090C57A /* Objectively.framework in Frameworks */,
 				CE2B084423F9EE46007C77B6 /* libshared.a in Frameworks */,
+				CE51FBD321481FC100ABE14F /* libcommon.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2767,8 +2840,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE51FC08214821F000ABE14F /* libcommon.a in Frameworks */,
+				6B31320926D77CB87B783BDD /* SDL3.xcframework in Frameworks */,
+				CED40A6F3049B3690090C57A /* Objectively.framework in Frameworks */,
 				CE51FC042148213200ABE14F /* libshared.a in Frameworks */,
+				CE51FC08214821F000ABE14F /* libcommon.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2847,6 +2922,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C6BE5C361D7A11928CC7373B /* SDL3.xcframework in Frameworks */,
 				CE948B2E2235699300D961FA /* libshared.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2855,6 +2931,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CED40A693049B3200090C57A /* libshared.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2862,6 +2939,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CED40A723049B38A0090C57A /* libshared.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2881,9 +2959,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEA508FC2EA5D20A00F27205 /* libcollision.a in Frameworks */,
-				CEA508FD2EA5D20A00F27205 /* libcommon.a in Frameworks */,
+				7857EDF77E5E58CEFFD03198 /* SDL3.xcframework in Frameworks */,
+				CED40A6C3049B3420090C57A /* Objectively.framework in Frameworks */,
 				CEA508FE2EA5D20A00F27205 /* libshared.a in Frameworks */,
+				CEA508FD2EA5D20A00F27205 /* libcommon.a in Frameworks */,
+				CEA508FC2EA5D20A00F27205 /* libcollision.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2891,10 +2971,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEAD8F942F8D765F0087A850 /* libcommon.a in Frameworks */,
+				B2B62AE1E7C09567B299F1AA /* SDL3.xcframework in Frameworks */,
+				CED40A653049B0040090C57A /* Objectively.framework in Frameworks */,
 				CEAD8F952F8D765F0087A850 /* libshared.a in Frameworks */,
+				CEAD8F942F8D765F0087A850 /* libcommon.a in Frameworks */,
 				CEAD8FA12F8D76E60087A850 /* libnet.a in Frameworks */,
-				CEAD8FA22F8D76FC0087A850 /* libObjectively.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2902,6 +2983,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B92B8EA5B4D9C775CF3C2541 /* SDL3.xcframework in Frameworks */,
+				CED40A6B3049B33B0090C57A /* Objectively.framework in Frameworks */,
 				CEAD8FAC2F8D8DE30087A850 /* libshared.a in Frameworks */,
 				CEAD8FAB2F8D8DE30087A850 /* libcommon.a in Frameworks */,
 				CEAD8FB62F8D8E060087A850 /* libcollision.a in Frameworks */,
@@ -2912,6 +2995,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CED40A6E3049B34E0090C57A /* libshared.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2956,9 +3040,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEE3A10521EE2BAA0070FD3E /* libcollision.a in Frameworks */,
-				CE2B083623F9ECC7007C77B6 /* libcommon.a in Frameworks */,
+				CF43CA06A122206F8CB8748A /* SDL3.xcframework in Frameworks */,
+				CED40A6A3049B32E0090C57A /* Objectively.framework in Frameworks */,
 				CE2B083823F9ECE1007C77B6 /* libshared.a in Frameworks */,
+				CE2B083623F9ECC7007C77B6 /* libcommon.a in Frameworks */,
+				CEE3A10521EE2BAA0070FD3E /* libcollision.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3636,7 +3722,7 @@
 			children = (
 				CEC0FF0020260103000001D4 /* cgame.so */,
 				CE05B3F030224900C0DE0930 /* cgame.so */,
-				D2A5C1000000000000000061 /* cgame.so */,
+				D2A5C1000000000000000061 /* cgame-race.so */,
 				CEC0FF0020260103000000EA /* game-ctf.so */,
 				CE12D7351C5C5B9300CD0B13 /* quetoo */,
 				CE12D7CD1C5C5D5C00CD0B13 /* game-default.so */,
@@ -5583,7 +5669,7 @@
 			);
 			name = "cgame-race";
 			productName = "cgame-race";
-			productReference = D2A5C1000000000000000061 /* cgame.so */;
+			productReference = D2A5C1000000000000000061 /* cgame-race.so */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
@@ -5663,11 +5749,11 @@
 				CEA029B31C5E545B00341079 /* quetoo-all */,
 				CE354EEF22075132008AE0C2 /* check_atlas */,
 				CE9A670B2D2589020068D720 /* check_box */,
-				CE51FB9D21481DD300ABE14F /* check_cmd */,
 				CEE3A0F021EE2B3F0070FD3E /* check_cm_entity */,
 				CEAD8FA42F8D8DE30087A850 /* check_cm_manifest */,
 				CEA508F52EA5D20A00F27205 /* check_cm_polylib */,
 				CE4DCF8C256F0DAD00FECAFC /* check_cm_test */,
+				CE51FB9D21481DD300ABE14F /* check_cmd */,
 				CEB384DE29A3A73B006DEA13 /* check_color */,
 				CE51FBB321481F2500ABE14F /* check_cvar */,
 				CE51FBCC21481FC100ABE14F /* check_filesystem */,
@@ -5695,7 +5781,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_cm_polylib &&\n$BUILT_PRODUCTS_DIR/check_cm_test &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_color &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_thread &&\n$BUILT_PRODUCTS_DIR/check_vector\n";
+			shellScript = "$BUILT_PRODUCTS_DIR/check_atlas &&\n$BUILT_PRODUCTS_DIR/check_box &&\n$BUILT_PRODUCTS_DIR/check_cm_entity &&\n$BUILT_PRODUCTS_DIR/check_cm_polylib &&\n$BUILT_PRODUCTS_DIR/check_cm_test &&\n$BUILT_PRODUCTS_DIR/check_cmd &&\n$BUILT_PRODUCTS_DIR/check_color &&\n$BUILT_PRODUCTS_DIR/check_cvar &&\n$BUILT_PRODUCTS_DIR/check_filesystem &&\n$BUILT_PRODUCTS_DIR/check_http &&\n$BUILT_PRODUCTS_DIR/check_master &&\n$BUILT_PRODUCTS_DIR/check_mem &&\n$BUILT_PRODUCTS_DIR/check_r_media &&\n$BUILT_PRODUCTS_DIR/check_shared &&\n$BUILT_PRODUCTS_DIR/check_thread &&\n$BUILT_PRODUCTS_DIR/check_vector\n";
 		};
 		CE05B2D13022486E0012862B /* Install module */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -6874,6 +6960,11 @@
 			target = CE80FE0E1C5E421900A21A51 /* collision */;
 			targetProxy = CEA508F72EA5D20A00F27205 /* PBXContainerItemProxy */;
 		};
+		CEA509112EA5D20A00F27205 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CEA508F52EA5D20A00F27205 /* check_cm_polylib */;
+			targetProxy = CEA509102EA5D20A00F27205 /* PBXContainerItemProxy */;
+		};
 		CEAD8F9F2F8D76790087A850 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CE80FE431C5E431000A21A51 /* net */;
@@ -6939,6 +7030,11 @@
 			target = CEC0FF0020260103000001CD /* cgame-ctf */;
 			targetProxy = CEC0FE002026010400000003 /* PBXContainerItemProxy */;
 		};
+		CED40A793049C6730090C57A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CEAD8F8D2F8D765F0087A850 /* check_http */;
+			targetProxy = CED40A783049C6730090C57A /* PBXContainerItemProxy */;
+		};
 		CEE3A10321EE2B570070FD3E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CE80FE0E1C5E421900A21A51 /* collision */;
@@ -6965,10 +7061,9 @@
 		CE052A6C214831FE003446C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
+					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -6977,10 +7072,9 @@
 		CE052A6D214831FE003446C9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
+					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -6989,10 +7083,9 @@
 		CE052A8221483255003446C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
+					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -7001,10 +7094,9 @@
 		CE052A8321483255003446C9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
+					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -7196,6 +7288,7 @@
 					"$(HOMEBREW_PREFIX)/opt/ncurses/include",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/include",
 				);
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					"$(HOMEBREW_PREFIX)/opt/ncurses/lib",
@@ -7243,6 +7336,7 @@
 					"$(HOMEBREW_PREFIX)/opt/ncurses/include",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/include",
 				);
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					"$(HOMEBREW_PREFIX)/opt/ncurses/lib",
@@ -7262,10 +7356,7 @@
 		CE12D73B1C5C5B9300CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(HOMEBREW_PREFIX)/lib",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-lncurses",
 					"-lopenal",
@@ -7279,10 +7370,7 @@
 		CE12D73C1C5C5B9300CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(HOMEBREW_PREFIX)/lib",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-lncurses",
 					"-lopenal",
@@ -7444,7 +7532,7 @@
 		CE12D8F21C5CF86600CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-lncurses",
 					"-lphysfs",
@@ -7456,7 +7544,7 @@
 		CE12D8F31C5CF86600CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-lncurses",
 					"-lphysfs",
@@ -7502,12 +7590,7 @@
 		CE354EFC22075132008AE0C2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = (
-					"-lSDL3",
-					"-lSDL3_image",
-					"-lcheck",
-				);
+				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -7515,12 +7598,7 @@
 		CE354EFD22075132008AE0C2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = (
-					"-lSDL3",
-					"-lSDL3_image",
-					"-lcheck",
-				);
+				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -7528,9 +7606,7 @@
 		CE4DCF9D256F0DAD00FECAFC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -7541,9 +7617,7 @@
 		CE4DCF9E256F0DAD00FECAFC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -7554,10 +7628,9 @@
 		CE51FB8E214819B000ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
+					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -7566,10 +7639,9 @@
 		CE51FB8F214819B000ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
+					"-lphysfs",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -7578,9 +7650,7 @@
 		CE51FBAD21481DD300ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -7591,9 +7661,7 @@
 		CE51FBAE21481DD300ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -7604,9 +7672,7 @@
 		CE51FBC221481F2500ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -7617,9 +7683,7 @@
 		CE51FBC321481F2500ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -7630,9 +7694,7 @@
 		CE51FBDD21481FC100ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -7643,9 +7705,7 @@
 		CE51FBDE21481FC100ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -7656,9 +7716,7 @@
 		CE51FBF52148207700ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -7669,9 +7727,7 @@
 		CE51FBF62148207700ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -7700,10 +7756,7 @@
 		CE80FD8B1C5E3B6F00A21A51 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(HOMEBREW_PREFIX)/lib",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-lphysfs",
 					"-lxml2",
@@ -7716,10 +7769,7 @@
 		CE80FD8C1C5E3B6F00A21A51 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(HOMEBREW_PREFIX)/lib",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = (
 					"-lphysfs",
 					"-lxml2",
@@ -7858,11 +7908,7 @@
 		CE948B202235652600D961FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = (
-					"-lSDL3",
-					"-lcheck",
-				);
+				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -7870,11 +7916,7 @@
 		CE948B212235652600D961FA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
-				OTHER_LDFLAGS = (
-					"-lSDL3",
-					"-lcheck",
-				);
+				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -7882,7 +7924,6 @@
 		CE9A67132D2589020068D720 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -7891,7 +7932,6 @@
 		CE9A67142D2589020068D720 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -7900,7 +7940,6 @@
 		CE9CFCAD23EB3D020009DA65 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -7909,7 +7948,6 @@
 		CE9CFCAE23EB3D020009DA65 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -7932,7 +7970,7 @@
 		CEA029F21C5E558100341079 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-lphysfs";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -7941,7 +7979,7 @@
 		CEA029F31C5E558100341079 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-lphysfs";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -7950,9 +7988,7 @@
 		CEA509032EA5D20A00F27205 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -7963,9 +7999,7 @@
 		CEA509042EA5D20A00F27205 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -7976,9 +8010,7 @@
 		CEAD8F9B2F8D765F0087A850 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -7989,9 +8021,7 @@
 		CEAD8F9C2F8D765F0087A850 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -8002,9 +8032,7 @@
 		CEAD8FB22F8D8DE30087A850 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -8015,9 +8043,7 @@
 		CEAD8FB32F8D8DE30087A850 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -8028,7 +8054,6 @@
 		CEB384EA29A3A73B006DEA13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -8037,7 +8062,6 @@
 		CEB384EB29A3A73B006DEA13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = "-lcheck";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -8226,9 +8250,7 @@
 		CEE3A0FF21EE2B3F0070FD3E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -8239,9 +8261,7 @@
 		CEE3A10021EE2B3F0070FD3E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
 				OTHER_LDFLAGS = (
-					"-lSDL3",
 					"-lcheck",
 					"-lphysfs",
 				);
@@ -8315,7 +8335,7 @@
 					"$(inherited)",
 					G_HOOK,
 				);
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_bundle;
 				OTHER_CFLAGS = (
 					"$(inherited)",
@@ -8355,7 +8375,7 @@
 					"$(inherited)",
 					G_HOOK,
 				);
-				LIBRARY_SEARCH_PATHS = "$(HOMEBREW_PREFIX)/lib";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACH_O_TYPE = mh_bundle;
 				OTHER_CFLAGS = (
 					"$(inherited)",
