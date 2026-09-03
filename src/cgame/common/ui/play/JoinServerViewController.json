@@ -101,6 +101,13 @@
                       "title": {
                         "text": "Refresh"
                       }
+                    },
+                    {
+                      "class": "Button",
+                      "identifier": "quickJoin",
+                      "title": {
+                        "text": "Quick join"
+                      }
                     }
                   ]
                 }
@@ -330,13 +337,6 @@
                       "identifier": "connect",
                       "title": {
                         "text": "Connect"
-                      }
-                    },
-                    {
-                      "class": "Button",
-                      "identifier": "quickJoin",
-                      "title": {
-                        "text": "Quick join"
                       }
                     }
                   ]

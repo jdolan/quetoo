@@ -1,19 +1,7 @@
 
 #servers {
-  width: 880;
-  height: 640;
-}
-
-#Join .accessoryView {
-  spacing: 16;
-}
-
-#Join .columns {
-  distribution: default;
-}
-
-#Join .column Box {
-  autoresizing-mask: contain | height;
+  autoresizing-mask: width;
+  height: 620;
 }
 
 #Server {
@@ -50,7 +38,7 @@
 
 .joinEmptyState {
   color: #888888;
-  min-height: 640;
+  min-height: 620;
 }
 
 .joinDetailTitle {

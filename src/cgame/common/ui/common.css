@@ -80,23 +80,26 @@ TextView {
 }
 
 .columns {
-  autoresizing-mask: contain | width;
+  autoresizing-mask: contain;
   axis: horizontal;
-  distribution: fill;
+  spacing: 12;
 }
 
 .columns > .column {
-  autoresizing-mask: contain | height;
-  distribution: fill;
+  autoresizing-mask: contain;
   width: 460;
+  min-width: 460;
+  max-width: 460;
 }
 
 .columns > .column-2 {
-  autoresizing-mask: contain | height;
-  distribution: fill;
+  autoresizing-mask: contain;
   width: 920;
+  min-width: 920;
+  max-width: 920;
 }
 
-.column Box {
-  autoresizing-mask: contain ;
+.column Box,
+.column-2 Box {
+  autoresizing-mask: contain | width;
 }

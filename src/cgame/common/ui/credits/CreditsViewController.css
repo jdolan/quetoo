@@ -28,6 +28,8 @@
 }
 
 #Credits #SpecialThanks .column {
+  min-width: 300;
+  max-width: 300;
   width: 300;
 }
 
