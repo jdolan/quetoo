@@ -38,10 +38,10 @@ static void updateBindings(View *self) {
 
   const bool isActive = *cgi.state == CL_ACTIVE;
 
-  this->background->view.hidden = isActive;
-  this->logo->view.hidden = isActive;
-  this->version->view.hidden = isActive;
-  this->secondaryMenu->view.hidden = !isActive;
+  $((View *) this->background, setHidden, isActive);
+  $((View *) this->logo, setHidden, isActive);
+  $((View *) this->version, setHidden, isActive);
+  $((View *) this->secondaryMenu, setHidden, !isActive);
 }
 
 #pragma mark - MainView

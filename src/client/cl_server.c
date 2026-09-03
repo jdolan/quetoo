@@ -69,6 +69,36 @@ void Cl_FreeServers(void) {
 }
 
 /**
+ * @brief Drops any other known entry for the same server reached a different way.
+ * @details A server broadcasting on the LAN and also listed by the master
+ * answers under two different addresses, so it shows twice. `Cl_ServerForNetaddr`
+ * already merges entries that share one address; this catches what that
+ * cannot - the same hostname, map and occupancy reported under two. `server`
+ * itself is never dropped: it is the one that just proved it is reachable and
+ * answering right now, so any duplicate loses to it rather than the reverse.
+ */
+static void Cl_MergeDuplicateServers(const cl_server_info_t *server) {
+
+  for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
+    const cl_server_info_t *other = (cl_server_info_t *) $(cls.servers, get, i);
+
+    if (other == server || Net_CompareNetaddr(&other->addr, &server->addr)) {
+      continue;
+    }
+
+    if (!server->hostname[0] || q_strcmp(other->hostname, server->hostname) ||
+        q_strcmp(other->name, server->name) ||
+        other->max_clients != server->max_clients ||
+        other->clients != server->clients) {
+      continue;
+    }
+
+    $(cls.servers, removeAt, i);
+    break;
+  }
+}
+
+/**
  * @brief Parses a server status response and updates or creates the matching server entry.
  */
 void Cl_ParseServerInfo(void) {
@@ -101,17 +131,21 @@ void Cl_ParseServerInfo(void) {
   char hostname[sizeof(server->hostname)];
   char name[sizeof(server->name)];
   char gameplay[sizeof(server->gameplay)];
+  char movement[sizeof(server->movement)];
 
   q_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
   q_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
   const char *mode = InfoString_Get(string, "g_gameplay_mode");
   q_strlcpy(gameplay, *mode ? mode : InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
+  const char *move = InfoString_Get(string, "g_movement_mode");
+  q_strlcpy(movement, *move ? move : InfoString_Get(string, "g_movement"), sizeof(movement));
   const int32_t max_clients = atoi(InfoString_Get(string, "sv_max_clients"));
 
   if (hostname[0] && name[0]) {
     q_strlcpy(server->hostname, hostname, sizeof(server->hostname));
     q_strlcpy(server->name, name, sizeof(server->name));
     q_strlcpy(server->gameplay, gameplay, sizeof(server->gameplay));
+    q_strlcpy(server->movement, movement, sizeof(server->movement));
     server->max_clients = max_clients;
 
     server->clients = 0;
@@ -144,10 +178,13 @@ void Cl_ParseServerInfo(void) {
               Net_NetaddrToString(&net_from), server->hostname, server->name, server->gameplay,
               server->clients, server->max_clients, server->bots, server->ping);
 
+    Cl_MergeDuplicateServers(server);
+
   } else {
     server->hostname[0] = '\0';
     server->name[0] = '\0';
     server->gameplay[0] = '\0';
+    server->movement[0] = '\0';
 
     server->clients = 0;
     server->max_clients = 0;

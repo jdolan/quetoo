@@ -1,27 +1,19 @@
 
 #servers {
-  width: 1420;
-  height: 640;
+  autoresizing-mask: width;
+  height: 620;
 }
 
-#Hostname {
-  min-width: 420;
-}
-
-#Source {
-  min-width: 140;
+#Server {
+  min-width: 380;
 }
 
 #Map {
-  min-width: 140;
-}
-
-#Gameplay {
-  min-width: 140;
+  min-width: 180;
 }
 
 #Players {
-  min-width: 100;
+  min-width: 140;
 }
 
 #Ping {
@@ -30,4 +22,51 @@
 
 #servers .error > Text {
   color: darkred;
+}
+
+#servers .pingUnanswered > Text {
+  color: #888888;
+}
+
+#servers .pingOver > Text {
+  color: darkred;
+}
+
+#servers .pingFast > Text {
+  color: #1e4e62;
+}
+
+.joinEmptyState {
+  color: #888888;
+  min-height: 620;
+}
+
+.joinDetailTitle {
+  font-size: 24;
+}
+
+.joinDetailAddress {
+  color: #888888;
+}
+
+.joinDetailHint {
+  color: #888888;
+}
+
+.joinDetailMapshot {
+  width: 416;
+  height: 234;
+}
+
+.joinDetailGrid {
+  spacing: 4;
+}
+
+.joinDetailRow {
+  axis: horizontal;
+}
+
+.joinDetailCaption {
+  min-width: 140;
+  color: #888888;
 }

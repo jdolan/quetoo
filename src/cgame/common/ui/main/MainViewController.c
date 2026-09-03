@@ -72,6 +72,24 @@ static void openReleasesPage(ident data) {
 }
 
 /**
+ * @brief Presents `dialog`, unless one is already showing: a dialog asks a
+ * question, and a second copy of the question does not make it a better one.
+ */
+static void presentDialog(MainViewController *this, const Dialog *dialog) {
+
+  const Array *children = (Array *) ((ViewController *) this)->childViewControllers;
+  for (size_t i = 0; i < children->count; i++) {
+    if ($((Object *) children->elements[i], isKindOfClass, _DialogViewController())) {
+      return;
+    }
+  }
+
+  ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, dialog);
+  $((ViewController *) this, addChildViewController, viewController);
+  release(viewController);
+}
+
+/**
  * @brief Quit the game.
  */
 static void quit(ident data) {
@@ -85,15 +103,12 @@ static void didClickQuit(Button *button) {
 
   MainViewController *this = button->delegate.self;
 
-  const Dialog dialog = {
+  presentDialog(this, &(const Dialog) {
     .message = "Are you sure you want to quit?",
     .ok = "Yes",
     .cancel = "No",
     .okFunction = quit
-  };
-
-  ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
-  $((ViewController *) this, addChildViewController, viewController);
+  });
 }
 
 /**
@@ -110,15 +125,12 @@ static void didClickDisconnect(Button *button) {
 
   MainViewController *this = button->delegate.self;
 
-  const Dialog dialog = {
+  presentDialog(this, &(const Dialog) {
     .message = "Are you sure you want to disconnect?",
     .ok = "Yes",
     .cancel = "No",
     .okFunction = disconnect
-  };
-
-  ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
-  $((ViewController *) this, addChildViewController, viewController);
+  });
 }
 
 #pragma mark - Object
@@ -229,15 +241,12 @@ static void viewWillAppear(ViewController *self) {
   if (this->updateAvailable) {
     this->updateAvailable = false;
 
-    const Dialog dialog = {
+    presentDialog(this, &(const Dialog) {
       .message = "A new version of Quetoo is available. Download now?",
       .ok = "Yes",
       .cancel = "No",
       .okFunction = openReleasesPage
-    };
-
-    ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
-    $(self, addChildViewController, viewController);
+    });
   }
 }
 

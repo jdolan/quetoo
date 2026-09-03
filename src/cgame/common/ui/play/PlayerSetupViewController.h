@@ -55,6 +55,11 @@ struct PlayerSetupViewController {
   PlayerSetupViewControllerInterface *interface[0];
 
   /**
+   * @brief The player name.
+   */
+  TextView *name;
+  
+  /**
    * @brief The skin Select.
    */
   Select *skinSelect;

@@ -38,6 +38,7 @@
                         },
                         "control": {
                           "class": "CvarTextView",
+                          "identifier": "name",
                           "var": "name"
                         }
                       },
