@@ -37,19 +37,22 @@
 }
 
 .joinEmptyState {
-  color: #888888;
   min-height: 620;
 }
 
-.joinDetailTitle {
-  font-size: 24;
-}
-
-.joinDetailAddress {
+.joinEmptyState > Text {
   color: #888888;
 }
 
-.joinDetailHint {
+.joinDetailTitle > Text {
+  font-size: 24;
+}
+
+.joinDetailAddress > Text {
+  color: #888888;
+}
+
+.joinDetailHint > Text {
   color: #888888;
 }
 
@@ -68,5 +71,8 @@
 
 .joinDetailCaption {
   min-width: 140;
+}
+
+.joinDetailCaption > Text {
   color: #888888;
 }

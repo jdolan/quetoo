@@ -23,6 +23,9 @@
 
 quetoo_t quetoo;
 
+#define TEST_FILE "check_filesystem.txt"
+#define TEST_FILE_CONTENTS "This is a file written by check_filesystem.\n"
+
 /**
  * @brief Setup fixture.
  */
@@ -33,6 +36,17 @@ void setup(void) {
   Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
   ck_assert(Fs_SetGame(TEST_GAME, NULL));
+
+  // the read tests run against a file this fixture writes, so that they do not
+  // require the game data to be installed
+  file_t *f = Fs_OpenWrite(TEST_FILE);
+  ck_assert_msg(f != NULL, "Failed to open %s for writing", TEST_FILE);
+
+  const size_t len = strlen(TEST_FILE_CONTENTS);
+
+  ck_assert_msg((size_t) Fs_Write(f, TEST_FILE_CONTENTS, 1, len) == len,
+                "Failed to write %s", TEST_FILE);
+  ck_assert_msg(Fs_Close(f), "Failed to close %s", TEST_FILE);
 }
 
 /**
@@ -46,19 +60,14 @@ void teardown(void) {
 }
 
 START_TEST(check_Fs_OpenRead) {
-  const char *filenames[] = { "maps.lst", "maps/torn.bsp", NULL };
 
-  const char **filename = filenames;
-  while (*filename) {
-    ck_assert_msg(Fs_Exists(*filename), "%s does not exist", *filename);
+  ck_assert_msg(Fs_Exists(TEST_FILE), "%s does not exist", TEST_FILE);
 
-    file_t *f = Fs_OpenRead(*filename);
+  file_t *f = Fs_OpenRead(TEST_FILE);
 
-    ck_assert_msg(f != NULL, "Failed to open %s", *filename);
-    ck_assert_msg(Fs_Close(f), "Failed to close %s", *filename);
+  ck_assert_msg(f != NULL, "Failed to open %s", TEST_FILE);
+  ck_assert_msg(Fs_Close(f), "Failed to close %s", TEST_FILE);
 
-    filename++;
-  }
 } END_TEST
 
 START_TEST(check_Fs_OpenWrite) {
@@ -76,12 +85,10 @@ START_TEST(check_Fs_OpenWrite) {
 
 START_TEST(check_Fs_LoadFile) {
   void *buffer;
-  int64_t len = Fs_Load("maps.lst", &buffer);
+  int64_t len = Fs_Load(TEST_FILE, &buffer);
 
-  ck_assert_msg(len > 0, "Failed to load maps.lst");
-
-  const char *prefix = "# This is the default name rotation configuration.";
-  ck_assert(!strncmp((const char *) buffer, prefix, strlen(prefix)));
+  ck_assert_msg(len == (int64_t) strlen(TEST_FILE_CONTENTS), "Failed to load %s", TEST_FILE);
+  ck_assert(!strcmp((const char *) buffer, TEST_FILE_CONTENTS));
 
   Fs_Free(buffer);
 

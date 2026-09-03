@@ -141,8 +141,14 @@ jobs:
       run: |
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
         autoreconf -i
-        ./configure --with-build-number=$(git rev-list --count HEAD) --enable-optimizations LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --prefix=/
+        ./configure --with-build-number=$(git rev-list --count HEAD) --enable-optimizations --with-tests LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --prefix=/
         make -j$(nproc)
+
+    - name: Test Quetoo
+      working-directory: quetoo
+      run: |
+        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
+        make check || (cat src/tests/test-suite.log 2>/dev/null; exit 1)
 
     - name: Package Quetoo
       working-directory: quetoo/linux

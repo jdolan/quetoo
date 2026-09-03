@@ -64,6 +64,16 @@ struct LoadingViewController {
   ImageView *logo;
 
   /**
+   * @brief The map title.
+   */
+  Label *mapTitle;
+
+  /**
+   * @brief The name of the server being loaded into.
+   */
+  Label *serverName;
+
+  /**
    * @brief The progress bar.
    */
   ProgressBar *progressBar;

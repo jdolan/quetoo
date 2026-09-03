@@ -193,8 +193,8 @@ check_r_media_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_r_media_LDADD = \
 	$(TESTS_LIBS) \
-	$(top_builddir)/src/collision/libcollision.la \
-	$(top_builddir)/src/client/renderer/librenderer.la
+	$(top_builddir)/src/client/renderer/librenderer.la \
+	$(top_builddir)/src/collision/libcollision.la
 
 check_race_SOURCES = \
 	check_race.c \
@@ -210,6 +210,7 @@ check_race_CFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/game/common \
 	-I$(top_srcdir)/src/game/race \
+	-ffp-contract=off \
 	-fms-extensions \
 	-Wno-microsoft-anon-tag \
 	$(TESTS_CFLAGS)
