@@ -193,8 +193,8 @@ check_r_media_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_r_media_LDADD = \
 	$(TESTS_LIBS) \
-	$(top_builddir)/src/collision/libcollision.la \
-	$(top_builddir)/src/client/renderer/librenderer.la
+	$(top_builddir)/src/client/renderer/librenderer.la \
+	$(top_builddir)/src/collision/libcollision.la
 
 check_race_SOURCES = \
 	check_race.c \
