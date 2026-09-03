@@ -39,6 +39,7 @@
                         },
                         "control": {
                           "class": "CvarTextView",
+                          "identifier": "hostname",
                           "var": "sv_hostname"
                         }
                       },

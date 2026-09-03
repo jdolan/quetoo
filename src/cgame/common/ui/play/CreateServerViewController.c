@@ -102,6 +102,7 @@ static void loadView(ViewController *self) {
   View *gameplayInput, *hookInput, *techsInput;
 
   Outlet outlets[] = MakeOutlets(
+    MakeOutlet("hostname", &this->hostname),
     MakeOutlet("bots", &this->bots),
     MakeOutlet("gameplay", &this->gameplay),
     MakeOutlet("gameplayInput", &gameplayInput),
@@ -125,6 +126,8 @@ static void loadView(ViewController *self) {
 
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/CreateServerViewController.css");
   assert(self->view->stylesheet);
+
+  this->hostname->text->colorEscapes = true;
 
   const cvar_t *sv_min_clients = cgi.GetCvar("sv_min_clients");
   const int32_t bots = sv_min_clients ? Maxi(0, sv_min_clients->integer - 1) : 0;
