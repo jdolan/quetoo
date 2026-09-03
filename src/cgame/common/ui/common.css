@@ -39,6 +39,10 @@ Panel.menu {
   draggable: false;
 }
 
+Panel > .resizeHandle {
+  border-radius: 12;
+}
+
 Panel.menu .tabPageView {
   autoresizing-mask: contain;
   width: 1440;
