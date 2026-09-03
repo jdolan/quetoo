@@ -550,7 +550,6 @@ Class *_EntityViewController(void) {
       .name = "EntityViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(EntityViewController),
-      .interfaceOffset = offsetof(EntityViewController, interface),
       .interfaceSize = sizeof(EntityViewControllerInterface),
       .initialize = initialize,
     });

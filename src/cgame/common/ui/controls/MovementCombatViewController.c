@@ -109,7 +109,6 @@ Class *_MovementCombatViewController(void) {
       .name = "MovementCombatViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(MovementCombatViewController),
-      .interfaceOffset = offsetof(MovementCombatViewController, interface),
       .interfaceSize = sizeof(MovementCombatViewControllerInterface),
       .initialize = initialize,
     });

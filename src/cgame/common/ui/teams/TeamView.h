@@ -43,10 +43,10 @@ struct TeamView {
   View view;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @protected
    */
-  TeamViewInterface *interface;
+  TeamViewInterface *interface[0];
 
   /**
    * @brief The team info to render.

@@ -352,7 +352,6 @@ Class *_MainViewController(void) {
       .name = "MainViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(MainViewController),
-      .interfaceOffset = offsetof(MainViewController, interface),
       .interfaceSize = sizeof(MainViewControllerInterface),
       .initialize = initialize,
     });

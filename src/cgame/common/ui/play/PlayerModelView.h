@@ -47,10 +47,10 @@ struct PlayerModelView {
   Control control;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  PlayerModelViewInterface *interface;
+  PlayerModelViewInterface *interface[0];
 
   /**
    * @brief The client information.

@@ -301,7 +301,6 @@ Class *_SettingsViewController(void) {
       .name = "SettingsViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(SettingsViewController),
-      .interfaceOffset = offsetof(SettingsViewController, interface),
       .interfaceSize = sizeof(SettingsViewControllerInterface),
       .initialize = initialize,
     });

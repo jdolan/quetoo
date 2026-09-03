@@ -44,10 +44,10 @@ struct BindTextView {
   TextView textView;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  BindTextViewInterface *interface;
+  BindTextViewInterface *interface[0];
 
   /**
    * @brief The bind (e.g. `+forward`).

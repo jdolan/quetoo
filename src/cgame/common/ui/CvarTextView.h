@@ -47,10 +47,10 @@ struct CvarTextView {
   TextView textView;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  CvarTextViewInterface *interface;
+  CvarTextViewInterface *interface[0];
 
   /**
    * @brief The variable.

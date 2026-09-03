@@ -45,10 +45,10 @@ struct CrosshairView {
   Control control;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  CrosshairViewInterface *interface;
+  CrosshairViewInterface *interface[0];
 
   /**
    * @brief The ImageView.

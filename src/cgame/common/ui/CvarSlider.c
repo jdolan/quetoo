@@ -137,7 +137,6 @@ Class *_CvarSlider(void) {
       .name = "CvarSlider",
       .superclass = _Slider(),
       .instanceSize = sizeof(CvarSlider),
-      .interfaceOffset = offsetof(CvarSlider, interface),
       .interfaceSize = sizeof(CvarSliderInterface),
       .initialize = initialize,
     });

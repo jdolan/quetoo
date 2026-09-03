@@ -47,10 +47,10 @@ struct MapListCollectionView {
   CollectionView collectionView;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  MapListCollectionViewInterface *interface;
+  MapListCollectionViewInterface *interface[0];
 
   /**
    * @brief A lock used for asynchronous map loading.

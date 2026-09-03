@@ -225,7 +225,6 @@ Class *_VoteViewController(void) {
       .name = "VoteViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(VoteViewController),
-      .interfaceOffset = offsetof(VoteViewController, interface),
       .interfaceSize = sizeof(VoteViewControllerInterface),
       .initialize = initialize,
     });

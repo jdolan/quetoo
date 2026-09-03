@@ -157,7 +157,6 @@ Class *_CrosshairView(void) {
       .name = "CrosshairView",
       .superclass = _Control(),
       .instanceSize = sizeof(CrosshairView),
-      .interfaceOffset = offsetof(CrosshairView, interface),
       .interfaceSize = sizeof(CrosshairViewInterface),
       .initialize = initialize,
     });

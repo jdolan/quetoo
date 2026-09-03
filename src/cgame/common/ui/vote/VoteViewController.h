@@ -39,10 +39,10 @@ struct VoteViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @protected
    */
-  VoteViewControllerInterface *interface;
+  VoteViewControllerInterface *interface[0];
 
   Label *status;
   Button *yes, *no;

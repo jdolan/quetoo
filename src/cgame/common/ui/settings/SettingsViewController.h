@@ -46,10 +46,10 @@ struct SettingsViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  SettingsViewControllerInterface *interface;
+  SettingsViewControllerInterface *interface[0];
 };
 
 /**

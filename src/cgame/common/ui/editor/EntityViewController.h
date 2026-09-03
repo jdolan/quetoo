@@ -47,9 +47,9 @@ struct EntityViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface. @private
+   * @brief The interface type. @private
    */
-  EntityViewControllerInterface *interface;
+  EntityViewControllerInterface *interface[0];
 
   /**
    * @brief The StackView containing the entity key-value pairs.

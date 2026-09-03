@@ -46,10 +46,10 @@ struct ControlsViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  ControlsViewControllerInterface *interface;
+  ControlsViewControllerInterface *interface[0];
 
   /**
    * @brief TabView to contain tabs.

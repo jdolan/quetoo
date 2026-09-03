@@ -98,7 +98,6 @@ Class *_ControlsViewController(void) {
       .name = "ControlsViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(ControlsViewController),
-      .interfaceOffset = offsetof(ControlsViewController, interface),
       .interfaceSize = sizeof(ControlsViewControllerInterface),
       .initialize = initialize,
     });

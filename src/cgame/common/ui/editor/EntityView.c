@@ -199,7 +199,6 @@ Class *_EntityView(void) {
       .name = "EntityView",
       .superclass = _StackView(),
       .instanceSize = sizeof(EntityView),
-      .interfaceOffset = offsetof(EntityView, interface),
       .interfaceSize = sizeof(EntityViewInterface),
       .initialize = initialize,
     });

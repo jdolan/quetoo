@@ -131,7 +131,6 @@ Class *_CvarTextView(void) {
       .name = "CvarTextView",
       .superclass = _TextView(),
       .instanceSize = sizeof(CvarTextView),
-      .interfaceOffset = offsetof(CvarTextView, interface),
       .interfaceSize = sizeof(CvarTextViewInterface),
       .initialize = initialize,
     });

@@ -46,10 +46,10 @@ struct CvarSlider {
   Slider slider;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  CvarSliderInterface *interface;
+  CvarSliderInterface *interface[0];
 
   /**
    * @brief The variable.

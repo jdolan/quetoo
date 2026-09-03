@@ -45,10 +45,10 @@ struct MovementCombatViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @protected
    */
-  MovementCombatViewControllerInterface *interface;
+  MovementCombatViewControllerInterface *interface[0];
 };
 
 /**

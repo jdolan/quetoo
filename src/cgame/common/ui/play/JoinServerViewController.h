@@ -48,10 +48,10 @@ struct JoinServerViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  JoinServerViewControllerInterface *interface;
+  JoinServerViewControllerInterface *interface[0];
 
   /**
    * @brief A copy of the client's servers list, for sorting, filtering, etc.

@@ -49,10 +49,10 @@ struct PlayerSetupViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  PlayerSetupViewControllerInterface *interface;
+  PlayerSetupViewControllerInterface *interface[0];
 
   /**
    * @brief The skin Select.

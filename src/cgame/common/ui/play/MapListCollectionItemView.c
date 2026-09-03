@@ -84,7 +84,6 @@ Class *_MapListCollectionItemView(void) {
       .name = "MapListCollectionItemView",
       .superclass = _CollectionItemView(),
       .instanceSize = sizeof(MapListCollectionItemView),
-      .interfaceOffset = offsetof(MapListCollectionItemView, interface),
       .interfaceSize = sizeof(MapListCollectionItemViewInterface),
       .initialize = initialize,
     });

@@ -70,10 +70,10 @@ struct LeaderboardViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @private
    */
-  LeaderboardViewControllerInterface *interface;
+  LeaderboardViewControllerInterface *interface[0];
 
   /**
    * @brief The global leaderboard table.

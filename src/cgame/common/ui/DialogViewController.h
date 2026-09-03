@@ -83,10 +83,10 @@ struct DialogViewController {
   ViewController viewController;
 
   /**
-   * @brief The interface.
+   * @brief The interface type.
    * @protected
    */
-  DialogViewControllerInterface *interface;
+  DialogViewControllerInterface *interface[0];
 
   /**
    * @brief The dialog.

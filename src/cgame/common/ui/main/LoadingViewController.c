@@ -109,7 +109,6 @@ Class *_LoadingViewController(void) {
       .name = "LoadingViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(LoadingViewController),
-      .interfaceOffset = offsetof(LoadingViewController, interface),
       .interfaceSize = sizeof(LoadingViewControllerInterface),
       .initialize = initialize,
     });

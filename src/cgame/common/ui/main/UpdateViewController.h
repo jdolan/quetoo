@@ -50,10 +50,10 @@ struct UpdateViewController {
 	ViewController viewController;
 
 	/**
-	 * @brief The interface.
+	 * @brief The interface type.
 	 * @private
 	 */
-	UpdateViewControllerInterface *interface;
+	UpdateViewControllerInterface *interface[0];
 
 	/**
 	 * @brief The hero image slideshow.

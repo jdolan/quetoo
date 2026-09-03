@@ -196,7 +196,6 @@ Class *_BindTextView(void) {
       .name = "BindTextView",
       .superclass = _TextView(),
       .instanceSize = sizeof(BindTextView),
-      .interfaceOffset = offsetof(BindTextView, interface),
       .interfaceSize = sizeof(BindTextViewInterface),
       .initialize = initialize,
     });

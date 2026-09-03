@@ -150,7 +150,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+game race"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map claustrophobopolis"
@@ -158,7 +158,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map racetest"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set sv_map_list maps-jdolan.lst"

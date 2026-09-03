@@ -240,7 +240,6 @@ Class *_ResponseServiceViewController(void) {
       .name = "ResponseServiceViewController",
       .superclass = _ViewController(),
       .instanceSize = sizeof(ResponseServiceViewController),
-      .interfaceOffset = offsetof(ResponseServiceViewController, interface),
       .interfaceSize = sizeof(ResponseServiceViewControllerInterface),
       .initialize = initialize,
     });
