@@ -26,3 +26,24 @@
 #progress > Text {
   alignment: middle-left;
 }
+
+#loadingInfo {
+  alignment: top-center;
+  autoresizing-mask: contain | width;
+  background-color: #08151aaa;
+  clips-subviews: true;
+  padding: 12;
+  spacing: 4;
+}
+
+#loadingInfo Label {
+  alignment: center;
+}
+
+#mapTitle > Text {
+  font-size: 28;
+}
+
+#serverName > Text {
+  color: #8fc7dc;
+}

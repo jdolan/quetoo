@@ -10,6 +10,26 @@
       "identifier": "logo"
     },
     {
+      "class": "StackView",
+      "identifier": "loadingInfo",
+      "subviews": [
+        {
+          "class": "Label",
+          "identifier": "mapTitle",
+          "text": {
+            "colorEscapes": true
+          }
+        },
+        {
+          "class": "Label",
+          "identifier": "serverName",
+          "text": {
+            "colorEscapes": true
+          }
+        }
+      ]
+    },
+    {
       "class": "ProgressBar",
       "identifier": "progress"
     }

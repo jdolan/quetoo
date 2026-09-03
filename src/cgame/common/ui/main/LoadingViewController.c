@@ -39,6 +39,8 @@ static void loadView(ViewController *self) {
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("mapShot", &this->mapShot),
     MakeOutlet("logo", &this->logo),
+    MakeOutlet("mapTitle", &this->mapTitle),
+    MakeOutlet("serverName", &this->serverName),
     MakeOutlet("progress", &this->progressBar)
   );
 
@@ -63,6 +65,58 @@ static LoadingViewController *init(LoadingViewController *self) {
 }
 
 /**
+ * @brief Loads, blurs and sets the named image as the backdrop.
+ */
+static void setMapShot(LoadingViewController *self, const char *name) {
+
+  SDL_Surface *surf = cgi.LoadSurface(name);
+  if (surf) {
+    cgi.BlurSurface(surf, 3);
+    $(self->mapShot, setImageWithSurface, surf);
+    SDL_DestroySurface(surf);
+  } else {
+    $(self->mapShot, setImageWithResourceName, name);
+  }
+}
+
+/**
+ * @return The title of the map being loaded.
+ */
+static const char *resolveMapTitle(void) {
+
+  const char *message = cgi.ConfigString(CS_MESSAGE);
+  if (*message) {
+    return message;
+  }
+
+  char name[MAX_STRING_CHARS];
+  StripExtension(Basename(cgi.ConfigString(CS_BSP)), name);
+
+  return va("%s", name);
+}
+
+/**
+ * @return A human readable name for the server being loaded into.
+ */
+static const char *resolveServerName(void) {
+
+  if (cgi.client->demo_server) {
+    return "Demo playback";
+  }
+
+  if (!*cgi.server_name) {
+    return "";
+  }
+
+  if (!q_strcmp(cgi.server_name, "localhost")) {
+    const char *hostname = cgi.GetCvarString("sv_hostname");
+    return *hostname ? hostname : "Local server";
+  }
+
+  return cgi.server_name;
+}
+
+/**
  * @fn void LoadingViewController::setProgress(LoadingViewController *self, const cl_loading_t loading)
  * @memberof LoadingViewController
  */
@@ -71,15 +125,19 @@ static void setProgress(LoadingViewController *self, const cl_loading_t loading)
   $(self->progressBar, setLabelFormat, va("%%0.0lf%%%% (%s)", loading.status));
   $(self->progressBar, setValue, loading.percent);
 
-  if (loading.percent == 0 && loading.mapshot[0] != '\0') {
-    SDL_Surface *surf = cgi.LoadSurface(loading.mapshot);
-    if (surf) {
-      cgi.BlurSurface(surf, 3);
-      $(self->mapShot, setImageWithSurface, surf);
-      SDL_DestroySurface(surf);
+  if (loading.percent == 0) {
+
+    if (loading.mapshot[0] != '\0') {
+      setMapShot(self, loading.mapshot);
     } else {
-      $(self->mapShot, setImageWithResourceName, loading.mapshot);
+      setMapShot(self, va("ui/backgrounds/%u.png", RandomRangeu(0, 6)));
     }
+
+    $(self->mapTitle->text, setText, resolveMapTitle());
+
+    const char *server = resolveServerName();
+    $(self->serverName->text, setText, server);
+    $((View *) self->serverName, setHidden, *server == '\0');
   }
 }
 
