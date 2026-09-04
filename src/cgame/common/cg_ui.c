@@ -24,6 +24,7 @@
 #include "ui/main/MainViewController.h"
 #include "ui/main/LoadingViewController.h"
 #include "ui/main/UpdateViewController.h"
+#include "ui/hud/HudViewController.h"
 
 static MainViewController *mainViewController;
 static UpdateViewController *updateViewController;
@@ -42,10 +43,26 @@ void Cg_InitUi(void) {
 
   $(theme, addStylesheet, stylesheet);
 
+  Resource *font = $$(Resource, resourceWithName, "ui/fonts/ShareTechMono-Regular.ttf");
+  if (font) {
+    $$(Font, cacheFont, font->data, "ShareTechMono");
+    release(font);
+  } else {
+    Cg_Warn("Failed to load ui/fonts/ShareTechMono-Regular.ttf\n");
+  }
+
   mainViewController = $(alloc(MainViewController), init);
   assert(mainViewController);
 
   cgi.PushViewController((ViewController *) mainViewController);
+}
+
+void Cg_InitHudUi(void) {
+
+  cg_hud_view_controller = (HudViewController *) $((ViewController *) alloc(HudViewController), init);
+  assert(cg_hud_view_controller);
+
+  cgi.SetHudViewController((ViewController *) cg_hud_view_controller);
 }
 
 /**
@@ -55,6 +72,9 @@ void Cg_ShutdownUi(void) {
 
   cgi.PopAllViewControllers();
   cgi.PopViewController();
+
+  cgi.SetHudViewController(NULL);
+  release(cg_hud_view_controller);
 
   $(cgi.Theme(), removeStylesheet, stylesheet);
 

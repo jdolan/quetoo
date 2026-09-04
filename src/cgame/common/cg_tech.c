@@ -22,25 +22,78 @@
 
 #include "cg_local.h"
 
+#include "ui/hud/PowerupView.h"
+
 static struct {
-  DrawHudElements DrawHudElements;
+  ConfigureHud ConfigureHud;
 } previous;
 
+static Class *_TechView(void);
+
+#define _Class _TechView
+
 /**
- * @brief Draws the tech the client holds, beneath whatever powerups they hold.
+ * @brief The held tech in the powerup column: its icon, with no countdown.
+ * @extends PowerupView
  */
-static void Cg_DrawHudElements_Tech(const player_state_t *ps, cg_hud_layout_t *layout) {
+typedef struct TechViewInterface TechViewInterface;
 
-  previous.DrawHudElements(ps, layout);
+typedef struct {
+  PowerupView powerupView;
+  TechViewInterface *interface[0];
+} TechView;
 
-  const int16_t tech = ps->stats[STAT_TECH];
-  if (tech > ITEM_NONE && tech < ITEM_TOTAL && cg_items[tech].icon) {
-    int32_t ch;
-    cgi.BindFont("large", &ch, NULL);
+struct TechViewInterface {
+  PowerupViewInterface powerupViewInterface;
+};
 
-    layout->powerup_y = Cg_DrawPowerup(layout->powerup_y, 0, cg_items[tech].icon, ch);
+static void updateBindings(View *self, ident data) {
 
-    cgi.BindFont(NULL, NULL, NULL);
+  super(View, self, updateBindings, data);
+
+  if (data) {
+    const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+    $((PowerupView *) self, update, ps->stats[STAT_TECH], -1);
+  }
+}
+
+static void initialize(Class *clazz) {
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+}
+
+static Class *_TechView(void) {
+  static Class *clazz;
+  static Once once;
+
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "TechView",
+      .superclass = _PowerupView(),
+      .instanceSize = sizeof(TechView),
+      .interfaceSize = sizeof(TechViewInterface),
+      .initialize = initialize,
+    });
+  });
+
+  return clazz;
+}
+
+#undef _Class
+
+/**
+ * @brief Adds the held tech to the powerup column.
+ */
+static void Cg_ConfigureHud_Tech(View *hud) {
+
+  previous.ConfigureHud(hud);
+
+  View *powerups = $(hud, descendantWithIdentifier, "powerups");
+  if (powerups) {
+    PowerupView *tech = $((PowerupView *) alloc(TechView), initWithPowerup, PowerupViewNone);
+    assert(tech);
+
+    $(powerups, addSubview, (View *) tech);
+    release(tech);
   }
 }
 
@@ -55,8 +108,8 @@ void Cg_Tech_Init(void) {
     return;
   }
 
-  previous.DrawHudElements = Cg_DrawHudElements;
-  Cg_DrawHudElements = Cg_DrawHudElements_Tech;
+  previous.ConfigureHud = Cg_ConfigureHud;
+  Cg_ConfigureHud = Cg_ConfigureHud_Tech;
 
   installed = true;
 }

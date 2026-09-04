@@ -119,9 +119,19 @@ void Cg_Module_Shutdown(void);
  * module that wants the clock somewhere else overrides `cg_hud.c` outright, which
  * vpath has always allowed.
  */
-typedef void (*DrawHudElements)(const player_state_t *ps, cg_hud_layout_t *layout);
+typedef void (*DrawHudElements)(const player_state_t *ps);
 
 extern DrawHudElements Cg_DrawHudElements;
+
+/**
+ * @brief Configures the HUD View hierarchy after its variant loads: a module adds the Views
+ * for its elements to the named containers, e.g. a CounterView to `#stats`.
+ * @details Chainable, like DrawHudElements: call previous first, then add. Runs again on
+ * every reload, so create the Views here rather than holding them.
+ */
+typedef void (*ConfigureHud)(View *hud);
+
+extern ConfigureHud Cg_ConfigureHud;
 
 /**
  * @}

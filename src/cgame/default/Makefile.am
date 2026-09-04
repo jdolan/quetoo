@@ -14,6 +14,7 @@ AM_CPPFLAGS = \
 	-I$(CGAME_COMMON_DIR)/ui/credits \
 	-I$(CGAME_COMMON_DIR)/ui/editor \
 	-I$(CGAME_COMMON_DIR)/ui/home \
+	-I$(CGAME_COMMON_DIR)/ui/hud \
 	-I$(CGAME_COMMON_DIR)/ui/main \
 	-I$(CGAME_COMMON_DIR)/ui/play \
 	-I$(CGAME_COMMON_DIR)/ui/settings \
@@ -64,6 +65,8 @@ cguifontsdir = \
 	@PKGLIBDIR@/default/ui/fonts
 
 cguifonts_DATA = \
+	$(CGUI_DIR)/fonts/ShareTechMono-OFL.txt \
+	$(CGUI_DIR)/fonts/ShareTechMono-Regular.ttf \
 	$(CGUI_DIR)/fonts/large.png \
 	$(CGUI_DIR)/fonts/medium.png \
 	$(CGUI_DIR)/fonts/small.png
@@ -98,6 +101,13 @@ cguieditor_DATA = \
 	$(CGUI_DIR)/editor/MeshViewController.css \
 	$(CGUI_DIR)/editor/MeshViewController.json \
 	$(CGUI_DIR)/editor/editor.css
+
+cguihuddir = \
+	@PKGLIBDIR@/default/ui/hud
+
+cguihud_DATA = \
+	$(CGUI_DIR)/hud/classic.css \
+	$(CGUI_DIR)/hud/classic.json
 
 cguihomedir = \
 	@PKGLIBDIR@/default/ui/home
@@ -204,7 +214,7 @@ cgame_la_SOURCES = \
 	ui/CvarTextView.c \
 	ui/DialogViewController.c \
 	ui/controls/ControlsViewController.c \
-	ui/controls/CrosshairView.c \
+	ui/controls/CrosshairPreviewView.c \
 	ui/controls/MovementCombatViewController.c \
 	ui/controls/ResponseServiceViewController.c \
 	ui/credits/CreditsViewController.c \
@@ -216,6 +226,16 @@ cgame_la_SOURCES = \
 	ui/home/HomeViewController.c \
 	ui/home/LeaderboardViewController.c \
 	ui/home/StatsViewController.c \
+	ui/hud/CounterView.c \
+	ui/hud/CrosshairView.c \
+	ui/hud/HudView.c \
+	ui/hud/HudViewController.c \
+	ui/hud/PickupView.c \
+	ui/hud/PowerupView.c \
+	ui/hud/StatView.c \
+	ui/hud/TeamBannerView.c \
+	ui/hud/TimeView.c \
+	ui/hud/WeaponBarView.c \
 	ui/main/LoadingViewController.c \
 	ui/main/MainView.c \
 	ui/main/MainViewController.c \

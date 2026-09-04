@@ -28,8 +28,6 @@ r_image_t *cg_invisibility_blend_image;
 r_image_t *cg_invulnerability_blend_image;
 r_image_t *cg_damage_blend_image;
 
-r_image_t *cg_select_weapon_image;
-
 cvar_t *cg_select_weapon_alpha;
 cvar_t *cg_select_weapon_delay;
 cvar_t *cg_select_weapon_fade;
@@ -56,98 +54,8 @@ static float Cg_CalculateBlendAlpha(const uint32_t blend_start_time, const uint3
   return 0.0;
 }
 
-#define HUD_COLOR_STAT      color_white
-#define HUD_COLOR_STAT_MED    color_yellow
-#define HUD_COLOR_STAT_LOW    color_red
-#define HUD_PIC_HEIGHT      64
-#define HUD_HEALTH_MED      75
-#define HUD_HEALTH_LOW      25
-#define HUD_ARMOR_MED      50
-#define HUD_ARMOR_LOW      25
-#define HUD_POWERUP_LOW      5
 #define CG_DAMAGE_BLEND_TIME 1500
 #define CG_PICKUP_BLEND_TIME 600
-
-/**
- * @brief Draws the icon at the specified ConfigString index, relative to `CS_IMAGES`.
- */
-void Cg_DrawIcon(const int32_t x, const int32_t y, const r_image_t *image, const color_t color) {
-
-  if (!image) {
-    return;
-  }
-
-  cgi.Draw2DImage(x, y, image->width, image->height, image, color);
-}
-
-/**
- * @brief Draws the vital numeric and icon, flashing on low quantities.
- */
-void Cg_DrawVital(int32_t x, int32_t ch, const int16_t value, const r_image_t *icon, int16_t med, int16_t low) {
-  int32_t y = cgi.context->h - HUD_PIC_HEIGHT + (HUD_PIC_HEIGHT - ch) / 2;
-
-  color_t color = HUD_COLOR_STAT;
-  color_t pulse = color_white;
-
-  if (value < low) {
-    if (cg_draw_vitals_pulse->integer) {
-      pulse.a = Clampf(sinf(cgi.client->unclamped_time / 250.f), 0.75f, 1.f);
-    }
-    color = HUD_COLOR_STAT_LOW;
-  } else if (value < med) {
-    color = HUD_COLOR_STAT_MED;
-  }
-
-  const char *string = va("%3d", value);
-
-  cgi.Draw2DString(x, y, string, color);
-
-  x += cgi.StringWidth(string) + 5;
-  y = cgi.context->h - HUD_PIC_HEIGHT - 5;
-
-  Cg_DrawIcon(x, y, icon, pulse);
-}
-
-/**
- * @see cg_hud_draw.h
- */
-int32_t Cg_DrawStat(int32_t y, const char *label, int32_t value) {
-  int32_t cw, ch;
-
-  cgi.BindFont("small", NULL, &ch);
-  cgi.Draw2DString(cgi.context->w - cgi.StringWidth(label), y, label, color_green);
-
-  cgi.BindFont("large", &cw, NULL);
-  cgi.Draw2DString(cgi.context->w - 3 * cw, y + ch, va("%3d", value), HUD_COLOR_STAT);
-
-  cgi.BindFont(NULL, NULL, NULL);
-
-  return y + HUD_PIC_HEIGHT + ch;
-}
-
-/**
- * @brief Draws the powerup and the time remaining
- */
-int32_t Cg_DrawPowerup(int32_t y, const int16_t value, const r_image_t *icon, const int32_t ch) {
-  int32_t x;
-
-  color_t color = HUD_COLOR_STAT;
-
-  if (value > 0 && value < HUD_POWERUP_LOW) {
-    color = HUD_COLOR_STAT_LOW;
-  }
-
-  x = HUD_PIC_HEIGHT / 2;
-
-  cgi.Draw2DImage(x, y, icon->width, icon->height, icon, color_white);
-
-  if (value > 0) {
-    x += HUD_PIC_HEIGHT;
-    cgi.Draw2DString(x, y, va("%d", value), color);
-  }
-
-  return y + Maxf(icon->height, ch);
-}
 
 /**
  * @brief Perform composition of the dst/src blends.
@@ -277,194 +185,6 @@ void Cg_DrawBlend(const player_state_t *ps) {
   if (blend.a > 0.0) {
     cgi.Draw2DFill(0, 0, cgi.context->w, cgi.context->h, blend);
   }
-}
-
-/**
- * @brief Draws the player's crosshair image centered on screen.
- */
-void Cg_DrawCrosshair(const player_state_t *ps) {
-
-  static struct {
-    r_image_t *image;
-    vec4_t color;
-  } crosshair;
-
-  int32_t x, y, w, h;
-
-  if (!editor->value) {
-
-    if (!cg_draw_crosshair->value) {
-      return;
-    }
-
-    if (ps->stats[STAT_SCORES]) {
-      return; // scoreboard
-    }
-
-    if (cgi.client->third_person) {
-      return;
-    }
-
-    if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-      return; // spectating
-    }
-
-    if (ps->pm_state.type == PM_DEAD) {
-      return; // dead
-    }
-
-    if (!Cg_HasWeapon(ps)) {
-      return; // dead
-    }
-
-    if (cg_state.center_print.time > cgi.client->unclamped_time) {
-      return;
-    }
-  }
-
-  if (cg_draw_crosshair->modified) {
-    cg_draw_crosshair->modified = false;
-
-    if (cg_draw_crosshair->value < 0) {
-      cg_draw_crosshair->value = 1;
-    }
-
-    if (cg_draw_crosshair->value > 100) {
-      cg_draw_crosshair->value = 100;
-    }
-
-    crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_draw_crosshair->integer), IMG_PIC);
-    if (crosshair.image == NULL) {
-      cgi.Print("Couldn't load pics/ch%d.\n", cg_draw_crosshair->integer);
-    }
-  }
-
-  if (crosshair.image == NULL) {
-    return;
-  }
-
-  if (cg_draw_crosshair_color->modified) { // crosshair color
-    cg_draw_crosshair_color->modified = false;
-
-    color_t color = color_white;
-
-    if (q_strcmp(cg_draw_crosshair_color->string, "default")) {
-      if (!Color_Parse(cg_draw_crosshair_color->string, &color)) {
-        color = color_white;
-      }
-    }
-
-    crosshair.color = color.vec4;
-  }
-
-  if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE) {
-    float health_frac = Clampf01(ps->stats[STAT_HEALTH] / 100.f);
-
-    crosshair.color.x = 1.f;
-    crosshair.color.y = health_frac;
-    crosshair.color.z = health_frac;
-  } else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE_GREEN) {
-    float health_frac = Clampf01(ps->stats[STAT_HEALTH] / 100.f);
-    float health_over = Clampf01(((ps->stats[STAT_HEALTH] - 100) / 100.f));
-
-    if (ps->stats[STAT_HEALTH] <= 100) {
-      crosshair.color.x = 1.f;
-      crosshair.color.y = health_frac;
-      crosshair.color.z = health_frac;
-    } else {
-      crosshair.color.x = 1.f - health_over;
-      crosshair.color.y = 1.f;
-      crosshair.color.z = 1.f - health_over;
-    }
-  } else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE) {
-    float health_frac_low = Clampf01((ps->stats[STAT_HEALTH] - 15) / 50.f);
-    float health_frac_medium = Clampf01((ps->stats[STAT_HEALTH] - 65) / 35.f);
-
-    if (ps->stats[STAT_HEALTH] <= 20) {
-      crosshair.color.x = 1.f;
-      crosshair.color.y = 0.f;
-      crosshair.color.z = 0.f;
-    } else if (ps->stats[STAT_HEALTH] <= 70) {
-      crosshair.color.x = 1.f;
-      crosshair.color.y = health_frac_low;
-      crosshair.color.z = 0.f;
-    } else {
-      crosshair.color.x = 1.f;
-      crosshair.color.y = 1.f;
-      crosshair.color.z = health_frac_medium;
-    }
-  } else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE_GREEN) {
-    float health_frac_low = Clampf01((ps->stats[STAT_HEALTH] - 15) / 50.f);
-    float health_frac_medium = Clampf01((ps->stats[STAT_HEALTH] - 65) / 35.f);
-    float health_over = Clampf01(((ps->stats[STAT_HEALTH] - 100) / 100.f));
-
-    if (ps->stats[STAT_HEALTH] <= 20) {
-      crosshair.color.x = 1.f;
-      crosshair.color.y = 0.f;
-      crosshair.color.z = 0.f;
-    } else if (ps->stats[STAT_HEALTH] <= 70) {
-      crosshair.color.x = 1.f;
-      crosshair.color.y = health_frac_low;
-      crosshair.color.z = 0.f;
-    } else if (ps->stats[STAT_HEALTH] <= 100) {
-      crosshair.color.x = 1.f;
-      crosshair.color.y = 1.f;
-      crosshair.color.z = health_frac_medium;
-    } else {
-      crosshair.color.x = 1.f - health_over;
-      crosshair.color.y = 1.f;
-      crosshair.color.z = 1.f - health_over;
-    }
-  } else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_WHITE_GREEN) {
-    float health_over = (1.f - Clampf01(((ps->stats[STAT_HEALTH] - 100) / 100.f)));
-
-    if (ps->stats[STAT_HEALTH] <= 100) {
-      crosshair.color.x = 1.f;
-      crosshair.color.y = 1.f;
-      crosshair.color.z = 1.f;
-    } else {
-      crosshair.color.x = 1.f - health_over;
-      crosshair.color.y = 1.f;
-      crosshair.color.z = 1.f - health_over;
-    }
-  }
-
-  float scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE;
-
-  vec4_t color = crosshair.color;
-
-  // pulse the crosshair size and alpha based on pickups
-  if (cg_draw_crosshair_pulse->value) {
-
-    const int16_t p = ps->stats[STAT_PICKUP];
-    if (p && (p != cg_hud_state.pulse.pickup)) {
-      cg_hud_state.pulse.time = cgi.client->unclamped_time;
-    }
-
-    cg_hud_state.pulse.pickup = p;
-
-    const uint32_t delta = cgi.client->unclamped_time - cg_hud_state.pulse.time;
-    if (delta < 300) {
-      const float frac = delta / 300.f;
-      scale += sinf(frac * M_PI) * CROSSHAIR_SCALE;
-      color.w += sinf((frac - 1.f) * M_PI) * CROSSHAIR_PULSE_ALPHA;
-    }
-  }
-
-  color.w *= cg_draw_crosshair_alpha->value;
-
-  // calculate width and height based on crosshair image and scale
-  w = crosshair.image->width * scale;
-  h = crosshair.image->height * scale;
-
-  x = (cgi.context->w - w) / 2.f;
-  y = (cgi.context->h - h) / 2.f;
-
-  if (editor->value) {
-    color = Vec4_One();
-  }
-
-  cgi.Draw2DImage(x, y, w, h, crosshair.image, Color4fv(color));
 }
 
 /**
@@ -693,9 +413,14 @@ bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
 }
 
 /**
- * @brief Draws the weapon selection bar when the player is cycling through available weapons.
+ * @brief Advances the weapon selection state for the frame.
+ * @param ps The player state.
+ * @param alpha The weapon bar opacity to return, fading over `cg_select_weapon_fade`.
+ * @return Whether the weapon bar is shown.
  */
-void Cg_DrawSelectWeapon(const player_state_t *ps) {
+bool Cg_UpdateSelectWeapon(const player_state_t *ps, float *alpha) {
+
+  *alpha = 0.f;
 
   // spectator/dead
   if (!Cg_HasWeapon(ps) || ps->pm_state.type == PM_DEAD) {
@@ -703,7 +428,7 @@ void Cg_DrawSelectWeapon(const player_state_t *ps) {
     cg_hud_state.weapon.time = 0;
     cg_hud_state.weapon.bar_time = 0;
     cg_hud_state.weapon.used_bit = 0;
-    return;
+    return false;
   }
 
   // rebuild weapon availability from inventory every frame
@@ -722,7 +447,7 @@ void Cg_DrawSelectWeapon(const player_state_t *ps) {
     cg_hud_state.weapon.time = 0;
     cg_hud_state.weapon.bar_time = 0;
     cg_hud_state.weapon.used_bit = 0;
-    return;
+    return false;
   }
 
   const int16_t switching = ((ps->stats[STAT_WEAPON] >> 8) & 0xFF);
@@ -744,19 +469,12 @@ void Cg_DrawSelectWeapon(const player_state_t *ps) {
     Cg_AttemptSelectWeapon(ps);
 
     if (cg_hud_state.weapon.time <= cgi.client->unclamped_time) {
-      return;
+      return false;
     }
   }
 
   // figure out weapon.bit
   Cg_ValidateSelectedWeapon(ps);
-
-  int32_t x = ((cgi.context->w / 2) - ((cg_hud_state.weapon.num * HUD_PIC_HEIGHT) / 2));
-  int32_t y = cgi.context->h - (HUD_PIC_HEIGHT * 2.0) - 16;
-
-  // draw the weapons inventory bar
-  int32_t ch;
-  cgi.BindFont("medium", NULL, &ch);
 
   if (cg_select_weapon_fade->modified || cg_select_weapon_interval->modified) {
     cg_select_weapon_fade->modified = false;
@@ -765,39 +483,9 @@ void Cg_DrawSelectWeapon(const player_state_t *ps) {
   }
 
   const int32_t delta = cg_hud_state.weapon.bar_time - cgi.client->unclamped_time;
-  const float alpha = Minf(delta / (float) cg_select_weapon_fade->integer, 1.0);
+  *alpha = Clampf(delta / (float) cg_select_weapon_fade->integer, 0.f, 1.f);
 
-  const color_t color_selection = Color4f(1.f, 1.f, 1.f, alpha);
-  const color_t color = Color4f(1.f, 1.f, 1.f, alpha * cg_select_weapon_alpha->value);
-
-  for (int32_t i = 0; i < WEAPON_TOTAL; i++) {
-
-    if (!cg_hud_state.weapon.has[i]) {
-      continue;
-    }
-
-    const color_t c = (i == cg_hud_state.weapon.bit) ? color_selection : color;
-
-    const r_image_t *icon = cg_weapons[i].icon;
-    if (icon) {
-      cgi.Draw2DImage(x, y, icon->width, icon->height, icon, c);
-    }
-
-    if (i == cg_hud_state.weapon.bit) {
-      const char *name = bg_item_defs[cg_weapons[i].tag].name;
-      cgi.Draw2DString(((cgi.context->w / 2) - (cgi.StringWidth(name) / 2)), y - ch, name, HUD_COLOR_STAT);
-      cgi.Draw2DImage(x,
-              y,
-              cg_select_weapon_image->width,
-              cg_select_weapon_image->height,
-              cg_select_weapon_image,
-              color_white);
-    }
-
-    x += HUD_PIC_HEIGHT + 4;
-  }
-
-  cgi.BindFont(NULL, NULL, NULL);
+  return true;
 }
 
 /**
@@ -839,7 +527,6 @@ void Cg_InitHud(void) {
 void Cg_LoadHudMedia(void) {
   Cg_InitInventory();
 
-  cg_select_weapon_image = cgi.LoadImage("pics/w_select", IMG_PIC);
   cg_pickup_blend_image = cgi.LoadImage("pics/bf_pickup", IMG_PIC);
   cg_quad_blend_image = cgi.LoadImage("pics/bf_powerup_quad", IMG_PIC);
   cg_invisibility_blend_image = cgi.LoadImage("pics/bf_powerup_invisibility", IMG_PIC);

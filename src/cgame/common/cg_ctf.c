@@ -22,8 +22,11 @@
 
 #include "cg_local.h"
 
+#include "ui/hud/CounterView.h"
+
 static struct {
   DrawHudElements DrawHudElements;
+  ConfigureHud ConfigureHud;
 } previous;
 
 /**
@@ -60,45 +63,31 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 }
 
 /**
- * @brief Draws the client's capture count.
- */
-static int32_t Cg_DrawCaptures(const player_state_t *ps, int32_t y) {
-  const int16_t captures = ps->stats[STAT_CAPTURES];
-  int32_t x, cw, ch;
-
-  cgi.BindFont("small", NULL, &ch);
-
-  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-    cgi.BindFont(NULL, NULL, NULL);
-    return y + HUD_PIC_HEIGHT + ch;
-  }
-
-  x = cgi.context->w - cgi.StringWidth("Captures");
-
-  cgi.Draw2DString(x, y, "Captures", color_green);
-
-  cgi.BindFont("large", &cw, NULL);
-
-  x = cgi.context->w - 3 * cw;
-
-  cgi.Draw2DString(x, y + ch, va("%3d", captures), HUD_COLOR_STAT);
-
-  cgi.BindFont(NULL, NULL, NULL);
-
-  return y + HUD_PIC_HEIGHT + ch;
-}
-
-/**
  * @brief Draws the flag the client carries, and their capture count beneath the
  * stats the deathmatch HUD already drew.
  */
-static void Cg_DrawHudElements_Ctf(const player_state_t *ps, cg_hud_layout_t *layout) {
+static void Cg_DrawHudElements_Ctf(const player_state_t *ps) {
 
-  previous.DrawHudElements(ps, layout);
+  previous.DrawHudElements(ps);
 
   Cg_DrawHeldFlag(ps);
+}
 
-  layout->stat_y = Cg_DrawCaptures(ps, layout->stat_y);
+/**
+ * @brief Adds the captures counter beneath the stock counters.
+ */
+static void Cg_ConfigureHud_Ctf(View *hud) {
+
+  previous.ConfigureHud(hud);
+
+  View *stats = $(hud, descendantWithIdentifier, "stats");
+  if (stats) {
+    CounterView *captures = $(alloc(CounterView), initWithCaption, "Captures", STAT_CAPTURES);
+    assert(captures);
+
+    $(stats, addSubview, (View *) captures);
+    release(captures);
+  }
 }
 
 /**
@@ -139,6 +128,9 @@ void Cg_Ctf_Init(void) {
 
   previous.DrawHudElements = Cg_DrawHudElements;
   Cg_DrawHudElements = Cg_DrawHudElements_Ctf;
+
+  previous.ConfigureHud = Cg_ConfigureHud;
+  Cg_ConfigureHud = Cg_ConfigureHud_Ctf;
 
   Cg_ListGameplayModes = Cg_ListGameplayModes_Ctf;
 

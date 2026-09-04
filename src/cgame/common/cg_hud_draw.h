@@ -82,27 +82,15 @@ extern r_image_t *cg_quad_blend_image;
 extern r_image_t *cg_invisibility_blend_image;
 extern r_image_t *cg_invulnerability_blend_image;
 extern r_image_t *cg_damage_blend_image;
-extern r_image_t *cg_select_weapon_image;
 extern cvar_t *cg_select_weapon_alpha;
 extern cvar_t *cg_select_weapon_delay;
 extern cvar_t *cg_select_weapon_fade;
 extern cvar_t *cg_select_weapon_interval;
 
-void Cg_DrawIcon(const int32_t x, const int32_t y, const r_image_t *image, const color_t color);
-void Cg_DrawVital(int32_t x, int32_t ch, const int16_t value, const r_image_t *icon, int16_t med, int16_t low);
-int32_t Cg_DrawPowerup(int32_t y, const int16_t value, const r_image_t *icon, const int32_t ch);
-
-/**
- * @brief Draws a stat row in the right-hand column: the label small, the value
- * large beneath it.
- * @return The y of the next stat row.
- */
-int32_t Cg_DrawStat(int32_t y, const char *label, int32_t value);
 void Cg_DrawBlend(const player_state_t *ps);
-void Cg_DrawCrosshair(const player_state_t *ps);
 void Cg_DrawCenterPrint(const player_state_t *ps);
 void Cg_DrawTargetName(const player_state_t *ps);
-void Cg_DrawSelectWeapon(const player_state_t *ps);
+bool Cg_UpdateSelectWeapon(const player_state_t *ps, float *alpha);
 bool Cg_AttemptSelectWeapon(const player_state_t *ps);
 void Cg_ParseCenterPrint(void);
 void Cg_InitHud(void);

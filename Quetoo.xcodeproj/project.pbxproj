@@ -211,7 +211,7 @@
 		CE05B3F030224900C0DE001F /* ControlsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */; };
 		CE05B3F030224900C0DE0020 /* CreateServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58707F1F5CDFE0004CAAB2 /* CreateServerViewController.c */; };
 		CE05B3F030224900C0DE0021 /* CreditsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA1A0072F9F00000087B100 /* CreditsViewController.c */; };
-		CE05B3F030224900C0DE0022 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28441F7600AC005F62A9 /* CrosshairView.c */; };
+		CE05B3F030224900C0DE0022 /* CrosshairPreviewView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28441F7600AC005F62A9 /* CrosshairPreviewView.c */; };
 		CE05B3F030224900C0DE0023 /* CvarCheckbox.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709C1F5CE97C004CAAB2 /* CvarCheckbox.c */; };
 		CE05B3F030224900C0DE0024 /* CvarSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709E1F5CE97C004CAAB2 /* CvarSelect.c */; };
 		CE05B3F030224900C0DE0025 /* CvarSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */; };
@@ -356,7 +356,7 @@
 		CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
 		CE1A283C1F75FE70005F62A9 /* ResponseServiceViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */; };
 		CE1A28401F75FEB1005F62A9 /* ControlsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */; };
-		CE1A28481F7600AC005F62A9 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28441F7600AC005F62A9 /* CrosshairView.c */; };
+		CE1A28481F7600AC005F62A9 /* CrosshairPreviewView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28441F7600AC005F62A9 /* CrosshairPreviewView.c */; };
 		CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
 		CE27E1C527AC2740003D56AC /* rpc_connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE27E0D727AC1682003D56AC /* rpc_connection.cpp */; };
 		CE27E1C627AC2740003D56AC /* discord_rpc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CE27E0D827AC1683003D56AC /* discord_rpc.cpp */; };
@@ -817,7 +817,7 @@
 		CEC0FF00202601030000017F /* ControlsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */; };
 		CEC0FF002026010300000180 /* CreateServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58707F1F5CDFE0004CAAB2 /* CreateServerViewController.c */; };
 		CEC0FF002026010300000181 /* CreditsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA1A0072F9F00000087B100 /* CreditsViewController.c */; };
-		CEC0FF002026010300000182 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28441F7600AC005F62A9 /* CrosshairView.c */; };
+		CEC0FF002026010300000182 /* CrosshairPreviewView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28441F7600AC005F62A9 /* CrosshairPreviewView.c */; };
 		CEC0FF002026010300000183 /* CvarCheckbox.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709C1F5CE97C004CAAB2 /* CvarCheckbox.c */; };
 		CEC0FF002026010300000184 /* CvarSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709E1F5CE97C004CAAB2 /* CvarSelect.c */; };
 		CEC0FF002026010300000185 /* CvarSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */; };
@@ -1047,6 +1047,50 @@
 		D1A5B0000000000000000206 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
 		D1A5B0000000000000000207 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
 		D1A5B0000000000000000208 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
+		01209575888A584DAE8F7D25 /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
+		54194A7922708C783B541F5B /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
+		C52E6DC8627EA038E7371E91 /* HudView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1ECFE8B79C533C5E421C1F4B /* HudView.c */; };
+		24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
+		48F10F5D3A8711EABB25DB34 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
+		E7A9F8759B856BBB62D69C03 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
+		D8F2715333902B56A81AC28C /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
+		52367ABAA22B6D5586284093 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
+		39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
+		C3241FC475F3D3E3E573AC7B /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
+		863F1E3961ED23FA4D28C1BB /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
+		0F1E05F67D4BC457C8717606 /* HudView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1ECFE8B79C533C5E421C1F4B /* HudView.c */; };
+		9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
+		E16A533FF7C34A2BA65E1BFF /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
+		F956F2A93BABE228BC99C9E4 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
+		1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
+		537E3B2A605E2005BA5F4928 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
+		DD02E1ABB673209C4A8D0EFC /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
+		EF3850D157838948B4F2B64F /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
+		13539C3CA303E97E3DFB80B5 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
+		38EF6DE9DB36951B5983A1A0 /* HudView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1ECFE8B79C533C5E421C1F4B /* HudView.c */; };
+		457008C2AC171BAD836BC9D8 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
+		547AC46C9A45CC44AB005215 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
+		665046BB6961C443C731A077 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
+		18831DC74740CDF73E54CF63 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
+		E613CE6B3A9634DB694DA689 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		CEE21B7B45DA97BAA8A5395F /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
+		E10D01F620BB74E4166A8E7F /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
+		6C7870B960DDA48FF5959231 /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
+		2C3ADE327DEBD6F3955255E7 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
+		60B008C6793919B41479523C /* HudView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1ECFE8B79C533C5E421C1F4B /* HudView.c */; };
+		16842F99305E37AEE91A82E4 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
+		47E832E190C339999881A094 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
+		D36054C7E2858790984E15E0 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
+		3B497D93EA892C673165469D /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
+		C55D95D65959615823A138F8 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
+		5D26ECD45D3B9CEDA1FCE596 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
+		417B1EDF25F90D6E18BEEAE8 /* ShareTechMono-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 461406D747387A25913F2112 /* ShareTechMono-OFL.txt */; };
+		046B4A4AB476FB1CB2475792 /* ShareTechMono-Regular.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0468ED418AC588443A57F4CD /* ShareTechMono-Regular.ttf */; };
+		DD69DC98B2588BCF788647E3 /* classic.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2D140F08524DA0679A7DB117 /* classic.css */; };
+		20BE76382F981DD4B7F43A11 /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E652EE2F700EFB737AEA30 /* classic.json */; };
 		D1A5B0000000000000000210 /* VoteViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000209 /* VoteViewController.json */; };
 		D1A5B0000000000000000212 /* VoteViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000211 /* VoteViewController.css */; };
 		D2A5C1000000000000000010 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000002 /* bg_item.c */; };
@@ -1123,7 +1167,7 @@
 		D2A5C1000000000000000063 /* ControlsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */; };
 		D2A5C1000000000000000064 /* CreateServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58707F1F5CDFE0004CAAB2 /* CreateServerViewController.c */; };
 		D2A5C1000000000000000065 /* CreditsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA1A0072F9F00000087B100 /* CreditsViewController.c */; };
-		D2A5C1000000000000000066 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28441F7600AC005F62A9 /* CrosshairView.c */; };
+		D2A5C1000000000000000066 /* CrosshairPreviewView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28441F7600AC005F62A9 /* CrosshairPreviewView.c */; };
 		D2A5C1000000000000000067 /* CvarCheckbox.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709C1F5CE97C004CAAB2 /* CvarCheckbox.c */; };
 		D2A5C1000000000000000068 /* CvarSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709E1F5CE97C004CAAB2 /* CvarSelect.c */; };
 		D2A5C1000000000000000069 /* CvarSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */; };
@@ -1643,12 +1687,25 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		EE7162D3228511D41E8B4CB1 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = default/ui/hud;
+			dstSubfolderSpec = 16;
+			files = (
+				DD69DC98B2588BCF788647E3 /* classic.css in CopyFiles */,
+				20BE76382F981DD4B7F43A11 /* classic.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6816070175ED2CEC62FB6E56 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = default/ui/fonts;
 			dstSubfolderSpec = 16;
 			files = (
+				046B4A4AB476FB1CB2475792 /* ShareTechMono-Regular.ttf in CopyFiles */,
+				417B1EDF25F90D6E18BEEAE8 /* ShareTechMono-OFL.txt in CopyFiles */,
 				2C468DAAA30BB6E232FA21C3 /* large.png in CopyFiles */,
 				9D2572D4A56A8180A52671E2 /* medium.png in CopyFiles */,
 				0975D2E7118D42B05C9F5422 /* small.png in CopyFiles */,
@@ -2203,8 +2260,8 @@
 		CE1A28391F75FE70005F62A9 /* ResponseServiceViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResponseServiceViewController.h; sourceTree = "<group>"; };
 		CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ControlsViewController.c; sourceTree = "<group>"; };
 		CE1A283F1F75FEB1005F62A9 /* ControlsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControlsViewController.h; sourceTree = "<group>"; };
-		CE1A28441F7600AC005F62A9 /* CrosshairView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CrosshairView.c; sourceTree = "<group>"; };
-		CE1A28451F7600AC005F62A9 /* CrosshairView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CrosshairView.h; sourceTree = "<group>"; };
+		CE1A28441F7600AC005F62A9 /* CrosshairPreviewView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CrosshairPreviewView.c; sourceTree = "<group>"; };
+		CE1A28451F7600AC005F62A9 /* CrosshairPreviewView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CrosshairPreviewView.h; sourceTree = "<group>"; };
 		CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MovementCombatViewController.c; sourceTree = "<group>"; };
 		CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MovementCombatViewController.h; sourceTree = "<group>"; };
 		CE27BE561D9167C700F87B2C /* libObjectively.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.dylib; path = "../../Library/Developer/Xcode/DerivedData/Quetoo-eijmznjiunzbaafulkyjapfulhqz/Build/Products/Debug/libObjectively.dylib"; sourceTree = "<group>"; };
@@ -2643,6 +2700,30 @@
 		D1A5B0000000000000000108 /* g_vote.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_vote.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000201 /* cg_vote.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_vote.c; sourceTree = "<group>"; };
 		D1A5B0000000000000000205 /* VoteViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VoteViewController.c; sourceTree = "<group>"; };
+		A59EB892C12DF10ACA8253DD /* CounterView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CounterView.c; sourceTree = "<group>"; };
+		FC6374C1D47393EA62C8EC20 /* CounterView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CounterView.h; sourceTree = "<group>"; };
+		1A75866341F13821D2FC91FA /* CrosshairView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CrosshairView.c; sourceTree = "<group>"; };
+		C8249BF99F0E4A2D77D37865 /* CrosshairView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrosshairView.h; sourceTree = "<group>"; };
+		1ECFE8B79C533C5E421C1F4B /* HudView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HudView.c; sourceTree = "<group>"; };
+		535E886085D3D32D4144452A /* HudView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HudView.h; sourceTree = "<group>"; };
+		C21FD90BD08D804DE1A792B1 /* HudViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HudViewController.c; sourceTree = "<group>"; };
+		15F241361EC624CD05FF20DA /* HudViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HudViewController.h; sourceTree = "<group>"; };
+		E106ACFB28FF47443FB3C9FE /* PickupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PickupView.c; sourceTree = "<group>"; };
+		51B36F4226CEC7C84538DC2F /* PickupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PickupView.h; sourceTree = "<group>"; };
+		755F8C8CBA7F7C48E79A578C /* PowerupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PowerupView.c; sourceTree = "<group>"; };
+		C853849AF0A2CC2F7C531245 /* PowerupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerupView.h; sourceTree = "<group>"; };
+		9CA6BC01A9434CCDBF23E8C0 /* StatView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StatView.c; sourceTree = "<group>"; };
+		B00A6FD23FF3A3B4F77B3694 /* StatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatView.h; sourceTree = "<group>"; };
+		A73DD77B1D5B8231028B01FA /* TeamBannerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamBannerView.c; sourceTree = "<group>"; };
+		740BEA7DBF2B020A6D1B29C7 /* TeamBannerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamBannerView.h; sourceTree = "<group>"; };
+		C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TimeView.c; sourceTree = "<group>"; };
+		9EB3BF772B595B2E11DA92E7 /* TimeView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TimeView.h; sourceTree = "<group>"; };
+		7773870519E25AD88B29F618 /* WeaponBarView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = WeaponBarView.c; sourceTree = "<group>"; };
+		2BA45B8C062C78CEE97C2D2B /* WeaponBarView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WeaponBarView.h; sourceTree = "<group>"; };
+		64E652EE2F700EFB737AEA30 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
+		2D140F08524DA0679A7DB117 /* classic.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = classic.css; sourceTree = "<group>"; };
+		0468ED418AC588443A57F4CD /* ShareTechMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ShareTechMono-Regular.ttf; sourceTree = "<group>"; };
+		461406D747387A25913F2112 /* ShareTechMono-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = ShareTechMono-OFL.txt; sourceTree = "<group>"; };
 		D1A5B0000000000000000209 /* VoteViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VoteViewController.json; sourceTree = "<group>"; };
 		D1A5B0000000000000000211 /* VoteViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = VoteViewController.css; sourceTree = "<group>"; };
 		D1A5B0000000000000000213 /* cg_vote.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_vote.h; sourceTree = "<group>"; };
@@ -3121,6 +3202,8 @@
 		3F698657FE99AC45EBDFE4C7 /* fonts */ = {
 			isa = PBXGroup;
 			children = (
+				461406D747387A25913F2112 /* ShareTechMono-OFL.txt */,
+				0468ED418AC588443A57F4CD /* ShareTechMono-Regular.ttf */,
 				CEAD8FCC2F9650560087A850 /* large.png */,
 				CEAD8FCE2F9650560087A850 /* medium.png */,
 				CEAD8FD02F9650560087A850 /* small.png */,
@@ -3844,8 +3927,8 @@
 				CE1A283E1F75FEB1005F62A9 /* ControlsViewController.c */,
 				CE1A283F1F75FEB1005F62A9 /* ControlsViewController.h */,
 				CE7D2C232030A107004BC58E /* ControlsViewController.json */,
-				CE1A28441F7600AC005F62A9 /* CrosshairView.c */,
-				CE1A28451F7600AC005F62A9 /* CrosshairView.h */,
+				CE1A28441F7600AC005F62A9 /* CrosshairPreviewView.c */,
+				CE1A28451F7600AC005F62A9 /* CrosshairPreviewView.h */,
 				CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */,
 				CE4E07BA20267EAB000B276C /* MovementCombatViewController.css */,
 				CE1A284D1F7602F2005F62A9 /* MovementCombatViewController.h */,
@@ -4041,6 +4124,7 @@
 				CE58707E1F5CDFE0004CAAB2 /* play */,
 				CE5870861F5CDFE0004CAAB2 /* settings */,
 				CEAA78172775337300EAC853 /* teams */,
+				0675B112BA0321E4687BE377 /* hud */,
 				D1A5B0000000000000000215 /* vote */,
 				CE32529C1F760D3F00512523 /* BindTextView.h */,
 				CE32529B1F760D3F00512523 /* BindTextView.c */,
@@ -4426,6 +4510,35 @@
 				CFA000122F9100000000C012 /* editor.css */,
 			);
 			path = editor;
+			sourceTree = "<group>";
+		};
+		0675B112BA0321E4687BE377 /* hud */ = {
+			isa = PBXGroup;
+			children = (
+				FC6374C1D47393EA62C8EC20 /* CounterView.h */,
+				A59EB892C12DF10ACA8253DD /* CounterView.c */,
+				C8249BF99F0E4A2D77D37865 /* CrosshairView.h */,
+				1A75866341F13821D2FC91FA /* CrosshairView.c */,
+				535E886085D3D32D4144452A /* HudView.h */,
+				1ECFE8B79C533C5E421C1F4B /* HudView.c */,
+				15F241361EC624CD05FF20DA /* HudViewController.h */,
+				C21FD90BD08D804DE1A792B1 /* HudViewController.c */,
+				51B36F4226CEC7C84538DC2F /* PickupView.h */,
+				E106ACFB28FF47443FB3C9FE /* PickupView.c */,
+				C853849AF0A2CC2F7C531245 /* PowerupView.h */,
+				755F8C8CBA7F7C48E79A578C /* PowerupView.c */,
+				B00A6FD23FF3A3B4F77B3694 /* StatView.h */,
+				9CA6BC01A9434CCDBF23E8C0 /* StatView.c */,
+				740BEA7DBF2B020A6D1B29C7 /* TeamBannerView.h */,
+				A73DD77B1D5B8231028B01FA /* TeamBannerView.c */,
+				9EB3BF772B595B2E11DA92E7 /* TimeView.h */,
+				C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */,
+				2BA45B8C062C78CEE97C2D2B /* WeaponBarView.h */,
+				7773870519E25AD88B29F618 /* WeaponBarView.c */,
+				2D140F08524DA0679A7DB117 /* classic.css */,
+				64E652EE2F700EFB737AEA30 /* classic.json */,
+			);
+			path = hud;
 			sourceTree = "<group>";
 		};
 		D1A5B0000000000000000215 /* vote */ = {
@@ -5124,6 +5237,7 @@
 				CEAA78A5277535F100EAC853 /* CopyFiles */,
 				CEA400102F9800000087B100 /* CopyFiles */,
 				6816070175ED2CEC62FB6E56 /* CopyFiles */,
+				EE7162D3228511D41E8B4CB1 /* CopyFiles */,
 				CEA400112F9800000087B100 /* CopyFiles */,
 				CEFEEE000000000000000A03 /* Install module */,
 			);
@@ -6060,7 +6174,7 @@
 				CE05B3F030224900C0DE001F /* ControlsViewController.c in Sources */,
 				CE05B3F030224900C0DE0020 /* CreateServerViewController.c in Sources */,
 				CE05B3F030224900C0DE0021 /* CreditsViewController.c in Sources */,
-				CE05B3F030224900C0DE0022 /* CrosshairView.c in Sources */,
+				CE05B3F030224900C0DE0022 /* CrosshairPreviewView.c in Sources */,
 				CE05B3F030224900C0DE0023 /* CvarCheckbox.c in Sources */,
 				CE05B3F030224900C0DE0024 /* CvarSelect.c in Sources */,
 				CE05B3F030224900C0DE0025 /* CvarSlider.c in Sources */,
@@ -6070,6 +6184,16 @@
 				CE05B3F030224900C0DE0029 /* EntityView.c in Sources */,
 				CE05B3F030224900C0DE002A /* EntityViewController.c in Sources */,
 				CE05B3F030224900C0DE002B /* HomeViewController.c in Sources */,
+				01209575888A584DAE8F7D25 /* CounterView.c in Sources */,
+				54194A7922708C783B541F5B /* CrosshairView.c in Sources */,
+				C52E6DC8627EA038E7371E91 /* HudView.c in Sources */,
+				24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */,
+				48F10F5D3A8711EABB25DB34 /* PickupView.c in Sources */,
+				E7A9F8759B856BBB62D69C03 /* PowerupView.c in Sources */,
+				D8F2715333902B56A81AC28C /* StatView.c in Sources */,
+				52367ABAA22B6D5586284093 /* TeamBannerView.c in Sources */,
+				814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */,
+				39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */,
 				CE05B3F030224900C0DE002C /* JoinServerViewController.c in Sources */,
 				CE05B3F030224900C0DE002D /* LeaderboardViewController.c in Sources */,
 				CE05B3F030224900C0DE002E /* LoadingViewController.c in Sources */,
@@ -6189,7 +6313,7 @@
 				CE1A28401F75FEB1005F62A9 /* ControlsViewController.c in Sources */,
 				CE6EE3E11F720D9A00FBC830 /* CreateServerViewController.c in Sources */,
 				CEA1A0012F9F00000087B100 /* CreditsViewController.c in Sources */,
-				CE1A28481F7600AC005F62A9 /* CrosshairView.c in Sources */,
+				CE1A28481F7600AC005F62A9 /* CrosshairPreviewView.c in Sources */,
 				CE6EE3D21F720D6700FBC830 /* CvarCheckbox.c in Sources */,
 				CE6EE3D31F720D6700FBC830 /* CvarSelect.c in Sources */,
 				CE6EE3D41F720D6700FBC830 /* CvarSlider.c in Sources */,
@@ -6199,6 +6323,16 @@
 				CFA000192F9100000000C019 /* EntityView.c in Sources */,
 				CFA0001C2F9100000000C01C /* EntityViewController.c in Sources */,
 				CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */,
+				C3241FC475F3D3E3E573AC7B /* CounterView.c in Sources */,
+				863F1E3961ED23FA4D28C1BB /* CrosshairView.c in Sources */,
+				0F1E05F67D4BC457C8717606 /* HudView.c in Sources */,
+				9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */,
+				E16A533FF7C34A2BA65E1BFF /* PickupView.c in Sources */,
+				F956F2A93BABE228BC99C9E4 /* PowerupView.c in Sources */,
+				1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */,
+				537E3B2A605E2005BA5F4928 /* TeamBannerView.c in Sources */,
+				5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */,
+				DD02E1ABB673209C4A8D0EFC /* WeaponBarView.c in Sources */,
 				CE6EE3E21F720D9A00FBC830 /* JoinServerViewController.c in Sources */,
 				CEA9B3A16C6E4B3A9F010001 /* LeaderboardViewController.c in Sources */,
 				CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */,
@@ -6639,7 +6773,7 @@
 				CEC0FF00202601030000017F /* ControlsViewController.c in Sources */,
 				CEC0FF002026010300000180 /* CreateServerViewController.c in Sources */,
 				CEC0FF002026010300000181 /* CreditsViewController.c in Sources */,
-				CEC0FF002026010300000182 /* CrosshairView.c in Sources */,
+				CEC0FF002026010300000182 /* CrosshairPreviewView.c in Sources */,
 				CEC0FF002026010300000183 /* CvarCheckbox.c in Sources */,
 				CEC0FF002026010300000184 /* CvarSelect.c in Sources */,
 				CEC0FF002026010300000185 /* CvarSlider.c in Sources */,
@@ -6649,6 +6783,16 @@
 				CEC0FF002026010300000189 /* EntityView.c in Sources */,
 				CEC0FF00202601030000018A /* EntityViewController.c in Sources */,
 				CEC0FF00202601030000018B /* HomeViewController.c in Sources */,
+				EF3850D157838948B4F2B64F /* CounterView.c in Sources */,
+				13539C3CA303E97E3DFB80B5 /* CrosshairView.c in Sources */,
+				38EF6DE9DB36951B5983A1A0 /* HudView.c in Sources */,
+				457008C2AC171BAD836BC9D8 /* HudViewController.c in Sources */,
+				547AC46C9A45CC44AB005215 /* PickupView.c in Sources */,
+				665046BB6961C443C731A077 /* PowerupView.c in Sources */,
+				18831DC74740CDF73E54CF63 /* StatView.c in Sources */,
+				E613CE6B3A9634DB694DA689 /* TeamBannerView.c in Sources */,
+				CEE21B7B45DA97BAA8A5395F /* TimeView.c in Sources */,
+				E10D01F620BB74E4166A8E7F /* WeaponBarView.c in Sources */,
 				CEC0FF00202601030000018C /* JoinServerViewController.c in Sources */,
 				CEC0FF00202601030000018D /* LeaderboardViewController.c in Sources */,
 				CEC0FF00202601030000018E /* LoadingViewController.c in Sources */,
@@ -6821,7 +6965,7 @@
 				D2A5C1000000000000000063 /* ControlsViewController.c in Sources */,
 				D2A5C1000000000000000064 /* CreateServerViewController.c in Sources */,
 				D2A5C1000000000000000065 /* CreditsViewController.c in Sources */,
-				D2A5C1000000000000000066 /* CrosshairView.c in Sources */,
+				D2A5C1000000000000000066 /* CrosshairPreviewView.c in Sources */,
 				D2A5C1000000000000000067 /* CvarCheckbox.c in Sources */,
 				D2A5C1000000000000000068 /* CvarSelect.c in Sources */,
 				D2A5C1000000000000000069 /* CvarSlider.c in Sources */,
@@ -6831,6 +6975,16 @@
 				D2A5C100000000000000006D /* EntityView.c in Sources */,
 				D2A5C100000000000000006E /* EntityViewController.c in Sources */,
 				D2A5C100000000000000006F /* HomeViewController.c in Sources */,
+				6C7870B960DDA48FF5959231 /* CounterView.c in Sources */,
+				2C3ADE327DEBD6F3955255E7 /* CrosshairView.c in Sources */,
+				60B008C6793919B41479523C /* HudView.c in Sources */,
+				16842F99305E37AEE91A82E4 /* HudViewController.c in Sources */,
+				47E832E190C339999881A094 /* PickupView.c in Sources */,
+				D36054C7E2858790984E15E0 /* PowerupView.c in Sources */,
+				3B497D93EA892C673165469D /* StatView.c in Sources */,
+				C55D95D65959615823A138F8 /* TeamBannerView.c in Sources */,
+				8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */,
+				5D26ECD45D3B9CEDA1FCE596 /* WeaponBarView.c in Sources */,
 				D2A5C1000000000000000070 /* JoinServerViewController.c in Sources */,
 				D2A5C1000000000000000071 /* LeaderboardViewController.c in Sources */,
 				D2A5C1000000000000000072 /* LoadingViewController.c in Sources */,
@@ -7302,6 +7456,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
 					"$(SRCROOT)/src/cgame/common/ui/vote",
+					"$(SRCROOT)/src/cgame/common/ui/hud",
 				);
 			};
 			name = Debug;
@@ -7343,6 +7498,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
 					"$(SRCROOT)/src/cgame/common/ui/vote",
+					"$(SRCROOT)/src/cgame/common/ui/hud",
 				);
 			};
 			name = Release;
@@ -7552,6 +7708,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
 					"$(SRCROOT)/src/cgame/common/ui/vote",
+					"$(SRCROOT)/src/cgame/common/ui/hud",
 				);
 			};
 			name = Debug;
@@ -7588,6 +7745,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
 					"$(SRCROOT)/src/cgame/common/ui/vote",
+					"$(SRCROOT)/src/cgame/common/ui/hud",
 				);
 			};
 			name = Release;
@@ -8302,6 +8460,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
 					"$(SRCROOT)/src/cgame/common/ui/vote",
+					"$(SRCROOT)/src/cgame/common/ui/hud",
 				);
 			};
 			name = Debug;
@@ -8344,6 +8503,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
 					"$(SRCROOT)/src/cgame/common/ui/vote",
+					"$(SRCROOT)/src/cgame/common/ui/hud",
 				);
 			};
 			name = Release;
@@ -8498,6 +8658,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
 					"$(SRCROOT)/src/cgame/common/ui/vote",
+					"$(SRCROOT)/src/cgame/common/ui/hud",
 				);
 			};
 			name = Debug;
@@ -8538,6 +8699,7 @@
 					"$(SRCROOT)/src/cgame/common/ui/settings",
 					"$(SRCROOT)/src/cgame/common/ui/teams",
 					"$(SRCROOT)/src/cgame/common/ui/vote",
+					"$(SRCROOT)/src/cgame/common/ui/hud",
 				);
 			};
 			name = Release;

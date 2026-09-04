@@ -43,6 +43,7 @@ cvar_t *cg_draw_crosshair_health;
 cvar_t *cg_draw_crosshair_pulse;
 cvar_t *cg_draw_crosshair_scale;
 cvar_t *cg_draw_hud;
+cvar_t *cg_hud;
 cvar_t *cg_draw_target_name;
 cvar_t *cg_draw_weapon;
 cvar_t *cg_draw_weapon_alpha;
@@ -121,6 +122,7 @@ static void Cg_Init(void) {
   cg_draw_crosshair_pulse = cgi.AddCvar("cg_draw_crosshair_pulse", "1", CVAR_ARCHIVE, "Pulse the crosshair when picking up items");
   cg_draw_crosshair_scale = cgi.AddCvar("cg_draw_crosshair_scale", "1", CVAR_ARCHIVE, "Controls the crosshair scale (size)");
   cg_draw_hud = cgi.AddCvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
+  cg_hud = cgi.AddCvar("cg_hud", "classic", CVAR_ARCHIVE, "The HUD variant: a ui/hud/<name>.json and .css pair (Default is classic)");
   cg_draw_target_name = cgi.AddCvar("cg_draw_target_name", "1", CVAR_ARCHIVE, "Draw the target's name");
   cg_draw_weapon = cgi.AddCvar("cg_draw_weapon", "1", CVAR_ARCHIVE, "Toggle drawing of the weapon model.");
   cg_draw_weapon_alpha = cgi.AddCvar("cg_draw_weapon_alpha", "1", CVAR_ARCHIVE, "The alpha transparency for drawing the weapon model.");
@@ -203,6 +205,8 @@ static void Cg_Init(void) {
   cge.ClipEntity = Cg_ClipEntity;
 
   cgi.Print("Client game module initialized\n");
+
+  Cg_InitHudUi();
 }
 
 /**
@@ -511,6 +515,8 @@ static const char *Cg_Nav_KeyBind(const char *bind) {
  */
 static void Cg_UpdateScreen(const cl_frame_t *frame) {
 
+  Cg_UpdateHud(frame);
+
   // hide HUD in nav edit
   if (cg_state.nav_edit) {
 
@@ -550,7 +556,7 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
 
   } else {
 
-    Cg_DrawHud(&frame->ps);
+    Cg_DrawHud(frame);
 
     Cg_DrawScores(&frame->ps);
   }

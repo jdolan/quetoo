@@ -22,65 +22,54 @@
 #pragma once
 
 #include <ObjectivelyMVC/ImageView.h>
-#include <ObjectivelyMVC/Control.h>
+#include <ObjectivelyMVC/View.h>
 
 /**
  * @file
- * @brief The CrosshairView type.
+ * @brief The crosshair, coloured by health and pulsed by pickups.
  */
 
 typedef struct CrosshairView CrosshairView;
 typedef struct CrosshairViewInterface CrosshairViewInterface;
 
 /**
- * @brief The CrosshairView type.
+ * @brief The crosshair, coloured by health and pulsed by pickups.
+ * @details Reads the `cg_draw_crosshair*` cvars as the settings preview does, and adds what
+ * only play knows: the `cg_crosshair_health_t` schemes and the pickup pulse. Hidden when
+ * dead, spectating, in third person, behind the scoreboard or a center print, or when there
+ * is no weapon. In the editor it shows regardless, in white.
  * @extends View
  */
 struct CrosshairView {
 
   /**
    * @brief The superclass.
-   * @private
    */
-  Control control;
+  View view;
 
   /**
    * @brief The interface type.
-   * @private
+   * @protected
    */
   CrosshairViewInterface *interface[0];
 
   /**
-   * @brief The ImageView.
+   * @brief The colour from `cg_draw_crosshair_color`, before health and pulse apply.
+   */
+  vec4_t color;
+
+  /**
+   * @brief The crosshair image.
    */
   ImageView *imageView;
 };
 
-/**
- * @brief The CrosshairView interface.
- */
 struct CrosshairViewInterface {
 
   /**
    * @brief The superclass interface.
    */
-  ControlInterface controlInterface;
-
-  /**
-   * @fn CrosshairView *CrosshairView::initWithFrame(CrosshairView *self, const SDL_Rect *frame)
-   * @brief Initializes this CrosshairView with the specified frame.
-   * @param frame The frame.
-   * @return The initialized CrosshairView, or `NULL` on error.
-   * @memberof CrosshairView
-   */
-  CrosshairView *(*initWithFrame)(CrosshairView *self, const SDL_Rect *frame);
+  ViewInterface viewInterface;
 };
 
-/**
- * @fn Class *CrosshairView::_CrosshairView(void)
- * @brief The CrosshairView archetype.
- * @return The CrosshairView Class.
- * @memberof CrosshairView
- */
 CGAME_EXPORT Class *_CrosshairView(void);
-

@@ -21,20 +21,40 @@
 
 #pragma once
 
-#include "ui_types.h"
+#include <ObjectivelyMVC/Text.h>
 
-void Ui_HandleEvent(const SDL_Event *event);
-void Ui_ViewWillAppear(void);
-void Ui_ViewWillDisappear(void);
-ViewController *Ui_TopViewController(void);
-void Ui_PushViewController(ViewController *viewController);
-void Ui_PopToViewController(ViewController *viewController);
-void Ui_PopViewController(void);
-void Ui_PopAllViewControllers(void);
-void Ui_SetHudViewController(ViewController *viewController);
-void Ui_Draw(void);
-void Ui_Init(void);
-void Ui_Shutdown(void);
+/**
+ * @file
+ * @brief The match clock, from the `CS_TIME` config string.
+ */
 
-#if defined(__UI_LOCAL_H__)
-#endif
+typedef struct TimeView TimeView;
+typedef struct TimeViewInterface TimeViewInterface;
+
+/**
+ * @brief The match clock, from the `CS_TIME` config string.
+ * @extends Text
+ */
+struct TimeView {
+
+  /**
+   * @brief The superclass.
+   */
+  Text text;
+
+  /**
+   * @brief The interface type.
+   * @protected
+   */
+  TimeViewInterface *interface[0];
+};
+
+struct TimeViewInterface {
+
+  /**
+   * @brief The superclass interface.
+   */
+  TextInterface textInterface;
+};
+
+CGAME_EXPORT Class *_TimeView(void);

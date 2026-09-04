@@ -111,33 +111,3 @@ int16_t Cg_ActiveAmmo(const player_state_t *ps) {
   return ps->inventory[ammo_tag];
 }
 
-/**
- * @brief Returns the icon for the player's current armor based on inventory.
- * Mirrors `G_ClientArmor`: returns the highest-priority armor in inventory.
- */
-const r_image_t *Cg_ArmorIcon(const player_state_t *ps) {
-
-  for (g_item_tag_t t = ARMOR_QUAKE_BODY; t > ARMOR_SHARD; t--) {
-    if (ps->inventory[t]) {
-      return cg_items[t].icon;
-    }
-  }
-  return NULL;
-}
-
-/**
- * @brief Returns the health icon appropriate for the given health value,
- * mirroring the server-side `G_ClientStats` health icon selection.
- */
-const r_image_t *Cg_HealthIcon(int16_t health) {
-
-  if (health > 100) {
-    return cg_health_icons[3]; // pics/i_health_mega
-  } else if (health > 75) {
-    return cg_health_icons[2]; // pics/i_health
-  } else if (health > 25) {
-    return cg_health_icons[1]; // pics/i_health_medium
-  } else {
-    return cg_health_icons[0]; // pics/i_health_large
-  }
-}

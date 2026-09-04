@@ -72,7 +72,7 @@
            These are per project rather than in QuetooFullIncludePath because
            every module has a cg_local.h and a g_types.h: one global list
            would make them ambiguous. -->
-      <AdditionalIncludeDirectories>..\src\cgame\ctf;..\src\cgame\common;..\src\cgame\common\ui;..\src\cgame\common\ui\controls;..\src\cgame\common\ui\credits;..\src\cgame\common\ui\editor;..\src\cgame\common\ui\home;..\src\cgame\common\ui\main;..\src\cgame\common\ui\play;..\src\cgame\common\ui\settings;..\src\cgame\common\ui\teams;..\src\cgame\common\ui\vote;..\src\cgame;..\src\game\ctf;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\src\cgame\ctf;..\src\cgame\common;..\src\cgame\common\ui;..\src\cgame\common\ui\controls;..\src\cgame\common\ui\credits;..\src\cgame\common\ui\editor;..\src\cgame\common\ui\home;..\src\cgame\common\ui\hud;..\src\cgame\common\ui\main;..\src\cgame\common\ui\play;..\src\cgame\common\ui\settings;..\src\cgame\common\ui\teams;..\src\cgame\common\ui\vote;..\src\cgame;..\src\game\ctf;..\src\game\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <!-- These switch the optional features on in the common sources. Set
            here rather than through
            $(ExtraPreprocessorDefinitions), which expands empty by the time

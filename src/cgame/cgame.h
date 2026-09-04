@@ -36,7 +36,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 40
+#define CGAME_API_VERSION 41
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -378,6 +378,13 @@ typedef struct cg_import_s {
    * @brief Pops all ViewControllers from the user interface.
    */
   void (*PopAllViewControllers)(void);
+
+  /**
+   * @brief Installs the ViewController drawn beneath the menus while in play, or `NULL`
+   * to remove it. Its View receives View::updateBindings with each frame from
+   * Cg_UpdateScreen; the client only draws it.
+   */
+  void (*SetHudViewController)(ViewController *viewController);
 
   /**
    * @}
