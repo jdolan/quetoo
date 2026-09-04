@@ -21,20 +21,40 @@
 
 #pragma once
 
-#include "ui_types.h"
+#include <ObjectivelyMVC/View.h>
 
-void Ui_HandleEvent(const SDL_Event *event);
-void Ui_ViewWillAppear(void);
-void Ui_ViewWillDisappear(void);
-ViewController *Ui_TopViewController(void);
-void Ui_PushViewController(ViewController *viewController);
-void Ui_PopToViewController(ViewController *viewController);
-void Ui_PopViewController(void);
-void Ui_PopAllViewControllers(void);
-void Ui_SetHudViewController(ViewController *viewController);
-void Ui_Draw(void);
-void Ui_Init(void);
-void Ui_Shutdown(void);
+/**
+ * @file
+ * @brief A translucent band in the player's team colour.
+ */
 
-#if defined(__UI_LOCAL_H__)
-#endif
+typedef struct TeamBannerView TeamBannerView;
+typedef struct TeamBannerViewInterface TeamBannerViewInterface;
+
+/**
+ * @brief A translucent band in the player's team colour. Hidden when not on a team.
+ * @extends View
+ */
+struct TeamBannerView {
+
+  /**
+   * @brief The superclass.
+   */
+  View view;
+
+  /**
+   * @brief The interface type.
+   * @protected
+   */
+  TeamBannerViewInterface *interface[0];
+};
+
+struct TeamBannerViewInterface {
+
+  /**
+   * @brief The superclass interface.
+   */
+  ViewInterface viewInterface;
+};
+
+CGAME_EXPORT Class *_TeamBannerView(void);

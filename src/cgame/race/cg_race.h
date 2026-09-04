@@ -59,8 +59,13 @@ void Cg_Race_Milestone(g_race_milestone_t kind, uint16_t number, const char *lab
 void Cg_Race_DrawScores(const player_state_t *ps);
 
 /**
- * @brief The whole HUD, arranged for racing: what common draws that a racer
- * needs, and the run in place of the frags and deaths. Installed over
- * `DrawHudElements` by `Cg_Race_Init`, not chained.
+ * @brief The overlays still on r_draw_2d, arranged for racing: what common draws that a
+ * racer needs, and the run. Installed over `DrawHudElements` by `Cg_Race_Init`, not chained.
  */
-void Cg_Race_DrawHud(const player_state_t *ps, cg_hud_layout_t *layout);
+void Cg_Race_DrawHud(const player_state_t *ps);
+
+/**
+ * @brief Arranges the HUD Views for racing: the speed and run counters in place of frags
+ * and deaths. Installed over `ConfigureHud` by `Cg_Race_Init`, not chained.
+ */
+void Cg_Race_ConfigureHud(View *hud);

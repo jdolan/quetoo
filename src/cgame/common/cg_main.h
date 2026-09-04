@@ -48,6 +48,7 @@ extern cvar_t *cg_draw_crosshair_health;
 extern cvar_t *cg_draw_crosshair_pulse;
 extern cvar_t *cg_draw_crosshair_scale;
 extern cvar_t *cg_draw_hud;
+extern cvar_t *cg_hud;
 extern cvar_t *cg_draw_target_name;
 extern cvar_t *cg_draw_weapon;
 extern cvar_t *cg_draw_weapon_alpha;

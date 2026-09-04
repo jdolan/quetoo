@@ -1,0 +1,116 @@
+/*
+ * The classic HUD: the arrangement Quetoo has always drawn, on ObjectivelyMVC.
+ *
+ * Elements anchor with alignment and offset with padding; the columns stack. Text sizes
+ * follow the bitmap fonts they replace: small 16, medium 32 and large 64 pixels tall. Every
+ * size rule carries the #hud prefix so it outranks the base rule.
+ */
+
+#hud {
+  autoresizing-mask: fill;
+}
+
+#hud Text {
+  font-family: ShareTechMono;
+  font-size: 14;
+  color: #ffffff;
+}
+
+#crosshair {
+  alignment: middle-center;
+}
+
+#teamBanner {
+  alignment: bottom;
+  autoresizing-mask: width;
+  height: 64;
+}
+
+#vitals {
+  alignment: bottom;
+  autoresizing-mask: width;
+  axis: horizontal;
+  distribution: fill-equally;
+  height: 72;
+}
+
+#vitals > .vital {
+  autoresizing-mask: height;
+}
+
+#vitals StatView {
+  alignment: bottom-center;
+  autoresizing-mask: contain;
+  padding-bottom: 5;
+}
+
+#hud StatView > Text {
+  font-size: 56;
+}
+
+#hud StatView > ImageView {
+  alignment: bottom;
+}
+
+#powerups {
+  alignment: middle-left;
+  autoresizing-mask: contain;
+  axis: vertical;
+  padding-left: 32;
+}
+
+#hud PowerupView {
+  autoresizing-mask: contain;
+}
+
+#hud PowerupView > Text {
+  alignment: middle;
+  font-size: 56;
+}
+
+#pickup {
+  alignment: top-right;
+  autoresizing-mask: contain;
+  spacing: 8;
+}
+
+#hud #pickup > Text {
+  alignment: middle;
+}
+
+#stats {
+  alignment: top-right;
+  autoresizing-mask: contain;
+  axis: vertical;
+  padding-top: 80;
+}
+
+#hud CounterView {
+  autoresizing-mask: contain;
+  axis: vertical;
+}
+
+#hud CounterView > .caption {
+  alignment: right;
+  color: #00ff00;
+}
+
+#hud CounterView > .value {
+  alignment: right;
+  font-size: 56;
+}
+
+#hud TimeView {
+  alignment: right;
+}
+
+#weaponBar {
+  alignment: bottom-center;
+  autoresizing-mask: contain;
+  padding-bottom: 144;
+}
+
+#hud #weaponBar > Text {
+  alignment: center;
+  font-size: 28;
+}

@@ -2,13 +2,13 @@
   autoresizing-mask: contain | width;
 }
 
-CrosshairView {
+CrosshairPreviewView {
   alignment: center;
   autoresizing-mask: width;
   background-color: #08151a66;
   height: 128;
 }
 
-CrosshairView > ImageView {
+CrosshairPreviewView > ImageView {
   alignment: middle-center;
 }

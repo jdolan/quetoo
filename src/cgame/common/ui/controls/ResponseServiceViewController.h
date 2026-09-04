@@ -26,7 +26,7 @@
 #include <ObjectivelyMVC/HueColorPicker.h>
 #include <ObjectivelyMVC/ViewController.h>
 
-#include "CrosshairView.h"
+#include "CrosshairPreviewView.h"
 
 /**
  * @file
@@ -71,9 +71,9 @@ struct ResponseServiceViewController {
   Select *crosshairHealth;
 
   /**
-   * @brief The CrosshairView.
+   * @brief The CrosshairPreviewView.
    */
-  CrosshairView *crosshairView;
+  CrosshairPreviewView *crosshairView;
 };
 
 /**
