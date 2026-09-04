@@ -28,11 +28,11 @@
 #pragma mark - View
 
 /**
- * @see View::updateBindings(View *)
+ * @see View::updateBindings(View *, ident)
  */
-static void updateBindings(View *self) {
+static void updateBindings(View *self, ident data) {
 
-  super(View, self, updateBindings);
+  super(View, self, updateBindings, data);
 
   TeamPlayerView *this = (TeamPlayerView *) self;
 
@@ -86,7 +86,7 @@ static void setPlayer(TeamPlayerView *self, const cg_client_info_t *client) {
 
   self->client = client;
 
-  $((View *) self, updateBindings);
+  $((View *) self, updateBindings, NULL);
 }
 
 #pragma mark - Class lifecycle

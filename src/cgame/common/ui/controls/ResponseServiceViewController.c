@@ -59,8 +59,8 @@ static void didSelectCrosshair(Select *select, Option *option) {
 
   ResponseServiceViewController *this = (ResponseServiceViewController *) select->delegate.self;
 
-  $((View *) select, updateBindings);
-  $((View *) this->crosshairView, updateBindings);
+  $((View *) select, updateBindings, NULL);
+  $((View *) this->crosshairView, updateBindings, NULL);
 }
 
 /**
@@ -81,7 +81,7 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
     cgi.SetCvarString(cg_draw_crosshair_color->name, MVC_RGBToHex(&color));
   }
 
-  $((View *) this->crosshairView, updateBindings);
+  $((View *) this->crosshairView, updateBindings, NULL);
 }
 
 /**
@@ -91,7 +91,7 @@ static void didSetCrosshairScale(Slider *slider, double value) {
 
   ResponseServiceViewController *this = (ResponseServiceViewController *) slider->delegate.self;
 
-  $((View *) this->crosshairView, updateBindings);
+  $((View *) this->crosshairView, updateBindings, NULL);
 }
 
 /**
@@ -101,7 +101,7 @@ static void didSetCrosshairAlpha(Slider *slider, double value) {
 
   ResponseServiceViewController *this = (ResponseServiceViewController *) slider->delegate.self;
 
-  $((View *) this->crosshairView, updateBindings);
+  $((View *) this->crosshairView, updateBindings, NULL);
 }
 
 /**
@@ -111,7 +111,7 @@ static void didSelectCrosshairHealth(Select *select, Option *option) {
 
   ResponseServiceViewController *this = (ResponseServiceViewController *) select->delegate.self;
 
-  $((View *) this->crosshairView, updateBindings);
+  $((View *) this->crosshairView, updateBindings, NULL);
 }
 
 /**
@@ -121,7 +121,7 @@ static void didBindKey(TextView *textView) {
 
   const ViewController *this = textView->delegate.self;
 
-  $(this->view, updateBindings);
+  $(this->view, updateBindings, NULL);
 }
 
 /**

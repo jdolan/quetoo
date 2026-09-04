@@ -98,7 +98,7 @@ static void didSelectSkin(Select *select, Option *option) {
 
   cgi.SetCvarString(cg_skin->name, option->title->text);
 
-  $((View *) self->playerModelView, updateBindings);
+  $((View *) self->playerModelView, updateBindings, NULL);
 }
 
 /**
@@ -148,7 +148,7 @@ static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, doubl
   }
 
   if (this->playerModelView) {
-    $((View *) this->playerModelView, updateBindings);
+    $((View *) this->playerModelView, updateBindings, NULL);
   }
 }
 

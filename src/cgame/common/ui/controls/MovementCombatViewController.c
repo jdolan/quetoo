@@ -34,7 +34,7 @@ static void didBindKey(TextView *textView) {
 
   const ViewController *this = textView->delegate.self;
 
-  $(this->view, updateBindings);
+  $(this->view, updateBindings, NULL);
 }
 
 /**

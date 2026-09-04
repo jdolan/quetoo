@@ -161,7 +161,7 @@ static void didSelectQuality(Select *select, Option *option) {
 
   ViewController *this = select->delegate.self;
   if (this) {
-    $(this->view, updateBindings);
+    $(this->view, updateBindings, NULL);
   }
 }
 

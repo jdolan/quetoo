@@ -28,11 +28,11 @@
 #pragma mark - View
 
 /**
- * @see View::updateBindings(View *)
+ * @see View::updateBindings(View *, ident)
  */
-static void updateBindings(View *self) {
+static void updateBindings(View *self, ident data) {
 
-  super(View, self, updateBindings);
+  super(View, self, updateBindings, data);
 
   MainView *this = (MainView *) self;
 

@@ -51,11 +51,11 @@ static View *init(View *self) {
 }
 
 /**
- * @see View::updateBindings(View *)
+ * @see View::updateBindings(View *, ident)
  */
-static void updateBindings(View *self) {
+static void updateBindings(View *self, ident data) {
 
-  super(View, self, updateBindings);
+  super(View, self, updateBindings, data);
 
   CvarTextView *this = (CvarTextView *) self;
   if (this->var) {

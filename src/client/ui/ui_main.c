@@ -127,7 +127,7 @@ void Ui_HandleEvent(const SDL_Event *event) {
 void Ui_ViewWillAppear(void) {
 
   if (windowController) {
-    $(windowController->viewController->view, updateBindings);
+    $(windowController->viewController->view, updateBindings, NULL);
     $(windowController->viewController, viewWillAppear);
   } else {
     Com_Warn("windowController was NULL\n");
