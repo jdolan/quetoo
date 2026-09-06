@@ -59,7 +59,7 @@ static SDL_Surface *Img_LoadSurface_(const char *name, const char *type) {
  * @brief Loads the specified image from the game filesystem, trying all supported formats.
  */
 SDL_Surface *Img_LoadSurface(const char *name) {
-  const char *extensions[] = { "png", "jpg", "tga" };
+  const char *extensions[] = { "svg", "png", "jpg", "tga" };
 
   char basename[MAX_QPATH];
   StripExtension(name, basename);
