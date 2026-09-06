@@ -21,6 +21,8 @@
 
 #include "cg_race.h"
 
+#include "ui/hud/CounterView.h"
+
 /**
  * @file
  * @brief The HUD, arranged for racing. Health, ammo, armor and the powerups stay
@@ -91,8 +93,6 @@ static void Cg_Race_DrawDelta(int32_t y, int32_t delta, const char *against) {
   Cg_Race_DrawCentered(y, string, delta > 0 ? color_red : color_green);
 }
 
-static float cg_race_speed;
-
 /**
  * @brief The time, colored by what will become of it, and the checkpoints
  * reached out of the course's.
@@ -150,29 +150,92 @@ static void Cg_Race_DrawRun(const player_state_t *ps) {
   cgi.BindFont(NULL, NULL, NULL);
 }
 
-/**
- * @brief The horizontal speed, smoothed over frames.
- */
-static int32_t Cg_Race_DrawSpeed(const player_state_t *ps, int32_t y) {
+#define _Class _SpeedView
 
-  vec3_t velocity = ps->pm_state.velocity;
+/**
+ * @brief The speed counter: horizontal velocity, eased so it does not flicker per frame.
+ * @extends CounterView
+ */
+typedef struct SpeedViewInterface SpeedViewInterface;
+
+typedef struct {
+  CounterView counterView;
+  SpeedViewInterface *interface[0];
+  float speed;
+} SpeedView;
+
+struct SpeedViewInterface {
+  CounterViewInterface counterViewInterface;
+};
+
+static int32_t valueForFrame(CounterView *self, const cl_frame_t *frame) {
+
+  SpeedView *this = (SpeedView *) self;
+
+  vec3_t velocity = frame->ps.pm_state.velocity;
   velocity.z = 0.f;
 
-  cg_race_speed += (Vec3_Length(velocity) - cg_race_speed) * RACE_HUD_SPEED_LERP;
+  this->speed += (Vec3_Length(velocity) - this->speed) * RACE_HUD_SPEED_LERP;
 
-  return Cg_DrawStat(y, "Speed", (int32_t) cg_race_speed);
+  return (int32_t) this->speed;
 }
 
-/**
- * @see cg_race.h
- */
-void Cg_Race_DrawHud(const player_state_t *ps, cg_hud_layout_t *layout) {
+static void initialize(Class *clazz) {
+  ((CounterViewInterface *) clazz->interface)->valueForFrame = valueForFrame;
+}
 
-  Cg_DrawVitals(ps);
+static Class *_SpeedView(void) {
+  static Class *clazz;
+  static Once once;
 
-  layout->powerup_y = Cg_DrawPowerups(ps, layout->powerup_y);
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "SpeedView",
+      .superclass = _CounterView(),
+      .instanceSize = sizeof(SpeedView),
+      .interfaceSize = sizeof(SpeedViewInterface),
+      .initialize = initialize,
+    });
+  });
 
-  Cg_DrawPickup(ps);
+  return clazz;
+}
+
+#undef _Class
+
+void Cg_Race_ConfigureHud(View *hud) {
+
+  const char *removed[] = { "frags", "deaths" };
+  for (size_t i = 0; i < lengthof(removed); i++) {
+    View *view = $(hud, descendantWithIdentifier, removed[i]);
+    if (view) {
+      $(view, removeFromSuperview);
+    }
+  }
+
+  View *stats = $(hud, descendantWithIdentifier, "stats");
+  if (stats == NULL) {
+    return;
+  }
+
+  View *time = $(stats, subviewWithIdentifier, "time");
+
+  CounterView *speed = $((CounterView *) alloc(SpeedView), initWithCaption, "Speed", COUNTER_VIEW_NO_STAT);
+  CounterView *runs = $(alloc(CounterView), initWithCaption, "Runs", STAT_RACE_RUNS);
+
+  $(stats, addSubview, (View *) speed);
+  $(stats, addSubview, (View *) runs);
+
+  // keep the clock beneath the counters
+  if (time) {
+    $(stats, bringSubviewToFront, time);
+  }
+
+  release(speed);
+  release(runs);
+}
+
+void Cg_Race_DrawHud(const player_state_t *ps) {
 
   Cg_DrawSpectator(ps);
 
@@ -183,7 +246,4 @@ void Cg_Race_DrawHud(const player_state_t *ps, cg_hud_layout_t *layout) {
   }
 
   Cg_Race_DrawRun(ps);
-
-  layout->stat_y = Cg_Race_DrawSpeed(ps, layout->stat_y);
-  layout->stat_y = Cg_DrawStat(layout->stat_y, "Runs", ps->stats[STAT_RACE_RUNS]);
 }

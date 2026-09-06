@@ -26,6 +26,15 @@ extern cl_static_t cls;
 
 static WindowController *windowController;
 
+/**
+ * @brief The root holds two layers: the HUD, which cgame installs, beneath the menus.
+ */
+static ViewController *rootViewController;
+
+static ViewController *hudLayer;
+
+static ViewController *hudViewController;
+
 static NavigationViewController *navigationViewController;
 
 /**
@@ -161,7 +170,26 @@ void Ui_Draw(void) {
 
   assert(windowController);
 
+  // The menus occlude the HUD, and the HUD exists only in play
+  const bool menus = cls.key_state.dest == KEY_UI || cls.state != CL_ACTIVE;
+
+  $(hudLayer->view, setHidden, menus);
+  $(navigationViewController->viewController.view, setHidden, !menus);
+
   $(windowController, render);
+}
+
+void Ui_SetHudViewController(ViewController *viewController) {
+
+  if (hudViewController) {
+    $(hudViewController, removeFromParentViewController);
+    hudViewController = release(hudViewController);
+  }
+
+  if (viewController) {
+    hudViewController = retain(viewController);
+    $(hudLayer, addChildViewController, hudViewController);
+  }
 }
 
 /**
@@ -245,8 +273,14 @@ void Ui_Init(void) {
   // Ui_Data provider was a redundant second bridge to Fs_Load.
   windowController = $(alloc(WindowController), initWithDevice, r_context.device);
 
+  rootViewController = $(alloc(ViewController), init);
+  $(windowController, setViewController, rootViewController);
+
+  hudLayer = $(alloc(ViewController), init);
+  $(rootViewController, addChildViewController, hudLayer);
+
   navigationViewController = $(alloc(NavigationViewController), init);
-  $(windowController, setViewController, (ViewController *) navigationViewController);
+  $(rootViewController, addChildViewController, (ViewController *) navigationViewController);
 
   Ui_LoadSample("#ui/change");
   Ui_LoadSample("#ui/click");
@@ -260,7 +294,11 @@ void Ui_Shutdown(void) {
 
   Ui_PopAllViewControllers();
 
+  Ui_SetHudViewController(NULL);
+
   navigationViewController = release(navigationViewController);
+  hudLayer = release(hudLayer);
+  rootViewController = release(rootViewController);
 
   windowController = release(windowController);
 

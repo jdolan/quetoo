@@ -15,17 +15,11 @@
       "subviews": [
         {
           "class": "Label",
-          "identifier": "mapTitle",
-          "text": {
-            "colorEscapes": true
-          }
+          "identifier": "mapTitle"
         },
         {
           "class": "Label",
-          "identifier": "serverName",
-          "text": {
-            "colorEscapes": true
-          }
+          "identifier": "serverName"
         }
       ]
     },

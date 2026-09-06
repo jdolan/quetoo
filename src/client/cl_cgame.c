@@ -228,6 +228,7 @@ void Cl_InitCgame(void) {
   import.PopToViewController = Ui_PopToViewController;
   import.PopViewController = Ui_PopViewController;
   import.PopAllViewControllers = Ui_PopAllViewControllers;
+  import.SetHudViewController = Ui_SetHudViewController;
 
   import.BindKey = Cl_Bind;
   import.KeyForBind = Cl_KeyForBind;

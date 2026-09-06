@@ -105,12 +105,3 @@ int16_t Cg_ActiveWeapon(const player_state_t *ps);
  */
 int16_t Cg_ActiveAmmo(const player_state_t *ps);
 
-/**
- * @brief Returns the icon for the player's current armor based on inventory.
- */
-const r_image_t *Cg_ArmorIcon(const player_state_t *ps);
-
-/**
- * @brief Returns the health icon appropriate for the given health value.
- */
-const r_image_t *Cg_HealthIcon(int16_t health);

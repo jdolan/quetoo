@@ -38,85 +38,21 @@ typedef enum {
 #define CROSSHAIR_SCALE 0.125f
 #define CROSSHAIR_PULSE_ALPHA 0.5f
 
-/**
- * @brief The running position of each column of the HUD that stacks, carried
- * through the arrangement so that no element has to know how many drew above it.
- * @details The two stacking columns are the powerups down the left of the view and
- * the stat rows down the right. Everything else in the HUD places itself, and
- * takes no position.
- *
- * This exists because the stat rows used to address their slot arithmetically -
- * frags at one row, deaths at two, captures at three - which meant an element that
- * a feature drew had to be paid for by an element that did not know the feature
- * existed: the match time subtracted a row of its own under `G_CTF`. A cursor each
- * feature advances says the same thing without anybody naming anybody else.
- */
-typedef struct {
-  /**
-   * @brief The y of the next powerup slot.
-   */
-  int32_t powerup_y;
-
-  /**
-   * @brief The y of the next stat row.
-   */
-  int32_t stat_y;
-
-  /**
-   * @brief Whether the match time is drawn beneath the stat column once the
-   * elements have been arranged. A module that places the clock itself, or has
-   * no use for it, clears this.
-   */
-  bool draw_time;
-} cg_hud_layout_t;
-
 #if defined(__CG_LOCAL_H__)
 
-void Cg_DrawHud(const player_state_t *ps);
+void Cg_UpdateHud(const cl_frame_t *frame);
+void Cg_DrawHud(const cl_frame_t *frame);
 
 /**
  * @defgroup hud-elements HUD elements
- * @brief The building blocks of the HUD, public so that a module may arrange them
- * as it likes rather than only insert into the arrangement common ships.
- *
- * An element that stacks takes the y of its slot and returns the y of the next
- * one, which is `Cg_DrawPowerup`'s shape. The rest place themselves from the
- * context and take no position, because a coordinate they would ignore is a
- * signature that lies about what it does.
+ * @brief What the HUD still draws through r_draw_2d: the text overlays awaiting their own
+ * Views. The stat and powerup columns, vitals, pickup, weapon bar, team banner and crosshair
+ * are Views under `ui/hud/`, arranged by the variant `cg_hud` names.
  * @{
  */
 
-/**
- * @brief Draws the powerups the client holds, and the time left on each.
- * @return The y of the next powerup slot.
- */
-int32_t Cg_DrawPowerups(const player_state_t *ps, int32_t y);
-
-/**
- * @brief Draws the client's frag count.
- * @return The y of the next stat row.
- * @details The row is reserved whether or not it draws, so that a spectator sees
- * the rows below it where a player would.
- */
-int32_t Cg_DrawFrags(const player_state_t *ps, int32_t y);
-
-/**
- * @brief Draws the client's death count.
- * @return The y of the next stat row, reserved as `Cg_DrawFrags` reserves it.
- */
-int32_t Cg_DrawDeaths(const player_state_t *ps, int32_t y);
-
-/**
- * @brief Draws the time left in the match, or the time elapsed.
- * @return The y below the line drawn, which is one line rather than a whole row.
- */
-int32_t Cg_DrawTime(const player_state_t *ps, int32_t y);
-
-void Cg_DrawVitals(const player_state_t *ps);
-void Cg_DrawPickup(const player_state_t *ps);
 void Cg_DrawSpectator(const player_state_t *ps);
 void Cg_DrawChase(const player_state_t *ps);
-void Cg_DrawTeamBanner(const player_state_t *ps);
 void Cg_DrawDamageInflicted(const player_state_t *ps);
 
 /**

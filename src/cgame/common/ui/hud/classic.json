@@ -1,0 +1,101 @@
+{
+  "class": "View",
+  "identifier": "hud",
+  "subviews": [
+    {
+      "class": "CrosshairView",
+      "identifier": "crosshair"
+    },
+    {
+      "class": "TeamBannerView",
+      "identifier": "teamBanner"
+    },
+    {
+      "class": "StackView",
+      "identifier": "vitals",
+      "subviews": [
+        {
+          "classNames": ["vital"],
+          "subviews": [
+            {
+              "class": "StatView",
+              "identifier": "ammo",
+              "stat": "ammo"
+            }
+          ]
+        },
+        {
+          "classNames": ["vital"],
+          "subviews": [
+            {
+              "class": "StatView",
+              "identifier": "health",
+              "stat": "health"
+            }
+          ]
+        },
+        {
+          "classNames": ["vital"],
+          "subviews": [
+            {
+              "class": "StatView",
+              "identifier": "armor",
+              "stat": "armor"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "class": "StackView",
+      "identifier": "powerups",
+      "subviews": [
+        {
+          "class": "PowerupView",
+          "identifier": "quad",
+          "powerup": "quad"
+        },
+        {
+          "class": "PowerupView",
+          "identifier": "invulnerability",
+          "powerup": "invulnerability"
+        },
+        {
+          "class": "PowerupView",
+          "identifier": "invisibility",
+          "powerup": "invisibility"
+        }
+      ]
+    },
+    {
+      "class": "PickupView",
+      "identifier": "pickup"
+    },
+    {
+      "class": "StackView",
+      "identifier": "stats",
+      "subviews": [
+        {
+          "class": "CounterView",
+          "identifier": "frags",
+          "caption": "Frags",
+          "stat": "frags"
+        },
+        {
+          "class": "CounterView",
+          "identifier": "deaths",
+          "caption": "Deaths",
+          "stat": "deaths"
+        },
+        {
+          "class": "TimeView",
+          "identifier": "time"
+        }
+      ]
+    },
+    {
+      "class": "WeaponBarView",
+      "identifier": "weaponBar"
+    }
+  ]
+}

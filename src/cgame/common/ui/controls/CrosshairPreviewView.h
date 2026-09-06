@@ -26,17 +26,17 @@
 
 /**
  * @file
- * @brief The CrosshairView type.
+ * @brief The CrosshairPreviewView type.
  */
 
-typedef struct CrosshairView CrosshairView;
-typedef struct CrosshairViewInterface CrosshairViewInterface;
+typedef struct CrosshairPreviewView CrosshairPreviewView;
+typedef struct CrosshairPreviewViewInterface CrosshairPreviewViewInterface;
 
 /**
- * @brief The CrosshairView type.
- * @extends View
+ * @brief The CrosshairPreviewView type.
+ * @extends Control
  */
-struct CrosshairView {
+struct CrosshairPreviewView {
 
   /**
    * @brief The superclass.
@@ -48,7 +48,7 @@ struct CrosshairView {
    * @brief The interface type.
    * @private
    */
-  CrosshairViewInterface *interface[0];
+  CrosshairPreviewViewInterface *interface[0];
 
   /**
    * @brief The ImageView.
@@ -57,9 +57,9 @@ struct CrosshairView {
 };
 
 /**
- * @brief The CrosshairView interface.
+ * @brief The CrosshairPreviewView interface.
  */
-struct CrosshairViewInterface {
+struct CrosshairPreviewViewInterface {
 
   /**
    * @brief The superclass interface.
@@ -67,20 +67,20 @@ struct CrosshairViewInterface {
   ControlInterface controlInterface;
 
   /**
-   * @fn CrosshairView *CrosshairView::initWithFrame(CrosshairView *self, const SDL_Rect *frame)
-   * @brief Initializes this CrosshairView with the specified frame.
+   * @fn CrosshairPreviewView *CrosshairPreviewView::initWithFrame(CrosshairPreviewView *self, const SDL_Rect *frame)
+   * @brief Initializes this CrosshairPreviewView with the specified frame.
    * @param frame The frame.
-   * @return The initialized CrosshairView, or `NULL` on error.
-   * @memberof CrosshairView
+   * @return The initialized CrosshairPreviewView, or `NULL` on error.
+   * @memberof CrosshairPreviewView
    */
-  CrosshairView *(*initWithFrame)(CrosshairView *self, const SDL_Rect *frame);
+  CrosshairPreviewView *(*initWithFrame)(CrosshairPreviewView *self, const SDL_Rect *frame);
 };
 
 /**
- * @fn Class *CrosshairView::_CrosshairView(void)
- * @brief The CrosshairView archetype.
- * @return The CrosshairView Class.
- * @memberof CrosshairView
+ * @fn Class *CrosshairPreviewView::_CrosshairPreviewView(void)
+ * @brief The CrosshairPreviewView archetype.
+ * @return The CrosshairPreviewView Class.
+ * @memberof CrosshairPreviewView
  */
-CGAME_EXPORT Class *_CrosshairView(void);
+CGAME_EXPORT Class *_CrosshairPreviewView(void);
 

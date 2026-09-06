@@ -136,8 +136,7 @@
                           "joinDetailTitle"
                         ],
                         "text": {
-                          "text": "Select a server",
-                          "colorEscapes": true
+                          "text": "Select a server"
                         }
                       },
                       {

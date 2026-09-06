@@ -22,142 +22,7 @@
 #include "cg_local.h"
 #include "cg_hud_draw.h"
 
-/**
- * @brief Draws health, ammo and armor numerics and icons.
- */
-void Cg_DrawVitals(const player_state_t *ps) {
-  int32_t x, cw, ch, x_offset;
-
-  cgi.BindFont("large", &cw, &ch);
-
-  x_offset = 3 * cw;
-
-  if (ps->stats[STAT_HEALTH] > 0) {
-    const int16_t health = ps->stats[STAT_HEALTH];
-
-    x = cgi.context->w * 0.5 - x_offset;
-
-    Cg_DrawVital(x, ch, health, Cg_HealthIcon(health), HUD_HEALTH_MED, HUD_HEALTH_LOW);
-  }
-
-  if ((cg_state.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
-
-    const int16_t ammo = Cg_ActiveAmmo(ps);
-
-    if (ammo > 0) {
-      const int16_t active = Cg_ActiveWeapon(ps);
-      const int16_t ammo_low = active != WEAPON_SELECT_OFF
-                                 ? (int16_t) bg_item_defs[cg_weapons[active].ammo_tag].quantity
-                                 : 0;
-      const r_image_t *ammo_icon = active != WEAPON_SELECT_OFF ? cg_weapons[active].icon : NULL;
-
-      x = cgi.context->w * 0.25 - x_offset;
-
-      Cg_DrawVital(x, ch, ammo, ammo_icon, -1, ammo_low);
-    }
-
-    if (ps->stats[STAT_ARMOR] > 0) {
-      const int16_t armor = ps->stats[STAT_ARMOR];
-
-      x = cgi.context->w * 0.75 - x_offset;
-
-      Cg_DrawVital(x, ch, armor, Cg_ArmorIcon(ps), HUD_ARMOR_MED, HUD_ARMOR_LOW);
-    }
-  }
-
-  cgi.BindFont(NULL, NULL, NULL);
-}
-
-/**
- * @brief Draws the powerups the client holds, and the time left on each.
- */
-int32_t Cg_DrawPowerups(const player_state_t *ps, int32_t y) {
-  int32_t ch;
-
-  cgi.BindFont("large", &ch, NULL);
-
-  if (ps->stats[STAT_QUAD_TIME] > 0) {
-    y = Cg_DrawPowerup(y, ps->stats[STAT_QUAD_TIME], cg_items[POWERUP_QUAD].icon, ch);
-  }
-
-  if (ps->stats[STAT_INVULNERABILITY_TIME] > 0) {
-    y = Cg_DrawPowerup(y, ps->stats[STAT_INVULNERABILITY_TIME], cg_items[POWERUP_INVULNERABILITY].icon, ch);
-  }
-
-  if (ps->stats[STAT_INVISIBILITY_TIME] > 0) {
-    y = Cg_DrawPowerup(y, ps->stats[STAT_INVISIBILITY_TIME], cg_items[POWERUP_INVISIBILITY].icon, ch);
-  }
-
-  cgi.BindFont(NULL, NULL, NULL);
-
-  return y;
-}
-
-/**
- * @brief Draws the recently picked up item icon and name in the top-right corner.
- */
-void Cg_DrawPickup(const player_state_t *ps) {
-  int32_t x, y, cw, ch;
-
-  cgi.BindFont(NULL, &cw, &ch);
-
-  const int16_t p = ps->stats[STAT_PICKUP];
-  if (p) {
-    const int16_t pickup = p & ~STAT_TOGGLE_BIT;
-
-    const char *string = pickup > ITEM_NONE && pickup < ITEM_TOTAL ? bg_item_defs[pickup].name : "";
-    const r_image_t *icon = pickup > ITEM_NONE && pickup < ITEM_TOTAL
-                              ? cg_items[pickup].icon
-                              : NULL;
-
-    x = cgi.context->w - HUD_PIC_HEIGHT - cgi.StringWidth(string);
-    y = 0;
-
-    Cg_DrawIcon(x, y, icon, color_white);
-
-    x += HUD_PIC_HEIGHT;
-    y += (HUD_PIC_HEIGHT - ch) / 2 + 2;
-
-    cgi.Draw2DString(x, y, string, HUD_COLOR_STAT);
-  }
-}
-
-/**
- * @brief Reserves a stat row without drawing it, so that a spectator sees the
- * rows below it where a player would.
- */
-static int32_t Cg_ReserveStat(int32_t y) {
-  int32_t ch;
-
-  cgi.BindFont("small", NULL, &ch);
-  cgi.BindFont(NULL, NULL, NULL);
-
-  return y + HUD_PIC_HEIGHT + ch;
-}
-
-/**
- * @brief Draws the player's frag count in the top-right corner of the HUD.
- */
-int32_t Cg_DrawFrags(const player_state_t *ps, int32_t y) {
-
-  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-    return Cg_ReserveStat(y);
-  }
-
-  return Cg_DrawStat(y, "Frags", ps->stats[STAT_FRAGS]);
-}
-
-/**
- * @brief Draws the player's death count in the top-right corner of the HUD.
- */
-int32_t Cg_DrawDeaths(const player_state_t *ps, int32_t y) {
-
-  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-    return Cg_ReserveStat(y);
-  }
-
-  return Cg_DrawStat(y, "Deaths", ps->stats[STAT_DEATHS]);
-}
+#include "ui/hud/HudViewController.h"
 
 /**
  * @brief Draws the "Spectating" label when the player is a spectator not in chase mode.
@@ -224,47 +89,6 @@ void Cg_DrawChase(const player_state_t *ps) {
 }
 
 /**
- * @brief Draws the current match time string from the server config string.
- */
-int32_t Cg_DrawTime(const player_state_t *ps, int32_t y) {
-  int32_t x, ch;
-  const char *string = cgi.ConfigString(CS_TIME);
-
-  if (!ps->stats[STAT_TIME]) {
-    return y;
-  }
-
-  cgi.BindFont("small", NULL, &ch);
-
-  x = cgi.context->w - cgi.StringWidth(string);
-
-  cgi.Draw2DString(x, y, string, color_white);
-
-  cgi.BindFont(NULL, NULL, NULL);
-
-  return y + ch;
-}
-
-/**
- * @brief Draws a translucent team-color banner strip at the bottom of the screen.
- */
-void Cg_DrawTeamBanner(const player_state_t *ps) {
-  const int16_t team = ps->stats[STAT_TEAM];
-  int32_t x, y;
-
-  if (team == -1) {
-    return;
-  }
-
-  const color_t color = ColorHSVA(cg_state.teams[team].hue, 1.f, 1.f, .14f);
-
-  x = 0;
-  y = cgi.context->h - 64;
-
-  cgi.Draw2DFill(x, y, cgi.context->w, 64, color);
-}
-
-/**
  * @brief Plays the hit sound if the player inflicted damage this frame.
  */
 void Cg_DrawDamageInflicted(const player_state_t *ps) {
@@ -289,22 +113,9 @@ void Cg_DrawDamageInflicted(const player_state_t *ps) {
 }
 
 /**
- * @brief Arranges the deathmatch HUD, which is the whole of it for a module that
- * builds no optional feature.
+ * @brief The overlays still drawn through r_draw_2d, beneath what a module adds.
  */
-static void Cg_DrawHudElements_Common(const player_state_t *ps, cg_hud_layout_t *layout) {
-
-  Cg_DrawVitals(ps);
-
-  layout->powerup_y = Cg_DrawPowerups(ps, layout->powerup_y);
-
-  Cg_DrawPickup(ps);
-
-  Cg_DrawTeamBanner(ps);
-
-  layout->stat_y = Cg_DrawFrags(ps, layout->stat_y);
-
-  layout->stat_y = Cg_DrawDeaths(ps, layout->stat_y);
+static void Cg_DrawHudElements_Common(const player_state_t *ps) {
 
   Cg_DrawSpectator(ps);
 
@@ -314,9 +125,31 @@ static void Cg_DrawHudElements_Common(const player_state_t *ps, cg_hud_layout_t 
 DrawHudElements Cg_DrawHudElements = Cg_DrawHudElements_Common;
 
 /**
- * @brief Draws the HUD for the current frame.
+ * @brief Hands the frame to the HUD View hierarchy, which resolves its own visibility.
  */
-void Cg_DrawHud(const player_state_t *ps) {
+void Cg_UpdateHud(const cl_frame_t *frame) {
+
+  if (cg_hud_view_controller) {
+    $(cg_hud_view_controller, updateWithFrame, frame);
+  }
+}
+
+/**
+ * @brief The default HUD needs nothing beyond its JSON; modules chain onto this.
+ */
+static void Cg_ConfigureHud_Common(View *hud) {
+
+}
+
+ConfigureHud Cg_ConfigureHud = Cg_ConfigureHud_Common;
+
+/**
+ * @brief Draws what the HUD still draws through r_draw_2d; the View hierarchy is updated by
+ * Cg_UpdateHud, whether or not this runs.
+ */
+void Cg_DrawHud(const cl_frame_t *frame) {
+
+  const player_state_t *ps = &frame->ps;
 
   if (!cg_draw_hud->integer) {
     return;
@@ -326,27 +159,11 @@ void Cg_DrawHud(const player_state_t *ps) {
     return;
   }
 
-  Cg_DrawCrosshair(ps);
-
   if (editor->value) {
     return;
   }
 
-  int32_t ch;
-  cgi.BindFont("small", NULL, &ch);
-  cgi.BindFont(NULL, NULL, NULL);
-
-  cg_hud_layout_t layout = {
-    .powerup_y = cgi.context->h / 2,
-    .stat_y = HUD_PIC_HEIGHT + ch, // the pickup holds the first row
-    .draw_time = true,
-  };
-
-  Cg_DrawHudElements(ps, &layout);
-
-  if (layout.draw_time) {
-    Cg_DrawTime(ps, layout.stat_y);
-  }
+  Cg_DrawHudElements(ps);
 
   Cg_Vote_Draw();
 
@@ -357,7 +174,4 @@ void Cg_DrawHud(const player_state_t *ps) {
   Cg_DrawBlend(ps);
 
   Cg_DrawDamageInflicted(ps);
-
-  Cg_DrawSelectWeapon(ps);
 }
-

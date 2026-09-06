@@ -21,9 +21,9 @@
 
 #include "cg_local.h"
 
-#include "CrosshairView.h"
+#include "CrosshairPreviewView.h"
 
-#define _Class _CrosshairView
+#define _Class _CrosshairPreviewView
 
 #pragma mark - Object
 
@@ -32,7 +32,7 @@
  */
 static void dealloc(Object *self) {
 
-  CrosshairView *this = (CrosshairView *) self;
+  CrosshairPreviewView *this = (CrosshairPreviewView *) self;
 
   release(this->imageView);
 
@@ -45,7 +45,7 @@ static void dealloc(Object *self) {
  * @see View::init(View *)
  */
 static View *init(View *self) {
-  return (View *) $((CrosshairView *) self, initWithFrame, NULL);
+  return (View *) $((CrosshairPreviewView *) self, initWithFrame, NULL);
 }
 
 /**
@@ -53,7 +53,7 @@ static View *init(View *self) {
  */
 static void layoutSubviews(View *self) {
 
-  CrosshairView *this = (CrosshairView *) self;
+  CrosshairPreviewView *this = (CrosshairPreviewView *) self;
   if (this->imageView->image) {
 
     const float scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE;
@@ -77,7 +77,7 @@ static void updateBindings(View *self, ident data) {
 
   super(View, self, updateBindings, data);
 
-  CrosshairView *this = (CrosshairView *) self;
+  CrosshairPreviewView *this = (CrosshairPreviewView *) self;
 
   $(this->imageView, setImage, NULL);
 
@@ -107,16 +107,16 @@ static void updateBindings(View *self, ident data) {
   self->needsLayout = true;
 }
 
-#pragma mark - CrosshairView
+#pragma mark - CrosshairPreviewView
 
 /**
- * @fn CrosshairView *CrosshairView::initWithFrame(CrosshairView *self, const SDL_Rect *frame)
+ * @fn CrosshairPreviewView *CrosshairPreviewView::initWithFrame(CrosshairPreviewView *self, const SDL_Rect *frame)
  *
- * @memberof CrosshairView
+ * @memberof CrosshairPreviewView
  */
-static CrosshairView *initWithFrame(CrosshairView *self, const SDL_Rect *frame) {
+static CrosshairPreviewView *initWithFrame(CrosshairPreviewView *self, const SDL_Rect *frame) {
 
-  self = (CrosshairView *) super(Control, self, initWithFrame, frame);
+  self = (CrosshairPreviewView *) super(Control, self, initWithFrame, frame);
   if (self) {
 
     self->imageView = $(alloc(ImageView), initWithFrame, NULL);
@@ -141,23 +141,23 @@ static void initialize(Class *clazz) {
   ((ViewInterface *) clazz->interface)->layoutSubviews = layoutSubviews;
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-  ((CrosshairViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+  ((CrosshairPreviewViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
 }
 
 /**
- * @fn Class *CrosshairView::_CrosshairView(void)
- * @memberof CrosshairView
+ * @fn Class *CrosshairPreviewView::_CrosshairPreviewView(void)
+ * @memberof CrosshairPreviewView
  */
-Class *_CrosshairView(void) {
+Class *_CrosshairPreviewView(void) {
   static Class *clazz;
   static Once once;
 
   do_once(&once, {
     clazz = _initialize(&(const ClassDef) {
-      .name = "CrosshairView",
+      .name = "CrosshairPreviewView",
       .superclass = _Control(),
-      .instanceSize = sizeof(CrosshairView),
-      .interfaceSize = sizeof(CrosshairViewInterface),
+      .instanceSize = sizeof(CrosshairPreviewView),
+      .interfaceSize = sizeof(CrosshairPreviewViewInterface),
       .initialize = initialize,
     });
   });

@@ -457,9 +457,12 @@ void Cl_UpdateScreen(void) {
         cls.cgame->UpdateScreen(&cl.frame);
       }
 
+      // The HUD and the menus share one View hierarchy, drawn every frame; what is
+      // still on r_draw_2d below flushes at the end of the frame, so it lands above
+      Ui_Draw();
+
       switch (cls.key_state.dest) {
         case KEY_UI:
-          Ui_Draw();
           break;
         case KEY_CONSOLE:
           Cl_DrawConsole();

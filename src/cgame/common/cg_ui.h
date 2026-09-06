@@ -24,6 +24,11 @@
 #include "cg_types.h"
 
 void Cg_InitUi(void);
+
+/**
+ * @brief Installs the HUD, after every module has chained onto Cg_ConfigureHud.
+ */
+void Cg_InitHudUi(void);
 void Cg_ShutdownUi(void);
 void Cg_ClearUi(void);
 void Cg_UpdateLoading(const cl_loading_t loading);
