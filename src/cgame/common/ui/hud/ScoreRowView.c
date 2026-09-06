@@ -75,6 +75,10 @@ static ScoreRowView *initWithScore(ScoreRowView *self, const g_score_t *score, i
 
     const cg_client_info_t *info = &cg_state.clients[score->client];
 
+    if (score->client == cgi.client->frame.ps.client) {
+      $((View *) self, addClassName, "self");
+    }
+
     self->icon = $(alloc(ImageView), initWithFrame, &MakeRect(1, 1, SCORES_ICON_WIDTH - 2, SCORES_ICON_WIDTH - 2));
     assert(self->icon);
 

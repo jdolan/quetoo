@@ -38,7 +38,7 @@ typedef struct ScoreRowViewInterface ScoreRowViewInterface;
 /**
  * @brief One player on the scoreboard: the icon, a fill in the team colour, the name and
  * ping on the first line, and two more lines a module fills in through
- * ScoreRowView::setDetails.
+ * ScoreRowView::setDetails. The local player's row carries the class name `self`.
  * @extends View
  */
 struct ScoreRowView {

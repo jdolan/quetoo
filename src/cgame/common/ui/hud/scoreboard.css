@@ -45,6 +45,12 @@ ScoreboardView ScoreRowView {
   border-radius: 4;
 }
 
+ScoreboardView ScoreRowView.self {
+  background-color: #08151aaa;
+  border-color: #8fc7dc80;
+  border-width: 1;
+}
+
 ScoreboardView .spectators {
   padding-right: 48;
 }
