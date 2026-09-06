@@ -483,7 +483,11 @@ bool Cg_UpdateSelectWeapon(const player_state_t *ps, float *alpha) {
   }
 
   const int32_t delta = cg_hud_state.weapon.bar_time - cgi.client->unclamped_time;
-  *alpha = Clampf(delta / (float) cg_select_weapon_fade->integer, 0.f, 1.f);
+  if (cg_select_weapon_fade->integer > 0) {
+    *alpha = Clampf(delta / (float) cg_select_weapon_fade->integer, 0.f, 1.f);
+  } else {
+    *alpha = 1.f;
+  }
 
   return true;
 }

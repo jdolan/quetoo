@@ -34,7 +34,7 @@ typedef struct CrosshairPreviewViewInterface CrosshairPreviewViewInterface;
 
 /**
  * @brief The CrosshairPreviewView type.
- * @extends View
+ * @extends Control
  */
 struct CrosshairPreviewView {
 

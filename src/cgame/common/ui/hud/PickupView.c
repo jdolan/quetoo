@@ -48,7 +48,7 @@ static void dealloc(Object *self) {
  */
 static View *init(View *self) {
 
-  self = super(View, self, initWithFrame, NULL);
+  self = (View *) super(StackView, self, initWithFrame, NULL);
   if (self) {
     PickupView *this = (PickupView *) self;
 

@@ -48,10 +48,11 @@ static void updateBindings(View *self, ident data) {
   const player_state_t *ps = &((const cl_frame_t *) data)->ps;
 
   const int16_t team = ps->stats[STAT_TEAM];
+  const bool valid = team >= 0 && team < MAX_TEAMS;
 
-  $(self, setHidden, team == -1);
+  $(self, setHidden, !valid);
 
-  if (team != -1) {
+  if (valid) {
     const color32_t color = Color_Color32(ColorHSVA(cg_state.teams[team].hue, 1.f, 1.f, .14f));
     self->backgroundColor = (SDL_Color) { color.r, color.g, color.b, color.a };
   }
