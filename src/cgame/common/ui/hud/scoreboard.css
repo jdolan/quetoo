@@ -37,6 +37,12 @@ ScoreboardView > .columns {
 ScoreboardView .column {
   autoresizing-mask: contain;
   axis: vertical;
+  spacing: 2;
+}
+
+ScoreboardView ScoreRowView {
+  background-color: #08151a66;
+  border-radius: 4;
 }
 
 ScoreboardView .spectators {

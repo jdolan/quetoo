@@ -156,9 +156,18 @@ static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
 }
 
 /**
+ * @see View::init(View *)
+ */
+static View *initRaceRunView(View *self) {
+  return super(View, self, init);
+}
+
+/**
  * @see Class::initialize(Class *)
  */
 static void initializeRaceRunView(Class *clazz) {
+
+  ((ViewInterface *) clazz->interface)->init = initRaceRunView;
   ((OverlayTextInterface *) clazz->interface)->textForFrame = textForFrame;
 }
 
@@ -217,9 +226,18 @@ static int32_t valueForFrame(CounterView *self, const cl_frame_t *frame) {
 }
 
 /**
+ * @see View::init(View *)
+ */
+static View *initSpeedView(View *self) {
+  return super(View, self, init);
+}
+
+/**
  * @see Class::initialize(Class *)
  */
 static void initializeSpeedView(Class *clazz) {
+
+  ((ViewInterface *) clazz->interface)->init = initSpeedView;
   ((CounterViewInterface *) clazz->interface)->valueForFrame = valueForFrame;
 }
 
@@ -269,9 +287,18 @@ static int32_t runsForFrame(CounterView *self, const cl_frame_t *frame) {
 }
 
 /**
+ * @see View::init(View *)
+ */
+static View *initRunsView(View *self) {
+  return super(View, self, init);
+}
+
+/**
  * @see Class::initialize(Class *)
  */
 static void initializeRunsView(Class *clazz) {
+
+  ((ViewInterface *) clazz->interface)->init = initRunsView;
   ((CounterViewInterface *) clazz->interface)->valueForFrame = runsForFrame;
 }
 

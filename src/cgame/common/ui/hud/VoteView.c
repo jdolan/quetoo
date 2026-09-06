@@ -25,6 +25,15 @@
 
 #define _Class _VoteView
 
+#pragma mark - View
+
+/**
+ * @see View::init(View *)
+ */
+static View *init(View *self) {
+  return super(View, self, init);
+}
+
 #pragma mark - OverlayText
 
 /**
@@ -50,6 +59,9 @@ static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+  ((ViewInterface *) clazz->interface)->init = init;
+
   ((OverlayTextInterface *) clazz->interface)->textForFrame = textForFrame;
 }
 

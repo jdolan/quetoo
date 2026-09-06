@@ -78,9 +78,18 @@ static void updateBindings(View *self, ident data) {
 }
 
 /**
+ * @see View::init(View *)
+ */
+static View *initHeldFlagView(View *self) {
+  return super(View, self, init);
+}
+
+/**
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+  ((ViewInterface *) clazz->interface)->init = initHeldFlagView;
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 }
 

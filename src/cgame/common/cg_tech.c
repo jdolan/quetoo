@@ -26,6 +26,13 @@
 #define _Class _TechView
 
 /**
+ * @see View::init(View *)
+ */
+static View *initTechView(View *self) {
+  return super(View, self, init);
+}
+
+/**
  * @brief The held tech in the powerup column: its icon, with no countdown.
  * @extends PowerupView
  */
@@ -51,6 +58,8 @@ static void updateBindings(View *self, ident data) {
 }
 
 static void initialize(Class *clazz) {
+
+  ((ViewInterface *) clazz->interface)->init = initTechView;
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 }
 
