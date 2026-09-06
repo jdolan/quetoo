@@ -42,8 +42,7 @@
                               "name"
                             ],
                             "text": {
-                              "text": "^2jdolan^7 (Jay Dolan)",
-                              "colorEscapes": true
+                              "text": "^2jdolan^7 (Jay Dolan)"
                             }
                           },
                           {
@@ -52,8 +51,7 @@
                               "role"
                             ],
                             "text": {
-                              "text": "Engine, game module, tools, levels, artwork, sound",
-                              "colorEscapes": true
+                              "text": "Engine, game module, tools, levels, artwork, sound"
                             }
                           }
                         ]
@@ -70,8 +68,7 @@
                               "name"
                             ],
                             "text": {
-                              "text": "^2Paril^7 (Jonathan Barkley)",
-                              "colorEscapes": true
+                              "text": "^2Paril^7 (Jonathan Barkley)"
                             }
                           },
                           {
@@ -80,8 +77,7 @@
                               "role"
                             ],
                             "text": {
-                              "text": "Engine, game module, bots",
-                              "colorEscapes": true
+                              "text": "Engine, game module, bots"
                             }
                           }
                         ]
@@ -98,8 +94,7 @@
                               "name"
                             ],
                             "text": {
-                              "text": "^2MovoWR^7",
-                              "colorEscapes": true
+                              "text": "^2MovoWR^7"
                             }
                           },
                           {
@@ -108,8 +103,7 @@
                               "role"
                             ],
                             "text": {
-                              "text": "Race: design, movement rulesets, replay format",
-                              "colorEscapes": true
+                              "text": "Race: design, movement rulesets, replay format"
                             }
                           }
                         ]
@@ -138,8 +132,7 @@
                               "name"
                             ],
                             "text": {
-                              "text": "^2Panjoo^7 (DJ Bloot)",
-                              "colorEscapes": true
+                              "text": "^2Panjoo^7 (DJ Bloot)"
                             }
                           },
                           {
@@ -148,8 +141,7 @@
                               "role"
                             ],
                             "text": {
-                              "text": "Logos, level design, models, textures, game balance",
-                              "colorEscapes": true
+                              "text": "Logos, level design, models, textures, game balance"
                             }
                           }
                         ]
@@ -166,8 +158,7 @@
                               "name"
                             ],
                             "text": {
-                              "text": "^2Skies912^7 (Chris Glenn)",
-                              "colorEscapes": true
+                              "text": "^2Skies912^7 (Chris Glenn)"
                             }
                           },
                           {
@@ -176,8 +167,7 @@
                               "role"
                             ],
                             "text": {
-                              "text": "Level design, textures, positive vibes",
-                              "colorEscapes": true
+                              "text": "Level design, textures, positive vibes"
                             }
                           }
                         ]
@@ -194,8 +184,7 @@
                               "name"
                             ],
                             "text": {
-                              "text": "^2TRaK^7 (Georges Grondin)",
-                              "colorEscapes": true
+                              "text": "^2TRaK^7 (Georges Grondin)"
                             }
                           },
                           {
@@ -204,8 +193,7 @@
                               "role"
                             ],
                             "text": {
-                              "text": "Level design, textures, models",
-                              "colorEscapes": true
+                              "text": "Level design, textures, models"
                             }
                           }
                         ]
@@ -222,8 +210,7 @@
                               "name"
                             ],
                             "text": {
-                              "text": "^2Jester^7 (Steve Veihl)",
-                              "colorEscapes": true
+                              "text": "^2Jester^7 (Steve Veihl)"
                             }
                           },
                           {
@@ -232,8 +219,7 @@
                               "role"
                             ],
                             "text": {
-                              "text": "Level design, brush magic",
-                              "colorEscapes": true
+                              "text": "Level design, brush magic"
                             }
                           }
                         ]
@@ -271,8 +257,7 @@
                               "role"
                             ],
                             "text": {
-                              "text": "Sound design",
-                              "colorEscapes": true
+                              "text": "Sound design"
                             }
                           }
                         ]
@@ -298,8 +283,7 @@
                               "role"
                             ],
                             "text": {
-                              "text": "Sound design",
-                              "colorEscapes": true
+                              "text": "Sound design"
                             }
                           }
                         ]
@@ -316,8 +300,7 @@
                               "name"
                             ],
                             "text": {
-                              "text": "^2floproast^7 (Jacob Zammit)",
-                              "colorEscapes": true
+                              "text": "^2floproast^7 (Jacob Zammit)"
                             }
                           },
                           {
@@ -326,8 +309,7 @@
                               "role"
                             ],
                             "text": {
-                              "text": "Quake II soundtrack covers",
-                              "colorEscapes": true
+                              "text": "Quake II soundtrack covers"
                             }
                           }
                         ]
@@ -360,99 +342,85 @@
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Alexandr Zhelanov^7",
-                                  "colorEscapes": true
+                                  "text": "^2Alexandr Zhelanov^7"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2BoBo the seal^7 (Brian Jones)",
-                                  "colorEscapes": true
+                                  "text": "^2BoBo the seal^7 (Brian Jones)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2broar^7",
-                                  "colorEscapes": true
+                                  "text": "^2broar^7"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2BuzzardBait^7 (Matthew Jarrett)",
-                                  "colorEscapes": true
+                                  "text": "^2BuzzardBait^7 (Matthew Jarrett)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2CardO^7 (Dan Shannon)",
-                                  "colorEscapes": true
+                                  "text": "^2CardO^7 (Dan Shannon)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2claire^7 (Joe Reid)",
-                                  "colorEscapes": true
+                                  "text": "^2claire^7 (Joe Reid)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2dfsp_spirit^7 (Tim Schäfer)",
-                                  "colorEscapes": true
+                                  "text": "^2dfsp_spirit^7 (Tim Schäfer)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2evil lair^7 (Yves Allaire)",
-                                  "colorEscapes": true
+                                  "text": "^2evil lair^7 (Yves Allaire)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2GTDStudio^7 (Palrom)",
-                                  "colorEscapes": true
+                                  "text": "^2GTDStudio^7 (Palrom)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Ingar^7 (Stijn Buys)",
-                                  "colorEscapes": true
+                                  "text": "^2Ingar^7 (Stijn Buys)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2jhaa^7 (Juha Merilä)",
-                                  "colorEscapes": true
+                                  "text": "^2jhaa^7 (Juha Merilä)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2KaBal^7",
-                                  "colorEscapes": true
+                                  "text": "^2KaBal^7"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2KaadmY^7",
-                                  "colorEscapes": true
+                                  "text": "^2KaadmY^7"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Karvajalka^7 (Antti Lahti)",
-                                  "colorEscapes": true
+                                  "text": "^2Karvajalka^7 (Antti Lahti)"
                                 }
                               }
                             ]
@@ -466,92 +434,79 @@
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2keres^7 (Tom Havlik)",
-                                  "colorEscapes": true
+                                  "text": "^2keres^7 (Tom Havlik)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2LadyHavoc^7 (Ashley Hale)",
-                                  "colorEscapes": true
+                                  "text": "^2LadyHavoc^7 (Ashley Hale)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Lava_Croft^7 (Kai Holwerda)",
-                                  "colorEscapes": true
+                                  "text": "^2Lava_Croft^7 (Kai Holwerda)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Lunaran^7 (Matt Breit)",
-                                  "colorEscapes": true
+                                  "text": "^2Lunaran^7 (Matt Breit)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2maci^7 (Marcel Wysocki)",
-                                  "colorEscapes": true
+                                  "text": "^2maci^7 (Marcel Wysocki)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Madsy^7 (Mads Elvheim)",
-                                  "colorEscapes": true
+                                  "text": "^2Madsy^7 (Mads Elvheim)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2mattn^7 (Martin Gerhardy)",
-                                  "colorEscapes": true
+                                  "text": "^2mattn^7 (Martin Gerhardy)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2mitomon^7 (Eduardo Pecina)",
-                                  "colorEscapes": true
+                                  "text": "^2mitomon^7 (Eduardo Pecina)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Nilium^7 (Noel Cower)",
-                                  "colorEscapes": true
+                                  "text": "^2Nilium^7 (Noel Cower)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2philipk^7 (Philip Klevstav)",
-                                  "colorEscapes": true
+                                  "text": "^2philipk^7 (Philip Klevstav)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Preacher^7 (Mattias Konradsson)",
-                                  "colorEscapes": true
+                                  "text": "^2Preacher^7 (Mattias Konradsson)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Quake Revitalization Project^7",
-                                  "colorEscapes": true
+                                  "text": "^2Quake Revitalization Project^7"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2rorshach^7 (Kevin Johnstone)",
-                                  "colorEscapes": true
+                                  "text": "^2rorshach^7 (Kevin Johnstone)"
                                 }
                               }
                             ]
@@ -565,85 +520,73 @@
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Seargant Science^7",
-                                  "colorEscapes": true
+                                  "text": "^2Seargant Science^7"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2sock^7 (Simon O'Callaghan)",
-                                  "colorEscapes": true
+                                  "text": "^2sock^7 (Simon O'Callaghan)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Speedy^7",
-                                  "colorEscapes": true
+                                  "text": "^2Speedy^7"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2spiney^7 (Pieter Verhoeven)",
-                                  "colorEscapes": true
+                                  "text": "^2spiney^7 (Pieter Verhoeven)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Stannum^7 (Jan van der Weg)",
-                                  "colorEscapes": true
+                                  "text": "^2Stannum^7 (Jan van der Weg)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2stereo84^7 (Stephan Reiter)",
-                                  "colorEscapes": true
+                                  "text": "^2stereo84^7 (Stephan Reiter)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2supa_user^7 (Dale Blount)",
-                                  "colorEscapes": true
+                                  "text": "^2supa_user^7 (Dale Blount)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Tabun & Wirehead Studios^7",
-                                  "colorEscapes": true
+                                  "text": "^2Tabun & Wirehead Studios^7"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2tapir^7 (Coşku Baş)",
-                                  "colorEscapes": true
+                                  "text": "^2tapir^7 (Coşku Baş)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2The Bunny^7 (Chris Dillman)",
-                                  "colorEscapes": true
+                                  "text": "^2The Bunny^7 (Chris Dillman)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Thorn^7 (Michael Rodenhurst)",
-                                  "colorEscapes": true
+                                  "text": "^2Thorn^7 (Michael Rodenhurst)"
                                 }
                               },
                               {
                                 "class": "Label",
                                 "text": {
-                                  "text": "^2Zander Noriega^7",
-                                  "colorEscapes": true
+                                  "text": "^2Zander Noriega^7"
                                 }
                               }
                             ]

@@ -32,18 +32,6 @@ static const EnumName PowerupViewPowerupNames[] = MakeEnumNames(
   MakeEnumAlias(PowerupViewInvisibility, invisibility)
 );
 
-/**
- * @brief Sets the Text's colour. Free on the BitmapFont path; on the Font path the colour
- * is baked into the texture, which must be dropped for the change to show.
- */
-static void setTextColor(Text *text, SDL_Color color) {
-
-  if (memcmp(&text->color, &color, sizeof(color))) {
-    text->color = color;
-    text->texture = release(text->texture);
-  }
-}
-
 #pragma mark - Object
 
 /**
@@ -94,8 +82,6 @@ static void updateBindings(View *self, ident data) {
   PowerupView *this = (PowerupView *) self;
 
   if (data == NULL) {
-    $(this->icon, setImage, NULL);
-    this->item = ITEM_NONE;
     return;
   }
 
@@ -150,7 +136,7 @@ static void update(PowerupView *self, g_item_tag_t item, int16_t value) {
   if (value < 0) {
     $(self->value, setText, NULL);
   } else {
-    setTextColor(self->value, value < HUD_POWERUP_LOW ? Colors.Red : Colors.White);
+    self->value->color = value < HUD_POWERUP_LOW ? Colors.Red : Colors.White;
     $(self->value, setTextWithFormat, "%d", value);
   }
 }

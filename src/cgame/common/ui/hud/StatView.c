@@ -32,18 +32,6 @@ static const EnumName StatViewStatNames[] = MakeEnumNames(
   MakeEnumAlias(StatViewAmmo, ammo)
 );
 
-/**
- * @brief Sets the Text's colour. Free on the BitmapFont path; on the Font path the colour
- * is baked into the texture, which must be dropped for the change to show.
- */
-static void setTextColor(Text *text, SDL_Color color) {
-
-  if (memcmp(&text->color, &color, sizeof(color))) {
-    text->color = color;
-    text->texture = release(text->texture);
-  }
-}
-
 #pragma mark - Object
 
 /**
@@ -126,8 +114,6 @@ static void updateBindings(View *self, ident data) {
   StatView *this = (StatView *) self;
 
   if (data == NULL) {
-    $(this->icon, setImage, NULL);
-    this->iconName = NULL;
     return;
   }
 
@@ -182,7 +168,7 @@ static void updateBindings(View *self, ident data) {
     color = Colors.Yellow;
   }
 
-  setTextColor(this->value, color);
+  this->value->color = color;
   $(this->value, setTextWithFormat, "%3d", value);
 
   this->icon->color.a = (Uint8) (pulse * 255);

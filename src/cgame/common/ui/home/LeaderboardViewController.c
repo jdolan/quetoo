@@ -192,7 +192,6 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
     $(cell->text, setText, va("%d", entry->rank));
   } else if (q_strcmp(column->identifier, _player) == 0) {
     $(cell->text, setText, entry->name);
-    cell->text->colorEscapes = true;
   } else if (q_strcmp(column->identifier, _frags) == 0) {
     $(cell->text, setText, va("%d", entry->frags));
   } else if (q_strcmp(column->identifier, _deaths) == 0) {

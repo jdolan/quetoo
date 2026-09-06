@@ -127,8 +127,6 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/CreateServerViewController.css");
   assert(self->view->stylesheet);
 
-  this->hostname->text->colorEscapes = true;
-
   const cvar_t *sv_min_clients = cgi.GetCvar("sv_min_clients");
   const int32_t bots = sv_min_clients ? Maxi(0, sv_min_clients->integer - 1) : 0;
   $(this->bots, setDefaultText, va("%d", bots));

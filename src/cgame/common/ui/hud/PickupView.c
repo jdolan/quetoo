@@ -82,8 +82,6 @@ static void updateBindings(View *self, ident data) {
   PickupView *this = (PickupView *) self;
 
   if (data == NULL) {
-    $(this->icon, setImage, NULL);
-    this->item = ITEM_NONE;
     return;
   }
 

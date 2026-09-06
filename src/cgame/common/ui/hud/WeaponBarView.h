@@ -74,6 +74,11 @@ struct WeaponBarView {
   View *row;
 
   /**
+   * @brief The index of the selected icon within `icons`, which the marker follows.
+   */
+  size_t selected;
+
+  /**
    * @brief The selection marker.
    */
   ImageView *selection;

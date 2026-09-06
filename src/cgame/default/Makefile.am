@@ -65,8 +65,6 @@ cguifontsdir = \
 	@PKGLIBDIR@/default/ui/fonts
 
 cguifonts_DATA = \
-	$(CGUI_DIR)/fonts/ShareTechMono-OFL.txt \
-	$(CGUI_DIR)/fonts/ShareTechMono-Regular.ttf \
 	$(CGUI_DIR)/fonts/large.png \
 	$(CGUI_DIR)/fonts/medium.png \
 	$(CGUI_DIR)/fonts/small.png
@@ -228,7 +226,6 @@ cgame_la_SOURCES = \
 	ui/home/StatsViewController.c \
 	ui/hud/CounterView.c \
 	ui/hud/CrosshairView.c \
-	ui/hud/HudView.c \
 	ui/hud/HudViewController.c \
 	ui/hud/PickupView.c \
 	ui/hud/PowerupView.c \

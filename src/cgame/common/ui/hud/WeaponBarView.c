@@ -95,6 +95,8 @@ static void rebuild(WeaponBarView *self) {
 
   $((View *) self->icons, removeAllSubviews);
 
+  self->selected = 0;
+
   for (int32_t i = 0; i < WEAPON_TOTAL; i++) {
     if (self->has[i]) {
       ImageView *icon = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));
@@ -121,9 +123,6 @@ static void updateBindings(View *self, ident data) {
   WeaponBarView *this = (WeaponBarView *) self;
 
   if (data == NULL) {
-    memset(this->has, 0, sizeof(this->has));
-    $((View *) this->icons, removeAllSubviews);
-    $(this->selection, setImage, NULL);
     return;
   }
 
@@ -158,7 +157,7 @@ static void updateBindings(View *self, ident data) {
     if (i == cg_hud_state.weapon.bit) {
       icon->color.a = selected;
 
-      this->selection->view.frame = icon->view.frame;
+      this->selected = k;
 
       $(this->name, setText, bg_item_defs[cg_weapons[i].tag].name);
     } else {
@@ -171,6 +170,22 @@ static void updateBindings(View *self, ident data) {
   this->selection->color.a = selected;
 }
 
+/**
+ * @see View::layoutSubviews(View *)
+ */
+static void layoutSubviews(View *self) {
+
+  super(View, self, layoutSubviews);
+
+  WeaponBarView *this = (WeaponBarView *) self;
+
+  const Array *icons = (Array *) this->icons->view.subviews;
+  if (this->selected < icons->count) {
+    const View *icon = $(icons, objectAtIndex, this->selected);
+    this->selection->view.frame = icon->frame;
+  }
+}
+
 #pragma mark - Class lifecycle
 
 static void initialize(Class *clazz) {
@@ -178,6 +193,7 @@ static void initialize(Class *clazz) {
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewInterface *) clazz->interface)->init = init;
+  ((ViewInterface *) clazz->interface)->layoutSubviews = layoutSubviews;
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 }
 

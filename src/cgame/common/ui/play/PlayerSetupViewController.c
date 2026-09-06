@@ -179,8 +179,6 @@ static void loadView(ViewController *self) {
 
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/PlayerSetupViewController.css");
   assert(self->view->stylesheet);
-  
-  this->name->text->colorEscapes = true;
 
   this->skinSelect->comparator = sortSkins;
   this->skinSelect->delegate.self = this;

@@ -17,7 +17,7 @@
               "class": "StackView",
               "classNames": [ "tile" ],
               "subviews": [
-                { "class": "Label", "identifier": "name", "classNames": ["statValue"], "text": { "colorEscapes": true } },
+                { "class": "Label", "identifier": "name", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Name" } }
               ]
             },
@@ -65,7 +65,7 @@
               "class": "StackView",
               "classNames": [ "tile" ],
               "subviews": [
-                { "class": "Label", "identifier": "nemesis", "classNames": ["statValue"], "text": { "colorEscapes": true } },
+                { "class": "Label", "identifier": "nemesis", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Nemesis" } }
               ]
             }

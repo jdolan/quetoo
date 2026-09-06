@@ -31,13 +31,7 @@
  * @see View::init(View *)
  */
 static View *init(View *self) {
-
-  self = (View *) $((Text *) self, initWithText, NULL, NULL);
-  if (self) {
-    ((Text *) self)->colorEscapes = true;
-  }
-
-  return self;
+  return (View *) $((Text *) self, initWithText, NULL, NULL);
 }
 
 /**

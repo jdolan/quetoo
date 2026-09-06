@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/BitmapFont.h>
 #include <ObjectivelyMVC/ImageAtlas.h>
 #include <ObjectivelyMVC/ViewController.h>
 
@@ -50,7 +49,7 @@ struct HudViewController {
   HudViewControllerInterface *interface[0];
 
   /**
-   * @brief The atlas behind every icon and every BitmapFont, so the HUD draws in few calls.
+   * @brief The atlas behind every icon, so the HUD draws in few calls.
    */
   ImageAtlas *atlas;
 
@@ -58,11 +57,6 @@ struct HudViewController {
    * @brief Whether `atlas` has images added since it was last compiled.
    */
   bool atlasDirty;
-
-  /**
-   * @brief BitmapFonts by Font name, or Null where a Font is not fixed-width.
-   */
-  Dictionary *fonts;
 
   /**
    * @brief The View loaded from the variant's JSON, a subview of `view`.
@@ -83,25 +77,12 @@ struct HudViewControllerInterface {
   ViewControllerInterface viewControllerInterface;
 
   /**
-   * @fn BitmapFont *HudViewController::bitmapFont(HudViewController *self, Font *font)
-   * @brief Resolves the BitmapFont baked from the given Font into the HUD atlas.
-   * @param self The HudViewController.
-   * @param font The Font.
-   * @return The BitmapFont, owned by this controller, or `NULL` if `font` is not fixed-width.
-   * @memberof HudViewController
-   */
-  BitmapFont *(*bitmapFont)(HudViewController *self, Font *font);
-
-  /**
    * @fn AtlasImage *HudViewController::image(HudViewController *self, const char *name)
    * @brief Resolves the image by the given resource name from the HUD atlas, loading it on
    * first request.
    * @param self The HudViewController.
    * @param name The image name, e.g. `pics/i_health`.
    * @return The AtlasImage, owned by this controller, or `NULL` if the image was not found.
-   * @remarks A View MUST re-resolve its AtlasImages when View::updateBindings arrives with
-   * `NULL`: the atlas is rebuilt on pixel density changes, and images from the old one draw
-   * nothing.
    * @memberof HudViewController
    */
   AtlasImage *(*image)(HudViewController *self, const char *name);
@@ -114,15 +95,6 @@ struct HudViewControllerInterface {
    * @memberof HudViewController
    */
   void (*reload)(HudViewController *self);
-
-  /**
-   * @fn void HudViewController::resetMedia(HudViewController *self)
-   * @brief Discards the atlas and every BitmapFont, to be rebuilt on demand at the current
-   * pixel density.
-   * @param self The HudViewController.
-   * @memberof HudViewController
-   */
-  void (*resetMedia)(HudViewController *self);
 
   /**
    * @fn void HudViewController::updateWithFrame(HudViewController *self, const cl_frame_t *frame)

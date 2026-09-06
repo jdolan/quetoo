@@ -24,7 +24,6 @@
 #include "cg_local.h"
 
 #include "HudViewController.h"
-#include "HudView.h"
 #include "CrosshairView.h"
 
 #define _Class _HudViewController
@@ -56,7 +55,6 @@ static void dealloc(Object *self) {
   }
 
   release(this->hud);
-  release(this->fonts);
   release(this->images);
   release(this->atlas);
 
@@ -77,9 +75,6 @@ static ViewController *init(ViewController *self) {
     this->atlas = $(alloc(ImageAtlas), init);
     assert(this->atlas);
 
-    this->fonts = $$(Dictionary, dictionary);
-    assert(this->fonts);
-
     this->images = $$(Dictionary, dictionary);
     assert(this->images);
   }
@@ -94,7 +89,7 @@ static void loadView(ViewController *self) {
 
   HudViewController *this = (HudViewController *) self;
 
-  View *view = $((View *) alloc(HudView), initWithFrame, NULL);
+  View *view = $(alloc(View), initWithFrame, NULL);
   assert(view);
 
   view->autoresizingMask = ViewAutoresizingFill;
@@ -106,35 +101,6 @@ static void loadView(ViewController *self) {
 }
 
 #pragma mark - HudViewController
-
-/**
- * @fn BitmapFont *HudViewController::bitmapFont(HudViewController *self, Font *font)
- * @memberof HudViewController
- */
-static BitmapFont *bitmapFont(HudViewController *self, Font *font) {
-
-  assert(font);
-
-  const char *name = va("%s-%d-%d", font->family, font->size, font->style);
-
-  Object *cached = $(self->fonts, objectForKeyPath, name);
-  if (cached == NULL) {
-
-    BitmapFont *baked = $(alloc(BitmapFont), initWithFont, font, ' ', 95, NULL, self->atlas);
-    if (baked) {
-      cached = (Object *) baked;
-      self->atlasDirty = true;
-    } else {
-      Cg_Debug("%s is not fixed-width; HUD text using it renders through Font\n", name);
-      cached = (Object *) $$(Null, null);
-    }
-
-    $(self->fonts, setObjectForKeyPath, cached, name);
-    release(baked);
-  }
-
-  return $(cached, isKindOfClass, _BitmapFont()) ? (BitmapFont *) cached : NULL;
-}
 
 /**
  * @fn AtlasImage *HudViewController::image(HudViewController *self, const char *name)
@@ -221,38 +187,6 @@ static void reload(HudViewController *self) {
 }
 
 /**
- * @fn void HudViewController::resetMedia(HudViewController *self)
- * @memberof HudViewController
- */
-static void resetMedia(HudViewController *self) {
-
-  $(self->fonts, removeAllObjects);
-  $(self->images, removeAllObjects);
-
-  release(self->atlas);
-  self->atlas = $(alloc(ImageAtlas), init);
-  assert(self->atlas);
-
-  self->atlasDirty = false;
-}
-
-/**
- * @brief ViewEnumerator for updateWithFrame: points every Text at the BitmapFont baked from
- * the Font its style resolved, so that variants choose faces and sizes in CSS.
- */
-static void bindBitmapFont(View *view, ident data) {
-
-  if ($((Object *) view, isKindOfClass, _Text())) {
-    Text *text = (Text *) view;
-
-    if (text->font && (text->bitmapFont == NULL || text->bitmapFont->font != text->font)) {
-      BitmapFont *bitmapFont = $((HudViewController *) data, bitmapFont, text->font);
-      $(text, setBitmapFont, bitmapFont);
-    }
-  }
-}
-
-/**
  * @brief ViewEnumerator for updateWithFrame: in the editor, only the crosshair shows. Runs
  * before the hierarchy updates, so an element that hides itself still can.
  */
@@ -290,8 +224,6 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
 
   $(view, updateBindings, (ident) frame);
 
-  $(view, enumerateDescendants, bindBitmapFont, self);
-
   if (self->atlasDirty) {
     self->atlasDirty = false;
 
@@ -310,10 +242,8 @@ static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->init = init;
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
-  ((HudViewControllerInterface *) clazz->interface)->bitmapFont = bitmapFont;
   ((HudViewControllerInterface *) clazz->interface)->image = image;
   ((HudViewControllerInterface *) clazz->interface)->reload = reload;
-  ((HudViewControllerInterface *) clazz->interface)->resetMedia = resetMedia;
   ((HudViewControllerInterface *) clazz->interface)->updateWithFrame = updateWithFrame;
 }
 

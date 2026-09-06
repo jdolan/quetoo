@@ -53,40 +53,64 @@ static void applyHealth(vec4_t *color, int16_t health) {
 
   switch (cg_draw_crosshair_health->integer) {
     case CROSSHAIR_HEALTH_RED_WHITE:
-      color->x = 1.f, color->y = frac, color->z = frac;
+      color->x = 1.f;
+      color->y = frac;
+      color->z = frac;
       break;
     case CROSSHAIR_HEALTH_RED_WHITE_GREEN:
       if (health <= 100) {
-        color->x = 1.f, color->y = frac, color->z = frac;
+        color->x = 1.f;
+        color->y = frac;
+        color->z = frac;
       } else {
-        color->x = 1.f - over, color->y = 1.f, color->z = 1.f - over;
+        color->x = 1.f - over;
+        color->y = 1.f;
+        color->z = 1.f - over;
       }
       break;
     case CROSSHAIR_HEALTH_RED_YELLOW_WHITE:
       if (health <= 20) {
-        color->x = 1.f, color->y = 0.f, color->z = 0.f;
+        color->x = 1.f;
+        color->y = 0.f;
+        color->z = 0.f;
       } else if (health <= 70) {
-        color->x = 1.f, color->y = low, color->z = 0.f;
+        color->x = 1.f;
+        color->y = low;
+        color->z = 0.f;
       } else {
-        color->x = 1.f, color->y = 1.f, color->z = medium;
+        color->x = 1.f;
+        color->y = 1.f;
+        color->z = medium;
       }
       break;
     case CROSSHAIR_HEALTH_RED_YELLOW_WHITE_GREEN:
       if (health <= 20) {
-        color->x = 1.f, color->y = 0.f, color->z = 0.f;
+        color->x = 1.f;
+        color->y = 0.f;
+        color->z = 0.f;
       } else if (health <= 70) {
-        color->x = 1.f, color->y = low, color->z = 0.f;
+        color->x = 1.f;
+        color->y = low;
+        color->z = 0.f;
       } else if (health <= 100) {
-        color->x = 1.f, color->y = 1.f, color->z = medium;
+        color->x = 1.f;
+        color->y = 1.f;
+        color->z = medium;
       } else {
-        color->x = 1.f - over, color->y = 1.f, color->z = 1.f - over;
+        color->x = 1.f - over;
+        color->y = 1.f;
+        color->z = 1.f - over;
       }
       break;
     case CROSSHAIR_HEALTH_WHITE_GREEN:
       if (health <= 100) {
-        color->x = 1.f, color->y = 1.f, color->z = 1.f;
+        color->x = 1.f;
+        color->y = 1.f;
+        color->z = 1.f;
       } else {
-        color->x = 1.f - over, color->y = 1.f, color->z = 1.f - over;
+        color->x = 1.f - over;
+        color->y = 1.f;
+        color->z = 1.f - over;
       }
       break;
     default:

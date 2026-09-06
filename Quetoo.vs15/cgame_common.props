@@ -115,8 +115,6 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\CounterView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\CrosshairView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\CrosshairView.h" />
-    <ClCompile Include="..\src\cgame\common\ui\hud\HudView.c" />
-    <ClInclude Include="..\src\cgame\common\ui\hud\HudView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\HudViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\HudViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\PickupView.c" />
