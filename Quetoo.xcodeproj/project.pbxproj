@@ -5325,6 +5325,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE05B3F030224900C0DE0920 /* Build configuration list for PBXNativeTarget "cgame-lithium" */;
 			buildPhases = (
+				C9077C04022B772095186ABC /* CopyFiles */,
 				CE05B3F030224900C0DE0900 /* Sources */,
 				CE05B3F030224900C0DE0902 /* Frameworks */,
 				CE05B3F030224900C0DE0901 /* Headers */,
@@ -5392,9 +5393,6 @@
 				CEAA78A5277535F100EAC853 /* CopyFiles */,
 				CEA400102F9800000087B100 /* CopyFiles */,
 				6816070175ED2CEC62FB6E56 /* CopyFiles */,
-				0FB222CA4FDE0CA9865D5486 /* CopyFiles */,
-				C9077C04022B772095186ABC /* CopyFiles */,
-				5738F8605E036174DA11C58E /* CopyFiles */,
 				EE7162D3228511D41E8B4CB1 /* CopyFiles */,
 				CEA400112F9800000087B100 /* CopyFiles */,
 				CEFEEE000000000000000A03 /* Install module */,
@@ -5904,6 +5902,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CEC0FF0020260103000001D1 /* Build configuration list for PBXNativeTarget "cgame-ctf" */;
 			buildPhases = (
+				5738F8605E036174DA11C58E /* CopyFiles */,
 				CEC0FF0020260103000001CE /* Sources */,
 				CEC0FF0020260103000001D0 /* Frameworks */,
 				CEC0FF0020260103000001CF /* Headers */,
@@ -5993,6 +5992,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D2A5C1000000000000000059 /* Build configuration list for PBXNativeTarget "cgame-race" */;
 			buildPhases = (
+				0FB222CA4FDE0CA9865D5486 /* CopyFiles */,
 				D2A5C100000000000000005C /* Sources */,
 				D2A5C100000000000000005D /* Frameworks */,
 				D2A5C100000000000000005E /* Headers */,
