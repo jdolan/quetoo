@@ -27,6 +27,8 @@ typedef struct {
 
   g_score_t pending[MAX_CLIENTS + MAX_TEAMS];
   size_t num_pending;
+
+  uint32_t generation;
 } cg_score_state_t;
 
 static cg_score_state_t cg_score_state;
@@ -83,6 +85,8 @@ void Cg_ParseScores(void) {
     memcpy(cg_score_state.scores, cg_score_state.pending, sizeof(cg_score_state.scores));
 
     qsort(cg_score_state.scores, cg_score_state.num_scores, sizeof(g_score_t), Cg_ParseScores_Compare);
+
+    cg_score_state.generation++;
   }
 }
 
@@ -95,257 +99,20 @@ const g_score_t *Cg_Scores(size_t *count) {
 }
 
 /**
- * @brief Discards the scores, so that a board from the previous server is not
- * drawn on the next.
+ * @see cg_score.h
+ */
+uint32_t Cg_ScoresGeneration(void) {
+  return cg_score_state.generation;
+}
+
+/**
+ * @brief Discards the scores, so that nothing from the last map shows on this one.
  */
 void Cg_ClearScores(void) {
 
+  const uint32_t generation = cg_score_state.generation;
+
   memset(&cg_score_state, 0, sizeof(cg_score_state));
+
+  cg_score_state.generation = generation + 1;
 }
-
-/**
- * @see cg_score.h
- */
-int32_t Cg_DrawScoresTitle(void) {
-  int32_t ch;
-
-  cgi.BindFont("medium", NULL, &ch);
-
-  const int32_t y = 64 - ch - 4;
-  const char *title = cgi.ConfigString(CS_MESSAGE);
-
-  cgi.Draw2DString((cgi.context->w - cgi.StringWidth(title)) / 2, y, title, color_white);
-
-  cgi.BindFont(NULL, NULL, NULL);
-
-  return y + ch;
-}
-
-/**
- * @see cg_score.h
- */
-int32_t Cg_DrawScoreRow(int32_t x, int32_t y, int32_t width, const g_score_t *s) {
-  int32_t cw, ch;
-
-  const cg_client_info_t *info = &cg_state.clients[s->client];
-
-  cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH - 2, SCORES_ICON_WIDTH - 2, info->icon, color_white);
-
-  x += SCORES_ICON_WIDTH;
-
-  const int32_t fw = width - SCORES_ICON_WIDTH - 1;
-
-  if (s->color >= 0) {
-    color_t c = ColorHSV(s->color, 1.f, 1.f);
-    c.a = s->client == cgi.client->frame.ps.client ? .3f : .15f;
-
-    cgi.Draw2DFill(x, y, fw, SCORES_ROW_HEIGHT - 1, c);
-  }
-
-  cgi.BindFont("small", &cw, &ch);
-
-  cgi.Draw2DString(x, y, info->name, color_white);
-  cgi.Draw2DString(x + fw + 1 - 6 * cw, y, va("%3dms", s->ping), color_white);
-
-  cgi.BindFont(NULL, NULL, NULL);
-
-  return y + ch;
-}
-
-/**
- * @brief Returns the vertical screen coordinate where scores should be drawn.
- */
-static int32_t Cg_DrawScoresHeader(void) {
-  int32_t cw, ch, x;
-
-  int32_t y = Cg_DrawScoresTitle();
-
-  // team names and scores
-  if (cg_state.num_teams) {
-    cgi.BindFont("small", &cw, &ch);
-
-    g_score_t *score = &cg_score_state.scores[cg_score_state.num_scores];
-
-    // start from center
-    x = cgi.context->w / 2;
-    x -= SCORES_COL_WIDTH * (cg_state.num_teams / 2.0);
-    x += SCORES_ICON_WIDTH;
-
-    const cg_team_info_t *team = cg_state.teams;
-    for (int32_t i = 0; i < cg_state.num_teams; i++, score++, team++) {
-
-#if defined(G_CTF)
-      cgi.Draw2DString(x, y, va("%s^7 %d captures", team->name, score->captures), team->color);
-#else
-      cgi.Draw2DString(x, y, va("%s^7 %d frags", team->name, score->score), team->color);
-#endif
-
-      x += SCORES_COL_WIDTH;
-    }
-
-    y += ch;
-  }
-
-  return y;
-}
-
-/**
- * @brief Draws a single player score row including icon, name, frags, deaths, and captures.
- */
-static bool Cg_DrawScore(int32_t x, int32_t y, const g_score_t *s) {
-  int32_t ch;
-
-#if defined(G_CTF)
-  const int32_t top = y;
-#endif
-
-  y = Cg_DrawScoreRow(x, y, SCORES_COL_WIDTH, s);
-
-#if defined(G_CTF)
-  // flag carrier icon, over the corner of the player's
-  if (s->flags & SCORE_CTF_FLAG) {
-    const int32_t team = s->team;
-    const r_image_t *flag = cgi.LoadImage(va("pics/i_flag%d", team), IMG_PIC);
-    cgi.Draw2DImage(x + 1, top + 1, SCORES_ICON_WIDTH * 0.3f, SCORES_ICON_WIDTH * .3f, flag, color_white);
-  }
-#endif
-
-  x += SCORES_ICON_WIDTH;
-
-  const int32_t fw = SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
-
-  cgi.BindFont("small", NULL, &ch);
-
-  // spectating
-  if (s->flags & SCORE_SPECTATOR) {
-    cgi.Draw2DString(x, y, "spectating", color_white);
-    return true;
-  }
-
-  // frags
-  cgi.Draw2DString(x, y, va("%d frags", s->score), color_white);
-
-  // deaths
-  char *deaths = va("%d deaths ", s->deaths);
-  cgi.Draw2DString(x + fw - cgi.StringWidth(deaths), y, deaths, color_white);
-  y += ch;
-
-#if defined(G_CTF)
-  // captures
-  cgi.Draw2DString(x, y, va("%d captures", s->captures), color_white);
-#endif
-
-  return true;
-}
-
-/**
- * @brief Draws the scores screen layout arranged by team for team-based game modes.
- */
-static void Cg_DrawTeamScores(const int32_t start_y) {
-
-  size_t rows = (cgi.context->h - (2 * start_y)) / SCORES_ROW_HEIGHT;
-  rows = rows < 3 ? 3 : rows;
-
-  int32_t x = cgi.context->w / 2;
-  x -= SCORES_COL_WIDTH * (cg_state.num_teams / 2.0);
-
-  int32_t y = start_y;
-
-  for (int32_t t = 0; t < cg_state.num_teams; t++, x += SCORES_COL_WIDTH, y = start_y) {
-    for (size_t i = 0; i < cg_score_state.num_scores; i++) {
-      const g_score_t *s = &cg_score_state.scores[i];
-
-      if (s->team != t + 1) {
-        continue;
-      }
-
-      if (i == rows) {
-        break;
-      }
-
-      if (Cg_DrawScore(x, y, s)) {
-        y += SCORES_ROW_HEIGHT;
-      }
-    }
-  }
-
-  x = cgi.context->w / 2;
-  x -= SCORES_COL_WIDTH * (cg_state.num_teams / 2.0);
-  x -= SCORES_COL_WIDTH * 2.0;
-  y = start_y;
-
-  int32_t j = 0;
-  for (size_t i = 0; i < cg_score_state.num_scores; i++) {
-    const g_score_t *s = &cg_score_state.scores[i];
-
-    if (!(s->flags & SCORE_SPECTATOR)) {
-      continue;
-    }
-
-    if (i == rows) {
-      break;
-    }
-
-    if (Cg_DrawScore(x, y, s)) {
-      if (j++ % 2) {
-        x -= SCORES_COL_WIDTH;
-        y += SCORES_ROW_HEIGHT;
-      } else {
-        x += SCORES_COL_WIDTH;
-      }
-    }
-  }
-}
-
-/**
- * @brief Draws the scores screen layout for deathmatch game modes.
- */
-static void Cg_DrawDmScores(const int32_t start_y) {
-
-  size_t rows = (cgi.context->h - (2 * start_y)) / SCORES_ROW_HEIGHT;
-  rows = rows < 3 ? 3 : rows;
-
-  const size_t cols = (rows < cg_score_state.num_scores) ? 2 : 1;
-  const size_t width = cols * SCORES_COL_WIDTH;
-
-  const g_score_t *s = cg_score_state.scores;
-  for (size_t i = 0; i < cg_score_state.num_scores; i++, s++) {
-
-    if (i == (cols * rows)) { // screen is full
-      break;
-    }
-
-    const size_t col = i / rows;
-
-    const int32_t x = (int32_t) (cgi.context->w / 2 - width / 2 + col * SCORES_COL_WIDTH);
-    const int32_t y = (int32_t) (start_y + (i % rows) * SCORES_ROW_HEIGHT);
-
-    if (!Cg_DrawScore(x, y, s)) {
-      i--;
-    }
-  }
-}
-
-/**
- * @brief The tail of the `Cg_DrawScores` hook: the frags, deaths and teams.
- */
-static void Cg_DrawScores_Common(const player_state_t *ps) {
-
-  if (!ps->stats[STAT_SCORES]) {
-    return;
-  }
-
-  if (!cg_score_state.num_scores) {
-    return;
-  }
-
-  const int32_t start_y = Cg_DrawScoresHeader();
-
-  if (cg_state.num_teams) {
-    Cg_DrawTeamScores(start_y);
-  } else {
-    Cg_DrawDmScores(start_y);
-  }
-}
-
-DrawScores Cg_DrawScores = Cg_DrawScores_Common;

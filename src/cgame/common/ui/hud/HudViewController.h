@@ -24,12 +24,15 @@
 #include <ObjectivelyMVC/AtlasImage.h>
 #include <ObjectivelyMVC/ViewController.h>
 
+#include "ScoreboardView.h"
+
 #include "cg_types.h"
 
 /**
  * @file
- * @brief The in-game HUD: a View hierarchy loaded from `ui/hud/<cg_hud>.json`, handed each
- * frame through View::updateBindings, and drawn beneath the menus by the client.
+ * @brief The in-game HUD: a View hierarchy loaded from `ui/hud/<cg_hud>.json`, plus the
+ * scoreboard, handed each frame through View::updateBindings and drawn beneath the menus by
+ * the client.
  */
 
 typedef struct HudViewController HudViewController;
@@ -58,6 +61,11 @@ struct HudViewController {
    * @brief The View loaded from the variant's JSON, a subview of `view`.
    */
   View *hud;
+
+  /**
+   * @brief The scoreboard, a subview of `view` above `hud`, and not part of the variant.
+   */
+  ScoreboardView *scoreboard;
 
   /**
    * @brief AtlasImages by resource name.
@@ -89,8 +97,8 @@ struct HudViewControllerInterface {
 
   /**
    * @fn void HudViewController::reload(HudViewController *self)
-   * @brief Loads the variant named by `cg_hud`, falling back to `classic`, and lets each
-   * module configure it through Cg_ConfigureHud.
+   * @brief Loads the variant named by `cg_hud`, falling back to `classic`. A module arranging
+   * its HUD differently ships its own `ui/hud/<variant>.json` in its game directory.
    * @param self The HudViewController.
    * @memberof HudViewController
    */

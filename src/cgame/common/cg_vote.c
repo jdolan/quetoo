@@ -91,38 +91,6 @@ static bool Cg_ParseConfigString_Vote(int32_t index) {
 /**
  * @see cg_vote.h
  */
-void Cg_Vote_Draw(void) {
-
-  if (!cg_state.vote.active) {
-    return;
-  }
-
-  int32_t ch;
-  cgi.BindFont("small", NULL, &ch);
-
-  const uint32_t time = cgi.client->time;
-  const uint32_t left = cg_state.vote.deadline > time ? (cg_state.vote.deadline - time) / 1000 : 0;
-
-  const char *lines[] = {
-    va("%s called a vote: %s%s%s", cg_state.vote.initiator, cg_state.vote.type,
-       *cg_state.vote.arg ? " " : "", cg_state.vote.arg),
-    va("Yes %d  No %d  of %d  %us", cg_state.vote.yes, cg_state.vote.no, cg_state.vote.eligible, left),
-  };
-
-  int32_t y = cgi.context->h / 2 + 4 * ch;
-
-  for (size_t i = 0; i < lengthof(lines); i++) {
-    const int32_t x = (cgi.context->w - cgi.StringWidth(lines[i])) / 2;
-    cgi.Draw2DString(x, y, lines[i], i ? color_white : color_green);
-    y += ch;
-  }
-
-  cgi.BindFont(NULL, NULL, NULL);
-}
-
-/**
- * @see cg_vote.h
- */
 void Cg_Vote_Cast(bool yes) {
   cgi.Cbuf(va("vote %s\n", yes ? "yes" : "no"));
 }

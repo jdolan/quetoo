@@ -53,19 +53,10 @@ const char *Cg_Race_FormatTime(uint32_t ms);
 void Cg_Race_Milestone(g_race_milestone_t kind, uint16_t number, const char *label, uint32_t time, int32_t vs_best, int32_t vs_record);
 
 /**
- * @brief The scoreboard, arranged for racing. Installed over `DrawScores` by
- * `Cg_Race_Init`, not chained.
+ * @brief The View classes race's HUD JSON names, exported so that they resolve by name.
  */
-void Cg_Race_DrawScores(const player_state_t *ps);
-
-/**
- * @brief The overlays still on r_draw_2d, arranged for racing: what common draws that a
- * racer needs, and the run. Installed over `DrawHudElements` by `Cg_Race_Init`, not chained.
- */
-void Cg_Race_DrawHud(const player_state_t *ps);
-
-/**
- * @brief Arranges the HUD Views for racing: the speed and run counters in place of frags
- * and deaths. Installed over `ConfigureHud` by `Cg_Race_Init`, not chained.
- */
-void Cg_Race_ConfigureHud(View *hud);
+CGAME_EXPORT Class *_RaceRunView(void);
+CGAME_EXPORT Class *_SpeedView(void);
+CGAME_EXPORT Class *_RunsView(void);
+CGAME_EXPORT Class *_RecordsView(void);
+CGAME_EXPORT Class *_RaceScoreboardView(void);

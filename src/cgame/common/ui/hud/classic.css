@@ -114,3 +114,47 @@
   alignment: center;
   font-size: 28;
 }
+
+#blend {
+  autoresizing-mask: fill;
+}
+
+#centerPrint {
+  alignment: middle-center;
+}
+
+#targetName {
+  alignment: bottom-center;
+  font-size: 28;
+  color: #00ff00;
+  padding-bottom: 224;
+}
+
+#vote {
+  alignment: middle-center;
+  padding-top: 160;
+}
+
+#spectator {
+  alignment: top-right;
+  color: #00ff00;
+  padding-top: 64;
+}
+
+#chase {
+  alignment: bottom-center;
+  color: #00ff00;
+  padding-bottom: 80;
+}
+
+#hud .heldFlag {
+  alignment: middle-left;
+  padding-left: 32;
+  padding-bottom: 256;
+}
+
+#hud .raceRun {
+  alignment: top-center;
+  font-size: 28;
+  padding-top: 32;
+}

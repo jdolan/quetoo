@@ -22,6 +22,7 @@
 #include "cg_race.h"
 
 #include "ui/hud/CounterView.h"
+#include "ui/hud/OverlayText.h"
 
 /**
  * @file
@@ -35,9 +36,6 @@
  * the server's word for it.
  */
 
-// where the run sits, from the top of the view
-#define RACE_HUD_TOP 32
-
 // how much of each frame's speed the readout takes on; shown raw, it flickers
 // with every frame at a high frame rate
 #define RACE_HUD_SPEED_LERP .2f
@@ -47,13 +45,6 @@
  */
 const char *Cg_Race_FormatTime(uint32_t ms) {
   return va("%u:%02u.%03u", ms / 60000, ms / 1000 % 60, ms % 1000);
-}
-
-/**
- * @brief Draws a line centered on the view, as the run and its milestones are shown.
- */
-static void Cg_Race_DrawCentered(int32_t y, const char *string, const color_t color) {
-  cgi.Draw2DString((cgi.context->w - cgi.StringWidth(string)) / 2, y, string, color);
 }
 
 // how long a milestone stays on the HUD
@@ -84,71 +75,113 @@ void Cg_Race_Milestone(g_race_milestone_t kind, uint16_t number, const char *lab
   cg_race_milestone.shown = cgi.client->unclamped_time;
 }
 
-/**
- * @brief A comparison, signed, colored by which way it went.
- */
-static void Cg_Race_DrawDelta(int32_t y, int32_t delta, const char *against) {
-  const char *string = va("%s%s  %s", delta < 0 ? "-" : "+", Cg_Race_FormatTime(abs(delta)), against);
+#pragma mark - RaceRunView
 
-  Cg_Race_DrawCentered(y, string, delta > 0 ? color_red : color_green);
+#define _Class _RaceRunView
+
+/**
+ * @brief The run in progress: its time, checkpoints, and the latest milestone against the
+ * best and the record, for a moment.
+ * @extends OverlayText
+ */
+typedef struct RaceRunViewInterface RaceRunViewInterface;
+
+typedef struct {
+  OverlayText overlayText;
+  RaceRunViewInterface *interface[0];
+} RaceRunView;
+
+struct RaceRunViewInterface {
+  OverlayTextInterface overlayTextInterface;
+};
+
+/**
+ * @brief A signed delta against `against`, coloured by which way it went.
+ */
+static const char *Cg_Race_FormatDelta(int32_t delta, const char *against) {
+  return va("%s%s%s  %s", delta > 0 ? "^1" : "^2", delta < 0 ? "-" : "+", Cg_Race_FormatTime(abs(delta)), against);
 }
 
 /**
- * @brief The time, colored by what will become of it, and the checkpoints
- * reached out of the course's.
+ * @see OverlayText::textForFrame(OverlayText *, const cl_frame_t *)
  */
-static void Cg_Race_DrawRun(const player_state_t *ps) {
+static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
+
+  const player_state_t *ps = &frame->ps;
+
+  if (ps->stats[STAT_RACE_MODE] == RACE_MODE_SPECTATOR) {
+    return NULL;
+  }
 
   const g_race_run_state_t state = ps->stats[STAT_RACE_RUN];
   if (state == RACE_RUN_IDLE) {
     cg_race_milestone.shown = 0;
-    return;
+    return NULL;
   }
 
-  color_t color = color_white;
+  const char *color = "^7";
   if (ps->stats[STAT_RACE_FLAGS]) {
-    color = color_red;
+    color = "^1";
   } else if (ps->stats[STAT_RACE_MODE] == RACE_MODE_PRACTICE) {
-    color = color_yellow;
+    color = "^3";
   } else if (state == RACE_RUN_FINISHED) {
-    color = color_green;
+    color = "^2";
   }
 
-  int32_t ch, y = RACE_HUD_TOP;
-
-  cgi.BindFont("large", NULL, &ch);
-  Cg_Race_DrawCentered(y, Cg_Race_FormatTime(Cg_Race_Time(ps)), color);
-  y += ch;
+  static char text[MAX_STRING_CHARS];
+  q_snprintf(text, sizeof(text), "%s%s", color, Cg_Race_FormatTime(Cg_Race_Time(ps)));
 
   uint32_t checkpoints = 0;
   sscanf(cgi.ConfigString(CS_RACE_COURSE), "%u", &checkpoints);
 
   if (checkpoints) {
-    cgi.BindFont("small", NULL, &ch);
-    Cg_Race_DrawCentered(y, va("%d / %u", ps->stats[STAT_RACE_CHECKPOINTS], checkpoints), color_white);
-    y += ch;
+    q_strlcat(text, va("\n^7%d / %u", ps->stats[STAT_RACE_CHECKPOINTS], checkpoints), sizeof(text));
   }
 
-  // the latest milestone, and how it compares, for a moment
   if (cg_race_milestone.shown && cgi.client->unclamped_time - cg_race_milestone.shown < RACE_HUD_MILESTONE_MILLIS) {
-    cgi.BindFont("small", NULL, &ch);
 
-    Cg_Race_DrawCentered(y, va("%s  %s", cg_race_milestone.name, Cg_Race_FormatTime(cg_race_milestone.time)), color_white);
-    y += ch;
+    q_strlcat(text, va("\n^7%s  %s", cg_race_milestone.name, Cg_Race_FormatTime(cg_race_milestone.time)), sizeof(text));
 
     if (cg_race_milestone.vs_best != RACE_MILESTONE_NO_DELTA &&
         cg_race_milestone.vs_best != cg_race_milestone.vs_record) {
-      Cg_Race_DrawDelta(y, cg_race_milestone.vs_best, "best");
-      y += ch;
+      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(cg_race_milestone.vs_best, "best")), sizeof(text));
     }
 
     if (cg_race_milestone.vs_record != RACE_MILESTONE_NO_DELTA) {
-      Cg_Race_DrawDelta(y, cg_race_milestone.vs_record, "record");
+      q_strlcat(text, va("\n%s", Cg_Race_FormatDelta(cg_race_milestone.vs_record, "record")), sizeof(text));
     }
   }
 
-  cgi.BindFont(NULL, NULL, NULL);
+  return text;
 }
+
+/**
+ * @see Class::initialize(Class *)
+ */
+static void initializeRaceRunView(Class *clazz) {
+  ((OverlayTextInterface *) clazz->interface)->textForFrame = textForFrame;
+}
+
+Class *_RaceRunView(void) {
+  static Class *clazz;
+  static Once once;
+
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "RaceRunView",
+      .superclass = _OverlayText(),
+      .instanceSize = sizeof(RaceRunView),
+      .interfaceSize = sizeof(RaceRunViewInterface),
+      .initialize = initializeRaceRunView,
+    });
+  });
+
+  return clazz;
+}
+
+#undef _Class
+
+#pragma mark - SpeedView
 
 #define _Class _SpeedView
 
@@ -168,6 +201,9 @@ struct SpeedViewInterface {
   CounterViewInterface counterViewInterface;
 };
 
+/**
+ * @see CounterView::valueForFrame(CounterView *, const cl_frame_t *)
+ */
 static int32_t valueForFrame(CounterView *self, const cl_frame_t *frame) {
 
   SpeedView *this = (SpeedView *) self;
@@ -180,11 +216,14 @@ static int32_t valueForFrame(CounterView *self, const cl_frame_t *frame) {
   return (int32_t) this->speed;
 }
 
-static void initialize(Class *clazz) {
+/**
+ * @see Class::initialize(Class *)
+ */
+static void initializeSpeedView(Class *clazz) {
   ((CounterViewInterface *) clazz->interface)->valueForFrame = valueForFrame;
 }
 
-static Class *_SpeedView(void) {
+Class *_SpeedView(void) {
   static Class *clazz;
   static Once once;
 
@@ -194,7 +233,7 @@ static Class *_SpeedView(void) {
       .superclass = _CounterView(),
       .instanceSize = sizeof(SpeedView),
       .interfaceSize = sizeof(SpeedViewInterface),
-      .initialize = initialize,
+      .initialize = initializeSpeedView,
     });
   });
 
@@ -203,47 +242,54 @@ static Class *_SpeedView(void) {
 
 #undef _Class
 
-void Cg_Race_ConfigureHud(View *hud) {
+#pragma mark - RunsView
 
-  const char *removed[] = { "frags", "deaths" };
-  for (size_t i = 0; i < lengthof(removed); i++) {
-    View *view = $(hud, descendantWithIdentifier, removed[i]);
-    if (view) {
-      $(view, removeFromSuperview);
-    }
-  }
+#define _Class _RunsView
 
-  View *stats = $(hud, descendantWithIdentifier, "stats");
-  if (stats == NULL) {
-    return;
-  }
+/**
+ * @brief The runs started on this map.
+ * @extends CounterView
+ */
+typedef struct RunsViewInterface RunsViewInterface;
 
-  View *time = $(stats, subviewWithIdentifier, "time");
+typedef struct {
+  CounterView counterView;
+  RunsViewInterface *interface[0];
+} RunsView;
 
-  CounterView *speed = $((CounterView *) alloc(SpeedView), initWithCaption, "Speed", COUNTER_VIEW_NO_STAT);
-  CounterView *runs = $(alloc(CounterView), initWithCaption, "Runs", STAT_RACE_RUNS);
+struct RunsViewInterface {
+  CounterViewInterface counterViewInterface;
+};
 
-  $(stats, addSubview, (View *) speed);
-  $(stats, addSubview, (View *) runs);
-
-  // keep the clock beneath the counters
-  if (time) {
-    $(stats, bringSubviewToFront, time);
-  }
-
-  release(speed);
-  release(runs);
+/**
+ * @see CounterView::valueForFrame(CounterView *, const cl_frame_t *)
+ */
+static int32_t runsForFrame(CounterView *self, const cl_frame_t *frame) {
+  return frame->ps.stats[STAT_RACE_RUNS];
 }
 
-void Cg_Race_DrawHud(const player_state_t *ps) {
-
-  Cg_DrawSpectator(ps);
-
-  Cg_DrawChase(ps);
-
-  if (ps->stats[STAT_RACE_MODE] == RACE_MODE_SPECTATOR) {
-    return;
-  }
-
-  Cg_Race_DrawRun(ps);
+/**
+ * @see Class::initialize(Class *)
+ */
+static void initializeRunsView(Class *clazz) {
+  ((CounterViewInterface *) clazz->interface)->valueForFrame = runsForFrame;
 }
+
+Class *_RunsView(void) {
+  static Class *clazz;
+  static Once once;
+
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "RunsView",
+      .superclass = _CounterView(),
+      .instanceSize = sizeof(RunsView),
+      .interfaceSize = sizeof(RunsViewInterface),
+      .initialize = initializeRunsView,
+    });
+  });
+
+  return clazz;
+}
+
+#undef _Class

@@ -21,11 +21,15 @@
 
 #include "cg_race.h"
 
+#include "ui/hud/OverlayText.h"
+#include "ui/hud/ScoreboardView.h"
+
 /**
  * @file
  * @brief The scoreboard, arranged for racing: the course records down the left,
  * from `CS_RACE_RECORDS`, and the racers down the right, each with their mode,
  * their best on this map and their runs, in the order the server ranked them.
+ * Race's `ui/hud/scoreboard.json` names RaceScoreboardView in place of the stock board.
  */
 
 // wider than the common board's column, for a best time beside a run count
@@ -46,25 +50,43 @@ static const char *Cg_Race_ModeName(g_race_mode_t mode) {
   }
 }
 
+#pragma mark - RecordsView
+
+#define _Class _RecordsView
+
 /**
- * @brief The course records, one a row: rank, name and time.
+ * @brief The course records: rank, name and time, one a line, from `CS_RACE_RECORDS`.
+ * @extends OverlayText
  */
-static void Cg_Race_DrawRecords(int32_t x, int32_t y) {
+typedef struct RecordsViewInterface RecordsViewInterface;
+
+typedef struct {
+  OverlayText overlayText;
+  RecordsViewInterface *interface[0];
+} RecordsView;
+
+struct RecordsViewInterface {
+  OverlayTextInterface overlayTextInterface;
+};
+
+/**
+ * @see OverlayText::textForFrame(OverlayText *, const cl_frame_t *)
+ */
+static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
+
+  static char text[MAX_STRING_CHARS * 2];
   char string[MAX_STRING_CHARS];
-  int32_t ch;
 
   q_strlcpy(string, cgi.ConfigString(CS_RACE_RECORDS), sizeof(string));
-
-  cgi.BindFont("small", NULL, &ch);
-
-  cgi.Draw2DString(x, y, "Course records", color_green);
-  y += ch;
+  q_strlcpy(text, "^2Course records", sizeof(text));
 
   if (!*string) {
-    cgi.Draw2DString(x, y, "none yet", color_grey);
-    cgi.BindFont(NULL, NULL, NULL);
-    return;
+    q_strlcat(text, "\n^8none yet", sizeof(text));
+    return text;
   }
+
+  // the rows are monospaced, so the times right-align by padding the names
+  const int32_t width = RACE_SCORES_COL_WIDTH / 14;
 
   char *s = string;
   for (int32_t rank = 1; rank <= RACE_RECORDS_SHOWN && *s; rank++) {
@@ -84,67 +106,145 @@ static void Cg_Race_DrawRecords(int32_t x, int32_t y) {
     }
 
     const char *formatted = Cg_Race_FormatTime((uint32_t) strtoul(time, NULL, 10));
+    const int32_t pad = width - 4 - (int32_t) q_strlen(name) - (int32_t) q_strlen(formatted);
 
-    cgi.Draw2DString(x, y, va("%2d  %s", rank, name), color_white);
-    cgi.Draw2DString(x + RACE_SCORES_COL_WIDTH - cgi.StringWidth(formatted), y, formatted, color_white);
-    y += ch;
+    q_strlcat(text, va("\n^7%2d  %s%*s%s", rank, name, pad > 1 ? pad : 1, "", formatted), sizeof(text));
   }
 
-  cgi.BindFont(NULL, NULL, NULL);
+  return text;
 }
 
 /**
- * @brief One racer: the row every board begins with, then what they are doing,
- * their best and their runs.
+ * @see Class::initialize(Class *)
  */
-static void Cg_Race_DrawScore(int32_t x, int32_t y, const g_score_t *s) {
+static void initializeRecordsView(Class *clazz) {
+  ((OverlayTextInterface *) clazz->interface)->textForFrame = textForFrame;
+}
 
-  y = Cg_DrawScoreRow(x, y, RACE_SCORES_COL_WIDTH, s);
-  x += SCORES_ICON_WIDTH;
+Class *_RecordsView(void) {
+  static Class *clazz;
+  static Once once;
 
-  const int32_t fw = RACE_SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "RecordsView",
+      .superclass = _OverlayText(),
+      .instanceSize = sizeof(RecordsView),
+      .interfaceSize = sizeof(RecordsViewInterface),
+      .initialize = initializeRecordsView,
+    });
+  });
 
-  cgi.BindFont("small", NULL, NULL);
+  return clazz;
+}
 
-  cgi.Draw2DString(x, y, Cg_Race_ModeName(s->race_mode), color_white);
+#undef _Class
 
-  if (s->race_mode != RACE_MODE_SPECTATOR) {
-    const char *best = s->race_best ? Cg_Race_FormatTime(s->race_best) : "no time";
-    const char *right = va("%s  %u run%s", best, s->race_runs, s->race_runs == 1 ? "" : "s");
+#pragma mark - RaceScoreboardView
 
-    cgi.Draw2DString(x + fw - cgi.StringWidth(right), y, right, color_white);
+#define _Class _RaceScoreboardView
+
+/**
+ * @brief The scoreboard for racing: wider rows showing the mode and the best time, with the
+ * course records in a column of their own, leading.
+ * @extends ScoreboardView
+ */
+typedef struct RaceScoreboardViewInterface RaceScoreboardViewInterface;
+
+typedef struct {
+  ScoreboardView scoreboardView;
+  RaceScoreboardViewInterface *interface[0];
+} RaceScoreboardView;
+
+struct RaceScoreboardViewInterface {
+  ScoreboardViewInterface scoreboardViewInterface;
+};
+
+/**
+ * @see View::init(View *)
+ */
+static View *init(View *self) {
+
+  self = super(View, self, init);
+  if (self) {
+    ((ScoreboardView *) self)->rowWidth = RACE_SCORES_COL_WIDTH;
   }
 
-  cgi.BindFont(NULL, NULL, NULL);
+  return self;
 }
 
 /**
- * @see cg_race.h
+ * @see ScoreboardView::rebuild(ScoreboardView *)
  */
-void Cg_Race_DrawScores(const player_state_t *ps) {
+static void rebuild(ScoreboardView *self) {
 
-  if (!ps->stats[STAT_SCORES]) {
-    return;
-  }
+  super(ScoreboardView, self, rebuild);
 
-  const int32_t start_y = Cg_DrawScoresTitle();
-  const int32_t gap = SCORES_ICON_WIDTH / 2;
+  const Array *columns = (Array *) self->columns->view.subviews;
+  const size_t count = columns->count;
 
-  const int32_t left = cgi.context->w / 2 - RACE_SCORES_COL_WIDTH - gap / 2;
-  const int32_t right = cgi.context->w / 2 + gap / 2;
+  StackView *records = $(self, addColumn);
+  $((View *) records, addClassName, "records");
 
-  Cg_Race_DrawRecords(left, start_y);
+  Text *text = $((Text *) alloc(RecordsView), initWithText, NULL, NULL);
+  assert(text);
 
-  size_t count;
-  const g_score_t *scores = Cg_Scores(&count);
+  $((View *) records, addSubview, (View *) text);
+  release(text);
 
-  // a second column of racers opens to the right once the first is full
-  const size_t rows = Maxz(3, (cgi.context->h - 2 * start_y) / SCORES_ROW_HEIGHT);
-
-  for (size_t i = 0; i < count && i < 2 * rows; i++) {
-    const int32_t x = right + (int32_t) (i / rows) * (RACE_SCORES_COL_WIDTH + gap);
-    const int32_t y = start_y + (int32_t) (i % rows) * SCORES_ROW_HEIGHT;
-
-    Cg_Race_DrawScore(x, y, &scores[i]);
+  // the records lead; the racers follow in the order the board built them
+  for (size_t i = 0; i < count; i++) {
+    View *column = $(columns, objectAtIndex, 0);
+    $((View *) self->columns, bringSubviewToFront, column);
   }
 }
+
+/**
+ * @see ScoreboardView::rowForScore(ScoreboardView *, const g_score_t *)
+ */
+static ScoreRowView *rowForScore(ScoreboardView *self, const g_score_t *score) {
+
+  ScoreRowView *row = $(alloc(ScoreRowView), initWithScore, score, self->rowWidth);
+  assert(row);
+
+  const char *aside = NULL;
+
+  if (score->race_mode != RACE_MODE_SPECTATOR) {
+    const char *best = score->race_best ? Cg_Race_FormatTime(score->race_best) : "no time";
+    aside = va("%s  %u run%s", best, score->race_runs, score->race_runs == 1 ? "" : "s");
+  }
+
+  $(row, setDetails, Cg_Race_ModeName(score->race_mode), aside);
+
+  return row;
+}
+
+/**
+ * @see Class::initialize(Class *)
+ */
+static void initializeRaceScoreboardView(Class *clazz) {
+
+  ((ViewInterface *) clazz->interface)->init = init;
+
+  ((ScoreboardViewInterface *) clazz->interface)->rebuild = rebuild;
+  ((ScoreboardViewInterface *) clazz->interface)->rowForScore = rowForScore;
+}
+
+Class *_RaceScoreboardView(void) {
+  static Class *clazz;
+  static Once once;
+
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "RaceScoreboardView",
+      .superclass = _ScoreboardView(),
+      .instanceSize = sizeof(RaceScoreboardView),
+      .interfaceSize = sizeof(RaceScoreboardViewInterface),
+      .initialize = initializeRaceScoreboardView,
+    });
+  });
+
+  return clazz;
+}
+
+#undef _Class

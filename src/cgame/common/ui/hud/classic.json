@@ -3,8 +3,32 @@
   "identifier": "hud",
   "subviews": [
     {
+      "class": "BlendView",
+      "identifier": "blend"
+    },
+    {
       "class": "CrosshairView",
       "identifier": "crosshair"
+    },
+    {
+      "class": "CenterPrintView",
+      "identifier": "centerPrint"
+    },
+    {
+      "class": "TargetNameView",
+      "identifier": "targetName"
+    },
+    {
+      "class": "VoteView",
+      "identifier": "vote"
+    },
+    {
+      "class": "SpectatorView",
+      "identifier": "spectator"
+    },
+    {
+      "class": "ChaseView",
+      "identifier": "chase"
     },
     {
       "class": "TeamBannerView",

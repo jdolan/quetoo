@@ -26,7 +26,7 @@
 void Cg_InitUi(void);
 
 /**
- * @brief Installs the HUD, after every module has chained onto Cg_ConfigureHud.
+ * @brief Installs the HUD, once the modules are initialized.
  */
 void Cg_InitHudUi(void);
 void Cg_ShutdownUi(void);

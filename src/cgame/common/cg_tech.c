@@ -19,16 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-
 #include "cg_local.h"
 
 #include "ui/hud/PowerupView.h"
-
-static struct {
-  ConfigureHud ConfigureHud;
-} previous;
-
-static Class *_TechView(void);
 
 #define _Class _TechView
 
@@ -61,7 +54,7 @@ static void initialize(Class *clazz) {
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 }
 
-static Class *_TechView(void) {
+Class *_TechView(void) {
   static Class *clazz;
   static Once once;
 
@@ -81,23 +74,6 @@ static Class *_TechView(void) {
 #undef _Class
 
 /**
- * @brief Adds the held tech to the powerup column.
- */
-static void Cg_ConfigureHud_Tech(View *hud) {
-
-  previous.ConfigureHud(hud);
-
-  View *powerups = $(hud, descendantWithIdentifier, "powerups");
-  if (powerups) {
-    PowerupView *tech = $((PowerupView *) alloc(TechView), initWithPowerup, PowerupViewNone);
-    assert(tech);
-
-    $(powerups, addSubview, (View *) tech);
-    release(tech);
-  }
-}
-
-/**
  * @brief Installs the tech feature's client side, once per module image.
  * @details See `Cg_Ctf_Init` for why the guard is not optional.
  */
@@ -107,9 +83,6 @@ void Cg_Tech_Init(void) {
   if (installed) {
     return;
   }
-
-  previous.ConfigureHud = Cg_ConfigureHud;
-  Cg_ConfigureHud = Cg_ConfigureHud_Tech;
 
   installed = true;
 }

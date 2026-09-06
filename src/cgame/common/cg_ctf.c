@@ -19,76 +19,89 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-
 #include "cg_local.h"
 
-#include "ui/hud/CounterView.h"
+#include "ui/hud/HudViewController.h"
 
-static struct {
-  DrawHudElements DrawHudElements;
-  ConfigureHud ConfigureHud;
-} previous;
+#define _Class _HeldFlagView
 
 /**
- * @brief Draws the flag the client is carrying.
+ * @brief The flag the player carries, pulsing, or hidden.
+ * @extends ImageView
  */
-static void Cg_DrawHeldFlag(const player_state_t *ps) {
-  int32_t x, y;
+typedef struct HeldFlagViewInterface HeldFlagViewInterface;
 
-  g_item_tag_t flag_tag = ITEM_NONE;
+typedef struct {
+  ImageView imageView;
+  HeldFlagViewInterface *interface[0];
+  g_item_tag_t flag;
+} HeldFlagView;
 
+struct HeldFlagViewInterface {
+  ImageViewInterface imageViewInterface;
+};
+
+/**
+ * @see View::updateBindings(View *, ident)
+ */
+static void updateBindings(View *self, ident data) {
+
+  super(View, self, updateBindings, data);
+
+  if (data == NULL) {
+    return;
+  }
+
+  HeldFlagView *this = (HeldFlagView *) self;
+  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+
+  g_item_tag_t flag = ITEM_NONE;
   for (g_item_tag_t i = FLAG_FIRST; i < FLAG_LAST; i++) {
     if (ps->inventory[i]) {
-      flag_tag = i;
+      flag = i;
       break;
     }
   }
 
-  if (flag_tag == ITEM_NONE) {
+  $(self, setHidden, flag == ITEM_NONE);
+
+  if (flag == ITEM_NONE) {
     return;
   }
 
-  const r_image_t *icon = cg_items[flag_tag].icon;
-  if (!icon) {
-    return;
+  if (flag != this->flag) {
+    this->flag = flag;
+    $((ImageView *) self, setImage, (Image *) Cg_HudImage(bg_item_defs[flag].icon));
   }
 
-  color_t pulse = color_white;
-  pulse.a = Clampf(sinf(cgi.client->unclamped_time / 150.0), 0.75f, 1.f);
-
-  x = HUD_PIC_HEIGHT / 2;
-  y = cgi.context->h / 2 - HUD_PIC_HEIGHT * 2;
-
-  cgi.Draw2DImage(x, y, icon->width, icon->height, icon, pulse);
+  ((ImageView *) self)->color.a = (Uint8) (Clampf(sinf(cgi.client->unclamped_time / 150.f), 0.75f, 1.f) * 255);
 }
 
 /**
- * @brief Draws the flag the client carries, and their capture count beneath the
- * stats the deathmatch HUD already drew.
+ * @see Class::initialize(Class *)
  */
-static void Cg_DrawHudElements_Ctf(const player_state_t *ps) {
-
-  previous.DrawHudElements(ps);
-
-  Cg_DrawHeldFlag(ps);
+static void initialize(Class *clazz) {
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 }
 
-/**
- * @brief Adds the captures counter beneath the stock counters.
- */
-static void Cg_ConfigureHud_Ctf(View *hud) {
+Class *_HeldFlagView(void) {
+  static Class *clazz;
+  static Once once;
 
-  previous.ConfigureHud(hud);
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "HeldFlagView",
+      .superclass = _ImageView(),
+      .instanceSize = sizeof(HeldFlagView),
+      .interfaceSize = sizeof(HeldFlagViewInterface),
+      .initialize = initialize,
+    });
+  });
 
-  View *stats = $(hud, descendantWithIdentifier, "stats");
-  if (stats) {
-    CounterView *captures = $(alloc(CounterView), initWithCaption, "Captures", STAT_CAPTURES);
-    assert(captures);
-
-    $(stats, addSubview, (View *) captures);
-    release(captures);
-  }
+  return clazz;
 }
+
+#undef _Class
 
 /**
  * @brief Captures is always team deathmatch: instagib and arena do not apply,
@@ -125,12 +138,6 @@ void Cg_Ctf_Init(void) {
   if (installed) {
     return;
   }
-
-  previous.DrawHudElements = Cg_DrawHudElements;
-  Cg_DrawHudElements = Cg_DrawHudElements_Ctf;
-
-  previous.ConfigureHud = Cg_ConfigureHud;
-  Cg_ConfigureHud = Cg_ConfigureHud_Ctf;
 
   Cg_ListGameplayModes = Cg_ListGameplayModes_Ctf;
 

@@ -25,6 +25,7 @@
 
 #include "HudViewController.h"
 #include "CrosshairView.h"
+#include "ScoreboardView.h"
 
 #define _Class _HudViewController
 
@@ -55,6 +56,7 @@ static void dealloc(Object *self) {
   }
 
   release(this->hud);
+  release(this->scoreboard);
   release(this->images);
 
   super(Object, self, dealloc);
@@ -92,6 +94,25 @@ static void loadView(ViewController *self) {
 
   $(self, setView, view);
   release(view);
+
+  // The scoreboard is not part of a variant, but a module MAY name a subclass of it here
+  View *scoreboard = $$(View, viewWithResourceName, "ui/hud/scoreboard.json", NULL);
+  if (scoreboard == NULL || !$((Object *) scoreboard, isKindOfClass, _ScoreboardView())) {
+    Cg_Warn("ui/hud/scoreboard.json did not yield a ScoreboardView\n");
+    release(scoreboard);
+    scoreboard = $((View *) alloc(ScoreboardView), init);
+  }
+
+  scoreboard->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/hud/scoreboard.css");
+  if (scoreboard->stylesheet == NULL) {
+    Cg_Warn("Failed to load ui/hud/scoreboard.css\n");
+  }
+
+  scoreboard->autoresizingMask = ViewAutoresizingFill;
+
+  this->scoreboard = (ScoreboardView *) scoreboard;
+
+  $(view, addSubview, scoreboard);
 
   $(this, reload);
 }
@@ -187,9 +208,9 @@ static void reload(HudViewController *self) {
 
   hud->autoresizingMask = ViewAutoresizingFill;
 
-  Cg_ConfigureHud(hud);
-
+  // beneath the scoreboard
   $(self->viewController.view, addSubview, hud);
+  $(self->viewController.view, bringSubviewToFront, (View *) self->scoreboard);
   self->hud = hud;
 
   $(self, warm);
@@ -206,10 +227,6 @@ static void hideForEditor(View *view, ident data) {
   $(view, setHidden, editor->value && !crosshair);
 }
 
-/**
- * @fn void HudViewController::updateWithFrame(HudViewController *self, const cl_frame_t *frame)
- * @memberof HudViewController
- */
 /**
  * @fn void HudViewController::warm(HudViewController *self)
  * @memberof HudViewController
@@ -240,6 +257,10 @@ static void warm(HudViewController *self) {
   }
 }
 
+/**
+ * @fn void HudViewController::updateWithFrame(HudViewController *self, const cl_frame_t *frame)
+ * @memberof HudViewController
+ */
 static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
 
   assert(frame);
@@ -249,21 +270,28 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
     $(self, reload);
   }
 
-  View *view = self->viewController.view;
-
   const player_state_t *ps = &frame->ps;
+
+  // The scoreboard outlives the HUD: it shows through the intermission, and with the HUD off.
+  // Only what shows takes the frame, since some elements trace the world to fill themselves in.
+  const bool scores = ps->stats[STAT_SCORES] && !cg_state.nav_edit;
+
+  $((View *) self->scoreboard, setHidden, !scores);
+
+  if (scores) {
+    $((View *) self->scoreboard, updateBindings, (ident) frame);
+  }
 
   const bool hidden = !cg_draw_hud->integer || !ps->stats[STAT_TIME] || cg_state.nav_edit;
 
-  $(view, setHidden, hidden);
+  if (self->hud) {
+    $(self->hud, setHidden, hidden);
 
-  if (hidden || self->hud == NULL) {
-    return;
+    if (!hidden) {
+      $(self->hud, enumerateSubviews, hideForEditor, NULL);
+      $(self->hud, updateBindings, (ident) frame);
+    }
   }
-
-  $(self->hud, enumerateSubviews, hideForEditor, NULL);
-
-  $(view, updateBindings, (ident) frame);
 
   if (self->atlasDirty) {
     $(self, warm);

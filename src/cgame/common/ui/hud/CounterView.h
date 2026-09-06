@@ -39,8 +39,9 @@ typedef struct CounterViewInterface CounterViewInterface;
 
 /**
  * @brief A captioned counter in the stat column, e.g. Frags.
- * @details Configured in JSON by `caption` and `stat`, a `STAT_*` name from `stats`; a module
- * adding a counter of its own uses CounterView::initWithCaption. The value blanks while
+ * @details Configured in JSON by `caption` and `stat`: `frags`, `deaths`, or in CTF
+ * `captures`. A module counting something else subclasses this and overrides
+ * CounterView::valueForFrame. The value blanks while
  * spectating without a chase target, keeping its row so the column does not shift.
  * @extends StackView
  */

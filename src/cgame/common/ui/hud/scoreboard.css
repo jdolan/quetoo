@@ -1,0 +1,44 @@
+/*
+ * The scoreboard is not part of a HUD variant: it shows through the intermission, when the
+ * HUD does not, so it is arranged here. Rows are 240 by 48, as they have always been.
+ */
+
+ScoreboardView {
+  autoresizing-mask: fill;
+}
+
+ScoreboardView Text {
+  font-family: Share Tech Mono;
+  font-size: 14;
+  color: #ffffff;
+}
+
+ScoreboardView > .title {
+  alignment: top-center;
+  font-size: 28;
+  padding-top: 24;
+}
+
+ScoreboardView > .header {
+  alignment: top-center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  padding-top: 64;
+  spacing: 48;
+}
+
+ScoreboardView > .columns {
+  alignment: top-center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  padding-top: 88;
+}
+
+ScoreboardView .column {
+  autoresizing-mask: contain;
+  axis: vertical;
+}
+
+ScoreboardView .spectators {
+  padding-right: 48;
+}

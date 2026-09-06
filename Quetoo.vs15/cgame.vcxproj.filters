@@ -186,6 +186,15 @@
     <ClInclude Include="..\src\cgame\common\ui\controls\ResponseServiceViewController.h">
       <Filter>src\common\ui\controls</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\hud\BlendView.h">
+      <Filter>src\common\ui\hud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\hud\CenterPrintView.h">
+      <Filter>src\common\ui\hud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\hud\ChaseView.h">
+      <Filter>src\common\ui\hud</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\CounterView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
@@ -195,19 +204,37 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\HudViewController.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\hud\OverlayText.h">
+      <Filter>src\common\ui\hud</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\PickupView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\PowerupView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\hud\ScoreboardView.h">
+      <Filter>src\common\ui\hud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\hud\ScoreRowView.h">
+      <Filter>src\common\ui\hud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\hud\SpectatorView.h">
+      <Filter>src\common\ui\hud</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\StatView.h">
+      <Filter>src\common\ui\hud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\hud\TargetNameView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\TeamBannerView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\TimeView.h">
+      <Filter>src\common\ui\hud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\hud\VoteView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\WeaponBarView.h">
@@ -431,6 +458,15 @@
     <ClCompile Include="..\src\cgame\common\ui\controls\ResponseServiceViewController.c">
       <Filter>src\common\ui\controls</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\hud\BlendView.c">
+      <Filter>src\common\ui\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\hud\CenterPrintView.c">
+      <Filter>src\common\ui\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\hud\ChaseView.c">
+      <Filter>src\common\ui\hud</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\CounterView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
@@ -440,19 +476,37 @@
     <ClCompile Include="..\src\cgame\common\ui\hud\HudViewController.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\hud\OverlayText.c">
+      <Filter>src\common\ui\hud</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\PickupView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\PowerupView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\hud\ScoreboardView.c">
+      <Filter>src\common\ui\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\hud\ScoreRowView.c">
+      <Filter>src\common\ui\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\hud\SpectatorView.c">
+      <Filter>src\common\ui\hud</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\StatView.c">
+      <Filter>src\common\ui\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\hud\TargetNameView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\TeamBannerView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\TimeView.c">
+      <Filter>src\common\ui\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\hud\VoteView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\WeaponBarView.c">

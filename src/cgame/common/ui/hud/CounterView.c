@@ -28,6 +28,9 @@
 static const EnumName CounterViewStatNames[] = MakeEnumNames(
   MakeEnumAlias(STAT_FRAGS, frags),
   MakeEnumAlias(STAT_DEATHS, deaths)
+#if defined(G_CTF)
+  , MakeEnumAlias(STAT_CAPTURES, captures)
+#endif
 );
 
 #pragma mark - Object
