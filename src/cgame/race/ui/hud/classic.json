@@ -105,8 +105,12 @@
       ]
     },
     {
-      "class": "PickupView",
-      "identifier": "pickup"
+      "identifier": "pickup",
+      "subviews": [
+        {
+          "class": "PickupView"
+        }
+      ]
     },
     {
       "class": "StackView",
@@ -124,7 +128,8 @@
         },
         {
           "class": "TimeView",
-          "identifier": "time"
+          "identifier": "time",
+          "caption": "Time"
         }
       ]
     },

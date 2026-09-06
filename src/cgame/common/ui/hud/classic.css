@@ -1,9 +1,12 @@
 /*
- * The classic HUD: the arrangement Quetoo has always drawn, on ObjectivelyMVC.
+ * The classic HUD: the arrangement Quetoo has always drawn, on ObjectivelyMVC, styled after the
+ * "classic" concept: vitals, powerups, pickups and weapon slots sit on translucent cards in the
+ * menu panel palette, numbers are bold, and captions are small, uppercase and smoky.
  *
- * Elements anchor with alignment and offset with padding; the columns stack. Font sizes 14,
- * 28 and 56 render about as tall as the 16, 32 and 64 pixel fonts they replace. Every size
- * rule carries the #hud prefix so it outranks the base rule.
+ * Elements anchor with alignment and offset with padding; the columns stack. A card's padding
+ * is its interior, so an offset from the screen edge belongs to the card's container. MVC
+ * specificity counts a type selector once per superclass, so #hud Text outranks a bare #id;
+ * every rule that sets a Text property carries the #hud prefix to outrank the base rule.
  */
 
 #hud {
@@ -12,8 +15,14 @@
 
 #hud Text {
   font-family: Share Tech Mono;
+  font-style: bold;
   font-size: 14;
-  color: #ffffff;
+  color: #f2f5f6;
+}
+
+#hud .caption {
+  text-transform: uppercase;
+  color: #dedede94;
 }
 
 #crosshair {
@@ -31,25 +40,41 @@
   autoresizing-mask: width;
   axis: horizontal;
   distribution: fill-equally;
-  height: 72;
+  height: 144;
 }
 
 #vitals > .vital {
   autoresizing-mask: height;
+  padding-bottom: 32;
 }
 
 #vitals StatView {
   alignment: bottom-center;
   autoresizing-mask: contain;
-  padding-bottom: 5;
+  background-color: #08151ab8;
+  border-color: #8fc7dc6b;
+  border-width: 1;
+  border-radius: 14;
+  padding: 10 24 10 24;
+  spacing: 16;
+}
+
+#vitals #health {
+  padding: 12 28 12 28;
+  border-radius: 16;
 }
 
 #hud StatView > Text {
+  alignment: middle;
   font-size: 56;
 }
 
+#hud #health > Text {
+  font-size: 68;
+}
+
 #hud StatView > ImageView {
-  alignment: bottom;
+  alignment: middle;
 }
 
 #powerups {
@@ -57,32 +82,60 @@
   autoresizing-mask: contain;
   axis: vertical;
   padding-left: 32;
+  spacing: 12;
 }
 
 #hud PowerupView {
   autoresizing-mask: contain;
+  background-color: #08151ab8;
+  border-color: #8fc7dc6b;
+  border-width: 1;
+  border-radius: 12;
+  padding: 8 20 8 12;
+  spacing: 14;
 }
 
 #hud PowerupView > Text {
   alignment: middle;
-  font-size: 56;
+  font-size: 40;
 }
 
 #pickup {
   alignment: top-right;
   autoresizing-mask: contain;
-  spacing: 8;
+  padding-top: 32;
+  padding-right: 32;
 }
 
-#hud #pickup > Text {
+#pickup > PickupView {
+  autoresizing-mask: contain;
+  background-color: #08151aa8;
+  border-color: #8fc7dc4d;
+  border-width: 1;
+  border-radius: 10;
+  padding: 6 20 6 12;
+  spacing: 12;
+}
+
+#hud PickupView > ImageView {
+  width: 48;
+  height: 48;
+}
+
+#hud PickupView > Text {
   alignment: middle;
+  text-transform: uppercase;
+  font-size: 18;
+  color: #dedededb;
 }
 
 #stats {
   alignment: top-right;
   autoresizing-mask: contain;
   axis: vertical;
-  padding-top: 80;
+  padding-top: 128;
+  padding-right: 32;
+  spacing: 16;
 }
 
 #hud CounterView {
@@ -92,56 +145,83 @@
 
 #hud CounterView > .caption {
   alignment: right;
-  color: #00ff00;
 }
 
 #hud CounterView > .value {
   alignment: right;
-  font-size: 56;
+  font-size: 40;
 }
 
-#hud TimeView {
-  alignment: right;
+#hud TimeView > .value {
+  font-size: 28;
+  color: #8fc7dc;
 }
 
 #weaponBar {
   alignment: bottom-center;
   autoresizing-mask: contain;
-  padding-bottom: 144;
+  padding-bottom: 176;
+  spacing: 12;
 }
 
 #hud #weaponBar > Text {
   alignment: center;
-  font-size: 28;
+  text-transform: uppercase;
+  font-size: 20;
+  color: #dededecc;
+}
+
+#hud #weaponBar > StackView {
+  spacing: 10;
+}
+
+#hud .slot {
+  autoresizing-mask: contain;
+  background-color: #08151a9e;
+  border-color: #8fc7dc3d;
+  border-width: 1;
+  border-radius: 10;
+  padding: 8;
+}
+
+#hud .slot.selected {
+  background-color: #1e4e62b8;
+  border-color: #8fc7dcf2;
+}
+
+#hud .slot > ImageView {
+  width: 48;
+  height: 48;
 }
 
 #blend {
   autoresizing-mask: fill;
 }
 
-#centerPrint {
+#hud #centerPrint {
   alignment: middle-center;
 }
 
-#targetName {
+#hud #targetName {
   alignment: bottom-center;
   font-size: 28;
   color: #00ff00;
-  padding-bottom: 224;
+  padding-bottom: 256;
 }
 
-#vote {
+#hud #vote {
   alignment: middle-center;
   padding-top: 160;
 }
 
-#spectator {
+#hud #spectator {
   alignment: top-right;
   color: #00ff00;
   padding-top: 64;
+  padding-right: 32;
 }
 
-#chase {
+#hud #chase {
   alignment: bottom-center;
   color: #00ff00;
   padding-bottom: 80;

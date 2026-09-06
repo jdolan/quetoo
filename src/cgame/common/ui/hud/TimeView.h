@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/Text.h>
+#include "CounterView.h"
 
 /**
  * @file
@@ -32,15 +32,18 @@ typedef struct TimeView TimeView;
 typedef struct TimeViewInterface TimeViewInterface;
 
 /**
- * @brief The match clock, from the `CS_TIME` config string.
- * @extends Text
+ * @brief The match clock, from the `CS_TIME` config string, captioned like the counters
+ * beside it.
+ * @remarks The server leads the string with `^7` for neutral, which would defeat the
+ * stylesheet's color, so that one escape is dropped; the `^2` countdown flash is kept.
+ * @extends CounterView
  */
 struct TimeView {
 
   /**
    * @brief The superclass.
    */
-  Text text;
+  CounterView counterView;
 
   /**
    * @brief The interface type.
@@ -54,7 +57,7 @@ struct TimeViewInterface {
   /**
    * @brief The superclass interface.
    */
-  TextInterface textInterface;
+  CounterViewInterface counterViewInterface;
 };
 
 CGAME_EXPORT Class *_TimeView(void);

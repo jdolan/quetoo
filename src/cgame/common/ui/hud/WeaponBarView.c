@@ -37,10 +37,8 @@ static void dealloc(Object *self) {
 
   WeaponBarView *this = (WeaponBarView *) self;
 
-  release(this->icons);
   release(this->name);
-  release(this->row);
-  release(this->selection);
+  release(this->slots);
 
   super(Object, self, dealloc);
 }
@@ -63,54 +61,74 @@ static View *init(View *self) {
 
     $(self, addSubview, (View *) this->name);
 
-    this->row = $(alloc(View), initWithFrame, NULL);
-    assert(this->row);
+    this->slots = $(alloc(StackView), initWithFrame, NULL);
+    assert(this->slots);
 
-    this->row->autoresizingMask = ViewAutoresizingContain;
+    this->slots->axis = StackViewAxisHorizontal;
+    this->slots->spacing = WEAPON_BAR_SPACING;
+    this->slots->view.autoresizingMask = ViewAutoresizingContain;
 
-    $(self, addSubview, this->row);
-
-    this->icons = $(alloc(StackView), initWithFrame, NULL);
-    assert(this->icons);
-
-    this->icons->axis = StackViewAxisHorizontal;
-    this->icons->spacing = WEAPON_BAR_SPACING;
-    this->icons->view.autoresizingMask = ViewAutoresizingContain;
-
-    $(this->row, addSubview, (View *) this->icons);
-
-    this->selection = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));
-    assert(this->selection);
-
-    $(this->row, addSubview, (View *) this->selection);
+    $(self, addSubview, (View *) this->slots);
   }
 
   return self;
 }
 
 /**
- * @brief Rebuilds the icon row for the weapons carried.
+ * @brief Rebuilds the slot row for the weapons carried.
  */
 static void rebuild(WeaponBarView *self) {
 
-  $((View *) self->icons, removeAllSubviews);
-
-  self->selected = 0;
+  $((View *) self->slots, removeAllSubviews);
 
   for (int32_t i = 0; i < WEAPON_TOTAL; i++) {
     if (self->has[i]) {
+      View *slot = $(alloc(View), initWithFrame, NULL);
+      assert(slot);
+
+      slot->autoresizingMask = ViewAutoresizingContain;
+      $(slot, addClassName, "slot");
+
       ImageView *icon = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));
       assert(icon);
 
       const char *name = bg_item_defs[cg_weapons[i].tag].icon;
       $(icon, setImage, name ? (Image *) Cg_HudImage(name) : NULL);
 
-      $((View *) self->icons, addSubview, (View *) icon);
+      $(slot, addSubview, (View *) icon);
       release(icon);
+
+      $((View *) self->slots, addSubview, slot);
+      release(slot);
     }
   }
 
-  $(self->selection, setImage, (Image *) Cg_HudImage("pics/w_select"));
+  self->selected = self->slots->view.subviews->count;
+}
+
+/**
+ * @brief Moves the `selected` class name to the slot at the given index, or clears it when
+ * the index is the slot count.
+ */
+static void selectSlot(WeaponBarView *self, size_t index) {
+
+  const Array *slots = (Array *) self->slots->view.subviews;
+
+  if (index == self->selected) {
+    return;
+  }
+
+  if (self->selected < slots->count) {
+    View *slot = $(slots, objectAtIndex, self->selected);
+    $(slot, removeClassName, "selected");
+  }
+
+  if (index < slots->count) {
+    View *slot = $(slots, objectAtIndex, index);
+    $(slot, addClassName, "selected");
+  }
+
+  self->selected = index;
 }
 
 /**
@@ -145,19 +163,22 @@ static void updateBindings(View *self, ident data) {
   const Uint8 selected = (Uint8) (alpha * 255);
   const Uint8 unselected = (Uint8) (alpha * cg_select_weapon_alpha->value * 255);
 
-  const Array *icons = (Array *) this->icons->view.subviews;
+  const Array *slots = (Array *) this->slots->view.subviews;
+
+  size_t index = slots->count;
 
   for (int32_t i = 0, k = 0; i < WEAPON_TOTAL; i++) {
     if (!this->has[i]) {
       continue;
     }
 
-    ImageView *icon = $(icons, objectAtIndex, k);
+    const View *slot = $(slots, objectAtIndex, k);
+    ImageView *icon = $((Array *) slot->subviews, firstObject);
 
     if (i == cg_hud_state.weapon.bit) {
       icon->color.a = selected;
 
-      this->selected = k;
+      index = k;
 
       $(this->name, setText, bg_item_defs[cg_weapons[i].tag].name);
     } else {
@@ -167,23 +188,13 @@ static void updateBindings(View *self, ident data) {
     k++;
   }
 
-  this->selection->color.a = selected;
-}
+  selectSlot(this, index);
 
-/**
- * @see View::layoutSubviews(View *)
- */
-static void layoutSubviews(View *self) {
-
-  super(View, self, layoutSubviews);
-
-  WeaponBarView *this = (WeaponBarView *) self;
-
-  const Array *icons = (Array *) this->icons->view.subviews;
-  if (this->selected < icons->count) {
-    const View *icon = $(icons, objectAtIndex, this->selected);
-    this->selection->view.frame = icon->frame;
+  if (index == slots->count) {
+    $(this->name, setText, NULL);
   }
+
+  this->name->color.a = selected;
 }
 
 #pragma mark - Class lifecycle
@@ -193,7 +204,6 @@ static void initialize(Class *clazz) {
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewInterface *) clazz->interface)->init = init;
-  ((ViewInterface *) clazz->interface)->layoutSubviews = layoutSubviews;
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 }
 

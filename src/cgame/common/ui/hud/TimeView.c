@@ -31,28 +31,30 @@
  * @see View::init(View *)
  */
 static View *init(View *self) {
-  return (View *) $((Text *) self, initWithText, NULL, NULL);
+  return (View *) $((CounterView *) self, initWithCaption, NULL, COUNTER_VIEW_NO_STAT);
 }
 
+#pragma mark - CounterView
+
 /**
- * @see View::updateBindings(View *, ident)
+ * @see CounterView::textForFrame(CounterView *, const cl_frame_t *)
  */
-static void updateBindings(View *self, ident data) {
+static const char *textForFrame(CounterView *self, const cl_frame_t *frame) {
 
-  super(View, self, updateBindings, data);
+  const char *time = cgi.ConfigString(CS_TIME);
 
-  if (data == NULL) {
-    return;
+  if (time[0] == '^' && time[1] == '7') {
+    return time + 2;
   }
 
-  $((Text *) self, setText, cgi.ConfigString(CS_TIME));
+  return time;
 }
 
 #pragma mark - Class lifecycle
 
 static void initialize(Class *clazz) {
   ((ViewInterface *) clazz->interface)->init = init;
-  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((CounterViewInterface *) clazz->interface)->textForFrame = textForFrame;
 }
 
 /**
@@ -66,7 +68,7 @@ Class *_TimeView(void) {
   do_once(&once, {
     clazz = _initialize(&(const ClassDef) {
       .name = "TimeView",
-      .superclass = _Text(),
+      .superclass = _CounterView(),
       .instanceSize = sizeof(TimeView),
       .interfaceSize = sizeof(TimeViewInterface),
       .initialize = initialize,

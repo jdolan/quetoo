@@ -94,15 +94,8 @@ static void updateBindings(View *self, ident data) {
 
   CounterView *this = (CounterView *) self;
 
-  const cl_frame_t *frame = data;
-  const player_state_t *ps = &frame->ps;
-
-  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-    $(this->value, setText, " ");
-  } else {
-    const int32_t value = $(this, valueForFrame, frame);
-    $(this->value, setTextWithFormat, "%3d", value);
-  }
+  const char *text = $(this, textForFrame, (const cl_frame_t *) data);
+  $(this->value, setText, text);
 }
 
 #pragma mark - CounterView
@@ -135,8 +128,34 @@ static CounterView *initWithCaption(CounterView *self, const char *caption, int3
   return self;
 }
 
+/**
+ * @fn int32_t CounterView::valueForFrame(CounterView *self, const cl_frame_t *frame)
+ * @memberof CounterView
+ */
 static int32_t valueForFrame(CounterView *self, const cl_frame_t *frame) {
+
+  if (self->stat == COUNTER_VIEW_NO_STAT) {
+    return 0;
+  }
+
   return frame->ps.stats[self->stat];
+}
+
+/**
+ * @fn const char *CounterView::textForFrame(CounterView *self, const cl_frame_t *frame)
+ * @memberof CounterView
+ */
+static const char *textForFrame(CounterView *self, const cl_frame_t *frame) {
+
+  const player_state_t *ps = &frame->ps;
+
+  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
+    return " ";
+  }
+
+  snprintf(self->text, sizeof(self->text), "%3d", $(self, valueForFrame, frame));
+
+  return self->text;
 }
 
 #pragma mark - Class lifecycle
@@ -151,6 +170,7 @@ static void initialize(Class *clazz) {
 
   ((CounterViewInterface *) clazz->interface)->initWithCaption = initWithCaption;
   ((CounterViewInterface *) clazz->interface)->valueForFrame = valueForFrame;
+  ((CounterViewInterface *) clazz->interface)->textForFrame = textForFrame;
 }
 
 /**
