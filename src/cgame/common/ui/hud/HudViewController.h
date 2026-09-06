@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/ImageAtlas.h>
+#include <ObjectivelyMVC/AtlasImage.h>
 #include <ObjectivelyMVC/ViewController.h>
 
 #include "cg_types.h"
@@ -49,12 +49,8 @@ struct HudViewController {
   HudViewControllerInterface *interface[0];
 
   /**
-   * @brief The atlas behind every icon, so the HUD draws in few calls.
-   */
-  ImageAtlas *atlas;
-
-  /**
-   * @brief Whether `atlas` has images added since it was last compiled.
+   * @brief Whether the Theme's icon atlas has HUD images added since it was last compiled,
+   * which happens only when a variant asks for one HudViewController::warm did not.
    */
   bool atlasDirty;
 
@@ -78,11 +74,15 @@ struct HudViewControllerInterface {
 
   /**
    * @fn AtlasImage *HudViewController::image(HudViewController *self, const char *name)
-   * @brief Resolves the image by the given resource name from the HUD atlas, loading it on
-   * first request.
+   * @brief Resolves the image by the given resource name from the Theme's icon atlas, loading
+   * and registering it on first request.
+   * @details HUD images share the sheet with the `:icon:` escapes, so consecutive draws of
+   * either merge. They are registered under their resource names, which a slash keeps from
+   * ever matching an escape.
    * @param self The HudViewController.
    * @param name The image name, e.g. `pics/i_health`.
-   * @return The AtlasImage, owned by this controller, or `NULL` if the image was not found.
+   * @return The AtlasImage, owned by the Theme's icon atlas, or `NULL` if the image was not
+   * found.
    * @memberof HudViewController
    */
   AtlasImage *(*image)(HudViewController *self, const char *name);
@@ -98,13 +98,22 @@ struct HudViewControllerInterface {
 
   /**
    * @fn void HudViewController::updateWithFrame(HudViewController *self, const cl_frame_t *frame)
-   * @brief Resolves visibility, hands `frame` to the View hierarchy, and compiles the atlas
-   * if it grew. Called once per frame, before the client draws.
+   * @brief Resolves visibility, hands `frame` to the View hierarchy, and compiles the Theme's
+   * icon atlas if a variant added to it. Called once per frame, before the client draws.
    * @param self The HudViewController.
    * @param frame The frame.
    * @memberof HudViewController
    */
   void (*updateWithFrame)(HudViewController *self, const cl_frame_t *frame);
+
+  /**
+   * @fn void HudViewController::warm(HudViewController *self)
+   * @brief Loads every item, health and weapon bar image and compiles the Theme's icon atlas
+   * once, so that play does not repack the sheet as items are first seen.
+   * @param self The HudViewController.
+   * @memberof HudViewController
+   */
+  void (*warm)(HudViewController *self);
 };
 
 CGAME_EXPORT Class *_HudViewController(void);
@@ -115,7 +124,7 @@ CGAME_EXPORT Class *_HudViewController(void);
 extern HudViewController *cg_hud_view_controller;
 
 /**
- * @return The AtlasImage for the given resource name from the HUD atlas, or `NULL`.
+ * @return The AtlasImage for the given resource name from the Theme's icon atlas, or `NULL`.
  * @see HudViewController::image
  */
 AtlasImage *Cg_HudImage(const char *name);

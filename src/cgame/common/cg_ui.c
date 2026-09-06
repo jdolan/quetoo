@@ -33,6 +33,30 @@ static Stylesheet *stylesheet;
 /**
  * @brief Initializes the user interface.
  */
+/**
+ * @brief `Fs_Enumerator` registering one emoji with the Theme's icon atlas, so that `:name:`
+ * in any Text draws it inline.
+ */
+static void Cg_AddEmoji(const char *path, void *data) {
+
+  char name[MAX_OS_PATH];
+  StripExtension(Basename(path), name);
+
+  char resource[MAX_OS_PATH];
+  StripExtension(path, resource);
+
+  SDL_Surface *surface = cgi.LoadSurface(resource);
+  if (surface) {
+    Image *image = $$(Image, imageWithSurface, surface);
+    SDL_DestroySurface(surface);
+
+    $((ImageAtlas *) data, addImageWithName, name, image);
+    release(image);
+  } else {
+    Cg_Warn("Failed to load %s\n", path);
+  }
+}
+
 void Cg_InitUi(void) {
 
   stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common.css");
@@ -42,6 +66,15 @@ void Cg_InitUi(void) {
   assert(theme);
 
   $(theme, addStylesheet, stylesheet);
+
+  // Registered directly rather than through Theme::addIcon, which would repack the atlas
+  // once per emoji; one compile covers them all
+  ImageAtlas *icons = $(theme, icons);
+  cgi.EnumerateFiles("pics/emoji/*", Cg_AddEmoji, icons);
+
+  if (!$(icons, compile)) {
+    Cg_Warn("Failed to compile the icon atlas\n");
+  }
 
   mainViewController = $(alloc(MainViewController), init);
   assert(mainViewController);

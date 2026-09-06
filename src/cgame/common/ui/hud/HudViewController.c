@@ -56,7 +56,6 @@ static void dealloc(Object *self) {
 
   release(this->hud);
   release(this->images);
-  release(this->atlas);
 
   super(Object, self, dealloc);
 }
@@ -71,9 +70,6 @@ static ViewController *init(ViewController *self) {
   self = super(ViewController, self, init);
   if (self) {
     HudViewController *this = (HudViewController *) self;
-
-    this->atlas = $(alloc(ImageAtlas), init);
-    assert(this->atlas);
 
     this->images = $$(Dictionary, dictionary);
     assert(this->images);
@@ -110,6 +106,19 @@ static AtlasImage *image(HudViewController *self, const char *name) {
 
   assert(name);
 
+  Theme *theme = cgi.Theme();
+  if (theme == NULL) {
+    return NULL;
+  }
+
+  // Registered by resource name, so a controller re-created on a module switch finds the
+  // image the last one added rather than adding it again; a name with a slash can never be
+  // typed as an :icon: escape, so these stay out of the way of the emoji
+  AtlasImage *image = $(theme, icon, name);
+  if (image) {
+    return image;
+  }
+
   Object *cached = $(self->images, objectForKeyPath, name);
   if (cached == NULL) {
 
@@ -118,7 +127,7 @@ static AtlasImage *image(HudViewController *self, const char *name) {
       Image *loaded = $$(Image, imageWithSurface, surface);
       SDL_DestroySurface(surface);
 
-      cached = (Object *) $(self->atlas, addImage, loaded);
+      cached = (Object *) $($(theme, icons), addImageWithName, name, loaded);
       release(loaded);
 
       self->atlasDirty = true;
@@ -183,6 +192,8 @@ static void reload(HudViewController *self) {
   $(self->viewController.view, addSubview, hud);
   self->hud = hud;
 
+  $(self, warm);
+
   $(self->viewController.view, updateBindings, NULL);
 }
 
@@ -199,6 +210,36 @@ static void hideForEditor(View *view, ident data) {
  * @fn void HudViewController::updateWithFrame(HudViewController *self, const cl_frame_t *frame)
  * @memberof HudViewController
  */
+/**
+ * @fn void HudViewController::warm(HudViewController *self)
+ * @memberof HudViewController
+ */
+static void warm(HudViewController *self) {
+
+  for (g_item_tag_t t = ITEM_NONE + 1; t < ITEM_TOTAL; t++) {
+    if (bg_item_defs[t].icon) {
+      $(self, image, bg_item_defs[t].icon);
+    }
+  }
+
+  const char *pics[] = {
+    "pics/i_health_large", "pics/i_health_medium", "pics/i_health", "pics/i_health_mega", "pics/w_select"
+  };
+
+  for (size_t i = 0; i < lengthof(pics); i++) {
+    $(self, image, pics[i]);
+  }
+
+  Theme *theme = cgi.Theme();
+  if (theme && self->atlasDirty) {
+    self->atlasDirty = false;
+
+    if (!$($(theme, icons), compile)) {
+      Cg_Warn("Failed to compile the icon atlas\n");
+    }
+  }
+}
+
 static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
 
   assert(frame);
@@ -225,11 +266,7 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
   $(view, updateBindings, (ident) frame);
 
   if (self->atlasDirty) {
-    self->atlasDirty = false;
-
-    if (!$(self->atlas, compile)) {
-      Cg_Warn("Failed to compile the HUD atlas\n");
-    }
+    $(self, warm);
   }
 }
 
@@ -245,6 +282,7 @@ static void initialize(Class *clazz) {
   ((HudViewControllerInterface *) clazz->interface)->image = image;
   ((HudViewControllerInterface *) clazz->interface)->reload = reload;
   ((HudViewControllerInterface *) clazz->interface)->updateWithFrame = updateWithFrame;
+  ((HudViewControllerInterface *) clazz->interface)->warm = warm;
 }
 
 /**
