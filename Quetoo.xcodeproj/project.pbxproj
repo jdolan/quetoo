@@ -63,8 +63,6 @@
 		014684FA691B4EB0944ACDCB /* r_post.c in Sources */ = {isa = PBXBuildFile; fileRef = 26FE8732000C404A8AFA1688 /* r_post.c */; };
 		08962C395D0FB0E620F78625 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = 7966EA6596003F9303BC00FA /* bg_item.c */; };
 		091C43A66A7972053AD1C8E7 /* box.c in Sources */ = {isa = PBXBuildFile; fileRef = 8542813678DB3B7BECEEF939 /* box.c */; };
-		0975D2E7118D42B05C9F5422 /* small.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FD02F9650560087A850 /* small.png */; };
-		2C468DAAA30BB6E232FA21C3 /* large.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCC2F9650560087A850 /* large.png */; };
 		0054FB2183D14FB441556F05 /* Rajdhani-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */; };
 		F2790FC8B72E7B3C54A53EED /* Rajdhani-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */; };
 		B777A7BCE46440D86F0248FA /* BarlowCondensed-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */; };
@@ -73,7 +71,6 @@
 		AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */; };
 		522B158EA7384E83CD005789 /* cm_manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = D126FFD46C343DDC86C13E17 /* cm_manifest.c */; };
 		997E573805B0DCF96FB8C299 /* manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = 57941D4E858E897A2E3083ED /* manifest.c */; };
-		9D2572D4A56A8180A52671E2 /* medium.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCE2F9650560087A850 /* medium.png */; };
 		CC87D6AEB29F498DB8AA7E1C /* cm_voxel.c in Sources */ = {isa = PBXBuildFile; fileRef = 1EE6A866A93B42938A4E84E6 /* cm_voxel.c */; };
 		CE04F03E25CADF4900C31433 /* atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CE354EDA220738BF008AE0C2 /* atlas.c */; };
 		CE04F06325CADF4D00C31433 /* atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CE354ED9220738BF008AE0C2 /* atlas.h */; };
@@ -459,8 +456,11 @@
 		CE5ABAD82F32D86C00D05D09 /* r_decal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5ABAD72F32D86C00D05D09 /* r_decal.c */; };
 		CE5ABAD92F32D86C00D05D09 /* r_decal.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5ABAD62F32D86C00D05D09 /* r_decal.h */; };
 		CE5ABAE52F6CA9AD00D05D09 /* patch.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5ABAE42F6CA9AD00D05D09 /* patch.c */; };
+		67B508B8AF186FE76DE2E772 /* ui_console.c in Sources */ = {isa = PBXBuildFile; fileRef = 686EF3FBC392574BB0C5BD72 /* ui_console.c */; };
+		E9B559959EBADEFEA482FCBA /* ui_diagnostics.c in Sources */ = {isa = PBXBuildFile; fileRef = FCE8C5C4EA4132CBD8F84592 /* ui_diagnostics.c */; };
 		CE5CDC331D9F518B0034757D /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5CDBB21D9F45090034757D /* ui_main.c */; };
 		CE5CDC361D9F51A90034757D /* ui_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB11D9F45090034757D /* ui_local.h */; };
+		D8E4E6967F068E1CEB5F5E28 /* ui_diagnostics.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BCCE4F3130C7421FAA7F8B /* ui_diagnostics.h */; };
 		CE5CDC381D9F51A90034757D /* ui_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB31D9F45090034757D /* ui_main.h */; };
 		CE5CDC391D9F51A90034757D /* ui_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB41D9F45090034757D /* ui_types.h */; };
 		CE5CDC3A1D9F51A90034757D /* ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBAE1D9F45090034757D /* ui.h */; };
@@ -936,7 +936,6 @@
 		CED40A773049B4840090C57A /* ObjectivelyGPU.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643932FF5A65900863996 /* ObjectivelyGPU.framework */; };
 		CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B61C5C58C300CD0B13 /* r_bsp_model.c */; };
 		CED4383C1D9D34450052BAFA /* r_bsp_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B81C5C58C300CD0B13 /* r_bsp_draw.c */; };
-		CED4383F1D9D34450052BAFA /* r_draw_2d.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5BE1C5C58C300CD0B13 /* r_draw_2d.c */; };
 		CED438411D9D34450052BAFA /* r_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5C21C5C58C300CD0B13 /* r_entity.c */; };
 		CED438441D9D34450052BAFA /* r_image.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5C81C5C58C300CD0B13 /* r_image.c */; };
 		CED438451D9D34450052BAFA /* r_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5CA1C5C58C300CD0B13 /* r_light.c */; };
@@ -949,7 +948,6 @@
 		CED438561D9D34450052BAFA /* r_sky.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5ED1C5C58C300CD0B13 /* r_sky.c */; };
 		CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B71C5C58C300CD0B13 /* r_bsp_model.h */; };
 		CED438831D9D34450052BAFA /* r_bsp_draw.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B91C5C58C300CD0B13 /* r_bsp_draw.h */; };
-		CED438861D9D34450052BAFA /* r_draw_2d.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5BF1C5C58C300CD0B13 /* r_draw_2d.h */; };
 		CED438881D9D34450052BAFA /* r_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5C31C5C58C300CD0B13 /* r_entity.h */; };
 		CED4388B1D9D34450052BAFA /* r_image.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5C91C5C58C300CD0B13 /* r_image.h */; };
 		CED4388C1D9D34450052BAFA /* r_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5CB1C5C58C300CD0B13 /* r_light.h */; };
@@ -1068,6 +1066,8 @@
 		50A656139CC3317E925D0231 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
 		D8F2715333902B56A81AC28C /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		52367ABAA22B6D5586284093 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		D3D2558FB099A325883FDB27 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
+		719CDF30AE6EB1DC2261140E /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
 		814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
 		39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		C5BD795EA472E6C067A6EB72 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
@@ -1105,6 +1105,8 @@
 		F956F2A93BABE228BC99C9E4 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
 		1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		537E3B2A605E2005BA5F4928 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		65A8C761AE5D68358CDDE601 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
+		78965577428364713231086F /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
 		5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
 		DD02E1ABB673209C4A8D0EFC /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		EF3850D157838948B4F2B64F /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
@@ -1114,6 +1116,8 @@
 		665046BB6961C443C731A077 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
 		18831DC74740CDF73E54CF63 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		E613CE6B3A9634DB694DA689 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		0789D5943ABEDA1B53B205E2 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
+		2D0110BBB9C57DC4DAA49389 /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
 		CEE21B7B45DA97BAA8A5395F /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
 		E10D01F620BB74E4166A8E7F /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		6C7870B960DDA48FF5959231 /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
@@ -1123,6 +1127,8 @@
 		D36054C7E2858790984E15E0 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
 		3B497D93EA892C673165469D /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		C55D95D65959615823A138F8 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		F0D2694D4DD29796B8BB5639 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
+		77C2AFA7D92DAC05CE4E7996 /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
 		8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
 		5D26ECD45D3B9CEDA1FCE596 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		DD69DC98B2588BCF788647E3 /* classic.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2D140F08524DA0679A7DB117 /* classic.css */; };
@@ -1779,15 +1785,12 @@
 			dstPath = default/ui/fonts;
 			dstSubfolderSpec = 16;
 			files = (
-				2C468DAAA30BB6E232FA21C3 /* large.png in CopyFiles */,
 				0054FB2183D14FB441556F05 /* Rajdhani-OFL.txt in CopyFiles */,
 				F2790FC8B72E7B3C54A53EED /* Rajdhani-Bold.ttf in CopyFiles */,
 				B777A7BCE46440D86F0248FA /* BarlowCondensed-OFL.txt in CopyFiles */,
 				A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */,
 				89AC37486C4E50D551009CFE /* MPlusU-OFL.txt in CopyFiles */,
 				AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */,
-				9D2572D4A56A8180A52671E2 /* medium.png in CopyFiles */,
-				0975D2E7118D42B05C9F5422 /* small.png in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2094,8 +2097,6 @@
 		CE12D5B71C5C58C300CD0B13 /* r_bsp_model.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_bsp_model.h; sourceTree = "<group>"; };
 		CE12D5B81C5C58C300CD0B13 /* r_bsp_draw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_bsp_draw.c; sourceTree = "<group>"; };
 		CE12D5B91C5C58C300CD0B13 /* r_bsp_draw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_bsp_draw.h; sourceTree = "<group>"; };
-		CE12D5BE1C5C58C300CD0B13 /* r_draw_2d.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_draw_2d.c; sourceTree = "<group>"; };
-		CE12D5BF1C5C58C300CD0B13 /* r_draw_2d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_draw_2d.h; sourceTree = "<group>"; };
 		CE12D5C21C5C58C300CD0B13 /* r_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_entity.c; sourceTree = "<group>"; };
 		CE12D5C31C5C58C300CD0B13 /* r_entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_entity.h; sourceTree = "<group>"; };
 		CE12D5C81C5C58C300CD0B13 /* r_image.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_image.c; sourceTree = "<group>"; };
@@ -2519,6 +2520,10 @@
 		CE5CDBAC1D9F45090034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5CDBAE1D9F45090034757D /* ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui.h; sourceTree = "<group>"; };
 		CE5CDBB11D9F45090034757D /* ui_local.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_local.h; sourceTree = "<group>"; };
+		686EF3FBC392574BB0C5BD72 /* ui_console.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ui_console.c; sourceTree = "<group>"; };
+		FF8E12A349755C6F58D2FD56 /* ui_console.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_console.h; sourceTree = "<group>"; };
+		FCE8C5C4EA4132CBD8F84592 /* ui_diagnostics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ui_diagnostics.c; sourceTree = "<group>"; };
+		E9BCCE4F3130C7421FAA7F8B /* ui_diagnostics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_diagnostics.h; sourceTree = "<group>"; };
 		CE5CDBB21D9F45090034757D /* ui_main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_main.c; sourceTree = "<group>"; };
 		CE5CDBB31D9F45090034757D /* ui_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_main.h; sourceTree = "<group>"; };
 		CE5CDBB41D9F45090034757D /* ui_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_types.h; sourceTree = "<group>"; };
@@ -2656,7 +2661,6 @@
 		CEAD8FC62F9650560087A850 /* clack.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = clack.wav; sourceTree = "<group>"; };
 		CEAD8FC72F9650560087A850 /* click.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click.wav; sourceTree = "<group>"; };
 		CEAD8FCB2F9650560087A850 /* conback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = conback.png; sourceTree = "<group>"; };
-		CEAD8FCC2F9650560087A850 /* large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = large.png; sourceTree = "<group>"; };
 		DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Rajdhani-OFL.txt"; sourceTree = "<group>"; };
 		B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Rajdhani-Bold.ttf"; sourceTree = "<group>"; };
 		B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "BarlowCondensed-OFL.txt"; sourceTree = "<group>"; };
@@ -2664,9 +2668,7 @@
 		5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "MPlusU-OFL.txt"; sourceTree = "<group>"; };
 		B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "MPlusU-Bold.ttf"; sourceTree = "<group>"; };
 		CEAD8FCD2F9650560087A850 /* loading.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = loading.png; sourceTree = "<group>"; };
-		CEAD8FCE2F9650560087A850 /* medium.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = medium.png; sourceTree = "<group>"; };
 		CEAD8FCF2F9650560087A850 /* progress_bar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = progress_bar.png; sourceTree = "<group>"; };
-		CEAD8FD02F9650560087A850 /* small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = small.png; sourceTree = "<group>"; };
 		CEB112AE22544B3800CE65F6 /* voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voxel.h; sourceTree = "<group>"; };
 		CEB112AF22544B3900CE65F6 /* voxel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = voxel.c; sourceTree = "<group>"; };
 		CEB3038D2247A59F000FCB07 /* points.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = points.h; sourceTree = "<group>"; };
@@ -2805,6 +2807,10 @@
 		B00A6FD23FF3A3B4F77B3694 /* StatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatView.h; sourceTree = "<group>"; };
 		A73DD77B1D5B8231028B01FA /* TeamBannerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamBannerView.c; sourceTree = "<group>"; };
 		740BEA7DBF2B020A6D1B29C7 /* TeamBannerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamBannerView.h; sourceTree = "<group>"; };
+		491F54CD554D0F550B000B4E /* NavEditView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = NavEditView.c; sourceTree = "<group>"; };
+		30FC7C9F9B24C6966D749398 /* NavEditView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NavEditView.h; sourceTree = "<group>"; };
+		EA8FE4E62B47061B1ADBD908 /* FpsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = FpsView.c; sourceTree = "<group>"; };
+		F62845AB16EAC431505215D1 /* FpsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FpsView.h; sourceTree = "<group>"; };
 		C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TimeView.c; sourceTree = "<group>"; };
 		9EB3BF772B595B2E11DA92E7 /* TimeView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TimeView.h; sourceTree = "<group>"; };
 		7773870519E25AD88B29F618 /* WeaponBarView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = WeaponBarView.c; sourceTree = "<group>"; };
@@ -3303,15 +3309,12 @@
 		3F698657FE99AC45EBDFE4C7 /* fonts */ = {
 			isa = PBXGroup;
 			children = (
-				CEAD8FCC2F9650560087A850 /* large.png */,
 				DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */,
 				B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */,
 				B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */,
 				02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */,
 				5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */,
 				B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */,
-				CEAD8FCE2F9650560087A850 /* medium.png */,
-				CEAD8FD02F9650560087A850 /* small.png */,
 			);
 			path = fonts;
 			sourceTree = "<group>";
@@ -3598,8 +3601,6 @@
 				CE5ABAD72F32D86C00D05D09 /* r_decal.c */,
 				CE2CEB9125852E110001E599 /* r_depth_pass.h */,
 				CE2CEB9225852E110001E599 /* r_depth_pass.c */,
-				CE12D5BF1C5C58C300CD0B13 /* r_draw_2d.h */,
-				CE12D5BE1C5C58C300CD0B13 /* r_draw_2d.c */,
 				CED5BB132406A95800784D93 /* r_draw_3d.h */,
 				CED5BB142406A95800784D93 /* r_draw_3d.c */,
 				CE12D5C31C5C58C300CD0B13 /* r_entity.h */,
@@ -4339,6 +4340,10 @@
 			children = (
 				CE4E07E22028B0CB000B276C /* ui_data.h */,
 				CE4E07E32028B0CB000B276C /* ui_data.c */,
+				686EF3FBC392574BB0C5BD72 /* ui_console.c */,
+				FF8E12A349755C6F58D2FD56 /* ui_console.h */,
+				FCE8C5C4EA4132CBD8F84592 /* ui_diagnostics.c */,
+				E9BCCE4F3130C7421FAA7F8B /* ui_diagnostics.h */,
 				CE5CDBB11D9F45090034757D /* ui_local.h */,
 				CE5CDBB21D9F45090034757D /* ui_main.c */,
 				CE5CDBB31D9F45090034757D /* ui_main.h */,
@@ -4676,6 +4681,10 @@
 				9CA6BC01A9434CCDBF23E8C0 /* StatView.c */,
 				740BEA7DBF2B020A6D1B29C7 /* TeamBannerView.h */,
 				A73DD77B1D5B8231028B01FA /* TeamBannerView.c */,
+				30FC7C9F9B24C6966D749398 /* NavEditView.h */,
+				491F54CD554D0F550B000B4E /* NavEditView.c */,
+				F62845AB16EAC431505215D1 /* FpsView.h */,
+				EA8FE4E62B47061B1ADBD908 /* FpsView.c */,
 				9EB3BF772B595B2E11DA92E7 /* TimeView.h */,
 				C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */,
 				2BA45B8C062C78CEE97C2D2B /* WeaponBarView.h */,
@@ -4946,6 +4955,7 @@
 				CE5CDC3A1D9F51A90034757D /* ui.h in Headers */,
 				CE4E07E42028B0CB000B276C /* ui_data.h in Headers */,
 				CE5CDC361D9F51A90034757D /* ui_local.h in Headers */,
+				D8E4E6967F068E1CEB5F5E28 /* ui_diagnostics.h in Headers */,
 				CE5CDC381D9F51A90034757D /* ui_main.h in Headers */,
 				CE5CDC391D9F51A90034757D /* ui_types.h in Headers */,
 			);
@@ -5172,7 +5182,6 @@
 				CEA153B3296B4BE100916F83 /* r_cull.h in Headers */,
 				CE5ABAD92F32D86C00D05D09 /* r_decal.h in Headers */,
 				CE2CEB9325852E110001E599 /* r_depth_pass.h in Headers */,
-				CED438861D9D34450052BAFA /* r_draw_2d.h in Headers */,
 				CED5BB152406A95800784D93 /* r_draw_3d.h in Headers */,
 				CED438881D9D34450052BAFA /* r_entity.h in Headers */,
 				CED4388B1D9D34450052BAFA /* r_image.h in Headers */,
@@ -6375,6 +6384,8 @@
 				BB08F021CF5059A8915C8DDF /* ScoreboardView.c in Sources */,
 				D8F2715333902B56A81AC28C /* StatView.c in Sources */,
 				52367ABAA22B6D5586284093 /* TeamBannerView.c in Sources */,
+				D3D2558FB099A325883FDB27 /* NavEditView.c in Sources */,
+				719CDF30AE6EB1DC2261140E /* FpsView.c in Sources */,
 				814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */,
 				39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */,
 				C5BD795EA472E6C067A6EB72 /* BlendView.c in Sources */,
@@ -6522,6 +6533,8 @@
 				E70AD75417615E311748DB70 /* ScoreboardView.c in Sources */,
 				1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */,
 				537E3B2A605E2005BA5F4928 /* TeamBannerView.c in Sources */,
+				65A8C761AE5D68358CDDE601 /* NavEditView.c in Sources */,
+				78965577428364713231086F /* FpsView.c in Sources */,
 				5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */,
 				DD02E1ABB673209C4A8D0EFC /* WeaponBarView.c in Sources */,
 				9B67395438D49AA25C710A4A /* BlendView.c in Sources */,
@@ -6686,6 +6699,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE4E07E52028B0CB000B276C /* ui_data.c in Sources */,
+				67B508B8AF186FE76DE2E772 /* ui_console.c in Sources */,
+				E9B559959EBADEFEA482FCBA /* ui_diagnostics.c in Sources */,
 				CE5CDC331D9F518B0034757D /* ui_main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -6990,6 +7005,8 @@
 				68D440FA613EE2594A4D6DB6 /* ScoreboardView.c in Sources */,
 				18831DC74740CDF73E54CF63 /* StatView.c in Sources */,
 				E613CE6B3A9634DB694DA689 /* TeamBannerView.c in Sources */,
+				0789D5943ABEDA1B53B205E2 /* NavEditView.c in Sources */,
+				2D0110BBB9C57DC4DAA49389 /* FpsView.c in Sources */,
 				CEE21B7B45DA97BAA8A5395F /* TimeView.c in Sources */,
 				E10D01F620BB74E4166A8E7F /* WeaponBarView.c in Sources */,
 				C1A592C4D259F42E82027392 /* BlendView.c in Sources */,
@@ -7072,7 +7089,6 @@
 				CEA153B4296B4BE100916F83 /* r_cull.c in Sources */,
 				CE5ABAD82F32D86C00D05D09 /* r_decal.c in Sources */,
 				CE2CEB9425852E110001E599 /* r_depth_pass.c in Sources */,
-				CED4383F1D9D34450052BAFA /* r_draw_2d.c in Sources */,
 				CED5BB162406A95800784D93 /* r_draw_3d.c in Sources */,
 				CED438411D9D34450052BAFA /* r_entity.c in Sources */,
 				CED438441D9D34450052BAFA /* r_image.c in Sources */,
@@ -7190,6 +7206,8 @@
 				50A656139CC3317E925D0231 /* ScoreboardView.c in Sources */,
 				3B497D93EA892C673165469D /* StatView.c in Sources */,
 				C55D95D65959615823A138F8 /* TeamBannerView.c in Sources */,
+				F0D2694D4DD29796B8BB5639 /* NavEditView.c in Sources */,
+				77C2AFA7D92DAC05CE4E7996 /* FpsView.c in Sources */,
 				8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */,
 				5D26ECD45D3B9CEDA1FCE596 /* WeaponBarView.c in Sources */,
 				6681071D48F7B492ADC27385 /* BlendView.c in Sources */,

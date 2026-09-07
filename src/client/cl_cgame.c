@@ -313,12 +313,6 @@ void Cl_InitCgame(void) {
 
   import.DrawPlayerModelView = R_DrawPlayerModelView;
 
-  import.BindFont = R_BindFont;
-  import.Draw2DFill = R_Draw2DFill;
-  import.Draw2DImage = R_Draw2DImage;
-  import.Draw2DFramebuffer = R_Draw2DFramebuffer;
-  import.Draw2DString = R_Draw2DString;
-  import.StringWidth = R_StringWidth;
   import.Draw3DLines = R_Draw3DLines;
   import.Draw3DBox = R_Draw3DBox;
 

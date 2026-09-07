@@ -100,7 +100,6 @@ typedef enum {
  */
 typedef enum {
   IMG_PROGRAM = 1,
-  IMG_FONT,
   IMG_UI,
   IMG_PIC,
   IMG_SPRITE,
@@ -2222,31 +2221,6 @@ typedef struct {
    * @brief The count of rendered decal draw element batches.
    */
   int32_t decal_draw_elements;
-
-  /**
-   * @brief The count of rendered characters.
-   */
-  int32_t draw_chars;
-
-  /**
-   * @brief The count of rendered fill rectangles.
-   */
-  int32_t draw_fills;
-
-  /**
-   * @brief The count of rendered images.
-   */
-  int32_t draw_images;
-
-  /**
-   * @brief The count of rendered lines.
-   */
-  int32_t draw_lines;
-
-  /**
-   * @brief The count of rendered arrays.
-   */
-  int32_t draw_arrays;
 } r_stats_t;
 
 #if defined(__R_LOCAL_H__)

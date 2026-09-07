@@ -128,9 +128,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_depth_pass.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\renderer\r_draw_2d.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_draw_3d.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -215,9 +212,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_depth_pass.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\renderer\r_draw_2d.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_draw_3d.h">

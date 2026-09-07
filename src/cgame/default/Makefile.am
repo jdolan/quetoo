@@ -67,13 +67,10 @@ cguifontsdir = \
 cguifonts_DATA = \
 	$(CGUI_DIR)/fonts/BarlowCondensed-OFL.txt \
 	$(CGUI_DIR)/fonts/BarlowCondensed-SemiBold.ttf \
-	$(CGUI_DIR)/fonts/large.png \
-	$(CGUI_DIR)/fonts/medium.png \
 	$(CGUI_DIR)/fonts/MPlusU-Bold.ttf \
 	$(CGUI_DIR)/fonts/MPlusU-OFL.txt \
 	$(CGUI_DIR)/fonts/Rajdhani-Bold.ttf \
-	$(CGUI_DIR)/fonts/Rajdhani-OFL.txt \
-	$(CGUI_DIR)/fonts/small.png
+	$(CGUI_DIR)/fonts/Rajdhani-OFL.txt
 
 cguicontrolsdir = \
 	@PKGLIBDIR@/default/ui/controls

@@ -386,8 +386,6 @@ void R_DrawPlayerModelView(r_view_t *view) {
  */
 void R_EndFrame(void) {
 
-  R_Draw2D();
-
   if (r_context.device->commands) {
     $(r_context.device, endFrame);
   }
@@ -501,8 +499,6 @@ void R_Init(void) {
   
   R_InitModels();
   
-  R_InitDraw2D();
-  
   R_InitDepthPass();
   
   R_InitOcclusionQueries();
@@ -534,8 +530,6 @@ void R_Shutdown(void) {
   R_ShutdownDraw3D();
   R_ShutdownPost();
   R_ShutdownDepthPass();
-
-  R_ShutdownDraw2D();
 
   R_ShutdownModels();
 

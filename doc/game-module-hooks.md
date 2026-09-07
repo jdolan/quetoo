@@ -689,7 +689,7 @@ both mattered:
 The HUD was a chainable `DrawHudElements` hook for a while, with a cursor per
 stacking column (`cg_hud_layout_t`) so that a feature's row did not have to be paid
 for by an element that did not know the feature existed. That design is gone, along
-with `r_draw_2d` for the HUD: since #1027 every element is an ObjectivelyMVC View,
+with `r_draw_2d` itself: since #1027 every element is an ObjectivelyMVC View,
 and the arrangement is a resource, `ui/hud/<cg_hud>.json` with a stylesheet beside it.
 Stacking is what a `StackView` does; a spectator's reserved row is a blank value in a
 `CounterView` that keeps its size.
