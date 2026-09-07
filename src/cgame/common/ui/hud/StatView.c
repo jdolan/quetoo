@@ -197,6 +197,8 @@ static StatView *initWithStat(StatView *self, StatViewStat stat) {
     self->value = $(alloc(Text), initWithText, NULL, NULL);
     assert(self->value);
 
+    $((View *) self->value, addClassName, "number");
+
     $((View *) self, addSubview, (View *) self->value);
 
     self->icon = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));

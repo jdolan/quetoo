@@ -122,6 +122,7 @@ static CounterView *initWithCaption(CounterView *self, const char *caption, int3
     assert(self->value);
 
     $((View *) self->value, addClassName, "value");
+    $((View *) self->value, addClassName, "number");
     $((View *) self, addSubview, (View *) self->value);
   }
 

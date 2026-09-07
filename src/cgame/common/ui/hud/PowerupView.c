@@ -163,6 +163,8 @@ static PowerupView *initWithPowerup(PowerupView *self, PowerupViewPowerup poweru
     self->value = $(alloc(Text), initWithText, NULL, NULL);
     assert(self->value);
 
+    $((View *) self->value, addClassName, "number");
+
     $((View *) self, addSubview, (View *) self->value);
   }
 

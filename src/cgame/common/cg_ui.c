@@ -83,7 +83,32 @@ static void Cg_AddEmoji(const char *path, void *data) {
   }
 }
 
+/**
+ * @brief Registers a TTF from the game filesystem with MVC under the given family, so that
+ * stylesheets can name it.
+ */
+static void Cg_CacheFont(const char *path, const char *family) {
+
+  void *ttf;
+  const int64_t length = cgi.LoadFile(path, &ttf);
+  if (length > 0) {
+    Data *data = $(alloc(Data), initWithBytes, ttf, (size_t) length);
+    assert(data);
+
+    $$(Font, cacheFont, data, family);
+
+    release(data);
+    cgi.FreeFile(ttf);
+  } else {
+    Cg_Warn("Failed to load %s\n", path);
+  }
+}
+
 void Cg_InitUi(void) {
+
+  // Tabular digits and an unmarked zero for the HUD's numbers; the face is proportional, so
+  // it is used for numbers only
+  Cg_CacheFont("ui/fonts/MPlusU-Bold.ttf", "M PLUS U");
 
   stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common.css");
   assert(stylesheet);

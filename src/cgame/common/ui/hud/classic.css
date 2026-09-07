@@ -3,6 +3,9 @@
  * "classic" concept: vitals, powerups, pickups and weapon slots sit on translucent cards in the
  * menu panel palette, numbers are bold, and captions are small, uppercase and smoky.
  *
+ * Numbers carry the class name `number` and set in M PLUS U, registered by Cg_InitUi for its
+ * tabular digits and unmarked zero; everything else is the bundled monospace.
+ *
  * Elements anchor with alignment and offset with padding; the columns stack. #layout's padding
  * is the one inset from the screen edge; a card's padding is its interior. MVC
  * specificity counts a type selector once per superclass, so #hud Text outranks a bare #id;
@@ -68,13 +71,18 @@
   border-radius: 16;
 }
 
+#hud .number {
+  font-family: M PLUS U;
+  font-style: regular;
+}
+
 #hud StatView > Text {
   alignment: middle;
-  font-size: 56;
+  font-size: 44;
 }
 
 #hud #health > Text {
-  font-size: 68;
+  font-size: 54;
 }
 
 #hud StatView > ImageView {
@@ -100,7 +108,7 @@
 
 #hud PowerupView > Text {
   alignment: middle;
-  font-size: 40;
+  font-size: 32;
 }
 
 #pickup {
@@ -149,11 +157,11 @@
 
 #hud CounterView > .value {
   alignment: right;
-  font-size: 40;
+  font-size: 32;
 }
 
 #hud TimeView > .value {
-  font-size: 28;
+  font-size: 22;
   color: #8fc7dc;
 }
 
