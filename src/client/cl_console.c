@@ -39,13 +39,6 @@ cvar_t *cl_notify_lines;
 cvar_t *cl_notify_time;
 
 /**
- * @brief Returns the console height in pixels based on the current window size and state.
- */
-int32_t Cl_GetConsoleHeight(void) {
-  return r_context.h * (cls.state == CL_ACTIVE ? Clampf01(cl_console_height->value) : 1.f);
-}
-
-/**
  * @brief Outputs a stripped (color-code-free) console string to stdout.
  */
 static void Cl_Print(const console_string_t *str) {

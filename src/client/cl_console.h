@@ -37,7 +37,6 @@ extern cvar_t *cl_chat_time;
 extern cvar_t *cl_notify_lines;
 extern cvar_t *cl_notify_time;
 
-int32_t Cl_GetConsoleHeight(void);
 void Cl_ToggleConsole_f(void);
 void Cl_InitConsole(void);
 void Cl_ShutdownConsole(void);

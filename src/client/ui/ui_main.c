@@ -175,10 +175,14 @@ void Ui_Draw(void) {
 
   assert(windowController);
 
-  // The menus occlude the HUD, and the HUD exists only in play
-  const bool menus = cls.key_state.dest == KEY_UI || (cls.state != CL_ACTIVE && cls.key_state.dest != KEY_CONSOLE);
+  // The HUD exists only in play, beneath the menus; the menus show whenever asked for, while
+  // loading, and whenever there is no game to show, except beneath the console
+  const cl_key_dest_t dest = cls.key_state.dest;
 
-  $(hudLayer->view, setHidden, menus);
+  const bool hud = cls.state == CL_ACTIVE && dest != KEY_UI;
+  const bool menus = dest == KEY_UI || cls.state == CL_LOADING || (cls.state != CL_ACTIVE && dest != KEY_CONSOLE);
+
+  $(hudLayer->view, setHidden, !hud);
   $(navigationViewController->viewController.view, setHidden, !menus);
 
   $(consoleViewController, update);
@@ -286,6 +290,7 @@ void Ui_Init(void) {
 
   hudLayer = $(alloc(ViewController), init);
   $(rootViewController, addChildViewController, hudLayer);
+  hudLayer->view->pointerEvents = false;
 
   navigationViewController = $(alloc(NavigationViewController), init);
   $(rootViewController, addChildViewController, (ViewController *) navigationViewController);

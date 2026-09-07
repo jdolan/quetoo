@@ -95,3 +95,11 @@ struct ConsoleViewControllerInterface {
 };
 
 Class *_ConsoleViewController(void);
+
+/**
+ * @brief The console's height for a layer of the given height: all of it until there is a game
+ * to show, then `cl_console_height` of it.
+ * @param height The layer height, in points.
+ * @return The console height, in points.
+ */
+int32_t Ui_ConsoleHeight(int32_t height);

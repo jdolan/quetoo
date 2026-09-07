@@ -22,6 +22,8 @@
 #include "ui_local.h"
 #include "cl_local.h"
 
+#include "ui_console.h"
+
 #include "ui_diagnostics.h"
 
 #define NET_GRAPH_WIDTH 128
@@ -156,29 +158,35 @@ static void loadView(ViewController *self) {
 
   super(ViewController, self, loadView);
 
-  DiagnosticsViewController *this = (DiagnosticsViewController *) self;
+  self->view->pointerEvents = false;
 
-  self->view->autoresizingMask = ViewAutoresizingFill;
+  DiagnosticsViewController *this = (DiagnosticsViewController *) self;
 
   this->netGraph = $((View *) alloc(NetGraphView), initWithFrame, &MakeRect(0, 0, NET_GRAPH_WIDTH, NET_GRAPH_HEIGHT));
   assert(this->netGraph);
 
   this->netGraph->alignment = ViewAlignmentBottomRight;
+  this->netGraph->pointerEvents = false;
   $(this->netGraph->style, addColorAttribute, "background-color", &(const SDL_Color) { 64, 64, 64, 128 });
 
   $(self->view, addSubview, this->netGraph);
 
   this->counters = addText(self->view, ViewAlignmentBottomRight, &Colors.White);
+  this->counters->view.pointerEvents = false;
 
   this->stats = (View *) $(alloc(StackView), initWithFrame, NULL);
   assert(this->stats);
 
   this->stats->autoresizingMask = ViewAutoresizingContain;
+  this->stats->pointerEvents = false;
   $(this->stats->style, addRectangleAttribute, "padding", &MakeRect(STATS_TOP, 0, 0, 1));
   $(this->stats->style, addIntegerAttribute, "spacing", 14);
 
   this->rendererStats = addText(this->stats, ViewAlignmentNone, &(const SDL_Color) { 255, 255, 0, 255 });
+  this->rendererStats->view.pointerEvents = false;
+
   this->soundStats = addText(this->stats, ViewAlignmentNone, &(const SDL_Color) { 255, 0, 255, 255 });
+  this->soundStats->view.pointerEvents = false;
 
   $(self->view, addSubview, this->stats);
 }
@@ -370,7 +378,8 @@ static void update(DiagnosticsViewController *self) {
   const bool game = active && cls.key_state.dest == KEY_GAME;
   const bool console = active && cls.key_state.dest == KEY_CONSOLE;
 
-  const int32_t top = console ? Cl_GetConsoleHeight() : STATS_TOP;
+  const int32_t height = self->viewController.view->frame.h;
+  const int32_t top = console && height > 0 ? Ui_ConsoleHeight(height) : STATS_TOP;
   if (self->stats->padding.top != top) {
     self->stats->padding.top = top;
     $(self->stats->style, addRectangleAttribute, "padding", &MakeRect(top, 0, 0, 1));
@@ -396,6 +405,8 @@ static void update(DiagnosticsViewController *self) {
   if (sound) {
     updateSoundStats(self);
   }
+
+  $(self->stats, setHidden, !(renderer || sound));
 }
 
 #pragma mark - Class lifecycle

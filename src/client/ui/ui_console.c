@@ -22,10 +22,15 @@
 #include "ui_local.h"
 #include "cl_local.h"
 
+
 #include "ui_console.h"
 
 #define CONSOLE_FONT_SIZE 14
 #define CONSOLE_CURSOR "_"
+
+int32_t Ui_ConsoleHeight(int32_t height) {
+  return height * (cls.state == CL_ACTIVE ? Clampf01(cl_console_height->value) : 1.f);
+}
 
 #define _Class _ConsoleViewController
 
@@ -72,9 +77,9 @@ static void loadView(ViewController *self) {
 
   super(ViewController, self, loadView);
 
-  ConsoleViewController *this = (ConsoleViewController *) self;
+  self->view->pointerEvents = false;
 
-  self->view->autoresizingMask = ViewAutoresizingFill;
+  ConsoleViewController *this = (ConsoleViewController *) self;
 
   this->console = $(alloc(View), initWithFrame, NULL);
   assert(this->console);
@@ -213,7 +218,7 @@ static void updateConsole(ConsoleViewController *self) {
 
   const SDL_Size ch = cell(self->buffer);
   const SDL_Rect frame = self->viewController.view->frame;
-  const int32_t height = Cl_GetConsoleHeight();
+  const int32_t height = Ui_ConsoleHeight(frame.h);
 
   cl_console.width = frame.w / ch.w;
   cl_console.height = Maxi(height / ch.h - 1, 0);
