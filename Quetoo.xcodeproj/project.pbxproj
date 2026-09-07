@@ -60,17 +60,99 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		0054FB2183D14FB441556F05 /* Rajdhani-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */; };
+		01209575888A584DAE8F7D25 /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
 		014684FA691B4EB0944ACDCB /* r_post.c in Sources */ = {isa = PBXBuildFile; fileRef = 26FE8732000C404A8AFA1688 /* r_post.c */; };
+		033334174247678F654646CA /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		0789D5943ABEDA1B53B205E2 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
 		08962C395D0FB0E620F78625 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = 7966EA6596003F9303BC00FA /* bg_item.c */; };
 		091C43A66A7972053AD1C8E7 /* box.c in Sources */ = {isa = PBXBuildFile; fileRef = 8542813678DB3B7BECEEF939 /* box.c */; };
-		0054FB2183D14FB441556F05 /* Rajdhani-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */; };
-		F2790FC8B72E7B3C54A53EED /* Rajdhani-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */; };
-		B777A7BCE46440D86F0248FA /* BarlowCondensed-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */; };
-		A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */; };
-		89AC37486C4E50D551009CFE /* MPlusU-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */; };
-		AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */; };
+		0BF82540ADD285E5DF358C72 /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
+		0D717FD0F554D48A47A4C2A9 /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
+		13539C3CA303E97E3DFB80B5 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
+		16842F99305E37AEE91A82E4 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
+		18831DC74740CDF73E54CF63 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
+		1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
+		20BE76382F981DD4B7F43A11 /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E652EE2F700EFB737AEA30 /* classic.json */; };
+		24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
+		2C3ADE327DEBD6F3955255E7 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
+		2D0110BBB9C57DC4DAA49389 /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
+		2F75825314B0423B86868ACC /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
+		322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 848E81C81F875F4403EAE1EE /* scoreboard.json */; };
+		332CAA47FF0E8521C12DF852 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		368D384E998F7590EBCEB7EE /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3487B5AD7D47E8DFBDDAE5C4 /* classic.json */; };
+		39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
+		3B497D93EA892C673165469D /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
+		3C4FCD00A4AE0B8971D17E7D /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
+		3CBF190D5B00F3CCADD14B52 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		457008C2AC171BAD836BC9D8 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
+		46EE82019B925D394B363E01 /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
+		47E832E190C339999881A094 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
+		48F10F5D3A8711EABB25DB34 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
+		4E0DA0FBE7F88EC11A4CF033 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		50A618B627838A7F121E3DA9 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
+		50A656139CC3317E925D0231 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
 		522B158EA7384E83CD005789 /* cm_manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = D126FFD46C343DDC86C13E17 /* cm_manifest.c */; };
+		52367ABAA22B6D5586284093 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		5353FBA06CC14AA034C4C9CD /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
+		537E3B2A605E2005BA5F4928 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		54194A7922708C783B541F5B /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
+		544522FFCEEDAAC1EBEB6750 /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92AA3129971ABAAB21EE5BAD /* scoreboard.json */; };
+		547AC46C9A45CC44AB005215 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
+		549E7CC4A7BA476A2463B7CC /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
+		56AC1EB89F50309A3C1E9C4B /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
+		5A41D1910F5ECC29544A0261 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
+		5D26ECD45D3B9CEDA1FCE596 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
+		65A8C761AE5D68358CDDE601 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
+		665046BB6961C443C731A077 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
+		6681071D48F7B492ADC27385 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
+		67B508B8AF186FE76DE2E772 /* ui_console.c in Sources */ = {isa = PBXBuildFile; fileRef = 686EF3FBC392574BB0C5BD72 /* ui_console.c */; };
+		68157F8A4AF07ADDE8951670 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
+		68D440FA613EE2594A4D6DB6 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
+		68FBD5DEAC1FB3CC3C2322D5 /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
+		6B31320926D77CB87B783BDD /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		6B6C876AA822AB4DFB8D3158 /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
+		6C7870B960DDA48FF5959231 /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
+		719CDF30AE6EB1DC2261140E /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
+		77C2AFA7D92DAC05CE4E7996 /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
+		77DC97E1E9FDFCF8FD91B1BC /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		7857EDF77E5E58CEFFD03198 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		78965577428364713231086F /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
+		78BFCA151AAC14630B15208D /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
+		7AFADF59B58F54581DC1C419 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
+		814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
+		863F1E3961ED23FA4D28C1BB /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
+		89AC37486C4E50D551009CFE /* MPlusU-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */; };
+		8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
 		997E573805B0DCF96FB8C299 /* manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = 57941D4E858E897A2E3083ED /* manifest.c */; };
+		99E4ACB4811F76E8CB7249E9 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
+		9A75AE7BCB708C6557903ADE /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
+		9B67395438D49AA25C710A4A /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
+		9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
+		9C43D41506579A6ED4EE80F5 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		9E1C83CE11AE376D9174B271 /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 027C4ADD65DCCCEBCEB3D462 /* classic.json */; };
+		9EBBE79D07E30BB784FC188F /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
+		9F948D38BAB2AE44F4A87F61 /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
+		A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */; };
+		A978478284E6A536361DE6FC /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
+		AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */; };
+		AE4EA13B59877C5736940695 /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
+		AF637037D323F5359A9E5F26 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
+		AF8056E19DEC77694B63EDD7 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		B2B62AE1E7C09567B299F1AA /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		B3C3D379CB4955B1FED23ADB /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
+		B50A7AB9A94C86F0D55675BD /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = A980A8F791ED9C0A50C6C948 /* classic.json */; };
+		B777A7BCE46440D86F0248FA /* BarlowCondensed-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */; };
+		B8BC2CE87251BA0975026203 /* SDL3_image.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C42FE711B7005C680C /* SDL3_image.xcframework */; };
+		B92B8EA5B4D9C775CF3C2541 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		BB08F021CF5059A8915C8DDF /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
+		C1A592C4D259F42E82027392 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
+		C24304F353C77693015A7736 /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
+		C3241FC475F3D3E3E573AC7B /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
+		C55D95D65959615823A138F8 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		C5BD795EA472E6C067A6EB72 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
+		C6BE5C361D7A11928CC7373B /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		CC87D6AEB29F498DB8AA7E1C /* cm_voxel.c in Sources */ = {isa = PBXBuildFile; fileRef = 1EE6A866A93B42938A4E84E6 /* cm_voxel.c */; };
 		CE04F03E25CADF4900C31433 /* atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CE354EDA220738BF008AE0C2 /* atlas.c */; };
 		CE04F06325CADF4D00C31433 /* atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CE354ED9220738BF008AE0C2 /* atlas.h */; };
@@ -456,11 +538,8 @@
 		CE5ABAD82F32D86C00D05D09 /* r_decal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5ABAD72F32D86C00D05D09 /* r_decal.c */; };
 		CE5ABAD92F32D86C00D05D09 /* r_decal.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5ABAD62F32D86C00D05D09 /* r_decal.h */; };
 		CE5ABAE52F6CA9AD00D05D09 /* patch.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5ABAE42F6CA9AD00D05D09 /* patch.c */; };
-		67B508B8AF186FE76DE2E772 /* ui_console.c in Sources */ = {isa = PBXBuildFile; fileRef = 686EF3FBC392574BB0C5BD72 /* ui_console.c */; };
-		E9B559959EBADEFEA482FCBA /* ui_diagnostics.c in Sources */ = {isa = PBXBuildFile; fileRef = FCE8C5C4EA4132CBD8F84592 /* ui_diagnostics.c */; };
 		CE5CDC331D9F518B0034757D /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5CDBB21D9F45090034757D /* ui_main.c */; };
 		CE5CDC361D9F51A90034757D /* ui_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB11D9F45090034757D /* ui_local.h */; };
-		D8E4E6967F068E1CEB5F5E28 /* ui_diagnostics.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BCCE4F3130C7421FAA7F8B /* ui_diagnostics.h */; };
 		CE5CDC381D9F51A90034757D /* ui_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB31D9F45090034757D /* ui_main.h */; };
 		CE5CDC391D9F51A90034757D /* ui_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB41D9F45090034757D /* ui_types.h */; };
 		CE5CDC3A1D9F51A90034757D /* ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBAE1D9F45090034757D /* ui.h */; };
@@ -652,21 +731,6 @@
 		CE89C2BD2FE56450000B6244 /* qstring.c in Sources */ = {isa = PBXBuildFile; fileRef = CE89C2BF2FE56452000B6244 /* qstring.c */; };
 		CE89C2BE2FE56451000B6244 /* qstring.h in Headers */ = {isa = PBXBuildFile; fileRef = CE89C2C02FE56453000B6244 /* qstring.h */; };
 		CE91924D2055731E007AC8FF /* tjunction.c in Sources */ = {isa = PBXBuildFile; fileRef = CE91924C2055731E007AC8FF /* tjunction.c */; };
-		D9A5C10000000000000000C0 /* check_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000B0 /* check_race.c */; };
-		D9A5C10000000000000000C1 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
-		D9A5C10000000000000000C2 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
-		D9A5C10000000000000000C3 /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
-		D9A5C10000000000000000C4 /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
-		D9A5C10000000000000000C5 /* bg_pmove_quake3.c in Sources */ = {isa = PBXBuildFile; fileRef = D7A5C10000000000000000A1 /* bg_pmove_quake3.c */; };
-		D9A5C10000000000000000C6 /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
-		D9A5C10000000000000000C7 /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
-		D9A5C10000000000000000C8 /* g_race_records.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A4 /* g_race_records.c */; };
-		D9A5C10000000000000000C9 /* g_race_replay.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A5 /* g_race_replay.c */; };
-		D9A5C10000000000000000D0 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		D9A5C10000000000000000D1 /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
-		D9A5C10000000000000000D2 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
-		D9A5C10000000000000000D3 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
-		D9A5C10000000000000000D4 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CE948B232235655700D961FA /* check_shared.c in Sources */ = {isa = PBXBuildFile; fileRef = CE948B0F223564E900D961FA /* check_shared.c */; };
 		CE948B2E2235699300D961FA /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE9A670E2D2589020068D720 /* check_box.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9A67092D2588B20068D720 /* check_box.c */; };
@@ -982,6 +1046,7 @@
 		CED5BB162406A95800784D93 /* r_draw_3d.c in Sources */ = {isa = PBXBuildFile; fileRef = CED5BB142406A95800784D93 /* r_draw_3d.c */; };
 		CEE13C15293241970075585D /* r_shadow.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE13C13293241970075585D /* r_shadow.c */; };
 		CEE13C16293241970075585D /* r_shadow.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE13C14293241970075585D /* r_shadow.h */; };
+		CEE21B7B45DA97BAA8A5395F /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
 		CEE3A0F421EE2B3F0070FD3E /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CEE3A10521EE2BAA0070FD3E /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CEE7508B2D6A3267004CDBCA /* rgb9e5.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE7508A2D6A3253004CDBCA /* rgb9e5.h */; };
@@ -1020,6 +1085,7 @@
 		CEFF1298277D439B001E1500 /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
 		CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFF1377277FB721001E1500 /* TeamPlayerView.json */; };
+		CF43CA06A122206F8CB8748A /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		CFA000142F9100000000C014 /* cg_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000022F9100000000C002 /* cg_editor.c */; };
 		CFA000152F9100000000C015 /* cg_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CFA000032F9100000000C003 /* cg_editor.h */; };
 		CFA000162F9100000000C016 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000042F9100000000C004 /* EditorViewController.c */; };
@@ -1051,94 +1117,6 @@
 		D1A5B0000000000000000206 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
 		D1A5B0000000000000000207 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
 		D1A5B0000000000000000208 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
-		01209575888A584DAE8F7D25 /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
-		54194A7922708C783B541F5B /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
-		24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
-		48F10F5D3A8711EABB25DB34 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
-		E7A9F8759B856BBB62D69C03 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
-		C24304F353C77693015A7736 /* ScoreRowView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreRowView.c */; };
-		BB08F021CF5059A8915C8DDF /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
-		0BF82540ADD285E5DF358C72 /* ScoreRowView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreRowView.c */; };
-		E70AD75417615E311748DB70 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
-		9EBBE79D07E30BB784FC188F /* ScoreRowView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreRowView.c */; };
-		68D440FA613EE2594A4D6DB6 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
-		9F948D38BAB2AE44F4A87F61 /* ScoreRowView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreRowView.c */; };
-		50A656139CC3317E925D0231 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
-		D8F2715333902B56A81AC28C /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
-		52367ABAA22B6D5586284093 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
-		D3D2558FB099A325883FDB27 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
-		719CDF30AE6EB1DC2261140E /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
-		814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
-		39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
-		C5BD795EA472E6C067A6EB72 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
-		78BFCA151AAC14630B15208D /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
-		AF637037D323F5359A9E5F26 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
-		9A75AE7BCB708C6557903ADE /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
-		7AFADF59B58F54581DC1C419 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
-		EAC91DBE5BFAA686873683E8 /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
-		D6201E3E9B69E158607607E6 /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
-		9B67395438D49AA25C710A4A /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
-		0D717FD0F554D48A47A4C2A9 /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
-		99E4ACB4811F76E8CB7249E9 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
-		3C4FCD00A4AE0B8971D17E7D /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
-		68157F8A4AF07ADDE8951670 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
-		5353FBA06CC14AA034C4C9CD /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
-		E140557ED1DC8869F66A94BD /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
-		C1A592C4D259F42E82027392 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
-		56AC1EB89F50309A3C1E9C4B /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
-		5A41D1910F5ECC29544A0261 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
-		AE4EA13B59877C5736940695 /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
-		50A618B627838A7F121E3DA9 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
-		2F75825314B0423B86868ACC /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
-		FC50131A3C56E2363DB2272D /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
-		6681071D48F7B492ADC27385 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
-		68FBD5DEAC1FB3CC3C2322D5 /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
-		D53BEFF0D4879EFEF1B0B77D /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
-		6B6C876AA822AB4DFB8D3158 /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
-		A978478284E6A536361DE6FC /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
-		B3C3D379CB4955B1FED23ADB /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
-		46EE82019B925D394B363E01 /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
-		C3241FC475F3D3E3E573AC7B /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
-		863F1E3961ED23FA4D28C1BB /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
-		9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
-		E16A533FF7C34A2BA65E1BFF /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
-		F956F2A93BABE228BC99C9E4 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
-		1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
-		537E3B2A605E2005BA5F4928 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
-		65A8C761AE5D68358CDDE601 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
-		78965577428364713231086F /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
-		5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
-		DD02E1ABB673209C4A8D0EFC /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
-		EF3850D157838948B4F2B64F /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
-		13539C3CA303E97E3DFB80B5 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
-		457008C2AC171BAD836BC9D8 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
-		547AC46C9A45CC44AB005215 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
-		665046BB6961C443C731A077 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
-		18831DC74740CDF73E54CF63 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
-		E613CE6B3A9634DB694DA689 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
-		0789D5943ABEDA1B53B205E2 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
-		2D0110BBB9C57DC4DAA49389 /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
-		CEE21B7B45DA97BAA8A5395F /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
-		E10D01F620BB74E4166A8E7F /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
-		6C7870B960DDA48FF5959231 /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
-		2C3ADE327DEBD6F3955255E7 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
-		16842F99305E37AEE91A82E4 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
-		47E832E190C339999881A094 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
-		D36054C7E2858790984E15E0 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
-		3B497D93EA892C673165469D /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
-		C55D95D65959615823A138F8 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
-		F0D2694D4DD29796B8BB5639 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
-		77C2AFA7D92DAC05CE4E7996 /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
-		8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
-		5D26ECD45D3B9CEDA1FCE596 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
-		DD69DC98B2588BCF788647E3 /* classic.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2D140F08524DA0679A7DB117 /* classic.css */; };
-		9E1C83CE11AE376D9174B271 /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 027C4ADD65DCCCEBCEB3D462 /* classic.json */; };
-		544522FFCEEDAAC1EBEB6750 /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92AA3129971ABAAB21EE5BAD /* scoreboard.json */; };
-		B50A7AB9A94C86F0D55675BD /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = A980A8F791ED9C0A50C6C948 /* classic.json */; };
-		368D384E998F7590EBCEB7EE /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3487B5AD7D47E8DFBDDAE5C4 /* classic.json */; };
-		DD006E4E558F9346D79447E5 /* scoreboard.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = E0F247635165E5338AAD8494 /* scoreboard.css */; };
-		322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 848E81C81F875F4403EAE1EE /* scoreboard.json */; };
-		20BE76382F981DD4B7F43A11 /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E652EE2F700EFB737AEA30 /* classic.json */; };
 		D1A5B0000000000000000210 /* VoteViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000209 /* VoteViewController.json */; };
 		D1A5B0000000000000000212 /* VoteViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000211 /* VoteViewController.css */; };
 		D2A5C1000000000000000010 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000002 /* bg_item.c */; };
@@ -1311,6 +1289,7 @@
 		D2A5C10000000000000000C3 /* cg_ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE4101F72919800FBC830 /* cg_ui.h */; };
 		D2A5C10000000000000000C4 /* cg_view.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D57F1C5C58C300CD0B13 /* cg_view.h */; };
 		D2A5C10000000000000000C5 /* cg_weapon.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4DCF04256DCCA100FECAFC /* cg_weapon.h */; };
+		D36054C7E2858790984E15E0 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
 		D3A5C100000000000000000B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
 		D3A5C100000000000000001B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
 		D3A5C100000000000000002B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
@@ -1319,6 +1298,7 @@
 		D3A5C100000000000000005B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
 		D3A5C100000000000000006B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
 		D3A5C100000000000000007B /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
+		D3D2558FB099A325883FDB27 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
 		D4A5C100000000000000000B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D4A5C100000000000000001B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D4A5C100000000000000002B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
@@ -1327,6 +1307,7 @@
 		D4A5C100000000000000005B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D4A5C100000000000000006B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
 		D4A5C100000000000000007B /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
+		D53BEFF0D4879EFEF1B0B77D /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
 		D5A5C100000000000000000B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
 		D5A5C100000000000000001B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
 		D5A5C100000000000000002B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
@@ -1335,6 +1316,7 @@
 		D5A5C100000000000000005B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
 		D5A5C100000000000000006B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
 		D5A5C100000000000000007B /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
+		D6201E3E9B69E158607607E6 /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
 		D6A5C100000000000000000B /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
 		D6A5C100000000000000001B /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
 		D6A5C100000000000000002B /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
@@ -1355,30 +1337,48 @@
 		D8A5C100000000000000000C /* g_race_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A2 /* g_race_entity.c */; };
 		D8A5C100000000000000000D /* g_race_records.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A4 /* g_race_records.c */; };
 		D8A5C100000000000000000E /* g_race_replay.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A5 /* g_race_replay.c */; };
+		D8E4E6967F068E1CEB5F5E28 /* ui_diagnostics.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BCCE4F3130C7421FAA7F8B /* ui_diagnostics.h */; };
+		D8F2715333902B56A81AC28C /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		D9A5C100000000000000000B /* cg_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000A1 /* cg_race.c */; };
 		D9A5C100000000000000000C /* cg_race_hud.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000A2 /* cg_race_hud.c */; };
 		D9A5C100000000000000000D /* cg_race_score.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000A4 /* cg_race_score.c */; };
+		D9A5C10000000000000000C0 /* check_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D9A5C10000000000000000B0 /* check_race.c */; };
+		D9A5C10000000000000000C1 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
+		D9A5C10000000000000000C2 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
+		D9A5C10000000000000000C3 /* bg_pmove_quake.c in Sources */ = {isa = PBXBuildFile; fileRef = D4A5C10000000000000000A1 /* bg_pmove_quake.c */; };
+		D9A5C10000000000000000C4 /* bg_pmove_quake2.c in Sources */ = {isa = PBXBuildFile; fileRef = D5A5C10000000000000000A1 /* bg_pmove_quake2.c */; };
+		D9A5C10000000000000000C5 /* bg_pmove_quake3.c in Sources */ = {isa = PBXBuildFile; fileRef = D7A5C10000000000000000A1 /* bg_pmove_quake3.c */; };
+		D9A5C10000000000000000C6 /* bg_pmove_quetoo.c in Sources */ = {isa = PBXBuildFile; fileRef = D3A5C10000000000000000A1 /* bg_pmove_quetoo.c */; };
+		D9A5C10000000000000000C7 /* bg_pmove_race.c in Sources */ = {isa = PBXBuildFile; fileRef = D6A5C10000000000000000A1 /* bg_pmove_race.c */; };
+		D9A5C10000000000000000C8 /* g_race_records.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A4 /* g_race_records.c */; };
+		D9A5C10000000000000000C9 /* g_race_replay.c in Sources */ = {isa = PBXBuildFile; fileRef = D8A5C10000000000000000A5 /* g_race_replay.c */; };
+		D9A5C10000000000000000D0 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		D9A5C10000000000000000D1 /* Objectively.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601BA2FE60508005C680C /* Objectively.framework */; };
+		D9A5C10000000000000000D2 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		D9A5C10000000000000000D3 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
+		D9A5C10000000000000000D4 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
+		DD006E4E558F9346D79447E5 /* scoreboard.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = E0F247635165E5338AAD8494 /* scoreboard.css */; };
+		DD02E1ABB673209C4A8D0EFC /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
+		DD69DC98B2588BCF788647E3 /* classic.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2D140F08524DA0679A7DB117 /* classic.css */; };
+		E10D01F620BB74E4166A8E7F /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
+		E140557ED1DC8869F66A94BD /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
+		E16A533FF7C34A2BA65E1BFF /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
+		E613CE6B3A9634DB694DA689 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		E70AD75417615E311748DB70 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
+		E7A9F8759B856BBB62D69C03 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
+		E9B559959EBADEFEA482FCBA /* ui_diagnostics.c in Sources */ = {isa = PBXBuildFile; fileRef = FCE8C5C4EA4132CBD8F84592 /* ui_diagnostics.c */; };
+		EAC91DBE5BFAA686873683E8 /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
 		EC45E0FA2A80403C8FEA3834 /* cg_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = FCD76A809F00440F99BC0068 /* cg_inventory.c */; };
 		EEE815CF5A924D398351DF7C /* cm_voxel.h in Headers */ = {isa = PBXBuildFile; fileRef = 97BDA8A5C8DF41E290656B3D /* cm_voxel.h */; };
+		EF3850D157838948B4F2B64F /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
+		F0D2694D4DD29796B8BB5639 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
+		F2790FC8B72E7B3C54A53EED /* Rajdhani-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */; };
 		F53787C291008C7507AE5FF4 /* cm_manifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */; };
 		F7EBE32625F44EBF895E36BC /* cg_inventory.h in Headers */ = {isa = PBXBuildFile; fileRef = 066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */; };
 		F8D615462A724ECF9847D4CD /* r_post.h in Headers */ = {isa = PBXBuildFile; fileRef = B80C92655F5249E48131CB95 /* r_post.h */; };
-		549E7CC4A7BA476A2463B7CC /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		B8BC2CE87251BA0975026203 /* SDL3_image.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C42FE711B7005C680C /* SDL3_image.xcframework */; };
-		CF43CA06A122206F8CB8748A /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		B92B8EA5B4D9C775CF3C2541 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		7857EDF77E5E58CEFFD03198 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		033334174247678F654646CA /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		9C43D41506579A6ED4EE80F5 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		AF8056E19DEC77694B63EDD7 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		4E0DA0FBE7F88EC11A4CF033 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		B2B62AE1E7C09567B299F1AA /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		6B31320926D77CB87B783BDD /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		77DC97E1E9FDFCF8FD91B1BC /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		332CAA47FF0E8521C12DF852 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		F956F2A93BABE228BC99C9E4 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
 		FBA34330EDE55ADE01202579 /* SDL3_image.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C42FE711B7005C680C /* SDL3_image.xcframework */; };
-		C6BE5C361D7A11928CC7373B /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		3CBF190D5B00F3CCADD14B52 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
+		FC50131A3C56E2363DB2272D /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1451,20 +1451,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = CE4DCF8C256F0DAD00FECAFC;
 			remoteInfo = check_cm_test;
-		};
-		D9A5C10000000000000000B9 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
-			remoteInfo = collision;
-		};
-		D9A5C10000000000000000BB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D9A5C10000000000000000B4;
-			remoteInfo = check_race;
 		};
 		CE4DCF8E256F0DAD00FECAFC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1732,19 +1718,31 @@
 			remoteGlobalIDString = D2A5C1000000000000000058;
 			remoteInfo = "cgame-race";
 		};
+		D9A5C10000000000000000B9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
+			remoteInfo = collision;
+		};
+		D9A5C10000000000000000BB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D9A5C10000000000000000B4;
+			remoteInfo = check_race;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		EE7162D3228511D41E8B4CB1 /* CopyFiles */ = {
+		0FB222CA4FDE0CA9865D5486 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = default/ui/hud;
+			dstPath = race/ui/hud;
 			dstSubfolderSpec = 16;
 			files = (
-				DD69DC98B2588BCF788647E3 /* classic.css in CopyFiles */,
-				DD006E4E558F9346D79447E5 /* scoreboard.css in CopyFiles */,
-				322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */,
-				20BE76382F981DD4B7F43A11 /* classic.json in CopyFiles */,
+				9E1C83CE11AE376D9174B271 /* classic.json in CopyFiles */,
+				544522FFCEEDAAC1EBEB6750 /* scoreboard.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1755,27 +1753,6 @@
 			dstSubfolderSpec = 16;
 			files = (
 				368D384E998F7590EBCEB7EE /* classic.json in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C9077C04022B772095186ABC /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = lithium/ui/hud;
-			dstSubfolderSpec = 16;
-			files = (
-				B50A7AB9A94C86F0D55675BD /* classic.json in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		0FB222CA4FDE0CA9865D5486 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = race/ui/hud;
-			dstSubfolderSpec = 16;
-			files = (
-				9E1C83CE11AE376D9174B271 /* classic.json in CopyFiles */,
-				544522FFCEEDAAC1EBEB6750 /* scoreboard.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1791,6 +1768,16 @@
 				A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */,
 				89AC37486C4E50D551009CFE /* MPlusU-OFL.txt in CopyFiles */,
 				AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C9077C04022B772095186ABC /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = lithium/ui/hud;
+			dstSubfolderSpec = 16;
+			files = (
+				B50A7AB9A94C86F0D55675BD /* classic.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1976,21 +1963,81 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EE7162D3228511D41E8B4CB1 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = default/ui/hud;
+			dstSubfolderSpec = 16;
+			files = (
+				DD69DC98B2588BCF788647E3 /* classic.css in CopyFiles */,
+				DD006E4E558F9346D79447E5 /* scoreboard.css in CopyFiles */,
+				322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */,
+				20BE76382F981DD4B7F43A11 /* classic.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		027C4ADD65DCCCEBCEB3D462 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
+		02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BarlowCondensed-SemiBold.ttf"; sourceTree = "<group>"; };
 		066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_inventory.h; sourceTree = "<group>"; };
+		07C9A88ED1D718092FD62601 /* CenterPrintView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CenterPrintView.c; sourceTree = "<group>"; };
+		15F241361EC624CD05FF20DA /* HudViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HudViewController.h; sourceTree = "<group>"; };
+		1A75866341F13821D2FC91FA /* CrosshairView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CrosshairView.c; sourceTree = "<group>"; };
+		1C923406FE86A096F618B0A6 /* ChaseView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ChaseView.c; sourceTree = "<group>"; };
 		1EE6A866A93B42938A4E84E6 /* cm_voxel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_voxel.c; sourceTree = "<group>"; };
 		26FE8732000C404A8AFA1688 /* r_post.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_post.c; sourceTree = "<group>"; };
+		2BA45B8C062C78CEE97C2D2B /* WeaponBarView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WeaponBarView.h; sourceTree = "<group>"; };
+		2D140F08524DA0679A7DB117 /* classic.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = classic.css; sourceTree = "<group>"; };
+		30FC7C9F9B24C6966D749398 /* NavEditView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NavEditView.h; sourceTree = "<group>"; };
+		3487B5AD7D47E8DFBDDAE5C4 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
+		40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreboardView.h; sourceTree = "<group>"; };
+		45969B731C08AA84C8D318F6 /* ScoreboardView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ScoreboardView.c; sourceTree = "<group>"; };
+		491F54CD554D0F550B000B4E /* NavEditView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = NavEditView.c; sourceTree = "<group>"; };
+		4BF47DA7893C8563C1D59CDA /* BlendView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = BlendView.c; sourceTree = "<group>"; };
+		4CA3522A5AE19B0F18CF79C6 /* TargetNameView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TargetNameView.h; sourceTree = "<group>"; };
+		51B36F4226CEC7C84538DC2F /* PickupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PickupView.h; sourceTree = "<group>"; };
 		57941D4E858E897A2E3083ED /* manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = manifest.c; sourceTree = "<group>"; };
 		59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_vs.glsl; sourceTree = "<group>"; };
+		5ABD97400D2B37C6E27C8BE0 /* OverlayText.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OverlayText.h; sourceTree = "<group>"; };
+		5B027972461629119D87F7A6 /* ScoreView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ScoreView.c; sourceTree = "<group>"; };
+		5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "MPlusU-OFL.txt"; sourceTree = "<group>"; };
+		64E652EE2F700EFB737AEA30 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
+		671265A640259697D1AA363E /* ScoreView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreView.h; sourceTree = "<group>"; };
+		686EF3FBC392574BB0C5BD72 /* ui_console.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ui_console.c; sourceTree = "<group>"; };
+		6F9DDB2DBBC915AE10C66CB1 /* BlendView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlendView.h; sourceTree = "<group>"; };
 		6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_fs.glsl; sourceTree = "<group>"; };
+		740BEA7DBF2B020A6D1B29C7 /* TeamBannerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamBannerView.h; sourceTree = "<group>"; };
+		755F8C8CBA7F7C48E79A578C /* PowerupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PowerupView.c; sourceTree = "<group>"; };
+		7773870519E25AD88B29F618 /* WeaponBarView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = WeaponBarView.c; sourceTree = "<group>"; };
 		7966EA6596003F9303BC00FA /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
+		8238DE2CC5A406DE6DF84E71 /* OverlayText.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = OverlayText.c; sourceTree = "<group>"; };
+		848E81C81F875F4403EAE1EE /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = scoreboard.json; sourceTree = "<group>"; };
 		8542813678DB3B7BECEEF939 /* box.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = box.c; sourceTree = "<group>"; };
+		92AA3129971ABAAB21EE5BAD /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = scoreboard.json; sourceTree = "<group>"; };
+		94D1F06AFA9AE2182216CC46 /* SpectatorView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SpectatorView.c; sourceTree = "<group>"; };
 		97BDA8A5C8DF41E290656B3D /* cm_voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_voxel.h; sourceTree = "<group>"; };
 		9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_manifest.h; sourceTree = "<group>"; };
+		9C56DC135154CED4C2498031 /* SpectatorView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpectatorView.h; sourceTree = "<group>"; };
+		9CA6BC01A9434CCDBF23E8C0 /* StatView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StatView.c; sourceTree = "<group>"; };
+		9EB3BF772B595B2E11DA92E7 /* TimeView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TimeView.h; sourceTree = "<group>"; };
+		A59EB892C12DF10ACA8253DD /* CounterView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CounterView.c; sourceTree = "<group>"; };
+		A73DD77B1D5B8231028B01FA /* TeamBannerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamBannerView.c; sourceTree = "<group>"; };
+		A980A8F791ED9C0A50C6C948 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
+		AC727F6BFFF40568A39B2DF0 /* ChaseView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChaseView.h; sourceTree = "<group>"; };
+		AF339E8DC908A7FE1C759AEA /* VoteView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VoteView.h; sourceTree = "<group>"; };
+		B00A6FD23FF3A3B4F77B3694 /* StatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatView.h; sourceTree = "<group>"; };
+		B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "BarlowCondensed-OFL.txt"; sourceTree = "<group>"; };
+		B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "MPlusU-Bold.ttf"; sourceTree = "<group>"; };
 		B80C92655F5249E48131CB95 /* r_post.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_post.h; sourceTree = "<group>"; };
+		B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Rajdhani-Bold.ttf"; sourceTree = "<group>"; };
 		BF98A24FAEEDE73A8F805F7D /* light_types.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = light_types.glsl; sourceTree = "<group>"; };
+		C1D5EEC0EEA8441CDCC9D7CA /* CenterPrintView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CenterPrintView.h; sourceTree = "<group>"; };
+		C21FD90BD08D804DE1A792B1 /* HudViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HudViewController.c; sourceTree = "<group>"; };
+		C8249BF99F0E4A2D77D37865 /* CrosshairView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrosshairView.h; sourceTree = "<group>"; };
+		C853849AF0A2CC2F7C531245 /* PowerupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerupView.h; sourceTree = "<group>"; };
+		C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TimeView.c; sourceTree = "<group>"; };
 		CE04EF9325CA0EE400C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE04EFC125CA0F7D00C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE04FB1725CEDCD400C31433 /* net_http_server.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_http_server.h; sourceTree = "<group>"; };
@@ -2520,10 +2567,6 @@
 		CE5CDBAC1D9F45090034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5CDBAE1D9F45090034757D /* ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui.h; sourceTree = "<group>"; };
 		CE5CDBB11D9F45090034757D /* ui_local.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_local.h; sourceTree = "<group>"; };
-		686EF3FBC392574BB0C5BD72 /* ui_console.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ui_console.c; sourceTree = "<group>"; };
-		FF8E12A349755C6F58D2FD56 /* ui_console.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_console.h; sourceTree = "<group>"; };
-		FCE8C5C4EA4132CBD8F84592 /* ui_diagnostics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ui_diagnostics.c; sourceTree = "<group>"; };
-		E9BCCE4F3130C7421FAA7F8B /* ui_diagnostics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_diagnostics.h; sourceTree = "<group>"; };
 		CE5CDBB21D9F45090034757D /* ui_main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_main.c; sourceTree = "<group>"; };
 		CE5CDBB31D9F45090034757D /* ui_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_main.h; sourceTree = "<group>"; };
 		CE5CDBB41D9F45090034757D /* ui_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_types.h; sourceTree = "<group>"; };
@@ -2579,8 +2622,6 @@
 		CE92B3AA1D2FF77800E9153A /* quemap.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = quemap.ico; sourceTree = "<group>"; };
 		CE92B3AB1D2FF7F600E9153A /* quetoo-dedicated-icon.rc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "quetoo-dedicated-icon.rc"; sourceTree = "<group>"; };
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
-		D9A5C10000000000000000B0 /* check_race.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_race.c; sourceTree = "<group>"; };
-		D9A5C10000000000000000B1 /* check_race */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_race; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE948B0F223564E900D961FA /* check_shared.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_shared.c; sourceTree = "<group>"; };
 		CE948B222235652600D961FA /* check_shared */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_shared; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE9A67092D2588B20068D720 /* check_box.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_box.c; sourceTree = "<group>"; };
@@ -2661,12 +2702,6 @@
 		CEAD8FC62F9650560087A850 /* clack.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = clack.wav; sourceTree = "<group>"; };
 		CEAD8FC72F9650560087A850 /* click.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click.wav; sourceTree = "<group>"; };
 		CEAD8FCB2F9650560087A850 /* conback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = conback.png; sourceTree = "<group>"; };
-		DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Rajdhani-OFL.txt"; sourceTree = "<group>"; };
-		B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Rajdhani-Bold.ttf"; sourceTree = "<group>"; };
-		B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "BarlowCondensed-OFL.txt"; sourceTree = "<group>"; };
-		02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BarlowCondensed-SemiBold.ttf"; sourceTree = "<group>"; };
-		5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "MPlusU-OFL.txt"; sourceTree = "<group>"; };
-		B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "MPlusU-Bold.ttf"; sourceTree = "<group>"; };
 		CEAD8FCD2F9650560087A850 /* loading.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = loading.png; sourceTree = "<group>"; };
 		CEAD8FCF2F9650560087A850 /* progress_bar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = progress_bar.png; sourceTree = "<group>"; };
 		CEB112AE22544B3800CE65F6 /* voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voxel.h; sourceTree = "<group>"; };
@@ -2787,50 +2822,6 @@
 		D1A5B0000000000000000108 /* g_vote.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_vote.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000201 /* cg_vote.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_vote.c; sourceTree = "<group>"; };
 		D1A5B0000000000000000205 /* VoteViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VoteViewController.c; sourceTree = "<group>"; };
-		A59EB892C12DF10ACA8253DD /* CounterView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CounterView.c; sourceTree = "<group>"; };
-		FC6374C1D47393EA62C8EC20 /* CounterView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CounterView.h; sourceTree = "<group>"; };
-		1A75866341F13821D2FC91FA /* CrosshairView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CrosshairView.c; sourceTree = "<group>"; };
-		C8249BF99F0E4A2D77D37865 /* CrosshairView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrosshairView.h; sourceTree = "<group>"; };
-		C21FD90BD08D804DE1A792B1 /* HudViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HudViewController.c; sourceTree = "<group>"; };
-		15F241361EC624CD05FF20DA /* HudViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HudViewController.h; sourceTree = "<group>"; };
-		E106ACFB28FF47443FB3C9FE /* PickupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PickupView.c; sourceTree = "<group>"; };
-		51B36F4226CEC7C84538DC2F /* PickupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PickupView.h; sourceTree = "<group>"; };
-		755F8C8CBA7F7C48E79A578C /* PowerupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PowerupView.c; sourceTree = "<group>"; };
-		C853849AF0A2CC2F7C531245 /* PowerupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerupView.h; sourceTree = "<group>"; };
-		5B027972461629119D87F7A6 /* ScoreRowView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ScoreRowView.c; sourceTree = "<group>"; };
-		671265A640259697D1AA363E /* ScoreRowView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreRowView.h; sourceTree = "<group>"; };
-		45969B731C08AA84C8D318F6 /* ScoreboardView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ScoreboardView.c; sourceTree = "<group>"; };
-		40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreboardView.h; sourceTree = "<group>"; };
-		E0F247635165E5338AAD8494 /* scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = scoreboard.css; sourceTree = "<group>"; };
-		848E81C81F875F4403EAE1EE /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = scoreboard.json; sourceTree = "<group>"; };
-		9CA6BC01A9434CCDBF23E8C0 /* StatView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StatView.c; sourceTree = "<group>"; };
-		B00A6FD23FF3A3B4F77B3694 /* StatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatView.h; sourceTree = "<group>"; };
-		A73DD77B1D5B8231028B01FA /* TeamBannerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamBannerView.c; sourceTree = "<group>"; };
-		740BEA7DBF2B020A6D1B29C7 /* TeamBannerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamBannerView.h; sourceTree = "<group>"; };
-		491F54CD554D0F550B000B4E /* NavEditView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = NavEditView.c; sourceTree = "<group>"; };
-		30FC7C9F9B24C6966D749398 /* NavEditView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NavEditView.h; sourceTree = "<group>"; };
-		EA8FE4E62B47061B1ADBD908 /* FpsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = FpsView.c; sourceTree = "<group>"; };
-		F62845AB16EAC431505215D1 /* FpsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FpsView.h; sourceTree = "<group>"; };
-		C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TimeView.c; sourceTree = "<group>"; };
-		9EB3BF772B595B2E11DA92E7 /* TimeView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TimeView.h; sourceTree = "<group>"; };
-		7773870519E25AD88B29F618 /* WeaponBarView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = WeaponBarView.c; sourceTree = "<group>"; };
-		2BA45B8C062C78CEE97C2D2B /* WeaponBarView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WeaponBarView.h; sourceTree = "<group>"; };
-		4BF47DA7893C8563C1D59CDA /* BlendView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = BlendView.c; sourceTree = "<group>"; };
-		6F9DDB2DBBC915AE10C66CB1 /* BlendView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlendView.h; sourceTree = "<group>"; };
-		07C9A88ED1D718092FD62601 /* CenterPrintView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CenterPrintView.c; sourceTree = "<group>"; };
-		C1D5EEC0EEA8441CDCC9D7CA /* CenterPrintView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CenterPrintView.h; sourceTree = "<group>"; };
-		1C923406FE86A096F618B0A6 /* ChaseView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ChaseView.c; sourceTree = "<group>"; };
-		AC727F6BFFF40568A39B2DF0 /* ChaseView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChaseView.h; sourceTree = "<group>"; };
-		8238DE2CC5A406DE6DF84E71 /* OverlayText.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = OverlayText.c; sourceTree = "<group>"; };
-		5ABD97400D2B37C6E27C8BE0 /* OverlayText.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OverlayText.h; sourceTree = "<group>"; };
-		94D1F06AFA9AE2182216CC46 /* SpectatorView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SpectatorView.c; sourceTree = "<group>"; };
-		9C56DC135154CED4C2498031 /* SpectatorView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpectatorView.h; sourceTree = "<group>"; };
-		E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TargetNameView.c; sourceTree = "<group>"; };
-		4CA3522A5AE19B0F18CF79C6 /* TargetNameView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TargetNameView.h; sourceTree = "<group>"; };
-		D7275B0BE3C194B1854A8FD6 /* VoteView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = VoteView.c; sourceTree = "<group>"; };
-		AF339E8DC908A7FE1C759AEA /* VoteView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VoteView.h; sourceTree = "<group>"; };
-		64E652EE2F700EFB737AEA30 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
-		2D140F08524DA0679A7DB117 /* classic.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = classic.css; sourceTree = "<group>"; };
 		D1A5B0000000000000000209 /* VoteViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VoteViewController.json; sourceTree = "<group>"; };
 		D1A5B0000000000000000211 /* VoteViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = VoteViewController.css; sourceTree = "<group>"; };
 		D1A5B0000000000000000213 /* cg_vote.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_vote.h; sourceTree = "<group>"; };
@@ -2848,6 +2839,7 @@
 		D4A5C10000000000000000A1 /* bg_pmove_quake.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_quake.c; sourceTree = "<group>"; };
 		D5A5C10000000000000000A1 /* bg_pmove_quake2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_quake2.c; sourceTree = "<group>"; };
 		D6A5C10000000000000000A1 /* bg_pmove_race.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_race.c; sourceTree = "<group>"; };
+		D7275B0BE3C194B1854A8FD6 /* VoteView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = VoteView.c; sourceTree = "<group>"; };
 		D7A5C10000000000000000A1 /* bg_pmove_quake3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove_quake3.c; sourceTree = "<group>"; };
 		D8A5C10000000000000000A1 /* g_race.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_race.c; sourceTree = "<group>"; };
 		D8A5C10000000000000000A2 /* g_race_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_race_entity.c; sourceTree = "<group>"; };
@@ -2858,9 +2850,21 @@
 		D9A5C10000000000000000A2 /* cg_race_hud.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_race_hud.c; sourceTree = "<group>"; };
 		D9A5C10000000000000000A3 /* cg_race.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_race.h; sourceTree = "<group>"; };
 		D9A5C10000000000000000A4 /* cg_race_score.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_race_score.c; sourceTree = "<group>"; };
+		D9A5C10000000000000000B0 /* check_race.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_race.c; sourceTree = "<group>"; };
+		D9A5C10000000000000000B1 /* check_race */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_race; sourceTree = BUILT_PRODUCTS_DIR; };
+		DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Rajdhani-OFL.txt"; sourceTree = "<group>"; };
 		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
+		E0F247635165E5338AAD8494 /* scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = scoreboard.css; sourceTree = "<group>"; };
+		E106ACFB28FF47443FB3C9FE /* PickupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PickupView.c; sourceTree = "<group>"; };
+		E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TargetNameView.c; sourceTree = "<group>"; };
+		E9BCCE4F3130C7421FAA7F8B /* ui_diagnostics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_diagnostics.h; sourceTree = "<group>"; };
+		EA8FE4E62B47061B1ADBD908 /* FpsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = FpsView.c; sourceTree = "<group>"; };
+		F62845AB16EAC431505215D1 /* FpsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FpsView.h; sourceTree = "<group>"; };
 		F7E7256984E276048C2A155E /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
+		FC6374C1D47393EA62C8EC20 /* CounterView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CounterView.h; sourceTree = "<group>"; };
 		FCD76A809F00440F99BC0068 /* cg_inventory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_inventory.c; sourceTree = "<group>"; };
+		FCE8C5C4EA4132CBD8F84592 /* ui_diagnostics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ui_diagnostics.c; sourceTree = "<group>"; };
+		FF8E12A349755C6F58D2FD56 /* ui_console.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_console.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3138,18 +3142,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D9A5C10000000000000000B3 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D9A5C10000000000000000D0 /* SDL3.xcframework in Frameworks */,
-				D9A5C10000000000000000D1 /* Objectively.framework in Frameworks */,
-				D9A5C10000000000000000D2 /* libshared.a in Frameworks */,
-				D9A5C10000000000000000D3 /* libcommon.a in Frameworks */,
-				D9A5C10000000000000000D4 /* libcollision.a in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CE948B162235652600D961FA /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -3303,9 +3295,88 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D9A5C10000000000000000B3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D9A5C10000000000000000D0 /* SDL3.xcframework in Frameworks */,
+				D9A5C10000000000000000D1 /* Objectively.framework in Frameworks */,
+				D9A5C10000000000000000D2 /* libshared.a in Frameworks */,
+				D9A5C10000000000000000D3 /* libcommon.a in Frameworks */,
+				D9A5C10000000000000000D4 /* libcollision.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0675B112BA0321E4687BE377 /* hud */ = {
+			isa = PBXGroup;
+			children = (
+				6F9DDB2DBBC915AE10C66CB1 /* BlendView.h */,
+				4BF47DA7893C8563C1D59CDA /* BlendView.c */,
+				C1D5EEC0EEA8441CDCC9D7CA /* CenterPrintView.h */,
+				07C9A88ED1D718092FD62601 /* CenterPrintView.c */,
+				AC727F6BFFF40568A39B2DF0 /* ChaseView.h */,
+				1C923406FE86A096F618B0A6 /* ChaseView.c */,
+				2D140F08524DA0679A7DB117 /* classic.css */,
+				64E652EE2F700EFB737AEA30 /* classic.json */,
+				FC6374C1D47393EA62C8EC20 /* CounterView.h */,
+				A59EB892C12DF10ACA8253DD /* CounterView.c */,
+				C8249BF99F0E4A2D77D37865 /* CrosshairView.h */,
+				1A75866341F13821D2FC91FA /* CrosshairView.c */,
+				F62845AB16EAC431505215D1 /* FpsView.h */,
+				EA8FE4E62B47061B1ADBD908 /* FpsView.c */,
+				15F241361EC624CD05FF20DA /* HudViewController.h */,
+				C21FD90BD08D804DE1A792B1 /* HudViewController.c */,
+				30FC7C9F9B24C6966D749398 /* NavEditView.h */,
+				491F54CD554D0F550B000B4E /* NavEditView.c */,
+				5ABD97400D2B37C6E27C8BE0 /* OverlayText.h */,
+				8238DE2CC5A406DE6DF84E71 /* OverlayText.c */,
+				51B36F4226CEC7C84538DC2F /* PickupView.h */,
+				E106ACFB28FF47443FB3C9FE /* PickupView.c */,
+				C853849AF0A2CC2F7C531245 /* PowerupView.h */,
+				755F8C8CBA7F7C48E79A578C /* PowerupView.c */,
+				E0F247635165E5338AAD8494 /* scoreboard.css */,
+				848E81C81F875F4403EAE1EE /* scoreboard.json */,
+				40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */,
+				45969B731C08AA84C8D318F6 /* ScoreboardView.c */,
+				671265A640259697D1AA363E /* ScoreView.h */,
+				5B027972461629119D87F7A6 /* ScoreView.c */,
+				9C56DC135154CED4C2498031 /* SpectatorView.h */,
+				94D1F06AFA9AE2182216CC46 /* SpectatorView.c */,
+				B00A6FD23FF3A3B4F77B3694 /* StatView.h */,
+				9CA6BC01A9434CCDBF23E8C0 /* StatView.c */,
+				4CA3522A5AE19B0F18CF79C6 /* TargetNameView.h */,
+				E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */,
+				740BEA7DBF2B020A6D1B29C7 /* TeamBannerView.h */,
+				A73DD77B1D5B8231028B01FA /* TeamBannerView.c */,
+				9EB3BF772B595B2E11DA92E7 /* TimeView.h */,
+				C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */,
+				AF339E8DC908A7FE1C759AEA /* VoteView.h */,
+				D7275B0BE3C194B1854A8FD6 /* VoteView.c */,
+				2BA45B8C062C78CEE97C2D2B /* WeaponBarView.h */,
+				7773870519E25AD88B29F618 /* WeaponBarView.c */,
+			);
+			path = hud;
+			sourceTree = "<group>";
+		};
+		12863640A79CD0EE88ACBA3F /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				44C65CA8992081850A0BD1FD /* hud */,
+			);
+			path = ui;
+			sourceTree = "<group>";
+		};
+		3E02EA1D3A0062ACEE0353D9 /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				D21789E6990AEF2265381BDE /* hud */,
+			);
+			path = ui;
+			sourceTree = "<group>";
+		};
 		3F698657FE99AC45EBDFE4C7 /* fonts */ = {
 			isa = PBXGroup;
 			children = (
@@ -3317,6 +3388,31 @@
 				B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */,
 			);
 			path = fonts;
+			sourceTree = "<group>";
+		};
+		44C65CA8992081850A0BD1FD /* hud */ = {
+			isa = PBXGroup;
+			children = (
+				A980A8F791ED9C0A50C6C948 /* classic.json */,
+			);
+			path = hud;
+			sourceTree = "<group>";
+		};
+		A1CD3C66668D0BA51E31ECEC /* hud */ = {
+			isa = PBXGroup;
+			children = (
+				027C4ADD65DCCCEBCEB3D462 /* classic.json */,
+				92AA3129971ABAAB21EE5BAD /* scoreboard.json */,
+			);
+			path = hud;
+			sourceTree = "<group>";
+		};
+		C023233C4867F860B4702F9D /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				A1CD3C66668D0BA51E31ECEC /* hud */,
+			);
+			path = ui;
 			sourceTree = "<group>";
 		};
 		CE04EF3A25CA0E8600C31433 /* common */ = {
@@ -3376,23 +3472,6 @@
 				CE04EFC125CA0F7D00C31433 /* Makefile.am */,
 			);
 			path = shared;
-			sourceTree = "<group>";
-		};
-		A980A8F791ED9C0A50C6C948 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
-		44C65CA8992081850A0BD1FD /* hud */ = {
-			isa = PBXGroup;
-			children = (
-				A980A8F791ED9C0A50C6C948 /* classic.json */,
-			);
-			path = hud;
-			sourceTree = "<group>";
-		};
-		12863640A79CD0EE88ACBA3F /* ui */ = {
-			isa = PBXGroup;
-			children = (
-				44C65CA8992081850A0BD1FD /* hud */,
-			);
-			path = ui;
 			sourceTree = "<group>";
 		};
 		CE05B285302248070012862B /* lithium */ = {
@@ -4574,23 +4653,6 @@
 			path = common;
 			sourceTree = "<group>";
 		};
-		3487B5AD7D47E8DFBDDAE5C4 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
-		D21789E6990AEF2265381BDE /* hud */ = {
-			isa = PBXGroup;
-			children = (
-				3487B5AD7D47E8DFBDDAE5C4 /* classic.json */,
-			);
-			path = hud;
-			sourceTree = "<group>";
-		};
-		3E02EA1D3A0062ACEE0353D9 /* ui */ = {
-			isa = PBXGroup;
-			children = (
-				D21789E6990AEF2265381BDE /* hud */,
-			);
-			path = ui;
-			sourceTree = "<group>";
-		};
 		CEC0FF002026010300000001 /* ctf */ = {
 			isa = PBXGroup;
 			children = (
@@ -4658,57 +4720,6 @@
 			path = editor;
 			sourceTree = "<group>";
 		};
-		0675B112BA0321E4687BE377 /* hud */ = {
-			isa = PBXGroup;
-			children = (
-				FC6374C1D47393EA62C8EC20 /* CounterView.h */,
-				A59EB892C12DF10ACA8253DD /* CounterView.c */,
-				C8249BF99F0E4A2D77D37865 /* CrosshairView.h */,
-				1A75866341F13821D2FC91FA /* CrosshairView.c */,
-				15F241361EC624CD05FF20DA /* HudViewController.h */,
-				C21FD90BD08D804DE1A792B1 /* HudViewController.c */,
-				51B36F4226CEC7C84538DC2F /* PickupView.h */,
-				E106ACFB28FF47443FB3C9FE /* PickupView.c */,
-				C853849AF0A2CC2F7C531245 /* PowerupView.h */,
-				755F8C8CBA7F7C48E79A578C /* PowerupView.c */,
-				671265A640259697D1AA363E /* ScoreRowView.h */,
-				5B027972461629119D87F7A6 /* ScoreRowView.c */,
-				40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */,
-				45969B731C08AA84C8D318F6 /* ScoreboardView.c */,
-				E0F247635165E5338AAD8494 /* scoreboard.css */,
-				848E81C81F875F4403EAE1EE /* scoreboard.json */,
-				B00A6FD23FF3A3B4F77B3694 /* StatView.h */,
-				9CA6BC01A9434CCDBF23E8C0 /* StatView.c */,
-				740BEA7DBF2B020A6D1B29C7 /* TeamBannerView.h */,
-				A73DD77B1D5B8231028B01FA /* TeamBannerView.c */,
-				30FC7C9F9B24C6966D749398 /* NavEditView.h */,
-				491F54CD554D0F550B000B4E /* NavEditView.c */,
-				F62845AB16EAC431505215D1 /* FpsView.h */,
-				EA8FE4E62B47061B1ADBD908 /* FpsView.c */,
-				9EB3BF772B595B2E11DA92E7 /* TimeView.h */,
-				C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */,
-				2BA45B8C062C78CEE97C2D2B /* WeaponBarView.h */,
-				7773870519E25AD88B29F618 /* WeaponBarView.c */,
-				6F9DDB2DBBC915AE10C66CB1 /* BlendView.h */,
-				4BF47DA7893C8563C1D59CDA /* BlendView.c */,
-				C1D5EEC0EEA8441CDCC9D7CA /* CenterPrintView.h */,
-				07C9A88ED1D718092FD62601 /* CenterPrintView.c */,
-				AC727F6BFFF40568A39B2DF0 /* ChaseView.h */,
-				1C923406FE86A096F618B0A6 /* ChaseView.c */,
-				5ABD97400D2B37C6E27C8BE0 /* OverlayText.h */,
-				8238DE2CC5A406DE6DF84E71 /* OverlayText.c */,
-				9C56DC135154CED4C2498031 /* SpectatorView.h */,
-				94D1F06AFA9AE2182216CC46 /* SpectatorView.c */,
-				4CA3522A5AE19B0F18CF79C6 /* TargetNameView.h */,
-				E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */,
-				AF339E8DC908A7FE1C759AEA /* VoteView.h */,
-				D7275B0BE3C194B1854A8FD6 /* VoteView.c */,
-				2D140F08524DA0679A7DB117 /* classic.css */,
-				64E652EE2F700EFB737AEA30 /* classic.json */,
-			);
-			path = hud;
-			sourceTree = "<group>";
-		};
 		D1A5B0000000000000000215 /* vote */ = {
 			isa = PBXGroup;
 			children = (
@@ -4720,23 +4731,12 @@
 			path = vote;
 			sourceTree = "<group>";
 		};
-		027C4ADD65DCCCEBCEB3D462 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
-		92AA3129971ABAAB21EE5BAD /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = scoreboard.json; sourceTree = "<group>"; };
-		A1CD3C66668D0BA51E31ECEC /* hud */ = {
+		D21789E6990AEF2265381BDE /* hud */ = {
 			isa = PBXGroup;
 			children = (
-				027C4ADD65DCCCEBCEB3D462 /* classic.json */,
-				92AA3129971ABAAB21EE5BAD /* scoreboard.json */,
+				3487B5AD7D47E8DFBDDAE5C4 /* classic.json */,
 			);
 			path = hud;
-			sourceTree = "<group>";
-		};
-		C023233C4867F860B4702F9D /* ui */ = {
-			isa = PBXGroup;
-			children = (
-				A1CD3C66668D0BA51E31ECEC /* hud */,
-			);
-			path = ui;
 			sourceTree = "<group>";
 		};
 		D2A5C100000000000000000E /* race */ = {
@@ -5763,23 +5763,6 @@
 			productReference = CE80FF7F1C5E49C400A21A51 /* libserver.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		D9A5C10000000000000000B4 /* check_race */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D9A5C10000000000000000B5 /* Build configuration list for PBXNativeTarget "check_race" */;
-			buildPhases = (
-				D9A5C10000000000000000B2 /* Sources */,
-				D9A5C10000000000000000B3 /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				D9A5C10000000000000000B8 /* PBXTargetDependency */,
-			);
-			name = check_race;
-			productName = check_race;
-			productReference = D9A5C10000000000000000B1 /* check_race */;
-			productType = "com.apple.product-type.tool";
-		};
 		CE948B102235652600D961FA /* check_shared */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE948B1F2235652600D961FA /* Build configuration list for PBXNativeTarget "check_shared" */;
@@ -6039,6 +6022,23 @@
 			productName = "cgame-race";
 			productReference = D2A5C1000000000000000061 /* cgame-race.so */;
 			productType = "com.apple.product-type.library.dynamic";
+		};
+		D9A5C10000000000000000B4 /* check_race */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D9A5C10000000000000000B5 /* Build configuration list for PBXNativeTarget "check_race" */;
+			buildPhases = (
+				D9A5C10000000000000000B2 /* Sources */,
+				D9A5C10000000000000000B3 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D9A5C10000000000000000B8 /* PBXTargetDependency */,
+			);
+			name = check_race;
+			productName = check_race;
+			productReference = D9A5C10000000000000000B1 /* check_race */;
+			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
 
@@ -6380,7 +6380,7 @@
 				24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */,
 				48F10F5D3A8711EABB25DB34 /* PickupView.c in Sources */,
 				E7A9F8759B856BBB62D69C03 /* PowerupView.c in Sources */,
-				C24304F353C77693015A7736 /* ScoreRowView.c in Sources */,
+				C24304F353C77693015A7736 /* ScoreView.c in Sources */,
 				BB08F021CF5059A8915C8DDF /* ScoreboardView.c in Sources */,
 				D8F2715333902B56A81AC28C /* StatView.c in Sources */,
 				52367ABAA22B6D5586284093 /* TeamBannerView.c in Sources */,
@@ -6529,7 +6529,7 @@
 				9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */,
 				E16A533FF7C34A2BA65E1BFF /* PickupView.c in Sources */,
 				F956F2A93BABE228BC99C9E4 /* PowerupView.c in Sources */,
-				0BF82540ADD285E5DF358C72 /* ScoreRowView.c in Sources */,
+				0BF82540ADD285E5DF358C72 /* ScoreView.c in Sources */,
 				E70AD75417615E311748DB70 /* ScoreboardView.c in Sources */,
 				1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */,
 				537E3B2A605E2005BA5F4928 /* TeamBannerView.c in Sources */,
@@ -6848,23 +6848,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D9A5C10000000000000000B2 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D9A5C10000000000000000C0 /* check_race.c in Sources */,
-				D9A5C10000000000000000C1 /* tests.c in Sources */,
-				D9A5C10000000000000000C2 /* bg_pmove.c in Sources */,
-				D9A5C10000000000000000C3 /* bg_pmove_quake.c in Sources */,
-				D9A5C10000000000000000C4 /* bg_pmove_quake2.c in Sources */,
-				D9A5C10000000000000000C5 /* bg_pmove_quake3.c in Sources */,
-				D9A5C10000000000000000C6 /* bg_pmove_quetoo.c in Sources */,
-				D9A5C10000000000000000C7 /* bg_pmove_race.c in Sources */,
-				D9A5C10000000000000000C8 /* g_race_records.c in Sources */,
-				D9A5C10000000000000000C9 /* g_race_replay.c in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CE948B132235652600D961FA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -7001,7 +6984,7 @@
 				457008C2AC171BAD836BC9D8 /* HudViewController.c in Sources */,
 				547AC46C9A45CC44AB005215 /* PickupView.c in Sources */,
 				665046BB6961C443C731A077 /* PowerupView.c in Sources */,
-				9EBBE79D07E30BB784FC188F /* ScoreRowView.c in Sources */,
+				9EBBE79D07E30BB784FC188F /* ScoreView.c in Sources */,
 				68D440FA613EE2594A4D6DB6 /* ScoreboardView.c in Sources */,
 				18831DC74740CDF73E54CF63 /* StatView.c in Sources */,
 				E613CE6B3A9634DB694DA689 /* TeamBannerView.c in Sources */,
@@ -7202,7 +7185,7 @@
 				16842F99305E37AEE91A82E4 /* HudViewController.c in Sources */,
 				47E832E190C339999881A094 /* PickupView.c in Sources */,
 				D36054C7E2858790984E15E0 /* PowerupView.c in Sources */,
-				9F948D38BAB2AE44F4A87F61 /* ScoreRowView.c in Sources */,
+				9F948D38BAB2AE44F4A87F61 /* ScoreView.c in Sources */,
 				50A656139CC3317E925D0231 /* ScoreboardView.c in Sources */,
 				3B497D93EA892C673165469D /* StatView.c in Sources */,
 				C55D95D65959615823A138F8 /* TeamBannerView.c in Sources */,
@@ -7279,6 +7262,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D9A5C10000000000000000B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D9A5C10000000000000000C0 /* check_race.c in Sources */,
+				D9A5C10000000000000000C1 /* tests.c in Sources */,
+				D9A5C10000000000000000C2 /* bg_pmove.c in Sources */,
+				D9A5C10000000000000000C3 /* bg_pmove_quake.c in Sources */,
+				D9A5C10000000000000000C4 /* bg_pmove_quake2.c in Sources */,
+				D9A5C10000000000000000C5 /* bg_pmove_quake3.c in Sources */,
+				D9A5C10000000000000000C6 /* bg_pmove_quetoo.c in Sources */,
+				D9A5C10000000000000000C7 /* bg_pmove_race.c in Sources */,
+				D9A5C10000000000000000C8 /* g_race_records.c in Sources */,
+				D9A5C10000000000000000C9 /* g_race_replay.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -7331,16 +7331,6 @@
 			isa = PBXTargetDependency;
 			target = CE4DCF8C256F0DAD00FECAFC /* check_cm_test */;
 			targetProxy = CE45F54F257733B8004DEFED /* PBXContainerItemProxy */;
-		};
-		D9A5C10000000000000000B8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FE0E1C5E421900A21A51 /* collision */;
-			targetProxy = D9A5C10000000000000000B9 /* PBXContainerItemProxy */;
-		};
-		D9A5C10000000000000000BA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D9A5C10000000000000000B4 /* check_race */;
-			targetProxy = D9A5C10000000000000000BB /* PBXContainerItemProxy */;
 		};
 		CE4DCF8D256F0DAD00FECAFC /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -7531,6 +7521,16 @@
 			isa = PBXTargetDependency;
 			target = D2A5C1000000000000000058 /* cgame-race */;
 			targetProxy = D2A5C1000000000000000F02 /* PBXContainerItemProxy */;
+		};
+		D9A5C10000000000000000B8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE80FE0E1C5E421900A21A51 /* collision */;
+			targetProxy = D9A5C10000000000000000B9 /* PBXContainerItemProxy */;
+		};
+		D9A5C10000000000000000BA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D9A5C10000000000000000B4 /* check_race */;
+			targetProxy = D9A5C10000000000000000BB /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -8386,52 +8386,6 @@
 			};
 			name = Release;
 		};
-		D9A5C10000000000000000B6 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				OTHER_CFLAGS = (
-					"$(inherited)",
-					"-ffp-contract=off",
-					"-fms-extensions",
-					"-Wno-microsoft-anon-tag",
-				);
-				OTHER_LDFLAGS = (
-					"-lcheck",
-					"-lphysfs",
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)",
-					"$(SRCROOT)/src",
-					"$(SRCROOT)/src/game/common",
-					"$(SRCROOT)/src/game/race",
-				);
-			};
-			name = Debug;
-		};
-		D9A5C10000000000000000B7 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				OTHER_CFLAGS = (
-					"$(inherited)",
-					"-ffp-contract=off",
-					"-fms-extensions",
-					"-Wno-microsoft-anon-tag",
-				);
-				OTHER_LDFLAGS = (
-					"-lcheck",
-					"-lphysfs",
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				USER_HEADER_SEARCH_PATHS = (
-					"$(SRCROOT)",
-					"$(SRCROOT)/src",
-					"$(SRCROOT)/src/game/common",
-					"$(SRCROOT)/src/game/race",
-				);
-			};
-			name = Release;
-		};
 		CE948B202235652600D961FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -8936,6 +8890,52 @@
 			};
 			name = Release;
 		};
+		D9A5C10000000000000000B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-ffp-contract=off",
+					"-fms-extensions",
+					"-Wno-microsoft-anon-tag",
+				);
+				OTHER_LDFLAGS = (
+					"-lcheck",
+					"-lphysfs",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/race",
+				);
+			};
+			name = Debug;
+		};
+		D9A5C10000000000000000B7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-ffp-contract=off",
+					"-fms-extensions",
+					"-Wno-microsoft-anon-tag",
+				);
+				OTHER_LDFLAGS = (
+					"-lcheck",
+					"-lphysfs",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)",
+					"$(SRCROOT)/src",
+					"$(SRCROOT)/src/game/common",
+					"$(SRCROOT)/src/game/race",
+				);
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -9191,15 +9191,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		D9A5C10000000000000000B5 /* Build configuration list for PBXNativeTarget "check_race" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D9A5C10000000000000000B6 /* Debug */,
-				D9A5C10000000000000000B7 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		CE948B1F2235652600D961FA /* Build configuration list for PBXNativeTarget "check_shared" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -9340,6 +9331,15 @@
 			buildConfigurations = (
 				D2A5C100000000000000005A /* Debug */,
 				D2A5C100000000000000005B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D9A5C10000000000000000B5 /* Build configuration list for PBXNativeTarget "check_race" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D9A5C10000000000000000B6 /* Debug */,
+				D9A5C10000000000000000B7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

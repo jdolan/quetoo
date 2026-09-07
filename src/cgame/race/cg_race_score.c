@@ -200,11 +200,11 @@ static void rebuild(ScoreboardView *self) {
 }
 
 /**
- * @see ScoreboardView::rowForScore(ScoreboardView *, const g_score_t *)
+ * @see ScoreboardView::scoreView(ScoreboardView *, const g_score_t *)
  */
-static ScoreRowView *rowForScore(ScoreboardView *self, const g_score_t *score) {
+static ScoreView *scoreView(ScoreboardView *self, const g_score_t *score) {
 
-  ScoreRowView *row = $(alloc(ScoreRowView), initWithScore, score, self->rowWidth);
+  ScoreView *row = $(alloc(ScoreView), initWithScore, score, self->rowWidth);
   assert(row);
 
   const char *aside = NULL;
@@ -227,7 +227,7 @@ static void initializeRaceScoreboardView(Class *clazz) {
   ((ViewInterface *) clazz->interface)->init = init;
 
   ((ScoreboardViewInterface *) clazz->interface)->rebuild = rebuild;
-  ((ScoreboardViewInterface *) clazz->interface)->rowForScore = rowForScore;
+  ((ScoreboardViewInterface *) clazz->interface)->scoreView = scoreView;
 }
 
 Class *_RaceScoreboardView(void) {

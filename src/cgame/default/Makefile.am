@@ -240,7 +240,7 @@ cgame_la_SOURCES = \
 	ui/hud/OverlayText.c \
 	ui/hud/PickupView.c \
 	ui/hud/PowerupView.c \
-	ui/hud/ScoreRowView.c \
+	ui/hud/ScoreView.c \
 	ui/hud/ScoreboardView.c \
 	ui/hud/SpectatorView.c \
 	ui/hud/StatView.c \

@@ -711,7 +711,7 @@ Two rules fell out:
   with `CGAME_EXPORT`.
 - **Defines that only one module's `g_types.h` has stay behind guards in common
   Views.** The Views compile once per module, so `CounterView` knows `captures` only
-  under `G_CTF`, and `ScoreRowView` draws the flag badge there. A default build never
+  under `G_CTF`, and `ScoreView` draws the flag badge there. A default build never
   sees the symbol, and a default `classic.json` never names it.
 
 The cost is that each differing module carries a copy of `classic.json` to keep in

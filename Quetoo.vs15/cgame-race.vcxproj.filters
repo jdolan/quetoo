@@ -219,7 +219,7 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\ScoreboardView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\common\ui\hud\ScoreRowView.h">
+    <ClInclude Include="..\src\cgame\common\ui\hud\ScoreView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\SpectatorView.h">
@@ -506,7 +506,7 @@
     <ClCompile Include="..\src\cgame\common\ui\hud\ScoreboardView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\common\ui\hud\ScoreRowView.c">
+    <ClCompile Include="..\src\cgame\common\ui\hud\ScoreView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\SpectatorView.c">

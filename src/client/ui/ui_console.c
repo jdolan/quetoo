@@ -25,7 +25,7 @@
 
 #include "ui_console.h"
 
-#define CONSOLE_FONT_SIZE 14
+#define CONSOLE_FONT_SIZE 16
 #define CONSOLE_CURSOR "_"
 
 int32_t Ui_ConsoleHeight(int32_t height) {
