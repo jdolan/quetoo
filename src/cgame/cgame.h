@@ -766,7 +766,7 @@ typedef struct cg_import_s {
 
   /**
    * @brief Loads the image with the given name and type.
-   * @param name The image name, e.g. `"pics/health_i"`.
+   * @param name The image name, e.g. `"pics/health"`.
    * @param type The image type, e.g. `IT_PIC`.
    * @return The image.
    * @remarks This function never returns `NULL`, but instead will return the null texture.

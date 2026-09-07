@@ -98,42 +98,6 @@ void Cg_Module_Shutdown(void);
  */
 
 /**
- * @brief Draws the elements of the HUD that hold a position, arranging them.
- * @param layout The running position of each column that stacks, which an
- * implementation advances by whatever it drew.
- * @details One hook for the whole arrangement rather than one per element,
- * because the elements are independent draws with nothing to return, and a mod
- * with an opinion about the HUD has an opinion about all of it. The blocks it
- * arranges - `Cg_DrawFrags`, `Cg_DrawPowerups` and the rest - are public in
- * `cg_hud.h` for exactly that reason.
- *
- * Chainable, and a feature adding an element MUST call previous first and draw
- * after it, so that what it draws lands below what it did not write. A module
- * that arranges the whole HUD itself does not defer to previous at all, and then
- * owns every element: nothing it declines to call gets drawn.
- *
- * What this does not decide is the framing - the `cg_draw_hud` cvar, the
- * intermission, the crosshair, the editor, the clock beneath the stat column, the
- * vote in progress, and the overlays that place themselves. `Cg_DrawHud` keeps those, so that a module
- * cannot lose the damage blend or the hit sound by forgetting to draw them. A
- * module that wants the clock somewhere else overrides `cg_hud.c` outright, which
- * vpath has always allowed.
- */
-typedef void (*DrawHudElements)(const player_state_t *ps);
-
-extern DrawHudElements Cg_DrawHudElements;
-
-/**
- * @brief Configures the HUD View hierarchy after its variant loads: a module adds the Views
- * for its elements to the named containers, e.g. a CounterView to `#stats`.
- * @details Chainable, like DrawHudElements: call previous first, then add. Runs again on
- * every reload, so create the Views here rather than holding them.
- */
-typedef void (*ConfigureHud)(View *hud);
-
-extern ConfigureHud Cg_ConfigureHud;
-
-/**
  * @}
  * @defgroup cg-hooks-gameplay Gameplay
  * @brief What modes this module offers in the create-server menu. Tail in cg_main.c.
@@ -367,16 +331,6 @@ extern ClientInfo Cg_ClientInfo;
 typedef const char *(*DescribeGameMode)(void);
 
 extern DescribeGameMode Cg_DescribeGameMode;
-
-/**
- * @brief Draws the scoreboard when the player state asks for it.
- * @details Not chained: exactly one arrangement is possible. A module with its
- * own board installs over the top and does not call previous; the parsed scores
- * are still assembled by common, so it only replaces the drawing.
- */
-typedef void (*DrawScores)(const player_state_t *ps);
-
-extern DrawScores Cg_DrawScores;
 
 /**
  * @brief The kinds of vote the Vote screen offers. The default is the common

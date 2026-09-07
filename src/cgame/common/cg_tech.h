@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <ObjectivelyMVC/View.h>
+
 #include "cg_types.h"
 
 #if defined(__CG_LOCAL_H__)
@@ -30,5 +32,10 @@
  * @brief Installs the client side of the techs, from `Cg_Init`.
  */
 void Cg_Tech_Init(void);
+
+/**
+ * @brief The held tech, in the powerup column for a module's HUD JSON.
+ */
+CGAME_EXPORT Class *_TechView(void);
 
 #endif

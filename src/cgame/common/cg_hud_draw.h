@@ -77,19 +77,11 @@ typedef struct {
 
 extern cg_hud_state_t cg_hud_state;
 
-extern r_image_t *cg_pickup_blend_image;
-extern r_image_t *cg_quad_blend_image;
-extern r_image_t *cg_invisibility_blend_image;
-extern r_image_t *cg_invulnerability_blend_image;
-extern r_image_t *cg_damage_blend_image;
 extern cvar_t *cg_select_weapon_alpha;
 extern cvar_t *cg_select_weapon_delay;
 extern cvar_t *cg_select_weapon_fade;
 extern cvar_t *cg_select_weapon_interval;
 
-void Cg_DrawBlend(const player_state_t *ps);
-void Cg_DrawCenterPrint(const player_state_t *ps);
-void Cg_DrawTargetName(const player_state_t *ps);
 bool Cg_UpdateSelectWeapon(const player_state_t *ps, float *alpha);
 bool Cg_AttemptSelectWeapon(const player_state_t *ps);
 void Cg_ParseCenterPrint(void);

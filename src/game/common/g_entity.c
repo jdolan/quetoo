@@ -474,7 +474,7 @@ static void G_InitMedia_Common(void) {
 
   g_media.sounds.roar = gi.SoundIndex("misc/ominous_bwah");
 
-  g_media.images.health = gi.ImageIndex("pics/i_health");
+  g_media.images.health = gi.ImageIndex("pics/health");
 }
 
 InitMedia G_InitMedia = G_InitMedia_Common;

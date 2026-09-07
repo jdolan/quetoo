@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <ObjectivelyMVC/ImageView.h>
+
 #include "cg_types.h"
 
 #if defined(__CG_LOCAL_H__)
@@ -30,5 +32,10 @@
  * @brief Installs the client side of the capture the flag, from `Cg_Init`.
  */
 void Cg_Ctf_Init(void);
+
+/**
+ * @brief The flag the player carries, pulsing for a module's HUD JSON.
+ */
+CGAME_EXPORT Class *_HeldFlagView(void);
 
 #endif

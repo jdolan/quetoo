@@ -32,16 +32,18 @@
 /**
  * @brief The `stat` of a CounterView whose value comes from CounterView::valueForFrame alone.
  */
-#define COUNTER_VIEW_NO_STAT -1
+#define COUNTER_VIEW_NO_STAT (-1)
 
 typedef struct CounterView CounterView;
 typedef struct CounterViewInterface CounterViewInterface;
 
 /**
  * @brief A captioned counter in the stat column, e.g. Frags.
- * @details Configured in JSON by `caption` and `stat`, a `STAT_*` name from `stats`; a module
- * adding a counter of its own uses CounterView::initWithCaption. The value blanks while
- * spectating without a chase target, keeping its row so the column does not shift.
+ * @details Configured in JSON by `caption` and `stat`: `frags`, `deaths`, or in CTF
+ * `captures`. A module counting something else subclasses this and overrides
+ * CounterView::valueForFrame, or CounterView::textForFrame when the value is not a number.
+ * The value blanks while spectating without a chase target, keeping its row so the column
+ * does not shift.
  * @extends StackView
  */
 struct CounterView {
@@ -71,6 +73,12 @@ struct CounterView {
    * @brief The value.
    */
   Text *value;
+
+  /**
+   * @brief The formatted value, for the default CounterView::textForFrame.
+   * @private
+   */
+  char text[16];
 };
 
 struct CounterViewInterface {
@@ -103,6 +111,18 @@ struct CounterViewInterface {
    * @memberof CounterView
    */
   int32_t (*valueForFrame)(CounterView *self, const cl_frame_t *frame);
+
+  /**
+   * @fn const char *CounterView::textForFrame(CounterView *self, const cl_frame_t *frame)
+   * @brief Resolves the text shown for the given frame.
+   * @details The default formats CounterView::valueForFrame, blank while spectating without a
+   * chase target; subclasses showing something other than a number override this.
+   * @param self The CounterView.
+   * @param frame The frame.
+   * @return The text, valid until the next call.
+   * @memberof CounterView
+   */
+  const char *(*textForFrame)(CounterView *self, const cl_frame_t *frame);
 };
 
 CGAME_EXPORT Class *_CounterView(void);

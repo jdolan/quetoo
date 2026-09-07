@@ -26,7 +26,7 @@
 #if defined(__CG_LOCAL_H__)
 
 #define SCORES_COL_WIDTH 240
-#define SCORES_ROW_HEIGHT 48
+#define SCORES_ROW_HEIGHT 52
 #define SCORES_ICON_WIDTH 48
 
 void Cg_ParseScores(void);
@@ -38,15 +38,7 @@ void Cg_ClearScores(void);
 const g_score_t *Cg_Scores(size_t *count);
 
 /**
- * @brief Draws the map's title across the top of the board.
- * @return The y beneath it.
+ * @brief Incremented whenever the scores change, so a view knows to rebuild.
  */
-int32_t Cg_DrawScoresTitle(void);
-
-/**
- * @brief Draws what every board's row begins with: the icon, the team fill
- * across `width`, the name and the ping.
- * @return The y of the row's second line, whose x is `x + SCORES_ICON_WIDTH`.
- */
-int32_t Cg_DrawScoreRow(int32_t x, int32_t y, int32_t width, const g_score_t *s);
+uint32_t Cg_ScoresGeneration(void);
 #endif

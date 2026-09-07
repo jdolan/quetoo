@@ -58,10 +58,8 @@ static void layoutSubviews(View *self) {
 
     const float scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE;
 
-    const SDL_Size size = MakeSize(
-      this->imageView->image->surface->w * scale,
-      this->imageView->image->surface->h * scale
-    );
+    const SDL_Size imageSize = $(this->imageView->image, size);
+    const SDL_Size size = MakeSize(imageSize.w * scale, imageSize.h * scale);
 
     $((View *) this->imageView, resize, &size);
     $((View *) this->imageView, layoutIfNeeded);
@@ -83,11 +81,11 @@ static void updateBindings(View *self, ident data) {
 
   const int32_t ch = cg_draw_crosshair->value;
   if (ch) {
-    SDL_Surface *surface = cgi.LoadSurface(va("pics/ch%d", ch));
-    if (surface) {
+    Image *image = Cg_LoadImageScaled(va("pics/ch%d", ch), cg_draw_crosshair_scale->value * CROSSHAIR_SCALE);
+    if (image) {
 
-      $(this->imageView, setImageWithSurface, surface);
-      SDL_DestroySurface(surface);
+      $(this->imageView, setImage, image);
+      release(image);
 
       SDL_Color color = Colors.White;
       if (q_strcmp(cg_draw_crosshair_color->string, "default")) {

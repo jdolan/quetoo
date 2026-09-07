@@ -30,9 +30,38 @@ static MainViewController *mainViewController;
 static UpdateViewController *updateViewController;
 static Stylesheet *stylesheet;
 
-/**
- * @brief Initializes the user interface.
- */
+Image *Cg_LoadImageScaled(const char *name, float scale) {
+
+  char path[MAX_OS_PATH];
+  snprintf(path, sizeof(path), "%s.svg", name);
+
+  void *svg;
+  const int64_t length = cgi.LoadFile(path, &svg);
+  if (length > 0) {
+    const float density = SDL_GetWindowPixelDensity(cgi.context->window) * scale;
+
+    Image *image = $$(Image, imageWithSVG, svg, (size_t) length, density);
+    cgi.FreeFile(svg);
+
+    if (image) {
+      return image;
+    }
+  }
+
+  SDL_Surface *surface = cgi.LoadSurface(name);
+  if (surface) {
+    Image *image = $$(Image, imageWithSurface, surface);
+    SDL_DestroySurface(surface);
+    return image;
+  }
+
+  return NULL;
+}
+
+Image *Cg_LoadImage(const char *name) {
+  return Cg_LoadImageScaled(name, 1.f);
+}
+
 /**
  * @brief `Fs_Enumerator` registering one emoji with the Theme's icon atlas, so that `:name:`
  * in any Text draws it inline.
@@ -45,11 +74,8 @@ static void Cg_AddEmoji(const char *path, void *data) {
   char resource[MAX_OS_PATH];
   StripExtension(path, resource);
 
-  SDL_Surface *surface = cgi.LoadSurface(resource);
-  if (surface) {
-    Image *image = $$(Image, imageWithSurface, surface);
-    SDL_DestroySurface(surface);
-
+  Image *image = Cg_LoadImage(resource);
+  if (image) {
     $((ImageAtlas *) data, addImageWithName, name, image);
     release(image);
   } else {
@@ -57,7 +83,34 @@ static void Cg_AddEmoji(const char *path, void *data) {
   }
 }
 
+/**
+ * @brief Registers a TTF from the game filesystem with MVC under the given family, so that
+ * stylesheets can name it.
+ */
+static void Cg_CacheFont(const char *path, const char *family) {
+
+  void *ttf;
+  const int64_t length = cgi.LoadFile(path, &ttf);
+  if (length > 0) {
+    Data *data = $(alloc(Data), initWithBytes, ttf, (size_t) length);
+    assert(data);
+
+    $$(Font, cacheFont, data, family);
+
+    release(data);
+    cgi.FreeFile(ttf);
+  } else {
+    Cg_Warn("Failed to load %s\n", path);
+  }
+}
+
 void Cg_InitUi(void) {
+
+  // The HUD's faces: M PLUS U for numbers, tabular digits and an unmarked zero; Barlow
+  // Condensed for captions; Rajdhani for variants that want the concept mockups' numerals
+  Cg_CacheFont("ui/fonts/MPlusU-Bold.ttf", "M PLUS U");
+  Cg_CacheFont("ui/fonts/BarlowCondensed-SemiBold.ttf", "Barlow Condensed");
+  Cg_CacheFont("ui/fonts/Rajdhani-Bold.ttf", "Rajdhani");
 
   stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common.css");
   assert(stylesheet);

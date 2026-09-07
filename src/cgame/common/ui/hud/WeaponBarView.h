@@ -27,14 +27,16 @@
 
 /**
  * @file
- * @brief The weapon bar: every carried weapon in a row, the selection marked and named.
+ * @brief The weapon bar: every carried weapon in a row of slots, the selection highlighted
+ * and named.
  */
 
 typedef struct WeaponBarView WeaponBarView;
 typedef struct WeaponBarViewInterface WeaponBarViewInterface;
 
 /**
- * @brief The weapon bar: every carried weapon in a row, the selection marked and named.
+ * @brief The weapon bar: every carried weapon in a row of slots, the selection highlighted
+ * and named.
  * @details Shown while a weapon change is pending or was just made, fading over
  * `cg_select_weapon_fade`; the selection state itself lives in `cg_hud_state.weapon`, driven
  * by Cg_UpdateSelectWeapon and the `cg_weapon_next` and `cg_weapon_previous` commands.
@@ -59,9 +61,10 @@ struct WeaponBarView {
   bool has[WEAPON_TOTAL];
 
   /**
-   * @brief The icon row.
+   * @brief The slot row: one `slot` View per carried weapon, holding its icon; the selected slot
+   * carries the class name `selected`.
    */
-  StackView *icons;
+  StackView *slots;
 
   /**
    * @brief The name of the selected weapon.
@@ -69,19 +72,9 @@ struct WeaponBarView {
   Text *name;
 
   /**
-   * @brief The icon row and the selection marker over it.
-   */
-  View *row;
-
-  /**
-   * @brief The index of the selected icon within `icons`, which the marker follows.
+   * @brief The index of the selected slot within `slots`, or its count when none is.
    */
   size_t selected;
-
-  /**
-   * @brief The selection marker.
-   */
-  ImageView *selection;
 };
 
 struct WeaponBarViewInterface {

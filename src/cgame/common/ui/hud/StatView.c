@@ -50,18 +50,18 @@ static void dealloc(Object *self) {
 #pragma mark - Icons
 
 /**
- * @brief The health icon for the given value, by the thresholds Cg_HealthIcon used.
+ * @brief The health icon for the given value, by ascending health threshold.
  */
 static const char *healthIconName(int16_t health) {
 
   if (health > 100) {
-    return "pics/i_health_mega";
+    return "pics/health_mega";
   } else if (health > 75) {
-    return "pics/i_health";
+    return "pics/health";
   } else if (health > 25) {
-    return "pics/i_health_medium";
+    return "pics/health_medium";
   } else {
-    return "pics/i_health_large";
+    return "pics/health_large";
   }
 }
 
@@ -169,7 +169,7 @@ static void updateBindings(View *self, ident data) {
   }
 
   this->value->color = color;
-  $(this->value, setTextWithFormat, "%3d", value);
+  $(this->value, setTextWithFormat, "%d", value);
 
   this->icon->color.a = (Uint8) (pulse * 255);
 
@@ -196,6 +196,8 @@ static StatView *initWithStat(StatView *self, StatViewStat stat) {
 
     self->value = $(alloc(Text), initWithText, NULL, NULL);
     assert(self->value);
+
+    $((View *) self->value, addClassName, "number");
 
     $((View *) self, addSubview, (View *) self->value);
 

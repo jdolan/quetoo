@@ -557,8 +557,6 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
   } else {
 
     Cg_DrawHud(frame);
-
-    Cg_DrawScores(&frame->ps);
   }
 
   Cg_CheckEditor();

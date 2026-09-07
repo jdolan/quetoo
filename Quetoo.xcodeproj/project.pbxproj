@@ -65,6 +65,12 @@
 		091C43A66A7972053AD1C8E7 /* box.c in Sources */ = {isa = PBXBuildFile; fileRef = 8542813678DB3B7BECEEF939 /* box.c */; };
 		0975D2E7118D42B05C9F5422 /* small.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FD02F9650560087A850 /* small.png */; };
 		2C468DAAA30BB6E232FA21C3 /* large.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCC2F9650560087A850 /* large.png */; };
+		0054FB2183D14FB441556F05 /* Rajdhani-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */; };
+		F2790FC8B72E7B3C54A53EED /* Rajdhani-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */; };
+		B777A7BCE46440D86F0248FA /* BarlowCondensed-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */; };
+		A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */; };
+		89AC37486C4E50D551009CFE /* MPlusU-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */; };
+		AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */; };
 		522B158EA7384E83CD005789 /* cm_manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = D126FFD46C343DDC86C13E17 /* cm_manifest.c */; };
 		997E573805B0DCF96FB8C299 /* manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = 57941D4E858E897A2E3083ED /* manifest.c */; };
 		9D2572D4A56A8180A52671E2 /* medium.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCE2F9650560087A850 /* medium.png */; };
@@ -1052,10 +1058,46 @@
 		24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		48F10F5D3A8711EABB25DB34 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
 		E7A9F8759B856BBB62D69C03 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
+		C24304F353C77693015A7736 /* ScoreRowView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreRowView.c */; };
+		BB08F021CF5059A8915C8DDF /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
+		0BF82540ADD285E5DF358C72 /* ScoreRowView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreRowView.c */; };
+		E70AD75417615E311748DB70 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
+		9EBBE79D07E30BB784FC188F /* ScoreRowView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreRowView.c */; };
+		68D440FA613EE2594A4D6DB6 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
+		9F948D38BAB2AE44F4A87F61 /* ScoreRowView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreRowView.c */; };
+		50A656139CC3317E925D0231 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
 		D8F2715333902B56A81AC28C /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		52367ABAA22B6D5586284093 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
 		814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
 		39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
+		C5BD795EA472E6C067A6EB72 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
+		78BFCA151AAC14630B15208D /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
+		AF637037D323F5359A9E5F26 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
+		9A75AE7BCB708C6557903ADE /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
+		7AFADF59B58F54581DC1C419 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
+		EAC91DBE5BFAA686873683E8 /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
+		D6201E3E9B69E158607607E6 /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
+		9B67395438D49AA25C710A4A /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
+		0D717FD0F554D48A47A4C2A9 /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
+		99E4ACB4811F76E8CB7249E9 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
+		3C4FCD00A4AE0B8971D17E7D /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
+		68157F8A4AF07ADDE8951670 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
+		5353FBA06CC14AA034C4C9CD /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
+		E140557ED1DC8869F66A94BD /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
+		C1A592C4D259F42E82027392 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
+		56AC1EB89F50309A3C1E9C4B /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
+		5A41D1910F5ECC29544A0261 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
+		AE4EA13B59877C5736940695 /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
+		50A618B627838A7F121E3DA9 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
+		2F75825314B0423B86868ACC /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
+		FC50131A3C56E2363DB2272D /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
+		6681071D48F7B492ADC27385 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
+		68FBD5DEAC1FB3CC3C2322D5 /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
+		D53BEFF0D4879EFEF1B0B77D /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
+		6B6C876AA822AB4DFB8D3158 /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
+		A978478284E6A536361DE6FC /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
+		B3C3D379CB4955B1FED23ADB /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
+		46EE82019B925D394B363E01 /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
 		C3241FC475F3D3E3E573AC7B /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
 		863F1E3961ED23FA4D28C1BB /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
 		9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
@@ -1084,6 +1126,12 @@
 		8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
 		5D26ECD45D3B9CEDA1FCE596 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		DD69DC98B2588BCF788647E3 /* classic.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2D140F08524DA0679A7DB117 /* classic.css */; };
+		9E1C83CE11AE376D9174B271 /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 027C4ADD65DCCCEBCEB3D462 /* classic.json */; };
+		544522FFCEEDAAC1EBEB6750 /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92AA3129971ABAAB21EE5BAD /* scoreboard.json */; };
+		B50A7AB9A94C86F0D55675BD /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = A980A8F791ED9C0A50C6C948 /* classic.json */; };
+		368D384E998F7590EBCEB7EE /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3487B5AD7D47E8DFBDDAE5C4 /* classic.json */; };
+		DD006E4E558F9346D79447E5 /* scoreboard.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = E0F247635165E5338AAD8494 /* scoreboard.css */; };
+		322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 848E81C81F875F4403EAE1EE /* scoreboard.json */; };
 		20BE76382F981DD4B7F43A11 /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E652EE2F700EFB737AEA30 /* classic.json */; };
 		D1A5B0000000000000000210 /* VoteViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000209 /* VoteViewController.json */; };
 		D1A5B0000000000000000212 /* VoteViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000211 /* VoteViewController.css */; };
@@ -1688,7 +1736,40 @@
 			dstSubfolderSpec = 16;
 			files = (
 				DD69DC98B2588BCF788647E3 /* classic.css in CopyFiles */,
+				DD006E4E558F9346D79447E5 /* scoreboard.css in CopyFiles */,
+				322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */,
 				20BE76382F981DD4B7F43A11 /* classic.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5738F8605E036174DA11C58E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ctf/ui/hud;
+			dstSubfolderSpec = 16;
+			files = (
+				368D384E998F7590EBCEB7EE /* classic.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C9077C04022B772095186ABC /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = lithium/ui/hud;
+			dstSubfolderSpec = 16;
+			files = (
+				B50A7AB9A94C86F0D55675BD /* classic.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0FB222CA4FDE0CA9865D5486 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = race/ui/hud;
+			dstSubfolderSpec = 16;
+			files = (
+				9E1C83CE11AE376D9174B271 /* classic.json in CopyFiles */,
+				544522FFCEEDAAC1EBEB6750 /* scoreboard.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1699,6 +1780,12 @@
 			dstSubfolderSpec = 16;
 			files = (
 				2C468DAAA30BB6E232FA21C3 /* large.png in CopyFiles */,
+				0054FB2183D14FB441556F05 /* Rajdhani-OFL.txt in CopyFiles */,
+				F2790FC8B72E7B3C54A53EED /* Rajdhani-Bold.ttf in CopyFiles */,
+				B777A7BCE46440D86F0248FA /* BarlowCondensed-OFL.txt in CopyFiles */,
+				A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */,
+				89AC37486C4E50D551009CFE /* MPlusU-OFL.txt in CopyFiles */,
+				AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */,
 				9D2572D4A56A8180A52671E2 /* medium.png in CopyFiles */,
 				0975D2E7118D42B05C9F5422 /* small.png in CopyFiles */,
 			);
@@ -2570,6 +2657,12 @@
 		CEAD8FC72F9650560087A850 /* click.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click.wav; sourceTree = "<group>"; };
 		CEAD8FCB2F9650560087A850 /* conback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = conback.png; sourceTree = "<group>"; };
 		CEAD8FCC2F9650560087A850 /* large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = large.png; sourceTree = "<group>"; };
+		DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Rajdhani-OFL.txt"; sourceTree = "<group>"; };
+		B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Rajdhani-Bold.ttf"; sourceTree = "<group>"; };
+		B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "BarlowCondensed-OFL.txt"; sourceTree = "<group>"; };
+		02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BarlowCondensed-SemiBold.ttf"; sourceTree = "<group>"; };
+		5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "MPlusU-OFL.txt"; sourceTree = "<group>"; };
+		B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "MPlusU-Bold.ttf"; sourceTree = "<group>"; };
 		CEAD8FCD2F9650560087A850 /* loading.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = loading.png; sourceTree = "<group>"; };
 		CEAD8FCE2F9650560087A850 /* medium.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = medium.png; sourceTree = "<group>"; };
 		CEAD8FCF2F9650560087A850 /* progress_bar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = progress_bar.png; sourceTree = "<group>"; };
@@ -2702,6 +2795,12 @@
 		51B36F4226CEC7C84538DC2F /* PickupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PickupView.h; sourceTree = "<group>"; };
 		755F8C8CBA7F7C48E79A578C /* PowerupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PowerupView.c; sourceTree = "<group>"; };
 		C853849AF0A2CC2F7C531245 /* PowerupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerupView.h; sourceTree = "<group>"; };
+		5B027972461629119D87F7A6 /* ScoreRowView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ScoreRowView.c; sourceTree = "<group>"; };
+		671265A640259697D1AA363E /* ScoreRowView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreRowView.h; sourceTree = "<group>"; };
+		45969B731C08AA84C8D318F6 /* ScoreboardView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ScoreboardView.c; sourceTree = "<group>"; };
+		40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreboardView.h; sourceTree = "<group>"; };
+		E0F247635165E5338AAD8494 /* scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = scoreboard.css; sourceTree = "<group>"; };
+		848E81C81F875F4403EAE1EE /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = scoreboard.json; sourceTree = "<group>"; };
 		9CA6BC01A9434CCDBF23E8C0 /* StatView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StatView.c; sourceTree = "<group>"; };
 		B00A6FD23FF3A3B4F77B3694 /* StatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatView.h; sourceTree = "<group>"; };
 		A73DD77B1D5B8231028B01FA /* TeamBannerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamBannerView.c; sourceTree = "<group>"; };
@@ -2710,6 +2809,20 @@
 		9EB3BF772B595B2E11DA92E7 /* TimeView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TimeView.h; sourceTree = "<group>"; };
 		7773870519E25AD88B29F618 /* WeaponBarView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = WeaponBarView.c; sourceTree = "<group>"; };
 		2BA45B8C062C78CEE97C2D2B /* WeaponBarView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WeaponBarView.h; sourceTree = "<group>"; };
+		4BF47DA7893C8563C1D59CDA /* BlendView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = BlendView.c; sourceTree = "<group>"; };
+		6F9DDB2DBBC915AE10C66CB1 /* BlendView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlendView.h; sourceTree = "<group>"; };
+		07C9A88ED1D718092FD62601 /* CenterPrintView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CenterPrintView.c; sourceTree = "<group>"; };
+		C1D5EEC0EEA8441CDCC9D7CA /* CenterPrintView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CenterPrintView.h; sourceTree = "<group>"; };
+		1C923406FE86A096F618B0A6 /* ChaseView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ChaseView.c; sourceTree = "<group>"; };
+		AC727F6BFFF40568A39B2DF0 /* ChaseView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChaseView.h; sourceTree = "<group>"; };
+		8238DE2CC5A406DE6DF84E71 /* OverlayText.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = OverlayText.c; sourceTree = "<group>"; };
+		5ABD97400D2B37C6E27C8BE0 /* OverlayText.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OverlayText.h; sourceTree = "<group>"; };
+		94D1F06AFA9AE2182216CC46 /* SpectatorView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SpectatorView.c; sourceTree = "<group>"; };
+		9C56DC135154CED4C2498031 /* SpectatorView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpectatorView.h; sourceTree = "<group>"; };
+		E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TargetNameView.c; sourceTree = "<group>"; };
+		4CA3522A5AE19B0F18CF79C6 /* TargetNameView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TargetNameView.h; sourceTree = "<group>"; };
+		D7275B0BE3C194B1854A8FD6 /* VoteView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = VoteView.c; sourceTree = "<group>"; };
+		AF339E8DC908A7FE1C759AEA /* VoteView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VoteView.h; sourceTree = "<group>"; };
 		64E652EE2F700EFB737AEA30 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
 		2D140F08524DA0679A7DB117 /* classic.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = classic.css; sourceTree = "<group>"; };
 		D1A5B0000000000000000209 /* VoteViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VoteViewController.json; sourceTree = "<group>"; };
@@ -3191,6 +3304,12 @@
 			isa = PBXGroup;
 			children = (
 				CEAD8FCC2F9650560087A850 /* large.png */,
+				DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */,
+				B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */,
+				B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */,
+				02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */,
+				5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */,
+				B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */,
 				CEAD8FCE2F9650560087A850 /* medium.png */,
 				CEAD8FD02F9650560087A850 /* small.png */,
 			);
@@ -3256,6 +3375,23 @@
 			path = shared;
 			sourceTree = "<group>";
 		};
+		A980A8F791ED9C0A50C6C948 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
+		44C65CA8992081850A0BD1FD /* hud */ = {
+			isa = PBXGroup;
+			children = (
+				A980A8F791ED9C0A50C6C948 /* classic.json */,
+			);
+			path = hud;
+			sourceTree = "<group>";
+		};
+		12863640A79CD0EE88ACBA3F /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				44C65CA8992081850A0BD1FD /* hud */,
+			);
+			path = ui;
+			sourceTree = "<group>";
+		};
 		CE05B285302248070012862B /* lithium */ = {
 			isa = PBXGroup;
 			children = (
@@ -3271,6 +3407,7 @@
 		CE05B40B30224E3E0012862B /* lithium */ = {
 			isa = PBXGroup;
 			children = (
+				12863640A79CD0EE88ACBA3F /* ui */,
 				CE05B3FC30224E3E0012870A /* cg_module.c */,
 				CE05B40930224E3E0012862B /* Makefile.am */,
 			);
@@ -4432,6 +4569,23 @@
 			path = common;
 			sourceTree = "<group>";
 		};
+		3487B5AD7D47E8DFBDDAE5C4 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
+		D21789E6990AEF2265381BDE /* hud */ = {
+			isa = PBXGroup;
+			children = (
+				3487B5AD7D47E8DFBDDAE5C4 /* classic.json */,
+			);
+			path = hud;
+			sourceTree = "<group>";
+		};
+		3E02EA1D3A0062ACEE0353D9 /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				D21789E6990AEF2265381BDE /* hud */,
+			);
+			path = ui;
+			sourceTree = "<group>";
+		};
 		CEC0FF002026010300000001 /* ctf */ = {
 			isa = PBXGroup;
 			children = (
@@ -4447,6 +4601,7 @@
 		CEC0FF00202601030000005F /* ctf */ = {
 			isa = PBXGroup;
 			children = (
+				3E02EA1D3A0062ACEE0353D9 /* ui */,
 				CEC0FF0020260103000000A1 /* cg_module.c */,
 				CEC0FF002026010300000061 /* Makefile.am */,
 			);
@@ -4511,6 +4666,12 @@
 				E106ACFB28FF47443FB3C9FE /* PickupView.c */,
 				C853849AF0A2CC2F7C531245 /* PowerupView.h */,
 				755F8C8CBA7F7C48E79A578C /* PowerupView.c */,
+				671265A640259697D1AA363E /* ScoreRowView.h */,
+				5B027972461629119D87F7A6 /* ScoreRowView.c */,
+				40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */,
+				45969B731C08AA84C8D318F6 /* ScoreboardView.c */,
+				E0F247635165E5338AAD8494 /* scoreboard.css */,
+				848E81C81F875F4403EAE1EE /* scoreboard.json */,
 				B00A6FD23FF3A3B4F77B3694 /* StatView.h */,
 				9CA6BC01A9434CCDBF23E8C0 /* StatView.c */,
 				740BEA7DBF2B020A6D1B29C7 /* TeamBannerView.h */,
@@ -4519,6 +4680,20 @@
 				C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */,
 				2BA45B8C062C78CEE97C2D2B /* WeaponBarView.h */,
 				7773870519E25AD88B29F618 /* WeaponBarView.c */,
+				6F9DDB2DBBC915AE10C66CB1 /* BlendView.h */,
+				4BF47DA7893C8563C1D59CDA /* BlendView.c */,
+				C1D5EEC0EEA8441CDCC9D7CA /* CenterPrintView.h */,
+				07C9A88ED1D718092FD62601 /* CenterPrintView.c */,
+				AC727F6BFFF40568A39B2DF0 /* ChaseView.h */,
+				1C923406FE86A096F618B0A6 /* ChaseView.c */,
+				5ABD97400D2B37C6E27C8BE0 /* OverlayText.h */,
+				8238DE2CC5A406DE6DF84E71 /* OverlayText.c */,
+				9C56DC135154CED4C2498031 /* SpectatorView.h */,
+				94D1F06AFA9AE2182216CC46 /* SpectatorView.c */,
+				4CA3522A5AE19B0F18CF79C6 /* TargetNameView.h */,
+				E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */,
+				AF339E8DC908A7FE1C759AEA /* VoteView.h */,
+				D7275B0BE3C194B1854A8FD6 /* VoteView.c */,
 				2D140F08524DA0679A7DB117 /* classic.css */,
 				64E652EE2F700EFB737AEA30 /* classic.json */,
 			);
@@ -4534,6 +4709,25 @@
 				D1A5B0000000000000000209 /* VoteViewController.json */,
 			);
 			path = vote;
+			sourceTree = "<group>";
+		};
+		027C4ADD65DCCCEBCEB3D462 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
+		92AA3129971ABAAB21EE5BAD /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = scoreboard.json; sourceTree = "<group>"; };
+		A1CD3C66668D0BA51E31ECEC /* hud */ = {
+			isa = PBXGroup;
+			children = (
+				027C4ADD65DCCCEBCEB3D462 /* classic.json */,
+				92AA3129971ABAAB21EE5BAD /* scoreboard.json */,
+			);
+			path = hud;
+			sourceTree = "<group>";
+		};
+		C023233C4867F860B4702F9D /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				A1CD3C66668D0BA51E31ECEC /* hud */,
+			);
+			path = ui;
 			sourceTree = "<group>";
 		};
 		D2A5C100000000000000000E /* race */ = {
@@ -4556,6 +4750,7 @@
 		D2A5C1000000000000000060 /* race */ = {
 			isa = PBXGroup;
 			children = (
+				C023233C4867F860B4702F9D /* ui */,
 				D2A5C1000000000000000056 /* cg_module.c */,
 				D9A5C10000000000000000A1 /* cg_race.c */,
 				D9A5C10000000000000000A2 /* cg_race_hud.c */,
@@ -5154,6 +5349,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE05B3F030224900C0DE0920 /* Build configuration list for PBXNativeTarget "cgame-lithium" */;
 			buildPhases = (
+				C9077C04022B772095186ABC /* CopyFiles */,
 				CE05B3F030224900C0DE0900 /* Sources */,
 				CE05B3F030224900C0DE0902 /* Frameworks */,
 				CE05B3F030224900C0DE0901 /* Headers */,
@@ -5730,6 +5926,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CEC0FF0020260103000001D1 /* Build configuration list for PBXNativeTarget "cgame-ctf" */;
 			buildPhases = (
+				5738F8605E036174DA11C58E /* CopyFiles */,
 				CEC0FF0020260103000001CE /* Sources */,
 				CEC0FF0020260103000001D0 /* Frameworks */,
 				CEC0FF0020260103000001CF /* Headers */,
@@ -5819,6 +6016,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D2A5C1000000000000000059 /* Build configuration list for PBXNativeTarget "cgame-race" */;
 			buildPhases = (
+				0FB222CA4FDE0CA9865D5486 /* CopyFiles */,
 				D2A5C100000000000000005C /* Sources */,
 				D2A5C100000000000000005D /* Frameworks */,
 				D2A5C100000000000000005E /* Headers */,
@@ -6173,10 +6371,19 @@
 				24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */,
 				48F10F5D3A8711EABB25DB34 /* PickupView.c in Sources */,
 				E7A9F8759B856BBB62D69C03 /* PowerupView.c in Sources */,
+				C24304F353C77693015A7736 /* ScoreRowView.c in Sources */,
+				BB08F021CF5059A8915C8DDF /* ScoreboardView.c in Sources */,
 				D8F2715333902B56A81AC28C /* StatView.c in Sources */,
 				52367ABAA22B6D5586284093 /* TeamBannerView.c in Sources */,
 				814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */,
 				39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */,
+				C5BD795EA472E6C067A6EB72 /* BlendView.c in Sources */,
+				78BFCA151AAC14630B15208D /* CenterPrintView.c in Sources */,
+				AF637037D323F5359A9E5F26 /* ChaseView.c in Sources */,
+				9A75AE7BCB708C6557903ADE /* OverlayText.c in Sources */,
+				7AFADF59B58F54581DC1C419 /* SpectatorView.c in Sources */,
+				EAC91DBE5BFAA686873683E8 /* TargetNameView.c in Sources */,
+				D6201E3E9B69E158607607E6 /* VoteView.c in Sources */,
 				CE05B3F030224900C0DE002C /* JoinServerViewController.c in Sources */,
 				CE05B3F030224900C0DE002D /* LeaderboardViewController.c in Sources */,
 				CE05B3F030224900C0DE002E /* LoadingViewController.c in Sources */,
@@ -6311,10 +6518,19 @@
 				9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */,
 				E16A533FF7C34A2BA65E1BFF /* PickupView.c in Sources */,
 				F956F2A93BABE228BC99C9E4 /* PowerupView.c in Sources */,
+				0BF82540ADD285E5DF358C72 /* ScoreRowView.c in Sources */,
+				E70AD75417615E311748DB70 /* ScoreboardView.c in Sources */,
 				1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */,
 				537E3B2A605E2005BA5F4928 /* TeamBannerView.c in Sources */,
 				5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */,
 				DD02E1ABB673209C4A8D0EFC /* WeaponBarView.c in Sources */,
+				9B67395438D49AA25C710A4A /* BlendView.c in Sources */,
+				0D717FD0F554D48A47A4C2A9 /* CenterPrintView.c in Sources */,
+				99E4ACB4811F76E8CB7249E9 /* ChaseView.c in Sources */,
+				3C4FCD00A4AE0B8971D17E7D /* OverlayText.c in Sources */,
+				68157F8A4AF07ADDE8951670 /* SpectatorView.c in Sources */,
+				5353FBA06CC14AA034C4C9CD /* TargetNameView.c in Sources */,
+				E140557ED1DC8869F66A94BD /* VoteView.c in Sources */,
 				CE6EE3E21F720D9A00FBC830 /* JoinServerViewController.c in Sources */,
 				CEA9B3A16C6E4B3A9F010001 /* LeaderboardViewController.c in Sources */,
 				CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */,
@@ -6770,10 +6986,19 @@
 				457008C2AC171BAD836BC9D8 /* HudViewController.c in Sources */,
 				547AC46C9A45CC44AB005215 /* PickupView.c in Sources */,
 				665046BB6961C443C731A077 /* PowerupView.c in Sources */,
+				9EBBE79D07E30BB784FC188F /* ScoreRowView.c in Sources */,
+				68D440FA613EE2594A4D6DB6 /* ScoreboardView.c in Sources */,
 				18831DC74740CDF73E54CF63 /* StatView.c in Sources */,
 				E613CE6B3A9634DB694DA689 /* TeamBannerView.c in Sources */,
 				CEE21B7B45DA97BAA8A5395F /* TimeView.c in Sources */,
 				E10D01F620BB74E4166A8E7F /* WeaponBarView.c in Sources */,
+				C1A592C4D259F42E82027392 /* BlendView.c in Sources */,
+				56AC1EB89F50309A3C1E9C4B /* CenterPrintView.c in Sources */,
+				5A41D1910F5ECC29544A0261 /* ChaseView.c in Sources */,
+				AE4EA13B59877C5736940695 /* OverlayText.c in Sources */,
+				50A618B627838A7F121E3DA9 /* SpectatorView.c in Sources */,
+				2F75825314B0423B86868ACC /* TargetNameView.c in Sources */,
+				FC50131A3C56E2363DB2272D /* VoteView.c in Sources */,
 				CEC0FF00202601030000018C /* JoinServerViewController.c in Sources */,
 				CEC0FF00202601030000018D /* LeaderboardViewController.c in Sources */,
 				CEC0FF00202601030000018E /* LoadingViewController.c in Sources */,
@@ -6961,10 +7186,19 @@
 				16842F99305E37AEE91A82E4 /* HudViewController.c in Sources */,
 				47E832E190C339999881A094 /* PickupView.c in Sources */,
 				D36054C7E2858790984E15E0 /* PowerupView.c in Sources */,
+				9F948D38BAB2AE44F4A87F61 /* ScoreRowView.c in Sources */,
+				50A656139CC3317E925D0231 /* ScoreboardView.c in Sources */,
 				3B497D93EA892C673165469D /* StatView.c in Sources */,
 				C55D95D65959615823A138F8 /* TeamBannerView.c in Sources */,
 				8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */,
 				5D26ECD45D3B9CEDA1FCE596 /* WeaponBarView.c in Sources */,
+				6681071D48F7B492ADC27385 /* BlendView.c in Sources */,
+				68FBD5DEAC1FB3CC3C2322D5 /* CenterPrintView.c in Sources */,
+				D53BEFF0D4879EFEF1B0B77D /* ChaseView.c in Sources */,
+				6B6C876AA822AB4DFB8D3158 /* OverlayText.c in Sources */,
+				A978478284E6A536361DE6FC /* SpectatorView.c in Sources */,
+				B3C3D379CB4955B1FED23ADB /* TargetNameView.c in Sources */,
+				46EE82019B925D394B363E01 /* VoteView.c in Sources */,
 				D2A5C1000000000000000070 /* JoinServerViewController.c in Sources */,
 				D2A5C1000000000000000071 /* LeaderboardViewController.c in Sources */,
 				D2A5C1000000000000000072 /* LoadingViewController.c in Sources */,

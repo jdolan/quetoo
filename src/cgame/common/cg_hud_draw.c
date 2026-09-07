@@ -22,11 +22,6 @@
 #include "cg_local.h"
 
 
-r_image_t *cg_pickup_blend_image;
-r_image_t *cg_quad_blend_image;
-r_image_t *cg_invisibility_blend_image;
-r_image_t *cg_invulnerability_blend_image;
-r_image_t *cg_damage_blend_image;
 
 cvar_t *cg_select_weapon_alpha;
 cvar_t *cg_select_weapon_delay;
@@ -35,157 +30,6 @@ cvar_t *cg_select_weapon_interval;
 
 cg_hud_state_t cg_hud_state;
 
-/**
- * @brief Calculate the alpha factor for the specified blend components.
- * @param blend_start_time The start of the blend, in unclamped time.
- * @param blend_decay_time The length of the blend in milliseconds.
- * @param blend_alpha The base alpha value.
- */
-static float Cg_CalculateBlendAlpha(const uint32_t blend_start_time, const uint32_t blend_decay_time,
-                                    const float blend_alpha) {
-
-  if ((cgi.client->unclamped_time - blend_start_time) <= blend_decay_time) {
-    const float time_factor = (float) (cgi.client->unclamped_time - blend_start_time) / blend_decay_time;
-    const float alpha = cg_draw_blend->value * (blend_alpha - (time_factor * blend_alpha));
-
-    return alpha;
-  }
-
-  return 0.0;
-}
-
-#define CG_DAMAGE_BLEND_TIME 1500
-#define CG_PICKUP_BLEND_TIME 600
-
-/**
- * @brief Perform composition of the dst/src blends.
- */
-static void Cg_AddBlend(color_t *blend, const color_t input) {
-
-  if (input.a <= 0.0) {
-    return;
-  }
-
-  color_t out = *blend;
-
-  out.a = input.a + out.a * (1.0 - input.a);
-
-  for (int32_t i = 0; i < 3; i++) {
-    out.rgba[i] = ((input.rgba[i] * input.a) + ((out.rgba[i] * out.a) * (1.0 - input.a))) / out.a;
-  }
-
-  *blend = out;
-}
-
-/**
- * @brief Draw a blend flash image with a specified alpha.
- * @param icon The picture to use
- * @param alpha The alpha of the blend
- */
-static void Cg_DrawBlendFlashImage(const r_image_t *image, const float alpha) {
-
-  if (alpha <= 0.0) {
-    return;
-  }
-
-  const color_t color = Color4f(1.0, 1.0, 1.0, alpha);
-  cgi.Draw2DImage(0, 0, cgi.context->w, cgi.context->h, image, color);
-}
-
-/**
- * @brief Draw a full-screen blend effect based on world interaction.
- */
-void Cg_DrawBlend(const player_state_t *ps) {
-
-  if (!cg_draw_blend->value) {
-    return;
-  }
-
-  color_t blend = color_transparent;
-  
-  // start with base blend based on view origin conents
-
-  const int32_t contents = cgi.view->contents;
-
-  if ((contents & CONTENTS_MASK_LIQUID) && cg_draw_blend_liquid->value) {
-    color_t color;
-
-    const cm_trace_t tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
-    if (tr.brush) {
-      const char *name = tr.brush->brush_sides[0].material->name;
-      color = cgi.LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->color;
-      const float f = Maxf(color.r, Maxf(color.g, color.b));
-      color = Color_Scale(color, 1.f / f);
-    } else {
-      if (contents & CONTENTS_LAVA) {
-        color = Color4f(.8f, .4f, .1f, 1.f);
-      } else if (contents & CONTENTS_SLIME) {
-        color = Color4f(.4f, .7f, .2f, 1.f);
-      } else {
-        color = Color4f(.4f, .5f, .6f, 1.f);
-      }
-    }
-
-    color.a = Clampf(cg_draw_blend_liquid->value * 0.4, 0.f, 0.4f);
-
-    Cg_AddBlend(&blend, color);
-  }
-
-  // pickups
-
-  const int16_t p = ps->stats[STAT_PICKUP] & ~STAT_TOGGLE_BIT;
-
-  if (p && (p != cg_hud_state.blend.pickup)) { // don't flash on same item
-    cg_hud_state.blend.pickup_time = cgi.client->unclamped_time;
-  }
-
-  cg_hud_state.blend.pickup = p;
-
-  if (cg_hud_state.blend.pickup_time && cg_draw_blend_pickup->value) {
-    Cg_DrawBlendFlashImage(cg_pickup_blend_image,
-      Cg_CalculateBlendAlpha(cg_hud_state.blend.pickup_time, CG_PICKUP_BLEND_TIME, cg_draw_blend_pickup->value));
-  }
-
-  // quad damage powerup
-
-  if (ps->stats[STAT_QUAD_TIME] > 0 && cg_draw_blend_powerup->value) {
-    Cg_DrawBlendFlashImage(cg_quad_blend_image,
-      fabsf(sinf(Radians(cgi.client->unclamped_time * 0.2))) * cg_draw_blend_powerup->value);
-  }
-
-  // invisibility powerup
-
-  if (ps->stats[STAT_INVISIBILITY_TIME] > 0 && cg_draw_blend_powerup->value) {
-    Cg_DrawBlendFlashImage(cg_invisibility_blend_image,
-      fabsf(sinf(Radians(cgi.client->unclamped_time * 0.2))) * cg_draw_blend_powerup->value);
-  }
-
-  // invulnerability powerup
-
-  if (ps->stats[STAT_INVULNERABILITY_TIME] > 0 && cg_draw_blend_powerup->value) {
-    Cg_DrawBlendFlashImage(cg_invulnerability_blend_image,
-      fabsf(sinf(Radians(cgi.client->unclamped_time * 0.2))) * cg_draw_blend_powerup->value);
-  }
-
-  // taken damage
-
-  const int16_t d = ps->stats[STAT_DAMAGE_ARMOR] + ps->stats[STAT_DAMAGE_HEALTH];
-
-  if (d) {
-    cg_hud_state.blend.damage_time = cgi.client->unclamped_time;
-  }
-
-  if (cg_hud_state.blend.damage_time && cg_draw_blend_damage->value) {
-    Cg_DrawBlendFlashImage(cg_damage_blend_image,
-      Cg_CalculateBlendAlpha(cg_hud_state.blend.damage_time, CG_DAMAGE_BLEND_TIME, cg_draw_blend_damage->value));
-  }
-
-  // if we have a blend, draw it
-
-  if (blend.a > 0.0) {
-    cgi.Draw2DFill(0, 0, cgi.context->w, cgi.context->h, blend);
-  }
-}
 
 /**
  * @brief Parses a center print message from the server into the center print state.
@@ -215,82 +59,6 @@ void Cg_ParseCenterPrint(void) {
 
   cg_state.center_print.num_lines++;
   cg_state.center_print.time = cgi.client->unclamped_time + 3000;
-}
-
-/**
- * @brief Draws the current center print message centered on screen.
- */
-void Cg_DrawCenterPrint(const player_state_t *ps) {
-  int32_t cw, ch, x, y;
-  char *line = cg_state.center_print.lines[0];
-
-  if (ps->stats[STAT_SCORES]) {
-    return;
-  }
-
-  if (cg_state.center_print.time < cgi.client->unclamped_time) {
-    return;
-  }
-
-  cgi.BindFont(NULL, &cw, &ch);
-
-  y = (cgi.context->h - cg_state.center_print.num_lines * ch) / 2;
-
-  while (*line) {
-    x = (cgi.context->w - cgi.StringWidth(line)) / 2;
-
-    cgi.Draw2DString(x, y, line, color_white);
-    line += MAX_STRING_CHARS;
-    y += ch;
-  }
-
-  cgi.BindFont(NULL, NULL, NULL);
-}
-
-/**
- * @brief Draws the name of the player under the crosshair when aimed at a teammate or enemy.
- */
-void Cg_DrawTargetName(const player_state_t *ps) {
-  static uint32_t time;
-  static char name[MAX_INFO_STRING_VALUE];
-
-  if (!cg_draw_target_name->integer) {
-    return;
-  }
-
-  if (time > cgi.client->unclamped_time) {
-    time = 0;
-  }
-
-  vec3_t pos = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
-
-  const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, Box3_Zero(), NULL, CONTENTS_MASK_CLIP_PROJECTILE);
-  if (tr.fraction < 1.f) {
-
-    const cl_entity_t *ent = tr.ent;
-    if (ent->current.model1 == MODEL_CLIENT) {
-
-      const cg_client_info_t *client = &cg_state.clients[ent->current.client];
-
-      q_strlcpy(name, client->name, sizeof(name));
-      time = cgi.client->unclamped_time;
-    }
-  }
-
-  if (cgi.client->unclamped_time - time > 500) {
-    *name = '\0';
-  }
-
-  if (*name) {
-    int32_t ch;
-    cgi.BindFont("medium", NULL, &ch);
-
-    const int32_t w = cgi.StringWidth(name);
-    const int32_t x = cgi.context->w / 2 - w / 2;
-    const int32_t y = cgi.context->h - 192 - ch;
-
-    cgi.Draw2DString(x, y, name, color_green);
-  }
 }
 
 /**
@@ -531,11 +299,6 @@ void Cg_InitHud(void) {
 void Cg_LoadHudMedia(void) {
   Cg_InitInventory();
 
-  cg_pickup_blend_image = cgi.LoadImage("pics/bf_pickup", IMG_PIC);
-  cg_quad_blend_image = cgi.LoadImage("pics/bf_powerup_quad", IMG_PIC);
-  cg_invisibility_blend_image = cgi.LoadImage("pics/bf_powerup_invisibility", IMG_PIC);
-  cg_invulnerability_blend_image = cgi.LoadImage("pics/bf_powerup_invulnerability", IMG_PIC);
-  cg_damage_blend_image = cgi.LoadImage("pics/bf_damage", IMG_PIC);
 }
 
 /**
