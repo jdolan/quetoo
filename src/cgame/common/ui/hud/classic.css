@@ -197,11 +197,6 @@
   padding-bottom: 120;
 }
 
-#hud #fps .live {
-  alignment: right;
-  font-size: 22;
-}
-
 #weaponBar {
   alignment: bottom-center;
   autoresizing-mask: contain;

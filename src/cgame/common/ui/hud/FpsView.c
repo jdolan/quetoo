@@ -32,15 +32,7 @@
  */
 static View *init(View *self) {
 
-  self = (View *) $((CounterView *) self, initWithCaption, NULL, COUNTER_VIEW_NO_STAT);
-  if (self) {
-    View *value = (View *) ((CounterView *) self)->value;
-
-    $(value, removeClassName, "number");
-    $(value, addClassName, "live");
-  }
-
-  return self;
+  return (View *) $((CounterView *) self, initWithCaption, NULL, COUNTER_VIEW_NO_STAT);
 }
 
 /**
