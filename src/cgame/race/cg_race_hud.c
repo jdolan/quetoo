@@ -229,7 +229,16 @@ static int32_t valueForFrame(CounterView *self, const cl_frame_t *frame) {
  * @see View::init(View *)
  */
 static View *initSpeedView(View *self) {
-  return super(View, self, init);
+
+  self = super(View, self, init);
+  if (self) {
+    View *value = (View *) ((CounterView *) self)->value;
+
+    $(value, removeClassName, "number");
+    $(value, addClassName, "live");
+  }
+
+  return self;
 }
 
 /**

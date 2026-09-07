@@ -65,6 +65,10 @@
 		091C43A66A7972053AD1C8E7 /* box.c in Sources */ = {isa = PBXBuildFile; fileRef = 8542813678DB3B7BECEEF939 /* box.c */; };
 		0975D2E7118D42B05C9F5422 /* small.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FD02F9650560087A850 /* small.png */; };
 		2C468DAAA30BB6E232FA21C3 /* large.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCC2F9650560087A850 /* large.png */; };
+		0054FB2183D14FB441556F05 /* Rajdhani-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */; };
+		F2790FC8B72E7B3C54A53EED /* Rajdhani-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */; };
+		B777A7BCE46440D86F0248FA /* BarlowCondensed-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */; };
+		A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */; };
 		89AC37486C4E50D551009CFE /* MPlusU-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */; };
 		AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */; };
 		522B158EA7384E83CD005789 /* cm_manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = D126FFD46C343DDC86C13E17 /* cm_manifest.c */; };
@@ -1776,6 +1780,10 @@
 			dstSubfolderSpec = 16;
 			files = (
 				2C468DAAA30BB6E232FA21C3 /* large.png in CopyFiles */,
+				0054FB2183D14FB441556F05 /* Rajdhani-OFL.txt in CopyFiles */,
+				F2790FC8B72E7B3C54A53EED /* Rajdhani-Bold.ttf in CopyFiles */,
+				B777A7BCE46440D86F0248FA /* BarlowCondensed-OFL.txt in CopyFiles */,
+				A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */,
 				89AC37486C4E50D551009CFE /* MPlusU-OFL.txt in CopyFiles */,
 				AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */,
 				9D2572D4A56A8180A52671E2 /* medium.png in CopyFiles */,
@@ -2649,6 +2657,10 @@
 		CEAD8FC72F9650560087A850 /* click.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click.wav; sourceTree = "<group>"; };
 		CEAD8FCB2F9650560087A850 /* conback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = conback.png; sourceTree = "<group>"; };
 		CEAD8FCC2F9650560087A850 /* large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = large.png; sourceTree = "<group>"; };
+		DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Rajdhani-OFL.txt"; sourceTree = "<group>"; };
+		B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Rajdhani-Bold.ttf"; sourceTree = "<group>"; };
+		B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "BarlowCondensed-OFL.txt"; sourceTree = "<group>"; };
+		02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BarlowCondensed-SemiBold.ttf"; sourceTree = "<group>"; };
 		5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "MPlusU-OFL.txt"; sourceTree = "<group>"; };
 		B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "MPlusU-Bold.ttf"; sourceTree = "<group>"; };
 		CEAD8FCD2F9650560087A850 /* loading.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = loading.png; sourceTree = "<group>"; };
@@ -3292,6 +3304,10 @@
 			isa = PBXGroup;
 			children = (
 				CEAD8FCC2F9650560087A850 /* large.png */,
+				DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */,
+				B8AED6163C10B91DD4151830 /* Rajdhani-Bold.ttf */,
+				B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */,
+				02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */,
 				5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */,
 				B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */,
 				CEAD8FCE2F9650560087A850 /* medium.png */,

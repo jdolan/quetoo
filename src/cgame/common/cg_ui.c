@@ -106,9 +106,11 @@ static void Cg_CacheFont(const char *path, const char *family) {
 
 void Cg_InitUi(void) {
 
-  // Tabular digits and an unmarked zero for the HUD's numbers; the face is proportional, so
-  // it is used for numbers only
+  // The HUD's faces: M PLUS U for numbers, tabular digits and an unmarked zero; Barlow
+  // Condensed for captions; Rajdhani for variants that want the concept mockups' numerals
   Cg_CacheFont("ui/fonts/MPlusU-Bold.ttf", "M PLUS U");
+  Cg_CacheFont("ui/fonts/BarlowCondensed-SemiBold.ttf", "Barlow Condensed");
+  Cg_CacheFont("ui/fonts/Rajdhani-Bold.ttf", "Rajdhani");
 
   stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common.css");
   assert(stylesheet);
