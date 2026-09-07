@@ -24,6 +24,7 @@
 #include <ObjectivelyMVC/AtlasImage.h>
 #include <ObjectivelyMVC/ViewController.h>
 
+#include "NavEditView.h"
 #include "ScoreboardView.h"
 
 #include "cg_types.h"
@@ -66,6 +67,11 @@ struct HudViewController {
    * @brief The scoreboard, a subview of `view` above `hud`, and not part of the variant.
    */
   ScoreboardView *scoreboard;
+
+  /**
+   * @brief The navigation edit instructions, shown in place of `hud` while editing.
+   */
+  NavEditView *navEdit;
 
   /**
    * @brief AtlasImages by resource name.

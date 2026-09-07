@@ -138,6 +138,11 @@
         {
           "class": "WeaponBarView",
           "identifier": "weaponBar"
+        },
+        {
+          "class": "FpsView",
+          "identifier": "fps",
+          "caption": "FPS"
         }
       ]
     }

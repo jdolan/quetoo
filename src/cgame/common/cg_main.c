@@ -42,6 +42,7 @@ cvar_t *cg_draw_crosshair_color;
 cvar_t *cg_draw_crosshair_health;
 cvar_t *cg_draw_crosshair_pulse;
 cvar_t *cg_draw_crosshair_scale;
+cvar_t *cg_draw_fps;
 cvar_t *cg_draw_hud;
 cvar_t *cg_hud;
 cvar_t *cg_draw_target_name;
@@ -121,6 +122,7 @@ static void Cg_Init(void) {
   cg_draw_crosshair_health = cgi.AddCvar("cg_draw_crosshair_health", "0", CVAR_ARCHIVE, "Method of coloring the crosshair by health. Range from 1-5, 0 disables.");
   cg_draw_crosshair_pulse = cgi.AddCvar("cg_draw_crosshair_pulse", "1", CVAR_ARCHIVE, "Pulse the crosshair when picking up items");
   cg_draw_crosshair_scale = cgi.AddCvar("cg_draw_crosshair_scale", "1", CVAR_ARCHIVE, "Controls the crosshair scale (size)");
+  cg_draw_fps = cgi.AddCvar("cg_draw_fps", "1", CVAR_ARCHIVE, "Draw the frame rate on the HUD");
   cg_draw_hud = cgi.AddCvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
   cg_hud = cgi.AddCvar("cg_hud", "classic", CVAR_ARCHIVE, "The HUD variant: a ui/hud/<name>.json and .css pair (Default is classic)");
   cg_draw_target_name = cgi.AddCvar("cg_draw_target_name", "1", CVAR_ARCHIVE, "Draw the target's name");
@@ -498,64 +500,14 @@ static void Cg_SceneDidPopulate_Common(const cl_frame_t *frame) {
 SceneDidPopulate Cg_SceneDidPopulate = Cg_SceneDidPopulate_Common;
 
 /**
- * @brief Returns the colored key name bound to the given command, or red "`UNBOUND`" if not set.
- */
-static const char *Cg_Nav_KeyBind(const char *bind) {
-  SDL_Scancode code = cgi.KeyForBind(SDL_SCANCODE_UNKNOWN, bind);
-
-  if (code == SDL_SCANCODE_UNKNOWN) {
-    return "^1UNBOUND^7";
-  }
-
-  return va("^2%s^7", cgi.KeyName(code));
-}
-
-/**
- * @brief Draws the HUD and scores overlay, or navigation edit mode instructions if active.
+ * @brief Hands the frame to the HUD, and to what the HUD still does outside its View hierarchy.
  */
 static void Cg_UpdateScreen(const cl_frame_t *frame) {
 
   Cg_UpdateHud(frame);
 
-  // hide HUD in nav edit
-  if (cg_state.nav_edit) {
-
-    if (cg_state.nav_edit == 1) {
-      int32_t ch;
-      cgi.BindFont("small", NULL, &ch);
-
-      const int32_t lines = 14;
-      const int32_t panel_x = 24;
-      const int32_t panel_y = 32;
-      const int32_t panel_w = 640;
-      const int32_t panel_h = (lines + 2) * ch;
-      cgi.Draw2DFill(panel_x, panel_y, panel_w, panel_h, ColorHSVA(0.f, 0.f, 0.f, 0.65f));
-
-      int32_t y = 32;
-
-      cgi.Draw2DString(32, y += ch, "NAVIGATION EDIT MODE", color_white);
-      cgi.Draw2DString(32, y += ch, "You're in nav edit mode; items can't be picked up,", color_white);
-      cgi.Draw2DString(32, y += ch, "you can't die, and the map will never end.", color_white);
-
-      cgi.Draw2DString(32, y += ch, va("* To start placing/linking nav nodes, press %s. A node will", Cg_Nav_KeyBind("+attack")), color_white);
-      cgi.Draw2DString(32, y += ch, "  drop at your location, and you can now place them", color_white);
-      cgi.Draw2DString(32, y += ch, "  by running around like you normally would.", color_white);
-
-      cgi.Draw2DString(32, y += ch, va("* To stop placing/linking nodes, press %s again.", Cg_Nav_KeyBind("+attack")), color_white);
-
-      cgi.Draw2DString(32, y += ch, "* To change a node's position, select the node by touching it", color_white);
-      cgi.Draw2DString(32, y += ch, va("  so it turns yellow, and press %s.", Cg_Nav_KeyBind("use")), color_white);
-
-      cgi.Draw2DString(32, y += ch, "* To delete a node, select the node by touching it", color_white);
-      cgi.Draw2DString(32, y += ch, va("  so it turns yellow, and press %s.", Cg_Nav_KeyBind("+hook")), color_white);
-
-      cgi.Draw2DString(32, y += ch, "* To adjust the link state between two nodes, select", color_white);
-      cgi.Draw2DString(32, y += ch, "  the nodes by touching them so they turn yellow & purple respectively", color_white);
-      cgi.Draw2DString(32, y += ch, va("  then tap %s to cycle between connection types.", Cg_Nav_KeyBind("+score")), color_white);
-    }
-
-  } else {
-
+  // The HUD hides itself in nav edit and shows the instructions instead
+  if (!cg_state.nav_edit) {
     Cg_DrawHud(frame);
   }
 

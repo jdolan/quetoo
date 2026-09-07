@@ -192,6 +192,16 @@
   color: #8fc7dc;
 }
 
+#hud #fps {
+  alignment: bottom-right;
+  padding-bottom: 120;
+}
+
+#hud #fps .live {
+  alignment: right;
+  font-size: 22;
+}
+
 #weaponBar {
   alignment: bottom-center;
   autoresizing-mask: contain;

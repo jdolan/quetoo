@@ -57,6 +57,7 @@ static void dealloc(Object *self) {
 
   release(this->hud);
   release(this->scoreboard);
+  release(this->navEdit);
   release(this->images);
 
   super(Object, self, dealloc);
@@ -113,6 +114,11 @@ static void loadView(ViewController *self) {
   this->scoreboard = (ScoreboardView *) scoreboard;
 
   $(view, addSubview, scoreboard);
+
+  this->navEdit = (NavEditView *) $((View *) alloc(NavEditView), init);
+  assert(this->navEdit);
+
+  $(view, addSubview, (View *) this->navEdit);
 
   $(this, reload);
 }
@@ -208,6 +214,7 @@ static void reload(HudViewController *self) {
   // beneath the scoreboard
   $(self->viewController.view, addSubview, hud);
   $(self->viewController.view, bringSubviewToFront, (View *) self->scoreboard);
+  $(self->viewController.view, bringSubviewToFront, (View *) self->navEdit);
   self->hud = hud;
 
   $(self, warm);
@@ -268,6 +275,8 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
   }
 
   const player_state_t *ps = &frame->ps;
+
+  $((View *) self->navEdit, updateBindings, (ident) frame);
 
   // The scoreboard outlives the HUD: it shows through the intermission, and with the HUD off.
   // Only what shows takes the frame, since some elements trace the world to fill themselves in.

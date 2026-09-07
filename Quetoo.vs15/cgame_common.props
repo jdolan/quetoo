@@ -141,6 +141,10 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\TargetNameView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\TeamBannerView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\TeamBannerView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\hud\FpsView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\hud\FpsView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\hud\NavEditView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\hud\NavEditView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\TimeView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\TimeView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\VoteView.c" />
