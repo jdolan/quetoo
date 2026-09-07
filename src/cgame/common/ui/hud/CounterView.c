@@ -154,7 +154,7 @@ static const char *textForFrame(CounterView *self, const cl_frame_t *frame) {
     return " ";
   }
 
-  snprintf(self->text, sizeof(self->text), "%3d", $(self, valueForFrame, frame));
+  snprintf(self->text, sizeof(self->text), "%d", $(self, valueForFrame, frame));
 
   return self->text;
 }

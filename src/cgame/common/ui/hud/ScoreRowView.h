@@ -65,7 +65,8 @@ struct ScoreRowView {
   Text *detail, *aside;
 
   /**
-   * @brief The team colour behind the text.
+   * @brief The team colour behind the text, spanning the row's full width: it is aligned
+   * `ViewAlignmentInternal` so the stylesheet's padding insets the text but not the fill.
    */
   View *fill;
 

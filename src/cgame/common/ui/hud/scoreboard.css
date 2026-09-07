@@ -43,6 +43,7 @@ ScoreboardView .column {
 ScoreboardView ScoreRowView {
   background-color: #08151a66;
   border-radius: 4;
+  padding: 2 4 2 4;
 }
 
 ScoreboardView ScoreRowView.self {

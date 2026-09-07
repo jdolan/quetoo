@@ -97,6 +97,8 @@ static ScoreRowView *initWithScore(ScoreRowView *self, const g_score_t *score, i
     self->fill = $(alloc(View), initWithFrame, &MakeRect(x, 0, fw, SCORES_ROW_HEIGHT - 1));
     assert(self->fill);
 
+    self->fill->alignment = ViewAlignmentInternal;
+
     $((View *) self->fill, addClassName, "fill");
     $((View *) self, addSubview, self->fill);
 
@@ -113,7 +115,7 @@ static ScoreRowView *initWithScore(ScoreRowView *self, const g_score_t *score, i
 
     self->ping = addText(self, &MakeRect(x, 0, fw, 0), "ping");
     self->ping->view.alignment = ViewAlignmentTopRight;
-    $(self->ping, setTextWithFormat, "%3dms", score->ping);
+    $(self->ping, setTextWithFormat, "%dms", score->ping);
 
     self->detail = addText(self, &MakeRect(x, 16, fw, 0), "detail");
 

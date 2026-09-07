@@ -169,7 +169,7 @@ static void updateBindings(View *self, ident data) {
   }
 
   this->value->color = color;
-  $(this->value, setTextWithFormat, "%3d", value);
+  $(this->value, setTextWithFormat, "%d", value);
 
   this->icon->color.a = (Uint8) (pulse * 255);
 

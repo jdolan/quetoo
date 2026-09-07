@@ -26,7 +26,7 @@
 #if defined(__CG_LOCAL_H__)
 
 #define SCORES_COL_WIDTH 240
-#define SCORES_ROW_HEIGHT 48
+#define SCORES_ROW_HEIGHT 52
 #define SCORES_ICON_WIDTH 48
 
 void Cg_ParseScores(void);
