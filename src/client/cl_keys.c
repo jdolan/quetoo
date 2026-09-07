@@ -53,8 +53,8 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 
     SDL_SetWindowRelativeMouseMode(r_context.window, false);
 
-    const int32_t cx = r_context.w * 0.5;
-    const int32_t cy = r_context.h * 0.5;
+    const int32_t cx = r_context.window_bounds.w * 0.5;
+    const int32_t cy = r_context.window_bounds.h * 0.5;
 
     SDL_WarpMouseInWindow(r_context.window, cx, cy);
   }

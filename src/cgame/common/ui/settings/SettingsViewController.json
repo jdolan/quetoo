@@ -78,21 +78,6 @@
                           "class": "Input",
                           "label": {
                             "text": {
-                              "text": "Interface scale"
-                            }
-                          },
-                          "control": {
-                            "class": "CvarSlider",
-                            "var": "r_draw_scale",
-                            "min": 0.5,
-                            "max": 3.0,
-                            "step": 0.1
-                          }
-                        },
-                        {
-                          "class": "Input",
-                          "label": {
-                            "text": {
                               "text": "Vertical sync"
                             }
                           },

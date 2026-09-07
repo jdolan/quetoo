@@ -2107,11 +2107,6 @@ typedef struct {
   SDL_Rect window_bounds;
 
   /**
-   * @brief The window size, in logical pixels.
-   */
-  int32_t w, h;
-
-  /**
    * @brief The GPU render device.
    */
   RenderDevice *device;

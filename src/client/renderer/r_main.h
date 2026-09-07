@@ -31,7 +31,6 @@ extern cvar_t *r_bloom;
 extern cvar_t *r_bloom_iterations;
 extern cvar_t *r_bloom_threshold;
 extern cvar_t *r_caustics;
-extern cvar_t *r_draw_scale;
 extern cvar_t *r_framebuffer_scale;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_fullscreen_width;

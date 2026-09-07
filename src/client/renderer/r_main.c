@@ -45,7 +45,6 @@ cvar_t *r_bloom;
 cvar_t *r_bloom_iterations;
 cvar_t *r_bloom_threshold;
 cvar_t *r_caustics;
-cvar_t *r_draw_scale;
 cvar_t *r_framebuffer_scale;
 cvar_t *r_fullscreen;
 cvar_t *r_fullscreen_width;
@@ -206,11 +205,6 @@ static void R_UpdatePipelines(void) {
  * @brief Called at the beginning of each render frame.
  */
 void R_BeginFrame(void) {
-
-  if (r_draw_scale->modified) {
-    R_UpdateContext();
-    r_draw_scale->modified = false;
-  }
 
   if (r_framebuffer_scale->modified) {
     SDL_PushEvent(&(SDL_Event) {
@@ -417,7 +411,6 @@ static void R_InitLocal(void) {
   r_bloom_iterations = Cvar_Add("r_bloom_iterations", "8", CVAR_ARCHIVE, "Controls the number of bloom blur iterations. Higher values produce softer, wider bloom.");
   r_bloom_threshold = Cvar_Add("r_bloom_threshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
-  r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
   r_framebuffer_scale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
   r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
   r_fullscreen_width = Cvar_Add("r_fullscreen_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution width. 0 uses the desktop resolution.");
