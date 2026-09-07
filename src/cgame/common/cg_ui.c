@@ -30,7 +30,7 @@ static MainViewController *mainViewController;
 static UpdateViewController *updateViewController;
 static Stylesheet *stylesheet;
 
-Image *Cg_LoadImage(const char *name) {
+Image *Cg_LoadImageScaled(const char *name, float scale) {
 
   char path[MAX_OS_PATH];
   snprintf(path, sizeof(path), "%s.svg", name);
@@ -38,9 +38,9 @@ Image *Cg_LoadImage(const char *name) {
   void *svg;
   const int64_t length = cgi.LoadFile(path, &svg);
   if (length > 0) {
-    const float scale = SDL_GetWindowPixelDensity(cgi.context->window);
+    const float density = SDL_GetWindowPixelDensity(cgi.context->window) * scale;
 
-    Image *image = $$(Image, imageWithSVG, svg, (size_t) length, scale);
+    Image *image = $$(Image, imageWithSVG, svg, (size_t) length, density);
     cgi.FreeFile(svg);
 
     if (image) {
@@ -56,6 +56,10 @@ Image *Cg_LoadImage(const char *name) {
   }
 
   return NULL;
+}
+
+Image *Cg_LoadImage(const char *name) {
+  return Cg_LoadImageScaled(name, 1.f);
 }
 
 /**

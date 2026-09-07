@@ -26,10 +26,20 @@
 #include "cg_types.h"
 
 /**
- * @brief Loads the named pic as an Image: an SVG rasterized at the window's pixel density, so
- * that it is sharp at the size it is drawn, or else whatever raster `cgi.LoadSurface` finds.
+ * @brief Loads the named pic as an Image: an SVG rasterized at the window's pixel density
+ * times `scale`, so that it is sharp at the size it is drawn, or else whatever raster
+ * `cgi.LoadSurface` finds.
  * @param name The pic name without extension, e.g. `pics/w_shotgun`.
+ * @param scale The factor the image is drawn at relative to its intrinsic size, so that a
+ * vector drawn smaller than its canvas is rasterized at that size rather than minified.
+ * Ignored for the raster fallback. The Image still reports its intrinsic size in points, so
+ * the caller applies `scale` to the frame as before.
  * @return The Image, or `NULL` if none was found. The caller owns a reference.
+ */
+Image *Cg_LoadImageScaled(const char *name, float scale);
+
+/**
+ * @brief Cg_LoadImageScaled at the intrinsic size.
  */
 Image *Cg_LoadImage(const char *name);
 

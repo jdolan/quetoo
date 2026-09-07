@@ -81,7 +81,7 @@ static void updateBindings(View *self, ident data) {
 
   const int32_t ch = cg_draw_crosshair->value;
   if (ch) {
-    Image *image = Cg_LoadImage(va("pics/ch%d", ch));
+    Image *image = Cg_LoadImageScaled(va("pics/ch%d", ch), cg_draw_crosshair_scale->value * CROSSHAIR_SCALE);
     if (image) {
 
       $(this->imageView, setImage, image);
