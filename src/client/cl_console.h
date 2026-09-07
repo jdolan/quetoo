@@ -26,11 +26,18 @@
 #if defined(__CL_LOCAL_H__)
 extern console_t cl_console;
 extern console_t cl_chat_console;
+extern console_t cl_notify_console;
+
+extern cvar_t *cl_console_height;
+extern cvar_t *cl_draw_console_background_alpha;
+extern cvar_t *cl_draw_chat;
+extern cvar_t *cl_draw_notify;
+extern cvar_t *cl_chat_lines;
+extern cvar_t *cl_chat_time;
+extern cvar_t *cl_notify_lines;
+extern cvar_t *cl_notify_time;
 
 int32_t Cl_GetConsoleHeight(void);
-void Cl_DrawConsole(void);
-void Cl_DrawNotify(void);
-void Cl_DrawChat(void);
 void Cl_ToggleConsole_f(void);
 void Cl_InitConsole(void);
 void Cl_ShutdownConsole(void);

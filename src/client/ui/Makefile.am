@@ -2,7 +2,9 @@ SUBDIRS =
 
 noinst_HEADERS = \
 	ui.h \
+	ui_console.h \
 	ui_data.h \
+	ui_diagnostics.h \
 	ui_local.h \
 	ui_main.h
 
@@ -10,7 +12,9 @@ noinst_LTLIBRARIES = \
 	libui.la
 
 libui_la_SOURCES = \
+	ui_console.c \
 	ui_data.c \
+	ui_diagnostics.c \
 	ui_main.c
 
 libui_la_CFLAGS = \

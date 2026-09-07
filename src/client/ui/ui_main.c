@@ -22,6 +22,9 @@
 #include "ui_local.h"
 #include "client.h"
 
+#include "ui_console.h"
+#include "ui_diagnostics.h"
+
 extern cl_static_t cls;
 
 static WindowController *windowController;
@@ -30,6 +33,8 @@ static WindowController *windowController;
  * @brief The root holds two layers: the HUD, which cgame installs, beneath the menus.
  */
 static ViewController *rootViewController;
+static ConsoleViewController *consoleViewController;
+static DiagnosticsViewController *diagnosticsViewController;
 
 static ViewController *hudLayer;
 
@@ -171,10 +176,13 @@ void Ui_Draw(void) {
   assert(windowController);
 
   // The menus occlude the HUD, and the HUD exists only in play
-  const bool menus = cls.key_state.dest == KEY_UI || cls.state != CL_ACTIVE;
+  const bool menus = cls.key_state.dest == KEY_UI || (cls.state != CL_ACTIVE && cls.key_state.dest != KEY_CONSOLE);
 
   $(hudLayer->view, setHidden, menus);
   $(navigationViewController->viewController.view, setHidden, !menus);
+
+  $(consoleViewController, update);
+  $(diagnosticsViewController, update);
 
   $(windowController, render);
 }
@@ -282,6 +290,19 @@ void Ui_Init(void) {
   navigationViewController = $(alloc(NavigationViewController), init);
   $(rootViewController, addChildViewController, (ViewController *) navigationViewController);
 
+  consoleViewController = (ConsoleViewController *) $((ViewController *) alloc(ConsoleViewController), init);
+  $(rootViewController, addChildViewController, (ViewController *) consoleViewController);
+
+  diagnosticsViewController = (DiagnosticsViewController *) $((ViewController *) alloc(DiagnosticsViewController), init);
+  $(rootViewController, addChildViewController, (ViewController *) diagnosticsViewController);
+
+  // Text's ^N escapes take the game's palette, so console output colors as it always has;
+  // note that ^0 is white in that palette, not black
+  for (int32_t i = 0; i < 10; i++) {
+    const color32_t c = Color_Color32(ColorEsc(i));
+    TextEscapeColors[i] = (SDL_Color) { c.r, c.g, c.b, c.a };
+  }
+
   Ui_LoadSample("#ui/change");
   Ui_LoadSample("#ui/click");
   Ui_LoadSample("#ui/clack");
@@ -296,8 +317,23 @@ void Ui_Shutdown(void) {
 
   Ui_SetHudViewController(NULL);
 
-  navigationViewController = release(navigationViewController);
-  hudLayer = release(hudLayer);
+  // Detach before releasing: a View torn down while attached moves to a NULL window from its
+  // dealloc, and a Text re-measures itself on that move with the Font it has already released
+  ViewController *layers[] = {
+    (ViewController *) diagnosticsViewController, (ViewController *) consoleViewController,
+    (ViewController *) navigationViewController, hudLayer
+  };
+
+  for (size_t i = 0; i < lengthof(layers); i++) {
+    $(layers[i], removeFromParentViewController);
+    release(layers[i]);
+  }
+
+  diagnosticsViewController = NULL;
+  consoleViewController = NULL;
+  navigationViewController = NULL;
+  hudLayer = NULL;
+
   rootViewController = release(rootViewController);
 
   windowController = release(windowController);
