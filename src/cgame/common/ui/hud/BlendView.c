@@ -92,7 +92,9 @@ static SDL_Color liquidTint(void) {
     const char *name = tr.brush->brush_sides[0].material->name;
     color = cgi.LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->color;
     const float f = Maxf(color.r, Maxf(color.g, color.b));
-    color = Color_Scale(color, 1.f / f);
+    if (f > 0.f) {
+      color = Color_Scale(color, 1.f / f);
+    }
   } else if (contents & CONTENTS_LAVA) {
     color = Color4f(.8f, .4f, .1f, 1.f);
   } else if (contents & CONTENTS_SLIME) {
