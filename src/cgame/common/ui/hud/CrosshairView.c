@@ -207,10 +207,10 @@ static void updateBindings(View *self, ident data) {
     $(this->imageView, setImage, NULL);
 
     if (cg_draw_crosshair->integer) {
-      SDL_Surface *surface = cgi.LoadSurface(va("pics/ch%d", cg_draw_crosshair->integer));
-      if (surface) {
-        $(this->imageView, setImageWithSurface, surface);
-        SDL_DestroySurface(surface);
+      Image *image = Cg_LoadImage(va("pics/ch%d", cg_draw_crosshair->integer));
+      if (image) {
+        $(this->imageView, setImage, image);
+        release(image);
       } else {
         Cg_Warn("Couldn't load pics/ch%d\n", cg_draw_crosshair->integer);
       }
@@ -270,10 +270,8 @@ static void updateBindings(View *self, ident data) {
   const color32_t rgba = Color_Color32(Color4fv(color));
   this->imageView->color = (SDL_Color) { rgba.r, rgba.g, rgba.b, rgba.a };
 
-  const SDL_Size size = MakeSize(
-    this->imageView->image->surface->w * scale,
-    this->imageView->image->surface->h * scale
-  );
+  const SDL_Size imageSize = $(this->imageView->image, size);
+  const SDL_Size size = MakeSize(imageSize.w * scale, imageSize.h * scale);
 
   if (size.w != this->imageView->view.frame.w || size.h != this->imageView->view.frame.h) {
     $((View *) this->imageView, resize, &size);

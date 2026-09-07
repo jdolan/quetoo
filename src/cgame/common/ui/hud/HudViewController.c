@@ -143,11 +143,8 @@ static AtlasImage *image(HudViewController *self, const char *name) {
   Object *cached = $(self->images, objectForKeyPath, name);
   if (cached == NULL) {
 
-    SDL_Surface *surface = cgi.LoadSurface(name);
-    if (surface) {
-      Image *loaded = $$(Image, imageWithSurface, surface);
-      SDL_DestroySurface(surface);
-
+    Image *loaded = Cg_LoadImage(name);
+    if (loaded) {
       cached = (Object *) $($(theme, icons), addImageWithName, name, loaded);
       release(loaded);
 

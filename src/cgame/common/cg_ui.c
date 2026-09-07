@@ -30,9 +30,34 @@ static MainViewController *mainViewController;
 static UpdateViewController *updateViewController;
 static Stylesheet *stylesheet;
 
-/**
- * @brief Initializes the user interface.
- */
+Image *Cg_LoadImage(const char *name) {
+
+  char path[MAX_OS_PATH];
+  snprintf(path, sizeof(path), "%s.svg", name);
+
+  void *svg;
+  const int64_t length = cgi.LoadFile(path, &svg);
+  if (length > 0) {
+    const float scale = SDL_GetWindowPixelDensity(cgi.context->window);
+
+    Image *image = $$(Image, imageWithSVG, svg, (size_t) length, scale);
+    cgi.FreeFile(svg);
+
+    if (image) {
+      return image;
+    }
+  }
+
+  SDL_Surface *surface = cgi.LoadSurface(name);
+  if (surface) {
+    Image *image = $$(Image, imageWithSurface, surface);
+    SDL_DestroySurface(surface);
+    return image;
+  }
+
+  return NULL;
+}
+
 /**
  * @brief `Fs_Enumerator` registering one emoji with the Theme's icon atlas, so that `:name:`
  * in any Text draws it inline.
@@ -45,11 +70,8 @@ static void Cg_AddEmoji(const char *path, void *data) {
   char resource[MAX_OS_PATH];
   StripExtension(path, resource);
 
-  SDL_Surface *surface = cgi.LoadSurface(resource);
-  if (surface) {
-    Image *image = $$(Image, imageWithSurface, surface);
-    SDL_DestroySurface(surface);
-
+  Image *image = Cg_LoadImage(resource);
+  if (image) {
     $((ImageAtlas *) data, addImageWithName, name, image);
     release(image);
   } else {

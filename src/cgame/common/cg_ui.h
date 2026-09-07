@@ -21,8 +21,21 @@
 
 #pragma once
 
+#include <ObjectivelyMVC/Image.h>
+
 #include "cg_types.h"
 
+/**
+ * @brief Loads the named pic as an Image: an SVG rasterized at the window's pixel density, so
+ * that it is sharp at the size it is drawn, or else whatever raster `cgi.LoadSurface` finds.
+ * @param name The pic name without extension, e.g. `pics/w_shotgun`.
+ * @return The Image, or `NULL` if none was found. The caller owns a reference.
+ */
+Image *Cg_LoadImage(const char *name);
+
+/**
+ * @brief Initializes the user interface.
+ */
 void Cg_InitUi(void);
 
 /**
