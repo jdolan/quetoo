@@ -7,134 +7,139 @@
       "identifier": "blend"
     },
     {
-      "class": "CrosshairView",
-      "identifier": "crosshair"
-    },
-    {
-      "class": "CenterPrintView",
-      "identifier": "centerPrint"
-    },
-    {
-      "class": "TargetNameView",
-      "identifier": "targetName"
-    },
-    {
-      "class": "VoteView",
-      "identifier": "vote"
-    },
-    {
-      "class": "SpectatorView",
-      "identifier": "spectator"
-    },
-    {
-      "class": "ChaseView",
-      "identifier": "chase"
-    },
-    {
-      "class": "TeamBannerView",
-      "identifier": "teamBanner"
-    },
-    {
-      "class": "StackView",
-      "identifier": "vitals",
+      "identifier": "layout",
       "subviews": [
         {
-          "classNames": [
-            "vital"
-          ],
+          "class": "CrosshairView",
+          "identifier": "crosshair"
+        },
+        {
+          "class": "CenterPrintView",
+          "identifier": "centerPrint"
+        },
+        {
+          "class": "TargetNameView",
+          "identifier": "targetName"
+        },
+        {
+          "class": "VoteView",
+          "identifier": "vote"
+        },
+        {
+          "class": "SpectatorView",
+          "identifier": "spectator"
+        },
+        {
+          "class": "ChaseView",
+          "identifier": "chase"
+        },
+        {
+          "class": "TeamBannerView",
+          "identifier": "teamBanner"
+        },
+        {
+          "class": "StackView",
+          "identifier": "vitals",
           "subviews": [
             {
-              "class": "StatView",
-              "identifier": "ammo",
-              "stat": "ammo"
+              "classNames": [
+                "vital"
+              ],
+              "subviews": [
+                {
+                  "class": "StatView",
+                  "identifier": "ammo",
+                  "stat": "ammo"
+                }
+              ]
+            },
+            {
+              "classNames": [
+                "vital"
+              ],
+              "subviews": [
+                {
+                  "class": "StatView",
+                  "identifier": "health",
+                  "stat": "health"
+                }
+              ]
+            },
+            {
+              "classNames": [
+                "vital"
+              ],
+              "subviews": [
+                {
+                  "class": "StatView",
+                  "identifier": "armor",
+                  "stat": "armor"
+                }
+              ]
             }
           ]
         },
         {
-          "classNames": [
-            "vital"
-          ],
+          "class": "StackView",
+          "identifier": "powerups",
           "subviews": [
             {
-              "class": "StatView",
-              "identifier": "health",
-              "stat": "health"
+              "class": "PowerupView",
+              "identifier": "quad",
+              "powerup": "quad"
+            },
+            {
+              "class": "PowerupView",
+              "identifier": "invulnerability",
+              "powerup": "invulnerability"
+            },
+            {
+              "class": "PowerupView",
+              "identifier": "invisibility",
+              "powerup": "invisibility"
+            },
+            {
+              "class": "TechView",
+              "identifier": "tech"
             }
           ]
         },
         {
-          "classNames": [
-            "vital"
-          ],
+          "identifier": "pickup",
           "subviews": [
             {
-              "class": "StatView",
-              "identifier": "armor",
-              "stat": "armor"
+              "class": "PickupView"
             }
           ]
+        },
+        {
+          "class": "StackView",
+          "identifier": "stats",
+          "subviews": [
+            {
+              "class": "CounterView",
+              "identifier": "frags",
+              "caption": "Frags",
+              "stat": "frags"
+            },
+            {
+              "class": "CounterView",
+              "identifier": "deaths",
+              "caption": "Deaths",
+              "stat": "deaths"
+            },
+            {
+              "class": "TimeView",
+              "identifier": "time",
+              "caption": "Time"
+            }
+          ]
+        },
+        {
+          "class": "WeaponBarView",
+          "identifier": "weaponBar"
         }
       ]
-    },
-    {
-      "class": "StackView",
-      "identifier": "powerups",
-      "subviews": [
-        {
-          "class": "PowerupView",
-          "identifier": "quad",
-          "powerup": "quad"
-        },
-        {
-          "class": "PowerupView",
-          "identifier": "invulnerability",
-          "powerup": "invulnerability"
-        },
-        {
-          "class": "PowerupView",
-          "identifier": "invisibility",
-          "powerup": "invisibility"
-        },
-        {
-          "class": "TechView",
-          "identifier": "tech"
-        }
-      ]
-    },
-    {
-      "identifier": "pickup",
-      "subviews": [
-        {
-          "class": "PickupView"
-        }
-      ]
-    },
-    {
-      "class": "StackView",
-      "identifier": "stats",
-      "subviews": [
-        {
-          "class": "CounterView",
-          "identifier": "frags",
-          "caption": "Frags",
-          "stat": "frags"
-        },
-        {
-          "class": "CounterView",
-          "identifier": "deaths",
-          "caption": "Deaths",
-          "stat": "deaths"
-        },
-        {
-          "class": "TimeView",
-          "identifier": "time",
-          "caption": "Time"
-        }
-      ]
-    },
-    {
-      "class": "WeaponBarView",
-      "identifier": "weaponBar"
     }
   ]
 }

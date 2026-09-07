@@ -70,7 +70,7 @@ static void configureScoreRow(ScoreRowView *row, const g_score_t *score) {
   $(row, setDetails, va("%d frags\n%d captures", score->score, score->captures), va("%d deaths ", score->deaths));
 
   if (score->flags & SCORE_CTF_FLAG) {
-    $(row->badge, setImage, (Image *) Cg_HudImage(va("pics/i_flag%d", score->team)));
+    $(row->badge, setImage, (Image *) Cg_HudImage(va("pics/flag%d", score->team)));
     $((View *) row->badge, setHidden, false);
   }
 #else

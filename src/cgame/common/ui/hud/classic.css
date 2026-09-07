@@ -3,14 +3,19 @@
  * "classic" concept: vitals, powerups, pickups and weapon slots sit on translucent cards in the
  * menu panel palette, numbers are bold, and captions are small, uppercase and smoky.
  *
- * Elements anchor with alignment and offset with padding; the columns stack. A card's padding
- * is its interior, so an offset from the screen edge belongs to the card's container. MVC
+ * Elements anchor with alignment and offset with padding; the columns stack. #layout's padding
+ * is the one inset from the screen edge; a card's padding is its interior. MVC
  * specificity counts a type selector once per superclass, so #hud Text outranks a bare #id;
  * every rule that sets a Text property carries the #hud prefix to outrank the base rule.
  */
 
 #hud {
   autoresizing-mask: fill;
+}
+
+#layout {
+  autoresizing-mask: fill;
+  padding: 32;
 }
 
 #hud Text {
@@ -40,12 +45,11 @@
   autoresizing-mask: width;
   axis: horizontal;
   distribution: fill-equally;
-  height: 144;
+  height: 112;
 }
 
 #vitals > .vital {
   autoresizing-mask: height;
-  padding-bottom: 32;
 }
 
 #vitals StatView {
@@ -81,7 +85,6 @@
   alignment: middle-left;
   autoresizing-mask: contain;
   axis: vertical;
-  padding-left: 32;
   spacing: 12;
 }
 
@@ -103,8 +106,6 @@
 #pickup {
   alignment: top-right;
   autoresizing-mask: contain;
-  padding-top: 32;
-  padding-right: 32;
 }
 
 #pickup > PickupView {
@@ -133,8 +134,7 @@
   alignment: top-right;
   autoresizing-mask: contain;
   axis: vertical;
-  padding-top: 128;
-  padding-right: 32;
+  padding-top: 96;
   spacing: 16;
 }
 
@@ -160,7 +160,7 @@
 #weaponBar {
   alignment: bottom-center;
   autoresizing-mask: contain;
-  padding-bottom: 176;
+  padding-bottom: 144;
   spacing: 12;
 }
 
@@ -206,35 +206,32 @@
   alignment: bottom-center;
   font-size: 28;
   color: #00ff00;
-  padding-bottom: 256;
+  padding-bottom: 224;
 }
 
 #hud #vote {
   alignment: middle-center;
-  padding-top: 160;
+  padding-top: 128;
 }
 
 #hud #spectator {
   alignment: top-right;
   color: #00ff00;
-  padding-top: 64;
-  padding-right: 32;
+  padding-top: 32;
 }
 
 #hud #chase {
   alignment: bottom-center;
   color: #00ff00;
-  padding-bottom: 80;
+  padding-bottom: 48;
 }
 
 #hud .heldFlag {
   alignment: middle-left;
-  padding-left: 32;
-  padding-bottom: 256;
+  padding-bottom: 224;
 }
 
 #hud .raceRun {
   alignment: top-center;
   font-size: 28;
-  padding-top: 32;
 }

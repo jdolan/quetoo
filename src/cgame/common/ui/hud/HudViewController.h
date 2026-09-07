@@ -88,7 +88,7 @@ struct HudViewControllerInterface {
    * either merge. They are registered under their resource names, which a slash keeps from
    * ever matching an escape.
    * @param self The HudViewController.
-   * @param name The image name, e.g. `pics/i_health`.
+   * @param name The image name, e.g. `pics/health`.
    * @return The AtlasImage, owned by the Theme's icon atlas, or `NULL` if the image was not
    * found.
    * @memberof HudViewController

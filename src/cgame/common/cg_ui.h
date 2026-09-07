@@ -29,7 +29,7 @@
  * @brief Loads the named pic as an Image: an SVG rasterized at the window's pixel density
  * times `scale`, so that it is sharp at the size it is drawn, or else whatever raster
  * `cgi.LoadSurface` finds.
- * @param name The pic name without extension, e.g. `pics/w_shotgun`.
+ * @param name The pic name without extension, e.g. `pics/shotgun`.
  * @param scale The factor the image is drawn at relative to its intrinsic size, so that a
  * vector drawn smaller than its canvas is rasterized at that size rather than minified.
  * Ignored for the raster fallback. The Image still reports its intrinsic size in points, so

@@ -25,10 +25,8 @@
 cg_item_t cg_items[ITEM_TOTAL];
 cg_weapon_t cg_weapons[WEAPON_TOTAL];
 
-static const r_image_t *cg_health_icons[4]; // indexed by health threshold
-
 /**
- * @brief Initializes the inventory cache (weapon icons, ammo tags, models, armor/health icons).
+ * @brief Initializes the inventory cache: item icons and models, weapon and ammo tags.
  * Called once per map load from `Cg_LoadHudMedia`.
  */
 void Cg_InitInventory(void) {
@@ -52,12 +50,6 @@ void Cg_InitInventory(void) {
     w->ammo_tag = bg_item_defs[t].ammo;
     w->model = cg_items[t].model;
   }
-
-  // health icons ordered by ascending threshold: <=25, <=75, <=100, >100
-  cg_health_icons[0] = cgi.LoadImage("pics/i_health_large", IMG_PIC);
-  cg_health_icons[1] = cgi.LoadImage("pics/i_health_medium", IMG_PIC);
-  cg_health_icons[2] = cgi.LoadImage("pics/i_health", IMG_PIC);
-  cg_health_icons[3] = cgi.LoadImage("pics/i_health_mega", IMG_PIC);
 }
 
 /**

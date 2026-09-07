@@ -237,7 +237,7 @@ static void warm(HudViewController *self) {
   }
 
   const char *pics[] = {
-    "pics/i_health_large", "pics/i_health_medium", "pics/i_health", "pics/i_health_mega"
+    "pics/health_large", "pics/health_medium", "pics/health", "pics/health_mega"
   };
 
   for (size_t i = 0; i < lengthof(pics); i++) {

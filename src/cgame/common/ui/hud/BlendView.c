@@ -29,11 +29,11 @@
 #define BLEND_PICKUP_TIME 600
 
 static const char *BlendViewFlashImages[BlendViewTotal] = {
-  "pics/bf_pickup",
-  "pics/bf_powerup_quad",
-  "pics/bf_powerup_invisibility",
-  "pics/bf_powerup_invulnerability",
-  "pics/bf_damage"
+  "pics/pickup",
+  "pics/powerup_quad",
+  "pics/powerup_invisibility",
+  "pics/powerup_invulnerability",
+  "pics/damage"
 };
 
 #pragma mark - Object
