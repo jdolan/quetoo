@@ -50,6 +50,8 @@ extern cvar_t *cg_draw_crosshair_scale;
 extern cvar_t *cg_draw_diagnostics;
 extern cvar_t *cg_draw_fps;
 extern cvar_t *cg_draw_hud;
+extern cvar_t *cg_draw_ping;
+extern cvar_t *cg_draw_ping_warn;
 extern cvar_t *cg_hud;
 extern cvar_t *cg_draw_target_name;
 extern cvar_t *cg_draw_weapon;

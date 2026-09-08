@@ -129,6 +129,8 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\OverlayText.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\PickupView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\PickupView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\hud\PingView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\hud\PingView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\PowerupView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\PowerupView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\ScoreView.c" />

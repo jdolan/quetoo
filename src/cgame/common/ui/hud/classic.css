@@ -197,6 +197,15 @@
   padding-bottom: 120;
 }
 
+#hud #ping {
+  alignment: bottom-right;
+  padding-bottom: 64;
+}
+
+#hud #ping .lagging {
+  color: #ff5c5c;
+}
+
 #hud DiagnosticsView {
   alignment: bottom-left;
   padding-bottom: 120;

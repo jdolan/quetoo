@@ -45,6 +45,8 @@ cvar_t *cg_draw_crosshair_scale;
 cvar_t *cg_draw_diagnostics;
 cvar_t *cg_draw_fps;
 cvar_t *cg_draw_hud;
+cvar_t *cg_draw_ping;
+cvar_t *cg_draw_ping_warn;
 cvar_t *cg_hud;
 cvar_t *cg_draw_target_name;
 cvar_t *cg_draw_weapon;
@@ -126,6 +128,8 @@ static void Cg_Init(void) {
   cg_draw_diagnostics = cgi.AddCvar("cg_draw_diagnostics", "0", CVAR_ARCHIVE, "Draw the client, renderer and sound counters on the HUD");
   cg_draw_fps = cgi.AddCvar("cg_draw_fps", "1", CVAR_ARCHIVE, "Draw the frame rate on the HUD");
   cg_draw_hud = cgi.AddCvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
+  cg_draw_ping = cgi.AddCvar("cg_draw_ping", "1", CVAR_ARCHIVE, "Draw the round trip time to the server on the HUD");
+  cg_draw_ping_warn = cgi.AddCvar("cg_draw_ping_warn", "200", CVAR_ARCHIVE, "The round trip time, in milliseconds, above which the ping is drawn as lagging");
   cg_hud = cgi.AddCvar("cg_hud", "classic", CVAR_ARCHIVE, "The HUD variant: a ui/hud/<name>.json and .css pair (Default is classic)");
   cg_draw_target_name = cgi.AddCvar("cg_draw_target_name", "1", CVAR_ARCHIVE, "Draw the target's name");
   cg_draw_weapon = cgi.AddCvar("cg_draw_weapon", "1", CVAR_ARCHIVE, "Toggle drawing of the weapon model.");

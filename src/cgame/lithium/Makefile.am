@@ -114,6 +114,7 @@ cgame_la_SOURCES = \
 	ui/hud/NavEditView.c \
 	ui/hud/OverlayText.c \
 	ui/hud/PickupView.c \
+	ui/hud/PingView.c \
 	ui/hud/PowerupView.c \
 	ui/hud/ScoreView.c \
 	ui/hud/ScoreboardView.c \
