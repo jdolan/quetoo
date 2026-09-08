@@ -422,22 +422,19 @@ no teleport sound, effects, or angle/velocity snap of any kind. Build matching b
 sides and give each portal in the pair its own accurate angle key: unlike trigger_teleporter,
 this entity's own facing matters as much as its target's, since it defines both the direction
 you must be moving to transit (facing away simply lets you walk back out) and the reference
-angle everything is rotated relative to. Requires two trigger_portal entities that target each
-other by targetname.
+angle everything is rotated relative to. A trigger_portal with no target of its own is inert (it
+generates no touch field at all) but can still be pointed at by another's target, making a
+one-way portal: give both entities a targetname and only the outgoing side a target to prevent
+transit back.
 
 -------- Keys --------
-target : The paired trigger_portal's targetname. Required.
+target : The paired trigger_portal's targetname. If unset, this entity is a one-way destination
+         only: it never transits anything itself.
 targetname : This portal's own name, for the paired portal to target.
 angle : This portal's own facing. Required; also determines the direction of travel that
         triggers a transit.
 */
 void G_trigger_portal(g_entity_t *ent) {
-
-  if (!ent->target) {
-    G_Debug("No target specified\n");
-    G_FreeEntity(ent);
-    return;
-  }
 
   if (!ent->model) {
     G_Debug("trigger_portal requires brushwork\n");
@@ -450,7 +447,10 @@ void G_trigger_portal(g_entity_t *ent) {
 
   gi.SetModel(ent, ent->model);
 
-  ent->Touch = G_trigger_portal_Touch;
+  // no target means this is a one-way destination only; leave it untouchable
+  if (ent->target) {
+    ent->Touch = G_trigger_portal_Touch;
+  }
 
   gi.LinkEntity(ent);
 }
