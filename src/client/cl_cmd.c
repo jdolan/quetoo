@@ -128,7 +128,7 @@ void Cl_SendCommands(void) {
 
   const uint32_t delta = quetoo.ticks - cls.net_chan.last_sent;
 
-  if (delta < 8) {
+  if (delta < 4) {
     return;
   }
 
