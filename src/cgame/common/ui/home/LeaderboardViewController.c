@@ -124,7 +124,7 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
   const char *dir  = (column && column->order == OrderAscending) ? "asc" : "desc";
 
   char url[512];
-  int n = q_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0", LEADERBOARD_MAX_ENTRIES);
+  int n = q_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=1", LEADERBOARD_MAX_ENTRIES);
   if (sort) {
     n += q_snprintf(url + n, sizeof(url) - n, "&sort=%s&dir=%s", sort, dir);
   }
