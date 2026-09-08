@@ -256,32 +256,48 @@
   alignment: middle-center;
 }
 
-#hud #notify {
-  alignment: top-left;
+/*
+ * The notify lines and the chat are siblings of #hud, so that they show through the
+ * intermission and with the HUD off; they take the layout inset themselves.
+ */
+
+NotifyView {
+  alignment: none;
+  left: 32;
+  top: 32;
+  font-family: Share Tech Mono;
+  font-style: regular;
+  font-size: 16;
 }
 
-#hud #chat {
+ChatView {
   alignment: bottom-left;
-  autoresizing-mask: contain;
-  axis: vertical;
-  padding-bottom: 240;
+  padding-left: 32;
+  padding-bottom: 272;
   spacing: 4;
 }
 
-#hud #chat TextView {
+ChatView ConsoleText {
+  font-family: Share Tech Mono;
+  font-style: regular;
+  font-size: 16;
+}
+
+ChatView TextView {
   background-color: #08151aaa;
   border-color: #8fc7dc;
   border-width: 1;
   min-width: 480;
 }
 
-#hud #chat TextView.team {
+ChatView TextView.team {
   border-color: #ffd75c;
 }
 
-#hud #chat TextView > Text {
+ChatView TextView > Text {
   font-family: Share Tech Mono;
   font-style: regular;
+  font-size: 16;
 }
 
 #hud #targetName {

@@ -24,8 +24,10 @@
 #include <ObjectivelyMVC/AtlasImage.h>
 #include <ObjectivelyMVC/ViewController.h>
 
+#include "ChatView.h"
 #include "DiagnosticsView.h"
 #include "NavEditView.h"
+#include "NotifyView.h"
 #include "ScoreboardView.h"
 
 #include "cg_types.h"
@@ -73,6 +75,13 @@ struct HudViewController {
    * @brief The navigation edit instructions, shown in place of `hud` while editing.
    */
   NavEditView *navEdit;
+
+  /**
+   * @brief The notify lines and the chat, siblings of `hud` so that they outlive it through the
+   * intermission and with the HUD off, as the scoreboard does.
+   */
+  NotifyView *notify;
+  ChatView *chat;
 
   /**
    * @brief The diagnostics table, added to each variant's layout and shown while

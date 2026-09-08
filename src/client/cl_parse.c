@@ -389,13 +389,15 @@ static void Cl_ShowNet(const char *s) {
 }
 
 /**
- * @brief Parses a complete server message, dispatching each command to its handler.
- */
-/**
  * @brief Folds the latency of the acknowledged command and any dropped packets into the
- * client's ping and drop counters.
+ * client's ping and drop counters. Only movement commands carry a timestamp, so nothing is
+ * measured until the client is active.
  */
 static void Cl_UpdateNetStats(void) {
+
+  if (cls.state != CL_ACTIVE) {
+    return;
+  }
 
   cl.dropped += cls.net_chan.dropped;
 
@@ -405,6 +407,9 @@ static void Cl_UpdateNetStats(void) {
   cl.ping = cl.ping ? (cl.ping * 7 + rtt) / 8 : rtt;
 }
 
+/**
+ * @brief Parses a complete server message, dispatching each command to its handler.
+ */
 void Cl_ParseServerMessage(void) {
   int32_t cmd, old_cmd;
 

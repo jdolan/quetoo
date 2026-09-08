@@ -58,6 +58,8 @@ static void dealloc(Object *self) {
   release(this->hud);
   release(this->scoreboard);
   release(this->navEdit);
+  release(this->notify);
+  release(this->chat);
   release(this->diagnostics);
   release(this->images);
 
@@ -120,6 +122,16 @@ static void loadView(ViewController *self) {
   assert(this->navEdit);
 
   $(view, addSubview, (View *) this->navEdit);
+
+  this->notify = (NotifyView *) $((View *) alloc(NotifyView), init);
+  assert(this->notify);
+
+  $(view, addSubview, (View *) this->notify);
+
+  this->chat = (ChatView *) $((View *) alloc(ChatView), init);
+  assert(this->chat);
+
+  $(view, addSubview, (View *) this->chat);
 
   this->diagnostics = (DiagnosticsView *) $((View *) alloc(DiagnosticsView), init);
   assert(this->diagnostics);
@@ -215,8 +227,10 @@ static void reload(HudViewController *self) {
 
   hud->autoresizingMask = ViewAutoresizingFill;
 
-  // beneath the scoreboard
+  // beneath the notify lines, the chat, the scoreboard and the nav edit
   $(self->viewController.view, addSubview, hud);
+  $(self->viewController.view, bringSubviewToFront, (View *) self->notify);
+  $(self->viewController.view, bringSubviewToFront, (View *) self->chat);
   $(self->viewController.view, bringSubviewToFront, (View *) self->scoreboard);
   $(self->viewController.view, bringSubviewToFront, (View *) self->navEdit);
   self->hud = hud;
@@ -285,6 +299,8 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
   const player_state_t *ps = &frame->ps;
 
   $((View *) self->navEdit, updateBindings, (ident) frame);
+  $((View *) self->notify, updateBindings, (ident) frame);
+  $((View *) self->chat, updateBindings, (ident) frame);
 
   // The scoreboard outlives the HUD: it shows through the intermission, and with the HUD off.
   // Only what shows takes the frame, since some elements trace the world to fill themselves in.

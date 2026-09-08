@@ -58,7 +58,9 @@ static void updateBindings(View *self, ident data) {
     const uint32_t now = (uint32_t) SDL_GetTicks();
     const uint32_t millis = cg_notify_time->value * 1000;
 
-    this->console.whence = Maxi(now - millis, cg_hud_state.clear_time);
+    const uint32_t since = now > millis ? now - millis : 0;
+
+    this->console.whence = since > cg_hud_state.clear_time ? since : cg_hud_state.clear_time;
 
     $(this, tail, self->superview->frame.w, lines);
   }

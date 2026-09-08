@@ -59,7 +59,10 @@ static void didEndEditing(TextView *textView) {
     const SDL_Keymod mods = SDL_GetModState();
     const bool team = cg_hud_state.chat.team || (mods & (SDL_KMOD_SHIFT | SDL_KMOD_CTRL));
 
-    cgi.Cbuf(va("%s %s^7\n", team ? "say_team" : "say", line));
+    char command[MAX_PRINT_MSG];
+    q_snprintf(command, sizeof(command), "%s %.*s^7\n", team ? "say_team" : "say", MAX_PRINT_MSG - 32, line);
+
+    cgi.Cbuf(command);
   }
 
   cgi.SetKeyDest(KEY_GAME);
@@ -151,7 +154,9 @@ static void updateBindings(View *self, ident data) {
     const uint32_t now = (uint32_t) SDL_GetTicks();
     const uint32_t millis = cg_chat_time->value * 1000;
 
-    this->history->console.whence = typing ? cg_hud_state.clear_time : Maxi(now - millis, cg_hud_state.clear_time);
+    const uint32_t since = typing || now < millis ? 0 : now - millis;
+
+    this->history->console.whence = since > cg_hud_state.clear_time ? since : cg_hud_state.clear_time;
 
     $(this->history, tail, self->superview->frame.w / 3, lines);
   }
