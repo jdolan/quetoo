@@ -70,7 +70,6 @@ static const g_entity_class_t g_entity_classes[] = {
 
   { "misc_teleporter", G_misc_teleporter },
   { "misc_teleporter_dest", G_misc_teleporter_dest },
-  { "misc_portal", G_misc_portal },
   { "misc_fireball", G_misc_fireball },
 
   { "path_corner", G_info_notnull },
@@ -84,6 +83,7 @@ static const g_entity_class_t g_entity_classes[] = {
   { "trigger_hurt", G_trigger_hurt },
   { "trigger_multiple", G_trigger_multiple },
   { "trigger_once", G_trigger_once },
+  { "trigger_portal", G_trigger_portal },
   { "trigger_push", G_trigger_push },
   { "trigger_relay", G_trigger_relay },
   { "trigger_teleporter", G_misc_teleporter },
