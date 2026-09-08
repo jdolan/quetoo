@@ -53,29 +53,6 @@ static void addRow(DiagnosticsView *self, const char *name, const char *fmt, ...
 }
 
 /**
- * @brief Appends the current value and the min and max over the sample window.
- */
-static void addCounterRow(DiagnosticsView *self, const char *name, const uint16_t *samples) {
-
-  const cl_client_t *cl = cgi.client;
-
-  uint16_t min = samples[cl->sample_index], max = min;
-
-  for (uint32_t i = 0; i < cl->sample_count; i++) {
-    int32_t index = cl->sample_index - i;
-
-    if (index < 0) {
-      index += STAT_COUNTER_SAMPLE_COUNT;
-    }
-
-    min = Mini(min, samples[index]);
-    max = Maxi(max, samples[index]);
-  }
-
-  addRow(self, name, "%u (%u - %u)", samples[cl->sample_index], min, max);
-}
-
-/**
  * @brief Rebuilds the rows from the client, the view and the stage.
  */
 static void refresh(DiagnosticsView *self, const cl_frame_t *frame) {
@@ -104,7 +81,7 @@ static void refresh(DiagnosticsView *self, const cl_frame_t *frame) {
   }
 
   addRow(self, "fps", "%d", self->fps);
-  addCounterRow(self, "pps", cl->packet_counter);
+  addRow(self, "pps", "%d", self->pps);
   addRow(self, "ping", "%u ms", cl->ping);
   addRow(self, "dropped", "%u", cl->dropped);
 
@@ -204,11 +181,11 @@ static void updateBindings(View *self, ident data) {
     if (now - this->time >= 1000) {
       this->fps = this->frames;
       this->frames = 0;
-      this->time = now;
 
-      cl->sample_index = (cl->sample_index + 1) % STAT_COUNTER_SAMPLE_COUNT;
-      cl->sample_count = Mini(STAT_COUNTER_SAMPLE_COUNT, cl->sample_count + 1);
-      cl->packet_counter[cl->sample_index] = 0;
+      this->pps = cl->packets;
+      cl->packets = 0;
+
+      this->time = now;
     }
 
     if (now - this->refresh_time >= DIAGNOSTICS_REFRESH_INTERVAL) {

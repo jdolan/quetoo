@@ -39,6 +39,7 @@ typedef struct DiagnosticsViewInterface DiagnosticsViewInterface;
  * @brief A two column table of counters: the player's position and speed, the frame, packet
  * and network rates, the view's draw statistics and the stage's channel count.
  * @details Shown only while `cg_draw_diagnostics` is set, and refreshed a few times a second.
+ * The packet rate is the client's `packets` count, which this view reads and clears each second.
  * @extends TableView
  */
 struct DiagnosticsView {
@@ -68,9 +69,9 @@ struct DiagnosticsView {
   size_t num_rows;
 
   /**
-   * @brief Frames since `time`, the last frame rate, and when the rate last rolled over.
+   * @brief Frames since `time`, the last frame and packet rates, and when they last rolled over.
    */
-  int32_t frames, fps;
+  int32_t frames, fps, pps;
   uint32_t time;
 
   /**

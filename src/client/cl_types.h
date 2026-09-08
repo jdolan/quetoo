@@ -306,16 +306,6 @@ typedef struct {
 #define ENTITY_STATE_MASK (ENTITY_STATE_BACKUP - 1)
 
 /**
- * @brief How many samples to keep of frame/packet counts.
- */
-#define STAT_COUNTER_SAMPLE_COUNT 20
-
-/**
- * @brief How many samples to keep of frametimes.
- */
-#define FRAMETIME_COUNTER_SAMPLE_COUNT 1024
-
-/**
  * @brief The client structure is cleared at each level load, and is exposed to
  * the client game module to provide access to media and other client state.
  */
@@ -332,14 +322,9 @@ typedef struct {
   uint32_t time_demo_start;
 
   /**
-   * @brief Circular sample buffer of packets-per-second counts.
+   * @brief Packets sent since the diagnostics last read and cleared it.
    */
-  uint16_t packet_counter[STAT_COUNTER_SAMPLE_COUNT];
-
-  /**
-   * @brief Current write index and valid sample count for the stat counters.
-   */
-  uint8_t sample_index, sample_count;
+  uint32_t packets;
 
   /**
    * @brief Smoothed round trip time to the server, in milliseconds.
