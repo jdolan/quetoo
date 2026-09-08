@@ -195,7 +195,7 @@ static void update(ConsoleView *self, int32_t height) {
     return;
   }
 
-  cl_console.width = frame.w / ch.w;
+  cl_console.width = Maxi(frame.w / ch.w, 2);
   cl_console.height = Maxi(height / ch.h - 1, 0);
 
   if (view->frame.h != height) {
