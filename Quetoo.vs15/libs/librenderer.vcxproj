@@ -83,8 +83,6 @@
     <None Include="..\..\src\client\renderer\shaders\common.glsl" />
     <None Include="..\..\src\client\renderer\shaders\depth_pass_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\depth_pass_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\draw_2d_fs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\draw_2d_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_3d_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\draw_3d_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\material.glsl" />

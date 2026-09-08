@@ -8,8 +8,6 @@ shaders_DATA = \
 	decal_vs.glsl \
 	depth_pass_fs.glsl \
 	depth_pass_vs.glsl \
-	draw_2d_fs.glsl \
-	draw_2d_vs.glsl \
 	draw_3d_fs.glsl \
 	draw_3d_vs.glsl \
 	light.glsl \
@@ -41,8 +39,8 @@ shaders_DATA = \
 # Vulkan and Metal are exercised. The committed .dxil blobs are retained
 # because ObjectivelyGPU resolves that extension for a D3D12 device.
 
-VERTEX_SHADERS = depth_pass_vs draw_2d_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs shadow_clear_vs sky_vs sprite_vs decal_vs occlude_vs
-FRAGMENT_SHADERS = depth_pass_fs draw_2d_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs shadow_clear_fs sky_fs sprite_fs decal_fs
+VERTEX_SHADERS = depth_pass_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs shadow_clear_vs sky_vs sprite_vs decal_vs occlude_vs
+FRAGMENT_SHADERS = depth_pass_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs shadow_clear_fs sky_fs sprite_fs decal_fs
 
 # Fragment shaders with an ALPHA_TEST compile-time variant due to the implications of discard.
 ALPHA_TEST_FRAGMENT_SHADERS = bsp_fs mesh_fs shadow_fs

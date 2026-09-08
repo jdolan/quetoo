@@ -24,12 +24,6 @@
     <None Include="..\..\src\client\renderer\shaders\depth_pass_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\draw_2d_fs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
-    <None Include="..\..\src\client\renderer\shaders\draw_2d_vs.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
     <None Include="..\..\src\client\renderer\shaders\draw_3d_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>

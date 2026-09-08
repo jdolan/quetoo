@@ -429,8 +429,6 @@
 		CE1643672FF5A23300863996 /* bsp_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643512FF5A1E400863996 /* bsp_vs.metal */; };
 		CE16436D2FF5A23300863996 /* depth_pass_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643532FF5A1E400863996 /* depth_pass_fs.metal */; };
 		CE1643702FF5A23300863996 /* depth_pass_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643552FF5A1E400863996 /* depth_pass_vs.metal */; };
-		CE1643742FF5A23300863996 /* draw_2d_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643572FF5A1E400863996 /* draw_2d_fs.metal */; };
-		CE1643772FF5A23300863996 /* draw_2d_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643592FF5A1E400863996 /* draw_2d_vs.metal */; };
 		CE16437A2FF5A23300863996 /* draw_3d_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16435B2FF5A1E400863996 /* draw_3d_fs.metal */; };
 		CE16437D2FF5A23300863996 /* draw_3d_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16435D2FF5A1E400863996 /* draw_3d_vs.metal */; };
 		CE1643842FF5A23300863996 /* post_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE16435F2FF5A1E400863996 /* post_fs.metal */; };
@@ -1813,8 +1811,6 @@
 				CE1643CB2FF7EEA100863996 /* decal_vs.metal in CopyFiles */,
 				CE16436D2FF5A23300863996 /* depth_pass_fs.metal in CopyFiles */,
 				CE1643702FF5A23300863996 /* depth_pass_vs.metal in CopyFiles */,
-				CE1643742FF5A23300863996 /* draw_2d_fs.metal in CopyFiles */,
-				CE1643772FF5A23300863996 /* draw_2d_vs.metal in CopyFiles */,
 				CE16437A2FF5A23300863996 /* draw_3d_fs.metal in CopyFiles */,
 				CE16437D2FF5A23300863996 /* draw_3d_vs.metal in CopyFiles */,
 				CE1643A32FF69B3C00863996 /* mesh_fs.metal in CopyFiles */,
@@ -2374,8 +2370,6 @@
 		CE1643512FF5A1E400863996 /* bsp_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = bsp_vs.metal; sourceTree = "<group>"; };
 		CE1643532FF5A1E400863996 /* depth_pass_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = depth_pass_fs.metal; sourceTree = "<group>"; };
 		CE1643552FF5A1E400863996 /* depth_pass_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = depth_pass_vs.metal; sourceTree = "<group>"; };
-		CE1643572FF5A1E400863996 /* draw_2d_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = draw_2d_fs.metal; sourceTree = "<group>"; };
-		CE1643592FF5A1E400863996 /* draw_2d_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = draw_2d_vs.metal; sourceTree = "<group>"; };
 		CE16435B2FF5A1E400863996 /* draw_3d_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = draw_3d_fs.metal; sourceTree = "<group>"; };
 		CE16435D2FF5A1E400863996 /* draw_3d_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = draw_3d_vs.metal; sourceTree = "<group>"; };
 		CE16435F2FF5A1E400863996 /* post_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = post_fs.metal; sourceTree = "<group>"; };
@@ -2501,8 +2495,6 @@
 		CE354EDA220738BF008AE0C2 /* atlas.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = atlas.c; sourceTree = "<group>"; };
 		CE354EEE22075054008AE0C2 /* check_atlas.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_atlas.c; sourceTree = "<group>"; };
 		CE354EFE22075132008AE0C2 /* check_atlas */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_atlas; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = draw_2d_fs.glsl; sourceTree = "<group>"; };
-		CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = draw_2d_vs.glsl; sourceTree = "<group>"; };
 		CE3C529221E4DF2500FEDBED /* cm_polylib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cm_polylib.h; sourceTree = "<group>"; };
 		CE3C529321E4DF2500FEDBED /* cm_polylib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cm_polylib.c; sourceTree = "<group>"; };
 		CE3CFB6B25A10AAC003D6148 /* cl_renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cl_renderer.h; sourceTree = "<group>"; };
@@ -3780,10 +3772,6 @@
 				CE1643532FF5A1E400863996 /* depth_pass_fs.metal */,
 				CE2CEC1C25852FA20001E599 /* depth_pass_vs.glsl */,
 				CE1643552FF5A1E400863996 /* depth_pass_vs.metal */,
-				CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */,
-				CE1643572FF5A1E400863996 /* draw_2d_fs.metal */,
-				CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */,
-				CE1643592FF5A1E400863996 /* draw_2d_vs.metal */,
 				CED5BB182406B74300784D93 /* draw_3d_fs.glsl */,
 				CE16435B2FF5A1E400863996 /* draw_3d_fs.metal */,
 				CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */,
