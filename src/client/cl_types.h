@@ -442,11 +442,6 @@ typedef struct {
   r_model_t *models[MAX_MODELS];
 
   /**
-   * @brief Renderer images resolved from `config_strings`.
-   */
-  r_image_t *images[MAX_IMAGES];
-
-  /**
    * @brief Sound samples resolved from `config_strings`.
    */
   s_sample_t *sounds[MAX_SOUNDS];

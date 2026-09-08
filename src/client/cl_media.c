@@ -176,38 +176,6 @@ static void Cl_LoadModels(void) {
 }
 
 /**
- * @brief `Fs_Enumerator` to load all emoji into the images atlas.
- */
-static void Cl_LoadImages_Emoji(const char *path, void *data) {
-  R_LoadAtlasImage((r_atlas_t *) data, path, IMG_PIC);
-}
-
-/**
- * @brief Loads all images, the sky, and compiles the emoji image atlas.
- */
-static void Cl_LoadImages(void) {
-
-  Cl_LoadingProgress(-1, "compiling image atlas");
-
-  r_atlas_t *atlas = R_LoadAtlas("images");
-  Fs_Enumerate("pics/emoji/*", Cl_LoadImages_Emoji, atlas);
-
-  for (int32_t i = 0; i < MAX_IMAGES; i++) {
-
-    const char *str = cl.config_strings[CS_IMAGES + i];
-    if (*str == 0) {
-      break;
-    }
-
-    cl.images[i] = (r_image_t *) R_LoadAtlasImage(atlas, str, IMG_PIC);
-  }
-
-  Cl_LoadingProgress(-1, "compiling image atlas");
-
-  R_CompileAtlas(atlas);
-}
-
-/**
  * @brief Loads all sound samples listed in the current config strings.
  */
 static void Cl_LoadSounds(void) {
@@ -299,7 +267,6 @@ void Cl_LoadMedia(void) {
 
   Cl_LoadModels();
 
-  Cl_LoadImages();
 
   S_Stop();
 
