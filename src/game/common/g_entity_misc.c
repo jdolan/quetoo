@@ -25,6 +25,7 @@
 /**
  * @brief Handles touch events on a `misc_teleporter`, warping the touching entity to the destination.
  */
+
 static void G_misc_teleporter_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
 #if defined(G_HOOK)
@@ -233,6 +234,131 @@ void G_misc_teleporter(g_entity_t *ent) {
  */
 void G_misc_teleporter_dest(g_entity_t *ent) {
   G_InitPlayerSpawn(ent);
+}
+
+/**
+ * @brief Rotates a vector's X/Y components about the Z axis by the given yaw, in degrees.
+ */
+static vec3_t Vec3_RotateYaw(const vec3_t v, float yaw) {
+  const float rad = Radians(yaw);
+  const float c = cosf(rad), s = sinf(rad);
+
+  return Vec3(v.x * c - v.y * s, v.x * s + v.y * c, v.z);
+}
+
+/**
+ * @brief Handles touch events on a `misc_portal`. Unlike `misc_teleporter`, this fires on
+ * every frame the toucher overlaps the volume (there is no single "moment" of transit), and
+ * carries the toucher's full position, velocity and view through to the paired portal, rotated
+ * by the delta between the two portals' own facings. Walking through one frame at a time this
+ * way, rather than snapping to a fixed destination point, is what makes the crossing
+ * imperceptible: the mapper builds matching geometry on both sides, and the player simply never
+ * stops moving.
+ */
+static void G_misc_portal_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+
+#if defined(G_HOOK)
+  if (other->owner && other->owner->client &&
+      other->owner->client->hook.entity == other) {
+    G_HookDetach(other->owner->client);
+    return;
+  }
+#endif
+
+  if (!G_IsMeat(other) && other->solid != SOLID_PROJECTILE) {
+    return;
+  }
+
+#if defined(G_HOOK)
+  if (other->client && other->client->hook.entity) {
+    G_HookDetach(other->client);
+  }
+#endif
+
+  const g_entity_t *dest = G_Find(NULL, EOFS(target_name), ent->target);
+
+  if (!dest) {
+    G_Warn("Couldn't find destination\n");
+    return;
+  }
+
+  // only transit while moving with this portal's own facing; this keeps a toucher who is
+  // standing still or backing away from being repeatedly dragged through, and lets a player
+  // who turns around mid-crossing simply walk back out the way they came
+  vec3_t forward;
+  Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
+
+  if (Vec3_Dot(other->velocity, forward) <= 0.0) {
+    return;
+  }
+
+  const float yaw_delta = dest->s.angles.y - ent->s.angles.y;
+
+  // carry the toucher's full position within this portal's volume through to the paired
+  // portal, rotated by the facing delta between them, instead of snapping to a fixed point
+  const vec3_t offset = Vec3_Subtract(other->s.origin, Box3_Center(ent->abs_bounds));
+  const vec3_t rotated_offset = Vec3_RotateYaw(offset, yaw_delta);
+
+  other->s.origin = Vec3_Add(Box3_Center(dest->abs_bounds), rotated_offset);
+  other->velocity = Vec3_RotateYaw(other->velocity, yaw_delta);
+
+  if (other->client) {
+    vec3_t view_angles = other->client->ps.pm_state.view_angles;
+    view_angles.y += yaw_delta;
+
+    other->client->ps.pm_state.view_angles = view_angles;
+    other->client->ps.pm_state.delta_angles = Vec3_Zero();
+    other->client->angles = view_angles;
+
+    Vec3_Vectors(other->client->angles, &other->client->forward, &other->client->right, &other->client->up);
+
+    gi.WriteByte(SV_CMD_SNAP_ANGLES);
+    gi.WriteAngles(view_angles);
+    gi.Unicast(other->client, true);
+  } else {
+    other->s.angles.y += yaw_delta;
+  }
+
+  gi.LinkEntity(other);
+}
+
+/*QUAKED misc_portal (1 0 0.5) ? PORTAL_TWO_WAY
+Continuously carries anything that walks through this volume to the paired misc_portal, with no
+teleport sound, effects, or angle/velocity snap of any kind. Build matching brushwork on both
+sides and give each portal in the pair its own accurate angle key: unlike misc_teleporter, this
+entity's own facing matters as much as its target's, since it defines both the direction you
+must be moving to transit (facing away simply lets you walk back out) and the reference angle
+everything is rotated relative to. Requires two misc_portal entities that target each other by
+targetname.
+
+-------- Keys --------
+target : The paired misc_portal's targetname. Required.
+targetname : This portal's own name, for the paired portal to target.
+angle : This portal's own facing. Required; also determines the direction of travel that
+        triggers a transit.
+*/
+void G_misc_portal(g_entity_t *ent) {
+
+  if (!ent->target) {
+    G_Debug("No target specified\n");
+    G_FreeEntity(ent);
+    return;
+  }
+
+  if (!ent->model) {
+    G_Debug("misc_portal requires brushwork\n");
+    G_FreeEntity(ent);
+    return;
+  }
+
+  ent->solid = SOLID_TRIGGER;
+  ent->move_type = MOVE_TYPE_NONE;
+
+  gi.SetModel(ent, ent->model);
+
+  ent->Touch = G_misc_portal_Touch;
+
+  gi.LinkEntity(ent);
 }
 
 /**

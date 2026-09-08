@@ -70,6 +70,7 @@ static const g_entity_class_t g_entity_classes[] = {
 
   { "misc_teleporter", G_misc_teleporter },
   { "misc_teleporter_dest", G_misc_teleporter_dest },
+  { "misc_portal", G_misc_portal },
   { "misc_fireball", G_misc_fireball },
 
   { "path_corner", G_info_notnull },
