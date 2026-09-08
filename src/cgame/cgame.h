@@ -31,12 +31,13 @@
 #endif
 
 #include "client/cl_types.h"
+#include "common/console.h"
 #include "common/installer.h"
 #include <Objectively/PointerArray.h>
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 42
+#define CGAME_API_VERSION 43
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -342,6 +343,16 @@ typedef struct cg_import_s {
    * @brief Appends the specified string to the command buffer.
    */
   void (*Cbuf)(const char *s);
+
+  /**
+   * @brief Collects the most recent console lines matching the given console's `level`,
+   * `whence` and `scroll`, wrapped to its `width`.
+   * @param console The console filter.
+   * @param lines The array to receive the lines, which the caller MUST free with `Free`.
+   * @param max_lines The capacity of `lines`.
+   * @return The count of lines collected.
+   */
+  size_t (*Tail)(const console_t *console, char **lines, size_t max_lines);
 
   /**
    * @}

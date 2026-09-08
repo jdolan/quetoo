@@ -221,6 +221,7 @@ void Cl_InitCgame(void) {
   import.ToggleCvar = Cvar_Toggle;
   import.AddCmd = Cmd_Add;
   import.Cbuf = Cbuf_AddText;
+  import.Tail = Con_Tail;
 
   import.Theme = Ui_Theme;
   import.TopViewController = Ui_TopViewController;
