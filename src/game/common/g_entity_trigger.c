@@ -341,6 +341,14 @@ static vec3_t Vec3_RotateYaw(const vec3_t v, float yaw) {
 }
 
 /**
+ * @brief The reference point for a `trigger_portal`'s position math: the centroid of the
+ * common/portal face quemap baked in at compile time.
+ */
+static vec3_t G_trigger_portal_Origin(const g_entity_t *ent) {
+  return gi.EntityValue(ent->def, "portal_origin")->vec3;
+}
+
+/**
  * @brief Handles touch events on a `trigger_portal`. Unlike `trigger_teleporter`, this fires on
  * every frame the toucher overlaps the volume (there is no single "moment" of transit), and
  * carries the toucher's full position, velocity and view through to the paired portal, rotated
@@ -390,10 +398,10 @@ static void G_trigger_portal_Touch(g_entity_t *ent, g_entity_t *other, const cm_
 
   // carry the toucher's full position within this portal's volume through to the paired
   // portal, rotated by the facing delta between them, instead of snapping to a fixed point
-  const vec3_t offset = Vec3_Subtract(other->s.origin, Box3_Center(ent->abs_bounds));
+  const vec3_t offset = Vec3_Subtract(other->s.origin, G_trigger_portal_Origin(ent));
   const vec3_t rotated_offset = Vec3_RotateYaw(offset, yaw_delta);
 
-  other->s.origin = Vec3_Add(Box3_Center(dest->abs_bounds), rotated_offset);
+  other->s.origin = Vec3_Add(G_trigger_portal_Origin(dest), rotated_offset);
   other->velocity = Vec3_RotateYaw(other->velocity, yaw_delta);
 
   if (other->client) {
@@ -418,26 +426,32 @@ static void G_trigger_portal_Touch(g_entity_t *ent, g_entity_t *other, const cm_
 
 /*QUAKED trigger_portal (.5 .5 .5) ?
 Continuously carries anything that walks through this volume to the paired trigger_portal, with
-no teleport sound, effects, or angle/velocity snap of any kind. Build matching brushwork on both
-sides and give each portal in the pair its own accurate angle key: unlike trigger_teleporter,
-this entity's own facing matters as much as its target's, since it defines both the direction
-you must be moving to transit (facing away simply lets you walk back out) and the reference
-angle everything is rotated relative to. A trigger_portal with no target of its own is inert (it
-generates no touch field at all) but can still be pointed at by another's target, making a
-one-way portal: give both entities a targetname and only the outgoing side a target to prevent
-transit back.
+no teleport sound, effects, or angle/velocity snap of any kind. Requires one face of the brush
+textured common/portal: the compiler bakes that face's own centroid and outward normal in as
+this entity's position and facing (there is no angle key to set by hand - the two must never be
+allowed to drift out of sync, so the face is authoritative). Build matching brushwork on both
+sides of the pair; this entity's own facing matters as much as its target's, since it defines
+both the direction you must be moving to transit (facing away simply lets you walk back out)
+and the reference angle everything is rotated relative to. A trigger_portal with no target of
+its own is inert (it generates no touch field at all) but can still be pointed at by another's
+target, making a one-way portal: give both entities a targetname and only the outgoing side a
+target to prevent transit back.
 
 -------- Keys --------
 target : The paired trigger_portal's targetname. If unset, this entity is a one-way destination
          only: it never transits anything itself.
 targetname : This portal's own name, for the paired portal to target.
-angle : This portal's own facing. Required; also determines the direction of travel that
-        triggers a transit.
 */
 void G_trigger_portal(g_entity_t *ent) {
 
   if (!ent->model) {
     G_Debug("trigger_portal requires brushwork\n");
+    G_FreeEntity(ent);
+    return;
+  }
+
+  if (!(gi.EntityValue(ent->def, "portal_origin")->parsed & ENTITY_VEC3)) {
+    G_Debug("trigger_portal requires a common/portal face\n");
     G_FreeEntity(ent);
     return;
   }

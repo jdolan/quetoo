@@ -432,6 +432,8 @@ static void SetMaterialFlags(brush_side_t *side) {
     side->contents |= CONTENTS_MONSTER_CLIP;
   } else if (!q_strcmp(side->texture, "common/origin")) {
     side->contents |= CONTENTS_ORIGIN;
+  } else if (!q_strcmp(side->texture, "common/portal")) {
+    side->surface |= SURF_NO_DRAW;
   } else if (!q_strcmp(side->texture, "common/skip")) {
     side->surface |= SURF_SKIP;
   } else if (!q_strcmp(side->texture, "common/sky")) {
@@ -685,6 +687,36 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
   if (!brush->num_brush_sides) {
     return brush;
+  }
+
+  // a face textured common/portal marks the entity as a portal: its centroid and outward
+  // normal are baked into portal_origin and angle, authoritatively - overwriting any angle
+  // the mapper set by hand, since the two must never be allowed to drift out of sync. The
+  // face itself is kept - unlike an origin brush, this is a real face of the entity's own
+  // solid, not a separate marker brush to be discarded.
+  if (brush->entity != 0) {
+    const brush_side_t *side = brush->brush_sides;
+    for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
+      if (side->surface & SURF_BEVEL) {
+        continue;
+      }
+      if (q_strcmp(side->texture, "common/portal")) {
+        continue;
+      }
+
+      if (ValueForKey(entity, "portal_origin", NULL)) {
+        Com_Warn("Entity %d brush %d: Duplicate common/portal face, ignoring\n", brush->entity, brush->brush);
+        break;
+      }
+
+      const vec3_t center = Cm_WindingCenter(side->winding);
+      SetValueForKey(entity, "portal_origin", va("%g %g %g", center.x, center.y, center.z));
+
+      const vec3_t normal = planes[side->plane].normal;
+      const float yaw = Degrees(atan2f(normal.y, normal.x));
+      SetValueForKey(entity, "angle", va("%g", yaw));
+      break;
+    }
   }
 
   // origin brushes are removed, but they set the rotation origin for the rest of the brushes
