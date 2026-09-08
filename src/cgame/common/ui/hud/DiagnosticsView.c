@@ -123,13 +123,6 @@ static void refresh(DiagnosticsView *self, const cl_frame_t *frame) {
   addRow(self, "decals", "%d draws", r->decal_draw_elements);
 
   addRow(self, "sound", "%d channels, reverb %.2f", s->num_channels, s->reverb);
-
-  for (int32_t i = 0; i < s->num_channels; i++) {
-    const s_stage_channel_t *c = &s->channels[i];
-
-    addRow(self, va("channel %d", i), "%s (%.0f %.0f %.0f) %d %.2f",
-           c->name, c->origin.x, c->origin.y, c->origin.z, c->flags, c->occlusion);
-  }
 }
 
 #pragma mark - TableViewDataSource

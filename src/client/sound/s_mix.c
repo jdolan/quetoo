@@ -180,7 +180,6 @@ void S_MixChannels(s_stage_t *stage) {
 
   s_context.num_active_channels = 0;
 
-  stage->stats.num_channels = 0;
   stage->stats.reverb = s_context.reverb;
 
   s_channel_t *ch = s_context.channels;
@@ -269,13 +268,9 @@ void S_MixChannels(s_stage_t *stage) {
     S_GetError(ch->play.sample->media.name);
 
     s_context.num_active_channels++;
-
-    s_stage_channel_t *sc = &stage->stats.channels[stage->stats.num_channels++];
-    q_strlcpy(sc->name, ch->play.sample->media.name, sizeof(sc->name));
-    sc->origin = ch->play.origin;
-    sc->flags = ch->play.flags;
-    sc->occlusion = ch->occlusion;
   }
+
+  stage->stats.num_channels = s_context.num_active_channels;
 
   s_context.prev_ticks = stage->ticks;
 }

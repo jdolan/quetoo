@@ -365,43 +365,12 @@ typedef struct {
 } s_context_t;
 
 /**
- * @brief A summary of one playing channel, for diagnostics.
- */
-typedef struct {
-
-  /**
-   * @brief The sample name.
-   */
-  char name[MAX_QPATH];
-
-  /**
-   * @brief The channel origin.
-   */
-  vec3_t origin;
-
-  /**
-   * @brief The play flags.
-   */
-  int32_t flags;
-
-  /**
-   * @brief The occlusion mix fraction.
-   */
-  float occlusion;
-} s_stage_channel_t;
-
-/**
  * @brief Sound statistics, written by the sound module for each rendered stage.
  */
 typedef struct {
 
   /**
-   * @brief The channels playing after the stage was mixed.
-   */
-  s_stage_channel_t channels[MAX_CHANNELS];
-
-  /**
-   * @brief The count of playing channels.
+   * @brief The count of channels playing after the stage was mixed.
    */
   int32_t num_channels;
 

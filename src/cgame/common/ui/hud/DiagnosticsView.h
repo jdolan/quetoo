@@ -30,14 +30,14 @@
 
 #define DIAGNOSTICS_ROW_NAME 32
 #define DIAGNOSTICS_ROW_VALUE 96
-#define DIAGNOSTICS_MAX_ROWS (32 + MAX_CHANNELS)
+#define DIAGNOSTICS_MAX_ROWS 32
 
 typedef struct DiagnosticsView DiagnosticsView;
 typedef struct DiagnosticsViewInterface DiagnosticsViewInterface;
 
 /**
  * @brief A two column table of counters: the player's position and speed, the frame, packet
- * and network rates, the view's draw statistics and the stage's playing channels.
+ * and network rates, the view's draw statistics and the stage's channel count.
  * @details Shown only while `cg_draw_diagnostics` is set, and refreshed a few times a second.
  * @extends TableView
  */
