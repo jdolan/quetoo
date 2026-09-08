@@ -304,14 +304,15 @@ static void Sv_Connect_f(void) {
     return;
   }
 
-  // parse some info from the info strings
+  Netchan_Setup(NS_UDP_SERVER, &client->net_chan, addr, qport);
+
+  // Sv_UserInfoChanged refuses an ip and forces the client's own, so drop ours
   q_strlcpy(client->user_info, user_info, sizeof(client->user_info));
+  InfoString_Delete(client->user_info, "ip");
   Sv_UserInfoChanged(client);
 
   // send the connect packet to the client
   Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "client_connect");
-
-  Netchan_Setup(NS_UDP_SERVER, &client->net_chan, addr, qport);
 
   Mem_InitBuffer(&client->datagram.buffer, client->datagram.data, sizeof(client->datagram.data));
 
