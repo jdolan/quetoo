@@ -22,21 +22,9 @@
 #include "cl_local.h"
 
 console_t cl_console;
-console_t cl_chat_console;
-
-console_t cl_notify_console;
 
 cvar_t *cl_console_height;
 cvar_t *cl_draw_console_background_alpha;
-
-cvar_t *cl_draw_chat;
-cvar_t *cl_draw_notify;
-
-cvar_t *cl_chat_lines;
-cvar_t *cl_chat_time;
-
-cvar_t *cl_notify_lines;
-cvar_t *cl_notify_time;
 
 /**
  * @brief Outputs a stripped (color-code-free) console string to stdout.
@@ -68,35 +56,6 @@ void Cl_ToggleConsole_f(void) {
   }
 
   memset(&cl_console.input, 0, sizeof(cl_console.input));
-}
-
-/**
- * @brief Switches key destination to chat mode, optionally for team chat.
- */
-static void Cl_MessageMode(bool team_chat) {
-
-  console_input_t *in = &cl_chat_console.input;
-  memset(in, 0, sizeof(*in));
-
-  cls.chat_state.team_chat = team_chat;
-
-  Cl_SetKeyDest(KEY_CHAT);
-}
-
-/**
- * @brief Handles the `messagemode` console command, opening the global chat input.
- */
-static void Cl_MessageMode_f(void) {
-
-  Cl_MessageMode(false);
-}
-
-/**
- * @brief Handles the `messagemode2` console command, opening the team chat input.
- */
-static void Cl_MessageMode2_f(void) {
-
-  Cl_MessageMode(true);
 }
 
 /**
@@ -143,24 +102,11 @@ void Cl_InitConsole(void) {
     Com_Debug(DEBUG_CLIENT, "Couldn't read history");
   }
 
-  memset(&cl_chat_console, 0, sizeof(cl_chat_console));
-  cl_chat_console.level = PRINT_CHAT | PRINT_TEAM_CHAT;
-
   cl_console_height = Cvar_Add("cl_console_height", "0.4", CVAR_ARCHIVE, "Console height, as a multiplier of the screen height. Default is 0.4.");
-  cl_draw_console_background_alpha = Cvar_Add("cl_draw_console_background_alpha", "0.8", CVAR_ARCHIVE, NULL);
+  cl_draw_console_background_alpha = Cvar_Add("cl_draw_console_background_alpha", "0.8", CVAR_ARCHIVE, "The opacity of the console background, from 0 to 1.");
 
-  cl_draw_chat = Cvar_Add("cl_draw_chat", "1", 0, "Draw recent chat messages");
-  cl_draw_notify = Cvar_Add("cl_draw_notify", "1", 0, "Draw recent console activity");
-
-  cl_notify_lines = Cvar_Add("cl_console_notify_lines", "3", CVAR_ARCHIVE, "How many lines to show in the notify console.");
-  cl_notify_time = Cvar_Add("cl_notify_time", "3.0", CVAR_ARCHIVE, "How long notify messages stay on-screen.");
-
-  cl_chat_lines = Cvar_Add("cl_chat_lines", "4", CVAR_ARCHIVE, "How many chat lines to show");
-  cl_chat_time = Cvar_Add("cl_chat_time", "10.0", CVAR_ARCHIVE, "How long chat messages last");
 
   Cmd_Add("cl_toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
-  Cmd_Add("cl_message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");
-  Cmd_Add("cl_message_mode_2", Cl_MessageMode2_f, CMD_CLIENT, "Activate team chat");
 
   Cmd_Add("cl_backtrace", Cl_Backtrace_f, CMD_SYSTEM, "Generate a backtrace");
   Cmd_Add("cl_error", Cl_Error_f, CMD_SYSTEM, "Generate an error");
@@ -184,8 +130,6 @@ void Cl_ShutdownConsole(void) {
   }
 
   Cmd_Remove("cl_toggle_console");
-  Cmd_Remove("cl_message_mode");
-  Cmd_Remove("cl_message_mode_2");
 
   Cmd_Remove("crash");
   Cmd_Remove("fatal");

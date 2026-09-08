@@ -43,7 +43,7 @@
 
 #hud .live {
   font-family: Share Tech Mono;
-  font-style: bold;
+  font-style: regular;
 }
 
 #hud #vitals .number {
@@ -254,6 +254,34 @@
 
 #hud #centerPrint {
   alignment: middle-center;
+}
+
+#hud #notify {
+  alignment: top-left;
+}
+
+#hud #chat {
+  alignment: bottom-left;
+  autoresizing-mask: contain;
+  axis: vertical;
+  padding-bottom: 240;
+  spacing: 4;
+}
+
+#hud #chat TextView {
+  background-color: #08151aaa;
+  border-color: #8fc7dc;
+  border-width: 1;
+  min-width: 480;
+}
+
+#hud #chat TextView.team {
+  border-color: #ffd75c;
+}
+
+#hud #chat TextView > Text {
+  font-family: Share Tech Mono;
+  font-style: regular;
 }
 
 #hud #targetName {

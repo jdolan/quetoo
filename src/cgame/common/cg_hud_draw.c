@@ -23,6 +23,10 @@
 
 
 
+cvar_t *cg_chat_lines;
+cvar_t *cg_chat_time;
+cvar_t *cg_notify_lines;
+cvar_t *cg_notify_time;
 cvar_t *cg_select_weapon_alpha;
 cvar_t *cg_select_weapon_delay;
 cvar_t *cg_select_weapon_fade;
@@ -261,6 +265,30 @@ bool Cg_UpdateSelectWeapon(const player_state_t *ps, float *alpha) {
 }
 
 /**
+ * @brief Opens the chat input, for the team when asked; the ChatView takes it from there.
+ */
+static void Cg_MessageMode(bool team) {
+
+  cg_hud_state.chat.team = team;
+
+  cgi.SetKeyDest(KEY_CHAT);
+}
+
+/**
+ * @brief Console command handler to open the chat input.
+ */
+static void Cg_MessageMode_f(void) {
+  Cg_MessageMode(false);
+}
+
+/**
+ * @brief Console command handler to open the team chat input.
+ */
+static void Cg_MessageMode2_f(void) {
+  Cg_MessageMode(true);
+}
+
+/**
  * @brief Console command handler to select the previous weapon in the weapon bar.
  */
 static void Cg_Weapon_Prev_f(void) {
@@ -282,6 +310,13 @@ void Cg_InitHud(void) {
          "Open the weapon bar to the next weapon. In chasecam, switches to next target.");
   cgi.AddCmd("cg_weapon_previous", Cg_Weapon_Prev_f, CMD_CGAME,
          "Open the weapon bar to the previous weapon. In chasecam, switches to previous target.");
+  cgi.AddCmd("cg_message_mode", Cg_MessageMode_f, CMD_CGAME, "Open the chat input");
+  cgi.AddCmd("cg_message_mode_2", Cg_MessageMode2_f, CMD_CGAME, "Open the team chat input");
+
+  cg_chat_lines = cgi.AddCvar("cg_chat_lines", "4", CVAR_ARCHIVE, "How many chat lines to show on the HUD, 0 disables");
+  cg_chat_time = cgi.AddCvar("cg_chat_time", "10.0", CVAR_ARCHIVE, "How long, in seconds, chat lines stay on the HUD");
+  cg_notify_lines = cgi.AddCvar("cg_notify_lines", "3", CVAR_ARCHIVE, "How many console lines to show on the HUD, 0 disables");
+  cg_notify_time = cgi.AddCvar("cg_notify_time", "3.0", CVAR_ARCHIVE, "How long, in seconds, console lines stay on the HUD");
 
   cg_select_weapon_alpha = cgi.AddCvar("cg_select_weapon_alpha", "0.5", CVAR_ARCHIVE,
                      "The opacity of unselected weapons in the weapon bar.");
@@ -308,4 +343,5 @@ void Cg_ClearHud(void) {
   memset(&cg_hud_state, 0, sizeof(cg_hud_state));
 
   cg_hud_state.weapon.bit = WEAPON_SELECT_OFF;
+  cg_hud_state.clear_time = (uint32_t) SDL_GetTicks();
 }

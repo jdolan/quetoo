@@ -67,15 +67,6 @@ struct ConsoleViewController {
    */
   Text *buffer, *input;
 
-  /**
-   * @brief The notify lines.
-   */
-  Text *notify;
-
-  /**
-   * @brief Recent chat, and the chat input line.
-   */
-  Text *chat, *chatInput;
 };
 
 struct ConsoleViewControllerInterface {
@@ -87,7 +78,7 @@ struct ConsoleViewControllerInterface {
 
   /**
    * @fn void ConsoleViewController::update(ConsoleViewController *self)
-   * @brief Updates the console, notify and chat for the frame about to be drawn.
+   * @brief Updates the console for the frame about to be drawn.
    * @param self The ConsoleViewController.
    * @memberof ConsoleViewController
    */

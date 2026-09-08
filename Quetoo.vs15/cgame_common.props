@@ -115,6 +115,12 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\BlendView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\CenterPrintView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\CenterPrintView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\hud\ChatView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\hud\ChatView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\hud\ConsoleText.c" />
+    <ClInclude Include="..\src\cgame\common\ui\hud\ConsoleText.h" />
+    <ClCompile Include="..\src\cgame\common\ui\hud\NotifyView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\hud\NotifyView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\ChaseView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\ChaseView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\CounterView.c" />

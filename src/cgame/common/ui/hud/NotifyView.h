@@ -21,15 +21,41 @@
 
 #pragma once
 
-#include "cl_types.h"
+#include "ConsoleText.h"
 
-#if defined(__CL_LOCAL_H__)
-extern console_t cl_console;
+/**
+ * @file
+ * @brief Recent console activity, shown briefly.
+ */
 
-extern cvar_t *cl_console_height;
-extern cvar_t *cl_draw_console_background_alpha;
+typedef struct NotifyView NotifyView;
+typedef struct NotifyViewInterface NotifyViewInterface;
 
-void Cl_ToggleConsole_f(void);
-void Cl_InitConsole(void);
-void Cl_ShutdownConsole(void);
-#endif
+/**
+ * @brief The last few console lines, shown for `cg_notify_time` seconds while playing.
+ * @details `cg_notify_lines` sets how many; `0` disables the view.
+ * @extends ConsoleText
+ */
+struct NotifyView {
+
+  /**
+   * @brief The superclass.
+   */
+  ConsoleText consoleText;
+
+  /**
+   * @brief The interface type.
+   * @protected
+   */
+  NotifyViewInterface *interface[0];
+};
+
+struct NotifyViewInterface {
+
+  /**
+   * @brief The superclass interface.
+   */
+  ConsoleTextInterface consoleTextInterface;
+};
+
+CGAME_EXPORT Class *_NotifyView(void);

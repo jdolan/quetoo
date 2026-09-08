@@ -78,6 +78,9 @@
 		28D9703AF85F475F866BAA51 /* DiagnosticsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */; };
 		2C3ADE327DEBD6F3955255E7 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
 		2D0110BBB9C57DC4DAA49389 /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
+		0B59BE03B414411797329FD1 /* NotifyView.c in Sources */ = {isa = PBXBuildFile; fileRef = EB4A4D641AA8495FB08D9F0E /* NotifyView.c */; };
+		F0E26144AB354006B07FF3E0 /* ConsoleText.c in Sources */ = {isa = PBXBuildFile; fileRef = 09A28D5220214F20A1942F76 /* ConsoleText.c */; };
+		AC814FDD1291470DA9883B6C /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
 		2F75825314B0423B86868ACC /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
 		322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 848E81C81F875F4403EAE1EE /* scoreboard.json */; };
 		332CAA47FF0E8521C12DF852 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
@@ -116,10 +119,19 @@
 		6B6C876AA822AB4DFB8D3158 /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
 		6C7870B960DDA48FF5959231 /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
 		719CDF30AE6EB1DC2261140E /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
+		5183CDCD1E2C497586ABBEB2 /* NotifyView.c in Sources */ = {isa = PBXBuildFile; fileRef = EB4A4D641AA8495FB08D9F0E /* NotifyView.c */; };
+		17A283BF800A49F7BC5D4C4D /* ConsoleText.c in Sources */ = {isa = PBXBuildFile; fileRef = 09A28D5220214F20A1942F76 /* ConsoleText.c */; };
+		21B7C99056194E1E9FC62EF2 /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
 		77C2AFA7D92DAC05CE4E7996 /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
+		9A8A8F490F0A41FDB55A317F /* NotifyView.c in Sources */ = {isa = PBXBuildFile; fileRef = EB4A4D641AA8495FB08D9F0E /* NotifyView.c */; };
+		4E265AE532584E47A2D20258 /* ConsoleText.c in Sources */ = {isa = PBXBuildFile; fileRef = 09A28D5220214F20A1942F76 /* ConsoleText.c */; };
+		B0F1E4D1823545B993F57B81 /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
 		77DC97E1E9FDFCF8FD91B1BC /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		7857EDF77E5E58CEFFD03198 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		78965577428364713231086F /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
+		D9F4D7BEB0EE4A87B8529DDA /* NotifyView.c in Sources */ = {isa = PBXBuildFile; fileRef = EB4A4D641AA8495FB08D9F0E /* NotifyView.c */; };
+		B58055474A104E479F3F83A2 /* ConsoleText.c in Sources */ = {isa = PBXBuildFile; fileRef = 09A28D5220214F20A1942F76 /* ConsoleText.c */; };
+		622B0D6DA98C42AA8A8D582B /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
 		78BFCA151AAC14630B15208D /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
 		7AFADF59B58F54581DC1C419 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
 		814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
@@ -2868,6 +2880,12 @@
 		E106ACFB28FF47443FB3C9FE /* PickupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PickupView.c; sourceTree = "<group>"; };
 		E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TargetNameView.c; sourceTree = "<group>"; };
 		EA8FE4E62B47061B1ADBD908 /* FpsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = FpsView.c; sourceTree = "<group>"; };
+		EB4A4D641AA8495FB08D9F0E /* NotifyView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = NotifyView.c; sourceTree = "<group>"; };
+		743CD3FB2DAA4893BBF6DAF0 /* NotifyView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NotifyView.h; sourceTree = "<group>"; };
+		09A28D5220214F20A1942F76 /* ConsoleText.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ConsoleText.c; sourceTree = "<group>"; };
+		8369FC8AFCB94FBBAEA86FB4 /* ConsoleText.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConsoleText.h; sourceTree = "<group>"; };
+		2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ChatView.c; sourceTree = "<group>"; };
+		ABD78D80980A456A917E4BEA /* ChatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatView.h; sourceTree = "<group>"; };
 		F62845AB16EAC431505215D1 /* FpsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FpsView.h; sourceTree = "<group>"; };
 		F7E7256984E276048C2A155E /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
 		FC6374C1D47393EA62C8EC20 /* CounterView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CounterView.h; sourceTree = "<group>"; };
@@ -3337,6 +3355,12 @@
 				20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */,
 				F62845AB16EAC431505215D1 /* FpsView.h */,
 				EA8FE4E62B47061B1ADBD908 /* FpsView.c */,
+				743CD3FB2DAA4893BBF6DAF0 /* NotifyView.h */,
+				EB4A4D641AA8495FB08D9F0E /* NotifyView.c */,
+				8369FC8AFCB94FBBAEA86FB4 /* ConsoleText.h */,
+				09A28D5220214F20A1942F76 /* ConsoleText.c */,
+				ABD78D80980A456A917E4BEA /* ChatView.h */,
+				2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */,
 				15F241361EC624CD05FF20DA /* HudViewController.h */,
 				C21FD90BD08D804DE1A792B1 /* HudViewController.c */,
 				30FC7C9F9B24C6966D749398 /* NavEditView.h */,
@@ -6396,6 +6420,9 @@
 				D3D2558FB099A325883FDB27 /* NavEditView.c in Sources */,
 				C1B4D8275ABD425EB6C332C6 /* DiagnosticsView.c in Sources */,
 				719CDF30AE6EB1DC2261140E /* FpsView.c in Sources */,
+				5183CDCD1E2C497586ABBEB2 /* NotifyView.c in Sources */,
+				17A283BF800A49F7BC5D4C4D /* ConsoleText.c in Sources */,
+				21B7C99056194E1E9FC62EF2 /* ChatView.c in Sources */,
 				D584EC3FC9B74B2DB6B8FE92 /* PingView.c in Sources */,
 				814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */,
 				39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */,
@@ -6547,6 +6574,9 @@
 				65A8C761AE5D68358CDDE601 /* NavEditView.c in Sources */,
 				89E8FCDD68D14AE6B3954385 /* DiagnosticsView.c in Sources */,
 				78965577428364713231086F /* FpsView.c in Sources */,
+				D9F4D7BEB0EE4A87B8529DDA /* NotifyView.c in Sources */,
+				B58055474A104E479F3F83A2 /* ConsoleText.c in Sources */,
+				622B0D6DA98C42AA8A8D582B /* ChatView.c in Sources */,
 				B8A5AAD33BD44C1EA2F1800F /* PingView.c in Sources */,
 				5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */,
 				DD02E1ABB673209C4A8D0EFC /* WeaponBarView.c in Sources */,
@@ -7003,6 +7033,9 @@
 				0789D5943ABEDA1B53B205E2 /* NavEditView.c in Sources */,
 				96C482990EB9434FACFB0B5B /* DiagnosticsView.c in Sources */,
 				2D0110BBB9C57DC4DAA49389 /* FpsView.c in Sources */,
+				0B59BE03B414411797329FD1 /* NotifyView.c in Sources */,
+				F0E26144AB354006B07FF3E0 /* ConsoleText.c in Sources */,
+				AC814FDD1291470DA9883B6C /* ChatView.c in Sources */,
 				863226968B6B482FB9B13CD1 /* PingView.c in Sources */,
 				CEE21B7B45DA97BAA8A5395F /* TimeView.c in Sources */,
 				E10D01F620BB74E4166A8E7F /* WeaponBarView.c in Sources */,
@@ -7206,6 +7239,9 @@
 				F0D2694D4DD29796B8BB5639 /* NavEditView.c in Sources */,
 				28D9703AF85F475F866BAA51 /* DiagnosticsView.c in Sources */,
 				77C2AFA7D92DAC05CE4E7996 /* FpsView.c in Sources */,
+				9A8A8F490F0A41FDB55A317F /* NotifyView.c in Sources */,
+				4E265AE532584E47A2D20258 /* ConsoleText.c in Sources */,
+				B0F1E4D1823545B993F57B81 /* ChatView.c in Sources */,
 				AD9B2D464FD840D5A031FC6A /* PingView.c in Sources */,
 				8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */,
 				5D26ECD45D3B9CEDA1FCE596 /* WeaponBarView.c in Sources */,

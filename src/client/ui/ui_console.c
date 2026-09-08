@@ -63,9 +63,6 @@ static void dealloc(Object *self) {
   release(this->background);
   release(this->buffer);
   release(this->input);
-  release(this->notify);
-  release(this->chat);
-  release(this->chatInput);
 
   super(Object, self, dealloc);
 }
@@ -103,11 +100,6 @@ static void loadView(ViewController *self) {
   this->input = addText(this->console, ViewAlignmentInternal);
 
   $(self->view, addSubview, this->console);
-
-  this->notify = addText(self->view, ViewAlignmentTopLeft);
-
-  this->chat = addText(self->view, ViewAlignmentNone);
-  this->chatInput = addText(self->view, ViewAlignmentNone);
 }
 
 /**
@@ -264,100 +256,16 @@ static void updateConsole(ConsoleViewController *self) {
 }
 
 /**
- * @brief The last few lines of console output, for `cl_notify_time`.
- */
-static void updateNotify(ConsoleViewController *self) {
-
-  if (!ready(self, self->notify)) {
-    return;
-  }
-
-  const SDL_Size ch = cell(self->notify);
-
-  cl_notify_console.width = self->viewController.view->frame.w / ch.w;
-  cl_notify_console.height = Clampf(cl_notify_lines->integer, 1, 12);
-  cl_notify_console.level = (PRINT_MEDIUM | PRINT_HIGH);
-
-  const uint32_t notify_millis = cl_notify_time->value * 1000;
-  cl_notify_console.whence = Maxi(quetoo.ticks - notify_millis, cls.connect_time);
-
-  tail(&cl_notify_console, cl_notify_console.height, self->notify);
-}
-
-/**
- * @brief Recent chat, and the chat input while typing.
- */
-static void updateChat(ConsoleViewController *self, bool typing) {
-
-  if (!ready(self, self->chat)) {
-    return;
-  }
-
-  const SDL_Size ch = cell(self->chat);
-  const SDL_Rect frame = self->viewController.view->frame;
-
-  cl_chat_console.width = frame.w / ch.w / 3;
-  cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 16);
-
-  const bool history = cl_draw_chat->value && cl_chat_console.height;
-
-  $((View *) self->chat, setHidden, !history);
-
-  int32_t y = frame.h * 0.66;
-
-  if (history) {
-    if (typing) {
-      cl_chat_console.whence = cls.connect_time;
-    } else if (quetoo.ticks > cl_chat_time->value * 1000) {
-      cl_chat_console.whence = quetoo.ticks - cl_chat_time->value * 1000;
-    }
-
-    tail(&cl_chat_console, cl_chat_console.height, self->chat);
-
-    self->chat->view.frame.x = 0;
-    self->chat->view.frame.y = y;
-
-    y += self->chat->view.frame.h;
-  }
-
-  $((View *) self->chatInput, setHidden, !typing);
-
-  if (typing) {
-    inputLine(&cl_chat_console, cls.chat_state.team_chat ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT, self->chatInput);
-
-    self->chatInput->view.frame.x = 0;
-    self->chatInput->view.frame.y = y;
-  }
-}
-
-/**
  * @fn void ConsoleViewController::update(ConsoleViewController *self)
  * @memberof ConsoleViewController
  */
 static void update(ConsoleViewController *self) {
 
-  const cl_key_dest_t dest = cls.key_state.dest;
-  const bool active = cls.state == CL_ACTIVE;
-
-  const bool console = dest == KEY_CONSOLE && cls.state != CL_LOADING;
-  const bool notify = active && dest == KEY_GAME && cl_draw_notify->value;
-  const bool chat = active && (dest == KEY_GAME || dest == KEY_CHAT);
+  const bool console = cls.key_state.dest == KEY_CONSOLE && cls.state != CL_LOADING;
 
   $(self->console, setHidden, !console);
   if (console) {
     updateConsole(self);
-  }
-
-  $((View *) self->notify, setHidden, !notify);
-  if (notify) {
-    updateNotify(self);
-  }
-
-  if (chat) {
-    updateChat(self, dest == KEY_CHAT);
-  } else {
-    $((View *) self->chat, setHidden, true);
-    $((View *) self->chatInput, setHidden, true);
   }
 }
 

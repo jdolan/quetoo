@@ -25,6 +25,14 @@
           "identifier": "centerPrint"
         },
         {
+          "class": "NotifyView",
+          "identifier": "notify"
+        },
+        {
+          "class": "ChatView",
+          "identifier": "chat"
+        },
+        {
           "class": "TargetNameView",
           "identifier": "targetName"
         },

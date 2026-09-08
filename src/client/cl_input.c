@@ -270,15 +270,11 @@ static size_t Cl_TextEvent_Insert(char *dest, const char *src, const size_t ofs,
  */
 static void Cl_TextEvent(const SDL_Event *event) {
 
-  console_input_t *in;
-
-  if (cls.key_state.dest == KEY_CONSOLE) {
-    in = &cl_console.input;
-  } else if (cls.key_state.dest == KEY_CHAT) {
-    in = &cl_chat_console.input;
-  } else {
+  if (cls.key_state.dest != KEY_CONSOLE) {
     return;
   }
+
+  console_input_t *in = &cl_console.input;
 
   const char *src = event->text.text;
 

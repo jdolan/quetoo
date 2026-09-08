@@ -542,14 +542,6 @@ typedef struct {
 typedef struct {
 
   /**
-   * @brief True if the current chat message is for team only.
-   */
-  bool team_chat;
-} cl_chat_state_t;
-
-typedef struct {
-
-  /**
    * @brief Current relative mouse delta, in sensitivity-scaled units.
    */
   float x, y;
@@ -700,11 +692,6 @@ typedef struct {
    * @brief The mouse position state.
    */
   cl_mouse_state_t mouse_state;
-
-  /**
-   * @brief The chat mode state.
-   */
-  cl_chat_state_t chat_state;
 
   /**
    * @brief Name or address of the server to connect to.

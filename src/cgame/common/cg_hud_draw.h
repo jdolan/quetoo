@@ -73,10 +73,23 @@ typedef struct {
   } weapon;
 
   int16_t chase_target;
+
+  struct {
+    bool team;
+  } chat;
+
+  /**
+   * @brief When the state was last cleared; prints from before it are not shown.
+   */
+  uint32_t clear_time;
 } cg_hud_state_t;
 
 extern cg_hud_state_t cg_hud_state;
 
+extern cvar_t *cg_chat_lines;
+extern cvar_t *cg_chat_time;
+extern cvar_t *cg_notify_lines;
+extern cvar_t *cg_notify_time;
 extern cvar_t *cg_select_weapon_alpha;
 extern cvar_t *cg_select_weapon_delay;
 extern cvar_t *cg_select_weapon_fade;

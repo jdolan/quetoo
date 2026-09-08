@@ -723,6 +723,14 @@ the editor and nav edit decide visibility in `HudViewController`, and the scoreb
 a sibling of the variant tree so that it shows through the intermission when the HUD
 does not.
 
+Everything drawn during play is a HUD View, including what used to be the engine's:
+`NotifyView` and `ChatView` tail the console through `cgi.Tail`, `ChatView` also owns the
+chat input (`cg_message_mode`, `cg_message_mode_2`), `PingView` shows the round trip the
+client records on `cl_client_t`, and `DiagnosticsView` tables the counters the renderer
+keeps on `r_view_t` and the mixer on `s_stage_t`. A variant MAY place, restyle or omit
+any of them. Only the drop-down console stays in the client, because it MUST outlive a
+client game that fails to load.
+
 ### The hooks left to extract
 
 In descending order of how much guard they retire:
