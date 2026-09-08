@@ -306,19 +306,23 @@ static void Sv_Connect_f(void) {
 
   Netchan_Setup(NS_UDP_SERVER, &client->net_chan, addr, qport);
 
-  // Sv_UserInfoChanged refuses an ip and forces the client's own, so drop ours
-  q_strlcpy(client->user_info, user_info, sizeof(client->user_info));
-  InfoString_Delete(client->user_info, "ip");
-  Sv_UserInfoChanged(client);
-
-  // send the connect packet to the client
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "client_connect");
-
   Mem_InitBuffer(&client->datagram.buffer, client->datagram.data, sizeof(client->datagram.data));
 
   client->last_message = quetoo.ticks;
 
   client->state = SV_CLIENT_CONNECTED;
+
+  // Sv_UserInfoChanged refuses an ip and forces the client's own, so drop ours
+  q_strlcpy(client->user_info, user_info, sizeof(client->user_info));
+  InfoString_Delete(client->user_info, "ip");
+
+  if (!Sv_UserInfoChanged(client)) {
+    Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
+    return;
+  }
+
+  // send the connect packet to the client
+  Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "client_connect");
 }
 
 /**
@@ -628,9 +632,11 @@ static void Sv_SyncGameClients(void) {
     if (client->state == SV_CLIENT_FREE) {
       if (cl->in_use && cl->ai) { // ai client has just connected
         q_strlcpy(client->user_info, cl->user_info, sizeof(client->user_info));
-        Sv_UserInfoChanged(client);
         client->last_message = UINT32_MAX; // ai clients never time out
         client->state = SV_CLIENT_ACTIVE;
+        if (!Sv_UserInfoChanged(client)) {
+          Com_Warn("Rejected user_info from ai client %d\n", i);
+        }
       }
     } else {
       if (!cl->in_use) { // ai client has just disconnected
@@ -699,33 +705,35 @@ const char *Sv_NetaddrToString(const sv_client_t *cl) {
 
 /**
  * @brief Enforces safe `user_info` data before passing onto game module.
+ * @return False if the client was kicked for its `user_info`, in which case the slot is free
+ * again and the caller MUST NOT touch it further.
  */
-void Sv_UserInfoChanged(sv_client_t *cl) {
+bool Sv_UserInfoChanged(sv_client_t *cl) {
   char *val;
   size_t i;
 
   if (*cl->user_info == '\0') { // catch empty user_info
     Com_Print("Empty user_info from %s\n", Sv_NetaddrToString(cl));
     Sv_KickClient(cl, "Bad user info");
-    return;
+    return false;
   }
 
   if (q_strchr(cl->user_info, '\xFF')) { // catch end of message exploit
     Com_Print("Illegal user_info contained xFF from %s\n", Sv_NetaddrToString(cl));
     Sv_KickClient(cl, "Bad user info");
-    return;
+    return false;
   }
 
   if (!InfoString_Validate(cl->user_info)) { // catch otherwise invalid user_info
     Com_Print("Invalid user_info from %s\n", Sv_NetaddrToString(cl));
     Sv_KickClient(cl, "Bad user info");
-    return;
+    return false;
   }
 
   if (q_strlen(InfoString_Get(cl->user_info, "ip"))) { // catch spoofed ips, as the connect does
     Com_Print("Illegal user_info contained ip from %s\n", Sv_NetaddrToString(cl));
     Sv_KickClient(cl, "Bad user info");
-    return;
+    return false;
   }
 
   // force the ip so the game can filter on it, as the connect did: a client's
@@ -746,6 +754,8 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
   if (*val != '\0') {
     cl->message_level = (int32_t) strtol(val, NULL, 10);
   }
+
+  return true;
 }
 
 /**

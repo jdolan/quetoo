@@ -322,7 +322,9 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
         }
 
         q_strlcpy(cl->user_info, user_info, sizeof(cl->user_info));
-        Sv_UserInfoChanged(cl);
+        if (!Sv_UserInfoChanged(cl)) {
+          return;
+        }
       }
         break;
 

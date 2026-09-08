@@ -55,6 +55,6 @@ const char *Sv_StatusString(void);
 const char *Sv_NetaddrToString(const sv_client_t *cl);
 void Sv_KickClient(sv_client_t *cl, const char *msg);
 void Sv_DropClient(sv_client_t *cl);
-void Sv_UserInfoChanged(sv_client_t *cl);
+bool Sv_UserInfoChanged(sv_client_t *cl);
 
 #endif
