@@ -73,7 +73,7 @@
 		16842F99305E37AEE91A82E4 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		18831DC74740CDF73E54CF63 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
-		20BE76382F981DD4B7F43A11 /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E652EE2F700EFB737AEA30 /* classic.json */; };
+		20BE76382F981DD4B7F43A11 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E652EE2F700EFB737AEA30 /* hud.json */; };
 		24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		28D9703AF85F475F866BAA51 /* DiagnosticsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */; };
 		2C3ADE327DEBD6F3955255E7 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
@@ -84,7 +84,7 @@
 		2F75825314B0423B86868ACC /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
 		322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 848E81C81F875F4403EAE1EE /* scoreboard.json */; };
 		332CAA47FF0E8521C12DF852 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		368D384E998F7590EBCEB7EE /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3487B5AD7D47E8DFBDDAE5C4 /* classic.json */; };
+		368D384E998F7590EBCEB7EE /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3487B5AD7D47E8DFBDDAE5C4 /* hud.json */; };
 		39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		3B497D93EA892C673165469D /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		3C4FCD00A4AE0B8971D17E7D /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
@@ -148,7 +148,7 @@
 		9B67395438D49AA25C710A4A /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
 		9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		9C43D41506579A6ED4EE80F5 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		9E1C83CE11AE376D9174B271 /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 027C4ADD65DCCCEBCEB3D462 /* classic.json */; };
+		9E1C83CE11AE376D9174B271 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 027C4ADD65DCCCEBCEB3D462 /* hud.json */; };
 		9EBBE79D07E30BB784FC188F /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
 		9F948D38BAB2AE44F4A87F61 /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
 		A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */; };
@@ -160,7 +160,7 @@
 		AF8056E19DEC77694B63EDD7 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		B2B62AE1E7C09567B299F1AA /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		B3C3D379CB4955B1FED23ADB /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
-		B50A7AB9A94C86F0D55675BD /* classic.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = A980A8F791ED9C0A50C6C948 /* classic.json */; };
+		B50A7AB9A94C86F0D55675BD /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = A980A8F791ED9C0A50C6C948 /* hud.json */; };
 		B777A7BCE46440D86F0248FA /* BarlowCondensed-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */; };
 		B8A5AAD33BD44C1EA2F1800F /* PingView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5624F1C74F4646918DA71088 /* PingView.c */; };
 		B8BC2CE87251BA0975026203 /* SDL3_image.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C42FE711B7005C680C /* SDL3_image.xcframework */; };
@@ -1377,7 +1377,7 @@
 		D9A5C10000000000000000D4 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		DD006E4E558F9346D79447E5 /* scoreboard.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = E0F247635165E5338AAD8494 /* scoreboard.css */; };
 		DD02E1ABB673209C4A8D0EFC /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
-		DD69DC98B2588BCF788647E3 /* classic.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2D140F08524DA0679A7DB117 /* classic.css */; };
+		DD69DC98B2588BCF788647E3 /* hud.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2D140F08524DA0679A7DB117 /* hud.css */; };
 		E10D01F620BB74E4166A8E7F /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		E140557ED1DC8869F66A94BD /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
 		E16A533FF7C34A2BA65E1BFF /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
@@ -1755,10 +1755,10 @@
 		0FB222CA4FDE0CA9865D5486 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = race/ui/hud;
+			dstPath = race/ui/hud/default;
 			dstSubfolderSpec = 16;
 			files = (
-				9E1C83CE11AE376D9174B271 /* classic.json in CopyFiles */,
+				9E1C83CE11AE376D9174B271 /* hud.json in CopyFiles */,
 				544522FFCEEDAAC1EBEB6750 /* scoreboard.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1766,10 +1766,10 @@
 		5738F8605E036174DA11C58E /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = ctf/ui/hud;
+			dstPath = ctf/ui/hud/default;
 			dstSubfolderSpec = 16;
 			files = (
-				368D384E998F7590EBCEB7EE /* classic.json in CopyFiles */,
+				368D384E998F7590EBCEB7EE /* hud.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1791,10 +1791,10 @@
 		C9077C04022B772095186ABC /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = lithium/ui/hud;
+			dstPath = lithium/ui/hud/default;
 			dstSubfolderSpec = 16;
 			files = (
-				B50A7AB9A94C86F0D55675BD /* classic.json in CopyFiles */,
+				B50A7AB9A94C86F0D55675BD /* hud.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1981,20 +1981,20 @@
 		EE7162D3228511D41E8B4CB1 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = default/ui/hud;
+			dstPath = default/ui/hud/default;
 			dstSubfolderSpec = 16;
 			files = (
-				DD69DC98B2588BCF788647E3 /* classic.css in CopyFiles */,
+				DD69DC98B2588BCF788647E3 /* hud.css in CopyFiles */,
 				DD006E4E558F9346D79447E5 /* scoreboard.css in CopyFiles */,
 				322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */,
-				20BE76382F981DD4B7F43A11 /* classic.json in CopyFiles */,
+				20BE76382F981DD4B7F43A11 /* hud.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		027C4ADD65DCCCEBCEB3D462 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
+		027C4ADD65DCCCEBCEB3D462 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/hud.json; sourceTree = "<group>"; };
 		02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BarlowCondensed-SemiBold.ttf"; sourceTree = "<group>"; };
 		066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_inventory.h; sourceTree = "<group>"; };
 		07C9A88ED1D718092FD62601 /* CenterPrintView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CenterPrintView.c; sourceTree = "<group>"; };
@@ -2006,9 +2006,9 @@
 		20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DiagnosticsView.c; sourceTree = "<group>"; };
 		26FE8732000C404A8AFA1688 /* r_post.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_post.c; sourceTree = "<group>"; };
 		2BA45B8C062C78CEE97C2D2B /* WeaponBarView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WeaponBarView.h; sourceTree = "<group>"; };
-		2D140F08524DA0679A7DB117 /* classic.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = classic.css; sourceTree = "<group>"; };
+		2D140F08524DA0679A7DB117 /* hud.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = default/hud.css; sourceTree = "<group>"; };
 		30FC7C9F9B24C6966D749398 /* NavEditView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NavEditView.h; sourceTree = "<group>"; };
-		3487B5AD7D47E8DFBDDAE5C4 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
+		3487B5AD7D47E8DFBDDAE5C4 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/hud.json; sourceTree = "<group>"; };
 		40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreboardView.h; sourceTree = "<group>"; };
 		45969B731C08AA84C8D318F6 /* ScoreboardView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ScoreboardView.c; sourceTree = "<group>"; };
 		491F54CD554D0F550B000B4E /* NavEditView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = NavEditView.c; sourceTree = "<group>"; };
@@ -2022,7 +2022,7 @@
 		5B027972461629119D87F7A6 /* ScoreView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ScoreView.c; sourceTree = "<group>"; };
 		5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "MPlusU-OFL.txt"; sourceTree = "<group>"; };
 		63EC6B30290B4C7899E5F6AC /* DiagnosticsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticsView.h; sourceTree = "<group>"; };
-		64E652EE2F700EFB737AEA30 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
+		64E652EE2F700EFB737AEA30 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/hud.json; sourceTree = "<group>"; };
 		671265A640259697D1AA363E /* ScoreView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreView.h; sourceTree = "<group>"; };
 		7F6A5E1D6B8246A7B4EAD906 /* ConsoleView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ConsoleView.c; sourceTree = "<group>"; };
 		9352803A21064843A7D64A86 /* ConsoleViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ConsoleViewController.c; sourceTree = "<group>"; };
@@ -2033,9 +2033,9 @@
 		7773870519E25AD88B29F618 /* WeaponBarView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = WeaponBarView.c; sourceTree = "<group>"; };
 		7966EA6596003F9303BC00FA /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
 		8238DE2CC5A406DE6DF84E71 /* OverlayText.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = OverlayText.c; sourceTree = "<group>"; };
-		848E81C81F875F4403EAE1EE /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = scoreboard.json; sourceTree = "<group>"; };
+		848E81C81F875F4403EAE1EE /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/scoreboard.json; sourceTree = "<group>"; };
 		8542813678DB3B7BECEEF939 /* box.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = box.c; sourceTree = "<group>"; };
-		92AA3129971ABAAB21EE5BAD /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = scoreboard.json; sourceTree = "<group>"; };
+		92AA3129971ABAAB21EE5BAD /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/scoreboard.json; sourceTree = "<group>"; };
 		94D1F06AFA9AE2182216CC46 /* SpectatorView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SpectatorView.c; sourceTree = "<group>"; };
 		97BDA8A5C8DF41E290656B3D /* cm_voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_voxel.h; sourceTree = "<group>"; };
 		9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_manifest.h; sourceTree = "<group>"; };
@@ -2044,7 +2044,7 @@
 		9EB3BF772B595B2E11DA92E7 /* TimeView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TimeView.h; sourceTree = "<group>"; };
 		A59EB892C12DF10ACA8253DD /* CounterView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CounterView.c; sourceTree = "<group>"; };
 		A73DD77B1D5B8231028B01FA /* TeamBannerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamBannerView.c; sourceTree = "<group>"; };
-		A980A8F791ED9C0A50C6C948 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
+		A980A8F791ED9C0A50C6C948 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/hud.json; sourceTree = "<group>"; };
 		AC727F6BFFF40568A39B2DF0 /* ChaseView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChaseView.h; sourceTree = "<group>"; };
 		AF339E8DC908A7FE1C759AEA /* VoteView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VoteView.h; sourceTree = "<group>"; };
 		B00A6FD23FF3A3B4F77B3694 /* StatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatView.h; sourceTree = "<group>"; };
@@ -2870,7 +2870,7 @@
 		D9A5C10000000000000000B1 /* check_race */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_race; sourceTree = BUILT_PRODUCTS_DIR; };
 		DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Rajdhani-OFL.txt"; sourceTree = "<group>"; };
 		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
-		E0F247635165E5338AAD8494 /* scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = scoreboard.css; sourceTree = "<group>"; };
+		E0F247635165E5338AAD8494 /* scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = default/scoreboard.css; sourceTree = "<group>"; };
 		E106ACFB28FF47443FB3C9FE /* PickupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PickupView.c; sourceTree = "<group>"; };
 		E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TargetNameView.c; sourceTree = "<group>"; };
 		EA8FE4E62B47061B1ADBD908 /* FpsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = FpsView.c; sourceTree = "<group>"; };
@@ -3340,8 +3340,8 @@
 				07C9A88ED1D718092FD62601 /* CenterPrintView.c */,
 				AC727F6BFFF40568A39B2DF0 /* ChaseView.h */,
 				1C923406FE86A096F618B0A6 /* ChaseView.c */,
-				2D140F08524DA0679A7DB117 /* classic.css */,
-				64E652EE2F700EFB737AEA30 /* classic.json */,
+				2D140F08524DA0679A7DB117 /* hud.css */,
+				64E652EE2F700EFB737AEA30 /* hud.json */,
 				FC6374C1D47393EA62C8EC20 /* CounterView.h */,
 				A59EB892C12DF10ACA8253DD /* CounterView.c */,
 				C8249BF99F0E4A2D77D37865 /* CrosshairView.h */,
@@ -3424,7 +3424,7 @@
 		44C65CA8992081850A0BD1FD /* hud */ = {
 			isa = PBXGroup;
 			children = (
-				A980A8F791ED9C0A50C6C948 /* classic.json */,
+				A980A8F791ED9C0A50C6C948 /* hud.json */,
 			);
 			path = hud;
 			sourceTree = "<group>";
@@ -3432,7 +3432,7 @@
 		A1CD3C66668D0BA51E31ECEC /* hud */ = {
 			isa = PBXGroup;
 			children = (
-				027C4ADD65DCCCEBCEB3D462 /* classic.json */,
+				027C4ADD65DCCCEBCEB3D462 /* hud.json */,
 				92AA3129971ABAAB21EE5BAD /* scoreboard.json */,
 			);
 			path = hud;
@@ -4761,7 +4761,7 @@
 		D21789E6990AEF2265381BDE /* hud */ = {
 			isa = PBXGroup;
 			children = (
-				3487B5AD7D47E8DFBDDAE5C4 /* classic.json */,
+				3487B5AD7D47E8DFBDDAE5C4 /* hud.json */,
 			);
 			path = hud;
 			sourceTree = "<group>";

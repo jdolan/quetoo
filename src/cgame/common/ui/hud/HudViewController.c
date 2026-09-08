@@ -29,7 +29,7 @@
 
 #define _Class _HudViewController
 
-#define HUD_DEFAULT_VARIANT "classic"
+#define HUD_DEFAULT_VARIANT "default"
 
 HudViewController *cg_hud_view_controller;
 
@@ -99,25 +99,6 @@ static void loadView(ViewController *self) {
   $(self, setView, view);
   release(view);
 
-  // The scoreboard is not part of a variant, but a module MAY name a subclass of it here
-  View *scoreboard = $$(View, viewWithResourceName, "ui/hud/scoreboard.json", NULL);
-  if (scoreboard == NULL || !$((Object *) scoreboard, isKindOfClass, _ScoreboardView())) {
-    Cg_Warn("ui/hud/scoreboard.json did not yield a ScoreboardView\n");
-    release(scoreboard);
-    scoreboard = $((View *) alloc(ScoreboardView), init);
-  }
-
-  scoreboard->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/hud/scoreboard.css");
-  if (scoreboard->stylesheet == NULL) {
-    Cg_Warn("Failed to load ui/hud/scoreboard.css\n");
-  }
-
-  scoreboard->autoresizingMask = ViewAutoresizingFill;
-
-  this->scoreboard = (ScoreboardView *) scoreboard;
-
-  $(view, addSubview, scoreboard);
-
   this->navEdit = (NavEditView *) $((View *) alloc(NavEditView), init);
   assert(this->navEdit);
 
@@ -183,19 +164,58 @@ static AtlasImage *image(HudViewController *self, const char *name) {
 }
 
 /**
- * @brief Loads the named variant's View and Stylesheet, or `NULL` if either is missing.
+ * @brief The name of `file` in `variant`, if the variant provides it, else in the default
+ * variant. A variant overrides only the files it ships; the rest it inherits.
+ */
+static const char *variantResource(const char *variant, const char *file) {
+
+  const char *name = va("ui/hud/%s/%s", variant, file);
+  if (cgi.FileExists(name)) {
+    return name;
+  }
+
+  return va("ui/hud/%s/%s", HUD_DEFAULT_VARIANT, file);
+}
+
+/**
+ * @brief Warns when `variant` ships no file of its own, which is what a misspelled `cg_hud`
+ * looks like: every file resolves to the default variant, and the fallback is otherwise silent.
+ */
+static void checkVariant(const char *variant) {
+
+  if (!q_strcmp(variant, HUD_DEFAULT_VARIANT)) {
+    return;
+  }
+
+  const char *files[] = { "hud.json", "hud.css", "scoreboard.json", "scoreboard.css" };
+
+  for (size_t i = 0; i < lengthof(files); i++) {
+    if (cgi.FileExists(va("ui/hud/%s/%s", variant, files[i]))) {
+      return;
+    }
+  }
+
+  Cg_Warn("No ui/hud/%s, using the %s HUD\n", variant, HUD_DEFAULT_VARIANT);
+}
+
+/**
+ * @brief Loads the variant's View and Stylesheet, or `NULL` if either is missing.
  */
 static View *loadVariant(const char *variant) {
 
-  View *view = $$(View, viewWithResourceName, va("ui/hud/%s.json", variant), NULL);
+  const char *json = variantResource(variant, "hud.json");
+
+  View *view = $$(View, viewWithResourceName, json, NULL);
   if (view == NULL) {
-    Cg_Warn("Failed to load ui/hud/%s.json\n", variant);
+    Cg_Warn("Failed to load %s\n", json);
     return NULL;
   }
 
-  view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, va("ui/hud/%s.css", variant));
+  const char *css = variantResource(variant, "hud.css");
+
+  view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, css);
   if (view->stylesheet == NULL) {
-    Cg_Warn("Failed to load ui/hud/%s.css\n", variant);
+    Cg_Warn("Failed to load %s\n", css);
     release(view);
     return NULL;
   }
@@ -204,15 +224,53 @@ static View *loadVariant(const char *variant) {
 }
 
 /**
+ * @brief Loads the variant's scoreboard, which a module MAY name a ScoreboardView subclass in.
+ */
+static ScoreboardView *loadScoreboard(const char *variant) {
+
+  const char *json = variantResource(variant, "scoreboard.json");
+
+  View *scoreboard = $$(View, viewWithResourceName, json, NULL);
+  if (scoreboard == NULL || !$((Object *) scoreboard, isKindOfClass, _ScoreboardView())) {
+    Cg_Warn("%s did not yield a ScoreboardView\n", json);
+    release(scoreboard);
+    scoreboard = $((View *) alloc(ScoreboardView), init);
+  }
+
+  const char *css = variantResource(variant, "scoreboard.css");
+
+  scoreboard->stylesheet = $$(Stylesheet, stylesheetWithResourceName, css);
+  if (scoreboard->stylesheet == NULL) {
+    Cg_Warn("Failed to load %s\n", css);
+  }
+
+  scoreboard->autoresizingMask = ViewAutoresizingFill;
+
+  return (ScoreboardView *) scoreboard;
+}
+
+/**
  * @fn void HudViewController::reload(HudViewController *self)
  * @memberof HudViewController
  */
 static void reload(HudViewController *self) {
 
+  checkVariant(cg_hud->string);
+
   if (self->hud) {
     $(self->hud, removeFromSuperview);
     self->hud = release(self->hud);
   }
+
+  // The scoreboard belongs to the variant, but shows through the intermission and with the
+  // HUD off, so it is swapped before the variant and survives a variant that fails to load
+  if (self->scoreboard) {
+    $((View *) self->scoreboard, removeFromSuperview);
+    self->scoreboard = release(self->scoreboard);
+  }
+
+  self->scoreboard = loadScoreboard(cg_hud->string);
+  $(self->viewController.view, addSubview, (View *) self->scoreboard);
 
   View *hud = loadVariant(cg_hud->string);
   if (hud == NULL && q_strcmp(cg_hud->string, HUD_DEFAULT_VARIANT)) {

@@ -35,11 +35,11 @@ AM_CFLAGS = \
 	@SDL3_CFLAGS@ \
 	@SNDFILE_CFLAGS@
 
-cguihuddir = \
-	@PKGLIBDIR@/lithium/ui/hud
+cguihuddefaultdir = \
+	@PKGLIBDIR@/lithium/ui/hud/default
 
-cguihud_DATA = \
-	ui/hud/classic.json
+cguihuddefault_DATA = \
+	ui/hud/default/hud.json
 
 cgamelibdir = \
 	@PKGLIBDIR@/lithium

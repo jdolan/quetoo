@@ -72,7 +72,9 @@ struct HudViewController {
   View *hud;
 
   /**
-   * @brief The scoreboard, a subview of `view` above `hud`, and not part of the variant.
+   * @brief The scoreboard, a subview of `view` above `hud`. It belongs to the variant, but
+   * shows through the intermission and with the HUD off, so it outlives a variant that
+   * fails to load.
    */
   ScoreboardView *scoreboard;
 
@@ -124,8 +126,10 @@ struct HudViewControllerInterface {
 
   /**
    * @fn void HudViewController::reload(HudViewController *self)
-   * @brief Loads the variant named by `cg_hud`, falling back to `classic`. A module arranging
-   * its HUD differently ships its own `ui/hud/<variant>.json` in its game directory.
+   * @brief Loads the variant named by `cg_hud`, and its scoreboard. Each file is read from
+   * `ui/hud/<variant>`, or from `ui/hud/default` when the variant does not ship it, so a
+   * variant overrides only what it changes. A module arranging its HUD differently ships its
+   * own `ui/hud/<variant>/hud.json` in its game directory.
    * @param self The HudViewController.
    * @memberof HudViewController
    */
