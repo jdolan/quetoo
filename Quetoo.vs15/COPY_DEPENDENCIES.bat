@@ -14,6 +14,8 @@ call ROBO "../src/cgame/common/ui/" "%quetoo_folder%/lib/default/ui/" *.css
 call ROBO "../src/cgame/common/ui/" "%quetoo_folder%/lib/default/ui/" *.json
 call ROBO "../src/cgame/common/ui/" "%quetoo_folder%/lib/default/ui/" *.png
 call ROBO "../src/cgame/common/ui/" "%quetoo_folder%/lib/default/ui/" *.wav
+call ROBO "../src/cgame/common/ui/" "%quetoo_folder%/lib/default/ui/" *.ttf
+call ROBO "../src/cgame/common/ui/" "%quetoo_folder%/lib/default/ui/" *.txt
 
 call ROBO "../../Objectively/Objectively.vs15/bin/%build_platform%%build_configuration%/" "%quetoo_folder%/bin/" Objectively.*
 call ROBO "../../Objectively/Objectively.vs15/libs/dlfcn/%build_platform%/" "%quetoo_folder%/bin/" *.dll

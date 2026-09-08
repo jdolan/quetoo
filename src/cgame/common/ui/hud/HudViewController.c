@@ -69,7 +69,7 @@ static void dealloc(Object *self) {
 #pragma mark - ViewController
 
 /**
- * @see View::init(View *)
+ * @see ViewController::init(ViewController *)
  */
 static ViewController *init(ViewController *self) {
 
@@ -246,9 +246,16 @@ static void reload(HudViewController *self) {
 
 /**
  * @brief ViewEnumerator for updateWithFrame: in the editor, only the crosshair shows. Runs
- * before the hierarchy updates, so an element that hides itself still can.
+ * before the hierarchy updates, so an element that hides itself still can. The layout wrapper
+ * is looked through, not hidden, since the crosshair lives in it.
  */
 static void hideForEditor(View *view, ident data) {
+
+  if (view->identifier && strcmp(view->identifier, "layout") == 0) {
+    $(view, enumerateSubviews, hideForEditor, data);
+    return;
+  }
+
   const bool crosshair = $((Object *) view, isKindOfClass, _CrosshairView());
   $(view, setHidden, editor->value && !crosshair);
 }

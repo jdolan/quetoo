@@ -267,7 +267,6 @@ void Cl_LoadMedia(void) {
 
   Cl_LoadModels();
 
-
   S_Stop();
 
   S_BeginLoading();

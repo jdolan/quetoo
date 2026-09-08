@@ -220,7 +220,10 @@ static void rebuild(ScoreboardView *self) {
       assert(total);
 
       const color32_t rgba = Color_Color32(cg_state.teams[t].color);
-      total->color = (SDL_Color) { rgba.r, rgba.g, rgba.b, 255 };
+      const SDL_Color color = { rgba.r, rgba.g, rgba.b, 255 };
+
+      total->color = color;
+      $(total->view.style, addColorAttribute, "color", &color);
 
       $((View *) self->header, addSubview, (View *) total);
       release(total);

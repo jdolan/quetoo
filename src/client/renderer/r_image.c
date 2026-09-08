@@ -188,7 +188,6 @@ bool R_RetainImage(r_media_t *self) {
 
   switch (((r_image_t *) self)->type) {
     case IMG_PROGRAM:
-    case IMG_UI:
       return true;
     default:
       return false;

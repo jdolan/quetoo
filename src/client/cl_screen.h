@@ -22,6 +22,5 @@
 #pragma once
 
 #if defined(__CL_LOCAL_H__)
-void Cl_CenterPrint(char *s);
 void Cl_UpdateScreen(void);
 #endif

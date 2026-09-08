@@ -42,6 +42,11 @@
 typedef struct HudViewController HudViewController;
 typedef struct HudViewControllerInterface HudViewControllerInterface;
 
+/**
+ * @brief The HUD: the variant's View tree beneath the scoreboard, the notify lines, the chat
+ * and the nav edit card, all fed the frame each Cg_UpdateScreen.
+ * @extends ViewController
+ */
 struct HudViewController {
 
   /**

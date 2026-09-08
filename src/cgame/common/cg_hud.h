@@ -32,9 +32,6 @@ typedef enum {
   CROSSHAIR_HEALTH_WHITE_GREEN
 } cg_crosshair_health_t;
 
-#define CROSSHAIR_HEALTH_FIRST CROSSHAIR_HEALTH_NONE
-#define CROSSHAIR_HEALTH_LAST CROSSHAIR_HEALTH_WHITE_GREEN
-
 #define CROSSHAIR_SCALE 0.125f
 #define CROSSHAIR_PULSE_ALPHA 0.5f
 
@@ -42,7 +39,5 @@ typedef enum {
 
 void Cg_UpdateHud(const cl_frame_t *frame);
 void Cg_DrawHud(const cl_frame_t *frame);
-
-void Cg_DrawDamageInflicted(const player_state_t *ps);
 
 #endif

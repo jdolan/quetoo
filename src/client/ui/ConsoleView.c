@@ -88,7 +88,6 @@ static View *init(View *self) {
       release(conback);
     }
 
-    // The buffer sits in the padded bounds, above the input line, which escapes the padding
     this->buffer = addText(self, ViewAlignmentBottomLeft);
     this->input = addText(self, ViewAlignmentInternal);
   }
@@ -202,13 +201,11 @@ static void update(ConsoleView *self, int32_t height) {
     $(view, resize, &MakeSize(view->frame.w, height));
   }
 
-  // Written directly for this frame, and into the element style so a theme reapply keeps them
   const Uint8 alpha = (Uint8) (Clampf01(cl_draw_console_background_alpha->value) * 255);
 
   if (self->background) {
     self->background->color.a = alpha;
 
-    // Cover the screen, keeping the aspect, with the art's bottom edge on the console's
     const SDL_Size image = $(self->background->image, size);
     const float scale = Maxf(frame.w / (float) image.w, frame.h / (float) image.h);
     const SDL_Rect art = MakeRect(

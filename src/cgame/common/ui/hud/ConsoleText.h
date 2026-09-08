@@ -53,6 +53,11 @@ struct ConsoleText {
    * @brief The filter: `level` selects prints, `whence` the oldest to show.
    */
   console_t console;
+
+  /**
+   * @brief When the tail was last taken.
+   */
+  uint32_t time;
 };
 
 struct ConsoleTextInterface {
@@ -68,7 +73,8 @@ struct ConsoleTextInterface {
    * @param self The ConsoleText.
    * @param width The width to wrap to, in points.
    * @param lines The count of lines to show; `0` clears the text.
-   * @remarks Does nothing until the font has resolved, since the column count derives from it.
+   * @remarks Does nothing until the font has resolved, since the column count derives from it,
+   * and takes the tail at most ten times a second.
    * @memberof ConsoleText
    */
   void (*tail)(ConsoleText *self, int32_t width, size_t lines);

@@ -738,7 +738,7 @@ In descending order of how much guard they retire:
 | candidate | retires | notes |
 | --- | --- | --- |
 | `AddEntityTrail` | `cg_entity_trail.c`'s 7 | the largest remaining cluster. Four of the seven are whole static functions that move into `cg_hook.c` and `cg_ctf.c` untouched; the switch case on `s->trail` and the `EF_CTF_MASK` tail become the chain. The eighth thing in that file, the grapple's beam start, runs *before* dispatch and stays a guard |
-| `DrawScore` | `cg_score.c`'s 3 | **not one hook.** Two of the three are one to four line insertions inside a ninety line function, so a wholesale hook would have ctf carry an eighty-nine line copy to add four lines - the `G_ClientObituary` mistake. Only the `"%d captures"` against `"%d frags"` line is a replacement, and it wants a small not-chained `FormatTeamScore`; the carrier icon and the per-player captures stay guards |
+| scoreboard | `ScoreboardView.c`'s 2, `CounterView.c`'s 1 | **not one hook.** The `"%d captures"` against `"%d frags"` team line and the captures counter are one-line insertions inside Views that compile once per module, so they stay guards; see [The HUD is JSON, not a hook](#the-hud-is-json-not-a-hook) |
 | `FormatGameName` | `cg_discord.c`'s 1 | **the same hook already exists on the game side.** Give it the same name; a mod naming its mode should say so once |
 | `AddEntityEffects` | `cg_entity_effect.c`'s 1 | small, but pairs with the trail hook |
 | `InitMedia` | `cg_media.{c,h}`'s 3 | the game side already has this hook, installed by all three features. Now that `cg_ctf.c` and `cg_tech.c` exist, `cg_sample_hook_hit` and its `LoadSample` can move into the feature that wants them, which an earlier draft of this document filed under "stays a guard" for want of anywhere to put them |
@@ -800,10 +800,10 @@ a dedicated server holding the same port:
 
 then read `$WRITE_DIR/screenshots/`. Enough `wait` lines to get past the map load,
 or the screenshot is of the console. What the three modules should show, and did:
-`default` draws frags and deaths with the clock at the third row, `ctf` adds the
-capture count and pushes the clock to the fourth, and `lithium` - the combination
-that had never been looked at, and the one the layout could break - draws the tech
-icon below the quad in the powerup column with the clock back at the third row.
+`default` shows frags and deaths with the clock beneath them, `ctf` adds the captures
+counter and the held flag, and `lithium` - the combination that had never been looked at -
+shows the tech beneath the quad in the powerup column. Each is its module's
+`ui/hud/classic.json` naming the Views listed above; nothing stacks in code any more.
 
 Some paths need a state the map does not hand you:
 
@@ -813,9 +813,9 @@ Some paths need a state the map does not hand you:
 - **The held flag resisted every attempt.** `give` spawns the item entity and
   touches it, and the flag pickup declines a synthetic one; all four flags are also
   named "Enemy Flag", so the name resolves to the first, which is your own team's
-  unless you `team Blue` first. Neither is enough. `Cg_DrawHeldFlag` is therefore
-  the one moved function this document cannot claim was seen working - it needs a
-  real capture, or a bot chased in `cg_third_person_chasecam`.
+  unless you `team Blue` first. Neither is enough. `HeldFlagView` is therefore the one
+  View this document cannot claim was seen working - it needs a real capture, or a bot
+  chased in `cg_third_person_chasecam`.
 
 The bundle the runtime needs is described under [Verifying](#verifying); for the
 client specifically, `Contents/Resources` is a symlink to `quetoo-data/target` and

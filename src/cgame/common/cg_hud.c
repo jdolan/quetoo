@@ -30,7 +30,7 @@
 static void Cg_UpdateChase(const player_state_t *ps) {
 
   if (ps->stats[STAT_CHASE] != cg_hud_state.chase_target) {
-    memset(&cg_hud_state, 0, sizeof(cg_hud_state));
+    Cg_ClearHud();
     cg_hud_state.chase_target = ps->stats[STAT_CHASE];
   }
 }
@@ -38,7 +38,7 @@ static void Cg_UpdateChase(const player_state_t *ps) {
 /**
  * @brief Plays the hit sound if the player inflicted damage this frame.
  */
-void Cg_DrawDamageInflicted(const player_state_t *ps) {
+static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 
   if (!cg_hit_sound->integer) {
     return;
@@ -46,8 +46,6 @@ void Cg_DrawDamageInflicted(const player_state_t *ps) {
 
   const int16_t dmg = ps->stats[STAT_DAMAGE_INFLICT];
   if (dmg) {
-
-    // play the hit sound
     if (cgi.client->unclamped_time - cg_hud_state.damage.hit_sound_time > 50) {
       cg_hud_state.damage.hit_sound_time = cgi.client->unclamped_time;
 

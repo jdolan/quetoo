@@ -21,8 +21,6 @@
 
 #include "cl_local.h"
 
-#include "ui/ui.h"
-
 /**
  * @brief This is called at least once per frame, and more often during loading.
  */
@@ -59,7 +57,6 @@ void Cl_UpdateScreen(void) {
         cls.cgame->UpdateScreen(&cl.frame);
       }
 
-      // The HUD, the menus, the console and the diagnostics share one View hierarchy
       Ui_Draw();
       break;
   }

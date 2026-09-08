@@ -100,7 +100,6 @@ typedef enum {
  */
 typedef enum {
   IMG_PROGRAM = 1,
-  IMG_UI,
   IMG_PIC,
   IMG_SPRITE,
   IMG_ATLAS,
@@ -1886,7 +1885,7 @@ typedef struct {
    * @brief The optional light source entity identifier.
    */
   const void *source;
-  
+
   /**
    * @brief True if the light is occluded for the current frame.
    */
@@ -1944,7 +1943,7 @@ typedef struct {
    * @brief The count of occluded lights.
    */
   int32_t lights_occluded;
-  
+
   /**
    * @brief The count of lights with cached shadowmaps.
    */

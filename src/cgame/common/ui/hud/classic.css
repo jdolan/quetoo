@@ -62,14 +62,12 @@
   font-size: 32;
 }
 
-#hud TimeView .number {
-  font-size: 22;
+#hud #stats .live {
+  font-size: 32;
 }
 
-#hud .raceRun {
-  font-family: Share Tech Mono;
-  font-style: bold;
-  font-size: 28;
+#hud #time .number {
+  font-size: 22;
 }
 
 #crosshair {
@@ -327,8 +325,13 @@ ChatView TextView > Text {
 #hud .heldFlag {
   alignment: middle-left;
   padding-bottom: 224;
+  width: 64;
+  height: 64;
 }
 
 #hud .raceRun {
   alignment: top-center;
+  font-family: Share Tech Mono;
+  font-style: bold;
+  font-size: 28;
 }

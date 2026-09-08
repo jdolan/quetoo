@@ -26,6 +26,7 @@
 #define _Class _ConsoleText
 
 #define CONSOLE_TEXT_MAX_LINES 32
+#define CONSOLE_TEXT_INTERVAL 100
 
 #pragma mark - View
 
@@ -57,10 +58,17 @@ static void tail(ConsoleText *self, int32_t width, size_t lines) {
     return;
   }
 
+  const uint32_t now = (uint32_t) SDL_GetTicks();
+  if (now - self->time < CONSOLE_TEXT_INTERVAL) {
+    return;
+  }
+
   const SDL_Size cell = $(text, sizeText, "M");
   if (text->font == NULL || cell.w <= 0) {
     return;
   }
+
+  self->time = now;
 
   self->console.width = Maxi(width / cell.w, 1);
   self->console.height = lines = Mini(lines, CONSOLE_TEXT_MAX_LINES);

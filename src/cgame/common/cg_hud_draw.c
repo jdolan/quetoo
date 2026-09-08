@@ -21,8 +21,6 @@
 
 #include "cg_local.h"
 
-
-
 cvar_t *cg_chat_lines;
 cvar_t *cg_chat_time;
 cvar_t *cg_notify_lines;
@@ -33,7 +31,6 @@ cvar_t *cg_select_weapon_fade;
 cvar_t *cg_select_weapon_interval;
 
 cg_hud_state_t cg_hud_state;
-
 
 /**
  * @brief Parses a center print message from the server into the center print state.
@@ -250,6 +247,7 @@ bool Cg_UpdateSelectWeapon(const player_state_t *ps, float *alpha) {
 
   if (cg_select_weapon_fade->modified || cg_select_weapon_interval->modified) {
     cg_select_weapon_fade->modified = false;
+    cg_select_weapon_interval->modified = false;
 
     cg_select_weapon_fade->value = Clampf(cg_select_weapon_fade->value, 0.f, cg_select_weapon_interval->value);
   }
@@ -329,11 +327,10 @@ void Cg_InitHud(void) {
 }
 
 /**
- * @brief Loads HUD image assets including the weapon select bar and blend overlay images.
+ * @brief Loads the HUD's per-level media: today, the inventory cache.
  */
 void Cg_LoadHudMedia(void) {
   Cg_InitInventory();
-
 }
 
 /**

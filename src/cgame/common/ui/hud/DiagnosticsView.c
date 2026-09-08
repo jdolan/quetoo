@@ -172,12 +172,20 @@ static void updateBindings(View *self, ident data) {
 
   $(self, setHidden, !cg_draw_diagnostics->integer);
 
-  if (data && !self->hidden) {
+  if (data) {
     cl_client_t *cl = cgi.client;
+
+    const uint32_t now = (uint32_t) SDL_GetTicks();
+
+    if (self->hidden) {
+      cl->packets = 0;
+      this->frames = 0;
+      this->time = now;
+      return;
+    }
 
     this->frames++;
 
-    const uint32_t now = (uint32_t) SDL_GetTicks();
     if (now - this->time >= 1000) {
       this->fps = this->frames;
       this->frames = 0;

@@ -34,6 +34,13 @@ void Ui_PopAllViewControllers(void);
 void Ui_SetHudViewController(ViewController *viewController);
 void Ui_Draw(void);
 void Ui_Init(void);
+
+/**
+ * @brief Tears down the UI.
+ * @remarks Layers are detached before they are released: a View torn down while attached moves
+ * to a NULL window from its dealloc, and a Text re-measures itself on that move with the Font
+ * it has already released.
+ */
 void Ui_Shutdown(void);
 
 #if defined(__UI_LOCAL_H__)

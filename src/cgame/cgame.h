@@ -393,7 +393,8 @@ typedef struct cg_import_s {
   /**
    * @brief Installs the ViewController drawn beneath the menus while in play, or `NULL`
    * to remove it. Its View receives View::updateBindings with each frame from
-   * Cg_UpdateScreen; the client only draws it.
+   * Cg_UpdateScreen; the client draws it, and forwards it View::updateBindings with `NULL`
+   * data on device resets, which its Views MUST tolerate.
    */
   void (*SetHudViewController)(ViewController *viewController);
 

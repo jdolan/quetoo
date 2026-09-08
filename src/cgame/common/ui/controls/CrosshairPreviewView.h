@@ -83,4 +83,3 @@ struct CrosshairPreviewViewInterface {
  * @memberof CrosshairPreviewView
  */
 CGAME_EXPORT Class *_CrosshairPreviewView(void);
-

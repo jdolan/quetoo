@@ -29,7 +29,8 @@ extern cl_static_t cls;
 static WindowController *windowController;
 
 /**
- * @brief The root holds two layers: the HUD, which cgame installs, beneath the menus.
+ * @brief The root holds three layers: the HUD, which cgame installs, beneath the menus, beneath
+ * the console.
  */
 static ViewController *rootViewController;
 static ConsoleViewController *consoleViewController;
@@ -175,14 +176,14 @@ void Ui_ViewWillDisappear(void) {
 }
 
 /**
- * @brief Renders the UI window controller into the UI 2D projection.
+ * @brief Shows the layers the client state calls for, updates the console and renders the UI.
+ * @details The HUD exists only in play, beneath the menus; the menus show whenever asked for,
+ * while loading, and whenever there is no game to show, except beneath the console.
  */
 void Ui_Draw(void) {
 
   assert(windowController);
 
-  // The HUD exists only in play, beneath the menus; the menus show whenever asked for, while
-  // loading, and whenever there is no game to show, except beneath the console
   const cl_key_dest_t dest = cls.key_state.dest;
 
   const bool hud = cls.state == CL_ACTIVE && dest != KEY_UI;
@@ -196,6 +197,9 @@ void Ui_Draw(void) {
   $(windowController, render);
 }
 
+/**
+ * @brief Installs the HUD ViewController the client game draws beneath the menus, or `NULL`.
+ */
 void Ui_SetHudViewController(ViewController *viewController) {
 
   if (hudViewController) {
@@ -303,8 +307,6 @@ void Ui_Init(void) {
   consoleViewController = (ConsoleViewController *) $((ViewController *) alloc(ConsoleViewController), init);
   $(rootViewController, addChildViewController, (ViewController *) consoleViewController);
 
-  // Text's ^N escapes take the game's palette, so console output colors as it always has;
-  // note that ^0 is white in that palette, not black
   for (int32_t i = 0; i < 10; i++) {
     const color32_t c = Color_Color32(ColorEsc(i));
     TextEscapeColors[i] = (SDL_Color) { c.r, c.g, c.b, c.a };
@@ -324,8 +326,6 @@ void Ui_Shutdown(void) {
 
   Ui_SetHudViewController(NULL);
 
-  // Detach before releasing: a View torn down while attached moves to a NULL window from its
-  // dealloc, and a Text re-measures itself on that move with the Font it has already released
   ViewController *layers[] = {
     (ViewController *) consoleViewController, (ViewController *) navigationViewController, hudLayer
   };

@@ -29,7 +29,7 @@
  * @see View::init(View *)
  */
 static View *initTechView(View *self) {
-  return super(View, self, init);
+  return (View *) $((PowerupView *) self, initWithPowerup, PowerupViewNone);
 }
 
 /**
