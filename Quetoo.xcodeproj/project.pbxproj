@@ -111,7 +111,8 @@
 		65A8C761AE5D68358CDDE601 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
 		665046BB6961C443C731A077 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
 		6681071D48F7B492ADC27385 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
-		67B508B8AF186FE76DE2E772 /* ui_console.c in Sources */ = {isa = PBXBuildFile; fileRef = 686EF3FBC392574BB0C5BD72 /* ui_console.c */; };
+		F794CD9FF6534935B10C3EFD /* ConsoleView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7F6A5E1D6B8246A7B4EAD906 /* ConsoleView.c */; };
+		A2E677309CBD4262ADCE7EA5 /* ConsoleViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 9352803A21064843A7D64A86 /* ConsoleViewController.c */; };
 		68157F8A4AF07ADDE8951670 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
 		68D440FA613EE2594A4D6DB6 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
 		68FBD5DEAC1FB3CC3C2322D5 /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
@@ -2027,7 +2028,8 @@
 		63EC6B30290B4C7899E5F6AC /* DiagnosticsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticsView.h; sourceTree = "<group>"; };
 		64E652EE2F700EFB737AEA30 /* classic.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = classic.json; sourceTree = "<group>"; };
 		671265A640259697D1AA363E /* ScoreView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreView.h; sourceTree = "<group>"; };
-		686EF3FBC392574BB0C5BD72 /* ui_console.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ui_console.c; sourceTree = "<group>"; };
+		7F6A5E1D6B8246A7B4EAD906 /* ConsoleView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ConsoleView.c; sourceTree = "<group>"; };
+		9352803A21064843A7D64A86 /* ConsoleViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ConsoleViewController.c; sourceTree = "<group>"; };
 		6F9DDB2DBBC915AE10C66CB1 /* BlendView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlendView.h; sourceTree = "<group>"; };
 		6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_fs.glsl; sourceTree = "<group>"; };
 		740BEA7DBF2B020A6D1B29C7 /* TeamBannerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamBannerView.h; sourceTree = "<group>"; };
@@ -2890,7 +2892,8 @@
 		F7E7256984E276048C2A155E /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
 		FC6374C1D47393EA62C8EC20 /* CounterView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CounterView.h; sourceTree = "<group>"; };
 		FCD76A809F00440F99BC0068 /* cg_inventory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_inventory.c; sourceTree = "<group>"; };
-		FF8E12A349755C6F58D2FD56 /* ui_console.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_console.h; sourceTree = "<group>"; };
+		BA1D8B3C499E4542BFE99DD9 /* ConsoleView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConsoleView.h; sourceTree = "<group>"; };
+		9330AABBEB8C4107BA2E49D2 /* ConsoleViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConsoleViewController.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -4455,8 +4458,10 @@
 			children = (
 				CE4E07E22028B0CB000B276C /* ui_data.h */,
 				CE4E07E32028B0CB000B276C /* ui_data.c */,
-				686EF3FBC392574BB0C5BD72 /* ui_console.c */,
-				FF8E12A349755C6F58D2FD56 /* ui_console.h */,
+				7F6A5E1D6B8246A7B4EAD906 /* ConsoleView.c */,
+				BA1D8B3C499E4542BFE99DD9 /* ConsoleView.h */,
+				9352803A21064843A7D64A86 /* ConsoleViewController.c */,
+				9330AABBEB8C4107BA2E49D2 /* ConsoleViewController.h */,
 				CE5CDBB11D9F45090034757D /* ui_local.h */,
 				CE5CDBB21D9F45090034757D /* ui_main.c */,
 				CE5CDBB31D9F45090034757D /* ui_main.h */,
@@ -6742,7 +6747,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE4E07E52028B0CB000B276C /* ui_data.c in Sources */,
-				67B508B8AF186FE76DE2E772 /* ui_console.c in Sources */,
+				F794CD9FF6534935B10C3EFD /* ConsoleView.c in Sources */,
+				A2E677309CBD4262ADCE7EA5 /* ConsoleViewController.c in Sources */,
 				CE5CDC331D9F518B0034757D /* ui_main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

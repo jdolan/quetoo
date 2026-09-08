@@ -1,8 +1,9 @@
 SUBDIRS =
 
 noinst_HEADERS = \
+	ConsoleView.h \
+	ConsoleViewController.h \
 	ui.h \
-	ui_console.h \
 	ui_data.h \
 	ui_local.h \
 	ui_main.h
@@ -11,7 +12,8 @@ noinst_LTLIBRARIES = \
 	libui.la
 
 libui_la_SOURCES = \
-	ui_console.c \
+	ConsoleView.c \
+	ConsoleViewController.c \
 	ui_data.c \
 	ui_main.c
 

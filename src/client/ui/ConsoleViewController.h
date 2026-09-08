@@ -23,19 +23,21 @@
 
 #include <ObjectivelyMVC/ViewController.h>
 
+#include "ConsoleView.h"
+
 /**
  * @file
- * @brief The console layer: the console, the notify lines, and chat.
+ * @brief The console layer.
  */
 
 typedef struct ConsoleViewController ConsoleViewController;
 typedef struct ConsoleViewControllerInterface ConsoleViewControllerInterface;
 
 /**
- * @brief The console layer, above the menus: the drop-down console, the notify lines in the
- * top left, and chat with its input two thirds of the way down.
- * @details These Views render the client's `console_t` state; keys still feed that state
- * through the client's own key handling, so only the drawing lives here.
+ * @brief The console layer, above the menus and the HUD, holding the drop-down console.
+ * @details The layer fills the window but never takes a hit, so the menus beneath stay clickable.
+ * The console shows while the key destination is the console, filling the window until there is
+ * a game to show and `cl_console_height` of it after.
  * @extends ViewController
  */
 struct ConsoleViewController {
@@ -52,21 +54,9 @@ struct ConsoleViewController {
   ConsoleViewControllerInterface *interface[0];
 
   /**
-   * @brief The console, holding `background`, `buffer` and `input`.
+   * @brief The console.
    */
-  View *console;
-
-  /**
-   * @brief The console art, scaled to cover the screen and anchored to the console's bottom
-   * edge, so the console slides down over it as it always has; a plain fill when it is missing.
-   */
-  ImageView *background;
-
-  /**
-   * @brief The console's visible tail and its input line.
-   */
-  Text *buffer, *input;
-
+  ConsoleView *console;
 };
 
 struct ConsoleViewControllerInterface {
@@ -86,11 +76,3 @@ struct ConsoleViewControllerInterface {
 };
 
 Class *_ConsoleViewController(void);
-
-/**
- * @brief The console's height for a layer of the given height: all of it until there is a game
- * to show, then `cl_console_height` of it.
- * @param height The layer height, in points.
- * @return The console height, in points.
- */
-int32_t Ui_ConsoleHeight(int32_t height);

@@ -22,17 +22,30 @@
 #include "ui_local.h"
 #include "cl_local.h"
 
+#include "ConsoleView.h"
 
-#include "ui_console.h"
+#define _Class _ConsoleView
 
 #define CONSOLE_FONT_SIZE 16
 #define CONSOLE_CURSOR "_"
 
-int32_t Ui_ConsoleHeight(int32_t height) {
-  return height * (cls.state == CL_ACTIVE ? Clampf01(cl_console_height->value) : 1.f);
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+  ConsoleView *this = (ConsoleView *) self;
+
+  release(this->background);
+  release(this->buffer);
+  release(this->input);
+
+  super(Object, self, dealloc);
 }
 
-#define _Class _ConsoleViewController
+#pragma mark - View
 
 /**
  * @brief A monospace Text, since all of this changes every frame and wraps by column.
@@ -53,73 +66,37 @@ static Text *addText(View *view, ViewAlignment alignment) {
 }
 
 /**
- * @see Object::dealloc(Object *)
+ * @see View::init(View *)
  */
-static void dealloc(Object *self) {
+static View *init(View *self) {
 
-  ConsoleViewController *this = (ConsoleViewController *) self;
+  self = super(View, self, initWithFrame, NULL);
+  if (self) {
+    ConsoleView *this = (ConsoleView *) self;
 
-  release(this->console);
-  release(this->background);
-  release(this->buffer);
-  release(this->input);
+    self->autoresizingMask = ViewAutoresizingWidth;
+    self->clipsSubviews = true;
 
-  super(Object, self, dealloc);
-}
+    Image *conback = $$(Image, imageWithResourceName, "ui/conback.png");
+    if (conback) {
+      this->background = $(alloc(ImageView), initWithImage, conback);
+      assert(this->background);
 
-/**
- * @see ViewController::loadView(ViewController *)
- */
-static void loadView(ViewController *self) {
+      this->background->view.alignment = ViewAlignmentInternal;
 
-  super(ViewController, self, loadView);
+      $(self, addSubview, (View *) this->background);
+      release(conback);
+    }
 
-  self->view->pointerEvents = false;
-
-  ConsoleViewController *this = (ConsoleViewController *) self;
-
-  this->console = $(alloc(View), initWithFrame, NULL);
-  assert(this->console);
-
-  this->console->autoresizingMask = ViewAutoresizingWidth;
-  this->console->clipsSubviews = true;
-
-  Image *conback = $$(Image, imageWithResourceName, "ui/conback.png");
-  if (conback) {
-    this->background = $(alloc(ImageView), initWithImage, conback);
-    assert(this->background);
-
-    this->background->view.alignment = ViewAlignmentInternal;
-
-    $(this->console, addSubview, (View *) this->background);
-    release(conback);
+    // The buffer sits in the padded bounds, above the input line, which escapes the padding
+    this->buffer = addText(self, ViewAlignmentBottomLeft);
+    this->input = addText(self, ViewAlignmentInternal);
   }
 
-  // The buffer sits in the padded bounds, above the input line, which escapes the padding
-  this->buffer = addText(this->console, ViewAlignmentBottomLeft);
-  this->input = addText(this->console, ViewAlignmentInternal);
-
-  $(self->view, addSubview, this->console);
+  return self;
 }
 
-/**
- * @brief The character cell of the console font, in points.
- */
-static SDL_Size cell(const Text *text) {
-  return $(text, sizeText, "M");
-}
-
-/**
- * @return True once the Texts have a resolved Font and the layer has a size: before the first
- * render neither holds, and column counts derived from them would be garbage.
- */
-static bool ready(const ConsoleViewController *self, const Text *text) {
-
-  const SDL_Size ch = cell(text);
-  const SDL_Rect frame = self->viewController.view->frame;
-
-  return text->font && ch.w > 0 && ch.h > 0 && frame.w > 0 && frame.h > 0;
-}
+#pragma mark - ConsoleView
 
 /**
  * @brief Joins the tail of `console` into `text`. Con_Wrap opens each line in its own color, so
@@ -200,23 +177,29 @@ static void inputLine(const console_t *console, int32_t esc, Text *text) {
 }
 
 /**
- * @brief The drop-down console: its height from `cl_console_height`, the buffer above the input.
+ * @fn void ConsoleView::update(ConsoleView *self, int32_t height)
+ * @memberof ConsoleView
  */
-static void updateConsole(ConsoleViewController *self) {
+static void update(ConsoleView *self, int32_t height) {
 
-  if (!ready(self, self->buffer)) {
+  View *view = (View *) self;
+
+  if (view->superview == NULL || self->buffer->font == NULL) {
     return;
   }
 
-  const SDL_Size ch = cell(self->buffer);
-  const SDL_Rect frame = self->viewController.view->frame;
-  const int32_t height = Ui_ConsoleHeight(frame.h);
+  const SDL_Size ch = $(self->buffer, sizeText, "M");
+  const SDL_Rect frame = view->superview->frame;
+
+  if (ch.w <= 0 || ch.h <= 0 || frame.w <= 0 || frame.h <= 0) {
+    return;
+  }
 
   cl_console.width = frame.w / ch.w;
   cl_console.height = Maxi(height / ch.h - 1, 0);
 
-  if (self->console->frame.h != height) {
-    $(self->console, resize, &MakeSize(self->console->frame.w, height));
+  if (view->frame.h != height) {
+    $(view, resize, &MakeSize(view->frame.w, height));
   }
 
   // Written directly for this frame, and into the element style so a theme reapply keeps them
@@ -235,17 +218,17 @@ static void updateConsole(ConsoleViewController *self) {
     if (!SDL_RectsEqual(&art, &self->background->view.frame)) {
       self->background->view.frame = art;
     }
-  } else if (self->console->backgroundColor.a != alpha) {
+  } else if (view->backgroundColor.a != alpha) {
     const SDL_Color color = { 0, 0, 0, alpha };
-    self->console->backgroundColor = color;
-    $(self->console->style, addColorAttribute, "background-color", &color);
+    view->backgroundColor = color;
+    $(view->style, addColorAttribute, "background-color", &color);
   }
 
-  if (self->console->padding.bottom != ch.h) {
+  if (view->padding.bottom != ch.h) {
     const SDL_Rect padding = MakeRect(0, 1, ch.h, 1);
-    self->console->padding = MakePadding(0, 1, ch.h, 1);
-    $(self->console->style, addRectangleAttribute, "padding", &padding);
-    $(self->console, setNeedsLayout);
+    view->padding = MakePadding(0, 1, ch.h, 1);
+    $(view->style, addRectangleAttribute, "padding", &padding);
+    $(view, setNeedsLayout);
   }
 
   tail(&cl_console, cl_console.height, self->buffer);
@@ -255,45 +238,31 @@ static void updateConsole(ConsoleViewController *self) {
   self->input->view.frame.y = height - ch.h;
 }
 
-/**
- * @fn void ConsoleViewController::update(ConsoleViewController *self)
- * @memberof ConsoleViewController
- */
-static void update(ConsoleViewController *self) {
-
-  const bool console = cls.key_state.dest == KEY_CONSOLE && cls.state != CL_LOADING;
-
-  $(self->console, setHidden, !console);
-  if (console) {
-    updateConsole(self);
-  }
-}
-
 #pragma mark - Class lifecycle
 
 static void initialize(Class *clazz) {
 
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewInterface *) clazz->interface)->init = init;
 
-  ((ConsoleViewControllerInterface *) clazz->interface)->update = update;
+  ((ConsoleViewInterface *) clazz->interface)->update = update;
 }
 
 /**
- * @fn Class *ConsoleViewController::_ConsoleViewController(void)
- * @memberof ConsoleViewController
+ * @fn Class *ConsoleView::_ConsoleView(void)
+ * @memberof ConsoleView
  */
-Class *_ConsoleViewController(void) {
+Class *_ConsoleView(void) {
   static Class *clazz;
   static Once once;
 
   do_once(&once, {
     clazz = _initialize(&(const ClassDef) {
-      .name = "ConsoleViewController",
-      .superclass = _ViewController(),
-      .instanceSize = sizeof(ConsoleViewController),
-      .interfaceSize = sizeof(ConsoleViewControllerInterface),
+      .name = "ConsoleView",
+      .superclass = _View(),
+      .instanceSize = sizeof(ConsoleView),
+      .interfaceSize = sizeof(ConsoleViewInterface),
       .initialize = initialize,
     });
   });

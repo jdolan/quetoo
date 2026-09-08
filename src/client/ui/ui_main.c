@@ -22,7 +22,7 @@
 #include "ui_local.h"
 #include "client.h"
 
-#include "ui_console.h"
+#include "ConsoleViewController.h"
 
 extern cl_static_t cls;
 
