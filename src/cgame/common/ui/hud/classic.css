@@ -197,6 +197,11 @@
   padding-bottom: 120;
 }
 
+#hud DiagnosticsView {
+  alignment: bottom-left;
+  padding-bottom: 120;
+}
+
 #weaponBar {
   alignment: bottom-center;
   autoresizing-mask: contain;

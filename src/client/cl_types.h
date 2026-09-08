@@ -332,11 +332,6 @@ typedef struct {
   uint32_t time_demo_start;
 
   /**
-   * @brief Circular sample buffer of frames-per-second counts.
-   */
-  uint16_t frame_counter[STAT_COUNTER_SAMPLE_COUNT];
-
-  /**
    * @brief Circular sample buffer of packets-per-second counts.
    */
   uint16_t packet_counter[STAT_COUNTER_SAMPLE_COUNT];

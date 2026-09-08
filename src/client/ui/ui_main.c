@@ -23,7 +23,6 @@
 #include "client.h"
 
 #include "ui_console.h"
-#include "ui_diagnostics.h"
 
 extern cl_static_t cls;
 
@@ -34,7 +33,6 @@ static WindowController *windowController;
  */
 static ViewController *rootViewController;
 static ConsoleViewController *consoleViewController;
-static DiagnosticsViewController *diagnosticsViewController;
 
 static ViewController *hudLayer;
 
@@ -186,7 +184,6 @@ void Ui_Draw(void) {
   $(navigationViewController->viewController.view, setHidden, !menus);
 
   $(consoleViewController, update);
-  $(diagnosticsViewController, update);
 
   $(windowController, render);
 }
@@ -298,9 +295,6 @@ void Ui_Init(void) {
   consoleViewController = (ConsoleViewController *) $((ViewController *) alloc(ConsoleViewController), init);
   $(rootViewController, addChildViewController, (ViewController *) consoleViewController);
 
-  diagnosticsViewController = (DiagnosticsViewController *) $((ViewController *) alloc(DiagnosticsViewController), init);
-  $(rootViewController, addChildViewController, (ViewController *) diagnosticsViewController);
-
   // Text's ^N escapes take the game's palette, so console output colors as it always has;
   // note that ^0 is white in that palette, not black
   for (int32_t i = 0; i < 10; i++) {
@@ -325,8 +319,7 @@ void Ui_Shutdown(void) {
   // Detach before releasing: a View torn down while attached moves to a NULL window from its
   // dealloc, and a Text re-measures itself on that move with the Font it has already released
   ViewController *layers[] = {
-    (ViewController *) diagnosticsViewController, (ViewController *) consoleViewController,
-    (ViewController *) navigationViewController, hudLayer
+    (ViewController *) consoleViewController, (ViewController *) navigationViewController, hudLayer
   };
 
   for (size_t i = 0; i < lengthof(layers); i++) {
@@ -334,7 +327,6 @@ void Ui_Shutdown(void) {
     release(layers[i]);
   }
 
-  diagnosticsViewController = NULL;
   consoleViewController = NULL;
   navigationViewController = NULL;
   hudLayer = NULL;

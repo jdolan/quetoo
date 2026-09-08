@@ -24,6 +24,7 @@
 #include <ObjectivelyMVC/AtlasImage.h>
 #include <ObjectivelyMVC/ViewController.h>
 
+#include "DiagnosticsView.h"
 #include "NavEditView.h"
 #include "ScoreboardView.h"
 
@@ -72,6 +73,12 @@ struct HudViewController {
    * @brief The navigation edit instructions, shown in place of `hud` while editing.
    */
   NavEditView *navEdit;
+
+  /**
+   * @brief The diagnostics table, added to each variant's layout and shown while
+   * `cg_draw_diagnostics` is set.
+   */
+  DiagnosticsView *diagnostics;
 
   /**
    * @brief AtlasImages by resource name.

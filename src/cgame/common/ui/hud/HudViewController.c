@@ -58,6 +58,7 @@ static void dealloc(Object *self) {
   release(this->hud);
   release(this->scoreboard);
   release(this->navEdit);
+  release(this->diagnostics);
   release(this->images);
 
   super(Object, self, dealloc);
@@ -119,6 +120,9 @@ static void loadView(ViewController *self) {
   assert(this->navEdit);
 
   $(view, addSubview, (View *) this->navEdit);
+
+  this->diagnostics = (DiagnosticsView *) $((View *) alloc(DiagnosticsView), init);
+  assert(this->diagnostics);
 
   $(this, reload);
 }
@@ -216,6 +220,10 @@ static void reload(HudViewController *self) {
   $(self->viewController.view, bringSubviewToFront, (View *) self->scoreboard);
   $(self->viewController.view, bringSubviewToFront, (View *) self->navEdit);
   self->hud = hud;
+
+  // The diagnostics join the variant's layout so that its stylesheet and inset apply to them
+  View *layout = $(hud, descendantWithIdentifier, "layout") ?: hud;
+  $(layout, addSubview, (View *) self->diagnostics);
 
   $(self, warm);
 

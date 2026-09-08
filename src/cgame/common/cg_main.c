@@ -42,6 +42,7 @@ cvar_t *cg_draw_crosshair_color;
 cvar_t *cg_draw_crosshair_health;
 cvar_t *cg_draw_crosshair_pulse;
 cvar_t *cg_draw_crosshair_scale;
+cvar_t *cg_draw_diagnostics;
 cvar_t *cg_draw_fps;
 cvar_t *cg_draw_hud;
 cvar_t *cg_hud;
@@ -122,6 +123,7 @@ static void Cg_Init(void) {
   cg_draw_crosshair_health = cgi.AddCvar("cg_draw_crosshair_health", "0", CVAR_ARCHIVE, "Method of coloring the crosshair by health. Range from 1-5, 0 disables.");
   cg_draw_crosshair_pulse = cgi.AddCvar("cg_draw_crosshair_pulse", "1", CVAR_ARCHIVE, "Pulse the crosshair when picking up items");
   cg_draw_crosshair_scale = cgi.AddCvar("cg_draw_crosshair_scale", "1", CVAR_ARCHIVE, "Controls the crosshair scale (size)");
+  cg_draw_diagnostics = cgi.AddCvar("cg_draw_diagnostics", "0", CVAR_ARCHIVE, "Draw the client, renderer and sound counters on the HUD");
   cg_draw_fps = cgi.AddCvar("cg_draw_fps", "1", CVAR_ARCHIVE, "Draw the frame rate on the HUD");
   cg_draw_hud = cgi.AddCvar("cg_draw_hud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
   cg_hud = cgi.AddCvar("cg_hud", "classic", CVAR_ARCHIVE, "The HUD variant: a ui/hud/<name>.json and .css pair (Default is classic)");

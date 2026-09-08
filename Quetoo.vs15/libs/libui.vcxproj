@@ -21,7 +21,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\client\ui\ui_data.c" />
     <ClCompile Include="..\..\src\client\ui\ui_console.c" />
-    <ClCompile Include="..\..\src\client\ui\ui_diagnostics.c" />
     <ClCompile Include="..\..\src\client\ui\ui_main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -29,7 +28,6 @@
     <ClInclude Include="..\..\src\client\ui\ui_data.h" />
     <ClInclude Include="..\..\src\client\ui\ui_local.h" />
     <ClInclude Include="..\..\src\client\ui\ui_console.h" />
-    <ClInclude Include="..\..\src\client\ui\ui_diagnostics.h" />
     <ClInclude Include="..\..\src\client\ui\ui_main.h" />
     <ClInclude Include="..\..\src\client\ui\ui_types.h" />
   </ItemGroup>

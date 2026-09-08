@@ -12,9 +12,6 @@
     <ClCompile Include="..\..\src\client\ui\ui_console.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\ui_diagnostics.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\client\ui\ui_main.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -30,9 +27,6 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\ui\ui_console.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\ui_diagnostics.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\ui\ui_main.h">

@@ -234,6 +234,7 @@ cgame_la_SOURCES = \
 	ui/hud/ChaseView.c \
 	ui/hud/CounterView.c \
 	ui/hud/CrosshairView.c \
+	ui/hud/DiagnosticsView.c \
 	ui/hud/FpsView.c \
 	ui/hud/HudViewController.c \
 	ui/hud/NavEditView.c \
