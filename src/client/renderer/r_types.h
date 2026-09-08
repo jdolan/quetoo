@@ -1931,6 +1931,102 @@ typedef enum {
 } r_view_flags_t;
 
 /**
+ * @brief Draw statistics, accumulated by the renderer for each view it draws.
+ */
+typedef struct {
+
+  /**
+   * @brief The count of visible lights.
+   */
+  int32_t lights_visible;
+
+  /**
+   * @brief The count of occluded lights.
+   */
+  int32_t lights_occluded;
+  
+  /**
+   * @brief The count of lights with cached shadowmaps.
+   */
+  int32_t lights_cached;
+
+  /**
+   * @brief The count of visible entities.
+   */
+  int32_t entities_visible;
+
+  /**
+   * @brief The count of occluded entities.
+   */
+  int32_t entities_occluded;
+
+  /**
+   * @brief The count of visible (non-occluded) BSP blocks.
+   */
+  int32_t blocks_visible;
+
+  /**
+   * @brief The count of occluded BSP blocks.
+   */
+  int32_t blocks_occluded;
+
+  /**
+   * @brief The count of currently allocated occlusion queries.
+   */
+  int32_t queries_allocated;
+
+  /**
+   * @brief The count of visible occlusion queries this frame.
+   */
+  int32_t queries_visible;
+
+  /**
+   * @brief The count of occluded occlusion queries this frame.
+   */
+  int32_t queries_occluded;
+
+  /**
+   * @brief The count of rendered inline BSP models.
+   */
+  int32_t bsp_inline_models;
+
+  /**
+   * @brief The count of rendered BSP draw element batches.
+   */
+  int32_t bsp_draw_elements;
+
+  /**
+   * @brief The count of rendered BSP triangles.
+   */
+  int32_t bsp_triangles;
+
+  /**
+   * @brief The count of rendered mesh models.
+   */
+  int32_t mesh_models;
+
+  /**
+   * @brief The count of rendered mesh draw element batches.
+   */
+  int32_t mesh_draw_elements;
+
+  /**
+   * @brief The count of rendered mesh triangles.
+   */
+  int32_t mesh_triangles;
+
+  /**
+   * @brief The count of rendered sprite draw element batches.
+   */
+  int32_t sprite_draw_elements;
+
+  /**
+   * @brief The count of rendered decal draw element batches.
+   */
+  int32_t decal_draw_elements;
+} r_view_stats_t;
+
+/**
  * @brief Each client frame populates a view, and submits it to the renderer.
  */
 typedef struct {
@@ -2069,6 +2165,11 @@ typedef struct {
    * @brief The view frustum, for box and sphere culling.
    */
   cm_bsp_plane_t frustum[4];
+
+  /**
+   * @brief Draw statistics for the most recent render of this view.
+   */
+  r_view_stats_t stats;
 } r_view_t;
 
 /**
@@ -2116,107 +2217,6 @@ typedef struct {
    */
   Texture *null_texture;
 } r_context_t;
-
-/**
- * @brief Renderer statistics.
- */
-typedef struct {
-
-  /**
-   * @brief The count of visible lights.
-   */
-  int32_t lights_visible;
-
-  /**
-   * @brief The count of occluded lights.
-   */
-  int32_t lights_occluded;
-  
-  /**
-   * @brief The count of lights with cached shadowmaps.
-   */
-  int32_t lights_cached;
-
-  /**
-   * @brief The count of visible entities.
-   */
-  int32_t entities_visible;
-
-  /**
-   * @brief The count of occluded entities.
-   */
-  int32_t entities_occluded;
-
-  /**
-   * @brief The count of visible (non-occluded) BSP blocks.
-   */
-  int32_t blocks_visible;
-
-  /**
-   * @brief The count of occluded BSP blocks.
-   */
-  int32_t blocks_occluded;
-
-  /**
-   * @brief The count of currently allocated occlusion queries.
-   */
-  int32_t queries_allocated;
-
-  /**
-   * @brief The count of visible occlusion queries this frame.
-   */
-  int32_t queries_visible;
-
-  /**
-   * @brief The count of occluded occlusion queries this frame.
-   */
-  int32_t queries_occluded;
-
-  /**
-   * @brief The count of rendered inline BSP models.
-   */
-  int32_t bsp_inline_models;
-
-  /**
-   * @brief The count of rendered BSP draw element batches.
-   */
-  int32_t bsp_draw_elements;
-
-  /**
-   * @brief The count of rendered BSP triangles.
-   */
-  int32_t bsp_triangles;
-
-  /**
-   * @brief The count of rendered mesh models.
-   */
-  int32_t mesh_models;
-
-  /**
-   * @brief The count of rendered mesh draw element batches.
-   */
-  int32_t mesh_draw_elements;
-
-  /**
-   * @brief The count of rendered mesh triangles.
-   */
-  int32_t mesh_triangles;
-
-  /**
-   * @brief The count of rendered sprite draw element batches.
-   */
-  int32_t sprite_draw_elements;
-
-  /**
-   * @brief The count of rendered decals.
-   */
-  int32_t decals;
-
-  /**
-   * @brief The count of rendered decal draw element batches.
-   */
-  int32_t decal_draw_elements;
-} r_stats_t;
 
 #if defined(__R_LOCAL_H__)
 

@@ -237,7 +237,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
   const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
 
-  r_stats.bsp_triangles += draw->num_elements / 3;
+  r_stats->bsp_triangles += draw->num_elements / 3;
 }
 
 /**
@@ -349,10 +349,10 @@ static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block, RenderPass *pass) {
 
     if (!(draw->surface & SURF_MATERIAL)) {
       $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
-      r_stats.bsp_triangles += draw->num_elements / 3;
+      r_stats->bsp_triangles += draw->num_elements / 3;
     }
 
-    r_stats.bsp_draw_elements++;
+    r_stats->bsp_draw_elements++;
   }
 }
 
@@ -386,10 +386,10 @@ static void R_DrawAlphaTestBspBlock(const r_bsp_block_t *block, RenderPass *pass
 
     if (!(draw->surface & SURF_MATERIAL)) {
       $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
-      r_stats.bsp_triangles += draw->num_elements / 3;
+      r_stats->bsp_triangles += draw->num_elements / 3;
     }
 
-    r_stats.bsp_draw_elements++;
+    r_stats->bsp_draw_elements++;
   }
 }
 
@@ -416,11 +416,11 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
     if (IS_WORLDSPAWN(entity->model)) {
 
       if (block->query->result == 0) {
-        r_stats.blocks_occluded++;
+        r_stats->blocks_occluded++;
         continue;
       }
 
-      r_stats.blocks_visible++;
+      r_stats->blocks_visible++;
 
       memcpy(&locals.active_dynamic_lights, &block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
       $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
@@ -430,7 +430,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
     R_DrawOpaqueBspBlock(block, pass);
   }
 
-  r_stats.bsp_inline_models++;
+  r_stats->bsp_inline_models++;
 }
 
 /**
@@ -549,7 +549,7 @@ void R_DrawOpaqueBspEntities(const r_view_t *view, RenderPass *pass) {
     }
 
     if (!IS_WORLDSPAWN(e->model) && R_CullEntity(view, e)) {
-      r_stats.entities_occluded++;
+      r_stats->entities_occluded++;
       continue;
     }
 
@@ -633,8 +633,8 @@ static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, 
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
     $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
 
-    r_stats.bsp_triangles += draw->num_elements / 3;
-    r_stats.bsp_draw_elements++;
+    r_stats->bsp_triangles += draw->num_elements / 3;
+    r_stats->bsp_draw_elements++;
 
     if (r_draw_material_stages->integer) {
       R_DrawBspDrawElementsMaterialStages(view, entity, draw, false, pass);

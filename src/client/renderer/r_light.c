@@ -120,9 +120,9 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
     }
 
     if (l->occluded) {
-      r_stats.lights_occluded++;
+      r_stats->lights_occluded++;
     } else {
-      r_stats.lights_visible++;
+      r_stats->lights_visible++;
     }
 
     if (l->flags & R_LIGHT_NO_SHADOW) {

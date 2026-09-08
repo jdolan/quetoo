@@ -365,6 +365,53 @@ typedef struct {
 } s_context_t;
 
 /**
+ * @brief A summary of one playing channel, for diagnostics.
+ */
+typedef struct {
+
+  /**
+   * @brief The sample name.
+   */
+  char name[MAX_QPATH];
+
+  /**
+   * @brief The channel origin.
+   */
+  vec3_t origin;
+
+  /**
+   * @brief The play flags.
+   */
+  int32_t flags;
+
+  /**
+   * @brief The occlusion mix fraction.
+   */
+  float occlusion;
+} s_stage_channel_t;
+
+/**
+ * @brief Sound statistics, written by the sound module for each rendered stage.
+ */
+typedef struct {
+
+  /**
+   * @brief The channels playing after the stage was mixed.
+   */
+  s_stage_channel_t channels[MAX_CHANNELS];
+
+  /**
+   * @brief The count of playing channels.
+   */
+  int32_t num_channels;
+
+  /**
+   * @brief The reverb intensity at the listener origin.
+   */
+  float reverb;
+} s_stage_stats_t;
+
+/**
  * @brief The sound stage type.
  */
 typedef struct s_stage_s {
@@ -418,6 +465,11 @@ typedef struct s_stage_s {
    * @brief The count of samples.
    */
   int32_t num_samples;
+
+  /**
+   * @brief Statistics for the most recent render of this stage.
+   */
+  s_stage_stats_t stats;
 } s_stage_t;
 
 #if defined(__S_LOCAL_H__)

@@ -28,6 +28,6 @@ void S_AddSample(s_stage_t *stage, const s_play_sample_t *play);
 
 int32_t S_AllocChannel(void);
 void S_FreeChannel(int32_t c);
-void S_MixChannels(const s_stage_t *stage);
+void S_MixChannels(s_stage_t *stage);
 
 #endif

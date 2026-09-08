@@ -347,6 +347,16 @@ typedef struct {
   uint8_t sample_index, sample_count;
 
   /**
+   * @brief Smoothed round trip time to the server, in milliseconds.
+   */
+  uint32_t ping;
+
+  /**
+   * @brief Packets dropped by the server, cumulative for this connection.
+   */
+  uint32_t dropped;
+
+  /**
    * @brief Circular buffer of recently sent commands, enabling re-send for loss recovery and client-side prediction.
    */
   cl_cmd_t cmds[CMD_BACKUP];

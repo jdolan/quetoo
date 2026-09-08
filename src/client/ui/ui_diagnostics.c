@@ -286,7 +286,7 @@ static void append(char *text, size_t size, size_t *len, const char *fmt, ...) {
  */
 static void updateRendererStats(DiagnosticsViewController *self) {
 
-  static char sprites[64], beams[64], instances[64], draw_elements[64], decals[64], decal_draw_elements[64];
+  static char sprites[64], beams[64], instances[64], draw_elements[64], decal_draw_elements[64];
   static uint32_t sprite_time;
 
   if (quetoo.ticks - sprite_time > 100) {
@@ -294,9 +294,8 @@ static void updateRendererStats(DiagnosticsViewController *self) {
     q_snprintf(sprites, sizeof(sprites), " %d sprites", cl_view.num_sprites);
     q_snprintf(beams, sizeof(beams), " %d beams", cl_view.num_beams);
     q_snprintf(instances, sizeof(instances), " %d instances", cl_view.num_sprite_instances);
-    q_snprintf(draw_elements, sizeof(draw_elements), " %d draw elements", r_stats.sprite_draw_elements);
-    q_snprintf(decals, sizeof(decals), " %d decals", r_stats.decals);
-    q_snprintf(decal_draw_elements, sizeof(decal_draw_elements), " %d draw elements", r_stats.decal_draw_elements);
+    q_snprintf(draw_elements, sizeof(draw_elements), " %d draw elements", cl_view.stats.sprite_draw_elements);
+    q_snprintf(decal_draw_elements, sizeof(decal_draw_elements), " %d draw elements", cl_view.stats.decal_draw_elements);
   }
 
   char text[2048] = "";
@@ -304,23 +303,23 @@ static void updateRendererStats(DiagnosticsViewController *self) {
 
   append(text, sizeof(text), &len,
     "Occlusion queries:\n %d queries allocated\n %d queries visible\n %d queries occluded\n\n",
-    r_stats.queries_allocated, r_stats.queries_visible, r_stats.queries_occluded);
+    cl_view.stats.queries_allocated, cl_view.stats.queries_visible, cl_view.stats.queries_occluded);
 
   append(text, sizeof(text), &len,
     "Lights:\n %d lights allocated\n %d lights visible\n %d lights occluded\n %d lights cached\n\n",
-    r_stats.lights_visible + r_stats.lights_occluded, r_stats.lights_visible, r_stats.lights_occluded, r_stats.lights_cached);
+    cl_view.stats.lights_visible + cl_view.stats.lights_occluded, cl_view.stats.lights_visible, cl_view.stats.lights_occluded, cl_view.stats.lights_cached);
 
   append(text, sizeof(text), &len,
     "BSP:\n %d entities\n %d draw elements\n %d triangles\n\n",
-    r_stats.bsp_inline_models, r_stats.bsp_draw_elements, r_stats.bsp_triangles);
+    cl_view.stats.bsp_inline_models, cl_view.stats.bsp_draw_elements, cl_view.stats.bsp_triangles);
 
   append(text, sizeof(text), &len,
     "Mesh:\n %d entities\n %d draw elements\n %d triangles\n\n",
-    r_stats.mesh_models, r_stats.mesh_draw_elements, r_stats.mesh_triangles);
+    cl_view.stats.mesh_models, cl_view.stats.mesh_draw_elements, cl_view.stats.mesh_triangles);
 
   append(text, sizeof(text), &len,
-    "Sprites:\n%s\n%s\n%s\n%s\n%s\n%s\n\n",
-    sprites, beams, instances, draw_elements, decals, decal_draw_elements);
+    "Sprites:\n%s\n%s\n%s\n%s\n%s\n\n",
+    sprites, beams, instances, draw_elements, decal_draw_elements);
 
   append(text, sizeof(text), &len,
     "Leaf: %d", Cm_PointLeafnum(cl_view.origin, 0));
@@ -344,25 +343,15 @@ static void updateSoundStats(DiagnosticsViewController *self) {
   char text[16384] = "";
   size_t len = 0;
 
-  append(text, sizeof(text), &len, "Sound:\n%d channels  reverb %.2f", s_context.num_active_channels, s_context.reverb);
+  const s_stage_stats_t *stats = &cl_stage.stats;
 
-  for (int32_t i = 0; i < MAX_CHANNELS; i++) {
-    const s_channel_t *channel = &s_context.channels[i];
+  append(text, sizeof(text), &len, "Sound:\n%d channels  reverb %.2f", stats->num_channels, stats->reverb);
 
-    if (!channel->play.sample) {
-      continue;
-    }
-
-    ALenum state;
-    alGetSourcei(s_context.sources[i], AL_SOURCE_STATE, &state);
-
-    if (state != AL_PLAYING) {
-      continue;
-    }
+  for (int32_t i = 0; i < stats->num_channels; i++) {
+    const s_stage_channel_t *c = &stats->channels[i];
 
     append(text, sizeof(text), &len, "\n  %i: %s @ (%f %f %f) : %i : (%.2f occluded)",
-           i, channel->play.sample->media.name, channel->play.origin.x, channel->play.origin.y,
-           channel->play.origin.z, channel->play.flags, channel->occlusion);
+           i, c->name, c->origin.x, c->origin.y, c->origin.z, c->flags, c->occlusion);
   }
 
   $(self->soundStats, setText, text);
@@ -394,13 +383,13 @@ static void update(DiagnosticsViewController *self) {
     updateCounters(self);
   }
 
-  const bool renderer = (game || console) && r_draw_stats->value;
+  const bool renderer = (game || console) && cl_draw_counters->integer;
   $((View *) self->rendererStats, setHidden, !renderer);
   if (renderer) {
     updateRendererStats(self);
   }
 
-  const bool sound = game && s_draw_stats->value;
+  const bool sound = game && cl_draw_counters->integer;
   $((View *) self->soundStats, setHidden, !sound);
   if (sound) {
     updateSoundStats(self);

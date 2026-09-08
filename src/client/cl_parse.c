@@ -391,6 +391,20 @@ static void Cl_ShowNet(const char *s) {
 /**
  * @brief Parses a complete server message, dispatching each command to its handler.
  */
+/**
+ * @brief Folds the latency of the acknowledged command and any dropped packets into the
+ * client's ping and drop counters.
+ */
+static void Cl_UpdateNetStats(void) {
+
+  cl.dropped += cls.net_chan.dropped;
+
+  const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
+  const uint32_t rtt = cl.unclamped_time - cl.cmds[frame].timestamp;
+
+  cl.ping = cl.ping ? (cl.ping * 7 + rtt) / 8 : rtt;
+}
+
 void Cl_ParseServerMessage(void) {
   int32_t cmd, old_cmd;
 
@@ -479,7 +493,7 @@ void Cl_ParseServerMessage(void) {
     cls.cgame->ParsedMessage(cmd, data);
   }
 
-  Cl_AddNetGraph();
+  Cl_UpdateNetStats();
 
   Cl_WriteDemoMessage();
 }

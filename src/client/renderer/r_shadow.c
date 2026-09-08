@@ -201,7 +201,7 @@ void R_UpdateLightEntities(const r_view_t *view, r_light_t *l, int32_t index) {
   l->hash = hash ?: 1;
 
   if (l->hash == r_shadow_draw.hashes[index]) {
-    r_stats.lights_cached++;
+    r_stats->lights_cached++;
   }
 }
 

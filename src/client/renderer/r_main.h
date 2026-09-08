@@ -52,10 +52,6 @@ extern cvar_t *r_swap_interval;
 extern cvar_t *r_window_height;
 extern cvar_t *r_window_width;
 
-extern cvar_t *r_draw_stats;
-
-extern r_stats_t r_stats;
-
 extern SDL_GPUSampleCount r_scene_samples;
 SDL_GPUSampleCount R_SampleCount(void);
 
@@ -70,6 +66,8 @@ void R_EndFrame(void);
 void R_UpdateUniforms(const r_view_t *view);
 
 #if defined(__R_LOCAL_H__)
+
+extern r_view_stats_t *r_stats;
 
 /**
  * @brief Renderer driver information.

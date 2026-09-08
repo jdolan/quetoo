@@ -21,31 +21,7 @@
 
 #include "cl_local.h"
 
-#include "ui/ui_diagnostics.h"
-
-/**
- * @brief Accumulates net graph samples for the current frame. Dropped or
- * suppressed packets are recorded as peak samples, and packet latency is
- * recorded over a range of 0-300ms.
- */
-void Cl_AddNetGraph(void) {
-  uint32_t i;
-
-  // we only need to do our accounting when asked to
-  if (!cl_draw_net_graph->value) {
-    return;
-  }
-
-  for (i = 0; i < cls.net_chan.dropped; i++) {
-    Ui_AddNetGraphSample(1.f, color_red);
-  }
-
-  // see what the latency was on this packet
-  const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
-  const uint32_t ping = cl.unclamped_time - cl.cmds[frame].timestamp;
-
-  Ui_AddNetGraphSample(ping / 300.f, color_green); // 300ms is lagged out
-}
+#include "ui/ui.h"
 
 /**
  * @brief This is called at least once per frame, and more often during loading.
