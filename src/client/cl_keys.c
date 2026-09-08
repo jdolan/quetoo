@@ -53,8 +53,8 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 
     SDL_SetWindowRelativeMouseMode(r_context.window, false);
 
-    const int32_t cx = r_context.w * 0.5;
-    const int32_t cy = r_context.h * 0.5;
+    const int32_t cx = r_context.window_bounds.w * 0.5;
+    const int32_t cy = r_context.window_bounds.h * 0.5;
 
     SDL_WarpMouseInWindow(r_context.window, cx, cy);
   }
@@ -269,64 +269,6 @@ static void Cl_KeyGame(const SDL_Event *event) {
 
   if (cmd[0]) { // send the command
     Cbuf_AddText(cmd);
-  }
-}
-
-/**
- * @brief Handles key events while in chat mode, submitting or editing the chat input.
- */
-static void Cl_KeyChat(const SDL_Event *event) {
-
-  if (event->type == SDL_EVENT_KEY_UP) { // don't care
-    return;
-  }
-
-  console_input_t *in = &cl_chat_console.input;
-
-  switch (event->key.key) {
-
-    case SDLK_RETURN:
-    case SDLK_KP_ENTER: {
-      const char *out;
-      if (cls.chat_state.team_chat ||
-        cls.key_state.down[SDL_SCANCODE_LSHIFT] ||
-        cls.key_state.down[SDL_SCANCODE_RSHIFT] ||
-        cls.key_state.down[SDL_SCANCODE_LCTRL] ||
-        cls.key_state.down[SDL_SCANCODE_RCTRL]) {
-        out = va("say_team %s^7", in->buffer);
-      } else {
-        out = va("say %s^7", in->buffer);
-      }
-      q_strlcpy(in->buffer, out, sizeof(in->buffer));
-      Con_SubmitInput(&cl_chat_console);
-
-      Cl_SetKeyDest(KEY_GAME);
-    }
-      break;
-
-    case SDLK_BACKSPACE:
-    case SDLK_KP_BACKSPACE:
-      if (in->pos > 0) {
-        char *c = in->buffer + in->pos - 1;
-        while (*c) {
-          *c = *(c + 1);
-          c++;
-        }
-        in->pos--;
-      }
-      break;
-
-    case SDLK_DELETE:
-      if (in->pos < q_strlen(in->buffer)) {
-        char *c = in->buffer + in->pos;
-        while (*c) {
-          *c = *(c + 1);
-          c++;
-        }
-      }
-      break;
-    default:
-      break;
   }
 }
 
@@ -575,18 +517,16 @@ void Cl_ShutdownKeys(void) {
 }
 
 /**
- * @brief Routes an SDL key event to the appropriate destination handler (UI, game, or chat).
+ * @brief Routes an SDL key event to the game or console handler; the UI handles its own.
  */
 void Cl_KeyEvent(const SDL_Event *event) {
 
   switch (cls.key_state.dest) {
     case KEY_UI:
+    case KEY_CHAT:
       break;
     case KEY_GAME:
       Cl_KeyGame(event);
-      break;
-    case KEY_CHAT:
-      Cl_KeyChat(event);
       break;
     case KEY_CONSOLE:
       Cl_KeyConsole(event);

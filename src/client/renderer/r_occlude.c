@@ -242,21 +242,16 @@ void R_DrawOcclusionQueries(const r_view_t *view, CommandBuffer *commands) {
         q->result = false;
       }
     }
+
+    r_stats->queries_allocated++;
+    if (q->result) {
+      r_stats->queries_visible++;
+    } else {
+      r_stats->queries_occluded++;
+    }
   }
 
   R_UpdateOcclusionBounds();
-
-  if (r_draw_stats->value) {
-    const r_occlusion_query_t *q = r_occlusion.queries;
-    for (int32_t i = 0; i < r_occlusion.num_queries; i++, q++) {
-      r_stats.queries_allocated++;
-      if (q->result) {
-        r_stats.queries_visible++;
-      } else {
-        r_stats.queries_occluded++;
-      }
-    }
-  }
 }
 
 /**

@@ -32,16 +32,16 @@
  * @brief One player on the scoreboard.
  */
 
-typedef struct ScoreRowView ScoreRowView;
-typedef struct ScoreRowViewInterface ScoreRowViewInterface;
+typedef struct ScoreView ScoreView;
+typedef struct ScoreViewInterface ScoreViewInterface;
 
 /**
  * @brief One player on the scoreboard: the icon, a fill in the team colour, the name and
  * ping on the first line, and two more lines a module fills in through
- * ScoreRowView::setDetails. The local player's row carries the class name `self`.
+ * ScoreView::setDetails. The local player's row carries the class name `self`.
  * @extends View
  */
-struct ScoreRowView {
+struct ScoreView {
 
   /**
    * @brief The superclass.
@@ -52,7 +52,7 @@ struct ScoreRowView {
    * @brief The interface type.
    * @protected
    */
-  ScoreRowViewInterface *interface[0];
+  ScoreViewInterface *interface[0];
 
   /**
    * @brief A small image over the icon's corner, e.g. the flag a player carries.
@@ -81,7 +81,7 @@ struct ScoreRowView {
   Text *name, *ping;
 };
 
-struct ScoreRowViewInterface {
+struct ScoreViewInterface {
 
   /**
    * @brief The superclass interface.
@@ -89,25 +89,25 @@ struct ScoreRowViewInterface {
   ViewInterface viewInterface;
 
   /**
-   * @fn ScoreRowView *ScoreRowView::initWithScore(ScoreRowView *self, const g_score_t *score, int32_t width)
-   * @brief Initializes this ScoreRowView for the given score, `width` wide.
-   * @param self The ScoreRowView.
+   * @fn ScoreView *ScoreView::initWithScore(ScoreView *self, const g_score_t *score, int32_t width)
+   * @brief Initializes this ScoreView for the given score, `width` wide.
+   * @param self The ScoreView.
    * @param score The score.
    * @param width The row width.
-   * @return The initialized ScoreRowView, or `NULL` on error.
-   * @memberof ScoreRowView
+   * @return The initialized ScoreView, or `NULL` on error.
+   * @memberof ScoreView
    */
-  ScoreRowView *(*initWithScore)(ScoreRowView *self, const g_score_t *score, int32_t width);
+  ScoreView *(*initWithScore)(ScoreView *self, const g_score_t *score, int32_t width);
 
   /**
-   * @fn void ScoreRowView::setDetails(ScoreRowView *self, const char *detail, const char *aside)
+   * @fn void ScoreView::setDetails(ScoreView *self, const char *detail, const char *aside)
    * @brief Sets the lines beneath the name.
-   * @param self The ScoreRowView.
+   * @param self The ScoreView.
    * @param detail The left text, which MAY span two lines, or `NULL`.
    * @param aside The right text, or `NULL`.
-   * @memberof ScoreRowView
+   * @memberof ScoreView
    */
-  void (*setDetails)(ScoreRowView *self, const char *detail, const char *aside);
+  void (*setDetails)(ScoreView *self, const char *detail, const char *aside);
 };
 
-CGAME_EXPORT Class *_ScoreRowView(void);
+CGAME_EXPORT Class *_ScoreView(void);

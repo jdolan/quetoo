@@ -23,7 +23,7 @@
 
 r_config_t r_config;
 r_uniforms_t r_uniforms;
-r_stats_t r_stats;
+r_view_stats_t *r_stats;
 
 cvar_t *r_alpha_test;
 cvar_t *r_cull;
@@ -45,7 +45,6 @@ cvar_t *r_bloom;
 cvar_t *r_bloom_iterations;
 cvar_t *r_bloom_threshold;
 cvar_t *r_caustics;
-cvar_t *r_draw_scale;
 cvar_t *r_framebuffer_scale;
 cvar_t *r_fullscreen;
 cvar_t *r_fullscreen_width;
@@ -66,7 +65,6 @@ cvar_t *r_specularity;
 cvar_t *r_swap_interval;
 cvar_t *r_window_height;
 cvar_t *r_window_width;
-cvar_t *r_draw_stats;
 
 /**
  * @brief MSAA sample count for the 3D scene.
@@ -207,11 +205,6 @@ static void R_UpdatePipelines(void) {
  */
 void R_BeginFrame(void) {
 
-  if (r_draw_scale->modified) {
-    R_UpdateContext();
-    r_draw_scale->modified = false;
-  }
-
   if (r_framebuffer_scale->modified) {
     SDL_PushEvent(&(SDL_Event) {
       .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
@@ -244,8 +237,6 @@ void R_BeginFrame(void) {
     r_swap_interval->modified = false;
   }
 
-  memset(&r_stats, 0, sizeof(r_stats));
-
   CommandBuffer *commands = $(r_context.device, beginFrame);
   if (commands) {
     const Framebuffer *fb = r_context.device->framebuffer;
@@ -266,12 +257,16 @@ void R_InitView(r_view_t *view) {
   view->num_sprites = 0;
   view->num_sprite_instances = 0;
   view->num_decals = 0;
+
+  memset(&view->stats, 0, sizeof(view->stats));
 }
 
 /**
  * @brief Renders the depth pre-pass and occlusion queries for the view.
  */
 void R_DrawViewDepth(r_view_t *view) {
+
+  r_stats = &view->stats;
 
   R_UpdateFrustum(view);
 
@@ -298,6 +293,8 @@ void R_DrawViewDepth(r_view_t *view) {
 void R_DrawMainView(r_view_t *view) {
 
   assert(view);
+
+  r_stats = &view->stats;
 
   CommandBuffer *commands = r_context.device->commands;
   if (!commands) {
@@ -354,6 +351,8 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   assert(view);
 
+  r_stats = &view->stats;
+
   CommandBuffer *commands = r_context.device->commands;
   if (!commands) {
     return;
@@ -386,8 +385,6 @@ void R_DrawPlayerModelView(r_view_t *view) {
  */
 void R_EndFrame(void) {
 
-  R_Draw2D();
-
   if (r_context.device->commands) {
     $(r_context.device, endFrame);
   }
@@ -408,7 +405,6 @@ static void R_InitLocal(void) {
   r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool).");
   r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
   r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
-  r_draw_stats = Cvar_Add("r_draw_stats", "0", CVAR_DEVELOPER, "Draw renderer performance statistics (developer tool).");
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
 
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
@@ -419,7 +415,6 @@ static void R_InitLocal(void) {
   r_bloom_iterations = Cvar_Add("r_bloom_iterations", "8", CVAR_ARCHIVE, "Controls the number of bloom blur iterations. Higher values produce softer, wider bloom.");
   r_bloom_threshold = Cvar_Add("r_bloom_threshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
-  r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
   r_framebuffer_scale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
   r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
   r_fullscreen_width = Cvar_Add("r_fullscreen_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution width. 0 uses the desktop resolution.");
@@ -501,8 +496,6 @@ void R_Init(void) {
   
   R_InitModels();
   
-  R_InitDraw2D();
-  
   R_InitDepthPass();
   
   R_InitOcclusionQueries();
@@ -534,8 +527,6 @@ void R_Shutdown(void) {
   R_ShutdownDraw3D();
   R_ShutdownPost();
   R_ShutdownDepthPass();
-
-  R_ShutdownDraw2D();
 
   R_ShutdownModels();
 

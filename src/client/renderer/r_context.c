@@ -78,11 +78,6 @@ void R_UpdateContext(void) {
     r_window_height->modified = false;
   }
 
-  const float scale = Clampf(r_draw_scale->value, .5f, 4.f);
-
-  r_context.w = r_context.window_bounds.w / scale;
-  r_context.h = r_context.window_bounds.h / scale;
-
   r_context.display = SDL_GetDisplayForWindow(r_context.window);
   r_context.display_mode = SDL_GetCurrentDisplayMode(r_context.display);
 

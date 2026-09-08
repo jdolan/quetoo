@@ -242,10 +242,6 @@ int32_t Cl_ParseConfigString(void) {
     if (cls.state == CL_ACTIVE) {
       cl.sounds[i - CS_SOUNDS] = S_LoadSample(s);
     }
-  } else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
-    if (cls.state == CL_ACTIVE) {
-      cl.images[i - CS_IMAGES] = R_LoadImage(s, IMG_PIC);
-    }
   } else if (i >= CS_ENTITIES && i < CS_ENTITIES + MAX_ENTITIES) {
     cls.cgame->ParseEditorEntity(i - CS_ENTITIES, s);
   }
@@ -389,6 +385,25 @@ static void Cl_ShowNet(const char *s) {
 }
 
 /**
+ * @brief Folds the latency of the acknowledged command and any dropped packets into the
+ * client's ping and drop counters. Only movement commands carry a timestamp, so nothing is
+ * measured until the client is active.
+ */
+static void Cl_UpdateNetStats(void) {
+
+  if (cls.state != CL_ACTIVE) {
+    return;
+  }
+
+  cl.dropped += cls.net_chan.dropped;
+
+  const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
+  const uint32_t rtt = cl.unclamped_time - cl.cmds[frame].timestamp;
+
+  cl.ping = cl.ping ? (cl.ping * 7 + rtt) / 8 : rtt;
+}
+
+/**
  * @brief Parses a complete server message, dispatching each command to its handler.
  */
 void Cl_ParseServerMessage(void) {
@@ -479,7 +494,7 @@ void Cl_ParseServerMessage(void) {
     cls.cgame->ParsedMessage(cmd, data);
   }
 
-  Cl_AddNetGraph();
+  Cl_UpdateNetStats();
 
   Cl_WriteDemoMessage();
 }

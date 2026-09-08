@@ -31,12 +31,13 @@
 #endif
 
 #include "client/cl_types.h"
+#include "common/console.h"
 #include "common/installer.h"
 #include <Objectively/PointerArray.h>
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 41
+#define CGAME_API_VERSION 43
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -344,6 +345,16 @@ typedef struct cg_import_s {
   void (*Cbuf)(const char *s);
 
   /**
+   * @brief Collects the most recent console lines matching the given console's `level`,
+   * `whence` and `scroll`, wrapped to its `width`.
+   * @param console The console filter.
+   * @param lines The array to receive the lines, which the caller MUST free with `Free`.
+   * @param max_lines The capacity of `lines`.
+   * @return The count of lines collected.
+   */
+  size_t (*Tail)(const console_t *console, char **lines, size_t max_lines);
+
+  /**
    * @}
    * @defgroup ui User interface
    * @{
@@ -382,7 +393,8 @@ typedef struct cg_import_s {
   /**
    * @brief Installs the ViewController drawn beneath the menus while in play, or `NULL`
    * to remove it. Its View receives View::updateBindings with each frame from
-   * Cg_UpdateScreen; the client only draws it.
+   * Cg_UpdateScreen; the client draws it, and forwards it View::updateBindings with `NULL`
+   * data on device resets, which its Views MUST tolerate.
    */
   void (*SetHudViewController)(ViewController *viewController);
 
@@ -879,64 +891,6 @@ typedef struct cg_import_s {
    * @defgroup draw-2d 2D drawing
    * @{
    */
-
-  /**
-   * @brief Binds the font by `name`, optionally returning the character width and height.
-   * @param name The font name (e.g. `"small"`).
-   * @param cw The optional return pointer for the character width.
-   * @param ch The optional return pointer for the character height.
-   */
-  void (*BindFont)(const char *name, int32_t *cw, int32_t *ch);
-
-  /**
-   * @brief Draws a filled rectangle in orthographic projection on the screen.
-   * @param x The x coordinate, in pixels.
-   * @param y The y coordinate, in pixels.
-   * @param w The width, in pixels.
-   * @param h The height, in pixels.
-   * @param c The color.
-   * @param a The alpha component.
-   */
-  void (*Draw2DFill)(int32_t x, int32_t y, int32_t w, int32_t h, const color_t color);
-
-  /**
-   * @brief Draws an image in orthographic projection on the screen.
-   * @param x The x coordinate, in pixels.
-   * @param y The y coordinate, in pixels.
-   * @param x The width, in pixels.
-   * @param y The height, in pixels.
-   * @param image The image.
-   * @param color The color.
-   */
-  void (*Draw2DImage)(int32_t x, int32_t y, int32_t w, int32_t h, const r_image_t *image, const color_t color);
-
-  /**
-   * @brief Draws the framebuffer color attachment in orthographic projection on the screen.
-   * @param x The x coordinate, in pixels.
-   * @param y The y coordinate, in pixels.
-   * @param x The width, in pixels.
-   * @param y The height, in pixels.
-   * @param image The image.
-   * @param color The color.
-   * @remarks This function uses deferred rendering, allowing framebuffers to be used as
-   * textures in menus or on the HUD.
-   */
-  void (*Draw2DFramebuffer)(int32_t x, int32_t y, int32_t w, int32_t h, const Framebuffer *framebuffer, const color_t color);
-
-  /**
-   * @brief Draws the string `s` at the given coordinates.
-   * @param x The x coordinate, in pixels.
-   * @param y The y coordinate, in pixels.
-   * @param s The string.
-   * @param color The color.
-   * @return The number of visible characters drawn.
-   */
-  size_t (*Draw2DString)(int32_t x, int32_t y, const char *s, const color_t color);
-
-  /**
-   * @return The width of the string `s` in pixels, using the currently bound font.
-   */
-  int32_t (*StringWidth)(const char *s);
 
   /**
    * @brief Draw 3D lines between the given point pairs.

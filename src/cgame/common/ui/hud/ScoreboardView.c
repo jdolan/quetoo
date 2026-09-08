@@ -49,7 +49,7 @@ static void dealloc(Object *self) {
  */
 static void addRow(ScoreboardView *self, StackView *column, const g_score_t *score) {
 
-  ScoreRowView *row = $(self, rowForScore, score);
+  ScoreView *row = $(self, scoreView, score);
   assert(row);
 
   $((View *) column, addSubview, (View *) row);
@@ -59,7 +59,7 @@ static void addRow(ScoreboardView *self, StackView *column, const g_score_t *sco
 /**
  * @brief The stock detail lines: frags and deaths, or spectating; in CTF, captures too.
  */
-static void configureScoreRow(ScoreRowView *row, const g_score_t *score) {
+static void configureScoreRow(ScoreView *row, const g_score_t *score) {
 
   if (score->flags & SCORE_SPECTATOR) {
     $(row, setDetails, "spectating", NULL);
@@ -176,12 +176,12 @@ static StackView *addColumn(ScoreboardView *self) {
 }
 
 /**
- * @fn ScoreRowView *ScoreboardView::rowForScore(ScoreboardView *self, const g_score_t *score)
+ * @fn ScoreView *ScoreboardView::scoreView(ScoreboardView *self, const g_score_t *score)
  * @memberof ScoreboardView
  */
-static ScoreRowView *rowForScore(ScoreboardView *self, const g_score_t *score) {
+static ScoreView *scoreView(ScoreboardView *self, const g_score_t *score) {
 
-  ScoreRowView *row = $(alloc(ScoreRowView), initWithScore, score, self->rowWidth);
+  ScoreView *row = $(alloc(ScoreView), initWithScore, score, self->rowWidth);
   assert(row);
 
   configureScoreRow(row, score);
@@ -220,7 +220,10 @@ static void rebuild(ScoreboardView *self) {
       assert(total);
 
       const color32_t rgba = Color_Color32(cg_state.teams[t].color);
-      total->color = (SDL_Color) { rgba.r, rgba.g, rgba.b, 255 };
+      const SDL_Color color = { rgba.r, rgba.g, rgba.b, 255 };
+
+      total->color = color;
+      $(total->view.style, addColorAttribute, "color", &color);
 
       $((View *) self->header, addSubview, (View *) total);
       release(total);
@@ -277,7 +280,7 @@ static void initialize(Class *clazz) {
 
   ((ScoreboardViewInterface *) clazz->interface)->addColumn = addColumn;
   ((ScoreboardViewInterface *) clazz->interface)->rebuild = rebuild;
-  ((ScoreboardViewInterface *) clazz->interface)->rowForScore = rowForScore;
+  ((ScoreboardViewInterface *) clazz->interface)->scoreView = scoreView;
 }
 
 /**

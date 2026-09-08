@@ -11,7 +11,6 @@ noinst_HEADERS = \
 	r_cull.h \
 	r_decal.h \
 	r_depth_pass.h \
-	r_draw_2d.h \
 	r_draw_3d.h \
 	r_entity.h \
 	r_image.h \
@@ -46,7 +45,6 @@ librenderer_la_SOURCES = \
 	r_cull.c \
 	r_decal.c \
 	r_depth_pass.c \
-	r_draw_2d.c \
 	r_draw_3d.c \
 	r_entity.c \
 	r_image.c \

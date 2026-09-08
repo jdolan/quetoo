@@ -25,7 +25,7 @@
 #include <ObjectivelyMVC/Text.h>
 #include <ObjectivelyMVC/View.h>
 
-#include "ScoreRowView.h"
+#include "ScoreView.h"
 
 /**
  * @file
@@ -41,7 +41,7 @@ typedef struct ScoreboardViewInterface ScoreboardViewInterface;
  * rows: one column per team with the spectators to their left, or one or two columns of
  * everyone. Rows are rebuilt when the scores change (Cg_ScoresGeneration) or the view
  * resizes. A module that arranges its board differently names a subclass in its
- * `ui/hud/scoreboard.json`, overriding ScoreboardView::rowForScore for the rows and
+ * `ui/hud/scoreboard.json`, overriding ScoreboardView::scoreView for the rows and
  * ScoreboardView::rebuild for the columns.
  * @extends View
  */
@@ -110,14 +110,14 @@ struct ScoreboardViewInterface {
   void (*rebuild)(ScoreboardView *self);
 
   /**
-   * @fn ScoreRowView *ScoreboardView::rowForScore(ScoreboardView *self, const g_score_t *score)
-   * @brief Creates the row for the given score: the stock frags and deaths, or spectating.
+   * @fn ScoreView *ScoreboardView::scoreView(ScoreboardView *self, const g_score_t *score)
+   * @brief Creates the ScoreView for the given score: the stock frags and deaths, or spectating.
    * @param self The ScoreboardView.
    * @param score The score.
-   * @return The row, retained. The caller owns the returned ScoreRowView, and MUST release it.
+   * @return The ScoreView, retained. The caller owns the returned ScoreView, and MUST release it.
    * @memberof ScoreboardView
    */
-  ScoreRowView *(*rowForScore)(ScoreboardView *self, const g_score_t *score);
+  ScoreView *(*scoreView)(ScoreboardView *self, const g_score_t *score);
 };
 
 CGAME_EXPORT Class *_ScoreboardView(void);

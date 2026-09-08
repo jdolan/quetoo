@@ -24,6 +24,10 @@
 #include <ObjectivelyMVC/AtlasImage.h>
 #include <ObjectivelyMVC/ViewController.h>
 
+#include "ChatView.h"
+#include "DiagnosticsView.h"
+#include "NavEditView.h"
+#include "NotifyView.h"
 #include "ScoreboardView.h"
 
 #include "cg_types.h"
@@ -38,6 +42,11 @@
 typedef struct HudViewController HudViewController;
 typedef struct HudViewControllerInterface HudViewControllerInterface;
 
+/**
+ * @brief The HUD: the variant's View tree beneath the scoreboard, the notify lines, the chat
+ * and the nav edit card, all fed the frame each Cg_UpdateScreen.
+ * @extends ViewController
+ */
 struct HudViewController {
 
   /**
@@ -66,6 +75,24 @@ struct HudViewController {
    * @brief The scoreboard, a subview of `view` above `hud`, and not part of the variant.
    */
   ScoreboardView *scoreboard;
+
+  /**
+   * @brief The navigation edit instructions, shown in place of `hud` while editing.
+   */
+  NavEditView *navEdit;
+
+  /**
+   * @brief The notify lines and the chat, siblings of `hud` so that they outlive it through the
+   * intermission and with the HUD off, as the scoreboard does.
+   */
+  NotifyView *notify;
+  ChatView *chat;
+
+  /**
+   * @brief The diagnostics table, added to each variant's layout and shown while
+   * `cg_draw_diagnostics` is set.
+   */
+  DiagnosticsView *diagnostics;
 
   /**
    * @brief AtlasImages by resource name.

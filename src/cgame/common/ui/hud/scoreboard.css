@@ -40,13 +40,13 @@ ScoreboardView .column {
   spacing: 2;
 }
 
-ScoreboardView ScoreRowView {
+ScoreboardView ScoreView {
   background-color: #08151a66;
   border-radius: 4;
   padding: 2 4 2 4;
 }
 
-ScoreboardView ScoreRowView.self {
+ScoreboardView ScoreView.self {
   background-color: #08151aaa;
   border-color: #8fc7dc80;
   border-width: 1;

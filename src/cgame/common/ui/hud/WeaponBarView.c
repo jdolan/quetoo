@@ -193,8 +193,6 @@ static void updateBindings(View *self, ident data) {
   if (index == slots->count) {
     $(this->name, setText, NULL);
   }
-
-  this->name->color.a = selected;
 }
 
 #pragma mark - Class lifecycle

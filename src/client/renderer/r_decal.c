@@ -610,6 +610,8 @@ void R_DrawDecals(const r_view_t *view, RenderPass *pass) {
       $(pass, bindVertexBuffers, 0, &(SDL_GPUBufferBinding) { .buffer = decals->vertex_buffer->buffer }, 1);
 
       $(pass, drawPrimitives, num_vertexes, 1, 0, 0);
+
+      r_stats->decal_draw_elements++;
     }
   }
 }

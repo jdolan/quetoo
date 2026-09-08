@@ -43,7 +43,7 @@
 
 #hud .live {
   font-family: Share Tech Mono;
-  font-style: bold;
+  font-style: regular;
 }
 
 #hud #vitals .number {
@@ -62,14 +62,12 @@
   font-size: 32;
 }
 
-#hud TimeView .number {
-  font-size: 22;
+#hud #stats .live {
+  font-size: 32;
 }
 
-#hud .raceRun {
-  font-family: Share Tech Mono;
-  font-style: bold;
-  font-size: 28;
+#hud #time .number {
+  font-size: 22;
 }
 
 #crosshair {
@@ -192,6 +190,25 @@
   color: #8fc7dc;
 }
 
+#hud #fps {
+  alignment: bottom-right;
+  padding-bottom: 120;
+}
+
+#hud #ping {
+  alignment: bottom-right;
+  padding-bottom: 64;
+}
+
+#hud #ping .lagging {
+  color: #ff5c5c;
+}
+
+#hud DiagnosticsView {
+  alignment: bottom-left;
+  padding-bottom: 120;
+}
+
 #weaponBar {
   alignment: bottom-center;
   autoresizing-mask: contain;
@@ -237,6 +254,50 @@
   alignment: middle-center;
 }
 
+/*
+ * The notify lines and the chat are siblings of #hud, so that they show through the
+ * intermission and with the HUD off; they take the layout inset themselves.
+ */
+
+NotifyView {
+  alignment: none;
+  left: 32;
+  top: 32;
+  font-family: Share Tech Mono;
+  font-style: regular;
+  font-size: 16;
+}
+
+ChatView {
+  alignment: bottom-left;
+  padding-left: 32;
+  padding-bottom: 272;
+  spacing: 4;
+}
+
+ChatView ConsoleText {
+  font-family: Share Tech Mono;
+  font-style: regular;
+  font-size: 16;
+}
+
+ChatView TextView {
+  background-color: #08151aaa;
+  border-color: #8fc7dc;
+  border-width: 1;
+  min-width: 480;
+}
+
+ChatView TextView.team {
+  border-color: #ffd75c;
+}
+
+ChatView TextView > Text {
+  font-family: Share Tech Mono;
+  font-style: regular;
+  font-size: 16;
+}
+
 #hud #targetName {
   alignment: bottom-center;
   font-size: 28;
@@ -264,8 +325,13 @@
 #hud .heldFlag {
   alignment: middle-left;
   padding-bottom: 224;
+  width: 64;
+  height: 64;
 }
 
 #hud .raceRun {
   alignment: top-center;
+  font-family: Share Tech Mono;
+  font-style: bold;
+  font-size: 28;
 }

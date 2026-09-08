@@ -34,7 +34,6 @@ extern s_context_t s_context;
 
 extern cvar_t *s_ambient_volume;
 extern cvar_t *s_doppler;
-extern cvar_t *s_draw_stats;
 extern cvar_t *s_effects;
 extern cvar_t *s_effects_volume;
 extern cvar_t *s_hrtf;

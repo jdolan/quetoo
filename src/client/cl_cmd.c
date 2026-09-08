@@ -138,7 +138,7 @@ void Cl_SendCommands(void) {
 
       if (cls.net_chan.message.size || delta > 1000) {
         Netchan_Transmit(&cls.net_chan, NULL, 0);
-        cl.packet_counter[cl.sample_index]++;
+        cl.packets++;
       }
 
       break;
@@ -157,7 +157,7 @@ void Cl_SendCommands(void) {
       Cl_WriteMovementCommand(&buf);
 
       Netchan_Transmit(&cls.net_chan, buf.data, buf.size);
-      cl.packet_counter[cl.sample_index]++;
+      cl.packets++;
 
       Cl_InitMovementCommand();
 

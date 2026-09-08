@@ -35,9 +35,6 @@ void Cg_InitInventory(void) {
   memset(cg_weapons, 0, sizeof(cg_weapons));
 
   for (g_item_tag_t t = ITEM_NONE + 1; t < ITEM_TOTAL; t++) {
-    if (bg_item_defs[t].icon) {
-      cg_items[t].icon = cgi.LoadImage(bg_item_defs[t].icon, IMG_PIC);
-    }
     if (bg_item_defs[t].model) {
       cg_items[t].model = cgi.LoadModel(bg_item_defs[t].model);
     }
@@ -46,7 +43,6 @@ void Cg_InitInventory(void) {
   for (g_item_tag_t t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
     cg_weapon_t *w = &cg_weapons[t - WEAPON_FIRST];
     w->tag = t;
-    w->icon = cg_items[t].icon;
     w->ammo_tag = bg_item_defs[t].ammo;
     w->model = cg_items[t].model;
   }
@@ -102,4 +98,3 @@ int16_t Cg_ActiveAmmo(const player_state_t *ps) {
 
   return ps->inventory[ammo_tag];
 }
-

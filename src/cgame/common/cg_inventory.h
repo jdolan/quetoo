@@ -34,10 +34,6 @@
  */
 typedef struct {
 
-  /**
-   * @brief The item icon image, or `NULL` if not found.
-   */
-  const r_image_t *icon;
 
   /**
    * @brief The item model, or `NULL` if not found.
@@ -66,10 +62,6 @@ typedef struct {
    */
   g_item_tag_t ammo_tag;
 
-  /**
-   * @brief The weapon icon image, or `NULL` if not found.
-   */
-  const r_image_t *icon;
 
   /**
    * @brief The weapon model, or `NULL` if not found.
@@ -84,7 +76,7 @@ typedef struct {
 extern cg_weapon_t cg_weapons[WEAPON_TOTAL];
 
 /**
- * @brief Initializes the inventory cache (weapon icons, ammo tags).
+ * @brief Initializes the inventory cache (item models, weapon ammo tags).
  * Called once per map load from `Cg_LoadHudMedia`.
  */
 void Cg_InitInventory(void);
@@ -104,4 +96,3 @@ int16_t Cg_ActiveWeapon(const player_state_t *ps);
  * @brief Returns the active ammo quantity, or 0 if the active weapon has no ammo.
  */
 int16_t Cg_ActiveAmmo(const player_state_t *ps);
-

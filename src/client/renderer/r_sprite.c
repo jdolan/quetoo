@@ -443,7 +443,7 @@ void R_DrawSprites(const r_view_t *view, RenderPass *pass) {
 
     $(pass, drawIndexedPrimitives, (uint32_t) batch_size * 6, 1, (uint32_t) i * 6, 0, 0);
 
-    r_stats.sprite_draw_elements++;
+    r_stats->sprite_draw_elements++;
 
     i += batch_size;
   }

@@ -256,7 +256,7 @@ static void R_DrawMeshEntityMaterialStage(const r_view_t *view,
   const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
 
-  r_stats.mesh_triangles += face->num_elements / 3;
+  r_stats->mesh_triangles += face->num_elements / 3;
 }
 
 /**
@@ -406,8 +406,8 @@ static void R_DrawMeshEntityFace(const r_view_t *view,
 
   $(pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
 
-  r_stats.mesh_draw_elements++;
-  r_stats.mesh_triangles += face->num_elements / 3;
+  r_stats->mesh_draw_elements++;
+  r_stats->mesh_triangles += face->num_elements / 3;
 
   if (r_mesh_draw.draw_stages) {
     R_DrawMeshEntityMaterialStages(view, e, face, pass);
@@ -562,7 +562,7 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e, RenderPa
     });
   }
 
-  r_stats.mesh_models++;
+  r_stats->mesh_models++;
 }
 
 /**
@@ -640,12 +640,12 @@ void R_DrawMeshEntities(const r_view_t *view, RenderPass *pass) {
     }
 
     if (R_CullEntity(view, e)) {
-      r_stats.entities_occluded++;
+      r_stats->entities_occluded++;
       continue;
     }
 
     R_DrawMeshEntity(view, e, pass);
-    r_stats.entities_visible++;
+    r_stats->entities_visible++;
   }
 }
 

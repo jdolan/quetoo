@@ -26,17 +26,9 @@
 #if defined(__CG_LOCAL_H__)
 
 /**
- * @brief Shared HUD drawing primitives.
- *
- * @details These know nothing about which stats a module shows or how it lays
- * them out; they draw what they are handed. Composition - which vitals, which
- * counters, in what order - belongs to each module's own cg_hud.c, because the
- * HUD is the most visible thing a mod changes.
+ * @brief HUD state the Views read: the weapon selection, the center print, the chat mode and
+ * the pickup and damage pulses, plus the commands and cvars that drive them.
  */
-
-#define HUD_COLOR_STAT      color_white
-#define HUD_COLOR_STAT_MED  color_yellow
-#define HUD_COLOR_STAT_LOW  color_red
 
 #define HUD_PIC_HEIGHT      64
 
@@ -73,10 +65,23 @@ typedef struct {
   } weapon;
 
   int16_t chase_target;
+
+  struct {
+    bool team;
+  } chat;
+
+  /**
+   * @brief When the state was last cleared; prints from before it are not shown.
+   */
+  uint32_t clear_time;
 } cg_hud_state_t;
 
 extern cg_hud_state_t cg_hud_state;
 
+extern cvar_t *cg_chat_lines;
+extern cvar_t *cg_chat_time;
+extern cvar_t *cg_notify_lines;
+extern cvar_t *cg_notify_time;
 extern cvar_t *cg_select_weapon_alpha;
 extern cvar_t *cg_select_weapon_delay;
 extern cvar_t *cg_select_weapon_fade;

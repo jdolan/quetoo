@@ -279,7 +279,7 @@
                         },
                         "control": {
                           "class": "BindTextView",
-                          "bind": "cl_message_mode"
+                          "bind": "cg_message_mode"
                         }
                       },
                       {
@@ -291,7 +291,7 @@
                         },
                         "control": {
                           "class": "BindTextView",
-                          "bind": "cl_message_mode_2"
+                          "bind": "cg_message_mode_2"
                         }
                       },
                       {

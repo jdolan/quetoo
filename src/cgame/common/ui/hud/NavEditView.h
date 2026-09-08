@@ -19,26 +19,48 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#version 450
+#pragma once
 
-/*
- * Self-contained 2D program: modulates the diffuse sample by the vertex color.
- * The sampler lands on fragment sampler slot 0 (set 2, binding 0).
- */
-
-layout (set = 2, binding = 0) uniform sampler2D texture_diffusemap;
-
-layout (location = 0) in vertex_data {
-  vec2 diffusemap;
-  vec4 color;
-} vertex;
-
-layout (location = 0) out vec4 out_color;
+#include <ObjectivelyMVC/Text.h>
 
 /**
- * @brief Shades 2D fragments with the diffuse texture and vertex color.
+ * @file
+ * @brief The navigation edit mode instructions, shown in place of the HUD while editing.
  */
-void main(void) {
 
-  out_color = vertex.color * texture(texture_diffusemap, vertex.diffusemap);
-}
+typedef struct NavEditView NavEditView;
+typedef struct NavEditViewInterface NavEditViewInterface;
+
+/**
+ * @brief The navigation edit mode instructions, shown in place of the HUD while editing.
+ * @details Shown while `cg_state.nav_edit` is on; the key names it quotes follow the binds.
+ * @extends View
+ */
+struct NavEditView {
+
+  /**
+   * @brief The superclass.
+   */
+  View view;
+
+  /**
+   * @brief The interface type.
+   * @protected
+   */
+  NavEditViewInterface *interface[0];
+
+  /**
+   * @brief The instructions.
+   */
+  Text *text;
+};
+
+struct NavEditViewInterface {
+
+  /**
+   * @brief The superclass interface.
+   */
+  ViewInterface viewInterface;
+};
+
+CGAME_EXPORT Class *_NavEditView(void);

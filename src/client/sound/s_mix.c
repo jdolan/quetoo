@@ -138,7 +138,7 @@ static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
 /**
  * @brief Updates all active channels for the current frame.
  */
-void S_MixChannels(const s_stage_t *stage) {
+void S_MixChannels(s_stage_t *stage) {
 
   if (s_doppler->modified) {
     alDopplerFactor(s_doppler->value);
@@ -179,6 +179,8 @@ void S_MixChannels(const s_stage_t *stage) {
   }
 
   s_context.num_active_channels = 0;
+
+  stage->stats.reverb = s_context.reverb;
 
   s_channel_t *ch = s_context.channels;
   for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
@@ -267,6 +269,8 @@ void S_MixChannels(const s_stage_t *stage) {
 
     s_context.num_active_channels++;
   }
+
+  stage->stats.num_channels = s_context.num_active_channels;
 
   s_context.prev_ticks = stage->ticks;
 }

@@ -9,6 +9,12 @@
     <ClCompile Include="..\..\src\client\ui\ui_data.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\ConsoleView.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\ConsoleViewController.c">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\client\ui\ui_main.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -21,6 +27,12 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\ui\ui_local.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\ConsoleView.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\ConsoleViewController.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\ui\ui_main.h">

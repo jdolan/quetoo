@@ -22,9 +22,9 @@
 #include "cg_local.h"
 
 #include "HudViewController.h"
-#include "ScoreRowView.h"
+#include "ScoreView.h"
 
-#define _Class _ScoreRowView
+#define _Class _ScoreView
 
 #pragma mark - Object
 
@@ -33,7 +33,7 @@
  */
 static void dealloc(Object *self) {
 
-  ScoreRowView *this = (ScoreRowView *) self;
+  ScoreView *this = (ScoreView *) self;
 
   release(this->aside);
   release(this->badge);
@@ -46,12 +46,12 @@ static void dealloc(Object *self) {
   super(Object, self, dealloc);
 }
 
-#pragma mark - ScoreRowView
+#pragma mark - ScoreView
 
 /**
  * @brief Adds a Text child at the given frame, with the given class name.
  */
-static Text *addText(ScoreRowView *self, const SDL_Rect *frame, const char *className) {
+static Text *addText(ScoreView *self, const SDL_Rect *frame, const char *className) {
 
   Text *text = $(alloc(Text), initWithText, NULL, NULL);
   assert(text);
@@ -65,12 +65,12 @@ static Text *addText(ScoreRowView *self, const SDL_Rect *frame, const char *clas
 }
 
 /**
- * @fn ScoreRowView *ScoreRowView::initWithScore(ScoreRowView *self, const g_score_t *score, int32_t width)
- * @memberof ScoreRowView
+ * @fn ScoreView *ScoreView::initWithScore(ScoreView *self, const g_score_t *score, int32_t width)
+ * @memberof ScoreView
  */
-static ScoreRowView *initWithScore(ScoreRowView *self, const g_score_t *score, int32_t width) {
+static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t width) {
 
-  self = (ScoreRowView *) super(View, self, initWithFrame, &MakeRect(0, 0, width, SCORES_ROW_HEIGHT));
+  self = (ScoreView *) super(View, self, initWithFrame, &MakeRect(0, 0, width, SCORES_ROW_HEIGHT));
   if (self) {
 
     const cg_client_info_t *info = &cg_state.clients[score->client];
@@ -127,10 +127,10 @@ static ScoreRowView *initWithScore(ScoreRowView *self, const g_score_t *score, i
 }
 
 /**
- * @fn void ScoreRowView::setDetails(ScoreRowView *self, const char *detail, const char *aside)
- * @memberof ScoreRowView
+ * @fn void ScoreView::setDetails(ScoreView *self, const char *detail, const char *aside)
+ * @memberof ScoreView
  */
-static void setDetails(ScoreRowView *self, const char *detail, const char *aside) {
+static void setDetails(ScoreView *self, const char *detail, const char *aside) {
 
   $(self->detail, setText, detail);
   $(self->aside, setText, aside);
@@ -148,24 +148,24 @@ static void initialize(Class *clazz) {
 
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-  ((ScoreRowViewInterface *) clazz->interface)->initWithScore = initWithScore;
-  ((ScoreRowViewInterface *) clazz->interface)->setDetails = setDetails;
+  ((ScoreViewInterface *) clazz->interface)->initWithScore = initWithScore;
+  ((ScoreViewInterface *) clazz->interface)->setDetails = setDetails;
 }
 
 /**
- * @fn Class *ScoreRowView::_ScoreRowView(void)
- * @memberof ScoreRowView
+ * @fn Class *ScoreView::_ScoreView(void)
+ * @memberof ScoreView
  */
-Class *_ScoreRowView(void) {
+Class *_ScoreView(void) {
   static Class *clazz;
   static Once once;
 
   do_once(&once, {
     clazz = _initialize(&(const ClassDef) {
-      .name = "ScoreRowView",
+      .name = "ScoreView",
       .superclass = _View(),
-      .instanceSize = sizeof(ScoreRowView),
-      .interfaceSize = sizeof(ScoreRowViewInterface),
+      .instanceSize = sizeof(ScoreView),
+      .interfaceSize = sizeof(ScoreViewInterface),
       .initialize = initialize,
     });
   });

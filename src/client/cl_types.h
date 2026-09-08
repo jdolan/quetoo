@@ -306,16 +306,6 @@ typedef struct {
 #define ENTITY_STATE_MASK (ENTITY_STATE_BACKUP - 1)
 
 /**
- * @brief How many samples to keep of frame/packet counts.
- */
-#define STAT_COUNTER_SAMPLE_COUNT 20
-
-/**
- * @brief How many samples to keep of frametimes.
- */
-#define FRAMETIME_COUNTER_SAMPLE_COUNT 1024
-
-/**
  * @brief The client structure is cleared at each level load, and is exposed to
  * the client game module to provide access to media and other client state.
  */
@@ -332,19 +322,19 @@ typedef struct {
   uint32_t time_demo_start;
 
   /**
-   * @brief Circular sample buffer of frames-per-second counts.
+   * @brief Packets sent since the diagnostics last read and cleared it.
    */
-  uint16_t frame_counter[STAT_COUNTER_SAMPLE_COUNT];
+  uint32_t packets;
 
   /**
-   * @brief Circular sample buffer of packets-per-second counts.
+   * @brief Smoothed round trip time to the server, in milliseconds.
    */
-  uint16_t packet_counter[STAT_COUNTER_SAMPLE_COUNT];
+  uint32_t ping;
 
   /**
-   * @brief Current write index and valid sample count for the stat counters.
+   * @brief Packets dropped by the server, cumulative for this connection.
    */
-  uint8_t sample_index, sample_count;
+  uint32_t dropped;
 
   /**
    * @brief Circular buffer of recently sent commands, enabling re-send for loss recovery and client-side prediction.
@@ -452,11 +442,6 @@ typedef struct {
   r_model_t *models[MAX_MODELS];
 
   /**
-   * @brief Renderer images resolved from `config_strings`.
-   */
-  r_image_t *images[MAX_IMAGES];
-
-  /**
    * @brief Sound samples resolved from `config_strings`.
    */
   s_sample_t *sounds[MAX_SOUNDS];
@@ -548,14 +533,6 @@ typedef struct {
    */
   bool latched[SDL_SCANCODE_COUNT];
 } cl_key_state_t;
-
-typedef struct {
-
-  /**
-   * @brief True if the current chat message is for team only.
-   */
-  bool team_chat;
-} cl_chat_state_t;
 
 typedef struct {
 
@@ -710,11 +687,6 @@ typedef struct {
    * @brief The mouse position state.
    */
   cl_mouse_state_t mouse_state;
-
-  /**
-   * @brief The chat mode state.
-   */
-  cl_chat_state_t chat_state;
 
   /**
    * @brief Name or address of the server to connect to.

@@ -471,6 +471,12 @@ jobs:
         Copy-Item "Quetoo.vs15\bin\x64Release\lithium\game.dll" "$staging\lib\lithium\"
         Copy-Item "Quetoo.vs15\bin\x64Release\lithium\game.pdb" "$staging\lib\lithium\"
 
+        # Module HUD layouts
+        foreach ($module in @("ctf", "lithium")) {
+          New-Item -ItemType Directory -Force -Path "$staging\lib\$module\ui\hud" | Out-Null
+          Copy-Item "src\cgame\$module\ui\hud\*.json" "$staging\lib\$module\ui\hud\"
+        }
+
         # Objectively, ObjectivelyGPU, and ObjectivelyMVC and their PDBs
         Copy-Item "..\Objectively\Objectively.vs15\bin\x64Release\Objectively.dll" "$staging\bin\"
         Copy-Item "..\Objectively\Objectively.vs15\bin\x64Release\Objectively.pdb" "$staging\bin\"
@@ -494,9 +500,9 @@ jobs:
         # Shaders
         Copy-Item -Path "src\client\renderer\shaders\*" -Destination "$staging\lib\default\shaders\" -Recurse
 
-        # UI files (CSS, JSON, PNG and WAV assets, preserving directory structure)
+        # UI files (CSS, JSON, PNG, WAV and font assets, preserving directory structure)
         foreach ($uiSource in @("src\cgame\common\ui")) {
-          Get-ChildItem -Path $uiSource -Include "*.css","*.json","*.png","*.wav" -Recurse | ForEach-Object {
+          Get-ChildItem -Path $uiSource -Include "*.css","*.json","*.png","*.wav","*.ttf","*.txt" -Recurse | ForEach-Object {
             $relativePath = $_.FullName.Substring((Resolve-Path $uiSource).Path.Length).TrimStart('\')
             $destPath = Join-Path "$staging\lib\default\ui" $relativePath
             $destDir = Split-Path $destPath -Parent

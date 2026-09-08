@@ -22,14 +22,18 @@
 #include "ui_local.h"
 #include "client.h"
 
+#include "ConsoleViewController.h"
+
 extern cl_static_t cls;
 
 static WindowController *windowController;
 
 /**
- * @brief The root holds two layers: the HUD, which cgame installs, beneath the menus.
+ * @brief The root holds three layers: the HUD, which cgame installs, beneath the menus, beneath
+ * the console.
  */
 static ViewController *rootViewController;
+static ConsoleViewController *consoleViewController;
 
 static ViewController *hudLayer;
 
@@ -114,6 +118,14 @@ void Ui_HandleEvent(const SDL_Event *event) {
           if (editor->value && cls.key_state.dest == KEY_GAME) {
             break;
           }
+          if (event->key.key == SDLK_TAB || event->key.key == SDLK_KP_TAB) {
+            return;
+          }
+        case SDL_EVENT_KEY_UP:
+        case SDL_EVENT_TEXT_INPUT:
+          if (cls.key_state.dest == KEY_CHAT) {
+            break;
+          }
         default:
           return;
       }
@@ -164,21 +176,30 @@ void Ui_ViewWillDisappear(void) {
 }
 
 /**
- * @brief Renders the UI window controller into the UI 2D projection.
+ * @brief Shows the layers the client state calls for, updates the console and renders the UI.
+ * @details The HUD exists only in play, beneath the menus; the menus show whenever asked for,
+ * while loading, and whenever there is no game to show, except beneath the console.
  */
 void Ui_Draw(void) {
 
   assert(windowController);
 
-  // The menus occlude the HUD, and the HUD exists only in play
-  const bool menus = cls.key_state.dest == KEY_UI || cls.state != CL_ACTIVE;
+  const cl_key_dest_t dest = cls.key_state.dest;
 
-  $(hudLayer->view, setHidden, menus);
+  const bool hud = cls.state == CL_ACTIVE && dest != KEY_UI;
+  const bool menus = dest == KEY_UI || cls.state == CL_LOADING || (cls.state != CL_ACTIVE && dest != KEY_CONSOLE);
+
+  $(hudLayer->view, setHidden, !hud);
   $(navigationViewController->viewController.view, setHidden, !menus);
+
+  $(consoleViewController, update);
 
   $(windowController, render);
 }
 
+/**
+ * @brief Installs the HUD ViewController the client game draws beneath the menus, or `NULL`.
+ */
 void Ui_SetHudViewController(ViewController *viewController) {
 
   if (hudViewController) {
@@ -278,9 +299,18 @@ void Ui_Init(void) {
 
   hudLayer = $(alloc(ViewController), init);
   $(rootViewController, addChildViewController, hudLayer);
+  hudLayer->view->pointerEvents = false;
 
   navigationViewController = $(alloc(NavigationViewController), init);
   $(rootViewController, addChildViewController, (ViewController *) navigationViewController);
+
+  consoleViewController = (ConsoleViewController *) $((ViewController *) alloc(ConsoleViewController), init);
+  $(rootViewController, addChildViewController, (ViewController *) consoleViewController);
+
+  for (int32_t i = 0; i < 10; i++) {
+    const color32_t c = Color_Color32(ColorEsc(i));
+    TextEscapeColors[i] = (SDL_Color) { c.r, c.g, c.b, c.a };
+  }
 
   Ui_LoadSample("#ui/change");
   Ui_LoadSample("#ui/click");
@@ -296,8 +326,19 @@ void Ui_Shutdown(void) {
 
   Ui_SetHudViewController(NULL);
 
-  navigationViewController = release(navigationViewController);
-  hudLayer = release(hudLayer);
+  ViewController *layers[] = {
+    (ViewController *) consoleViewController, (ViewController *) navigationViewController, hudLayer
+  };
+
+  for (size_t i = 0; i < lengthof(layers); i++) {
+    $(layers[i], removeFromParentViewController);
+    release(layers[i]);
+  }
+
+  consoleViewController = NULL;
+  navigationViewController = NULL;
+  hudLayer = NULL;
+
   rootViewController = release(rootViewController);
 
   windowController = release(windowController);

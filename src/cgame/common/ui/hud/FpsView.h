@@ -19,33 +19,49 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#version 450
+#pragma once
 
-/*
- * Self-contained 2D program (console, HUD, menus). The per-frame orthographic
- * projection is the only uniform, pushed to vertex uniform slot 0.
- */
-
-layout (location = 0) in vec2 in_position;
-layout (location = 1) in vec2 in_diffusemap;
-layout (location = 2) in vec4 in_color;
-
-layout (std140, set = 1, binding = 0) uniform locals_block {
-  mat4 projection2D;
-};
-
-layout (location = 0) out vertex_data {
-  vec2 diffusemap;
-  vec4 color;
-} vertex;
+#include "CounterView.h"
 
 /**
- * @brief Transforms 2D vertices and forwards color and texcoords.
+ * @file
+ * @brief The frame rate, counted by the HUD itself.
  */
-void main(void) {
 
-  gl_Position = projection2D * vec4(in_position, 0.0, 1.0);
+typedef struct FpsView FpsView;
+typedef struct FpsViewInterface FpsViewInterface;
 
-  vertex.diffusemap = in_diffusemap;
-  vertex.color = in_color;
-}
+/**
+ * @brief The frame rate, counted by the HUD itself and refreshed once a second.
+ * @details Hidden when `cg_draw_fps` is off.
+ * @extends CounterView
+ */
+struct FpsView {
+
+  /**
+   * @brief The superclass.
+   */
+  CounterView counterView;
+
+  /**
+   * @brief The interface type.
+   * @protected
+   */
+  FpsViewInterface *interface[0];
+
+  /**
+   * @brief Frames since `time`, and when the count last rolled over.
+   */
+  int32_t frames, fps;
+  uint32_t time;
+};
+
+struct FpsViewInterface {
+
+  /**
+   * @brief The superclass interface.
+   */
+  CounterViewInterface counterViewInterface;
+};
+
+CGAME_EXPORT Class *_FpsView(void);

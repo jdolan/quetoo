@@ -365,6 +365,22 @@ typedef struct {
 } s_context_t;
 
 /**
+ * @brief Sound statistics, written by the sound module for each rendered stage.
+ */
+typedef struct {
+
+  /**
+   * @brief The count of channels playing after the stage was mixed.
+   */
+  int32_t num_channels;
+
+  /**
+   * @brief The reverb intensity at the listener origin.
+   */
+  float reverb;
+} s_stage_stats_t;
+
+/**
  * @brief The sound stage type.
  */
 typedef struct s_stage_s {
@@ -418,6 +434,11 @@ typedef struct s_stage_s {
    * @brief The count of samples.
    */
   int32_t num_samples;
+
+  /**
+   * @brief Statistics for the most recent render of this stage.
+   */
+  s_stage_stats_t stats;
 } s_stage_t;
 
 #if defined(__S_LOCAL_H__)
