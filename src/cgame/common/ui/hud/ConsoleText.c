@@ -71,7 +71,7 @@ static void tail(ConsoleText *self, int32_t width, size_t lines) {
   self->time = now;
 
   self->console.width = Maxi(width / cell.w, 1);
-  self->console.height = lines = Mini(lines, CONSOLE_TEXT_MAX_LINES);
+  self->console.height = lines = Minui64(lines, CONSOLE_TEXT_MAX_LINES);
 
   char *strings[CONSOLE_TEXT_MAX_LINES];
   const size_t count = cgi.Tail(&self->console, strings, lines);
