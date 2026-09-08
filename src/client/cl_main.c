@@ -120,6 +120,9 @@ static void Cl_AttemptConnect(void) {
   }
 
   cls.connect_time = quetoo.ticks;
+  cls.server_addr = addr;
+
+  Cl_QueryServer(&addr);
 
   const char *s = Net_NetaddrToString(&addr);
   if (q_strcmp(cls.server_name, s)) {
@@ -304,6 +307,7 @@ void Cl_Disconnect(void) {
   }
 
   memset(cls.server_name, 0, sizeof(cls.server_name));
+  memset(&cls.server_addr, 0, sizeof(cls.server_addr));
 
   cls.broadcast_time = 0;
   cls.connect_time = 0;

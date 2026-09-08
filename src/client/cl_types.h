@@ -694,6 +694,12 @@ typedef struct {
   char server_name[MAX_OS_PATH];
 
   /**
+   * @brief The address `server_name` last resolved to, so that its status can be looked up
+   * without resolving it again.
+   */
+  net_addr_t server_addr;
+
+  /**
    * @brief System time of last connection attempt, for retransmits.
    */
   uint32_t connect_time;

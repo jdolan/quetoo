@@ -28,6 +28,8 @@ void Cl_Servers_f(void);
 #if defined(__CL_LOCAL_H__)
 void Cl_FreeServers(void);
 void Cl_Ping_f(void);
+void Cl_QueryServer(const net_addr_t *addr);
+const cl_server_info_t *Cl_ServerInfo(void);
 void Cl_ParseServerInfo(void);
 void Cl_ParseServers(void);
 void Cl_Servers_List_f(void);

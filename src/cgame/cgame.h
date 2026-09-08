@@ -37,7 +37,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 43
+#define CGAME_API_VERSION 44
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -431,6 +431,14 @@ typedef struct cg_import_s {
    * @brief Refreshes the list of known servers from the master and LAN.
    */
   void (*GetServers)(void);
+
+  /**
+   * @return The known status of the server being connected to or played on, or `NULL` if there
+   * is none. The client queries it with each connection attempt, so an entry may not have been
+   * answered yet: `name` is set once it has. The entry belongs to the server list and MUST NOT be
+   * held across frames.
+   */
+  const cl_server_info_t *(*ServerInfo)(void);
 
   /**
    * @brief Initiates the connection sequence to the specified server address.

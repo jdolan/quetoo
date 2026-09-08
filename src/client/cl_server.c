@@ -243,6 +243,41 @@ void Cl_Ping_f(void) {
 }
 
 /**
+ * @brief Queries the status of the server at `addr`, adding it to the list if it is unknown, so
+ * that its hostname is at hand for the connection in progress. A local server is not listed.
+ */
+void Cl_QueryServer(const net_addr_t *addr) {
+
+  if (addr->type == NA_LOOP) {
+    return;
+  }
+
+  cl_server_info_t *server = Cl_ServerForNetaddr(addr);
+
+  if (!server) {
+    server = Cl_AddServer(addr);
+    server->source = SERVER_SOURCE_USER;
+  }
+
+  server->ping_time = quetoo.ticks;
+
+  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
+}
+
+/**
+ * @brief Returns the known status of the server being connected to or played on, or `NULL` if
+ * there is none or it has never been queried.
+ */
+const cl_server_info_t *Cl_ServerInfo(void) {
+
+  if (cls.server_addr.port == 0) {
+    return NULL;
+  }
+
+  return Cl_ServerForNetaddr(&cls.server_addr);
+}
+
+/**
  * @brief Sends a LAN broadcast and resets ping times for all broadcast servers.
  */
 static void Cl_SendBroadcast(void) {

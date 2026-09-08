@@ -237,6 +237,7 @@ void Cl_InitCgame(void) {
 
   import.Servers = Cl_Servers;
   import.GetServers = Cl_Servers_f;
+  import.ServerInfo = Cl_ServerInfo;
   import.Connect = Cl_Connect;
 
   import.Mapshots = Cl_Mapshots;

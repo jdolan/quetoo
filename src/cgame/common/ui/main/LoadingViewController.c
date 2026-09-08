@@ -113,6 +113,11 @@ static const char *resolveServerName(void) {
     return *hostname ? hostname : "Local server";
   }
 
+  const cl_server_info_t *server = cgi.ServerInfo();
+  if (server && *server->name && *server->hostname) {
+    return server->hostname;
+  }
+
   return cgi.server_name;
 }
 
