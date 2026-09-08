@@ -108,8 +108,9 @@
   border-radius: 16;
 }
 
-#hud StatView > Text {
+#hud StatView > .labels {
   alignment: middle;
+  autoresizing-mask: contain;
 }
 
 #hud StatView > ImageView {
