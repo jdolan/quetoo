@@ -63,9 +63,9 @@ static void Cl_SendConnect(void) {
 
   memset(&addr, 0, sizeof(addr));
 
-  if (!Net_StringToNetaddr(cls.server_name, &addr)) {
+  if (!Net_StringToNetaddr(cls.server.address, &addr)) {
     Com_Print("Bad server address\n");
-    cls.connect_time = 0;
+    cls.server.connect_time = 0;
     return;
   }
 
@@ -74,7 +74,7 @@ static void Cl_SendConnect(void) {
   }
 
   Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "connect %i %i %u \"%s\"\n", PROTOCOL_MAJOR,
-                         qport->integer, cls.challenge, Cvar_UserInfo());
+                         qport->integer, cls.server.challenge, Cvar_UserInfo());
 
   cvar_user_info_modified = false;
 }
@@ -85,16 +85,16 @@ static void Cl_SendConnect(void) {
 static void Cl_AttemptConnect(void) {
 
   // if the local server is running and we aren't then connect
-  if (Com_WasInit(QUETOO_SERVER) && q_strcmp(cls.server_name, "localhost")) {
+  if (Com_WasInit(QUETOO_SERVER) && q_strcmp(cls.server.address, "localhost")) {
 
     if (cls.state > CL_DISCONNECTED) {
       Cl_Disconnect();
     }
 
-    q_strlcpy(cls.server_name, "localhost", sizeof(cls.server_name));
+    q_strlcpy(cls.server.address, "localhost", sizeof(cls.server.address));
 
     cls.state = CL_CONNECTING;
-    cls.connect_time = 0;
+    cls.server.connect_time = 0;
   }
 
   // re-send if we haven't received a reply yet
@@ -103,14 +103,14 @@ static void Cl_AttemptConnect(void) {
   }
 
   // don't flood connection packets
-  if (cls.connect_time && (quetoo.ticks - cls.connect_time < 1000)) {
+  if (cls.server.connect_time && (quetoo.ticks - cls.server.connect_time < 1000)) {
     return;
   }
 
   net_addr_t addr;
 
-  if (!Net_StringToNetaddr(cls.server_name, &addr)) {
-    Com_Warn("Bad server address: %s\n", cls.server_name);
+  if (!Net_StringToNetaddr(cls.server.address, &addr)) {
+    Com_Warn("Bad server address: %s\n", cls.server.address);
     cls.state = CL_DISCONNECTED;
     return;
   }
@@ -119,16 +119,16 @@ static void Cl_AttemptConnect(void) {
     addr.port = htons(PORT_SERVER);
   }
 
-  cls.connect_time = quetoo.ticks;
-  cls.server_addr = addr;
+  cls.server.connect_time = quetoo.ticks;
+  cls.server.addr = addr;
 
   Cl_QueryServer(&addr);
 
   const char *s = Net_NetaddrToString(&addr);
-  if (q_strcmp(cls.server_name, s)) {
-    Com_Print("Connecting to %s (%s)...\n", cls.server_name, s);
+  if (q_strcmp(cls.server.address, s)) {
+    Com_Print("Connecting to %s (%s)...\n", cls.server.address, s);
   } else {
-    Com_Print("Connecting to %s...\n", cls.server_name);
+    Com_Print("Connecting to %s...\n", cls.server.address);
   }
 
   Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "get_challenge\n");
@@ -145,10 +145,10 @@ void Cl_Connect(const net_addr_t *addr) {
 
   Cl_Disconnect();
 
-  q_strlcpy(cls.server_name, Net_NetaddrToString(addr), sizeof(cls.server_name));
+  q_strlcpy(cls.server.address, Net_NetaddrToString(addr), sizeof(cls.server.address));
 
   cls.state = CL_CONNECTING;
-  cls.connect_time = 0;
+  cls.server.connect_time = 0;
 }
 
 /**
@@ -249,11 +249,11 @@ void Cl_ClearState(void) {
   if (Com_WasInit(QUETOO_CGAME)) {
     cls.cgame->ClearState();
   }
-  
-  if (cls.demo_file) {
+
+  if (cls.demo.file) {
     Cl_Stop_f();
   }
-  
+
   if (cls.download.file) {
     Fs_Close(cls.download.file);
     memset(&cls.download, 0, sizeof(cls.download));
@@ -294,23 +294,22 @@ void Cl_Disconnect(void) {
     return;
   }
 
-  Com_Print("Disconnecting from %s...\n", cls.server_name);
+  Com_Print("Disconnecting from %s...\n", cls.server.address);
 
   Cl_SendDisconnect();
 
   Cl_ClearState();
-  
+
   RESTClient *client = $$(RESTClient, sharedInstance);
-  
+
   if (client->session->configuration->urlCache) {
     $(client->session->configuration->urlCache, removeAllCachedResponses);
   }
 
-  memset(cls.server_name, 0, sizeof(cls.server_name));
-  memset(&cls.server_addr, 0, sizeof(cls.server_addr));
+  memset(cls.server.address, 0, sizeof(cls.server.address));
+  memset(&cls.server.addr, 0, sizeof(cls.server.addr));
 
-  cls.broadcast_time = 0;
-  cls.connect_time = 0;
+  cls.server.connect_time = 0;
   cls.state = CL_DISCONNECTED;
 
   if (time_demo->value) {
@@ -322,6 +321,8 @@ void Cl_Disconnect(void) {
   }
 
   Cl_SetKeyDest(KEY_UI);
+
+  cls.broadcast_time = 0;
 }
 
 /**
@@ -345,13 +346,13 @@ void Cl_Reconnect_f(void) {
     return;
   }
 
-  if (cls.server_name[0] != '\0') { // already connected
+  if (cls.server.address[0] != '\0') { // already connected
 
     if (cls.state >= CL_CONNECTING) {
       Cl_Disconnect();
     }
 
-    cls.connect_time = 0; // fire immediately
+    cls.server.connect_time = 0; // fire immediately
     cls.state = CL_CONNECTING;
   } else {
     Com_Print("No server to reconnect to\n");
@@ -430,7 +431,7 @@ static void Cl_ConnectionlessPacket(void) {
       Com_Warn("Ignoring challenge from %s\n", Net_NetaddrToString(&net_from));
       return;
     }
-    cls.challenge = (uint32_t) strtoul(Cmd_Argv(1), NULL, 10);
+    cls.server.challenge = (uint32_t) strtoul(Cmd_Argv(1), NULL, 10);
     Cl_SendConnect();
     return;
   }

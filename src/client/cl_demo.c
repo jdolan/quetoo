@@ -47,8 +47,8 @@ static void Cl_WriteDemoHeader(void) {
     if (*cl.config_strings[i] != '\0') {
       if (msg.size + q_strlen(cl.config_strings[i]) + 32 > msg.max_size) { // write it out
         const int32_t len = LittleLong((int32_t) msg.size);
-        Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-        Fs_Write(cls.demo_file, msg.data, msg.size, 1);
+        Fs_Write(cls.demo.file, &len, sizeof(len), 1);
+        Fs_Write(cls.demo.file, msg.data, msg.size, 1);
         msg.size = 0;
       }
 
@@ -67,8 +67,8 @@ static void Cl_WriteDemoHeader(void) {
 
     if (msg.size + 64 > msg.max_size) { // write it out
       const int32_t len = LittleLong((int32_t) msg.size);
-      Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-      Fs_Write(cls.demo_file, msg.data, msg.size, 1);
+      Fs_Write(cls.demo.file, &len, sizeof(len), 1);
+      Fs_Write(cls.demo.file, msg.data, msg.size, 1);
       msg.size = 0;
     }
 
@@ -83,8 +83,8 @@ static void Cl_WriteDemoHeader(void) {
 
   const int32_t len = LittleLong((int32_t) msg.size);
 
-  Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-  Fs_Write(cls.demo_file, msg.data, msg.size, 1);
+  Fs_Write(cls.demo.file, &len, sizeof(len), 1);
+  Fs_Write(cls.demo.file, msg.data, msg.size, 1);
 
   Com_Debug(DEBUG_CLIENT, "Demo started\n");
   // the rest of the demo file will be individual frames
@@ -95,11 +95,11 @@ static void Cl_WriteDemoHeader(void) {
  */
 void Cl_WriteDemoMessage(void) {
 
-  if (!cls.demo_file) {
+  if (!cls.demo.file) {
     return;
   }
 
-  if (!Fs_Tell(cls.demo_file)) {
+  if (!Fs_Tell(cls.demo.file)) {
     if (cl.frame.delta_frame_num < 0) {
       Com_Debug(DEBUG_CLIENT, "Received uncompressed frame, writing demo header..\n");
       Cl_WriteDemoHeader();
@@ -111,8 +111,8 @@ void Cl_WriteDemoMessage(void) {
   // the first eight bytes are just packet sequencing stuff
   const int32_t len = LittleLong((int32_t) (net_message.size - 8));
 
-  Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-  Fs_Write(cls.demo_file, net_message.data + 8, len, 1);
+  Fs_Write(cls.demo.file, &len, sizeof(len), 1);
+  Fs_Write(cls.demo.file, net_message.data + 8, len, 1);
 }
 
 /**
@@ -121,16 +121,16 @@ void Cl_WriteDemoMessage(void) {
 void Cl_Stop_f(void) {
   int32_t len = -1;
 
-  if (!cls.demo_file) {
+  if (!cls.demo.file) {
     Com_Print("Not recording a demo\n");
     return;
   }
 
   // finish up
-  Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-  Fs_Close(cls.demo_file);
+  Fs_Write(cls.demo.file, &len, sizeof(len), 1);
+  Fs_Close(cls.demo.file);
 
-  cls.demo_file = NULL;
+  cls.demo.file = NULL;
   Com_Print("Stopped demo\n");
 }
 
@@ -146,7 +146,7 @@ void Cl_Record_f(void) {
     return;
   }
 
-  if (cls.demo_file) {
+  if (cls.demo.file) {
     Com_Print("Already recording\n");
     return;
   }
@@ -157,23 +157,23 @@ void Cl_Record_f(void) {
   }
 
   if (Cmd_Argc() == 2) {
-    q_snprintf(cls.demo_filename, sizeof(cls.demo_filename), "demos/%s.demo", Cmd_Argv(1));
+    q_snprintf(cls.demo.filename, sizeof(cls.demo.filename), "demos/%s.demo", Cmd_Argv(1));
   } else {
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
     char datestamp[32];
     strftime(datestamp, sizeof(datestamp), "%Y-%m-%d-%H-%M-%S", tm);
 
-    q_snprintf(cls.demo_filename, sizeof(cls.demo_filename), "demos/%s.demo", datestamp);
+    q_snprintf(cls.demo.filename, sizeof(cls.demo.filename), "demos/%s.demo", datestamp);
   }
 
   // open the demo file
-  if (!(cls.demo_file = Fs_OpenWrite(cls.demo_filename))) {
-    Com_Warn("Couldn't open %s\n", cls.demo_filename);
+  if (!(cls.demo.file = Fs_OpenWrite(cls.demo.filename))) {
+    Com_Warn("Couldn't open %s\n", cls.demo.filename);
     return;
   }
 
-  Com_Print("Recording to %s\n", cls.demo_filename);
+  Com_Print("Recording to %s\n", cls.demo.filename);
 }
 
 #define DEMO_PLAYBACK_STEP 1

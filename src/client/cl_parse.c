@@ -178,7 +178,7 @@ void Cl_Precache_f(void) {
     return;
   }
 
-  cls.spawn_count = (uint32_t) strtoul(Cmd_Argv(1), NULL, 0);
+  cls.server.spawn_count = (uint32_t) strtoul(Cmd_Argv(1), NULL, 0);
 
   cl.precache_check = CS_PK3;
 
@@ -474,7 +474,7 @@ void Cl_ParseServerMessage(void) {
           memset(&cls.download, 0, sizeof(cls.download));
         }
         cls.state = CL_CONNECTING;
-        cls.connect_time = 0; // fire immediately
+        cls.server.connect_time = 0; // fire immediately
         break;
 
       case SV_CMD_SERVER_DATA:

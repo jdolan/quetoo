@@ -167,7 +167,7 @@ void Cl_InitCgame(void) {
 
   import.client = &cl;
   import.state = &cls.state;
-  import.server_name = cls.server_name;
+  import.server = &cls.server;
 
   import.context = &r_context;
 

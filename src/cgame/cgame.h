@@ -55,9 +55,9 @@ typedef struct cg_import_s {
   const cl_state_t *state;
 
   /**
-   * @brief The server name we're connecting/connected to.
+   * @brief The server we're connecting/connected to.
    */
-  const char *server_name;
+  const cl_server_t *server;
 
   /**
    * @brief The renderer context.

@@ -104,11 +104,11 @@ static const char *resolveServerName(void) {
     return "Demo playback";
   }
 
-  if (!*cgi.server_name) {
+  if (!*cgi.server->address) {
     return "";
   }
 
-  if (!q_strcmp(cgi.server_name, "localhost")) {
+  if (!q_strcmp(cgi.server->address, "localhost")) {
     const char *hostname = cgi.GetCvarString("sv_hostname");
     return *hostname ? hostname : "Local server";
   }
@@ -118,7 +118,7 @@ static const char *resolveServerName(void) {
     return server->hostname;
   }
 
-  return cgi.server_name;
+  return cgi.server->address;
 }
 
 /**

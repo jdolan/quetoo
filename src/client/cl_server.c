@@ -270,11 +270,11 @@ void Cl_QueryServer(const net_addr_t *addr) {
  */
 const cl_server_info_t *Cl_ServerInfo(void) {
 
-  if (cls.server_addr.port == 0) {
+  if (cls.server.addr.port == 0) {
     return NULL;
   }
 
-  return Cl_ServerForNetaddr(&cls.server_addr);
+  return Cl_ServerForNetaddr(&cls.server.addr);
 }
 
 /**

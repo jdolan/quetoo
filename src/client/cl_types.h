@@ -565,13 +565,18 @@ typedef struct {
   char name[MAX_OS_PATH];
 } cl_download_t;
 
-// server information, for finding network games
+/**
+ * @brief The network server sources.
+ */
 typedef enum {
   SERVER_SOURCE_INTERNET,
   SERVER_SOURCE_USER,
   SERVER_SOURCE_BCAST
 } cl_server_source_t;
 
+/**
+ * @brief The server information type, hydrated by querying server status via the browser.
+ */
 typedef struct {
 
   /**
@@ -635,8 +640,56 @@ typedef struct {
   int32_t ping;
 } cl_server_info_t;
 
+/**
+ * @brief The client's view of the currently connected server.
+ */
 typedef struct {
+  /**
+   * @brief Name or address of the server to connect to.
+   */
+  char address[MAX_OS_PATH];
 
+  /**
+   * @brief The address `address` last resolved to, so that its status can be looked up without
+   * resolving it again.
+   */
+  net_addr_t addr;
+
+  /**
+   * @brief System time of last connection attempt, for retransmits.
+   */
+  uint32_t connect_time;
+
+  /**
+   * @brief Challenge value received from the server, used when connecting.
+   */
+  uint32_t challenge;
+
+  /**
+   * @brief Server spawn count, used to detect map changes.
+   */
+  uint32_t spawn_count;
+} cl_server_t;
+
+/**
+ * @brief Demo recording and playback state.
+ */
+typedef struct {
+  /**
+   * @brief The demo filename being recorded or played back.
+   */
+  char filename[MAX_OS_PATH];
+
+  /**
+   * @brief The demo file handle.
+   */
+  file_t *file;
+} cl_demo_t;
+
+/**
+ * @brief Loading state tracking.
+ */
+typedef struct {
   /**
    * @brief Load progress from 0 to 100.
    */
@@ -689,35 +742,24 @@ typedef struct {
   cl_mouse_state_t mouse_state;
 
   /**
-   * @brief Name or address of the server to connect to.
+   * @brief List of `cl_server_info_t` discovered from all sources.
    */
-  char server_name[MAX_OS_PATH];
+  PointerArray *servers;
 
   /**
-   * @brief The address `server_name` last resolved to, so that its status can be looked up
-   * without resolving it again.
+   * @brief System time when the last LAN broadcast ping was sent.
    */
-  net_addr_t server_addr;
+  uint32_t broadcast_time;
 
   /**
-   * @brief System time of last connection attempt, for retransmits.
+   * @brief The current server.
    */
-  uint32_t connect_time;
+  cl_server_t server;
 
   /**
-   * @brief The network channel to the server.
+   * @brief The network channel to the current server.
    */
   net_chan_t net_chan;
-
-  /**
-   * @brief Challenge value received from the server, used when connecting.
-   */
-  uint32_t challenge;
-
-  /**
-   * @brief Server spawn count, used to detect map changes.
-   */
-  uint32_t spawn_count;
 
   /**
    * @brief Media loading progress state.
@@ -730,24 +772,9 @@ typedef struct {
   cl_download_t download;
 
   /**
-   * @brief The demo filename being recorded or played back.
+   * @brief The demo, for playback and recording.
    */
-  char demo_filename[MAX_OS_PATH];
-
-  /**
-   * @brief The demo file handle.
-   */
-  file_t *demo_file;
-
-  /**
-   * @brief List of `cl_server_info_t` discovered from all sources.
-   */
-  PointerArray *servers;
-
-  /**
-   * @brief System time when the last LAN broadcast ping was sent.
-   */
-  uint32_t broadcast_time;
+  cl_demo_t demo;
 
   /**
    * @brief The loaded client game module exports.

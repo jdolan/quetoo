@@ -73,7 +73,7 @@ static void Cl_WriteMovementCommand(mem_buf_t *buf) {
 
   Net_WriteByte(buf, CL_CMD_MOVE);
 
-  if (!cl.frame.valid || (cls.demo_file && Fs_Tell(cls.demo_file) == 0)) {
+  if (!cl.frame.valid || (cls.demo.file && Fs_Tell(cls.demo.file) == 0)) {
     Net_WriteLong(buf, -1);
   } else {
     Net_WriteLong(buf, cl.frame.frame_num);
