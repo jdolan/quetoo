@@ -355,6 +355,8 @@ static vec3_t G_trigger_portal_Carry(const vec3_t v,
                    Vec3_Add(Vec3_Scale(up_b, local.y), Vec3_Scale(fwd_b, local.z)));
 }
 
+#define PORTAL_STRICT_DISPLACE 1
+
 /**
  * @brief Handles touch events on a `trigger_portal`. Unlike `trigger_teleporter`, this fires on
  * every frame the toucher overlaps the volume (there is no single "moment" of transit), and
@@ -362,6 +364,12 @@ static vec3_t G_trigger_portal_Carry(const vec3_t v,
  * `G_trigger_portal_Carry`. Walking through one frame at a time this way, rather than snapping to
  * a fixed destination point, is what makes the crossing imperceptible: the mapper builds matching
  * geometry on both sides, and the player simply never stops moving.
+ *
+ * `PORTAL_STRICT_DISPLACE` skips all of that relative-basis math and simply slides the toucher by
+ * the fixed offset between the two faces, leaving velocity, view and facing untouched - a literal
+ * hole in space rather than a seam between two differently-oriented pieces of geometry. Reach for
+ * it only when the map schema demands a straight positional displacement and the illusion of
+ * continuous surfaces doesn't matter.
  */
 static void G_trigger_portal_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -411,12 +419,26 @@ static void G_trigger_portal_Touch(g_entity_t *ent, g_entity_t *other, const cm_
   fwd_b = Vec3_Negate(fwd_b);
   right_b = Vec3_Negate(right_b);
 
+  // nudge the arrival point a little past the destination face, along its outward normal, so the
+  // toucher isn't left sitting exactly on the boundary of the destination's own touch field -
+  // without this, a pair facing the same way (notably a strict_displace splice) immediately
+  // re-triggers a transit back out, since the toucher is still technically touching on arrival
+  const vec3_t exit_nudge = Vec3_Scale(fwd_b, 1.f);
+
+  if (ent->spawn_flags & PORTAL_STRICT_DISPLACE) {
+    other->s.origin = Vec3_Add(Vec3_Add(other->s.origin,
+        Vec3_Subtract(G_trigger_portal_Origin(dest), G_trigger_portal_Origin(ent))), exit_nudge);
+
+    gi.LinkEntity(other);
+    return;
+  }
+
   // carry the toucher's full position within this portal's volume through to the paired
   // portal, expressed relative to each portal's own face, instead of snapping to a fixed point
   const vec3_t offset = Vec3_Subtract(other->s.origin, G_trigger_portal_Origin(ent));
   const vec3_t carried_offset = G_trigger_portal_Carry(offset, right_a, up_a, fwd_a, right_b, up_b, fwd_b);
 
-  other->s.origin = Vec3_Add(G_trigger_portal_Origin(dest), carried_offset);
+  other->s.origin = Vec3_Add(Vec3_Add(G_trigger_portal_Origin(dest), carried_offset), exit_nudge);
   other->velocity = G_trigger_portal_Carry(other->velocity, right_a, up_a, fwd_a, right_b, up_b, fwd_b);
 
   if (other->client) {
@@ -446,7 +468,7 @@ static void G_trigger_portal_Touch(g_entity_t *ent, g_entity_t *other, const cm_
   gi.LinkEntity(other);
 }
 
-/*QUAKED trigger_portal (.5 .5 .5) ?
+/*QUAKED trigger_portal (.5 .5 .5) ? strict_displace
 Continuously carries anything that walks through this volume to the paired trigger_portal, with
 no teleport sound, effects, or angle/velocity snap of any kind. Requires one face of the brush
 textured common/portal: the compiler bakes that face's own centroid and outward normal in as
@@ -465,6 +487,13 @@ give both entities a targetname and only the outgoing side a target to prevent t
 target : The paired trigger_portal's targetname. If unset, this entity is a one-way destination
          only: it never transits anything itself.
 targetname : This portal's own name, for the paired portal to target.
+
+-------- Spawnflags --------
+strict_displace : Skip the relative-facing math entirely and just slide the toucher by the fixed
+                  offset between the two faces - velocity, view and facing pass through unchanged.
+                  Use this only for a literal hole in space (e.g. two identically-oriented copies
+                  of the same geometry spliced together); for a normal portal where the two faces
+                  may point different ways, leave this off.
 */
 void G_trigger_portal(g_entity_t *ent) {
 
