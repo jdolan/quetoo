@@ -159,35 +159,6 @@ static StackView *addRowsColumn(ScoreboardView *self) {
 
 
 /**
- * @brief Sets a table's columns to the width of the rows they hold, so the board centres on
- * them.
- * @details Layout derives a container's size from its content only until it has a frame, and
- * treats that frame as authoritative from then on, so a column laid out once never grows to
- * a wider set of rows, and the board would centre on a stale width. The width is known from
- * the fields, so it is set outright.
- */
-static void sizeTableColumns(ScoreboardView *self) {
-
-  const Array *columns = (Array *) self->columns->view.subviews;
-
-  int32_t width = 0;
-
-  for (size_t i = 0; i < columns->count; i++) {
-
-    View *column = $(columns, objectAtIndex, i);
-
-    column->frame.w = self->rowWidth;
-    width += column->frame.w;
-  }
-
-  if (columns->count) {
-    width += self->columns->spacing * (int32_t) (columns->count - 1);
-  }
-
-  self->columns->view.frame.w = width;
-}
-
-/**
  * @brief The rows that fit beneath `top`, at least three.
  */
 static size_t rowsThatFit(const ScoreboardView *self, int32_t top) {
@@ -487,10 +458,6 @@ static void rebuild(ScoreboardView *self) {
         addRow(self, column, &scores[i]);
       }
     }
-  }
-
-  if (self->layout == ScoreboardLayoutTable) {
-    sizeTableColumns(self);
   }
 }
 
