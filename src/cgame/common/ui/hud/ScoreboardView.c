@@ -159,10 +159,10 @@ static StackView *addRowsColumn(ScoreboardView *self) {
 
 
 /**
- * @brief The rows that fit beneath `top`, at least three.
+ * @brief The rows that fit beneath `top`, less whatever a layout reserves, at least three.
  */
-static size_t rowsThatFit(const ScoreboardView *self, int32_t top) {
-  return (size_t) Maxi(3, (self->view.frame.h - 2 * top) / SCORES_ROW_HEIGHT);
+static size_t rowsThatFit(const ScoreboardView *self, int32_t top, int32_t reserved) {
+  return (size_t) Maxi(3, (self->view.frame.h - 2 * top - reserved) / SCORES_ROW_HEIGHT);
 }
 
 #pragma mark - View
@@ -285,7 +285,9 @@ static ScoreView *scoreView(ScoreboardView *self, const g_score_t *score) {
   if (self->layout == ScoreboardLayoutTable) {
 
     const ScoreField *fields;
-    const size_t count = $((ScoreboardView *) self, fields, &fields);
+
+    // clamped, rather than trusted: the values are gathered into a fixed array
+    const size_t count = min($((ScoreboardView *) self, fields, &fields), (size_t) SCORE_FIELDS_MAX);
 
     const char *values[SCORE_FIELDS_MAX];
     for (size_t i = 0; i < count; i++) {
@@ -401,8 +403,10 @@ static void rebuild(ScoreboardView *self) {
     self->rowWidth = tableRowWidth(self);
   }
 
-  // The columns start 88 logical pixels down (scoreboard.css); the board used 64 for its title
-  const size_t rows = rowsThatFit(self, 64);
+  // The columns start 88 logical pixels down (scoreboard.css); the board used 64 for its title.
+  // A table's column leads with its field captions, which take room the rows then do not have
+  const int32_t reserved = self->layout == ScoreboardLayoutTable ? SCORES_HEADER_HEIGHT : 0;
+  const size_t rows = rowsThatFit(self, 64, reserved);
 
   if (cg_state.num_teams) {
 

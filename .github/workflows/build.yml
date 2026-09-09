@@ -270,7 +270,7 @@ jobs:
         # Module HUD layouts, one directory per variant
         foreach ($module in @("ctf", "lithium")) {
           $hudSource = "src\cgame\$module\ui\hud"
-          Get-ChildItem -Path $hudSource -Include "*.css","*.json" -Recurse | ForEach-Object {
+          Get-ChildItem -Path $hudSource -Include "*.css","*.json" -Recurse -File | ForEach-Object {
             $relativePath = $_.FullName.Substring((Resolve-Path $hudSource).Path.Length).TrimStart('\')
             $destPath = Join-Path "$staging\lib\$module\ui\hud" $relativePath
             $destDir = Split-Path $destPath -Parent

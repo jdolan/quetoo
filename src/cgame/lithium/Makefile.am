@@ -41,6 +41,12 @@ cguihuddefaultdir = \
 cguihuddefault_DATA = \
 	ui/hud/default/hud.json
 
+cguihudchromedir = \
+	@PKGLIBDIR@/lithium/ui/hud/chrome
+
+cguihudchrome_DATA = \
+	ui/hud/chrome/hud.json
+
 cgamelibdir = \
 	@PKGLIBDIR@/lithium
 

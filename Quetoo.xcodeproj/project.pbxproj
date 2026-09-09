@@ -79,6 +79,9 @@
 		CEA4C0DE2F9800000087C008 /* scoreboard.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C006 /* scoreboard.css */; };
 		CEA4C0DE2F9800000087C009 /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C007 /* scoreboard.json */; };
 		CEA4C0DE2F9800000087C00B /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C00A /* scoreboard.json */; };
+		CEA4C0DE2F9800000087C011 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C010 /* hud.json */; };
+		CEA4C0DE2F9800000087C014 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C013 /* hud.json */; };
+		CEA4C0DE2F9800000087C017 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C016 /* hud.json */; };
 		24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		28D9703AF85F475F866BAA51 /* DiagnosticsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */; };
 		2C3ADE327DEBD6F3955255E7 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
@@ -1763,6 +1766,7 @@
 			dstPath = race/ui/hud/chrome;
 			dstSubfolderSpec = 16;
 			files = (
+				CEA4C0DE2F9800000087C017 /* hud.json in CopyFiles */,
 				CEA4C0DE2F9800000087C00B /* scoreboard.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1775,6 +1779,16 @@
 			files = (
 				9E1C83CE11AE376D9174B271 /* hud.json in CopyFiles */,
 				544522FFCEEDAAC1EBEB6750 /* scoreboard.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEA4C0DE2F9800000087C012 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ctf/ui/hud/chrome;
+			dstSubfolderSpec = 16;
+			files = (
+				CEA4C0DE2F9800000087C011 /* hud.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1800,6 +1814,16 @@
 				A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */,
 				89AC37486C4E50D551009CFE /* MPlusU-OFL.txt in CopyFiles */,
 				AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEA4C0DE2F9800000087C015 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = lithium/ui/hud/chrome;
+			dstSubfolderSpec = 16;
+			files = (
+				CEA4C0DE2F9800000087C014 /* hud.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2040,6 +2064,9 @@
 		CEA4C0DE2F9800000087C006 /* scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = chrome/scoreboard.css; sourceTree = "<group>"; };
 		CEA4C0DE2F9800000087C007 /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/scoreboard.json; sourceTree = "<group>"; };
 		CEA4C0DE2F9800000087C00A /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/scoreboard.json; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C010 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/hud.json; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C013 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/hud.json; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C016 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/hud.json; sourceTree = "<group>"; };
 		30FC7C9F9B24C6966D749398 /* NavEditView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NavEditView.h; sourceTree = "<group>"; };
 		3487B5AD7D47E8DFBDDAE5C4 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/hud.json; sourceTree = "<group>"; };
 		40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreboardView.h; sourceTree = "<group>"; };
@@ -3462,6 +3489,7 @@
 			isa = PBXGroup;
 			children = (
 				A980A8F791ED9C0A50C6C948 /* hud.json */,
+				CEA4C0DE2F9800000087C013 /* hud.json */,
 			);
 			path = hud;
 			sourceTree = "<group>";
@@ -3470,6 +3498,7 @@
 			isa = PBXGroup;
 			children = (
 				027C4ADD65DCCCEBCEB3D462 /* hud.json */,
+				CEA4C0DE2F9800000087C016 /* hud.json */,
 				92AA3129971ABAAB21EE5BAD /* scoreboard.json */,
 				CEA4C0DE2F9800000087C00A /* scoreboard.json */,
 			);
@@ -4800,6 +4829,7 @@
 			isa = PBXGroup;
 			children = (
 				3487B5AD7D47E8DFBDDAE5C4 /* hud.json */,
+				CEA4C0DE2F9800000087C010 /* hud.json */,
 			);
 			path = hud;
 			sourceTree = "<group>";
@@ -5423,6 +5453,7 @@
 			buildConfigurationList = CE05B3F030224900C0DE0920 /* Build configuration list for PBXNativeTarget "cgame-lithium" */;
 			buildPhases = (
 				C9077C04022B772095186ABC /* CopyFiles */,
+				CEA4C0DE2F9800000087C015 /* CopyFiles */,
 				CE05B3F030224900C0DE0900 /* Sources */,
 				CE05B3F030224900C0DE0902 /* Frameworks */,
 				CE05B3F030224900C0DE0901 /* Headers */,
@@ -5984,6 +6015,7 @@
 			buildConfigurationList = CEC0FF0020260103000001D1 /* Build configuration list for PBXNativeTarget "cgame-ctf" */;
 			buildPhases = (
 				5738F8605E036174DA11C58E /* CopyFiles */,
+				CEA4C0DE2F9800000087C012 /* CopyFiles */,
 				CEC0FF0020260103000001CE /* Sources */,
 				CEC0FF0020260103000001D0 /* Frameworks */,
 				CEC0FF0020260103000001CF /* Headers */,

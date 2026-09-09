@@ -45,6 +45,7 @@ cguihudchromedir = \
 	@PKGLIBDIR@/race/ui/hud/chrome
 
 cguihudchrome_DATA = \
+	ui/hud/chrome/hud.json \
 	ui/hud/chrome/scoreboard.json
 
 cgamelibdir = \
