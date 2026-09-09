@@ -171,24 +171,9 @@ static void setFields(ScoreView *self, const ScoreField *fields, const char **va
     release(column);
   }
 
-  // The ping takes a column of its own rather than aligning to the row's right edge. An
-  // aligned subview counts as sitting at the origin when a View measures what it contains,
-  // so an aligned ping would leave the row reporting a width short of the column it sits in,
-  // and the board would centre on that.
-  View *ping = $(alloc(View), initWithFrame, &MakeRect(self->view.frame.w - SCORES_PING_WIDTH, 0,
-                                                      SCORES_PING_WIDTH, height));
-  assert(ping);
-
-  $((View *) self->ping, removeFromSuperview);
-
-  self->ping->view.alignment = ViewAlignmentMiddleRight;
-
-  $(ping, addSubview, (View *) self->ping);
-  $((View *) self, addSubview, ping);
-  release(ping);
-
-  // the prose lines are gone, so the name takes the middle of the row
+  // the prose lines are gone, so the name and the ping take the middle of the row
   self->name->view.frame.y = (height - self->name->view.frame.h) / 2;
+  self->ping->view.alignment = ViewAlignmentMiddleRight;
 }
 
 /**
