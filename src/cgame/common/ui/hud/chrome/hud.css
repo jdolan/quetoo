@@ -217,7 +217,23 @@
   alignment: center;
 }
 
+/*
+ * The clock ticks every second and the counters roll over, so this card would breathe on
+ * every change. Each stat takes a fixed width, and the numerals take the tabular face:
+ * Rajdhani's digits are not the same width (its 1 is two thirds of its 0), so a fixed width
+ * alone would still let a centred value shift inside it.
+ */
+
+#hud #stats CounterView {
+  min-width: 88;
+}
+
+#hud #time {
+  min-width: 128;
+}
+
 #hud #stats .number {
+  font-family: M PLUS U;
   font-size: 30;
 }
 
@@ -234,6 +250,7 @@
 #weaponBar {
   alignment: middle-right;
   autoresizing-mask: contain;
+  padding-right: 24;
   spacing: 8;
 }
 
@@ -245,6 +262,7 @@
 }
 
 #hud #weaponBar > StackView {
+  alignment: right;
   axis: vertical;
   spacing: 6;
 }
@@ -307,13 +325,13 @@
 
 #hud #fps {
   alignment: bottom-right;
-  padding-bottom: 132;
+  padding-bottom: 162;
   padding-right: 30;
 }
 
 #hud #ping {
   alignment: bottom-right;
-  padding-bottom: 92;
+  padding-bottom: 118;
   padding-right: 30;
 }
 
@@ -323,7 +341,7 @@
 
 #hud DiagnosticsView {
   alignment: bottom-left;
-  padding-bottom: 132;
+  padding-bottom: 142;
   padding-left: 30;
 }
 
