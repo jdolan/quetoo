@@ -195,7 +195,7 @@ static void checkVariant(const char *variant) {
     }
   }
 
-  Cg_Warn("No ui/hud/%s, using the %s HUD\n", variant, HUD_DEFAULT_VARIANT);
+  Cg_Debug("No ui/hud/%s, using the %s HUD\n", variant, HUD_DEFAULT_VARIANT);
 }
 
 /**
