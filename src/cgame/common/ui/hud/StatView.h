@@ -76,14 +76,14 @@ struct StatView {
   const char *iconName;
 
   /**
-   * @brief The vital shown.
-   */
-  StatViewStat stat;
-
-  /**
    * @brief The caption and value, stacked, so that the icon flanks them both.
    */
   StackView *labels;
+
+  /**
+   * @brief The vital shown.
+   */
+  StatViewStat stat;
 
   /**
    * @brief The value.

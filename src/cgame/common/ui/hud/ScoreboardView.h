@@ -75,11 +75,6 @@ struct ScoreboardView {
   StackView *columns;
 
   /**
-   * @brief The arrangement, from the variant's `scoreboard.json`.
-   */
-  ScoreboardLayout layout;
-
-  /**
    * @brief The scores generation and view height the rows were last built for.
    */
   uint32_t generation;
@@ -89,6 +84,11 @@ struct ScoreboardView {
    * @brief The team totals, in a team game.
    */
   StackView *header;
+
+  /**
+   * @brief The arrangement, from the variant's `scoreboard.json`.
+   */
+  ScoreboardLayout layout;
 
   /**
    * @brief The width of a row, which a subclass MAY change before the first rebuild.
@@ -118,6 +118,29 @@ struct ScoreboardViewInterface {
   StackView *(*addColumn)(ScoreboardView *self);
 
   /**
+   * @fn void ScoreboardView::describe(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside)
+   * @brief The prose the cards layout writes beneath a player's name.
+   * @details Composed from the fields by default, as `12 frags`; a module whose board reads
+   * differently overrides this and leaves its fields to the table layout.
+   * @param self The ScoreboardView.
+   * @param score The score.
+   * @param detail Out; the left text, which MAY span lines, or `NULL`.
+   * @param aside Out; the right text, or `NULL`.
+   * @memberof ScoreboardView
+   */
+  void (*describe)(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside);
+
+  /**
+   * @fn size_t ScoreboardView::fields(const ScoreboardView *self, const ScoreField **fields)
+   * @brief The columns this board counts: frags and deaths, and captures in CTF.
+   * @param self The ScoreboardView.
+   * @param fields Out; the fields, owned by the view.
+   * @return The number of fields, at most `SCORE_FIELDS_MAX`.
+   * @memberof ScoreboardView
+   */
+  size_t (*fields)(const ScoreboardView *self, const ScoreField **fields);
+
+  /**
    * @fn void ScoreboardView::rebuild(ScoreboardView *self)
    * @brief Rebuilds the header and the rows from the current scores.
    * @param self The ScoreboardView.
@@ -136,16 +159,6 @@ struct ScoreboardViewInterface {
   ScoreView *(*scoreView)(ScoreboardView *self, const g_score_t *score);
 
   /**
-   * @fn size_t ScoreboardView::fields(const ScoreboardView *self, const ScoreField **fields)
-   * @brief The columns this board counts: frags and deaths, and captures in CTF.
-   * @param self The ScoreboardView.
-   * @param fields Out; the fields, owned by the view.
-   * @return The number of fields, at most `SCORE_FIELDS_MAX`.
-   * @memberof ScoreboardView
-   */
-  size_t (*fields)(const ScoreboardView *self, const ScoreField **fields);
-
-  /**
    * @fn const char *ScoreboardView::valueForField(const ScoreboardView *self, const g_score_t *score, size_t field)
    * @brief The value of the field at `field` for `score`.
    * @param self The ScoreboardView.
@@ -156,18 +169,6 @@ struct ScoreboardViewInterface {
    */
   const char *(*valueForField)(const ScoreboardView *self, const g_score_t *score, size_t field);
 
-  /**
-   * @fn void ScoreboardView::describe(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside)
-   * @brief The prose the cards layout writes beneath a player's name.
-   * @details Composed from the fields by default, as `12 frags`; a module whose board reads
-   * differently overrides this and leaves its fields to the table layout.
-   * @param self The ScoreboardView.
-   * @param score The score.
-   * @param detail Out; the left text, which MAY span lines, or `NULL`.
-   * @param aside Out; the right text, or `NULL`.
-   * @memberof ScoreboardView
-   */
-  void (*describe)(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside);
 };
 
 CGAME_EXPORT Class *_ScoreboardView(void);
