@@ -170,8 +170,8 @@ static void initialize(Class *clazz) {
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
   ((CounterViewInterface *) clazz->interface)->initWithCaption = initWithCaption;
-  ((CounterViewInterface *) clazz->interface)->valueForFrame = valueForFrame;
   ((CounterViewInterface *) clazz->interface)->textForFrame = textForFrame;
+  ((CounterViewInterface *) clazz->interface)->valueForFrame = valueForFrame;
 }
 
 /**

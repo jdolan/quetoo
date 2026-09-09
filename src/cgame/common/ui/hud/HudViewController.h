@@ -67,16 +67,20 @@ struct HudViewController {
   bool atlasDirty;
 
   /**
+   * @brief The diagnostics table, added to each variant's layout and shown while
+   * `cg_draw_diagnostics` is set.
+   */
+  DiagnosticsView *diagnostics;
+
+  /**
    * @brief The View loaded from the variant's JSON, a subview of `view`.
    */
   View *hud;
 
   /**
-   * @brief The scoreboard, a subview of `view` above `hud`. It belongs to the variant, but
-   * shows through the intermission and with the HUD off, so it outlives a variant that
-   * fails to load.
+   * @brief AtlasImages by resource name.
    */
-  ScoreboardView *scoreboard;
+  Dictionary *images;
 
   /**
    * @brief The navigation edit instructions, shown in place of `hud` while editing.
@@ -91,15 +95,11 @@ struct HudViewController {
   ChatView *chat;
 
   /**
-   * @brief The diagnostics table, added to each variant's layout and shown while
-   * `cg_draw_diagnostics` is set.
+   * @brief The scoreboard, a subview of `view` above `hud`. It belongs to the variant, but
+   * shows through the intermission and with the HUD off, so it outlives a variant that
+   * fails to load.
    */
-  DiagnosticsView *diagnostics;
-
-  /**
-   * @brief AtlasImages by resource name.
-   */
-  Dictionary *images;
+  ScoreboardView *scoreboard;
 };
 
 struct HudViewControllerInterface {

@@ -56,12 +56,10 @@ struct DiagnosticsView {
   DiagnosticsViewInterface *interface[0];
 
   /**
-   * @brief The rows, rebuilt on each refresh.
+   * @brief Frames since `time`, the last frame and packet rates, and when they last rolled over.
    */
-  struct {
-    char name[DIAGNOSTICS_ROW_NAME];
-    char value[DIAGNOSTICS_ROW_VALUE];
-  } rows[DIAGNOSTICS_MAX_ROWS];
+  int32_t frames, fps, pps;
+  uint32_t time;
 
   /**
    * @brief The count of rows.
@@ -69,15 +67,17 @@ struct DiagnosticsView {
   size_t num_rows;
 
   /**
-   * @brief Frames since `time`, the last frame and packet rates, and when they last rolled over.
-   */
-  int32_t frames, fps, pps;
-  uint32_t time;
-
-  /**
    * @brief When the rows were last rebuilt.
    */
   uint32_t refresh_time;
+
+  /**
+   * @brief The rows, rebuilt on each refresh.
+   */
+  struct {
+    char name[DIAGNOSTICS_ROW_NAME];
+    char value[DIAGNOSTICS_ROW_VALUE];
+  } rows[DIAGNOSTICS_MAX_ROWS];
 };
 
 struct DiagnosticsViewInterface {
