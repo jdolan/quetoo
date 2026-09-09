@@ -112,6 +112,13 @@ cguihuddefault_DATA = \
 	$(CGUI_DIR)/hud/default/scoreboard.css \
 	$(CGUI_DIR)/hud/default/scoreboard.json
 
+cguihudchromedir = \
+	@PKGLIBDIR@/default/ui/hud/chrome
+
+cguihudchrome_DATA = \
+	$(CGUI_DIR)/hud/chrome/hud.css \
+	$(CGUI_DIR)/hud/chrome/hud.json
+
 cguihomedir = \
 	@PKGLIBDIR@/default/ui/home
 

@@ -74,6 +74,8 @@
 		18831DC74740CDF73E54CF63 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		20BE76382F981DD4B7F43A11 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E652EE2F700EFB737AEA30 /* hud.json */; };
+		CEA4C0DE2F9800000087C003 /* hud.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C001 /* hud.css */; };
+		CEA4C0DE2F9800000087C004 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C002 /* hud.json */; };
 		24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		28D9703AF85F475F866BAA51 /* DiagnosticsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */; };
 		2C3ADE327DEBD6F3955255E7 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
@@ -1978,6 +1980,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CEA4C0DE2F9800000087C005 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = default/ui/hud/chrome;
+			dstSubfolderSpec = 16;
+			files = (
+				CEA4C0DE2F9800000087C003 /* hud.css in CopyFiles */,
+				CEA4C0DE2F9800000087C004 /* hud.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EE7162D3228511D41E8B4CB1 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2007,6 +2020,8 @@
 		26FE8732000C404A8AFA1688 /* r_post.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_post.c; sourceTree = "<group>"; };
 		2BA45B8C062C78CEE97C2D2B /* WeaponBarView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WeaponBarView.h; sourceTree = "<group>"; };
 		2D140F08524DA0679A7DB117 /* hud.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = default/hud.css; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C001 /* hud.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = chrome/hud.css; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C002 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/hud.json; sourceTree = "<group>"; };
 		30FC7C9F9B24C6966D749398 /* NavEditView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NavEditView.h; sourceTree = "<group>"; };
 		3487B5AD7D47E8DFBDDAE5C4 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/hud.json; sourceTree = "<group>"; };
 		40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreboardView.h; sourceTree = "<group>"; };
@@ -3342,6 +3357,8 @@
 				1C923406FE86A096F618B0A6 /* ChaseView.c */,
 				2D140F08524DA0679A7DB117 /* hud.css */,
 				64E652EE2F700EFB737AEA30 /* hud.json */,
+				CEA4C0DE2F9800000087C001 /* hud.css */,
+				CEA4C0DE2F9800000087C002 /* hud.json */,
 				FC6374C1D47393EA62C8EC20 /* CounterView.h */,
 				A59EB892C12DF10ACA8253DD /* CounterView.c */,
 				C8249BF99F0E4A2D77D37865 /* CrosshairView.h */,
@@ -5453,6 +5470,7 @@
 				CEA400102F9800000087B100 /* CopyFiles */,
 				6816070175ED2CEC62FB6E56 /* CopyFiles */,
 				EE7162D3228511D41E8B4CB1 /* CopyFiles */,
+				CEA4C0DE2F9800000087C005 /* CopyFiles */,
 				CEA400112F9800000087B100 /* CopyFiles */,
 				CEFEEE000000000000000A03 /* Install module */,
 			);
