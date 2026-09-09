@@ -23,6 +23,28 @@
 
 #include "common.h"
 
+/**
+ * @brief The @c Fs_Stat file types.
+ */
+typedef enum {
+  FS_UNKNOWN = -1,
+  FS_REGULAR,
+  FS_DIRECTORY,
+  FS_SYMLINK,
+  FS_OTHER,
+} fs_file_type_t;
+
+/**
+ * @brief The @c Fs_Stat return type.
+ */
+typedef struct {
+  fs_file_type_t type;
+  int64_t size;
+  int64_t created;
+  int64_t modified;
+  int64_t accessed;
+} fs_stat_t;
+
 const char *Fs_BaseDir(void);
 const char *Fs_BinDir(void);
 const char *Fs_LibDir(void);
@@ -32,6 +54,7 @@ bool Fs_Delete(const char *filename);
 bool Fs_Eof(file_t *file);
 bool Fs_Exists(const char *filename);
 bool Fs_Flush(file_t *file);
+bool Fs_Stat(const char *filename, fs_stat_t *out);
 const char *Fs_LastError(void);
 bool Fs_Mkdir(const char *dir);
 file_t *Fs_OpenAppend(const char *filename);

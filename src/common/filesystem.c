@@ -172,7 +172,7 @@ bool Fs_Eof(file_t *file) {
  * @return True if the specified filename exists on the search path.
  */
 bool Fs_Exists(const char *filename) {
-  return PHYSFS_exists(filename) ? true : false;
+  return Fs_Stat(filename, NULL);
 }
 
 /**
@@ -180,6 +180,36 @@ bool Fs_Exists(const char *filename) {
  */
 bool Fs_Flush(file_t *file) {
   return PHYSFS_flush((PHYSFS_File *) file) ? true : false;
+}
+
+/**
+ * @brief Performs a @c stat on the given filename.
+ * @param filename The filename.
+ * @param out The @c fs_stat_t.
+ * @return True if the @c stat was successful, false otherwise.
+ */
+bool Fs_Stat(const char *filename, fs_stat_t *out) {
+
+  PHYSFS_Stat s;
+  if (PHYSFS_stat(filename, &s)) {
+    if (out) {
+      out->type = (fs_file_type_t) s.filetype;
+      out->size = s.filesize;
+      out->created = s.createtime;
+      out->modified = s.modtime;
+      out->accessed = s.accesstime;
+    }
+    return true;
+  } else {
+    if (out) {
+      out->type = FS_UNKNOWN;
+      out->size = -1;
+      out->created = -1;
+      out->modified = -1;
+      out->accessed = -1;
+    }
+    return false;
+  }
 }
 
 /**

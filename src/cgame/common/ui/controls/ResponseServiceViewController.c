@@ -28,7 +28,7 @@
 #pragma mark - Crosshair selection
 
 /**
- * @brief Fs_Enumerator for crosshair selection.
+ * @brief @c Fs_Enumerator for crosshair selection.
  */
 static void enumerateCrosshairs(const char *path, void *data) {
   char name[MAX_QPATH];
@@ -53,7 +53,7 @@ static Order sortAlphabetical(const ident a, const ident b) {
 }
 
 /**
- * @brief SelectDelegate callback for crosshair selection.
+ * @brief @c SelectDelegate callback for crosshair selection.
  */
 static void didSelectCrosshair(Select *select, Option *option) {
 
@@ -64,7 +64,7 @@ static void didSelectCrosshair(Select *select, Option *option) {
 }
 
 /**
- * @brief HueColorPickerDelegate callback for crosshair color selection.
+ * @brief @c HueColorPickerDelegate callback for crosshair color selection.
  */
 static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, double saturation, double value) {
 
@@ -85,7 +85,7 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
 }
 
 /**
- * @brief SliderDelegate callback for crosshair scale.
+ * @brief @c SliderDelegate callback for crosshair scale.
  */
 static void didSetCrosshairScale(Slider *slider, double value) {
 
@@ -95,7 +95,7 @@ static void didSetCrosshairScale(Slider *slider, double value) {
 }
 
 /**
- * @brief SliderDelegate callback for crosshair opcaity.
+ * @brief @c SliderDelegate callback for crosshair opcaity.
  */
 static void didSetCrosshairAlpha(Slider *slider, double value) {
 
@@ -105,7 +105,7 @@ static void didSetCrosshairAlpha(Slider *slider, double value) {
 }
 
 /**
- * @brief SelectDelegate callback for crosshair health style.
+ * @brief @c SelectDelegate callback for crosshair health style.
  */
 static void didSelectCrosshairHealth(Select *select, Option *option) {
 
@@ -115,7 +115,7 @@ static void didSelectCrosshairHealth(Select *select, Option *option) {
 }
 
 /**
- * @brief TextViewDelegate callback for binding keys.
+ * @brief @c TextViewDelegate callback for binding keys.
  */
 static void didBindKey(TextView *textView) {
 
@@ -125,7 +125,7 @@ static void didBindKey(TextView *textView) {
 }
 
 /**
- * @brief ViewEnumerator for setting the TextViewDelegate.
+ * @brief @c ViewEnumerator for setting the TextViewDelegate.
  */
 static void setDelegate(View *view, ident data) {
 
@@ -133,6 +133,32 @@ static void setDelegate(View *view, ident data) {
     .self = data,
     .didEndEditing = didBindKey
   };
+}
+
+/**
+ * @brief @c Fs_Enumerator for HUD selection.
+ */
+static void enumerateHuds(const char *path, void *data) {
+
+  Select *select = data;
+
+  fs_stat_t stat;
+  if (cgi.StatFile(path, &stat)) {
+
+    if (stat.type == FS_DIRECTORY) {
+
+      const char *name = Basename(path);
+
+      for (size_t i = 0; i < select->options->count; i++) {
+        Option *option = $(select->options, objectAtIndex, i);
+        if (!q_strcmp(option->title->text, name)) {
+          return;
+        }
+      }
+
+      $(select, addOption, name, NULL);
+    }
+  }
 }
 
 #pragma mark - ViewController
@@ -152,12 +178,13 @@ static void loadView(ViewController *self) {
   Slider *crosshairAlpha;
 
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("crosshair", &this->crosshair),
+    MakeOutlet("crosshairSelect", &this->crosshair),
     MakeOutlet("crosshairColor", &this->crosshairColorPicker),
     MakeOutlet("crosshairAlpha", &crosshairAlpha),
     MakeOutlet("crosshairScale", &crosshairScale),
     MakeOutlet("crosshairHealth", &this->crosshairHealth),
-    MakeOutlet("crosshairView", &this->crosshairView)
+    MakeOutlet("crosshairView", &this->crosshairView),
+    MakeOutlet("hudSelect", &this->hud)
   );
 
   $(self->view, resolve, outlets);
@@ -169,7 +196,7 @@ static void loadView(ViewController *self) {
 
   this->crosshair->comparator = sortAlphabetical;
 
-  $(this->crosshair, addOption, "", (ident) 0);
+  $(this->crosshair, addOption, "None", (ident) 0);
   cgi.EnumerateFiles("pics/ch*", enumerateCrosshairs, this->crosshair);
 
   this->crosshair->delegate.self = this;
@@ -194,6 +221,9 @@ static void loadView(ViewController *self) {
 
   this->crosshairColorPicker->delegate.self = this;
   this->crosshairColorPicker->delegate.didPickColor = didPickCrosshairColor;
+
+  this->hud->comparator = sortAlphabetical;
+  cgi.EnumerateFiles("ui/hud/*", enumerateHuds, this->hud);
 }
 
 /**

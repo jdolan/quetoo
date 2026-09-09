@@ -197,6 +197,7 @@ void Cl_InitCgame(void) {
     import.restClient = client;
   }
 
+  import.StatFile = Fs_Stat;
   import.OpenFile = Fs_OpenRead;
   import.SeekFile = Fs_Seek;
   import.ReadFile = Fs_Read;
@@ -206,7 +207,6 @@ void Cl_InitCgame(void) {
   import.LoadFile = Fs_Load;
   import.FreeFile = Fs_Free;
   import.EnumerateFiles = Fs_Enumerate;
-  import.FileExists = Fs_Exists;
 
   import.AddCvar = Cvar_Add;
   import.GetCvar = Cvar_Get;

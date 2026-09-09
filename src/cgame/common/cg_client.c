@@ -376,7 +376,7 @@ static void Cg_PreloadClientModel(const char *path, void *data) {
   name++;
 
   // Only preload actual player model directories (must have upper.md3)
-  if (!cgi.FileExists(va("%s/upper.md3", path))) {
+  if (!cgi.StatFile(va("%s/upper.md3", path), NULL)) {
     return;
   }
 
