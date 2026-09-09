@@ -76,6 +76,9 @@
 		20BE76382F981DD4B7F43A11 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E652EE2F700EFB737AEA30 /* hud.json */; };
 		CEA4C0DE2F9800000087C003 /* hud.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C001 /* hud.css */; };
 		CEA4C0DE2F9800000087C004 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C002 /* hud.json */; };
+		CEA4C0DE2F9800000087C008 /* scoreboard.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C006 /* scoreboard.css */; };
+		CEA4C0DE2F9800000087C009 /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C007 /* scoreboard.json */; };
+		CEA4C0DE2F9800000087C00B /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C00A /* scoreboard.json */; };
 		24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		28D9703AF85F475F866BAA51 /* DiagnosticsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */; };
 		2C3ADE327DEBD6F3955255E7 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
@@ -1754,6 +1757,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		CEA4C0DE2F9800000087C00C /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = race/ui/hud/chrome;
+			dstSubfolderSpec = 16;
+			files = (
+				CEA4C0DE2F9800000087C00B /* scoreboard.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0FB222CA4FDE0CA9865D5486 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1988,6 +2001,8 @@
 			files = (
 				CEA4C0DE2F9800000087C003 /* hud.css in CopyFiles */,
 				CEA4C0DE2F9800000087C004 /* hud.json in CopyFiles */,
+				CEA4C0DE2F9800000087C008 /* scoreboard.css in CopyFiles */,
+				CEA4C0DE2F9800000087C009 /* scoreboard.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2022,6 +2037,9 @@
 		2D140F08524DA0679A7DB117 /* hud.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = default/hud.css; sourceTree = "<group>"; };
 		CEA4C0DE2F9800000087C001 /* hud.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = chrome/hud.css; sourceTree = "<group>"; };
 		CEA4C0DE2F9800000087C002 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/hud.json; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C006 /* scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = chrome/scoreboard.css; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C007 /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/scoreboard.json; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C00A /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/scoreboard.json; sourceTree = "<group>"; };
 		30FC7C9F9B24C6966D749398 /* NavEditView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NavEditView.h; sourceTree = "<group>"; };
 		3487B5AD7D47E8DFBDDAE5C4 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/hud.json; sourceTree = "<group>"; };
 		40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreboardView.h; sourceTree = "<group>"; };
@@ -3359,6 +3377,8 @@
 				64E652EE2F700EFB737AEA30 /* hud.json */,
 				CEA4C0DE2F9800000087C001 /* hud.css */,
 				CEA4C0DE2F9800000087C002 /* hud.json */,
+				CEA4C0DE2F9800000087C006 /* scoreboard.css */,
+				CEA4C0DE2F9800000087C007 /* scoreboard.json */,
 				FC6374C1D47393EA62C8EC20 /* CounterView.h */,
 				A59EB892C12DF10ACA8253DD /* CounterView.c */,
 				C8249BF99F0E4A2D77D37865 /* CrosshairView.h */,
@@ -3451,6 +3471,7 @@
 			children = (
 				027C4ADD65DCCCEBCEB3D462 /* hud.json */,
 				92AA3129971ABAAB21EE5BAD /* scoreboard.json */,
+				CEA4C0DE2F9800000087C00A /* scoreboard.json */,
 			);
 			path = hud;
 			sourceTree = "<group>";
@@ -6053,6 +6074,7 @@
 			buildConfigurationList = D2A5C1000000000000000059 /* Build configuration list for PBXNativeTarget "cgame-race" */;
 			buildPhases = (
 				0FB222CA4FDE0CA9865D5486 /* CopyFiles */,
+				CEA4C0DE2F9800000087C00C /* CopyFiles */,
 				D2A5C100000000000000005C /* Sources */,
 				D2A5C100000000000000005D /* Frameworks */,
 				D2A5C100000000000000005E /* Headers */,

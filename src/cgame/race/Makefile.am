@@ -41,6 +41,12 @@ cguihuddefault_DATA = \
 	ui/hud/default/hud.json \
 	ui/hud/default/scoreboard.json
 
+cguihudchromedir = \
+	@PKGLIBDIR@/race/ui/hud/chrome
+
+cguihudchrome_DATA = \
+	ui/hud/chrome/scoreboard.json
+
 cgamelibdir = \
 	@PKGLIBDIR@/race
 

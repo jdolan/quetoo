@@ -117,7 +117,9 @@ cguihudchromedir = \
 
 cguihudchrome_DATA = \
 	$(CGUI_DIR)/hud/chrome/hud.css \
-	$(CGUI_DIR)/hud/chrome/hud.json
+	$(CGUI_DIR)/hud/chrome/hud.json \
+	$(CGUI_DIR)/hud/chrome/scoreboard.css \
+	$(CGUI_DIR)/hud/chrome/scoreboard.json
 
 cguihomedir = \
 	@PKGLIBDIR@/default/ui/home
