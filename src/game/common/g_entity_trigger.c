@@ -456,6 +456,10 @@ void G_trigger_portal(g_entity_t *ent) {
     return;
   }
 
+  // TEMP: diagnosing a yaw_delta mismatch between paired portals
+  G_Warn("%s targetname=%s target=%s baked angle=%g\n",
+         etos(ent), ent->target_name ? : "(none)", ent->target ? : "(none)", ent->s.angles.y);
+
   ent->solid = SOLID_TRIGGER;
   ent->move_type = MOVE_TYPE_NONE;
 
