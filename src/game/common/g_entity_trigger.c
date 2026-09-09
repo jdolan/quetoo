@@ -331,16 +331,6 @@ void G_trigger_push(g_entity_t *ent) {
 }
 
 /**
- * @brief Rotates a vector's X/Y components about the Z axis by the given yaw, in degrees.
- */
-static vec3_t Vec3_RotateYaw(const vec3_t v, float yaw) {
-  const float rad = Radians(yaw);
-  const float c = cosf(rad), s = sinf(rad);
-
-  return Vec3(v.x * c - v.y * s, v.x * s + v.y * c, v.z);
-}
-
-/**
  * @brief The reference point for a `trigger_portal`'s position math: the centroid of the
  * common/portal face quemap baked in at compile time.
  */
@@ -349,13 +339,29 @@ static vec3_t G_trigger_portal_Origin(const g_entity_t *ent) {
 }
 
 /**
+ * @brief Re-expresses `v` in the portal-relative frame `(right_a, up_a, fwd_a)`, then rebuilds it
+ * in the paired portal's frame `(right_b, up_b, fwd_b)`. This is the entire trick to a portal:
+ * a position or direction is only ever meaningful relative to the face it was measured from, so
+ * carrying it across as those same three relative numbers - however the two faces happen to be
+ * oriented in the world - is what makes the crossing read as one continuous surface.
+ */
+static vec3_t G_trigger_portal_Carry(const vec3_t v,
+                                      const vec3_t right_a, const vec3_t up_a, const vec3_t fwd_a,
+                                      const vec3_t right_b, const vec3_t up_b, const vec3_t fwd_b) {
+
+  const vec3_t local = Vec3(Vec3_Dot(v, right_a), Vec3_Dot(v, up_a), Vec3_Dot(v, fwd_a));
+
+  return Vec3_Add(Vec3_Scale(right_b, local.x),
+                   Vec3_Add(Vec3_Scale(up_b, local.y), Vec3_Scale(fwd_b, local.z)));
+}
+
+/**
  * @brief Handles touch events on a `trigger_portal`. Unlike `trigger_teleporter`, this fires on
  * every frame the toucher overlaps the volume (there is no single "moment" of transit), and
- * carries the toucher's full position, velocity and view through to the paired portal, rotated
- * by the delta between the two portals' own facings. Walking through one frame at a time this
- * way, rather than snapping to a fixed destination point, is what makes the crossing
- * imperceptible: the mapper builds matching geometry on both sides, and the player simply never
- * stops moving.
+ * carries the toucher's full position, velocity and view through to the paired portal via
+ * `G_trigger_portal_Carry`. Walking through one frame at a time this way, rather than snapping to
+ * a fixed destination point, is what makes the crossing imperceptible: the mapper builds matching
+ * geometry on both sides, and the player simply never stops moving.
  */
 static void G_trigger_portal_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -384,36 +390,41 @@ static void G_trigger_portal_Touch(g_entity_t *ent, g_entity_t *other, const cm_
     return;
   }
 
+  vec3_t right_a, up_a, fwd_a;
+  Vec3_Vectors(ent->s.angles, &fwd_a, &right_a, &up_a);
+
   // only transit while moving with this portal's own facing; this keeps a toucher who is
   // standing still or backing away from being repeatedly dragged through, and lets a player
   // who turns around mid-crossing simply walk back out the way they came
-  vec3_t forward;
-  Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
-
-  if (Vec3_Dot(other->velocity, forward) <= 0.0) {
+  if (Vec3_Dot(other->velocity, fwd_a) <= 0.0) {
     return;
   }
 
-  const float yaw_delta = dest->s.angles.y - ent->s.angles.y;
+  // `dest->s.angles` bakes *that* portal's own travel-into direction, same as `ent`'s - but on
+  // arrival it's the reverse, the destination face's outward normal, that a toucher should end up
+  // facing and moving along (see the QUAKED note above: the normal is used one way for the portal
+  // you're entering, the opposite way for the one you're arriving at). Flipping forward alone
+  // would mirror left/right on arrival (this basis's right is forward × up), so right flips with
+  // it; up is left alone since gravity-relative "up" has no business swapping with "down".
+  vec3_t right_b, up_b, fwd_b;
+  Vec3_Vectors(dest->s.angles, &fwd_b, &right_b, &up_b);
+  fwd_b = Vec3_Negate(fwd_b);
+  right_b = Vec3_Negate(right_b);
 
   // carry the toucher's full position within this portal's volume through to the paired
-  // portal, rotated by the facing delta between them, instead of snapping to a fixed point
+  // portal, expressed relative to each portal's own face, instead of snapping to a fixed point
   const vec3_t offset = Vec3_Subtract(other->s.origin, G_trigger_portal_Origin(ent));
-  const vec3_t rotated_offset = Vec3_RotateYaw(offset, yaw_delta);
+  const vec3_t carried_offset = G_trigger_portal_Carry(offset, right_a, up_a, fwd_a, right_b, up_b, fwd_b);
 
-  other->s.origin = Vec3_Add(G_trigger_portal_Origin(dest), rotated_offset);
-  other->velocity = Vec3_RotateYaw(other->velocity, yaw_delta);
+  other->s.origin = Vec3_Add(G_trigger_portal_Origin(dest), carried_offset);
+  other->velocity = G_trigger_portal_Carry(other->velocity, right_a, up_a, fwd_a, right_b, up_b, fwd_b);
 
   if (other->client) {
-    // TEMP: diagnosing exit angle
-    G_Warn("onEnter view=%g ent.angle=%g dest.angle=%g yaw_delta=%g\n",
-           other->client->ps.pm_state.view_angles.y, ent->s.angles.y, dest->s.angles.y, yaw_delta);
+    vec3_t view_forward;
+    Vec3_Vectors(other->client->ps.pm_state.view_angles, &view_forward, NULL, NULL);
 
-    vec3_t view_angles = other->client->ps.pm_state.view_angles;
-    view_angles.y += yaw_delta;
-
-    // TEMP: diagnosing exit angle
-    G_Warn("onExit view=%g\n", view_angles.y);
+    const vec3_t view_angles = Vec3_Euler(
+        G_trigger_portal_Carry(view_forward, right_a, up_a, fwd_a, right_b, up_b, fwd_b));
 
     other->client->ps.pm_state.view_angles = view_angles;
     other->client->ps.pm_state.delta_angles = Vec3_Zero();
@@ -425,7 +436,11 @@ static void G_trigger_portal_Touch(g_entity_t *ent, g_entity_t *other, const cm_
     gi.WriteAngles(view_angles);
     gi.Unicast(other->client, true);
   } else {
-    other->s.angles.y += yaw_delta;
+    vec3_t entity_forward;
+    Vec3_Vectors(other->s.angles, &entity_forward, NULL, NULL);
+
+    other->s.angles = Vec3_Euler(
+        G_trigger_portal_Carry(entity_forward, right_a, up_a, fwd_a, right_b, up_b, fwd_b));
   }
 
   gi.LinkEntity(other);
@@ -464,10 +479,6 @@ void G_trigger_portal(g_entity_t *ent) {
     G_FreeEntity(ent);
     return;
   }
-
-  // TEMP: diagnosing a yaw_delta mismatch between paired portals
-  G_Warn("%s targetname=%s target=%s baked angle=%g\n",
-         etos(ent), ent->target_name ? : "(none)", ent->target ? : "(none)", ent->s.angles.y);
 
   ent->solid = SOLID_TRIGGER;
   ent->move_type = MOVE_TYPE_NONE;
