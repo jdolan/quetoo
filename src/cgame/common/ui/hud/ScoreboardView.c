@@ -159,12 +159,14 @@ static StackView *addRowsColumn(ScoreboardView *self) {
 
 
 /**
- * @brief Widens a table's cards to stand out from the rows they hold.
+ * @brief Sets a table's columns to the width of the rows they hold, so the board centres on
+ * them.
  * @details Layout derives a container's size from its content only until it has a frame, and
- * treats that frame as authoritative from then on, so a card laid out once never grows to a
- * wider set of rows. The width is known from the fields, so it is set outright.
+ * treats that frame as authoritative from then on, so a column laid out once never grows to
+ * a wider set of rows, and the board would centre on a stale width. The width is known from
+ * the fields, so it is set outright.
  */
-static void sizeTableCards(ScoreboardView *self) {
+static void sizeTableColumns(ScoreboardView *self) {
 
   const Array *columns = (Array *) self->columns->view.subviews;
 
@@ -174,7 +176,7 @@ static void sizeTableCards(ScoreboardView *self) {
 
     View *column = $(columns, objectAtIndex, i);
 
-    column->frame.w = self->rowWidth + SCORES_CARD_INSET * 2;
+    column->frame.w = self->rowWidth;
     width += column->frame.w;
   }
 
@@ -488,7 +490,7 @@ static void rebuild(ScoreboardView *self) {
   }
 
   if (self->layout == ScoreboardLayoutTable) {
-    sizeTableCards(self);
+    sizeTableColumns(self);
   }
 }
 

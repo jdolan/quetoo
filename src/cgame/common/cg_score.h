@@ -33,9 +33,6 @@
 #define SCORES_PING_WIDTH 64
 #define SCORES_HEADER_HEIGHT 28
 
-// how far the card a table sits on stands out from its rows on each side; a variant's
-// `.column` padding MUST match, since that is what insets the rows within it
-#define SCORES_CARD_INSET 52
 
 void Cg_ParseScores(void);
 void Cg_ClearScores(void);
