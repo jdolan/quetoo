@@ -36,6 +36,22 @@ typedef struct ScoreView ScoreView;
 typedef struct ScoreViewInterface ScoreViewInterface;
 
 /**
+ * @brief One column of the scoreboard: a caption, and the width its values need.
+ * @details The fields are what a module says its board counts, and the arrangement is what
+ * a variant does with them: the cards layout writes them out as prose beneath the name, the
+ * table layout gives each one a column under its caption.
+ */
+typedef struct {
+  const char *caption;
+  int32_t width;
+} ScoreField;
+
+/**
+ * @brief The most fields a board may show.
+ */
+#define SCORE_FIELDS_MAX 4
+
+/**
  * @brief One player on the scoreboard: the icon, a fill in the team colour, the name and
  * ping on the first line, and two more lines a module fills in through
  * ScoreView::setDetails. The local player's row carries the class name `self`.
@@ -60,7 +76,8 @@ struct ScoreView {
   ImageView *badge;
 
   /**
-   * @brief The detail lines beneath the name, left and right.
+   * @brief The detail lines beneath the name, left and right. Hidden in the table layout,
+   * which gives each field a column of its own instead.
    */
   Text *detail, *aside;
 
@@ -108,6 +125,19 @@ struct ScoreViewInterface {
    * @memberof ScoreView
    */
   void (*setDetails)(ScoreView *self, const char *detail, const char *aside);
+
+  /**
+   * @fn void ScoreView::setFields(ScoreView *self, const ScoreField *fields, const char **values, size_t count)
+   * @brief Lays the row out as table cells, one per field, right aligned in their columns.
+   * @details The columns are measured from the right, so they line up with the header the
+   * board draws above them however long a name is. Hides the prose lines.
+   * @param self The ScoreView.
+   * @param fields The fields, which give the column widths.
+   * @param values The value of each field for this row.
+   * @param count The number of fields.
+   * @memberof ScoreView
+   */
+  void (*setFields)(ScoreView *self, const ScoreField *fields, const char **values, size_t count);
 };
 
 CGAME_EXPORT Class *_ScoreView(void);

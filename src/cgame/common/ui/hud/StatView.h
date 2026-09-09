@@ -41,9 +41,10 @@ typedef struct StatViewInterface StatViewInterface;
 
 /**
  * @brief A vital sign: a value beside its icon, coloured by thresholds.
- * @details Configured in JSON by `stat`: `health`, `armor` or `ammo`. Hidden when the value
- * is zero, and for ammo in instagib. The icon pulses when the value is low and
- * `cg_draw_vitals_pulse` is set.
+ * @details Configured in JSON by `stat`: `health`, `armor` or `ammo`, and optionally by
+ * `caption`, a label above the value. Hidden when the value is zero, and for ammo in
+ * instagib, which is why the caption belongs to the view rather than sitting beside it. The
+ * icon pulses when the value is low and `cg_draw_vitals_pulse` is set.
  * @extends StackView
  */
 struct StatView {
@@ -60,6 +61,11 @@ struct StatView {
   StatViewInterface *interface[0];
 
   /**
+   * @brief The caption above the value, hidden when the JSON supplies none.
+   */
+  Text *caption;
+
+  /**
    * @brief The icon.
    */
   ImageView *icon;
@@ -68,6 +74,11 @@ struct StatView {
    * @brief The resource name of the icon shown, so it is re-resolved only on change.
    */
   const char *iconName;
+
+  /**
+   * @brief The caption and value, stacked, so that the icon flanks them both.
+   */
+  StackView *labels;
 
   /**
    * @brief The vital shown.

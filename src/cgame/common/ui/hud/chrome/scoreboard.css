@@ -1,0 +1,100 @@
+/*
+ * The chrome scoreboard: a table anchored to the top of the screen. The rows are one list
+ * under a row of field captions, striped so a long board stays readable, and a module's own
+ * fields fill the columns.
+ *
+ * The board shows through the intermission, when the HUD does not, so it is arranged apart
+ * from hud.css. The rows carry the whole treatment: the striping reads as the table, and a
+ * card behind them would have to enclose the widest of them to look like anything but a
+ * misfit rectangle.
+ */
+
+ScoreboardView {
+  autoresizing-mask: fill;
+}
+
+ScoreboardView Text {
+  font-family: Barlow Condensed;
+  font-style: regular;
+  font-size: 16;
+  color: #f2f5f6;
+}
+
+ScoreboardView > .title {
+  alignment: top-center;
+  text-transform: uppercase;
+  font-size: 34;
+  color: #f2f5f6;
+  padding-top: 20;
+}
+
+ScoreboardView > .header {
+  alignment: top-center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  padding-top: 64;
+  spacing: 48;
+}
+
+ScoreboardView > .columns {
+  alignment: top-center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  padding-top: 86;
+  spacing: 24;
+}
+
+ScoreboardView .column {
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 1;
+}
+
+ScoreboardView .spectators {
+  padding-right: 26;
+}
+
+/* The header of field captions the rows line up under */
+
+ScoreboardView .fields .caption {
+  text-transform: uppercase;
+  font-size: 13;
+  color: #8fc7dcbf;
+}
+
+/*
+ * With no card behind them the rows are the table, so every one carries a fill and the
+ * striping is the difference between them; transparent rows would read as gaps.
+ */
+
+ScoreboardView ScoreView {
+  background-color: #08151ad9;
+  padding: 2 4 2 4;
+}
+
+ScoreboardView ScoreView.odd {
+  background-color: #0f2229e6;
+}
+
+ScoreboardView ScoreView.self {
+  background-color: #1e4e6299;
+  border-color: #8fc7dc80;
+  border-width: 1;
+}
+
+ScoreboardView .name {
+  font-size: 18;
+}
+
+ScoreboardView .field {
+  font-family: M PLUS U;
+  font-style: regular;
+  font-size: 20;
+}
+
+ScoreboardView .ping {
+  font-family: M PLUS U;
+  font-style: regular;
+  font-size: 14;
+  color: #dedede94;
+}

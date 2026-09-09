@@ -52,29 +52,24 @@ static void addRow(ScoreboardView *self, StackView *column, const g_score_t *sco
   ScoreView *row = $(self, scoreView, score);
   assert(row);
 
+  // every other row carries `odd`, so a table can stripe them
+  if (((const Array *) column->view.subviews)->count & 1) {
+    $((View *) row, addClassName, "odd");
+  }
+
   $((View *) column, addSubview, (View *) row);
   release(row);
 }
 
 /**
- * @brief The stock detail lines: frags and deaths, or spectating; in CTF, captures too.
+ * @brief The badge over a player's icon: in CTF, the flag they carry.
  */
-static void configureScoreRow(ScoreView *row, const g_score_t *score) {
-
-  if (score->flags & SCORE_SPECTATOR) {
-    $(row, setDetails, "spectating", NULL);
-    return;
-  }
-
+static void configureBadge(ScoreView *row, const g_score_t *score) {
 #if defined(G_CTF)
-  $(row, setDetails, va("%d frags\n%d captures", score->score, score->captures), va("%d deaths", score->deaths));
-
   if (score->flags & SCORE_CTF_FLAG) {
     $(row->badge, setImage, (Image *) Cg_HudImage(va("pics/flag%d", score->team)));
     $((View *) row->badge, setHidden, false);
   }
-#else
-  $(row, setDetails, va("%d frags", score->score), va("%d deaths", score->deaths));
 #endif
 }
 
@@ -90,10 +85,84 @@ static const char *teamTotal(const cg_team_info_t *team, const g_score_t *score)
 }
 
 /**
- * @brief The rows that fit beneath `top`, at least three.
+ * @brief The width a table row needs: the icon, a name, every field and the ping.
  */
-static size_t rowsThatFit(const ScoreboardView *self, int32_t top) {
-  return (size_t) Maxi(3, (self->view.frame.h - 2 * top) / SCORES_ROW_HEIGHT);
+static int32_t tableRowWidth(ScoreboardView *self) {
+
+  const ScoreField *f;
+  const size_t count = $(self, fields, &f);
+
+  int32_t width = SCORES_ICON_WIDTH + SCORES_COL_WIDTH + SCORES_PING_WIDTH;
+
+  for (size_t i = 0; i < count; i++) {
+    width += f[i].width;
+  }
+
+  return width;
+}
+
+/**
+ * @brief The row of field captions a table's rows line up under.
+ */
+static View *tableHeader(ScoreboardView *self) {
+
+  View *header = $(alloc(View), initWithFrame, &MakeRect(0, 0, self->rowWidth, SCORES_HEADER_HEIGHT));
+  assert(header);
+
+  $(header, addClassName, "fields");
+
+  const ScoreField *f;
+  const size_t count = $(self, fields, &f);
+
+  // laid out from the right, exactly as ScoreView::setFields lays out the values
+  int32_t x = self->rowWidth - SCORES_PING_WIDTH;
+
+  for (size_t i = count; i > 0; i--) {
+
+    x -= f[i - 1].width;
+
+    View *column = $(alloc(View), initWithFrame, &MakeRect(x, 0, f[i - 1].width, SCORES_HEADER_HEIGHT));
+    assert(column);
+
+    Text *caption = $(alloc(Text), initWithText, f[i - 1].caption, NULL);
+    assert(caption);
+
+    caption->view.alignment = ViewAlignmentMiddleRight;
+
+    $((View *) caption, addClassName, "caption");
+    $(column, addSubview, (View *) caption);
+    release(caption);
+
+    $(header, addSubview, column);
+    release(column);
+  }
+
+  return header;
+}
+
+/**
+ * @brief A column of rows, leading with the field captions in the table layout.
+ */
+static StackView *addRowsColumn(ScoreboardView *self) {
+
+  StackView *column = $(self, addColumn);
+
+  if (self->layout == ScoreboardLayoutTable) {
+
+    View *header = tableHeader(self);
+    $((View *) column, addSubview, header);
+    release(header);
+  }
+
+  return column;
+}
+
+
+/**
+ * @brief The rows that fit beneath `top`, less whatever a layout reserves, at least three.
+ */
+static size_t rowsThatFit(const ScoreboardView *self, int32_t top, int32_t reserved) {
+  return (size_t) Maxi(3, (self->view.frame.h - 2 * top - reserved) / SCORES_ROW_HEIGHT);
 }
 
 #pragma mark - View
@@ -133,6 +202,27 @@ static View *init(View *self) {
   return self;
 }
 
+static const EnumName ScoreboardLayoutNames[] = MakeEnumNames(
+  MakeEnumAlias(ScoreboardLayoutCards, cards),
+  MakeEnumAlias(ScoreboardLayoutTable, table)
+);
+
+/**
+ * @see View::awakeWithDictionary(View *, const Dictionary *)
+ */
+static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
+
+  super(View, self, awakeWithDictionary, dictionary);
+
+  ScoreboardView *this = (ScoreboardView *) self;
+
+  const Inlet inlets[] = MakeInlets(
+    MakeInlet("layout", InletTypeEnum, &this->layout, (ident) ScoreboardLayoutNames)
+  );
+
+  $(self, bind, inlets, dictionary);
+}
+
 /**
  * @see View::updateBindings(View *, ident)
  */
@@ -153,6 +243,7 @@ static void updateBindings(View *self, ident data) {
   }
 
   super(View, self, updateBindings, data);
+
 }
 
 #pragma mark - ScoreboardView
@@ -184,9 +275,105 @@ static ScoreView *scoreView(ScoreboardView *self, const g_score_t *score) {
   ScoreView *row = $(alloc(ScoreView), initWithScore, score, self->rowWidth);
   assert(row);
 
-  configureScoreRow(row, score);
+  configureBadge(row, score);
+
+  if (score->flags & SCORE_SPECTATOR) {
+    $(row, setDetails, "spectating", NULL);
+    return row;
+  }
+
+  if (self->layout == ScoreboardLayoutTable) {
+
+    const ScoreField *fields;
+
+    // clamped, rather than trusted: the values are gathered into a fixed array
+    const size_t count = min($((ScoreboardView *) self, fields, &fields), (size_t) SCORE_FIELDS_MAX);
+
+    const char *values[SCORE_FIELDS_MAX];
+    for (size_t i = 0; i < count; i++) {
+      values[i] = $((ScoreboardView *) self, valueForField, score, i);
+    }
+
+    $(row, setFields, fields, values, count);
+
+  } else {
+
+    const char *detail = NULL, *aside = NULL;
+    $((ScoreboardView *) self, describe, score, &detail, &aside);
+
+    $(row, setDetails, detail, aside);
+  }
 
   return row;
+}
+
+/**
+ * @fn size_t ScoreboardView::fields(const ScoreboardView *self, const ScoreField **fields)
+ * @memberof ScoreboardView
+ */
+static size_t fields(const ScoreboardView *self, const ScoreField **fields) {
+
+  // lower case, as the prose reads it; the table's header uppercases it in the stylesheet
+  static const ScoreField stock[] = {
+    { "frags", 80 },
+#if defined(G_CTF)
+    { "captures", 96 },
+#endif
+    { "deaths", 80 },
+  };
+
+  *fields = stock;
+  return lengthof(stock);
+}
+
+/**
+ * @fn const char *ScoreboardView::valueForField(const ScoreboardView *self, const g_score_t *score, size_t field)
+ * @memberof ScoreboardView
+ */
+static const char *valueForField(const ScoreboardView *self, const g_score_t *score, size_t field) {
+
+  switch (field) {
+    case 0:
+      return va("%d", score->score);
+#if defined(G_CTF)
+    case 1:
+      return va("%d", score->captures);
+    case 2:
+#else
+    case 1:
+#endif
+      return va("%d", score->deaths);
+    default:
+      return "";
+  }
+}
+
+/**
+ * @fn void ScoreboardView::describe(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside)
+ * @memberof ScoreboardView
+ */
+static void describe(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside) {
+
+  const ScoreField *f;
+  const size_t count = $((ScoreboardView *) self, fields, &f);
+
+  // every field but the last reads down the left; the last sits opposite it
+  char text[MAX_STRING_CHARS];
+  *text = '\0';
+
+  for (size_t i = 0; i + 1 < count; i++) {
+    const char *value = $((ScoreboardView *) self, valueForField, score, i);
+    q_strlcat(text, va("%s%s %s", i ? "\n" : "", value, f[i].caption), sizeof(text));
+  }
+
+  *detail = va("%s", text);
+
+  if (count) {
+    const char *value = $((ScoreboardView *) self, valueForField, score, count - 1);
+    *aside = va("%s %s", value, f[count - 1].caption);
+  } else {
+    *aside = NULL;
+  }
 }
 
 /**
@@ -200,6 +387,11 @@ static void rebuild(ScoreboardView *self) {
   $((View *) self->header, removeAllSubviews);
   $((View *) self->columns, removeAllSubviews);
 
+  // layout treats an existing frame as authoritative, so a container that has been laid out
+  // once never re-derives its size from new content: clear them, and they measure again
+  $((View *) self->header, resize, &MakeSize(0, 0));
+  $((View *) self->columns, resize, &MakeSize(0, 0));
+
   size_t count;
   const g_score_t *scores = Cg_Scores(&count);
 
@@ -207,8 +399,14 @@ static void rebuild(ScoreboardView *self) {
     return;
   }
 
-  // The columns start 88 logical pixels down (scoreboard.css); the board used 64 for its title
-  const size_t rows = rowsThatFit(self, 64);
+  if (self->layout == ScoreboardLayoutTable) {
+    self->rowWidth = tableRowWidth(self);
+  }
+
+  // The columns start 88 logical pixels down (scoreboard.css); the board used 64 for its title.
+  // A table's column leads with its field captions, which take room the rows then do not have
+  const int32_t reserved = self->layout == ScoreboardLayoutTable ? SCORES_HEADER_HEIGHT : 0;
+  const size_t rows = rowsThatFit(self, 64, reserved);
 
   if (cg_state.num_teams) {
 
@@ -233,7 +431,7 @@ static void rebuild(ScoreboardView *self) {
     $((View *) spectators, addClassName, "spectators");
 
     for (int32_t t = 0; t < cg_state.num_teams; t++) {
-      StackView *column = $(self, addColumn);
+      StackView *column = addRowsColumn(self);
 
       size_t added = 0;
       for (size_t i = 0; i < count && added < rows; i++) {
@@ -254,10 +452,11 @@ static void rebuild(ScoreboardView *self) {
 
   } else {
 
-    const size_t cols = count > rows ? 2 : 1;
+    // a table reads as one list, however long it is
+    const size_t cols = self->layout == ScoreboardLayoutTable ? 1 : (count > rows ? 2 : 1);
 
     for (size_t c = 0; c < cols; c++) {
-      StackView *column = $(self, addColumn);
+      StackView *column = addRowsColumn(self);
 
       for (size_t i = c * rows; i < count && i < (c + 1) * rows; i++) {
         addRow(self, column, &scores[i]);
@@ -275,12 +474,16 @@ static void initialize(Class *clazz) {
 
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
+  ((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
   ((ViewInterface *) clazz->interface)->init = init;
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
   ((ScoreboardViewInterface *) clazz->interface)->addColumn = addColumn;
+  ((ScoreboardViewInterface *) clazz->interface)->describe = describe;
+  ((ScoreboardViewInterface *) clazz->interface)->fields = fields;
   ((ScoreboardViewInterface *) clazz->interface)->rebuild = rebuild;
   ((ScoreboardViewInterface *) clazz->interface)->scoreView = scoreView;
+  ((ScoreboardViewInterface *) clazz->interface)->valueForField = valueForField;
 }
 
 /**

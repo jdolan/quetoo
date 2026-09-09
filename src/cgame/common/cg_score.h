@@ -29,6 +29,11 @@
 #define SCORES_ROW_HEIGHT 52
 #define SCORES_ICON_WIDTH 48
 
+// the column the ping keeps at the right of a table row, and the height of its header
+#define SCORES_PING_WIDTH 64
+#define SCORES_HEADER_HEIGHT 28
+
+
 void Cg_ParseScores(void);
 void Cg_ClearScores(void);
 

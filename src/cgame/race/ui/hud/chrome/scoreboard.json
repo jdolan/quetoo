@@ -1,0 +1,5 @@
+{
+  "class": "RaceScoreboardView",
+  "identifier": "scoreboard",
+  "layout": "table"
+}

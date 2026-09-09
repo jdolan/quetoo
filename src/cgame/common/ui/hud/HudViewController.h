@@ -67,14 +67,20 @@ struct HudViewController {
   bool atlasDirty;
 
   /**
+   * @brief The diagnostics table, added to each variant's layout and shown while
+   * `cg_draw_diagnostics` is set.
+   */
+  DiagnosticsView *diagnostics;
+
+  /**
    * @brief The View loaded from the variant's JSON, a subview of `view`.
    */
   View *hud;
 
   /**
-   * @brief The scoreboard, a subview of `view` above `hud`, and not part of the variant.
+   * @brief AtlasImages by resource name.
    */
-  ScoreboardView *scoreboard;
+  Dictionary *images;
 
   /**
    * @brief The navigation edit instructions, shown in place of `hud` while editing.
@@ -89,15 +95,11 @@ struct HudViewController {
   ChatView *chat;
 
   /**
-   * @brief The diagnostics table, added to each variant's layout and shown while
-   * `cg_draw_diagnostics` is set.
+   * @brief The scoreboard, a subview of `view` above `hud`. It belongs to the variant, but
+   * shows through the intermission and with the HUD off, so it outlives a variant that
+   * fails to load.
    */
-  DiagnosticsView *diagnostics;
-
-  /**
-   * @brief AtlasImages by resource name.
-   */
-  Dictionary *images;
+  ScoreboardView *scoreboard;
 };
 
 struct HudViewControllerInterface {
@@ -124,8 +126,10 @@ struct HudViewControllerInterface {
 
   /**
    * @fn void HudViewController::reload(HudViewController *self)
-   * @brief Loads the variant named by `cg_hud`, falling back to `classic`. A module arranging
-   * its HUD differently ships its own `ui/hud/<variant>.json` in its game directory.
+   * @brief Loads the variant named by `cg_hud`, and its scoreboard. Each file is read from
+   * `ui/hud/<variant>`, or from `ui/hud/default` when the variant does not ship it, so a
+   * variant overrides only what it changes. A module arranging its HUD differently ships its
+   * own `ui/hud/<variant>/hud.json` in its game directory.
    * @param self The HudViewController.
    * @memberof HudViewController
    */

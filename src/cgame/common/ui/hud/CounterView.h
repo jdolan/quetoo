@@ -101,6 +101,18 @@ struct CounterViewInterface {
   CounterView *(*initWithCaption)(CounterView *self, const char *caption, int32_t stat);
 
   /**
+   * @fn const char *CounterView::textForFrame(CounterView *self, const cl_frame_t *frame)
+   * @brief Resolves the text shown for the given frame.
+   * @details The default formats CounterView::valueForFrame, blank while spectating without a
+   * chase target; subclasses showing something other than a number override this.
+   * @param self The CounterView.
+   * @param frame The frame.
+   * @return The text, valid until the next call.
+   * @memberof CounterView
+   */
+  const char *(*textForFrame)(CounterView *self, const cl_frame_t *frame);
+
+  /**
    * @fn int32_t CounterView::valueForFrame(CounterView *self, const cl_frame_t *frame)
    * @brief Resolves the value shown for the given frame.
    * @details The default reads `stat` from the frame's player state; subclasses deriving a
@@ -112,17 +124,6 @@ struct CounterViewInterface {
    */
   int32_t (*valueForFrame)(CounterView *self, const cl_frame_t *frame);
 
-  /**
-   * @fn const char *CounterView::textForFrame(CounterView *self, const cl_frame_t *frame)
-   * @brief Resolves the text shown for the given frame.
-   * @details The default formats CounterView::valueForFrame, blank while spectating without a
-   * chase target; subclasses showing something other than a number override this.
-   * @param self The CounterView.
-   * @param frame The frame.
-   * @return The text, valid until the next call.
-   * @memberof CounterView
-   */
-  const char *(*textForFrame)(CounterView *self, const cl_frame_t *frame);
 };
 
 CGAME_EXPORT Class *_CounterView(void);

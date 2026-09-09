@@ -73,6 +73,10 @@ static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t
   self = (ScoreView *) super(View, self, initWithFrame, &MakeRect(0, 0, width, SCORES_ROW_HEIGHT));
   if (self) {
 
+    // a row is its width, whatever its children reach: the ping is aligned rather than
+    // placed, so a size derived from the children alone falls short of the columns
+    self->view.minSize.w = width;
+
     const cg_client_info_t *info = &cg_state.clients[score->client];
 
     if (score->client == cgi.client->frame.ps.client) {
@@ -127,6 +131,52 @@ static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t
 }
 
 /**
+ * @fn void ScoreView::setFields(ScoreView *self, const ScoreField *fields, const char **values, size_t count)
+ * @memberof ScoreView
+ */
+static void setFields(ScoreView *self, const ScoreField *fields, const char **values, size_t count) {
+
+  assert(fields);
+  assert(values);
+
+  $((View *) self->detail, setHidden, true);
+  $((View *) self->aside, setHidden, true);
+
+  const int32_t height = self->view.frame.h;
+
+  // measured from the right, past the ping, so the columns meet the header above them
+  int32_t x = self->view.frame.w - SCORES_PING_WIDTH;
+
+  for (size_t i = count; i > 0; i--) {
+
+    const ScoreField *field = &fields[i - 1];
+
+    x -= field->width;
+
+    // the value is aligned inside a column of its own: alignment resolves against the
+    // superview, so it would otherwise discard the offset measured for it here
+    View *column = $(alloc(View), initWithFrame, &MakeRect(x, 0, field->width, height));
+    assert(column);
+
+    Text *value = $(alloc(Text), initWithText, values[i - 1], NULL);
+    assert(value);
+
+    value->view.alignment = ViewAlignmentMiddleRight;
+
+    $((View *) value, addClassName, "field");
+    $(column, addSubview, (View *) value);
+    release(value);
+
+    $((View *) self, addSubview, column);
+    release(column);
+  }
+
+  // the prose lines are gone, so the name and the ping take the middle of the row
+  self->name->view.frame.y = (height - self->name->view.frame.h) / 2;
+  self->ping->view.alignment = ViewAlignmentMiddleRight;
+}
+
+/**
  * @fn void ScoreView::setDetails(ScoreView *self, const char *detail, const char *aside)
  * @memberof ScoreView
  */
@@ -150,6 +200,7 @@ static void initialize(Class *clazz) {
 
   ((ScoreViewInterface *) clazz->interface)->initWithScore = initWithScore;
   ((ScoreViewInterface *) clazz->interface)->setDetails = setDetails;
+  ((ScoreViewInterface *) clazz->interface)->setFields = setFields;
 }
 
 /**

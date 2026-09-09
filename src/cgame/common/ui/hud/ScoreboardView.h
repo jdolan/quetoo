@@ -36,13 +36,24 @@ typedef struct ScoreboardView ScoreboardView;
 typedef struct ScoreboardViewInterface ScoreboardViewInterface;
 
 /**
+ * @brief How a board arranges its rows, chosen in a variant's `scoreboard.json` by `layout`.
+ * @details The arrangement belongs to the variant and the fields belong to the module, so
+ * the two compose: a module names its own ScoreboardView subclass for the fields it counts,
+ * and every variant can still lay that board out its own way.
+ */
+typedef enum {
+  ScoreboardLayoutCards,
+  ScoreboardLayoutTable
+} ScoreboardLayout;
+
+/**
  * @brief The scoreboard, shown while `STAT_SCORES` is set and through the intermission.
  * @details The map title across the top, the team totals beneath it in a team game, then the
  * rows: one column per team with the spectators to their left, or one or two columns of
  * everyone. Rows are rebuilt when the scores change (Cg_ScoresGeneration) or the view
- * resizes. A module that arranges its board differently names a subclass in its
- * `ui/hud/scoreboard.json`, overriding ScoreboardView::scoreView for the rows and
- * ScoreboardView::rebuild for the columns.
+ * resizes. A module that counts different things names a subclass in its
+ * `ui/hud/<variant>/scoreboard.json` and overrides ScoreboardView::fields and
+ * ScoreboardView::valueForField; a variant chooses the arrangement with `layout`.
  * @extends View
  */
 struct ScoreboardView {
@@ -75,6 +86,11 @@ struct ScoreboardView {
   StackView *header;
 
   /**
+   * @brief The arrangement, from the variant's `scoreboard.json`.
+   */
+  ScoreboardLayout layout;
+
+  /**
    * @brief The width of a row, which a subclass MAY change before the first rebuild.
    */
   int32_t rowWidth;
@@ -102,6 +118,29 @@ struct ScoreboardViewInterface {
   StackView *(*addColumn)(ScoreboardView *self);
 
   /**
+   * @fn void ScoreboardView::describe(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside)
+   * @brief The prose the cards layout writes beneath a player's name.
+   * @details Composed from the fields by default, as `12 frags`; a module whose board reads
+   * differently overrides this and leaves its fields to the table layout.
+   * @param self The ScoreboardView.
+   * @param score The score.
+   * @param detail Out; the left text, which MAY span lines, or `NULL`.
+   * @param aside Out; the right text, or `NULL`.
+   * @memberof ScoreboardView
+   */
+  void (*describe)(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside);
+
+  /**
+   * @fn size_t ScoreboardView::fields(const ScoreboardView *self, const ScoreField **fields)
+   * @brief The columns this board counts: frags and deaths, and captures in CTF.
+   * @param self The ScoreboardView.
+   * @param fields Out; the fields, owned by the view.
+   * @return The number of fields, at most `SCORE_FIELDS_MAX`.
+   * @memberof ScoreboardView
+   */
+  size_t (*fields)(const ScoreboardView *self, const ScoreField **fields);
+
+  /**
    * @fn void ScoreboardView::rebuild(ScoreboardView *self)
    * @brief Rebuilds the header and the rows from the current scores.
    * @param self The ScoreboardView.
@@ -118,6 +157,18 @@ struct ScoreboardViewInterface {
    * @memberof ScoreboardView
    */
   ScoreView *(*scoreView)(ScoreboardView *self, const g_score_t *score);
+
+  /**
+   * @fn const char *ScoreboardView::valueForField(const ScoreboardView *self, const g_score_t *score, size_t field)
+   * @brief The value of the field at `field` for `score`.
+   * @param self The ScoreboardView.
+   * @param score The score.
+   * @param field The field index, into ScoreboardView::fields.
+   * @return The value, which MUST remain valid until the row is built.
+   * @memberof ScoreboardView
+   */
+  const char *(*valueForField)(const ScoreboardView *self, const g_score_t *score, size_t field);
+
 };
 
 CGAME_EXPORT Class *_ScoreboardView(void);
