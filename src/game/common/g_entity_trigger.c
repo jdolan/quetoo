@@ -405,8 +405,15 @@ static void G_trigger_portal_Touch(g_entity_t *ent, g_entity_t *other, const cm_
   other->velocity = Vec3_RotateYaw(other->velocity, yaw_delta);
 
   if (other->client) {
+    // TEMP: diagnosing exit angle
+    G_Warn("onEnter view=%g ent.angle=%g dest.angle=%g yaw_delta=%g\n",
+           other->client->ps.pm_state.view_angles.y, ent->s.angles.y, dest->s.angles.y, yaw_delta);
+
     vec3_t view_angles = other->client->ps.pm_state.view_angles;
     view_angles.y += yaw_delta;
+
+    // TEMP: diagnosing exit angle
+    G_Warn("onExit view=%g\n", view_angles.y);
 
     other->client->ps.pm_state.view_angles = view_angles;
     other->client->ps.pm_state.delta_angles = Vec3_Zero();
@@ -429,13 +436,15 @@ Continuously carries anything that walks through this volume to the paired trigg
 no teleport sound, effects, or angle/velocity snap of any kind. Requires one face of the brush
 textured common/portal: the compiler bakes that face's own centroid and outward normal in as
 this entity's position and facing (there is no angle key to set by hand - the two must never be
-allowed to drift out of sync, so the face is authoritative). Build matching brushwork on both
-sides of the pair; this entity's own facing matters as much as its target's, since it defines
-both the direction you must be moving to transit (facing away simply lets you walk back out)
-and the reference angle everything is rotated relative to. A trigger_portal with no target of
-its own is inert (it generates no touch field at all) but can still be pointed at by another's
-target, making a one-way portal: give both entities a targetname and only the outgoing side a
-target to prevent transit back.
+allowed to drift out of sync, so the face is authoritative). That face's outward normal is the
+single source of truth for this specific entity, used two ways at once: it's the direction you
+must be moving to transit through it (facing/moving away simply lets you walk back out), and if
+something else targets this entity, it's the direction you'll be facing on arrival. Tag each
+portal in a pair according to its own true orientation in the world - do not simply mirror
+however the other one in the pair happens to be tagged, since the two may not (and often should
+not) face the same way. A trigger_portal with no target of its own is inert (it generates no
+touch field at all) but can still be pointed at by another's target, making a one-way portal:
+give both entities a targetname and only the outgoing side a target to prevent transit back.
 
 -------- Keys --------
 target : The paired trigger_portal's targetname. If unset, this entity is a one-way destination
