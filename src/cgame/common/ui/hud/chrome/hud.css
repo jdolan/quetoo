@@ -149,13 +149,18 @@
   font-size: 56;
 }
 
-/* Powerups, top left: a stack of cards leaning off the left edge */
+/*
+ * Powerups, top left: a stack of cards leaning off the left edge. They start below the
+ * notify lines, which draw from 32 down at whatever cg_notify_lines is set to; the inset
+ * clears the default three with room to spare.
+ */
 
 #powerups {
   alignment: top-left;
   autoresizing-mask: contain;
   axis: vertical;
-  spacing: 8;
+  padding-top: 128;
+  spacing: 12;
 }
 
 #hud PowerupView {
@@ -163,9 +168,9 @@
   background-color: #1e4e62e6;
   background-gradient-color: #08151acc;
   background-gradient-angle: 90;
-  corner-cut: 0 0 16 0;
-  padding: 8 26 8 26;
-  spacing: 14;
+  corner-cut: 0 0 28 0;
+  padding: 16 52 16 52;
+  spacing: 28;
 }
 
 #hud PowerupView > Text {
@@ -174,12 +179,12 @@
 
 #hud PowerupView > ImageView {
   alignment: middle;
-  width: 26;
-  height: 26;
+  width: 52;
+  height: 52;
 }
 
 #hud #powerups .number {
-  font-size: 26;
+  font-size: 52;
 }
 
 /* Score and clock, top right: one card, its top left corner pulled in */
