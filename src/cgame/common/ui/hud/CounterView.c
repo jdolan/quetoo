@@ -110,8 +110,6 @@ static CounterView *initWithCaption(CounterView *self, const char *caption, int3
   if (self) {
     self->stat = stat;
 
-    self->stackView.axis = StackViewAxisVertical;
-
     self->caption = $(alloc(Text), initWithText, caption, NULL);
     assert(self->caption);
 

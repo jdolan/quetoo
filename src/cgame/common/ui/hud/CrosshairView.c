@@ -135,8 +135,6 @@ static View *init(View *self) {
     assert(this->imageView);
 
     $(self, addSubview, (View *) this->imageView);
-
-    self->autoresizingMask = ViewAutoresizingContain;
   }
 
   return self;

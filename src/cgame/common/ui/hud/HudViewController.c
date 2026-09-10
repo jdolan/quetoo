@@ -94,7 +94,7 @@ static void loadView(ViewController *self) {
   View *view = $(alloc(View), initWithFrame, NULL);
   assert(view);
 
-  view->autoresizingMask = ViewAutoresizingFill;
+  $(view->style, addEnumAttribute, "autoresizing-mask", ViewAutoresizingNames, ViewAutoresizingFill);
 
   $(self, setView, view);
   release(view);
@@ -220,8 +220,6 @@ static ScoreboardView *loadScoreboard(const char *hud) {
     Cg_Warn("Failed to load %s\n", css);
   }
 
-  scoreboard->autoresizingMask = ViewAutoresizingFill;
-
   return (ScoreboardView *) scoreboard;
 }
 
@@ -256,8 +254,6 @@ static void reload(HudViewController *self) {
     Cg_Warn("No HUD\n");
     return;
   }
-
-  hud->autoresizingMask = ViewAutoresizingFill;
 
   // beneath the notify lines, the chat, the scoreboard and the nav edit
   $(self->viewController.view, addSubview, hud);

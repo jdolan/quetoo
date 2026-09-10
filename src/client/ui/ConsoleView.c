@@ -55,8 +55,7 @@ static Text *addText(View *view, ViewAlignment alignment) {
   Text *text = $(alloc(Text), initWithText, NULL, NULL);
   assert(text);
 
-  text->view.alignment = alignment;
-
+  $(text->view.style, addEnumAttribute, "alignment", ViewAlignmentNames, alignment);
   $(text->view.style, addCharactersAttribute, "font-family", DEFAULT_MONOSPACE_FONT_FAMILY);
   $(text->view.style, addIntegerAttribute, "font-size", CONSOLE_FONT_SIZE);
 
@@ -74,15 +73,16 @@ static View *init(View *self) {
   if (self) {
     ConsoleView *this = (ConsoleView *) self;
 
-    self->autoresizingMask = ViewAutoresizingWidth;
-    self->clipsSubviews = true;
+    $(self->style, addEnumAttribute, "autoresizing-mask", ViewAutoresizingNames, ViewAutoresizingWidth);
+    $(self->style, addBoolAttribute, "clips-subviews", true);
 
     Image *conback = $$(Image, imageWithResourceName, "ui/conback.png");
     if (conback) {
       this->background = $(alloc(ImageView), initWithImage, conback);
       assert(this->background);
 
-      this->background->view.alignment = ViewAlignmentInternal;
+      $(this->background->view.style, addEnumAttribute, "alignment", ViewAlignmentNames,
+        ViewAlignmentInternal);
 
       $(self, addSubview, (View *) this->background);
       release(conback);
@@ -217,15 +217,13 @@ static void update(ConsoleView *self, int32_t height) {
     }
   } else if (view->backgroundColor.a != alpha) {
     const SDL_Color color = { 0, 0, 0, alpha };
-    view->backgroundColor = color;
     $(view->style, addColorAttribute, "background-color", &color);
+    $(view, invalidateStyle);
   }
 
   if (view->padding.bottom != ch.h) {
-    const SDL_Rect padding = MakeRect(0, 1, ch.h, 1);
-    view->padding = MakePadding(0, 1, ch.h, 1);
-    $(view->style, addRectangleAttribute, "padding", &padding);
-    $(view, setNeedsLayout);
+    $(view->style, addRectangleAttribute, "padding", &MakeRect(0, 1, ch.h, 1));
+    $(view, invalidateStyle);
   }
 
   tail(&cl_console, cl_console.height, self->buffer);

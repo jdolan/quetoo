@@ -49,7 +49,8 @@ static void loadView(ViewController *self) {
 
   super(ViewController, self, loadView);
 
-  self->view->pointerEvents = false;
+  $(self->view->style, addEnumAttribute, "pointer-events", ViewPointerEventsNames,
+    ViewPointerEventsNone);
 
   ConsoleViewController *this = (ConsoleViewController *) self;
 

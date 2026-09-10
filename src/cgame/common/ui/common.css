@@ -45,8 +45,7 @@ Panel > .resizeHandle {
 
 Panel.menu .tabPageView {
   autoresizing-mask: contain;
-  width: 1440;
-  /*height: 720;*/
+  min-width: 1440;
 }
 
 Select {
@@ -111,14 +110,12 @@ TextView {
 
 .columns > .column {
   autoresizing-mask: contain;
-  width: 460;
   min-width: 460;
   max-width: 460;
 }
 
 .columns > .column-2 {
   autoresizing-mask: contain;
-  width: 920;
   min-width: 920;
   max-width: 920;
 }
@@ -126,4 +123,122 @@ TextView {
 .column Box,
 .column-2 Box {
   autoresizing-mask: contain | width;
+}
+
+/*
+ * The defaults the view classes used to assign in C. A styled property is owned by the
+ * cascade, so a class that needs one arranged a certain way declares it here, at the lowest
+ * specificity it can, and leaves a HUD variant or a controller stylesheet free to override.
+ */
+
+ChatView {
+  autoresizing-mask: contain;
+  axis: vertical;
+}
+
+CrosshairView {
+  autoresizing-mask: contain;
+}
+
+DiagnosticsView {
+  autoresizing-mask: contain;
+}
+
+MapListCollectionItemView Text {
+  alignment: bottom-center;
+}
+
+NavEditView {
+  autoresizing-mask: contain;
+}
+
+PickupView {
+  axis: horizontal;
+}
+
+PowerupView {
+  axis: horizontal;
+  spacing: 32;
+}
+
+PickupView > Text {
+  alignment: middle;
+}
+
+StatView {
+  axis: horizontal;
+  spacing: 5;
+}
+
+StatView > .labels {
+  axis: vertical;
+}
+
+WeaponBarView {
+  axis: vertical;
+}
+
+WeaponBarView > StackView {
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 4;
+}
+
+WeaponBarView .slot {
+  autoresizing-mask: contain;
+}
+
+/*
+ * The HUD and the scoreboard fill the window, and a variant that ships only a stylesheet of
+ * its own still gets that; #hud is the root identifier every variant's JSON must use.
+ */
+
+#hud {
+  autoresizing-mask: fill;
+}
+
+BlendView > ImageView {
+  autoresizing-mask: fill;
+}
+
+ScoreboardView {
+  autoresizing-mask: fill;
+}
+
+ScoreboardView > .header {
+  axis: horizontal;
+}
+
+ScoreboardView > .columns {
+  axis: horizontal;
+}
+
+ScoreboardView .column {
+  axis: vertical;
+}
+
+ScoreboardView .fields .caption {
+  alignment: middle-right;
+}
+
+ScoreView > .fill {
+  alignment: internal;
+}
+
+ScoreView > .ping {
+  alignment: top-right;
+}
+
+ScoreView > .aside {
+  alignment: right;
+}
+
+/* A row laid out as fields is a table row: the values and the ping line up on their centres */
+
+ScoreView.fields .field {
+  alignment: middle-right;
+}
+
+ScoreView.fields > .ping {
+  alignment: middle-right;
 }

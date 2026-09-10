@@ -50,8 +50,6 @@ static View *init(View *self) {
   if (self) {
     NavEditView *this = (NavEditView *) self;
 
-    self->autoresizingMask = ViewAutoresizingContain;
-
     $(self->style, addRectangleAttribute, "padding", &MakeRect(8, 16, 8, 16));
     $(self->style, addColorAttribute, "background-color", &(const SDL_Color) { 0, 0, 0, 166 });
     $(self->style, addIntegerAttribute, "border-radius", 4);

@@ -300,7 +300,8 @@ void Ui_Init(void) {
 
   hudLayer = $(alloc(ViewController), init);
   $(rootViewController, addChildViewController, hudLayer);
-  hudLayer->view->pointerEvents = false;
+  $(hudLayer->view->style, addEnumAttribute, "pointer-events", ViewPointerEventsNames,
+    ViewPointerEventsNone);
 
   navigationViewController = $(alloc(NavigationViewController), init);
   $(rootViewController, addChildViewController, (ViewController *) navigationViewController);

@@ -73,7 +73,8 @@ static void didPickCrosshairColor(HueColorPicker *hueColorPicker, double hue, do
   if (hue < 1.0) {
     cgi.SetCvarString(cg_draw_crosshair_color->name, "default");
 
-    hueColorPicker->colorView->backgroundColor = Colors.Charcoal;
+    $(hueColorPicker->colorView->style, addColorAttribute, "background-color", &Colors.Charcoal);
+    $(hueColorPicker->colorView, invalidateStyle);
 
     $(hueColorPicker->hueSlider->label, setText, "");
   } else {

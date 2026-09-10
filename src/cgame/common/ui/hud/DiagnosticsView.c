@@ -146,8 +146,6 @@ static View *init(View *self) {
     DiagnosticsView *this = (DiagnosticsView *) self;
     TableView *table = (TableView *) self;
 
-    self->autoresizingMask = ViewAutoresizingContain;
-
     $(table, addColumnWithIdentifier, _name);
     $(table, addColumnWithIdentifier, _value);
 

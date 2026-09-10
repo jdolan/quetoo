@@ -181,7 +181,11 @@ static void updateBindings(View *self, ident data) {
     color = Colors.Yellow;
   }
 
-  this->value->color = color;
+  if (memcmp(&color, &this->value->color, sizeof(color))) {
+    $(this->value->view.style, addColorAttribute, "color", &color);
+    $((View *) this->value, invalidateStyle);
+  }
+
   $(this->value, setTextWithFormat, "%d", value);
 
   this->icon->color.a = (Uint8) (pulse * 255);
@@ -204,13 +208,9 @@ static StatView *initWithStat(StatView *self, StatViewStat stat) {
   if (self) {
     self->stat = stat;
 
-    self->stackView.axis = StackViewAxisHorizontal;
-    self->stackView.spacing = 5;
-
     self->labels = $(alloc(StackView), initWithFrame, NULL);
     assert(self->labels);
 
-    self->labels->axis = StackViewAxisVertical;
     $((View *) self->labels, addClassName, "labels");
     $((View *) self, addSubview, (View *) self->labels);
 

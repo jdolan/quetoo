@@ -34,12 +34,7 @@
  */
 static MapListCollectionItemView *initWithFrame(MapListCollectionItemView *self, const SDL_Rect *frame) {
 
-  self = (MapListCollectionItemView *) super(CollectionItemView, self, initWithFrame, frame);
-  if (self) {
-    self->collectionItemView.text->view.alignment = ViewAlignmentBottomCenter;
-  }
-
-  return self;
+  return (MapListCollectionItemView *) super(CollectionItemView, self, initWithFrame, frame);
 }
 
 /**

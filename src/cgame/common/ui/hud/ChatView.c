@@ -79,9 +79,6 @@ static View *init(View *self) {
   if (self) {
     ChatView *this = (ChatView *) self;
 
-    this->stackView.axis = StackViewAxisVertical;
-    self->autoresizingMask = ViewAutoresizingContain;
-
     this->history = (ConsoleText *) $((View *) alloc(ConsoleText), init);
     assert(this->history);
 

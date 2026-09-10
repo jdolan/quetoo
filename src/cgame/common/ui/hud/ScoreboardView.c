@@ -127,8 +127,6 @@ static View *tableHeader(ScoreboardView *self) {
     Text *caption = $(alloc(Text), initWithText, f[i - 1].caption, NULL);
     assert(caption);
 
-    caption->view.alignment = ViewAlignmentMiddleRight;
-
     $((View *) caption, addClassName, "caption");
     $(column, addSubview, (View *) caption);
     release(caption);
@@ -187,14 +185,12 @@ static View *init(View *self) {
     this->header = $(alloc(StackView), initWithFrame, NULL);
     assert(this->header);
 
-    this->header->axis = StackViewAxisHorizontal;
     $((View *) this->header, addClassName, "header");
     $(self, addSubview, (View *) this->header);
 
     this->columns = $(alloc(StackView), initWithFrame, NULL);
     assert(this->columns);
 
-    this->columns->axis = StackViewAxisHorizontal;
     $((View *) this->columns, addClassName, "columns");
     $(self, addSubview, (View *) this->columns);
   }
@@ -257,7 +253,6 @@ static StackView *addColumn(ScoreboardView *self) {
   StackView *column = $(alloc(StackView), initWithFrame, NULL);
   assert(column);
 
-  column->axis = StackViewAxisVertical;
   $((View *) column, addClassName, "column");
 
   $((View *) self->columns, addSubview, (View *) column);
@@ -420,7 +415,6 @@ static void rebuild(ScoreboardView *self) {
       const color32_t rgba = Color_Color32(cg_state.teams[t].color);
       const SDL_Color color = { rgba.r, rgba.g, rgba.b, 255 };
 
-      total->color = color;
       $(total->view.style, addColorAttribute, "color", &color);
 
       $((View *) self->header, addSubview, (View *) total);

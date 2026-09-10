@@ -54,8 +54,6 @@ static View *init(View *self) {
 
     this->item = ITEM_NONE;
 
-    this->stackView.axis = StackViewAxisHorizontal;
-
     this->icon = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));
     assert(this->icon);
 
@@ -63,8 +61,6 @@ static View *init(View *self) {
 
     this->name = $(alloc(Text), initWithText, NULL, NULL);
     assert(this->name);
-
-    this->name->view.alignment = ViewAlignmentMiddle;
 
     $(self, addSubview, (View *) this->name);
   }

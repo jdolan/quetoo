@@ -54,7 +54,12 @@ static void updateBindings(View *self, ident data) {
 
   if (valid) {
     const color32_t color = Color_Color32(ColorHSVA(cg_state.teams[team].hue, 1.f, 1.f, .14f));
-    self->backgroundColor = (SDL_Color) { color.r, color.g, color.b, color.a };
+    const SDL_Color background = { color.r, color.g, color.b, color.a };
+
+    if (memcmp(&background, &self->backgroundColor, sizeof(background))) {
+      $(self->style, addColorAttribute, "background-color", &background);
+      $(self, invalidateStyle);
+    }
   }
 }
 
