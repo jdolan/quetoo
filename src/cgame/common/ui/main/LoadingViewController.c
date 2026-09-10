@@ -142,7 +142,8 @@ static void setProgress(LoadingViewController *self, const cl_loading_t loading)
 
     const char *server = resolveServerName();
     $(self->serverName->text, setText, server);
-    $((View *) self->serverName, setHidden, *server == '\0');
+    $((View *) self->serverName, setVisibility,
+      *server == '\0' ? ViewVisibilityHidden : ViewVisibilityVisible);
   }
 }
 

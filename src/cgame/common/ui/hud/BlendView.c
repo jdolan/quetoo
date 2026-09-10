@@ -157,7 +157,7 @@ static void updateBindings(View *self, ident data) {
 
   const player_state_t *ps = &((const cl_frame_t *) data)->ps;
 
-  $(self, setHidden, !cg_draw_blend->value);
+  $(self, setVisibility, cg_draw_blend->value ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (!cg_draw_blend->value) {
     return;
@@ -186,7 +186,8 @@ static void updateBindings(View *self, ident data) {
   for (size_t i = 0; i < BlendViewTotal; i++) {
     const float alpha = Clampf01(alphas[i]);
 
-    $((View *) this->flashes[i], setHidden, alpha <= 0.f);
+    $((View *) this->flashes[i], setVisibility,
+      alpha <= 0.f ? ViewVisibilityHidden : ViewVisibilityVisible);
     this->flashes[i]->color.a = (Uint8) (alpha * 255);
   }
 }

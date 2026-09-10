@@ -71,7 +71,7 @@ static void update(ConsoleViewController *self) {
 
   const bool console = cls.key_state.dest == KEY_CONSOLE && cls.state != CL_LOADING;
 
-  $(view, setHidden, !console);
+  $(view, setVisibility, console ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (console) {
     const int32_t height = self->viewController.view->frame.h;

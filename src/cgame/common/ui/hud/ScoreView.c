@@ -92,7 +92,7 @@ static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t
     self->badge = $(alloc(ImageView), initWithFrame, &MakeRect(1, 1, SCORES_ICON_WIDTH * 0.3f, SCORES_ICON_WIDTH * 0.3f));
     assert(self->badge);
 
-    $((View *) self->badge, setHidden, true);
+    $((View *) self->badge, setVisibility, ViewVisibilityHidden);
     $((View *) self, addSubview, (View *) self->badge);
 
     const int32_t x = SCORES_ICON_WIDTH;
@@ -139,8 +139,8 @@ static void setFields(ScoreView *self, const ScoreField *fields, const char **va
   assert(fields);
   assert(values);
 
-  $((View *) self->detail, setHidden, true);
-  $((View *) self->aside, setHidden, true);
+  $((View *) self->detail, setVisibility, ViewVisibilityHidden);
+  $((View *) self->aside, setVisibility, ViewVisibilityHidden);
 
   const int32_t height = self->view.frame.h;
 
@@ -185,8 +185,10 @@ static void setDetails(ScoreView *self, const char *detail, const char *aside) {
   $(self->detail, setText, detail);
   $(self->aside, setText, aside);
 
-  $((View *) self->detail, setHidden, detail == NULL);
-  $((View *) self->aside, setHidden, aside == NULL);
+  $((View *) self->detail, setVisibility,
+    detail == NULL ? ViewVisibilityHidden : ViewVisibilityVisible);
+  $((View *) self->aside, setVisibility,
+    aside == NULL ? ViewVisibilityHidden : ViewVisibilityVisible);
 }
 
 #pragma mark - Class lifecycle

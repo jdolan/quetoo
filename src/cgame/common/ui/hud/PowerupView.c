@@ -120,7 +120,8 @@ static void update(PowerupView *self, g_item_tag_t item, int16_t value) {
 
   const bool valid = item > ITEM_NONE && item < ITEM_TOTAL;
 
-  $((View *) self, setHidden, value == 0 || !valid);
+  $((View *) self, setVisibility,
+    value == 0 || !valid ? ViewVisibilityHidden : ViewVisibilityVisible);
 
   if (value == 0 || !valid) {
     return;

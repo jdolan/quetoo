@@ -93,7 +93,7 @@ static void updateBindings(View *self, ident data) {
 
   const bool shown = cg_state.nav_edit == 1;
 
-  $(self, setHidden, !shown);
+  $(self, setVisibility, shown ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (!shown) {
     return;

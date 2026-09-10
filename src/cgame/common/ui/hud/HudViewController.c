@@ -289,7 +289,8 @@ static void hideForEditor(View *view, ident data) {
   }
 
   const bool crosshair = $((Object *) view, isKindOfClass, _CrosshairView());
-  $(view, setHidden, editor->value && !crosshair);
+  $(view, setVisibility,
+    editor->value && !crosshair ? ViewVisibilityHidden : ViewVisibilityVisible);
 }
 
 /**
@@ -345,7 +346,8 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
   // Only what shows takes the frame, since some elements trace the world to fill themselves in.
   const bool scores = ps->stats[STAT_SCORES] && !cg_state.nav_edit;
 
-  $((View *) self->scoreboard, setHidden, !scores);
+  $((View *) self->scoreboard, setVisibility,
+    scores ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (scores) {
     $((View *) self->scoreboard, updateBindings, (ident) frame);
@@ -354,7 +356,7 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
   const bool hidden = !cg_draw_hud->integer || !ps->stats[STAT_TIME] || cg_state.nav_edit;
 
   if (self->hud) {
-    $(self->hud, setHidden, hidden);
+    $(self->hud, setVisibility, hidden ? ViewVisibilityHidden : ViewVisibilityVisible);
 
     if (!hidden) {
       $(self->hud, enumerateSubviews, hideForEditor, NULL);

@@ -38,10 +38,12 @@ static void updateBindings(View *self, ident data) {
 
   const bool isActive = *cgi.state == CL_ACTIVE;
 
-  $((View *) this->background, setHidden, isActive);
-  $((View *) this->logo, setHidden, isActive);
-  $((View *) this->version, setHidden, isActive);
-  $((View *) this->secondaryMenu, setHidden, !isActive);
+  $((View *) this->background, setVisibility,
+    isActive ? ViewVisibilityHidden : ViewVisibilityVisible);
+  $((View *) this->logo, setVisibility, isActive ? ViewVisibilityHidden : ViewVisibilityVisible);
+  $((View *) this->version, setVisibility, isActive ? ViewVisibilityHidden : ViewVisibilityVisible);
+  $((View *) this->secondaryMenu, setVisibility,
+    isActive ? ViewVisibilityVisible : ViewVisibilityHidden);
 }
 
 #pragma mark - MainView

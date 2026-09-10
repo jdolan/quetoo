@@ -90,7 +90,7 @@ static void updateBindings(View *self, ident data) {
   const int16_t pickup = ps->stats[STAT_PICKUP] & ~STAT_TOGGLE_BIT;
   const bool valid = pickup > ITEM_NONE && pickup < ITEM_TOTAL;
 
-  $(self, setHidden, !valid);
+  $(self, setVisibility, valid ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (valid && pickup != (int16_t) this->item) {
     this->item = pickup;

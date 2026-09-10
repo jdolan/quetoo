@@ -149,7 +149,7 @@ static void updateBindings(View *self, ident data) {
   float alpha;
   const bool visible = Cg_UpdateSelectWeapon(ps, &alpha);
 
-  $(self, setHidden, !visible);
+  $(self, setVisibility, visible ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (!visible) {
     return;

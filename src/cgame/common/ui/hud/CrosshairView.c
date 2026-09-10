@@ -237,7 +237,7 @@ static void updateBindings(View *self, ident data) {
 
   const bool shown = this->imageView->image && visible(ps);
 
-  $(self, setHidden, !shown);
+  $(self, setVisibility, shown ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (!shown) {
     return;

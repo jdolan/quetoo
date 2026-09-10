@@ -46,9 +46,12 @@ static void didSelectType(Select *select, Option *option) {
   VoteViewController *this = select->delegate.self;
   const vote_type_t *type = option->value;
 
-  $(((View *) this->map)->superview, setHidden, type->arg != VOTE_ARG_MAP);
-  $(((View *) this->client)->superview, setHidden, type->arg != VOTE_ARG_CLIENT);
-  $(((View *) this->value)->superview, setHidden, type->arg != VOTE_ARG_INTEGER);
+  $(((View *) this->map)->superview, setVisibility,
+    type->arg != VOTE_ARG_MAP ? ViewVisibilityHidden : ViewVisibilityVisible);
+  $(((View *) this->client)->superview, setVisibility,
+    type->arg != VOTE_ARG_CLIENT ? ViewVisibilityHidden : ViewVisibilityVisible);
+  $(((View *) this->value)->superview, setVisibility,
+    type->arg != VOTE_ARG_INTEGER ? ViewVisibilityHidden : ViewVisibilityVisible);
 
   if (type->arg == VOTE_ARG_INTEGER) {
     this->value->min = type->min;
@@ -138,8 +141,8 @@ static void refreshStatus(VoteViewController *this) {
     $(this->status->text, setText, "No vote is in progress");
   }
 
-  $((View *) this->yes, setHidden, !active);
-  $((View *) this->no, setHidden, !active);
+  $((View *) this->yes, setVisibility, active ? ViewVisibilityVisible : ViewVisibilityHidden);
+  $((View *) this->no, setVisibility, active ? ViewVisibilityVisible : ViewVisibilityHidden);
 }
 
 #pragma mark - ViewController

@@ -189,8 +189,9 @@ void Ui_Draw(void) {
   const bool hud = cls.state == CL_ACTIVE && dest != KEY_UI;
   const bool menus = dest == KEY_UI || cls.state == CL_LOADING || (cls.state != CL_ACTIVE && dest != KEY_CONSOLE);
 
-  $(hudLayer->view, setHidden, !hud);
-  $(navigationViewController->viewController.view, setHidden, !menus);
+  $(hudLayer->view, setVisibility, hud ? ViewVisibilityVisible : ViewVisibilityHidden);
+  $(navigationViewController->viewController.view, setVisibility,
+    menus ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   $(consoleViewController, update);
 
