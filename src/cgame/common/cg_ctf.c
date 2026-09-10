@@ -63,7 +63,7 @@ static void updateBindings(View *self, ident data) {
     }
   }
 
-  $(self, setHidden, flag == ITEM_NONE);
+  $(self, setVisibility, flag == ITEM_NONE ? ViewVisibilityHidden : ViewVisibilityVisible);
 
   if (flag == ITEM_NONE) {
     return;

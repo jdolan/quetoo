@@ -75,7 +75,7 @@ static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t
 
     // a row is its width, whatever its children reach: the ping is aligned rather than
     // placed, so a size derived from the children alone falls short of the columns
-    self->view.minSize.w = width;
+    $(self->view.style, addIntegerAttribute, "min-width", width);
 
     const cg_client_info_t *info = &cg_state.clients[score->client];
 
@@ -92,7 +92,7 @@ static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t
     self->badge = $(alloc(ImageView), initWithFrame, &MakeRect(1, 1, SCORES_ICON_WIDTH * 0.3f, SCORES_ICON_WIDTH * 0.3f));
     assert(self->badge);
 
-    $((View *) self->badge, setHidden, true);
+    $((View *) self->badge, setVisibility, ViewVisibilityHidden);
     $((View *) self, addSubview, (View *) self->badge);
 
     const int32_t x = SCORES_ICON_WIDTH;
@@ -100,8 +100,6 @@ static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t
 
     self->fill = $(alloc(View), initWithFrame, &MakeRect(x, 0, fw, SCORES_ROW_HEIGHT - 1));
     assert(self->fill);
-
-    self->fill->alignment = ViewAlignmentInternal;
 
     $((View *) self->fill, addClassName, "fill");
     $((View *) self, addSubview, self->fill);
@@ -111,20 +109,20 @@ static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t
       c.a = score->client == cgi.client->frame.ps.client ? .3f : .15f;
 
       const color32_t rgba = Color_Color32(c);
-      self->fill->backgroundColor = (SDL_Color) { rgba.r, rgba.g, rgba.b, rgba.a };
+      const SDL_Color fill = { rgba.r, rgba.g, rgba.b, rgba.a };
+
+      $(self->fill->style, addColorAttribute, "background-color", &fill);
     }
 
     self->name = addText(self, &MakeRect(x, 0, fw, 0), "name");
     $(self->name, setText, info->name);
 
     self->ping = addText(self, &MakeRect(x, 0, fw, 0), "ping");
-    self->ping->view.alignment = ViewAlignmentTopRight;
     $(self->ping, setTextWithFormat, "%dms", score->ping);
 
     self->detail = addText(self, &MakeRect(x, 16, fw, 0), "detail");
 
     self->aside = addText(self, &MakeRect(x, 16, fw, 0), "aside");
-    self->aside->view.alignment = ViewAlignmentRight;
   }
 
   return self;
@@ -139,8 +137,10 @@ static void setFields(ScoreView *self, const ScoreField *fields, const char **va
   assert(fields);
   assert(values);
 
-  $((View *) self->detail, setHidden, true);
-  $((View *) self->aside, setHidden, true);
+  $((View *) self, addClassName, "fields");
+
+  $((View *) self->detail, setVisibility, ViewVisibilityHidden);
+  $((View *) self->aside, setVisibility, ViewVisibilityHidden);
 
   const int32_t height = self->view.frame.h;
 
@@ -161,8 +161,6 @@ static void setFields(ScoreView *self, const ScoreField *fields, const char **va
     Text *value = $(alloc(Text), initWithText, values[i - 1], NULL);
     assert(value);
 
-    value->view.alignment = ViewAlignmentMiddleRight;
-
     $((View *) value, addClassName, "field");
     $(column, addSubview, (View *) value);
     release(value);
@@ -173,7 +171,6 @@ static void setFields(ScoreView *self, const ScoreField *fields, const char **va
 
   // the prose lines are gone, so the name and the ping take the middle of the row
   self->name->view.frame.y = (height - self->name->view.frame.h) / 2;
-  self->ping->view.alignment = ViewAlignmentMiddleRight;
 }
 
 /**
@@ -185,8 +182,10 @@ static void setDetails(ScoreView *self, const char *detail, const char *aside) {
   $(self->detail, setText, detail);
   $(self->aside, setText, aside);
 
-  $((View *) self->detail, setHidden, detail == NULL);
-  $((View *) self->aside, setHidden, aside == NULL);
+  $((View *) self->detail, setVisibility,
+    detail == NULL ? ViewVisibilityHidden : ViewVisibilityVisible);
+  $((View *) self->aside, setVisibility,
+    aside == NULL ? ViewVisibilityHidden : ViewVisibilityVisible);
 }
 
 #pragma mark - Class lifecycle

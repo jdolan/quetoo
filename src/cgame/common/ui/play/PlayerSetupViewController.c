@@ -111,7 +111,8 @@ static void didPickEffectColor(HueColorPicker *hueColorPicker, double hue, doubl
   if (hue < 0.0) {
     cgi.SetCvarString(cg_color->name, "default");
 
-    this->effectsColorPicker->colorView->backgroundColor = Colors.Charcoal;
+    $(this->effectsColorPicker->colorView->style, addColorAttribute, "background-color", &Colors.Charcoal);
+    $(this->effectsColorPicker->colorView, invalidateStyle);
 
     $(this->effectsColorPicker->hueSlider->label, setText, "");
   } else {
@@ -139,7 +140,8 @@ static void didPickPlayerColor(HSVColorPicker *hsvColorPicker, double hue, doubl
   if (hue < 0.0) {
     cgi.SetCvarString(var->name, "default");
 
-    hsvColorPicker->colorView->backgroundColor = Colors.Charcoal;
+    $(hsvColorPicker->colorView->style, addColorAttribute, "background-color", &Colors.Charcoal);
+    $(hsvColorPicker->colorView, invalidateStyle);
 
     $(hsvColorPicker->hueSlider->label, setText, "");
   } else {

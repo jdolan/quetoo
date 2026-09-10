@@ -44,7 +44,7 @@ static void updateBindings(View *self, ident data) {
 
   PingView *this = (PingView *) self;
 
-  $(self, setHidden, !cg_draw_ping->integer);
+  $(self, setVisibility, cg_draw_ping->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (data) {
     const cl_client_t *cl = cgi.client;

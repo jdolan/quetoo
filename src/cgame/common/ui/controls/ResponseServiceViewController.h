@@ -74,6 +74,11 @@ struct ResponseServiceViewController {
    * @brief The CrosshairPreviewView.
    */
   CrosshairPreviewView *crosshairView;
+
+  /**
+   * @brief The HUD Select.
+   */
+  Select *hud;
 };
 
 /**

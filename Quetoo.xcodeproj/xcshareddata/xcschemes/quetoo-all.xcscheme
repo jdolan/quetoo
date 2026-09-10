@@ -150,7 +150,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map edge"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set sv_map_list maps-jdolan.lst"

@@ -37,7 +37,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 44
+#define CGAME_API_VERSION 45
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -182,6 +182,14 @@ typedef struct cg_import_s {
    */
 
   /**
+   * @brief Stat the given filename.
+   * @param path The file path (e.g. `"maps/torn.bsp"`).
+   * @param out The return value. Pass @c NULL to simply check if the file exists.
+   * @return True if the @c stat was successful, false otherwise.
+   */
+  bool (*StatFile)(const char *path, fs_stat_t *out);
+
+  /**
    * @brief Opens the specified file for reading.
    * @param path The file path (e.g. `"maps/torn.bsp"`).
    */
@@ -249,12 +257,6 @@ typedef struct cg_import_s {
    * @param data User data.
    */
   void (*EnumerateFiles)(const char *pattern, Fs_Enumerator enumerator, void *data);
-
-  /**
-   * @brief Check if a file exists or not.
-   * @return True if the specified filename exists on the search path.
-   */
-  bool (*FileExists)(const char *path);
 
   /**
    * @}

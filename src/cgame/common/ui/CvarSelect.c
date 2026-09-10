@@ -77,51 +77,35 @@ static void updateBindings(View *self, ident data) {
 #pragma mark - Select
 
 /**
- * @see Select::selectOptionWithValue(Select *, ident)
+ * @see Select::selectOption(Select *, Option *)
+ * @remarks The variable is written here, rather than from a SelectDelegate, because the
+ * delegate is the consumer's: a controller that wants to be told of a selection would
+ * otherwise replace the only thing that stores it.
  */
-static void selectOptionWithValue(Select *self, ident value) {
+static void selectOption(Select *self, Option *option) {
+
+  super(Select, self, selectOption, option);
 
   const CvarSelect *this = (CvarSelect *) self;
-  if (this->var) {
 
-    Option *option = $(self, optionWithValue, value);
-    if (option) {
+  if (option) {
+    if (this->var) {
       if (this->expectsStringValue) {
-        const char *string = option->value ?: option->title->text;
-        cgi.SetCvarString(this->var->name, string);
+        cgi.SetCvarString(this->var->name, option->value ?: option->title->text);
+      } else if (this->expectsFloatValue) {
+        cgi.SetCvarValue(this->var->name, (float) (intptr_t) option->value);
       } else {
         cgi.SetCvarInteger(this->var->name, (int32_t) (intptr_t) option->value);
       }
+    } else {
+      String *desc = $((Object *) this, description);
+      Cg_Warn("%s: null cvar\n", desc->chars);
+      release(desc);
     }
   }
-
-  super(Select, self, selectOptionWithValue, value);
 }
 
 #pragma mark - CvarSelect
-
-/**
- * @brief Default SelectDelegate for CvarSelect.
- */
-static void didSelectOption(Select *select, Option *option) {
-
-  CvarSelect *this = (CvarSelect *) select;
-
-  if (this->var) {
-    if (this->expectsStringValue) {
-      const char *string = option->value ?: option->title->text;
-      cgi.SetCvarString(this->var->name, string);
-    } else if (this->expectsFloatValue) {
-      cgi.SetCvarValue(this->var->name, (float) (intptr_t) option->value);
-    } else {
-      cgi.SetCvarInteger(this->var->name, (int32_t) (intptr_t) option->value);
-    }
-  } else {
-    String *desc = $((Object *) this, description);
-    Cg_Warn("%s: null cvar\n", desc->chars);
-    release(desc);
-  }
-}
 
 /**
  * @fn CvarSelect *CvarSelect::initWithVariable(CvarSelect *self, cvar_t *var)
@@ -133,9 +117,6 @@ static CvarSelect *initWithVariable(CvarSelect *self, cvar_t *var) {
   self = (CvarSelect *) super(Select, self, initWithFrame, NULL);
   if (self) {
     self->var = var;
-
-    self->select.delegate.self = self;
-    self->select.delegate.didSelectOption = didSelectOption;
   }
 
   return self;
@@ -161,7 +142,7 @@ static void initialize(Class *clazz) {
   ((ViewInterface *) clazz->interface)->init = init;
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-  ((SelectInterface *) clazz->interface)->selectOptionWithValue = selectOptionWithValue;
+  ((SelectInterface *) clazz->interface)->selectOption = selectOption;
 
   ((CvarSelectInterface *) clazz->interface)->initWithVariable = initWithVariable;
   ((CvarSelectInterface *) clazz->interface)->initWithVariableName = initWithVariableName;

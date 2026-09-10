@@ -14,7 +14,7 @@
   },
   "accessoryView": {
     "style": {
-      "hidden": false
+      "visibility": "visible"
   },
   "subviews": [
       {

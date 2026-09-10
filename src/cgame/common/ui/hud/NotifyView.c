@@ -52,7 +52,7 @@ static void updateBindings(View *self, ident data) {
   const size_t lines = Clampf(cg_notify_lines->integer, 0, NOTIFY_MAX_LINES);
   const bool hidden = lines == 0 || cgi.GetKeyDest() != KEY_GAME;
 
-  $(self, setHidden, hidden);
+  $(self, setVisibility, hidden ? ViewVisibilityHidden : ViewVisibilityVisible);
 
   if (data && !hidden && self->superview) {
     const uint32_t now = (uint32_t) SDL_GetTicks();

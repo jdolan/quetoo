@@ -146,8 +146,6 @@ static View *init(View *self) {
     DiagnosticsView *this = (DiagnosticsView *) self;
     TableView *table = (TableView *) self;
 
-    self->autoresizingMask = ViewAutoresizingContain;
-
     $(table, addColumnWithIdentifier, _name);
     $(table, addColumnWithIdentifier, _value);
 
@@ -157,7 +155,7 @@ static View *init(View *self) {
     table->delegate.cellForColumnAndRow = cellForColumnAndRow;
     table->delegate.self = this;
 
-    $((View *) table->headerView, setHidden, true);
+    $((View *) table->headerView, setVisibility, ViewVisibilityHidden);
   }
 
   return self;
@@ -170,14 +168,15 @@ static void updateBindings(View *self, ident data) {
 
   DiagnosticsView *this = (DiagnosticsView *) self;
 
-  $(self, setHidden, !cg_draw_diagnostics->integer);
+  $(self, setVisibility,
+    cg_draw_diagnostics->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (data) {
     cl_client_t *cl = cgi.client;
 
     const uint32_t now = (uint32_t) SDL_GetTicks();
 
-    if (self->hidden) {
+    if (self->visibility == ViewVisibilityHidden) {
       cl->packets = 0;
       this->frames = 0;
       this->time = now;

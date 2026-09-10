@@ -79,9 +79,6 @@ static View *init(View *self) {
   if (self) {
     ChatView *this = (ChatView *) self;
 
-    this->stackView.axis = StackViewAxisVertical;
-    self->autoresizingMask = ViewAutoresizingContain;
-
     this->history = (ConsoleText *) $((View *) alloc(ConsoleText), init);
     assert(this->history);
 
@@ -95,7 +92,7 @@ static View *init(View *self) {
     this->input->delegate.self = this;
     this->input->delegate.didEndEditing = didEndEditing;
 
-    $((View *) this->input, setHidden, true);
+    $((View *) this->input, setVisibility, ViewVisibilityHidden);
 
     $(self, addSubview, (View *) this->input);
   }
@@ -144,11 +141,12 @@ static void updateBindings(View *self, ident data) {
 
   this->typing = typing;
 
-  $((View *) this->input, setHidden, !typing);
+  $((View *) this->input, setVisibility, typing ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   const size_t lines = Clampf(cg_chat_lines->integer, 0, CHAT_MAX_LINES);
 
-  $((View *) this->history, setHidden, lines == 0);
+  $((View *) this->history, setVisibility,
+    lines == 0 ? ViewVisibilityHidden : ViewVisibilityVisible);
 
   if (data && lines && self->superview) {
     const uint32_t now = (uint32_t) SDL_GetTicks();

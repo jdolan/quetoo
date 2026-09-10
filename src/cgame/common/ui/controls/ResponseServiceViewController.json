@@ -169,7 +169,7 @@
                         },
                         "control": {
                           "class": "CvarSelect",
-                          "identifier": "crosshair",
+                          "identifier": "crosshairSelect",
                           "var": "cg_draw_crosshair"
                         }
                       },
@@ -261,6 +261,32 @@
                 "container"
               ],
               "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "HUD"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "HUD"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "hudSelect",
+                          "var": "cg_hud",
+                          "expectsStringValue": true
+                        }
+                      }
+                    ]
+                  }
+                },
                 {
                   "class": "Box",
                   "label": {

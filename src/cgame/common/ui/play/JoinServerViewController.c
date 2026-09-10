@@ -153,8 +153,9 @@ static const char *sourceLabel(const cl_server_info_t *server) {
  */
 static void setDetailsPopulated(JoinServerViewController *self, const bool populated) {
 
-  $((View *) self->hintLabel, setHidden, populated);
-  $(self->detailGrid, setHidden, !populated);
+  $((View *) self->hintLabel, setVisibility,
+    populated ? ViewVisibilityHidden : ViewVisibilityVisible);
+  $(self->detailGrid, setVisibility, populated ? ViewVisibilityVisible : ViewVisibilityHidden);
 }
 
 /**
@@ -175,7 +176,8 @@ static void refreshMapshot(JoinServerViewController *self, const cl_server_info_
   }
 
   $(self->mapshotView, setImageWithSurface, surface);
-  $((View *) self->mapshotView, setHidden, surface == NULL);
+  $((View *) self->mapshotView, setVisibility,
+    surface == NULL ? ViewVisibilityHidden : ViewVisibilityVisible);
 
   if (surface) {
     SDL_DestroySurface(surface);
@@ -195,7 +197,7 @@ static void refreshDetails(JoinServerViewController *self) {
   if (server == NULL) {
     setLabelText(self->hostnameLabel, "Select a server");
     setLabelText(self->addressLabel, NULL);
-    $((View *) self->connectButton, setHidden, true);
+    $((View *) self->connectButton, setVisibility, ViewVisibilityHidden);
     return;
   }
 
@@ -209,7 +211,7 @@ static void refreshDetails(JoinServerViewController *self) {
   setLabelText(self->playersLabel, va("%d / %d", server->clients, server->max_clients));
   setLabelText(self->pingLabel, pingUnanswered(server) ? _unset : va("%d ms", server->ping));
 
-  $((View *) self->connectButton, setHidden, false);
+  $((View *) self->connectButton, setVisibility, ViewVisibilityVisible);
 }
 
 /**
@@ -658,8 +660,10 @@ static void reloadServers(JoinServerViewController *self) {
   $(self->servers, sort, comparator);
   sortingJoinServerViewController = NULL;
 
-  $((View *) self->emptyLabel, setHidden, self->servers->count > 0);
-  $((View *) self->serversTableView, setHidden, self->servers->count == 0);
+  $((View *) self->emptyLabel, setVisibility,
+    self->servers->count > 0 ? ViewVisibilityHidden : ViewVisibilityVisible);
+  $((View *) self->serversTableView, setVisibility,
+    self->servers->count == 0 ? ViewVisibilityHidden : ViewVisibilityVisible);
 
   $(self->serversTableView, reloadData);
 

@@ -106,7 +106,8 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
     free(caption);
   }
 
-  $((View *) this->caption, setHidden, this->caption->text == NULL);
+  $((View *) this->caption, setVisibility,
+    this->caption->text == NULL ? ViewVisibilityHidden : ViewVisibilityVisible);
 }
 
 /**
@@ -162,7 +163,7 @@ static void updateBindings(View *self, ident data) {
       break;
   }
 
-  $(self, setHidden, value <= 0);
+  $(self, setVisibility, value <= 0 ? ViewVisibilityHidden : ViewVisibilityVisible);
 
   if (value <= 0) {
     return;
@@ -180,7 +181,11 @@ static void updateBindings(View *self, ident data) {
     color = Colors.Yellow;
   }
 
-  this->value->color = color;
+  if (memcmp(&color, &this->value->color, sizeof(color))) {
+    $(this->value->view.style, addColorAttribute, "color", &color);
+    $((View *) this->value, invalidateStyle);
+  }
+
   $(this->value, setTextWithFormat, "%d", value);
 
   this->icon->color.a = (Uint8) (pulse * 255);
@@ -203,13 +208,9 @@ static StatView *initWithStat(StatView *self, StatViewStat stat) {
   if (self) {
     self->stat = stat;
 
-    self->stackView.axis = StackViewAxisHorizontal;
-    self->stackView.spacing = 5;
-
     self->labels = $(alloc(StackView), initWithFrame, NULL);
     assert(self->labels);
 
-    self->labels->axis = StackViewAxisVertical;
     $((View *) self->labels, addClassName, "labels");
     $((View *) self, addSubview, (View *) self->labels);
 
@@ -217,7 +218,7 @@ static StatView *initWithStat(StatView *self, StatViewStat stat) {
     assert(self->caption);
 
     $((View *) self->caption, addClassName, "caption");
-    $((View *) self->caption, setHidden, true);
+    $((View *) self->caption, setVisibility, ViewVisibilityHidden);
     $((View *) self->labels, addSubview, (View *) self->caption);
 
     self->value = $(alloc(Text), initWithText, NULL, NULL);
