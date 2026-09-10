@@ -2103,7 +2103,7 @@ void G_func_door_secret(g_entity_t *ent) {
 
   if (ent->health) {
     ent->take_damage = true;
-    ent->Die = G_func_door_Die;
+    ent->Die = G_func_door_secret_Die;
     ent->max_health = ent->health;
   } else if (ent->target_name && ent->message) {
     gi.SoundIndex("misc/chat");
