@@ -668,10 +668,11 @@ typedef struct {
   int32_t num_draw_elements;
 
   /**
-   * @brief The entity number of the inline model entity this light is attached to, or 0.
-   * @details When > 0, this light is treated as a dynamic light that moves with the
-   * entity. No shadow geometry is generated, and the origin is an offset from the
-   * entity's initial position.
+   * @brief The entity number of the inline model entity this light is attached to, or `-1`.
+   * @details When set, this light is treated as a dynamic light that translates with the
+   * entity. No shadow geometry is generated. `origin` remains the light's own authored
+   * world position, from which the client derives an offset against the target entity's
+   * `origin` key, which a `common/origin` brush makes non-zero.
    */
   int32_t target_entity;
 
