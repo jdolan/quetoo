@@ -96,7 +96,7 @@ static void didSetCrosshairScale(Slider *slider, double value) {
 }
 
 /**
- * @brief @c SliderDelegate callback for crosshair opcaity.
+ * @brief @c SliderDelegate callback for crosshair opacity.
  */
 static void didSetCrosshairAlpha(Slider *slider, double value) {
 

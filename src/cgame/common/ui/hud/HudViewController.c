@@ -175,6 +175,27 @@ static const char *hudResource(const char *hud, const char *file) {
 }
 
 /**
+ * @brief Warns when `hud` ships no file of its own, which is what a misspelled `cg_hud` looks
+ * like: every file falls back to the default, and the fallback is otherwise silent.
+ */
+static void checkHud(const char *hud) {
+
+  if (!q_strcmp(hud, HUD_DEFAULT)) {
+    return;
+  }
+
+  const char *files[] = { "hud.json", "hud.css", "scoreboard.json", "scoreboard.css" };
+
+  for (size_t i = 0; i < lengthof(files); i++) {
+    if (cgi.StatFile(va("ui/hud/%s/%s", hud, files[i]), NULL)) {
+      return;
+    }
+  }
+
+  Cg_Warn("No ui/hud/%s, using the %s HUD\n", hud, HUD_DEFAULT);
+}
+
+/**
  * @brief Loads the hud's View and Stylesheet, or `NULL` if either is missing.
  */
 static View *loadHud(const char *hud) {
@@ -228,6 +249,8 @@ static ScoreboardView *loadScoreboard(const char *hud) {
  * @memberof HudViewController
  */
 static void reload(HudViewController *self) {
+
+  checkHud(cg_hud->string);
 
   if (self->hud) {
     $((View *) self->hud, removeFromSuperview);
