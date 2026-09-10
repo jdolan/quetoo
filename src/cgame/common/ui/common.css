@@ -43,15 +43,11 @@ Panel > .resizeHandle {
   border-radius: 12;
 }
 
-/*
- * A tab page is a ViewController's root View, which is `fill`, and a `fill` child measures as
- * nothing to a `contain` parent -- so the page view is given the size the pages fill.
- */
+/* Every menu takes the same width, whatever the widest thing on its page is */
 
 Panel.menu .tabPageView {
   autoresizing-mask: contain;
   min-width: 1440;
-  min-height: 720;
 }
 
 Select {
