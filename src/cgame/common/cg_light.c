@@ -123,8 +123,8 @@ float Cg_AnimateLight(float intensity, const char *style, float drift) {
 }
 
 /**
- * @brief Resolves the model1 index for a BSP inline model string (e.g. "*3").
- * @return The model1 index, or -1 if not found.
+ * @brief Resolves the model index for a BSP inline model string (e.g. `"*3"`).
+ * @return The model index, or -1 if not found.
  */
 static int32_t Cg_ResolveBspModel(const char *model) {
 
@@ -155,7 +155,7 @@ static void Cg_AddBspLights(void) {
     const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, l->drift);
 
     if (l->target_entity) {
-      // Resolve the inline model string and find the matching cl_entity_t each frame.
+
       const char *model = cgi.EntityValue(l->target_entity, "model")->nullable_string;
       if (!model) {
         continue;
