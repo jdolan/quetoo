@@ -152,15 +152,13 @@ void Cg_PredictMovement(const Vector *cmds) {
       // simulate the movement
       pm.cmd = cmd->cmd;
 
-      const vec3_t from = pm.s.origin;
-
       Cg_MoveCommandWillRun(&pm, cmd);
 
       Pm_Move(&pm);
 
       Cg_MoveCommandDidRun(&pm, cmd);
 
-      Cg_PredictPortalTransit(&pm, from);
+      Cg_PredictPortalTransit(&pm);
     }
 
     // save for error detection

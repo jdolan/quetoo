@@ -404,11 +404,20 @@ static void G_trigger_portal_Touch(g_entity_t *ent, g_entity_t *other, const cm_
   // paired face, and must not be taken back through it by its lead
   const float depth = Vec3_Dot(Vec3_Subtract(other->s.origin, G_trigger_portal_Origin(ent)), fwd_a);
 
-  if (depth < 0.f) {
-    const bool lead = other->client && depth >= -PORTAL_TRANSIT_LEAD && Vec3_Dot(other->velocity, fwd_a) > 0.f;
-    if (!lead) {
+  if (other->client) {
+    // a player is taken through as soon as the leading edge of their body reaches the face, so
+    // that no part of them is ever sliced by it: feet or head first into a floor or ceiling,
+    // where stepping or settling onto a floor counts too, and front first into a wall, while
+    // moving into it. A fresh arrival, still moving out of the far face, is left to leave. The
+    // client predicts the very same transit (see Cg_PredictPortalTransit)
+    const float leading = depth + Bg_PortalExtent(other->bounds, fwd_a);
+    const float into = Vec3_Dot(other->velocity, fwd_a);
+
+    if (leading < -PORTAL_TRANSIT_LEAD || (Bg_PortalIsHorizontal(fwd_a) ? into < 0.f : into <= 0.f)) {
       return;
     }
+  } else if (depth < 0.f) {
+    return;
   }
 
   G_trigger_portal_Transit(ent, dest, other);
@@ -435,11 +444,27 @@ static void G_trigger_portal_Transit(const g_entity_t *ent, const g_entity_t *de
   // this, a pair facing the same way (notably a strict_displace splice) immediately re-triggers
   // a transit back out, since the toucher is still technically touching on arrival
   const float depth = Vec3_Dot(Vec3_Subtract(other->s.origin, G_trigger_portal_Origin(ent)), fwd_a);
-  const vec3_t exit_nudge = Vec3_Scale(fwd_b, PORTAL_TRANSIT_OFFSET - Minf(depth, 0.f));
+
+  float nudge = PORTAL_TRANSIT_OFFSET - Minf(depth, 0.f);
+
+  // a player arrives at a wall as far into it as they were into the near one, as deep as its
+  // recess holds them, and simply walks on out: nothing skips. It is the far face they are now
+  // moving out of, so it will not take them back until they turn and walk into it. At a floor
+  // or ceiling they arrive just inside the volume instead, to be held by it
+  if (other->client && !Bg_PortalIsHorizontal(fwd_b)) {
+    const float recess = Bg_PortalRecess(dest->abs_bounds, G_trigger_portal_Origin(dest), fwd_b, other->bounds);
+    nudge = Maxf(depth, -recess) - depth;
+  }
+
+  const vec3_t exit_nudge = Vec3_Scale(fwd_b, nudge);
 
   if (ent->spawn_flags & PORTAL_STRICT_DISPLACE) {
     other->s.origin = Vec3_Add(Vec3_Add(other->s.origin,
         Vec3_Subtract(G_trigger_portal_Origin(dest), G_trigger_portal_Origin(ent))), exit_nudge);
+
+    if (other->client) {
+      other->client->ps.pm_state.origin = other->s.origin;
+    }
 
     gi.LinkEntity(other);
     return;
@@ -454,21 +479,33 @@ static void G_trigger_portal_Transit(const g_entity_t *ent, const g_entity_t *de
   other->velocity = Bg_PortalCarry(other->velocity, right_a, up_a, fwd_a, right_b, up_b, fwd_b);
 
   if (other->client) {
+    // the player state going out this frame was taken from the move, before this touch: carry
+    // it along with the entity, or the client is told for a frame that it did not go through,
+    // contradicting its own prediction, and snaps back and forth
+    other->client->ps.pm_state.origin = other->s.origin;
+    other->client->ps.pm_state.velocity = other->velocity;
+
     vec3_t view_forward;
     Vec3_Vectors(other->client->ps.pm_state.view_angles, &view_forward, NULL, NULL);
 
-    const vec3_t view_angles = Vec3_Euler(
-        Bg_PortalCarry(view_forward, right_a, up_a, fwd_a, right_b, up_b, fwd_b));
+    const vec3_t carried_forward = Bg_PortalCarry(view_forward, right_a, up_a, fwd_a, right_b, up_b, fwd_b);
 
-    other->client->ps.pm_state.view_angles = view_angles;
-    other->client->ps.pm_state.delta_angles = Vec3_Zero();
-    other->client->angles = view_angles;
+    // only a pair that turns the view snaps it. For one that does not, the snap would only
+    // drag the view back to angles the server saw a round trip ago, and reset the client's
+    // input for nothing: a bump on every crossing
+    if (!Vec3_EqualEpsilon(carried_forward, view_forward, 0.001f)) {
+      const vec3_t view_angles = Vec3_Euler(carried_forward);
 
-    Vec3_Vectors(other->client->angles, &other->client->forward, &other->client->right, &other->client->up);
+      other->client->ps.pm_state.view_angles = view_angles;
+      other->client->ps.pm_state.delta_angles = Vec3_Zero();
+      other->client->angles = view_angles;
 
-    gi.WriteByte(SV_CMD_SNAP_ANGLES);
-    gi.WriteAngles(view_angles);
-    gi.Unicast(other->client, true);
+      Vec3_Vectors(other->client->angles, &other->client->forward, &other->client->right, &other->client->up);
+
+      gi.WriteByte(SV_CMD_SNAP_ANGLES);
+      gi.WriteAngles(view_angles);
+      gi.Unicast(other->client, true);
+    }
   } else {
     vec3_t entity_forward;
     Vec3_Vectors(other->s.angles, &entity_forward, NULL, NULL);
@@ -481,14 +518,16 @@ static void G_trigger_portal_Transit(const g_entity_t *ent, const g_entity_t *de
 }
 
 /**
- * @return True if `ent`'s bounds overlap any `trigger_portal`'s volume: it is either about to
- * cross one, or has just arrived through one and not yet cleared it.
+ * @return True if `ent`'s bounds come within PORTAL_PLAYER_CLEARANCE of any `trigger_portal`'s
+ * volume: it is either about to cross one, or has just arrived through one and not yet left it.
  */
 bool G_OccupiesPortal(const g_entity_t *ent) {
 
   g_entity_t *ents[MAX_ENTITIES];
 
-  const size_t len = gi.BoxEntities(ent->abs_bounds, ents, lengthof(ents), BOX_OCCUPY);
+  const box3_t bounds = Box3_Expand(ent->abs_bounds, PORTAL_PLAYER_CLEARANCE);
+
+  const size_t len = gi.BoxEntities(bounds, ents, lengthof(ents), BOX_OCCUPY);
   for (size_t i = 0; i < len; i++) {
     if (!q_strcmp(ents[i]->classname, "trigger_portal")) {
       return true;
@@ -674,14 +713,23 @@ no teleport sound, effects, or angle/velocity snap of any kind. Requires one fac
 textured common/portal: the compiler bakes that face's own centroid and outward normal in as
 this entity's position and facing (there is no angle key to set by hand - the two must never be
 allowed to drift out of sync, so the face is authoritative). That face's outward normal is the
-single source of truth for this specific entity, used two ways at once: crossing its plane inward
-is what transits you (your center, not your bounds, so you always land in front of the far face),
-and if something else targets this entity, it's the direction you'll be facing on arrival. Tag each
+single source of truth for this specific entity, used two ways at once: reaching its plane with the
+front of your body is what transits you, and you arrive as far into the far portal as you were
+into this one and walk on out of it (so build portal brushes 32 units deep behind the face), and
+if something else targets this entity, it's the direction you'll be facing on arrival. Tag each
 portal in a pair according to its own true orientation in the world - do not simply mirror
 however the other one in the pair happens to be tagged, since the two may not (and often should
-not) face the same way. A trigger_portal with no target of its own is inert (it generates no
-touch field at all) but can still be pointed at by another's target, making a one-way portal:
-give both entities a targetname and only the outgoing side a target to prevent transit back.
+not) face the same way. The way the PORTAL texture reads on the face is the portal's up, and a
+pair's ups map onto each other: keep it upright on a wall, and on a floor or ceiling turn it to
+choose which way things come out. A floor or ceiling is entered feet or head first: a floor
+transits you as you step or drop onto it, a ceiling as your head goes in, and either way the far
+portal receives you just inside its own volume - so floor and ceiling portals must be at least
+32 units thick, with nothing solid inside them (make them mist, not solid). A pair of
+floor/ceiling portals targeting each other falls forever, by design; a floor portal that is a
+two-way destination is re-entered the moment an arrival settles into it, so make those one-way.
+A trigger_portal with no target of its own is inert (it generates no touch field at all) but
+can still be pointed at by another's target, making a one-way portal: give both entities a
+targetname and only the outgoing side a target to prevent transit back.
 
 -------- Keys --------
 target : The paired trigger_portal's targetname. If unset, this entity is a one-way destination

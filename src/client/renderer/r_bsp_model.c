@@ -331,6 +331,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
     out->entity = bsp->cm->entities[in->entity];
     out->head_node = bsp->nodes + in->head_node;
 
+    out->bounds = in->bounds;
     out->visible_bounds = in->visible_bounds;
 
     out->faces = bsp->faces + in->first_face;

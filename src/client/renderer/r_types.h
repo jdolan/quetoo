@@ -715,6 +715,11 @@ typedef struct r_bsp_inline_model_s {
   r_bsp_node_t *head_node;
 
   /**
+   * @brief The bounds of the whole model, drawn or not: a trigger's volume, for one.
+   */
+  box3_t bounds;
+
+  /**
    * @brief For frustum culling.
    */
   box3_t visible_bounds;

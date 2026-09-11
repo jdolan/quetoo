@@ -39,6 +39,17 @@ typedef struct {
   const r_bsp_inline_model_t *exit;
 
   /**
+   * @brief The trigger volumes of the two portals: what transit is measured against, as
+   * opposed to the inline models' visible bounds, which are only their faces.
+   */
+  box3_t bounds, exit_bounds;
+
+  /**
+   * @brief True for a strict_displace portal, which slides a toucher rather than carrying it.
+   */
+  bool strict;
+
+  /**
    * @brief The baked centroids of the two portal faces.
    */
   vec3_t origin, exit_origin;
@@ -103,13 +114,13 @@ static vec3_t Cg_PortalAngles(const cm_entity_t *def) {
 /**
  * @return The inline model of a portal definition, or NULL.
  */
-static const r_bsp_inline_model_t *Cg_PortalModel(const cm_entity_t *def) {
+static const r_model_t *Cg_PortalModel(const cm_entity_t *def) {
 
   const cm_entity_t *model = cgi.EntityValue(def, "model");
   if (model->parsed & ENTITY_STRING) {
     const r_model_t *mod = cgi.LoadModel(model->string);
     if (mod && mod->bsp_inline) {
-      return mod->bsp_inline;
+      return mod;
     }
   }
 
@@ -138,11 +149,17 @@ static void Cg_trigger_portal_Init(cg_entity_t *self) {
 
   cg_portal_t *portal = self->data;
 
-  portal->model = Cg_PortalModel(self->def);
-  if (!portal->model) {
+  const r_model_t *model = Cg_PortalModel(self->def);
+  if (!model) {
     Cg_Warn("%s has no brush model\n", self->clazz->classname);
     return;
   }
+
+  // the inline model's bounds are the whole trigger volume; its visible bounds, and the
+  // model's own, are only the portal face, which is all of it that draws
+  portal->model = model->bsp_inline;
+  portal->bounds = model->bsp_inline->bounds;
+  portal->strict = cgi.EntityValue(self->def, "spawnflags")->integer & 1;
 
   portal->origin = cgi.EntityValue(self->def, "portal_origin")->vec3;
   Bg_PortalBasis(Cg_PortalAngles(self->def), false, &portal->right, &portal->up, &portal->forward);
@@ -154,11 +171,14 @@ static void Cg_trigger_portal_Init(cg_entity_t *self) {
     return;
   }
 
-  portal->exit = Cg_PortalModel(self->target);
-  if (!portal->exit) {
+  const r_model_t *exit = Cg_PortalModel(self->target);
+  if (!exit) {
     Cg_Warn("%s targets an entity with no brush model\n", self->clazz->classname);
     return;
   }
+
+  portal->exit = exit->bsp_inline;
+  portal->exit_bounds = exit->bsp_inline->bounds;
 
   portal->exit_origin = cgi.EntityValue(self->target, "portal_origin")->vec3;
   Bg_PortalBasis(Cg_PortalAngles(self->target), true, &portal->exit_right, &portal->exit_up, &portal->exit_forward);
@@ -241,7 +261,7 @@ bool Cg_OccupiesPortal(const box3_t bounds) {
 
     const cg_portal_t *portal = e->data;
 
-    if (Box3_Intersects(bounds, portal->model->visible_bounds)) {
+    if (Box3_Intersects(Box3_Expand(bounds, PORTAL_PLAYER_CLEARANCE), portal->bounds)) {
       return true;
     }
   }
@@ -250,14 +270,24 @@ bool Cg_OccupiesPortal(const box3_t bounds) {
 }
 
 /**
- * @brief Carries the predicted player state through any portal its center crossed while moving
- * from `from`, exactly as the server will, so that prediction never runs on through the face
- * and shows what lies behind it while the server's transit is still in flight.
+ * @brief Carries the predicted player state through any portal its body has reached, exactly as
+ * the server will, so that prediction never runs on through the face and shows what lies behind
+ * it while the server's transit is still in flight.
  */
-void Cg_PredictPortalTransit(pm_move_t *pm, const vec3_t from) {
+void Cg_PredictPortalTransit(pm_move_t *pm) {
 
   if (!cg_entities) {
     return;
+  }
+
+  // the server touches nothing for a spectator (noclip included), the dead, or the frozen
+  switch (pm->s.type) {
+    case PM_SPECTATOR:
+    case PM_DEAD:
+    case PM_FREEZE:
+      return;
+    default:
+      break;
   }
 
   const cg_entity_t *e = cg_entities->elements;
@@ -272,24 +302,40 @@ void Cg_PredictPortalTransit(pm_move_t *pm, const vec3_t from) {
       continue;
     }
 
-    // the server transits a player once their center is within the lead of the face; that is
-    // the plane this move must have crossed inward, somewhere within the face
-    const float before = Vec3_Dot(Vec3_Subtract(from, portal->origin), portal->forward);
+    // the portal transits us once the leading edge of our body reaches its face, unless we are
+    // still moving out of it (a floor lets us settle onto it too), whenever we are touching its
+    // volume - exactly as the server does (see G_trigger_portal_Touch)
     const float after = Vec3_Dot(Vec3_Subtract(pm->s.origin, portal->origin), portal->forward);
+    const float leading = after + Bg_PortalExtent(pm->bounds, portal->forward);
+    const float into = Vec3_Dot(pm->s.velocity, portal->forward);
 
-    if (before >= -PORTAL_TRANSIT_LEAD || after < -PORTAL_TRANSIT_LEAD) {
+    if (leading < -PORTAL_TRANSIT_LEAD || (Bg_PortalIsHorizontal(portal->forward) ? into < 0.f : into <= 0.f)) {
       continue;
     }
 
-    const vec3_t crossing = Vec3_Mix(from, pm->s.origin, (-PORTAL_TRANSIT_LEAD - before) / (after - before));
-
-    if (!Box3_ContainsPoint(Box3_Expand(portal->model->visible_bounds, PORTAL_TRANSIT_LEAD + 1.f), crossing)) {
+    if (!Box3_Intersects(Box3_Translate(pm->bounds, pm->s.origin), portal->bounds)) {
       continue;
     }
 
-    // the same carry and the same nudge to just past the far face as G_trigger_portal_Transit
+    // the same carry and the same nudge as G_trigger_portal_Transit: as far into a wall as we
+    // were into this one, as deep as its recess holds us, and just inside a floor or ceiling
     const vec3_t offset = Vec3_Subtract(pm->s.origin, portal->origin);
-    const vec3_t nudge = Vec3_Scale(portal->exit_forward, PORTAL_TRANSIT_OFFSET - Minf(after, 0.f));
+
+    float distance = PORTAL_TRANSIT_OFFSET - Minf(after, 0.f);
+
+    if (!Bg_PortalIsHorizontal(portal->exit_forward)) {
+      const float recess = Bg_PortalRecess(portal->exit_bounds, portal->exit_origin, portal->exit_forward, pm->bounds);
+      distance = Maxf(after, -recess) - after;
+    }
+
+    const vec3_t nudge = Vec3_Scale(portal->exit_forward, distance);
+
+    // a strict_displace portal slides us by the offset between the faces, and leaves the
+    // rest alone (see G_trigger_portal_Transit)
+    if (portal->strict) {
+      pm->s.origin = Vec3_Add(Vec3_Add(pm->s.origin, Vec3_Subtract(portal->exit_origin, portal->origin)), nudge);
+      return;
+    }
 
     pm->s.origin = Vec3_Add(Vec3_Add(portal->exit_origin, Cg_PortalCarry(portal, offset)), nudge);
     pm->s.velocity = Cg_PortalCarry(portal, pm->s.velocity);

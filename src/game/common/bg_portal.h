@@ -59,6 +59,29 @@ static inline vec3_t Bg_PortalCarry(const vec3_t v,
 }
 
 /**
+ * @return True if a portal facing along `forward` is a floor or ceiling, entered vertically and
+ * feet or head first, rather than a wall walked into center first.
+ */
+static inline bool Bg_PortalIsHorizontal(const vec3_t forward) {
+  return fabsf(forward.z) > 0.7071f;
+}
+
+/**
+ * @return How far `bounds` reach along `dir` from their origin: the leading edge of a body
+ * moving that way.
+ */
+static inline float Bg_PortalExtent(const box3_t bounds, const vec3_t dir) {
+
+  float extent = 0.f;
+
+  for (int32_t i = 0; i < 3; i++) {
+    extent += dir.xyz[i] >= 0.f ? bounds.maxs.xyz[i] * dir.xyz[i] : bounds.mins.xyz[i] * dir.xyz[i];
+  }
+
+  return extent;
+}
+
+/**
  * @brief How far short of a portal's face a player moving into it transits, in units, so their
  * view never reaches the face itself, where the near plane would cut it open onto the recess
  * behind. The game and the client game's prediction must agree on this, or the client runs on
@@ -68,8 +91,26 @@ static inline vec3_t Bg_PortalCarry(const vec3_t v,
 #define PORTAL_TRANSIT_LEAD 3.f
 
 /**
+ * @return How far behind a portal's face a `body` may be centered while remaining within the
+ * portal's `volume`: as deep as the volume is, less the body's own reach behind its center.
+ */
+static inline float Bg_PortalRecess(const box3_t volume, const vec3_t origin, const vec3_t outward, const box3_t body) {
+  return Bg_PortalExtent(Box3_Translate(volume, Vec3_Negate(origin)), Vec3_Negate(outward)) -
+         Bg_PortalExtent(body, Vec3_Negate(outward));
+}
+
+/**
  * @brief How far past the far face a transit lands, in units: clear of the face's own touch
  * field, of the lead above, and of the near plane's corners on a wide display should the view
- * turn straight back to it.
+ * turn straight back to it. A player arriving at a wall does not use it: they land as far into
+ * the far portal as they were into the near one, as deep as its recess allows, and walk on out
+ * of it. At a floor or ceiling they land this far inside with their center, to be held by it.
  */
 #define PORTAL_TRANSIT_OFFSET 4.f
+
+/**
+ * @brief How far beyond a portal's volume players are still crossing it, in units, and so still
+ * pass through each other: an arrival at a wall lands just outside the volume, and must not be
+ * stuck in whoever is standing there.
+ */
+#define PORTAL_PLAYER_CLEARANCE 24.f
