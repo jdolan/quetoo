@@ -21,9 +21,17 @@
 
 #version 450
 
+#include "uniforms.glsl"
+
+layout (location = 0) in vec3 model_position;
+
 /**
- * @brief Depth-only fragment shader.
+ * @brief Depth-only fragment shader. It honors the view's clip plane, as the color passes do,
+ * or what they discard would still be in the depth buffer, holing everything behind it.
  */
 void main(void) {
 
+  if (any(notEqual(clip_plane.xyz, vec3(0.0))) && dot(model_position, clip_plane.xyz) < clip_plane.w) {
+    discard;
+  }
 }

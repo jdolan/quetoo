@@ -396,5 +396,7 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 
   cgi.view->contents = cgi.PointContents(cgi.view->origin);
 
+  Cg_PortalClipView(cgi.view);
+
   cgi.view->ticks = cgi.client->unclamped_time;
 }

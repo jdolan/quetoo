@@ -244,6 +244,36 @@ const cg_entity_class_t cg_trigger_portal = {
 };
 
 /**
+ * @brief Cuts the world behind a portal's face out of `view` while its eye is inside that
+ * portal's volume - the recess an arrival walks out of - so that from in there, nothing but the
+ * far side is seen: the face's own room ahead, and a void behind.
+ */
+void Cg_PortalClipView(r_view_t *view) {
+
+  view->clip_plane = Vec4_Zero();
+
+  if (!cg_entities) {
+    return;
+  }
+
+  const cg_entity_t *e = cg_entities->elements;
+  for (uint32_t i = 0; i < cg_entities->count; i++, e++) {
+
+    if (e->clazz != &cg_trigger_portal) {
+      continue;
+    }
+
+    const cg_portal_t *portal = e->data;
+
+    if (Box3_ContainsPoint(portal->bounds, view->origin)) {
+      const vec3_t outward = Vec3_Negate(portal->forward);
+      view->clip_plane = Vec3_ToVec4(outward, Vec3_Dot(portal->origin, outward));
+      return;
+    }
+  }
+}
+
+/**
  * @return True if `bounds` overlap any portal's volume, the client's side of G_OccupiesPortal.
  */
 bool Cg_OccupiesPortal(const box3_t bounds) {

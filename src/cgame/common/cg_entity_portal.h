@@ -26,6 +26,7 @@
 #if defined(__CG_LOCAL_H__)
 extern const cg_entity_class_t cg_trigger_portal;
 
+void Cg_PortalClipView(r_view_t *view);
 bool Cg_OccupiesPortal(const box3_t bounds);
 void Cg_PredictPortalTransit(pm_move_t *pm);
 void Cg_AddPortalEntities(const cl_frame_t *frame);

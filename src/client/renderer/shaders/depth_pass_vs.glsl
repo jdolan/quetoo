@@ -32,6 +32,11 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_bloc
   mat4 model;
 };
 
+/**
+ * @brief The world-space position, for the fragment stage's clip plane.
+ */
+layout (location = 0) out vec3 out_model_position;
+
 invariant gl_Position;
 
 /**
@@ -40,6 +45,8 @@ invariant gl_Position;
 void main(void) {
 
   mat4 view_model = view * model;
+
+  out_model_position = vec3(model * vec4(in_position, 1.0));
 
   gl_Position = projection3D * view_model * vec4(in_position, 1.0);
 }
