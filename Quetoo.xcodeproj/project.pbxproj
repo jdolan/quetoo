@@ -1131,12 +1131,19 @@
 		D1A5B0000000000000000002 /* bg_pmove_local.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_local.h */; };
 		D1A5B0000000000000000003 /* bg_pmove_local.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_local.h */; };
 		D1A5B0000000000000000102 /* g_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000101 /* g_vote.c */; };
+		D1A5B0000000000000000301 /* g_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000300 /* g_intermission.c */; };
 		D1A5B0000000000000000103 /* g_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000101 /* g_vote.c */; };
+		D1A5B0000000000000000302 /* g_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000300 /* g_intermission.c */; };
 		D1A5B0000000000000000104 /* g_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000101 /* g_vote.c */; };
+		D1A5B0000000000000000303 /* g_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000300 /* g_intermission.c */; };
 		D1A5B0000000000000000106 /* bg_vote.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000105 /* bg_vote.h */; };
+		D1A5B0000000000000000305 /* bg_intermission.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000304 /* bg_intermission.h */; };
 		D1A5B0000000000000000107 /* bg_vote.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000105 /* bg_vote.h */; };
+		D1A5B0000000000000000306 /* bg_intermission.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000304 /* bg_intermission.h */; };
 		D1A5B0000000000000000110 /* g_vote.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000108 /* g_vote.h */; };
+		D1A5B0000000000000000308 /* g_intermission.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000307 /* g_intermission.h */; };
 		D1A5B0000000000000000111 /* g_vote.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000108 /* g_vote.h */; };
+		D1A5B0000000000000000309 /* g_intermission.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000307 /* g_intermission.h */; };
 		D1A5B0000000000000000202 /* cg_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000201 /* cg_vote.c */; };
 		D1A5B0000000000000000203 /* cg_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000201 /* cg_vote.c */; };
 		D1A5B0000000000000000204 /* cg_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000201 /* cg_vote.c */; };
@@ -1174,6 +1181,7 @@
 		D2A5C100000000000000002A /* g_physics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66A1C5C58C300CD0B13 /* g_physics.c */; };
 		D2A5C100000000000000002B /* g_rules.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE00000000000000A101 /* g_rules.c */; };
 		D2A5C100000000000000002C /* g_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000101 /* g_vote.c */; };
+		D1A5B000000000000000030A /* g_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000300 /* g_intermission.c */; };
 		D2A5C100000000000000002D /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
 		D2A5C100000000000000002E /* g_util.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66D1C5C58C300CD0B13 /* g_util.c */; };
 		D2A5C100000000000000002F /* g_weapon.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66F1C5C58C300CD0B13 /* g_weapon.c */; };
@@ -1183,6 +1191,7 @@
 		D2A5C1000000000000000033 /* bg_item.h in Headers */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000001 /* bg_item.h */; };
 		D2A5C1000000000000000034 /* bg_pmove.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6421C5C58C300CD0B13 /* bg_pmove.h */; };
 		D2A5C1000000000000000035 /* bg_vote.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000105 /* bg_vote.h */; };
+		D1A5B000000000000000030B /* bg_intermission.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000304 /* bg_intermission.h */; };
 		D2A5C1000000000000000036 /* bg_pmove_local.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_local.h */; };
 		D2A5C1000000000000000037 /* g_ai_goal.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */; };
 		D2A5C1000000000000000038 /* g_ai_grid.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */; };
@@ -1207,6 +1216,7 @@
 		D2A5C100000000000000004B /* g_entity_trigger.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */; };
 		D2A5C100000000000000004C /* g_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000007 /* g_hook.h */; };
 		D2A5C100000000000000004D /* g_vote.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000108 /* g_vote.h */; };
+		D1A5B000000000000000030C /* g_intermission.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000307 /* g_intermission.h */; };
 		D2A5C100000000000000004E /* g_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6621C5C58C300CD0B13 /* g_item.h */; };
 		D2A5C100000000000000004F /* g_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6631C5C58C300CD0B13 /* g_local.h */; };
 		D2A5C1000000000000000050 /* g_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6651C5C58C300CD0B13 /* g_main.h */; };
@@ -2894,8 +2904,11 @@
 		D126FFD46C343DDC86C13E17 /* cm_manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_manifest.c; sourceTree = "<group>"; };
 		D1A5B0000000000000000001 /* bg_pmove_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_pmove_local.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000101 /* g_vote.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_vote.c; sourceTree = "<group>"; };
+		D1A5B0000000000000000300 /* g_intermission.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_intermission.c; sourceTree = "<group>"; };
 		D1A5B0000000000000000105 /* bg_vote.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_vote.h; sourceTree = "<group>"; };
+		D1A5B0000000000000000304 /* bg_intermission.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_intermission.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000108 /* g_vote.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_vote.h; sourceTree = "<group>"; };
+		D1A5B0000000000000000307 /* g_intermission.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_intermission.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000201 /* cg_vote.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_vote.c; sourceTree = "<group>"; };
 		D1A5B0000000000000000205 /* VoteViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VoteViewController.c; sourceTree = "<group>"; };
 		D1A5B0000000000000000209 /* VoteViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VoteViewController.json; sourceTree = "<group>"; };
@@ -4679,6 +4692,7 @@
 				D6A5C10000000000000000A1 /* bg_pmove_race.c */,
 				CEFEEE0000000000000000C3 /* bg_tech.h */,
 				D1A5B0000000000000000105 /* bg_vote.h */,
+				D1A5B0000000000000000304 /* bg_intermission.h */,
 				CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */,
 				CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */,
 				CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */,
@@ -4724,6 +4738,7 @@
 				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
 				CEC011002026010200000007 /* g_hook.h */,
 				D1A5B0000000000000000108 /* g_vote.h */,
+				D1A5B0000000000000000307 /* g_intermission.h */,
 				CEC011002026010200000005 /* g_hook.c */,
 				CE12D6621C5C58C300CD0B13 /* g_item.h */,
 				CE12D6611C5C58C300CD0B13 /* g_item.c */,
@@ -4734,6 +4749,7 @@
 				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
 				CEFEEE00000000000000A101 /* g_rules.c */,
 				D1A5B0000000000000000101 /* g_vote.c */,
+				D1A5B0000000000000000300 /* g_intermission.c */,
 				CE12D6631C5C58C300CD0B13 /* g_local.h */,
 				CEFF1295277D439B001E1500 /* g_sound.h */,
 				CEFF1296277D439B001E1500 /* g_sound.c */,
@@ -4876,6 +4892,7 @@
 				CE05B2F0302248070012F003 /* bg_item.h in Headers */,
 				CE05B2AE3022486E0012862B /* bg_pmove.h in Headers */,
 				D1A5B0000000000000000106 /* bg_vote.h in Headers */,
+				D1A5B0000000000000000305 /* bg_intermission.h in Headers */,
 				D1A5B0000000000000000002 /* bg_pmove_local.h in Headers */,
 				CE05B2CD3022486E0012862B /* bg_tech.h in Headers */,
 				CE05B2AF3022486E0012862B /* g_ai_goal.h in Headers */,
@@ -4901,6 +4918,7 @@
 				CE05B2C33022486E0012862B /* g_entity_trigger.h in Headers */,
 				CE05B2C53022486E0012862B /* g_hook.h in Headers */,
 				D1A5B0000000000000000110 /* g_vote.h in Headers */,
+				D1A5B0000000000000000308 /* g_intermission.h in Headers */,
 				CE05B2C73022486E0012862B /* g_item.h in Headers */,
 				CE05B2C83022486E0012862B /* g_local.h in Headers */,
 				CE05B2C93022486E0012862B /* g_main.h in Headers */,
@@ -5189,6 +5207,7 @@
 				CEC0FF00202601030000010A /* bg_item.h in Headers */,
 				CEC0FF002026010300000122 /* bg_pmove.h in Headers */,
 				D1A5B0000000000000000107 /* bg_vote.h in Headers */,
+				D1A5B0000000000000000306 /* bg_intermission.h in Headers */,
 				D1A5B0000000000000000003 /* bg_pmove_local.h in Headers */,
 				CEFEEE0000000000000000D3 /* bg_tech.h in Headers */,
 				CEC0FF00202601030000010B /* g_ai_goal.h in Headers */,
@@ -5215,6 +5234,7 @@
 				CEC0FF00202601030000011B /* g_entity_trigger.h in Headers */,
 				CEC0FF002026010300000127 /* g_hook.h in Headers */,
 				D1A5B0000000000000000111 /* g_vote.h in Headers */,
+				D1A5B0000000000000000309 /* g_intermission.h in Headers */,
 				CEC0FF00202601030000011C /* g_item.h in Headers */,
 				CEC0FF00202601030000011D /* g_local.h in Headers */,
 				CEC0FF00202601030000011E /* g_main.h in Headers */,
@@ -5323,6 +5343,7 @@
 				D2A5C1000000000000000033 /* bg_item.h in Headers */,
 				D2A5C1000000000000000034 /* bg_pmove.h in Headers */,
 				D2A5C1000000000000000035 /* bg_vote.h in Headers */,
+				D1A5B000000000000000030B /* bg_intermission.h in Headers */,
 				D2A5C1000000000000000036 /* bg_pmove_local.h in Headers */,
 				D2A5C1000000000000000037 /* g_ai_goal.h in Headers */,
 				D2A5C1000000000000000038 /* g_ai_grid.h in Headers */,
@@ -5347,6 +5368,7 @@
 				D2A5C100000000000000004B /* g_entity_trigger.h in Headers */,
 				D2A5C100000000000000004C /* g_hook.h in Headers */,
 				D2A5C100000000000000004D /* g_vote.h in Headers */,
+				D1A5B000000000000000030C /* g_intermission.h in Headers */,
 				D2A5C100000000000000004E /* g_item.h in Headers */,
 				D2A5C100000000000000004F /* g_local.h in Headers */,
 				D2A5C1000000000000000050 /* g_main.h in Headers */,
@@ -6448,6 +6470,7 @@
 				CE05B29A3022486E0012862B /* g_physics.c in Sources */,
 				CE05B2883022486E0012862B /* g_rules.c in Sources */,
 				D1A5B0000000000000000102 /* g_vote.c in Sources */,
+				D1A5B0000000000000000301 /* g_intermission.c in Sources */,
 				CE05B29B3022486E0012862B /* g_sound.c in Sources */,
 				CE05B29C3022486E0012862B /* g_tech.c in Sources */,
 				CE05B29D3022486E0012862B /* g_util.c in Sources */,
@@ -6603,6 +6626,7 @@
 				CE12D7E41C5C5D6A00CD0B13 /* g_physics.c in Sources */,
 				CEFEEE00000000000000A102 /* g_rules.c in Sources */,
 				D1A5B0000000000000000103 /* g_vote.c in Sources */,
+				D1A5B0000000000000000302 /* g_intermission.c in Sources */,
 				CEFF1298277D439B001E1500 /* g_sound.c in Sources */,
 				CE12D7E51C5C5D6A00CD0B13 /* g_util.c in Sources */,
 				CE12D7E61C5C5D6A00CD0B13 /* g_weapon.c in Sources */,
@@ -7062,6 +7086,7 @@
 				CEC0FF002026010300000108 /* g_physics.c in Sources */,
 				CEFEEE00000000000000A103 /* g_rules.c in Sources */,
 				D1A5B0000000000000000104 /* g_vote.c in Sources */,
+				D1A5B0000000000000000303 /* g_intermission.c in Sources */,
 				CEC0FF002026010300000109 /* g_sound.c in Sources */,
 				CEFEEE0000000000000000D1 /* g_tech.c in Sources */,
 				CEC0FF002026010300000101 /* g_util.c in Sources */,
@@ -7269,6 +7294,7 @@
 				D2A5C100000000000000002A /* g_physics.c in Sources */,
 				D2A5C100000000000000002B /* g_rules.c in Sources */,
 				D2A5C100000000000000002C /* g_vote.c in Sources */,
+				D1A5B000000000000000030A /* g_intermission.c in Sources */,
 				D2A5C100000000000000002D /* g_sound.c in Sources */,
 				D2A5C100000000000000002E /* g_util.c in Sources */,
 				D2A5C100000000000000002F /* g_weapon.c in Sources */,

@@ -545,7 +545,7 @@ static void G_EndLevel(void) {
  * @brief Formats a millisecond time value as a "MM:SS" string, highlighting countdowns.
  * @return A static formatted time string.
  */
-static char *G_FormatTime(uint32_t time) {
+char *G_FormatTime(uint32_t time) {
   static char formatted_time[MAX_QPATH];
   static uint32_t last_time = 0xffffffff;
   const uint32_t m = (time / 1000) / 60;
@@ -904,8 +904,6 @@ static void G_CheckRules(void) {
   }
 }
 
-#define INTERMISSION (10.0 * 1000) // intermission duration
-
 /**
  * @brief The tail of the `G_FrameWillBegin` chain: a notification, so it does nothing.
  */
@@ -1022,6 +1020,7 @@ void G_Init(void) {
 #endif
 
   G_Vote_Init();
+  G_Intermission_Init();
 
   G_Module_Init();
 

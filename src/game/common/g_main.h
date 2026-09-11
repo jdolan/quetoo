@@ -36,6 +36,12 @@ extern g_media_t g_media;
 #define G_MOVEMENT_DEFAULT PM_MOVEMENT_QUETOO
 #endif
 
+/**
+ * @brief How long the intermission runs before the level advances.
+ */
+#define INTERMISSION (10.0 * 1000)
+
+char *G_FormatTime(uint32_t time);
 pm_params_t G_MovementParams(void);
 float G_LevelGravity(void);
 pm_movement_t G_ResolveMovement(const char *name);

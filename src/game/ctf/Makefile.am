@@ -53,6 +53,7 @@ game_la_SOURCES = \
 	g_entity_target.c \
 	g_entity_trigger.c \
 	g_hook.c \
+	g_intermission.c \
 	g_item.c \
 	g_main.c \
 	g_module.c \
