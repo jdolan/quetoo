@@ -32,6 +32,14 @@
 #define QUETOO_DATA_ARCHIVE     "quetoo-data.zip"
 
 /**
+ * @brief Marker a distribution ships beside the installation to claim
+ * responsibility for updating the engine itself.
+ * @details Game content is unaffected: it is written to the user's own
+ * directory rather than the installation, so nothing else is managing it.
+ */
+#define INSTALLER_MANAGED       ".managed"
+
+/**
  * @brief The installer lifecycle.
  */
 typedef enum {

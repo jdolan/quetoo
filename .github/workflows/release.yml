@@ -181,6 +181,12 @@ jobs:
       run: make -C quetoo/apple notarize \
              SNAPSHOT=$(pwd)/quetoo-arm64-apple-darwin.dmg
 
+    - name: Build itch.io archive
+      run: |
+        mkdir itch && cp -R quetoo/apple/target/Quetoo.app itch/
+        touch itch/.managed
+        cd itch && zip -qry ../quetoo-itch-arm64-apple-darwin.zip . && cd ..
+
     - name: Tear down keychain
       if: always()
       run: security delete-keychain build.keychain || true
@@ -190,6 +196,12 @@ jobs:
       with:
         name: quetoo-arm64-apple-darwin
         path: quetoo-arm64-apple-darwin.dmg
+
+    - name: Upload itch.io archive artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: quetoo-itch-arm64-apple-darwin
+        path: quetoo-itch-arm64-apple-darwin.zip
 
   build-linux:
     needs: resolve-deps
@@ -607,11 +619,12 @@ jobs:
 
     steps:
     # The engine archives, not the old data-bundled ones: game content is
-    # fetched on first launch now, so there is nothing left to bundle.
+    # fetched to the user's own directory on first launch, so there is nothing
+    # left to bundle and nothing here for itch to manage but the engine.
     - name: Download macOS build
       uses: actions/download-artifact@v8
       with:
-        name: quetoo-arm64-apple-darwin
+        name: quetoo-itch-arm64-apple-darwin
         path: itch/mac
 
     - name: Download Linux x86_64 build
@@ -626,6 +639,22 @@ jobs:
         name: quetoo-x86_64-pc-windows
         path: itch/windows
 
+    # itch patches the installation it created, so the engine must not also
+    # update itself there. The marker tells it not to; game content is
+    # unaffected, living in the user's directory rather than the install.
+    - name: Mark builds as externally managed
+      run: |
+        touch .managed
+
+        cd itch/windows
+        zip -q quetoo-x86_64-pc-windows.zip ../../.managed --junk-paths
+        cd ../..
+
+        mkdir linux-stage
+        tar xzf itch/linux/quetoo-x86_64-pc-linux.tar.gz -C linux-stage
+        touch linux-stage/quetoo/.managed
+        tar czf itch/linux/quetoo-x86_64-pc-linux.tar.gz -C linux-stage quetoo/
+
     - name: Install Butler
       run: |
         curl --fail --location --retry 5 --retry-all-errors \
@@ -638,6 +667,6 @@ jobs:
         BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
         VERSION: ${{ github.event.inputs.version || github.ref_name }}
       run: |
-        ./butler push itch/mac/quetoo-arm64-apple-darwin.dmg        wickedoldgames/quetoo:mac     --userversion $VERSION
+        ./butler push itch/mac/quetoo-itch-arm64-apple-darwin.zip   wickedoldgames/quetoo:mac     --userversion $VERSION
         ./butler push itch/linux/quetoo-x86_64-pc-linux.tar.gz      wickedoldgames/quetoo:linux   --userversion $VERSION
         ./butler push itch/windows/quetoo-x86_64-pc-windows.zip     wickedoldgames/quetoo:windows --userversion $VERSION

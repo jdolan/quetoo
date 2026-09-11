@@ -311,6 +311,21 @@ static void Installer_PendingDir(char *out, size_t len) {
 }
 
 /**
+ * @brief Returns true if something other than us maintains this installation.
+ * @details A storefront that installs and patches the game expects to be the
+ * only thing doing so; updating underneath it leaves its copy out of step with
+ * what it believes it installed. Distributions that manage their own updates
+ * ship this marker beside the installation to say so.
+ */
+static bool Installer_IsManaged(const char *dir) {
+
+  char path[MAX_OS_PATH];
+  q_snprintf(path, sizeof(path), "%s/%s", dir, INSTALLER_MANAGED);
+
+  return SDL_GetPathInfo(path, NULL);
+}
+
+/**
  * @brief Returns true if the installation directory can be written to.
  * @details Checked before downloading rather than after, so a user whose
  * install lives somewhere privileged is told immediately instead of after
@@ -842,7 +857,12 @@ static int Installer_Thread(void *unused) {
         char parent[MAX_OS_PATH];
         Installer_StagingParent(parent, sizeof(parent));
 
-        const bool writable = *parent && Installer_IsWritable(parent);
+        const bool managed = *parent && Installer_IsManaged(parent);
+        const bool writable = *parent && !managed && Installer_IsWritable(parent);
+
+        if (ok && managed) {
+          Com_Print("Externally managed installation; engine updates disabled.\n");
+        }
 
         SDL_LockMutex(installer.mutex);
         if (!ok) {
@@ -854,9 +874,11 @@ static int Installer_Thread(void *unused) {
             q_strlcpy(in->current_file, installer.release.asset, sizeof(in->current_file));
           } else {
             in->state = INSTALLER_COMPARING;
-            Com_Warn("Quetoo %s is available, but %s is not writable.\n"
-                     "Download it from %s\n", installer.release.tag,
-                     *parent ? parent : "this installation", QUETOO_RELEASES_PAGE);
+            if (!managed) {
+              Com_Warn("Quetoo %s is available, but %s is not writable.\n"
+                       "Download it from %s\n", installer.release.tag,
+                       *parent ? parent : "this installation", QUETOO_RELEASES_PAGE);
+            }
           }
         } else {
           in->state = INSTALLER_COMPARING;
