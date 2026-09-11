@@ -153,7 +153,7 @@
     <ClInclude Include="..\src\cgame\common\cg_view.h">
       <Filter>src\common</Filter>
     </ClInclude>
-    <ClInclude Include="\.\.\src\cgame\common\cg_intermission.h">
+    <ClInclude Include="..\src\cgame\common\cg_intermission.h">
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\cg_vote.h">
@@ -219,7 +219,7 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\PowerupView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
-    <ClInclude Include="\.\.\src\cgame\common\ui\hud\IntermissionView.h">
+    <ClInclude Include="..\src\cgame\common\ui\hud\IntermissionView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\ScoreboardView.h">
@@ -455,7 +455,7 @@
     <ClCompile Include="..\src\cgame\common\cg_view.c">
       <Filter>src\common</Filter>
     </ClCompile>
-    <ClCompile Include="\.\.\src\cgame\common\cg_intermission.c">
+    <ClCompile Include="..\src\cgame\common\cg_intermission.c">
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\cg_vote.c">
@@ -521,7 +521,7 @@
     <ClCompile Include="..\src\cgame\common\ui\hud\PowerupView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
-    <ClCompile Include="\.\.\src\cgame\common\ui\hud\IntermissionView.c">
+    <ClCompile Include="..\src\cgame\common\ui\hud\IntermissionView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\ScoreboardView.c">
