@@ -102,6 +102,12 @@ static struct {
   installer_release_t release;
 
   /**
+   * @brief Whether a cold install of the game data has been attempted, so that
+   * a failure falls through to the file by file sync instead of retrying.
+   */
+  bool installed_data;
+
+  /**
    * @brief The installer status, used to expose progress via `Installer_FrameFunction`.
    */
   installer_status_t status;
@@ -135,14 +141,14 @@ static int32_t Installer_CompareVersions(const char *a, const char *b) {
 }
 
 /**
- * @brief Queries the GitHub Releases API for the latest release and this
- * platform's engine asset.
+ * @brief Queries a GitHub Releases API endpoint for its latest release and the
+ * named asset.
  * @details `/releases/latest` excludes drafts and prereleases, and carries the
  * asset list in the same response, so one request yields everything needed.
  * The asset size is taken from the API rather than a `HEAD`, because
  * `RESTClient` discards response headers.
  */
-static bool Installer_FetchLatestRelease(installer_release_t *out) {
+static bool Installer_FetchRelease(const char *api, const char *want, installer_release_t *out) {
 
   const char *headers[] = {
     "Accept", "application/vnd.github+json",
@@ -152,9 +158,9 @@ static bool Installer_FetchLatestRelease(installer_release_t *out) {
   };
 
   Data *data = NULL;
-  const int32_t status = $($$(RESTClient, sharedInstance), get, QUETOO_RELEASES_API_URL, headers, &data);
+  const int32_t status = $($$(RESTClient, sharedInstance), get, api, headers, &data);
   if (status != 200 || !data) {
-    Com_Warn("%s: HTTP %d\n", QUETOO_RELEASES_API_URL, status);
+    Com_Warn("%s: HTTP %d\n", api, status);
     release(data);
     return false;
   }
@@ -185,7 +191,7 @@ static bool Installer_FetchLatestRelease(installer_release_t *out) {
         const Dictionary *asset = $(assets, objectAtIndex, i);
         const String *name = $(asset, objectForKeyPath, "name");
 
-        if (name == NULL || q_strcmp(name->chars, INSTALLER_ASSET)) {
+        if (name == NULL || q_strcmp(name->chars, want)) {
           continue;
         }
 
@@ -211,7 +217,7 @@ static bool Installer_FetchLatestRelease(installer_release_t *out) {
     Com_Debug(DEBUG_COMMON, "Latest release %s, asset %s (%" PRId64 " bytes)\n",
               out->tag, out->asset, out->size);
   } else {
-    Com_Warn("No %s in the latest release\n", INSTALLER_ASSET);
+    Com_Warn("No %s in %s\n", want, api);
   }
 
   return success;
@@ -567,6 +573,54 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
 }
 
 /**
+ * @brief Installs the whole game data set from its release archive.
+ * @details A fresh install would otherwise pull eleven thousand files one at a
+ * time from S3. The archive is published on GitHub Releases, whose egress is
+ * free, so the cold start costs nothing to serve; the per-file sync is left to
+ * carry the small differences between releases.
+ */
+static bool Installer_InstallData(void) {
+
+  installer_status_t *in = &installer.status;
+
+  installer_release_t data;
+  if (!Installer_FetchRelease(QUETOO_DATA_API_URL, QUETOO_DATA_ARCHIVE, &data)) {
+    return false;
+  }
+
+  char archive[MAX_OS_PATH];
+  q_snprintf(archive, sizeof(archive), "%s/%s", Fs_DataDir(), QUETOO_DATA_ARCHIVE);
+
+  if (!SDL_CreateDirectory(Fs_DataDir())) {
+    Com_Warn("Failed to create %s: %s\n", Fs_DataDir(), SDL_GetError());
+    return false;
+  }
+
+  SDL_LockMutex(installer.mutex);
+  in->state = INSTALLER_INSTALLING_DATA;
+  in->kbytes_done = 0;
+  in->kbytes_total = (int32_t) (data.size / 1024);
+  q_strlcpy(in->current_file, data.asset, sizeof(in->current_file));
+  SDL_UnlockMutex(installer.mutex);
+
+  bool success = Installer_DownloadToFile(data.url, archive, data.size);
+
+  if (success) {
+    success = Archive_Extract(archive, Fs_DataDir());
+  }
+
+  SDL_RemovePath(archive);
+
+  SDL_LockMutex(installer.mutex);
+  if (in->state == INSTALLER_INSTALLING_DATA) {
+    in->state = INSTALLER_COMPARING;
+  }
+  SDL_UnlockMutex(installer.mutex);
+
+  return success;
+}
+
+/**
  * @brief Worker thread for parallel downloads. Iterates the remote manifest for
  * `PENDING` entries, claims each by marking it `CURRENT`, then downloads it.
  */
@@ -631,7 +685,8 @@ static int Installer_Thread(void *unused) {
     switch (in->state) {
 
       case INSTALLER_CHECKING: {
-        const bool ok = Installer_FetchLatestRelease(&installer.release);
+        const bool ok = Installer_FetchRelease(QUETOO_RELEASES_API_URL, INSTALLER_ASSET,
+                                               &installer.release);
         SDL_LockMutex(installer.mutex);
         if (!ok) {
           in->state = INSTALLER_ERROR;
@@ -646,7 +701,27 @@ static int Installer_Thread(void *unused) {
       }
         break;
 
+      case INSTALLER_INSTALLING_DATA:
+        SDL_LockMutex(installer.mutex);
+        in->state = INSTALLER_COMPARING;
+        SDL_UnlockMutex(installer.mutex);
+        break;
+
       case INSTALLER_COMPARING: {
+
+        if (!installer.installed_data && !Fs_Exists("manifest.mf")) {
+          installer.installed_data = true;
+          if (!Installer_InstallData()) {
+            Com_Warn("Falling back to a file by file sync\n");
+          }
+          SDL_LockMutex(installer.mutex);
+          const bool cancelled = in->state == INSTALLER_CANCELLED;
+          SDL_UnlockMutex(installer.mutex);
+          if (cancelled) {
+            break;
+          }
+        }
+
         Data *data = NULL;
         char manifest_url[MAX_OS_PATH];
         q_snprintf(manifest_url, sizeof(manifest_url), QUETOO_DATA_BASE_URL "/%s/manifest.mf", Com_Game());

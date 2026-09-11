@@ -28,6 +28,8 @@
 #define QUETOO_RELEASES_URL     "https://github.com/jdolan/quetoo/releases/latest"
 #define QUETOO_RELEASES_API_URL "https://api.github.com/repos/jdolan/quetoo/releases/latest"
 #define QUETOO_DATA_BASE_URL    "https://quetoo-data.s3.amazonaws.com"
+#define QUETOO_DATA_API_URL     "https://api.github.com/repos/jdolan/quetoo-data/releases/latest"
+#define QUETOO_DATA_ARCHIVE     "quetoo-data.zip"
 
 /**
  * @brief The installer lifecycle.
@@ -38,6 +40,7 @@ typedef enum {
   INSTALLER_DOWNLOADING_UPDATE,
   INSTALLER_STAGING_UPDATE,
   INSTALLER_UPDATE_STAGED,
+  INSTALLER_INSTALLING_DATA,
   INSTALLER_COMPARING,
   INSTALLER_DOWNLOADING,
   INSTALLER_COMMITTING,

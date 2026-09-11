@@ -784,6 +784,9 @@ int32_t Sv_InstallerFrame(const installer_status_t *in) {
       case INSTALLER_UPDATE_STAGED:
         Com_Print("Update staged; it will be applied when this server exits.\n");
         break;
+      case INSTALLER_INSTALLING_DATA:
+        Com_Print("Installing game data\u2026\n");
+        break;
       case INSTALLER_COMPARING:
         Com_Print("Comparing data with remote\u2026\n");
         break;
