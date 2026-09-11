@@ -21,15 +21,11 @@
 
 #pragma once
 
-#include "sv_types.h"
+#include "cg_types.h"
 
-#if defined(__SV_LOCAL_H__)
+#if defined(__CG_LOCAL_H__)
+void Cg_Intermission_Init(void);
 
-const cm_entity_t *Sv_NextMap(void);
-List *Sv_MapList(void);
-int32_t Sv_MapIndex(void);
-void Sv_SetNextMap(int32_t index);
-void Sv_InitMapList(void);
-void Sv_ShutdownMapList(void);
-
+void Cg_Intermission_Vote(int32_t map);
+bool Cg_Intermission_HandleEvent(const SDL_Event *event);
 #endif

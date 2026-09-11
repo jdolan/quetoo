@@ -20,7 +20,9 @@
     <ClCompile Include="..\src\game\common\bg_pmove_race.c" />
     <ClCompile Include="..\src\game\common\bg_pmove_quake3.c" />
     <ClInclude Include="..\src\game\common\bg_pmove.h" />
+    <ClInclude Include="..\src\game\common\bg_intermission.h" />
     <ClInclude Include="..\src\game\common\bg_vote.h" />
+    <ClInclude Include="..\src\game\common\g_intermission.h" />
     <ClInclude Include="..\src\game\common\g_vote.h" />
     <ClInclude Include="..\src\game\common\bg_pmove_local.h" />
     <ClCompile Include="..\src\game\common\g_ai_goal.c" />
@@ -58,6 +60,7 @@
     <ClInclude Include="..\src\game\common\g_entity_trigger.h" />
     <ClInclude Include="..\src\game\common\g_module.h" />
     <ClCompile Include="..\src\game\common\g_rules.c" />
+    <ClCompile Include="..\src\game\common\g_intermission.c" />
     <ClCompile Include="..\src\game\common\g_vote.c" />
     <ClCompile Include="..\src\game\common\g_main.c" />
     <ClInclude Include="..\src\game\common\g_main.h" />

@@ -63,5 +63,6 @@
 #endif
 #include "g_types.h"
 #include "g_util.h"
+#include "g_intermission.h"
 #include "g_vote.h"
 #include "g_weapon.h"

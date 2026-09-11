@@ -40,6 +40,10 @@ static cg_kick_t cg_kick;
  */
 void Cg_HandleEvent(const SDL_Event *event) {
 
+  if (Cg_Intermission_HandleEvent(event)) {
+    return;
+  }
+
   switch (event->type) {
     case SDL_EVENT_WINDOW_EXPOSED:
     case SDL_EVENT_WINDOW_RESIZED:

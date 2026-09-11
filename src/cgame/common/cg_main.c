@@ -207,6 +207,7 @@ static void Cg_Init(void) {
 #endif
 
   Cg_Vote_Init();
+  Cg_Intermission_Init();
 
   Cg_Module_Init();
 

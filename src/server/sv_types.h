@@ -364,9 +364,23 @@ typedef struct {
   int32_t index;
 
   /**
+   * @brief The index the running level was served from, or `-1` if it did not come
+   * from the rotation. This is not `index`, which is only where the rotation has
+   * reached: a list may name the same map more than once, and the two occurrences
+   * are different positions to resume from.
+   */
+  int32_t current;
+
+  /**
    * @brief The modification time of the file when it was last loaded.
    */
   int64_t modtime;
+
+  /**
+   * @brief The index `Sv_SetNextMap` chose, which the next `Sv_NextMap` returns in
+   * place of the rotation's pick, or `-1`. Consumed as soon as it is read.
+   */
+  int32_t next;
 } sv_map_list_t;
 
 /**

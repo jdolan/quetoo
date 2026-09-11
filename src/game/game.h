@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 36
+#define GAME_API_VERSION 37
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -565,6 +565,33 @@ typedef struct g_import_s {
    * @brief Frees an entity definition from `LoadEntities`.
    */
   void (*FreeEntity)(cm_entity_t *entity);
+
+  /**
+   * @brief Returns the server's map rotation, as configured by `sv_map_list`.
+   * @return A list of `cm_entity_t *`, each to be freed with `FreeEntity`, or `NULL`
+   * if no rotation is configured.
+   * @remarks The list is a copy, so a `sv_map_list` edit can not free entries from
+   * underneath the caller.
+   */
+  List *(*MapList)(void);
+
+  /**
+   * @return The index in `MapList` the running level was served from, or `-1` if it
+   * was not served from the rotation.
+   * @remarks This is what identifies the level when a rotation names the same map
+   * twice, which its name can not.
+   */
+  int32_t (*MapIndex)(void);
+
+  /**
+   * @brief Chooses the entry of `MapList` that the next `next_map` serves, in place of
+   * the rotation's own pick.
+   * @param index The index in `MapList`.
+   * @remarks An index rather than a name, so that a rotation naming the same map twice
+   * serves, and resumes from, the occurrence that was actually chosen. The override is
+   * consumed by that one map change, so that it can not survive to decide a later one.
+   */
+  void (*SetNextMap)(int32_t index);
 
   /**
    * @return The contents mask at the specific point. The point is tested

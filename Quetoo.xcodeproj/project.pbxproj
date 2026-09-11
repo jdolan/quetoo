@@ -77,7 +77,9 @@
 		CEA4C0DE2F9800000087C003 /* hud.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C001 /* hud.css */; };
 		CEA4C0DE2F9800000087C004 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C002 /* hud.json */; };
 		CEA4C0DE2F9800000087C008 /* scoreboard.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C006 /* scoreboard.css */; };
+		D1A5B0000000000000000506 /* intermission.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000502 /* intermission.css */; };
 		CEA4C0DE2F9800000087C009 /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C007 /* scoreboard.json */; };
+		D1A5B0000000000000000507 /* intermission.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000503 /* intermission.json */; };
 		CEA4C0DE2F9800000087C00B /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C00A /* scoreboard.json */; };
 		CEA4C0DE2F9800000087C011 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C010 /* hud.json */; };
 		CEA4C0DE2F9800000087C014 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C013 /* hud.json */; };
@@ -91,6 +93,7 @@
 		AC814FDD1291470DA9883B6C /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
 		2F75825314B0423B86868ACC /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
 		322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 848E81C81F875F4403EAE1EE /* scoreboard.json */; };
+		D1A5B0000000000000000505 /* intermission.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000501 /* intermission.json */; };
 		332CAA47FF0E8521C12DF852 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		368D384E998F7590EBCEB7EE /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3487B5AD7D47E8DFBDDAE5C4 /* hud.json */; };
 		39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
@@ -104,6 +107,7 @@
 		4E0DA0FBE7F88EC11A4CF033 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		50A618B627838A7F121E3DA9 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
 		50A656139CC3317E925D0231 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
+		D1A5B0000000000000000402 /* IntermissionView.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000401 /* IntermissionView.c */; };
 		522B158EA7384E83CD005789 /* cm_manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = D126FFD46C343DDC86C13E17 /* cm_manifest.c */; };
 		52367ABAA22B6D5586284093 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
 		5353FBA06CC14AA034C4C9CD /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
@@ -123,6 +127,7 @@
 		A2E677309CBD4262ADCE7EA5 /* ConsoleViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 9352803A21064843A7D64A86 /* ConsoleViewController.c */; };
 		68157F8A4AF07ADDE8951670 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
 		68D440FA613EE2594A4D6DB6 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
+		D1A5B0000000000000000403 /* IntermissionView.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000401 /* IntermissionView.c */; };
 		68FBD5DEAC1FB3CC3C2322D5 /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
 		6B31320926D77CB87B783BDD /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		6B6C876AA822AB4DFB8D3158 /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
@@ -174,6 +179,7 @@
 		B8BC2CE87251BA0975026203 /* SDL3_image.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C42FE711B7005C680C /* SDL3_image.xcframework */; };
 		B92B8EA5B4D9C775CF3C2541 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		BB08F021CF5059A8915C8DDF /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
+		D1A5B0000000000000000404 /* IntermissionView.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000401 /* IntermissionView.c */; };
 		C1A592C4D259F42E82027392 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
 		C1B4D8275ABD425EB6C332C6 /* DiagnosticsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */; };
 		C24304F353C77693015A7736 /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
@@ -1131,15 +1137,25 @@
 		D1A5B0000000000000000002 /* bg_pmove_local.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_local.h */; };
 		D1A5B0000000000000000003 /* bg_pmove_local.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_local.h */; };
 		D1A5B0000000000000000102 /* g_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000101 /* g_vote.c */; };
+		D1A5B0000000000000000301 /* g_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000300 /* g_intermission.c */; };
 		D1A5B0000000000000000103 /* g_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000101 /* g_vote.c */; };
+		D1A5B0000000000000000302 /* g_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000300 /* g_intermission.c */; };
 		D1A5B0000000000000000104 /* g_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000101 /* g_vote.c */; };
+		D1A5B0000000000000000303 /* g_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000300 /* g_intermission.c */; };
 		D1A5B0000000000000000106 /* bg_vote.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000105 /* bg_vote.h */; };
+		D1A5B0000000000000000305 /* bg_intermission.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000304 /* bg_intermission.h */; };
 		D1A5B0000000000000000107 /* bg_vote.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000105 /* bg_vote.h */; };
+		D1A5B0000000000000000306 /* bg_intermission.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000304 /* bg_intermission.h */; };
 		D1A5B0000000000000000110 /* g_vote.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000108 /* g_vote.h */; };
+		D1A5B0000000000000000308 /* g_intermission.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000307 /* g_intermission.h */; };
 		D1A5B0000000000000000111 /* g_vote.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000108 /* g_vote.h */; };
+		D1A5B0000000000000000309 /* g_intermission.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000307 /* g_intermission.h */; };
 		D1A5B0000000000000000202 /* cg_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000201 /* cg_vote.c */; };
+		D1A5B0000000000000000406 /* cg_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000405 /* cg_intermission.c */; };
 		D1A5B0000000000000000203 /* cg_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000201 /* cg_vote.c */; };
+		D1A5B0000000000000000407 /* cg_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000405 /* cg_intermission.c */; };
 		D1A5B0000000000000000204 /* cg_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000201 /* cg_vote.c */; };
+		D1A5B0000000000000000408 /* cg_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000405 /* cg_intermission.c */; };
 		D1A5B0000000000000000206 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
 		D1A5B0000000000000000207 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
 		D1A5B0000000000000000208 /* VoteViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000205 /* VoteViewController.c */; };
@@ -1174,6 +1190,7 @@
 		D2A5C100000000000000002A /* g_physics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66A1C5C58C300CD0B13 /* g_physics.c */; };
 		D2A5C100000000000000002B /* g_rules.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE00000000000000A101 /* g_rules.c */; };
 		D2A5C100000000000000002C /* g_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000101 /* g_vote.c */; };
+		D1A5B000000000000000030A /* g_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000300 /* g_intermission.c */; };
 		D2A5C100000000000000002D /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
 		D2A5C100000000000000002E /* g_util.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66D1C5C58C300CD0B13 /* g_util.c */; };
 		D2A5C100000000000000002F /* g_weapon.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66F1C5C58C300CD0B13 /* g_weapon.c */; };
@@ -1183,6 +1200,7 @@
 		D2A5C1000000000000000033 /* bg_item.h in Headers */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000001 /* bg_item.h */; };
 		D2A5C1000000000000000034 /* bg_pmove.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6421C5C58C300CD0B13 /* bg_pmove.h */; };
 		D2A5C1000000000000000035 /* bg_vote.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000105 /* bg_vote.h */; };
+		D1A5B000000000000000030B /* bg_intermission.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000304 /* bg_intermission.h */; };
 		D2A5C1000000000000000036 /* bg_pmove_local.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000001 /* bg_pmove_local.h */; };
 		D2A5C1000000000000000037 /* g_ai_goal.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */; };
 		D2A5C1000000000000000038 /* g_ai_grid.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */; };
@@ -1207,6 +1225,7 @@
 		D2A5C100000000000000004B /* g_entity_trigger.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */; };
 		D2A5C100000000000000004C /* g_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000007 /* g_hook.h */; };
 		D2A5C100000000000000004D /* g_vote.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000108 /* g_vote.h */; };
+		D1A5B000000000000000030C /* g_intermission.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000307 /* g_intermission.h */; };
 		D2A5C100000000000000004E /* g_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6621C5C58C300CD0B13 /* g_item.h */; };
 		D2A5C100000000000000004F /* g_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6631C5C58C300CD0B13 /* g_local.h */; };
 		D2A5C1000000000000000050 /* g_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6651C5C58C300CD0B13 /* g_main.h */; };
@@ -1273,6 +1292,7 @@
 		D2A5C1000000000000000099 /* cg_predict.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5771C5C58C300CD0B13 /* cg_predict.c */; };
 		D2A5C100000000000000009A /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5791C5C58C300CD0B13 /* cg_score.c */; };
 		D2A5C100000000000000009B /* cg_vote.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000201 /* cg_vote.c */; };
+		D1A5B000000000000000040A /* cg_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000405 /* cg_intermission.c */; };
 		D2A5C100000000000000009C /* cg_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDD1B525A0C2710055860E /* cg_sound.c */; };
 		D2A5C100000000000000009D /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
 		D2A5C100000000000000009E /* cg_module.c in Sources */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000056 /* cg_module.c */; };
@@ -1384,6 +1404,7 @@
 		D9A5C10000000000000000D3 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		D9A5C10000000000000000D4 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		DD006E4E558F9346D79447E5 /* scoreboard.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = E0F247635165E5338AAD8494 /* scoreboard.css */; };
+		D1A5B0000000000000000504 /* intermission.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000500 /* intermission.css */; };
 		DD02E1ABB673209C4A8D0EFC /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		DD69DC98B2588BCF788647E3 /* hud.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2D140F08524DA0679A7DB117 /* hud.css */; };
 		E10D01F620BB74E4166A8E7F /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
@@ -1391,6 +1412,7 @@
 		E16A533FF7C34A2BA65E1BFF /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
 		E613CE6B3A9634DB694DA689 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
 		E70AD75417615E311748DB70 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
+		D1A5B000000000000000040B /* IntermissionView.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000401 /* IntermissionView.c */; };
 		E7A9F8759B856BBB62D69C03 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
 		EAC91DBE5BFAA686873683E8 /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
 		EC45E0FA2A80403C8FEA3834 /* cg_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = FCD76A809F00440F99BC0068 /* cg_inventory.c */; };
@@ -2026,7 +2048,9 @@
 				CEA4C0DE2F9800000087C003 /* hud.css in CopyFiles */,
 				CEA4C0DE2F9800000087C004 /* hud.json in CopyFiles */,
 				CEA4C0DE2F9800000087C008 /* scoreboard.css in CopyFiles */,
+				D1A5B0000000000000000506 /* intermission.css in CopyFiles */,
 				CEA4C0DE2F9800000087C009 /* scoreboard.json in CopyFiles */,
+				D1A5B0000000000000000507 /* intermission.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2038,7 +2062,9 @@
 			files = (
 				DD69DC98B2588BCF788647E3 /* hud.css in CopyFiles */,
 				DD006E4E558F9346D79447E5 /* scoreboard.css in CopyFiles */,
+				D1A5B0000000000000000504 /* intermission.css in CopyFiles */,
 				322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */,
+				D1A5B0000000000000000505 /* intermission.json in CopyFiles */,
 				20BE76382F981DD4B7F43A11 /* hud.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2062,7 +2088,9 @@
 		CEA4C0DE2F9800000087C001 /* hud.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = chrome/hud.css; sourceTree = "<group>"; };
 		CEA4C0DE2F9800000087C002 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/hud.json; sourceTree = "<group>"; };
 		CEA4C0DE2F9800000087C006 /* scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = chrome/scoreboard.css; sourceTree = "<group>"; };
+		D1A5B0000000000000000502 /* intermission.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = chrome/intermission.css; sourceTree = "<group>"; };
 		CEA4C0DE2F9800000087C007 /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/scoreboard.json; sourceTree = "<group>"; };
+		D1A5B0000000000000000503 /* intermission.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/intermission.json; sourceTree = "<group>"; };
 		CEA4C0DE2F9800000087C00A /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/scoreboard.json; sourceTree = "<group>"; };
 		CEA4C0DE2F9800000087C010 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/hud.json; sourceTree = "<group>"; };
 		CEA4C0DE2F9800000087C013 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/hud.json; sourceTree = "<group>"; };
@@ -2070,7 +2098,9 @@
 		30FC7C9F9B24C6966D749398 /* NavEditView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NavEditView.h; sourceTree = "<group>"; };
 		3487B5AD7D47E8DFBDDAE5C4 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/hud.json; sourceTree = "<group>"; };
 		40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreboardView.h; sourceTree = "<group>"; };
+		D1A5B0000000000000000400 /* IntermissionView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IntermissionView.h; sourceTree = "<group>"; };
 		45969B731C08AA84C8D318F6 /* ScoreboardView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ScoreboardView.c; sourceTree = "<group>"; };
+		D1A5B0000000000000000401 /* IntermissionView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = IntermissionView.c; sourceTree = "<group>"; };
 		491F54CD554D0F550B000B4E /* NavEditView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = NavEditView.c; sourceTree = "<group>"; };
 		4BF47DA7893C8563C1D59CDA /* BlendView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = BlendView.c; sourceTree = "<group>"; };
 		4CA3522A5AE19B0F18CF79C6 /* TargetNameView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TargetNameView.h; sourceTree = "<group>"; };
@@ -2094,6 +2124,7 @@
 		7966EA6596003F9303BC00FA /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
 		8238DE2CC5A406DE6DF84E71 /* OverlayText.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = OverlayText.c; sourceTree = "<group>"; };
 		848E81C81F875F4403EAE1EE /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/scoreboard.json; sourceTree = "<group>"; };
+		D1A5B0000000000000000501 /* intermission.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/intermission.json; sourceTree = "<group>"; };
 		8542813678DB3B7BECEEF939 /* box.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = box.c; sourceTree = "<group>"; };
 		92AA3129971ABAAB21EE5BAD /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/scoreboard.json; sourceTree = "<group>"; };
 		94D1F06AFA9AE2182216CC46 /* SpectatorView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SpectatorView.c; sourceTree = "<group>"; };
@@ -2894,13 +2925,18 @@
 		D126FFD46C343DDC86C13E17 /* cm_manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_manifest.c; sourceTree = "<group>"; };
 		D1A5B0000000000000000001 /* bg_pmove_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_pmove_local.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000101 /* g_vote.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_vote.c; sourceTree = "<group>"; };
+		D1A5B0000000000000000300 /* g_intermission.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_intermission.c; sourceTree = "<group>"; };
 		D1A5B0000000000000000105 /* bg_vote.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_vote.h; sourceTree = "<group>"; };
+		D1A5B0000000000000000304 /* bg_intermission.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_intermission.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000108 /* g_vote.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_vote.h; sourceTree = "<group>"; };
+		D1A5B0000000000000000307 /* g_intermission.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_intermission.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000201 /* cg_vote.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_vote.c; sourceTree = "<group>"; };
+		D1A5B0000000000000000405 /* cg_intermission.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_intermission.c; sourceTree = "<group>"; };
 		D1A5B0000000000000000205 /* VoteViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VoteViewController.c; sourceTree = "<group>"; };
 		D1A5B0000000000000000209 /* VoteViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VoteViewController.json; sourceTree = "<group>"; };
 		D1A5B0000000000000000211 /* VoteViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = VoteViewController.css; sourceTree = "<group>"; };
 		D1A5B0000000000000000213 /* cg_vote.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_vote.h; sourceTree = "<group>"; };
+		D1A5B0000000000000000409 /* cg_intermission.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_intermission.h; sourceTree = "<group>"; };
 		D1A5B0000000000000000214 /* VoteViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VoteViewController.h; sourceTree = "<group>"; };
 		D2A5C1000000000000000001 /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
 		D2A5C1000000000000000002 /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
@@ -2931,6 +2967,7 @@
 		DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Rajdhani-OFL.txt"; sourceTree = "<group>"; };
 		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
 		E0F247635165E5338AAD8494 /* scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = default/scoreboard.css; sourceTree = "<group>"; };
+		D1A5B0000000000000000500 /* intermission.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = default/intermission.css; sourceTree = "<group>"; };
 		E106ACFB28FF47443FB3C9FE /* PickupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PickupView.c; sourceTree = "<group>"; };
 		E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TargetNameView.c; sourceTree = "<group>"; };
 		EA8FE4E62B47061B1ADBD908 /* FpsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = FpsView.c; sourceTree = "<group>"; };
@@ -3405,7 +3442,9 @@
 				CEA4C0DE2F9800000087C001 /* hud.css */,
 				CEA4C0DE2F9800000087C002 /* hud.json */,
 				CEA4C0DE2F9800000087C006 /* scoreboard.css */,
+				D1A5B0000000000000000502 /* intermission.css */,
 				CEA4C0DE2F9800000087C007 /* scoreboard.json */,
+				D1A5B0000000000000000503 /* intermission.json */,
 				FC6374C1D47393EA62C8EC20 /* CounterView.h */,
 				A59EB892C12DF10ACA8253DD /* CounterView.c */,
 				C8249BF99F0E4A2D77D37865 /* CrosshairView.h */,
@@ -3433,9 +3472,13 @@
 				C853849AF0A2CC2F7C531245 /* PowerupView.h */,
 				755F8C8CBA7F7C48E79A578C /* PowerupView.c */,
 				E0F247635165E5338AAD8494 /* scoreboard.css */,
+				D1A5B0000000000000000500 /* intermission.css */,
 				848E81C81F875F4403EAE1EE /* scoreboard.json */,
+				D1A5B0000000000000000501 /* intermission.json */,
 				40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */,
+				D1A5B0000000000000000400 /* IntermissionView.h */,
 				45969B731C08AA84C8D318F6 /* ScoreboardView.c */,
+				D1A5B0000000000000000401 /* IntermissionView.c */,
 				671265A640259697D1AA363E /* ScoreView.h */,
 				5B027972461629119D87F7A6 /* ScoreView.c */,
 				9C56DC135154CED4C2498031 /* SpectatorView.h */,
@@ -4625,6 +4668,7 @@
 				CE12D56D1C5C58C300CD0B13 /* cg_hud.h */,
 				CE12D5791C5C58C300CD0B13 /* cg_score.c */,
 				D1A5B0000000000000000201 /* cg_vote.c */,
+				D1A5B0000000000000000405 /* cg_intermission.c */,
 				CE12D57A1C5C58C300CD0B13 /* cg_score.h */,
 				CEC0FD002026010500000009 /* cg_hud_draw.c */,
 				CEB8D6241E00B72100043814 /* cg_input.h */,
@@ -4640,6 +4684,7 @@
 				CE12D5721C5C58C300CD0D01 /* cg_ctf.c */,
 				CE12D5721C5C58C300CD0D02 /* cg_ctf.h */,
 				D1A5B0000000000000000213 /* cg_vote.h */,
+				D1A5B0000000000000000409 /* cg_intermission.h */,
 				CE12D5721C5C58C300CD0D03 /* cg_tech.c */,
 				CE12D5721C5C58C300CD0D04 /* cg_tech.h */,
 				CE12D5721C5C58C300CD0C21 /* cg_module.h */,
@@ -4679,6 +4724,7 @@
 				D6A5C10000000000000000A1 /* bg_pmove_race.c */,
 				CEFEEE0000000000000000C3 /* bg_tech.h */,
 				D1A5B0000000000000000105 /* bg_vote.h */,
+				D1A5B0000000000000000304 /* bg_intermission.h */,
 				CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */,
 				CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */,
 				CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */,
@@ -4724,6 +4770,7 @@
 				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
 				CEC011002026010200000007 /* g_hook.h */,
 				D1A5B0000000000000000108 /* g_vote.h */,
+				D1A5B0000000000000000307 /* g_intermission.h */,
 				CEC011002026010200000005 /* g_hook.c */,
 				CE12D6621C5C58C300CD0B13 /* g_item.h */,
 				CE12D6611C5C58C300CD0B13 /* g_item.c */,
@@ -4734,6 +4781,7 @@
 				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
 				CEFEEE00000000000000A101 /* g_rules.c */,
 				D1A5B0000000000000000101 /* g_vote.c */,
+				D1A5B0000000000000000300 /* g_intermission.c */,
 				CE12D6631C5C58C300CD0B13 /* g_local.h */,
 				CEFF1295277D439B001E1500 /* g_sound.h */,
 				CEFF1296277D439B001E1500 /* g_sound.c */,
@@ -4876,6 +4924,7 @@
 				CE05B2F0302248070012F003 /* bg_item.h in Headers */,
 				CE05B2AE3022486E0012862B /* bg_pmove.h in Headers */,
 				D1A5B0000000000000000106 /* bg_vote.h in Headers */,
+				D1A5B0000000000000000305 /* bg_intermission.h in Headers */,
 				D1A5B0000000000000000002 /* bg_pmove_local.h in Headers */,
 				CE05B2CD3022486E0012862B /* bg_tech.h in Headers */,
 				CE05B2AF3022486E0012862B /* g_ai_goal.h in Headers */,
@@ -4901,6 +4950,7 @@
 				CE05B2C33022486E0012862B /* g_entity_trigger.h in Headers */,
 				CE05B2C53022486E0012862B /* g_hook.h in Headers */,
 				D1A5B0000000000000000110 /* g_vote.h in Headers */,
+				D1A5B0000000000000000308 /* g_intermission.h in Headers */,
 				CE05B2C73022486E0012862B /* g_item.h in Headers */,
 				CE05B2C83022486E0012862B /* g_local.h in Headers */,
 				CE05B2C93022486E0012862B /* g_main.h in Headers */,
@@ -5189,6 +5239,7 @@
 				CEC0FF00202601030000010A /* bg_item.h in Headers */,
 				CEC0FF002026010300000122 /* bg_pmove.h in Headers */,
 				D1A5B0000000000000000107 /* bg_vote.h in Headers */,
+				D1A5B0000000000000000306 /* bg_intermission.h in Headers */,
 				D1A5B0000000000000000003 /* bg_pmove_local.h in Headers */,
 				CEFEEE0000000000000000D3 /* bg_tech.h in Headers */,
 				CEC0FF00202601030000010B /* g_ai_goal.h in Headers */,
@@ -5215,6 +5266,7 @@
 				CEC0FF00202601030000011B /* g_entity_trigger.h in Headers */,
 				CEC0FF002026010300000127 /* g_hook.h in Headers */,
 				D1A5B0000000000000000111 /* g_vote.h in Headers */,
+				D1A5B0000000000000000309 /* g_intermission.h in Headers */,
 				CEC0FF00202601030000011C /* g_item.h in Headers */,
 				CEC0FF00202601030000011D /* g_local.h in Headers */,
 				CEC0FF00202601030000011E /* g_main.h in Headers */,
@@ -5323,6 +5375,7 @@
 				D2A5C1000000000000000033 /* bg_item.h in Headers */,
 				D2A5C1000000000000000034 /* bg_pmove.h in Headers */,
 				D2A5C1000000000000000035 /* bg_vote.h in Headers */,
+				D1A5B000000000000000030B /* bg_intermission.h in Headers */,
 				D2A5C1000000000000000036 /* bg_pmove_local.h in Headers */,
 				D2A5C1000000000000000037 /* g_ai_goal.h in Headers */,
 				D2A5C1000000000000000038 /* g_ai_grid.h in Headers */,
@@ -5347,6 +5400,7 @@
 				D2A5C100000000000000004B /* g_entity_trigger.h in Headers */,
 				D2A5C100000000000000004C /* g_hook.h in Headers */,
 				D2A5C100000000000000004D /* g_vote.h in Headers */,
+				D1A5B000000000000000030C /* g_intermission.h in Headers */,
 				D2A5C100000000000000004E /* g_item.h in Headers */,
 				D2A5C100000000000000004F /* g_local.h in Headers */,
 				D2A5C1000000000000000050 /* g_main.h in Headers */,
@@ -6448,6 +6502,7 @@
 				CE05B29A3022486E0012862B /* g_physics.c in Sources */,
 				CE05B2883022486E0012862B /* g_rules.c in Sources */,
 				D1A5B0000000000000000102 /* g_vote.c in Sources */,
+				D1A5B0000000000000000301 /* g_intermission.c in Sources */,
 				CE05B29B3022486E0012862B /* g_sound.c in Sources */,
 				CE05B29C3022486E0012862B /* g_tech.c in Sources */,
 				CE05B29D3022486E0012862B /* g_util.c in Sources */,
@@ -6480,6 +6535,7 @@
 				E7A9F8759B856BBB62D69C03 /* PowerupView.c in Sources */,
 				C24304F353C77693015A7736 /* ScoreView.c in Sources */,
 				BB08F021CF5059A8915C8DDF /* ScoreboardView.c in Sources */,
+				D1A5B0000000000000000404 /* IntermissionView.c in Sources */,
 				D8F2715333902B56A81AC28C /* StatView.c in Sources */,
 				52367ABAA22B6D5586284093 /* TeamBannerView.c in Sources */,
 				D3D2558FB099A325883FDB27 /* NavEditView.c in Sources */,
@@ -6548,6 +6604,7 @@
 				CE05B3F030224900C0DE0016 /* cg_predict.c in Sources */,
 				CE05B3F030224900C0DE0017 /* cg_score.c in Sources */,
 				D1A5B0000000000000000202 /* cg_vote.c in Sources */,
+				D1A5B0000000000000000406 /* cg_intermission.c in Sources */,
 				CE05B3F030224900C0DE0018 /* cg_sound.c in Sources */,
 				CE05B3F030224900C0DE0019 /* cg_sprite.c in Sources */,
 				CE05B3FC30224E3E0012870B /* cg_module.c in Sources */,
@@ -6603,6 +6660,7 @@
 				CE12D7E41C5C5D6A00CD0B13 /* g_physics.c in Sources */,
 				CEFEEE00000000000000A102 /* g_rules.c in Sources */,
 				D1A5B0000000000000000103 /* g_vote.c in Sources */,
+				D1A5B0000000000000000302 /* g_intermission.c in Sources */,
 				CEFF1298277D439B001E1500 /* g_sound.c in Sources */,
 				CE12D7E51C5C5D6A00CD0B13 /* g_util.c in Sources */,
 				CE12D7E61C5C5D6A00CD0B13 /* g_weapon.c in Sources */,
@@ -6634,6 +6692,7 @@
 				F956F2A93BABE228BC99C9E4 /* PowerupView.c in Sources */,
 				0BF82540ADD285E5DF358C72 /* ScoreView.c in Sources */,
 				E70AD75417615E311748DB70 /* ScoreboardView.c in Sources */,
+				D1A5B000000000000000040B /* IntermissionView.c in Sources */,
 				1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */,
 				537E3B2A605E2005BA5F4928 /* TeamBannerView.c in Sources */,
 				65A8C761AE5D68358CDDE601 /* NavEditView.c in Sources */,
@@ -6701,6 +6760,7 @@
 				CE12D7FB1C5C5E0200CD0B13 /* cg_predict.c in Sources */,
 				CE12D7FC1C5C5E0200CD0B13 /* cg_score.c in Sources */,
 				D1A5B0000000000000000203 /* cg_vote.c in Sources */,
+				D1A5B0000000000000000407 /* cg_intermission.c in Sources */,
 				CEBDD1B725A0C2710055860E /* cg_sound.c in Sources */,
 				CEAC32B9242124BB007E1253 /* cg_sprite.c in Sources */,
 				CE12D55D1C5C58C300CD0C12 /* cg_module.c in Sources */,
@@ -7062,6 +7122,7 @@
 				CEC0FF002026010300000108 /* g_physics.c in Sources */,
 				CEFEEE00000000000000A103 /* g_rules.c in Sources */,
 				D1A5B0000000000000000104 /* g_vote.c in Sources */,
+				D1A5B0000000000000000303 /* g_intermission.c in Sources */,
 				CEC0FF002026010300000109 /* g_sound.c in Sources */,
 				CEFEEE0000000000000000D1 /* g_tech.c in Sources */,
 				CEC0FF002026010300000101 /* g_util.c in Sources */,
@@ -7094,6 +7155,7 @@
 				665046BB6961C443C731A077 /* PowerupView.c in Sources */,
 				9EBBE79D07E30BB784FC188F /* ScoreView.c in Sources */,
 				68D440FA613EE2594A4D6DB6 /* ScoreboardView.c in Sources */,
+				D1A5B0000000000000000403 /* IntermissionView.c in Sources */,
 				18831DC74740CDF73E54CF63 /* StatView.c in Sources */,
 				E613CE6B3A9634DB694DA689 /* TeamBannerView.c in Sources */,
 				0789D5943ABEDA1B53B205E2 /* NavEditView.c in Sources */,
@@ -7163,6 +7225,7 @@
 				CEC0FF0020260103000001F1 /* cg_predict.c in Sources */,
 				CEC0FD002026010500000006 /* cg_score.c in Sources */,
 				D1A5B0000000000000000204 /* cg_vote.c in Sources */,
+				D1A5B0000000000000000408 /* cg_intermission.c in Sources */,
 				CEC0FF0020260103000001F3 /* cg_sound.c in Sources */,
 				CEC0FF0020260103000001F4 /* cg_sprite.c in Sources */,
 				CEC0FF0020260103000000A2 /* cg_module.c in Sources */,
@@ -7269,6 +7332,7 @@
 				D2A5C100000000000000002A /* g_physics.c in Sources */,
 				D2A5C100000000000000002B /* g_rules.c in Sources */,
 				D2A5C100000000000000002C /* g_vote.c in Sources */,
+				D1A5B000000000000000030A /* g_intermission.c in Sources */,
 				D2A5C100000000000000002D /* g_sound.c in Sources */,
 				D2A5C100000000000000002E /* g_util.c in Sources */,
 				D2A5C100000000000000002F /* g_weapon.c in Sources */,
@@ -7300,6 +7364,7 @@
 				D36054C7E2858790984E15E0 /* PowerupView.c in Sources */,
 				9F948D38BAB2AE44F4A87F61 /* ScoreView.c in Sources */,
 				50A656139CC3317E925D0231 /* ScoreboardView.c in Sources */,
+				D1A5B0000000000000000402 /* IntermissionView.c in Sources */,
 				3B497D93EA892C673165469D /* StatView.c in Sources */,
 				C55D95D65959615823A138F8 /* TeamBannerView.c in Sources */,
 				F0D2694D4DD29796B8BB5639 /* NavEditView.c in Sources */,
@@ -7367,6 +7432,7 @@
 				D2A5C1000000000000000099 /* cg_predict.c in Sources */,
 				D2A5C100000000000000009A /* cg_score.c in Sources */,
 				D2A5C100000000000000009B /* cg_vote.c in Sources */,
+				D1A5B000000000000000040A /* cg_intermission.c in Sources */,
 				D2A5C100000000000000009C /* cg_sound.c in Sources */,
 				D2A5C100000000000000009D /* cg_sprite.c in Sources */,
 				D2A5C100000000000000009E /* cg_module.c in Sources */,

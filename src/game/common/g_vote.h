@@ -29,5 +29,6 @@ extern cvar_t *g_vote_time;
 extern cvar_t *g_vote_threshold;
 extern cvar_t *g_vote_cooldown;
 
+bool G_Vote_Eligible(const g_client_t *cl);
 void G_Vote_Init(void);
 #endif

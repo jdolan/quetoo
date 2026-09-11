@@ -58,7 +58,7 @@ static bool installed;
 /**
  * @brief Connected human players and spectators may vote; bots may not.
  */
-static bool G_Vote_Eligible(const g_client_t *cl) {
+bool G_Vote_Eligible(const g_client_t *cl) {
   return cl->in_use && !cl->ai;
 }
 

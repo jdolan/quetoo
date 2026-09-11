@@ -84,6 +84,7 @@ typedef enum {
 #define CS_NAV_EDIT        (CS_GAME + 6)  // nav edit mode
 #define CS_ITEM_SET        (CS_GAME + 7)  // active item set (g_items_t)
 #define CS_VOTE            (CS_GAME + 8)  // the vote in progress (bg_vote.h)
+#define CS_NEXT_MAP        (CS_GAME + 9)  // the intermission's map candidates and tally (bg_intermission.h)
 
 /**
  * @brief Player state statistics (inventory, score, etc).

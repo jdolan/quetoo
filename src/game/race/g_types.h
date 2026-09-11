@@ -92,6 +92,7 @@ typedef enum {
 #define CS_RACE_COURSE     (CS_GAME + 10) // checkpoints\finishes\valid, for the HUD
 #define CS_RACE_RECORDS    (CS_GAME + 11) // the top times under this movement, name\time pairs
 #define CS_RACE_GHOST      (CS_GAME + 12) // the course record holder as a CS_CLIENTS string, for the ghost's skin
+#define CS_NEXT_MAP        (CS_GAME + 13) // the intermission's map candidates and tally (bg_intermission.h)
 
 /**
  * @brief Player state statistics (inventory, score, etc).

@@ -109,6 +109,8 @@ cguihuddefaultdir = \
 cguihuddefault_DATA = \
 	$(CGUI_DIR)/hud/default/hud.css \
 	$(CGUI_DIR)/hud/default/hud.json \
+	$(CGUI_DIR)/hud/default/intermission.css \
+	$(CGUI_DIR)/hud/default/intermission.json \
 	$(CGUI_DIR)/hud/default/scoreboard.css \
 	$(CGUI_DIR)/hud/default/scoreboard.json
 
@@ -118,6 +120,8 @@ cguihudchromedir = \
 cguihudchrome_DATA = \
 	$(CGUI_DIR)/hud/chrome/hud.css \
 	$(CGUI_DIR)/hud/chrome/hud.json \
+	$(CGUI_DIR)/hud/chrome/intermission.css \
+	$(CGUI_DIR)/hud/chrome/intermission.json \
 	$(CGUI_DIR)/hud/chrome/scoreboard.css \
 	$(CGUI_DIR)/hud/chrome/scoreboard.json
 
@@ -204,6 +208,7 @@ cgame_la_SOURCES = \
 	cg_hud.c \
 	cg_hud_draw.c \
 	cg_input.c \
+	cg_intermission.c \
 	cg_inventory.c \
 	cg_light.c \
 	cg_main.c \
@@ -248,6 +253,7 @@ cgame_la_SOURCES = \
 	ui/hud/DiagnosticsView.c \
 	ui/hud/FpsView.c \
 	ui/hud/HudViewController.c \
+	ui/hud/IntermissionView.c \
 	ui/hud/NavEditView.c \
 	ui/hud/NotifyView.c \
 	ui/hud/OverlayText.c \
