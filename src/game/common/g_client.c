@@ -2170,6 +2170,25 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
     }
 
     G_TouchOccupy(ent);
+
+    // a player crossing a portal is solid to no other player, and clips against none, so that
+    // two crossing at once do not end up stuck in each other on the far side. SOLID_DEAD is
+    // exactly that: walked through, still shot, still touching triggers - unlike SOLID_NOT,
+    // which would never touch the portal itself. The client predicts by the same rule (see
+    // Cg_PredictMovement_Trace)
+    if (!ent->dead) {
+      const bool crossing = G_OccupiesPortal(ent);
+
+      if (crossing && ent->solid == SOLID_BOX) {
+        ent->solid = SOLID_DEAD;
+        ent->clip_mask &= ~CONTENTS_MONSTER;
+        gi.LinkEntity(ent);
+      } else if (!crossing && ent->solid == SOLID_DEAD) {
+        ent->solid = SOLID_BOX;
+        ent->clip_mask |= CONTENTS_MONSTER;
+        gi.LinkEntity(ent);
+      }
+    }
   }
 }
 

@@ -432,6 +432,8 @@ static void SetMaterialFlags(brush_side_t *side) {
     side->contents |= CONTENTS_MONSTER_CLIP;
   } else if (!q_strcmp(side->texture, "common/origin")) {
     side->contents |= CONTENTS_ORIGIN;
+  } else if (!q_strcmp(side->texture, "common/portal")) {
+    side->surface |= SURF_PORTAL;
   } else if (!q_strcmp(side->texture, "common/skip")) {
     side->surface |= SURF_SKIP;
   } else if (!q_strcmp(side->texture, "common/sky")) {
@@ -685,6 +687,68 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
   if (!brush->num_brush_sides) {
     return brush;
+  }
+
+  // a face textured common/portal marks the entity as a portal: its centroid and facing are
+  // baked into portal_origin and portal_angles, authoritatively, since the two must never be
+  // allowed to drift out of sync. They are deliberately not the entity's own origin and angles:
+  // those would rotate the brush model itself (for rendering and collision alike) out from
+  // under the mapper. The tagged face is the one the mapper sees/touches approaching the portal,
+  // so its outward normal points back toward them - the direction of travel through the portal
+  // is the reverse of that. The full pitch and yaw of that direction are baked (not yaw alone),
+  // so a portal tagged on a floor, ceiling, or slope orients correctly, not just one tagged on a
+  // vertical wall. The face itself is kept - unlike an origin brush, this is a real face of the
+  // entity's own solid, not a separate marker brush to be discarded.
+  if (brush->entity != 0) {
+    const brush_side_t *side = brush->brush_sides;
+    for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
+      if (side->surface & SURF_BEVEL) {
+        continue;
+      }
+      if (q_strcmp(side->texture, "common/portal")) {
+        continue;
+      }
+
+      if (ValueForKey(entity, "portal_origin", NULL)) {
+        Com_Warn("Entity %d brush %d: Duplicate common/portal face, ignoring\n", brush->entity, brush->brush);
+        break;
+      }
+
+      const vec3_t center = Cm_WindingCenter(side->winding);
+      SetValueForKey(entity, "portal_origin", va("%g %g %g", center.x, center.y, center.z));
+
+      const vec3_t normal = planes[side->plane].normal;
+      const vec3_t forward = Vec3_Negate(normal);
+
+      vec3_t angles = Vec3_Euler(forward);
+
+      // the face's own up is the way its texture reads: the T axis runs down the texture, so
+      // up is its reverse, laid flat in the face. On a wall with the texture upright that is
+      // simply world up; on a floor or ceiling, where pitch alone leaves the in-plane
+      // orientation to chance, it is the mapper's say over which way things come out
+      vec3_t up = Vec3_Negate(side->axis[1].xyz);
+      up = Vec3_Subtract(up, Vec3_Scale(normal, Vec3_Dot(up, normal)));
+
+      if (Vec3_Length(up) > 0.f) {
+        up = Vec3_Normalize(up);
+
+        // roll the default basis about forward until its up is the face's, trying the sign
+        // against Vec3_Vectors itself rather than assuming its convention
+        vec3_t default_up;
+        Vec3_Vectors(angles, NULL, NULL, &default_up);
+
+        const float roll = Degrees(atan2f(Vec3_Dot(Vec3_Cross(default_up, up), forward), Vec3_Dot(default_up, up)));
+
+        vec3_t up_positive, up_negative;
+        Vec3_Vectors(Vec3(angles.x, angles.y, roll), NULL, NULL, &up_positive);
+        Vec3_Vectors(Vec3(angles.x, angles.y, -roll), NULL, NULL, &up_negative);
+
+        angles.z = Vec3_Dot(up_positive, up) >= Vec3_Dot(up_negative, up) ? roll : -roll;
+      }
+
+      SetValueForKey(entity, "portal_angles", va("%g %g %g", angles.x, angles.y, angles.z));
+      break;
+    }
   }
 
   // origin brushes are removed, but they set the rotation origin for the rest of the brushes

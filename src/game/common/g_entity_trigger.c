@@ -21,6 +21,7 @@
 
 #include "g_local.h"
 #include "bg_pmove.h"
+#include "bg_portal.h"
 
 #define TRIGGERED 0x1
 #define SHOOTABLE 0x2
@@ -328,6 +329,446 @@ void G_trigger_push(g_entity_t *ent) {
   if (ent->spawn_flags & PUSH_EFFECT) {
     G_trigger_push_Effect(ent);
   }
+}
+
+/**
+ * @brief The reference point for a `trigger_portal`'s position math: the centroid of the
+ * common/portal face quemap baked in at compile time.
+ */
+static vec3_t G_trigger_portal_Origin(const g_entity_t *ent) {
+  return gi.EntityValue(ent->def, "portal_origin")->vec3;
+}
+
+/**
+ * @brief The facing of a `trigger_portal`: the direction of travel into its common/portal face,
+ * as quemap baked it. Kept apart from the entity's own angles, which would rotate the brush.
+ */
+static vec3_t G_trigger_portal_Angles(const g_entity_t *ent) {
+  return gi.EntityValue(ent->def, "portal_angles")->vec3;
+}
+
+static void G_trigger_portal_Transit(const g_entity_t *ent, const g_entity_t *dest, g_entity_t *other);
+
+#define PORTAL_STRICT_DISPLACE 1
+
+/**
+ * @brief Handles touch events on a `trigger_portal`. Unlike `trigger_teleporter`, this fires on
+ * every frame the toucher overlaps the volume (there is no single "moment" of transit), and
+ * carries the toucher's full position, velocity and view through to the paired portal via
+ * `G_trigger_portal_Carry`. Walking through one frame at a time this way, rather than snapping to
+ * a fixed destination point, is what makes the crossing imperceptible: the mapper builds matching
+ * geometry on both sides, and the player simply never stops moving.
+ *
+ * `PORTAL_STRICT_DISPLACE` skips all of that relative-basis math and simply slides the toucher by
+ * the fixed offset between the two faces, leaving velocity, view and facing untouched - a literal
+ * hole in space rather than a seam between two differently-oriented pieces of geometry. Reach for
+ * it only when the map schema demands a straight positional displacement and the illusion of
+ * continuous surfaces doesn't matter.
+ */
+static void G_trigger_portal_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+
+#if defined(G_HOOK)
+  if (other->owner && other->owner->client &&
+      other->owner->client->hook.entity == other) {
+    G_HookDetach(other->owner->client);
+    return;
+  }
+#endif
+
+  if (!G_IsMeat(other) && other->solid != SOLID_PROJECTILE) {
+    return;
+  }
+
+#if defined(G_HOOK)
+  if (other->client && other->client->hook.entity) {
+    G_HookDetach(other->client);
+  }
+#endif
+
+  const g_entity_t *dest = G_Find(NULL, EOFS(target_name), ent->target);
+
+  if (!dest) {
+    G_Warn("Couldn't find destination\n");
+    return;
+  }
+
+  vec3_t right_a, up_a, fwd_a;
+  Bg_PortalBasis(G_trigger_portal_Angles(ent), false, &right_a, &up_a, &fwd_a);
+
+  // transit the moment the toucher's center crosses the face plane, not when its bounds first
+  // touch the volume: it then lands just past the paired face rather than stranded in the
+  // recess behind it, and a fresh arrival is in front of the paired face, so it can never be
+  // bounced straight back. Players moving into the face go a little early, so their view never
+  // reaches the face itself; the client predicts the very same transit (see
+  // Cg_PredictPortalTransit). Only moving into it: a fresh arrival is moving away from the
+  // paired face, and must not be taken back through it by its lead
+  const float depth = Vec3_Dot(Vec3_Subtract(other->s.origin, G_trigger_portal_Origin(ent)), fwd_a);
+
+  if (other->client) {
+    // a player is taken through as soon as the leading edge of their body reaches the face, so
+    // that no part of them is ever sliced by it: feet or head first into a floor or ceiling,
+    // where stepping or settling onto a floor counts too, and front first into a wall, while
+    // moving into it. A fresh arrival, still moving out of the far face, is left to leave. The
+    // client predicts the very same transit (see Cg_PredictPortalTransit)
+    const float leading = depth + Bg_PortalExtent(other->bounds, fwd_a);
+    const float into = Vec3_Dot(other->velocity, fwd_a);
+
+    if (leading < -PORTAL_TRANSIT_LEAD || (Bg_PortalIsHorizontal(fwd_a) ? into < 0.f : into <= 0.f)) {
+      return;
+    }
+  } else if (depth < 0.f) {
+    return;
+  }
+
+  G_trigger_portal_Transit(ent, dest, other);
+}
+
+/**
+ * @brief Carries `other` through the portal `ent` to its paired portal `dest`: its position
+ * relative to the face it is at, its velocity, and its view or facing, all re-expressed relative
+ * to the paired face.
+ */
+static void G_trigger_portal_Transit(const g_entity_t *ent, const g_entity_t *dest, g_entity_t *other) {
+
+  vec3_t right_a, up_a, fwd_a;
+  Bg_PortalBasis(G_trigger_portal_Angles(ent), false, &right_a, &up_a, &fwd_a);
+
+  // on arrival, a toucher faces and moves along the destination face's outward normal, the
+  // reverse of the travel-into direction its angles bake (see Bg_PortalBasis)
+  vec3_t right_b, up_b, fwd_b;
+  Bg_PortalBasis(G_trigger_portal_Angles(dest), true, &right_b, &up_b, &fwd_b);
+
+  // nudge the arrival point to just past the destination face, along its outward normal: a
+  // toucher short of this face (a player, transiting early) is brought up to the far one, and
+  // none is left sitting exactly on the boundary of the destination's own touch field - without
+  // this, a pair facing the same way (notably a strict_displace splice) immediately re-triggers
+  // a transit back out, since the toucher is still technically touching on arrival
+  const float depth = Vec3_Dot(Vec3_Subtract(other->s.origin, G_trigger_portal_Origin(ent)), fwd_a);
+
+  float nudge = PORTAL_TRANSIT_OFFSET - Minf(depth, 0.f);
+
+  // a player arrives at a wall as far into it as they were into the near one, as deep as its
+  // recess holds them, and simply walks on out: nothing skips. It is the far face they are now
+  // moving out of, so it will not take them back until they turn and walk into it. At a floor
+  // or ceiling they arrive just inside the volume instead, to be held by it
+  if (other->client && !Bg_PortalIsHorizontal(fwd_b)) {
+    const float recess = Bg_PortalRecess(dest->abs_bounds, G_trigger_portal_Origin(dest), fwd_b, other->bounds);
+    nudge = Maxf(depth, -recess) - depth;
+  }
+
+  const vec3_t exit_nudge = Vec3_Scale(fwd_b, nudge);
+
+  if (ent->spawn_flags & PORTAL_STRICT_DISPLACE) {
+    other->s.origin = Vec3_Add(Vec3_Add(other->s.origin,
+        Vec3_Subtract(G_trigger_portal_Origin(dest), G_trigger_portal_Origin(ent))), exit_nudge);
+
+    if (other->client) {
+      other->client->ps.pm_state.origin = other->s.origin;
+    }
+
+    gi.LinkEntity(other);
+    return;
+  }
+
+  // carry the toucher's full position within this portal's volume through to the paired
+  // portal, expressed relative to each portal's own face, instead of snapping to a fixed point
+  const vec3_t offset = Vec3_Subtract(other->s.origin, G_trigger_portal_Origin(ent));
+  const vec3_t carried_offset = Bg_PortalCarry(offset, right_a, up_a, fwd_a, right_b, up_b, fwd_b);
+
+  other->s.origin = Vec3_Add(Vec3_Add(G_trigger_portal_Origin(dest), carried_offset), exit_nudge);
+  other->velocity = Bg_PortalCarry(other->velocity, right_a, up_a, fwd_a, right_b, up_b, fwd_b);
+
+  if (other->client) {
+    // the player state going out this frame was taken from the move, before this touch: carry
+    // it along with the entity, or the client is told for a frame that it did not go through,
+    // contradicting its own prediction, and snaps back and forth
+    other->client->ps.pm_state.origin = other->s.origin;
+    other->client->ps.pm_state.velocity = other->velocity;
+
+    vec3_t view_forward;
+    Vec3_Vectors(other->client->ps.pm_state.view_angles, &view_forward, NULL, NULL);
+
+    const vec3_t carried_forward = Bg_PortalCarry(view_forward, right_a, up_a, fwd_a, right_b, up_b, fwd_b);
+
+    // only a pair that turns the view snaps it. For one that does not, the snap would only
+    // drag the view back to angles the server saw a round trip ago, and reset the client's
+    // input for nothing: a bump on every crossing
+    if (!Vec3_EqualEpsilon(carried_forward, view_forward, 0.001f)) {
+      const vec3_t view_angles = Vec3_Euler(carried_forward);
+
+      other->client->ps.pm_state.view_angles = view_angles;
+      other->client->ps.pm_state.delta_angles = Vec3_Zero();
+      other->client->angles = view_angles;
+
+      Vec3_Vectors(other->client->angles, &other->client->forward, &other->client->right, &other->client->up);
+
+      gi.WriteByte(SV_CMD_SNAP_ANGLES);
+      gi.WriteAngles(view_angles);
+      gi.Unicast(other->client, true);
+    }
+  } else {
+    vec3_t entity_forward;
+    Vec3_Vectors(other->s.angles, &entity_forward, NULL, NULL);
+
+    other->s.angles = Vec3_Euler(
+        Bg_PortalCarry(entity_forward, right_a, up_a, fwd_a, right_b, up_b, fwd_b));
+  }
+
+  gi.LinkEntity(other);
+}
+
+/**
+ * @return True if `ent`'s bounds come within PORTAL_PLAYER_CLEARANCE of any `trigger_portal`'s
+ * volume: it is either about to cross one, or has just arrived through one and not yet left it.
+ */
+bool G_OccupiesPortal(const g_entity_t *ent) {
+
+  g_entity_t *ents[MAX_ENTITIES];
+
+  const box3_t bounds = Box3_Expand(ent->abs_bounds, PORTAL_PLAYER_CLEARANCE);
+
+  const size_t len = gi.BoxEntities(bounds, ents, lengthof(ents), BOX_OCCUPY);
+  for (size_t i = 0; i < len; i++) {
+    if (!q_strcmp(ents[i]->classname, "trigger_portal")) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+#define MAX_PORTAL_HOPS 4
+
+/**
+ * @brief Traces from `start` toward `end`, carrying the trace through any `trigger_portal` face
+ * it crosses inward on the way, exactly as a toucher would be carried. Hitscan weapons use this,
+ * so that whatever can be seen through a portal can be shot through it too.
+ * @param start The start of the trace; on return, the start of its final leg.
+ * @param end The end of the trace; on return, the end of its final leg.
+ * @param hops If given, receives the number of portals crossed.
+ * @param segment If given, called for each leg that ends at a portal face, with that face's
+ * outward normal, for tracers and the like. The final leg is the caller's own to draw.
+ * @return The trace of the final leg.
+ */
+cm_trace_t G_TracePortals(vec3_t *start, vec3_t *end, const box3_t bounds, const g_entity_t *skip,
+                          int32_t contents, int32_t *hops, G_TraceSegmentFunc segment, void *data);
+
+/**
+ * @return The nearest `trigger_portal` whose face the segment from `start` along `dir` crosses
+ * inward within `*length`, or NULL. `*length` and `normal` receive the distance to the crossing
+ * and the face's outward normal.
+ */
+static const g_entity_t *G_trigger_portal_Crossing(const vec3_t start, const vec3_t dir, float *length, vec3_t *normal) {
+
+  const g_entity_t *portal = NULL;
+
+  for (g_entity_t *p = G_Find(NULL, EOFS(classname), "trigger_portal"); p; p = G_Find(p, EOFS(classname), "trigger_portal")) {
+
+    if (!p->in_use || !p->target) {
+      continue;
+    }
+
+    vec3_t right, up, forward;
+    Bg_PortalBasis(G_trigger_portal_Angles(p), false, &right, &up, &forward);
+
+    const float into = Vec3_Dot(dir, forward);
+    if (into <= 0.f) {
+      continue;
+    }
+
+    const float t = Vec3_Dot(Vec3_Subtract(G_trigger_portal_Origin(p), start), forward) / into;
+    if (t <= 0.f || t >= *length) {
+      continue;
+    }
+
+    if (!Box3_ContainsPoint(Box3_Expand(p->abs_bounds, 1.f), Vec3_Fmaf(start, t, dir))) {
+      continue;
+    }
+
+    portal = p;
+    *normal = Vec3_Negate(forward);
+    *length = t;
+  }
+
+  return portal;
+}
+
+/**
+ * @brief Carries `ent` through the first `trigger_portal` face its center crosses inward while
+ * moving from `start` to `end`, if any, so that something crossing a portal within a single tick
+ * transits at the face rather than flying over the volume behind it into the wall.
+ * @param fraction The fraction of the move that was clear of anything solid.
+ * @return The fraction of the move at which the crossing occurred, or -1 for none.
+ */
+float G_TransitPortals(g_entity_t *ent, const vec3_t start, const vec3_t end, float fraction) {
+
+  if (!G_IsMeat(ent) && ent->solid != SOLID_PROJECTILE) {
+    return -1.f;
+  }
+
+#if defined(G_HOOK)
+  if (ent->owner && ent->owner->client && ent->owner->client->hook.entity == ent) {
+    return -1.f;
+  }
+#endif
+
+  const vec3_t delta = Vec3_Subtract(end, start);
+  const float length = Vec3_Length(delta);
+  if (length == 0.f) {
+    return -1.f;
+  }
+
+  const vec3_t dir = Vec3_Scale(delta, 1.f / length);
+
+  vec3_t normal;
+  float distance = fraction * length;
+
+  const g_entity_t *portal = G_trigger_portal_Crossing(start, dir, &distance, &normal);
+  if (!portal) {
+    return -1.f;
+  }
+
+  const g_entity_t *dest = G_Find(NULL, EOFS(target_name), portal->target);
+  if (!dest) {
+    return -1.f;
+  }
+
+  ent->s.origin = Vec3_Fmaf(start, distance, dir);
+
+  G_trigger_portal_Transit(portal, dest, ent);
+
+  return distance / length;
+}
+
+cm_trace_t G_TracePortals(vec3_t *start, vec3_t *end, const box3_t bounds, const g_entity_t *skip,
+                          int32_t contents, int32_t *hops, G_TraceSegmentFunc segment, void *data) {
+
+  cm_trace_t tr = gi.Trace(*start, *end, bounds, skip, contents);
+
+  if (hops) {
+    *hops = 0;
+  }
+
+  for (int32_t hop = 0; hop < MAX_PORTAL_HOPS; hop++) {
+
+    const vec3_t delta = Vec3_Subtract(*end, *start);
+    const float length = Vec3_Length(delta);
+    if (length == 0.f) {
+      break;
+    }
+
+    const vec3_t d = Vec3_Scale(delta, 1.f / length);
+
+    // the nearest portal face crossed inward before the trace ended, if any
+    vec3_t normal;
+    float best = tr.fraction * length;
+
+    const g_entity_t *portal = G_trigger_portal_Crossing(*start, d, &best, &normal);
+    if (!portal) {
+      break;
+    }
+
+    const g_entity_t *dest = G_Find(NULL, EOFS(target_name), portal->target);
+    if (!dest) {
+      break;
+    }
+
+    const vec3_t point = Vec3_Fmaf(*start, best, d);
+
+    if (segment) {
+      segment(*start, point, normal, data);
+    }
+
+    vec3_t right_a, up_a, fwd_a, right_b, up_b, fwd_b;
+    Bg_PortalBasis(G_trigger_portal_Angles(portal), false, &right_a, &up_a, &fwd_a);
+    Bg_PortalBasis(G_trigger_portal_Angles(dest), true, &right_b, &up_b, &fwd_b);
+
+    vec3_t carried = d;
+
+    if (portal->spawn_flags & PORTAL_STRICT_DISPLACE) {
+      *start = Vec3_Add(point, Vec3_Subtract(G_trigger_portal_Origin(dest), G_trigger_portal_Origin(portal)));
+    } else {
+      const vec3_t offset = Vec3_Subtract(point, G_trigger_portal_Origin(portal));
+      *start = Vec3_Add(G_trigger_portal_Origin(dest), Bg_PortalCarry(offset, right_a, up_a, fwd_a, right_b, up_b, fwd_b));
+      carried = Bg_PortalCarry(d, right_a, up_a, fwd_a, right_b, up_b, fwd_b);
+    }
+
+    // the same nudge past the far face a toucher gets, so the next leg starts in front of it
+    *start = Vec3_Fmaf(*start, 1.f, fwd_b);
+    *end = Vec3_Fmaf(*start, length - best, carried);
+
+    if (hops) {
+      (*hops)++;
+    }
+
+    tr = gi.Trace(*start, *end, bounds, skip, contents);
+  }
+
+  return tr;
+}
+
+/*QUAKED trigger_portal (.5 .5 .5) ? strict_displace
+Continuously carries anything that walks through this volume to the paired trigger_portal, with
+no teleport sound, effects, or angle/velocity snap of any kind. Requires one face of the brush
+textured common/portal: the compiler bakes that face's own centroid and outward normal in as
+this entity's position and facing (there is no angle key to set by hand - the two must never be
+allowed to drift out of sync, so the face is authoritative). That face's outward normal is the
+single source of truth for this specific entity, used two ways at once: reaching its plane with the
+front of your body is what transits you, and you arrive as far into the far portal as you were
+into this one and walk on out of it (so build portal brushes 32 units deep behind the face), and
+if something else targets this entity, it's the direction you'll be facing on arrival. Tag each
+portal in a pair according to its own true orientation in the world - do not simply mirror
+however the other one in the pair happens to be tagged, since the two may not (and often should
+not) face the same way. The way the PORTAL texture reads on the face is the portal's up, and a
+pair's ups map onto each other: keep it upright on a wall, and on a floor or ceiling turn it to
+choose which way things come out. A floor or ceiling is entered feet or head first: a floor
+transits you as you step or drop onto it, a ceiling as your head goes in, and either way the far
+portal receives you just inside its own volume - so floor and ceiling portals must be at least
+32 units thick, with nothing solid inside them (make them mist, not solid). A pair of
+floor/ceiling portals targeting each other falls forever, by design; a floor portal that is a
+two-way destination is re-entered the moment an arrival settles into it, so make those one-way.
+A trigger_portal with no target of its own is inert (it generates no touch field at all) but
+can still be pointed at by another's target, making a one-way portal: give both entities a
+targetname and only the outgoing side a target to prevent transit back.
+
+-------- Keys --------
+target : The paired trigger_portal's targetname. If unset, this entity is a one-way destination
+         only: it never transits anything itself.
+targetname : This portal's own name, for the paired portal to target.
+
+-------- Spawnflags --------
+strict_displace : Skip the relative-facing math entirely and just slide the toucher by the fixed
+                  offset between the two faces - velocity, view and facing pass through unchanged.
+                  Use this only for a literal hole in space (e.g. two identically-oriented copies
+                  of the same geometry spliced together); for a normal portal where the two faces
+                  may point different ways, leave this off.
+*/
+void G_trigger_portal(g_entity_t *ent) {
+
+  if (!ent->model) {
+    G_Debug("trigger_portal requires brushwork\n");
+    G_FreeEntity(ent);
+    return;
+  }
+
+  if (!(gi.EntityValue(ent->def, "portal_origin")->parsed & ENTITY_VEC3) ||
+      !(gi.EntityValue(ent->def, "portal_angles")->parsed & ENTITY_VEC3)) {
+    G_Debug("trigger_portal requires a common/portal face\n");
+    G_FreeEntity(ent);
+    return;
+  }
+
+  ent->solid = SOLID_TRIGGER;
+  ent->move_type = MOVE_TYPE_NONE;
+
+  gi.SetModel(ent, ent->model);
+
+  // no target means this is a one-way destination only; leave it untouchable
+  if (ent->target) {
+    ent->Touch = G_trigger_portal_Touch;
+  }
+
+  gi.LinkEntity(ent);
 }
 
 /**

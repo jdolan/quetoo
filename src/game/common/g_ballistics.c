@@ -126,6 +126,13 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
 }
 
 /**
+ * @brief `G_TraceSegmentFunc` adding a tracer to each leg of a shot that crosses a portal.
+ */
+static void G_Tracer_Segment(const vec3_t start, const vec3_t end, const vec3_t normal, void *data) {
+  G_Tracer(start, end);
+}
+
+/**
  * @brief Used to add impact marks on surfaces hit by bullets.
  */
 static void G_BulletImpact(const cm_trace_t *trace) {
@@ -309,9 +316,11 @@ void G_NailProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t st
  */
 void G_BulletProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t start, const vec3_t dir, int32_t damage, int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod) {
 
+  vec3_t hit_dir = dir;
+
   cm_trace_t tr = gi.Trace(emitter->s.origin, start, Box3f(1.f, 1.f, 1.f), emitter, CONTENTS_MASK_CLIP_PROJECTILE);
   if (tr.fraction == 1.0) {
-    vec3_t angles, forward, right, up, end;
+    vec3_t angles, forward, right, up, leg_start, end;
 
     angles = Vec3_Euler(dir);
     Vec3_Vectors(angles, &forward, &right, &up);
@@ -320,9 +329,13 @@ void G_BulletProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t 
     end = Vec3_Fmaf(end, RandomRangef(-hspread, hspread), right);
     end = Vec3_Fmaf(end, RandomRangef(-vspread, vspread), up);
 
-    tr = gi.Trace(start, end, Box3_Zero(), emitter, CONTENTS_MASK_CLIP_PROJECTILE);
+    leg_start = start;
 
-    G_Tracer(start, tr.end);
+    tr = G_TracePortals(&leg_start, &end, Box3_Zero(), emitter, CONTENTS_MASK_CLIP_PROJECTILE, NULL, G_Tracer_Segment, NULL);
+
+    G_Tracer(leg_start, tr.end);
+
+    hit_dir = Vec3_Normalize(Vec3_Subtract(end, leg_start));
   }
 
   if (tr.fraction < 1.0) {
@@ -331,7 +344,7 @@ void G_BulletProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t 
       .target = tr.ent,
       .inflictor = emitter,
       .attacker = attacker,
-      .dir = dir,
+      .dir = hit_dir,
       .point = tr.end,
       .normal = tr.plane.normal,
       .damage = damage,
@@ -959,6 +972,66 @@ static bool G_LightningProjectile_Expire(g_entity_t *ent) {
 }
 
 /**
+ * @brief Think callback for the far leg of a lightning beam through a portal: kept alive by the
+ * beam's own think each tick it crosses a portal, and expiring on its own once it does not.
+ */
+static void G_LightningProjectile_Portal_Think(g_entity_t *ent) {
+
+  if (ent->timestamp < g_level.time - 2 * QUETOO_TICK_MILLIS) {
+    G_FreeEntity(ent);
+    return;
+  }
+
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+}
+
+/**
+ * @return The far-leg beam of the lightning projectile `ent`, created if it has none.
+ */
+static g_entity_t *G_LightningProjectile_Portal(g_entity_t *ent) {
+
+  g_entity_t *beam = NULL;
+
+  while ((beam = G_Find(beam, EOFS(classname), "G_LightningProjectile_Portal"))) {
+    if (beam->owner == ent) {
+      return beam;
+    }
+  }
+
+  beam = G_AllocEntity("G_LightningProjectile_Portal");
+  beam->owner = ent;
+  beam->solid = SOLID_NOT;
+  beam->move_type = MOVE_TYPE_THINK;
+  beam->Think = G_LightningProjectile_Portal_Think;
+  beam->s.client = ent->s.client;
+  beam->s.effects = EF_BEAM;
+  beam->s.trail = TRAIL_LIGHTNING;
+
+  return beam;
+}
+
+/**
+ * @brief Where a lightning beam first crosses a portal, if it does.
+ */
+typedef struct {
+  bool crossed;
+  vec3_t point;
+} g_lightning_portal_t;
+
+/**
+ * @brief `G_TraceSegmentFunc` noting where a lightning beam first crosses a portal.
+ */
+static void G_LightningProjectile_Segment(const vec3_t start, const vec3_t end, const vec3_t normal, void *data) {
+
+  g_lightning_portal_t *portal = data;
+
+  if (!portal->crossed) {
+    portal->crossed = true;
+    portal->point = end;
+  }
+}
+
+/**
  * @brief Think callback for the lightning projectile; updates beam endpoints, handles water entry, and deals damage each tick.
  */
 static void G_LightningProjectile_Think(g_entity_t *ent) {
@@ -990,7 +1063,12 @@ static void G_LightningProjectile_Think(g_entity_t *ent) {
   end = Vec3_Fmaf(end, 2.f * sinf(g_level.time / 4.f), up);
   end = Vec3_Fmaf(end, RandomRangef(-2.f, 2.f), right);
 
-  tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
+  // the beam is traced through portals; this is where its final leg begins
+  vec3_t leg_start = start;
+  g_lightning_portal_t portal = { .crossed = false };
+
+  tr = G_TracePortals(&leg_start, &end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID,
+                      NULL, G_LightningProjectile_Segment, &portal);
 
   if (tr.contents & CONTENTS_MASK_LIQUID) { // entered water, play sound, leave trail
     water_start = tr.end;
@@ -1003,7 +1081,11 @@ static void G_LightningProjectile_Think(g_entity_t *ent) {
       ent->water_level = WATER_FEET;
     }
 
-    tr = gi.Trace(water_start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+    leg_start = water_start;
+
+    tr = G_TracePortals(&leg_start, &end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE,
+                        NULL, G_LightningProjectile_Segment, &portal);
+
     G_BubbleTrail(water_start, &tr, 4.f);
 
     G_Ripple(NULL, start, end, 16.f, true);
@@ -1017,9 +1099,9 @@ static void G_LightningProjectile_Think(g_entity_t *ent) {
     }
   }
 
-  // clear the angles for impact effects
-  ent->s.angles = Vec3_Zero();
-  ent->s.animation1 = LIGHTNING_NO_HIT;
+  // the angles and animation for impact effects, at the far end of the beam
+  vec3_t impact_angles = Vec3_Zero();
+  int32_t impact_animation = LIGHTNING_NO_HIT;
 
   if (ent->damage) { // shoot, removing our damage until it is renewed
     if (G_TakesDamage(tr.ent)) { // try to damage what we hit
@@ -1027,7 +1109,7 @@ static void G_LightningProjectile_Think(g_entity_t *ent) {
         .target = tr.ent,
         .inflictor = ent,
         .attacker = ent->owner,
-        .dir = forward,
+        .dir = portal.crossed ? Vec3_Normalize(Vec3_Subtract(end, leg_start)) : forward,
         .point = tr.end,
         .normal = tr.plane.normal,
         .damage = ent->damage,
@@ -1039,15 +1121,36 @@ static void G_LightningProjectile_Think(g_entity_t *ent) {
     } else { // or leave a mark
       if (tr.contents & CONTENTS_MASK_SOLID) {
         if (G_IsStructural(&tr)) {
-          ent->s.angles = Vec3_Euler(tr.plane.normal);
-          ent->s.animation1 = LIGHTNING_SOLID_HIT;
+          impact_angles = Vec3_Euler(tr.plane.normal);
+          impact_animation = LIGHTNING_SOLID_HIT;
         }
       }
     }
   }
 
   ent->s.origin = start; // update end points
-  ent->s.termination = tr.end;
+
+  if (portal.crossed) {
+    // the beam ends at the portal it enters; its far leg is a beam of its own
+    ent->s.termination = portal.point;
+    ent->s.angles = Vec3_Zero();
+    ent->s.animation1 = LIGHTNING_NO_HIT;
+
+    g_entity_t *beam = G_LightningProjectile_Portal(ent);
+
+    beam->s.origin = leg_start;
+    beam->s.termination = tr.end;
+    beam->s.angles = impact_angles;
+    beam->s.animation1 = impact_animation;
+    beam->timestamp = g_level.time;
+    beam->next_think = g_level.time + QUETOO_TICK_MILLIS;
+
+    gi.LinkEntity(beam);
+  } else {
+    ent->s.termination = tr.end;
+    ent->s.angles = impact_angles;
+    ent->s.animation1 = impact_animation;
+  }
 
   gi.LinkEntity(ent);
 
@@ -1238,6 +1341,30 @@ void G_FreeBeamProjectile(g_entity_t *emitter) {
 }
 
 /**
+ * @brief Sends the rail trail for one leg of a railgun shot.
+ */
+static void G_RailgunProjectile_Leg(const g_entity_t *emitter, const vec3_t start, const vec3_t end,
+                                    const vec3_t normal, int32_t surface) {
+
+  gi.WriteByte(SV_CMD_TEMP_ENTITY);
+  gi.WriteByte(TE_RAIL);
+  gi.WritePosition(start);
+  gi.WritePosition(end);
+  gi.WriteDir(normal);
+  gi.WriteLong(surface);
+  gi.WriteByte(emitter->s.client);
+
+  gi.Multicast(start, MULTICAST_PHS);
+}
+
+/**
+ * @brief `G_TraceSegmentFunc` sending the rail trail for each leg of a shot that crosses a portal.
+ */
+static void G_RailgunProjectile_Segment(const vec3_t start, const vec3_t end, const vec3_t normal, void *data) {
+  G_RailgunProjectile_Leg(data, start, end, normal, SURF_PORTAL);
+}
+
+/**
  * @brief Fires a railgun slug that traces through multiple targets, dealing damage to each.
  * @param emitter The entity the slug leaves, providing its origin and effect color.
  * @param attacker The entity credited with any damage the slug inflicts.
@@ -1266,9 +1393,18 @@ void G_RailgunProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t
 
   G_Ripple(NULL, pos, end, 24.f, true);
 
+  // the rail is drawn one leg at a time through portals; this is where the final leg begins
+  vec3_t leg_start = start;
+  vec3_t hit_dir = dir;
+
   g_entity_t *ignore = emitter;
   while (ignore) {
-    tr = gi.Trace(pos, end, Box3_Zero(), ignore, content_mask);
+    int32_t hops;
+    tr = G_TracePortals(&pos, &end, Box3_Zero(), ignore, content_mask, &hops, G_RailgunProjectile_Segment, emitter);
+    if (hops) {
+      leg_start = pos;
+      hit_dir = Vec3_Normalize(Vec3_Subtract(end, pos));
+    }
     if (!tr.ent) {
       break;
     }
@@ -1300,7 +1436,7 @@ void G_RailgunProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t
         .target = tr.ent,
         .inflictor = emitter,
         .attacker = attacker,
-        .dir = dir,
+        .dir = hit_dir,
         .point = tr.end,
         .normal = tr.plane.normal,
         .damage = damage,
@@ -1313,16 +1449,8 @@ void G_RailgunProjectile(g_entity_t *emitter, g_entity_t *attacker, const vec3_t
     pos = tr.end;
   }
 
-  // send rail trail
-  gi.WriteByte(SV_CMD_TEMP_ENTITY);
-  gi.WriteByte(TE_RAIL);
-  gi.WritePosition(start);
-  gi.WritePosition(tr.end);
-  gi.WriteDir(tr.plane.normal);
-  gi.WriteLong(tr.surface);
-  gi.WriteByte(emitter->s.client);
-
-  gi.Multicast(start, MULTICAST_PHS);
+  // send the rail trail for the final leg
+  G_RailgunProjectile_Leg(emitter, leg_start, tr.end, tr.plane.normal, tr.surface);
 }
 
 /**

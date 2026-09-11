@@ -64,7 +64,7 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
     return false;
   }
 
-  if (view->type == VIEW_PLAYER_MODEL) {
+  if (view->type == VIEW_PLAYER_MODEL || view->type == VIEW_PORTAL) {
     return false;
   }
 
@@ -296,7 +296,7 @@ void R_InitOcclusionQueries(void) {
     .num_uniform_buffers = 1,
   });
 
-  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/depth_pass_fs", &(SDL_GPUShaderCreateInfo) {
+  Shader *fragmentShader = $(r_context.device, loadShader, "shaders/occlude_fs", &(SDL_GPUShaderCreateInfo) {
     .stage = SDL_GPU_SHADERSTAGE_FRAGMENT,
   });
 

@@ -248,6 +248,13 @@ typedef struct {
    * @brief The vote in progress, from `CS_VOTE`.
    */
   cg_vote_state_t vote;
+
+  /**
+   * @brief True while entities are added for a portal view: the per-frame side effects of
+   * adding them (trails, breath, the view weapon, the muzzle cache) belong to the main view
+   * alone, and the local player is drawn like any other.
+   */
+  bool portal_view;
 } cg_state_t;
 
 extern cg_state_t cg_state;

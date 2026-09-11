@@ -1045,6 +1045,14 @@ static bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
       return true;
     }
 
+    // a portal face crossed before anything the trace hit carries the entity through, and the
+    // move goes on from the far side with whatever time is left
+    const float transit = G_TransitPortals(ent, ent->s.origin, pos, trace.fraction);
+    if (transit >= 0.f) {
+      time_remaining -= transit * time_remaining;
+      continue;
+    }
+
     const float time = trace.fraction * time_remaining;
 
     ent->s.origin = Vec3_Fmaf(ent->s.origin, time, ent->velocity);

@@ -79,6 +79,10 @@ void main(void) {
 
   out_depth = gl_FragCoord.z;
 
+  if (any(notEqual(clip_plane.xyz, vec3(0.0))) && dot(vertex.model_position, clip_plane.xyz) < clip_plane.w) {
+    discard;
+  }
+
   fragment.view_dir = normalize(-vertex.position);
   fragment.view_dist = length(vertex.position);
 

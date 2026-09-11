@@ -1034,9 +1034,9 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
     .color = color,
   });
 
-  // Check for explosion effect on solids
+  // Check for explosion effect on solids; a leg ending at a portal face goes on through it
 
-  if (flags & SURF_SKY) {
+  if (flags & (SURF_SKY | SURF_PORTAL)) {
     return;
   }
 
@@ -1514,7 +1514,10 @@ void Cg_ParseTempEntity(void) {
       const int32_t client = cgi.ReadByte();
       float hue;
       Cg_ClientEffectColor(client, &hue, color_hue_cyan);
-      if (client == cgi.client->frame.ps.client && !cgi.client->third_person) {
+      // our own rail leaves the view weapon's muzzle - unless it is the far leg of a shot
+      // through a portal, which does not leave us at all and keeps the start the server gave it
+      if (client == cgi.client->frame.ps.client && !cgi.client->third_person &&
+          Vec3_Distance(pos, Cg_Self()->origin) < 128.f) {
         pos = cg_state.clients[client].weapon_muzzle;
       }
       Cg_RailEffect(pos, pos2, dir, flags, hue);

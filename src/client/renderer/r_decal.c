@@ -335,7 +335,7 @@ static void R_ClipDecalToNode(const r_view_t *view,
       continue;
     }
 
-    if (face->patch->surface & SURF_SKY) {
+    if (face->patch->surface & (SURF_SKY | SURF_PORTAL)) {
       continue;
     }
 
@@ -398,7 +398,7 @@ static void R_ClipDecalToNode(const r_view_t *view,
       continue;
     }
 
-    if (face->brush_side->surface & SURF_SKY) {
+    if (face->brush_side->surface & (SURF_SKY | SURF_PORTAL)) {
       continue;
     }
 

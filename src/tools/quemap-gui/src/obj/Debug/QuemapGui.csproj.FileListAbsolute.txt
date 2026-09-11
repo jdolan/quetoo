@@ -1,0 +1,14 @@
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\src\obj\Debug\QuemapGui.csproj.AssemblyReference.cache
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\src\obj\Debug\QuemapGui.MainForm.resources
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\src\obj\Debug\QuemapGui.MapFileListItem.resources
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\src\obj\Debug\QuemapGui.csproj.GenerateResource.cache
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\src\obj\Debug\QuemapGui.GeneratedMSBuildEditorConfig.editorconfig
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\src\obj\Debug\QuemapGui.AssemblyInfoInputs.cache
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\src\obj\Debug\QuemapGui.AssemblyInfo.cs
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\src\obj\Debug\QuemapGui.csproj.CoreCompileInputs.cache
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\src\obj\Debug\QuemapGui.sourcelink.json
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\QuemapGui.exe.config
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\src\obj\Debug\QuemapGui.exe
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\src\obj\Debug\QuemapGui.pdb
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\QuemapGui.exe
+D:\Dev_Repos\quetoo\src\tools\quemap-gui\QuemapGui.pdb

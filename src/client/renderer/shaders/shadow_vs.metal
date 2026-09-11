@@ -38,6 +38,7 @@ struct uniforms_block
     float lighting_distance;
     int editor;
     int developer;
+    float4 clip_plane;
 };
 
 struct main0_out

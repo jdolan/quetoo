@@ -1,0 +1,107 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{D894D125-81C6-470E-1943-C331EE507492}|QuemapGui.csproj|d:\\dev_repos\\quetoo\\src\\tools\\quemap-gui\\src\\mapfilelistitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{D894D125-81C6-470E-1943-C331EE507492}|QuemapGui.csproj|solutionrelative:mapfilelistitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D894D125-81C6-470E-1943-C331EE507492}|QuemapGui.csproj|d:\\dev_repos\\quetoo\\src\\tools\\quemap-gui\\src\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{D894D125-81C6-470E-1943-C331EE507492}|QuemapGui.csproj|solutionrelative:mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D894D125-81C6-470E-1943-C331EE507492}|QuemapGui.csproj|d:\\dev_repos\\quetoo\\src\\tools\\quemap-gui\\src\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D894D125-81C6-470E-1943-C331EE507492}|QuemapGui.csproj|solutionrelative:mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D894D125-81C6-470E-1943-C331EE507492}|QuemapGui.csproj|d:\\dev_repos\\quetoo\\src\\tools\\quemap-gui\\src\\mainform.compile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D894D125-81C6-470E-1943-C331EE507492}|QuemapGui.csproj|solutionrelative:mainform.compile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D894D125-81C6-470E-1943-C331EE507492}|QuemapGui.csproj|d:\\dev_repos\\quetoo\\src\\tools\\quemap-gui\\src\\mainform.convert.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D894D125-81C6-470E-1943-C331EE507492}|QuemapGui.csproj|solutionrelative:mainform.convert.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MapFileListItem.cs [Design]",
+              "DocumentMoniker": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\MapFileListItem.cs",
+              "RelativeDocumentMoniker": "MapFileListItem.cs",
+              "ToolTip": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\MapFileListItem.cs [Design]",
+              "RelativeToolTip": "MapFileListItem.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-03T23:04:22.632Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MainForm.cs [Design]",
+              "DocumentMoniker": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\MainForm.cs",
+              "RelativeDocumentMoniker": "MainForm.cs",
+              "ToolTip": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\MainForm.cs [Design]",
+              "RelativeToolTip": "MainForm.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-03T22:51:36.923Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MainForm.cs",
+              "DocumentMoniker": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\MainForm.cs",
+              "RelativeDocumentMoniker": "MainForm.cs",
+              "ToolTip": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\MainForm.cs",
+              "RelativeToolTip": "MainForm.cs",
+              "ViewState": "AgIAADMAAAAAAAAAAAAUwC0AAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-03T22:51:49.031Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "MainForm.Convert.cs",
+              "DocumentMoniker": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\MainForm.Convert.cs",
+              "RelativeDocumentMoniker": "MainForm.Convert.cs",
+              "ToolTip": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\MainForm.Convert.cs",
+              "RelativeToolTip": "MainForm.Convert.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-03T22:52:14.522Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MainForm.Compile.cs",
+              "DocumentMoniker": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\MainForm.Compile.cs",
+              "RelativeDocumentMoniker": "MainForm.Compile.cs",
+              "ToolTip": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\MainForm.Compile.cs",
+              "RelativeToolTip": "MainForm.Compile.cs",
+              "ViewState": "AgIAAEoAAAAAAAAAAAAQwFsAAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-03T22:48:55.39Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

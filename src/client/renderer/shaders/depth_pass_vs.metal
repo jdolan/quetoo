@@ -30,6 +30,7 @@ struct uniforms_block
     float lighting_distance;
     int editor;
     int developer;
+    float4 clip_plane;
 };
 
 struct locals_block
@@ -39,6 +40,7 @@ struct locals_block
 
 struct main0_out
 {
+    float3 out_model_position [[user(locn0)]];
     float4 gl_Position [[position, invariant]];
 };
 
@@ -51,10 +53,11 @@ vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _17 [[
 {
     main0_out out = {};
     float4x4 view_model = _17.view * _24.model;
-    float4x4 _39 = _17.projection3D * view_model;
-    float4 _48 = float4(in.in_position, 1.0);
-    float4 _49 = _39 * _48;
-    out.gl_Position = _49;
+    out.out_model_position = float3((_24.model * float4(in.in_position, 1.0)).xyz);
+    float4x4 _57 = _17.projection3D * view_model;
+    float4 _62 = float4(in.in_position, 1.0);
+    float4 _63 = _57 * _62;
+    out.gl_Position = _63;
     return out;
 }
 

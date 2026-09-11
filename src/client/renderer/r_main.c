@@ -129,13 +129,14 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->lighting_distance = r_lighting_distance->value;
     out->editor = editor->integer;
     out->developer = developer->integer;
+    out->clip_plane = view->clip_plane;
 
     // a view that is not the main view - the player model preview - has no
     // relation to the world's lighting, and its lookups must all land on the
     // one voxel of the fallback buffers: clamping to a zero-sized grid would
     // not, since clamp() with a low bound above its high bound is undefined,
     // and a zero-sized box would not either, since voxel_uvw divides by it
-    if (view->type != VIEW_MAIN || !r_models.world) {
+    if ((view->type != VIEW_MAIN && view->type != VIEW_PORTAL) || !r_models.world) {
       out->voxels.mins = Vec4(0.f, 0.f, 0.f, 0.f);
       out->voxels.maxs = Vec4(1.f, 1.f, 1.f, 0.f);
       out->voxels.size = Vec4(1.f, 1.f, 1.f, 0.f);
@@ -257,6 +258,8 @@ void R_InitView(r_view_t *view) {
   view->num_sprites = 0;
   view->num_sprite_instances = 0;
   view->num_decals = 0;
+  view->clip_plane = Vec4_Zero();
+  view->portal_exit = NULL;
 
   memset(&view->stats, 0, sizeof(view->stats));
 }

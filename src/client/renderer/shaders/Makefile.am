@@ -15,6 +15,7 @@ shaders_DATA = \
 	material.glsl \
 	mesh_fs.glsl \
 	mesh_vs.glsl \
+	occlude_fs.glsl \
 	occlude_vs.glsl \
 	post_fs.glsl \
 	post_vs.glsl \
@@ -40,7 +41,7 @@ shaders_DATA = \
 # because ObjectivelyGPU resolves that extension for a D3D12 device.
 
 VERTEX_SHADERS = depth_pass_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs shadow_clear_vs sky_vs sprite_vs decal_vs occlude_vs
-FRAGMENT_SHADERS = depth_pass_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs shadow_clear_fs sky_fs sprite_fs decal_fs
+FRAGMENT_SHADERS = depth_pass_fs occlude_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs shadow_clear_fs sky_fs sprite_fs decal_fs
 
 # Fragment shaders with an ALPHA_TEST compile-time variant due to the implications of discard.
 ALPHA_TEST_FRAGMENT_SHADERS = bsp_fs mesh_fs shadow_fs

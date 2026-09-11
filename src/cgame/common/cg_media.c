@@ -394,6 +394,8 @@ void Cg_FreeMedia(void) {
 
   Cg_DestroyFramebuffer();
 
+  Cg_FreePortals();
+
   Cg_FreeLights();
 
   Cg_FreeEntities();

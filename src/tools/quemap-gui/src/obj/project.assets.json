@@ -1,0 +1,66 @@
+{
+  "version": 4,
+  "targets": {
+    "net48": {},
+    "net48/win-x86": {}
+  },
+  "libraries": {},
+  "projectFileDependencyGroups": {
+    "net48": []
+  },
+  "packageFolders": {
+    "C:\\Users\\chrisg\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\QuemapGui.csproj",
+      "projectName": "QuemapGui",
+      "projectPath": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\QuemapGui.csproj",
+      "packagesPath": "C:\\Users\\chrisg\\.nuget\\packages\\",
+      "outputPath": "D:\\Dev_Repos\\quetoo\\src\\tools\\quemap-gui\\src\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\chrisg\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net48"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net48": {
+          "framework": "net48",
+          "targetAlias": "net48",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "10.0.400"
+    },
+    "frameworks": {
+      "net48": {
+        "framework": "net48",
+        "targetAlias": "net48",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.400\\RuntimeIdentifierGraph.json"
+      }
+    },
+    "runtimes": {
+      "win-x86": {
+        "#import": []
+      }
+    }
+  }
+}
