@@ -137,6 +137,17 @@ static void Sv_Map_f(void) {
  */
 void Sv_NextMap_f(void) {
 
+  // an override is consumed by this one map change, whether or not it is in the
+  // rotation, so that it can not survive to decide a later one
+  char next[MAX_QPATH];
+  q_strlcpy(next, svs.maps.next, sizeof(next));
+  svs.maps.next[0] = '\0';
+
+  if (*next) {
+    Sv_InitServer(next, Sv_SelectMap(next), SV_ACTIVE_GAME);
+    return;
+  }
+
   const cm_entity_t *props = Sv_NextMap();
   if (props) {
     const char *name = Cm_EntityValue(props, "name")->string;

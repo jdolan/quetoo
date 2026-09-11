@@ -22,9 +22,9 @@
 #include "sv_local.h"
 
 /**
- * @brief Returns the next map from the configured list, or `NULL` if unavailable.
+ * @brief Re-parses the map list if the configured file has changed since it was loaded.
  */
-const cm_entity_t *Sv_NextMap(void) {
+static void Sv_RefreshMapList(void) {
 
   if (strlen(sv_map_list->string)) {
     if (q_strcmp(svs.maps.filename, sv_map_list->string) ||
@@ -32,6 +32,77 @@ const cm_entity_t *Sv_NextMap(void) {
       Sv_InitMapList();
     }
   }
+}
+
+/**
+ * @brief The list entry naming `name`, or `NULL`.
+ * @remarks The rotation resumes from whatever this returns, so that a map served out of
+ * turn does not leave `index` pointing at a position the server never actually reached.
+ */
+const cm_entity_t *Sv_SelectMap(const char *name) {
+
+  Sv_RefreshMapList();
+
+  if (svs.maps.list == NULL) {
+    return NULL;
+  }
+
+  int32_t i = 0;
+  for (const ListNode *node = svs.maps.list->head; node; node = node->next, i++) {
+    const cm_entity_t *props = (const cm_entity_t *) node->element;
+
+    if (!q_strcmp(Cm_EntityValue(props, "name")->string, name)) {
+      svs.maps.index = i;
+      return props;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Returns a copy of the configured map list, or `NULL` if there is none.
+ * @return A list of `cm_entity_t *`, each to be freed with `Cm_FreeEntity`.
+ * @remarks The copy is the caller's, so that a `sv_map_list` edit which re-parses the
+ * list underneath them does not free entries they still hold.
+ */
+List *Sv_MapList(void) {
+
+  Sv_RefreshMapList();
+
+  if (svs.maps.list == NULL) {
+    return NULL;
+  }
+
+  List *copy = $(alloc(List), init);
+
+  for (const ListNode *node = svs.maps.list->head; node; node = node->next) {
+    $(copy, append, Cm_CopyEntity((const cm_entity_t *) node->element));
+  }
+
+  return copy;
+}
+
+/**
+ * @brief Names the map the next `next_map` serves, in place of the rotation's pick.
+ * @remarks The override is consumed by that one map change, so that it can not survive
+ * to decide a later one.
+ */
+void Sv_SetNextMap(const char *name) {
+
+  if (name && *name && Fs_Exists(va("maps/%s.bsp", name))) {
+    q_strlcpy(svs.maps.next, name, sizeof(svs.maps.next));
+  } else {
+    Com_Warn("Ignoring next map %s\n", name ? name : "(null)");
+  }
+}
+
+/**
+ * @brief Returns the next map from the configured list, or `NULL` if unavailable.
+ */
+const cm_entity_t *Sv_NextMap(void) {
+
+  Sv_RefreshMapList();
 
   if (svs.maps.list == NULL) {
     return NULL;
@@ -98,6 +169,7 @@ void Sv_InitMapList(void) {
 
   svs.maps.length = (int32_t) svs.maps.list->count;
   svs.maps.index = -1;
+  svs.maps.next[0] = '\0';
 
   Fs_Free(buffer);
 
@@ -114,4 +186,5 @@ void Sv_ShutdownMapList(void) {
   svs.maps.index = -1;
   svs.maps.modtime = 0;
   svs.maps.filename[0] = '\0';
+  svs.maps.next[0] = '\0';
 }

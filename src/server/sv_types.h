@@ -367,6 +367,12 @@ typedef struct {
    * @brief The modification time of the file when it was last loaded.
    */
   int64_t modtime;
+
+  /**
+   * @brief The map `Sv_SetNextMap` named, which the next `Sv_NextMap` returns in
+   * place of the rotation's pick, or empty. Consumed as soon as it is read.
+   */
+  char next[MAX_QPATH];
 } sv_map_list_t;
 
 /**

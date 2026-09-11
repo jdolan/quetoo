@@ -26,6 +26,9 @@
 #if defined(__SV_LOCAL_H__)
 
 const cm_entity_t *Sv_NextMap(void);
+const cm_entity_t *Sv_SelectMap(const char *name);
+List *Sv_MapList(void);
+void Sv_SetNextMap(const char *name);
 void Sv_InitMapList(void);
 void Sv_ShutdownMapList(void);
 
