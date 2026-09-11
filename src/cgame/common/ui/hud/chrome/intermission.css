@@ -1,0 +1,55 @@
+/*
+ * The chrome variant's intermission strip: what follows this level, along the bottom of
+ * the screen with the countdown beneath it.
+ *
+ * It shares the screen with the scoreboard, which is anchored to the top and grows
+ * downward, so this is anchored to the bottom and kept to the height of one row of tiles.
+ */
+
+IntermissionView {
+  autoresizing-mask: fill;
+}
+
+IntermissionView Text {
+  font-family: Barlow Condensed;
+  font-style: regular;
+  font-size: 16;
+  color: #f2f5f6;
+}
+
+IntermissionView > .maps {
+  alignment: bottom-center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 16;
+  padding-bottom: 44;
+}
+
+IntermissionView .map {
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 3;
+  padding: 5 5 5 5;
+}
+
+IntermissionView .mapshot {
+  width: 176;
+  height: 132;
+}
+
+IntermissionView .name {
+  alignment: top-center;
+  text-transform: uppercase;
+}
+
+IntermissionView .votes {
+  alignment: top-center;
+  color: #6fb3cc;
+}
+
+IntermissionView > .countdown {
+  alignment: bottom-center;
+  font-family: M PLUS U;
+  font-size: 28;
+  padding-bottom: 12;
+}

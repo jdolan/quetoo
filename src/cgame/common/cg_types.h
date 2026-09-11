@@ -22,6 +22,7 @@
 #pragma once
 
 #include "cgame/cgame.h"
+#include "bg_intermission.h"
 #include "g_types.h"
 
 #if defined(__CG_LOCAL_H__)
@@ -86,6 +87,36 @@ typedef struct {
    */
   uint32_t deadline;
 } cg_vote_state_t;
+
+/**
+ * @brief The intermission's map candidates, as `CS_NEXT_MAP` describes them.
+ */
+typedef struct {
+
+  /**
+   * @brief Whether an intermission is under way. The maps are published only for one,
+   * so their absence is what says the level is still being played.
+   */
+  bool active;
+
+  /**
+   * @brief Whether ballots are being taken, or the next map is simply being announced.
+   */
+  bool voting;
+
+  /**
+   * @brief The candidates, and the tally each has drawn.
+   */
+  char maps[MAX_NEXT_MAPS][MAX_QPATH];
+  int32_t votes[MAX_NEXT_MAPS];
+  int32_t num_maps;
+
+  /**
+   * @brief Bumped whenever the candidates change, so that a view redraws the thumbnails
+   * only when it must; resolving one enumerates the filesystem.
+   */
+  uint32_t generation;
+} cg_next_map_state_t;
 
 /**
  * @brief The client game representation of clients (players).
@@ -248,6 +279,11 @@ typedef struct {
    * @brief The vote in progress, from `CS_VOTE`.
    */
   cg_vote_state_t vote;
+
+  /**
+   * @brief The intermission's map candidates, from `CS_NEXT_MAP`.
+   */
+  cg_next_map_state_t next_map;
 } cg_state_t;
 
 extern cg_state_t cg_state;

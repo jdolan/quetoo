@@ -74,6 +74,7 @@ cgame_la_SOURCES = \
 	cg_hud.c \
 	cg_hud_draw.c \
 	cg_input.c \
+	cg_intermission.c \
 	cg_inventory.c \
 	cg_light.c \
 	cg_main.c \
@@ -119,6 +120,7 @@ cgame_la_SOURCES = \
 	ui/hud/DiagnosticsView.c \
 	ui/hud/FpsView.c \
 	ui/hud/HudViewController.c \
+	ui/hud/IntermissionView.c \
 	ui/hud/NavEditView.c \
 	ui/hud/NotifyView.c \
 	ui/hud/OverlayText.c \

@@ -63,5 +63,6 @@
 #include "cg_types.h"
 #include "cg_ui.h"
 #include "cg_view.h"
+#include "cg_intermission.h"
 #include "cg_vote.h"
 #include "cg_weapon.h"

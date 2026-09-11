@@ -1,0 +1,55 @@
+/*
+ * The default variant's intermission strip: what follows this level, along the bottom of
+ * the screen with the countdown beneath it.
+ *
+ * It shares the screen with the scoreboard, which is anchored to the top and grows
+ * downward, so this is anchored to the bottom and kept to the height of one row of tiles.
+ */
+
+IntermissionView {
+  autoresizing-mask: fill;
+}
+
+IntermissionView Text {
+  font-family: Share Tech Mono;
+  font-size: 14;
+  color: #ffffff;
+}
+
+IntermissionView > .maps {
+  alignment: bottom-center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 12;
+  padding-bottom: 40;
+}
+
+IntermissionView .map {
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 2;
+  background-color: #08151a66;
+  border-radius: 4;
+  padding: 4 4 4 4;
+}
+
+IntermissionView .mapshot {
+  width: 160;
+  height: 120;
+  border-radius: 2;
+}
+
+IntermissionView .name {
+  alignment: top-center;
+}
+
+IntermissionView .votes {
+  alignment: top-center;
+  color: #8fc7dc;
+}
+
+IntermissionView > .countdown {
+  alignment: bottom-center;
+  font-size: 24;
+  padding-bottom: 12;
+}

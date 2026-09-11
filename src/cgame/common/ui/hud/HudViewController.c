@@ -57,6 +57,7 @@ static void dealloc(Object *self) {
 
   release(this->hud);
   release(this->scoreboard);
+  release(this->intermission);
   release(this->navEdit);
   release(this->notify);
   release(this->chat);
@@ -184,7 +185,10 @@ static void checkHud(const char *hud) {
     return;
   }
 
-  const char *files[] = { "hud.json", "hud.css", "scoreboard.json", "scoreboard.css" };
+  const char *files[] = {
+    "hud.json", "hud.css", "scoreboard.json", "scoreboard.css",
+    "intermission.json", "intermission.css"
+  };
 
   for (size_t i = 0; i < lengthof(files); i++) {
     if (cgi.StatFile(va("ui/hud/%s/%s", hud, files[i]), NULL)) {
@@ -245,6 +249,30 @@ static ScoreboardView *loadScoreboard(const char *hud) {
 }
 
 /**
+ * @brief Loads the hud's intermission, which a module MAY name an IntermissionView subclass in.
+ */
+static IntermissionView *loadIntermission(const char *hud) {
+
+  const char *json = hudResource(hud, "intermission.json");
+
+  View *intermission = $$(View, viewWithResourceName, json, NULL);
+  if (intermission == NULL || !$((Object *) intermission, isKindOfClass, _IntermissionView())) {
+    Cg_Warn("%s did not yield an IntermissionView\n", json);
+    release(intermission);
+    intermission = $((View *) alloc(IntermissionView), init);
+  }
+
+  const char *css = hudResource(hud, "intermission.css");
+
+  intermission->stylesheet = $$(Stylesheet, stylesheetWithResourceName, css);
+  if (intermission->stylesheet == NULL) {
+    Cg_Warn("Failed to load %s\n", css);
+  }
+
+  return (IntermissionView *) intermission;
+}
+
+/**
  * @fn void HudViewController::reload(HudViewController *self)
  * @memberof HudViewController
  */
@@ -264,8 +292,16 @@ static void reload(HudViewController *self) {
     self->scoreboard = release(self->scoreboard);
   }
 
+  if (self->intermission) {
+    $((View *) self->intermission, removeFromSuperview);
+    self->intermission = release(self->intermission);
+  }
+
   self->scoreboard = loadScoreboard(cg_hud->string);
   $(self->viewController.view, addSubview, (View *) self->scoreboard);
+
+  self->intermission = loadIntermission(cg_hud->string);
+  $(self->viewController.view, addSubview, (View *) self->intermission);
 
   View *hud = loadHud(cg_hud->string);
   if (hud == NULL && q_strcmp(cg_hud->string, HUD_DEFAULT)) {
@@ -283,6 +319,7 @@ static void reload(HudViewController *self) {
   $(self->viewController.view, bringSubviewToFront, (View *) self->notify);
   $(self->viewController.view, bringSubviewToFront, (View *) self->chat);
   $(self->viewController.view, bringSubviewToFront, (View *) self->scoreboard);
+  $(self->viewController.view, bringSubviewToFront, (View *) self->intermission);
   $(self->viewController.view, bringSubviewToFront, (View *) self->navEdit);
   self->hud = hud;
 
@@ -370,6 +407,17 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
 
   if (scores) {
     $((View *) self->scoreboard, updateBindings, (ident) frame);
+  }
+
+  // The maps are published only during the intermission, so their presence is what says
+  // there is one; like the scoreboard, this shows when the hud does not
+  const bool intermission = cg_state.next_map.active && !cg_state.nav_edit;
+
+  $((View *) self->intermission, setVisibility,
+    intermission ? ViewVisibilityVisible : ViewVisibilityHidden);
+
+  if (intermission) {
+    $((View *) self->intermission, updateBindings, (ident) frame);
   }
 
   const bool hidden = !cg_draw_hud->integer || !ps->stats[STAT_TIME] || cg_state.nav_edit;

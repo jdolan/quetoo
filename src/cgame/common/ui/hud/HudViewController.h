@@ -26,6 +26,7 @@
 
 #include "ChatView.h"
 #include "DiagnosticsView.h"
+#include "IntermissionView.h"
 #include "NavEditView.h"
 #include "NotifyView.h"
 #include "ScoreboardView.h"
@@ -102,6 +103,11 @@ struct HudViewController {
    * @brief The scoreboard, a sibling of `hud`.
    */
   ScoreboardView *scoreboard;
+
+  /**
+   * @brief What follows this level, a sibling of `hud` shown through the intermission.
+   */
+  IntermissionView *intermission;
 };
 
 struct HudViewControllerInterface {
