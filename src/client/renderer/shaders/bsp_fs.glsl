@@ -35,7 +35,8 @@
 // warp (13 total), so storage bindings must follow those 13 -- see
 // material.glsl's BINDING_STORAGE_NUM_ACTIVE_SAMPLERS comment.
 #define BINDING_SAMPLER_WARP                 12
-#define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS  13
+#define BINDING_SAMPLER_PORTAL               13
+#define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS  14
 #define BINDING_UNIFORMS_MATERIAL            2
 
 #include "common.glsl"
@@ -52,6 +53,11 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bsp_locals_
  * @brief Warp texture for STAGE_WARP liquid surfaces.
  */
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_WARP) uniform sampler2D texture_warp;
+
+/**
+ * @brief The view through a SURF_PORTAL face, rendered from its paired portal.
+ */
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_PORTAL) uniform sampler2D texture_portal;
 
 layout (location = 0) in common_vertex_t vertex;
 
@@ -108,6 +114,17 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
 void main(void) {
 
   out_depth = gl_FragCoord.z;
+
+  if (any(notEqual(clip_plane.xyz, vec3(0.0))) && dot(vertex.model_position, clip_plane.xyz) < clip_plane.w) {
+    discard;
+  }
+
+  // a portal face shows the view through it: the paired portal was rendered with this same
+  // projection, so the pixel under this fragment is the one to show
+  if ((material.surface & SURF_PORTAL) == SURF_PORTAL) {
+    out_color = vec4(texture(texture_portal, gl_FragCoord.xy / vec2(viewport.zw)).rgb, 1.0);
+    return;
+  }
 
   fragment.view_dir = normalize(-vertex.position);
   fragment.view_dist = length(vertex.position);

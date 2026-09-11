@@ -129,6 +129,7 @@ struct uniforms_block
     float lighting_distance;
     int editor;
     int developer;
+    float4 clip_plane;
 };
 
 struct voxel_light_data_block

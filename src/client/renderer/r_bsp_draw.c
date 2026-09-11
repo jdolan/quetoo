@@ -26,6 +26,7 @@
  */
 enum {
   BSP_SAMPLER_WARP = R_SAMPLER_MATERIAL_TOTAL,
+  BSP_SAMPLER_PORTAL,
   BSP_NUM_SAMPLERS,
 };
 
@@ -296,7 +297,7 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
 
     if (IS_WORLDSPAWN(entity->model)) {
 
-      if (block->query->result == 0) {
+      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
         continue;
       }
 
@@ -319,8 +320,10 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
 
 /**
  * @brief Draws the opaque draw elements in a BSP block.
+ * @param portal The texture the SURF_PORTAL face of `in` shows, if any.
  */
-static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block, RenderPass *pass) {
+static void R_DrawOpaqueBspBlock(const r_view_t *view, const r_bsp_inline_model_t *in, SDL_GPUTexture *portal,
+                                 const r_bsp_block_t *block, RenderPass *pass) {
 
   const r_bsp_draw_elements_t *draw = block->draw_elements;
   for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -329,9 +332,30 @@ static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block, RenderPass *pass) {
       continue;
     }
 
-    if (draw->material != r_bsp_draw.material || draw->surface != r_bsp_draw.surface) {
+    int32_t surface = draw->surface;
+
+    if (surface & SURF_PORTAL) {
+
+      // a portal view never draws the face it looks out of, which would cover it entirely
+      if (view->type == VIEW_PORTAL && in == view->portal_exit) {
+        continue;
+      }
+
+      // a portal face shows the view through it only in the main view, and only once the
+      // client game has rendered one; otherwise it is shaded as a plain material
+      if (portal && view->type != VIEW_PORTAL) {
+        $(pass, bindFragmentSamplers, BSP_SAMPLER_PORTAL, &(SDL_GPUTextureSamplerBinding) {
+          .texture = portal,
+          .sampler = r_bsp_draw.clamp_sampler->sampler,
+        }, 1);
+      } else {
+        surface &= ~SURF_PORTAL;
+      }
+    }
+
+    if (draw->material != r_bsp_draw.material || surface != r_bsp_draw.surface) {
       r_bsp_draw.material = draw->material;
-      r_bsp_draw.surface = draw->surface;
+      r_bsp_draw.surface = surface;
 
       $(pass, bindPipeline, r_bsp_draw.opaque_pipeline);
 
@@ -341,7 +365,7 @@ static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block, RenderPass *pass) {
       }, 1);
 
       r_material_uniforms_t material;
-      R_MaterialUniforms(draw->material, draw->surface, &material);
+      R_MaterialUniforms(draw->material, surface, &material);
       $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
     }
 
@@ -404,6 +428,8 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
+  SDL_GPUTexture *portal = IS_WORLDSPAWN(entity->model) ? NULL : R_PortalTexture(in);
+
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
@@ -415,7 +441,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 
     if (IS_WORLDSPAWN(entity->model)) {
 
-      if (block->query->result == 0) {
+      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
         r_stats->blocks_occluded++;
         continue;
       }
@@ -427,7 +453,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
       $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
     }
 
-    R_DrawOpaqueBspBlock(block, pass);
+    R_DrawOpaqueBspBlock(view, in, portal, block, pass);
   }
 
   r_stats->bsp_inline_models++;
@@ -455,7 +481,7 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
 
     if (IS_WORLDSPAWN(entity->model)) {
 
-      if (block->query->result == 0) {
+      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
         continue;
       }
 
@@ -526,6 +552,11 @@ void R_DrawOpaqueBspEntities(const r_view_t *view, RenderPass *pass) {
   $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_bsp_draw.warp_texture->texture,
     .sampler = r_bsp_draw.repeat_sampler->sampler,
+  }, 1);
+
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_PORTAL, &(SDL_GPUTextureSamplerBinding) {
+    .texture = r_context.null_texture->texture,
+    .sampler = r_bsp_draw.clamp_sampler->sampler,
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
@@ -670,7 +701,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity,
 
     if (IS_WORLDSPAWN(entity->model)) {
 
-      if (block->query->result == 0) {
+      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
         continue;
       }
 
@@ -739,6 +770,11 @@ void R_DrawBlendBspEntities(const r_view_t *view, RenderPass *pass) {
   $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_bsp_draw.warp_texture->texture,
     .sampler = r_bsp_draw.repeat_sampler->sampler,
+  }, 1);
+
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_PORTAL, &(SDL_GPUTextureSamplerBinding) {
+    .texture = r_context.null_texture->texture,
+    .sampler = r_bsp_draw.clamp_sampler->sampler,
   }, 1);
 
   SDL_GPUBuffer *storage[] = {

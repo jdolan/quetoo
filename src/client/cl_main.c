@@ -593,6 +593,8 @@ static void Cl_UpdateScene(void) {
 
   Thread_Wait(thread);
 
+  cls.cgame->DrawPortals(&cl.frame);
+
   thread = Thread_Create((ThreadRunFunc) S_RenderStage, &cl_stage, THREAD_NONE);
 
   R_DrawMainView(&cl_view);

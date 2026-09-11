@@ -97,7 +97,8 @@ const cg_entity_class_t *cg_entity_classes[] = {
   &cg_misc_sparks,
   &cg_misc_sprite,
   &cg_misc_steam,
-  &cg_misc_weather
+  &cg_misc_weather,
+  &cg_trigger_portal
 };
 
 const size_t cg_num_entity_classes = lengthof(cg_entity_classes);
@@ -255,7 +256,10 @@ void Cg_Interpolate(const cl_frame_t *frame) {
  */
 static void Cg_AddEntity_Common(cl_entity_t *ent) {
 
-  Cg_EntityTrail(ent);
+  // a portal view repeats this frame's entities; their trails were already emitted
+  if (!cg_state.portal_view) {
+    Cg_EntityTrail(ent);
+  }
 
   // set the origin and angles so that we know where to add effects
   r_entity_t e = {
@@ -286,7 +290,7 @@ static void Cg_AddEntity_Common(cl_entity_t *ent) {
     Cg_AddClientEntity(ent, &e);
 
     // add our view weapon, if it's our view entity and we're in first-person
-    if (ent == Cg_Self() && !cgi.client->third_person) {
+    if (ent == Cg_Self() && !cgi.client->third_person && !cg_state.portal_view) {
       Cg_AddWeapon(ent, &e);
     }
 
@@ -311,6 +315,22 @@ static void Cg_AddEntity_Common(cl_entity_t *ent) {
 AddEntity Cg_AddEntity = Cg_AddEntity_Common;
 
 /**
+ * @brief Adds the server side entities of the frame to the current view.
+ * @remarks Portal views call this again, with `cgi.view` pointed at their own view.
+ */
+void Cg_AddFrameEntities(const cl_frame_t *frame) {
+
+  for (int32_t i = 0; i < frame->num_entities; i++) {
+
+    const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
+    const entity_state_t *s = &cgi.client->entity_states[snum];
+    cl_entity_t *ent = &cgi.client->entities[s->number];
+
+    Cg_AddEntity(ent);
+  }
+}
+
+/**
  * @brief Iterate all entities in the current frame, adding models, sprites,
  * lights, and anything else associated with them.
  *
@@ -332,15 +352,7 @@ void Cg_AddEntities(const cl_frame_t *frame) {
     return;
   }
 
-  // add server side entities
-  for (int32_t i = 0; i < frame->num_entities; i++) {
-
-    const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cgi.client->entity_states[snum];
-    cl_entity_t *ent = &cgi.client->entities[s->number];
-
-    Cg_AddEntity(ent);
-  }
+  Cg_AddFrameEntities(frame);
 
   // and client side entities too
   cg_entity_t *e = cg_entities->elements;

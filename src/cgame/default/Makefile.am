@@ -190,6 +190,7 @@ cgame_la_SOURCES = \
 	cg_entity_effect.c \
 	cg_entity_event.c \
 	cg_entity_misc.c \
+	cg_entity_portal.c \
 	cg_entity_trail.c \
 	cg_flare.c \
 	cg_hud.c \

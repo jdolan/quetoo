@@ -433,7 +433,7 @@ static void SetMaterialFlags(brush_side_t *side) {
   } else if (!q_strcmp(side->texture, "common/origin")) {
     side->contents |= CONTENTS_ORIGIN;
   } else if (!q_strcmp(side->texture, "common/portal")) {
-    side->surface |= SURF_NO_DRAW;
+    side->surface |= SURF_PORTAL;
   } else if (!q_strcmp(side->texture, "common/skip")) {
     side->surface |= SURF_SKIP;
   } else if (!q_strcmp(side->texture, "common/sky")) {
@@ -690,14 +690,15 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
   }
 
   // a face textured common/portal marks the entity as a portal: its centroid and facing are
-  // baked into portal_origin and angles, authoritatively - overwriting any angle the mapper set
-  // by hand, since the two must never be allowed to drift out of sync. The tagged face is the
-  // one the mapper sees/touches approaching the portal, so its outward normal points back
-  // toward them - the direction of travel through the portal is the reverse of that. The full
-  // pitch and yaw of that direction are baked (not yaw alone), so a portal tagged on a floor,
-  // ceiling, or slope orients correctly, not just one tagged on a vertical wall. The face itself
-  // is kept - unlike an origin brush, this is a real face of the entity's own solid, not a
-  // separate marker brush to be discarded.
+  // baked into portal_origin and portal_angles, authoritatively, since the two must never be
+  // allowed to drift out of sync. They are deliberately not the entity's own origin and angles:
+  // those would rotate the brush model itself (for rendering and collision alike) out from
+  // under the mapper. The tagged face is the one the mapper sees/touches approaching the portal,
+  // so its outward normal points back toward them - the direction of travel through the portal
+  // is the reverse of that. The full pitch and yaw of that direction are baked (not yaw alone),
+  // so a portal tagged on a floor, ceiling, or slope orients correctly, not just one tagged on a
+  // vertical wall. The face itself is kept - unlike an origin brush, this is a real face of the
+  // entity's own solid, not a separate marker brush to be discarded.
   if (brush->entity != 0) {
     const brush_side_t *side = brush->brush_sides;
     for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
@@ -718,7 +719,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
       const vec3_t normal = planes[side->plane].normal;
       const vec3_t angles = Vec3_Euler(Vec3_Negate(normal));
-      SetValueForKey(entity, "angles", va("%g %g %g", angles.x, angles.y, angles.z));
+      SetValueForKey(entity, "portal_angles", va("%g %g %g", angles.x, angles.y, angles.z));
       break;
     }
   }

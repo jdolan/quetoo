@@ -43,6 +43,7 @@
 #define VIEW_UNKNOWN        0
 #define VIEW_MAIN           1
 #define VIEW_PLAYER_MODEL   2
+#define VIEW_PORTAL         3
 
 #define BSP_VOXEL_SIZE      32.0
 
@@ -175,6 +176,11 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
    * @brief Developer debug flags.
    */
   int developer;
+
+  /**
+   * @brief World-space clip plane (normal, distance); a zero normal disables it.
+   */
+  vec4 clip_plane;
 };
 
 #endif // _UNIFORMS_GLSL_

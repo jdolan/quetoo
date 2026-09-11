@@ -745,6 +745,8 @@ static void R_RegisterBspModel(r_media_t *self) {
   R_RegisterDependency(self, (r_media_t *) mod->bsp->sky);
 
   r_models.world = mod;
+
+  R_ClearPortalTextures();
 }
 
 /**

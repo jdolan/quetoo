@@ -314,6 +314,8 @@ void Cl_InitCgame(void) {
   import.AddDecal = R_AddDecal;
 
   import.DrawPlayerModelView = R_DrawPlayerModelView;
+  import.DrawPortalView = R_DrawPortalView;
+  import.SetPortalTexture = R_SetPortalTexture;
 
   import.Draw3DLines = R_Draw3DLines;
   import.Draw3DBox = R_Draw3DBox;

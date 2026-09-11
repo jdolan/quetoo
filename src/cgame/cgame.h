@@ -37,7 +37,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 44
+#define CGAME_API_VERSION 45
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -895,6 +895,16 @@ typedef struct cg_import_s {
   void (*DrawPlayerModelView)(r_view_t *view);
 
   /**
+   * @brief Draws a portal view into its framebuffer, then restores the uniforms of `outer`.
+   */
+  void (*DrawPortalView)(r_view_t *view, const r_view_t *outer);
+
+  /**
+   * @brief Sets the texture the portal face of the given inline model shows, or NULL for none.
+   */
+  void (*SetPortalTexture)(const r_bsp_inline_model_t *in, Texture *texture);
+
+  /**
    * @}
    * @defgroup draw-2d 2D drawing
    * @{
@@ -1050,6 +1060,12 @@ typedef struct cg_export_s {
    * definition and sound stage.
    */
   void (*PopulateScene)(const cl_frame_t *frame);
+
+  /**
+   * @brief Called each frame, after the scene is populated and before the main view is drawn, to
+   * draw the views through trigger_portal faces.
+   */
+  void (*DrawPortals)(const cl_frame_t *frame);
 
   /**
    * @brief Called each frame to populate the view definition and sound stage for the in-game editor.

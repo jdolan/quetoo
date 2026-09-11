@@ -1919,6 +1919,7 @@ typedef enum {
   VIEW_UNKNOWN,
   VIEW_MAIN,
   VIEW_PLAYER_MODEL,
+  VIEW_PORTAL,
 } r_view_type_t;
 
 /**
@@ -2099,6 +2100,17 @@ typedef struct {
    * @brief The ambient scalar.
    */
   float ambient;
+
+  /**
+   * @brief A world-space clip plane (normal, distance); fragments behind it are discarded. A zero
+   * normal disables it. Portal views use it to cut away the wall their camera sits inside.
+   */
+  vec4_t clip_plane;
+
+  /**
+   * @brief For portal views, the paired portal's inline model, whose own portal face is skipped.
+   */
+  const r_bsp_inline_model_t *portal_exit;
 
   /**
    * @brief The entities to render for the current frame.

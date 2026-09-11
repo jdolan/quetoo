@@ -1254,8 +1254,10 @@ void Cg_EntityTrail(cl_entity_t *ent) {
 
     end = ent->termination;
 
-    // client is overridden to specify owner of the beam
-    if (ent->current.client == cgi.client->frame.ps.client && !cgi.client->third_person) {
+    // client is overridden to specify owner of the beam. The far leg of a beam through a portal
+    // does not leave us at all though, and keeps the start the server gave it
+    if (ent->current.client == cgi.client->frame.ps.client && !cgi.client->third_person &&
+        Vec3_Distance(start, Cg_Self()->origin) < 128.f) {
 
       // we own this beam (lightning, grapple, etc..)
       // anchor start to the client-side muzzle; keep end as the server-authoritative termination

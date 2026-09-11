@@ -232,6 +232,11 @@ typedef struct {
      * @brief Non-zero when developer mode is enabled.
      */
     int developer;
+
+    /**
+     * @brief World-space clip plane (normal, distance); a zero normal disables it.
+     */
+    vec4_t clip_plane;
   } block;
 
 } r_uniforms_t;

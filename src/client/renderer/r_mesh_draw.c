@@ -573,7 +573,7 @@ void R_DrawMeshEntities(const r_view_t *view, RenderPass *pass) {
   // The player model preview must never bind the current world's voxel/sky
   // data: its view origin has no relation to the loaded map's lighting, so
   // doing so would produce seemingly random lighting on the preview model.
-  const r_bsp_model_t *bsp = (view->type == VIEW_MAIN && r_models.world) ? r_models.world->bsp : NULL;
+  const r_bsp_model_t *bsp = ((view->type == VIEW_MAIN || view->type == VIEW_PORTAL) && r_models.world) ? r_models.world->bsp : NULL;
   Framebuffer *framebuffer = view->framebuffer;
 
   $(pass, setViewport, &(SDL_GPUViewport) {

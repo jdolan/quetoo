@@ -29,7 +29,9 @@
     <ClCompile Include="..\src\cgame\common\cg_entity_event.c" />
     <ClInclude Include="..\src\cgame\common\cg_entity_event.h" />
     <ClCompile Include="..\src\cgame\common\cg_entity_misc.c" />
+    <ClCompile Include="..\src\cgame\common\cg_entity_portal.c" />
     <ClInclude Include="..\src\cgame\common\cg_entity_misc.h" />
+    <ClInclude Include="..\src\cgame\common\cg_entity_portal.h" />
     <ClCompile Include="..\src\cgame\common\cg_entity_trail.c" />
     <ClInclude Include="..\src\cgame\common\cg_entity_trail.h" />
     <ClCompile Include="..\src\cgame\common\cg_flare.c" />

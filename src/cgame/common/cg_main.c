@@ -26,6 +26,8 @@ cg_state_t cg_state;
 cvar_t *cg_add_atmospheric;
 cvar_t *cg_add_decals;
 cvar_t *cg_add_entities;
+cvar_t *cg_portals;
+cvar_t *cg_portal_scale;
 cvar_t *cg_add_flares;
 cvar_t *cg_add_lights;
 cvar_t *cg_add_sprites;
@@ -109,6 +111,8 @@ static void Cg_Init(void) {
   cg_add_atmospheric = cgi.AddCvar("cg_add_atmospheric", "1", CVAR_ARCHIVE, "Controls the intensity of atmospheric effects.");
   cg_add_decals = cgi.AddCvar("cg_add_decals", "1", CVAR_ARCHIVE, "Controls decals (bullet holes, blood, etc.).");
   cg_add_entities = cgi.AddCvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
+  cg_portals = cgi.AddCvar("cg_portals", "0", CVAR_ARCHIVE, "Draws the view through trigger_portal faces. Costs a scene render per visible portal.");
+  cg_portal_scale = cgi.AddCvar("cg_portal_scale", "0.5", CVAR_ARCHIVE, "The resolution of portal views, relative to the window.");
   cg_add_flares = cgi.AddCvar("cg_add_flares", "1", CVAR_ARCHIVE, "Toggles adding flare effects to light sources.");
   cg_add_lights = cgi.AddCvar("cg_add_lights", "1", 0, "Toggles adding dynamic lights to the scene.");
   cg_add_sprites = cgi.AddCvar("cg_add_sprites", "1", 0, "Toggles adding sprites to the scene.");
@@ -494,6 +498,8 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 
   Cg_AddLights();
 
+  Cg_AddPortalEntities(frame);
+
   Cg_SceneDidPopulate(frame);
 }
 
@@ -557,6 +563,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
   cge.UpdateLoading = Cg_UpdateLoading;
   cge.PrepareScene = Cg_PrepareScene;
   cge.PopulateScene = Cg_PopulateScene;
+  cge.DrawPortals = Cg_DrawPortals;
   cge.PopulateEditorScene = Cg_PopulateEditorScene;
   cge.ParseEditorEntity = Cg_ParseEditorEntity;
   cge.UpdateScreen = Cg_UpdateScreen;

@@ -718,22 +718,22 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
     return;
   }
 
-  // deal with our own player model
-  if (ent == cgi.client->entity) {
-    if (!cgi.client->third_person) {
-      e->effects |= EF_SELF | EF_NO_DRAW;
+  // deal with our own player model: hidden in first person, unless a portal view is looking at
+  // us from elsewhere, or a portal duplicate of us is being added, in which case we are drawn
+  // like any other client
+  if (ent == cgi.client->entity && !cgi.client->third_person && !cg_state.portal_view) {
+    e->effects |= EF_SELF | EF_NO_DRAW;
 
-      // keep our shadow underneath us using the predicted origin
-      e->origin.x = cgi.view->origin.x;
-      e->origin.y = cgi.view->origin.y;
-    } else {
-      // in third-person, treat ourselves exactly like any other client
-      e->origin.z -= ent->step_offset;
-      Cg_BreathTrail(ent);
-    }
+    // keep our shadow underneath us using the predicted origin
+    e->origin.x = cgi.view->origin.x;
+    e->origin.y = cgi.view->origin.y;
   } else {
     e->origin.z -= ent->step_offset;
-    Cg_BreathTrail(ent);
+
+    // portal views repeat this frame's clients; their breath was already emitted
+    if (!cg_state.portal_view) {
+      Cg_BreathTrail(ent);
+    }
   }
 
   // set tints
@@ -823,12 +823,14 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
     assert(r_weapon);
 
     // cache the muzzle position post-animation for muzzle flash and beam alignment
-
-    const vec3_t cfg_muzzle = r_weapon->model->mesh->config.link.muzzle;
-    if (!Vec3_Equal(cfg_muzzle, Vec3_Zero())) {
-      ci->weapon_muzzle = Mat4_Transform(r_weapon->matrix, cfg_muzzle);
-    } else {
-      ci->weapon_muzzle = r_weapon->origin;
+    // (but not from a portal view, or a portal duplicate, which draw the weapon elsewhere)
+    if (!cg_state.portal_view) {
+      const vec3_t cfg_muzzle = r_weapon->model->mesh->config.link.muzzle;
+      if (!Vec3_Equal(cfg_muzzle, Vec3_Zero())) {
+        ci->weapon_muzzle = Mat4_Transform(r_weapon->matrix, cfg_muzzle);
+      } else {
+        ci->weapon_muzzle = r_weapon->origin;
+      }
     }
   }
 

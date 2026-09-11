@@ -241,6 +241,7 @@ typedef enum {
 #define SURF_ALPHA_TEST 0x400 // alpha test (grates, fences, foliage, etc..)
 #define SURF_PHONG      0x800 // phong interpolated lighting at compile time
 #define SURF_MATERIAL   0x1000 // skip diffuse pass, draw material stages only
+#define SURF_PORTAL     0x2000 // trigger_portal face, drawn from the paired portal's viewpoint
 #define SURF_BEVEL      0x20000000 // brush side is a bevel with approximate material
 #define SURF_NODE       0x40000000 // brush side is a node splitter with no material
 

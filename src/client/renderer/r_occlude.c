@@ -64,7 +64,7 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
     return false;
   }
 
-  if (view->type == VIEW_PLAYER_MODEL) {
+  if (view->type == VIEW_PLAYER_MODEL || view->type == VIEW_PORTAL) {
     return false;
   }
 
