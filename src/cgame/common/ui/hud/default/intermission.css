@@ -34,8 +34,8 @@ IntermissionView .map {
 }
 
 IntermissionView .mapshot {
-  width: 160;
-  height: 120;
+  width: 192;
+  height: 108;
   border-radius: 2;
 }
 
@@ -48,8 +48,11 @@ IntermissionView .votes {
   color: #8fc7dc;
 }
 
+/* the same face the match clock uses, since it is the same clock */
 IntermissionView > .countdown {
   alignment: bottom-center;
+  font-family: M PLUS U;
+  font-style: regular;
   font-size: 24;
   padding-bottom: 12;
 }

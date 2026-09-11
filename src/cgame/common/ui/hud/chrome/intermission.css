@@ -33,8 +33,8 @@ IntermissionView .map {
 }
 
 IntermissionView .mapshot {
-  width: 176;
-  height: 132;
+  width: 208;
+  height: 117;
 }
 
 IntermissionView .name {
@@ -47,9 +47,11 @@ IntermissionView .votes {
   color: #6fb3cc;
 }
 
+/* the same face the match clock uses, since it is the same clock */
 IntermissionView > .countdown {
   alignment: bottom-center;
-  font-family: M PLUS U;
+  font-family: Rajdhani;
+  font-style: regular;
   font-size: 28;
   padding-bottom: 12;
 }
