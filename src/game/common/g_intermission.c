@@ -72,7 +72,9 @@ static void G_Intermission_Offer(const char *name) {
     return;
   }
 
-  if (!name || !*name || G_Intermission_Offers(name)) {
+  // by name rather than by position, since a rotation may list either the map we are
+  // on or a candidate more than once, and neither is a second thing to vote for
+  if (!name || !*name || !q_strcmp(name, g_level.name) || G_Intermission_Offers(name)) {
     return;
   }
 
@@ -128,19 +130,15 @@ static void G_Intermission_SelectMaps(void) {
       // a shuffled rotation has no next, so offer a sample of it instead; the ordered
       // pass below tops up whatever the draws duplicated
       for (int32_t i = 0; i < length && g_intermission_state.num_maps < wanted; i++) {
-        const int32_t index = (int32_t) RandomRangeu(0, (uint32_t) length);
-        if (index != current) {
-          G_Intermission_Offer(G_Intermission_MapAt(list, index));
-        }
+        G_Intermission_Offer(G_Intermission_MapAt(list, (int32_t) RandomRangeu(0, (uint32_t) length)));
       }
     }
 
-    // in order from wherever we are, which is what the rotation would have played
+    // in order from wherever we are, which is what the rotation would have played;
+    // `current` is -1 when this map is not in the rotation at all, which starts us
+    // at its head
     for (int32_t i = 1; i <= length && g_intermission_state.num_maps < wanted; i++) {
-      const int32_t index = (current + i) % length;
-      if (index != current) {
-        G_Intermission_Offer(G_Intermission_MapAt(list, index));
-      }
+      G_Intermission_Offer(G_Intermission_MapAt(list, (current + i) % length));
     }
 
     for (const ListNode *node = list->head; node; node = node->next) {
