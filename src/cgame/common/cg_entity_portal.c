@@ -224,6 +224,100 @@ const cg_entity_class_t cg_trigger_portal = {
 };
 
 /**
+ * @return True if `bounds` overlap any portal's volume, the client's side of G_OccupiesPortal.
+ */
+bool Cg_OccupiesPortal(const box3_t bounds) {
+
+  if (!cg_entities) {
+    return false;
+  }
+
+  const cg_entity_t *e = cg_entities->elements;
+  for (uint32_t i = 0; i < cg_entities->count; i++, e++) {
+
+    if (e->clazz != &cg_trigger_portal) {
+      continue;
+    }
+
+    const cg_portal_t *portal = e->data;
+
+    if (Box3_Intersects(bounds, portal->model->visible_bounds)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @brief Carries the predicted player state through any portal its center crossed while moving
+ * from `from`, exactly as the server will, so that prediction never runs on through the face
+ * and shows what lies behind it while the server's transit is still in flight.
+ */
+void Cg_PredictPortalTransit(pm_move_t *pm, const vec3_t from) {
+
+  if (!cg_entities) {
+    return;
+  }
+
+  const cg_entity_t *e = cg_entities->elements;
+  for (uint32_t i = 0; i < cg_entities->count; i++, e++) {
+
+    if (e->clazz != &cg_trigger_portal) {
+      continue;
+    }
+
+    const cg_portal_t *portal = e->data;
+    if (!portal->exit) {
+      continue;
+    }
+
+    // the server transits a player once their center is within the lead of the face; that is
+    // the plane this move must have crossed inward, somewhere within the face
+    const float before = Vec3_Dot(Vec3_Subtract(from, portal->origin), portal->forward);
+    const float after = Vec3_Dot(Vec3_Subtract(pm->s.origin, portal->origin), portal->forward);
+
+    if (before >= -PORTAL_TRANSIT_LEAD || after < -PORTAL_TRANSIT_LEAD) {
+      continue;
+    }
+
+    const vec3_t crossing = Vec3_Mix(from, pm->s.origin, (-PORTAL_TRANSIT_LEAD - before) / (after - before));
+
+    if (!Box3_ContainsPoint(Box3_Expand(portal->model->visible_bounds, PORTAL_TRANSIT_LEAD + 1.f), crossing)) {
+      continue;
+    }
+
+    // the same carry and the same nudge to just past the far face as G_trigger_portal_Transit
+    const vec3_t offset = Vec3_Subtract(pm->s.origin, portal->origin);
+    const vec3_t nudge = Vec3_Scale(portal->exit_forward, PORTAL_TRANSIT_OFFSET - Minf(after, 0.f));
+
+    pm->s.origin = Vec3_Add(Vec3_Add(portal->exit_origin, Cg_PortalCarry(portal, offset)), nudge);
+    pm->s.velocity = Cg_PortalCarry(portal, pm->s.velocity);
+
+    // a pair that turns the view is snapped exactly as the server's own SV_CMD_SNAP_ANGLES
+    // will; a pair that does not is left alone, so input is never needlessly reset
+    vec3_t view_forward;
+    Vec3_Vectors(pm->s.view_angles, &view_forward, NULL, NULL);
+
+    const vec3_t carried_forward = Cg_PortalCarry(portal, view_forward);
+
+    if (!Vec3_EqualEpsilon(carried_forward, view_forward, 0.001f)) {
+      const vec3_t angles = Vec3_Euler(carried_forward);
+
+      pm->s.view_angles = angles;
+      pm->s.delta_angles = Vec3_Zero();
+
+      if (!Vec3_EqualEpsilon(cgi.client->angles, angles, 0.01f)) {
+        cg_state.snap_view_angles = angles;
+        cg_state.snap_angles = true;
+      }
+    }
+
+    return;
+  }
+}
+
+/**
  * @brief Populates the view through each visible portal with this frame's entities, lights,
  * sprites and beams.
  * @remarks Runs on the scene thread, after the main view is populated. The per-frame side

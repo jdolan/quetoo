@@ -239,7 +239,7 @@ static inline void G_Ai_RestorePath(const g_client_t *cl, ai_t *ai) {
  */
 static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
 
-  if (cl->entity->solid == SOLID_DEAD) {
+  if (cl->entity->dead) {
     return 1;
   }
 
@@ -604,7 +604,7 @@ static bool G_Ai_ChaseEnemy(const g_client_t *cl, const g_entity_t *target) {
  */
 static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
 
-  if (cl->entity->solid == SOLID_DEAD) {
+  if (cl->entity->dead) {
     return 1;
   }
 
@@ -814,7 +814,7 @@ static uint32_t G_Ai_Weaponry(g_client_t *cl, pm_cmd_t *cmd) {
  */
 static uint32_t G_Ai_Acrobatics(g_client_t *cl, pm_cmd_t *cmd) {
 
-  if (cl->entity->solid == SOLID_DEAD) {
+  if (cl->entity->dead) {
     return 1;
   }
 
@@ -1708,7 +1708,7 @@ static const G_Ai_GoalFunc g_ai_goalfuncs[AI_FUNC_GOAL_TOTAL] = {
  */
 void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd) {
 
-  if (cl->entity->solid == SOLID_DEAD) {
+  if (cl->entity->dead) {
     G_Ai_ClearGoal(&cl->ai->combat_target);
     G_Ai_ClearGoal(&cl->ai->move_target);
     G_Ai_ClearGoal(&cl->ai->backup_move_target);

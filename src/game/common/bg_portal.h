@@ -57,3 +57,19 @@ static inline vec3_t Bg_PortalCarry(const vec3_t v,
   return Vec3_Add(Vec3_Scale(right_b, local.x),
                   Vec3_Add(Vec3_Scale(up_b, local.y), Vec3_Scale(fwd_b, local.z)));
 }
+
+/**
+ * @brief How far short of a portal's face a player moving into it transits, in units, so their
+ * view never reaches the face itself, where the near plane would cut it open onto the recess
+ * behind. The game and the client game's prediction must agree on this, or the client runs on
+ * ahead. Must be less than PORTAL_TRANSIT_OFFSET, or an arrival sits inside the far portal's
+ * lead already.
+ */
+#define PORTAL_TRANSIT_LEAD 3.f
+
+/**
+ * @brief How far past the far face a transit lands, in units: clear of the face's own touch
+ * field, of the lead above, and of the near plane's corners on a wide display should the view
+ * turn straight back to it.
+ */
+#define PORTAL_TRANSIT_OFFSET 4.f

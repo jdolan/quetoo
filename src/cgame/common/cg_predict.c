@@ -93,7 +93,15 @@ PredictionDidComplete Cg_PredictionDidComplete = Cg_PredictionDidComplete_Common
  * @brief Trace wrapper for `Pm_Move`.
  */
 static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
-  return cgi.Trace(start, end, bounds, cgi.client->entity, CONTENTS_MASK_CLIP_PLAYER);
+
+  // crossing a portal, we clip against no other player, as the server has it (see G_ClientThink)
+  int32_t mask = CONTENTS_MASK_CLIP_PLAYER;
+
+  if (Cg_OccupiesPortal(Box3_Translate(bounds, start))) {
+    mask &= ~CONTENTS_MONSTER;
+  }
+
+  return cgi.Trace(start, end, bounds, cgi.client->entity, mask);
 }
 
 /**
@@ -144,11 +152,15 @@ void Cg_PredictMovement(const Vector *cmds) {
       // simulate the movement
       pm.cmd = cmd->cmd;
 
+      const vec3_t from = pm.s.origin;
+
       Cg_MoveCommandWillRun(&pm, cmd);
 
       Pm_Move(&pm);
 
       Cg_MoveCommandDidRun(&pm, cmd);
+
+      Cg_PredictPortalTransit(&pm, from);
     }
 
     // save for error detection

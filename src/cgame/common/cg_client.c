@@ -729,8 +729,15 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   } else {
     e->origin.z -= ent->step_offset;
 
-    // portal views repeat this frame's clients; their breath was already emitted
-    if (!cg_state.portal_view) {
+    if (cg_state.portal_view) {
+      // portal views repeat this frame's clients; their breath was already emitted. And we are
+      // drawn where prediction has us, not where the server last had us: that runs a tick or
+      // two behind, which mid-transit is the wrong side of the portal entirely
+      if (ent == cgi.client->entity) {
+        e->origin = cgi.client->predicted_state.view.origin;
+        e->origin.z -= ent->step_offset;
+      }
+    } else {
       Cg_BreathTrail(ent);
     }
   }

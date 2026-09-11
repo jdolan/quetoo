@@ -33,6 +33,7 @@ void G_trigger_portal(g_entity_t *ent);
 void G_trigger_push(g_entity_t *ent);
 void G_trigger_relay(g_entity_t *ent);
 
+bool G_OccupiesPortal(const g_entity_t *ent);
 float G_TransitPortals(g_entity_t *ent, const vec3_t start, const vec3_t end, float fraction);
 
 typedef void (*G_TraceSegmentFunc)(const vec3_t start, const vec3_t end, const vec3_t normal, void *data);

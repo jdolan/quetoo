@@ -1361,7 +1361,7 @@ static void G_RailgunProjectile_Leg(const g_entity_t *emitter, const vec3_t star
  * @brief `G_TraceSegmentFunc` sending the rail trail for each leg of a shot that crosses a portal.
  */
 static void G_RailgunProjectile_Segment(const vec3_t start, const vec3_t end, const vec3_t normal, void *data) {
-  G_RailgunProjectile_Leg(data, start, end, normal, 0);
+  G_RailgunProjectile_Leg(data, start, end, normal, SURF_PORTAL);
 }
 
 /**

@@ -396,11 +396,19 @@ static void G_trigger_portal_Touch(g_entity_t *ent, g_entity_t *other, const cm_
   Bg_PortalBasis(G_trigger_portal_Angles(ent), false, &right_a, &up_a, &fwd_a);
 
   // transit the moment the toucher's center crosses the face plane, not when its bounds first
-  // touch the volume: it then lands exactly as far past the paired face as it is past this one,
-  // straddling it on the way out rather than stranded in the recess behind it. A fresh arrival
-  // is in front of the paired face, so it can never be bounced straight back
-  if (Vec3_Dot(Vec3_Subtract(other->s.origin, G_trigger_portal_Origin(ent)), fwd_a) < 0.f) {
-    return;
+  // touch the volume: it then lands just past the paired face rather than stranded in the
+  // recess behind it, and a fresh arrival is in front of the paired face, so it can never be
+  // bounced straight back. Players moving into the face go a little early, so their view never
+  // reaches the face itself; the client predicts the very same transit (see
+  // Cg_PredictPortalTransit). Only moving into it: a fresh arrival is moving away from the
+  // paired face, and must not be taken back through it by its lead
+  const float depth = Vec3_Dot(Vec3_Subtract(other->s.origin, G_trigger_portal_Origin(ent)), fwd_a);
+
+  if (depth < 0.f) {
+    const bool lead = other->client && depth >= -PORTAL_TRANSIT_LEAD && Vec3_Dot(other->velocity, fwd_a) > 0.f;
+    if (!lead) {
+      return;
+    }
   }
 
   G_trigger_portal_Transit(ent, dest, other);
@@ -421,11 +429,13 @@ static void G_trigger_portal_Transit(const g_entity_t *ent, const g_entity_t *de
   vec3_t right_b, up_b, fwd_b;
   Bg_PortalBasis(G_trigger_portal_Angles(dest), true, &right_b, &up_b, &fwd_b);
 
-  // nudge the arrival point a little past the destination face, along its outward normal, so the
-  // toucher isn't left sitting exactly on the boundary of the destination's own touch field -
-  // without this, a pair facing the same way (notably a strict_displace splice) immediately
-  // re-triggers a transit back out, since the toucher is still technically touching on arrival
-  const vec3_t exit_nudge = Vec3_Scale(fwd_b, 1.f);
+  // nudge the arrival point to just past the destination face, along its outward normal: a
+  // toucher short of this face (a player, transiting early) is brought up to the far one, and
+  // none is left sitting exactly on the boundary of the destination's own touch field - without
+  // this, a pair facing the same way (notably a strict_displace splice) immediately re-triggers
+  // a transit back out, since the toucher is still technically touching on arrival
+  const float depth = Vec3_Dot(Vec3_Subtract(other->s.origin, G_trigger_portal_Origin(ent)), fwd_a);
+  const vec3_t exit_nudge = Vec3_Scale(fwd_b, PORTAL_TRANSIT_OFFSET - Minf(depth, 0.f));
 
   if (ent->spawn_flags & PORTAL_STRICT_DISPLACE) {
     other->s.origin = Vec3_Add(Vec3_Add(other->s.origin,
@@ -468,6 +478,24 @@ static void G_trigger_portal_Transit(const g_entity_t *ent, const g_entity_t *de
   }
 
   gi.LinkEntity(other);
+}
+
+/**
+ * @return True if `ent`'s bounds overlap any `trigger_portal`'s volume: it is either about to
+ * cross one, or has just arrived through one and not yet cleared it.
+ */
+bool G_OccupiesPortal(const g_entity_t *ent) {
+
+  g_entity_t *ents[MAX_ENTITIES];
+
+  const size_t len = gi.BoxEntities(ent->abs_bounds, ents, lengthof(ents), BOX_OCCUPY);
+  for (size_t i = 0; i < len; i++) {
+    if (!q_strcmp(ents[i]->classname, "trigger_portal")) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 #define MAX_PORTAL_HOPS 4
