@@ -67,4 +67,16 @@ typedef struct {
 typedef int32_t (*Installer_FrameFunction)(const installer_status_t *status);
 
 void Installer_Init(Installer_FrameFunction frame);
+
+/**
+ * @brief Moves a staged update into place, and sweeps files displaced by a
+ * previous one.
+ * @details Called during shutdown, after the game modules are unloaded and
+ * before the filesystem paths go away. Applying on the way out rather than on
+ * the way in means the update completes in the session that fetched it, and
+ * that nothing is loaded after the files move. A crash before this runs simply
+ * leaves the staged update for the next clean exit.
+ */
+void Installer_ApplyPending(void);
+
 void Installer_Shutdown(void);

@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_misc.h>
 #include <SDL3/SDL_mutex.h>
 
@@ -34,6 +35,12 @@
 #include <Objectively/Number.h>
 #include <Objectively/RESTClient.h>
 #include <Objectively/String.h>
+#include <Objectively/URL.h>
+#include <Objectively/URLResponse.h>
+#include <Objectively/URLSession.h>
+#include <Objectively/URLSessionDownloadTask.h>
+
+#include "archive.h"
 
 /**
  * @brief The release asset carrying this platform's engine build.
@@ -208,6 +215,187 @@ static bool Installer_FetchLatestRelease(installer_release_t *out) {
   }
 
   return success;
+}
+
+/**
+ * @brief The directory the staging area lives beside.
+ * @details Everywhere but macOS this is the installation itself, and an update
+ * replaces files within it. On macOS the installation *is* `Quetoo.app` and an
+ * update replaces the whole bundle, so staging inside it would carry the staged
+ * payload along when the bundle is renamed aside.
+ */
+static void Installer_StagingParent(char *out, size_t len) {
+
+#if defined(__APPLE__)
+  q_strlcpy(out, Fs_BaseDir(), len);
+
+  char *slash = q_strrchr(out, '/');
+  if (slash) {
+    *slash = '\0';
+  }
+#else
+  q_strlcpy(out, Fs_BaseDir(), len);
+#endif
+}
+
+/**
+ * @brief The directory holding a downloaded update until it is applied.
+ */
+static void Installer_PendingDir(char *out, size_t len) {
+
+  char parent[MAX_OS_PATH];
+  Installer_StagingParent(parent, sizeof(parent));
+
+  q_snprintf(out, (int32_t) len, "%s/.quetoo-pending", parent);
+}
+
+/**
+ * @brief Returns true if the installation directory can be written to.
+ * @details Checked before downloading rather than after, so a user whose
+ * install lives somewhere privileged is told immediately instead of after
+ * pulling down an archive that can never be applied.
+ */
+static bool Installer_IsWritable(const char *dir) {
+
+  char probe[MAX_OS_PATH];
+  q_snprintf(probe, sizeof(probe), "%s/.writable", dir);
+
+  FILE *file = fopen(probe, "wb");
+  if (!file) {
+    return false;
+  }
+
+  fclose(file);
+  SDL_RemovePath(probe);
+  return true;
+}
+
+/**
+ * @brief Streams `url` to `path`, publishing progress and honoring cancellation.
+ * @details The task is resumed rather than executed because
+ * `URLSessionTask::execute` never inspects the task state, so a synchronous
+ * request cannot be interrupted. These payloads are large enough that Cancel
+ * would otherwise appear to hang.
+ */
+static bool Installer_DownloadToFile(const char *address, const char *path, int64_t expected) {
+
+  FILE *file = fopen(path, "wb");
+  if (!file) {
+    Com_Warn("Failed to open %s for writing\n", path);
+    return false;
+  }
+
+  URL *url = $(alloc(URL), initWithCharacters, address);
+  URLSessionDownloadTask *download = $($$(URLSession, sharedInstance), downloadTaskWithURL, url, NULL);
+  release(url);
+
+  download->file = file;
+
+  URLSessionTask *task = (URLSessionTask *) download;
+  $(task, resume);
+
+  installer_status_t *in = &installer.status;
+
+  while (task->state != URLSESSIONTASK_COMPLETED && task->state != URLSESSIONTASK_CANCELED) {
+
+    SDL_LockMutex(installer.mutex);
+    const bool cancelled = in->state == INSTALLER_CANCELLED;
+    if (!cancelled) {
+      const int64_t total = expected > 0 ? expected : (int64_t) task->bytesExpectedToReceive;
+      in->kbytes_done = (int32_t) (task->bytesReceived / 1024);
+      in->kbytes_total = (int32_t) (total / 1024);
+    }
+    SDL_UnlockMutex(installer.mutex);
+
+    if (cancelled) {
+      $(task, cancel);
+      break;
+    }
+
+    SDL_Delay(QUETOO_TICK_MILLIS);
+  }
+
+  while (task->state != URLSESSIONTASK_COMPLETED && task->state != URLSESSIONTASK_CANCELED) {
+    SDL_Delay(QUETOO_TICK_MILLIS);
+  }
+
+  fclose(file);
+
+  const int32_t http = task->response ? task->response->httpStatusCode : 0;
+  const bool success = task->state == URLSESSIONTASK_COMPLETED && http == 200;
+
+  release(task);
+
+  if (!success) {
+    Com_Warn("Failed to download %s: HTTP %d\n", address, http);
+    SDL_RemovePath(path);
+  }
+
+  return success;
+}
+
+#if !defined(__APPLE__)
+
+/**
+ * @brief Recursively records every staged file.
+ */
+static SDL_EnumerationResult Installer_EnumeratePending(void *data, const char *dir, const char *name) {
+
+  FILE *file = data;
+
+  char path[MAX_OS_PATH];
+  q_snprintf(path, sizeof(path), "%s/%s", dir, name);
+
+  SDL_PathInfo info;
+  if (!SDL_GetPathInfo(path, &info)) {
+    return SDL_ENUM_CONTINUE;
+  }
+
+  if (info.type == SDL_PATHTYPE_DIRECTORY) {
+    SDL_EnumerateDirectory(path, Installer_EnumeratePending, file);
+  } else if (info.type == SDL_PATHTYPE_FILE) {
+    fprintf(file, "%s\n", path);
+  }
+
+  return SDL_ENUM_CONTINUE;
+}
+
+#endif
+
+/**
+ * @brief Records what was staged, so the apply on exit needs no directory walk
+ * and can tell a complete stage from a half-extracted one.
+ * @details `root` is the directory within the staging area that mirrors the
+ * installation: the archive's own top-level directory for a tarball, the
+ * staging directory itself for a zip, and the bundle for a disk image.
+ */
+static void Installer_WritePending(const char *pending) {
+
+  char root[MAX_OS_PATH];
+#if defined(__APPLE__)
+  q_snprintf(root, sizeof(root), "%s/Quetoo.app", pending);
+#elif defined(_WIN32)
+  q_strlcpy(root, pending, sizeof(root));
+#else
+  q_snprintf(root, sizeof(root), "%s/quetoo", pending);
+#endif
+
+  char path[MAX_OS_PATH];
+  q_snprintf(path, sizeof(path), "%s/pending.mf", pending);
+
+  FILE *file = fopen(path, "wb");
+  if (!file) {
+    Com_Warn("Failed to write %s\n", path);
+    return;
+  }
+
+  fprintf(file, "%s\n%s\n", installer.release.tag, root);
+
+#if !defined(__APPLE__)
+  SDL_EnumerateDirectory(root, Installer_EnumeratePending, file);
+#endif
+
+  fclose(file);
 }
 
 /**
@@ -527,10 +715,82 @@ static int Installer_Thread(void *unused) {
         SDL_UnlockMutex(installer.mutex);
         break;
 
-      case INSTALLER_UPDATE_AVAILABLE:
-      case INSTALLER_DOWNLOADING_UPDATE:
-      case INSTALLER_STAGING_UPDATE:
+      case INSTALLER_UPDATE_AVAILABLE: {
+        char parent[MAX_OS_PATH];
+        Installer_StagingParent(parent, sizeof(parent));
+
+        SDL_LockMutex(installer.mutex);
+        if (!Installer_IsWritable(parent)) {
+          in->state = INSTALLER_COMPARING;
+          Com_Warn("%s is not writable; skipping the engine update.\n", parent);
+        } else {
+          in->state = INSTALLER_DOWNLOADING_UPDATE;
+          in->kbytes_done = 0;
+          in->kbytes_total = (int32_t) (installer.release.size / 1024);
+        }
+        SDL_UnlockMutex(installer.mutex);
+      }
+        break;
+
+      case INSTALLER_DOWNLOADING_UPDATE: {
+        char pending[MAX_OS_PATH], archive[MAX_OS_PATH];
+        Installer_PendingDir(pending, sizeof(pending));
+
+        SDL_RemovePath(pending);
+
+        if (!SDL_CreateDirectory(pending)) {
+          SDL_LockMutex(installer.mutex);
+          in->state = INSTALLER_COMPARING;
+          SDL_UnlockMutex(installer.mutex);
+          Com_Warn("Failed to create %s: %s\n", pending, SDL_GetError());
+          break;
+        }
+
+        q_snprintf(archive, sizeof(archive), "%s/%s", pending, installer.release.asset);
+
+        const bool ok = Installer_DownloadToFile(installer.release.url, archive,
+                                                 installer.release.size);
+        SDL_LockMutex(installer.mutex);
+        if (in->state == INSTALLER_CANCELLED) {
+          SDL_UnlockMutex(installer.mutex);
+          break;
+        }
+        in->state = ok ? INSTALLER_STAGING_UPDATE : INSTALLER_COMPARING;
+        SDL_UnlockMutex(installer.mutex);
+
+        if (!ok) {
+          SDL_RemovePath(pending);
+        }
+      }
+        break;
+
+      case INSTALLER_STAGING_UPDATE: {
+        char pending[MAX_OS_PATH], archive[MAX_OS_PATH];
+        Installer_PendingDir(pending, sizeof(pending));
+        q_snprintf(archive, sizeof(archive), "%s/%s", pending, installer.release.asset);
+
+        const bool ok = Archive_Extract(archive, pending);
+        SDL_RemovePath(archive);
+
+        if (ok) {
+          Installer_WritePending(pending);
+          Com_Print("Quetoo %s staged; it will be applied when you quit.\n", installer.release.tag);
+        } else {
+          SDL_RemovePath(pending);
+        }
+
+        SDL_LockMutex(installer.mutex);
+        in->state = ok ? INSTALLER_UPDATE_STAGED : INSTALLER_COMPARING;
+        SDL_UnlockMutex(installer.mutex);
+      }
+        break;
+
       case INSTALLER_UPDATE_STAGED:
+        SDL_LockMutex(installer.mutex);
+        in->state = INSTALLER_COMPARING;
+        SDL_UnlockMutex(installer.mutex);
+        break;
+
       case INSTALLER_CANCELLED:
       case INSTALLER_DONE:
       case INSTALLER_ERROR:
@@ -595,6 +855,217 @@ void Installer_Init(Installer_FrameFunction frame) {
 
   SDL_DestroyMutex(installer.mutex);
   installer.mutex = NULL;
+}
+
+/**
+ * @brief Strips a trailing newline in place.
+ */
+static void Installer_Chomp(char *line) {
+
+  char *end = line + q_strlen(line);
+  while (end > line && (end[-1] == '\n' || end[-1] == '\r')) {
+    *--end = '\0';
+  }
+}
+
+#if defined(_WIN32)
+
+/**
+ * @brief Deletes the displaced files recorded by a previous apply.
+ * @details Windows cannot delete a file while it is mapped, so the copies
+ * displaced by the last update survive until the process that held them has
+ * exited. Failures are expected and ignored: a slow-exiting predecessor, or a
+ * second copy of the game still running, simply leaves the entry for the next
+ * launch to retry.
+ */
+static void Installer_SweepDisplaced(void) {
+
+  char path[MAX_OS_PATH];
+  q_snprintf(path, sizeof(path), "%s/.cleanup", Fs_BaseDir());
+
+  FILE *file = fopen(path, "rb");
+  if (!file) {
+    return;
+  }
+
+  bool swept = true;
+  char line[MAX_OS_PATH];
+
+  while (fgets(line, sizeof(line), file)) {
+    Installer_Chomp(line);
+    if (*line && !SDL_RemovePath(line)) {
+      swept = false;
+    }
+  }
+
+  fclose(file);
+
+  if (swept) {
+    SDL_RemovePath(path);
+  }
+}
+
+#endif
+
+/**
+ * @brief Recursively deletes `path`.
+ * @details `SDL_RemovePath` only unlinks files and empty directories, but a
+ * displaced application bundle is neither.
+ */
+static SDL_EnumerationResult Installer_RemoveEntry(void *data, const char *dir, const char *name) {
+
+  char path[MAX_OS_PATH];
+  q_snprintf(path, sizeof(path), "%s/%s", dir, name);
+
+  SDL_PathInfo info;
+  if (SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_DIRECTORY) {
+    SDL_EnumerateDirectory(path, Installer_RemoveEntry, data);
+  }
+
+  SDL_RemovePath(path);
+  return SDL_ENUM_CONTINUE;
+}
+
+static void Installer_RemoveTree(const char *path) {
+
+  SDL_PathInfo info;
+  if (SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_DIRECTORY) {
+    SDL_EnumerateDirectory(path, Installer_RemoveEntry, NULL);
+  }
+
+  SDL_RemovePath(path);
+}
+
+/**
+ * @brief Moves a staged file into place, displacing whatever is there.
+ * @details A running executable or loaded library cannot be overwritten or
+ * deleted, but it can be renamed. POSIX goes further and lets the displaced
+ * file be replaced outright: the running process keeps the now-nameless inode
+ * until it exits. Windows has no equivalent, so the displaced copy keeps a
+ * name until the next launch sweeps it.
+ */
+static bool Installer_Replace(const char *staged, const char *target, FILE *cleanup) {
+
+  char dir[MAX_OS_PATH];
+  q_strlcpy(dir, target, sizeof(dir));
+
+  char *slash = q_strrchr(dir, '/');
+  if (slash) {
+    *slash = '\0';
+    SDL_CreateDirectory(dir);
+  }
+
+  SDL_PathInfo info;
+  const bool exists = SDL_GetPathInfo(target, &info);
+
+#if defined(_WIN32)
+  const bool displace = exists;
+#else
+  const bool displace = exists && info.type == SDL_PATHTYPE_DIRECTORY;
+#endif
+
+  char displaced[MAX_OS_PATH] = { '\0' };
+
+  if (displace) {
+
+    q_snprintf(displaced, sizeof(displaced), "%s.old", target);
+    Installer_RemoveTree(displaced);
+
+    if (!SDL_RenamePath(target, displaced)) {
+      Com_Warn("Failed to displace %s: %s\n", target, SDL_GetError());
+      return false;
+    }
+  }
+
+  if (!SDL_RenamePath(staged, target)) {
+    Com_Warn("Failed to install %s: %s\n", target, SDL_GetError());
+    if (*displaced) {
+      SDL_RenamePath(displaced, target);
+    }
+    return false;
+  }
+
+  if (*displaced) {
+    if (cleanup) {
+      fprintf(cleanup, "%s\n", displaced);
+    } else {
+      Installer_RemoveTree(displaced);
+    }
+  }
+
+  return true;
+}
+
+void Installer_ApplyPending(void) {
+
+#if defined(_WIN32)
+  Installer_SweepDisplaced();
+#endif
+
+  char pending[MAX_OS_PATH], path[MAX_OS_PATH];
+  Installer_PendingDir(pending, sizeof(pending));
+  q_snprintf(path, sizeof(path), "%s/pending.mf", pending);
+
+  FILE *file = fopen(path, "rb");
+  if (!file) {
+    return;
+  }
+
+  char version[64] = { '\0' }, root[MAX_OS_PATH] = { '\0' };
+
+  if (!fgets(version, sizeof(version), file) || !fgets(root, sizeof(root), file)) {
+    Com_Warn("Discarding an incomplete staged update\n");
+    fclose(file);
+    Installer_RemoveTree(pending);
+    return;
+  }
+
+  Installer_Chomp(version);
+  Installer_Chomp(root);
+
+  FILE *cleanup = NULL;
+#if defined(_WIN32)
+  char cleanup_path[MAX_OS_PATH];
+  q_snprintf(cleanup_path, sizeof(cleanup_path), "%s/.cleanup", Fs_BaseDir());
+  cleanup = fopen(cleanup_path, "wb");
+#endif
+
+  const size_t root_len = q_strlen(root);
+
+  bool success = true, files = false;
+  char line[MAX_OS_PATH];
+
+  while (success && fgets(line, sizeof(line), file)) {
+
+    Installer_Chomp(line);
+
+    if (q_strncmp(line, root, root_len) || line[root_len] != '/') {
+      continue;
+    }
+
+    char target[MAX_OS_PATH];
+    q_snprintf(target, sizeof(target), "%s%s", Fs_BaseDir(), line + root_len);
+
+    success = Installer_Replace(line, target, cleanup);
+    files = true;
+  }
+
+  if (success && !files) {
+    success = Installer_Replace(root, Fs_BaseDir(), cleanup);
+  }
+
+  if (cleanup) {
+    fclose(cleanup);
+  }
+
+  fclose(file);
+
+  if (success) {
+    Installer_RemoveTree(pending);
+    Com_Print("Updated to Quetoo %s.\n", version);
+  } else {
+    Com_Warn("Failed to apply the staged update; it will be retried on exit.\n");
+  }
 }
 
 /**

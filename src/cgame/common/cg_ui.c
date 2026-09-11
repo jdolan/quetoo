@@ -203,14 +203,6 @@ int32_t Cg_UpdateInstaller(const installer_status_t *in) {
 
   $(updateViewController, setStatus, in);
 
-  if (in->state == INSTALLER_UPDATE_AVAILABLE) {
-    mainViewController->updateAvailable = true;
-    cgi.PopViewController();
-    release(updateViewController);
-    updateViewController = NULL;
-    return 1;
-  }
-
   if (in->state == INSTALLER_DONE || in->state == INSTALLER_ERROR) {
     static uint64_t done_at = 0;
     if (done_at == 0) {
