@@ -343,13 +343,13 @@ void Sys_InstallDesktopEntry(void) {
     }
   }
 
+  char dir[MAX_OS_PATH];
+  q_strlcpy(dir, desktop_dest, sizeof(dir));
   {
-    char dir[MAX_OS_PATH];
-    q_strlcpy(dir, desktop_dest, sizeof(dir));
     char *slash = q_strrchr(dir, '/');
     if (slash) { *slash = '\0'; }
-    SDL_CreateDirectory(dir);
   }
+  SDL_CreateDirectory(dir);
 
   char *content = NULL;
   SDL_asprintf(&content,
@@ -376,7 +376,26 @@ void Sys_InstallDesktopEntry(void) {
   free(content);
 
   // Register quetoo:// URI scheme handler for this user session.
-  (void) system("update-desktop-database ~/.local/share/applications/ 2>/dev/null");
+  const char *args[] = { "update-desktop-database", dir, NULL };
+
+  const SDL_PropertiesID props = SDL_CreateProperties();
+  SDL_SetPointerProperty(props, SDL_PROP_PROCESS_CREATE_ARGS_POINTER, args);
+  SDL_SetNumberProperty(props, SDL_PROP_PROCESS_CREATE_STDIN_NUMBER, SDL_PROCESS_STDIO_NULL);
+  SDL_SetNumberProperty(props, SDL_PROP_PROCESS_CREATE_STDOUT_NUMBER, SDL_PROCESS_STDIO_NULL);
+  SDL_SetNumberProperty(props, SDL_PROP_PROCESS_CREATE_STDERR_NUMBER, SDL_PROCESS_STDIO_NULL);
+
+  SDL_Process *process = SDL_CreateProcessWithProperties(props);
+  SDL_DestroyProperties(props);
+
+  if (process) {
+    int status;
+    if (SDL_WaitProcess(process, true, &status) && status) {
+      Com_Warn("update-desktop-database %s exited with %d\n", dir, status);
+    }
+    SDL_DestroyProcess(process);
+  } else {
+    Com_Warn("Failed to run update-desktop-database: %s\n", SDL_GetError());
+  }
 }
 
 /**
