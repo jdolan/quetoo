@@ -1022,65 +1022,6 @@ static int Installer_Thread(void *unused) {
 }
 
 /**
- * @brief Starts an asynchronous data update and blocks until it completes,
- * calling @c frame each iteration while the installer is in progress.
- */
-void Installer_Init(Installer_FrameFunction frame) {
-
-#if defined(_WIN32)
-  Installer_SweepDisplaced();
-#endif
-
-  if (build_number->integer == -1) {
-    return;
-  }
-
-#if defined(__linux__)
-  if (q_strcmp(Fs_BinDir(), "/usr/lib/quetoo/bin") == 0) {
-    Com_Print("Package-managed installation; auto-updates disabled.\n");
-    return;
-  }
-#endif
-
-  memset(&installer, 0, sizeof(installer));
-  installer.status.state = INSTALLER_CHECKING;
-
-  installer.mutex = SDL_CreateMutex();
-  assert(installer.mutex);
-
-  installer.thread = SDL_CreateThread(Installer_Thread, "installer", &installer);
-  assert(installer.thread);
-
-  installer_status_t *in = &installer.status;
-
-  while (true) {
-    installer_status_t s;
-
-    SDL_LockMutex(installer.mutex);
-    s = *in;
-    SDL_UnlockMutex(installer.mutex);
-
-    if (frame(&s)) {
-      break;
-    }
-
-    SDL_Delay(QUETOO_TICK_MILLIS); // 40Hz should be plenty for progress bar updates etc
-  }
-
-  SDL_LockMutex(installer.mutex);
-  if (in->state < INSTALLER_DONE) {
-    in->state = INSTALLER_CANCELLED;
-  }
-  SDL_UnlockMutex(installer.mutex);
-
-  SDL_WaitThread(installer.thread, NULL);
-  installer.thread = NULL;
-
-  SDL_DestroyMutex(installer.mutex);
-  installer.mutex = NULL;
-}
-
-/**
  * @brief Strips a trailing newline in place.
  */
 static void Installer_Chomp(char *line) {
@@ -1113,8 +1054,6 @@ static void Installer_SweepDisplaced(void) {
 
   bool swept = true;
   char line[MAX_OS_PATH];
-
-  while (fgets(line, sizeof(line), file)) {
   char survivors[MAX_OS_PATH * 8];
   size_t length = 0;
 
@@ -1360,6 +1299,65 @@ void Installer_ApplyPending(void) {
     Com_Warn("Could not apply the staged update; the previous version is intact "
              "and it will be retried on the next exit.\n");
   }
+}
+
+/**
+ * @brief Starts an asynchronous data update and blocks until it completes,
+ * calling @c frame each iteration while the installer is in progress.
+ */
+void Installer_Init(Installer_FrameFunction frame) {
+
+#if defined(_WIN32)
+  Installer_SweepDisplaced();
+#endif
+
+  if (build_number->integer == -1) {
+    return;
+  }
+
+#if defined(__linux__)
+  if (q_strcmp(Fs_BinDir(), "/usr/lib/quetoo/bin") == 0) {
+    Com_Print("Package-managed installation; auto-updates disabled.\n");
+    return;
+  }
+#endif
+
+  memset(&installer, 0, sizeof(installer));
+  installer.status.state = INSTALLER_CHECKING;
+
+  installer.mutex = SDL_CreateMutex();
+  assert(installer.mutex);
+
+  installer.thread = SDL_CreateThread(Installer_Thread, "installer", &installer);
+  assert(installer.thread);
+
+  installer_status_t *in = &installer.status;
+
+  while (true) {
+    installer_status_t s;
+
+    SDL_LockMutex(installer.mutex);
+    s = *in;
+    SDL_UnlockMutex(installer.mutex);
+
+    if (frame(&s)) {
+      break;
+    }
+
+    SDL_Delay(QUETOO_TICK_MILLIS); // 40Hz should be plenty for progress bar updates etc
+  }
+
+  SDL_LockMutex(installer.mutex);
+  if (in->state < INSTALLER_DONE) {
+    in->state = INSTALLER_CANCELLED;
+  }
+  SDL_UnlockMutex(installer.mutex);
+
+  SDL_WaitThread(installer.thread, NULL);
+  installer.thread = NULL;
+
+  SDL_DestroyMutex(installer.mutex);
+  installer.mutex = NULL;
 }
 
 /**
