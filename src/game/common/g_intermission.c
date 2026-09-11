@@ -32,6 +32,7 @@ static struct {
   bool active;
   bool voting;
   char maps[MAX_NEXT_MAPS][MAX_QPATH];
+  int32_t indices[MAX_NEXT_MAPS];
   int32_t num_maps;
   int32_t ballots[MAX_CLIENTS];
   int32_t published[MAX_NEXT_MAPS];
@@ -66,7 +67,7 @@ static bool G_Intermission_Offers(const char *name) {
  * offered. A rotation may name maps that were never installed; `next_map` does not check,
  * but a vote would let clients elect one.
  */
-static void G_Intermission_Offer(const char *name) {
+static void G_Intermission_Offer(const char *name, int32_t index) {
 
   if (g_intermission_state.num_maps == MAX_NEXT_MAPS) {
     return;
@@ -83,6 +84,7 @@ static void G_Intermission_Offer(const char *name) {
     return;
   }
 
+  g_intermission_state.indices[g_intermission_state.num_maps] = index;
   q_strlcpy(g_intermission_state.maps[g_intermission_state.num_maps++], name, MAX_QPATH);
 }
 
@@ -105,8 +107,9 @@ static const char *G_Intermission_MapAt(const List *list, int32_t index) {
 
 /**
  * @brief Fills the candidates from the server's rotation.
- * @details The rotation is matched by name, which is how the server resolves the map we
- * hand back to it, so the two agree on which entry a name means.
+ * @details Where we are is the server's index rather than our name, since a rotation
+ * may name this map more than once, and the occurrences are different places to
+ * resume from.
  */
 static void G_Intermission_SelectMaps(void) {
 
@@ -115,30 +118,25 @@ static void G_Intermission_SelectMaps(void) {
   const int32_t wanted = g_intermission_state.voting ? MAX_NEXT_MAPS : 1;
 
   List *list = gi.MapList();
-  if (list) {
+  if (list && list->count) {
     const int32_t length = (int32_t) list->count;
 
-    int32_t current = -1;
-    for (int32_t i = 0; i < length; i++) {
-      if (!q_strcmp(G_Intermission_MapAt(list, i) ?: "", g_level.name)) {
-        current = i;
-        break;
-      }
-    }
+    // -1 when this level did not come from the rotation, which starts us at its head
+    const int32_t current = gi.MapIndex();
 
     if (gi.GetCvarInteger("sv_map_list_shuffle")) {
       // a shuffled rotation has no next, so offer a sample of it instead; the ordered
       // pass below tops up whatever the draws duplicated
       for (int32_t i = 0; i < length && g_intermission_state.num_maps < wanted; i++) {
-        G_Intermission_Offer(G_Intermission_MapAt(list, (int32_t) RandomRangeu(0, (uint32_t) length)));
+        const int32_t index = (int32_t) RandomRangeu(0, (uint32_t) length);
+        G_Intermission_Offer(G_Intermission_MapAt(list, index), index);
       }
     }
 
-    // in order from wherever we are, which is what the rotation would have played;
-    // `current` is -1 when this map is not in the rotation at all, which starts us
-    // at its head
+    // in order from wherever we are, which is what the rotation would have played
     for (int32_t i = 1; i <= length && g_intermission_state.num_maps < wanted; i++) {
-      G_Intermission_Offer(G_Intermission_MapAt(list, (current + i) % length));
+      const int32_t index = (current + i) % length;
+      G_Intermission_Offer(G_Intermission_MapAt(list, index), index);
     }
 
     for (const ListNode *node = list->head; node; node = node->next) {
@@ -149,7 +147,9 @@ static void G_Intermission_SelectMaps(void) {
   }
 
   if (g_intermission_state.num_maps == 0) {
-    // no rotation, or nothing in it we can serve: the server replays this map
+    // no rotation, or nothing in it we can serve: the server replays this map, which
+    // is what `next_map` falls back to on its own, so we leave it to do that
+    g_intermission_state.indices[0] = -1;
     q_strlcpy(g_intermission_state.maps[0], g_level.name, MAX_QPATH);
     g_intermission_state.num_maps = 1;
   }
@@ -202,18 +202,35 @@ static void G_Intermission_Publish(void) {
 }
 
 /**
+ * @brief Publishes the intermission's countdown.
+ * @remarks The match clock stops at the intermission, so its config string is free to
+ * carry this one instead; the HUD that reads it is hidden by then.
+ */
+static void G_Intermission_PublishTime(void) {
+
+  const uint32_t end = g_level.intermission_time + INTERMISSION;
+
+  gi.SetConfigString(CS_TIME, G_FormatTime(end > g_level.time ? end - g_level.time : 0));
+}
+
+/**
  * @brief Opens the intermission, choosing what it offers.
  */
 static void G_Intermission_Begin(void) {
 
   g_intermission_state.active = true;
-  g_intermission_state.voting = g_vote_next_map->integer && g_vote->integer;
+  g_intermission_state.voting = g_vote_next_map->integer;
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
     g_intermission_state.ballots[i] = BALLOT_NONE;
   }
 
   G_Intermission_SelectMaps();
+
+  // before the maps, since publishing those is what shows the view, and the clock it
+  // reads still holds the match time until the next tick
+  G_Intermission_PublishTime();
+
   G_Intermission_Publish();
 
   if (g_intermission_state.voting) {
@@ -247,7 +264,9 @@ static void G_Intermission_End(void) {
                       g_intermission_state.maps[winner], votes[winner], cast);
   }
 
-  gi.SetNextMap(g_intermission_state.maps[winner]);
+  if (g_intermission_state.indices[winner] >= 0) {
+    gi.SetNextMap(g_intermission_state.indices[winner]);
+  }
 
   g_intermission_state.active = false;
   g_intermission_state.voting = false;
@@ -317,11 +336,8 @@ static void G_FrameDidEnd_Intermission(void) {
       G_Intermission_Begin();
     }
 
-    // the match clock stops at the intermission, so the config string is free to carry
-    // this one instead; the HUD that reads it is hidden by then
     if (g_level.frame_num % QUETOO_TICK_RATE == 0) {
-      const uint32_t end = g_intermission_state.active ? g_level.intermission_time + INTERMISSION : 0;
-      gi.SetConfigString(CS_TIME, G_FormatTime(end > g_level.time ? end - g_level.time : 0));
+      G_Intermission_PublishTime();
     }
 
     int32_t votes[MAX_NEXT_MAPS];
