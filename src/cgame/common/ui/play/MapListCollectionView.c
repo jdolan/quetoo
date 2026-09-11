@@ -29,6 +29,13 @@
 #define _Class _MapListCollectionView
 
 /**
+ * @brief The mapshot surfaces are scaled once, on the loading thread, so they take a fixed
+ * resolution rather than the item size, which the cascade owns and which that thread may not read.
+ */
+#define MAPSHOT_WIDTH  420
+#define MAPSHOT_HEIGHT 236
+
+/**
  * @brief PointerArray destroy function for MapListItemInfo.
  */
 static void freeMapListItemInfo(void *p) {
@@ -191,7 +198,7 @@ static void enumerateMaps(const char *path, void *data) {
 
         SDL_Surface *surf = mapshot ? cgi.LoadSurface(mapshot) : NULL;
         if (surf) {
-          info->mapshot = SDL_CreateSurface(this->collectionView.itemSize.w, this->collectionView.itemSize.h, SDL_PIXELFORMAT_RGB24);
+          info->mapshot = SDL_CreateSurface(MAPSHOT_WIDTH, MAPSHOT_HEIGHT, SDL_PIXELFORMAT_RGB24);
           SDL_BlitSurfaceScaled(surf, NULL, info->mapshot, NULL, SDL_SCALEMODE_LINEAR);
         } else {
           info->mapshot = NULL;
@@ -284,8 +291,6 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
     self->collectionView.dataSource.numberOfItems = numberOfItems;
     self->collectionView.dataSource.objectForItemAtIndexPath = objectForItemAtIndexPath;
     self->collectionView.delegate.itemForObjectAtIndexPath = itemForObjectAtIndexPath;
-
-    self->collectionView.itemSize = MakeSize(420, 236);
   }
 
   return self;

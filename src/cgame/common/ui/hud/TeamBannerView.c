@@ -50,11 +50,16 @@ static void updateBindings(View *self, ident data) {
   const int16_t team = ps->stats[STAT_TEAM];
   const bool valid = team >= 0 && team < MAX_TEAMS;
 
-  $(self, setHidden, !valid);
+  $(self, setVisibility, valid ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (valid) {
     const color32_t color = Color_Color32(ColorHSVA(cg_state.teams[team].hue, 1.f, 1.f, .14f));
-    self->backgroundColor = (SDL_Color) { color.r, color.g, color.b, color.a };
+    const SDL_Color background = { color.r, color.g, color.b, color.a };
+
+    if (memcmp(&background, &self->backgroundColor, sizeof(background))) {
+      $(self->style, addColorAttribute, "background-color", &background);
+      $(self, invalidateStyle);
+    }
   }
 }
 

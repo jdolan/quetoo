@@ -103,14 +103,23 @@ cguieditor_DATA = \
 	$(CGUI_DIR)/editor/MeshViewController.json \
 	$(CGUI_DIR)/editor/editor.css
 
-cguihuddir = \
-	@PKGLIBDIR@/default/ui/hud
+cguihuddefaultdir = \
+	@PKGLIBDIR@/default/ui/hud/default
 
-cguihud_DATA = \
-	$(CGUI_DIR)/hud/classic.css \
-	$(CGUI_DIR)/hud/classic.json \
-	$(CGUI_DIR)/hud/scoreboard.css \
-	$(CGUI_DIR)/hud/scoreboard.json
+cguihuddefault_DATA = \
+	$(CGUI_DIR)/hud/default/hud.css \
+	$(CGUI_DIR)/hud/default/hud.json \
+	$(CGUI_DIR)/hud/default/scoreboard.css \
+	$(CGUI_DIR)/hud/default/scoreboard.json
+
+cguihudchromedir = \
+	@PKGLIBDIR@/default/ui/hud/chrome
+
+cguihudchrome_DATA = \
+	$(CGUI_DIR)/hud/chrome/hud.css \
+	$(CGUI_DIR)/hud/chrome/hud.json \
+	$(CGUI_DIR)/hud/chrome/scoreboard.css \
+	$(CGUI_DIR)/hud/chrome/scoreboard.json
 
 cguihomedir = \
 	@PKGLIBDIR@/default/ui/home

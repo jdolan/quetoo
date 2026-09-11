@@ -61,12 +61,6 @@ struct WeaponBarView {
   bool has[WEAPON_TOTAL];
 
   /**
-   * @brief The slot row: one `slot` View per carried weapon, holding its icon; the selected slot
-   * carries the class name `selected`.
-   */
-  StackView *slots;
-
-  /**
    * @brief The name of the selected weapon.
    */
   Text *name;
@@ -75,6 +69,12 @@ struct WeaponBarView {
    * @brief The index of the selected slot within `slots`, or its count when none is.
    */
   size_t selected;
+
+  /**
+   * @brief The slot row: one `slot` View per carried weapon, holding its icon; the selected slot
+   * carries the class name `selected`.
+   */
+  StackView *slots;
 };
 
 struct WeaponBarViewInterface {

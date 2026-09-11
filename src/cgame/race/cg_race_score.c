@@ -200,23 +200,53 @@ static void rebuild(ScoreboardView *self) {
 }
 
 /**
- * @see ScoreboardView::scoreView(ScoreboardView *, const g_score_t *)
+ * @see ScoreboardView::fields(const ScoreboardView *, const ScoreField **)
  */
-static ScoreView *scoreView(ScoreboardView *self, const g_score_t *score) {
+static size_t fields(const ScoreboardView *self, const ScoreField **fields) {
 
-  ScoreView *row = $(alloc(ScoreView), initWithScore, score, self->rowWidth);
-  assert(row);
+  static const ScoreField racing[] = {
+    { "mode", 128 },
+    { "best", 128 },
+    { "runs", 80 },
+  };
 
-  const char *aside = NULL;
+  *fields = racing;
+  return lengthof(racing);
+}
+
+/**
+ * @see ScoreboardView::valueForField(const ScoreboardView *, const g_score_t *, size_t)
+ */
+static const char *valueForField(const ScoreboardView *self, const g_score_t *score, size_t field) {
+
+  switch (field) {
+    case 0:
+      return Cg_Race_ModeName(score->race_mode);
+    case 1:
+      if (score->race_mode == RACE_MODE_SPECTATOR) {
+        return "";
+      }
+      return score->race_best ? Cg_Race_FormatTime(score->race_best) : "no time";
+    case 2:
+      return score->race_mode == RACE_MODE_SPECTATOR ? "" : va("%u", score->race_runs);
+    default:
+      return "";
+  }
+}
+
+/**
+ * @see ScoreboardView::describe(const ScoreboardView *, const g_score_t *, const char **, const char **)
+ */
+static void describe(const ScoreboardView *self, const g_score_t *score, const char **detail, const char **aside) {
+
+  // the racer's mode leads, with their best and their runs opposite it
+  *detail = Cg_Race_ModeName(score->race_mode);
+  *aside = NULL;
 
   if (score->race_mode != RACE_MODE_SPECTATOR) {
     const char *best = score->race_best ? Cg_Race_FormatTime(score->race_best) : "no time";
-    aside = va("%s  %u run%s", best, score->race_runs, score->race_runs == 1 ? "" : "s");
+    *aside = va("%s  %u run%s", best, score->race_runs, score->race_runs == 1 ? "" : "s");
   }
-
-  $(row, setDetails, Cg_Race_ModeName(score->race_mode), aside);
-
-  return row;
 }
 
 /**
@@ -226,8 +256,10 @@ static void initializeRaceScoreboardView(Class *clazz) {
 
   ((ViewInterface *) clazz->interface)->init = init;
 
+  ((ScoreboardViewInterface *) clazz->interface)->describe = describe;
+  ((ScoreboardViewInterface *) clazz->interface)->fields = fields;
   ((ScoreboardViewInterface *) clazz->interface)->rebuild = rebuild;
-  ((ScoreboardViewInterface *) clazz->interface)->scoreView = scoreView;
+  ((ScoreboardViewInterface *) clazz->interface)->valueForField = valueForField;
 }
 
 Class *_RaceScoreboardView(void) {

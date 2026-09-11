@@ -26,8 +26,6 @@
 
 #define _Class _WeaponBarView
 
-#define WEAPON_BAR_SPACING 4
-
 #pragma mark - Object
 
 /**
@@ -54,8 +52,6 @@ static View *init(View *self) {
   if (self) {
     WeaponBarView *this = (WeaponBarView *) self;
 
-    this->stackView.axis = StackViewAxisVertical;
-
     this->name = $(alloc(Text), initWithText, NULL, NULL);
     assert(this->name);
 
@@ -63,10 +59,6 @@ static View *init(View *self) {
 
     this->slots = $(alloc(StackView), initWithFrame, NULL);
     assert(this->slots);
-
-    this->slots->axis = StackViewAxisHorizontal;
-    this->slots->spacing = WEAPON_BAR_SPACING;
-    this->slots->view.autoresizingMask = ViewAutoresizingContain;
 
     $(self, addSubview, (View *) this->slots);
   }
@@ -86,7 +78,6 @@ static void rebuild(WeaponBarView *self) {
       View *slot = $(alloc(View), initWithFrame, NULL);
       assert(slot);
 
-      slot->autoresizingMask = ViewAutoresizingContain;
       $(slot, addClassName, "slot");
 
       ImageView *icon = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));
@@ -149,7 +140,7 @@ static void updateBindings(View *self, ident data) {
   float alpha;
   const bool visible = Cg_UpdateSelectWeapon(ps, &alpha);
 
-  $(self, setHidden, !visible);
+  $(self, setVisibility, visible ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (!visible) {
     return;

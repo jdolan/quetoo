@@ -124,8 +124,6 @@ static View *init(View *self) {
       this->flashes[i] = $(alloc(ImageView), initWithFrame, NULL);
       assert(this->flashes[i]);
 
-      this->flashes[i]->view.autoresizingMask = ViewAutoresizingFill;
-
       $(self, addSubview, (View *) this->flashes[i]);
     }
   }
@@ -157,13 +155,18 @@ static void updateBindings(View *self, ident data) {
 
   const player_state_t *ps = &((const cl_frame_t *) data)->ps;
 
-  $(self, setHidden, !cg_draw_blend->value);
+  $(self, setVisibility, cg_draw_blend->value ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (!cg_draw_blend->value) {
     return;
   }
 
-  self->backgroundColor = liquidTint();
+  const SDL_Color tint = liquidTint();
+
+  if (memcmp(&tint, &self->backgroundColor, sizeof(tint))) {
+    $(self->style, addColorAttribute, "background-color", &tint);
+    $(self, invalidateStyle);
+  }
 
   const int16_t pickup = ps->stats[STAT_PICKUP] & ~STAT_TOGGLE_BIT;
   if (pickup && pickup != cg_hud_state.blend.pickup) {
@@ -186,7 +189,8 @@ static void updateBindings(View *self, ident data) {
   for (size_t i = 0; i < BlendViewTotal; i++) {
     const float alpha = Clampf01(alphas[i]);
 
-    $((View *) this->flashes[i], setHidden, alpha <= 0.f);
+    $((View *) this->flashes[i], setVisibility,
+      alpha <= 0.f ? ViewVisibilityHidden : ViewVisibilityVisible);
     this->flashes[i]->color.a = (Uint8) (alpha * 255);
   }
 }

@@ -47,7 +47,7 @@ static void updateBindings(View *self, ident data) {
 
   const char *text = $((OverlayText *) self, textForFrame, data);
 
-  $(self, setHidden, text == NULL);
+  $(self, setVisibility, text == NULL ? ViewVisibilityHidden : ViewVisibilityVisible);
 
   if (text) {
     $((Text *) self, setText, text);

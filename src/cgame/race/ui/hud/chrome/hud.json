@@ -1,0 +1,156 @@
+{
+  "class": "View",
+  "identifier": "hud",
+  "subviews": [
+    {
+      "class": "BlendView",
+      "identifier": "blend"
+    },
+    {
+      "identifier": "layout",
+      "subviews": [
+        {
+          "class": "CrosshairView",
+          "identifier": "crosshair"
+        },
+        {
+          "class": "RaceRunView",
+          "identifier": "raceRun",
+          "classNames": [
+            "raceRun"
+          ]
+        },
+        {
+          "class": "CenterPrintView",
+          "identifier": "centerPrint"
+        },
+        {
+          "class": "TargetNameView",
+          "identifier": "targetName"
+        },
+        {
+          "class": "VoteView",
+          "identifier": "vote"
+        },
+        {
+          "class": "SpectatorView",
+          "identifier": "spectator"
+        },
+        {
+          "class": "ChaseView",
+          "identifier": "chase"
+        },
+        {
+          "class": "TeamBannerView",
+          "identifier": "teamBanner"
+        },
+        {
+          "class": "StackView",
+          "identifier": "powerups",
+          "subviews": [
+            {
+              "class": "PowerupView",
+              "identifier": "quad",
+              "powerup": "quad"
+            },
+            {
+              "class": "PowerupView",
+              "identifier": "invulnerability",
+              "powerup": "invulnerability"
+            },
+            {
+              "class": "PowerupView",
+              "identifier": "invisibility",
+              "powerup": "invisibility"
+            }
+          ]
+        },
+        {
+          "class": "StackView",
+          "identifier": "stats",
+          "subviews": [
+            {
+              "class": "SpeedView",
+              "identifier": "speed",
+              "caption": "Speed"
+            },
+            {
+              "classNames": [
+                "divider"
+              ]
+            },
+            {
+              "class": "RunsView",
+              "identifier": "runs",
+              "caption": "Runs"
+            },
+            {
+              "classNames": [
+                "divider"
+              ]
+            },
+            {
+              "class": "TimeView",
+              "identifier": "time",
+              "caption": "Time"
+            }
+          ]
+        },
+        {
+          "identifier": "pickup",
+          "subviews": [
+            {
+              "class": "PickupView"
+            }
+          ]
+        },
+        {
+          "class": "StackView",
+          "identifier": "vitals",
+          "subviews": [
+            {
+              "class": "StatView",
+              "identifier": "health",
+              "caption": "Health",
+              "stat": "health"
+            },
+            {
+              "class": "StatView",
+              "identifier": "armor",
+              "caption": "Armor",
+              "stat": "armor"
+            }
+          ]
+        },
+        {
+          "class": "StackView",
+          "identifier": "ammo",
+          "subviews": [
+            {
+              "class": "StatView",
+              "identifier": "ammoStat",
+              "stat": "ammo"
+            }
+          ]
+        },
+        {
+          "class": "WeaponBarView",
+          "identifier": "weaponBar"
+        },
+        {
+          "identifier": "spine"
+        },
+        {
+          "class": "FpsView",
+          "identifier": "fps",
+          "caption": "FPS"
+        },
+        {
+          "class": "PingView",
+          "identifier": "ping",
+          "caption": "PING"
+        }
+      ]
+    }
+  ]
+}

@@ -158,7 +158,9 @@ static void loadView(ViewController *self) {
  */
 static void cycleCandidate(EntityViewController *self, int32_t dir) {
 
-  if (self->numCandidates < 2 || ((ViewController *) self)->view->hidden) {
+  const View *view = ((ViewController *) self)->view;
+
+  if (self->numCandidates < 2 || view->visibility == ViewVisibilityHidden) {
     return;
   }
 

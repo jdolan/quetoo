@@ -41,7 +41,9 @@ static void dealloc(Object *self) {
 
   StatView *this = (StatView *) self;
 
+  release(this->caption);
   release(this->icon);
+  release(this->labels);
   release(this->value);
 
   super(Object, self, dealloc);
@@ -90,11 +92,22 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 
   StatView *this = (StatView *) self;
 
+  char *caption = NULL;
+
   const Inlet inlets[] = MakeInlets(
+    MakeInlet("caption", InletTypeCharacters, &caption, NULL),
     MakeInlet("stat", InletTypeEnum, &this->stat, (ident) StatViewStatNames)
   );
 
   $(self, bind, inlets, dictionary);
+
+  if (caption) {
+    $(this->caption, setText, caption);
+    free(caption);
+  }
+
+  $((View *) this->caption, setVisibility,
+    this->caption->text == NULL ? ViewVisibilityHidden : ViewVisibilityVisible);
 }
 
 /**
@@ -150,7 +163,7 @@ static void updateBindings(View *self, ident data) {
       break;
   }
 
-  $(self, setHidden, value <= 0);
+  $(self, setVisibility, value <= 0 ? ViewVisibilityHidden : ViewVisibilityVisible);
 
   if (value <= 0) {
     return;
@@ -168,7 +181,11 @@ static void updateBindings(View *self, ident data) {
     color = Colors.Yellow;
   }
 
-  this->value->color = color;
+  if (memcmp(&color, &this->value->color, sizeof(color))) {
+    $(this->value->view.style, addColorAttribute, "color", &color);
+    $((View *) this->value, invalidateStyle);
+  }
+
   $(this->value, setTextWithFormat, "%d", value);
 
   this->icon->color.a = (Uint8) (pulse * 255);
@@ -191,15 +208,26 @@ static StatView *initWithStat(StatView *self, StatViewStat stat) {
   if (self) {
     self->stat = stat;
 
-    self->stackView.axis = StackViewAxisHorizontal;
-    self->stackView.spacing = 5;
+    self->labels = $(alloc(StackView), initWithFrame, NULL);
+    assert(self->labels);
+
+    $((View *) self->labels, addClassName, "labels");
+    $((View *) self, addSubview, (View *) self->labels);
+
+    self->caption = $(alloc(Text), initWithText, NULL, NULL);
+    assert(self->caption);
+
+    $((View *) self->caption, addClassName, "caption");
+    $((View *) self->caption, setVisibility, ViewVisibilityHidden);
+    $((View *) self->labels, addSubview, (View *) self->caption);
 
     self->value = $(alloc(Text), initWithText, NULL, NULL);
     assert(self->value);
 
+    $((View *) self->value, addClassName, "value");
     $((View *) self->value, addClassName, "number");
 
-    $((View *) self, addSubview, (View *) self->value);
+    $((View *) self->labels, addSubview, (View *) self->value);
 
     self->icon = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));
     assert(self->icon);

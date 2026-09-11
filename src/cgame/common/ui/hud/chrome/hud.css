@@ -1,0 +1,441 @@
+/*
+ * The chrome HUD: four committed corner clusters, flush to the screen edges, on angled cards
+ * cut from a gradient. Vitals bottom left, ammo bottom right, powerups top left, score and
+ * clock top right, with the weapon bar running up the right edge.
+ *
+ * Where the default variant insets everything by #layout's padding and centres its cards,
+ * this one anchors to the edges and takes the inset back out: the slanted edge, not
+ * whitespace, is what separates a cluster from the scene. corner-cut insets a corner along
+ * x, so a single value slants a whole edge; a cut corner leaves the rounded rectangle
+ * shader, so border-radius does not apply to these cards.
+ *
+ * MVC specificity counts a type selector once per superclass, so #hud Text outranks a bare
+ * #id; every rule that sets a Text property carries the #hud prefix to outrank the base rule.
+ */
+
+#hud {
+  autoresizing-mask: fill;
+}
+
+#layout {
+  autoresizing-mask: fill;
+}
+
+/*
+ * Typography. Rajdhani for the numerals the concept was drawn in, Barlow Condensed for the
+ * captions, and Share Tech Mono kept for values that change every frame.
+ */
+
+#hud Text {
+  font-family: Barlow Condensed;
+  font-style: regular;
+  font-size: 15;
+  color: #f2f5f6;
+}
+
+#hud .caption {
+  text-transform: uppercase;
+  color: #8fc7dcbf;
+}
+
+#hud .number {
+  font-family: Rajdhani;
+  font-style: regular;
+}
+
+#hud .live {
+  font-family: Share Tech Mono;
+  font-style: regular;
+}
+
+#crosshair {
+  alignment: middle-center;
+}
+
+#teamBanner {
+  alignment: bottom;
+  autoresizing-mask: width;
+  height: 64;
+}
+
+/*
+ * The cards. Every cluster shares the fill and the gradient; only the cut differs, and each
+ * cut leans away from the edge the cluster is anchored to.
+ */
+
+#hud .card {
+  autoresizing-mask: contain;
+  background-color: #08151ae6;
+  background-gradient-color: #08151a9e;
+  background-gradient-angle: 90;
+}
+
+/* Vitals, bottom left: the top right corner pulls in, so the card leans into the scene */
+
+#vitals {
+  alignment: bottom-left;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  background-color: #08151ae6;
+  background-gradient-color: #08151a9e;
+  background-gradient-angle: 90;
+  corner-cut: 0 30 0 0;
+  padding: 14 62 16 30;
+  spacing: 28;
+}
+
+#hud #vitals StatView {
+  alignment: bottom;
+  autoresizing-mask: contain;
+  reversed: true;
+  spacing: 10;
+}
+
+#hud #vitals .labels {
+  alignment: bottom;
+  autoresizing-mask: contain;
+}
+
+#hud #vitals ImageView {
+  alignment: middle;
+  width: 34;
+  height: 34;
+}
+
+#hud #vitals .number {
+  font-size: 60;
+}
+
+#hud #armor .number {
+  font-size: 42;
+}
+
+#hud #armor ImageView {
+  width: 26;
+  height: 26;
+}
+
+/* Ammo, bottom right: the top left corner pulls in, mirroring the vitals */
+
+#ammo {
+  alignment: bottom-right;
+  autoresizing-mask: contain;
+  background-color: #08151ae6;
+  background-gradient-color: #08151a9e;
+  background-gradient-angle: 270;
+  corner-cut: 30 0 0 0;
+  padding: 14 30 16 62;
+}
+
+#hud #ammo StatView {
+  alignment: bottom;
+  autoresizing-mask: contain;
+  reversed: true;
+  spacing: 10;
+}
+
+#hud #ammo .labels {
+  alignment: bottom;
+  autoresizing-mask: contain;
+}
+
+#hud #ammo ImageView {
+  alignment: middle;
+  width: 32;
+  height: 32;
+}
+
+#hud #ammo .number {
+  font-size: 56;
+}
+
+/*
+ * Powerups, top left: a stack of cards leaning off the left edge. They start below the
+ * notify lines, which draw from 32 down at whatever cg_notify_lines is set to; the inset
+ * clears the default three with room to spare.
+ */
+
+#powerups {
+  alignment: top-left;
+  autoresizing-mask: contain;
+  axis: vertical;
+  padding-top: 128;
+  spacing: 12;
+}
+
+#hud PowerupView {
+  autoresizing-mask: contain;
+  background-color: #1e4e62e6;
+  background-gradient-color: #08151acc;
+  background-gradient-angle: 90;
+  corner-cut: 0 0 28 0;
+  padding: 16 52 16 52;
+  spacing: 28;
+}
+
+#hud PowerupView > Text {
+  alignment: middle;
+}
+
+#hud PowerupView > ImageView {
+  alignment: middle;
+  width: 52;
+  height: 52;
+}
+
+#hud #powerups .number {
+  font-size: 52;
+}
+
+/* Score and clock, top right: one card, its top left corner pulled in */
+
+#stats {
+  alignment: top-right;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  background-color: #1e4e62e6;
+  background-gradient-color: #08151acc;
+  background-gradient-angle: 270;
+  corner-cut: 18 0 0 0;
+  padding: 10 30 12 48;
+  spacing: 24;
+}
+
+#hud #stats .divider {
+  width: 1;
+  height: 44;
+  background-color: #8fc7dc47;
+  alignment: middle;
+}
+
+#hud CounterView {
+  alignment: middle;
+  autoresizing-mask: contain;
+  axis: vertical;
+}
+
+#hud CounterView > .caption {
+  alignment: center;
+}
+
+#hud CounterView > .value {
+  alignment: center;
+}
+
+/*
+ * The clock ticks every second and the counters roll over, so this card would breathe on
+ * every change. Each stat takes a fixed width, and the numerals take the tabular face:
+ * Rajdhani's digits are not the same width (its 1 is two thirds of its 0), so a fixed width
+ * alone would still let a centred value shift inside it.
+ */
+
+#hud #stats CounterView {
+  min-width: 88;
+}
+
+#hud #time {
+  min-width: 128;
+}
+
+#hud #stats .number {
+  font-family: M PLUS U;
+  font-size: 30;
+}
+
+#hud #stats .live {
+  font-size: 30;
+}
+
+#hud TimeView > .value {
+  color: #8fc7dc;
+}
+
+/* The weapon bar runs up the right edge, each slot cut on its bottom left */
+
+#weaponBar {
+  alignment: middle-right;
+  autoresizing-mask: contain;
+  padding-right: 24;
+  spacing: 8;
+}
+
+#hud #weaponBar > Text {
+  alignment: right;
+  text-transform: uppercase;
+  font-size: 16;
+  color: #dededecc;
+}
+
+#hud #weaponBar > StackView {
+  alignment: right;
+  axis: vertical;
+  spacing: 6;
+}
+
+#hud .slot {
+  autoresizing-mask: contain;
+  background-color: #08151ab8;
+  corner-cut: 0 0 0 8;
+  padding: 7 12 7 20;
+}
+
+#hud .slot.selected {
+  background-color: #1e4e62e6;
+  border-color: #8fc7dc;
+  border-width: 1;
+}
+
+#hud .slot > ImageView {
+  width: 30;
+  height: 30;
+}
+
+/* The one flourish that is not a card: a lit seam along the bottom edge, centred */
+
+#spine {
+  alignment: bottom-center;
+  width: 260;
+  height: 3;
+  background-color: #8fc7dc00;
+  background-gradient-color: #8fc7dc;
+  background-gradient-angle: 90;
+}
+
+#pickup {
+  alignment: top-center;
+  autoresizing-mask: contain;
+}
+
+#pickup > PickupView {
+  autoresizing-mask: contain;
+  background-color: #08151ae6;
+  background-gradient-color: #08151a9e;
+  background-gradient-angle: 90;
+  corner-cut: 14 0 14 0;
+  padding: 6 24 6 24;
+  spacing: 12;
+}
+
+#hud PickupView > ImageView {
+  width: 32;
+  height: 32;
+}
+
+#hud PickupView > Text {
+  alignment: middle;
+  text-transform: uppercase;
+  font-size: 18;
+  color: #dedededb;
+}
+
+#hud #fps {
+  alignment: bottom-right;
+  padding-bottom: 162;
+  padding-right: 30;
+}
+
+#hud #ping {
+  alignment: bottom-right;
+  padding-bottom: 118;
+  padding-right: 30;
+}
+
+#hud #ping .lagging {
+  color: #ff5c5c;
+}
+
+#hud DiagnosticsView {
+  alignment: bottom-left;
+  padding-bottom: 142;
+  padding-left: 30;
+}
+
+#blend {
+  autoresizing-mask: fill;
+}
+
+#hud #centerPrint {
+  alignment: middle-center;
+}
+
+/*
+ * The notify lines and the chat are siblings of #hud, so that they show through the
+ * intermission and with the HUD off; they take their own inset.
+ */
+
+NotifyView {
+  alignment: none;
+  left: 32;
+  top: 32;
+  font-family: Share Tech Mono;
+  font-style: regular;
+  font-size: 16;
+}
+
+ChatView {
+  alignment: bottom-left;
+  padding-left: 32;
+  padding-bottom: 272;
+  spacing: 4;
+}
+
+ChatView ConsoleText {
+  font-family: Share Tech Mono;
+  font-style: regular;
+  font-size: 16;
+}
+
+ChatView TextView {
+  background-color: #08151aaa;
+  border-color: #8fc7dc;
+  border-width: 1;
+  min-width: 480;
+}
+
+ChatView TextView.team {
+  border-color: #ffd75c;
+}
+
+ChatView TextView > Text {
+  font-family: Share Tech Mono;
+  font-style: regular;
+  font-size: 16;
+}
+
+#hud #targetName {
+  alignment: bottom-center;
+  font-size: 28;
+  color: #00ff00;
+  padding-bottom: 224;
+}
+
+#hud #vote {
+  alignment: middle-center;
+  padding-top: 128;
+}
+
+#hud #spectator {
+  alignment: top-center;
+  color: #00ff00;
+  padding-top: 32;
+}
+
+#hud #chase {
+  alignment: bottom-center;
+  color: #00ff00;
+  padding-bottom: 48;
+}
+
+#hud .heldFlag {
+  alignment: middle-left;
+  padding-bottom: 224;
+  width: 64;
+  height: 64;
+}
+
+#hud .raceRun {
+  alignment: top-center;
+  font-family: Share Tech Mono;
+  font-style: bold;
+  font-size: 28;
+}

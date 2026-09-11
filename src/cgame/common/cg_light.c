@@ -123,10 +123,10 @@ float Cg_AnimateLight(float intensity, const char *style, float drift) {
 }
 
 /**
- * @brief Resolves the model1 index for a BSP inline model string (e.g. "*3").
- * @return The model1 index, or -1 if not found.
+ * @brief Resolves the model index for a BSP inline model string (e.g. `"*3"`).
+ * @return The model index, or -1 if not found.
  */
-static int32_t Cg_ResolveModel1(const char *model) {
+static int32_t Cg_ResolveBspModel(const char *model) {
 
   for (int32_t i = 1; i < MAX_MODELS; i++) {
     if (!q_strcmp(cgi.client->config_strings[CS_MODELS + i], model)) {
@@ -141,6 +141,11 @@ static int32_t Cg_ResolveModel1(const char *model) {
  * @brief Adds all BSP light sources to the view.
  * @details For lights with a `target_entity`, resolves the current world position of the
  * attached inline model entity each frame and adds the light as a dynamic (unshadowed) light.
+ * @remarks A `common/origin` brush compiles the target's brushwork relative to that origin, and
+ * leaves it on the entity as its `origin` key, so the light is carried as an offset from it. A
+ * target without one has no `origin` key, leaving the offset as the light's own world position.
+ * The offset rides the same transform the renderer builds for the target's brushwork, from the
+ * interpolated origin and angles, so the light pivots with a train that turns its corners.
  */
 static void Cg_AddBspLights(void) {
 
@@ -150,22 +155,25 @@ static void Cg_AddBspLights(void) {
     const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, l->drift);
 
     if (l->target_entity) {
-      // Resolve the inline model string and find the matching cl_entity_t each frame.
+
       const char *model = cgi.EntityValue(l->target_entity, "model")->nullable_string;
       if (!model) {
         continue;
       }
 
-      const int32_t model1 = Cg_ResolveModel1(model);
+      const int32_t model1 = Cg_ResolveBspModel(model);
       if (model1 == -1) {
         continue;
       }
+
+      const vec3_t compiled_origin = cgi.EntityValue(l->target_entity, "origin")->vec3;
+      const vec3_t offset = Vec3_Subtract(l->origin, compiled_origin);
 
       vec3_t origin = l->origin;
       for (int32_t j = 0; j < MAX_ENTITIES; j++) {
         const cl_entity_t *ent = &cgi.client->entities[j];
         if (ent->current.model1 == model1) {
-          origin = Vec3_Add(l->origin, ent->origin);
+          origin = Mat4_Transform(Mat4_FromRotationTranslationScale(ent->angles, ent->origin, 1.f), offset);
           break;
         }
       }

@@ -42,7 +42,7 @@ static void updateBindings(View *self, ident data) {
 
   FpsView *this = (FpsView *) self;
 
-  $(self, setHidden, !cg_draw_fps->integer);
+  $(self, setVisibility, cg_draw_fps->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (data) {
     this->frames++;
@@ -84,8 +84,8 @@ static void initialize(Class *clazz) {
   ((ViewInterface *) clazz->interface)->init = init;
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-  ((CounterViewInterface *) clazz->interface)->valueForFrame = valueForFrame;
   ((CounterViewInterface *) clazz->interface)->textForFrame = textForFrame;
+  ((CounterViewInterface *) clazz->interface)->valueForFrame = valueForFrame;
 }
 
 /**

@@ -1,0 +1,173 @@
+{
+  "class": "View",
+  "identifier": "hud",
+  "subviews": [
+    {
+      "class": "BlendView",
+      "identifier": "blend"
+    },
+    {
+      "identifier": "layout",
+      "subviews": [
+        {
+          "class": "CrosshairView",
+          "identifier": "crosshair"
+        },
+        {
+          "class": "HeldFlagView",
+          "identifier": "heldFlag",
+          "classNames": [
+            "heldFlag"
+          ]
+        },
+        {
+          "class": "CenterPrintView",
+          "identifier": "centerPrint"
+        },
+        {
+          "class": "TargetNameView",
+          "identifier": "targetName"
+        },
+        {
+          "class": "VoteView",
+          "identifier": "vote"
+        },
+        {
+          "class": "SpectatorView",
+          "identifier": "spectator"
+        },
+        {
+          "class": "ChaseView",
+          "identifier": "chase"
+        },
+        {
+          "class": "TeamBannerView",
+          "identifier": "teamBanner"
+        },
+        {
+          "class": "StackView",
+          "identifier": "powerups",
+          "subviews": [
+            {
+              "class": "PowerupView",
+              "identifier": "quad",
+              "powerup": "quad"
+            },
+            {
+              "class": "PowerupView",
+              "identifier": "invulnerability",
+              "powerup": "invulnerability"
+            },
+            {
+              "class": "PowerupView",
+              "identifier": "invisibility",
+              "powerup": "invisibility"
+            },
+            {
+              "class": "TechView",
+              "identifier": "tech"
+            }
+          ]
+        },
+        {
+          "class": "StackView",
+          "identifier": "stats",
+          "subviews": [
+            {
+              "class": "CounterView",
+              "identifier": "frags",
+              "caption": "Frags",
+              "stat": "frags"
+            },
+            {
+              "classNames": [
+                "divider"
+              ]
+            },
+            {
+              "class": "CounterView",
+              "identifier": "deaths",
+              "caption": "Deaths",
+              "stat": "deaths"
+            },
+            {
+              "classNames": [
+                "divider"
+              ]
+            },
+            {
+              "class": "CounterView",
+              "identifier": "captures",
+              "caption": "Captures",
+              "stat": "captures"
+            },
+            {
+              "classNames": [
+                "divider"
+              ]
+            },
+            {
+              "class": "TimeView",
+              "identifier": "time",
+              "caption": "Time"
+            }
+          ]
+        },
+        {
+          "identifier": "pickup",
+          "subviews": [
+            {
+              "class": "PickupView"
+            }
+          ]
+        },
+        {
+          "class": "StackView",
+          "identifier": "vitals",
+          "subviews": [
+            {
+              "class": "StatView",
+              "identifier": "health",
+              "caption": "Health",
+              "stat": "health"
+            },
+            {
+              "class": "StatView",
+              "identifier": "armor",
+              "caption": "Armor",
+              "stat": "armor"
+            }
+          ]
+        },
+        {
+          "class": "StackView",
+          "identifier": "ammo",
+          "subviews": [
+            {
+              "class": "StatView",
+              "identifier": "ammoStat",
+              "stat": "ammo"
+            }
+          ]
+        },
+        {
+          "class": "WeaponBarView",
+          "identifier": "weaponBar"
+        },
+        {
+          "identifier": "spine"
+        },
+        {
+          "class": "FpsView",
+          "identifier": "fps",
+          "caption": "FPS"
+        },
+        {
+          "class": "PingView",
+          "identifier": "ping",
+          "caption": "PING"
+        }
+      ]
+    }
+  ]
+}

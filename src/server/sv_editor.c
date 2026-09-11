@@ -198,7 +198,7 @@ void Sv_SaveEditorMap_f(void) {
   }
 
   Fs_Print(file, "// Game: Quetoo\n");
-  Fs_Print(file, "// Format: Quake3\n");
+  Fs_Print(file, "// Format: Valve220\n");
 
   int32_t entity_num = 0;
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {

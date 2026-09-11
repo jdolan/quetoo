@@ -1,6 +1,6 @@
 /*
- * The scoreboard is not part of a HUD variant: it shows through the intermission, when the
- * HUD does not, so it is arranged here. Rows are 240 by 48, as they have always been.
+ * The default variant's scoreboard. It shows through the intermission, when the HUD does not,
+ * so it is arranged apart from hud.css. Rows are 240 by 48, as they have always been.
  */
 
 ScoreboardView {

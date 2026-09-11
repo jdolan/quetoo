@@ -49,7 +49,8 @@ static void loadView(ViewController *self) {
 
   super(ViewController, self, loadView);
 
-  self->view->pointerEvents = false;
+  $(self->view->style, addEnumAttribute, "pointer-events", ViewPointerEventsNames,
+    ViewPointerEventsNone);
 
   ConsoleViewController *this = (ConsoleViewController *) self;
 
@@ -71,7 +72,7 @@ static void update(ConsoleViewController *self) {
 
   const bool console = cls.key_state.dest == KEY_CONSOLE && cls.state != CL_LOADING;
 
-  $(view, setHidden, !console);
+  $(view, setVisibility, console ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (console) {
     const int32_t height = self->viewController.view->frame.h;

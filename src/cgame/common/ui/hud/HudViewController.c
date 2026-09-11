@@ -29,7 +29,7 @@
 
 #define _Class _HudViewController
 
-#define HUD_DEFAULT_VARIANT "classic"
+#define HUD_DEFAULT "default"
 
 HudViewController *cg_hud_view_controller;
 
@@ -94,29 +94,10 @@ static void loadView(ViewController *self) {
   View *view = $(alloc(View), initWithFrame, NULL);
   assert(view);
 
-  view->autoresizingMask = ViewAutoresizingFill;
+  $(view->style, addEnumAttribute, "autoresizing-mask", ViewAutoresizingNames, ViewAutoresizingFill);
 
   $(self, setView, view);
   release(view);
-
-  // The scoreboard is not part of a variant, but a module MAY name a subclass of it here
-  View *scoreboard = $$(View, viewWithResourceName, "ui/hud/scoreboard.json", NULL);
-  if (scoreboard == NULL || !$((Object *) scoreboard, isKindOfClass, _ScoreboardView())) {
-    Cg_Warn("ui/hud/scoreboard.json did not yield a ScoreboardView\n");
-    release(scoreboard);
-    scoreboard = $((View *) alloc(ScoreboardView), init);
-  }
-
-  scoreboard->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/hud/scoreboard.css");
-  if (scoreboard->stylesheet == NULL) {
-    Cg_Warn("Failed to load ui/hud/scoreboard.css\n");
-  }
-
-  scoreboard->autoresizingMask = ViewAutoresizingFill;
-
-  this->scoreboard = (ScoreboardView *) scoreboard;
-
-  $(view, addSubview, scoreboard);
 
   this->navEdit = (NavEditView *) $((View *) alloc(NavEditView), init);
   assert(this->navEdit);
@@ -154,9 +135,6 @@ static AtlasImage *image(HudViewController *self, const char *name) {
     return NULL;
   }
 
-  // Registered by resource name, so a controller re-created on a module switch finds the
-  // image the last one added rather than adding it again; a name with a slash can never be
-  // typed as an :icon: escape, so these stay out of the way of the emoji
   AtlasImage *image = $(theme, icon, name);
   if (image) {
     return image;
@@ -183,19 +161,58 @@ static AtlasImage *image(HudViewController *self, const char *name) {
 }
 
 /**
- * @brief Loads the named variant's View and Stylesheet, or `NULL` if either is missing.
+ * @brief The name of `file` in `hud`, if the hud provides it, else in the default
+ * hud. A hud overrides only the files it ships; the rest it inherits.
  */
-static View *loadVariant(const char *variant) {
+static const char *hudResource(const char *hud, const char *file) {
 
-  View *view = $$(View, viewWithResourceName, va("ui/hud/%s.json", variant), NULL);
+  const char *name = va("ui/hud/%s/%s", hud, file);
+  if (cgi.StatFile(name, NULL)) {
+    return name;
+  }
+
+  return va("ui/hud/%s/%s", HUD_DEFAULT, file);
+}
+
+/**
+ * @brief Warns when `hud` ships no file of its own, which is what a misspelled `cg_hud` looks
+ * like: every file falls back to the default, and the fallback is otherwise silent.
+ */
+static void checkHud(const char *hud) {
+
+  if (!q_strcmp(hud, HUD_DEFAULT)) {
+    return;
+  }
+
+  const char *files[] = { "hud.json", "hud.css", "scoreboard.json", "scoreboard.css" };
+
+  for (size_t i = 0; i < lengthof(files); i++) {
+    if (cgi.StatFile(va("ui/hud/%s/%s", hud, files[i]), NULL)) {
+      return;
+    }
+  }
+
+  Cg_Warn("No ui/hud/%s, using the %s HUD\n", hud, HUD_DEFAULT);
+}
+
+/**
+ * @brief Loads the hud's View and Stylesheet, or `NULL` if either is missing.
+ */
+static View *loadHud(const char *hud) {
+
+  const char *json = hudResource(hud, "hud.json");
+
+  View *view = $$(View, viewWithResourceName, json, NULL);
   if (view == NULL) {
-    Cg_Warn("Failed to load ui/hud/%s.json\n", variant);
+    Cg_Warn("Failed to load %s\n", json);
     return NULL;
   }
 
-  view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, va("ui/hud/%s.css", variant));
+  const char *css = hudResource(hud, "hud.css");
+
+  view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, css);
   if (view->stylesheet == NULL) {
-    Cg_Warn("Failed to load ui/hud/%s.css\n", variant);
+    Cg_Warn("Failed to load %s\n", css);
     release(view);
     return NULL;
   }
@@ -204,28 +221,62 @@ static View *loadVariant(const char *variant) {
 }
 
 /**
+ * @brief Loads the hud's scoreboard, which a module MAY name a ScoreboardView subclass in.
+ */
+static ScoreboardView *loadScoreboard(const char *hud) {
+
+  const char *json = hudResource(hud, "scoreboard.json");
+
+  View *scoreboard = $$(View, viewWithResourceName, json, NULL);
+  if (scoreboard == NULL || !$((Object *) scoreboard, isKindOfClass, _ScoreboardView())) {
+    Cg_Warn("%s did not yield a ScoreboardView\n", json);
+    release(scoreboard);
+    scoreboard = $((View *) alloc(ScoreboardView), init);
+  }
+
+  const char *css = hudResource(hud, "scoreboard.css");
+
+  scoreboard->stylesheet = $$(Stylesheet, stylesheetWithResourceName, css);
+  if (scoreboard->stylesheet == NULL) {
+    Cg_Warn("Failed to load %s\n", css);
+  }
+
+  return (ScoreboardView *) scoreboard;
+}
+
+/**
  * @fn void HudViewController::reload(HudViewController *self)
  * @memberof HudViewController
  */
 static void reload(HudViewController *self) {
 
+  checkHud(cg_hud->string);
+
   if (self->hud) {
-    $(self->hud, removeFromSuperview);
+    $((View *) self->hud, removeFromSuperview);
     self->hud = release(self->hud);
   }
 
-  View *hud = loadVariant(cg_hud->string);
-  if (hud == NULL && q_strcmp(cg_hud->string, HUD_DEFAULT_VARIANT)) {
-    Cg_Warn("Falling back to the %s HUD\n", HUD_DEFAULT_VARIANT);
-    hud = loadVariant(HUD_DEFAULT_VARIANT);
+  // The scoreboard belongs to the hud, but shows through the intermission and with the
+  // HUD off, so it is swapped before the hud and survives a hud that fails to load
+  if (self->scoreboard) {
+    $((View *) self->scoreboard, removeFromSuperview);
+    self->scoreboard = release(self->scoreboard);
+  }
+
+  self->scoreboard = loadScoreboard(cg_hud->string);
+  $(self->viewController.view, addSubview, (View *) self->scoreboard);
+
+  View *hud = loadHud(cg_hud->string);
+  if (hud == NULL && q_strcmp(cg_hud->string, HUD_DEFAULT)) {
+    Cg_Warn("Falling back to the %s HUD\n", HUD_DEFAULT);
+    hud = loadHud(HUD_DEFAULT);
   }
 
   if (hud == NULL) {
     Cg_Warn("No HUD\n");
     return;
   }
-
-  hud->autoresizingMask = ViewAutoresizingFill;
 
   // beneath the notify lines, the chat, the scoreboard and the nav edit
   $(self->viewController.view, addSubview, hud);
@@ -235,7 +286,7 @@ static void reload(HudViewController *self) {
   $(self->viewController.view, bringSubviewToFront, (View *) self->navEdit);
   self->hud = hud;
 
-  // The diagnostics join the variant's layout so that its stylesheet and inset apply to them
+  // The diagnostics join the hud's layout so that its stylesheet and inset apply to them
   View *layout = $(hud, descendantWithIdentifier, "layout") ?: hud;
   $(layout, addSubview, (View *) self->diagnostics);
 
@@ -257,7 +308,8 @@ static void hideForEditor(View *view, ident data) {
   }
 
   const bool crosshair = $((Object *) view, isKindOfClass, _CrosshairView());
-  $(view, setHidden, editor->value && !crosshair);
+  $(view, setVisibility,
+    editor->value && !crosshair ? ViewVisibilityHidden : ViewVisibilityVisible);
 }
 
 /**
@@ -313,7 +365,8 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
   // Only what shows takes the frame, since some elements trace the world to fill themselves in.
   const bool scores = ps->stats[STAT_SCORES] && !cg_state.nav_edit;
 
-  $((View *) self->scoreboard, setHidden, !scores);
+  $((View *) self->scoreboard, setVisibility,
+    scores ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (scores) {
     $((View *) self->scoreboard, updateBindings, (ident) frame);
@@ -322,7 +375,7 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
   const bool hidden = !cg_draw_hud->integer || !ps->stats[STAT_TIME] || cg_state.nav_edit;
 
   if (self->hud) {
-    $(self->hud, setHidden, hidden);
+    $(self->hud, setVisibility, hidden ? ViewVisibilityHidden : ViewVisibilityVisible);
 
     if (!hidden) {
       $(self->hud, enumerateSubviews, hideForEditor, NULL);

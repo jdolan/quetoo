@@ -120,7 +120,8 @@ static void update(PowerupView *self, g_item_tag_t item, int16_t value) {
 
   const bool valid = item > ITEM_NONE && item < ITEM_TOTAL;
 
-  $((View *) self, setHidden, value == 0 || !valid);
+  $((View *) self, setVisibility,
+    value == 0 || !valid ? ViewVisibilityHidden : ViewVisibilityVisible);
 
   if (value == 0 || !valid) {
     return;
@@ -136,7 +137,13 @@ static void update(PowerupView *self, g_item_tag_t item, int16_t value) {
   if (value < 0) {
     $(self->value, setText, NULL);
   } else {
-    self->value->color = value < HUD_POWERUP_LOW ? Colors.Red : Colors.White;
+    const SDL_Color color = value < HUD_POWERUP_LOW ? Colors.Red : Colors.White;
+
+    if (memcmp(&color, &self->value->color, sizeof(color))) {
+      $(self->value->view.style, addColorAttribute, "color", &color);
+      $((View *) self->value, invalidateStyle);
+    }
+
     $(self->value, setTextWithFormat, "%d", value);
   }
 }
@@ -151,9 +158,6 @@ static PowerupView *initWithPowerup(PowerupView *self, PowerupViewPowerup poweru
   if (self) {
     self->powerup = powerup;
     self->item = ITEM_NONE;
-
-    self->stackView.axis = StackViewAxisHorizontal;
-    self->stackView.spacing = HUD_PIC_HEIGHT / 2;
 
     self->icon = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));
     assert(self->icon);

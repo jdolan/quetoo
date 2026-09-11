@@ -18,5 +18,5 @@
 }
 
 #dialog > Panel .accessoryView {
-  hidden: false;
+  visibility: visible;
 }

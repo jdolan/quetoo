@@ -110,8 +110,6 @@ static CounterView *initWithCaption(CounterView *self, const char *caption, int3
   if (self) {
     self->stat = stat;
 
-    self->stackView.axis = StackViewAxisVertical;
-
     self->caption = $(alloc(Text), initWithText, caption, NULL);
     assert(self->caption);
 
@@ -170,8 +168,8 @@ static void initialize(Class *clazz) {
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
   ((CounterViewInterface *) clazz->interface)->initWithCaption = initWithCaption;
-  ((CounterViewInterface *) clazz->interface)->valueForFrame = valueForFrame;
   ((CounterViewInterface *) clazz->interface)->textForFrame = textForFrame;
+  ((CounterViewInterface *) clazz->interface)->valueForFrame = valueForFrame;
 }
 
 /**

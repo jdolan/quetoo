@@ -43,7 +43,7 @@ typedef struct HudViewController HudViewController;
 typedef struct HudViewControllerInterface HudViewControllerInterface;
 
 /**
- * @brief The HUD: the variant's View tree beneath the scoreboard, the notify lines, the chat
+ * @brief The HUD: the hud's View tree beneath the scoreboard, the notify lines, the chat
  * and the nav edit card, all fed the frame each Cg_UpdateScreen.
  * @extends ViewController
  */
@@ -62,19 +62,31 @@ struct HudViewController {
 
   /**
    * @brief Whether the Theme's icon atlas has HUD images added since it was last compiled,
-   * which happens only when a variant asks for one HudViewController::warm did not.
+   * which happens only when a hud asks for one HudViewController::warm did not.
    */
   bool atlasDirty;
 
   /**
-   * @brief The View loaded from the variant's JSON, a subview of `view`.
+   * @brief The chat tail View.
+   */
+  ChatView *chat;
+
+  /**
+   * @brief The diagnostics table, added to each hud's layout and shown while
+   * `cg_draw_diagnostics` is set.
+   */
+  DiagnosticsView *diagnostics;
+
+  /**
+   * @brief The primary HUD View shown when active in-game.
+   * @details This is the View responsible for rendering vitals, inventory, map time, etc.
    */
   View *hud;
 
   /**
-   * @brief The scoreboard, a subview of `view` above `hud`, and not part of the variant.
+   * @brief AtlasImages by resource name.
    */
-  ScoreboardView *scoreboard;
+  Dictionary *images;
 
   /**
    * @brief The navigation edit instructions, shown in place of `hud` while editing.
@@ -82,22 +94,14 @@ struct HudViewController {
   NavEditView *navEdit;
 
   /**
-   * @brief The notify lines and the chat, siblings of `hud` so that they outlive it through the
-   * intermission and with the HUD off, as the scoreboard does.
+   * @brief The console notifications View, a sibling of `hud`.
    */
   NotifyView *notify;
-  ChatView *chat;
 
   /**
-   * @brief The diagnostics table, added to each variant's layout and shown while
-   * `cg_draw_diagnostics` is set.
+   * @brief The scoreboard, a sibling of `hud`.
    */
-  DiagnosticsView *diagnostics;
-
-  /**
-   * @brief AtlasImages by resource name.
-   */
-  Dictionary *images;
+  ScoreboardView *scoreboard;
 };
 
 struct HudViewControllerInterface {
@@ -124,8 +128,10 @@ struct HudViewControllerInterface {
 
   /**
    * @fn void HudViewController::reload(HudViewController *self)
-   * @brief Loads the variant named by `cg_hud`, falling back to `classic`. A module arranging
-   * its HUD differently ships its own `ui/hud/<variant>.json` in its game directory.
+   * @brief Loads the hud named by `cg_hud`, and its scoreboard. Each file is read from
+   * `ui/hud/<hud>`, or from `ui/hud/default` when the hud does not ship it, so a
+   * hud overrides only what it changes. A module arranging its HUD differently ships its
+   * own `ui/hud/<hud>/hud.json` in its game directory.
    * @param self The HudViewController.
    * @memberof HudViewController
    */
@@ -134,7 +140,7 @@ struct HudViewControllerInterface {
   /**
    * @fn void HudViewController::updateWithFrame(HudViewController *self, const cl_frame_t *frame)
    * @brief Resolves visibility, hands `frame` to the View hierarchy, and compiles the Theme's
-   * icon atlas if a variant added to it. Called once per frame, before the client draws.
+   * icon atlas if a hud added to it. Called once per frame, before the client draws.
    * @param self The HudViewController.
    * @param frame The frame.
    * @memberof HudViewController
