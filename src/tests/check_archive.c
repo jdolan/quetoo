@@ -25,6 +25,8 @@
 
 #include "common/archive.h"
 
+quetoo_t quetoo;
+
 #define DEST "/tmp/quetoo-archive"
 
 START_TEST(check_archive_safe_paths) {

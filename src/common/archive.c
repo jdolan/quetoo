@@ -301,10 +301,13 @@ static bool Archive_ExtractDmg(const char *archive, const char *dest) {
     return false;
   }
 
-  const bool success = Archive_DittoMount(mount, dest);
+  bool success = Archive_DittoMount(mount, dest);
 
   if (!Archive_Spawn((const char *[]) { "/usr/bin/hdiutil", "detach", mount, NULL })) {
-    Archive_Spawn((const char *[]) { "/usr/bin/hdiutil", "detach", "-force", mount, NULL });
+    if (!Archive_Spawn((const char *[]) { "/usr/bin/hdiutil", "detach", "-force", mount, NULL })) {
+      Com_Warn("Failed to detach %s\n", mount);
+      success = false;
+    }
   }
 
   SDL_RemovePath(mount);

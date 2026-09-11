@@ -698,6 +698,9 @@ static HashTable *Installer_ReadManifest(void) {
  * time from S3. The archive is published on GitHub Releases, whose egress is
  * free, so the cold start costs nothing to serve; the per-file sync is left to
  * carry the small differences between releases.
+ * @remarks A partial extraction is left in place rather than unwound, but its
+ * manifest is discarded: the per-file sync compares against that manifest and
+ * would otherwise treat files it never wrote as already current.
  */
 static bool Installer_InstallData(void) {
 
@@ -730,6 +733,12 @@ static bool Installer_InstallData(void) {
   }
 
   SDL_RemovePath(archive);
+
+  if (!success) {
+    char manifest[MAX_OS_PATH];
+    q_snprintf(manifest, sizeof(manifest), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
+    SDL_RemovePath(manifest);
+  }
 
   SDL_LockMutex(installer.mutex);
   if (in->state == INSTALLER_INSTALLING_DATA) {
