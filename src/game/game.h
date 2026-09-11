@@ -576,12 +576,22 @@ typedef struct g_import_s {
   List *(*MapList)(void);
 
   /**
-   * @brief Names the map that the next `next_map` serves, in place of the rotation's pick.
-   * @param name The map name, which must name a map the server has.
-   * @remarks The override is consumed by that one map change, so that it can not survive
-   * to decide a later one.
+   * @return The index in `MapList` the running level was served from, or `-1` if it
+   * was not served from the rotation.
+   * @remarks This is what identifies the level when a rotation names the same map
+   * twice, which its name can not.
    */
-  void (*SetNextMap)(const char *name);
+  int32_t (*MapIndex)(void);
+
+  /**
+   * @brief Chooses the entry of `MapList` that the next `next_map` serves, in place of
+   * the rotation's own pick.
+   * @param index The index in `MapList`.
+   * @remarks An index rather than a name, so that a rotation naming the same map twice
+   * serves, and resumes from, the occurrence that was actually chosen. The override is
+   * consumed by that one map change, so that it can not survive to decide a later one.
+   */
+  void (*SetNextMap)(int32_t index);
 
   /**
    * @return The contents mask at the specific point. The point is tested

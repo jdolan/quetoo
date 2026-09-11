@@ -334,6 +334,15 @@ void Sv_InitServer(const char *name, const cm_entity_t *props, sv_state_t state)
 
   Com_Debug(DEBUG_SERVER, "Sv_InitServer: %s (%d)\n", name, state);
 
+  // any override belongs to the map change that consumed it; whatever brought us here,
+  // it must not survive to decide the next one. A level served from outside the
+  // rotation has no position in it to resume from.
+  svs.maps.next = -1;
+
+  if (props == NULL) {
+    svs.maps.current = -1;
+  }
+
   Cbuf_CopyToDefer();
 
   // inform any connected clients to reconnect to us

@@ -370,6 +370,7 @@ void Sv_InitGame(void) {
   import.LoadEntities = Cm_LoadEntities;
   import.FreeEntity = Cm_FreeEntity;
   import.MapList = Sv_MapList;
+  import.MapIndex = Sv_MapIndex;
   import.SetNextMap = Sv_SetNextMap;
   import.PointContents = Sv_PointContents;
   import.BoxContents = Sv_BoxContents;
