@@ -27,7 +27,38 @@
 #include "console.h"
 #include "filesystem.h"
 #include "installer.h"
+
+#include <Objectively/Array.h>
+#include <Objectively/Dictionary.h>
+#include <Objectively/JSONContext.h>
+#include <Objectively/Number.h>
 #include <Objectively/RESTClient.h>
+#include <Objectively/String.h>
+
+/**
+ * @brief The release asset carrying this platform's engine build.
+ * @details Not derived from `BUILD`, which is an autoconf host triplet
+ * (`x86_64-pc-linux-gnu`) and does not match how the assets are named.
+ */
+#if defined(_WIN32)
+  #define INSTALLER_ASSET "quetoo-x86_64-pc-windows.zip"
+#elif defined(__APPLE__)
+  #define INSTALLER_ASSET "quetoo-arm64-apple-darwin.dmg"
+#elif defined(__aarch64__)
+  #define INSTALLER_ASSET "quetoo-aarch64-pc-linux.tar.gz"
+#else
+  #define INSTALLER_ASSET "quetoo-x86_64-pc-linux.tar.gz"
+#endif
+
+/**
+ * @brief The latest release, as reported by the GitHub Releases API.
+ */
+typedef struct {
+  char tag[64];
+  char asset[MAX_QPATH];
+  char url[MAX_OS_PATH * 2];
+  int64_t size;
+} installer_release_t;
 
 /**
  * @brief The installer type.
@@ -59,32 +90,124 @@ static struct {
   HashTable *local_manifest;
 
   /**
+   * @brief The latest release, populated by `INSTALLER_CHECKING`.
+   */
+  installer_release_t release;
+
+  /**
    * @brief The installer status, used to expose progress via `Installer_FrameFunction`.
    */
   installer_status_t status;
 } installer;
 
 /**
- * @brief Performs a blocking HTTP `GET` and parses an integer from the response body.
+ * @brief Compares dotted release versions, e.g. `1.0.91` against `1.0.9`.
+ * @return Negative, zero or positive as `a` orders before, with, or after `b`.
  */
-static int32_t Installer_GetBuildNumber(const char *build_url) {
-  int32_t build;
+static int32_t Installer_CompareVersions(const char *a, const char *b) {
 
-  Data *data = NULL;
-  const int32_t status = $($$(RESTClient, sharedInstance), get, build_url, NULL, &data);
-  if (status == 200 && data) {
-    build = (int32_t) strtol((const char *) data->bytes, NULL, 10);
-    Com_Debug(DEBUG_COMMON, "%s == %d\n", build_url, build);
-  } else {
-    Com_Warn("%s: HTTP %d\n", build_url, status);
-    if (data && data->length) {
-      Com_Debug(DEBUG_COMMON, "%s\n", (const char *) data->bytes);
+  while (*a || *b) {
+
+    char *ea = NULL, *eb = NULL;
+    const long x = strtol(a, &ea, 10);
+    const long y = strtol(b, &eb, 10);
+
+    if (x != y) {
+      return x < y ? -1 : 1;
     }
-    build = -1;
+
+    if (ea == a && eb == b) {
+      break;
+    }
+
+    a = *ea == '.' ? ea + 1 : ea;
+    b = *eb == '.' ? eb + 1 : eb;
   }
 
+  return 0;
+}
+
+/**
+ * @brief Queries the GitHub Releases API for the latest release and this
+ * platform's engine asset.
+ * @details `/releases/latest` excludes drafts and prereleases, and carries the
+ * asset list in the same response, so one request yields everything needed.
+ * The asset size is taken from the API rather than a `HEAD`, because
+ * `RESTClient` discards response headers.
+ */
+static bool Installer_FetchLatestRelease(installer_release_t *out) {
+
+  const char *headers[] = {
+    "Accept", "application/vnd.github+json",
+    "X-GitHub-Api-Version", "2022-11-28",
+    "User-Agent", "quetoo/" VERSION,
+    NULL
+  };
+
+  Data *data = NULL;
+  const int32_t status = $($$(RESTClient, sharedInstance), get, QUETOO_RELEASES_API_URL, headers, &data);
+  if (status != 200 || !data) {
+    Com_Warn("%s: HTTP %d\n", QUETOO_RELEASES_API_URL, status);
+    release(data);
+    return false;
+  }
+
+  JSONContext *context = $(alloc(JSONContext), init);
+  Dictionary *root = $(context, objectFromData, data, 0);
+
   release(data);
-  return build;
+
+  bool success = false;
+
+  if (root) {
+
+    const String *tag = $(root, objectForKeyPath, "tag_name");
+    const Array *assets = $(root, objectForKeyPath, "assets");
+
+    if (tag && assets) {
+
+      const char *chars = tag->chars;
+      if (*chars == 'v') {
+        chars++;
+      }
+
+      q_strlcpy(out->tag, chars, sizeof(out->tag));
+
+      for (size_t i = 0; i < assets->count; i++) {
+
+        const Dictionary *asset = $(assets, objectAtIndex, i);
+        const String *name = $(asset, objectForKeyPath, "name");
+
+        if (name == NULL || q_strcmp(name->chars, INSTALLER_ASSET)) {
+          continue;
+        }
+
+        const String *url = $(asset, objectForKeyPath, "browser_download_url");
+        const Number *size = $(asset, objectForKeyPath, "size");
+
+        if (url && size) {
+          q_strlcpy(out->asset, name->chars, sizeof(out->asset));
+          q_strlcpy(out->url, url->chars, sizeof(out->url));
+          out->size = (int64_t) size->value;
+          success = true;
+        }
+
+        break;
+      }
+    }
+  }
+
+  release(root);
+  release(context);
+
+  if (success) {
+    Com_Debug(DEBUG_COMMON, "Latest release %s, asset %s (%" PRId64 " bytes)\n",
+              out->tag, out->asset, out->size);
+  } else {
+    Com_Warn("No %s in the latest release\n", INSTALLER_ASSET);
+  }
+
+  return success;
 }
 
 /**
@@ -320,14 +443,16 @@ static int Installer_Thread(void *unused) {
     switch (in->state) {
 
       case INSTALLER_CHECKING: {
-        const int32_t b = Installer_GetBuildNumber(QUETOO_BUILD_URL);
+        const bool ok = Installer_FetchLatestRelease(&installer.release);
         SDL_LockMutex(installer.mutex);
-        if (b < 0) {
+        if (!ok) {
           in->state = INSTALLER_ERROR;
-          q_snprintf(in->error, sizeof(in->error), "Failed to fetch %s", QUETOO_BUILD_URL);
+          q_snprintf(in->error, sizeof(in->error), "Failed to check for updates");
+        } else if (Installer_CompareVersions(installer.release.tag, VERSION) > 0) {
+          in->state = INSTALLER_UPDATE_AVAILABLE;
+          q_strlcpy(in->current_file, installer.release.asset, sizeof(in->current_file));
         } else {
-          in->build_number = b;
-          in->state = in->build_number > build_number->integer ? INSTALLER_UPDATE_AVAILABLE : INSTALLER_COMPARING;
+          in->state = INSTALLER_COMPARING;
         }
         SDL_UnlockMutex(installer.mutex);
       }
@@ -403,6 +528,9 @@ static int Installer_Thread(void *unused) {
         break;
 
       case INSTALLER_UPDATE_AVAILABLE:
+      case INSTALLER_DOWNLOADING_UPDATE:
+      case INSTALLER_STAGING_UPDATE:
+      case INSTALLER_UPDATE_STAGED:
       case INSTALLER_CANCELLED:
       case INSTALLER_DONE:
       case INSTALLER_ERROR:

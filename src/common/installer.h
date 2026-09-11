@@ -26,8 +26,7 @@
 #include <SDL3/SDL_mutex.h>
 
 #define QUETOO_RELEASES_URL     "https://github.com/jdolan/quetoo/releases/latest"
-#define QUETOO_BUILD_URL        "https://quetoo.s3.amazonaws.com/build"
-#define QUETOO_MOTD_URL         "https://quetoo.s3.amazonaws.com/motd"
+#define QUETOO_RELEASES_API_URL "https://api.github.com/repos/jdolan/quetoo/releases/latest"
 #define QUETOO_DATA_BASE_URL    "https://quetoo-data.s3.amazonaws.com"
 
 /**
@@ -36,6 +35,9 @@
 typedef enum {
   INSTALLER_CHECKING,
   INSTALLER_UPDATE_AVAILABLE,
+  INSTALLER_DOWNLOADING_UPDATE,
+  INSTALLER_STAGING_UPDATE,
+  INSTALLER_UPDATE_STAGED,
   INSTALLER_COMPARING,
   INSTALLER_DOWNLOADING,
   INSTALLER_COMMITTING,
