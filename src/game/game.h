@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 36
+#define GAME_API_VERSION 37
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -565,6 +565,23 @@ typedef struct g_import_s {
    * @brief Frees an entity definition from `LoadEntities`.
    */
   void (*FreeEntity)(cm_entity_t *entity);
+
+  /**
+   * @brief Returns the server's map rotation, as configured by `sv_map_list`.
+   * @return A list of `cm_entity_t *`, each to be freed with `FreeEntity`, or `NULL`
+   * if no rotation is configured.
+   * @remarks The list is a copy, so a `sv_map_list` edit can not free entries from
+   * underneath the caller.
+   */
+  List *(*MapList)(void);
+
+  /**
+   * @brief Names the map that the next `next_map` serves, in place of the rotation's pick.
+   * @param name The map name, which must name a map the server has.
+   * @remarks The override is consumed by that one map change, so that it can not survive
+   * to decide a later one.
+   */
+  void (*SetNextMap)(const char *name);
 
   /**
    * @return The contents mask at the specific point. The point is tested
