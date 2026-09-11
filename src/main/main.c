@@ -481,6 +481,8 @@ static void Shutdown(const char *msg) {
     Cl_Shutdown();
   }
 
+  Installer_ApplyPending();
+
   Netchan_Shutdown();
 
   Thread_Shutdown();

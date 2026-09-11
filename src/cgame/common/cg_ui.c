@@ -21,6 +21,7 @@
 
 #include "cg_local.h"
 
+#include "ui/DialogViewController.h"
 #include "ui/main/MainViewController.h"
 #include "ui/main/LoadingViewController.h"
 #include "ui/main/UpdateViewController.h"
@@ -194,6 +195,17 @@ void Cg_UpdateLoading(const cl_loading_t loading) {
  * @brief Manages the UpdateViewController lifecycle and routes installer progress to it.
  * Pushes UpdateViewController when updating, pops it on completion.
  */
+/**
+ * @brief Dialog callbacks answering whether to install an available update.
+ */
+static void Cg_AcceptUpdate(ident data) {
+  cgi.ConsentToUpdate(true);
+}
+
+static void Cg_DeclineUpdate(ident data) {
+  cgi.ConsentToUpdate(false);
+}
+
 int32_t Cg_UpdateInstaller(const installer_status_t *in) {
 
   if (updateViewController == NULL) {
@@ -204,11 +216,28 @@ int32_t Cg_UpdateInstaller(const installer_status_t *in) {
   $(updateViewController, setStatus, in);
 
   if (in->state == INSTALLER_UPDATE_AVAILABLE) {
-    mainViewController->updateAvailable = true;
-    cgi.PopViewController();
-    release(updateViewController);
-    updateViewController = NULL;
-    return 1;
+
+    ViewController *this = (ViewController *) updateViewController;
+
+    const Array *children = (Array *) this->childViewControllers;
+    for (size_t i = 0; i < children->count; i++) {
+      if ($((Object *) children->elements[i], isKindOfClass, _DialogViewController())) {
+        return 0;
+      }
+    }
+
+    ViewController *dialog = (ViewController *) $(alloc(DialogViewController), initWithDialog, &(const Dialog) {
+      .message = va("Quetoo %s is available. Install it?", in->current_file),
+      .ok = "Install",
+      .cancel = "Not now",
+      .okFunction = Cg_AcceptUpdate,
+      .cancelFunction = Cg_DeclineUpdate
+    });
+
+    $(this, addChildViewController, dialog);
+    release(dialog);
+
+    return 0;
   }
 
   if (in->state == INSTALLER_DONE || in->state == INSTALLER_ERROR) {

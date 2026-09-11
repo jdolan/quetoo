@@ -181,34 +181,11 @@ jobs:
       run: make -C quetoo/apple notarize \
              SNAPSHOT=$(pwd)/quetoo-arm64-apple-darwin.dmg
 
-    - name: Checkout quetoo-data
-      uses: actions/checkout@v6
-      with:
-        repository: jdolan/quetoo-data
-        path: quetoo-data
-        fetch-depth: 1
-        sparse-checkout: target
-
-    - name: Bundle game data
-      run: make -C quetoo/apple bundle-data \
-             QUETOO_DATA_DIR=$(pwd)/quetoo-data
-
-    - name: Re-sign bundle
+    - name: Build itch.io archive
       run: |
-        security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-        make -C quetoo/apple bundle-sign
-
-    - name: Create bundle DMG
-      run: make -C quetoo/apple bundle-dmg \
-             BUNDLE_SNAPSHOT=$(pwd)/quetoo-bundle-arm64-apple-darwin.dmg
-
-    - name: Notarize bundle DMG
-      env:
-        APPLE_ID: ${{ secrets.APPLE_ID }}
-        APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
-        APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      run: make -C quetoo/apple bundle-notarize \
-             BUNDLE_SNAPSHOT=$(pwd)/quetoo-bundle-arm64-apple-darwin.dmg
+        mkdir itch && cp -R quetoo/apple/target/Quetoo.app itch/
+        touch itch/.managed
+        cd itch && zip -qry ../quetoo-itch-arm64-apple-darwin.zip . && cd ..
 
     - name: Tear down keychain
       if: always()
@@ -220,11 +197,11 @@ jobs:
         name: quetoo-arm64-apple-darwin
         path: quetoo-arm64-apple-darwin.dmg
 
-    - name: Upload bundle artifact
+    - name: Upload itch.io archive artifact
       uses: actions/upload-artifact@v7
       with:
-        name: quetoo-bundle-arm64-apple-darwin
-        path: quetoo-bundle-arm64-apple-darwin.dmg
+        name: quetoo-itch-arm64-apple-darwin
+        path: quetoo-itch-arm64-apple-darwin.zip
 
   build-linux:
     needs: resolve-deps
@@ -554,49 +531,6 @@ jobs:
         # correct update checks. Safe to remove once those have aged out.
         aws s3 cp build s3://quetoo/version
 
-    - name: Checkout quetoo-data
-      uses: actions/checkout@v6
-      with:
-        repository: jdolan/quetoo-data
-        path: quetoo-data
-        fetch-depth: 1
-        sparse-checkout: target
-
-    - name: Create bundles
-      run: |
-        # Linux bundle: extract archive, inject data into quetoo/share/quetoo/default/, repack
-        mkdir -p quetoo-bundle-linux-x86_64
-        tar xzf quetoo-x86_64-pc-linux-archive/quetoo-x86_64-pc-linux.tar.gz -C quetoo-bundle-linux-x86_64
-        mkdir -p quetoo-bundle-linux-x86_64/quetoo/share/quetoo/default
-        cp -r quetoo-data/target/default/. quetoo-bundle-linux-x86_64/quetoo/share/quetoo/default/
-        tar czf quetoo-bundle-x86_64-pc-linux.tar.gz -C quetoo-bundle-linux-x86_64 quetoo/
-
-        mkdir -p quetoo-bundle-linux-aarch64
-        tar xzf quetoo-aarch64-pc-linux-archive/quetoo-aarch64-pc-linux.tar.gz -C quetoo-bundle-linux-aarch64
-        mkdir -p quetoo-bundle-linux-aarch64/quetoo/share/quetoo/default
-        cp -r quetoo-data/target/default/. quetoo-bundle-linux-aarch64/quetoo/share/quetoo/default/
-        tar czf quetoo-bundle-aarch64-pc-linux.tar.gz -C quetoo-bundle-linux-aarch64 quetoo/
-
-        # Windows bundle: data as share/default/ alongside bin/ and lib/
-        mkdir bundle-windows && cd bundle-windows
-        unzip ../quetoo-x86_64-pc-windows/quetoo-x86_64-pc-windows.zip
-        mkdir -p share/default
-        cp -r ../quetoo-data/target/default/. share/default/
-        zip -r ../quetoo-bundle-x86_64-pc-windows.zip .
-        cd ..
-
-    - name: Upload Linux x86_64 bundle artifact
-      uses: actions/upload-artifact@v7
-      with:
-        name: quetoo-bundle-x86_64-pc-linux
-        path: quetoo-bundle-x86_64-pc-linux.tar.gz
-
-    - name: Upload Windows bundle artifact
-      uses: actions/upload-artifact@v7
-      with:
-        name: quetoo-bundle-x86_64-pc-windows
-        path: quetoo-bundle-x86_64-pc-windows.zip
-
     - name: Create versioned release
       env:
         GH_TOKEN: ${{ github.token }}
@@ -624,22 +558,19 @@ jobs:
 
         | Type | Link |
         |---|---|
-        | Full Install | [quetoo-bundle-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-windows.zip) |
-        | Binaries Only | [quetoo-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-windows.zip) |
+        | Download | [quetoo-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-windows.zip) |
 
         ## ![macOS](https://img.shields.io/badge/-%20-A2AAAD?style=flat-square&logo=apple&logoColor=white) macOS
 
         | Type | Apple Silicon |
         |---|---|
-        | Full Install | [quetoo-bundle-arm64-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-arm64-apple-darwin.dmg) |
-        | Binaries Only | [quetoo-arm64-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-arm64-apple-darwin.dmg) |
+        | Download | [quetoo-arm64-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-arm64-apple-darwin.dmg) |
 
         ## ![Linux](https://img.shields.io/badge/-%20-FCC624?style=flat-square&logo=linux&logoColor=black) Linux
 
         | Type | x86-64 | arm64 |
         |---|---|---|
-        | Full Install (.tar.gz bundle) | [quetoo-bundle-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-linux.tar.gz) | [quetoo-bundle-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-aarch64-pc-linux.tar.gz) |
-        | Binaries Only (.tar.gz) | [quetoo-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.tar.gz) | [quetoo-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.tar.gz) |
+        | Download (.tar.gz) | [quetoo-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.tar.gz) | [quetoo-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.tar.gz) |
 
         ## ![Linux](https://img.shields.io/badge/-%20-FCC624?style=flat-square&logo=linux&logoColor=black) ![Debian](https://img.shields.io/badge/-%20-A81D33?style=flat-square&logo=debian&logoColor=white) ![Red Hat](https://img.shields.io/badge/-%20-EE0000?style=flat-square&logo=redhat&logoColor=white) Linux Packages (requires [quetoo-data](https://github.com/jdolan/quetoo-data/releases))
 
@@ -650,6 +581,10 @@ jobs:
         | Server .deb | [quetoo-server-x86_64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-x86_64-pc-linux.deb) | [quetoo-server-aarch64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-aarch64-pc-linux.deb) |
         | Server .rpm | [quetoo-server-x86_64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-x86_64-pc-linux.rpm) | [quetoo-server-aarch64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-server-aarch64-pc-linux.rpm) |
 
+        Game content is downloaded on first launch and kept up to date
+        automatically. Engine updates download in the background and are applied
+        when you quit.
+
         ## Changelog
 
         $changelog
@@ -657,10 +592,6 @@ jobs:
         )
 
         assets=(
-          quetoo-bundle-arm64-apple-darwin/quetoo-bundle-arm64-apple-darwin.dmg
-          quetoo-bundle-x86_64-pc-linux.tar.gz
-          quetoo-bundle-aarch64-pc-linux.tar.gz
-          quetoo-bundle-x86_64-pc-windows.zip
           quetoo-arm64-apple-darwin/quetoo-arm64-apple-darwin.dmg
           quetoo-x86_64-pc-linux-archive/quetoo-x86_64-pc-linux.tar.gz
           quetoo-x86_64-pc-linux-deb/quetoo-client-x86_64-pc-linux.deb
@@ -687,23 +618,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Download macOS bundle
+    # The engine archives, not the old data-bundled ones: game content is
+    # fetched to the user's own directory on first launch, so there is nothing
+    # left to bundle and nothing here for itch to manage but the engine.
+    - name: Download macOS build
       uses: actions/download-artifact@v8
       with:
-        name: quetoo-bundle-arm64-apple-darwin
+        name: quetoo-itch-arm64-apple-darwin
         path: itch/mac
 
-    - name: Download Linux x86_64 bundle
+    - name: Download Linux x86_64 build
       uses: actions/download-artifact@v8
       with:
-        name: quetoo-bundle-x86_64-pc-linux
+        name: quetoo-x86_64-pc-linux-archive
         path: itch/linux
 
-    - name: Download Windows bundle
+    - name: Download Windows build
       uses: actions/download-artifact@v8
       with:
-        name: quetoo-bundle-x86_64-pc-windows
+        name: quetoo-x86_64-pc-windows
         path: itch/windows
+
+    # itch patches the installation it created, so the engine must not also
+    # update itself there. The marker tells it not to; game content is
+    # unaffected, living in the user's directory rather than the install.
+    - name: Mark builds as externally managed
+      run: |
+        touch .managed
+
+        cd itch/windows
+        zip -q quetoo-x86_64-pc-windows.zip ../../.managed --junk-paths
+        cd ../..
+
+        mkdir linux-stage
+        tar xzf itch/linux/quetoo-x86_64-pc-linux.tar.gz -C linux-stage
+        touch linux-stage/quetoo/.managed
+        tar czf itch/linux/quetoo-x86_64-pc-linux.tar.gz -C linux-stage quetoo/
 
     - name: Install Butler
       run: |
@@ -717,6 +667,6 @@ jobs:
         BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
         VERSION: ${{ github.event.inputs.version || github.ref_name }}
       run: |
-        ./butler push itch/mac/quetoo-bundle-arm64-apple-darwin.dmg        wickedoldgames/quetoo:mac     --userversion $VERSION
-        ./butler push itch/linux/quetoo-bundle-x86_64-pc-linux.tar.gz      wickedoldgames/quetoo:linux   --userversion $VERSION
-        ./butler push itch/windows/quetoo-bundle-x86_64-pc-windows.zip     wickedoldgames/quetoo:windows --userversion $VERSION
+        ./butler push itch/mac/quetoo-itch-arm64-apple-darwin.zip   wickedoldgames/quetoo:mac     --userversion $VERSION
+        ./butler push itch/linux/quetoo-x86_64-pc-linux.tar.gz      wickedoldgames/quetoo:linux   --userversion $VERSION
+        ./butler push itch/windows/quetoo-x86_64-pc-windows.zip     wickedoldgames/quetoo:windows --userversion $VERSION

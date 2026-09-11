@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\deps\minizip\miniz.c" />
+    <ClCompile Include="..\..\src\common\archive.c" />
     <ClCompile Include="..\..\src\common\atlas.c" />
     <ClCompile Include="..\..\src\common\cmd.c" />
     <ClCompile Include="..\..\src\common\common.c" />
@@ -34,6 +36,7 @@
     <ClCompile Include="..\..\src\common\thread.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\common\archive.h" />
     <ClInclude Include="..\..\src\common\atlas.h" />
     <ClInclude Include="..\..\src\common\cmd.h" />
     <ClInclude Include="..\..\src\common\common.h" />

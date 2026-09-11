@@ -772,9 +772,22 @@ int32_t Sv_InstallerFrame(const installer_status_t *in) {
         break;
       case INSTALLER_UPDATE_AVAILABLE:
         Com_Warn("A new version of Quetoo is available.\n"
-                 "Download it at: https://github.com/jdolan/quetoo/releases/latest\n"
-                 "Your server will not be public until you update.\n");
+                 "Run quetoo-update to install it.\n"
+                 "Your server will not be public until you do.\n");
         Cvar_ForceSetInteger("sv_public", 0);
+        Installer_Consent(false);
+        break;
+      case INSTALLER_DOWNLOADING_UPDATE:
+        Com_Print("Downloading %s\u2026\n", in->current_file);
+        break;
+      case INSTALLER_STAGING_UPDATE:
+        Com_Print("Unpacking update\u2026\n");
+        break;
+      case INSTALLER_UPDATE_STAGED:
+        Com_Print("Update staged; it will be applied when this server exits.\n");
+        break;
+      case INSTALLER_INSTALLING_DATA:
+        Com_Print("Installing game data\u2026\n");
         break;
       case INSTALLER_COMPARING:
         Com_Print("Comparing data with remote\u2026\n");

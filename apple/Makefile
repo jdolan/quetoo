@@ -6,14 +6,8 @@
 #   make sign               # sign with Developer ID (cert must be in Keychain)
 #   make dmg                # create distributable DMG
 #   make notarize           # notarize and staple DMG (needs APPLE_* env vars)
-#
-# For the bundle (with game data) DMG:
-#   make bundle-data QUETOO_DATA_DIR=../../quetoo-data
-#   make bundle-sign
-#   make bundle-notarize
 
 CODESIGN_IDENTITY ?= "Developer ID Application: Jay Dolan (C5PXKE9CU5)"
-QUETOO_DATA_DIR   ?= ../../quetoo-data
 
 ARCH      = arm64
 BUILD     = $(ARCH)-apple-darwin
@@ -25,7 +19,6 @@ MODULEDIR = $(LIBDIR)/quetoo
 DATADIR   = $(INSTALL)/Contents/Resources
 
 SNAPSHOT        = $(TARGET)/Quetoo-$(BUILD).dmg
-BUNDLE_SNAPSHOT = $(TARGET)/Quetoo-bundle-$(BUILD).dmg
 VOLUME_NAME     = "Quetoo"
 DMG_ROOT        = $(TARGET)/dmg-root
 
@@ -106,7 +99,15 @@ dmg: dmg-layout
 	hdiutil create -volname $(VOLUME_NAME) -srcfolder "$(DMG_ROOT)" \
 		-ov -format UDZO $(SNAPSHOT)
 
-# Notarize and staple the binary DMG.
+# Notarize and staple the DMG.
+#
+# The app inside is deliberately not stapled separately. Stapling it after the
+# image is built would not reach the copy already written into it, and doing it
+# properly would mean a second notarization round trip before the image exists.
+# It buys nothing in practice: the installer downloads the image itself, so the
+# app it extracts carries no quarantine attribute and Gatekeeper never performs
+# a full assessment on it.
+#
 # Requires env vars: APPLE_ID, APPLE_TEAM_ID, APPLE_APP_PASSWORD
 notarize: dmg
 	xcrun notarytool submit $(SNAPSHOT) \
@@ -116,34 +117,8 @@ notarize: dmg
 		--wait
 	xcrun stapler staple $(SNAPSHOT)
 
-# Copy quetoo-data into Contents/Resources/ to produce a self-contained bundle.
-bundle-data:
-	mkdir -p $(DATADIR)/default
-	cp -r $(QUETOO_DATA_DIR)/target/default/. $(DATADIR)/default/
-
-# Re-seal the bundle after adding game data.
-bundle-sign:
-	codesign --force --timestamp --options runtime \
-		--sign $(CODESIGN_IDENTITY) $(INSTALL)
-	codesign --verify --deep $(INSTALL)
-
-bundle-dmg: dmg-layout
-	hdiutil create -volname $(VOLUME_NAME) -srcfolder "$(DMG_ROOT)" \
-		-ov -format UDZO $(BUNDLE_SNAPSHOT)
-
-# Notarize and staple the bundle DMG.
-# Requires env vars: APPLE_ID, APPLE_TEAM_ID, APPLE_APP_PASSWORD
-bundle-notarize: bundle-dmg
-	xcrun notarytool submit $(BUNDLE_SNAPSHOT) \
-		--apple-id "$$APPLE_ID" \
-		--team-id "$$APPLE_TEAM_ID" \
-		--password "$$APPLE_APP_PASSWORD" \
-		--wait
-	xcrun stapler staple $(BUNDLE_SNAPSHOT)
-
 clean:
 	rm -rf $(TARGET)/*
 
 .PHONY: all configure compile pre-install install install-lib move-resources \
-        sign dmg-layout dmg notarize bundle-data bundle-sign \
-        bundle-dmg bundle-notarize clean
+        sign dmg-layout dmg notarize clean

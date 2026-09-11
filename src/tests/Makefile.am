@@ -30,6 +30,7 @@ libtests_la_LIBADD = \
 	$(top_builddir)/src/common/libcommon.la
 
 TESTS = \
+	check_archive \
 	check_atlas \
 	check_box \
 	check_cm_entity \
@@ -53,6 +54,13 @@ TESTS = \
 	check_vector
 
 noinst_PROGRAMS = $(TESTS)
+
+check_archive_SOURCES = \
+	check_archive.c
+check_archive_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_archive_LDADD = \
+	$(TESTS_LIBS)
 
 check_atlas_SOURCES = \
 	check_atlas.c

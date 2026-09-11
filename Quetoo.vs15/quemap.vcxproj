@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\deps\minizip\miniz.c" />
     <ClCompile Include="..\src\quemap\brush.c" />
     <ClCompile Include="..\src\quemap\bsp.c" />
     <ClCompile Include="..\src\quemap\csg.c" />

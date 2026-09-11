@@ -65,13 +65,6 @@ static void didClickNavigateViewController(Button *button) {
 }
 
 /**
- * @brief Opens the releases page.
- */
-static void openReleasesPage(ident data) {
-  SDL_OpenURL(QUETOO_RELEASES_URL);
-}
-
-/**
  * @brief Presents `dialog`, unless one is already showing: a dialog asks a
  * question, and a second copy of the question does not make it a better one.
  */
@@ -236,17 +229,6 @@ static void viewWillAppear(ViewController *self) {
     if (team == TEAM_NONE) {
       $(this, navigateToViewController, _TeamsViewController());
     }
-  }
-
-  if (this->updateAvailable) {
-    this->updateAvailable = false;
-
-    presentDialog(this, &(const Dialog) {
-      .message = "A new version of Quetoo is available. Download now?",
-      .ok = "Yes",
-      .cancel = "No",
-      .okFunction = openReleasesPage
-    });
   }
 }
 

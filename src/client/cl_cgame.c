@@ -219,6 +219,8 @@ void Cl_InitCgame(void) {
   import.ForceSetCvarString = Cvar_ForceSetString;
   import.ForceSetCvarValue = Cvar_ForceSetValue;
   import.ToggleCvar = Cvar_Toggle;
+
+  import.ConsentToUpdate = Installer_Consent;
   import.AddCmd = Cmd_Add;
   import.Cbuf = Cbuf_AddText;
   import.Tail = Con_Tail;

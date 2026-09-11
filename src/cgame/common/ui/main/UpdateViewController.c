@@ -206,6 +206,32 @@ static void setStatus(UpdateViewController *self, const installer_status_t *in) 
       break;
     case INSTALLER_UPDATE_AVAILABLE:
       $(self->progressBar, setLabelFormat, "Update available.");
+      $(self->progressBar, setValue, 0.0);
+      break;
+    case INSTALLER_DOWNLOADING_UPDATE: {
+      double pct = 0.0;
+      if (in->kbytes_total > 0) {
+        pct = 100.0 * in->kbytes_done / in->kbytes_total;
+      }
+      $(self->progressBar, setLabelFormat, va("Downloading %s \u2026", in->current_file));
+      $(self->progressBar, setValue, pct);
+    }
+      break;
+    case INSTALLER_STAGING_UPDATE:
+      $(self->progressBar, setLabelFormat, "Unpacking update\u2026");
+      $(self->progressBar, setValue, 100.0);
+      break;
+    case INSTALLER_INSTALLING_DATA: {
+      double pct = 0.0;
+      if (in->kbytes_total > 0) {
+        pct = 100.0 * in->kbytes_done / in->kbytes_total;
+      }
+      $(self->progressBar, setLabelFormat, "Installing game data\u2026");
+      $(self->progressBar, setValue, pct);
+    }
+      break;
+    case INSTALLER_UPDATE_STAGED:
+      $(self->progressBar, setLabelFormat, "Update ready; it will be applied when you quit.");
       $(self->progressBar, setValue, 100.0);
       break;
 		case INSTALLER_COMPARING:

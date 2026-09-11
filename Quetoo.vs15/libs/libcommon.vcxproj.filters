@@ -30,6 +30,12 @@
     <ClCompile Include="..\..\src\common\image.c">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\common\archive.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\deps\minizip\miniz.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\installer.c">
       <Filter>src\common</Filter>
     </ClCompile>
@@ -72,6 +78,9 @@
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\common\image.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\archive.h">
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\common\installer.h">

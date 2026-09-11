@@ -37,7 +37,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 45
+#define CGAME_API_VERSION 46
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -330,6 +330,13 @@ typedef struct cg_import_s {
    * @brief Toggles the console variable by `name`.
    */
   cvar_t *(*ToggleCvar)(const char *name);
+
+  /**
+   * @brief Answers the question posed by `INSTALLER_UPDATE_AVAILABLE`.
+   * @details The installer waits for this before acting on an available
+   * update. Declining applies to this run only; the next launch asks again.
+   */
+  void (*ConsentToUpdate)(bool accept);
 
   /**
    * @brief Registers and returns a console command.
