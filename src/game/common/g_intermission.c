@@ -198,6 +198,8 @@ static void G_Intermission_Publish(void) {
     q_strlcat(string, va("\\%s\\%d", g_intermission_state.maps[i], votes[i]), sizeof(string));
   }
 
+  G_Debug("%s\n", string);
+
   gi.SetConfigString(CS_NEXT_MAP, string);
 }
 
