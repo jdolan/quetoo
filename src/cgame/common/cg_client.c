@@ -719,8 +719,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   }
 
   // deal with our own player model: hidden in first person, unless a portal view is looking at
-  // us from elsewhere, or a portal duplicate of us is being added, in which case we are drawn
-  // like any other client
+  // us from elsewhere, in which case we are drawn like any other client
   if (ent == cgi.client->entity && !cgi.client->third_person && !cg_state.portal_view) {
     e->effects |= EF_SELF | EF_NO_DRAW;
 
@@ -823,7 +822,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
     assert(r_weapon);
 
     // cache the muzzle position post-animation for muzzle flash and beam alignment
-    // (but not from a portal view, or a portal duplicate, which draw the weapon elsewhere)
+    // (but not from a portal view, which draws the weapon elsewhere)
     if (!cg_state.portal_view) {
       const vec3_t cfg_muzzle = r_weapon->model->mesh->config.link.muzzle;
       if (!Vec3_Equal(cfg_muzzle, Vec3_Zero())) {

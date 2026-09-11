@@ -132,20 +132,6 @@ static vec3_t Cg_PortalCarryPoint(const cg_portal_t *portal, const vec3_t p) {
 }
 
 /**
- * @brief Carries Euler angles through the portal. Roll is kept as is.
- */
-static vec3_t Cg_PortalCarryAngles(const cg_portal_t *portal, const vec3_t angles) {
-
-  vec3_t forward;
-  Vec3_Vectors(angles, &forward, NULL, NULL);
-
-  vec3_t out = Vec3_Euler(Cg_PortalCarry(portal, forward));
-  out.z = angles.z;
-
-  return out;
-}
-
-/**
  * @brief Resolves the portal's brush and, if it has a target, the paired portal and the view.
  */
 static void Cg_trigger_portal_Init(cg_entity_t *self) {
@@ -238,52 +224,8 @@ const cg_entity_class_t cg_trigger_portal = {
 };
 
 /**
- * @brief Adds a copy of the local player at the far side of each portal they are near, so that
- * they can watch themselves arrive. A copy of the client entity is carried through, rather than
- * the entity itself, so that the animation state of the real one is left alone.
- */
-static void Cg_AddPortalDuplicates(void) {
-
-  const cl_entity_t *self = cgi.client->entity;
-  if (!self || !(self->current.effects & EF_CLIENT)) {
-    return;
-  }
-
-  const cg_entity_t *e = cg_entities->elements;
-  for (uint32_t i = 0; i < cg_entities->count; i++, e++) {
-
-    if (e->clazz != &cg_trigger_portal) {
-      continue;
-    }
-
-    const cg_portal_t *portal = e->data;
-    if (!portal->exit) {
-      continue;
-    }
-
-    // only while actually crossing: once the body overlaps the portal volume, a copy of it
-    // straddles the other side, exactly where the teleport will place it. Any earlier and the
-    // carried position is simply wherever "behind the exit" happens to be
-    if (!Box3_Intersects(self->abs_bounds, portal->model->visible_bounds)) {
-      continue;
-    }
-
-    cl_entity_t dup = *self;
-
-    dup.origin = Cg_PortalCarryPoint(portal, self->origin);
-    dup.previous_origin = Cg_PortalCarryPoint(portal, self->previous_origin);
-    dup.abs_bounds = Box3_Translate(dup.bounds, dup.origin);
-    dup.angles = Cg_PortalCarryAngles(portal, self->angles);
-    dup.legs_yaw = Cg_PortalCarryAngles(portal, Vec3(0.f, self->legs_yaw, 0.f)).y;
-    dup.legs_current_yaw = Cg_PortalCarryAngles(portal, Vec3(0.f, self->legs_current_yaw, 0.f)).y;
-
-    Cg_AddEntity(&dup);
-  }
-}
-
-/**
- * @brief Adds the player duplicates to the main view, then populates the view through each
- * visible portal with this frame's entities and lights.
+ * @brief Populates the view through each visible portal with this frame's entities, lights,
+ * sprites and beams.
  * @remarks Runs on the scene thread, after the main view is populated. The per-frame side
  * effects of adding entities (trails, breath, the view weapon) are suppressed throughout.
  */
@@ -296,8 +238,6 @@ void Cg_AddPortalEntities(const cl_frame_t *frame) {
   r_view_t *view = cgi.view;
 
   cg_state.portal_view = true;
-
-  Cg_AddPortalDuplicates();
 
   const cg_entity_t *e = cg_entities->elements;
   for (uint32_t i = 0; i < cg_entities->count; i++, e++) {
@@ -314,8 +254,6 @@ void Cg_AddPortalEntities(const cl_frame_t *frame) {
     cgi.view = portal->view;
 
     Cg_AddFrameEntities(frame);
-
-    Cg_AddPortalDuplicates();
 
     // the same lights in the same order, so the shadow tiles the main view assigns line up
     memcpy(portal->view->lights, view->lights, view->num_lights * sizeof(r_light_t));
