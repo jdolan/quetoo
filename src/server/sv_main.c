@@ -771,10 +771,11 @@ int32_t Sv_InstallerFrame(const installer_status_t *in) {
         Com_Print("Checking binary version\u2026\n");
         break;
       case INSTALLER_UPDATE_AVAILABLE:
-        Com_Warn("A new version of Quetoo is available; downloading it now.\n"
-                 "Your server will not be public until you restart.\n");
+        Com_Warn("A new version of Quetoo is available.\n"
+                 "Run quetoo-update to install it.\n"
+                 "Your server will not be public until you do.\n");
         Cvar_ForceSetInteger("sv_public", 0);
-        Cvar_SetInteger("update_consent", 1);
+        Installer_Consent(false);
         break;
       case INSTALLER_DOWNLOADING_UPDATE:
         Com_Print("Downloading %s\u2026\n", in->current_file);

@@ -26,6 +26,7 @@
 #include <SDL3/SDL_mutex.h>
 
 #define QUETOO_RELEASES_API_URL "https://api.github.com/repos/jdolan/quetoo/releases/latest"
+#define QUETOO_RELEASES_PAGE    "https://github.com/jdolan/quetoo/releases/latest"
 #define QUETOO_DATA_BASE_URL    "https://quetoo-data.s3.amazonaws.com"
 #define QUETOO_DATA_API_URL     "https://api.github.com/repos/jdolan/quetoo-data/releases/latest"
 #define QUETOO_DATA_ARCHIVE     "quetoo-data.zip"
@@ -63,10 +64,9 @@ typedef struct {
 
 /**
  * @brief Frame callback type for `Installer_Wait`.
- * @remarks On `INSTALLER_UPDATE_AVAILABLE` the installer waits for the
- * `update_consent` cvar to become non-zero, so the frame function is
- * responsible for asking the player, or for answering on their behalf where
- * there is nobody to ask.
+ * @remarks On `INSTALLER_UPDATE_AVAILABLE` the installer waits for
+ * `Installer_Consent`, so the frame function is responsible for asking the
+ * player, or for answering on their behalf where there is nobody to ask.
  * @details Returning non-zero will terminate the installer process and resume startup.
  */
 typedef int32_t (*Installer_FrameFunction)(const installer_status_t *status);
@@ -82,6 +82,14 @@ void Installer_Init(Installer_FrameFunction frame);
  * that nothing is loaded after the files move. A crash before this runs simply
  * leaves the staged update for the next clean exit.
  */
+/**
+ * @brief Answers the question posed by `INSTALLER_UPDATE_AVAILABLE`.
+ * @details The installer does not act on an available update until this is
+ * called. Declining skips the engine update for this run only; the next launch
+ * asks again, so nobody is quietly opted in or out.
+ */
+void Installer_Consent(bool accept);
+
 void Installer_ApplyPending(void);
 
 void Installer_Shutdown(void);

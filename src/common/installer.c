@@ -110,10 +110,9 @@ static struct {
 
   /**
    * @brief Whether the player has agreed to install an available update.
-   * @details Zero until asked, then 1 to accept or -1 to decline. Presettable
-   * on the command line, so an unattended install can answer in advance.
+   * @details Zero until answered, then 1 to accept or -1 to decline.
    */
-  cvar_t *consent;
+  int32_t consent;
 
   /**
    * @brief The installer status, used to expose progress via `Installer_FrameFunction`.
@@ -844,9 +843,6 @@ static int Installer_Thread(void *unused) {
         Installer_StagingParent(parent, sizeof(parent));
 
         const bool writable = *parent && Installer_IsWritable(parent);
-        if (ok && !writable && *parent) {
-          Com_Warn("%s is not writable; engine updates are disabled.\n", parent);
-        }
 
         SDL_LockMutex(installer.mutex);
         if (!ok) {
@@ -858,6 +854,9 @@ static int Installer_Thread(void *unused) {
             q_strlcpy(in->current_file, installer.release.asset, sizeof(in->current_file));
           } else {
             in->state = INSTALLER_COMPARING;
+            Com_Warn("Quetoo %s is available, but %s is not writable.\n"
+                     "Download it from %s\n", installer.release.tag,
+                     *parent ? parent : "this installation", QUETOO_RELEASES_PAGE);
           }
         } else {
           in->state = INSTALLER_COMPARING;
@@ -951,7 +950,9 @@ static int Installer_Thread(void *unused) {
 
       case INSTALLER_UPDATE_AVAILABLE: {
 
-        const int32_t consent = installer.consent->integer;
+        SDL_LockMutex(installer.mutex);
+        const int32_t consent = installer.consent;
+        SDL_UnlockMutex(installer.mutex);
 
         if (consent == 0) {
           SDL_Delay(QUETOO_TICK_MILLIS);
@@ -1260,6 +1261,15 @@ static int32_t Installer_EachPending(FILE *file, const char *root, Installer_Pen
   return count;
 }
 
+void Installer_Consent(bool accept) {
+
+  if (installer.mutex) {
+    SDL_LockMutex(installer.mutex);
+    installer.consent = accept ? 1 : -1;
+    SDL_UnlockMutex(installer.mutex);
+  }
+}
+
 void Installer_ApplyPending(void) {
 
   if (*Fs_BaseDir() == '\0') {
@@ -1332,10 +1342,6 @@ void Installer_ApplyPending(void) {
  */
 void Installer_Init(Installer_FrameFunction frame) {
 
-  cvar_t *consent = Cvar_Add("update_consent", "0", 0,
-                             "Whether to install an available engine update: "
-                             "1 to accept, -1 to decline, 0 to ask");
-
 #if defined(_WIN32)
   Installer_SweepDisplaced();
 #endif
@@ -1353,7 +1359,6 @@ void Installer_Init(Installer_FrameFunction frame) {
 
   memset(&installer, 0, sizeof(installer));
   installer.status.state = INSTALLER_CHECKING;
-  installer.consent = consent;
 
   installer.mutex = SDL_CreateMutex();
   assert(installer.mutex);

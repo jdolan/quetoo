@@ -196,14 +196,14 @@ void Cg_UpdateLoading(const cl_loading_t loading) {
  * Pushes UpdateViewController when updating, pops it on completion.
  */
 /**
- * @brief Dialog callbacks recording whether to install an available update.
+ * @brief Dialog callbacks answering whether to install an available update.
  */
 static void Cg_AcceptUpdate(ident data) {
-  cgi.SetCvarInteger("update_consent", 1);
+  cgi.ConsentToUpdate(true);
 }
 
 static void Cg_DeclineUpdate(ident data) {
-  cgi.SetCvarInteger("update_consent", -1);
+  cgi.ConsentToUpdate(false);
 }
 
 int32_t Cg_UpdateInstaller(const installer_status_t *in) {
@@ -215,7 +215,7 @@ int32_t Cg_UpdateInstaller(const installer_status_t *in) {
 
   $(updateViewController, setStatus, in);
 
-  if (in->state == INSTALLER_UPDATE_AVAILABLE && cgi.GetCvarInteger("update_consent") == 0) {
+  if (in->state == INSTALLER_UPDATE_AVAILABLE) {
 
     ViewController *this = (ViewController *) updateViewController;
 

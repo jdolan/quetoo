@@ -332,6 +332,13 @@ typedef struct cg_import_s {
   cvar_t *(*ToggleCvar)(const char *name);
 
   /**
+   * @brief Answers the question posed by `INSTALLER_UPDATE_AVAILABLE`.
+   * @details The installer waits for this before acting on an available
+   * update. Declining applies to this run only; the next launch asks again.
+   */
+  void (*ConsentToUpdate)(bool accept);
+
+  /**
    * @brief Registers and returns a console command.
    * @param name The command name (e.g. `"wave"`).
    * @param function The command function.
