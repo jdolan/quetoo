@@ -109,6 +109,13 @@ static struct {
   bool installed_data;
 
   /**
+   * @brief Whether the player has agreed to install an available update.
+   * @details Zero until asked, then 1 to accept or -1 to decline. Presettable
+   * on the command line, so an unattended install can answer in advance.
+   */
+  cvar_t *consent;
+
+  /**
    * @brief The installer status, used to expose progress via `Installer_FrameFunction`.
    */
   installer_status_t status;
@@ -116,9 +123,15 @@ static struct {
 
 /**
  * @brief Compares dotted release versions, e.g. `1.0.91` against `1.0.9`.
+ * @details Compared component-wise rather than lexically, where `1.0.9` would
+ * sort after `1.0.91`. A leading `v` is optional on either side: release tags
+ * carry one and `--with-version` may or may not.
  * @return Negative, zero or positive as `a` orders before, with, or after `b`.
  */
 static int32_t Installer_CompareVersions(const char *a, const char *b) {
+
+  if (*a == 'v') { a++; }
+  if (*b == 'v') { b++; }
 
   while (*a || *b) {
 
@@ -192,12 +205,7 @@ static bool Installer_FetchRelease(const char *api, const char *want, installer_
 
     if (tag && assets) {
 
-      const char *chars = tag->chars;
-      if (*chars == 'v') {
-        chars++;
-      }
-
-      q_strlcpy(out->tag, chars, sizeof(out->tag));
+      q_strlcpy(out->tag, tag->chars, sizeof(out->tag));
 
       for (size_t i = 0; i < assets->count; i++) {
 
@@ -270,6 +278,9 @@ static void Installer_RemoveTree(const char *path) {
 
 /**
  * @brief The directory the staging area lives beside.
+ * @remarks Empty when the executable is not laid out like an installation, as
+ * in a source tree. Only engine updates depend on it; game content is written
+ * to `Fs_DataDir()` and syncs as usual.
  * @details Everywhere but macOS this is the installation itself, and an update
  * replaces files within it. On macOS the installation *is* `Quetoo.app` and an
  * update replaces the whole bundle, so staging inside it would carry the staged
@@ -828,13 +839,26 @@ static int Installer_Thread(void *unused) {
 
         const bool ok = Installer_FetchRelease(QUETOO_RELEASES_API_URL, INSTALLER_ASSET,
                                                &installer.release);
+
+        char parent[MAX_OS_PATH];
+        Installer_StagingParent(parent, sizeof(parent));
+
+        const bool writable = *parent && Installer_IsWritable(parent);
+        if (ok && !writable && *parent) {
+          Com_Warn("%s is not writable; engine updates are disabled.\n", parent);
+        }
+
         SDL_LockMutex(installer.mutex);
         if (!ok) {
           in->state = INSTALLER_ERROR;
           q_snprintf(in->error, sizeof(in->error), "Failed to check for updates");
-        } else if (Installer_CompareVersions(installer.release.tag, VERSION) > 0) {
-          in->state = INSTALLER_UPDATE_AVAILABLE;
-          q_strlcpy(in->current_file, installer.release.asset, sizeof(in->current_file));
+        } else if (Installer_CompareVersions(installer.release.tag, version->string) > 0) {
+          if (writable) {
+            in->state = INSTALLER_UPDATE_AVAILABLE;
+            q_strlcpy(in->current_file, installer.release.asset, sizeof(in->current_file));
+          } else {
+            in->state = INSTALLER_COMPARING;
+          }
         } else {
           in->state = INSTALLER_COMPARING;
         }
@@ -926,23 +950,24 @@ static int Installer_Thread(void *unused) {
         break;
 
       case INSTALLER_UPDATE_AVAILABLE: {
-        char parent[MAX_OS_PATH];
-        Installer_StagingParent(parent, sizeof(parent));
 
-        const bool writable = Installer_IsWritable(parent);
+        const int32_t consent = installer.consent->integer;
 
-        SDL_LockMutex(installer.mutex);
-        if (in->state == INSTALLER_CANCELLED) {
-          SDL_UnlockMutex(installer.mutex);
+        if (consent == 0) {
+          SDL_Delay(QUETOO_TICK_MILLIS);
           break;
         }
-        if (!writable) {
-          in->state = INSTALLER_COMPARING;
-          Com_Warn("%s is not writable; skipping the engine update.\n", parent);
-        } else {
-          in->state = INSTALLER_DOWNLOADING_UPDATE;
-          in->kbytes_done = 0;
-          in->kbytes_total = (int32_t) (installer.release.size / 1024);
+
+        SDL_LockMutex(installer.mutex);
+        if (in->state != INSTALLER_CANCELLED) {
+          if (consent > 0) {
+            in->state = INSTALLER_DOWNLOADING_UPDATE;
+            in->kbytes_done = 0;
+            in->kbytes_total = (int32_t) (installer.release.size / 1024);
+          } else {
+            Com_Print("Skipping the update to Quetoo %s.\n", installer.release.tag);
+            in->state = INSTALLER_COMPARING;
+          }
         }
         SDL_UnlockMutex(installer.mutex);
       }
@@ -1307,11 +1332,15 @@ void Installer_ApplyPending(void) {
  */
 void Installer_Init(Installer_FrameFunction frame) {
 
+  cvar_t *consent = Cvar_Add("update_consent", "0", 0,
+                             "Whether to install an available engine update: "
+                             "1 to accept, -1 to decline, 0 to ask");
+
 #if defined(_WIN32)
   Installer_SweepDisplaced();
 #endif
 
-  if (build_number->integer == -1) {
+  if (build_number->integer == -1 || version->integer == -1) {
     return;
   }
 
@@ -1324,6 +1353,7 @@ void Installer_Init(Installer_FrameFunction frame) {
 
   memset(&installer, 0, sizeof(installer));
   installer.status.state = INSTALLER_CHECKING;
+  installer.consent = consent;
 
   installer.mutex = SDL_CreateMutex();
   assert(installer.mutex);

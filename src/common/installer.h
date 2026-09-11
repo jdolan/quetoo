@@ -63,6 +63,10 @@ typedef struct {
 
 /**
  * @brief Frame callback type for `Installer_Wait`.
+ * @remarks On `INSTALLER_UPDATE_AVAILABLE` the installer waits for the
+ * `update_consent` cvar to become non-zero, so the frame function is
+ * responsible for asking the player, or for answering on their behalf where
+ * there is nobody to ask.
  * @details Returning non-zero will terminate the installer process and resume startup.
  */
 typedef int32_t (*Installer_FrameFunction)(const installer_status_t *status);
