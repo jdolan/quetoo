@@ -20,7 +20,6 @@
  */
 
 #include <SDL3/SDL_filesystem.h>
-#include <SDL3/SDL_misc.h>
 #include <SDL3/SDL_mutex.h>
 
 
@@ -49,12 +48,14 @@
  */
 #if defined(_WIN32)
   #define INSTALLER_ASSET "quetoo-x86_64-pc-windows.zip"
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) && defined(__aarch64__)
   #define INSTALLER_ASSET "quetoo-arm64-apple-darwin.dmg"
 #elif defined(__aarch64__)
   #define INSTALLER_ASSET "quetoo-aarch64-pc-linux.tar.gz"
-#else
+#elif defined(__linux__)
   #define INSTALLER_ASSET "quetoo-x86_64-pc-linux.tar.gz"
+#else
+  #define INSTALLER_ASSET NULL
 #endif
 
 /**
@@ -141,6 +142,16 @@ static int32_t Installer_CompareVersions(const char *a, const char *b) {
 }
 
 /**
+ * @brief Returns `object` if it is of `clazz`, else `NULL`.
+ * @details The response is remote input and its shape is not guaranteed; a
+ * root Array where a Dictionary is expected would otherwise be dispatched
+ * through the wrong interface.
+ */
+static ident Installer_Cast(ident object, Class *clazz) {
+  return object && $((Object *) object, isKindOfClass, clazz) ? object : NULL;
+}
+
+/**
  * @brief Queries a GitHub Releases API endpoint for its latest release and the
  * named asset.
  * @details `/releases/latest` excludes drafts and prereleases, and carries the
@@ -166,16 +177,18 @@ static bool Installer_FetchRelease(const char *api, const char *want, installer_
   }
 
   JSONContext *context = $(alloc(JSONContext), init);
-  Dictionary *root = $(context, objectFromData, data, 0);
+  ident object = $(context, objectFromData, data, 0);
 
   release(data);
 
   bool success = false;
 
+  Dictionary *root = Installer_Cast(object, _Dictionary());
+
   if (root) {
 
-    const String *tag = $(root, objectForKeyPath, "tag_name");
-    const Array *assets = $(root, objectForKeyPath, "assets");
+    const String *tag = Installer_Cast($(root, objectForKeyPath, "tag_name"), _String());
+    const Array *assets = Installer_Cast($(root, objectForKeyPath, "assets"), _Array());
 
     if (tag && assets) {
 
@@ -188,15 +201,18 @@ static bool Installer_FetchRelease(const char *api, const char *want, installer_
 
       for (size_t i = 0; i < assets->count; i++) {
 
-        const Dictionary *asset = $(assets, objectAtIndex, i);
-        const String *name = $(asset, objectForKeyPath, "name");
+        const Dictionary *asset = Installer_Cast($(assets, objectAtIndex, i), _Dictionary());
+        if (asset == NULL) {
+          continue;
+        }
 
+        const String *name = Installer_Cast($(asset, objectForKeyPath, "name"), _String());
         if (name == NULL || q_strcmp(name->chars, want)) {
           continue;
         }
 
-        const String *url = $(asset, objectForKeyPath, "browser_download_url");
-        const Number *size = $(asset, objectForKeyPath, "size");
+        const String *url = Installer_Cast($(asset, objectForKeyPath, "browser_download_url"), _String());
+        const Number *size = Installer_Cast($(asset, objectForKeyPath, "size"), _Number());
 
         if (url && size) {
           q_strlcpy(out->asset, name->chars, sizeof(out->asset));
@@ -210,7 +226,7 @@ static bool Installer_FetchRelease(const char *api, const char *want, installer_
     }
   }
 
-  release(root);
+  release(object);
   release(context);
 
   if (success) {
@@ -221,6 +237,35 @@ static bool Installer_FetchRelease(const char *api, const char *want, installer_
   }
 
   return success;
+}
+
+/**
+ * @brief Recursively deletes `path`.
+ * @details `SDL_RemovePath` only unlinks files and empty directories, but a
+ * displaced application bundle is neither.
+ */
+static SDL_EnumerationResult Installer_RemoveEntry(void *data, const char *dir, const char *name) {
+
+  char path[MAX_OS_PATH];
+  q_snprintf(path, sizeof(path), "%s/%s", dir, name);
+
+  SDL_PathInfo info;
+  if (SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_DIRECTORY) {
+    SDL_EnumerateDirectory(path, Installer_RemoveEntry, data);
+  }
+
+  SDL_RemovePath(path);
+  return SDL_ENUM_CONTINUE;
+}
+
+static void Installer_RemoveTree(const char *path) {
+
+  SDL_PathInfo info;
+  if (SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_DIRECTORY) {
+    SDL_EnumerateDirectory(path, Installer_RemoveEntry, NULL);
+  }
+
+  SDL_RemovePath(path);
 }
 
 /**
@@ -292,8 +337,22 @@ static bool Installer_DownloadToFile(const char *address, const char *path, int6
   }
 
   URL *url = $(alloc(URL), initWithCharacters, address);
+  if (!url) {
+    Com_Warn("Failed to parse %s\n", address);
+    fclose(file);
+    SDL_RemovePath(path);
+    return false;
+  }
+
   URLSessionDownloadTask *download = $($$(URLSession, sharedInstance), downloadTaskWithURL, url, NULL);
   release(url);
+
+  if (!download) {
+    Com_Warn("Failed to request %s\n", address);
+    fclose(file);
+    SDL_RemovePath(path);
+    return false;
+  }
 
   download->file = file;
 
@@ -328,7 +387,13 @@ static bool Installer_DownloadToFile(const char *address, const char *path, int6
   fclose(file);
 
   const int32_t http = task->response ? task->response->httpStatusCode : 0;
-  const bool success = task->state == URLSESSIONTASK_COMPLETED && http == 200;
+  bool success = task->state == URLSESSIONTASK_COMPLETED && http == 200;
+
+  if (success && expected > 0 && (int64_t) task->bytesReceived != expected) {
+    Com_Warn("Truncated download of %s: %" PRId64 " of %" PRId64 " bytes\n",
+             address, (int64_t) task->bytesReceived, expected);
+    success = false;
+  }
 
   release(task);
 
@@ -359,7 +424,8 @@ static SDL_EnumerationResult Installer_EnumeratePending(void *data, const char *
 
   if (info.type == SDL_PATHTYPE_DIRECTORY) {
     SDL_EnumerateDirectory(path, Installer_EnumeratePending, file);
-  } else if (info.type == SDL_PATHTYPE_FILE) {
+  } else if (info.type == SDL_PATHTYPE_FILE &&
+             q_strcmp(name, "pending.mf") && q_strcmp(name, "pending.tmp")) {
     fprintf(file, "%s\n", path);
   }
 
@@ -386,12 +452,13 @@ static void Installer_WritePending(const char *pending) {
   q_snprintf(root, sizeof(root), "%s/quetoo", pending);
 #endif
 
-  char path[MAX_OS_PATH];
+  char path[MAX_OS_PATH], temp[MAX_OS_PATH];
   q_snprintf(path, sizeof(path), "%s/pending.mf", pending);
+  q_snprintf(temp, sizeof(temp), "%s/pending.tmp", pending);
 
-  FILE *file = fopen(path, "wb");
+  FILE *file = fopen(temp, "wb");
   if (!file) {
-    Com_Warn("Failed to write %s\n", path);
+    Com_Warn("Failed to write %s\n", temp);
     return;
   }
 
@@ -402,6 +469,11 @@ static void Installer_WritePending(const char *pending) {
 #endif
 
   fclose(file);
+
+  if (!SDL_RenamePath(temp, path)) {
+    Com_Warn("Failed to write %s: %s\n", path, SDL_GetError());
+    SDL_RemovePath(temp);
+  }
 }
 
 /**
@@ -573,6 +645,54 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
 }
 
 /**
+ * @brief Returns true if the game data manifest is present on disk.
+ */
+static bool Installer_HasManifest(void) {
+
+  char path[MAX_OS_PATH];
+  q_snprintf(path, sizeof(path), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
+
+  return SDL_GetPathInfo(path, NULL);
+}
+
+/**
+ * @brief Reads the installed data manifest directly from the filesystem.
+ * @details Not `Cm_ReadManifest`, which resolves through PhysFS: the data
+ * directory is only mounted if it existed when `Fs_Init` ran, so a tree this
+ * installer just created is invisible to it. That would leave every entry
+ * pending and re-download the whole data set a file at a time -- exactly what
+ * the archive install exists to avoid. `Installer_WriteManifest` bypasses
+ * PhysFS for the same reason.
+ */
+static HashTable *Installer_ReadManifest(void) {
+
+  char path[MAX_OS_PATH];
+  q_snprintf(path, sizeof(path), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
+
+  FILE *file = fopen(path, "rb");
+  if (!file) {
+    return NULL;
+  }
+
+  fseek(file, 0, SEEK_END);
+  const long length = ftell(file);
+  fseek(file, 0, SEEK_SET);
+
+  HashTable *manifest = NULL;
+
+  if (length > 0) {
+    char *data = Mem_Malloc((size_t) length);
+    if (fread(data, 1, (size_t) length, file) == (size_t) length) {
+      manifest = Cm_ParseManifest(data, (size_t) length);
+    }
+    Mem_Free(data);
+  }
+
+  fclose(file);
+  return manifest;
+}
+
+/**
  * @brief Installs the whole game data set from its release archive.
  * @details A fresh install would otherwise pull eleven thousand files one at a
  * time from S3. The archive is published on GitHub Releases, whose egress is
@@ -682,9 +802,21 @@ static int Installer_Thread(void *unused) {
   bool run = true;
   while (run) {
 
-    switch (in->state) {
+    SDL_LockMutex(installer.mutex);
+    const installer_state_t state = in->state;
+    SDL_UnlockMutex(installer.mutex);
+
+    switch (state) {
 
       case INSTALLER_CHECKING: {
+
+        if (INSTALLER_ASSET == NULL) {
+          SDL_LockMutex(installer.mutex);
+          in->state = INSTALLER_COMPARING;
+          SDL_UnlockMutex(installer.mutex);
+          break;
+        }
+
         const bool ok = Installer_FetchRelease(QUETOO_RELEASES_API_URL, INSTALLER_ASSET,
                                                &installer.release);
         SDL_LockMutex(installer.mutex);
@@ -701,15 +833,9 @@ static int Installer_Thread(void *unused) {
       }
         break;
 
-      case INSTALLER_INSTALLING_DATA:
-        SDL_LockMutex(installer.mutex);
-        in->state = INSTALLER_COMPARING;
-        SDL_UnlockMutex(installer.mutex);
-        break;
-
       case INSTALLER_COMPARING: {
 
-        if (!installer.installed_data && !Fs_Exists("manifest.mf")) {
+        if (!installer.installed_data && !Installer_HasManifest()) {
           installer.installed_data = true;
           if (!Installer_InstallData()) {
             Com_Warn("Falling back to a file by file sync\n");
@@ -740,7 +866,7 @@ static int Installer_Thread(void *unused) {
 
         $(remote, enumerate, Installer_MarkPending, NULL);
 
-        HashTable *local = Cm_ReadManifest("manifest.mf");
+        HashTable *local = Installer_ReadManifest();
         if (local) {
           $(local, enumerate, Installer_MarkStale, NULL);
         }
@@ -794,8 +920,14 @@ static int Installer_Thread(void *unused) {
         char parent[MAX_OS_PATH];
         Installer_StagingParent(parent, sizeof(parent));
 
+        const bool writable = Installer_IsWritable(parent);
+
         SDL_LockMutex(installer.mutex);
-        if (!Installer_IsWritable(parent)) {
+        if (in->state == INSTALLER_CANCELLED) {
+          SDL_UnlockMutex(installer.mutex);
+          break;
+        }
+        if (!writable) {
           in->state = INSTALLER_COMPARING;
           Com_Warn("%s is not writable; skipping the engine update.\n", parent);
         } else {
@@ -811,7 +943,7 @@ static int Installer_Thread(void *unused) {
         char pending[MAX_OS_PATH], archive[MAX_OS_PATH];
         Installer_PendingDir(pending, sizeof(pending));
 
-        SDL_RemovePath(pending);
+        Installer_RemoveTree(pending);
 
         if (!SDL_CreateDirectory(pending)) {
           SDL_LockMutex(installer.mutex);
@@ -834,7 +966,7 @@ static int Installer_Thread(void *unused) {
         SDL_UnlockMutex(installer.mutex);
 
         if (!ok) {
-          SDL_RemovePath(pending);
+          Installer_RemoveTree(pending);
         }
       }
         break;
@@ -851,11 +983,13 @@ static int Installer_Thread(void *unused) {
           Installer_WritePending(pending);
           Com_Print("Quetoo %s staged; it will be applied when you quit.\n", installer.release.tag);
         } else {
-          SDL_RemovePath(pending);
+          Installer_RemoveTree(pending);
         }
 
         SDL_LockMutex(installer.mutex);
-        in->state = ok ? INSTALLER_UPDATE_STAGED : INSTALLER_COMPARING;
+        if (in->state != INSTALLER_CANCELLED) {
+          in->state = ok ? INSTALLER_UPDATE_STAGED : INSTALLER_COMPARING;
+        }
         SDL_UnlockMutex(installer.mutex);
       }
         break;
@@ -866,6 +1000,7 @@ static int Installer_Thread(void *unused) {
         SDL_UnlockMutex(installer.mutex);
         break;
 
+      case INSTALLER_INSTALLING_DATA:
       case INSTALLER_CANCELLED:
       case INSTALLER_DONE:
       case INSTALLER_ERROR:
@@ -882,6 +1017,10 @@ static int Installer_Thread(void *unused) {
  * calling @c frame each iteration while the installer is in progress.
  */
 void Installer_Init(Installer_FrameFunction frame) {
+
+#if defined(_WIN32)
+  Installer_SweepDisplaced();
+#endif
 
   if (build_number->integer == -1) {
     return;
@@ -967,9 +1106,24 @@ static void Installer_SweepDisplaced(void) {
   char line[MAX_OS_PATH];
 
   while (fgets(line, sizeof(line), file)) {
+  char survivors[MAX_OS_PATH * 8];
+  size_t length = 0;
+
+  while (fgets(line, sizeof(line), file)) {
+
     Installer_Chomp(line);
-    if (*line && !SDL_RemovePath(line)) {
+    if (*line == '\0') {
+      continue;
+    }
+
+    Installer_RemoveTree(line);
+
+    if (SDL_GetPathInfo(line, NULL)) {
       swept = false;
+      const int32_t n = q_snprintf(survivors + length, sizeof(survivors) - length, "%s\n", line);
+      if (n > 0) {
+        length += (size_t) n;
+      }
     }
   }
 
@@ -977,49 +1131,38 @@ static void Installer_SweepDisplaced(void) {
 
   if (swept) {
     SDL_RemovePath(path);
+  } else if ((file = fopen(path, "wb"))) {
+    fwrite(survivors, 1, length, file);
+    fclose(file);
   }
 }
 
 #endif
 
 /**
- * @brief Recursively deletes `path`.
- * @details `SDL_RemovePath` only unlinks files and empty directories, but a
- * displaced application bundle is neither.
+ * @brief Applied to each staged file by `Installer_EachPending`.
  */
-static SDL_EnumerationResult Installer_RemoveEntry(void *data, const char *dir, const char *name) {
+typedef bool (*Installer_PendingFunc)(const char *staged, const char *target, FILE *cleanup);
 
-  char path[MAX_OS_PATH];
-  q_snprintf(path, sizeof(path), "%s/%s", dir, name);
-
-  SDL_PathInfo info;
-  if (SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_DIRECTORY) {
-    SDL_EnumerateDirectory(path, Installer_RemoveEntry, data);
-  }
-
-  SDL_RemovePath(path);
-  return SDL_ENUM_CONTINUE;
-}
-
-static void Installer_RemoveTree(const char *path) {
-
-  SDL_PathInfo info;
-  if (SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_DIRECTORY) {
-    SDL_EnumerateDirectory(path, Installer_RemoveEntry, NULL);
-  }
-
-  SDL_RemovePath(path);
+/**
+ * @brief Returns the path a displaced file is parked at while an apply runs.
+ */
+static void Installer_Displaced(const char *target, char *out, size_t len) {
+  q_snprintf(out, (int32_t) len, "%s.old", target);
 }
 
 /**
- * @brief Moves a staged file into place, displacing whatever is there.
- * @details A running executable or loaded library cannot be overwritten or
- * deleted, but it can be renamed. POSIX goes further and lets the displaced
- * file be replaced outright: the running process keeps the now-nameless inode
- * until it exits. Windows has no equivalent, so the displaced copy keeps a
- * name until the next launch sweeps it.
+ * @brief Moves a staged file into place, parking whatever was there.
+ * @details The displaced copy is kept until every file has been installed, so
+ * that a failure part way can be undone. Leaving a half-updated tree would
+ * pair an executable with game modules of another version, which the
+ * `CGAME_API_VERSION` check rejects outright -- an install that cannot start
+ * is far worse than one that is merely out of date.
+ *
+ * A running executable or loaded library cannot be overwritten or deleted, but
+ * it can be renamed, which is what makes this possible at all.
  */
-static bool Installer_Replace(const char *staged, const char *target, FILE *cleanup) {
+static bool Installer_Install(const char *staged, const char *target, FILE *cleanup) {
 
   char dir[MAX_OS_PATH];
   q_strlcpy(dir, target, sizeof(dir));
@@ -1030,20 +1173,11 @@ static bool Installer_Replace(const char *staged, const char *target, FILE *clea
     SDL_CreateDirectory(dir);
   }
 
-  SDL_PathInfo info;
-  const bool exists = SDL_GetPathInfo(target, &info);
+  if (SDL_GetPathInfo(target, NULL)) {
 
-#if defined(_WIN32)
-  const bool displace = exists;
-#else
-  const bool displace = exists && info.type == SDL_PATHTYPE_DIRECTORY;
-#endif
+    char displaced[MAX_OS_PATH];
+    Installer_Displaced(target, displaced, sizeof(displaced));
 
-  char displaced[MAX_OS_PATH] = { '\0' };
-
-  if (displace) {
-
-    q_snprintf(displaced, sizeof(displaced), "%s.old", target);
     Installer_RemoveTree(displaced);
 
     if (!SDL_RenamePath(target, displaced)) {
@@ -1054,13 +1188,24 @@ static bool Installer_Replace(const char *staged, const char *target, FILE *clea
 
   if (!SDL_RenamePath(staged, target)) {
     Com_Warn("Failed to install %s: %s\n", target, SDL_GetError());
-    if (*displaced) {
-      SDL_RenamePath(displaced, target);
-    }
     return false;
   }
 
-  if (*displaced) {
+  return true;
+}
+
+/**
+ * @brief Discards the file displaced by a successful install.
+ * @details POSIX can drop it immediately, because a process running from it
+ * holds the inode regardless of the name. Windows cannot delete a mapped
+ * image, so the path is recorded and swept at the next launch.
+ */
+static bool Installer_Commit_(const char *staged, const char *target, FILE *cleanup) {
+
+  char displaced[MAX_OS_PATH];
+  Installer_Displaced(target, displaced, sizeof(displaced));
+
+  if (SDL_GetPathInfo(displaced, NULL)) {
     if (cleanup) {
       fprintf(cleanup, "%s\n", displaced);
     } else {
@@ -1071,11 +1216,82 @@ static bool Installer_Replace(const char *staged, const char *target, FILE *clea
   return true;
 }
 
+/**
+ * @brief Restores a displaced file, undoing a failed apply.
+ * @details The staged copy is moved back out of the way first, so that the
+ * staging directory survives intact and the whole update can simply be retried
+ * at the next exit.
+ */
+static bool Installer_Rollback(const char *staged, const char *target, FILE *cleanup) {
+
+  char displaced[MAX_OS_PATH];
+  Installer_Displaced(target, displaced, sizeof(displaced));
+
+  if (!SDL_GetPathInfo(displaced, NULL)) {
+    return true;
+  }
+
+  if (!SDL_GetPathInfo(staged, NULL)) {
+    SDL_RenamePath(target, staged);
+  }
+
+  if (!SDL_RenamePath(displaced, target)) {
+    Com_Warn("Failed to restore %s: %s\n", target, SDL_GetError());
+  }
+
+  return true;
+}
+
+/**
+ * @brief Iterates the staged files, invoking `func` for each.
+ * @return The number of entries visited, or -1 if the manifest is malformed.
+ */
+static int32_t Installer_EachPending(FILE *file, const char *root, Installer_PendingFunc func,
+                                     FILE *cleanup) {
+
+  fseek(file, 0, SEEK_SET);
+
+  char line[MAX_OS_PATH];
+  if (!fgets(line, sizeof(line), file) || !fgets(line, sizeof(line), file)) {
+    return -1;
+  }
+
+  const size_t root_len = q_strlen(root);
+
+  int32_t count = 0;
+
+  while (fgets(line, sizeof(line), file)) {
+
+    const bool complete = q_strchr(line, '\n') || feof(file);
+    Installer_Chomp(line);
+
+    if (!complete) {
+      Com_Warn("Staged path too long: %s\n", line);
+      return -1;
+    }
+
+    if (q_strncmp(line, root, root_len) || line[root_len] != '/') {
+      continue;
+    }
+
+    char target[MAX_OS_PATH];
+    q_snprintf(target, sizeof(target), "%s%s", Fs_BaseDir(), line + root_len);
+
+    if (!func(line, target, cleanup)) {
+      return -1;
+    }
+
+    count++;
+  }
+
+  return count;
+}
+
 void Installer_ApplyPending(void) {
 
-#if defined(_WIN32)
-  Installer_SweepDisplaced();
-#endif
+  if (*Fs_BaseDir() == '\0') {
+    return;
+  }
 
   char pending[MAX_OS_PATH], path[MAX_OS_PATH];
   Installer_PendingDir(pending, sizeof(pending));
@@ -1102,31 +1318,24 @@ void Installer_ApplyPending(void) {
 #if defined(_WIN32)
   char cleanup_path[MAX_OS_PATH];
   q_snprintf(cleanup_path, sizeof(cleanup_path), "%s/.cleanup", Fs_BaseDir());
-  cleanup = fopen(cleanup_path, "wb");
+  cleanup = fopen(cleanup_path, "ab");
 #endif
 
-  const size_t root_len = q_strlen(root);
+  const int32_t installed = Installer_EachPending(file, root, Installer_Install, cleanup);
 
-  bool success = true, files = false;
-  char line[MAX_OS_PATH];
+  bool success = installed >= 0;
 
-  while (success && fgets(line, sizeof(line), file)) {
-
-    Installer_Chomp(line);
-
-    if (q_strncmp(line, root, root_len) || line[root_len] != '/') {
-      continue;
-    }
-
-    char target[MAX_OS_PATH];
-    q_snprintf(target, sizeof(target), "%s%s", Fs_BaseDir(), line + root_len);
-
-    success = Installer_Replace(line, target, cleanup);
-    files = true;
+  const bool whole = success && installed == 0;
+  if (whole) {
+    success = Installer_Install(root, Fs_BaseDir(), cleanup);
   }
 
-  if (success && !files) {
-    success = Installer_Replace(root, Fs_BaseDir(), cleanup);
+  const Installer_PendingFunc finish = success ? Installer_Commit_ : Installer_Rollback;
+
+  if (whole) {
+    finish(root, Fs_BaseDir(), success ? cleanup : NULL);
+  } else {
+    Installer_EachPending(file, root, finish, success ? cleanup : NULL);
   }
 
   if (cleanup) {
@@ -1139,7 +1348,8 @@ void Installer_ApplyPending(void) {
     Installer_RemoveTree(pending);
     Com_Print("Updated to Quetoo %s.\n", version);
   } else {
-    Com_Warn("Failed to apply the staged update; it will be retried on exit.\n");
+    Com_Warn("Could not apply the staged update; the previous version is intact "
+             "and it will be retried on the next exit.\n");
   }
 }
 

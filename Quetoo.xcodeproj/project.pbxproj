@@ -199,6 +199,7 @@
 		CE04F16625CADF6700C31433 /* files.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D63C1C5C58C300CD0B13 /* files.h */; };
 		CE04F18B25CADF6900C31433 /* filesystem.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D63E1C5C58C300CD0B13 /* filesystem.h */; };
 		CE04F1B025CADF6C00C31433 /* image.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6781C5C58C300CD0B13 /* image.h */; };
+		CEA0B1C32D0000010000A004 /* archive.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA0B1C12D0000010000A002 /* archive.h */; };
 		CE04F1D525CADF6F00C31433 /* installer.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC74B3725C8EE94009C6218 /* installer.h */; };
 		CE04F21E25CADF7700C31433 /* mem_buf.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D68C1C5C58C300CD0B13 /* mem_buf.h */; };
 		CE04F24325CADF7A00C31433 /* mem.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D68A1C5C58C300CD0B13 /* mem.h */; };
@@ -206,6 +207,7 @@
 		CE04F28D25CADF7F00C31433 /* thread.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6DF1C5C58C300CD0B13 /* thread.h */; };
 		CE04F2B225CADF8D00C31433 /* filesystem.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D63D1C5C58C300CD0B13 /* filesystem.c */; };
 		CE04F2D725CADF9000C31433 /* image.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6771C5C58C300CD0B13 /* image.c */; };
+		CEA0B1C22D0000010000A003 /* archive.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA0B1C02D0000010000A001 /* archive.c */; };
 		CE04F2FC25CADF9300C31433 /* installer.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC74B3825C8EE94009C6218 /* installer.c */; };
 		CE04F32125CADF9800C31433 /* mem_buf.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D68B1C5C58C300CD0B13 /* mem_buf.c */; };
 		CE04F34625CADF9B00C31433 /* mem.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6891C5C58C300CD0B13 /* mem.c */; };
@@ -611,6 +613,23 @@
 		CE7D2C3320310810004BC58E /* SettingsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2F20310763004BC58E /* SettingsViewController.json */; };
 		CE7FCDD72596996600E49A2D /* cl_screen.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7FCDD52596996500E49A2D /* cl_screen.c */; };
 		CE7FCDD82596996600E49A2D /* cl_screen.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7FCDD62596996500E49A2D /* cl_screen.h */; };
+		D9A5C2010000000000000001 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C2010000000000000002 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C2010000000000000003 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C2010000000000000004 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C2010000000000000005 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C2010000000000000006 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C2010000000000000007 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C2010000000000000008 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C2010000000000000009 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C201000000000000000A /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C201000000000000000B /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C201000000000000000C /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C201000000000000000D /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C201000000000000000E /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C201000000000000000F /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C2010000000000000010 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
+		D9A5C2010000000000000011 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		CE8000021C5E4D4400A21A51 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE80FDB61C5E3D4E00A21A51 /* shared-anorms.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B71C5C58C300CD0B13 /* shared-anorms.c */; };
@@ -2845,6 +2864,8 @@
 		CEC0FF0020260103000000A1 /* cg_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_module.c; sourceTree = "<group>"; };
 		CEC0FF0020260103000000EA /* game-ctf.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "game-ctf.so"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEC0FF0020260103000001D4 /* cgame.so */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; name = cgame.so; path = "cgame-ctf.so"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEA0B1C12D0000010000A002 /* archive.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = archive.h; sourceTree = "<group>"; };
+		CEA0B1C02D0000010000A001 /* archive.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = archive.c; sourceTree = "<group>"; };
 		CEC74B3725C8EE94009C6218 /* installer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = installer.h; sourceTree = "<group>"; };
 		CEC74B3825C8EE94009C6218 /* installer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = installer.c; sourceTree = "<group>"; };
 		CECA8CAE1E50B5F1005E97E8 /* material.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = material.c; sourceTree = "<group>"; };
@@ -2990,6 +3011,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C2010000000000000001 /* libminizip.a in Frameworks */,
 				77DC97E1E9FDFCF8FD91B1BC /* SDL3.xcframework in Frameworks */,
 				CED40A703049B36F0090C57A /* Objectively.framework in Frameworks */,
 				CE2B083C23F9EDEA007C77B6 /* libshared.a in Frameworks */,
@@ -3001,6 +3023,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C2010000000000000002 /* libminizip.a in Frameworks */,
 				3CBF190D5B00F3CCADD14B52 /* SDL3.xcframework in Frameworks */,
 				CED40A713049B3830090C57A /* Objectively.framework in Frameworks */,
 				CE052A88214832E1003446C9 /* libcommon.a in Frameworks */,
@@ -3035,6 +3058,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C2010000000000000003 /* libminizip.a in Frameworks */,
 				CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */,
 				CE16434A2FF5A12100863996 /* SDL3.xcframework in Frameworks */,
 				CEF601C52FE711B7005C680C /* SDL3_image.xcframework in Frameworks */,
@@ -3088,6 +3112,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C2010000000000000004 /* libminizip.a in Frameworks */,
 				CE1643982FF5D13D00863996 /* SDL3.xcframework in Frameworks */,
 				CEF601C32FE608D5005C680C /* Objectively.framework in Frameworks */,
 				CE80FFCF1C5E4B9B00A21A51 /* libclient-null.a in Frameworks */,
@@ -3110,6 +3135,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C2010000000000000005 /* libminizip.a in Frameworks */,
 				B8BC2CE87251BA0975026203 /* SDL3_image.xcframework in Frameworks */,
 				549E7CC4A7BA476A2463B7CC /* SDL3.xcframework in Frameworks */,
 				CED40A733049B3F70090C57A /* Objectively.framework in Frameworks */,
@@ -3122,6 +3148,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C2010000000000000006 /* libminizip.a in Frameworks */,
 				033334174247678F654646CA /* SDL3.xcframework in Frameworks */,
 				CED40A6D3049B3470090C57A /* Objectively.framework in Frameworks */,
 				CE4DCF97256F0DAD00FECAFC /* libshared.a in Frameworks */,
@@ -3134,6 +3161,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C2010000000000000007 /* libminizip.a in Frameworks */,
 				FBA34330EDE55ADE01202579 /* SDL3_image.xcframework in Frameworks */,
 				332CAA47FF0E8521C12DF852 /* SDL3.xcframework in Frameworks */,
 				CED40A643049AFD00090C57A /* Objectively.framework in Frameworks */,
@@ -3149,6 +3177,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C2010000000000000008 /* libminizip.a in Frameworks */,
 				9C43D41506579A6ED4EE80F5 /* SDL3.xcframework in Frameworks */,
 				CED40A673049B0280090C57A /* Objectively.framework in Frameworks */,
 				CE51FBA321481DD300ABE14F /* libcommon.a in Frameworks */,
@@ -3160,6 +3189,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C2010000000000000009 /* libminizip.a in Frameworks */,
 				AF8056E19DEC77694B63EDD7 /* SDL3.xcframework in Frameworks */,
 				CED40A683049B0540090C57A /* Objectively.framework in Frameworks */,
 				CE2B084D23F9EEBC007C77B6 /* libshared.a in Frameworks */,
@@ -3171,6 +3201,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C201000000000000000A /* libminizip.a in Frameworks */,
 				4E0DA0FBE7F88EC11A4CF033 /* SDL3.xcframework in Frameworks */,
 				CED40A663049B00C0090C57A /* Objectively.framework in Frameworks */,
 				CE2B084423F9EE46007C77B6 /* libshared.a in Frameworks */,
@@ -3182,6 +3213,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C201000000000000000B /* libminizip.a in Frameworks */,
 				6B31320926D77CB87B783BDD /* SDL3.xcframework in Frameworks */,
 				CED40A6F3049B3690090C57A /* Objectively.framework in Frameworks */,
 				CE51FC042148213200ABE14F /* libshared.a in Frameworks */,
@@ -3289,6 +3321,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C201000000000000000C /* libminizip.a in Frameworks */,
 				CE1643992FF5D14900863996 /* SDL3.xcframework in Frameworks */,
 				CEF601C22FE608AF005C680C /* Objectively.framework in Frameworks */,
 				CEFC7A931D9CB75D000FA6B2 /* libcommon.a in Frameworks */,
@@ -3301,6 +3334,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C201000000000000000D /* libminizip.a in Frameworks */,
 				7857EDF77E5E58CEFFD03198 /* SDL3.xcframework in Frameworks */,
 				CED40A6C3049B3420090C57A /* Objectively.framework in Frameworks */,
 				CEA508FE2EA5D20A00F27205 /* libshared.a in Frameworks */,
@@ -3313,6 +3347,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C201000000000000000E /* libminizip.a in Frameworks */,
 				B2B62AE1E7C09567B299F1AA /* SDL3.xcframework in Frameworks */,
 				CED40A653049B0040090C57A /* Objectively.framework in Frameworks */,
 				CEAD8F952F8D765F0087A850 /* libshared.a in Frameworks */,
@@ -3325,6 +3360,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C201000000000000000F /* libminizip.a in Frameworks */,
 				B92B8EA5B4D9C775CF3C2541 /* SDL3.xcframework in Frameworks */,
 				CED40A6B3049B33B0090C57A /* Objectively.framework in Frameworks */,
 				CEAD8FAC2F8D8DE30087A850 /* libshared.a in Frameworks */,
@@ -3382,6 +3418,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C2010000000000000010 /* libminizip.a in Frameworks */,
 				CF43CA06A122206F8CB8748A /* SDL3.xcframework in Frameworks */,
 				CED40A6A3049B32E0090C57A /* Objectively.framework in Frameworks */,
 				CE2B083823F9ECE1007C77B6 /* libshared.a in Frameworks */,
@@ -3417,6 +3454,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9A5C2010000000000000011 /* libminizip.a in Frameworks */,
 				D9A5C10000000000000000D0 /* SDL3.xcframework in Frameworks */,
 				D9A5C10000000000000000D1 /* Objectively.framework in Frameworks */,
 				D9A5C10000000000000000D2 /* libshared.a in Frameworks */,
@@ -3574,6 +3612,8 @@
 				CE12D63D1C5C58C300CD0B13 /* filesystem.c */,
 				CE12D6781C5C58C300CD0B13 /* image.h */,
 				CE12D6771C5C58C300CD0B13 /* image.c */,
+				CEA0B1C12D0000010000A002 /* archive.h */,
+				CEA0B1C02D0000010000A001 /* archive.c */,
 				CEC74B3725C8EE94009C6218 /* installer.h */,
 				CEC74B3825C8EE94009C6218 /* installer.c */,
 				CE12D68A1C5C58C300CD0B13 /* mem.h */,
@@ -5134,6 +5174,7 @@
 				CE04F16625CADF6700C31433 /* files.h in Headers */,
 				CE04F18B25CADF6900C31433 /* filesystem.h in Headers */,
 				CE04F1B025CADF6C00C31433 /* image.h in Headers */,
+				CEA0B1C32D0000010000A004 /* archive.h in Headers */,
 				CE04F1D525CADF6F00C31433 /* installer.h in Headers */,
 				CE04F24325CADF7A00C31433 /* mem.h in Headers */,
 				CE04F21E25CADF7700C31433 /* mem_buf.h in Headers */,
@@ -6928,6 +6969,7 @@
 				CE04F11C25CADF5E00C31433 /* cvar.c in Sources */,
 				CE04F2B225CADF8D00C31433 /* filesystem.c in Sources */,
 				CE04F2D725CADF9000C31433 /* image.c in Sources */,
+				CEA0B1C22D0000010000A003 /* archive.c in Sources */,
 				CE04F2FC25CADF9300C31433 /* installer.c in Sources */,
 				CE04F34625CADF9B00C31433 /* mem.c in Sources */,
 				CE04F32125CADF9800C31433 /* mem_buf.c in Sources */,

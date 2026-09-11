@@ -154,6 +154,10 @@ static bool Archive_Spawn(const char * const *args) {
   size_t length = 0;
   void *output = SDL_ReadProcess(process, &length, &exit_code);
 
+  if (output == NULL) {
+    SDL_WaitProcess(process, true, &exit_code);
+  }
+
   if (exit_code != 0) {
     Com_Warn("%s exited %d\n", args[0], exit_code);
     if (output && length) {
@@ -315,10 +319,14 @@ static bool Archive_ExtractDmg(const char *archive, const char *dest) {
  * @brief Extracts a `.tar.gz` with the system `tar`.
  * @details `--strip-components` is deliberately not used; it is absent from
  * busybox tar, so callers treat the archive's own root directory as the staged
- * root instead.
+ * root instead. `tar` is addressed absolutely rather than through `PATH`, which
+ * an update must not be willing to follow.
  */
 static bool Archive_ExtractTarGz(const char *archive, const char *dest) {
-  return Archive_Spawn((const char *[]) { "tar", "-xzf", archive, "-C", dest, NULL });
+
+  const char *tar = SDL_GetPathInfo("/usr/bin/tar", NULL) ? "/usr/bin/tar" : "/bin/tar";
+
+  return Archive_Spawn((const char *[]) { tar, "-xzf", archive, "-C", dest, NULL });
 }
 
 #endif

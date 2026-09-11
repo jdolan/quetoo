@@ -481,7 +481,6 @@ static void Shutdown(const char *msg) {
     Cl_Shutdown();
   }
 
-  // with the game modules unloaded, but while the paths are still valid
   Installer_ApplyPending();
 
   Netchan_Shutdown();

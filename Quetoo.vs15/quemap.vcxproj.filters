@@ -24,9 +24,6 @@
     <ClCompile Include="src\main\winmain.c">
       <Filter>src\main</Filter>
     </ClCompile>
-    <ClCompile Include="..\deps\minizip\miniz.c">
-      <Filter>deps\minizip</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\quemap\leakfile.c">
       <Filter>src\quemap</Filter>
     </ClCompile>
