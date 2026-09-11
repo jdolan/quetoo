@@ -718,7 +718,34 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
       SetValueForKey(entity, "portal_origin", va("%g %g %g", center.x, center.y, center.z));
 
       const vec3_t normal = planes[side->plane].normal;
-      const vec3_t angles = Vec3_Euler(Vec3_Negate(normal));
+      const vec3_t forward = Vec3_Negate(normal);
+
+      vec3_t angles = Vec3_Euler(forward);
+
+      // the face's own up is the way its texture reads: the T axis runs down the texture, so
+      // up is its reverse, laid flat in the face. On a wall with the texture upright that is
+      // simply world up; on a floor or ceiling, where pitch alone leaves the in-plane
+      // orientation to chance, it is the mapper's say over which way things come out
+      vec3_t up = Vec3_Negate(side->axis[1].xyz);
+      up = Vec3_Subtract(up, Vec3_Scale(normal, Vec3_Dot(up, normal)));
+
+      if (Vec3_Length(up) > 0.f) {
+        up = Vec3_Normalize(up);
+
+        // roll the default basis about forward until its up is the face's, trying the sign
+        // against Vec3_Vectors itself rather than assuming its convention
+        vec3_t default_up;
+        Vec3_Vectors(angles, NULL, NULL, &default_up);
+
+        const float roll = Degrees(atan2f(Vec3_Dot(Vec3_Cross(default_up, up), forward), Vec3_Dot(default_up, up)));
+
+        vec3_t up_positive, up_negative;
+        Vec3_Vectors(Vec3(angles.x, angles.y, roll), NULL, NULL, &up_positive);
+        Vec3_Vectors(Vec3(angles.x, angles.y, -roll), NULL, NULL, &up_negative);
+
+        angles.z = Vec3_Dot(up_positive, up) >= Vec3_Dot(up_negative, up) ? roll : -roll;
+      }
+
       SetValueForKey(entity, "portal_angles", va("%g %g %g", angles.x, angles.y, angles.z));
       break;
     }
