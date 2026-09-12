@@ -658,6 +658,10 @@ class NormalmapFuApp:
 
     self.normal_convention_var = tk.StringVar(master=self.root, value="DirectX")
     self.height_convention_var = tk.StringVar(master=self.root, value="Heightmap")
+    # Master on/off switch for heightmap generation/rendering/saving.
+    # Checked by default; unchecking disables all heightmap processing and
+    # causes the normalmap to be saved without an alpha channel at all.
+    self.generate_height_var = tk.BooleanVar(master=self.root, value=True)
 
     self._build_ui()
     self._poll_directory()
@@ -758,11 +762,16 @@ class NormalmapFuApp:
     self._build_param_grid(h_tab, "height")
     h_btns = tk.Frame(h_tab, bg="#2b2b2b")
     h_btns.grid(row=99, column=0, columnspan=3, padx=8, pady=6, sticky="w")
-    ttk.Button(h_btns, text="Generate from normalmap",
-               command=self._generate_height_from_normal)\
-      .pack(side=tk.LEFT, padx=(0, 6))
-    ttk.Button(h_btns, text="Save", width=10,
-               command=self._save_height).pack(side=tk.LEFT, padx=(12, 0))
+    ttk.Checkbutton(h_btns, text="Generate heightmap",
+                    variable=self.generate_height_var,
+                    command=self._on_toggle_generate_height)\
+      .pack(side=tk.LEFT, padx=(0, 12))
+    self._h_gen_btn = ttk.Button(h_btns, text="Generate from normalmap",
+               command=self._generate_height_from_normal)
+    self._h_gen_btn.pack(side=tk.LEFT, padx=(0, 6))
+    self._h_save_btn = ttk.Button(h_btns, text="Save", width=10,
+               command=self._save_height)
+    self._h_save_btn.pack(side=tk.LEFT, padx=(12, 0))
 
     # --- Specular tab ---
     s_tab = tk.Frame(notebook, bg="#2b2b2b")
@@ -1242,10 +1251,30 @@ class NormalmapFuApp:
     """Switching DirectX/OpenGL rebuilds the normalmap and the heightmap."""
     self._reprocess_normal()
 
+  def _height_enabled(self) -> bool:
+    """Whether heightmap generation/rendering/saving is enabled."""
+    return self.generate_height_var.get()
+
+  def _on_toggle_generate_height(self):
+    """Enable/disable the heightmap tab's action buttons and re-run the
+    pipeline so the tile and any dependent saves reflect the new state."""
+
+    state = "normal" if self._height_enabled() else "disabled"
+    self._h_gen_btn.config(state=state)
+    self._h_save_btn.config(state=state)
+    self._reprocess_height()
+
   def _reprocess_height(self):
     """Apply height-tab sliders. If a heightmap is already loaded
     (self.height.original), filter it in place; otherwise derive a fresh
     heightmap from the (modified or original) normalmap."""
+
+    if not self._height_enabled():
+      self.height.modified = None
+      self.stats_var.set("")
+      self._update_tile("height")
+      self._reprocess_spec()
+      return
 
     as_heightmap = self.height_convention_var.get() == "Heightmap"
 
@@ -1271,6 +1300,10 @@ class NormalmapFuApp:
     """Replace the loaded heightmap with one freshly integrated from the
     current normalmap, then run the slider filters on top."""
 
+    if not self._height_enabled():
+      messagebox.showinfo("Info", "Heightmap generation is disabled.")
+      return
+
     src = self.normal.modified if self.normal.modified is not None \
       else self.normal.original
     if src is None:
@@ -1294,8 +1327,10 @@ class NormalmapFuApp:
       self._update_tile("spec")
       return
 
-    height_src = self.height.modified if self.height.modified is not None \
-      else self.height.original
+    height_src = None
+    if self._height_enabled():
+      height_src = self.height.modified if self.height.modified is not None \
+        else self.height.original
     self.spec.modified = process_spec(
       self.diffuse.original, height_src, self._params_dict())
     self._update_tile("spec")
@@ -1316,13 +1351,17 @@ class NormalmapFuApp:
     # re-processing stays consistent.
     self.normal.original = normals
     self.normal.modified = normals
-    self.height.original = height
-    self.height.modified = height
+    if self._height_enabled():
+      self.height.original = height
+      self.height.modified = height
+    else:
+      self.height.original = None
+      self.height.modified = None
     if self.normal.path is None and self.base_path is not None \
         and self.base_name is not None:
       self.normal.path = self.base_path / (self.base_name + NORMAL_SUFFIX
                                            + NORMAL_EXT)
-    if self.height.path is None:
+    if self._height_enabled() and self.height.path is None:
       self.height.path = self.normal.path
     self._update_all_tiles()
     self._reprocess_height()
@@ -1390,6 +1429,13 @@ class NormalmapFuApp:
 
   def _update_tile(self, key: str):
     asset: Asset = getattr(self, key)
+
+    if key == "height" and not self._height_enabled():
+      tile = self._tile_widgets[key]
+      tile.config(image="", text="(disabled)")
+      self._tile_photos.pop(key, None)
+      return
+
     arr = asset.display()
     tile = self._tile_widgets[key]
 
@@ -1425,6 +1471,7 @@ class NormalmapFuApp:
     preset = {
       "normal_convention": self.normal_convention_var.get(),
       "height_convention": self.height_convention_var.get(),
+      "generate_height": self.generate_height_var.get(),
       "params": {key: var.get() for key, var in self.slider_vars.items()},
     }
     return preset
@@ -1437,6 +1484,9 @@ class NormalmapFuApp:
     hc = preset.get("height_convention")
     if hc in ("Heightmap", "Depthmap"):
       self.height_convention_var.set(hc)
+    if "generate_height" in preset:
+      self.generate_height_var.set(bool(preset["generate_height"]))
+      self._on_toggle_generate_height()
     for key, val in (preset.get("params") or {}).items():
       var = self.slider_vars.get(key)
       if var is not None:
@@ -1476,7 +1526,11 @@ class NormalmapFuApp:
       messagebox.showerror("Error", f"Failed to load preset:\n{exc}")
 
   def _save_normal(self):
-    """Save the modified normalmap (RGB), preserving existing height (A)."""
+    """Save the modified normalmap (RGB), preserving existing height (A).
+
+    If heightmap generation is disabled, the normalmap is saved with no
+    alpha channel at all (mode RGB), regardless of any height data that
+    may be loaded or on disk."""
 
     normals = self.normal.modified if self.normal.modified is not None \
       else self.normal.original
@@ -1490,6 +1544,18 @@ class NormalmapFuApp:
     out_path = self.normal.path or (
       self.base_path / (self.base_name + NORMAL_SUFFIX + NORMAL_EXT))
     h, w = normals.shape[:2]
+
+    if not self._height_enabled():
+      # No heightmap at all: save RGB only, dropping any alpha channel.
+      Image.fromarray(normals, mode="RGB").save(out_path, optimize=True)
+      print(f"Saved: {out_path.name} (no heightmap)")
+
+      self.normal.path = out_path
+      self.normal.original = normals
+      self._update_tile("normal")
+      self._refresh_thumb_for(out_path)
+      return
+
     rgba = np.zeros((h, w, 4), dtype=np.uint8)
     # WYSIWYG: save exactly what's shown in the Modified tile.
     rgba[:, :, :3] = normals
@@ -1514,6 +1580,10 @@ class NormalmapFuApp:
 
   def _save_height(self):
     """Save the modified heightmap (A), preserving existing normal (RGB)."""
+
+    if not self._height_enabled():
+      messagebox.showinfo("Info", "Heightmap generation is disabled.")
+      return
 
     height = self.height.modified if self.height.modified is not None \
       else self.height.original
@@ -1699,6 +1769,11 @@ def _save_normal_rgba(out_path: Path, normal_rgb: np.ndarray,
   Image.fromarray(rgba, mode="RGBA").save(out_path, optimize=True)
 
 
+def _save_normal_rgb(out_path: Path, normal_rgb: np.ndarray):
+  """Save a normalmap with no alpha channel at all (heightmap disabled)."""
+  Image.fromarray(normal_rgb, mode="RGB").save(out_path, optimize=True)
+
+
 def _save_spec_jpg(out_path: Path, spec: np.ndarray):
   if spec.ndim == 2:
     img = Image.fromarray(spec, mode="L").convert("RGB")
@@ -1723,11 +1798,15 @@ def cmd_batch(args) -> int:
   params = preset.get("params") or {}
   dx_to_gl = preset.get("normal_convention", "OpenGL") == "DirectX"
   as_heightmap = preset.get("height_convention", "Heightmap") == "Heightmap"
+  generate_height = bool(preset.get("generate_height", True))
   save_set = set(s.strip() for s in args.save.split(",") if s.strip())
   unknown = save_set - {"normal", "height", "spec"}
   if unknown:
     print(f"Unknown --save targets: {', '.join(unknown)}", file=sys.stderr)
     return 2
+  if not generate_height:
+    # Heightmap generation is disabled: never write a height/alpha channel.
+    save_set.discard("height")
 
   if args.directory:
     bases = _enumerate_bases(Path(args.directory).expanduser())
@@ -1747,6 +1826,7 @@ def cmd_batch(args) -> int:
   print(f"Batch: {len(bases)} candidates  "
         f"(normal={preset.get('normal_convention')}, "
         f"height={preset.get('height_convention')}, "
+        f"generate_height={generate_height}, "
         f"save={','.join(sorted(save_set))})")
 
   ok = 0
@@ -1783,21 +1863,27 @@ def cmd_batch(args) -> int:
     if norm_rgb is not None:
       proc_normal = process_normal(
         to_opengl_normal(norm_rgb, source_is_directx=dx_to_gl), params)
-      proc_height = process_height(proc_normal, params, as_heightmap=as_heightmap)
+      if generate_height:
+        proc_height = process_height(proc_normal, params, as_heightmap=as_heightmap)
 
     proc_spec = None
     if diffuse is not None:
-      height_for_spec = proc_height if proc_height is not None else norm_alpha
+      height_for_spec = None
+      if generate_height:
+        height_for_spec = proc_height if proc_height is not None else norm_alpha
       proc_spec = process_spec(diffuse, height_for_spec, params)
 
     # Write
     actions = []
     if "normal" in save_set or "height" in save_set:
       out_normal = proc_normal if "normal" in save_set else norm_rgb
-      out_height = proc_height if "height" in save_set else norm_alpha
       actions.append(f"-> {normal_path.name}")
       if not args.dry_run:
-        _save_normal_rgba(normal_path, out_normal, out_height)
+        if generate_height:
+          out_height = proc_height if "height" in save_set else norm_alpha
+          _save_normal_rgba(normal_path, out_normal, out_height)
+        else:
+          _save_normal_rgb(normal_path, out_normal)
 
     if "spec" in save_set and proc_spec is not None:
       actions.append(f"-> {spec_path.name}")
