@@ -382,37 +382,11 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
 }
 
 /**
- * @brief `Fs_Enumerator` for preloading player models with their default skin.
- */
-static void Cg_PreloadClientModel(const char *path, void *data) {
-
-  const char *name = q_strrchr(path, '/');
-  if (!name) {
-    return;
-  }
-  name++;
-
-  // Only preload actual player model directories (must have upper.md3)
-  if (!cgi.StatFile(va("%s/upper.md3", path), NULL)) {
-    return;
-  }
-
-  cg_client_info_t ci = {};
-
-  if (Cg_LoadClientModel(&ci, name, DEFAULT_SKIN)) {
-    cgi.LoadClientModelSamples(name);
-    cgi.LoadingProgress(-1, name);
-  }
-}
-
-/**
  * @brief Load all client info strings from the server.
  */
 void Cg_LoadClients(void) {
 
   memset(cg_state.clients, 0, sizeof(cg_state.clients));
-
-  cgi.EnumerateFiles("players/*", Cg_PreloadClientModel, NULL);
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
     cg_client_info_t *ci = &cg_state.clients[i];
