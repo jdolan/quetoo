@@ -370,16 +370,16 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
       // player models leave the embedded shader name blank, relying
       // entirely on .skin files; R_LoadMaterial safely falls back to the
       // "notex" placeholder in that case rather than resolving to nothing.
-      {
-        char shader[MD3_MAX_PATH] = { 0 };
-
-        if (surface.num_shaders > 0) {
-          const d_md3_shader_t *in_shader = (d_md3_shader_t *) (surface_base + surface.ofs_shaders);
-          q_strlcpy(shader, in_shader->name, sizeof(shader));
-        }
-
-        out->material = R_LoadMaterial(*shader ? shader : out->name, ASSET_CONTEXT_MODELS);
-      }
+//      {
+//        char shader[MD3_MAX_PATH] = { 0 };
+//
+//        if (surface.num_shaders > 0) {
+//          const d_md3_shader_t *in_shader = (d_md3_shader_t *) (surface_base + surface.ofs_shaders);
+//          q_strlcpy(shader, in_shader->name, sizeof(shader));
+//        }
+//
+//        out->material = R_LoadMaterial(*shader ? shader : out->name, ASSET_CONTEXT_PLAYERS);
+//      }
 
       {
         out->num_vertexes = surface.num_vertexes;
