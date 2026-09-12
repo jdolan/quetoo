@@ -133,6 +133,13 @@ typedef struct {
       const g_entity_t *ent;
 
       /**
+       * @brief Entity slot number at goal-set time; used to safely re-resolve
+       * `ent` against the canonical `ge.entities` table instead of trusting a
+       * cached pointer that may have been corrupted or gone stale.
+       */
+      int32_t number;
+
+      /**
        * @brief Spawn ID at goal-set time; used to detect entity reuse.
        */
       uint8_t spawn_id;
@@ -186,6 +193,12 @@ typedef struct {
        * @brief Optional entity the path is leading to.
        */
       const g_entity_t *path_target;
+
+      /**
+       * @brief Entity slot number of `path_target` at goal-set time; see
+       * `entity.number` above.
+       */
+      int32_t path_target_number;
 
       /**
        * @brief Spawn ID of `path_target` at goal-set time.

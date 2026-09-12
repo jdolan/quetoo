@@ -1704,6 +1704,30 @@ static const G_Ai_GoalFunc g_ai_goalfuncs[AI_FUNC_GOAL_TOTAL] = {
 };
 
 /**
+ * @brief Validates an `AI_GOAL_ENTITY` goal's cached `entity.ent` pointer
+ * against the canonical `ge.entities` table, re-resolving by slot number
+ * rather than trusting the cached pointer directly. Clears the goal if the
+ * target has been freed, reused (spawn_id mismatch), or if the cached pointer
+ * no longer matches the canonical entity (which would indicate corruption);
+ * otherwise refreshes `entity.ent` from the canonical table.
+ */
+static void G_Ai_ValidateEntityGoal(ai_goal_t *goal) {
+
+  if (goal->type != AI_GOAL_ENTITY) {
+    return;
+  }
+
+  const g_entity_t *ent = G_Ai_ResolveGoalEntity(goal->entity.number);
+
+  if (!ent || !ent->in_use || goal->entity.spawn_id != ent->s.spawn_id) {
+    G_Ai_ClearGoal(goal);
+    return;
+  }
+
+  goal->entity.ent = ent;
+}
+
+/**
  * @brief Called every frame for every AI.
  */
 void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd) {
@@ -1714,21 +1738,14 @@ void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd) {
     G_Ai_ClearGoal(&cl->ai->backup_move_target);
   }
 
-  // clear stale entity goals whose target has been freed or reused
-  if (cl->ai->combat_target.type == AI_GOAL_ENTITY &&
-      cl->ai->combat_target.entity.spawn_id != cl->ai->combat_target.entity.ent->s.spawn_id) {
-    G_Ai_ClearGoal(&cl->ai->combat_target);
-  }
-
-  if (cl->ai->move_target.type == AI_GOAL_ENTITY &&
-      cl->ai->move_target.entity.spawn_id != cl->ai->move_target.entity.ent->s.spawn_id) {
-    G_Ai_ClearGoal(&cl->ai->move_target);
-  }
-
-  if (cl->ai->backup_move_target.type == AI_GOAL_ENTITY &&
-      cl->ai->backup_move_target.entity.spawn_id != cl->ai->backup_move_target.entity.ent->s.spawn_id) {
-    G_Ai_ClearGoal(&cl->ai->backup_move_target);
-  }
+  // clear stale entity goals whose target has been freed, reused, or whose
+  // cached `entity.ent` pointer can no longer be trusted. Re-resolve against
+  // the canonical `ge.entities` table by slot number rather than dereferencing
+  // the cached pointer directly, since it may have gone stale or been
+  // corrupted (see #960).
+  G_Ai_ValidateEntityGoal(&cl->ai->combat_target);
+  G_Ai_ValidateEntityGoal(&cl->ai->move_target);
+  G_Ai_ValidateEntityGoal(&cl->ai->backup_move_target);
 
   // run functional goals
   for (int32_t i = 0; i < AI_FUNC_GOAL_TOTAL; i++) {
