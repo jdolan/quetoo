@@ -9,6 +9,7 @@ EXTRA_DIST = \
 	md32obj.py \
 	md3fu.py \
 	objfu.py \
+	playerfu.py \
  	pyproject.toml \
 	skyfu.py \
 	symbolicate_dmp.py \

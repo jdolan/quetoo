@@ -36,6 +36,8 @@ Run any of the installed commands:
 - `md22obj.py`: Quake II MD2 to OBJ
 - `md32obj.py`: Quake III MD3 to OBJ
 - `md3fu.py`: MD3 player model animation viewer
+- `playerfu.py`: normalize a third-party Quake III player model into Quetoo's
+  `players/<name>/` layout
 - `objfu.py`: OBJ viewer / muzzle helper
 - `skyfu.py`: Skybox cubemap packer
 - `symbolicate_dmp.py`: Symbolicate a Windows crash dump
@@ -75,6 +77,54 @@ In-viewer controls:
 - `t`: toggle textures on/off (if a `.skin` was found)
 - `w`: toggle wireframe
 - `Esc`: quit
+
+## playerfu
+
+Quetoo trims a lot of the mess out of Quake III's player model "spec": one
+`.skin` file per variant (not one per body part), lowercase extensionless
+texture paths under `players/<name>/`, no nested subfolders. Old
+community-made Q3 player models rarely follow any of that. `playerfu`
+normalizes a raw model archive -- typically one of the `q3mdl-*.zip` dumps
+still floating around the internet -- into Quetoo's layout so it can be
+loaded by `md3fu` or dropped straight into `quetoo-data`.
+
+```sh
+playerfu ~/Downloads/q3mdl-bloodseeker.zip -o /tmp/normalized
+```
+
+- `-o` / `--output DIR`: where to write `players/<name>/` (default: current
+  directory)
+- `--search-path DIR`: an already-extracted/normalized tree to additionally
+  search when a `.skin` file references a texture from a *different* model
+  (some packs genuinely borrow art across models -- and across zips). Can be
+  given more than once.
+- `--keep-scratch`: don't delete the temporary extraction directory
+
+It handles, per input archive:
+
+- one or more levels of nested `.pk3`/`.zip` (skipping obvious `bot-`/`snd-`
+  prefixed companion archives that aren't the model itself)
+- more than one model per archive (each gets its own `players/<name>/`)
+- mixed-case file and directory names, normalized to lowercase on output
+- merging separate `lower_*.skin` / `upper_*.skin` / `head_*.skin` files into
+  a single `<variant>.skin`, falling back to that part's `default` skin when
+  a variant doesn't override it
+- resolving each texture reference case-insensitively, honoring an explicit
+  `models/players/<other-model>/...` reference (in the same archive, or via
+  `--search-path`) rather than guessing from a same-named file that happens
+  to live anywhere else
+- disambiguating two *different* source textures that would otherwise
+  flatten to the same output filename (renaming the second by prefixing its
+  source model's name)
+- copying each variant's menu-selection icon (vanilla Q3's `icon_<variant>.*`)
+  to Quetoo's `<variant>_i.<ext>` convention, falling back to `icon_default.*`
+  the same way a variant falls back to the default skin
+
+References it can't resolve -- a typo'd path, a texture the original archive
+never actually shipped, an animated-shader name that isn't a real file, or a
+vanilla Quake III engine builtin like `textures/common/nodraw` -- are printed
+as warnings rather than silently dropped or guessed at; the resulting
+`.skin` simply omits that surface.
 
 ## verify-projects
 
