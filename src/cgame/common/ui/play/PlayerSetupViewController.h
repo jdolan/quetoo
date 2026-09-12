@@ -60,6 +60,11 @@ struct PlayerSetupViewController {
   TextView *name;
   
   /**
+   * @brief The model Select.
+   */
+  Select *modelSelect;
+
+  /**
    * @brief The skin Select.
    */
   Select *skinSelect;

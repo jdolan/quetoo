@@ -30,9 +30,9 @@
 #pragma mark - Delegates
 
 /**
- * @brief Comparator for SkinSelect.
+ * @brief Comparator for the model and skin Selects.
  */
-static Order sortSkins(const ident a, const ident b) {
+static Order sortOptions(const ident a, const ident b) {
 
   const char *c = ((const Option *) a)->title->text;
   const char *d = ((const Option *) b)->title->text;
@@ -41,39 +41,64 @@ static Order sortSkins(const ident a, const ident b) {
 }
 
 /**
- * @brief Fs_Enumerator for resolving available skins for a give model.
+ * @brief Fs_Enumerator counting the matched files, for existence checks.
+ */
+static void countFiles(const char *path, void *data) {
+  int32_t *count = (int32_t *) data;
+  (*count)++;
+}
+
+/**
+ * @brief Selects the Option in `select` whose title matches `title`, if any.
+ * @return True if a matching Option was found and selected.
+ */
+static bool selectOptionWithTitle(Select *select, const char *title) {
+
+  const Array *options = (Array *) select->options;
+  for (size_t i = 0; i < options->count; i++) {
+
+    Option *option = (Option *) $(options, objectAtIndex, i);
+    if (q_strcmp(option->title->text, title) == 0) {
+      $(select, selectOption, option);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @brief Fs_Enumerator for resolving the skin variants of the currently
+ * selected model into skinSelect.
  */
 static void enumerateSkins(const char *path, void *data) {
 
-  Select *select = (Select *) data;
+  PlayerSetupViewController *this = (PlayerSetupViewController *) data;
 
-  Regexp *regexp = re("players/([a-z]+)/([a-z]+)\\.skin", 0);
+  // model and skin names may contain lowercase letters, digits, underscores
+  // and hyphens (e.g. "q4hybrid-low/lo_timex_blue_blue")
+  Regexp *regexp = re("players/[a-z0-9_-]+/([a-z0-9_-]+)\\.skin", 0);
 
   Range *matches;
   if ($(regexp, matchesCharacters, path, 0, &matches)) {
 
-    const Range *model = &matches[1];
-    const Range *skin = &matches[2];
+    const Range *skin = &matches[1];
 
     char title[MAX_QPATH];
-    q_snprintf(title, sizeof(title), "%.*s/%.*s",
-           (int) model->length, path + model->location,
-           (int) skin->length, path + skin->location);
+    q_snprintf(title, sizeof(title), "%.*s", (int) skin->length, path + skin->location);
 
-    const Array *options = (Array *) select->options;
+    const Array *options = (Array *) this->skinSelect->options;
+    bool exists = false;
     for (size_t i = 0; i < options->count; i++) {
-
       const Option *option = $(options, objectAtIndex, i);
       if (q_strcmp(option->title->text, title) == 0) {
-        return;
+        exists = true;
+        break;
       }
     }
 
-    ident value = (ident) options->count;
-    $(select, addOption, title, value);
-
-    if (q_strcmp(cg_skin->string, title) == 0) {
-      $(select, selectOptionWithValue, value);
+    if (!exists) {
+      $(this->skinSelect, addOption, title, NULL);
     }
 
     free(matches);
@@ -83,10 +108,100 @@ static void enumerateSkins(const char *path, void *data) {
 }
 
 /**
- * @brief Fs_Enumerator for resolving available models.
+ * @brief Repopulates skinSelect for the given model, selecting the variant
+ * named by cg_skin if it names this model, else "default", else the first
+ * available skin.
+ */
+static void refreshSkins(PlayerSetupViewController *this, const char *model) {
+
+  $(this->skinSelect, removeAllOptions);
+
+  cgi.EnumerateFiles(va("players/%s/*.skin", model), enumerateSkins, this);
+
+  const Array *options = (Array *) this->skinSelect->options;
+  if (options->count == 0) {
+    return;
+  }
+
+  char prefix[MAX_QPATH];
+  q_snprintf(prefix, sizeof(prefix), "%s/", model);
+
+  bool selected = false;
+  if (!strncmp(cg_skin->string, prefix, strlen(prefix))) {
+    selected = selectOptionWithTitle(this->skinSelect, cg_skin->string + strlen(prefix));
+  }
+
+  if (!selected) {
+    selected = selectOptionWithTitle(this->skinSelect, "default");
+  }
+
+  if (!selected) {
+    Option *first = (Option *) $(options, objectAtIndex, 0);
+    $(this->skinSelect, selectOption, first);
+  }
+}
+
+/**
+ * @brief Fs_Enumerator for resolving the available player models into
+ * modelSelect. Directories with no `.skin` files (e.g. `players/common`,
+ * which holds shared sounds, not a model) are skipped.
  */
 static void enumerateModels(const char *path, void *data) {
-  cgi.EnumerateFiles(va("%s/*.skin", path), enumerateSkins, data);
+
+  PlayerSetupViewController *this = (PlayerSetupViewController *) data;
+
+  // model names may contain lowercase letters, digits, underscores and
+  // hyphens (e.g. "q4hybrid-low")
+  Regexp *regexp = re("players/([a-z0-9_-]+)$", 0);
+
+  Range *matches;
+  if ($(regexp, matchesCharacters, path, 0, &matches)) {
+
+    const Range *model = &matches[1];
+
+    char title[MAX_QPATH];
+    q_snprintf(title, sizeof(title), "%.*s", (int) model->length, path + model->location);
+
+    int32_t count = 0;
+    cgi.EnumerateFiles(va("%s/*.skin", path), countFiles, &count);
+
+    if (count > 0) {
+      const Array *options = (Array *) this->modelSelect->options;
+      bool exists = false;
+      for (size_t i = 0; i < options->count; i++) {
+        const Option *option = $(options, objectAtIndex, i);
+        if (q_strcmp(option->title->text, title) == 0) {
+          exists = true;
+          break;
+        }
+      }
+
+      if (!exists) {
+        $(this->modelSelect, addOption, title, NULL);
+      }
+    }
+
+    free(matches);
+  }
+
+  release(regexp);
+}
+
+/**
+ * @brief ActionFunction for model selection.
+ */
+static void didSelectModel(Select *select, Option *option) {
+
+  PlayerSetupViewController *this = (PlayerSetupViewController *) select->delegate.self;
+
+  refreshSkins(this, option->title->text);
+
+  const Option *skin = $(this->skinSelect, selectedOption);
+  if (skin) {
+    cgi.SetCvarString(cg_skin->name, va("%s/%s", option->title->text, skin->title->text));
+  }
+
+  $((View *) this->playerModelView, updateBindings, NULL);
 }
 
 /**
@@ -94,11 +209,14 @@ static void enumerateModels(const char *path, void *data) {
  */
 static void didSelectSkin(Select *select, Option *option) {
 
-  PlayerSetupViewController *self = (PlayerSetupViewController *) select->delegate.self;
+  PlayerSetupViewController *this = (PlayerSetupViewController *) select->delegate.self;
 
-  cgi.SetCvarString(cg_skin->name, option->title->text);
+  const Option *model = $(this->modelSelect, selectedOption);
+  if (model) {
+    cgi.SetCvarString(cg_skin->name, va("%s/%s", model->title->text, option->title->text));
 
-  $((View *) self->playerModelView, updateBindings, NULL);
+    $((View *) this->playerModelView, updateBindings, NULL);
+  }
 }
 
 /**
@@ -167,6 +285,7 @@ static void loadView(ViewController *self) {
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("name", &this->name),
+    MakeOutlet("model", &this->modelSelect),
     MakeOutlet("skin", &this->skinSelect),
     MakeOutlet("helmet", &this->helmetColorPicker),
     MakeOutlet("shirt", &this->shirtColorPicker),
@@ -182,11 +301,36 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/PlayerSetupViewController.css");
   assert(self->view->stylesheet);
 
-  this->skinSelect->comparator = sortSkins;
+  this->modelSelect->comparator = sortOptions;
+  this->modelSelect->delegate.self = this;
+  this->modelSelect->delegate.didSelectOption = didSelectModel;
+
+  this->skinSelect->comparator = sortOptions;
   this->skinSelect->delegate.self = this;
   this->skinSelect->delegate.didSelectOption = didSelectSkin;
 
-  cgi.EnumerateFiles("players/*", enumerateModels, this->skinSelect);
+  cgi.EnumerateFiles("players/*", enumerateModels, this);
+
+  char model[MAX_QPATH];
+  const char *slash = strchr(cg_skin->string, '/');
+  if (slash) {
+    q_snprintf(model, sizeof(model), "%.*s", (int) (slash - cg_skin->string), cg_skin->string);
+  } else {
+    model[0] = '\0';
+  }
+
+  if (!*model || !selectOptionWithTitle(this->modelSelect, model)) {
+    const Array *options = (Array *) this->modelSelect->options;
+    if (options->count) {
+      Option *first = (Option *) $(options, objectAtIndex, 0);
+      $(this->modelSelect, selectOption, first);
+    }
+  }
+
+  const Option *selectedModel = $(this->modelSelect, selectedOption);
+  if (selectedModel) {
+    refreshSkins(this, selectedModel->title->text);
+  }
 
   this->effectsColorPicker->delegate.self = this;
   this->effectsColorPicker->delegate.didPickColor = didPickEffectColor;

@@ -51,6 +51,18 @@
                         },
                         "control": {
                           "class": "Select",
+                          "identifier": "model"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Player skin"
+                          }
+                        },
+                        "control": {
+                          "class": "Select",
                           "identifier": "skin"
                         }
                       }
