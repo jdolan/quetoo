@@ -236,11 +236,20 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
     if ((diffusemap = Img_LoadSurface(cm->diffusemap.path))) {
       Com_Debug(DEBUG_RENDERER, "Loaded diffusemap %s for %s\n", cm->diffusemap.path, cm->basename);
     } else {
-      Com_Warn("Failed to load diffusemap %s for %s\n", cm->diffusemap.path, cm->basename);
+      if (cm->context == ASSET_CONTEXT_PLAYERS) {
+        Com_Debug(DEBUG_RENDERER, "Failed to load diffusemap %s for %s\n", cm->diffusemap.path, cm->basename);
+      } else {
+        Com_Warn("Failed to load diffusemap %s for %s\n", cm->diffusemap.path, cm->basename);
+      }
       diffusemap = Img_LoadSurface("textures/common/notex");
     }
   } else {
-    Com_Warn("Failed to load diffusemap for %s\n", cm->basename);
+    if (cm->context == ASSET_CONTEXT_PLAYERS) {
+      // third-party player models frequently omit skins for decorative or FX-only surfaces
+      Com_Debug(DEBUG_RENDERER, "Failed to load diffusemap for %s\n", cm->basename);
+    } else {
+      Com_Warn("Failed to load diffusemap for %s\n", cm->basename);
+    }
     diffusemap = Img_LoadSurface("textures/common/notex");
   }
 
