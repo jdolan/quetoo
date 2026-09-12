@@ -365,6 +365,10 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *l, con
 
   const r_mesh_model_t *mesh = e->model->mesh;
 
+  if (!mesh->elements_buffer) {
+    return;
+  }
+
   $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
     .buffer = mesh->elements_buffer->buffer
   }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
