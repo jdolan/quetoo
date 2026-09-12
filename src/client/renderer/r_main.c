@@ -360,7 +360,17 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   R_UpdateUniforms(view);
 
-  R_UpdateEntities(view, NULL);
+  {
+    CopyPass *pass = $(commands, beginCopyPass);
+
+    R_UpdateLights(view, pass);
+
+    R_UpdateEntities(view, pass);
+
+    pass = release(pass);
+  }
+
+  R_DrawShadows(view);
 
   Framebuffer *framebuffer = view->framebuffer;
 

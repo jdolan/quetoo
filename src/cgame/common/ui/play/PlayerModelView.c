@@ -72,6 +72,7 @@ static void render(View *self, Renderer *renderer) {
 
     this->view.type = VIEW_PLAYER_MODEL;
     this->view.ticks = cgi.client->ticks;
+    this->view.ambient = 1.f;
 
     this->view.fov.x = 30.f / 2.f;
 
@@ -91,13 +92,10 @@ static void render(View *self, Renderer *renderer) {
     Vec3_Vectors(this->view.angles, &this->view.forward, &this->view.right, &this->view.up);
 
     if (this->framebuffer == NULL) {
-      // Color 0: the HDR scene, cleared transparent so this preview composites
-      // over the UI. Color 1: a float depth copy for the sprite pass's soft
-      // particles (double buffered, see Cg_CreateFramebuffer).
       this->framebuffer = cgi.CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
         .size = MakeSize(viewport.w, viewport.h),
         .colorAttachments = {
-          { .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT, .clearColor = { 0.f, 0.f, 0.f, 0.f } },
+          { .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT, .clearColor = { .031f, .082f, .102f, 1.f } },
           { .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT, .clearColor = { 1.f, 1.f, 1.f, 1.f }, .doubleBuffered = true },
         },
         .numColorTargets = 2,
@@ -119,11 +117,22 @@ static void render(View *self, Renderer *renderer) {
     this->weapon.parent = torso;
     cgi.AddEntity(&this->view, &this->weapon);
 
+    const float light_x = sinf(this->view.ticks * .0125f);
+    const float light_y = cosf(this->view.ticks * .0125f);
+
+    r_light_t light = {
+      .origin = Vec3(40.f + light_x, light_y, 80.f),
+      .color = Vec3(1.f, .9f, .8f),
+      .radius = 180.f,
+      .intensity = 2.6f,
+    };
+
+    light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
+
+    cgi.AddLight(&this->view, &light);
+
     cgi.DrawPlayerModelView(&this->view);
 
-    // Present via an ImageView subview rather than a direct 2D framebuffer blit, so the
-    // preview is positioned and scaled through the same View hierarchy (and coordinate
-    // space) as the rest of the UI, instead of Quetoo's separately-scaled 2D HUD ortho.
     Texture *texture = $(this->framebuffer, resolveColorTexture, 0);
     if (this->modelView->texture != texture) {
       this->modelView->texture = release(this->modelView->texture);

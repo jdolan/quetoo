@@ -458,7 +458,7 @@ void R_DrawShadows(const r_view_t *view) {
 
   CommandBuffer *commands = r_context.device->commands;
 
-  const r_bsp_model_t *bsp = r_models.world->bsp;
+  const r_bsp_model_t *bsp = r_models.world ? r_models.world->bsp : NULL;
 
   for (int32_t face = 0; face < 6; face++) {
 
@@ -499,14 +499,16 @@ void R_DrawShadows(const r_view_t *view) {
 
     $(pass, bindPipeline, r_shadow_draw.bsp_opaque_pipeline);
 
-    $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
-      { .buffer = bsp->vertex_buffer->buffer },
-      { .buffer = bsp->vertex_buffer->buffer },
-    }, 2);
+    if (bsp) {
+      $(pass, bindVertexBuffers, 0, (SDL_GPUBufferBinding[]) {
+        { .buffer = bsp->vertex_buffer->buffer },
+        { .buffer = bsp->vertex_buffer->buffer },
+      }, 2);
 
-    $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
-      .buffer = bsp->elements_buffer->buffer
-    }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+      $(pass, bindIndexBuffer, &(SDL_GPUBufferBinding) {
+        .buffer = bsp->elements_buffer->buffer
+      }, SDL_GPU_INDEXELEMENTSIZE_32BIT);
+    }
 
     $(commands, pushUniformData, SLOT_UNIFORMS_GLOBALS, &r_uniforms.block, sizeof(r_uniforms.block));
 
@@ -517,7 +519,9 @@ void R_DrawShadows(const r_view_t *view) {
         continue;
       }
 
-      R_DrawBspEntitiesShadows(view, l, pass);
+      if (bsp) {
+        R_DrawBspEntitiesShadows(view, l, pass);
+      }
     }
 
     l = view->lights;

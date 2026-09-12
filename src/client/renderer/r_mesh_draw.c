@@ -734,6 +734,7 @@ void R_InitMeshPipeline(void) {
   r_mesh_draw.repeat_sampler = $(r_context.device, createSamplerLinearRepeat);
   r_mesh_draw.clamp_sampler = $(r_context.device, createSamplerLinearClamp);
 
+  const Uint8 caustics_texel[4] = { 128, 128, 128, 255 };
   r_mesh_draw.voxel_caustics_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
@@ -741,8 +742,9 @@ void R_InitMeshPipeline(void) {
     .width = 1, .height = 1, .layer_count_or_depth = 1,
     .num_levels = 1,
     .sample_count = SDL_GPU_SAMPLECOUNT_1,
-  }, NULL);
+  }, caustics_texel);
 
+  const Uint8 occlusion_texel[2] = { 0, 0 };
   r_mesh_draw.voxel_occlusion_fallback = $(r_context.device, createTexture, &(SDL_GPUTextureCreateInfo) {
     .type = SDL_GPU_TEXTURETYPE_3D,
     .format = SDL_GPU_TEXTUREFORMAT_R8G8_UNORM,
@@ -750,7 +752,7 @@ void R_InitMeshPipeline(void) {
     .width = 1, .height = 1, .layer_count_or_depth = 1,
     .num_levels = 1,
     .sample_count = SDL_GPU_SAMPLECOUNT_1,
-  }, NULL);
+  }, occlusion_texel);
 
   r_mesh_draw.sky_fallback = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_CUBE, 6, 0x00000000);
 }

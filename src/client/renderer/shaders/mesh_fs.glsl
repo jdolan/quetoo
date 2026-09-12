@@ -58,17 +58,10 @@ layout (location = 1) out float out_depth;
 common_fragment_t fragment;
 
 /**
- * @brief Computes per-fragment mesh lighting with a vertex-lighting fallback.
+ * @brief Computes per-fragment mesh lighting, blending down to vertex
+ * lighting as distance from the camera increases (see fragment_lighting_lod).
  */
 void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
-
-  if (view_type == VIEW_PLAYER_MODEL) {
-    fragment.ambient = vertex.ambient;
-    fragment.diffuse = vertex.diffuse;
-    fragment.specular = vec3(0.0);
-    return;
-  }
-
   fragment_lighting_lod(vertex, fragment);
 }
 
@@ -104,13 +97,7 @@ void main(void) {
 
     out_color = fragment.diffuse_sample * vertex.color;
 
-    if (view_type == VIEW_PLAYER_MODEL) {
-      fragment.ambient = vec3(0.666);
-      fragment.diffuse = vec3(0.0);
-      fragment.specular = vec3(0.0);
-    } else {
-      mesh_fragment_lighting(vertex, fragment);
-    }
+    mesh_fragment_lighting(vertex, fragment);
 
     out_color.rgb *= (fragment.ambient + fragment.diffuse);
     out_color.rgb += fragment.specular;
