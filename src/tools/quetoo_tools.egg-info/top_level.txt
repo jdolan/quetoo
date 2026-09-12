@@ -1,7 +1,10 @@
 matfu
 md22obj
 md32obj
+md3fu
 mdl2obj
 objfu
 skyfu
+symbolicate_dmp
 unpak
+verify_projects

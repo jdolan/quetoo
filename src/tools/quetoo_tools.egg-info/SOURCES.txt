@@ -2,11 +2,14 @@ README.md
 matfu.py
 md22obj.py
 md32obj.py
+md3fu.py
 mdl2obj.py
 objfu.py
 pyproject.toml
 skyfu.py
+symbolicate_dmp.py
 unpak.py
+verify_projects.py
 quetoo_tools.egg-info/PKG-INFO
 quetoo_tools.egg-info/SOURCES.txt
 quetoo_tools.egg-info/dependency_links.txt

@@ -7,6 +7,7 @@ EXTRA_DIST = \
 	mdl2obj.py \
 	md22obj.py \
 	md32obj.py \
+	md3fu.py \
 	objfu.py \
  	pyproject.toml \
 	skyfu.py \
@@ -16,6 +17,6 @@ EXTRA_DIST = \
 .PHONY: install-tools
 install-tools:
 	python3 -m venv .venv
-	.venv/bin/python3 -m pip install numpy pillow opencv-python scikit-image scipy
-	.venv/bin/python3 -m pip install -e .
+	PYTHONDONTWRITEBYTECODE=1 .venv/bin/python3 -m pip install numpy pillow opencv-python scikit-image scipy pygame PyOpenGL
+	PYTHONDONTWRITEBYTECODE=1 .venv/bin/python3 -m pip install -e .
 	@echo "Tools installed. Activate with: source src/tools/tools-env.sh"

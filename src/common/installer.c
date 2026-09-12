@@ -851,8 +851,7 @@ static int Installer_Thread(void *unused) {
           break;
         }
 
-        const bool ok = Installer_FetchRelease(QUETOO_RELEASES_API_URL, INSTALLER_ASSET,
-                                               &installer.release);
+        const bool ok = Installer_FetchRelease(QUETOO_RELEASES_API_URL, INSTALLER_ASSET, &installer.release);
 
         char parent[MAX_OS_PATH];
         Installer_StagingParent(parent, sizeof(parent));

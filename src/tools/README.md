@@ -22,6 +22,7 @@ Run any of the installed commands:
 - `mdl2obj`
 - `md22obj`
 - `md32obj`
+- `md3fu`
 - `objfu`
 - `skyfu`
 - `symbolicate-dmp`
@@ -34,10 +35,46 @@ Run any of the installed commands:
 - `mdl2obj.py`: Quake MDL v6 to OBJ
 - `md22obj.py`: Quake II MD2 to OBJ
 - `md32obj.py`: Quake III MD3 to OBJ
+- `md3fu.py`: MD3 player model animation viewer
 - `objfu.py`: OBJ viewer / muzzle helper
 - `skyfu.py`: Skybox cubemap packer
 - `symbolicate_dmp.py`: Symbolicate a Windows crash dump
 - `verify_projects.py`: Check that the three build systems agree
+
+## md3fu
+
+Plays back a player model's `legs -> torso -> head` tag hierarchy for a single
+named `animation.cfg` sequence. No lighting (flat-shaded or unlit-textured).
+Useful for checking whether an animation is baked smoothly into the `.md3`
+frames themselves, independent of the game engine's interpolation and
+playback logic, and for comparing raw per-frame data against interpolated
+playback (which is what Quetoo actually renders).
+
+```sh
+md3fu ~/Coding/quetoo-data/target/default/players/gork --anim BOTH_DEATH1
+```
+
+- `-l` / `--list`: print the animations parsed from `animation.cfg` and exit
+- `-a` / `--anim NAME`: animation to play (default `BOTH_DEATH1`)
+- `-s` / `--skin NAME`: `.skin` file to texture the model with (default
+  `default`)
+- `--no-skin`: start untextured, with flat per-part colors
+- `--no-interpolate`: start snapped to whole frames instead of blending
+  toward the next one
+
+Animations always loop; there's no "stop at the end" mode -- pause instead.
+
+In-viewer controls:
+
+- drag the left mouse button to orbit, scroll to zoom
+- `space`: pause/resume
+- `←` / `→`: step one frame back/forward (also pauses; prints the frame
+  number to the console)
+- `tab` / `shift+tab`: switch to the next/previous animation
+- `l`: toggle frame interpolation on/off
+- `t`: toggle textures on/off (if a `.skin` was found)
+- `w`: toggle wireframe
+- `Esc`: quit
 
 ## verify-projects
 

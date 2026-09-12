@@ -2,7 +2,10 @@
 matfu = matfu:main
 md22obj = md22obj:main
 md32obj = md32obj:main
+md3fu = md3fu:main
 mdl2obj = mdl2obj:main
 objfu = objfu:main
 skyfu = skyfu:main
+symbolicate-dmp = symbolicate_dmp:main
 unpak = unpak:main
+verify-projects = verify_projects:main
