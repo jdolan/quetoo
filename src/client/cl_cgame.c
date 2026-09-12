@@ -179,6 +179,7 @@ void Cl_InitCgame(void) {
   import.DebugMask = Cl_CgameDebugMask;
   import.Warn = Cl_CgameWarn;
   import.Error = Cl_CgameError;
+  import.Backtrace = Sys_Backtrace;
 
   import.Malloc = Mem_TagMalloc;
   import.LinkMalloc = Mem_LinkMalloc;

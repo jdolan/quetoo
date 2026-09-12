@@ -1703,6 +1703,7 @@ static const G_Ai_GoalFunc g_ai_goalfuncs[AI_FUNC_GOAL_TOTAL] = {
   [AI_FUNC_GOAL_MOVE] = G_Ai_Move
 };
 
+#if AI_GOAL_HARDENING
 /**
  * @brief Validates an `AI_GOAL_ENTITY` goal's cached `entity.ent` pointer
  * against the canonical `ge.entities` table, re-resolving by slot number
@@ -1710,8 +1711,12 @@ static const G_Ai_GoalFunc g_ai_goalfuncs[AI_FUNC_GOAL_TOTAL] = {
  * target has been freed, reused (spawn_id mismatch), or if the cached pointer
  * no longer matches the canonical entity (which would indicate corruption);
  * otherwise refreshes `entity.ent` from the canonical table.
+ * @details When the goal is found to be invalid, logs a warning and a
+ * backtrace to aid in tracking down the root cause in the field (#960).
+ * Delete this along with everything else guarded by `AI_GOAL_HARDENING` once
+ * the root cause is understood and fixed.
  */
-static void G_Ai_ValidateEntityGoal(ai_goal_t *goal) {
+static void G_Ai_ValidateEntityGoal(const g_client_t *cl, const char *field, ai_goal_t *goal) {
 
   if (goal->type != AI_GOAL_ENTITY) {
     return;
@@ -1720,12 +1725,22 @@ static void G_Ai_ValidateEntityGoal(ai_goal_t *goal) {
   const g_entity_t *ent = G_Ai_ResolveGoalEntity(goal->entity.number);
 
   if (!ent || !ent->in_use || goal->entity.spawn_id != ent->s.spawn_id) {
+
+    char *backtrace = gi.Backtrace(1, 32);
+    gi.Warn(__func__, "Invalidating stale %s for %s: cached ent %p, number %d, cached spawn_id %u, "
+            "resolved ent %p (in_use %d, spawn_id %u)\n%s\n",
+            field, etos(cl->entity), (void *) goal->entity.ent, goal->entity.number, goal->entity.spawn_id,
+            (void *) ent, ent ? ent->in_use : 0, ent ? ent->s.spawn_id : 0,
+            backtrace ? backtrace : "(no backtrace available)");
+    free(backtrace);
+
     G_Ai_ClearGoal(goal);
     return;
   }
 
   goal->entity.ent = ent;
 }
+#endif
 
 /**
  * @brief Called every frame for every AI.
@@ -1738,14 +1753,16 @@ void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd) {
     G_Ai_ClearGoal(&cl->ai->backup_move_target);
   }
 
+#if AI_GOAL_HARDENING
   // clear stale entity goals whose target has been freed, reused, or whose
   // cached `entity.ent` pointer can no longer be trusted. Re-resolve against
   // the canonical `ge.entities` table by slot number rather than dereferencing
   // the cached pointer directly, since it may have gone stale or been
   // corrupted (see #960).
-  G_Ai_ValidateEntityGoal(&cl->ai->combat_target);
-  G_Ai_ValidateEntityGoal(&cl->ai->move_target);
-  G_Ai_ValidateEntityGoal(&cl->ai->backup_move_target);
+  G_Ai_ValidateEntityGoal(cl, "combat_target", &cl->ai->combat_target);
+  G_Ai_ValidateEntityGoal(cl, "move_target", &cl->ai->move_target);
+  G_Ai_ValidateEntityGoal(cl, "backup_move_target", &cl->ai->backup_move_target);
+#endif
 
   // run functional goals
   for (int32_t i = 0; i < AI_FUNC_GOAL_TOTAL; i++) {

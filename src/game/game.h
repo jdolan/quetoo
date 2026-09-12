@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 37
+#define GAME_API_VERSION 38
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -239,6 +239,14 @@ typedef struct g_import_s {
    * @brief Prints a formatted error message to the configured consoles.
    */
   void (*Error)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+
+  /**
+   * @brief Captures a backtrace of the calling thread's stack, for diagnostic logging.
+   * @param start How many innermost frames to skip (e.g. `1` to skip this call itself).
+   * @param max_count The maximum number of frames to include.
+   * @return A heap-allocated string describing the stack; caller must `free()` it.
+   */
+  char *(*Backtrace)(uint32_t start, uint32_t max_count);
 
   /**
    * @}

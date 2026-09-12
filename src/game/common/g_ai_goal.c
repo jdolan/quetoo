@@ -50,6 +50,7 @@ void G_Ai_SetPositionGoal(const g_client_t *cl, ai_goal_t *goal, float priority,
  * that may have gone stale or been corrupted. Returns `NULL` if `number` is out
  * of range.
  */
+#if AI_GOAL_HARDENING
 const g_entity_t *G_Ai_ResolveGoalEntity(int32_t number) {
 
   if (number < 0 || number >= sv_max_entities->integer) {
@@ -58,6 +59,7 @@ const g_entity_t *G_Ai_ResolveGoalEntity(int32_t number) {
 
   return ge.entities[number];
 }
+#endif
 
 /**
  * @brief Setup entity goal for the specified target.
@@ -67,7 +69,9 @@ void G_Ai_SetEntityGoal(const g_client_t *cl, ai_goal_t *goal, float priority, c
   G_Ai_InitGoal(cl, goal, AI_GOAL_ENTITY, priority);
   
   goal->entity.ent = entity;
+#if AI_GOAL_HARDENING
   goal->entity.number = entity->s.number;
+#endif
   goal->entity.spawn_id = entity->s.spawn_id;
 
   G_Ai_Debug("New goal: %s (%f priority)\n", etos(entity), priority);
@@ -89,12 +93,18 @@ void G_Ai_SetPathGoal(const g_client_t *cl, ai_goal_t *goal, float priority, Vec
   goal->path.next_path_position = G_Ai_Node_GetPosition(next);
   goal->path.path_target = path_target;
 
+#if AI_GOAL_HARDENING
   if (path_target) {
     goal->path.path_target_number = path_target->s.number;
     goal->path.path_target_spawn_id = path_target->s.spawn_id;
   } else {
     goal->path.path_target_number = -1;
   }
+#else
+  if (path_target) {
+    goal->path.path_target_spawn_id = path_target->s.spawn_id;
+  }
+#endif
 
   G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", VectorValue(path, ai_node_id_t, 0), VectorValue(path, ai_node_id_t, path->count - 1), priority, etos(path_target));
 }
@@ -129,7 +139,9 @@ void G_Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
       break;
     case AI_GOAL_ENTITY:
       to->entity.ent = from->entity.ent;
+#if AI_GOAL_HARDENING
       to->entity.number = from->entity.number;
+#endif
       to->entity.spawn_id = from->entity.spawn_id;
       to->entity.combat_type = from->entity.combat_type;
       to->entity.lock_on_time = from->entity.lock_on_time;
@@ -143,7 +155,9 @@ void G_Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
       to->path.trick_jump = from->path.trick_jump;
       to->path.trick_position = from->path.trick_position;
       to->path.path_target = from->path.path_target;
+#if AI_GOAL_HARDENING
       to->path.path_target_number = from->path.path_target_number;
+#endif
       to->path.path_target_spawn_id = from->path.path_target_spawn_id;
       break;
   }

@@ -29,6 +29,18 @@
  */
 #define AI_NODE_INVALID ((ai_node_id_t)-1)
 
+/**
+ * @brief Temporary hardening for #960 (dangling `ai_goal_t` entity pointer
+ * crashes in `G_Ai_Think`, root cause still unknown): re-resolves goal
+ * entities by slot number against the canonical `ge.entities` table instead
+ * of trusting the cached pointer, self-healing or clearing the goal as
+ * needed, and logs a warning + backtrace to aid diagnosis in the field.
+ * @remarks This is a stopgap, not a fix. Once the root cause is understood
+ * and addressed, delete everything guarded by this flag (search for
+ * `AI_GOAL_HARDENING`) and this comment.
+ */
+#define AI_GOAL_HARDENING 1
+
 #if defined(__G_LOCAL_H__)
 
 /**
@@ -132,12 +144,14 @@ typedef struct {
        */
       const g_entity_t *ent;
 
+#if AI_GOAL_HARDENING
       /**
        * @brief Entity slot number at goal-set time; used to safely re-resolve
        * `ent` against the canonical `ge.entities` table instead of trusting a
-       * cached pointer that may have been corrupted or gone stale.
+       * cached pointer that may have been corrupted or gone stale (#960).
        */
       int32_t number;
+#endif
 
       /**
        * @brief Spawn ID at goal-set time; used to detect entity reuse.
@@ -194,11 +208,13 @@ typedef struct {
        */
       const g_entity_t *path_target;
 
+#if AI_GOAL_HARDENING
       /**
        * @brief Entity slot number of `path_target` at goal-set time; see
        * `entity.number` above.
        */
       int32_t path_target_number;
+#endif
 
       /**
        * @brief Spawn ID of `path_target` at goal-set time.

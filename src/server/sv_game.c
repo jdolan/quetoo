@@ -321,6 +321,7 @@ void Sv_InitGame(void) {
   import.Debug = Sv_GameDebug;
   import.Warn = Com_Warn_;
   import.Error = Sv_GameError;
+  import.Backtrace = Sys_Backtrace;
 
   import.Malloc = Mem_TagMalloc;
   import.LinkMalloc = Mem_LinkMalloc;
