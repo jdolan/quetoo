@@ -364,6 +364,23 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
       const byte *surface_base = (byte *) in;
 
+      // resolve this surface's baked-in default material, so that faces
+      // left unmapped by a .skin file (see Cg_LoadClientSkins) still have
+      // something to fall back to instead of a NULL r_material_t. Most Q3
+      // player models leave the embedded shader name blank, relying
+      // entirely on .skin files; R_LoadMaterial safely falls back to the
+      // "notex" placeholder in that case rather than resolving to nothing.
+      {
+        char shader[MD3_MAX_PATH] = { 0 };
+
+        if (surface.num_shaders > 0) {
+          const d_md3_shader_t *in_shader = (d_md3_shader_t *) (surface_base + surface.ofs_shaders);
+          q_strlcpy(shader, in_shader->name, sizeof(shader));
+        }
+
+        out->material = R_LoadMaterial(*shader ? shader : out->name, ASSET_CONTEXT_MODELS);
+      }
+
       {
         out->num_vertexes = surface.num_vertexes;
         out->vertexes = Mem_LinkMalloc(out->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t), mod->mesh);

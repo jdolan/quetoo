@@ -206,7 +206,6 @@ void R_SaveMeshConfigs_f(void) {
 static void R_LoadMeshTangents(r_model_t *mod) {
 
   assert(mod->mesh);
-  assert(mod->mesh->num_faces);
 
   const r_mesh_face_t *face = mod->mesh->faces;
   for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
@@ -239,9 +238,16 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 void R_LoadMeshVertexArray(r_model_t *mod) {
 
   assert(mod->mesh);
-  assert(mod->mesh->num_faces);
 
   r_mesh_model_t *mesh = mod->mesh;
+
+  // some legitimate MD3 parts have no surfaces at all (e.g. a player model
+  // whose head geometry is merged into its torso, leaving head.md3 as an
+  // empty placeholder). Leave vertex_buffer/elements_buffer NULL in that
+  // case; R_DrawMeshEntity already no-ops when vertex_buffer is NULL.
+  if (!mesh->num_faces) {
+    return;
+  }
 
   {
     const r_mesh_face_t *face = mesh->faces;

@@ -130,7 +130,12 @@ static void Cg_LoadClientSkin(cg_client_info_t *ci, char *line) {
 
 /**
  * @brief Parses a .skin file, resolving skins for each face across all three
- * mesh models (head, torso, legs). Returns false if any face is missing a skin.
+ * mesh models (head, torso, legs). A face left unresolved simply falls back
+ * to its mesh's baked-in default material at draw time (see e->skins[i] ?:
+ * face->material in r_mesh_draw.c / r_shadow.c); some third-party skins
+ * intentionally omit optional accessory faces (e.g. a cigar or glasses
+ * surface), exactly as vanilla Quake III tolerates. Returns false only if
+ * the .skin file itself could not be found/read.
  */
 static bool Cg_LoadClientSkins(cg_client_info_t *ci, const char *skin) {
   char path[MAX_QPATH], line[MAX_STRING_CHARS];
@@ -179,8 +184,7 @@ static bool Cg_LoadClientSkins(cg_client_info_t *ci, const char *skin) {
     const r_mesh_face_t *face = meshes[m].model->mesh->faces;
     for (int32_t f = 0; f < meshes[m].model->mesh->num_faces; f++, face++) {
       if (!meshes[m].skins[f]) {
-        Cg_Debug("%s: %s %s has no skin\n", path, meshes[m].name, face->name);
-        return false;
+        Cg_Debug("%s: %s %s has no skin, using default material\n", path, meshes[m].name, face->name);
       }
     }
   }
@@ -197,8 +201,21 @@ static bool Cg_ValidateSkin(cg_client_info_t *ci) {
     return false;
   }
 
-  if (!ci->head_skins[0] || !ci->torso_skins[0] || !ci->legs_skins[0]) {
-    return false;
+  const struct {
+    const r_model_t *model;
+    r_material_t *const *skins;
+  } meshes[] = {
+    { ci->head, ci->head_skins },
+    { ci->torso, ci->torso_skins },
+    { ci->legs, ci->legs_skins },
+  };
+
+  // a part with no faces at all (e.g. a head merged into the torso mesh,
+  // leaving head.md3 as an empty placeholder) has nothing to validate here
+  for (size_t m = 0; m < lengthof(meshes); m++) {
+    if (meshes[m].model->mesh->num_faces && !meshes[m].skins[0]) {
+      return false;
+    }
   }
 
   return true;
