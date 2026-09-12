@@ -26,8 +26,8 @@
 /**
  * @brief BSP file identification.
  */
-#define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-#define BSP_VERSION 81
+#define BSP_IDENT             (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
+#define BSP_VERSION           81
 
 /**
  * @brief BSP file format limits.

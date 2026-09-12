@@ -28,6 +28,7 @@
 #include <ObjectivelyGPU.h>
 
 #include "common/atlas.h"
+#include "common/files.h"
 #include "collision/cm_bsp.h"
 
 /**
@@ -1213,9 +1214,11 @@ typedef struct {
 } r_mesh_face_t;
 
 /**
- * @brief Max mesh model faces.
+ * @brief Max mesh model faces (matches MD3_MAX_SURFACES, the larger of the
+ * two format-specific per-model face/surface limits, so that fixed-size
+ * per-face skins arrays are never overrun by a legitimately oversized MD3).
  */
-#define MAX_MESH_FACES 0x20
+#define MAX_MESH_FACES MD3_MAX_SURFACES
 
 /**
  * @brief The mesh animation type.

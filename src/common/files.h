@@ -24,23 +24,25 @@
 #include "shared/shared.h"
 
 /**
- * @brief Quake3 .md3 model format.
+ * @brief MD3 file identification.
  */
-#define MD3_ID        (('3'<<24)+('P'<<16)+('D'<<8)+'I')
-#define MD3_VERSION      15
+#define MD3_IDENT          (('3' << 24) + ('P' << 16) + ('D' << 8) + 'I') // "IDP3"
+#define MD3_VERSION        15
 
-#define MD3_MAX_LODS    0x4 // per model
-#define  MD3_MAX_TRIANGLES  0x2000 // per mesh
-#define MD3_MAX_VERTEXES  0x1000 // per mesh
+/**
+ * @brief MD3 file format limits.
+ */
+#define MD3_MAX_LODS       0x4 // per model
+#define MD3_MAX_TRIANGLES  0x2000 // per mesh
+#define MD3_MAX_VERTEXES   0x1000 // per mesh
 #define MD3_MAX_SHADERS    0x100 // per mesh
-#define MD3_MIN_FRAMES    0x1 // per model
-#define MD3_MAX_FRAMES    0x400 // per model
-#define  MD3_MAX_SURFACES  0x20 // per model
-#define MD3_MAX_TAGS    0x10 // per frame
-#define MD3_MAX_PATH    0x40 // relative file references
-#define MD3_MAX_ANIMATIONS  0x20 // see entity_animation_t
-// vertex scales from origin
-#define  MD3_XYZ_SCALE    (1.0 / 64)
+#define MD3_MIN_FRAMES     0x1 // per model
+#define MD3_MAX_FRAMES     0x1000 // per model
+#define MD3_MAX_SURFACES   0x40 // per model
+#define MD3_MAX_TAGS       0x10 // per frame
+#define MD3_MAX_PATH       0x40 // relative file references
+#define MD3_MAX_ANIMATIONS 0x20 // see entity_animation_t
+#define MD3_XYZ_SCALE      (1.f / 64.f)
 
 typedef struct {
   vec2_t st;

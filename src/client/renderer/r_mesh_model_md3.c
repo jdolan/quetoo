@@ -267,8 +267,8 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
   const d_md3_t md3 = R_SwapMd3((d_md3_t *) base);
 
-  if (md3.id != MD3_ID) {
-    Com_Error(ERROR_DROP, "%s MD3_ID is %d\n", mod->media.name, md3.id);
+  if (md3.id != MD3_IDENT) {
+    Com_Error(ERROR_DROP, "%s MD3_IDENT is %d\n", mod->media.name, md3.id);
   }
 
   if (md3.version != MD3_VERSION) {
@@ -344,8 +344,8 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
       const d_md3_surface_t surface = R_SwapMd3Surface(in);
 
-      if (surface.id != MD3_ID) {
-        Com_Error(ERROR_DROP, "%s: %s: MD3_ID %d\n", mod->media.name, surface.name, surface.id);
+      if (surface.id != MD3_IDENT) {
+        Com_Error(ERROR_DROP, "%s: %s: MD3_IDENT %d\n", mod->media.name, surface.name, surface.id);
       }
 
       if (surface.num_shaders > MD3_MAX_SHADERS) {
