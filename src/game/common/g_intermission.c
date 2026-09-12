@@ -388,7 +388,7 @@ static void G_ConfigureLevel_Intermission(void) {
  */
 void G_Intermission_Init(void) {
 
-  g_vote_next_map = gi.AddCvar("g_vote_next_map", "0", CVAR_SERVER_INFO,
+  g_vote_next_map = gi.AddCvar("g_vote_next_map", "1", CVAR_SERVER_INFO,
                                "Whether clients vote for the next map during the intermission.");
 
   if (!installed) {
