@@ -7,6 +7,8 @@ PlayerModelView {
   padding: 4;
   width: 900;
   height: 680;
+  background-color: #08151a99;
+  border-color: #8fc7dc40;
 }
 
 PlayerModelView > .modelView {
