@@ -1419,6 +1419,12 @@ struct g_client_s {
   uint32_t respawn_time;
 
   /**
+   * @brief The time at which this client died, used to gate the forced
+   * BOTH_DEATHx -> BOTH_DEADx animation transition (see DEATH_ANIM_SETTLE_TIME).
+   */
+  uint32_t death_time;
+
+  /**
    * @brief Respawn protection expires at this time.
    */
   uint32_t respawn_protection_time;

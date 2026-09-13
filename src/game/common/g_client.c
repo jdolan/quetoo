@@ -884,7 +884,8 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
   ent->take_damage = true;
 
   ent->clip_mask = CONTENTS_MASK_CLIP_CORPSE;
-  cl->respawn_time = g_level.time + 1800; // respawn after death animation finishes
+  cl->respawn_time = g_level.time + 1800; // respawn delay, independent of death animation length
+  cl->death_time = g_level.time; // used to gate the DEATHx -> DEADx animation transition below
   cl->show_scores = true;
   cl->persistent.deaths++;
 
