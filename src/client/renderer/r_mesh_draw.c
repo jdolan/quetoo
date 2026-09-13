@@ -341,8 +341,6 @@ static void R_BindMeshEntityFace(const r_entity_t *e, const r_mesh_model_t *mesh
     .color = e->color,
   };
 
-  // scale rgb only, CPU-side, for entities the server has opted in to boosting
-  // (players, items); alpha is left untouched
   if (e->effects & EF_MODULATE) {
     locals.color.xyz = Vec3_Scale(locals.color.xyz, r_modulate_mesh->value);
   }
@@ -402,12 +400,15 @@ static void R_DrawMeshEntityFace(const r_view_t *view,
 
   R_BindMeshEntityFace(e, mesh, face, pass);
 
-  const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
+  if (!(material->cm->surface & SURF_MATERIAL)) {
 
-  $(pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
+    const uint32_t firstIndex = (uint32_t) ((uintptr_t) face->indices / sizeof(uint32_t));
 
-  r_stats->mesh_draw_elements++;
-  r_stats->mesh_triangles += face->num_elements / 3;
+    $(pass, drawIndexedPrimitives, face->num_elements, 1, firstIndex, 0, 0);
+
+    r_stats->mesh_draw_elements++;
+    r_stats->mesh_triangles += face->num_elements / 3;
+  }
 
   if (r_mesh_draw.draw_stages) {
     R_DrawMeshEntityMaterialStages(view, e, face, pass);
