@@ -165,6 +165,8 @@ static void updateBindings(View *self, ident data) {
 
   this->animation1.frame = this->animation2.frame = -1;
 
+  memset(&this->client, 0, sizeof(this->client));
+
   q_snprintf(this->info, sizeof(this->info), "-1\\newbie\\%s\\%s\\%s\\%s\\default",
          cg_skin->string, cg_shirt->string, cg_pants->string, cg_helmet->string);
 

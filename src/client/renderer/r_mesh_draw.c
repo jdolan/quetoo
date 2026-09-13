@@ -717,13 +717,14 @@ void R_InitMeshPipeline(void) {
     .num_uniform_buffers = MESH_NUM_UNIFORMS,
   });
 
+  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+
   info.fragment_shader = alphaTestFragmentShader->shader;
   r_mesh_draw.alpha_test_pipeline = $(r_context.device, createGraphicsPipeline, &info);
   release(alphaTestFragmentShader);
 
   info.fragment_shader = fragmentShader->shader;
 
-  info.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
   color_targets[0].blend_state = GPU_BlendStateAlpha;
 
   r_mesh_draw.blend_pipeline = $(r_context.device, createGraphicsPipeline, &info);

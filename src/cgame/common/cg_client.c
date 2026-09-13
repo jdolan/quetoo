@@ -378,7 +378,6 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
       cgi.LoadClientModelSamples(ci->model);
     }
   }
-
 }
 
 /**
