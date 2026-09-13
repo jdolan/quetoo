@@ -215,6 +215,19 @@ def read_md3(path: Path) -> Md3Model:
   return Md3Model(num_frames, surfaces, tags)
 
 
+def cross(a: Vec3, b: Vec3) -> Vec3:
+  return (
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0],
+  )
+
+
+def normalize(v: Vec3) -> Vec3:
+  length = math.sqrt(sum(c * c for c in v))
+  return tuple(c / length for c in v) if length > 1e-9 else (0.0, 0.0, 0.0)
+
+
 def apply_tag(tag: Tag, point: Vec3) -> Vec3:
   """Transforms `point` from the tag's child space into its parent space."""
   origin, axis0, axis1, axis2 = tag
@@ -446,6 +459,7 @@ def main():
   extent = max((f[3] for f in read_frame_bounds(model_dir / "lower.md3")), default=64.0)
 
   pygame.init()
+  pygame.key.set_repeat(300, 30)  # (delay_ms, interval_ms): repeat held keys, e.g. K_LEFT/K_RIGHT frame stepping
   w, h = 1000, 800
   pygame.display.set_mode((w, h), DOUBLEBUF | OPENGL)
   font = pygame.font.SysFont(None, 20)
@@ -479,6 +493,7 @@ def main():
   cx, cy, cz = 0.0, 0.0, extent * 0.5
   yaw, pitch, dist = -35.0, 15.0, extent * 2.5
   orbiting = False
+  panning = False
   last = (0, 0)
   wireframe = False
   paused = False
@@ -545,10 +560,30 @@ def main():
         last = event.pos
       elif event.type == MOUSEBUTTONUP and event.button == 1:
         orbiting = False
+      elif event.type == MOUSEBUTTONDOWN and event.button == 3:
+        panning = True
+        last = event.pos
+      elif event.type == MOUSEBUTTONUP and event.button == 3:
+        panning = False
       elif event.type == MOUSEMOTION and orbiting:
         dx, dy = event.pos[0] - last[0], event.pos[1] - last[1]
         yaw += dx * 0.35
         pitch += dy * 0.35
+        last = event.pos
+      elif event.type == MOUSEMOTION and panning:
+        # right-drag pans the orbit target (cx, cy, cz) within the camera's own
+        # right/up plane, so panning behaves the same regardless of orbit angle.
+        dx, dy = event.pos[0] - last[0], event.pos[1] - last[1]
+        rt, rp = math.radians(yaw), math.radians(pitch)
+        forward = (-math.cos(rp) * math.sin(rt), -math.cos(rp) * math.cos(rt), -math.sin(rp))
+        world_up = (0.0, 0.0, 1.0)
+        right = cross(forward, world_up)
+        right = normalize(right)
+        cam_up = normalize(cross(right, forward))
+        pan_speed = dist * 0.0015
+        cx += (-right[0] * dx + cam_up[0] * dy) * pan_speed
+        cy += (-right[1] * dx + cam_up[1] * dy) * pan_speed
+        cz += (-right[2] * dx + cam_up[2] * dy) * pan_speed
         last = event.pos
       elif event.type == MOUSEWHEEL:
         dist = max(extent * 0.2, dist - event.y * extent * 0.1)
@@ -610,7 +645,7 @@ def main():
       f"interpolate [l]: {'on' if interpolate else 'off'}   "
       f"texture [t]: {'on' if textured else 'off' if textures else 'n/a'}   wireframe [w]: {'on' if wireframe else 'off'}",
       "space: pause/play    ←/→: step frame    tab / shift+tab: next / prev anim",
-      "drag: orbit    scroll: zoom    esc: quit",
+      "drag: orbit    right-drag: pan    scroll: zoom    esc: quit",
     ]
     draw_overlay(font, h, overlay_lines)
 
