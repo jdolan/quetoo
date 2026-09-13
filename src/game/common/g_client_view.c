@@ -451,9 +451,14 @@ static void G_ClientAnimation(g_client_t *cl) {
       return;
     }
 
+    // hysteresis around the walk/run threshold prevents the animation from
+    // flapping back and forth every frame when speed hovers near the boundary
+    const bool running = G_IsAnimation(cl, ANIM_LEGS_RUN) || G_IsAnimation(cl, ANIM_LEGS_BACK);
+    const float run_threshold = running ? 270.0 : 290.0;
+
     entity_animation_t anim = ANIM_LEGS_RUN;
 
-    if (cl->speed < 290.0) {
+    if (cl->speed < run_threshold) {
       anim = ANIM_LEGS_WALK;
 
       if (backwards) {
