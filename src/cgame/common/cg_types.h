@@ -124,7 +124,7 @@ typedef struct {
 typedef struct {
 
   /**
-   * @brief The client info string, e.g. "newbie\qforcer/default."
+   * @brief The client info string, e.g. "newbie\enforcer/default."
    */
   char info[MAX_STRING_CHARS];
 
@@ -134,7 +134,7 @@ typedef struct {
   char name[MAX_INFO_STRING_VALUE];
 
   /**
-   * @brief The model name, e.g. "qforcer."
+   * @brief The model name, e.g. "enforcer."
    */
   char model[MAX_INFO_STRING_VALUE];
 

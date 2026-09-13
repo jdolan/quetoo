@@ -46,7 +46,7 @@
 /**
  * @brief The default user info string (name and skin).
  */
-#define DEFAULT_BOT_INFO "\\name\\newbiebot\\skin\\qforcer/default"
+#define DEFAULT_BOT_INFO "\\name\\newbiebot\\skin\\enforcer/default"
 
 /**
  * @brief The type of goal we're after. This controls which variant in `ai_goal_t`

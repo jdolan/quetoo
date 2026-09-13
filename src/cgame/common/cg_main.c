@@ -141,7 +141,7 @@ static void Cg_Init(void) {
   cg_draw_vitals_pulse = cgi.AddCvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE, "Pulse the vitals when low");
   cg_entity_bob = cgi.AddCvar("cg_entity_bob", "1", CVAR_ARCHIVE, "Controls the bobbing of items");
   cg_entity_rotate = cgi.AddCvar("cg_entity_rotate", "1", CVAR_ARCHIVE, "Controls the rotation of items");
-  cg_force_skin = cgi.AddCvar("cg_force_skin", "", CVAR_ARCHIVE | CVAR_R_MEDIA, "Force all other players to use this model/skin (e.g. \"qforcer/default\").");
+  cg_force_skin = cgi.AddCvar("cg_force_skin", "", CVAR_ARCHIVE | CVAR_R_MEDIA, "Force all other players to use this model/skin (e.g. \"enforcer/default\").");
   cg_fov = cgi.AddCvar("cg_fov", "110", CVAR_ARCHIVE, "Horizontal field of view, in degrees, at a 16:9 reference aspect ratio. Automatically scaled for your display's actual aspect ratio.");
   cg_fov_zoom = cgi.AddCvar("cg_fov_zoom", "55", CVAR_ARCHIVE, "Zoomed in field of view");
   cg_fov_interpolate = cgi.AddCvar("cg_fov_interpolate", "1", CVAR_ARCHIVE, "Interpolate between field of view changes (default 1.0).");
@@ -167,7 +167,7 @@ static void Cg_Init(void) {
 #endif
   cg_pants = cgi.AddCvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your pants color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
   cg_shirt = cgi.AddCvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your shirt color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
-  cg_skin = cgi.AddCvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE, "Your player model and skin.");
+  cg_skin = cgi.AddCvar("skin", "enforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE, "Your player model and skin.");
 
   editor = cgi.GetCvar("editor");
 

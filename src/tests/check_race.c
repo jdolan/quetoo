@@ -95,7 +95,7 @@ static const char *Test_GetConfigString(const int32_t index) {
   }
 
   if (index >= CS_CLIENTS) {
-    return "newbie\\qforcer/default";
+    return "newbie\\enforcer/default";
   }
 
   return "";
@@ -355,7 +355,7 @@ START_TEST(check_G_Race_Line_BspMismatchRejected) {
   static const char *rebuilt =
     "holder Dan\n"
     "guid guid-dan\n"
-    "client newbie\\qforcer/default\n"
+    "client newbie\\enforcer/default\n"
     "time 100\n"
     "bsp not-the-bsp-this-was-set-on\n"
     "samples 2\n"

@@ -32,11 +32,11 @@
 #define MAX_CLIENT_INFO_EXTENT 128.f
 #define MIN_CLIENT_INFO_HEIGHT 16.f
 
-#define DEFAULT_MODEL "qforcer"
+#define DEFAULT_MODEL "enforcer"
 #define DEFAULT_SKIN "default"
 
 //                         team name    skin             shirt    pants    helmet   hue
-#define DEFAULT_CLIENT_INFO "-1\\newbie\\qforcer/default\\default\\default\\default\\default"
+#define DEFAULT_CLIENT_INFO "-1\\newbie\\enforcer/default\\default\\default\\default\\default"
 
 /**
  * @brief Trims leading and trailing whitespace in place.

@@ -1143,7 +1143,7 @@ typedef struct {
 /**
  * @brief The default player model
  */
-#define DEFAULT_USER_MODEL "qforcer"
+#define DEFAULT_USER_MODEL "enforcer"
 
 /**
  * @brief The default player skin

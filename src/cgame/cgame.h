@@ -742,7 +742,7 @@ typedef struct cg_import_s {
 
   /**
    * @brief Loads a sound sample for the given player model and name.
-   * @param model The player model name (e.g. `"qforcer"`).
+   * @param model The player model name (e.g. `"enforcer"`).
    * @param name The sample name (e.g. `"*gurp"`).
    * @return The loaded sample, which may be an aliased common sample.
    */
