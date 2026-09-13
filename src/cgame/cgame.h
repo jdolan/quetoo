@@ -358,6 +358,23 @@ typedef struct cg_import_s {
   cmd_t *(*AddCmd)(const char *name, CmdExecuteFunc function, uint32_t flags, const char *desc);
 
   /**
+   * @brief Returns the tokenized argument at the given index, as set by the most recent
+   * command invocation (see `Cmd_TokenizeString`). Used within `AutocompleteFunc` callbacks
+   * to inspect the partial input being completed.
+   * @param arg The argument index (0 is the command or cvar name itself).
+   * @return The argument string, or the empty string if `arg` is out of range.
+   */
+  const char *(*Argv)(int32_t arg);
+
+  /**
+   * @brief Appends a match to `matches` for console tab completion (see `AutocompleteFunc`).
+   * @param matches The list of matches to append to.
+   * @param name The match itself, substituted into the input buffer.
+   * @param description The value printed to the screen, or `NULL` to print `name`.
+   */
+  void (*AutocompleteMatch)(List *matches, const char *name, const char *description);
+
+  /**
    * @brief Appends the specified string to the command buffer.
    */
   void (*Cbuf)(const char *s);

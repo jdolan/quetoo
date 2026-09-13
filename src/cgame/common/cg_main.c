@@ -168,6 +168,7 @@ static void Cg_Init(void) {
   cg_pants = cgi.AddCvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your pants color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
   cg_shirt = cgi.AddCvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your shirt color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
   cg_skin = cgi.AddCvar("skin", "enforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE, "Your player model and skin.");
+  cg_skin->Autocomplete = Cg_SkinAutocomplete_f;
 
   editor = cgi.GetCvar("editor");
 

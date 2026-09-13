@@ -223,6 +223,8 @@ void Cl_InitCgame(void) {
 
   import.ConsentToUpdate = Installer_Consent;
   import.AddCmd = Cmd_Add;
+  import.Argv = Cmd_Argv;
+  import.AutocompleteMatch = Con_AutocompleteMatch;
   import.Cbuf = Cbuf_AddText;
   import.Tail = Con_Tail;
 

@@ -411,6 +411,52 @@ void Cg_LoadClients(void) {
 }
 
 /**
+ * @brief Fs_Enumerator data for `Cg_SkinAutocomplete_f`.
+ */
+typedef struct {
+  const char *partial;
+  List *matches;
+} cg_skin_autocomplete_t;
+
+/**
+ * @brief Fs_Enumerator for `Cg_SkinAutocomplete_ModelEnumerate`, appending a `model/skin`
+ * match for each resolved `players/<model>/<skin>.skin` file that begins with the partial.
+ */
+static void Cg_SkinAutocomplete_SkinEnumerate(const char *path, void *data) {
+
+  const cg_skin_autocomplete_t *autocomplete = (cg_skin_autocomplete_t *) data;
+
+  char name[MAX_QPATH];
+  StripExtension(path + strlen("players/"), name);
+
+  if (!q_strncasecmp(name, autocomplete->partial, strlen(autocomplete->partial))) {
+    cgi.AutocompleteMatch(autocomplete->matches, name, NULL);
+  }
+}
+
+/**
+ * @brief Fs_Enumerator for `Cg_SkinAutocomplete_f`, descending into each `players/<model>`
+ * directory to resolve its `.skin` files.
+ */
+static void Cg_SkinAutocomplete_ModelEnumerate(const char *path, void *data) {
+  cgi.EnumerateFiles(va("%s/*.skin", path), Cg_SkinAutocomplete_SkinEnumerate, data);
+}
+
+/**
+ * @brief AutocompleteFunc for the `skin` cvar, matching against all resolvable
+ * `model/skin` combinations beneath `players/`.
+ */
+void Cg_SkinAutocomplete_f(const uint32_t argi, List *matches) {
+
+  const cg_skin_autocomplete_t autocomplete = {
+    .partial = cgi.Argv(argi),
+    .matches = matches
+  };
+
+  cgi.EnumerateFiles("players/*", Cg_SkinAutocomplete_ModelEnumerate, (void *) &autocomplete);
+}
+
+/**
  * @brief Returns the next animation to advance to, defaulting to a no-op.
  */
 static entity_animation_t Cg_NextAnimation(const cl_entity_animation_t *a) {
