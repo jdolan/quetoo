@@ -880,7 +880,7 @@ cm_material_t *Cm_LoadMaterial(const char *name, cm_asset_context_t context) {
 /**
  * @brief Prepends the context prefix to a name if not already present.
  */
-static void Cm_AssetPath(const char *name, char *out, size_t len, cm_asset_context_t context) {
+void Cm_AssetPath(const char *name, char *out, size_t len, cm_asset_context_t context) {
 
   *out = '\0';
 
@@ -888,23 +888,33 @@ static void Cm_AssetPath(const char *name, char *out, size_t len, cm_asset_conte
     case ASSET_CONTEXT_NONE:
       break;
     case ASSET_CONTEXT_TEXTURES:
-      if (!!q_strncmp(name, "textures/", sizeof("textures/") - 1)) {
+      if (q_strncmp(name, "textures/", sizeof("textures/") - 1)) {
         q_strlcat(out, "textures/", len);
       }
       break;
     case ASSET_CONTEXT_MODELS:
-      if (!!q_strncmp(name, "models/", sizeof("models/") - 1)) {
+      if (q_strncmp(name, "models/", sizeof("models/") - 1)) {
         q_strlcat(out, "models/", len);
       }
       break;
     case ASSET_CONTEXT_PLAYERS:
-      if (!!q_strncmp(name, "players/", sizeof("players/") - 1)) {
+      if (q_strncmp(name, "players/", sizeof("players/") - 1)) {
         q_strlcat(out, "players/", len);
       }
       break;
     case ASSET_CONTEXT_SPRITES:
-      if (!!q_strncmp(name, "sprites/", sizeof("sprites/") - 1)) {
+      if (q_strncmp(name, "sprites/", sizeof("sprites/") - 1)) {
         q_strlcat(out, "sprites/", len);
+      }
+      break;
+    case ASSET_CONTEXT_SOUNDS:
+      if (q_strncmp(name, "sounds/", sizeof("sounds/") - 1)) {
+        q_strlcat(out, "sounds/", len);
+      }
+      break;
+    case ASSET_CONTEXT_UI:
+      if (q_strncmp(name, "ui/", sizeof("ui/") - 1)) {
+        q_strlcat(out, "ui/", len);
       }
       break;
   }
@@ -1066,8 +1076,7 @@ static void Cm_ResolveFootsteps_Enumerate(const char *file, void *data) {
 
   cm_asset_t *out = footsteps->samples + footsteps->num_samples;
 
-  out->name[0] = '#';
-  q_strlcat(out->name, file, sizeof(out->name));
+  q_strlcpy(out->name, file, sizeof(out->name));
   q_strlcpy(out->path, file, sizeof(out->path));
 
   footsteps->num_samples++;

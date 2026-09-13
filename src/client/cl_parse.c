@@ -240,7 +240,7 @@ int32_t Cl_ParseConfigString(void) {
     }
   } else if (i >= CS_SOUNDS && i < CS_SOUNDS + MAX_SOUNDS) {
     if (cls.state == CL_ACTIVE) {
-      cl.sounds[i - CS_SOUNDS] = S_LoadSample(s);
+      cl.sounds[i - CS_SOUNDS] = S_LoadSample(s, ASSET_CONTEXT_SOUNDS);
     }
   } else if (i >= CS_ENTITIES && i < CS_ENTITIES + MAX_ENTITIES) {
     cls.cgame->ParseEditorEntity(i - CS_ENTITIES, s);
@@ -366,7 +366,7 @@ static void Cl_ParsePrint(void) {
 
     if (sample) {
       S_AddSample(&cl_stage, &(s_play_sample_t) {
-        .sample = S_LoadSample(sample),
+        .sample = S_LoadSample(sample, ASSET_CONTEXT_SOUNDS),
         .flags = S_PLAY_UI
       });
     }

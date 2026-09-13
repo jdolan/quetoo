@@ -32,6 +32,8 @@ typedef enum {
   ASSET_CONTEXT_MODELS,
   ASSET_CONTEXT_PLAYERS,
   ASSET_CONTEXT_SPRITES,
+  ASSET_CONTEXT_SOUNDS,
+  ASSET_CONTEXT_UI
 } cm_asset_context_t;
 
 /**
@@ -547,6 +549,11 @@ void Cm_MaterialBasename(const char *in, char *out, size_t len);
  * @brief Computes the expected .mat file path for the given material name and context.
  */
 void Cm_MaterialPath(const char *name, char *path, size_t len, cm_asset_context_t context);
+
+/**
+ * @brief Prepends the context prefix to a name if not already present.
+ */
+void Cm_AssetPath(const char *name, char *out, size_t len, cm_asset_context_t context);
 
 #if defined(__CM_LOCAL_H__)
 #endif

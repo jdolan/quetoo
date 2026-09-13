@@ -53,7 +53,7 @@ static bool Ui_RetainSample(s_media_t *media) {
  */
 static s_sample_t *Ui_LoadSample(const char *name) {
 
-  s_sample_t *sample = S_LoadSample(name);
+  s_sample_t *sample = S_LoadSample(name, ASSET_CONTEXT_UI);
 
   if (sample) {
     sample->media.Retain = Ui_RetainSample;
@@ -314,9 +314,9 @@ void Ui_Init(void) {
     TextEscapeColors[i] = (SDL_Color) { c.r, c.g, c.b, c.a };
   }
 
-  Ui_LoadSample("#ui/change");
-  Ui_LoadSample("#ui/click");
-  Ui_LoadSample("#ui/clack");
+  Ui_LoadSample("change");
+  Ui_LoadSample("click");
+  Ui_LoadSample("clack");
 }
 
 /**

@@ -735,23 +735,25 @@ typedef struct cg_import_s {
 
   /**
    * @brief Loads a sound sample by the given name.
-   * @param name The sample name or alias (e.g. `"weapons/bfg/fire"`, `"#players/common/gurp"`).
+   * @param name The sample name or alias (e.g. `"weapons/bfg/fire"`, `"common/gurp"`).
+   * @param context The asset context, e.g. `ASSET_CONTEXT_SOUNDS`, `ASSET_CONTEXT_PLAYERS`.
    * @return The loaded sample.
    */
-  s_sample_t *(*LoadSample)(const char *name);
+  s_sample_t *(*LoadSample)(const char *name, cm_asset_context_t context);
 
   /**
    * @brief Loads a sound sample for the given player model and name.
    * @param model The player model name (e.g. `"enforcer"`).
+   * @param sound_set The player model's sound set (e.g. `"male"`, `"female"`, `"cyborg"`).
    * @param name The sample name (e.g. `"*gurp"`).
    * @return The loaded sample, which may be an aliased common sample.
    */
-  s_sample_t *(*LoadClientModelSample)(const char *model, const char *name);
+  s_sample_t *(*LoadClientModelSample)(const char *model, const char *sound_set, const char *name);
 
   /**
    * @brief Precache all sound samples for a given player model.
    */
-  void (*LoadClientModelSamples)(const char *model);
+  void (*LoadClientModelSamples)(const char *model, const char *sound_set);
 
   /**
    * @brief Adds a sound sample to the playback queue.

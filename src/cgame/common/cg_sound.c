@@ -67,7 +67,7 @@ void Cg_ParseSound(void) {
           return;
         }
         const cg_client_info_t *info = &cg_state.clients[ent->current.client];
-        play.sample = cgi.LoadClientModelSample(info->model, play.sample->media.name);
+        play.sample = cgi.LoadClientModelSample(info->model, info->torso->mesh->sounds, play.sample->media.name);
       }
     }
   } else {

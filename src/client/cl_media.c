@@ -183,11 +183,11 @@ static void Cl_LoadSounds(void) {
   Cl_LoadingProgress(-1, "sounds");
 
   if (*cl_chat_sound->string) {
-    S_LoadSample(cl_chat_sound->string);
+    S_LoadSample(cl_chat_sound->string, ASSET_CONTEXT_SOUNDS);
   }
 
   if (*cl_team_chat_sound->string) {
-    S_LoadSample(cl_team_chat_sound->string);
+    S_LoadSample(cl_team_chat_sound->string, ASSET_CONTEXT_SOUNDS);
   }
 
   for (int32_t i = 0; i < MAX_SOUNDS; i++) {
@@ -197,7 +197,7 @@ static void Cl_LoadSounds(void) {
       break;
     }
 
-    cl.sounds[i] = S_LoadSample(str);
+    cl.sounds[i] = S_LoadSample(str, ASSET_CONTEXT_SOUNDS);
   }
 
   for (int32_t i = 0; i < Cm_Bsp()->num_materials; i++) {
@@ -205,7 +205,7 @@ static void Cl_LoadSounds(void) {
 
     const cm_asset_t *sample = footsteps->samples;
     for (int32_t j = 0; j < footsteps->num_samples; j++, sample++) {
-      S_LoadSample(sample->name);
+      S_LoadSample(sample->name, ASSET_CONTEXT_NONE);
     }
   }
 }

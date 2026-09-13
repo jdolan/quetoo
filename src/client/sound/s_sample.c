@@ -145,16 +145,9 @@ static void S_LoadSampleBuffer(s_sample_t *sample) {
     return;
   }
 
-  char name[MAX_QPATH];
-  if (sample->media.name[0] == '#') {
-    q_strlcpy(name, (sample->media.name + 1), sizeof(name));
-  } else {
-    q_snprintf(name, sizeof(name), "sounds/%s", sample->media.name);
-  }
-
   char path[MAX_QPATH];
   for (const char **fmt = snd_formats; *fmt; fmt++) {
-    q_snprintf(path, sizeof(path), "%s.%s", name, *fmt);
+    q_snprintf(path, sizeof(path), "%s.%s", sample->media.name, *fmt);
     if (S_LoadSampleBuffer_(sample, path)) {
       break;
     }
@@ -163,7 +156,7 @@ static void S_LoadSampleBuffer(s_sample_t *sample) {
   if (sample->buffer) {
     Com_Debug(DEBUG_SOUND, "Loaded %s for %s\n", path, sample->media.name);
   } else {
-    if (!q_strncmp(sample->media.name, "#players", 8)) {
+    if (!q_strncmp(sample->media.name, "players/", 8)) {
       Com_Debug(DEBUG_SOUND, "Failed to load player sample %s\n", sample->media.name);
     } else {
       Com_Warn("Failed to load %s\n", sample->media.name);
@@ -195,7 +188,7 @@ static void S_FreeAliasedSample(s_media_t *self) {
 /**
  * @brief Loads or returns a cached sound sample by name.
  */
-s_sample_t *S_LoadSample(const char *name) {
+s_sample_t *S_LoadSample(const char *name, cm_asset_context_t context) {
 
   if (!s_context.context) {
     return NULL;
@@ -205,8 +198,15 @@ s_sample_t *S_LoadSample(const char *name) {
     Com_Error(ERROR_DROP, "NULL name\n");
   }
 
+  char stripped[MAX_QPATH];
+  StripExtension(name, stripped);
+
   char key[MAX_QPATH];
-  StripExtension(name, key);
+  if (stripped[0] == '*') { // placeholder, resolved per-client at play time; never context-qualified
+    q_strlcpy(key, stripped, sizeof(key));
+  } else {
+    Cm_AssetPath(stripped, key, sizeof(key), context);
+  }
 
   s_sample_t *sample = (s_sample_t *) S_FindMedia(key, S_MEDIA_SAMPLE);
   if (sample == NULL) {
@@ -225,8 +225,11 @@ s_sample_t *S_LoadSample(const char *name) {
 
 /**
  * @brief Loads or returns a cached player-model sound sample from the given model and name.
+ * @param model The player model name, e.g. `"nitro"`.
+ * @param sound_set The model's sound set, e.g. `"male"`, `"female"`, `"cyborg"` (see `r_mesh_model_t.sounds`).
+ * @param name The sample name, e.g. `"*death_1"`.
  */
-s_sample_t *S_LoadClientModelSample(const char *model, const char *name) {
+s_sample_t *S_LoadClientModelSample(const char *model, const char *sound_set, const char *name) {
 
   if (!s_context.context) {
     return NULL;
@@ -237,19 +240,34 @@ s_sample_t *S_LoadClientModelSample(const char *model, const char *name) {
   }
 
   char key[MAX_QPATH];
-  q_snprintf(key, sizeof(key), "#players/%s/%s", model, name + 1);
+  q_snprintf(key, sizeof(key), "players/%s/%s", model, name + 1);
 
   s_sample_t *sample = (s_sample_t *) S_FindMedia(key, S_MEDIA_SAMPLE);
   if (sample == NULL) {
 
-    sample = S_LoadSample(key);
+    char relative[MAX_QPATH];
+    q_snprintf(relative, sizeof(relative), "%s/%s", model, name + 1);
+
+    sample = S_LoadSample(relative, ASSET_CONTEXT_PLAYERS);
     if (sample->buffer) {
       Com_Debug(DEBUG_SOUND, "Loaded %s\n", key);
     } else {
-      char alias[MAX_QPATH];
-      q_snprintf(alias, sizeof(alias), "#players/common/%s", name + 1);
+      s_sample_t *aliased = NULL;
 
-      s_sample_t *aliased = S_LoadSample(alias);
+      if (sound_set && sound_set[0]) {
+        q_snprintf(relative, sizeof(relative), "common/%s/%s", sound_set, name + 1);
+
+        aliased = S_LoadSample(relative, ASSET_CONTEXT_PLAYERS);
+        if (!aliased->buffer) {
+          aliased = NULL;
+        }
+      }
+
+      if (aliased == NULL) {
+        q_snprintf(relative, sizeof(relative), "common/%s", name + 1);
+        aliased = S_LoadSample(relative, ASSET_CONTEXT_PLAYERS);
+      }
+
       if (aliased->buffer) {
 
         S_RegisterDependency((s_media_t *) sample, (s_media_t *) aliased);

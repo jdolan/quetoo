@@ -414,7 +414,7 @@ static void Cg_misc_flame_Init(cg_entity_t *self) {
   const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
   if (sound) {
     if (q_strcmp(sound, "none")) {
-      flame->sample = cgi.LoadSample(sound);
+      flame->sample = cgi.LoadSample(sound, ASSET_CONTEXT_SOUNDS);
     }
   } else {
     flame->sample = cg_sample_fire;
@@ -577,7 +577,7 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
   cg_misc_sound_t *sound = self->data;
 
   if (cgi.EntityValue(self->def, "sound")->parsed & ENTITY_STRING) {
-    sound->play.sample = cgi.LoadSample(cgi.EntityValue(self->def, "sound")->string);
+    sound->play.sample = cgi.LoadSample(cgi.EntityValue(self->def, "sound")->string, ASSET_CONTEXT_SOUNDS);
   } else {
     Cg_Warn("%s @ %s has no sound specified\n", self->clazz->classname, vtos(self->origin));
   }
@@ -851,7 +851,7 @@ static void Cg_misc_steam_Init(cg_entity_t *self) {
   const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
   if (sound) {
     if (q_strcmp(sound, "none")) {
-      steam->sample = cgi.LoadSample(sound);
+      steam->sample = cgi.LoadSample(sound, ASSET_CONTEXT_SOUNDS);
     }
   } else {
     steam->sample = cg_sample_steam;
@@ -978,7 +978,7 @@ static void Cg_misc_weather_Init(cg_entity_t *self) {
   const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
   if (sound) {
     if (q_strcmp(sound, "none")) {
-      weather->sample = cgi.LoadSample(sound);
+      weather->sample = cgi.LoadSample(sound, ASSET_CONTEXT_SOUNDS);
     }
   } else {
     if (weather->weather & WEATHER_RAIN) {

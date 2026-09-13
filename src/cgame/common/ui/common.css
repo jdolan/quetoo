@@ -22,16 +22,16 @@ Checkbox > Control {
 Control {
   bevel-dark-color: #00000080;
   bevel-light-color: #dedede40;
-  -sound-on-click: #ui/click;
-  -sound-on-change: #ui/change;
-  -sound-on-mouse-enter: #ui/clack;
+  -sound-on-click: click;
+  -sound-on-change: change;
+  -sound-on-mouse-enter: clack;
 }
 
 Panel {
   background-color: #08151aaa;
   border-color: #8fc7dc80;
   border-radius: 12;
-  -sound-on-mouse-enter: #ui/clack;
+  -sound-on-mouse-enter: clack;
 }
 
 Panel.menu {
@@ -75,7 +75,7 @@ TabView > .tabPageView {
 }
 
 TabView > .tabSelectionView {
-  -sound-on-click: #ui/click;
+  -sound-on-click: click;
 }
 
 TabView > .tabSelectionView > Label.selected {

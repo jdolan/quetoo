@@ -40,6 +40,8 @@ static void R_LoadMd3Animations(r_model_t *mod) {
 
   mod->mesh->animations = Mem_LinkMalloc(sizeof(r_mesh_animation_t) * MD3_MAX_ANIMATIONS, mod->mesh);
 
+  q_strlcpy(mod->mesh->sounds, "male", sizeof(mod->mesh->sounds));
+
   parser_t parser = Parse_Init((const char *) buf, PARSER_DEFAULT);
 
   while (true) {
@@ -60,9 +62,20 @@ static void R_LoadMd3Animations(r_model_t *mod) {
       continue;
     }
 
+    // legacy Quake III directive; maps to a sound set name for backwards compatibility
     if (!q_strcmp(token, "sex")) {
       Parse_SkipToken(&parser, PARSE_DEFAULT);
       Parse_SkipToken(&parser, PARSE_DEFAULT | PARSE_NO_WRAP);
+      continue;
+    }
+
+    // names the directory under players/common to fall back to for samples the
+    // model does not provide its own version of, e.g. "female", "cyborg", "demon"
+    if (!q_strcmp(token, "sounds")) {
+      Parse_SkipToken(&parser, PARSE_DEFAULT);
+      if (!Parse_Token(&parser, PARSE_DEFAULT | PARSE_NO_WRAP, mod->mesh->sounds, sizeof(mod->mesh->sounds))) {
+        break;
+      }
       continue;
     }
 

@@ -376,7 +376,7 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
 
     // load sound files if we're in-game
     if (*cgi.state > CL_DISCONNECTED) {
-      cgi.LoadClientModelSamples(ci->model);
+      cgi.LoadClientModelSamples(ci->model, ci->torso->mesh->sounds);
     }
   }
 }

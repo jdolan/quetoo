@@ -35,7 +35,7 @@ static s_media_state_t s_media_state;
 /**
  * @brief Precaches all of the sexed sounds for a given player model.
  */
-void S_LoadClientModelSamples(const char *model) {
+void S_LoadClientModelSamples(const char *model, const char *sound_set) {
 
   Vector *sounds = $(alloc(Vector), initWithSize, sizeof(s_media_t *));
 
@@ -49,7 +49,7 @@ void S_LoadClientModelSamples(const char *model) {
 
   for (size_t i = 0; i < sounds->count; i++) {
     const s_media_t *media = VectorValue(sounds, s_media_t *, i);
-    S_LoadClientModelSample(model, media->name);
+    S_LoadClientModelSample(model, sound_set, media->name);
   }
 
   release(sounds);

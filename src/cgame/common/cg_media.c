@@ -202,58 +202,58 @@ void Cg_LoadMedia(void) {
   
   cgi.LoadingProgress(-1, "sounds");
 
-  cg_sample_blaster_fire = cgi.LoadSample("weapons/blaster/fire");
-  cg_sample_blaster_hit = cgi.LoadSample("weapons/blaster/hit");
-  cg_sample_shotgun_fire = cgi.LoadSample("weapons/shotgun/fire");
-  cg_sample_supershotgun_fire = cgi.LoadSample("weapons/supershotgun/fire");
-  cg_sample_grenadelauncher_fire = cgi.LoadSample("weapons/grenadelauncher/fire");
-  cg_sample_rocketlauncher_fire = cgi.LoadSample("weapons/rocketlauncher/fire");
-  cg_sample_hyperblaster_fire = cgi.LoadSample("weapons/hyperblaster/fire");
-  cg_sample_hyperblaster_hit = cgi.LoadSample("weapons/hyperblaster/hit");
-  cg_sample_lightning_fire = cgi.LoadSample("weapons/lightning/fire");
-  cg_sample_laser_fire = cgi.LoadSample("trigger/laser/fire");
-  cg_sample_lightning_discharge = cgi.LoadSample("weapons/lightning/discharge");
-  cg_sample_railgun_fire = cgi.LoadSample("weapons/railgun/fire");
-  cg_sample_bfg_fire = cgi.LoadSample("weapons/bfg/fire");
-  cg_sample_bfg_hit = cgi.LoadSample("weapons/bfg/hit");
+  cg_sample_blaster_fire = cgi.LoadSample("weapons/blaster/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_blaster_hit = cgi.LoadSample("weapons/blaster/hit", ASSET_CONTEXT_SOUNDS);
+  cg_sample_shotgun_fire = cgi.LoadSample("weapons/shotgun/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_supershotgun_fire = cgi.LoadSample("weapons/supershotgun/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_grenadelauncher_fire = cgi.LoadSample("weapons/grenadelauncher/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_rocketlauncher_fire = cgi.LoadSample("weapons/rocketlauncher/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_hyperblaster_fire = cgi.LoadSample("weapons/hyperblaster/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_hyperblaster_hit = cgi.LoadSample("weapons/hyperblaster/hit", ASSET_CONTEXT_SOUNDS);
+  cg_sample_lightning_fire = cgi.LoadSample("weapons/lightning/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_laser_fire = cgi.LoadSample("trigger/laser/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_lightning_discharge = cgi.LoadSample("weapons/lightning/discharge", ASSET_CONTEXT_SOUNDS);
+  cg_sample_railgun_fire = cgi.LoadSample("weapons/railgun/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_bfg_fire = cgi.LoadSample("weapons/bfg/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_bfg_hit = cgi.LoadSample("weapons/bfg/hit", ASSET_CONTEXT_SOUNDS);
 
 #if defined(G_HOOK)
-  cg_sample_hook_hit = cgi.LoadSample("grapplehook/hit");
+  cg_sample_hook_hit = cgi.LoadSample("grapplehook/hit", ASSET_CONTEXT_SOUNDS);
 #endif
 
-  cg_sample_quake_shotgun_fire = cgi.LoadSample("weapons/quake_shotgun/fire");
-  cg_sample_quake_supershotgun_fire = cgi.LoadSample("weapons/quake_supershotgun/fire");
-  cg_sample_quake_nailgun_fire = cgi.LoadSample("weapons/quake_nailgun/fire");
-  cg_sample_quake_supernailgun_fire = cgi.LoadSample("weapons/quake_supernailgun/fire");
-  cg_sample_quake_nail_hit = cgi.LoadSample("projectiles/quake_nail/hit");
-  cg_sample_quake_grenadelauncher_fire = cgi.LoadSample("weapons/quake_grenadelauncher/fire");
-  cg_sample_quake_rocketlauncher_fire = cgi.LoadSample("weapons/quake_rocketlauncher/fire");
+  cg_sample_quake_shotgun_fire = cgi.LoadSample("weapons/quake_shotgun/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_quake_supershotgun_fire = cgi.LoadSample("weapons/quake_supershotgun/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_quake_nailgun_fire = cgi.LoadSample("weapons/quake_nailgun/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_quake_supernailgun_fire = cgi.LoadSample("weapons/quake_supernailgun/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_quake_nail_hit = cgi.LoadSample("projectiles/quake_nail/hit", ASSET_CONTEXT_SOUNDS);
+  cg_sample_quake_grenadelauncher_fire = cgi.LoadSample("weapons/quake_grenadelauncher/fire", ASSET_CONTEXT_SOUNDS);
+  cg_sample_quake_rocketlauncher_fire = cgi.LoadSample("weapons/quake_rocketlauncher/fire", ASSET_CONTEXT_SOUNDS);
 
-  cg_sample_explosion = cgi.LoadSample("weapons/common/explosion");
-  cg_sample_teleport = cgi.LoadSample("misc/teleport");
-  cg_sample_respawn = cgi.LoadSample("misc/respawn");
-  cg_sample_sparks = cgi.LoadSample("ambient/sparks");
-  cg_sample_fire = cgi.LoadSample("ambient/fire_1");
-  cg_sample_steam = cgi.LoadSample("ambient/steam_1");
-  cg_sample_rain = cgi.LoadSample("ambient/rain");
-  cg_sample_snow = cgi.LoadSample("ambient/snow");
-  cg_sample_ash = cgi.LoadSample("ambient/ash");
-  cg_sample_underwater = cgi.LoadSample("ambient/underwater");
-  cg_sample_gib = cgi.LoadSample("gibs/common/gib");
+  cg_sample_explosion = cgi.LoadSample("weapons/common/explosion", ASSET_CONTEXT_SOUNDS);
+  cg_sample_teleport = cgi.LoadSample("misc/teleport", ASSET_CONTEXT_SOUNDS);
+  cg_sample_respawn = cgi.LoadSample("misc/respawn", ASSET_CONTEXT_SOUNDS);
+  cg_sample_sparks = cgi.LoadSample("ambient/sparks", ASSET_CONTEXT_SOUNDS);
+  cg_sample_fire = cgi.LoadSample("ambient/fire_1", ASSET_CONTEXT_SOUNDS);
+  cg_sample_steam = cgi.LoadSample("ambient/steam_1", ASSET_CONTEXT_SOUNDS);
+  cg_sample_rain = cgi.LoadSample("ambient/rain", ASSET_CONTEXT_SOUNDS);
+  cg_sample_snow = cgi.LoadSample("ambient/snow", ASSET_CONTEXT_SOUNDS);
+  cg_sample_ash = cgi.LoadSample("ambient/ash", ASSET_CONTEXT_SOUNDS);
+  cg_sample_underwater = cgi.LoadSample("ambient/underwater", ASSET_CONTEXT_SOUNDS);
+  cg_sample_gib = cgi.LoadSample("gibs/common/gib", ASSET_CONTEXT_SOUNDS);
 
   for (uint32_t i = 0; i < lengthof(cg_sample_hits); i++) {
     q_snprintf(name, sizeof(name), "misc/hit_%" PRIu32, i + 1);
-    cg_sample_hits[i] = cgi.LoadSample(name);
+    cg_sample_hits[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
   }
 
   for (uint32_t i = 0; i < lengthof(cg_sample_machinegun_fire); i++) {
     q_snprintf(name, sizeof(name), "weapons/machinegun/fire_%" PRIu32, i + 1);
-    cg_sample_machinegun_fire[i] = cgi.LoadSample(name);
+    cg_sample_machinegun_fire[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
   }
 
   for (uint32_t i = 0; i < lengthof(cg_sample_machinegun_hit); i++) {
     q_snprintf(name, sizeof(name), "weapons/machinegun/hit_%" PRIu32, i + 1);
-    cg_sample_machinegun_hit[i] = cgi.LoadSample(name);
+    cg_sample_machinegun_hit[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
   }
 
   cgi.LoadingProgress(-1, "sprites");

@@ -1304,6 +1304,11 @@ typedef struct {
   uint32_t flags;
 
   /**
+   * @brief The model's `sounds` directive from `animation.cfg`.
+   */
+  char sounds[MAX_QPATH];
+
+  /**
    * @brief The vertex array.
    */
   r_mesh_vertex_t *vertexes;

@@ -300,7 +300,7 @@ static s_sample_t *Cg_ClientModelSample(const cl_entity_t *ent, const char *name
     return NULL;
   }
 
-  s_sample_t *result = cgi.LoadClientModelSample(info->model, name);
+  s_sample_t *result = cgi.LoadClientModelSample(info->model, info->torso->mesh->sounds, name);
   return result;
 }
 
@@ -330,12 +330,12 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 
       last_index = index;
 
-      return cgi.LoadSample(footsteps->samples[index].name);
+      return cgi.LoadSample(footsteps->samples[index].name, ASSET_CONTEXT_NONE);
     }
   }
 
   Cg_Debug("No ground found for footstep at %s\n", vtos(end));
-  return cgi.LoadSample(va("#players/common/step_default_%d", RandomRangei(1, 5)));
+  return cgi.LoadSample(va("common/step_default_%d", RandomRangei(1, 5)), ASSET_CONTEXT_PLAYERS);
 }
 
 /**
