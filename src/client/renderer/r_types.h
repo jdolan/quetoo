@@ -1799,14 +1799,23 @@ typedef struct r_entity_s {
   float lerp, back_lerp;
 
   /**
-   * @brief Mesh model skins, up to one per face. `NULL` implies the default skin.
+   * @brief Mesh model skins, up to one per face.
+   *
+   * Only meaningful when `has_skins` is `true` (see below). In that case, a
+   * `NULL` entry means the face has no skin and should not be drawn at all,
+   * rather than falling back to the mesh's baked-in default material.
    */
   r_material_t *skins[MAX_MESH_FACES];
 
   /**
-   * @brief The number of mesh model skins.
+   * @brief Whether `skins` is populated and authoritative for this entity.
+   *
+   * `false` means this entity does not use per-face skins; every face falls
+   * back to its mesh's baked-in default material (`face->material`). `true`
+   * means `skins` is authoritative for each face: a `NULL` entry explicitly
+   * means "do not draw this face" (see `Cg_LoadClientSkins`).
    */
-  int32_t num_skins;
+  bool has_skins;
 
   /**
    * @brief The entity effects (`EF_NO_DRAW`, `EF_WEAPON`, ..).

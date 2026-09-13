@@ -85,7 +85,7 @@ static void render(View *self, Renderer *renderer) {
 
     this->view.fov.y = Degrees(y) * a / 2.f;
 
-    this->view.origin = Vec3(128.f + (48.f * -this->zoom), 0.f, 48.f);
+    this->view.origin = Vec3(180.f + (48.f * -this->zoom), 0.f, 32.f);
 
     this->view.angles = Vec3_Euler(Vec3_Negate(this->view.origin));
 
@@ -176,18 +176,21 @@ static void updateBindings(View *self, ident data) {
   this->legs.scale = 1.f;
   this->legs.color = Vec4(1.f, 1.f, 1.f, 1.f);
   memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
+  this->legs.has_skins = true;
 
   this->torso.model = this->client.torso;
   this->torso.scale = 1.f;
   this->torso.color = Vec4(1.f, 1.f, 1.f, 1.f);
   this->torso.tag = "tag_torso";
   memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
+  this->torso.has_skins = true;
 
   this->head.model = this->client.head;
   this->head.scale = 1.f;
   this->head.color = Vec4(1.f, 1.f, 1.f, 1.f);
   this->head.tag = "tag_head";
   memcpy(this->head.skins, this->client.head_skins, sizeof(this->head.skins));
+  this->head.has_skins = true;
 
   this->weapon.model = cgi.LoadModel("models/weapons/rocketlauncher/tris");
   this->weapon.scale = 1.f;

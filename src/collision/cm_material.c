@@ -427,7 +427,7 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
     if (!q_strcmp(token, "envmap")) {
 
       if (!Parse_Token(parser, PARSE_NO_WRAP, s->asset.name, sizeof(s->asset.name))) {
-        Cm_MaterialWarn(m, parser, "Missing envmap asset or index");
+        Cm_MaterialWarn(m, parser, "Missing envmap asset");
         continue;
       }
 

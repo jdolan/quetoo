@@ -468,7 +468,10 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e, RenderPa
   const r_mesh_face_t *face = mesh->faces;
   for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-    const r_material_t *material = e->skins[i] ?: face->material;
+    const r_material_t *material = R_MeshEntityFaceMaterial(e, face, i);
+    if (!material) {
+      continue;
+    }
 
     if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
       continue;
@@ -492,7 +495,10 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e, RenderPa
   face = mesh->faces;
   for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-    const r_material_t *material = e->skins[i] ?: face->material;
+    const r_material_t *material = R_MeshEntityFaceMaterial(e, face, i);
+    if (!material) {
+      continue;
+    }
 
     if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
       continue;
@@ -518,7 +524,10 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e, RenderPa
     face = mesh->faces;
     for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-      const r_material_t *material = e->skins[i] ?: face->material;
+      const r_material_t *material = R_MeshEntityFaceMaterial(e, face, i);
+      if (!material) {
+        continue;
+      }
 
       if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
         continue;
@@ -536,7 +545,10 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e, RenderPa
   face = mesh->faces;
   for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-    const r_material_t *material = e->skins[i] ?: face->material;
+    const r_material_t *material = R_MeshEntityFaceMaterial(e, face, i);
+    if (!material) {
+      continue;
+    }
 
     if (!((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND))) {
       continue;

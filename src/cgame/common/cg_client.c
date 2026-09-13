@@ -130,12 +130,13 @@ static void Cg_LoadClientSkin(cg_client_info_t *ci, char *line) {
 
 /**
  * @brief Parses a .skin file, resolving skins for each face across all three
- * mesh models (head, torso, legs). A face left unresolved simply falls back
- * to its mesh's baked-in default material at draw time (see e->skins[i] ?:
- * face->material in r_mesh_draw.c / r_shadow.c); some third-party skins
- * intentionally omit optional accessory faces (e.g. a cigar or glasses
- * surface), exactly as vanilla Quake III tolerates. Returns false only if
- * the .skin file itself could not be found/read.
+ * mesh models (head, torso, legs). A face left unresolved is intentionally
+ * omitted from that skin variant and is not drawn at all (see `has_skins`
+ * and `skins` in r_entity_t, and the checks in r_mesh_draw.c / r_shadow.c);
+ * some third-party skins genuinely don't texture certain optional accessory
+ * faces (e.g. straps, wrist rockets), and the modeler never intended them to
+ * render for that variant. Returns false only if the .skin file itself could
+ * not be found/read.
  */
 static bool Cg_LoadClientSkins(cg_client_info_t *ci, const char *skin) {
   char path[MAX_QPATH], line[MAX_STRING_CHARS];
@@ -184,7 +185,7 @@ static bool Cg_LoadClientSkins(cg_client_info_t *ci, const char *skin) {
     const r_mesh_face_t *face = meshes[m].model->mesh->faces;
     for (int32_t f = 0; f < meshes[m].model->mesh->num_faces; f++, face++) {
       if (!meshes[m].skins[f]) {
-        Cg_Debug("%s: %s %s has no skin, using default material\n", path, meshes[m].name, face->name);
+        Cg_Debug("%s: %s %s has no skin, face will not be drawn\n", path, meshes[m].name, face->name);
       }
     }
   }
@@ -760,6 +761,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   legs.angles.x = legs.angles.z = 0.0; // legs only use yaw
   legs.bounds = legs.model->bounds;
   memcpy(legs.skins, skin->legs_skins, sizeof(legs.skins));
+  legs.has_skins = true;
 
   // the model is built for PM_BOUNDS; a client whose standing box is another
   // size has the whole rig scaled to its height and seated on its floor
@@ -771,12 +773,14 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   torso.angles.y = ent->angles.y - legs.angles.y; // legs twisted already, we just need to pitch/roll
   torso.bounds = torso.model->bounds;
   memcpy(torso.skins, skin->torso_skins, sizeof(torso.skins));
+  torso.has_skins = true;
 
   head.model = skin->head;
   head.origin = Vec3_Zero();
   head.angles.y = 0.0;
   head.bounds = head.model->bounds;
   memcpy(head.skins, skin->head_skins, sizeof(head.skins));
+  head.has_skins = true;
 
   Cg_AnimateClientEntity(ent, &torso, &legs);
 

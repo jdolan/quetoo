@@ -28,4 +28,19 @@ void R_DrawMeshEntities(const r_view_t *view, RenderPass *pass);
 void R_InitMeshPipeline(void);
 void R_ShutdownMeshPipeline(void);
 void R_UpdateMeshPipeline(void);
+
+/**
+ * @brief Resolves the material to draw for the given face of a mesh entity.
+ * @return The material to draw, or `NULL` if the entity has an explicit
+ * per-face skins array (`has_skins` is `true`) and this face has no skin
+ * assigned, meaning it should not be drawn at all.
+ */
+static inline const r_material_t *R_MeshEntityFaceMaterial(const r_entity_t *e,
+                                                            const r_mesh_face_t *face,
+                                                            int32_t i) {
+  if (e->has_skins) {
+    return e->skins[i];
+  }
+  return face->material;
+}
 #endif
