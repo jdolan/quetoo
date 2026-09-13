@@ -626,8 +626,16 @@ static inline float Cg_CalculateAngle(const float speed, float current, float id
  * to face the direction of the player's view, and their legs to face the direction of the player's
  * movement. The leg-to-torso delta angle is clamped so that we don't get Totally Krossed Out like
  * Kris Kross. Those who were sentient in 1992 will understand.
+ *
+ * Models flagged `fixedlegs` in their `animation.cfg` opt out of this entirely: their legs
+ * always face the same direction as the torso, with no independent yaw or turn animation.
  */
-static void Cg_RotateClientLegs(cl_entity_t *ent, r_entity_t *legs) {
+static void Cg_RotateClientLegs(const cg_client_info_t *ci, cl_entity_t *ent, r_entity_t *legs) {
+
+  if (ci->legs->mesh->flags & MESH_MODEL_FIXED_LEGS) {
+    ent->legs_yaw = ent->legs_current_yaw = ent->angles.y;
+    return;
+  }
 
   vec3_t right;
   Vec3_Vectors(legs->angles, NULL, &right, NULL);
@@ -746,7 +754,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   head = torso = legs = *e;
 
   if ((ent->current.effects & EF_CORPSE) == 0) {
-    Cg_RotateClientLegs(ent, &legs);
+    Cg_RotateClientLegs(ci, ent, &legs);
   }
 
   cg_client_info_t *skin = ci;
@@ -771,6 +779,9 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   torso.model = skin->torso;
   torso.origin = Vec3_Zero();
   torso.angles.y = ent->angles.y - legs.angles.y; // legs twisted already, we just need to pitch/roll
+  if (torso.model->mesh->flags & MESH_MODEL_FIXED_TORSO) {
+    torso.angles.x = 0.0; // fixedtorso: never pitch independently of the legs
+  }
   torso.bounds = torso.model->bounds;
   memcpy(torso.skins, skin->torso_skins, sizeof(torso.skins));
   torso.has_skins = true;

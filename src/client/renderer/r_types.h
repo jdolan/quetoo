@@ -1277,12 +1277,29 @@ typedef struct {
 } r_mesh_config_t;
 
 /**
+ * @brief Mesh model flags, parsed from `animation.cfg`.
+ */
+typedef enum {
+  /**
+   * @brief The legs do not rotate independently of the movement direction; they always
+   * follow the torso's yaw. Set by the `fixedlegs` directive.
+   */
+  MESH_MODEL_FIXED_LEGS = (1 << 0),
+
+  /**
+   * @brief The torso does not pitch independently of the view angle. Set by the
+   * `fixedtorso` directive.
+   */
+  MESH_MODEL_FIXED_TORSO = (1 << 1)
+} r_mesh_model_flags_t;
+
+/**
  * @brief The mesh model type.
  */
 typedef struct {
 
   /**
-   * @brief The mesh model flags.
+   * @brief The mesh model flags (see `r_mesh_model_flags_t`).
    */
   uint32_t flags;
 

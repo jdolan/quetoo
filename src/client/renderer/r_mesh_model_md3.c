@@ -66,6 +66,18 @@ static void R_LoadMd3Animations(r_model_t *mod) {
       continue;
     }
 
+    if (!q_strcmp(token, "fixedlegs")) {
+      Parse_SkipToken(&parser, PARSE_DEFAULT);
+      mod->mesh->flags |= MESH_MODEL_FIXED_LEGS;
+      continue;
+    }
+
+    if (!q_strcmp(token, "fixedtorso")) {
+      Parse_SkipToken(&parser, PARSE_DEFAULT);
+      mod->mesh->flags |= MESH_MODEL_FIXED_TORSO;
+      continue;
+    }
+
     if (*token >= '0' && *token <= '9') {
       r_mesh_animation_t *a = &mod->mesh->animations[mod->mesh->num_animations];
 
