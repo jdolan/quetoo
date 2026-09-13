@@ -26,21 +26,37 @@ static cvar_t *g_ai_name_prefix;
 /**
  * @brief The static roster of bot definitions.
  * Each entry defines a unique bot with its own name, appearance, and personality.
+ * Most bots are named after the player model they wear; the exceptions are
+ * Stroggo, Diesel and Reaper, whose models (qforcer, suwcap, violator) don't
+ * lend themselves to being used as a proper name.
  */
 static const g_ai_roster_t g_ai_roster[] = {
-  // name          skin                guid                                    skill  aggr   aware
-  { "Stroggo",    "qforcer/default",   "ccbb7ca1-03af-448d-b0ab-b9a496472d86", .50f,  .50f,  .50f },
-  { "Enforcer",   "guard/default",     "19d4d35d-e19c-43b7-9bbf-cd3ecbbf88d4", .65f,  .60f,  .55f },
-  { "Berserker",  "gork/default",      "9fa691aa-dc2d-49b4-a4b4-0c0fad4d755b", .40f,  .85f,  .30f },
-  { "Gunner",     "guard/mgss",        "42a7c448-4c4a-434a-9274-69f700b2f8b6", .70f,  .45f,  .70f },
-  { "Gladiator",  "dragoon/default",   "c4ad0a99-5251-42fc-bc63-2f705ce6f363", .55f,  .70f,  .45f },
-  { "Makron",     "dragoon/baron",     "1ba330d3-6ee3-473c-9d18-bd21d29ec262", .85f,  .55f,  .80f },
-  { "Brain",      "gork/ctf",          "82229474-3efc-4872-bd05-a5a997f9a3e6", .75f,  .25f,  .90f },
-  { "Widow",      "bunker/default",    "c83474c1-422c-44cd-a93b-918390435187", .60f,  .40f,  .65f },
-  { "Tank",       "bunker/hax",        "a66cc25d-e234-4f8d-98b5-7cc4d34ea067", .35f,  .80f,  .35f },
-  { "Medic",      "guard/sggrd",       "80baa7ff-2ea6-4d8e-b111-caaaf2147e8b", .45f,  .30f,  .75f },
-  { "Parasite",   "dragoon/bastard",   "cbb2fb55-72fc-4242-aa5b-ff9d5f056883", .80f,  .75f,  .60f },
-  { "Flyer",      "bunker/fidget",     "cbbe6216-801e-4c53-84bc-f2de6fcc3e1c", .55f,  .65f,  .40f },
+  // name          skin                  guid                                    skill  aggr   aware
+  { "Sarge",       "qforcer/default",    "ccbb7ca1-03af-448d-b0ab-b9a496472d86", .50f,  .50f,  .50f },
+  { "Guard",       "guard/default",      "19d4d35d-e19c-43b7-9bbf-cd3ecbbf88d4", .65f,  .60f,  .55f },
+  { "Gork",        "gork/default",       "9fa691aa-dc2d-49b4-a4b4-0c0fad4d755b", .40f,  .85f,  .30f },
+  { "Gunner",      "guard/mgss",         "42a7c448-4c4a-434a-9274-69f700b2f8b6", .70f,  .45f,  .70f },
+  { "Dragoon",     "dragoon/default",    "c4ad0a99-5251-42fc-bc63-2f705ce6f363", .55f,  .70f,  .45f },
+  { "Makron",      "dragoon/baron",      "1ba330d3-6ee3-473c-9d18-bd21d29ec262", .85f,  .55f,  .80f },
+  { "Brain",       "gork/ctf",           "82229474-3efc-4872-bd05-a5a997f9a3e6", .75f,  .25f,  .90f },
+  { "Bunker",      "bunker/default",     "c83474c1-422c-44cd-a93b-918390435187", .60f,  .40f,  .65f },
+  { "Tank",        "bunker/hax",         "a66cc25d-e234-4f8d-98b5-7cc4d34ea067", .35f,  .80f,  .35f },
+  { "Medic",       "guard/sggrd",        "80baa7ff-2ea6-4d8e-b111-caaaf2147e8b", .45f,  .30f,  .75f },
+  { "Parasite",    "dragoon/bastard",    "cbb2fb55-72fc-4242-aa5b-ff9d5f056883", .80f,  .75f,  .60f },
+  { "Flyer",       "bunker/fidget",      "cbbe6216-801e-4c53-84bc-f2de6fcc3e1c", .55f,  .65f,  .40f },
+  { "Bldskr",      "bloodseeker/default","928314d3-7eff-463a-ba7b-a0e5348034df", .65f,  .80f,  .70f },
+  { "Caustic",     "caustic/default",    "44e9f329-78b8-48cf-82b2-6b2deab9a7e2", .60f,  .40f,  .80f },
+  { "Creech",      "creech/default",     "5c314256-99bc-4acf-a1aa-cca6c8628504", .40f,  .75f,  .35f },
+  { "Cruentus",    "cruentus/default",   "9c28ccc7-485c-4f64-9114-e1b3fbf5a927", .50f,  .85f,  .30f },
+  { "Gammy",       "gammy/default",      "62b66b49-3413-4551-8a78-31b829d3d9c0", .35f,  .55f,  .50f },
+  { "Gaunt",       "gaunt/default",      "c302fa4a-5e87-44ba-ad2f-bb5c7c4c3d56", .75f,  .30f,  .85f },
+  { "Gladiator",   "gladiator/default",  "b905851b-c639-4535-aaa6-cb6360ac8633", .65f,  .65f,  .55f },
+  { "Magdalena",   "magdalena/default",  "2feaddd0-47f6-4457-9311-745774913ea4", .70f,  .45f,  .75f },
+  { "Mantis",      "mantis/default",     "c1100255-64db-4e34-aec7-bffc0c772a19", .70f,  .70f,  .50f },
+  { "Merc",        "merc/default",       "9a25c51a-7b1b-496b-8316-e506b6122ec3", .75f,  .55f,  .70f },
+  { "Nitro",       "nitro/default",      "f8fdb0a8-b25c-411a-b2c2-b59b4933eea2", .45f,  .90f,  .25f },
+  { "Diesel",      "suwcap/default",     "f1867a5c-75cd-4825-be08-2f036d2325d5", .50f,  .70f,  .45f },
+  { "Reaper",      "violator/default",   "17a3bcbb-e622-4736-a0c0-6c6ce64a9ee4", .80f,  .60f,  .65f },
 };
 
 static const uint32_t g_ai_roster_count = lengthof(g_ai_roster);
