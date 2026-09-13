@@ -662,7 +662,7 @@ static int32_t Cm_StageIndex(const cm_material_t *m, const cm_stage_t *stage) {
 /**
  * @brief Allocates a material, setting up the diffuse stage.
  */
-static cm_material_t *Cm_AllocMaterial(const char *name, cm_asset_context_t context) {
+static cm_material_t *Cm_AllocMaterial(const char *name, asset_context_t context) {
 
   if (!name || !name[0]) {
     Com_Error(ERROR_DROP, "NULL diffuse name\n");
@@ -696,7 +696,7 @@ static cm_material_t *Cm_AllocMaterial(const char *name, cm_asset_context_t cont
  * @param context The asset context for path resolution.
  * @return The material (always non-`NULL`).
  */
-cm_material_t *Cm_LoadMaterial(const char *name, cm_asset_context_t context) {
+cm_material_t *Cm_LoadMaterial(const char *name, asset_context_t context) {
 
   cm_material_t *m = Cm_AllocMaterial(name, context);
 
@@ -878,56 +878,11 @@ cm_material_t *Cm_LoadMaterial(const char *name, cm_asset_context_t context) {
 }
 
 /**
- * @brief Prepends the context prefix to a name if not already present.
- */
-void Cm_AssetPath(const char *name, char *out, size_t len, cm_asset_context_t context) {
-
-  *out = '\0';
-
-  switch (context) {
-    case ASSET_CONTEXT_NONE:
-      break;
-    case ASSET_CONTEXT_TEXTURES:
-      if (q_strncmp(name, "textures/", sizeof("textures/") - 1)) {
-        q_strlcat(out, "textures/", len);
-      }
-      break;
-    case ASSET_CONTEXT_MODELS:
-      if (q_strncmp(name, "models/", sizeof("models/") - 1)) {
-        q_strlcat(out, "models/", len);
-      }
-      break;
-    case ASSET_CONTEXT_PLAYERS:
-      if (q_strncmp(name, "players/", sizeof("players/") - 1)) {
-        q_strlcat(out, "players/", len);
-      }
-      break;
-    case ASSET_CONTEXT_SPRITES:
-      if (q_strncmp(name, "sprites/", sizeof("sprites/") - 1)) {
-        q_strlcat(out, "sprites/", len);
-      }
-      break;
-    case ASSET_CONTEXT_SOUNDS:
-      if (q_strncmp(name, "sounds/", sizeof("sounds/") - 1)) {
-        q_strlcat(out, "sounds/", len);
-      }
-      break;
-    case ASSET_CONTEXT_UI:
-      if (q_strncmp(name, "ui/", sizeof("ui/") - 1)) {
-        q_strlcat(out, "ui/", len);
-      }
-      break;
-  }
-
-  q_strlcat(out, name, len);
-}
-
-/**
  * @brief Returns the .mat file path for the given material name and context.
  */
-void Cm_MaterialPath(const char *name, char *path, size_t len, cm_asset_context_t context) {
+void Cm_MaterialPath(const char *name, char *path, size_t len, asset_context_t context) {
 
-  Cm_AssetPath(name, path, len, context);
+  Asset_Path(name, path, len, context);
 
   q_strlcat(path, ".mat", len);
 }
@@ -935,11 +890,11 @@ void Cm_MaterialPath(const char *name, char *path, size_t len, cm_asset_context_
 /**
  * @brief Resolves the path of the specified asset by name within the given context.
  */
-static bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
+static bool Cm_ResolveAsset(asset_t *asset, asset_context_t context) {
   const char *extensions[] = { "png", "jpg", "tga" };
   char name[MAX_QPATH];
 
-  Cm_AssetPath(asset->name, name, sizeof(name), context);
+  Asset_Path(asset->name, name, sizeof(name), context);
 
   for (size_t i = 0; i < lengthof(extensions); i++) {
     q_snprintf(asset->path, sizeof(asset->path), "%s.%s", name, extensions[i]);
@@ -958,14 +913,14 @@ static bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 /**
  * @brief Resolves the frame assets for an animation stage.
  */
-static bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t context) {
+static bool Cm_ResolveStageAnimation(cm_stage_t *stage, asset_context_t context) {
 
   if (!Cm_ResolveAsset(&stage->asset, context)) {
     Com_Warn("Failed to resolve animation asset %s\n", stage->asset.name);
     return false;
   }
 
-  const size_t size = sizeof(cm_asset_t) * stage->animation.num_frames;
+  const size_t size = sizeof(asset_t) * stage->animation.num_frames;
   stage->animation.frames = Mem_LinkMalloc(size, stage);
 
   char base[MAX_QPATH];
@@ -983,7 +938,7 @@ static bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t conte
 
   for (int32_t i = 0; i < stage->animation.num_frames; i++) {
 
-    cm_asset_t *frame = &stage->animation.frames[i];
+    asset_t *frame = &stage->animation.frames[i];
     q_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
 
     if (!Cm_ResolveAsset(frame, context)) {
@@ -998,7 +953,7 @@ static bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t conte
 /**
  * @brief Resolves all asset references within the given stage.
  */
-static bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, cm_asset_context_t context) {
+static bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, asset_context_t context) {
 
   bool res = false;
   
@@ -1031,7 +986,7 @@ static bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, cm
 /**
  * @brief Resolves the asset for the given material.
  */
-static bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset, const char **suffix) {
+static bool Cm_ResolveMaterialAsset(cm_material_t *material, asset_t *asset, const char **suffix) {
 
   if (*asset->name) {
     char name[MAX_QPATH];
@@ -1074,7 +1029,7 @@ static void Cm_ResolveFootsteps_Enumerate(const char *file, void *data) {
     return;
   }
 
-  cm_asset_t *out = footsteps->samples + footsteps->num_samples;
+  asset_t *out = footsteps->samples + footsteps->num_samples;
 
   q_strlcpy(out->name, file, sizeof(out->name));
   q_strlcpy(out->path, file, sizeof(out->path));
@@ -1087,8 +1042,8 @@ static void Cm_ResolveFootsteps_Enumerate(const char *file, void *data) {
  */
 static int32_t Cm_ResolveFootsteps_Compare(const void *a, const void *b) {
 
-  const cm_asset_t *a_asset = a;
-  const cm_asset_t *b_asset = b;
+  const asset_t *a_asset = a;
+  const asset_t *b_asset = b;
 
   return q_strcmp(a_asset->name, b_asset->name);
 }
@@ -1109,7 +1064,7 @@ static void Cm_ResolveFootsteps(cm_footsteps_t *footsteps) {
   if (!footsteps->num_samples) {
     Com_Warn("Footsteps \"%s\" have no samples\n", footsteps->name);
   } else {
-    qsort(footsteps->samples, footsteps->num_samples, sizeof(cm_asset_t), Cm_ResolveFootsteps_Compare);
+    qsort(footsteps->samples, footsteps->num_samples, sizeof(asset_t), Cm_ResolveFootsteps_Compare);
   }
 }
 

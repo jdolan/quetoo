@@ -12,6 +12,9 @@
     <ClCompile Include="..\..\src\common\atlas.c">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\common\asset.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\cmd.c">
       <Filter>src\common</Filter>
     </ClCompile>
@@ -57,6 +60,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\atlas.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\asset.h">
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\common\cmd.h">

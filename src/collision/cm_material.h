@@ -21,36 +21,7 @@
 
 #pragma once
 
-#include "shared/shared.h"
-
-/**
- * @brief Asset contexts are paths (and conventions) for locating and loading material assets.
- */
-typedef enum {
-  ASSET_CONTEXT_NONE,
-  ASSET_CONTEXT_TEXTURES,
-  ASSET_CONTEXT_MODELS,
-  ASSET_CONTEXT_PLAYERS,
-  ASSET_CONTEXT_SPRITES,
-  ASSET_CONTEXT_SOUNDS,
-  ASSET_CONTEXT_UI
-} cm_asset_context_t;
-
-/**
- * @brief A named asset with a resolved file path.
- */
-typedef struct {
-
-  /**
-   * @brief The asset name as referenced in material files.
-   */
-  char name[MAX_QPATH];
-
-  /**
-   * @brief The resolved filesystem path, or empty if unresolved.
-   */
-  char path[MAX_QPATH];
-} cm_asset_t;
+#include "common/asset.h"
 
 /**
  * @brief Blend factors for material stage blending. Renderer-agnostic; the
@@ -229,7 +200,7 @@ typedef struct {
   /**
    * @brief Resolved per-frame asset array.
    */
-  cm_asset_t *frames;
+  asset_t *frames;
 
   /**
    * @brief Playback rate in frames per second.
@@ -298,7 +269,7 @@ typedef struct cm_stage_s {
   /**
    * @brief The stage asset.
    */
-  cm_asset_t asset;
+  asset_t asset;
 
   /**
    * @brief The stage alpha blend function.
@@ -391,7 +362,7 @@ typedef struct {
   /**
    * @brief The footstep sample assets.
    */
-  cm_asset_t samples[MAX_FOOTSTEP_SAMPLES];
+  asset_t samples[MAX_FOOTSTEP_SAMPLES];
 
   /**
    * @brief The number of footstep sample assets.
@@ -429,27 +400,27 @@ typedef struct cm_material_s {
   /**
    * @brief The asset context for this material (e.g. textures, models, players).
    */
-  cm_asset_context_t context;
+  asset_context_t context;
 
   /**
    * @brief The diffusemap asset.
    */
-  cm_asset_t diffusemap;
+  asset_t diffusemap;
 
   /**
    * @brief The normalmap asset.
    */
-  cm_asset_t normalmap;
+  asset_t normalmap;
 
   /**
    * @brief The specularmap asset.
    */
-  cm_asset_t specularmap;
+  asset_t specularmap;
 
   /**
    * @brief The tintmap asset.
    */
-  cm_asset_t tintmap;
+  asset_t tintmap;
 
   /**
    * @brief Flags for the material.
@@ -521,7 +492,7 @@ typedef struct cm_material_s {
  * @brief Loads the material with the given name in the given asset context.
  * @return The loaded material, or `NULL` on failure.
  */
-cm_material_t *Cm_LoadMaterial(const char *name, cm_asset_context_t context);
+cm_material_t *Cm_LoadMaterial(const char *name, asset_context_t context);
 
 /**
  * @brief Frees the material and all its stages.
@@ -548,12 +519,7 @@ void Cm_MaterialBasename(const char *in, char *out, size_t len);
 /**
  * @brief Computes the expected .mat file path for the given material name and context.
  */
-void Cm_MaterialPath(const char *name, char *path, size_t len, cm_asset_context_t context);
-
-/**
- * @brief Prepends the context prefix to a name if not already present.
- */
-void Cm_AssetPath(const char *name, char *out, size_t len, cm_asset_context_t context);
+void Cm_MaterialPath(const char *name, char *path, size_t len, asset_context_t context);
 
 #if defined(__CM_LOCAL_H__)
 #endif

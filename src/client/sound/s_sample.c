@@ -188,7 +188,7 @@ static void S_FreeAliasedSample(s_media_t *self) {
 /**
  * @brief Loads or returns a cached sound sample by name.
  */
-s_sample_t *S_LoadSample(const char *name, cm_asset_context_t context) {
+s_sample_t *S_LoadSample(const char *name, asset_context_t context) {
 
   if (!s_context.context) {
     return NULL;
@@ -205,7 +205,7 @@ s_sample_t *S_LoadSample(const char *name, cm_asset_context_t context) {
   if (stripped[0] == '*') { // placeholder, resolved per-client at play time; never context-qualified
     q_strlcpy(key, stripped, sizeof(key));
   } else {
-    Cm_AssetPath(stripped, key, sizeof(key), context);
+    Asset_Path(stripped, key, sizeof(key), context);
   }
 
   s_sample_t *sample = (s_sample_t *) S_FindMedia(key, S_MEDIA_SAMPLE);

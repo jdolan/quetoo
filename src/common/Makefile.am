@@ -1,5 +1,6 @@
 noinst_HEADERS = \
 	archive.h \
+	asset.h \
 	atlas.h \
 	cmd.h \
 	common.h \
@@ -19,6 +20,7 @@ noinst_LTLIBRARIES = \
 
 libcommon_la_SOURCES = \
 	archive.c \
+	asset.c \
 	atlas.c \
 	cmd.c \
 	common.c \

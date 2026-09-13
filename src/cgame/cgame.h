@@ -31,6 +31,7 @@
 #endif
 
 #include "client/cl_types.h"
+#include "common/asset.h"
 #include "common/console.h"
 #include "common/installer.h"
 #include <Objectively/PointerArray.h>
@@ -739,7 +740,7 @@ typedef struct cg_import_s {
    * @param context The asset context, e.g. `ASSET_CONTEXT_SOUNDS`, `ASSET_CONTEXT_PLAYERS`.
    * @return The loaded sample.
    */
-  s_sample_t *(*LoadSample)(const char *name, cm_asset_context_t context);
+  s_sample_t *(*LoadSample)(const char *name, asset_context_t context);
 
   /**
    * @brief Loads a sound sample for the given player model and name.
@@ -848,7 +849,7 @@ typedef struct cg_import_s {
    * @param context The asset context, e.g. `ASSET_CONTEXT_PLAYERS`.
    * @return The material.
    */
-  r_material_t *(*LoadMaterial)(const char *name, cm_asset_context_t context);
+  r_material_t *(*LoadMaterial)(const char *name, asset_context_t context);
 
   /**
    * @brief Loads the model with the given name.

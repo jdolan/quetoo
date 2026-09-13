@@ -21,13 +21,14 @@
 
 #pragma once
 
+#include "common/asset.h"
 #include "r_types.h"
 
-r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context);
+r_material_t *R_LoadMaterial(const char *name, asset_context_t context);
 
 #if defined(__R_LOCAL_H__)
 
-r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context);
+r_material_t *R_FindMaterial(const char *name, asset_context_t context);
 void R_SaveMaterials_f(void);
 
 /**

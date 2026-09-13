@@ -21,12 +21,38 @@
 
 #pragma once
 
-#include "common/asset.h"
+#include "shared/shared.h"
 
-s_sample_t *S_LoadSample(const char *name, asset_context_t context);
-s_sample_t *S_LoadClientModelSample(const char *model, const char *sound_set, const char *name);
+/**
+ * @brief Asset contexts are paths (and conventions) for locating and loading assets.
+ */
+typedef enum {
+  ASSET_CONTEXT_NONE,
+  ASSET_CONTEXT_TEXTURES,
+  ASSET_CONTEXT_MODELS,
+  ASSET_CONTEXT_PLAYERS,
+  ASSET_CONTEXT_SPRITES,
+  ASSET_CONTEXT_SOUNDS,
+  ASSET_CONTEXT_UI
+} asset_context_t;
 
-#if defined(__S_LOCAL_H__)
-size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32_t dest_rate, const size_t num_frames, const int16_t *in_frames, int16_t **out_frames, size_t *out_size);
-void S_ConvertSamples(const float *input_samples, const sf_count_t num_samples, int16_t **out_samples, size_t *out_size);
-#endif
+/**
+ * @brief A named asset with a resolved file path.
+ */
+typedef struct {
+
+  /**
+   * @brief The asset name as referenced in material, model or animation files.
+   */
+  char name[MAX_QPATH];
+
+  /**
+   * @brief The resolved filesystem path, or empty if unresolved.
+   */
+  char path[MAX_QPATH];
+} asset_t;
+
+/**
+ * @brief Prepends the context prefix to a name if not already present.
+ */
+void Asset_Path(const char *name, char *out, size_t len, asset_context_t context);

@@ -52,7 +52,7 @@ static r_animation_t *R_LoadStageAnimation(const r_material_t *material, r_stage
 
   for (int32_t i = 0; i < stage->cm->animation.num_frames; i++, out++) {
 
-    cm_asset_t *frame = &stage->cm->animation.frames[i];
+    asset_t *frame = &stage->cm->animation.frames[i];
     if (*frame->path) {
       *out = R_LoadImage(frame->path, IMG_MATERIAL);
     } else {
@@ -482,7 +482,7 @@ bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity, const r_bsp
 /**
  * @brief Finds an existing material for the specified name and context.
  */
-r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
+r_material_t *R_FindMaterial(const char *name, asset_context_t context) {
   char key[MAX_QPATH];
   char basename[MAX_QPATH];
   
@@ -495,7 +495,7 @@ r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
 /**
  * @brief Loads a material for the specified asset name and context.
  */
-r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
+r_material_t *R_LoadMaterial(const char *name, asset_context_t context) {
 
   r_material_t *material = R_FindMaterial(name, context);
   if (material == NULL) {
