@@ -114,13 +114,6 @@ typedef struct {
   entity_animation_t animation;
 
   /**
-   * @brief The animation that was playing immediately before this one, so that specific
-   * transitions (e.g. a locomotion cycle settling into an idle stand) can be eased in more
-   * gracefully than the norm.
-   */
-  entity_animation_t old_animation;
-
-  /**
    * @brief The time when this animation started.
    */
   uint32_t time;

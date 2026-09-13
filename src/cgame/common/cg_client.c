@@ -479,43 +479,6 @@ void Cg_ClientRagdoll(cl_entity_t *ent) {
 }
 
 /**
- * @brief The minimum time, in milliseconds, over which we ease out of a looping
- * locomotion cycle (walk, run, back-pedal, or walk-crouched) into a stationary idle
- * stand. Without this, the blend is only as long as the idle animation's own
- * frame_duration (25-40ms for most player models), which is too short to disguise the
- * pose difference between an arbitrary point in the stride and a fixed stand pose
- * (especially for models whose stand pose has an asymmetric gesture, e.g. an arm held
- * forward). This is intentionally scoped to only this specific transition: a more
- * general blend-in was tried and reverted, because many animations (e.g. weapon fire)
- * are *restarted* every time they occur even though the resulting animation value is
- * unchanged, which would otherwise repeatedly re-trigger an extended blend and stutter
- * continuously.
- */
-#define ANIM_LOCOMOTION_SETTLE_TIME 150
-
-/**
- * @return True if the specified animation is a looping locomotion cycle.
- */
-static bool Cg_IsLocomotionCycle(entity_animation_t anim) {
-  switch (anim) {
-    case ANIM_LEGS_WALKCR:
-    case ANIM_LEGS_WALK:
-    case ANIM_LEGS_RUN:
-    case ANIM_LEGS_BACK:
-      return true;
-    default:
-      return false;
-  }
-}
-
-/**
- * @return True if the specified animation is a stationary idle stand.
- */
-static bool Cg_IsIdleStand(entity_animation_t anim) {
-  return anim == ANIM_LEGS_IDLE || anim == ANIM_LEGS_IDLECR;
-}
-
-/**
  * @brief Resolve the frames and interpolation fractions for the specified animation
  * and entity. If a non-looping animation has completed, proceed to the next
  * animation in the sequence.
@@ -535,22 +498,9 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
     return;
   }
 
+  const uint32_t elapsed_time = cgi.client->unclamped_time - a->time;
   const uint32_t frame_duration = 1000 / anim->hz;
   const uint32_t anim_duration = anim->num_frames * frame_duration;
-
-  // by default, we blend over exactly one frame_duration, as before; the locomotion ->
-  // idle stand transition gets a longer, more forgiving blend window (see above).
-  uint32_t blend_time = frame_duration;
-  if (Cg_IsLocomotionCycle(a->old_animation) && Cg_IsIdleStand(a->animation)) {
-    blend_time = ANIM_LOCOMOTION_SETTLE_TIME < anim_duration ? ANIM_LOCOMOTION_SETTLE_TIME : anim_duration;
-  }
-
-  const uint32_t raw_elapsed_time = cgi.client->unclamped_time - a->time;
-  const bool blending_in = raw_elapsed_time < blend_time;
-
-  // while blending in, hold on the first frame; once the blend window ends, resume
-  // normal frame timing exactly where a single frame_duration blend would have left off
-  const uint32_t elapsed_time = blending_in ? 0 : raw_elapsed_time - blend_time + frame_duration;
 
   int32_t frame = elapsed_time / frame_duration;
 
@@ -590,11 +540,7 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
     }
   }
 
-  if (blending_in) {
-    a->lerp = raw_elapsed_time / (float) blend_time;
-  } else {
-    a->lerp = (elapsed_time % frame_duration) / (float) frame_duration;
-  }
+  a->lerp = (elapsed_time % frame_duration) / (float) frame_duration;
   a->fraction = Clampf01(elapsed_time / (float) anim_duration);
 }
 
@@ -735,13 +681,11 @@ static void Cg_RotateClientLegs(const cg_client_info_t *ci, cl_entity_t *ent, r_
 
   if (fabsf(SmallestAngleBetween(ent->legs_yaw, ent->legs_current_yaw)) > 1) {
     if (ent->animation2.animation == ANIM_LEGS_IDLE) {
-      ent->animation2.old_animation = ent->animation2.animation;
       ent->animation2.time = cgi.client->unclamped_time;
       ent->animation2.animation = ANIM_LEGS_TURN;
     }
   } else {
     if (ent->animation2.animation == ANIM_LEGS_TURN) {
-      ent->animation2.old_animation = ent->animation2.animation;
       ent->animation2.time = cgi.client->unclamped_time;
       ent->animation2.animation = ANIM_LEGS_IDLE;
     }
