@@ -606,7 +606,8 @@ typedef enum {
   DEBUG_SOUND        = 1 << 13,
   DEBUG_UI           = 1 << 14,
   DEBUG_EDITOR       = 1 << 15,
-  DEBUG_TOTAL        = 16, // make sure this is valid if you add more
+  DEBUG_INSTALLER    = 1 << 16,
+  DEBUG_TOTAL        = 17, // make sure this is valid if you add more
 
   DEBUG_BREAKPOINT = (int32_t) (1u << 31),
   DEBUG_ALL        = (int32_t) (0xFFFFFFFF & ~DEBUG_BREAKPOINT),

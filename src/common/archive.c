@@ -187,6 +187,8 @@ static bool Archive_ExtractZip(const char *archive, const char *dest) {
   bool success = true;
   const mz_uint count = mz_zip_reader_get_num_files(&zip);
 
+  Com_Debug(DEBUG_INSTALLER, "Extracting %u member(s) of %s to %s\n", count, archive, dest);
+
   for (mz_uint i = 0; i < count; i++) {
 
     mz_zip_archive_file_stat stat;
@@ -227,6 +229,8 @@ static bool Archive_ExtractZip(const char *archive, const char *dest) {
   }
 
   mz_zip_reader_end(&zip);
+
+  Com_Debug(DEBUG_INSTALLER, "Extracted %s: success = %d\n", archive, success);
   return success;
 }
 

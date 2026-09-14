@@ -197,6 +197,7 @@ const char *DEBUG_CATEGORIES[DEBUG_TOTAL] = {
   "sound",
   "ui",
   "editor",
+  "installer",
 };
 
 /**

@@ -237,7 +237,7 @@ static bool Installer_FetchRelease(const char *api, const char *want, installer_
   release(context);
 
   if (success) {
-    Com_Debug(DEBUG_COMMON, "Latest release %s, asset %s (%" PRId64 " bytes)\n",
+    Com_Debug(DEBUG_INSTALLER, "Latest release %s, asset %s (%" PRId64 " bytes)\n",
               out->tag, out->asset, out->size);
   } else {
     Com_Warn("No %s in %s\n", want, api);
@@ -498,6 +498,8 @@ static void Installer_WritePending(const char *pending) {
   if (!SDL_RenamePath(temp, path)) {
     Com_Warn("Failed to write %s: %s\n", path, SDL_GetError());
     SDL_RemovePath(temp);
+  } else {
+    Com_Debug(DEBUG_INSTALLER, "Staged %s at %s\n", installer.release.tag, root);
   }
 }
 
@@ -1115,6 +1117,7 @@ static void Installer_SweepDisplaced(void) {
 
     if (SDL_GetPathInfo(line, NULL)) {
       swept = false;
+      Com_Debug(DEBUG_INSTALLER, "Still displaced: %s\n", line);
       const size_t remaining = sizeof(survivors) - length;
       const int32_t n = q_snprintf(survivors + length, remaining, "%s\n", line);
       if (n > 0 && (size_t) n < remaining) {
@@ -1122,6 +1125,8 @@ static void Installer_SweepDisplaced(void) {
       } else {
         Com_Warn("Too many pending cleanups; dropping %s\n", line);
       }
+    } else {
+      Com_Debug(DEBUG_INSTALLER, "Swept %s\n", line);
     }
   }
 
@@ -1192,6 +1197,7 @@ static bool Installer_Install(const char *staged, const char *target, FILE *clea
     return false;
   }
 
+  Com_Debug(DEBUG_INSTALLER, "Installed %s\n", target);
   return true;
 }
 
@@ -1212,9 +1218,12 @@ static bool Installer_Commit_(const char *staged, const char *target, FILE *clea
         Com_Warn("Failed to record %s for cleanup\n", displaced);
       }
       Installer_RemoveTree(displaced);
+    } else {
+      Com_Debug(DEBUG_INSTALLER, "Recorded %s for cleanup\n", displaced);
     }
   }
 
+  Com_Debug(DEBUG_INSTALLER, "Committed %s\n", target);
   return true;
 }
 
@@ -1241,6 +1250,8 @@ static bool Installer_Rollback(const char *staged, const char *target, FILE *cle
 
   if (!SDL_RenamePath(displaced, target)) {
     Com_Warn("Failed to restore %s: %s\n", target, SDL_GetError());
+  } else {
+    Com_Debug(DEBUG_INSTALLER, "Rolled back %s\n", target);
   }
 
   return true;
@@ -1327,6 +1338,8 @@ void Installer_ApplyPending(void) {
   Installer_Chomp(version);
   Installer_Chomp(root);
 
+  Com_Debug(DEBUG_INSTALLER, "Applying staged %s from %s\n", version, root);
+
   FILE *cleanup = NULL;
 #if defined(_WIN32)
   char cleanup_path[MAX_OS_PATH];
@@ -1343,6 +1356,9 @@ void Installer_ApplyPending(void) {
   bool success = installed >= 0;
 
   const bool whole = success && installed == 0;
+  Com_Debug(DEBUG_INSTALLER, "Installed %d file(s), whole = %d, success = %d\n",
+            installed, whole, success);
+
   if (whole) {
     success = Installer_Install(root, Fs_BaseDir(), cleanup);
   }
