@@ -1115,9 +1115,12 @@ static void Installer_SweepDisplaced(void) {
 
     if (SDL_GetPathInfo(line, NULL)) {
       swept = false;
-      const int32_t n = q_snprintf(survivors + length, sizeof(survivors) - length, "%s\n", line);
-      if (n > 0) {
+      const size_t remaining = sizeof(survivors) - length;
+      const int32_t n = q_snprintf(survivors + length, remaining, "%s\n", line);
+      if (n > 0 && (size_t) n < remaining) {
         length += (size_t) n;
+      } else {
+        Com_Warn("Too many pending cleanups; dropping %s\n", line);
       }
     }
   }
@@ -1165,7 +1168,10 @@ static bool Installer_Install(const char *staged, const char *target, FILE *clea
   char *slash = q_strrchr(dir, '/');
   if (slash) {
     *slash = '\0';
-    SDL_CreateDirectory(dir);
+    if (!SDL_CreateDirectory(dir)) {
+      Com_Warn("Failed to create %s: %s\n", dir, SDL_GetError());
+      return false;
+    }
   }
 
   if (SDL_GetPathInfo(target, NULL)) {
@@ -1201,9 +1207,10 @@ static bool Installer_Commit_(const char *staged, const char *target, FILE *clea
   Installer_Displaced(target, displaced, sizeof(displaced));
 
   if (SDL_GetPathInfo(displaced, NULL)) {
-    if (cleanup) {
-      fprintf(cleanup, "%s\n", displaced);
-    } else {
+    if (cleanup == NULL || fprintf(cleanup, "%s\n", displaced) < 0) {
+      if (cleanup) {
+        Com_Warn("Failed to record %s for cleanup\n", displaced);
+      }
       Installer_RemoveTree(displaced);
     }
   }
@@ -1227,7 +1234,9 @@ static bool Installer_Rollback(const char *staged, const char *target, FILE *cle
   }
 
   if (!SDL_GetPathInfo(staged, NULL)) {
-    SDL_RenamePath(target, staged);
+    if (!SDL_RenamePath(target, staged)) {
+      Com_Warn("Failed to restage %s: %s\n", staged, SDL_GetError());
+    }
   }
 
   if (!SDL_RenamePath(displaced, target)) {
@@ -1323,6 +1332,10 @@ void Installer_ApplyPending(void) {
   char cleanup_path[MAX_OS_PATH];
   q_snprintf(cleanup_path, sizeof(cleanup_path), "%s/.cleanup", Fs_BaseDir());
   cleanup = fopen(cleanup_path, "ab");
+  if (!cleanup) {
+    Com_Warn("Failed to open %s for writing; displaced files will be swept synchronously\n",
+             cleanup_path);
+  }
 #endif
 
   const int32_t installed = Installer_EachPending(file, root, Installer_Install, cleanup);
