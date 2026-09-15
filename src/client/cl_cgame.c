@@ -317,6 +317,7 @@ void Cl_InitCgame(void) {
   import.AddSprite = R_AddSprite;
   import.AddBeam = R_AddBeam;
   import.AddDecal = R_AddDecal;
+  import.UpdatePortal = R_UpdatePortal;
   import.AddPortal = R_AddPortal;
 
   import.DrawPlayerModelView = R_DrawPlayerModelView;

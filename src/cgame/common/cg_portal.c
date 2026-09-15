@@ -22,46 +22,70 @@
 #include "cg_local.h"
 
 /**
+ * @brief Resolves the model matrix of the entity drawing @p portal's face this frame.
+ * @details A portal face's frame is baked in the space of the model that draws it, so a portal
+ * on a mover -- a `func_bob` teleporter, say -- reaches the world only through that entity's
+ * current transform.
+ * @return `false` if nothing in the frame draws this portal's face, in which case it must not be
+ * offered: an inline model built around an origin brush has geometry nowhere near where it sits
+ * in the world, so guessing the identity for an entity the server did not send would place the
+ * portal at the world origin, where it could crowd a real one out of the distance sort.
+ */
+static bool Cg_PortalMatrix(const cl_frame_t *frame, const r_bsp_portal_t *portal, mat4_t *matrix) {
+
+  if (!portal->model) {
+    return false;
+  }
+
+  // worldspawn is never sent as an entity, and never moves
+  if (portal->model == cgi.WorldModel()->bsp->worldspawn) {
+    *matrix = Mat4_Identity();
+    return true;
+  }
+
+  for (int32_t i = 0; i < frame->num_entities; i++) {
+
+    const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
+    const entity_state_t *s = &cgi.client->entity_states[snum];
+
+    if (cgi.client->models[s->model1] == portal->model) {
+      const cl_entity_t *ent = &cgi.client->entities[s->number];
+
+      *matrix = Mat4_FromRotationTranslationScale(ent->angles, ent->origin, 1.f);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * @brief Places the camera of each portal's view, and adds the portal to the main view.
  * @details The camera is the player's own, carried into the portal's target frame. Carrying it
  * rather than pinning it to the target is what gives a portal parallax: leaning to the left of
  * one shows more of what lies to the right of its exit, as a window does.
  * @remarks This runs before anything is added to the scene, because the renderer repeats each
  * addition into the views of the portals the main view holds. A portal's own brushwork is drawn
- * by whatever entity owns it, as any other brushwork is.
+ * by whatever entity owns it, as any other brushwork is. Every portal of the world is offered;
+ * the renderer keeps the nearest of them.
  */
-void Cg_AddPortals(void) {
+void Cg_AddPortals(const cl_frame_t *frame) {
 
   const r_model_t *world = cgi.WorldModel();
   if (!world) {
     return;
   }
 
-  const int32_t num_portals = world->bsp->num_portals;
+  for (int32_t i = 0; i < world->bsp->num_portals; i++) {
 
-  // the renderer has fewer views than a map may hold portals, and offers them before the scene
-  // has been culled, so the ones nearest the camera are offered first
-  int32_t order[MAX_BSP_PORTALS];
-  for (int32_t i = 0; i < num_portals; i++) {
-    order[i] = i;
-  }
+    r_bsp_portal_t *p = &world->bsp->portals[i];
 
-  for (int32_t i = 1; i < num_portals; i++) {
-    const int32_t o = order[i];
-    const float d = Vec3_DistanceSquared(world->bsp->portals[o].origin, cgi.view->origin);
-
-    int32_t j = i;
-    while (j > 0 && Vec3_DistanceSquared(world->bsp->portals[order[j - 1]].origin, cgi.view->origin) > d) {
-      order[j] = order[j - 1];
-      j--;
+    mat4_t matrix;
+    if (!Cg_PortalMatrix(frame, p, &matrix)) {
+      continue;
     }
 
-    order[j] = o;
-  }
-
-  for (int32_t i = 0; i < num_portals; i++) {
-
-    r_bsp_portal_t *p = &world->bsp->portals[order[i]];
+    cgi.UpdatePortal(p, matrix);
 
     r_view_t *view = cgi.AddPortal(cgi.view, p);
     if (!view) {

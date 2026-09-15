@@ -23,6 +23,7 @@
 
 #include "r_types.h"
 
+void R_UpdatePortal(r_bsp_portal_t *portal, const mat4_t matrix);
 r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal);
 void R_DrawPortals(const r_view_t *view);
 

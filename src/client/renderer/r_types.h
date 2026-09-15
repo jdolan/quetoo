@@ -788,21 +788,48 @@ typedef struct r_bsp_portal_s {
   struct r_model_s *model;
 
   /**
-   * @brief The center of the portal face.
+   * @brief The center of the portal face, in the model's space.
    */
   vec3_t origin;
 
   /**
-   * @brief The bounds of the portal face, for culling.
+   * @brief The bounds of the portal face, in the model's space.
    */
   box3_t bounds;
 
   /**
+   * @brief The portal face's frame, in the model's space.
+   * @details The compiler offsets a brush entity's geometry by its origin brush, so a face's
+   *   frame is baked in the space of the model that draws it, not in the world. A mover carries
+   *   its portal faces with it, so the frame reaches the world only through the model matrix of
+   *   the entity drawing it that frame.
+   */
+  mat4_t entry;
+
+  /**
+   * @brief The frame of the entity this portal views the world from, in world space.
+   * @details The exit is a point entity, which the compiler resolves once and which nothing
+   *   moves, so unlike `entry` this is already where it belongs.
+   */
+  mat4_t exit;
+
+  /**
+   * @brief The center of the portal face this frame, in world space.
+   */
+  vec3_t abs_origin;
+
+  /**
+   * @brief The bounds of the portal face this frame, in world space, for culling.
+   */
+  box3_t abs_bounds;
+
+  /**
    * @brief Carries a point or direction from the portal face's frame into the frame of the
    * entity it views the world from.
-   * @details Both frames are fixed for the life of the world, so this resolves once at load.
-   *   Transforming the camera by it places the view that this portal's face shows, which is
-   *   what gives a portal parallax rather than the flatness of a fixed camera.
+   * @details Composed each frame from `entry`, `exit` and the model matrix of the entity drawing
+   *   the face, so a portal on a mover tracks it. Transforming the camera by this places the view
+   *   that the face shows, which is what gives a portal parallax rather than the flatness of a
+   *   fixed camera.
    */
   mat4_t matrix;
 

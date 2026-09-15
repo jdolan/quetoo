@@ -86,11 +86,37 @@ SDL_GPUTexture *R_PortalTexture(const r_view_t *view) {
 }
 
 /**
+ * @brief Resolves @p portal into world space for the frame, through the model matrix of the
+ * entity drawing its face.
+ * @details A portal face's frame is baked in the space of the model that draws it, since the
+ * compiler offsets a brush entity's geometry by its origin brush. Pass the identity for a portal
+ * on worldspawn, or on anything else that does not move.
+ */
+void R_UpdatePortal(r_bsp_portal_t *portal, const mat4_t matrix) {
+
+  assert(portal);
+
+  if (!portal->model) {
+    return;
+  }
+
+  portal->abs_origin = Mat4_Transform(matrix, portal->origin);
+  portal->abs_bounds = Mat4_TransformBounds(matrix, portal->bounds);
+
+  portal->matrix = Mat4_Concat(portal->exit, Mat4_Inverse(Mat4_Concat(matrix, portal->entry)));
+}
+
+/**
  * @brief Offers a portal for @p view to sample.
  * @details The returned view is the client game's to place: its camera, and anything added to
- * @p view afterwards, which the renderer repeats into it. A portal is offered a view before it
- * is known to be visible, since the scene is populated before anything is culled, so the client
- * game should offer them nearest first.
+ * @p view afterwards, which the renderer repeats into it.
+ *
+ * A view holds far fewer portals than a map may contain, and the scene is populated before any
+ * of it is culled, so there is no knowing here which portals are actually visible. The nearest
+ * are kept instead: portals are held in order of distance, and offering one farther than a full
+ * view's last evicts nothing, while offering a nearer one drops that last portal and takes its
+ * pooled view. Ordering is the renderer's business rather than the client game's, so that a
+ * portal too far to matter cannot crowd out one in front of the player.
  * @return The view to populate, or `NULL` if this portal will not be drawn.
  */
 r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal) {
@@ -102,15 +128,47 @@ r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal) {
     return NULL;
   }
 
-  if (view->num_portals == MAX_PORTALS) {
+  // a portal the world dropped for want of valid draw elements has no frames to carry a camera
+  // through, and no face to show one on
+  if (!portal->model) {
     return NULL;
   }
 
-  portal->view = &r_portal.views[view->num_portals];
+  view->stats.portals_offered++;
 
-  view->portals[view->num_portals++] = portal;
+  const float dist = Vec3_DistanceSquared(portal->abs_origin, view->origin);
 
-  return portal->view;
+  int32_t i = view->num_portals;
+  while (i > 0 && Vec3_DistanceSquared(view->portals[i - 1]->abs_origin, view->origin) > dist) {
+    i--;
+  }
+
+  if (i == MAX_PORTALS) {
+    return NULL;
+  }
+
+  r_view_t *pooled;
+
+  if (view->num_portals == MAX_PORTALS) {
+    r_bsp_portal_t *evicted = view->portals[--view->num_portals];
+    pooled = evicted->view;
+    evicted->view = NULL;
+  } else {
+    // an eviction is always followed by the insertion that caused it, so a view that is not full
+    // has never evicted, and holds exactly the first `num_portals` views of the pool
+    pooled = &r_portal.views[view->num_portals];
+  }
+
+  for (int32_t j = view->num_portals; j > i; j--) {
+    view->portals[j] = view->portals[j - 1];
+  }
+
+  view->portals[i] = portal;
+  view->num_portals++;
+
+  portal->view = pooled;
+
+  return pooled;
 }
 
 /**
@@ -202,9 +260,9 @@ static void R_DrawPortal(const r_bsp_portal_t *portal) {
 /**
  * @brief Draws the views of all portals added this frame, for @p view to sample.
  * @details Portal views draw no shadows of their own: they copy the light list of the view
- * they are drawn for, so the atlas it rendered lines up. They draw no portal faces either,
- * which is what keeps this from recursing -- a portal seen through a portal shows its plain
- * material.
+ * they are drawn for, so the atlas it rendered lines up. They draw portal faces on their plain
+ * material rather than portalled, which is what keeps this from recursing; see
+ * `R_BspPortalLayer`.
  *
  * Their particles are not softened. Softening blends against a double buffered copy of the
  * view's own depth, and one copy cannot serve several portals in a frame -- nor can each have
@@ -222,8 +280,6 @@ void R_DrawPortals(const r_view_t *view) {
     }
   }
 
-  r_stats->portals_offered = view->num_portals;
-
   if (!view->num_portals || !r_context.device->commands) {
     return;
   }
@@ -239,7 +295,7 @@ void R_DrawPortals(const r_view_t *view) {
 
     // the scene was populated before any of it was culled, so a portal may well have been
     // offered a view it turns out not to need
-    if (R_CulludeBox(view, portal->bounds)) {
+    if (R_CulludeBox(view, portal->abs_bounds)) {
       continue;
     }
 

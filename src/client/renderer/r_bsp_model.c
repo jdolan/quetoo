@@ -352,8 +352,9 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 /**
  * @brief Loads BSP portals, attaching each to the draw elements of the face that shows it.
  * @details The compiler resolves a portal's two frames and the draw elements its face was
- * emitted to, so all that is left here is to compose the transform carrying one frame onto the
- * other, and to find the inline model the face belongs to.
+ * emitted to, so all that is left here is to build the two frames, and to find the inline model
+ * the face belongs to. The transform between them is composed per frame, since the model drawing
+ * the face may be a mover.
  */
 static void R_LoadBspPortals(r_model_t *mod) {
 
@@ -377,17 +378,15 @@ static void R_LoadBspPortals(r_model_t *mod) {
     out->origin = in->entry_origin;
     out->bounds = bsp->draw_elements[in->draw_elements].bounds;
 
-    const mat4_t entry = Mat4_FromVectors(in->entry_forward,
-                                          Vec3_Cross(in->entry_forward, in->entry_up),
-                                          in->entry_up,
-                                          in->entry_origin);
+    out->entry = Mat4_FromVectors(in->entry_forward,
+                                  Vec3_Cross(in->entry_forward, in->entry_up),
+                                  in->entry_up,
+                                  in->entry_origin);
 
-    const mat4_t exit = Mat4_FromVectors(in->exit_forward,
-                                         Vec3_Cross(in->exit_forward, in->exit_up),
-                                         in->exit_up,
-                                         in->exit_origin);
-
-    out->matrix = Mat4_Concat(exit, Mat4_Inverse(entry));
+    out->exit = Mat4_FromVectors(in->exit_forward,
+                                 Vec3_Cross(in->exit_forward, in->exit_up),
+                                 in->exit_up,
+                                 in->exit_origin);
 
     bsp->draw_elements[in->draw_elements].portal = out;
 
@@ -401,6 +400,8 @@ static void R_LoadBspPortals(r_model_t *mod) {
         break;
       }
     }
+
+    R_UpdatePortal(out, Mat4_Identity());
   }
 }
 

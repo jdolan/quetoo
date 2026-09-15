@@ -25,6 +25,6 @@
 
 #if defined(__CG_LOCAL_H__)
 
-void Cg_AddPortals(void);
+void Cg_AddPortals(const cl_frame_t *frame);
 
 #endif
