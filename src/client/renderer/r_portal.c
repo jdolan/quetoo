@@ -243,9 +243,65 @@ static void R_UpdatePortalFramebuffer(void) {
 }
 
 /**
+ * @return The rect of @p portal's face on screen, in the portal framebuffer's pixels.
+ * @details A portal face samples the portal texture at its own screen coordinates, so the only
+ * texels ever read are the ones beneath the face. Scissoring the portal's pass to them discards
+ * nothing that could be sampled, and the further off a portal is the less of its layer it needs
+ * -- the saving scales with distance without any of the resolution stepping, and its pop, that
+ * choosing a size per portal would bring.
+ * @remarks The whole framebuffer is returned for a face straddling the camera plane, which has
+ * no finite rect to project onto.
+ * @param vp The view-projection of the view being drawn around these, whose screen coordinates
+ * the face will be sampled at. Taken as an argument rather than read from the uniform block,
+ * which each portal drawn before this one has already replaced with its own.
+ */
+static SDL_Rect R_PortalScissor(const mat4_t vp, const r_bsp_portal_t *portal) {
+
+  const SDL_Size size = r_portal.framebuffer->size;
+  const SDL_Rect framebuffer = { 0, 0, size.w, size.h };
+
+  vec3_t points[8];
+  Box3_ToPoints(portal->abs_bounds, points);
+
+  vec2_t mins = Vec2(FLT_MAX, FLT_MAX);
+  vec2_t maxs = Vec2(-FLT_MAX, -FLT_MAX);
+
+  for (int32_t i = 0; i < 8; i++) {
+
+    const vec3_t p = points[i];
+
+    const float w = p.x * vp.m[0][3] + p.y * vp.m[1][3] + p.z * vp.m[2][3] + vp.m[3][3];
+    if (w <= FLT_EPSILON) {
+      return framebuffer;
+    }
+
+    const vec3_t clip = Mat4_Transform(vp, p);
+
+    mins = Vec2_Minf(mins, Vec2(clip.x / w, clip.y / w));
+    maxs = Vec2_Maxf(maxs, Vec2(clip.x / w, clip.y / w));
+  }
+
+  // NDC to pixels, rounded outward, so that a face is never scissored short of its own edge
+  const int32_t x0 = (int32_t) floorf((mins.x * .5f + .5f) * size.w);
+  const int32_t x1 = (int32_t) ceilf((maxs.x * .5f + .5f) * size.w);
+  const int32_t y0 = (int32_t) floorf((.5f - maxs.y * .5f) * size.h);
+  const int32_t y1 = (int32_t) ceilf((.5f - mins.y * .5f) * size.h);
+
+  const int32_t x = Maxi(x0, 0);
+  const int32_t y = Maxi(y0, 0);
+
+  return (SDL_Rect) {
+    .x = x,
+    .y = y,
+    .w = Maxi(Mini(x1, size.w) - x, 0),
+    .h = Maxi(Mini(y1, size.h) - y, 0),
+  };
+}
+
+/**
  * @brief Draws one portal's view into its own layer of the portal framebuffer.
  */
-static void R_DrawPortal(const r_bsp_portal_t *portal) {
+static void R_DrawPortal(const r_bsp_portal_t *portal, const SDL_Rect *scissor) {
 
   CommandBuffer *commands = r_context.device->commands;
 
@@ -278,6 +334,19 @@ static void R_DrawPortal(const r_bsp_portal_t *portal) {
     $(r_portal.framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
 
   RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
+
+  // the viewport first: RenderPass::setScissor clamps against it for want of the target's own
+  // dimensions, so a scissor set before one is set collapses to nothing. The draws below set the
+  // same viewport again for themselves
+  $(pass, setViewport, &(SDL_GPUViewport) {
+    .x = 0.f, .y = 0.f,
+    .w = (float) r_portal.framebuffer->size.w, .h = (float) r_portal.framebuffer->size.h,
+    .min_depth = 0.f, .max_depth = 1.f,
+  });
+
+  // set once for the pass: nothing below binds a scissor of its own, and the viewports they set
+  // are separate state that leaves this alone
+  $(pass, setScissor, scissor);
 
   R_DrawEntities(view, pass);
 
@@ -354,6 +423,10 @@ void R_DrawPortals(const r_view_t *view) {
 
   R_UpdatePortalFramebuffer();
 
+  // captured before any portal is drawn, since drawing one replaces the uniform block with its
+  // own view
+  const mat4_t vp = Mat4_Concat(r_uniforms.block.projection3D, r_uniforms.block.view);
+
   r_view_stats_t *stats = r_stats;
 
   int32_t layer = 0;
@@ -369,12 +442,17 @@ void R_DrawPortals(const r_view_t *view) {
 
     portal->layer = layer++;
 
+    const SDL_Rect scissor = R_PortalScissor(vp, portal);
+    if (scissor.w == 0 || scissor.h == 0) {
+      continue;
+    }
+
     stats->portals_drawn++;
 
     R_UpdatePortalView(view, portal->view);
 
     r_stats = &portal->view->stats;
-    R_DrawPortal(portal);
+    R_DrawPortal(portal, &scissor);
 
     stats->portals_triangles += portal->view->stats.bsp_triangles + portal->view->stats.mesh_triangles;
   }
