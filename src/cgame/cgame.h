@@ -891,16 +891,6 @@ typedef struct cg_import_s {
   void (*InitView)(r_view_t *view);
 
   /**
-   * @return True if the bounding box is culled or occluded, false otherwise.
-   */
-  bool (*CulludeBox)(const r_view_t *view, const box3_t bounds);
-
-  /**
-   * @brief True if the bounding sphere is culled or occluded, false otherwise.
-   */
-  bool (*CulludeSphere)(const r_view_t *view, const vec3_t origin, float radius);
-
-  /**
    * @brief Adds an entity to the scene for the current frame.
    * @return The added entity.
    */
