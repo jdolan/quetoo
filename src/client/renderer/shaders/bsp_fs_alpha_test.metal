@@ -174,6 +174,7 @@ struct dynamic_lights_block
 
 struct bsp_locals_block
 {
+    float4x4 model;
     uint4 active_dynamic_lights[4];
     int portal_layer;
 };

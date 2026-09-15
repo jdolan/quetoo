@@ -50,22 +50,17 @@ enum {
 };
 
 /**
- * @brief Per-draw BSP vertex uniforms.
+ * @brief Per-draw BSP uniforms, shared by both stages.
  */
 typedef struct {
   mat4_t model;
   r_active_dynamic_lights_t active_dynamic_lights;
-} r_bsp_uniform_locals_t;
 
-/**
- * @brief Per-draw BSP fragment uniforms.
- * @remarks The fragment stage has no use for the model matrix, and needs the portal layer
- * that the vertex stage does not, so the two stages take different structs at the same slot.
- */
-typedef struct {
-  r_active_dynamic_lights_t active_dynamic_lights;
+  /**
+   * @brief The layer of texture_portal this draw's faces sample, or `-1` for none.
+   */
   int32_t portal_layer;
-} r_bsp_fragment_locals_t;
+} r_bsp_uniform_locals_t;
 
 #define MAX_STAGE_PIPELINES 16
 
@@ -111,9 +106,9 @@ static struct {
   int32_t surface;
 
   /**
-   * @brief The fragment locals as last pushed, so that the portal layer can be updated alone.
+   * @brief The locals as last pushed, so that the portal layer can be updated alone.
    */
-  r_bsp_fragment_locals_t fragment_locals;
+  r_bsp_uniform_locals_t locals;
 
   /**
    * @brief Cached material-stage pipelines.
@@ -123,59 +118,39 @@ static struct {
 } r_bsp_draw;
 
 /**
- * @return The layer of the portal texture @p draw samples for @p view, or `-1` for none.
- * @details `R_DrawPortals` clears the layer of every portal and sets it only on those it draws,
- * so a portal that was not offered, was beyond the cap, or was culled reads `-1` here.
+ * @brief Pushes the per-model uniforms.
+ * @details The portal layer resets to `-1` here, so a model holding no portal face never pushes
+ * one; `R_PushBspPortalLayer` sets it for the draws that do.
+ */
+static void R_PushBspUniformLocals(const r_bsp_uniform_locals_t *locals, RenderPass *pass) {
+
+  r_bsp_draw.locals = *locals;
+  r_bsp_draw.locals.portal_layer = -1;
+
+  $(pass->commands, pushUniformData, SLOT_UNIFORMS_LOCALS, &r_bsp_draw.locals, sizeof(r_bsp_draw.locals));
+}
+
+/**
+ * @brief Pushes the portal layer @p draw samples for @p view, if it differs from the one already
+ * pushed.
+ * @details The layer belongs to the draw elements rather than to the model, since a model may
+ * hold several portal faces, so it is pushed only when it changes -- which for the overwhelming
+ * majority of draws, none of which are portals, is never.
  *
- * A portal view always reads `-1`, which is what keeps portals from recursing: seen through one,
+ * A portal view always pushes `-1`, which is what keeps portals from recursing: seen through one,
  * a portal face falls back to its plain material. The layer belongs to the world's portal rather
  * than to the view being drawn, so a portal already drawn this frame would otherwise report its
  * layer here -- and portal views are bound the placeholder texture, not the portal texture they
  * are being drawn into, so the face would come out solid black rather than portalled.
  */
-static int32_t R_BspPortalLayer(const r_view_t *view, const r_bsp_draw_elements_t *draw) {
-
-  if (view->type == VIEW_PORTAL) {
-    return -1;
-  }
-
-  return draw->portal ? draw->portal->layer : -1;
-}
-
-/**
- * @brief Pushes the per-model uniforms for both stages.
- * @details The portal layer resets to `-1` here, so a model holding no portal face never pushes
- * one; `R_PushBspPortalLayer` sets it for the draws that do.
- */
-static void R_PushBspUniformLocals(const r_view_t *view, const r_bsp_inline_model_t *in,
-                                   const r_bsp_uniform_locals_t *locals, RenderPass *pass) {
-
-  $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, locals, sizeof(*locals));
-
-  r_bsp_draw.fragment_locals = (r_bsp_fragment_locals_t) {
-    .active_dynamic_lights = locals->active_dynamic_lights,
-    .portal_layer = -1,
-  };
-
-  $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS,
-    &r_bsp_draw.fragment_locals, sizeof(r_bsp_draw.fragment_locals));
-}
-
-/**
- * @brief Pushes the portal layer @p draw samples, if it differs from the one already pushed.
- * @details The layer belongs to the draw elements rather than to the model, since a model may
- * hold several portal faces, so it is pushed only when it changes -- which for the overwhelming
- * majority of draws, none of which are portals, is never.
- */
 static void R_PushBspPortalLayer(const r_view_t *view, const r_bsp_draw_elements_t *draw, RenderPass *pass) {
 
-  const int32_t layer = R_BspPortalLayer(view, draw);
+  const int32_t layer = draw->portal && view->type != VIEW_PORTAL ? draw->portal->layer : -1;
 
-  if (layer != r_bsp_draw.fragment_locals.portal_layer) {
-    r_bsp_draw.fragment_locals.portal_layer = layer;
+  if (layer != r_bsp_draw.locals.portal_layer) {
+    r_bsp_draw.locals.portal_layer = layer;
 
-    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS,
-      &r_bsp_draw.fragment_locals, sizeof(r_bsp_draw.fragment_locals));
+    $(pass->commands, pushUniformData, SLOT_UNIFORMS_LOCALS, &r_bsp_draw.locals, sizeof(r_bsp_draw.locals));
   }
 }
 
@@ -285,7 +260,7 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
  * portal view cannot use them at all -- they were resolved for a camera somewhere else
  * entirely -- so it culls its own frustum and nothing more.
  */
-static bool R_CullBspBlock(const r_view_t *view, const r_bsp_block_t *block) {
+static inline bool R_CullBspBlock(const r_view_t *view, const r_bsp_block_t *block) {
 
   if (view->type == VIEW_PORTAL) {
     return R_CullBox(view, block->visible_bounds);
@@ -377,7 +352,7 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-    R_PushBspUniformLocals(view, in, &locals, pass);
+    R_PushBspUniformLocals(&locals, pass);
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -390,7 +365,7 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
       }
 
       memcpy(&locals.active_dynamic_lights, &block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-      R_PushBspUniformLocals(view, in, &locals, pass);
+      R_PushBspUniformLocals(&locals, pass);
     }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
@@ -498,7 +473,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-    R_PushBspUniformLocals(view, in, &locals, pass);
+    R_PushBspUniformLocals(&locals, pass);
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -514,7 +489,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
       r_stats->blocks_visible++;
 
       memcpy(&locals.active_dynamic_lights, &block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-      R_PushBspUniformLocals(view, in, &locals, pass);
+      R_PushBspUniformLocals(&locals, pass);
     }
 
     R_DrawOpaqueBspBlock(view, block, pass);
@@ -536,7 +511,7 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-    R_PushBspUniformLocals(view, in, &locals, pass);
+    R_PushBspUniformLocals(&locals, pass);
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -549,7 +524,7 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
       }
 
       memcpy(&locals.active_dynamic_lights, &block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-      R_PushBspUniformLocals(view, in, &locals, pass);
+      R_PushBspUniformLocals(&locals, pass);
     }
 
     R_DrawAlphaTestBspBlock(view, block, pass);
@@ -752,7 +727,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity,
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-    R_PushBspUniformLocals(view, in, &locals, pass);
+    R_PushBspUniformLocals(&locals, pass);
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -769,7 +744,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity,
       }
 
       memcpy(&locals.active_dynamic_lights, &block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-      R_PushBspUniformLocals(view, in, &locals, pass);
+      R_PushBspUniformLocals(&locals, pass);
     }
 
     R_DrawBlendBspBlock(view, entity, block, pass);

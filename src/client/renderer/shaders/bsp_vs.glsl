@@ -37,6 +37,12 @@
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bsp_locals_block {
   mat4 model;
   uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
+
+  /**
+   * @brief The layer of texture_portal this draw's faces sample, or -1 for none. Unused here,
+   * but both stages take the same block at the same slot.
+   */
+  int portal_layer;
 };
 
 #include "light.glsl"

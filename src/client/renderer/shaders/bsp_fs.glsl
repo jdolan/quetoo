@@ -45,10 +45,16 @@
 #include "voxel.glsl"
 
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bsp_locals_block {
+
+  /**
+   * @brief The model matrix. Unused here, but both stages take the same block at the same slot.
+   */
+  mat4 model;
+
   uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
 
   /**
-   * @brief The layer of texture_portal this model's SURF_PORTAL faces sample, or -1 for none.
+   * @brief The layer of texture_portal this draw's SURF_PORTAL faces sample, or -1 for none.
    */
   int portal_layer;
 };
