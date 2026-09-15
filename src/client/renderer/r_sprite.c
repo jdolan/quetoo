@@ -128,10 +128,6 @@ r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *s) {
   r_sprite_t *out = &view->sprites[view->num_sprites++];
   *out = *s;
 
-  for (int32_t i = 0; i < view->num_portals; i++) {
-    R_AddSprite(view->portals[i]->view, s);
-  }
-
   return out;
 }
 
@@ -147,10 +143,6 @@ r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *b) {
 
   r_beam_t *out = &view->beams[view->num_beams++];
   *out = *b;
-
-  for (int32_t i = 0; i < view->num_portals; i++) {
-    R_AddBeam(view->portals[i]->view, b);
-  }
 
   return out;
 }

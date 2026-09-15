@@ -93,14 +93,6 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 
   view->num_entities++;
 
-  // the view weapon is placed relative to the camera it was added for, so it would appear
-  // adrift in the world of any other view
-  if (!(ent->effects & EF_WEAPON)) {
-    for (int32_t i = 0; i < view->num_portals; i++) {
-      R_AddEntity(view->portals[i]->view, ent);
-    }
-  }
-
   return e;
 }
 

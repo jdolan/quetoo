@@ -937,10 +937,10 @@ typedef struct cg_import_s {
 
   /**
    * @brief Offers a portal for @p view to sample.
-   * @details The returned view is yours to place. Every entity, light, sprite, beam and decal
-   * added to @p view afterwards is repeated into it, and it culls them for itself. Offer every
-   * portal of the world: a view holds far fewer than a map may contain, and keeps the nearest,
-   * evicting the farthest it holds to make room.
+   * @details The returned view is yours to place its camera on; the renderer repeats @p view's
+   * scene into it once the scene is complete, and it culls that for itself, so this may be
+   * called at any point while populating. Offer every portal of the world: a view holds far
+   * fewer than a map may contain, and keeps the nearest, evicting the farthest to make room.
    * @return The view to populate, or `NULL` if this portal will not be drawn.
    */
   r_view_t *(*AddPortal)(r_view_t *view, r_bsp_portal_t *portal);

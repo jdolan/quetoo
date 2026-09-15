@@ -64,10 +64,9 @@ static bool Cg_PortalMatrix(const cl_frame_t *frame, const r_bsp_portal_t *porta
  * @details The camera is the player's own, carried into the portal's target frame. Carrying it
  * rather than pinning it to the target is what gives a portal parallax: leaning to the left of
  * one shows more of what lies to the right of its exit, as a window does.
- * @remarks This runs before anything is added to the scene, because the renderer repeats each
- * addition into the views of the portals the main view holds. A portal's own brushwork is drawn
- * by whatever entity owns it, as any other brushwork is. Every portal of the world is offered;
- * the renderer keeps the nearest of them.
+ * @remarks A portal's own brushwork is drawn by whatever entity owns it, as any other brushwork
+ * is. Every portal of the world is offered; the renderer keeps the nearest of them, and repeats
+ * the scene into each once it is complete.
  */
 void Cg_AddPortals(const cl_frame_t *frame) {
 
@@ -92,8 +91,6 @@ void Cg_AddPortals(const cl_frame_t *frame) {
       continue;
     }
 
-    cgi.InitView(view);
-
     view->type = VIEW_PORTAL;
     view->viewport = cgi.view->viewport;
     view->fov = cgi.view->fov;
@@ -102,9 +99,9 @@ void Cg_AddPortals(const cl_frame_t *frame) {
     view->ambient = cgi.view->ambient;
 
     view->origin = Mat4_Transform(p->matrix, cgi.view->origin);
-    view->forward = Mat4_TransformVector(p->matrix, cgi.view->forward);
-    view->right = Mat4_TransformVector(p->matrix, cgi.view->right);
-    view->up = Mat4_TransformVector(p->matrix, cgi.view->up);
+    view->forward = Mat4_RotateVector(p->matrix, cgi.view->forward);
+    view->right = Mat4_RotateVector(p->matrix, cgi.view->right);
+    view->up = Mat4_RotateVector(p->matrix, cgi.view->up);
     // Vec3_Euler recovers pitch and yaw but leaves roll at zero, while the carried basis has
     // whatever roll the two frames differ by. Anything rebuilding a basis from these angles,
     // such as an all-axis sprite, would otherwise be rotated wrongly in a rolled portal

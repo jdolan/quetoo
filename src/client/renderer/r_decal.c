@@ -83,10 +83,6 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
   r_decal_t *out = &view->decals[view->num_decals++];
 
   *out = *decal;
-
-  for (int32_t i = 0; i < view->num_portals; i++) {
-    R_AddDecal(view->portals[i]->view, decal);
-  }
 }
 
 /**

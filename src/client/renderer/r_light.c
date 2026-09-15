@@ -36,10 +36,6 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
   r_light_t *out = &view->lights[view->num_lights++];
 
   *out = *l;
-
-  for (int32_t i = 0; i < view->num_portals; i++) {
-    R_AddLight(view->portals[i]->view, l);
-  }
 }
 
 /**

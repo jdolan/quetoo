@@ -52,14 +52,14 @@ static struct {
 /**
  * @brief Allocates the placeholder portal texture.
  */
-void R_InitPortal(void) {
+void R_InitPortals(void) {
   r_portal.null_texture = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D_ARRAY, 1, 0xff000000);
 }
 
 /**
  * @brief Releases the portal framebuffer and placeholder texture.
  */
-void R_ShutdownPortal(void) {
+void R_ShutdownPortals(void) {
 
   if (r_portal.framebuffer) {
     R_DestroyFramebuffer(r_portal.framebuffer);
@@ -166,6 +166,10 @@ r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal) {
   view->portals[i] = portal;
   view->num_portals++;
 
+  // emptied here rather than left to the caller, since `R_UpdatePortals` fills these arrays by
+  // copy and relies on there being room for the whole scene
+  R_InitView(pooled);
+
   portal->view = pooled;
 
   return pooled;
@@ -235,8 +239,6 @@ static void R_DrawPortal(const r_bsp_portal_t *portal) {
 
     R_UpdateSprites(view, pass);
 
-    R_UpdateDecals(view, pass);
-
     pass = release(pass);
   }
 
@@ -258,11 +260,54 @@ static void R_DrawPortal(const r_bsp_portal_t *portal) {
 }
 
 /**
+ * @brief Repeats @p view's scene into the view of each portal it holds, which culls it for
+ * itself.
+ * @details Done once the scene is complete rather than as each addition is made, so that nothing
+ * depends on portals having been offered before the rest of the scene was populated. This is the
+ * same shape as `R_UpdateLights`, which likewise resolves per-light state only once every entity
+ * that could cast a shadow is known.
+ *
+ * Decals are deliberately not repeated. `R_UpdateDecals` clips them into the shared, persistent
+ * geometry of the blocks they land on, rather than into anything the view owns, so repeating
+ * them would clip each decal once per portal and draw it that many times over.
+ */
+static void R_UpdatePortals(const r_view_t *view) {
+
+  for (int32_t i = 0; i < view->num_portals; i++) {
+
+    r_view_t *out = view->portals[i]->view;
+
+    assert(out->num_entities == 0);
+
+    const r_entity_t *e = view->entities;
+    for (int32_t j = 0; j < view->num_entities; j++, e++) {
+
+      // the view weapon is placed relative to the camera it was added for, so it would appear
+      // adrift in the world of any other view
+      if (e->effects & EF_WEAPON) {
+        continue;
+      }
+
+      out->entities[out->num_entities++] = *e;
+    }
+
+    memcpy(out->lights, view->lights, view->num_lights * sizeof(out->lights[0]));
+    out->num_lights = view->num_lights;
+
+    memcpy(out->sprites, view->sprites, view->num_sprites * sizeof(out->sprites[0]));
+    out->num_sprites = view->num_sprites;
+
+    memcpy(out->beams, view->beams, view->num_beams * sizeof(out->beams[0]));
+    out->num_beams = view->num_beams;
+  }
+}
+
+/**
  * @brief Draws the views of all portals added this frame, for @p view to sample.
  * @details Portal views draw no shadows of their own: they copy the light list of the view
  * they are drawn for, so the atlas it rendered lines up. They draw portal faces on their plain
  * material rather than portalled, which is what keeps this from recursing; see
- * `R_BspPortalLayer`.
+ * `R_PushBspPortalLayer`.
  *
  * Their particles are not softened. Softening blends against a double buffered copy of the
  * view's own depth, and one copy cannot serve several portals in a frame -- nor can each have
@@ -283,6 +328,8 @@ void R_DrawPortals(const r_view_t *view) {
   if (!view->num_portals || !r_context.device->commands) {
     return;
   }
+
+  R_UpdatePortals(view);
 
   R_UpdatePortalFramebuffer();
 
