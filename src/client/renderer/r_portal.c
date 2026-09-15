@@ -277,10 +277,11 @@ static void R_DrawPortal(const r_bsp_portal_t *portal) {
 }
 
 /**
- * @brief Repeats @p view's scene into the view of each portal it holds, which culls it for
+ * @brief Repeats @p view's scene into @p out, the view of one of its portals, which culls it for
  * itself.
  * @details Done once the scene is complete rather than as each addition is made, so that nothing
- * depends on portals having been offered before the rest of the scene was populated. This is the
+ * depends on portals having been offered before the rest of the scene was populated, and only
+ * for a portal that survived culling, so that one drawn nowhere is copied nowhere. This is the
  * same shape as `R_UpdateLights`, which likewise resolves per-light state only once every entity
  * that could cast a shadow is known.
  *
@@ -288,35 +289,30 @@ static void R_DrawPortal(const r_bsp_portal_t *portal) {
  * geometry of the blocks they land on, rather than into anything the view owns, so repeating
  * them would clip each decal once per portal and draw it that many times over.
  */
-static void R_UpdatePortals(const r_view_t *view) {
+static void R_UpdatePortalView(const r_view_t *view, r_view_t *out) {
 
-  for (int32_t i = 0; i < view->num_portals; i++) {
+  assert(out->num_entities == 0);
 
-    r_view_t *out = view->portals[i]->view;
+  const r_entity_t *e = view->entities;
+  for (int32_t j = 0; j < view->num_entities; j++, e++) {
 
-    assert(out->num_entities == 0);
-
-    const r_entity_t *e = view->entities;
-    for (int32_t j = 0; j < view->num_entities; j++, e++) {
-
-      // the view weapon is placed relative to the camera it was added for, so it would appear
-      // adrift in the world of any other view
-      if (e->effects & EF_WEAPON) {
-        continue;
-      }
-
-      out->entities[out->num_entities++] = *e;
+    // the view weapon is placed relative to the camera it was added for, so it would appear
+    // adrift in the world of any other view
+    if (e->effects & EF_WEAPON) {
+      continue;
     }
 
-    memcpy(out->lights, view->lights, view->num_lights * sizeof(out->lights[0]));
-    out->num_lights = view->num_lights;
-
-    memcpy(out->sprites, view->sprites, view->num_sprites * sizeof(out->sprites[0]));
-    out->num_sprites = view->num_sprites;
-
-    memcpy(out->beams, view->beams, view->num_beams * sizeof(out->beams[0]));
-    out->num_beams = view->num_beams;
+    out->entities[out->num_entities++] = *e;
   }
+
+  memcpy(out->lights, view->lights, view->num_lights * sizeof(out->lights[0]));
+  out->num_lights = view->num_lights;
+
+  memcpy(out->sprites, view->sprites, view->num_sprites * sizeof(out->sprites[0]));
+  out->num_sprites = view->num_sprites;
+
+  memcpy(out->beams, view->beams, view->num_beams * sizeof(out->beams[0]));
+  out->num_beams = view->num_beams;
 }
 
 /**
@@ -346,8 +342,6 @@ void R_DrawPortals(const r_view_t *view) {
     return;
   }
 
-  R_UpdatePortals(view);
-
   R_UpdatePortalFramebuffer();
 
   r_view_stats_t *stats = r_stats;
@@ -366,6 +360,8 @@ void R_DrawPortals(const r_view_t *view) {
     portal->layer = layer++;
 
     stats->portals_drawn++;
+
+    R_UpdatePortalView(view, portal->view);
 
     r_stats = &portal->view->stats;
     R_DrawPortal(portal);
