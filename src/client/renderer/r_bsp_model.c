@@ -377,6 +377,7 @@ static void R_LoadBspPortals(r_model_t *mod) {
 
     out->origin = in->entry_origin;
     out->bounds = bsp->draw_elements[in->draw_elements].bounds;
+    out->normal = Vec3_Negate(in->entry_forward);
 
     out->entry = Mat4_FromVectors(in->entry_forward,
                                   Vec3_Cross(in->entry_forward, in->entry_up),

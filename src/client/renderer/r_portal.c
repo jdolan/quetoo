@@ -102,6 +102,14 @@ void R_UpdatePortal(r_bsp_portal_t *portal, const mat4_t matrix) {
 
   portal->abs_origin = Mat4_Transform(matrix, portal->origin);
   portal->abs_bounds = Mat4_TransformBounds(matrix, portal->bounds);
+  const vec3_t normal = Mat4_RotateVector(matrix, portal->normal);
+
+  portal->abs_plane = (cm_bsp_plane_t) {
+    .normal = normal,
+    .dist = Vec3_Dot(portal->abs_origin, normal),
+    .type = Cm_PlaneTypeForNormal(normal),
+    .sign_bits = Cm_SignBitsForNormal(normal),
+  };
 
   portal->matrix = Mat4_Concat(portal->exit, Mat4_Inverse(Mat4_Concat(matrix, portal->entry)));
 }
@@ -135,6 +143,15 @@ r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal) {
   }
 
   view->stats.portals_offered++;
+
+  // a portal face is single sided, and the BSP pipeline culls back faces, so from behind its
+  // plane there is nothing of it to draw -- and a whole scene would be rendered into a layer
+  // that no fragment goes on to sample. Tested against the camera's position rather than where
+  // it happens to be looking: a portal off to the side is still plainly visible, so the view's
+  // forward vector says nothing about whether this one can be seen
+  if (Cm_DistanceToPlane(view->origin, &portal->abs_plane) <= 0.f) {
+    return NULL;
+  }
 
   const float dist = Vec3_DistanceSquared(portal->abs_origin, view->origin);
 

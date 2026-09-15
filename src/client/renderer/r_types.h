@@ -798,6 +798,15 @@ typedef struct r_bsp_portal_s {
   box3_t bounds;
 
   /**
+   * @brief The portal face's outward normal, in the model's space.
+   * @details Every draw element of a portal is a fragment of one brush side, so they are all
+   *   coplanar and this one normal describes the whole portal. It is the negation of the baked
+   *   `entry` forward, which points the way travel through the portal runs rather than the way
+   *   the face is seen from.
+   */
+  vec3_t normal;
+
+  /**
    * @brief The portal face's frame, in the model's space.
    * @details The compiler offsets a brush entity's geometry by its origin brush, so a face's
    *   frame is baked in the space of the model that draws it, not in the world. A mover carries
@@ -822,6 +831,11 @@ typedef struct r_bsp_portal_s {
    * @brief The bounds of the portal face this frame, in world space, for culling.
    */
   box3_t abs_bounds;
+
+  /**
+   * @brief The portal face's plane this frame, in world space, for culling.
+   */
+  cm_bsp_plane_t abs_plane;
 
   /**
    * @brief Carries a point or direction from the portal face's frame into the frame of the
