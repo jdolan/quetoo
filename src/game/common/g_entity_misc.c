@@ -224,6 +224,26 @@ void G_misc_teleporter(g_entity_t *ent) {
   gi.LinkEntity(ent);
 }
 
+/*QUAKED misc_portal (0 .5 .8) ?
+ A brush entity showing the world as seen from the point it targets. Give the face the player
+ looks at a material declaring `surface "portal"`; the remaining faces are drawn normally.
+
+ The portal is not solid. To let players travel through it, place a trigger_teleporter behind
+ the portal face, so that they cross the face before the trigger fires.
+
+ -------- Keys --------
+ target : The info_null this portal views the world from. Required.
+ */
+void G_misc_portal(g_entity_t *ent) {
+
+  gi.SetModel(ent, ent->model);
+
+  ent->move_type = MOVE_TYPE_NONE;
+  ent->solid = SOLID_NOT;
+
+  gi.LinkEntity(ent);
+}
+
 /*QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16)
  Teleport destination for misc_teleporters.
 

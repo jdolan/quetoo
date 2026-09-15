@@ -22,40 +22,13 @@
 #include "cg_local.h"
 
 /**
- * @return True if the server is sending an entity that draws @p model.
- * @details A portal is any brushwork with a `SURF_PORTAL` face, which may well belong to an
- * entity the game already spawns and draws, such as a door. Only a portal that nothing else
- * draws -- one with no counterpart on the server -- is added here.
- */
-static bool Cg_IsServerEntity(const r_model_t *model) {
-
-  for (int32_t i = 1; i < MAX_MODELS; i++) {
-
-    if (q_strcmp(cgi.client->config_strings[CS_MODELS + i], model->media.name)) {
-      continue;
-    }
-
-    for (int32_t j = 0; j < MAX_ENTITIES; j++) {
-      if (cgi.client->entities[j].current.model1 == i) {
-        return true;
-      }
-    }
-
-    break;
-  }
-
-  return false;
-}
-
-/**
  * @brief Places the camera of each portal's view, and adds the portal to the main view.
  * @details The camera is the player's own, carried into the portal's target frame. Carrying it
  * rather than pinning it to the target is what gives a portal parallax: leaning to the left of
  * one shows more of what lies to the right of its exit, as a window does.
- * @remarks The cameras are placed before anything is added to the scene, because the renderer
- * repeats each addition into the views of the portals the main view holds. The portals' own
- * brushwork is added afterwards, and unconditionally: nothing on the server references it, so
- * without this a portal face is not drawn at all, feature enabled or not.
+ * @remarks This runs before anything is added to the scene, because the renderer repeats each
+ * addition into the views of the portals the main view holds. A portal's own brushwork is drawn
+ * by whatever entity owns it, as any other brushwork is.
  */
 void Cg_AddPortals(void) {
 
@@ -64,10 +37,36 @@ void Cg_AddPortals(void) {
     return;
   }
 
-  r_bsp_portal_t *p = world->bsp->portals;
-  for (int32_t i = 0; i < world->bsp->num_portals; i++, p++) {
+  const int32_t num_portals = world->bsp->num_portals;
 
-    r_view_t *view = p->view;
+  // the renderer has fewer views than a map may hold portals, and offers them before the scene
+  // has been culled, so the ones nearest the camera are offered first
+  int32_t order[MAX_BSP_PORTALS];
+  for (int32_t i = 0; i < num_portals; i++) {
+    order[i] = i;
+  }
+
+  for (int32_t i = 1; i < num_portals; i++) {
+    const int32_t o = order[i];
+    const float d = Vec3_DistanceSquared(world->bsp->portals[o].origin, cgi.view->origin);
+
+    int32_t j = i;
+    while (j > 0 && Vec3_DistanceSquared(world->bsp->portals[order[j - 1]].origin, cgi.view->origin) > d) {
+      order[j] = order[j - 1];
+      j--;
+    }
+
+    order[j] = o;
+  }
+
+  for (int32_t i = 0; i < num_portals; i++) {
+
+    r_bsp_portal_t *p = &world->bsp->portals[order[i]];
+
+    r_view_t *view = cgi.AddPortal(cgi.view, p);
+    if (!view) {
+      continue;
+    }
 
     cgi.InitView(view);
 
@@ -82,37 +81,14 @@ void Cg_AddPortals(void) {
     view->forward = Mat4_TransformVector(p->matrix, cgi.view->forward);
     view->right = Mat4_TransformVector(p->matrix, cgi.view->right);
     view->up = Mat4_TransformVector(p->matrix, cgi.view->up);
+    // Vec3_Euler recovers pitch and yaw but leaves roll at zero, while the carried basis has
+    // whatever roll the two frames differ by. Anything rebuilding a basis from these angles,
+    // such as an all-axis sprite, would otherwise be rotated wrongly in a rolled portal
     view->angles = Vec3_Euler(view->forward);
 
-    cgi.AddPortal(cgi.view, p);
-  }
+    vec3_t right, up;
+    Vec3_Vectors(view->angles, NULL, &right, &up);
 
-  // and only then the portals themselves, so that each one reaches every portal's view
-  p = world->bsp->portals;
-  for (int32_t i = 0; i < world->bsp->num_portals; i++, p++) {
-
-    if (!p->model || Cg_IsServerEntity(p->model)) {
-      continue;
-    }
-
-    // a model showing more than one portal is still only drawn once
-    bool added = false;
-    for (int32_t j = 0; j < i; j++) {
-      if (world->bsp->portals[j].model == p->model) {
-        added = true;
-        break;
-      }
-    }
-
-    if (added) {
-      continue;
-    }
-
-    cgi.AddEntity(cgi.view, &(const r_entity_t) {
-      .model = p->model,
-      .scale = 1.f,
-      .color = Vec4_One(),
-      .lerp = 1.f,
-    });
+    view->angles.z = Degrees(atan2f(Vec3_Dot(view->up, right), Vec3_Dot(view->up, up)));
   }
 }
