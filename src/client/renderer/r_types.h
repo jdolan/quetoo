@@ -523,6 +523,11 @@ typedef struct {
    * @brief Texture coordinate origin for stage transforms (scale, stretch, rotate).
    */
   vec2_t st_origin;
+
+  /**
+   * @brief The portal these elements show, or `NULL` if they are not a portal face.
+   */
+  struct r_bsp_portal_s *portal;
 } r_bsp_draw_elements_t;
 
 /**
@@ -762,54 +767,32 @@ typedef struct r_bsp_inline_model_s {
    */
   int32_t num_blocks;
 
-  /**
-   * @brief The portal this model's `SURF_PORTAL` faces show, or `NULL` if it is not a portal.
-   */
-  struct r_bsp_portal_s *portal;
-
 } r_bsp_inline_model_t;
 
 /**
- * @brief A BSP portal: a brush model with a `SURF_PORTAL` face, which shows the view from the
- * entity it targets.
+ * @brief A BSP portal: a `SURF_PORTAL` face, and the point the world is viewed from to fill it.
+ * @details Resolved by the compiler into `BSP_LUMP_PORTALS`; see `bsp_portal_t`.
  */
 typedef struct r_bsp_portal_s {
 
   /**
-   * @brief The entity that defines this portal.
+   * @brief The inline model whose faces show this portal.
    */
-  cm_entity_t *entity;
+  struct r_model_s *model;
 
   /**
-   * @brief The entity this portal looks out of, or `NULL` if it could not be resolved.
-   */
-  cm_entity_t *target_entity;
-
-  /**
-   * @brief The portal face's origin, baked by the compiler from the face's winding.
+   * @brief The center of the portal face, for diagnostics.
    */
   vec3_t origin;
 
   /**
-   * @brief Carries a point or direction from this portal's frame into its target's.
+   * @brief Carries a point or direction from the portal face's frame into the frame of the
+   * entity it views the world from.
    * @details Both frames are fixed for the life of the world, so this resolves once at load.
-   *   Transforming the camera by it places the view that this portal's faces show.
+   *   Transforming the camera by it places the view that this portal's face shows, which is
+   *   what gives a portal parallax rather than the flatness of a fixed camera.
    */
   mat4_t matrix;
-
-  /**
-   * @brief The plane of the target portal's face, or all zeroes when the target is a point.
-   * @details A view placed by `matrix` sits behind the face it looks out of, inside the wall
-   *   that face is set into, and clips that away. A point target has no face and no wall.
-   */
-  vec4_t clip_plane;
-
-  /**
-   * @brief The inline model whose faces show this portal.
-   * @details A portal is drawn by the client game like any other entity, since nothing else
-   *   references its brushwork -- it has no counterpart on the server.
-   */
-  struct r_model_s *model;
 
   /**
    * @brief The view of this portal's destination, populated by the client game each frame.
@@ -2163,19 +2146,6 @@ typedef struct r_view_s {
    * @brief The depth range; near and far clipping plane distances.
    */
   vec2_t depth_range;
-
-  /**
-   * @brief An additional clipping plane, as `xyz` normal and `w` distance, or all zeroes for none.
-   * @details Fragments behind the plane are discarded. A portal view sits inside the wall its
-   *   exit face is set into, so it clips away everything behind that face; the main view clips
-   *   likewise while the camera is within a portal's recess.
-   */
-  vec4_t clip_plane;
-
-  /**
-   * @brief For `VIEW_PORTAL`, the layer of the framebuffer's color attachment to render into.
-   */
-  int32_t portal_layer;
 
   /**
    * @brief The view origin.

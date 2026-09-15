@@ -36,6 +36,7 @@ cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_light_bounds;
 cvar_t *r_draw_material_stages;
 cvar_t *r_occlude;
+cvar_t *r_portals;
 
 cvar_t *r_ambient;
 cvar_t *r_ambient_occlusion;
@@ -84,46 +85,6 @@ SDL_GPUSampleCount R_SampleCount(void) {
 }
 
 /**
- * @brief Expresses the view's world-space clipping plane in view space, as a plane that keeps
- * the points whose dot product with `(x, y, z, 1)` is not negative.
- */
-static vec4_t R_ViewClipPlane(const r_view_t *view) {
-
-  const vec3_t normal = view->clip_plane.xyz;
-
-  return Vec4(Vec3_Dot(normal, view->right),
-              Vec3_Dot(normal, view->up),
-              -Vec3_Dot(normal, view->forward),
-              Vec3_Dot(normal, view->origin) - view->clip_plane.w);
-}
-
-/**
- * @brief Skews @p projection so that its near plane becomes @p plane, given in view space.
- * @details A portal view sits behind the face it looks out of, inside the wall that face is set
- * into, and must not draw what is back there. Moving the near plane onto the portal's own plane
- * culls it geometrically, where a fragment discard would cost the depth pre-pass optimization
- * for every other view sharing these shaders. Depth precision is skewed in exchange.
- * @remarks See Lengyel, "Oblique View Frustum Depth Projection and Clipping".
- */
-static mat4_t R_ObliqueProjection(mat4_t projection, const vec4_t plane) {
-
-  const vec4_t q = Vec4((SignOf(plane.x) + projection.m[2][0]) / projection.m[0][0],
-                        (SignOf(plane.y) + projection.m[2][1]) / projection.m[1][1],
-                        -1.f,
-                        (1.f + projection.m[2][2]) / projection.m[3][2]);
-
-  const float d = plane.x * q.x + plane.y * q.y + plane.z * q.z + plane.w * q.w;
-  const vec4_t c = Vec4_Scale(plane, 2.f / d);
-
-  projection.m[0][2] = c.x;
-  projection.m[1][2] = c.y;
-  projection.m[2][2] = c.z + 1.f;
-  projection.m[3][2] = c.w;
-
-  return projection;
-}
-
-/**
  * @brief Updates the global uniform buffer object with view and projection matrices for the current frame.
  */
 void R_UpdateUniforms(const r_view_t *view) {
@@ -149,13 +110,7 @@ void R_UpdateUniforms(const r_view_t *view) {
       0.f, 0.f, .5f, 1.f
     });
 
-    mat4_t projection = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
-
-    if (!Vec4_Equal(view->clip_plane, Vec4_Zero())) {
-      projection = R_ObliqueProjection(projection, R_ViewClipPlane(view));
-    }
-
-    out->projection3D = Mat4_Concat(clip, projection);
+    out->projection3D = Mat4_Concat(clip, Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST));
     out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
     out->sky_projection = Mat4_FromScale3(Vec3(-1.f, 1.f, 1.f));
@@ -297,7 +252,6 @@ void R_BeginFrame(void) {
 void R_InitView(r_view_t *view) {
 
   view->ticks = (uint32_t) SDL_GetTicks();
-  view->clip_plane = Vec4_Zero();
   view->num_beams = 0;
   view->num_portals = 0;
   view->num_entities = 0;
@@ -464,6 +418,7 @@ static void R_InitLocal(void) {
   r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
   r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
+  r_portals = Cvar_Add("r_portals", "1", CVAR_ARCHIVE, "Controls rendering the view through portal surfaces.");
 
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
   r_ambient_occlusion = Cvar_Add("r_ambient_occlusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");

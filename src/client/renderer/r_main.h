@@ -251,5 +251,6 @@ extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_light_bounds;
 extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_occlude;
+extern cvar_t *r_portals;
 
 #endif

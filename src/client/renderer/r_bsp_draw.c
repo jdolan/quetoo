@@ -111,6 +111,11 @@ static struct {
   int32_t surface;
 
   /**
+   * @brief The fragment locals as last pushed, so that the portal layer can be updated alone.
+   */
+  r_bsp_fragment_locals_t fragment_locals;
+
+  /**
    * @brief Cached material-stage pipelines.
    */
   r_stage_pipeline_t stage_pipelines[MAX_STAGE_PIPELINES];
@@ -286,18 +291,18 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 }
 
 /**
- * @return The layer of the portal texture @p in samples for @p view, or `-1` for none.
+ * @return The layer of the portal texture @p draw samples for @p view, or `-1` for none.
  * @details A portal face samples only when its own view was drawn for @p view this frame. A
  * portal the client game did not add has no image in the texture, and a portal view holds no
  * portals at all, which is what keeps portals from recursing: seen through one, a portal face
  * falls back to its plain material.
  */
-static int32_t R_BspPortalLayer(const r_view_t *view, const r_bsp_inline_model_t *in) {
+static int32_t R_BspPortalLayer(const r_view_t *view, const r_bsp_draw_elements_t *draw) {
 
-  if (in->portal) {
+  if (draw->portal) {
     for (int32_t i = 0; i < view->num_portals; i++) {
-      if (view->portals[i] == in->portal) {
-        return (int32_t) (in->portal - r_models.world->bsp->portals);
+      if (view->portals[i] == draw->portal) {
+        return (int32_t) (draw->portal - r_models.world->bsp->portals);
       }
     }
   }
@@ -316,12 +321,31 @@ static void R_PushBspUniformLocals(const r_view_t *view, const r_bsp_inline_mode
 
   $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, locals, sizeof(*locals));
 
-  const r_bsp_fragment_locals_t fragment = {
+  r_bsp_draw.fragment_locals = (r_bsp_fragment_locals_t) {
     .active_dynamic_lights = locals->active_dynamic_lights,
-    .portal_layer = R_BspPortalLayer(view, in),
+    .portal_layer = -1,
   };
 
-  $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &fragment, sizeof(fragment));
+  $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS,
+    &r_bsp_draw.fragment_locals, sizeof(r_bsp_draw.fragment_locals));
+}
+
+/**
+ * @brief Pushes the portal layer @p draw samples, if it differs from the one already pushed.
+ * @details The layer belongs to the draw elements rather than to the model, since a model may
+ * hold several portal faces, so it is pushed only when it changes -- which for the overwhelming
+ * majority of draws, none of which are portals, is never.
+ */
+static void R_PushBspPortalLayer(const r_view_t *view, const r_bsp_draw_elements_t *draw, RenderPass *pass) {
+
+  const int32_t layer = R_BspPortalLayer(view, draw);
+
+  if (layer != r_bsp_draw.fragment_locals.portal_layer) {
+    r_bsp_draw.fragment_locals.portal_layer = layer;
+
+    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS,
+      &r_bsp_draw.fragment_locals, sizeof(r_bsp_draw.fragment_locals));
+  }
 }
 
 /**
@@ -368,7 +392,7 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
 /**
  * @brief Draws the opaque draw elements in a BSP block.
  */
-static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block, RenderPass *pass) {
+static void R_DrawOpaqueBspBlock(const r_view_t *view, const r_bsp_block_t *block, RenderPass *pass) {
 
   const r_bsp_draw_elements_t *draw = block->draw_elements;
   for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -392,6 +416,8 @@ static void R_DrawOpaqueBspBlock(const r_bsp_block_t *block, RenderPass *pass) {
       R_MaterialUniforms(draw->material, draw->surface, &material);
       $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
     }
+
+    R_PushBspPortalLayer(view, draw, pass);
 
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
@@ -473,7 +499,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
       R_PushBspUniformLocals(view, in, &locals, pass);
     }
 
-    R_DrawOpaqueBspBlock(block, pass);
+    R_DrawOpaqueBspBlock(view, block, pass);
   }
 
   r_stats->bsp_inline_models++;
@@ -573,7 +599,7 @@ void R_DrawOpaqueBspEntities(const r_view_t *view, RenderPass *pass) {
   }, 1);
 
   $(pass, bindFragmentSamplers, BSP_SAMPLER_PORTAL, &(SDL_GPUTextureSamplerBinding) {
-    .texture = R_PortalTexture(),
+    .texture = R_PortalTexture(view),
     .sampler = r_bsp_draw.clamp_sampler->sampler,
   }, 1);
 
@@ -789,7 +815,7 @@ void R_DrawBlendBspEntities(const r_view_t *view, RenderPass *pass) {
   }, 1);
 
   $(pass, bindFragmentSamplers, BSP_SAMPLER_PORTAL, &(SDL_GPUTextureSamplerBinding) {
-    .texture = R_PortalTexture(),
+    .texture = R_PortalTexture(view),
     .sampler = r_bsp_draw.clamp_sampler->sampler,
   }, 1);
 

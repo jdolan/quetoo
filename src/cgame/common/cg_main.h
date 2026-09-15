@@ -32,7 +32,6 @@ extern cvar_t *cg_add_atmospheric;
 extern cvar_t *cg_add_decals;
 extern cvar_t *cg_add_entities;
 extern cvar_t *cg_add_flares;
-extern cvar_t *cg_portals;
 extern cvar_t *cg_add_lights;
 extern cvar_t *cg_add_sprites;
 extern cvar_t *cg_add_weather;

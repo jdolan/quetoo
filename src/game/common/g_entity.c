@@ -100,6 +100,7 @@ static const g_entity_class_t g_entity_classes[] = {
   { "misc_flame", G_FreeEntity },
   { "misc_light", G_FreeEntity },
   { "misc_model", G_FreeEntity },
+  { "misc_portal", G_FreeEntity },
   { "misc_sound", G_FreeEntity },
   { "misc_sparks", G_FreeEntity },
   { "misc_sprite", G_FreeEntity },

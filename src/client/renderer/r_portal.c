@@ -34,13 +34,13 @@ static struct {
    * BSP fragment stage declares the sampler whether or not any face reads it.
    */
   Texture *null_texture;
-} r_portals;
+} r_portal;
 
 /**
  * @brief Allocates the placeholder portal texture.
  */
 void R_InitPortal(void) {
-  r_portals.null_texture = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D_ARRAY, 1, 0xff000000);
+  r_portal.null_texture = $(r_context.device, createSolidColorTexture, SDL_GPU_TEXTURETYPE_2D_ARRAY, 1, 0xff000000);
 }
 
 /**
@@ -48,24 +48,27 @@ void R_InitPortal(void) {
  */
 void R_ShutdownPortal(void) {
 
-  if (r_portals.framebuffer) {
-    R_DestroyFramebuffer(r_portals.framebuffer);
-    r_portals.framebuffer = NULL;
+  if (r_portal.framebuffer) {
+    R_DestroyFramebuffer(r_portal.framebuffer);
+    r_portal.framebuffer = NULL;
   }
 
-  r_portals.null_texture = release(r_portals.null_texture);
+  r_portal.null_texture = release(r_portal.null_texture);
 }
 
 /**
- * @return The array texture to bind to the BSP portal sampler, never `NULL`.
+ * @return The array texture to bind to @p view's BSP portal sampler, never `NULL`.
+ * @remarks A portal view is drawn into that very texture, and binding a color attachment as a
+ * sampler in the pass writing it is undefined, whether or not any fragment reads it. Portal
+ * views sample nothing, so they are given the placeholder.
  */
-SDL_GPUTexture *R_PortalTexture(void) {
+SDL_GPUTexture *R_PortalTexture(const r_view_t *view) {
 
-  if (r_portals.framebuffer) {
-    return $(r_portals.framebuffer, resolveColorTexture, 0)->texture;
+  if (r_portal.framebuffer && view->type != VIEW_PORTAL) {
+    return $(r_portal.framebuffer, resolveColorTexture, 0)->texture;
   }
 
-  return r_portals.null_texture->texture;
+  return r_portal.null_texture->texture;
 }
 
 /**
@@ -76,6 +79,10 @@ void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal) {
 
   assert(view);
   assert(portal);
+
+  if (!r_portals->integer) {
+    return;
+  }
 
   if (view->num_portals == MAX_PORTALS) {
     return;
@@ -97,15 +104,15 @@ static void R_UpdatePortalFramebuffer(void) {
 
   const SDL_Size size = MakeSize(r_context.window_bounds.w, r_context.window_bounds.h);
 
-  if (r_portals.framebuffer) {
-    if (r_portals.framebuffer->colorAttachments[0].layerCount == (Uint32) num_portals) {
-      $(r_portals.framebuffer, resize, &size);
+  if (r_portal.framebuffer) {
+    if (r_portal.framebuffer->colorAttachments[0].layerCount == (Uint32) num_portals) {
+      $(r_portal.framebuffer, resize, &size);
       return;
     }
-    R_DestroyFramebuffer(r_portals.framebuffer);
+    R_DestroyFramebuffer(r_portal.framebuffer);
   }
 
-  r_portals.framebuffer = R_CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
+  r_portal.framebuffer = R_CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
     .size = size,
     .colorAttachments = {
       {
@@ -141,7 +148,7 @@ static void R_DrawPortal(const r_bsp_portal_t *portal) {
 
   r_view_t *view = portal->view;
 
-  view->framebuffer = r_portals.framebuffer;
+  view->framebuffer = r_portal.framebuffer;
 
   R_UpdateFrustum(view);
 
@@ -162,12 +169,12 @@ static void R_DrawPortal(const r_bsp_portal_t *portal) {
   }
 
   const SDL_GPUColorTargetInfo color[] = {
-    $(r_portals.framebuffer, colorTargetInfoForLayer, 0, R_PortalLayer(portal), SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
-    $(r_portals.framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+    $(r_portal.framebuffer, colorTargetInfoForLayer, 0, R_PortalLayer(portal), SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+    $(r_portal.framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
   };
 
   const SDL_GPUDepthStencilTargetInfo depth =
-    $(r_portals.framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
+    $(r_portal.framebuffer, depthTargetInfo, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE);
 
   RenderPass *pass = $(commands, beginRenderPass, color, 2, &depth);
 
@@ -202,7 +209,7 @@ void R_DrawPortals(const r_view_t *view) {
     R_DrawPortal(view->portals[i]);
   }
 
-  $(r_portals.framebuffer, swap);
+  $(r_portal.framebuffer, swap);
 
   r_stats = stats;
 
