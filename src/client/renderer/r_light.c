@@ -157,7 +157,12 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
     r_bsp_block_t *block = in->blocks;
     for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
+      // a portal view cannot use occlusion queries resolved for another camera
+      const bool culled = view->type == VIEW_PORTAL
+        ? R_CullBox(view, block->visible_bounds)
+        : block->query->result == 0;
+
+      if (culled) {
         continue;
       }
 

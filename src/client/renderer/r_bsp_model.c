@@ -369,8 +369,13 @@ static void R_LoadBspPortals(r_model_t *mod) {
   const bsp_portal_t *in = bsp->cm->file->portals;
   for (int32_t i = 0; i < bsp->num_portals; i++, in++, out++) {
 
+    if (in->draw_elements < 0 || in->draw_elements >= bsp->num_draw_elements) {
+      Com_Warn("Portal @ %s has invalid draw elements %d\n", vtos(in->entry_origin), in->draw_elements);
+      continue;
+    }
+
     out->origin = in->entry_origin;
-    out->view = Mem_LinkMalloc(sizeof(*out->view), bsp);
+    out->bounds = bsp->draw_elements[in->draw_elements].bounds;
 
     const mat4_t entry = Mat4_FromVectors(in->entry_forward,
                                           Vec3_Cross(in->entry_forward, in->entry_up),

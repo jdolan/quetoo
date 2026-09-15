@@ -123,6 +123,55 @@ static struct {
 } r_bsp_draw;
 
 /**
+ * @return The layer of the portal texture @p draw samples, or `-1` for none.
+ * @details `R_DrawPortals` clears the layer of every portal and sets it only on those it draws,
+ * so a portal that was not offered, was beyond the cap, or was culled reads `-1` here. Portal
+ * views offer no portals at all, which is what keeps portals from recursing: seen through one,
+ * a portal face falls back to its plain material.
+ */
+static int32_t R_BspPortalLayer(const r_bsp_draw_elements_t *draw) {
+  return draw->portal ? draw->portal->layer : -1;
+}
+
+/**
+ * @brief Pushes the per-model uniforms for both stages.
+ * @details A portal view pushes a layer of `-1`, which is what keeps portals from recursing:
+ * the fragment stage samples the portal texture only for a non-negative layer, so a portal
+ * face seen from inside another portal falls back to its plain material.
+ */
+static void R_PushBspUniformLocals(const r_view_t *view, const r_bsp_inline_model_t *in,
+                                   const r_bsp_uniform_locals_t *locals, RenderPass *pass) {
+
+  $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, locals, sizeof(*locals));
+
+  r_bsp_draw.fragment_locals = (r_bsp_fragment_locals_t) {
+    .active_dynamic_lights = locals->active_dynamic_lights,
+    .portal_layer = -1,
+  };
+
+  $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS,
+    &r_bsp_draw.fragment_locals, sizeof(r_bsp_draw.fragment_locals));
+}
+
+/**
+ * @brief Pushes the portal layer @p draw samples, if it differs from the one already pushed.
+ * @details The layer belongs to the draw elements rather than to the model, since a model may
+ * hold several portal faces, so it is pushed only when it changes -- which for the overwhelming
+ * majority of draws, none of which are portals, is never.
+ */
+static void R_PushBspPortalLayer(const r_bsp_draw_elements_t *draw, RenderPass *pass) {
+
+  const int32_t layer = R_BspPortalLayer(draw);
+
+  if (layer != r_bsp_draw.fragment_locals.portal_layer) {
+    r_bsp_draw.fragment_locals.portal_layer = layer;
+
+    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS,
+      &r_bsp_draw.fragment_locals, sizeof(r_bsp_draw.fragment_locals));
+  }
+}
+
+/**
  * @brief Returns the cached BSP material-stage pipeline for the given blend state.
  */
 static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend_t dest, bool depth_write) {
@@ -223,6 +272,21 @@ static GraphicsPipeline *R_DrawBspMaterialStagePipeline(cm_blend_t src, cm_blend
 }
 
 /**
+ * @return True if @p block should be skipped when drawing @p view.
+ * @details The main view has hardware occlusion queries, which subsume frustum culling. A
+ * portal view cannot use them at all -- they were resolved for a camera somewhere else
+ * entirely -- so it culls its own frustum and nothing more.
+ */
+static bool R_CullBspBlock(const r_view_t *view, const r_bsp_block_t *block) {
+
+  if (view->type == VIEW_PORTAL) {
+    return R_CullBox(view, block->visible_bounds);
+  }
+
+  return block->query->result == 0;
+}
+
+/**
  * @brief Draws one material stage for a BSP draw batch.
  */
 static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
@@ -249,6 +313,8 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
   }, 2);
 
   $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
+
+  R_PushBspPortalLayer(draw, pass);
 
   const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
@@ -291,64 +357,6 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 }
 
 /**
- * @return The layer of the portal texture @p draw samples for @p view, or `-1` for none.
- * @details A portal face samples only when its own view was drawn for @p view this frame. A
- * portal the client game did not add has no image in the texture, and a portal view holds no
- * portals at all, which is what keeps portals from recursing: seen through one, a portal face
- * falls back to its plain material.
- */
-static int32_t R_BspPortalLayer(const r_view_t *view, const r_bsp_draw_elements_t *draw) {
-
-  if (draw->portal) {
-    for (int32_t i = 0; i < view->num_portals; i++) {
-      if (view->portals[i] == draw->portal) {
-        return (int32_t) (draw->portal - r_models.world->bsp->portals);
-      }
-    }
-  }
-
-  return -1;
-}
-
-/**
- * @brief Pushes the per-model uniforms for both stages.
- * @details A portal view pushes a layer of `-1`, which is what keeps portals from recursing:
- * the fragment stage samples the portal texture only for a non-negative layer, so a portal
- * face seen from inside another portal falls back to its plain material.
- */
-static void R_PushBspUniformLocals(const r_view_t *view, const r_bsp_inline_model_t *in,
-                                   const r_bsp_uniform_locals_t *locals, RenderPass *pass) {
-
-  $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, locals, sizeof(*locals));
-
-  r_bsp_draw.fragment_locals = (r_bsp_fragment_locals_t) {
-    .active_dynamic_lights = locals->active_dynamic_lights,
-    .portal_layer = -1,
-  };
-
-  $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS,
-    &r_bsp_draw.fragment_locals, sizeof(r_bsp_draw.fragment_locals));
-}
-
-/**
- * @brief Pushes the portal layer @p draw samples, if it differs from the one already pushed.
- * @details The layer belongs to the draw elements rather than to the model, since a model may
- * hold several portal faces, so it is pushed only when it changes -- which for the overwhelming
- * majority of draws, none of which are portals, is never.
- */
-static void R_PushBspPortalLayer(const r_view_t *view, const r_bsp_draw_elements_t *draw, RenderPass *pass) {
-
-  const int32_t layer = R_BspPortalLayer(view, draw);
-
-  if (layer != r_bsp_draw.fragment_locals.portal_layer) {
-    r_bsp_draw.fragment_locals.portal_layer = layer;
-
-    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS,
-      &r_bsp_draw.fragment_locals, sizeof(r_bsp_draw.fragment_locals));
-  }
-}
-
-/**
  * @brief Draws material stages for a BSP inline model entity.
  */
 static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t *entity, RenderPass *pass) {
@@ -369,7 +377,7 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
 
     if (IS_WORLDSPAWN(entity->model)) {
 
-      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
+      if (R_CullBspBlock(view, block)) {
         continue;
       }
 
@@ -417,7 +425,7 @@ static void R_DrawOpaqueBspBlock(const r_view_t *view, const r_bsp_block_t *bloc
       $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
     }
 
-    R_PushBspPortalLayer(view, draw, pass);
+    R_PushBspPortalLayer(draw, pass);
 
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
@@ -456,6 +464,8 @@ static void R_DrawAlphaTestBspBlock(const r_bsp_block_t *block, RenderPass *pass
       $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
     }
 
+    R_PushBspPortalLayer(draw, pass);
+
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
     if (!(draw->surface & SURF_MATERIAL)) {
@@ -488,7 +498,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 
     if (IS_WORLDSPAWN(entity->model)) {
 
-      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
+      if (R_CullBspBlock(view, block)) {
         r_stats->blocks_occluded++;
         continue;
       }
@@ -526,7 +536,7 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
 
     if (IS_WORLDSPAWN(entity->model)) {
 
-      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
+      if (R_CullBspBlock(view, block)) {
         continue;
       }
 
@@ -705,6 +715,8 @@ static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, 
       $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
     }
 
+    R_PushBspPortalLayer(draw, pass);
+
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
     $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);
 
@@ -744,7 +756,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity,
 
     if (IS_WORLDSPAWN(entity->model)) {
 
-      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
+      if (R_CullBspBlock(view, block)) {
         continue;
       }
 

@@ -465,26 +465,27 @@ static int32_t BrushSideEntity(const int32_t brush_side) {
  * which is the mapper's say over roll on a face whose normal leaves it undefined, as on a floor
  * or ceiling.
  */
-static void PortalFaceFrame(const bsp_face_t *face, vec3_t *origin, vec3_t *forward, vec3_t *up) {
-
-  *origin = Vec3_Zero();
-
-  const bsp_vertex_t *v = &bsp_file.vertexes[face->first_vertex];
-  for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
-    *origin = Vec3_Add(*origin, v->position);
-  }
-
-  *origin = Vec3_Scale(*origin, 1.f / face->num_vertexes);
+static void PortalFaceFrame(const bsp_face_t *face, const bsp_draw_elements_t *draw,
+                            vec3_t *origin, vec3_t *forward, vec3_t *up) {
 
   const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
-  const vec3_t normal = bsp_file.planes[side->plane].normal;
+  const bsp_plane_t *plane = &bsp_file.planes[side->plane];
 
-  *forward = Vec3_Negate(normal);
+  // the BSP may have split the portal face into several, all of which share this brush side and
+  // were grouped into these draw elements. Their bounds union to the bounds of the face the
+  // mapper drew, where averaging their vertexes would lean toward whichever fragment came away
+  // with more of the vertexes the split introduced
+  *origin = Box3_Center(draw->bounds);
+
+  // that center lies on the face's plane for a rectangle, but not for every shape it could be
+  *origin = Vec3_Subtract(*origin, Vec3_Scale(plane->normal, Vec3_Dot(*origin, plane->normal) - plane->dist));
+
+  *forward = Vec3_Negate(plane->normal);
 
   vec3_t u = Vec3_Negate(side->axis[1].xyz);
-  u = Vec3_Subtract(u, Vec3_Scale(normal, Vec3_Dot(u, normal)));
+  u = Vec3_Subtract(u, Vec3_Scale(plane->normal, Vec3_Dot(u, plane->normal)));
 
-  if (Vec3_Length(u) > 0.f) {
+  if (Vec3_Length(u) > FLT_EPSILON) {
     *up = Vec3_Normalize(u);
   } else {
     Vec3_Vectors(Vec3_Euler(*forward), NULL, NULL, up);
@@ -502,8 +503,10 @@ static void EmitPortals(void) {
 
     const bsp_face_t *face = portal_faces[i].face;
 
+    const bsp_draw_elements_t *draw = &bsp_file.draw_elements[portal_faces[i].draw_elements];
+
     vec3_t entry_origin, entry_forward, entry_up;
-    PortalFaceFrame(face, &entry_origin, &entry_forward, &entry_up);
+    PortalFaceFrame(face, draw, &entry_origin, &entry_forward, &entry_up);
 
     const int32_t e = BrushSideEntity(face->brush_side);
     if (e == -1) {
@@ -751,7 +754,7 @@ int32_t EmitDrawElements(Vector *faces) {
     out->surface = a_surface & SURF_MASK_DRAW_ELEMENTS_CMP;
 
     if (a_surface & SURF_PORTAL) {
-      if (num_portal_faces == MAX_BSP_PORTALS) {
+      if (num_portal_faces == MAX_BSP_PORTALS - 1) {
         Com_Error(ERROR_FATAL, "MAX_BSP_PORTALS\n");
       }
       portal_faces[num_portal_faces].face = a;
