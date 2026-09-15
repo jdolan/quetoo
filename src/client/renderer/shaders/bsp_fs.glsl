@@ -125,21 +125,7 @@ void main(void) {
   // view's own projection, so the two images coincide in screen space and the fragment reads
   // straight across. A portal view itself is given a layer of -1, so portals never recurse
   if ((material.surface & SURF_PORTAL) == SURF_PORTAL && portal_layer >= 0) {
-
-    // a warp, so that a portal reads as one rather than as more hallway. The ripple is sampled
-    // at the face's own texcoords, so it sits on the surface instead of swimming across the
-    // screen as the camera turns, but it displaces the screen space lookup, which is where the
-    // portal's image lives. Material stages composite over this, they cannot disturb it, so a
-    // material has no way to express this yet and the amplitude is in screen space, not texture
-    // space: a mapper's warp of 0.25 would displace by a quarter of the display
-    const float portal_warp_hz = 0.5;
-    const float portal_warp_amplitude = 0.0666;
-
     vec2 st = gl_FragCoord.xy / vec2(viewport.zw);
-
-    vec2 warp = texture(texture_warp, vertex.diffusemap + vec2(ticks * portal_warp_hz * 0.000125)).xy;
-    st += (warp - 0.5) * portal_warp_amplitude;
-
     out_color = vec4(texture(texture_portal, vec3(st, portal_layer)).rgb, 1.0);
     return;
   }

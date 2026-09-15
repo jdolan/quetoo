@@ -179,7 +179,7 @@ struct bsp_locals_block
 };
 
 constant spvUnsafeArray<float2, 16> _1064 = spvUnsafeArray<float2, 16>({ float2(0.2770744860172271728515625, 0.69514548778533935546875), float2(-0.59327852725982666015625, -0.1203283965587615966796875), float2(0.449474990367889404296875, 0.246909797191619873046875), float2(-0.1460638940334320068359375, -0.5679666996002197265625), float2(0.64004981517791748046875, -0.407194793224334716796875), float2(-0.3631913959980010986328125, 0.79357779026031494140625), float2(0.124885700643062591552734375, -0.897523820400238037109375), float2(-0.7720317840576171875, 0.443845808506011962890625), float2(0.88518059253692626953125, 0.1653372943401336669921875), float2(-0.52380120754241943359375, -0.726029574871063232421875), float2(0.3642682135105133056640625, 0.596805393695831298828125), float2(-0.833170115947723388671875, -0.33283460140228271484375), float2(0.552725970745086669921875, -0.698580920696258544921875), float2(-0.24071229994297027587890625, 0.3153156936168670654296875), float2(0.72694051265716552734375, -0.14306400716304779052734375), float2(-0.64446747303009033203125, 0.64446747303009033203125) });
-constant spvUnsafeArray<float, 8> _2222 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
+constant spvUnsafeArray<float, 8> _2202 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
 
 struct main0_out
 {
@@ -900,18 +900,16 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _522
     if (_1959)
     {
         float2 st = gl_FragCoord.xy / float2(_522.viewport.zw);
-        float2 warp = texture_warp.sample(texture_warpSmplr, (vertex0.diffusemap + float2((float(_522.ticks) * 0.5) * 0.00012500000593718141317367553710938))).xy;
-        st += ((warp - float2(0.5)) * 0.066600002348423004150390625);
-        float3 _2006 = float3(st, float(_1624.portal_layer));
-        out.out_color = float4(texture_portal.sample(texture_portalSmplr, _2006.xy, uint(rint(_2006.z))).xyz, 1.0);
+        float3 _1981 = float3(st, float(_1624.portal_layer));
+        out.out_color = float4(texture_portal.sample(texture_portalSmplr, _1981.xy, uint(rint(_1981.z))).xyz, 1.0);
         return out;
     }
     fragment0.view_dir = fast::normalize(-vertex0.position);
     fragment0.view_dist = length(vertex0.position);
-    float2 _2031;
-    _2031.x = texture_material.calculate_clamped_lod(texture_materialSmplr, vertex0.diffusemap);
-    _2031.y = texture_material.calculate_unclamped_lod(texture_materialSmplr, vertex0.diffusemap);
-    fragment0.texture_lod = _2031.x;
+    float2 _2009;
+    _2009.x = texture_material.calculate_clamped_lod(texture_materialSmplr, vertex0.diffusemap);
+    _2009.y = texture_material.calculate_unclamped_lod(texture_materialSmplr, vertex0.diffusemap);
+    fragment0.texture_lod = _2009.x;
     common_vertex_t param = vertex0;
     common_fragment_t param_1 = fragment0;
     parallax_occlusion_mapping(param, param_1, texture_material, texture_materialSmplr, material, _522);
@@ -933,16 +931,16 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _522
         common_fragment_t param_4 = fragment0;
         fragment_lighting_lod(param_3, param_4, texture_material, texture_materialSmplr, material, _522, _573, _591, texture_voxel_caustics, texture_voxel_causticsSmplr, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr, texture_sky, texture_skySmplr, _1587, _1617, _1624);
         fragment0 = param_4;
-        float4 _2084 = out.out_color;
-        float3 _2086 = _2084.xyz * (fragment0.ambient + fragment0.diffuse);
-        out.out_color.x = _2086.x;
-        out.out_color.y = _2086.y;
-        out.out_color.z = _2086.z;
-        float4 _2095 = out.out_color;
-        float3 _2097 = _2095.xyz + fragment0.specular;
-        out.out_color.x = _2097.x;
-        out.out_color.y = _2097.y;
-        out.out_color.z = _2097.z;
+        float4 _2062 = out.out_color;
+        float3 _2064 = _2062.xyz * (fragment0.ambient + fragment0.diffuse);
+        out.out_color.x = _2064.x;
+        out.out_color.y = _2064.y;
+        out.out_color.z = _2064.z;
+        float4 _2073 = out.out_color;
+        float3 _2075 = _2073.xyz + fragment0.specular;
+        out.out_color.x = _2075.x;
+        out.out_color.y = _2075.y;
+        out.out_color.z = _2075.z;
     }
     else
     {
@@ -960,24 +958,24 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _522
             common_fragment_t param_7 = fragment0;
             fragment_lighting_lod(param_6, param_7, texture_material, texture_materialSmplr, material, _522, _573, _591, texture_voxel_caustics, texture_voxel_causticsSmplr, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_shadow_atlas_0, texture_shadow_atlas_0Smplr, texture_shadow_atlas_1, texture_shadow_atlas_1Smplr, texture_shadow_atlas_2, texture_shadow_atlas_2Smplr, texture_shadow_atlas_3, texture_shadow_atlas_3Smplr, texture_shadow_atlas_4, texture_shadow_atlas_4Smplr, texture_shadow_atlas_5, texture_shadow_atlas_5Smplr, texture_sky, texture_skySmplr, _1587, _1617, _1624);
             fragment0 = param_7;
-            float4 _2167 = out.out_color;
-            float3 _2169 = _2167.xyz * mix(float3(1.0), fragment0.ambient + fragment0.diffuse, float3(material.lighting));
-            out.out_color.x = _2169.x;
-            out.out_color.y = _2169.y;
-            out.out_color.z = _2169.z;
-            float4 _2181 = out.out_color;
-            float3 _2183 = _2181.xyz + (fragment0.specular * material.lighting);
-            out.out_color.x = _2183.x;
-            out.out_color.y = _2183.y;
-            out.out_color.z = _2183.z;
+            float4 _2147 = out.out_color;
+            float3 _2149 = _2147.xyz * mix(float3(1.0), fragment0.ambient + fragment0.diffuse, float3(material.lighting));
+            out.out_color.x = _2149.x;
+            out.out_color.y = _2149.y;
+            out.out_color.z = _2149.z;
+            float4 _2161 = out.out_color;
+            float3 _2163 = _2161.xyz + (fragment0.specular * material.lighting);
+            out.out_color.x = _2163.x;
+            out.out_color.y = _2163.y;
+            out.out_color.z = _2163.z;
         }
         if ((material.flags & 262144) == 262144)
         {
-            float4 _2204 = out.out_color;
-            float3 _2206 = _2204.xyz + (fragment0.diffuse_sample.xyz * material.emissive);
-            out.out_color.x = _2206.x;
-            out.out_color.y = _2206.y;
-            out.out_color.z = _2206.z;
+            float4 _2184 = out.out_color;
+            float3 _2186 = _2184.xyz + (fragment0.diffuse_sample.xyz * material.emissive);
+            out.out_color.x = _2186.x;
+            out.out_color.y = _2186.y;
+            out.out_color.z = _2186.z;
         }
     }
     return out;
