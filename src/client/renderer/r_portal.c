@@ -21,6 +21,11 @@
 
 #include "r_local.h"
 
+/**
+ * @brief The factor by which portal framebuffers are smaller than the window, per axis.
+ */
+#define PORTAL_FRAMEBUFFER_DIVISOR 2
+
 static struct {
   /**
    * @brief The views the portals of a frame are drawn with, one per layer of the framebuffer.
@@ -196,13 +201,18 @@ r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal) {
  * @brief Creates or resizes the portal framebuffer for the loaded world.
  * @remarks The color attachment is layered, one layer per portal, so that the BSP fragment
  * stage samples every portal from a single binding.
+ * @details Portals render at half the window's resolution. A portal is sampled through a warping
+ * material with further stages over it, so a full size layer per portal buys nothing that can be
+ * seen, and costs a whole scene's fill rate each. The projection is unaffected: it comes from the
+ * view's own viewport rather than from this size, so the image still registers with the face, and
+ * only the rasterization is coarser.
  */
 static void R_UpdatePortalFramebuffer(void) {
 
-  const SDL_Size size = MakeSize(r_context.window_bounds.w, r_context.window_bounds.h);
+  const SDL_Size window = MakeSize(r_context.window_bounds.w, r_context.window_bounds.h);
 
   if (r_portal.framebuffer) {
-    if (r_portal.size.w == size.w && r_portal.size.h == size.h) {
+    if (r_portal.size.w == window.w && r_portal.size.h == window.h) {
       return;
     }
 
@@ -211,10 +221,10 @@ static void R_UpdatePortalFramebuffer(void) {
     R_DestroyFramebuffer(r_portal.framebuffer);
   }
 
-  r_portal.size = size;
+  r_portal.size = window;
 
   r_portal.framebuffer = R_CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
-    .size = size,
+    .size = MakeSize(window.w / PORTAL_FRAMEBUFFER_DIVISOR, window.h / PORTAL_FRAMEBUFFER_DIVISOR),
     .colorAttachments = {
       {
         .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
