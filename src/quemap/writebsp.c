@@ -754,7 +754,7 @@ int32_t EmitDrawElements(Vector *faces) {
     out->surface = a_surface & SURF_MASK_DRAW_ELEMENTS_CMP;
 
     if (a_surface & SURF_PORTAL) {
-      if (num_portal_faces == MAX_BSP_PORTALS - 1) {
+      if (num_portal_faces == MAX_BSP_PORTALS) {
         Com_Error(ERROR_FATAL, "MAX_BSP_PORTALS\n");
       }
       portal_faces[num_portal_faces].face = a;
