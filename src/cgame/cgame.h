@@ -927,23 +927,17 @@ typedef struct cg_import_s {
   void (*AddDecal)(r_view_t *view, const r_decal_t *decal);
 
   /**
-   * @brief Resolves @p portal into world space through the model matrix of the entity drawing
-   * its face, which must be done before offering it.
-   * @details A portal face's frame is baked in the space of the model that draws it, so a portal
-   * carried by a mover reaches the world only through that entity's transform. Pass the identity
-   * for a portal on worldspawn, or on anything else that does not move.
-   */
-  void (*UpdatePortal)(r_bsp_portal_t *portal, const mat4_t matrix);
-
-  /**
    * @brief Offers a portal for @p view to sample.
    * @details The returned view is yours to place its camera on; the renderer repeats @p view's
    * scene into it once the scene is complete, and it culls that for itself, so this may be
    * called at any point while populating. Offer every portal of the world: a view holds far
    * fewer than a map may contain, and keeps the nearest, evicting the farthest to make room.
+   * @param matrix The model matrix of the entity drawing the portal's face, or the identity for
+   * one on worldspawn or on anything else that does not move. A portal face's frame is baked in
+   * the space of the model that draws it, so this is what carries it into the world.
    * @return The view to populate, or `NULL` if this portal will not be drawn.
    */
-  r_view_t *(*AddPortal)(r_view_t *view, r_bsp_portal_t *portal);
+  r_view_t *(*AddPortal)(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix);
 
   /**
    * @brief Draws the player model view.

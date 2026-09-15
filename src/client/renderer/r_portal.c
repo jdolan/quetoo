@@ -94,16 +94,9 @@ SDL_GPUTexture *R_PortalTexture(const r_view_t *view) {
  * @brief Resolves @p portal into world space for the frame, through the model matrix of the
  * entity drawing its face.
  * @details A portal face's frame is baked in the space of the model that draws it, since the
- * compiler offsets a brush entity's geometry by its origin brush. Pass the identity for a portal
- * on worldspawn, or on anything else that does not move.
+ * compiler offsets a brush entity's geometry by its origin brush.
  */
-void R_UpdatePortal(r_bsp_portal_t *portal, const mat4_t matrix) {
-
-  assert(portal);
-
-  if (!portal->model) {
-    return;
-  }
+static void R_UpdatePortal(r_bsp_portal_t *portal, const mat4_t matrix) {
 
   portal->abs_origin = Mat4_Transform(matrix, portal->origin);
   portal->abs_bounds = Mat4_TransformBounds(matrix, portal->bounds);
@@ -130,9 +123,12 @@ void R_UpdatePortal(r_bsp_portal_t *portal, const mat4_t matrix) {
  * view's last evicts nothing, while offering a nearer one drops that last portal and takes its
  * pooled view. Ordering is the renderer's business rather than the client game's, so that a
  * portal too far to matter cannot crowd out one in front of the player.
+ * @param matrix The model matrix of the entity drawing @p portal's face, or the identity for a
+ * portal on worldspawn or on anything else that does not move. A portal face's frame is baked in
+ * the space of the model that draws it, so this is what carries it into the world.
  * @return The view to populate, or `NULL` if this portal will not be drawn.
  */
-r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal) {
+r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix) {
 
   assert(view);
   assert(portal);
@@ -148,6 +144,8 @@ r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal) {
   }
 
   view->stats.portals_offered++;
+
+  R_UpdatePortal(portal, matrix);
 
   // a portal face is single sided, and the BSP pipeline culls back faces, so from behind its
   // plane there is nothing of it to draw -- and a whole scene would be rendered into a layer
@@ -188,7 +186,7 @@ r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal) {
   view->portals[i] = portal;
   view->num_portals++;
 
-  // emptied here rather than left to the caller, since `R_UpdatePortals` fills these arrays by
+  // emptied here rather than left to the caller, since `R_UpdatePortalView` fills these arrays by
   // copy and relies on there being room for the whole scene
   R_InitView(pooled);
 

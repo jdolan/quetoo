@@ -401,8 +401,6 @@ static void R_LoadBspPortals(r_model_t *mod) {
         break;
       }
     }
-
-    R_UpdatePortal(out, Mat4_Identity());
   }
 }
 

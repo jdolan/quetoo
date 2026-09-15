@@ -26,7 +26,7 @@
  * @details A portal face's frame is baked in the space of the model containing it, so a portal
  * on a mover -- a `func_bob` teleporter, say -- must be drawn with that entity's
  * current transform.
- * @return `false` if the entity that contains @c portal is not in the current frame.
+ * @return `false` if the entity that contains @c portal is not in the current frame (@c SVF_NO_CLIENT, etc.).
  */
 static bool Cg_PortalMatrix(const cl_frame_t *frame, const r_bsp_portal_t *portal, mat4_t *matrix) {
 
@@ -69,9 +69,7 @@ void Cg_AddPortals(const cl_frame_t *frame) {
       continue;
     }
 
-    cgi.UpdatePortal(p, matrix);
-
-    r_view_t *view = cgi.AddPortal(cgi.view, p);
+    r_view_t *view = cgi.AddPortal(cgi.view, p, matrix);
     if (!view) {
       continue;
     }
