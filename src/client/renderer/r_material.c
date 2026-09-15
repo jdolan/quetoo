@@ -190,11 +190,10 @@ static void R_ResolveMaterialStages(r_material_t *material) {
     stage->cm = cs;
     stage->flags = cs->flags;
 
-    // SURF_PORTAL reaches a face from its brush side, which a material need not declare, so this
-    // cannot be guarded on cm->surface. The draw does the gating instead: only a portal face is
-    // given a layer to sample
-    if (!q_strcmp(cs->asset.name, cm->diffusemap.name)) {
-      stage->flags |= STAGE_PORTAL;
+    if (cm->surface & SURF_PORTAL) {
+      if (!q_strcmp(cs->asset.name, cm->diffusemap.name)) {
+        stage->flags |= STAGE_PORTAL;
+      }
     }
 
     if (*stage->cm->asset.path) {
