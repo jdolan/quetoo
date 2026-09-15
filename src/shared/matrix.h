@@ -455,9 +455,9 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Mat4_Transform(const m
 }
 
 /**
- * @return The input direction transformed by the specified matrix, ignoring its translation.
+ * @return The input direction rotated by the specified matrix, ignoring its translation.
  */
-static inline vec3_t __attribute__ ((warn_unused_result)) Mat4_TransformVector(const mat4_t m, const vec3_t v) {
+static inline vec3_t __attribute__ ((warn_unused_result)) Mat4_RotateVector(const mat4_t m, const vec3_t v) {
   return Vec3(
     v.x * m.m[0][0] + v.y * m.m[1][0] + v.z * m.m[2][0],
     v.x * m.m[0][1] + v.y * m.m[1][1] + v.z * m.m[2][1],

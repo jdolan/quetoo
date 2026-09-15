@@ -30,7 +30,7 @@ void R_DrawPortals(const r_view_t *view);
 #if defined(__R_LOCAL_H__)
 
 SDL_GPUTexture *R_PortalTexture(const r_view_t *view);
-void R_InitPortal(void);
-void R_ShutdownPortal(void);
+void R_InitPortals(void);
+void R_ShutdownPortals(void);
 
 #endif

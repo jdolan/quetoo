@@ -131,12 +131,11 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->editor = editor->integer;
     out->developer = developer->integer;
 
-    // a view with no relation to the world's lighting - the player model preview - must land
-    // all of its lookups on the one voxel of the fallback buffers: clamping to a zero-sized
-    // grid would not, since clamp() with a low bound above its high bound is undefined, and a
-    // zero-sized box would not either, since voxel_uvw divides by it. A portal view is a view
-    // of the world like any other, so it keeps the world's voxels
-    if ((view->type != VIEW_MAIN && view->type != VIEW_PORTAL) || !r_models.world) {
+    // the player model preview must land all of its lookups on the one voxel of the fallback
+    // buffers: clamping to a zero-sized grid would not, since clamp() with a low bound above
+    // its high bound is undefined, and a zero-sized box would not either, since voxel_uvw
+    // divides by it
+    if (view->type == VIEW_PLAYER_MODEL) {
       out->voxels.mins = Vec4(0.f, 0.f, 0.f, 0.f);
       out->voxels.maxs = Vec4(1.f, 1.f, 1.f, 0.f);
       out->voxels.size = Vec4(1.f, 1.f, 1.f, 0.f);
@@ -521,7 +520,7 @@ void R_Init(void) {
   
   R_InitSky();
 
-  R_InitPortal();
+  R_InitPortals();
 
   R_InitPost();
 
@@ -549,7 +548,7 @@ void R_Shutdown(void) {
 
   R_ShutdownSky();
 
-  R_ShutdownPortal();
+  R_ShutdownPortals();
 
   R_ShutdownSprites();
 

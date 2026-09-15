@@ -190,9 +190,9 @@ static void R_ResolveMaterialStages(r_material_t *material) {
     stage->cm = cs;
     stage->flags = cs->flags;
 
-    // a stage naming the material's own diffusemap draws what the face would have drawn, which
-    // for a portal face is the portal. That keeps a portal's material working unchanged when
-    // portals are not being drawn: the stage simply samples the texture it names
+    // SURF_PORTAL reaches a face from its brush side, which a material need not declare, so this
+    // cannot be guarded on cm->surface. The draw does the gating instead: only a portal face is
+    // given a layer to sample
     if (!q_strcmp(cs->asset.name, cm->diffusemap.name)) {
       stage->flags |= STAGE_PORTAL;
     }
