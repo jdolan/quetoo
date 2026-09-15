@@ -372,9 +372,7 @@ void R_UpdateSprites(r_view_t *view, CopyPass *copyPass) {
  */
 void R_DrawSprites(const r_view_t *view, RenderPass *pass) {
 
-  if (!r_models.world) {
-    return;
-  }
+  assert(r_models.world);
 
   if (view->num_sprite_instances == 0) {
     return;

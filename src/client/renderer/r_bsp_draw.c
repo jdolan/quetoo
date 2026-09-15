@@ -537,9 +537,7 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
  */
 void R_DrawOpaqueBspEntities(const r_view_t *view, RenderPass *pass) {
 
-  if (!r_models.world) {
-    return;
-  }
+  assert(r_models.world);
 
   R_DrawSky(view, pass);
 
@@ -756,9 +754,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity,
  */
 void R_DrawBlendBspEntities(const r_view_t *view, RenderPass *pass) {
 
-  if (!r_models.world) {
-    return;
-  }
+  assert(r_models.world);
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
 

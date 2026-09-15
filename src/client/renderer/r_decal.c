@@ -532,9 +532,7 @@ void R_UpdateDecals(const r_view_t *view, CopyPass *pass) {
  */
 void R_DrawDecals(const r_view_t *view, RenderPass *pass) {
 
-  if (!r_models.world) {
-    return;
-  }
+  assert(r_models.world);
 
   CommandBuffer *commands = r_context.device->commands;
 
