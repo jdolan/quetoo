@@ -113,7 +113,11 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
 
-    if (l->bsp_light && view->type != VIEW_PORTAL) {
+    // a portal view cannot occlude at all: the queries were resolved for another camera, so it
+    // culls its own frustum and nothing more
+    if (view->type == VIEW_PORTAL) {
+      l->occluded = R_CullBox(view, l->bounds);
+    } else if (l->bsp_light) {
       l->occluded = !l->bsp_light->query->result;
     } else {
       l->occluded = R_CulludeBox(view, l->bounds);
