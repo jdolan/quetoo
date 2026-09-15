@@ -49,9 +49,10 @@ static bool Cg_PortalMatrix(const cl_frame_t *frame, const r_bsp_portal_t *porta
 }
 
 /**
- * @brief Places the camera of each portal's view, and adds the portal to the main view.
- * @details The camera is the player's own, carried into the portal's target frame. Carrying it
- * rather than pinning it to the target is what gives a portal parallax.
+ * @brief Offers every portal of the world to the main view.
+ * @details The renderer keeps the nearest of them, places their cameras, and repeats the scene
+ * into each. All that is wanted here is the transform of the entity drawing each portal's face,
+ * which only the client game can resolve.
  */
 void Cg_AddPortals(const cl_frame_t *frame) {
 
@@ -65,37 +66,8 @@ void Cg_AddPortals(const cl_frame_t *frame) {
     r_bsp_portal_t *p = &world->bsp->portals[i];
 
     mat4_t matrix;
-    if (!Cg_PortalMatrix(frame, p, &matrix)) {
-      continue;
+    if (Cg_PortalMatrix(frame, p, &matrix)) {
+      cgi.AddPortal(cgi.view, p, matrix);
     }
-
-    r_view_t *view = cgi.AddPortal(cgi.view, p, matrix);
-    if (!view) {
-      continue;
-    }
-
-    view->type = VIEW_PORTAL;
-    view->viewport = cgi.view->viewport;
-    view->fov = cgi.view->fov;
-    view->depth_range = cgi.view->depth_range;
-    view->ticks = cgi.view->ticks;
-    view->ambient = cgi.view->ambient;
-
-    // project the main view's origin on the portal's plane, and clamped to the portal bounds
-    vec3_t origin = Box3_ClampPoint(p->abs_bounds, cgi.view->origin);
-
-    const float dist = Vec3_Dot(origin, p->abs_plane.normal) - p->abs_plane.dist;
-
-    origin = Vec3_Subtract(origin, Vec3_Scale(p->abs_plane.normal, dist));
-
-    view->origin = Mat4_Transform(p->matrix, origin);
-    view->forward = Mat4_RotateVector(p->matrix, cgi.view->forward);
-    view->right = Mat4_RotateVector(p->matrix, cgi.view->right);
-    view->up = Mat4_RotateVector(p->matrix, cgi.view->up);
-    view->angles = Vec3_Euler(view->forward);
-
-    vec3_t right, up;
-    Vec3_Vectors(view->angles, NULL, &right, &up);
-    view->angles.z = Degrees(atan2f(Vec3_Dot(view->up, right), Vec3_Dot(view->up, up)));
   }
 }

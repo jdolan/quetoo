@@ -114,8 +114,9 @@ static void R_UpdatePortal(r_bsp_portal_t *portal, const mat4_t matrix) {
 
 /**
  * @brief Offers a portal for @p view to sample.
- * @details The returned view is the client game's to place: its camera, and anything added to
- * @p view afterwards, which the renderer repeats into it.
+ * @details The portal's own view is placed here rather than by the client game. Every part of it
+ * is the outer view carried through the portal, and its projection must match the outer view's
+ * exactly for the two images to register, so there is nothing in it for a caller to decide.
  *
  * A view holds far fewer portals than a map may contain, and the scene is populated before any
  * of it is culled, so there is no knowing here which portals are actually visible. The nearest
@@ -126,21 +127,20 @@ static void R_UpdatePortal(r_bsp_portal_t *portal, const mat4_t matrix) {
  * @param matrix The model matrix of the entity drawing @p portal's face, or the identity for a
  * portal on worldspawn or on anything else that does not move. A portal face's frame is baked in
  * the space of the model that draws it, so this is what carries it into the world.
- * @return The view to populate, or `NULL` if this portal will not be drawn.
  */
-r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix) {
+void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix) {
 
   assert(view);
   assert(portal);
 
   if (!r_portals->integer) {
-    return NULL;
+    return;
   }
 
   // a portal the world dropped for want of valid draw elements has no frames to carry a camera
   // through, and no face to show one on
   if (!portal->model) {
-    return NULL;
+    return;
   }
 
   view->stats.portals_offered++;
@@ -153,7 +153,7 @@ r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matri
   // it happens to be looking: a portal off to the side is still plainly visible, so the view's
   // forward vector says nothing about whether this one can be seen
   if (Cm_DistanceToPlane(view->origin, &portal->abs_plane) <= 0.f) {
-    return NULL;
+    return;
   }
 
   const float dist = Vec3_DistanceSquared(portal->abs_origin, view->origin);
@@ -164,7 +164,7 @@ r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matri
   }
 
   if (i == MAX_PORTALS) {
-    return NULL;
+    return;
   }
 
   r_view_t *pooled;
@@ -190,9 +190,32 @@ r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matri
   // copy and relies on there being room for the whole scene
   R_InitView(pooled);
 
-  portal->view = pooled;
+  // the projection must be the outer view's to the last bit: the face samples the portal at its
+  // own screen coordinates, and the two images only register because both were drawn with it
+  pooled->type = VIEW_PORTAL;
+  pooled->viewport = view->viewport;
+  pooled->fov = view->fov;
+  pooled->depth_range = view->depth_range;
+  pooled->ticks = view->ticks;
+  pooled->ambient = view->ambient;
 
-  return pooled;
+  // project the camera onto the portal's plane, clamped to the portal's bounds
+  vec3_t origin = Box3_ClampPoint(portal->abs_bounds, view->origin);
+
+  origin = Vec3_Subtract(origin, Vec3_Scale(portal->abs_plane.normal,
+                                            Cm_DistanceToPlane(origin, &portal->abs_plane)));
+
+  pooled->origin = Mat4_Transform(portal->matrix, origin);
+  pooled->forward = Mat4_RotateVector(portal->matrix, view->forward);
+  pooled->right = Mat4_RotateVector(portal->matrix, view->right);
+  pooled->up = Mat4_RotateVector(portal->matrix, view->up);
+  pooled->angles = Vec3_Euler(pooled->forward);
+
+  vec3_t right, up;
+  Vec3_Vectors(pooled->angles, NULL, &right, &up);
+  pooled->angles.z = Degrees(atan2f(Vec3_Dot(pooled->up, right), Vec3_Dot(pooled->up, up)));
+
+  portal->view = pooled;
 }
 
 /**
