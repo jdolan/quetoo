@@ -22,6 +22,14 @@
 #include "cg_local.h"
 
 /**
+ * @brief How far behind its own plane a portal's camera is set, in world units.
+ * @details Carried to the exit, this puts the camera that far in front of the destination, so
+ * that brushwork sitting on the destination's plane -- the far face of a double-walled
+ * teleporter, say -- falls behind the camera and is clipped rather than filling the view.
+ */
+#define PORTAL_CAMERA_OFFSET 16.f
+
+/**
  * @brief Resolves the model matrix of the entity drawing @p portal's face this frame.
  * @details A portal face's frame is baked in the space of the model that draws it, so a portal
  * on a mover -- a `func_bob` teleporter, say -- reaches the world only through that entity's
@@ -98,7 +106,20 @@ void Cg_AddPortals(const cl_frame_t *frame) {
     view->ticks = cgi.view->ticks;
     view->ambient = cgi.view->ambient;
 
-    view->origin = Mat4_Transform(p->matrix, cgi.view->origin);
+    // the camera is flattened onto the portal's own plane before being carried, rather than
+    // carried in full. At the exit it then sits on the destination's plane, so nothing behind the
+    // destination is ever in front of the camera -- whatever brushwork surrounds it, and with no
+    // clip plane to pay for. Depth parallax goes with it, since walking up to a portal no longer
+    // opens the view; clamping the flattened point to the face keeps the lateral parallax, which
+    // is the part that sells the effect
+    vec3_t origin = Box3_ClampPoint(p->abs_bounds, cgi.view->origin);
+
+    // Cm_DistanceToPlane, which the client game does not see
+    const float dist = Vec3_Dot(origin, p->abs_plane.normal) - p->abs_plane.dist;
+
+    origin = Vec3_Subtract(origin, Vec3_Scale(p->abs_plane.normal, dist + PORTAL_CAMERA_OFFSET));
+
+    view->origin = Mat4_Transform(p->matrix, origin);
     view->forward = Mat4_RotateVector(p->matrix, cgi.view->forward);
     view->right = Mat4_RotateVector(p->matrix, cgi.view->right);
     view->up = Mat4_RotateVector(p->matrix, cgi.view->up);
