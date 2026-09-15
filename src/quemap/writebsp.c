@@ -31,6 +31,18 @@
 #include "writebsp.h"
 
 /**
+ * @brief The portal faces emitted so far, and the draw elements each was emitted to.
+ * @remarks Resolved into the portals lump by `EmitPortals`, once the entities it must target
+ * are known to be complete.
+ */
+static struct {
+  const bsp_face_t *face;
+  int32_t draw_elements;
+} portal_faces[MAX_BSP_PORTALS];
+
+static int32_t num_portal_faces;
+
+/**
  * @brief Writes all compiler planes to the BSP planes lump.
  */
 void EmitPlanes(void) {
@@ -430,8 +442,131 @@ void BeginBSPFile(void) {
 /**
  * @brief Called after all BSP data has been emitted; reserved for any final BSP file finalization.
  */
+/**
+ * @return The index of the entity that defined @p brush_side, or `-1`.
+ */
+static int32_t BrushSideEntity(const int32_t brush_side) {
+
+  const bsp_brush_t *brush = bsp_file.brushes;
+  for (int32_t i = 0; i < bsp_file.num_brushes; i++, brush++) {
+    if (brush_side >= brush->first_brush_side &&
+      brush_side < brush->first_brush_side + brush->num_brush_sides) {
+      return brush->entity;
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * @brief Resolves the frame of a portal face.
+ * @details The face is the one the mapper approaches, so its outward normal points back at them
+ * and travel through the portal runs the other way. Up comes from the way the texture reads,
+ * which is the mapper's say over roll on a face whose normal leaves it undefined, as on a floor
+ * or ceiling.
+ */
+static void PortalFaceFrame(const bsp_face_t *face, vec3_t *origin, vec3_t *forward, vec3_t *up) {
+
+  *origin = Vec3_Zero();
+
+  const bsp_vertex_t *v = &bsp_file.vertexes[face->first_vertex];
+  for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
+    *origin = Vec3_Add(*origin, v->position);
+  }
+
+  *origin = Vec3_Scale(*origin, 1.f / face->num_vertexes);
+
+  const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
+  const vec3_t normal = bsp_file.planes[side->plane].normal;
+
+  *forward = Vec3_Negate(normal);
+
+  vec3_t u = Vec3_Negate(side->axis[1].xyz);
+  u = Vec3_Subtract(u, Vec3_Scale(normal, Vec3_Dot(u, normal)));
+
+  if (Vec3_Length(u) > 0.f) {
+    *up = Vec3_Normalize(u);
+  } else {
+    Vec3_Vectors(Vec3_Euler(*forward), NULL, NULL, up);
+  }
+}
+
+/**
+ * @brief Emits the portals lump, resolving each portal face to the entity it views from.
+ * @details A portal that names no target, or names one that does not exist, is dropped with a
+ * warning: it has nothing to show, and the renderer would draw a hole in the world.
+ */
+static void EmitPortals(void) {
+
+  for (int32_t i = 0; i < num_portal_faces; i++) {
+
+    const bsp_face_t *face = portal_faces[i].face;
+
+    vec3_t entry_origin, entry_forward, entry_up;
+    PortalFaceFrame(face, &entry_origin, &entry_forward, &entry_up);
+
+    const int32_t e = BrushSideEntity(face->brush_side);
+    if (e == -1) {
+      Com_Warn("Portal @ %s belongs to no brush, skipping\n", vtos(entry_origin));
+      continue;
+    }
+
+    const char *target = ValueForKey(&entities[e], "target", NULL);
+    if (!target) {
+      Com_Warn("Portal @ %s has no target, skipping\n", vtos(entry_origin));
+      continue;
+    }
+
+    const entity_t *exit = NULL;
+    for (int32_t j = 0; j < num_entities; j++) {
+      const char *targetname = ValueForKey(&entities[j], "targetname", NULL);
+      if (targetname && !q_strcmp(targetname, target)) {
+        exit = &entities[j];
+        break;
+      }
+    }
+
+    if (!exit) {
+      Com_Warn("Portal @ %s targets missing \"%s\", skipping\n", vtos(entry_origin), target);
+      continue;
+    }
+
+    vec3_t angles = VectorForKey(exit, "angles", Vec3_Zero());
+
+    const char *angle = ValueForKey(exit, "angle", NULL);
+    if (angle) {
+      angles = Vec3(0.f, (float) atof(angle), 0.f);
+    }
+
+    vec3_t exit_forward, exit_up;
+    Vec3_Vectors(angles, &exit_forward, NULL, &exit_up);
+
+    const vec3_t exit_origin = VectorForKey(exit, "origin", Vec3_Zero());
+
+    bsp_portal_t *out = &bsp_file.portals[bsp_file.num_portals];
+    bsp_file.num_portals++;
+
+    out->brush_side = face->brush_side;
+    out->draw_elements = portal_faces[i].draw_elements;
+    out->entry_origin = entry_origin;
+    out->entry_forward = entry_forward;
+    out->entry_up = entry_up;
+    out->exit_origin = exit_origin;
+    out->exit_forward = exit_forward;
+    out->exit_up = exit_up;
+  }
+
+  Com_Verbose("Emitted %d portals\n", bsp_file.num_portals);
+}
+
+/**
+ * @brief
+ */
 void EndBSPFile(void) {
 
+  Bsp_AllocLump(&bsp_file, BSP_LUMP_PORTALS, MAX_BSP_PORTALS);
+
+  EmitPortals();
 }
 
 /**
@@ -565,8 +700,9 @@ static int32_t FaceCmp(const void * a, const void * b) {
     order = a_surface - b_surface;
     if (order == 0) {
 
-      if (a_surface & SURF_MATERIAL) {
-        // Brush side faces with SURF_MATERIAL are unique per brush side
+      if (a_surface & (SURF_MATERIAL | SURF_PORTAL)) {
+        // Brush side faces with SURF_MATERIAL are unique per brush side, and each SURF_PORTAL
+        // face is its own portal, drawn with its own view
         return a_face->brush_side - b_face->brush_side;
       }
     }
@@ -613,6 +749,15 @@ int32_t EmitDrawElements(Vector *faces) {
 
     out->material = FaceMaterial(a);
     out->surface = a_surface & SURF_MASK_DRAW_ELEMENTS_CMP;
+
+    if (a_surface & SURF_PORTAL) {
+      if (num_portal_faces == MAX_BSP_PORTALS) {
+        Com_Error(ERROR_FATAL, "MAX_BSP_PORTALS\n");
+      }
+      portal_faces[num_portal_faces].face = a;
+      portal_faces[num_portal_faces].draw_elements = (int32_t) (out - bsp_file.draw_elements);
+      num_portal_faces++;
+    }
 
     out->bounds = Box3_Null();
 

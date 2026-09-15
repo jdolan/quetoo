@@ -689,55 +689,6 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
     return brush;
   }
 
-  // a face textured common/portal bakes that face's frame onto the entity, for the renderer to
-  // place the portal camera with. It is deliberately not the entity's own origin and angles: those
-  // would rotate the brush model itself, for rendering and collision alike, out from under the
-  // mapper. The tagged face is the one the mapper approaches, so its outward normal points back at
-  // them and travel through the portal runs the other way. Up is taken from the way the texture
-  // reads, which is the mapper's say over roll where the normal alone leaves it undefined, as on a
-  // floor or ceiling. The basis is baked as vectors rather than Euler angles because that is what
-  // the renderer wants; the face itself is kept, unlike an origin brush, since it is a real face of
-  // the entity's own solid rather than a marker to be discarded.
-  if (brush->entity != 0) {
-    const brush_side_t *side = brush->brush_sides;
-    for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
-
-      if (side->surface & SURF_BEVEL) {
-        continue;
-      }
-
-      if (q_strcmp(side->texture, "common/portal")) {
-        continue;
-      }
-
-      if (ValueForKey(entity, "portal_origin", NULL)) {
-        Com_Warn("Entity %d brush %d: Duplicate common/portal face, ignoring\n", brush->entity, brush->brush);
-        break;
-      }
-
-      const vec3_t normal = planes[side->plane].normal;
-      const vec3_t forward = Vec3_Negate(normal);
-
-      vec3_t up = Vec3_Negate(side->axis[1].xyz);
-      up = Vec3_Subtract(up, Vec3_Scale(normal, Vec3_Dot(up, normal)));
-
-      if (Vec3_Length(up) > 0.f) {
-        up = Vec3_Normalize(up);
-      } else {
-        Com_Warn("Entity %d brush %d: Degenerate common/portal texture axis, using default up\n",
-                 brush->entity, brush->brush);
-        Vec3_Vectors(Vec3_Euler(forward), NULL, NULL, &up);
-      }
-
-      const vec3_t center = Cm_WindingCenter(side->winding);
-
-      SetValueForKey(entity, "portal_origin", va("%g %g %g", center.x, center.y, center.z));
-      SetValueForKey(entity, "portal_forward", va("%g %g %g", forward.x, forward.y, forward.z));
-      SetValueForKey(entity, "portal_up", va("%g %g %g", up.x, up.y, up.z));
-      break;
-    }
-  }
-
   // origin brushes are removed, but they set the rotation origin for the rest of the brushes
   // in the entity. After the entire entity is parsed, the planes and textures will be adjusted for
   // the origin brush
