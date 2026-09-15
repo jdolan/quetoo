@@ -232,7 +232,9 @@ void G_misc_teleporter(g_entity_t *ent) {
  the portal face, so that they cross the face before the trigger fires.
 
  -------- Keys --------
- target : The info_null this portal views the world from. Required.
+ portal : The info_null this portal views the world from. Required. Named `portal` rather than
+ `target` so that a portal face may be put on an entity that already owes `target` to its own
+ class, such as a func_train or a func_button.
  */
 void G_misc_portal(g_entity_t *ent) {
 

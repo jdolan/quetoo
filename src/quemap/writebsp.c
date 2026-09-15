@@ -514,9 +514,11 @@ static void EmitPortals(void) {
       continue;
     }
 
-    const char *target = ValueForKey(&entities[e], "target", NULL);
+    // not "target", which the entity carrying the portal face may already owe to its own class:
+    // a func_train reads it as the first path_corner of its route, a func_button as what it fires
+    const char *target = ValueForKey(&entities[e], "portal", NULL);
     if (!target) {
-      Com_Warn("Portal @ %s has no target, skipping\n", vtos(entry_origin));
+      Com_Warn("Portal @ %s has no portal key, skipping\n", vtos(entry_origin));
       continue;
     }
 
@@ -530,7 +532,7 @@ static void EmitPortals(void) {
     }
 
     if (!exit) {
-      Com_Warn("Portal @ %s targets missing \"%s\", skipping\n", vtos(entry_origin), target);
+      Com_Warn("Portal @ %s names missing \"%s\", skipping\n", vtos(entry_origin), target);
       continue;
     }
 
