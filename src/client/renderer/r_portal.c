@@ -23,11 +23,24 @@
 
 static struct {
   /**
+   * @brief The views the portals of a frame are drawn with, one per layer of the framebuffer.
+   * @details A map may hold far more portals than can be drawn, and each of these carries the
+   * whole scene, so they are pooled and handed out to the portals a view offers rather than
+   * allocated per portal of the world.
+   */
+  r_view_t views[MAX_PORTALS];
+
+  /**
    * @brief The framebuffer all portals render into, its color attachment holding one layer
    * per portal of the loaded world. Its depth and depth copy are scratch, reused by each
    * portal in turn, since portals are drawn one after another and nothing reads them after.
    */
   Framebuffer *framebuffer;
+
+  /**
+   * @brief The window size the framebuffer was created for, so that it follows the window.
+   */
+  SDL_Size size;
 
   /**
    * @brief A single-layer placeholder, bound when there is no portal framebuffer, since the
@@ -51,6 +64,7 @@ void R_ShutdownPortal(void) {
   if (r_portal.framebuffer) {
     R_DestroyFramebuffer(r_portal.framebuffer);
     r_portal.framebuffer = NULL;
+    r_portal.size = MakeSize(0, 0);
   }
 
   r_portal.null_texture = release(r_portal.null_texture);
@@ -72,25 +86,31 @@ SDL_GPUTexture *R_PortalTexture(const r_view_t *view) {
 }
 
 /**
- * @brief Adds a portal for @p view to sample. The client game populates the portal's own view
- * first, placing its camera and adding whatever it should see.
+ * @brief Offers a portal for @p view to sample.
+ * @details The returned view is the client game's to place: its camera, and anything added to
+ * @p view afterwards, which the renderer repeats into it. A portal is offered a view before it
+ * is known to be visible, since the scene is populated before anything is culled, so the client
+ * game should offer them nearest first.
+ * @return The view to populate, or `NULL` if this portal will not be drawn.
  */
-void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal) {
+r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal) {
 
   assert(view);
   assert(portal);
 
   if (!r_portals->integer) {
-    return;
+    return NULL;
   }
 
   if (view->num_portals == MAX_PORTALS) {
-    return;
+    return NULL;
   }
+
+  portal->view = &r_portal.views[view->num_portals];
 
   view->portals[view->num_portals++] = portal;
 
-  R_UpdateFrustum(portal->view);
+  return portal->view;
 }
 
 /**
@@ -100,17 +120,19 @@ void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal) {
  */
 static void R_UpdatePortalFramebuffer(void) {
 
-  const int32_t num_portals = r_models.world->bsp->num_portals;
-
   const SDL_Size size = MakeSize(r_context.window_bounds.w, r_context.window_bounds.h);
 
   if (r_portal.framebuffer) {
-    if (r_portal.framebuffer->colorAttachments[0].layerCount == (Uint32) num_portals) {
-      $(r_portal.framebuffer, resize, &size);
+    if (r_portal.size.w == size.w && r_portal.size.h == size.h) {
       return;
     }
+
+    // recreated rather than resized, since R_CreateFramebuffer is what applies the renderer's
+    // scale and sample count, and Framebuffer::resize takes the size it is given
     R_DestroyFramebuffer(r_portal.framebuffer);
   }
+
+  r_portal.size = size;
 
   r_portal.framebuffer = R_CreateFramebuffer(&(GPU_FramebufferCreateInfo) {
     .size = size,
@@ -118,7 +140,7 @@ static void R_UpdatePortalFramebuffer(void) {
       {
         .format = SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT,
         .clearColor = { 0.f, 0.f, 0.f, 1.f },
-        .layerCount = num_portals,
+        .layerCount = MAX_PORTALS,
       },
       {
         .format = SDL_GPU_TEXTUREFORMAT_R32_FLOAT,
@@ -129,14 +151,6 @@ static void R_UpdatePortalFramebuffer(void) {
     .numColorTargets = 2,
     .depthAttachment = { .format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT, .clearDepth = 1.f },
   });
-}
-
-/**
- * @return The layer of the portal texture @p portal renders into, which is its index within
- * the world's portals.
- */
-static Uint32 R_PortalLayer(const r_bsp_portal_t *portal) {
-  return (Uint32) (portal - r_models.world->bsp->portals);
 }
 
 /**
@@ -169,7 +183,7 @@ static void R_DrawPortal(const r_bsp_portal_t *portal) {
   }
 
   const SDL_GPUColorTargetInfo color[] = {
-    $(r_portal.framebuffer, colorTargetInfoForLayer, 0, R_PortalLayer(portal), SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
+    $(r_portal.framebuffer, colorTargetInfoForLayer, 0, (Uint32) portal->layer, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
     $(r_portal.framebuffer, colorTargetInfo, 1, SDL_GPU_LOADOP_CLEAR, SDL_GPU_STOREOP_STORE),
   };
 
@@ -191,10 +205,24 @@ static void R_DrawPortal(const r_bsp_portal_t *portal) {
  * they are drawn for, so the atlas it rendered lines up. They draw no portal faces either,
  * which is what keeps this from recursing -- a portal seen through a portal shows its plain
  * material.
+ *
+ * Their particles are not softened. Softening blends against a double buffered copy of the
+ * view's own depth, and one copy cannot serve several portals in a frame -- nor can each have
+ * its own, since a render pass has four color targets -- so `sprite_fs` draws them hard rather
+ * than against whichever portal was drawn last.
  * @param view The view being drawn around these, whose uniforms are restored before
  * returning, since `R_DrawMainView` relies on the ones `R_DrawViewDepth` wrote for it.
  */
 void R_DrawPortals(const r_view_t *view) {
+
+  if (r_models.world) {
+    r_bsp_portal_t *p = r_models.world->bsp->portals;
+    for (int32_t i = 0; i < r_models.world->bsp->num_portals; i++, p++) {
+      p->layer = -1;
+    }
+  }
+
+  r_stats->portals_offered = view->num_portals;
 
   if (!view->num_portals || !r_context.device->commands) {
     return;
@@ -204,9 +232,25 @@ void R_DrawPortals(const r_view_t *view) {
 
   r_view_stats_t *stats = r_stats;
 
+  int32_t layer = 0;
   for (int32_t i = 0; i < view->num_portals; i++) {
-    r_stats = &view->portals[i]->view->stats;
-    R_DrawPortal(view->portals[i]);
+
+    r_bsp_portal_t *portal = view->portals[i];
+
+    // the scene was populated before any of it was culled, so a portal may well have been
+    // offered a view it turns out not to need
+    if (R_CulludeBox(view, portal->bounds)) {
+      continue;
+    }
+
+    portal->layer = layer++;
+
+    stats->portals_drawn++;
+
+    r_stats = &portal->view->stats;
+    R_DrawPortal(portal);
+
+    stats->portals_triangles += portal->view->stats.bsp_triangles + portal->view->stats.mesh_triangles;
   }
 
   $(r_portal.framebuffer, swap);

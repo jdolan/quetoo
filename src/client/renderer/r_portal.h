@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal);
+r_view_t *R_AddPortal(r_view_t *view, r_bsp_portal_t *portal);
 void R_DrawPortals(const r_view_t *view);
 
 #if defined(__R_LOCAL_H__)

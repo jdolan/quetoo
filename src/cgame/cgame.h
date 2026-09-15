@@ -927,11 +927,14 @@ typedef struct cg_import_s {
   void (*AddDecal)(r_view_t *view, const r_decal_t *decal);
 
   /**
-   * @brief Adds a portal for @p view to sample, after its own view has been placed.
-   * @details Every entity, light, sprite, beam and decal added to @p view after this is
-   * repeated into the portal's view, which culls them for itself.
+   * @brief Offers a portal for @p view to sample.
+   * @details The returned view is yours to place. Every entity, light, sprite, beam and decal
+   * added to @p view afterwards is repeated into it, and it culls them for itself. Portals are
+   * offered views before anything is culled, and there are fewer views than a map may hold
+   * portals, so offer them nearest first.
+   * @return The view to populate, or `NULL` if this portal will not be drawn.
    */
-  void (*AddPortal)(r_view_t *view, r_bsp_portal_t *portal);
+  r_view_t *(*AddPortal)(r_view_t *view, r_bsp_portal_t *portal);
 
   /**
    * @brief Draws the player model view.

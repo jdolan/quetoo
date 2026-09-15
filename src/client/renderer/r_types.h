@@ -214,6 +214,13 @@ typedef struct r_stage_s {
   const cm_stage_t *cm;
 
   /**
+   * @brief The stage flags, which are the collision stage's plus what the renderer resolves.
+   * @details A stage naming the material's own diffusemap samples the portal its face shows,
+   *   rather than that texture, and so gains `STAGE_PORTAL` here.
+   */
+  int32_t flags;
+
+  /**
    * @brief Stages with a render pass will reference an image, atlas image, material, animation, etc.
    */
   r_media_t *media;
@@ -781,9 +788,14 @@ typedef struct r_bsp_portal_s {
   struct r_model_s *model;
 
   /**
-   * @brief The center of the portal face, for diagnostics.
+   * @brief The center of the portal face.
    */
   vec3_t origin;
+
+  /**
+   * @brief The bounds of the portal face, for culling.
+   */
+  box3_t bounds;
 
   /**
    * @brief Carries a point or direction from the portal face's frame into the frame of the
@@ -795,9 +807,17 @@ typedef struct r_bsp_portal_s {
   mat4_t matrix;
 
   /**
-   * @brief The view of this portal's destination, populated by the client game each frame.
+   * @brief The view of this portal's destination, from the renderer's pool, or `NULL` if this
+   * portal was not added to a view this frame.
    */
   struct r_view_s *view;
+
+  /**
+   * @brief The layer of the portal texture this portal was drawn into this frame, or `-1`.
+   * @details Cleared for every portal each frame, so a portal that was not added, or was added
+   *   but culled, leaves its face on its own material rather than sampling a stale layer.
+   */
+  int32_t layer;
 
 } r_bsp_portal_t;
 
@@ -1702,6 +1722,10 @@ typedef struct {
 
 /**
  * @brief The maximum number of portals drawn for a single view.
+ * @details Each portal is a whole scene, rendered into its own layer of one texture, so this
+ *   bounds both the per-frame cost and the memory a map can demand. It is deliberately far
+ *   below `MAX_BSP_PORTALS`, which bounds only how many a map may contain: the client game
+ *   offers the nearest of them, and the renderer draws those it can see.
  */
 #define MAX_PORTALS 8
 
@@ -2070,6 +2094,16 @@ typedef struct {
    * @brief The count of occluded occlusion queries this frame.
    */
   int32_t queries_occluded;
+
+  /**
+   * @brief The counts of portals the client game offered, and of those actually drawn.
+   */
+  int32_t portals_offered, portals_drawn;
+
+  /**
+   * @brief The count of triangles drawn into portal views this frame.
+   */
+  int32_t portals_triangles;
 
   /**
    * @brief The count of rendered inline BSP models.
