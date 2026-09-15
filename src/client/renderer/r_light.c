@@ -36,6 +36,10 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
   r_light_t *out = &view->lights[view->num_lights++];
 
   *out = *l;
+
+  for (int32_t i = 0; i < view->num_portals; i++) {
+    R_AddLight(view->portals[i]->view, l);
+  }
 }
 
 /**
@@ -113,7 +117,7 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
     out->origin = Vec3_ToVec4(l->origin, l->radius);
     out->color = Vec3_ToVec4(l->color, l->intensity);
 
-    if (l->bsp_light) {
+    if (l->bsp_light && view->type != VIEW_PORTAL) {
       l->occluded = !l->bsp_light->query->result;
     } else {
       l->occluded = R_CulludeBox(view, l->bounds);
@@ -153,7 +157,7 @@ void R_UpdateLights(r_view_t *view, CopyPass *copyPass) {
     r_bsp_block_t *block = in->blocks;
     for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-      if (block->query->result == 0) {
+      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
         continue;
       }
 

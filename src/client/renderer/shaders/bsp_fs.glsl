@@ -30,12 +30,14 @@
 #include "uniforms.glsl"
 
 // material.glsl declares the canonical BINDING_SAMPLER_MATERIAL..STAGE_NEXT
-// family unconditionally; BSP additionally has its own liquid-warp sampler
-// after them (mesh/sky never set STAGE_WARP). This stage samples all 12 plus
-// warp (13 total), so storage bindings must follow those 13 -- see
-// material.glsl's BINDING_STORAGE_NUM_ACTIVE_SAMPLERS comment.
+// family unconditionally; BSP additionally has its own liquid-warp and portal
+// samplers after them (mesh/sky never set STAGE_WARP, and only BSP faces carry
+// SURF_PORTAL). This stage samples all 12 plus those two (14 total), so storage
+// bindings must follow those 14 -- see material.glsl's
+// BINDING_STORAGE_NUM_ACTIVE_SAMPLERS comment.
 #define BINDING_SAMPLER_WARP                 12
-#define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS  13
+#define BINDING_SAMPLER_PORTAL               13
+#define BINDING_STORAGE_NUM_ACTIVE_SAMPLERS  14
 #define BINDING_UNIFORMS_MATERIAL            2
 
 #include "common.glsl"
@@ -44,6 +46,11 @@
 
 layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bsp_locals_block {
   uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
+
+  /**
+   * @brief The layer of texture_portal this model's SURF_PORTAL faces sample, or -1 for none.
+   */
+  int portal_layer;
 };
 
 #include "light.glsl"
@@ -52,6 +59,11 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bsp_locals_
  * @brief Warp texture for STAGE_WARP liquid surfaces.
  */
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_WARP) uniform sampler2D texture_warp;
+
+/**
+ * @brief The views rendered through SURF_PORTAL faces, one layer per portal.
+ */
+layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_PORTAL) uniform sampler2DArray texture_portal;
 
 layout (location = 0) in common_vertex_t vertex;
 
@@ -108,6 +120,15 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
 void main(void) {
 
   out_depth = gl_FragCoord.z;
+
+  // a portal face shows the view rendered from its pair. The portal view is rendered with this
+  // view's own projection, so the two images coincide in screen space and the fragment reads
+  // straight across. A portal view itself is given a layer of -1, so portals never recurse
+  if ((material.surface & SURF_PORTAL) == SURF_PORTAL && portal_layer >= 0) {
+    vec2 st = gl_FragCoord.xy / vec2(viewport.zw);
+    out_color = vec4(texture(texture_portal, vec3(st, portal_layer)).rgb, 1.0);
+    return;
+  }
 
   fragment.view_dir = normalize(-vertex.position);
   fragment.view_dist = length(vertex.position);

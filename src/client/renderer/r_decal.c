@@ -83,6 +83,10 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
   r_decal_t *out = &view->decals[view->num_decals++];
 
   *out = *decal;
+
+  for (int32_t i = 0; i < view->num_portals; i++) {
+    R_AddDecal(view->portals[i]->view, decal);
+  }
 }
 
 /**
@@ -335,7 +339,7 @@ static void R_ClipDecalToNode(const r_view_t *view,
       continue;
     }
 
-    if (face->patch->surface & SURF_SKY) {
+    if (face->patch->surface & (SURF_SKY | SURF_PORTAL)) {
       continue;
     }
 
@@ -398,7 +402,7 @@ static void R_ClipDecalToNode(const r_view_t *view,
       continue;
     }
 
-    if (face->brush_side->surface & SURF_SKY) {
+    if (face->brush_side->surface & (SURF_SKY | SURF_PORTAL)) {
       continue;
     }
 

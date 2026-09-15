@@ -350,6 +350,122 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 }
 
 /**
+ * @return The entity with the given `targetname`, or `NULL`.
+ */
+static cm_entity_t *R_BspEntityTarget(const r_bsp_model_t *bsp, const char *target) {
+
+  for (int32_t i = 0; i < bsp->cm->num_entities; i++) {
+    cm_entity_t *e = bsp->cm->entities[i];
+    const char *name = Cm_EntityValue(e, "targetname")->nullable_string;
+    if (name && !q_strcmp(name, target)) {
+      return e;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Resolves the transform that carries this portal's frame onto its target's, and the
+ * plane of the target's face.
+ * @details The arrival basis faces out of the target, so a portal face's own forward, which
+ * points the way through it, is reversed. A point target instead states the direction to face
+ * on arrival with its angles, and has no face to clip against. Up is never reversed, since
+ * gravity is the one thing a portal must not turn over.
+ */
+static void R_SetupBspPortalMatrix(r_bsp_portal_t *portal, const vec3_t forward, const vec3_t up) {
+
+  vec3_t target_origin, target_forward, target_right, target_up;
+
+  if (Cm_EntityValue(portal->target_entity, "portal_origin")->parsed & ENTITY_VEC3) {
+
+    target_origin = Cm_EntityValue(portal->target_entity, "portal_origin")->vec3;
+    target_up = Cm_EntityValue(portal->target_entity, "portal_up")->vec3;
+    target_forward = Vec3_Negate(Cm_EntityValue(portal->target_entity, "portal_forward")->vec3);
+    target_right = Vec3_Cross(target_forward, target_up);
+
+    portal->clip_plane = Vec3_ToVec4(target_forward, Vec3_Dot(target_forward, target_origin));
+  } else {
+
+    target_origin = Cm_EntityValue(portal->target_entity, "origin")->vec3;
+
+    vec3_t angles = Cm_EntityValue(portal->target_entity, "angles")->vec3;
+
+    const cm_entity_t *angle = Cm_EntityValue(portal->target_entity, "angle");
+    if (angle->parsed & ENTITY_FLOAT) {
+      angles = Vec3(0.f, angle->value, 0.f);
+    }
+
+    Vec3_Vectors(angles, &target_forward, &target_right, &target_up);
+  }
+
+  const mat4_t entry = Mat4_FromVectors(forward, Vec3_Cross(forward, up), up, portal->origin);
+  const mat4_t arrival = Mat4_FromVectors(target_forward, target_right, target_up, target_origin);
+
+  portal->matrix = Mat4_Concat(arrival, Mat4_Inverse(entry));
+}
+
+/**
+ * @brief Loads BSP portals, attaching each to the inline model it belongs to.
+ * @details A portal is a brush entity with a `common/portal` face. The compiler bakes that
+ * face's frame onto the entity, since the entity's own origin and angles must stay free to
+ * position its brushwork. Each portal is assigned a layer of the portal texture, which the
+ * client game renders its destination into and the BSP fragment stage samples.
+ */
+static void R_LoadBspPortals(r_model_t *mod) {
+
+  r_bsp_model_t *bsp = mod->bsp;
+
+  r_bsp_inline_model_t *in = bsp->inline_models;
+  for (int32_t i = 0; i < bsp->num_inline_models; i++, in++) {
+    if (in->entity && (Cm_EntityValue(in->entity, "portal_origin")->parsed & ENTITY_VEC3)) {
+      bsp->num_portals++;
+    }
+  }
+
+  if (!bsp->num_portals) {
+    return;
+  }
+
+  r_bsp_portal_t *out = bsp->portals = Mem_LinkMalloc(sizeof(*out) * bsp->num_portals, bsp);
+
+  in = bsp->inline_models;
+  for (int32_t i = 0; i < bsp->num_inline_models; i++, in++) {
+
+    if (!in->entity || !(Cm_EntityValue(in->entity, "portal_origin")->parsed & ENTITY_VEC3)) {
+      continue;
+    }
+
+    out->entity = in->entity;
+    out->origin = Cm_EntityValue(in->entity, "portal_origin")->vec3;
+    out->model = (r_model_t *) R_FindMedia(va("%s#%d", mod->media.name, i), R_MEDIA_MODEL);
+    out->view = Mem_LinkMalloc(sizeof(*out->view), bsp);
+
+    const vec3_t forward = Cm_EntityValue(in->entity, "portal_forward")->vec3;
+    const vec3_t up = Cm_EntityValue(in->entity, "portal_up")->vec3;
+
+    const char *target = Cm_EntityValue(in->entity, "target")->nullable_string;
+    if (target) {
+      out->target_entity = R_BspEntityTarget(bsp, target);
+      if (!out->target_entity) {
+        Com_Warn("Portal at %s targets missing \"%s\"\n", vtos(out->origin), target);
+      }
+    } else {
+      Com_Warn("Portal at %s has no target\n", vtos(out->origin));
+    }
+
+    if (out->target_entity) {
+      R_SetupBspPortalMatrix(out, forward, up);
+    } else {
+      out->matrix = Mat4_Identity();
+    }
+
+    in->portal = out;
+    out++;
+  }
+}
+
+/**
  * @brief Loads BSP lights.
  */
 static void R_LoadBspLights(r_bsp_model_t *bsp) {
@@ -705,6 +821,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_LoadBspVertexArray(mod);
   R_SetupBspInlineModels(mod);
   R_LoadBspLights(mod->bsp);
+  R_LoadBspPortals(mod);
   R_FreeOcclusionQueries();
   R_LoadBspOcclusionQueries(mod->bsp);
   R_LoadBspVoxels(mod);

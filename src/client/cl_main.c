@@ -595,6 +595,8 @@ static void Cl_UpdateScene(void) {
 
   thread = Thread_Create((ThreadRunFunc) S_RenderStage, &cl_stage, THREAD_NONE);
 
+  R_DrawPortals(&cl_view);
+
   R_DrawMainView(&cl_view);
 
   R_DrawPost(&cl_view);

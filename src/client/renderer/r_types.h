@@ -762,7 +762,61 @@ typedef struct r_bsp_inline_model_s {
    */
   int32_t num_blocks;
 
+  /**
+   * @brief The portal this model's `SURF_PORTAL` faces show, or `NULL` if it is not a portal.
+   */
+  struct r_bsp_portal_s *portal;
+
 } r_bsp_inline_model_t;
+
+/**
+ * @brief A BSP portal: a brush model with a `SURF_PORTAL` face, which shows the view from the
+ * entity it targets.
+ */
+typedef struct r_bsp_portal_s {
+
+  /**
+   * @brief The entity that defines this portal.
+   */
+  cm_entity_t *entity;
+
+  /**
+   * @brief The entity this portal looks out of, or `NULL` if it could not be resolved.
+   */
+  cm_entity_t *target_entity;
+
+  /**
+   * @brief The portal face's origin, baked by the compiler from the face's winding.
+   */
+  vec3_t origin;
+
+  /**
+   * @brief Carries a point or direction from this portal's frame into its target's.
+   * @details Both frames are fixed for the life of the world, so this resolves once at load.
+   *   Transforming the camera by it places the view that this portal's faces show.
+   */
+  mat4_t matrix;
+
+  /**
+   * @brief The plane of the target portal's face, or all zeroes when the target is a point.
+   * @details A view placed by `matrix` sits behind the face it looks out of, inside the wall
+   *   that face is set into, and clips that away. A point target has no face and no wall.
+   */
+  vec4_t clip_plane;
+
+  /**
+   * @brief The inline model whose faces show this portal.
+   * @details A portal is drawn by the client game like any other entity, since nothing else
+   *   references its brushwork -- it has no counterpart on the server.
+   */
+  struct r_model_s *model;
+
+  /**
+   * @brief The view of this portal's destination, populated by the client game each frame.
+   */
+  struct r_view_s *view;
+
+} r_bsp_portal_t;
 
 /**
  * @brief A BSP light source, including shadow, style, and entity data.
@@ -1060,6 +1114,16 @@ typedef struct {
    * @brief The lights array.
    */
   r_bsp_light_t *lights;
+
+  /**
+   * @brief The count of portals.
+   */
+  int32_t num_portals;
+
+  /**
+   * @brief The portals array.
+   */
+  r_bsp_portal_t *portals;
 
   /**
    * @brief The voxel data.
@@ -1654,6 +1718,11 @@ typedef struct {
 #define MAX_BEAMS 0x200
 
 /**
+ * @brief The maximum number of portals drawn for a single view.
+ */
+#define MAX_PORTALS 8
+
+/**
  * @brief Vec4-aligned instance of a sprite or beam quad, as consumed by sprite_vs.
  * @remarks Sprites and beams reduce to the same quad, a center and two half
  * axes, so both are drawn from this one type. The four corners are
@@ -1953,6 +2022,7 @@ typedef enum {
   VIEW_UNKNOWN,
   VIEW_MAIN,
   VIEW_PLAYER_MODEL,
+  VIEW_PORTAL,
 } r_view_type_t;
 
 /**
@@ -2062,7 +2132,7 @@ typedef struct {
 /**
  * @brief Each client frame populates a view, and submits it to the renderer.
  */
-typedef struct {
+typedef struct r_view_s {
 
   /**
    * @brief The view type.
@@ -2093,6 +2163,19 @@ typedef struct {
    * @brief The depth range; near and far clipping plane distances.
    */
   vec2_t depth_range;
+
+  /**
+   * @brief An additional clipping plane, as `xyz` normal and `w` distance, or all zeroes for none.
+   * @details Fragments behind the plane are discarded. A portal view sits inside the wall its
+   *   exit face is set into, so it clips away everything behind that face; the main view clips
+   *   likewise while the camera is within a portal's recess.
+   */
+  vec4_t clip_plane;
+
+  /**
+   * @brief For `VIEW_PORTAL`, the layer of the framebuffer's color attachment to render into.
+   */
+  int32_t portal_layer;
 
   /**
    * @brief The view origin.
@@ -2163,6 +2246,16 @@ typedef struct {
    * @brief The count of beams.
    */
   int32_t num_beams;
+
+  /**
+   * @brief The portals whose views are drawn for this view to sample.
+   */
+  r_bsp_portal_t *portals[MAX_PORTALS];
+
+  /**
+   * @brief The count of portals.
+   */
+  int32_t num_portals;
 
   /**
    * @brief The batching state for the current frame's sprite instances.

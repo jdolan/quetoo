@@ -21,35 +21,15 @@
 
 #pragma once
 
-#include "collision/collision.h"
-
-
-#include "r_atlas.h"
-#include "r_animation.h"
-#include "r_bsp_draw.h"
-#include "r_bsp_model.h"
-#include "r_context.h"
-#include "r_cull.h"
-#include "r_decal.h"
-#include "r_depth_pass.h"
-#include "r_draw_3d.h"
-#include "r_entity.h"
-#include "r_image.h"
-#include "r_light.h"
-#include "r_main.h"
-#include "r_material.h"
-#include "r_media.h"
-#include "r_mesh_draw.h"
-#include "r_mesh_model.h"
-#include "r_mesh_model_md3.h"
-#include "r_mesh_model_obj.h"
-#include "r_mesh.h"
-#include "r_model.h"
-#include "r_occlude.h"
-#include "r_portal.h"
-
-#include "r_post.h"
-#include "r_shadow.h"
-#include "r_sky.h"
-#include "r_sprite.h"
 #include "r_types.h"
+
+void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal);
+void R_DrawPortals(const r_view_t *view);
+
+#if defined(__R_LOCAL_H__)
+
+SDL_GPUTexture *R_PortalTexture(void);
+void R_InitPortal(void);
+void R_ShutdownPortal(void);
+
+#endif

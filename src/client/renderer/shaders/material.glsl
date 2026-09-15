@@ -31,6 +31,7 @@
 #define SURF_ALPHA_TEST 0x400
 #define SURF_PHONG      0x800
 #define SURF_MATERIAL   0x1000
+#define SURF_PORTAL     0x2000
 
 #define SURF_MASK_BLEND       (SURF_BLEND_33 | SURF_BLEND_66 | SURF_BLEND_100)
 #define SURF_MASK_TRANSLUCENT (SURF_MASK_BLEND | SURF_ALPHA_TEST | SURF_MATERIAL)
@@ -119,6 +120,7 @@ layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_2) uniform sam
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_3) uniform sampler2DShadow texture_shadow_atlas_3;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_4) uniform sampler2DShadow texture_shadow_atlas_4;
 layout (set = SAMPLER_SET, binding = BINDING_SAMPLER_SHADOW_ATLAS_5) uniform sampler2DShadow texture_shadow_atlas_5;
+
 #endif
 
 /**

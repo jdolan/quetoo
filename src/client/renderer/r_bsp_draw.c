@@ -26,6 +26,7 @@
  */
 enum {
   BSP_SAMPLER_WARP = R_SAMPLER_MATERIAL_TOTAL,
+  BSP_SAMPLER_PORTAL,
   BSP_NUM_SAMPLERS,
 };
 
@@ -55,6 +56,16 @@ typedef struct {
   mat4_t model;
   r_active_dynamic_lights_t active_dynamic_lights;
 } r_bsp_uniform_locals_t;
+
+/**
+ * @brief Per-draw BSP fragment uniforms.
+ * @remarks The fragment stage has no use for the model matrix, and needs the portal layer
+ * that the vertex stage does not, so the two stages take different structs at the same slot.
+ */
+typedef struct {
+  r_active_dynamic_lights_t active_dynamic_lights;
+  int32_t portal_layer;
+} r_bsp_fragment_locals_t;
 
 #define MAX_STAGE_PIPELINES 16
 
@@ -275,6 +286,45 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 }
 
 /**
+ * @return The layer of the portal texture @p in samples for @p view, or `-1` for none.
+ * @details A portal face samples only when its own view was drawn for @p view this frame. A
+ * portal the client game did not add has no image in the texture, and a portal view holds no
+ * portals at all, which is what keeps portals from recursing: seen through one, a portal face
+ * falls back to its plain material.
+ */
+static int32_t R_BspPortalLayer(const r_view_t *view, const r_bsp_inline_model_t *in) {
+
+  if (in->portal) {
+    for (int32_t i = 0; i < view->num_portals; i++) {
+      if (view->portals[i] == in->portal) {
+        return (int32_t) (in->portal - r_models.world->bsp->portals);
+      }
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * @brief Pushes the per-model uniforms for both stages.
+ * @details A portal view pushes a layer of `-1`, which is what keeps portals from recursing:
+ * the fragment stage samples the portal texture only for a non-negative layer, so a portal
+ * face seen from inside another portal falls back to its plain material.
+ */
+static void R_PushBspUniformLocals(const r_view_t *view, const r_bsp_inline_model_t *in,
+                                   const r_bsp_uniform_locals_t *locals, RenderPass *pass) {
+
+  $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, locals, sizeof(*locals));
+
+  const r_bsp_fragment_locals_t fragment = {
+    .active_dynamic_lights = locals->active_dynamic_lights,
+    .portal_layer = R_BspPortalLayer(view, in),
+  };
+
+  $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &fragment, sizeof(fragment));
+}
+
+/**
  * @brief Draws material stages for a BSP inline model entity.
  */
 static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t *entity, RenderPass *pass) {
@@ -287,8 +337,7 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-    $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+    R_PushBspUniformLocals(view, in, &locals, pass);
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -296,13 +345,12 @@ static void R_DrawBspEntityMaterialStages(const r_view_t *view, const r_entity_t
 
     if (IS_WORLDSPAWN(entity->model)) {
 
-      if (block->query->result == 0) {
+      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
         continue;
       }
 
       memcpy(&locals.active_dynamic_lights, &block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-      $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+      R_PushBspUniformLocals(view, in, &locals, pass);
     }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
@@ -406,8 +454,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-    $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+    R_PushBspUniformLocals(view, in, &locals, pass);
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -415,7 +462,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 
     if (IS_WORLDSPAWN(entity->model)) {
 
-      if (block->query->result == 0) {
+      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
         r_stats->blocks_occluded++;
         continue;
       }
@@ -423,8 +470,7 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
       r_stats->blocks_visible++;
 
       memcpy(&locals.active_dynamic_lights, &block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-      $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+      R_PushBspUniformLocals(view, in, &locals, pass);
     }
 
     R_DrawOpaqueBspBlock(block, pass);
@@ -446,8 +492,7 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-    $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+    R_PushBspUniformLocals(view, in, &locals, pass);
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -455,13 +500,12 @@ static void R_DrawAlphaTestBspEntity(const r_view_t *view, const r_entity_t *ent
 
     if (IS_WORLDSPAWN(entity->model)) {
 
-      if (block->query->result == 0) {
+      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
         continue;
       }
 
       memcpy(&locals.active_dynamic_lights, &block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-      $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+      R_PushBspUniformLocals(view, in, &locals, pass);
     }
 
     R_DrawAlphaTestBspBlock(block, pass);
@@ -526,6 +570,11 @@ void R_DrawOpaqueBspEntities(const r_view_t *view, RenderPass *pass) {
   $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_bsp_draw.warp_texture->texture,
     .sampler = r_bsp_draw.repeat_sampler->sampler,
+  }, 1);
+
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_PORTAL, &(SDL_GPUTextureSamplerBinding) {
+    .texture = R_PortalTexture(),
+    .sampler = r_bsp_draw.clamp_sampler->sampler,
   }, 1);
 
   SDL_GPUBuffer *storage[] = {
@@ -657,8 +706,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity,
 
   if (!IS_WORLDSPAWN(entity->model)) {
     memcpy(&locals.active_dynamic_lights, &entity->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-    $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-    $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+    R_PushBspUniformLocals(view, in, &locals, pass);
   }
 
   const r_bsp_block_t *block = in->blocks;
@@ -670,13 +718,12 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity,
 
     if (IS_WORLDSPAWN(entity->model)) {
 
-      if (block->query->result == 0) {
+      if (block->query->result == 0 && view->type != VIEW_PORTAL) {
         continue;
       }
 
       memcpy(&locals.active_dynamic_lights, &block->active_dynamic_lights, sizeof(locals.active_dynamic_lights));
-      $(pass->commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
-      $(pass->commands, pushFragmentUniformData, SLOT_UNIFORMS_LOCALS, &locals.active_dynamic_lights, sizeof(locals.active_dynamic_lights));
+      R_PushBspUniformLocals(view, in, &locals, pass);
     }
 
     R_DrawBlendBspBlock(view, entity, block, pass);
@@ -739,6 +786,11 @@ void R_DrawBlendBspEntities(const r_view_t *view, RenderPass *pass) {
   $(pass, bindFragmentSamplers, BSP_SAMPLER_WARP, &(SDL_GPUTextureSamplerBinding) {
     .texture = r_bsp_draw.warp_texture->texture,
     .sampler = r_bsp_draw.repeat_sampler->sampler,
+  }, 1);
+
+  $(pass, bindFragmentSamplers, BSP_SAMPLER_PORTAL, &(SDL_GPUTextureSamplerBinding) {
+    .texture = R_PortalTexture(),
+    .sampler = r_bsp_draw.clamp_sampler->sampler,
   }, 1);
 
   SDL_GPUBuffer *storage[] = {

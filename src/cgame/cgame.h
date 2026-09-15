@@ -927,6 +927,13 @@ typedef struct cg_import_s {
   void (*AddDecal)(r_view_t *view, const r_decal_t *decal);
 
   /**
+   * @brief Adds a portal for @p view to sample, after its own view has been placed.
+   * @details Every entity, light, sprite, beam and decal added to @p view after this is
+   * repeated into the portal's view, which culls them for itself.
+   */
+  void (*AddPortal)(r_view_t *view, r_bsp_portal_t *portal);
+
+  /**
    * @brief Draws the player model view.
    */
   void (*DrawPlayerModelView)(r_view_t *view);

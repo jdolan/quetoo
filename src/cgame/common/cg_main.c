@@ -27,6 +27,7 @@ cvar_t *cg_add_atmospheric;
 cvar_t *cg_add_decals;
 cvar_t *cg_add_entities;
 cvar_t *cg_add_flares;
+cvar_t *cg_portals;
 cvar_t *cg_add_lights;
 cvar_t *cg_add_sprites;
 cvar_t *cg_add_weather;
@@ -110,6 +111,7 @@ static void Cg_Init(void) {
   cg_add_decals = cgi.AddCvar("cg_add_decals", "1", CVAR_ARCHIVE, "Controls decals (bullet holes, blood, etc.).");
   cg_add_entities = cgi.AddCvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
   cg_add_flares = cgi.AddCvar("cg_add_flares", "1", CVAR_ARCHIVE, "Toggles adding flare effects to light sources.");
+  cg_portals = cgi.AddCvar("cg_portals", "0", CVAR_ARCHIVE, "Toggles rendering the view through misc_portal surfaces.");
   cg_add_lights = cgi.AddCvar("cg_add_lights", "1", 0, "Toggles adding dynamic lights to the scene.");
   cg_add_sprites = cgi.AddCvar("cg_add_sprites", "1", 0, "Toggles adding sprites to the scene.");
   cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE, "Controls the intensity of weather effects.");
@@ -485,6 +487,8 @@ static void Cg_PrepareScene(const cl_frame_t *frame) {
  * @brief Populates the scene with entities, sprites, samples, etc.. for the interpolated frame.
  */
 static void Cg_PopulateScene(const cl_frame_t *frame) {
+
+  Cg_AddPortals();
 
   Cg_AddEntities(frame);
 
