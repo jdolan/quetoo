@@ -211,11 +211,11 @@ cgame_la_SOURCES = \
 	cg_intermission.c \
 	cg_inventory.c \
 	cg_light.c \
-	cg_portal.c \
 	cg_main.c \
 	cg_media.c \
 	cg_module.c \
 	cg_muzzle_flash.c \
+	cg_portal.c \
 	cg_predict.c \
 	cg_score.c \
 	cg_sound.c \

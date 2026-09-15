@@ -114,6 +114,9 @@
     <ClInclude Include="..\src\cgame\common\cg_light.h">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\cg_portal.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\cg_local.h">
       <Filter>src\common</Filter>
     </ClInclude>
@@ -426,6 +429,9 @@
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\cg_light.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\cg_portal.c">
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\cg_main.c">

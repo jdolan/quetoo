@@ -301,6 +301,7 @@
 		CE05B3F030224900C0DE0010 /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB8D6231E00B72100043814 /* cg_input.c */; };
 		CE05B3F030224900C0DE0011 /* cg_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = FCD76A809F00440F99BC0068 /* cg_inventory.c */; };
 		CE05B3F030224900C0DE0012 /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
+		3D8401C9D86FF746C42D2AB6 /* cg_portal.c in Sources */ = {isa = PBXBuildFile; fileRef = E960839170EAFC21DD702B32 /* cg_portal.c */; };
 		CE05B3F030224900C0DE0013 /* cg_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D56F1C5C58C300CD0B13 /* cg_main.c */; };
 		CE05B3F030224900C0DE0014 /* cg_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5711C5C58C300CD0B13 /* cg_media.c */; };
 		CE05B3F030224900C0DE0015 /* cg_muzzle_flash.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */; };
@@ -359,6 +360,7 @@
 		CE05B3F030224900C0DE004B /* cg_input.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB8D6241E00B72100043814 /* cg_input.h */; };
 		CE05B3F030224900C0DE004C /* cg_inventory.h in Headers */ = {isa = PBXBuildFile; fileRef = 066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */; };
 		CE05B3F030224900C0DE004D /* cg_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9023E792FE0009DA65 /* cg_light.h */; };
+		B221DFE8D70C9012A418D37B /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
 		CE05B3F030224900C0DE004E /* cg_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D56E1C5C58C300CD0B13 /* cg_local.h */; };
 		CE05B3F030224900C0DE004F /* cg_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5701C5C58C300CD0B13 /* cg_main.h */; };
 		CE05B3F030224900C0DE0050 /* cg_media.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0B13 /* cg_media.h */; };
@@ -453,7 +455,9 @@
 		CE1643F12FFB3A7800863996 /* shadow_clear_fs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643EC2FFB3A0300863996 /* shadow_clear_fs.metal */; };
 		CE1643F22FFB3A8600863996 /* shadow_clear_vs.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1643EF2FFB3A0300863996 /* shadow_clear_vs.metal */; };
 		CE1643F52FFB571100863996 /* r_occlude.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1643F42FFB571100863996 /* r_occlude.c */; };
+		363A0C94E511346808FE5F3D /* r_portal.c in Sources */ = {isa = PBXBuildFile; fileRef = 96A84939E49450A34A627546 /* r_portal.c */; };
 		CE1643F62FFB571100863996 /* r_occlude.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1643F32FFB571100863996 /* r_occlude.h */; };
+		9FBD809C130636B15E78DFC4 /* r_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = 5939175D43577D9AF4903198 /* r_portal.h */; };
 		CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
 		CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */; };
 		CE1A283C1F75FE70005F62A9 /* ResponseServiceViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A28381F75FE70005F62A9 /* ResponseServiceViewController.c */; };
@@ -752,7 +756,9 @@
 		CE948B2E2235699300D961FA /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE9A670E2D2589020068D720 /* check_box.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9A67092D2588B20068D720 /* check_box.c */; };
 		CE9CFC9223E792FE0009DA65 /* cg_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9023E792FE0009DA65 /* cg_light.h */; };
+		CB4A43F954CB0C6DB34F666F /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
 		CE9CFC9323E792FE0009DA65 /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
+		7F60EB773A4C8F99836FB0C2 /* cg_portal.c in Sources */ = {isa = PBXBuildFile; fileRef = E960839170EAFC21DD702B32 /* cg_portal.c */; };
 		CE9CFC9623E7A9410009DA65 /* r_mesh.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9423E7A9410009DA65 /* r_mesh.h */; };
 		CE9CFC9823E7A9410009DA65 /* r_mesh.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9523E7A9410009DA65 /* r_mesh.c */; };
 		CE9CFCB023EB3D240009DA65 /* check_vector.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9C23EB3BF50009DA65 /* check_vector.c */; };
@@ -964,6 +970,7 @@
 		CEC0FF0020260103000001EB /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB8D6231E00B72100043814 /* cg_input.c */; };
 		CEC0FF0020260103000001EC /* cg_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = FCD76A809F00440F99BC0068 /* cg_inventory.c */; };
 		CEC0FF0020260103000001ED /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
+		CE50D13BE2C9722735969053 /* cg_portal.c in Sources */ = {isa = PBXBuildFile; fileRef = E960839170EAFC21DD702B32 /* cg_portal.c */; };
 		CEC0FF0020260103000001EE /* cg_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D56F1C5C58C300CD0B13 /* cg_main.c */; };
 		CEC0FF0020260103000001EF /* cg_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5711C5C58C300CD0B13 /* cg_media.c */; };
 		CEC0FF0020260103000001F0 /* cg_muzzle_flash.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */; };
@@ -987,6 +994,7 @@
 		CEC0FF002026010300000205 /* cg_input.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB8D6241E00B72100043814 /* cg_input.h */; };
 		CEC0FF002026010300000206 /* cg_inventory.h in Headers */ = {isa = PBXBuildFile; fileRef = 066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */; };
 		CEC0FF002026010300000207 /* cg_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9023E792FE0009DA65 /* cg_light.h */; };
+		9B731F4E62224A92F0E685EF /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
 		CEC0FF002026010300000208 /* cg_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D56E1C5C58C300CD0B13 /* cg_local.h */; };
 		CEC0FF002026010300000209 /* cg_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5701C5C58C300CD0B13 /* cg_main.h */; };
 		CEC0FF00202601030000020A /* cg_media.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0B13 /* cg_media.h */; };
@@ -1290,6 +1298,7 @@
 		D2A5C1000000000000000093 /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB8D6231E00B72100043814 /* cg_input.c */; };
 		D2A5C1000000000000000094 /* cg_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = FCD76A809F00440F99BC0068 /* cg_inventory.c */; };
 		D2A5C1000000000000000095 /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
+		0D842476D5AF611A59D2407A /* cg_portal.c in Sources */ = {isa = PBXBuildFile; fileRef = E960839170EAFC21DD702B32 /* cg_portal.c */; };
 		D2A5C1000000000000000096 /* cg_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D56F1C5C58C300CD0B13 /* cg_main.c */; };
 		D2A5C1000000000000000097 /* cg_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5711C5C58C300CD0B13 /* cg_media.c */; };
 		D2A5C1000000000000000098 /* cg_muzzle_flash.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */; };
@@ -1324,6 +1333,7 @@
 		D2A5C10000000000000000B5 /* cg_input.h in Headers */ = {isa = PBXBuildFile; fileRef = CEB8D6241E00B72100043814 /* cg_input.h */; };
 		D2A5C10000000000000000B6 /* cg_inventory.h in Headers */ = {isa = PBXBuildFile; fileRef = 066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */; };
 		D2A5C10000000000000000B7 /* cg_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9023E792FE0009DA65 /* cg_light.h */; };
+		4F7FD3175C325A7B4A1C9D13 /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
 		D2A5C10000000000000000B8 /* cg_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D56E1C5C58C300CD0B13 /* cg_local.h */; };
 		D2A5C10000000000000000B9 /* cg_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5701C5C58C300CD0B13 /* cg_main.h */; };
 		D2A5C10000000000000000BA /* cg_media.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5721C5C58C300CD0B13 /* cg_media.h */; };
@@ -2504,7 +2514,9 @@
 		CE1643EE2FFB3A0300863996 /* shadow_clear_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_clear_vs.glsl; sourceTree = "<group>"; };
 		CE1643EF2FFB3A0300863996 /* shadow_clear_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = shadow_clear_vs.metal; sourceTree = "<group>"; };
 		CE1643F32FFB571100863996 /* r_occlude.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_occlude.h; sourceTree = "<group>"; };
+		5939175D43577D9AF4903198 /* r_portal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_portal.h; sourceTree = "<group>"; };
 		CE1643F42FFB571100863996 /* r_occlude.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_occlude.c; sourceTree = "<group>"; };
+		96A84939E49450A34A627546 /* r_portal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_portal.c; sourceTree = "<group>"; };
 		CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerModelView.c; sourceTree = "<group>"; };
 		CE1A282E1F75FC1D005F62A9 /* PlayerModelView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerModelView.h; sourceTree = "<group>"; };
 		CE1A282F1F75FC1D005F62A9 /* PlayerSetupViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PlayerSetupViewController.c; sourceTree = "<group>"; };
@@ -2751,7 +2763,9 @@
 		CE9A67092D2588B20068D720 /* check_box.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_box.c; sourceTree = "<group>"; };
 		CE9A67152D2589020068D720 /* check_box */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_box; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE9CFC9023E792FE0009DA65 /* cg_light.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_light.h; sourceTree = "<group>"; };
+		F1709306B7EECB871EDD5BE3 /* cg_portal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_portal.h; sourceTree = "<group>"; };
 		CE9CFC9123E792FE0009DA65 /* cg_light.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_light.c; sourceTree = "<group>"; };
+		E960839170EAFC21DD702B32 /* cg_portal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_portal.c; sourceTree = "<group>"; };
 		CE9CFC9423E7A9410009DA65 /* r_mesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_mesh.h; sourceTree = "<group>"; };
 		CE9CFC9523E7A9410009DA65 /* r_mesh.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_mesh.c; sourceTree = "<group>"; };
 		CE9CFC9A23EAFFD00009DA65 /* vector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vector.h; sourceTree = "<group>"; };
@@ -3895,7 +3909,9 @@
 				CE12D5E01C5C58C300CD0B13 /* r_model.h */,
 				CE12D5DF1C5C58C300CD0B13 /* r_model.c */,
 				CE1643F32FFB571100863996 /* r_occlude.h */,
+				5939175D43577D9AF4903198 /* r_portal.h */,
 				CE1643F42FFB571100863996 /* r_occlude.c */,
+				96A84939E49450A34A627546 /* r_portal.c */,
 				B80C92655F5249E48131CB95 /* r_post.h */,
 				26FE8732000C404A8AFA1688 /* r_post.c */,
 				CEE13C14293241970075585D /* r_shadow.h */,
@@ -4722,7 +4738,9 @@
 				066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */,
 				FCD76A809F00440F99BC0068 /* cg_inventory.c */,
 				CE9CFC9023E792FE0009DA65 /* cg_light.h */,
+				F1709306B7EECB871EDD5BE3 /* cg_portal.h */,
 				CE9CFC9123E792FE0009DA65 /* cg_light.c */,
+				E960839170EAFC21DD702B32 /* cg_portal.c */,
 				CE12D56E1C5C58C300CD0B13 /* cg_local.h */,
 				CE12D5701C5C58C300CD0B13 /* cg_main.h */,
 				CE12D56F1C5C58C300CD0B13 /* cg_main.c */,
@@ -5027,6 +5045,7 @@
 				CE05B3F030224900C0DE004B /* cg_input.h in Headers */,
 				CE05B3F030224900C0DE004C /* cg_inventory.h in Headers */,
 				CE05B3F030224900C0DE004D /* cg_light.h in Headers */,
+				B221DFE8D70C9012A418D37B /* cg_portal.h in Headers */,
 				CE05B3F030224900C0DE004E /* cg_local.h in Headers */,
 				CE05B3F030224900C0DE004F /* cg_main.h in Headers */,
 				CE05B3F030224900C0DE0050 /* cg_media.h in Headers */,
@@ -5099,6 +5118,7 @@
 				CE80FE9C1C5E445500A21A51 /* cg_hud.h in Headers */,
 				F7EBE32625F44EBF895E36BC /* cg_inventory.h in Headers */,
 				CE9CFC9223E792FE0009DA65 /* cg_light.h in Headers */,
+				CB4A43F954CB0C6DB34F666F /* cg_portal.h in Headers */,
 				CE80FE9D1C5E445500A21A51 /* cg_local.h in Headers */,
 				CE80FE9E1C5E445500A21A51 /* cg_main.h in Headers */,
 				CE80FE9F1C5E445500A21A51 /* cg_media.h in Headers */,
@@ -5345,6 +5365,7 @@
 				CEC0FF002026010300000205 /* cg_input.h in Headers */,
 				CEC0FF002026010300000206 /* cg_inventory.h in Headers */,
 				CEC0FF002026010300000207 /* cg_light.h in Headers */,
+				9B731F4E62224A92F0E685EF /* cg_portal.h in Headers */,
 				CEC0FF002026010300000208 /* cg_local.h in Headers */,
 				CEC0FF002026010300000209 /* cg_main.h in Headers */,
 				CEC0FF00202601030000020A /* cg_media.h in Headers */,
@@ -5391,6 +5412,7 @@
 				CE5022E823DE3C3600B333CE /* r_mesh_model_obj.h in Headers */,
 				CED438971D9D34450052BAFA /* r_model.h in Headers */,
 				CE1643F62FFB571100863996 /* r_occlude.h in Headers */,
+				9FBD809C130636B15E78DFC4 /* r_portal.h in Headers */,
 				F8D615462A724ECF9847D4CD /* r_post.h in Headers */,
 				CEE13C16293241970075585D /* r_shadow.h in Headers */,
 				CED4389E1D9D34450052BAFA /* r_sky.h in Headers */,
@@ -5478,6 +5500,7 @@
 				D2A5C10000000000000000B5 /* cg_input.h in Headers */,
 				D2A5C10000000000000000B6 /* cg_inventory.h in Headers */,
 				D2A5C10000000000000000B7 /* cg_light.h in Headers */,
+				4F7FD3175C325A7B4A1C9D13 /* cg_portal.h in Headers */,
 				D2A5C10000000000000000B8 /* cg_local.h in Headers */,
 				D2A5C10000000000000000B9 /* cg_main.h in Headers */,
 				D2A5C10000000000000000BA /* cg_media.h in Headers */,
@@ -6645,6 +6668,7 @@
 				CE05B3F030224900C0DE0010 /* cg_input.c in Sources */,
 				CE05B3F030224900C0DE0011 /* cg_inventory.c in Sources */,
 				CE05B3F030224900C0DE0012 /* cg_light.c in Sources */,
+				3D8401C9D86FF746C42D2AB6 /* cg_portal.c in Sources */,
 				CE05B3F030224900C0DE0013 /* cg_main.c in Sources */,
 				CE05B3F030224900C0DE0014 /* cg_media.c in Sources */,
 				CE05B3F030224900C0DEAD03 /* cg_tech.c in Sources */,
@@ -6802,6 +6826,7 @@
 				CEB8D6271E00B73200043814 /* cg_input.c in Sources */,
 				EC45E0FA2A80403C8FEA3834 /* cg_inventory.c in Sources */,
 				CE9CFC9323E792FE0009DA65 /* cg_light.c in Sources */,
+				7F60EB773A4C8F99836FB0C2 /* cg_portal.c in Sources */,
 				CE12D7F71C5C5E0200CD0B13 /* cg_main.c in Sources */,
 				CE12D7F81C5C5E0200CD0B13 /* cg_media.c in Sources */,
 				CE12D7F91C5C5E0200CD0B13 /* cg_muzzle_flash.c in Sources */,
@@ -7267,6 +7292,7 @@
 				CEC0FF0020260103000001EB /* cg_input.c in Sources */,
 				CEC0FF0020260103000001EC /* cg_inventory.c in Sources */,
 				CEC0FF0020260103000001ED /* cg_light.c in Sources */,
+				CE50D13BE2C9722735969053 /* cg_portal.c in Sources */,
 				CEC0FF0020260103000001EE /* cg_main.c in Sources */,
 				CEC0FF0020260103000001EF /* cg_media.c in Sources */,
 				CEC0FF0020260103000AD03 /* cg_tech.c in Sources */,
@@ -7312,6 +7338,7 @@
 				CE5022E923DE3C3600B333CE /* r_mesh_model_obj.c in Sources */,
 				CED4384F1D9D34450052BAFA /* r_model.c in Sources */,
 				CE1643F52FFB571100863996 /* r_occlude.c in Sources */,
+				363A0C94E511346808FE5F3D /* r_portal.c in Sources */,
 				014684FA691B4EB0944ACDCB /* r_post.c in Sources */,
 				CEE13C15293241970075585D /* r_shadow.c in Sources */,
 				CED438561D9D34450052BAFA /* r_sky.c in Sources */,
@@ -7476,6 +7503,7 @@
 				D2A5C1000000000000000093 /* cg_input.c in Sources */,
 				D2A5C1000000000000000094 /* cg_inventory.c in Sources */,
 				D2A5C1000000000000000095 /* cg_light.c in Sources */,
+				0D842476D5AF611A59D2407A /* cg_portal.c in Sources */,
 				D2A5C1000000000000000096 /* cg_main.c in Sources */,
 				D2A5C1000000000000000097 /* cg_media.c in Sources */,
 				D2A5C1000000000000000098 /* cg_muzzle_flash.c in Sources */,

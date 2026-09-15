@@ -46,8 +46,6 @@
     <ClInclude Include="..\src\cgame\common\cg_inventory.h" />
     <ClCompile Include="..\src\cgame\common\cg_light.c" />
     <ClInclude Include="..\src\cgame\common\cg_light.h" />
-    <ClCompile Include="..\src\cgame\common\cg_portal.c" />
-    <ClInclude Include="..\src\cgame\common\cg_portal.h" />
     <ClInclude Include="..\src\cgame\common\cg_local.h" />
     <ClCompile Include="..\src\cgame\common\cg_main.c" />
     <ClInclude Include="..\src\cgame\common\cg_main.h" />
@@ -56,6 +54,8 @@
     <ClInclude Include="..\src\cgame\common\cg_module.h" />
     <ClCompile Include="..\src\cgame\common\cg_muzzle_flash.c" />
     <ClInclude Include="..\src\cgame\common\cg_muzzle_flash.h" />
+    <ClCompile Include="..\src\cgame\common\cg_portal.c" />
+    <ClInclude Include="..\src\cgame\common\cg_portal.h" />
     <ClCompile Include="..\src\cgame\common\cg_predict.c" />
     <ClInclude Include="..\src\cgame\common\cg_predict.h" />
     <ClCompile Include="..\src\cgame\common\cg_sound.c" />
