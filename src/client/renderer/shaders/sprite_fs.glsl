@@ -61,5 +61,10 @@ void main(void) {
     color = mix(color, color * in_diffuse, in_lighting);
   }
 
-  out_color = vec4(texture_color * color * soften(), 1.0);
+  // a portal view shares one depth copy with every other portal of the frame, so there is no
+  // depth of its own to soften against; its particles are drawn hard rather than against
+  // whichever portal happened to be drawn last
+  float softness = view_type == VIEW_PORTAL ? 1.0 : soften();
+
+  out_color = vec4(texture_color * color * softness, 1.0);
 }

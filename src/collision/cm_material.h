@@ -253,6 +253,12 @@ typedef enum {
   STAGE_FLARE         = (1 << 19),
   STAGE_SHELL         = (1 << 20),
 
+  /**
+   * @brief Resolved by the renderer for a stage naming its material's own diffusemap, which
+   * samples the portal its face shows rather than that texture.
+   */
+  STAGE_PORTAL        = (1 << 21),
+
   STAGE_DRAW          = (1 << 30),
 } cm_stage_flags_t;
 

@@ -188,6 +188,14 @@ static void R_ResolveMaterialStages(r_material_t *material) {
 
     r_stage_t *stage = (r_stage_t *) Mem_LinkMalloc(sizeof(r_stage_t), material);
     stage->cm = cs;
+    stage->flags = cs->flags;
+
+    // a stage naming the material's own diffusemap draws what the face would have drawn, which
+    // for a portal face is the portal. That keeps a portal's material working unchanged when
+    // portals are not being drawn: the stage simply samples the texture it names
+    if (!q_strcmp(cs->asset.name, cm->diffusemap.name)) {
+      stage->flags |= STAGE_PORTAL;
+    }
 
     if (*stage->cm->asset.path) {
       if (stage->cm->flags & STAGE_ANIMATION) {
@@ -402,7 +410,7 @@ bool R_StageUniforms(const r_view_t *view, const r_entity_t *entity, const r_bsp
 
   out->lerp = 0.f;
 
-  out->flags = cm->flags;
+  out->flags = stage->flags;
   out->color = cm->color.vec4;
   out->st_origin = draw ? draw->st_origin : Vec2_Zero();
   out->stretch = Vec2(cm->stretch.amplitude, cm->stretch.hz);

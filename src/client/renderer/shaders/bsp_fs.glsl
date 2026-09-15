@@ -121,10 +121,14 @@ void main(void) {
 
   out_depth = gl_FragCoord.z;
 
-  // a portal face shows the view rendered from its pair. The portal view is rendered with this
-  // view's own projection, so the two images coincide in screen space and the fragment reads
-  // straight across. A portal view itself is given a layer of -1, so portals never recurse
-  if ((material.surface & SURF_PORTAL) == SURF_PORTAL && portal_layer >= 0) {
+  // a portal face shows the view rendered from the point it targets. That view uses this one's
+  // projection, so the two images coincide in screen space and the fragment reads straight
+  // across. A portal view itself is given a layer of -1, so portals never recurse.
+  //
+  // This is the base pass only: a material whose stages draw the portal suppresses it with
+  // SURF_MATERIAL, and each of those stages samples the portal for itself, through whatever
+  // transforms it carries
+  if (material.flags == STAGE_NONE && (material.surface & SURF_PORTAL) == SURF_PORTAL && portal_layer >= 0) {
     vec2 st = gl_FragCoord.xy / vec2(viewport.zw);
     out_color = vec4(texture(texture_portal, vec3(st, portal_layer)).rgb, 1.0);
     return;
@@ -159,13 +163,49 @@ void main(void) {
 
   } else {
 
-    vec2 st = fragment.parallax;
+    // a stage naming its material's own diffusemap draws what the face would have drawn, which
+    // for a portal face is the portal. Its coordinates are then the screen's, since that is
+    // where the portal's image lives, and every transform the stage carries -- warp, scroll,
+    // rotate -- disturbs the view through the portal rather than a texture drawn over it
+    bool portal = (material.flags & STAGE_PORTAL) == STAGE_PORTAL && portal_layer >= 0;
+
+    vec2 st = portal ? gl_FragCoord.xy / vec2(viewport.zw) : fragment.parallax;
 
     if ((material.flags & STAGE_WARP) == STAGE_WARP) {
-      st += (texture(texture_warp, st + vec2(ticks * material.warp.x * 0.000125)).xy - 0.5) * material.warp.y;
+
+      // the ripple is sampled, and its amplitude given, in the face's own texture coordinates,
+      // as it is for any other surface. A portal is read in screen coordinates, so the offset
+      // is carried into them through the texcoord's screen derivative: the same material then
+      // warps by the same amount of surface whatever the display's shape or resolution, and a
+      // portal further away warps less of the screen, as it should
+      vec2 texcoord = portal ? vertex.diffusemap : st;
+
+      vec2 offset = (texture(texture_warp, texcoord + vec2(ticks * material.warp.x * 0.000125)).xy - 0.5) * material.warp.y;
+
+      if (portal) {
+        vec2 dx = dFdx(vertex.diffusemap);
+        vec2 dy = dFdy(vertex.diffusemap);
+
+        // invert the 2x2 mapping from screen pixels to texture coordinates
+        float det = dx.x * dy.y - dy.x * dx.y;
+        if (abs(det) > 1.0e-12) {
+          vec2 pixels = vec2(dy.y * offset.x - dy.x * offset.y,
+                             dx.x * offset.y - dx.y * offset.x) / det;
+
+          st += pixels / vec2(viewport.zw);
+        }
+      } else {
+        st += offset;
+      }
     }
 
-    fragment.diffuse_sample = sample_material_stage(st) * vertex.color;
+    if (portal) {
+      fragment.diffuse_sample = vec4(texture(texture_portal, vec3(st, portal_layer)).rgb, 1.0);
+    } else {
+      fragment.diffuse_sample = sample_material_stage(st);
+    }
+
+    fragment.diffuse_sample *= vertex.color;
 
     out_color = fragment.diffuse_sample;
 
