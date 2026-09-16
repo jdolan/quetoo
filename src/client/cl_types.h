@@ -258,6 +258,7 @@ typedef struct {
  * @remarks The buffer must span the round trip time, since a command is replayed until the
  * server acknowledges it. Commands are sent once per rendered frame, throttled to 4ms apart,
  * so 64 covered only 256ms at that ceiling, beyond which prediction froze the player in place.
+ * 256 carries 1024ms at the same rate.
  */
 #define CMD_BACKUP 256
 #define CMD_MASK (CMD_BACKUP - 1)

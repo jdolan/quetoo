@@ -377,9 +377,14 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
               sv.frame_num - (uint32_t) last_frame < PACKET_BACKUP) {
 
             const uint32_t sent_time = cl->frames[last_frame & PACKET_MASK].sent_time;
-            if (sent_time && sent_time <= quetoo.ticks) {
 
-              cl->frame_latency[cl->frame_latency_index] = quetoo.ticks - sent_time;
+            // the tick counter wraps, so measure the elapsed delta rather than ordering the
+            // timestamps, and take it only if it could have come from a frame we still hold
+            const uint32_t latency = quetoo.ticks - sent_time;
+
+            if (sent_time && latency <= PACKET_BACKUP * QUETOO_TICK_MILLIS) {
+
+              cl->frame_latency[cl->frame_latency_index] = latency;
               cl->frame_latency_index = (cl->frame_latency_index + 1) % SV_CLIENT_LATENCY_COUNT;
 
               if (cl->frame_latency_count < SV_CLIENT_LATENCY_COUNT) {

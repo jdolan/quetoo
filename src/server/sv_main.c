@@ -845,20 +845,21 @@ int32_t Sv_InstallerFrame(const installer_status_t *in) {
 static void Sv_WaitForPackets(const uint32_t msec) {
 
   const uint32_t enter = quetoo.ticks;
-  const uint32_t end = enter + msec;
 
-  uint32_t now = enter;
+  // the tick counter wraps, so spend the budget by elapsed time rather than against a deadline
+  // that can land behind us
+  uint32_t elapsed = 0;
 
-  while (now < end) {
+  while (elapsed < msec) {
 
     // block until a packet arrives or the budget elapses
-    Net_Sleep(end - now);
+    Net_Sleep(msec - elapsed);
 
     // timestamp and ingest whatever arrived at its true receive time
-    now = (uint32_t) SDL_GetTicks();
-    quetoo.ticks = now;
+    quetoo.ticks = (uint32_t) SDL_GetTicks();
     Sv_ReadPackets();
-    now = (uint32_t) SDL_GetTicks();
+
+    elapsed = (uint32_t) SDL_GetTicks() - enter;
   }
 
   quetoo.ticks = enter;

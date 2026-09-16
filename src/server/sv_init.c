@@ -226,7 +226,10 @@ static void Sv_ReconnectClients(void) {
     svs.clients[i].last_frame = -1;
     svs.clients[i].last_message = quetoo.ticks;
 
-    // and discard the previous map's latency samples, which this map's frames do not answer for
+    // and discard the previous map's latency samples, which this map's frames do not answer
+    // for, along with the frames themselves: their send times outlive the frame numbering that
+    // reaches back for them, and would otherwise answer an early acknowledgement on the new map
+    memset(svs.clients[i].frames, 0, sizeof(svs.clients[i].frames));
     svs.clients[i].frame_latency_index = 0;
     svs.clients[i].frame_latency_count = 0;
   }
