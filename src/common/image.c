@@ -336,6 +336,46 @@ bool Img_WriteJPG(const char *path, byte *data, uint32_t width, uint32_t height,
   return true;
 }
 
+/**
+ * @brief Encodes pixel data to a JPEG image in memory.
+ */
+byte *Img_EncodeJPG(const byte *data, uint32_t width, uint32_t height, uint32_t pitch, int32_t quality,
+                     size_t *size) {
+
+  byte *buffer = Mem_Malloc(width * height * 3);
+
+  // Flip pixels vertically, respecting the source pitch (which may include row padding)
+  for (size_t i = 0; i < height; i++) {
+    memcpy(buffer + (height - i - 1) * width * 3, data + i * pitch, 3 * width);
+  }
+
+  SDL_Surface *ss = SDL_CreateSurfaceFrom(width, height, SDL_PIXELFORMAT_BGR24, buffer, width * 3);
+  SDL_IOStream *io = SDL_IOFromDynamicMem();
+
+  byte *out = NULL;
+  *size = 0;
+
+  if (IMG_SaveJPG_IO(ss, io, false, quality)) {
+    const int64_t len = SDL_TellIO(io);
+    SDL_PropertiesID props = SDL_GetIOProperties(io);
+    void *mem = SDL_GetPointerProperty(props, SDL_PROP_IOSTREAM_DYNAMIC_MEMORY_POINTER, NULL);
+
+    if (mem && len > 0) {
+      out = Mem_Malloc((size_t) len);
+      memcpy(out, mem, (size_t) len);
+      *size = (size_t) len;
+    }
+  } else {
+    Com_Warn("Failed to encode JPEG\n");
+  }
+
+  SDL_CloseIO(io);
+  SDL_DestroySurface(ss);
+  Mem_Free(buffer);
+
+  return out;
+}
+
 // there are _0 and _1 in here just to prevent padding
 // and so I can control the bytes explicitly. Dumb C.
 typedef struct {

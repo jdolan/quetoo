@@ -33,12 +33,24 @@ typedef enum {
   SCREENSHOT_NONE,
   SCREENSHOT_DEFAULT,
   SCREENSHOT_VIEW,
+  SCREENSHOT_DEMO,
 } r_screenshot_type_t;
 
 /**
  * @brief Pending screenshot type.
  */
 static r_screenshot_type_t r_pending_screenshot;
+
+/**
+ * @brief Fixed thumbnail height for embedded demo screenshots.
+ */
+#define DEMO_THUMBNAIL_HEIGHT 240
+
+/**
+ * @brief The most recently captured demo thumbnail, awaiting collection by Cl_WriteDemoHeader.
+ */
+static byte *r_demo_thumbnail;
+static size_t r_demo_thumbnail_size;
 
 /**
  * @brief Initializes image output directories.
@@ -151,6 +163,29 @@ static SDL_Surface *R_ReadTexture(const Texture *texture) {
 }
 
 /**
+ * @brief Downsamples and JPEG-encodes a demo thumbnail synchronously, replacing any previously
+ * captured but uncollected thumbnail.
+ */
+static void R_Screenshot_demo(SDL_Surface *surface) {
+
+  Mem_Free(r_demo_thumbnail);
+  r_demo_thumbnail = NULL;
+  r_demo_thumbnail_size = 0;
+
+  const int32_t height = Mini(surface->h, DEMO_THUMBNAIL_HEIGHT);
+  const int32_t width = surface->w * height / surface->h;
+
+  SDL_Surface *thumbnail = SDL_ScaleSurface(surface, width, height, SDL_SCALEMODE_LINEAR);
+  if (thumbnail) {
+    r_demo_thumbnail = Img_EncodeJPG(thumbnail->pixels, width, height, thumbnail->pitch, 85,
+                                      &r_demo_thumbnail_size);
+    SDL_DestroySurface(thumbnail);
+  }
+
+  SDL_DestroySurface(surface);
+}
+
+/**
  * @brief Captures the resolved color buffer if a screenshot is pending.
  */
 void R_Screenshot(r_view_t *view) {
@@ -163,10 +198,44 @@ void R_Screenshot(r_view_t *view) {
 
   SDL_Surface *surface = texture ? R_ReadTexture(texture) : NULL;
   if (surface) {
-    Thread_Create(R_Screenshot_encode, surface, THREAD_NO_WAIT);
+    if (r_pending_screenshot == SCREENSHOT_DEMO) {
+      R_Screenshot_demo(surface);
+    } else {
+      Thread_Create(R_Screenshot_encode, surface, THREAD_NO_WAIT);
+    }
   }
 
   r_pending_screenshot = SCREENSHOT_NONE;
+}
+
+/**
+ * @brief Requests that the next resolved frame be captured as a demo thumbnail.
+ */
+void R_RequestDemoThumbnail(void) {
+
+  // clear any capture still sitting here unconsumed: if the previous recording started and
+  // stopped again before a frame ever got far enough to write its header (so R_PollDemoThumbnail
+  // was never called to claim it), it would otherwise be served to Cl_WriteDemoHeader as this
+  // new recording's thumbnail, ahead of the fresh capture this request is about to produce
+  Mem_Free(r_demo_thumbnail);
+  r_demo_thumbnail = NULL;
+  r_demo_thumbnail_size = 0;
+
+  r_pending_screenshot = SCREENSHOT_DEMO;
+}
+
+/**
+ * @brief Returns and clears the most recently captured demo thumbnail, if one is ready.
+ * The caller owns the returned buffer and must free it with Mem_Free.
+ */
+byte *R_PollDemoThumbnail(size_t *size) {
+  byte *data = r_demo_thumbnail;
+  *size = r_demo_thumbnail_size;
+
+  r_demo_thumbnail = NULL;
+  r_demo_thumbnail_size = 0;
+
+  return data;
 }
 
 /**
