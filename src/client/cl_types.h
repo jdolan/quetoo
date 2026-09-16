@@ -336,6 +336,14 @@ typedef struct {
   uint32_t ping;
 
   /**
+   * @brief The unrounded accumulator behind `ping`.
+   * @remarks Smoothing in integers alone sags: under a truncating weighted average, every value
+   * within 7ms below the true round trip is a fixed point, so noise walks the reported ping to
+   * the bottom of that band and holds it there.
+   */
+  float ping_accum;
+
+  /**
    * @brief Packets dropped by the server, cumulative for this connection.
    */
   uint32_t dropped;

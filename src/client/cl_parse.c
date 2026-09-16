@@ -400,7 +400,8 @@ static void Cl_UpdateNetStats(void) {
   const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
   const uint32_t rtt = cl.unclamped_time - cl.cmds[frame].timestamp;
 
-  cl.ping = cl.ping ? (cl.ping * 7 + rtt) / 8 : rtt;
+  cl.ping_accum = cl.ping_accum ? (cl.ping_accum * 7.f + rtt) / 8.f : rtt;
+  cl.ping = (uint32_t) roundf(cl.ping_accum);
 }
 
 /**
