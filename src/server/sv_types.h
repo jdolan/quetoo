@@ -159,6 +159,14 @@ typedef struct {
 #define SV_CLIENT_LATENCY_COUNT 16
 
 /**
+ * @brief How often the reported ping is recalculated, in milliseconds.
+ * @remarks This must track the scoreboard's own refresh in `G_ClientScores`, since both it and
+ * the HUD read whatever this last settled on. Recalculating every frame only flickers: the
+ * figure is a sixteen sample mean, so it is never that fresh to begin with.
+ */
+#define SV_CLIENT_PING_INTERVAL 500
+
+/**
  * @brief User movement command duration is inspected regularly to ensure that
  * they are not cheating. If their movement is too far out of sync with the
  * server's clock, we take notice and eventually kick them.

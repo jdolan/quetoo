@@ -439,6 +439,13 @@ static void Sv_ConnectionlessPacket(void) {
  * unsmoothed one would both read as jitter and defeat the delta compression of the player state.
  */
 static void Sv_UpdatePings(void) {
+  static uint32_t last_update_time;
+
+  if (quetoo.ticks - last_update_time < SV_CLIENT_PING_INTERVAL) {
+    return;
+  }
+
+  last_update_time = quetoo.ticks;
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
