@@ -240,6 +240,9 @@ void G_ClientStats(g_client_t *cl) {
     cl->ps.stats[STAT_PICKUP] = 0;
   }
 
+  // ping, as the server measures it, so that the HUD and the scoreboard agree
+  cl->ps.stats[STAT_PING] = (int16_t) Mini(cl->ping, 999);
+
   // scores
   cl->ps.stats[STAT_SCORES] = 0;
   if (g_level.intermission_time || cl->show_scores) {
@@ -317,6 +320,9 @@ void G_ClientSpectatorStats(g_client_t *cl) {
     } else {
       cl->ps.stats[STAT_SCORES] = 0;
     }
+
+    // as is the ping, which belongs to this client's connection, not the target's
+    cl->ps.stats[STAT_PING] = (int16_t) Mini(cl->ping, 999);
   } else {
     G_ClientStats(cl);
     cl->ps.stats[STAT_CHASE] = 0;

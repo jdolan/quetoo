@@ -433,11 +433,10 @@ static void Sv_ConnectionlessPacket(void) {
 
 /**
  * @brief Updates the "ping" times for all spawned clients.
- * @details Now that @ref Sv_WaitForPackets timestamps acks at their true receive time,
- * each recorded round-trip is an accurate, millisecond-resolution sample. We report the
- * most recently measured round-trip so the displayed ping tracks live latency without
- * any smoothing lag; the frame-quantized inflation the old socket servicing introduced
- * is gone.
+ * @details @ref Sv_WaitForPackets stamps each acknowledgement at its true arrival time, so the
+ * recorded samples are accurate to the millisecond rather than quantized to the frame interval.
+ * They are still averaged: this figure reaches every client each frame as `STAT_PING`, and an
+ * unsmoothed one would both read as jitter and defeat the delta compression of the player state.
  */
 static void Sv_UpdatePings(void) {
 
@@ -449,10 +448,18 @@ static void Sv_UpdatePings(void) {
       continue;
     }
 
-    if (cl->last_frame > -1) {
-      cl->ping = cl->frame_latency[cl->last_frame & (SV_CLIENT_LATENCY_COUNT - 1)];
-    } else {
+    int32_t total = 0, count = 0;
+    for (int32_t j = 0; j < SV_CLIENT_LATENCY_COUNT; j++) {
+      if (cl->frame_latency[j] > 0) {
+        total += cl->frame_latency[j];
+        count++;
+      }
+    }
+
+    if (!count) {
       cl->ping = 0;
+    } else {
+      cl->ping = total / (float) count;
     }
 
     cl->gclient->ping = cl->ping;

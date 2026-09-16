@@ -255,10 +255,9 @@ typedef struct {
  * @brief A circular buffer of recently sent `user_cmd_t` is maintained so that
  * we can always re-send the last 2 commands to counter packet loss, and so
  * that client-side prediction can verify its accuracy.
- * @remarks The buffer must span the round trip time, since a command is read back when the
+ * @remarks The buffer must span the round trip time, since a command is replayed until the
  * server acknowledges it. Commands are sent once per rendered frame, throttled to 4ms apart,
- * so 64 covered only 256ms at that ceiling: beyond it prediction froze and the round trip
- * sampled a wrapped, unrelated command.
+ * so 64 covered only 256ms at that ceiling, beyond which prediction froze the player in place.
  */
 #define CMD_BACKUP 256
 #define CMD_MASK (CMD_BACKUP - 1)
@@ -329,19 +328,6 @@ typedef struct {
    * @brief Packets sent since the diagnostics last read and cleared it.
    */
   uint32_t packets;
-
-  /**
-   * @brief Smoothed round trip time to the server, in milliseconds.
-   */
-  uint32_t ping;
-
-  /**
-   * @brief The unrounded accumulator behind `ping`.
-   * @remarks Smoothing in integers alone sags: under a truncating weighted average, every value
-   * within 7ms below the true round trip is a fixed point, so noise walks the reported ping to
-   * the bottom of that band and holds it there.
-   */
-  float ping_accum;
 
   /**
    * @brief Packets dropped by the server, cumulative for this connection.

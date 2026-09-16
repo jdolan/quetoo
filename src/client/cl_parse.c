@@ -385,9 +385,11 @@ static void Cl_ShowNet(const char *s) {
 }
 
 /**
- * @brief Folds the latency of the acknowledged command and any dropped packets into the
- * client's ping and drop counters. Only movement commands carry a timestamp, so nothing is
- * measured until the client is active.
+ * @brief Folds any dropped packets into the client's drop counter.
+ * @remarks Round trip time is not measured here. The client can only sample it as far apart as
+ * it reads its socket, which is once per rendered frame, so its figure was quantized to the
+ * frame interval and disagreed with the server's. The server stamps packets at their arrival
+ * time and reports the result in `STAT_PING`, which is what the HUD and the scoreboard read.
  */
 static void Cl_UpdateNetStats(void) {
 
@@ -396,12 +398,6 @@ static void Cl_UpdateNetStats(void) {
   }
 
   cl.dropped += cls.net_chan.dropped;
-
-  const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
-  const uint32_t rtt = cl.unclamped_time - cl.cmds[frame].timestamp;
-
-  cl.ping_accum = cl.ping_accum ? (cl.ping_accum * 7.f + rtt) / 8.f : rtt;
-  cl.ping = (uint32_t) roundf(cl.ping_accum);
 }
 
 /**
