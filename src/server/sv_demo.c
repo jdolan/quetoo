@@ -22,63 +22,48 @@
 #include "sv_local.h"
 
 /**
- * @brief Reads and validates the keyframe index appended to the demo file, leaving
- * `sv.num_demo_keyframes` at 0 if it cannot be trusted.
+ * @brief Reads the keyframe index appended to the demo file.
+ * @remarks `num_keyframes` is read straight off disk and sizes an allocation, so it is bounded
+ * by what the file can actually hold before it is trusted. Anything else amiss - a header that
+ * fails that bound, a table that cannot be seeked to, a short read - leaves the index empty
+ * rather than rejecting the demo, which still plays perfectly well forward without one.
+ * @remarks Entry offsets are deliberately not validated: a nonsensical one yields a garbage
+ * chunk size, which `Sv_GetDemoMessage` already rejects.
  */
 static void Sv_LoadDemoKeyframes(void) {
 
-  sv.num_demo_keyframes = sv.demo_header.num_keyframes;
+  sv.num_demo_keyframes = 0;
 
-  // a corrupt or malicious header can claim an arbitrary (including negative) keyframe_count
-  // or keyframe_table_offset; bound both before trusting either for an allocation or a
-  // pointer-arithmetic-like subtraction. A negative offset would otherwise make
-  // file_length - offset artificially huge, defeating the capacity clamp entirely.
   const int64_t file_length = Fs_FileLength(sv.demo_file);
+  const int64_t ofs = sv.demo_header.ofs_keyframes;
 
   int64_t max_keyframes = 0;
-  if (sv.demo_header.ofs_keyframes >= 0 && file_length > sv.demo_header.ofs_keyframes) {
-    max_keyframes = (file_length - sv.demo_header.ofs_keyframes) / (int64_t) sizeof(demo_keyframe_t);
+  if (ofs >= 0 && file_length > ofs) {
+    max_keyframes = (file_length - ofs) / (int64_t) sizeof(demo_keyframe_t);
   }
 
-  if (sv.num_demo_keyframes < 0 || sv.num_demo_keyframes > max_keyframes) {
-    Com_Warn("%s: invalid keyframe_count %d, clamping to %" PRId64 "\n",
-              sv.name, sv.num_demo_keyframes, max_keyframes);
-    sv.num_demo_keyframes = (int32_t) max_keyframes;
-  }
-
-  if (sv.num_demo_keyframes == 0) {
+  if (sv.demo_header.num_keyframes < 0 || sv.demo_header.num_keyframes > max_keyframes) {
+    Com_Warn("%s: invalid num_keyframes %d\n", sv.name, sv.demo_header.num_keyframes);
     return;
   }
 
-  if (!Fs_Seek(sv.demo_file, sv.demo_header.ofs_keyframes)) {
-    // couldn't seek to the keyframe table (corrupt or truncated file): leave sv.demo_keyframes
-    // NULL, but sv.num_demo_keyframes must track it, or Sv_SeekDemo's `num_demo_keyframes == 0`
-    // guard is bypassed and it dereferences a NULL table
-    sv.num_demo_keyframes = 0;
+  if (sv.demo_header.num_keyframes == 0 || !Fs_Seek(sv.demo_file, ofs)) {
     return;
   }
 
+  sv.num_demo_keyframes = sv.demo_header.num_keyframes;
   sv.demo_keyframes = Mem_TagMalloc(sv.num_demo_keyframes * sizeof(demo_keyframe_t), MEM_TAG_SERVER);
 
   for (int32_t i = 0; i < sv.num_demo_keyframes; i++) {
+
     demo_keyframe_t entry;
     if (Fs_Read(sv.demo_file, &entry, sizeof(entry), 1) != 1) {
       sv.num_demo_keyframes = i;
       break;
     }
+
     entry.frame_num = LittleLong(entry.frame_num);
     entry.offset = LittleLong(entry.offset);
-
-    // a corrupt table could point a "seek here" offset into the header region or past the table
-    // itself; Sv_GetDemoMessage's own size validation would still catch the resulting garbage
-    // read as a corrupt chunk, but there's no reason to accept an entry that's already nonsensical
-    if (entry.offset < (int32_t) sizeof(sv.demo_header) ||
-        entry.offset >= sv.demo_header.ofs_keyframes) {
-      Com_Warn("%s: keyframe %d has out-of-range offset %d, truncating table\n",
-                sv.name, i, entry.offset);
-      sv.num_demo_keyframes = i;
-      break;
-    }
 
     sv.demo_keyframes[i] = entry;
   }
