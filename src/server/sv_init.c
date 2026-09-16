@@ -276,10 +276,6 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
   strcpy(sv.name, name);
   strcpy(sv.config_strings[CS_MESSAGE], name);
 
-  // sv_max_clients is latched, so it is settled by the time we are called
-  q_snprintf(sv.config_strings[CS_MAX_CLIENTS], MAX_STRING_CHARS, "%d",
-             sv_max_clients->integer);
-
   if (state == SV_ACTIVE_DEMO) { // loading a demo
     Cvar_ForceSetString(sv_map->name, "");
 

@@ -321,9 +321,6 @@ static void Cg_UpdateConfigString(int32_t i) {
       return;
     }
 #endif
-    case CS_MAX_CLIENTS:
-      cg_state.max_clients = (int32_t) strtol(s, NULL, 10);
-      return;
     case CS_NAV_EDIT:
       cg_state.nav_edit = (int32_t) strtol(s, NULL, 10);
       return;

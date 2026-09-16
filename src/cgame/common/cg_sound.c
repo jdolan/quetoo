@@ -66,7 +66,7 @@ void Cg_ParseSound(void) {
           Cg_Warn("Bad client %u for entity %d\n", ent->current.client, number);
           return;
         }
-        const cg_client_info_t *info = Cg_ClientInfo(ent);
+        const cg_client_info_t *info = &cg_state.clients[ent->current.client];
         play.sample = cgi.LoadClientModelSample(info->model, info->torso->mesh->sounds, play.sample->media.name);
       }
     }

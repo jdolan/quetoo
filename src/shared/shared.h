@@ -45,8 +45,7 @@
 #define CS_IMAGES   (CS_MUSICS + MAX_MUSICS)
 #define CS_CLIENTS  (CS_IMAGES + MAX_IMAGES)
 #define CS_ENTITIES (CS_CLIENTS + MAX_CLIENTS) // for the in-game editor
-#define CS_MAX_CLIENTS (CS_ENTITIES + MAX_ENTITIES) // the server's sv_max_clients
-#define CS_GAME     (CS_MAX_CLIENTS + 1) // game-module specific config strings
+#define CS_GAME     (CS_ENTITIES + MAX_ENTITIES) // game-module specific config strings
 
 #define MAX_GAME_CONFIG_STRINGS 256
 

@@ -48,7 +48,7 @@
  * of core net messages or serialized data types change. The game and client
  * game maintain `PROTOCOL_MINOR` as well.
  */
-#define PROTOCOL_MAJOR 2033
+#define PROTOCOL_MAJOR 2034
 
 /**
  * @brief The IP address of the master server, where the authoritative list of
@@ -100,6 +100,7 @@ const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
 const char *Com_Game(void);
 const char *Com_Cgame(void);
+void Com_Uuid(char *out, size_t len);
 bool Com_IsValidGame(const char *game);
 bool Com_IsValidDownload(const char *filename);
 bool Com_SetGame(const char *game, const char *cgame);

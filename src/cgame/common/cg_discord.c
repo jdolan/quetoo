@@ -222,7 +222,8 @@ void Cg_UpdateDiscord(void) {
         }
 
         presence.partySize = cg_state.num_clients;
-        presence.partyMax = cg_state.max_clients;
+        const cl_server_info_t *server = cgi.ServerInfo();
+        presence.partyMax = server ? server->max_clients : 0;
         cg_discord_state.status = DISCORD_ACTIVE;
         presence.instance = true;
       }

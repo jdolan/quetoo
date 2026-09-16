@@ -31,6 +31,7 @@ void Sv_Frame(const uint32_t msec);
 #if defined(__SV_LOCAL_H__)
 extern cvar_t *sv_demo_list;
 extern cvar_t *sv_enforce_time;
+extern cvar_t *sv_guid;
 extern cvar_t *sv_hostname;
 extern cvar_t *sv_map;
 extern cvar_t *sv_map_list;
