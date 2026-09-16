@@ -228,57 +228,6 @@ static void Sv_Info_f(void) {
   Cvar_Enumerate(Sv_Info_f_enumerate, (void *) sv_client);
 }
 
-/**
- * @brief Seeks demo playback to the millisecond offset given by the connected spectator,
- * e.g. from a scrubber control in the UI. No-op outside of demo playback.
- */
-static void Sv_DemoSeek_f(void) {
-
-  if (svs.state != SV_ACTIVE_DEMO) {
-    return;
-  }
-
-  if (Cmd_Argc() != 2) {
-    return;
-  }
-
-  Sv_SeekDemo((int32_t) strtol(Cmd_Argv(1), NULL, 10));
-}
-
-/**
- * @brief Seeks demo playback by the given millisecond offset, relative to the current
- * position, e.g. from a rewind/fast-forward keybind. No-op outside of demo playback.
- */
-static void Sv_DemoSeekRelative_f(void) {
-
-  if (svs.state != SV_ACTIVE_DEMO) {
-    return;
-  }
-
-  if (Cmd_Argc() != 2) {
-    return;
-  }
-
-  const int32_t delta = (int32_t) strtol(Cmd_Argv(1), NULL, 10);
-  const int32_t current = sv.demo_frame_num * QUETOO_TICK_MILLIS;
-
-  Sv_SeekDemo(Maxi(0, current + delta));
-}
-
-/**
- * @brief Toggles demo playback pause. No-op outside of demo playback.
- */
-static void Sv_DemoPause_f(void) {
-
-  if (svs.state != SV_ACTIVE_DEMO) {
-    return;
-  }
-
-  sv.demo_paused = !sv.demo_paused;
-
-  Sv_SendDemoInfo();
-}
-
 typedef struct sv_user_string_cmd_s {
   char *name;
   void (*func)(void);

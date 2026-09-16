@@ -21,6 +21,9 @@
     <ClInclude Include="..\..\src\server\sv_console.h">
       <Filter>src\server</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_demo.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\server\sv_entity.h">
       <Filter>src\server</Filter>
     </ClInclude>
@@ -66,6 +69,9 @@
       <Filter>src\server</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\server\sv_console.c">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\server\sv_demo.c">
       <Filter>src\server</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\server\sv_entity.c">

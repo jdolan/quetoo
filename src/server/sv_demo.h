@@ -21,23 +21,15 @@
 
 #pragma once
 
-#include "collision/collision.h"
-#include "common/common.h"
-#include "game/game.h"
-#include "net/net_chan.h"
-
-#include "sv_admin.h"
-#include "sv_console.h"
-#include "sv_client.h"
-#include "sv_demo.h"
-#include "sv_editor.h"
-#include "sv_entity.h"
-#include "sv_game.h"
-#include "sv_http.h"
-#include "sv_init.h"
-#include "sv_main.h"
-#include "sv_map_list.h"
-#include "sv_master.h"
-#include "sv_send.h"
 #include "sv_types.h"
-#include "sv_world.h"
+
+#if defined(__SV_LOCAL_H__)
+void Sv_LoadDemo(void);
+void Sv_FreeDemo(void);
+bool Sv_SendDemoPacket(sv_client_t *cl);
+void Sv_SeekDemo(int32_t millis);
+void Sv_SendDemoInfo(void);
+void Sv_DemoSeek_f(void);
+void Sv_DemoSeekRelative_f(void);
+void Sv_DemoPause_f(void);
+#endif

@@ -711,6 +711,7 @@
 		CE80FFA81C5E4A2800A21A51 /* sv_admin.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A11C5C58C300CD0B13 /* sv_admin.c */; };
 		CE80FFA91C5E4A2800A21A51 /* sv_client.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A31C5C58C300CD0B13 /* sv_client.c */; };
 		CE80FFAA1C5E4A2800A21A51 /* sv_console.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A51C5C58C300CD0B13 /* sv_console.c */; };
+		DA0011000000000000000003 /* sv_demo.c in Sources */ = {isa = PBXBuildFile; fileRef = DA0011000000000000000001 /* sv_demo.c */; };
 		CE80FFAB1C5E4A2800A21A51 /* sv_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A71C5C58C300CD0B13 /* sv_entity.c */; };
 		CE80FFAC1C5E4A2800A21A51 /* sv_game.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A91C5C58C300CD0B13 /* sv_game.c */; };
 		CE80FFAD1C5E4A2800A21A51 /* sv_init.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6AB1C5C58C300CD0B13 /* sv_init.c */; };
@@ -722,6 +723,7 @@
 		CE80FFB31C5E4A3100A21A51 /* sv_admin.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6A21C5C58C300CD0B13 /* sv_admin.h */; };
 		CE80FFB41C5E4A3100A21A51 /* sv_client.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6A41C5C58C300CD0B13 /* sv_client.h */; };
 		CE80FFB51C5E4A3100A21A51 /* sv_console.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6A61C5C58C300CD0B13 /* sv_console.h */; };
+		DA0011000000000000000004 /* sv_demo.h in Headers */ = {isa = PBXBuildFile; fileRef = DA0011000000000000000002 /* sv_demo.h */; };
 		CE80FFB61C5E4A3100A21A51 /* sv_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6A81C5C58C300CD0B13 /* sv_entity.h */; };
 		CE80FFB71C5E4A3100A21A51 /* sv_game.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AA1C5C58C300CD0B13 /* sv_game.h */; };
 		CE80FFB81C5E4A3100A21A51 /* sv_init.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AC1C5C58C300CD0B13 /* sv_init.h */; };
@@ -2437,6 +2439,8 @@
 		CE12D6A41C5C58C300CD0B13 /* sv_client.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_client.h; sourceTree = "<group>"; };
 		CE12D6A51C5C58C300CD0B13 /* sv_console.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_console.c; sourceTree = "<group>"; };
 		CE12D6A61C5C58C300CD0B13 /* sv_console.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_console.h; sourceTree = "<group>"; };
+		DA0011000000000000000001 /* sv_demo.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_demo.c; sourceTree = "<group>"; };
+		DA0011000000000000000002 /* sv_demo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_demo.h; sourceTree = "<group>"; };
 		CE12D6A71C5C58C300CD0B13 /* sv_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_entity.c; sourceTree = "<group>"; };
 		CE12D6A81C5C58C300CD0B13 /* sv_entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_entity.h; sourceTree = "<group>"; };
 		CE12D6A91C5C58C300CD0B13 /* sv_game.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_game.c; sourceTree = "<group>"; };
@@ -4140,6 +4144,8 @@
 				CE12D6A41C5C58C300CD0B13 /* sv_client.h */,
 				CE12D6A51C5C58C300CD0B13 /* sv_console.c */,
 				CE12D6A61C5C58C300CD0B13 /* sv_console.h */,
+				DA0011000000000000000001 /* sv_demo.c */,
+				DA0011000000000000000002 /* sv_demo.h */,
 				CEF75F402EB996E80026CCA4 /* sv_editor.c */,
 				CEF75F3F2EB996E80026CCA4 /* sv_editor.h */,
 				CE12D6A71C5C58C300CD0B13 /* sv_entity.c */,
@@ -5324,6 +5330,7 @@
 				CE80FFB31C5E4A3100A21A51 /* sv_admin.h in Headers */,
 				CE80FFB41C5E4A3100A21A51 /* sv_client.h in Headers */,
 				CE80FFB51C5E4A3100A21A51 /* sv_console.h in Headers */,
+				DA0011000000000000000004 /* sv_demo.h in Headers */,
 				CEF75F422EB996E80026CCA4 /* sv_editor.h in Headers */,
 				CE80FFB61C5E4A3100A21A51 /* sv_entity.h in Headers */,
 				CE80FFB71C5E4A3100A21A51 /* sv_game.h in Headers */,
@@ -7126,6 +7133,7 @@
 				CE80FFA81C5E4A2800A21A51 /* sv_admin.c in Sources */,
 				CE80FFA91C5E4A2800A21A51 /* sv_client.c in Sources */,
 				CE80FFAA1C5E4A2800A21A51 /* sv_console.c in Sources */,
+				DA0011000000000000000003 /* sv_demo.c in Sources */,
 				CEF75F412EB996E80026CCA4 /* sv_editor.c in Sources */,
 				CE80FFAB1C5E4A2800A21A51 /* sv_entity.c in Sources */,
 				CE80FFAC1C5E4A2800A21A51 /* sv_game.c in Sources */,

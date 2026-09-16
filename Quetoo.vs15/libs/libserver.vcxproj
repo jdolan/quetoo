@@ -32,6 +32,7 @@
     <ClInclude Include="..\..\src\server\sv_main.h" />
     <ClInclude Include="..\..\src\server\sv_map_list.h" />
     <ClInclude Include="..\..\src\server\sv_master.h" />
+    <ClInclude Include="..\..\src\server\sv_demo.h" />
     <ClInclude Include="..\..\src\server\sv_send.h" />
     <ClInclude Include="..\..\src\server\sv_types.h" />
     <ClInclude Include="..\..\src\server\sv_world.h" />
@@ -48,6 +49,7 @@
     <ClCompile Include="..\..\src\server\sv_main.c" />
     <ClCompile Include="..\..\src\server\sv_map_list.c" />
     <ClCompile Include="..\..\src\server\sv_master.c" />
+    <ClCompile Include="..\..\src\server\sv_demo.c" />
     <ClCompile Include="..\..\src\server\sv_send.c" />
     <ClCompile Include="..\..\src\server\sv_world.c" />
   </ItemGroup>
