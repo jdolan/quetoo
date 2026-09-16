@@ -57,17 +57,17 @@ static double demoSpeedIndex(double speed) {
 #pragma mark - Delegates
 
 /**
- * @brief An image Button for the transport bar. Sizing, padding and pointer events are all
- * styled by `DemoControlsView Button` in ui/common.css; nothing here assigns a styled attribute.
+ * @brief Gives a Button from the layout its icon and its delegate. The icon cannot come from the
+ * layout: JSON binds an image through Image::initWithResourceName, which knows nothing of the
+ * game's asset paths or atlas, where Cg_LoadImage does.
  */
-static Button *demoButton(const char *image, ButtonDelegate delegate) {
+static void demoButton(Button *button, const char *image, ButtonDelegate delegate) {
 
-  Button *button = $(alloc(Button), initWithImage, Cg_LoadImage(image));
   assert(button);
 
-  button->delegate = delegate;
+  $(button->image, setImage, Cg_LoadImage(image));
 
-  return button;
+  button->delegate = delegate;
 }
 
 /**
@@ -119,44 +119,38 @@ static DemoControlsView *initWithFrame(DemoControlsView *self, const SDL_Rect *f
   self = (DemoControlsView *) super(StackView, self, initWithFrame, frame);
   if (self) {
 
-    StackView *this = (StackView *) self;
+    Outlet outlets[] = MakeOutlets(
+      MakeOutlet("rewind", &self->rewindButton),
+      MakeOutlet("play", &self->playButton),
+      MakeOutlet("scrubber", &self->scrubber),
+      MakeOutlet("fastForward", &self->fastForwardButton),
+      MakeOutlet("speed", &self->speedSlider),
+      MakeOutlet("speedLabel", &self->speedLabel)
+    );
 
-    self->rewindButton = demoButton("pics/rewind", (ButtonDelegate) {
+    View *this = (View *) self;
+
+    $(this, awakeWithResourceName, "ui/hud/DemoControlsView.json");
+    $(this, resolve, outlets);
+
+    demoButton(self->rewindButton, "pics/rewind", (ButtonDelegate) {
       .self = self,
       .didClick = didClickRewind
     });
 
-    $((View *) this, addSubview, (View *) self->rewindButton);
-
-    self->playButton = demoButton("pics/play", (ButtonDelegate) {
+    demoButton(self->playButton, "pics/play", (ButtonDelegate) {
       .self = self,
       .didClick = didClickPlay
     });
 
-    $((View *) this, addSubview, (View *) self->playButton);
-
-    self->scrubber = $(alloc(Slider), initWithFrame, NULL);
-    assert(self->scrubber);
-
-    $((View *) self->scrubber, addClassName, "scrubber");
-
-    self->scrubber->min = 0.0;
-    self->scrubber->delegate.self = self;
-    self->scrubber->delegate.didSetValue = didSetScrubber;
-
-    $((View *) this, addSubview, (View *) self->scrubber);
-
-    self->fastForwardButton = demoButton("pics/fast_forward", (ButtonDelegate) {
+    demoButton(self->fastForwardButton, "pics/fast_forward", (ButtonDelegate) {
       .self = self,
       .didClick = didClickFastForward
     });
 
-    $((View *) this, addSubview, (View *) self->fastForwardButton);
-
-    self->speedSlider = $(alloc(Slider), initWithFrame, NULL);
-    assert(self->speedSlider);
-
-    $((View *) self->speedSlider, addClassName, "speed");
+    self->scrubber->min = 0.0;
+    self->scrubber->delegate.self = self;
+    self->scrubber->delegate.didSetValue = didSetScrubber;
 
     self->speedSlider->min = 0.0;
     self->speedSlider->max = lengthof(demo_speeds) - 1;
@@ -165,18 +159,6 @@ static DemoControlsView *initWithFrame(DemoControlsView *self, const SDL_Rect *f
     self->speedSlider->value = demoSpeedIndex(cgi.GetCvarValue("time_scale"));
     self->speedSlider->delegate.self = self;
     self->speedSlider->delegate.didSetValue = didSetSpeed;
-
-    $((View *) this, addSubview, (View *) self->speedSlider);
-
-    // the Slider's own label can only print its value, which here is an index; the rate it maps
-    // to gets its own Text, and .speed > .label hides the built-in one
-    self->speedLabel = $(alloc(Text), initWithText, NULL, NULL);
-    assert(self->speedLabel);
-
-    $((View *) self->speedLabel, addClassName, "speedLabel");
-
-    $((View *) this, addSubview, (View *) self->speedLabel);
-    release(self->speedLabel);
   }
 
   return self;

@@ -1,0 +1,31 @@
+{
+  "subviews": [
+    {
+      "class": "Button",
+      "identifier": "rewind"
+    },
+    {
+      "class": "Button",
+      "identifier": "play"
+    },
+    {
+      "class": "Slider",
+      "identifier": "scrubber",
+      "classNames": ["scrubber"]
+    },
+    {
+      "class": "Button",
+      "identifier": "fastForward"
+    },
+    {
+      "class": "Slider",
+      "identifier": "speed",
+      "classNames": ["speed"]
+    },
+    {
+      "class": "Text",
+      "identifier": "speedLabel",
+      "classNames": ["speedLabel"]
+    }
+  ]
+}

@@ -103,6 +103,12 @@ cguieditor_DATA = \
 	$(CGUI_DIR)/editor/MeshViewController.json \
 	$(CGUI_DIR)/editor/editor.css
 
+cguihuddir = \
+	@PKGLIBDIR@/default/ui/hud
+
+cguihud_DATA = \
+	$(CGUI_DIR)/hud/DemoControlsView.json
+
 cguihuddefaultdir = \
 	@PKGLIBDIR@/default/ui/hud/default
 
