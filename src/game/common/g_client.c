@@ -745,6 +745,28 @@ static void G_ClientCorpse_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t m
 }
 
 /**
+ * @return The animation a corpse should be left in, given the one its client died playing.
+ * @details A player who respawns before their death animation has run out is still mid-death,
+ * and G_ClientAnimation settles that only for a client, which a corpse no longer has. The
+ * client also restarts the animation of any entity it has not seen before, so a corpse handed
+ * a death animation plays the whole thing over again where it lies. Hand it the rest pose that
+ * follows instead.
+ */
+static uint8_t G_ClientCorpseAnimation(uint8_t animation) {
+
+  const uint8_t value = animation & ANIM_MASK_VALUE;
+
+  switch (value) {
+    case ANIM_BOTH_DEATH1:
+    case ANIM_BOTH_DEATH2:
+    case ANIM_BOTH_DEATH3:
+      return value + 1;
+    default:
+      return value;
+  }
+}
+
+/**
  * @brief Spawns a corpse for the specified client. The corpse will eventually sink into the floor
  * and disappear if not over-killed.
  */
@@ -774,8 +796,8 @@ static void G_ClientCorpse(g_client_t *cl) {
   ent->s.client = cl->entity->s.client;
   ent->s.model1 = cl->entity->s.model1;
 
-  ent->s.animation1 = cl->entity->s.animation1;
-  ent->s.animation2 = cl->entity->s.animation2;
+  ent->s.animation1 = G_ClientCorpseAnimation(cl->entity->s.animation1);
+  ent->s.animation2 = G_ClientCorpseAnimation(cl->entity->s.animation2);
 
   ent->s.effects = EF_CLIENT | EF_CORPSE;
 
