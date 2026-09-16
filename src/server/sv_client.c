@@ -35,8 +35,13 @@ static void Sv_New_f(void) {
     return;
   }
 
-  // demo servers will send the demo file's server info packet
+  // demo servers will send the demo file's server info packet via the relay itself; the one
+  // thing that blob can't carry is duration, since it was written before the recording stopped
+  // and duration was known - send it separately here, once, so the playback UI can build a
+  // scrubber with a real range instead of an unbounded one
   if (svs.state == SV_ACTIVE_DEMO) {
+    Net_WriteByte(&sv_client->net_chan.message, SV_CMD_DEMO_INFO);
+    Net_WriteLong(&sv_client->net_chan.message, sv.demo_header.duration);
     return;
   }
 
@@ -225,6 +230,55 @@ static void Sv_Info_f(void) {
   Cvar_Enumerate(Sv_Info_f_enumerate, (void *) sv_client);
 }
 
+/**
+ * @brief Seeks demo playback to the millisecond offset given by the connected spectator,
+ * e.g. from a scrubber control in the UI. No-op outside of demo playback.
+ */
+static void Sv_DemoSeek_f(void) {
+
+  if (svs.state != SV_ACTIVE_DEMO) {
+    return;
+  }
+
+  if (Cmd_Argc() != 2) {
+    return;
+  }
+
+  Sv_SeekDemo((int32_t) strtol(Cmd_Argv(1), NULL, 10));
+}
+
+/**
+ * @brief Seeks demo playback by the given millisecond offset, relative to the current
+ * position, e.g. from a rewind/fast-forward keybind. No-op outside of demo playback.
+ */
+static void Sv_DemoSeekRelative_f(void) {
+
+  if (svs.state != SV_ACTIVE_DEMO) {
+    return;
+  }
+
+  if (Cmd_Argc() != 2) {
+    return;
+  }
+
+  const int32_t delta = (int32_t) strtol(Cmd_Argv(1), NULL, 10);
+  const int32_t current = sv.demo_frame_num * QUETOO_TICK_MILLIS;
+
+  Sv_SeekDemo(Maxi(0, current + delta));
+}
+
+/**
+ * @brief Toggles demo playback pause. No-op outside of demo playback.
+ */
+static void Sv_DemoPause_f(void) {
+
+  if (svs.state != SV_ACTIVE_DEMO) {
+    return;
+  }
+
+  sv.demo_paused = !sv.demo_paused;
+}
+
 typedef struct sv_user_string_cmd_s {
   char *name;
   void (*func)(void);
@@ -237,6 +291,9 @@ static sv_user_string_cmd_t sv_user_string_cmds[] = { // mapping command names t
   { "begin", Sv_Begin_f },
   { "disconnect", Sv_Disconnect_f },
   { "info", Sv_Info_f },
+  { "demo_seek", Sv_DemoSeek_f },
+  { "demo_seek_relative", Sv_DemoSeekRelative_f },
+  { "demo_pause", Sv_DemoPause_f },
   { NULL, NULL }
 };
 

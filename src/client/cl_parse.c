@@ -59,6 +59,7 @@ static char *sv_cmd_names[32] = {
   "SV_CMD_PRINT",
   "SV_CMD_RECONNECT",
   "SV_CMD_SERVER_DATA",
+  "SV_CMD_DEMO_INFO",
   "SV_CMD_SOUND"
 };
 
@@ -250,6 +251,15 @@ int32_t Cl_ParseConfigString(void) {
 }
 
 /**
+ * @brief Parses the demo duration sent once when connecting to a demo relay. Arrives just ahead
+ * of, in the same packet as, the relayed SV_CMD_SERVER_DATA - stored on cls.demo rather than cl
+ * so Cl_ClearState's memset of cl (triggered by that very next command) doesn't wipe it back out.
+ */
+static void Cl_ParseDemoInfo(void) {
+  cls.demo.duration = Net_ReadLong(&net_message);
+}
+
+/**
  * @brief Parses the initial server data packet, resetting client state and loading the game.
  */
 static void Cl_ParseServerData(void) {
@@ -269,6 +279,18 @@ static void Cl_ParseServerData(void) {
 
   // determine if we're viewing a demo
   cl.demo_server = Net_ReadByte(&net_message);
+
+  if (cl.demo_server) {
+    Com_Print("Demo playback controls:\n"
+              "  Pause/resume:   %s\n"
+              "  Rewind 10s:     %s\n"
+              "  Fast-forward:   %s\n"
+              "  Follow a player: type \"chase_next\"\n"
+              "  Free-fly:        type \"spectate\"\n",
+              Cl_KeyName(Cl_KeyForBind(SDL_SCANCODE_UNKNOWN, "demo_pause")),
+              Cl_KeyName(Cl_KeyForBind(SDL_SCANCODE_UNKNOWN, "demo_seek_relative -10000")),
+              Cl_KeyName(Cl_KeyForBind(SDL_SCANCODE_UNKNOWN, "demo_seek_relative 10000")));
+  }
 
   // the game and client game directories, validated before being copied off:
   // truncating first would turn an over-long name into a legal one
@@ -420,6 +442,8 @@ void Cl_ParseServerMessage(void) {
       Com_Error(ERROR_DROP, "Bad server message\n");
     }
 
+    const size_t cmd_start = net_message.read;
+
     old_cmd = cmd;
     cmd = Net_ReadByte(&net_message);
 
@@ -478,6 +502,10 @@ void Cl_ParseServerMessage(void) {
         Cl_ParseServerData();
         break;
 
+      case SV_CMD_DEMO_INFO:
+        Cl_ParseDemoInfo();
+        break;
+
       default:
         // delegate to the client game module before failing
         if (!cls.cgame->ParseMessage(cmd)) {
@@ -489,6 +517,24 @@ void Cl_ParseServerMessage(void) {
     }
 
     cls.cgame->ParsedMessage(cmd, data);
+
+    // capture every non-frame command verbatim so it rides along with the next recorded demo
+    // frame: chat, centerprint, temp entities, sounds, etc. are one-shot events, not part of the
+    // continuous entity/player state Cl_WriteDemoMessage re-synthesizes from cl.frame.
+    // Deliberately NOT reset at the top of this function: Sv_SendClientDatagram fragments a
+    // tick's datagram into a second packet (its own Cl_ParseServerMessage call) when queued
+    // messages overflow one packet, and that second packet carries no SV_CMD_FRAME at all -
+    // resetting here would silently drop whatever events landed in it. Cl_WriteDemoMessage
+    // clears this once it actually flushes the accumulated bytes into a recorded frame.
+    if (cls.demo.file && cmd != SV_CMD_FRAME) {
+      const size_t len = net_message.read - cmd_start;
+      if (cls.demo.event_size + len <= sizeof(cls.demo.event_buffer)) {
+        memcpy(cls.demo.event_buffer + cls.demo.event_size, net_message.data + cmd_start, len);
+        cls.demo.event_size += len;
+      } else {
+        Com_Warn("Demo event buffer full, dropping command %d\n", cmd);
+      }
+    }
   }
 
   Cl_UpdateNetStats();

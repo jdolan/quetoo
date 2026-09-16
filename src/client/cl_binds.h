@@ -60,6 +60,11 @@ static const char *DEFAULT_BINDS =
     "bind , slow_motion\n"
     "bind . fast_forward\n"
 
+    // demo playback: pause and 10-second seek (no-ops outside demo playback)
+    "bind p demo_pause\n"
+    "bind [ demo_seek_relative -10000\n"
+    "bind ] demo_seek_relative 10000\n"
+
     // score
     "bind tab +score\n"
 

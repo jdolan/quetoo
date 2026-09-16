@@ -320,15 +320,18 @@ static void Sv_DemoCompleted(void) {
 
 /**
  * @brief Reads the next frame from the current demo file into the specified buffer,
- * returning the size of the frame in bytes.
- *
- * FIXME: This doesn't work with the new packetized overflow avoidance. Multiple
- * messages can constitute a frame. We need a mechanism to indicate frame
- * completion, or we need a timecode in our demos.
+ * returning the size of the frame in bytes. Each demo message is prefixed by its length
+ * and the frame number it was recorded at; `frame_num`, if non-NULL, receives the latter.
  */
-static size_t Sv_GetDemoMessage(byte *buffer) {
+static size_t Sv_GetDemoMessage(byte *buffer, int32_t *frame_num) {
   int32_t size;
+  int32_t num;
   int64_t r;
+
+  if (!sv.demo_file) { // failed to open, or failed header validation
+    Sv_DemoCompleted();
+    return 0;
+  }
 
   r = Fs_Read(sv.demo_file, &size, sizeof(size), 1);
 
@@ -345,10 +348,27 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
     return 0;
   }
 
-  if (size > MAX_MSG_SIZE) { // corrupt demo file
-    Com_Warn("%d > MAX_MSG_SIZE\n", size);
+  // Fs_Read divides its byte count by `size`, so 0 is a divide-by-zero; any other non-positive
+  // value implicitly converts to an enormous size_t read count when passed to Fs_Read below.
+  // Only -1 (already handled above) is a legitimate non-positive value here.
+  if (size <= 0 || size > MAX_MSG_SIZE) { // corrupt demo file
+    Com_Warn("Corrupt demo file: invalid chunk size %d\n", size);
     Sv_DemoCompleted();
     return 0;
+  }
+
+  r = Fs_Read(sv.demo_file, &num, sizeof(num), 1);
+
+  if (r != 1) {
+    Com_Warn("Incomplete or corrupt demo file\n");
+    Sv_DemoCompleted();
+    return 0;
+  }
+
+  num = LittleLong(num);
+  sv.demo_frame_num = num;
+  if (frame_num) {
+    *frame_num = num;
   }
 
   r = Fs_Read(sv.demo_file, buffer, size, 1);
@@ -360,6 +380,39 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
   }
 
   return size;
+}
+
+/**
+ * @brief Seeks demo playback directly to the frame nearest and at-or-before the target time.
+ * @details Every recorded frame is fully self-contained - delta-encoded against the demo's
+ * baselines and a null player state, never against another frame (see `Cl_WriteDemoMessage`) -
+ * so any indexed offset is always a safe, independent jump target: there is no baseline chain or
+ * prior-frame dependency to reconstruct. This binary-searches `sv.demo_keyframes` (one entry per
+ * recorded frame) and seeks the file there; normal per-tick sending in `Sv_SendClientPackets`
+ * picks up again from that point with no special catch-up pacing required.
+ */
+void Sv_SeekDemo(int32_t millis) {
+
+  if (svs.state != SV_ACTIVE_DEMO || !sv.demo_file || sv.num_demo_keyframes == 0) {
+    return;
+  }
+
+  const int32_t target_frame = millis / QUETOO_TICK_MILLIS;
+
+  int32_t lo = 0, hi = sv.num_demo_keyframes - 1, best = 0;
+  while (lo <= hi) {
+    const int32_t mid = (lo + hi) / 2;
+    if (sv.demo_keyframes[mid].frame_num <= target_frame) {
+      best = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+
+  if (!Fs_Seek(sv.demo_file, sv.demo_keyframes[best].offset)) {
+    Com_Warn("Failed to seek demo file\n");
+  }
 }
 
 /**
@@ -387,7 +440,17 @@ void Sv_SendClientPackets(void) {
       byte buffer[MAX_MSG_SIZE];
       size_t size;
 
-      if ((size = Sv_GetDemoMessage(buffer))) {
+      if (sv.demo_paused) {
+        // send nothing while paused, but still keep the netchan alive: the client applies its
+        // normal timeout check regardless of demo state, and would otherwise disconnect a
+        // spectator who paused playback for longer than cl_timeout
+        if (quetoo.ticks - cl->net_chan.last_sent > 1000) {
+          Netchan_Transmit(&cl->net_chan, NULL, 0);
+        }
+        continue;
+      }
+
+      if ((size = Sv_GetDemoMessage(buffer, NULL))) {
         Netchan_Transmit(&cl->net_chan, buffer, size);
       } else {
         break;    // recording is done, so we're done
