@@ -122,7 +122,7 @@ static struct {
  * @details The portal layer resets to `-1` here, so a model holding no portal face never pushes
  * one; `R_PushBspPortalLayer` sets it for the draws that do.
  */
-static void R_PushBspUniformLocals(const r_bsp_uniform_locals_t *locals, RenderPass *pass) {
+static inline void R_PushBspUniformLocals(const r_bsp_uniform_locals_t *locals, RenderPass *pass) {
 
   r_bsp_draw.locals = *locals;
   r_bsp_draw.locals.portal_layer = -1;
@@ -143,7 +143,7 @@ static void R_PushBspUniformLocals(const r_bsp_uniform_locals_t *locals, RenderP
  * layer here -- and portal views are bound the placeholder texture, not the portal texture they
  * are being drawn into, so the face would come out solid black rather than portalled.
  */
-static void R_PushBspPortalLayer(const r_view_t *view, const r_bsp_draw_elements_t *draw, RenderPass *pass) {
+static inline void R_PushBspPortalLayer(const r_view_t *view, const r_bsp_draw_elements_t *draw, RenderPass *pass) {
 
   const int32_t layer = draw->portal && view->type != VIEW_PORTAL ? draw->portal->layer : -1;
 
@@ -152,6 +152,39 @@ static void R_PushBspPortalLayer(const r_view_t *view, const r_bsp_draw_elements
 
     $(pass->commands, pushUniformData, SLOT_UNIFORMS_LOCALS, &r_bsp_draw.locals, sizeof(r_bsp_draw.locals));
   }
+}
+
+/**
+ * @brief Binds the state @p draw is drawn with: its pipeline, material and portal layer.
+ * @param pipeline The pipeline to bind, or `NULL` to leave the bound one in place.
+ * @details Material state is bound only when it changes, since draw elements arrive sorted by
+ * material and surface. The portal layer keeps its own cache, because draw elements sharing a
+ * material need not share a portal -- two portal faces cut from the same brush do not.
+ */
+static inline void R_BindBspDrawElements(const r_view_t *view,
+                                         const r_bsp_draw_elements_t *draw,
+                                         GraphicsPipeline *pipeline,
+                                         RenderPass *pass) {
+
+  if (draw->material != r_bsp_draw.material || draw->surface != r_bsp_draw.surface) {
+    r_bsp_draw.material = draw->material;
+    r_bsp_draw.surface = draw->surface;
+
+    if (pipeline) {
+      $(pass, bindPipeline, pipeline);
+    }
+
+    $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
+      .texture = draw->material->texture->texture->texture,
+      .sampler = r_bsp_draw.repeat_sampler->sampler,
+    }, 1);
+
+    r_material_uniforms_t material;
+    R_MaterialUniforms(draw->material, draw->surface, &material);
+    $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
+  }
+
+  R_PushBspPortalLayer(view, draw, pass);
 }
 
 /**
@@ -297,8 +330,6 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
 
   $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &uniforms, sizeof(uniforms));
 
-  R_PushBspPortalLayer(view, draw, pass);
-
   const Uint32 firstIndex = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
   $(pass, drawIndexedPrimitives, draw->num_elements, 1, firstIndex, 0, 0);
 
@@ -328,6 +359,8 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
       .sampler = r_bsp_draw.repeat_sampler->sampler,
     }, 1);
   }
+
+  R_PushBspPortalLayer(view, draw, pass);
 
   for (const r_stage_t *stage = material->stages; stage; stage = stage->next) {
 
@@ -392,23 +425,7 @@ static void R_DrawOpaqueBspBlock(const r_view_t *view, const r_bsp_block_t *bloc
       continue;
     }
 
-    if (draw->material != r_bsp_draw.material || draw->surface != r_bsp_draw.surface) {
-      r_bsp_draw.material = draw->material;
-      r_bsp_draw.surface = draw->surface;
-
-      $(pass, bindPipeline, r_bsp_draw.opaque_pipeline);
-
-      $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
-        .texture = draw->material->texture->texture->texture,
-        .sampler = r_bsp_draw.repeat_sampler->sampler,
-      }, 1);
-
-      r_material_uniforms_t material;
-      R_MaterialUniforms(draw->material, draw->surface, &material);
-      $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
-    }
-
-    R_PushBspPortalLayer(view, draw, pass);
+    R_BindBspDrawElements(view, draw, r_bsp_draw.opaque_pipeline, pass);
 
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
@@ -433,21 +450,7 @@ static void R_DrawAlphaTestBspBlock(const r_view_t *view, const r_bsp_block_t *b
       continue;
     }
 
-    if (draw->material != r_bsp_draw.material || draw->surface != r_bsp_draw.surface) {
-      r_bsp_draw.material = draw->material;
-      r_bsp_draw.surface = draw->surface;
-
-      $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
-        .texture = draw->material->texture->texture->texture,
-        .sampler = r_bsp_draw.repeat_sampler->sampler,
-      }, 1);
-
-      r_material_uniforms_t material;
-      R_MaterialUniforms(draw->material, draw->surface, &material);
-      $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
-    }
-
-    R_PushBspPortalLayer(view, draw, pass);
+    R_BindBspDrawElements(view, draw, NULL, pass);
 
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
 
@@ -680,23 +683,7 @@ static void R_DrawBlendBspBlock(const r_view_t *view, const r_entity_t *entity, 
       continue;
     }
 
-    if (draw->material != r_bsp_draw.material || draw->surface != r_bsp_draw.surface) {
-      r_bsp_draw.material = draw->material;
-      r_bsp_draw.surface = draw->surface;
-
-      $(pass, bindPipeline, r_bsp_draw.blend_pipeline);
-
-      $(pass, bindFragmentSamplers, R_SAMPLER_MATERIAL, &(SDL_GPUTextureSamplerBinding) {
-        .texture = draw->material->texture->texture->texture,
-        .sampler = r_bsp_draw.repeat_sampler->sampler,
-      }, 1);
-
-      r_material_uniforms_t material;
-      R_MaterialUniforms(draw->material, draw->surface, &material);
-      $(pass->commands, pushUniformData, BSP_UNIFORMS_MATERIAL, &material, sizeof(material));
-    }
-
-    R_PushBspPortalLayer(view, draw, pass);
+    R_BindBspDrawElements(view, draw, r_bsp_draw.blend_pipeline, pass);
 
     const Uint32 first_index = (Uint32) ((uintptr_t) draw->elements / sizeof(uint32_t));
     $(pass, drawIndexedPrimitives, draw->num_elements, 1, first_index, 0, 0);

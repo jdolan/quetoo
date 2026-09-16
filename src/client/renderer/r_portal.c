@@ -237,8 +237,6 @@ static void R_UpdatePortalFramebuffer(void) {
       return;
     }
 
-    // recreated rather than resized, since R_CreateFramebuffer is what applies the renderer's
-    // scale and sample count, and Framebuffer::resize takes the size it is given
     R_DestroyFramebuffer(r_portal.framebuffer);
   }
 
