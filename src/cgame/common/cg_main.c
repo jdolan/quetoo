@@ -337,13 +337,22 @@ static void Cg_UpdateConfigString(int32_t i) {
     cg_client_info_t *ci = &cg_state.clients[i - CS_CLIENTS];
     Cg_LoadClient(ci, s);
 
+    // restart the animation of everyone wearing this client info, since the frames it was
+    // resolved against may not be the frames of whatever model just replaced it. A corpse is
+    // excepted: it is not its owner, and it keeps the animation it died in however they go on
+    // to dress. Without that, a client info sent for any reason at all -- and respawning is
+    // one -- played a corpse's death over again where it lay.
     const int32_t client_num = i - CS_CLIENTS;
     for (int32_t j = 0; j < MAX_ENTITIES; j++) {
       cl_entity_t *ent = &cgi.client->entities[j];
+
+      if (ent->current.effects & EF_CORPSE) {
+        continue;
+      }
+
       if ((ent->current.effects & EF_CLIENT) && ent->current.client == (uint8_t) client_num) {
         ent->animation1.time = ent->animation2.time = 0;
         ent->animation1.frame = ent->animation2.frame = -1;
-        break;
       }
     }
   }
