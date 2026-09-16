@@ -57,21 +57,6 @@ static double demoSpeedIndex(double speed) {
 #pragma mark - Delegates
 
 /**
- * @brief Gives a Button from the layout its icon and its delegate. The icon is loaded here rather
- * than bound from the layout because JSON resolves one through Image::initWithResource, which
- * rasterizes an SVG at its intrinsic size; Cg_LoadImage rasterizes at the window's pixel density,
- * which is what keeps a vector icon crisp on a HiDPI display.
- */
-static void demoButton(Button *button, const char *image, ButtonDelegate delegate) {
-
-  assert(button);
-
-  $(button->image, setImage, Cg_LoadImage(image));
-
-  button->delegate = delegate;
-}
-
-/**
  * @brief ButtonDelegate for the rewind button.
  */
 static void didClickRewind(Button *button) {
@@ -134,20 +119,20 @@ static DemoControlsView *initWithFrame(DemoControlsView *self, const SDL_Rect *f
     $(this, awakeWithResourceName, "ui/hud/DemoControlsView.json");
     $(this, resolve, outlets);
 
-    demoButton(self->rewindButton, "pics/rewind", (ButtonDelegate) {
+    self->rewindButton->delegate = (ButtonDelegate) {
       .self = self,
       .didClick = didClickRewind
-    });
+    };
 
-    demoButton(self->playButton, "pics/play", (ButtonDelegate) {
+    self->playButton->delegate = (ButtonDelegate) {
       .self = self,
       .didClick = didClickPlay
-    });
+    };
 
-    demoButton(self->fastForwardButton, "pics/fast_forward", (ButtonDelegate) {
+    self->fastForwardButton->delegate = (ButtonDelegate) {
       .self = self,
       .didClick = didClickFastForward
-    });
+    };
 
     self->scrubber->min = 0.0;
     self->scrubber->delegate.self = self;

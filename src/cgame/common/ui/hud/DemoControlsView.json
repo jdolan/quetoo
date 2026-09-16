@@ -2,11 +2,13 @@
   "subviews": [
     {
       "class": "Button",
-      "identifier": "rewind"
+      "identifier": "rewind",
+      "image": "pics/rewind.svg@24x24"
     },
     {
       "class": "Button",
-      "identifier": "play"
+      "identifier": "play",
+      "image": "pics/play.svg@24x24"
     },
     {
       "class": "Slider",
@@ -15,7 +17,8 @@
     },
     {
       "class": "Button",
-      "identifier": "fastForward"
+      "identifier": "fastForward",
+      "image": "pics/fast_forward.svg@24x24"
     },
     {
       "class": "Slider",
