@@ -594,6 +594,12 @@ typedef struct {
   char hostname[48];
 
   /**
+   * @brief The server's identity for the lifetime of its process, or empty if it did not
+   * report one. Distinct servers never share it, so one reached by two addresses is one entry.
+   */
+  char guid[37];
+
+  /**
    * @brief The server name (map/game title).
    */
   char name[32];

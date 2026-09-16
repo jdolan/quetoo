@@ -718,20 +718,8 @@ void Cl_Frame(const uint32_t msec) {
 static void Cl_InitGuid(void) {
 
   if (q_strlen(guid->string) == 0) {
-    // Generate a random RFC 4122 version 4 UUID
     char uuid[37];
-    const uint32_t a = (uint32_t) SDL_rand(INT32_MAX);
-    const uint32_t b = (uint32_t) SDL_rand(INT32_MAX);
-    const uint32_t c = (uint32_t) SDL_rand(INT32_MAX);
-    const uint32_t d = (uint32_t) SDL_rand(INT32_MAX);
-    q_snprintf(uuid, sizeof(uuid),
-      "%08x-%04x-%04x-%04x-%04x%08x",
-      a,
-      b & 0xffff,
-      (b >> 16 & 0x0fff) | 0x4000,   // version 4
-      (c & 0x3fff) | 0x8000,          // variant 1
-      c >> 16 & 0xffff,
-      d);
+    Com_Uuid(uuid, sizeof(uuid));
     Cvar_ForceSetString("guid", uuid);
   }
 

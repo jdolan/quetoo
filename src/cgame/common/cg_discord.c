@@ -141,6 +141,11 @@ typedef struct {
   bool initialized;
   bool failed;
   cg_discord_status_t status;
+
+  /**
+   * @brief The party size last published, so that presence is refreshed when it changes.
+   */
+  int32_t party_max;
 } cg_discord_state_t;
 
 static cg_discord_state_t cg_discord_state;
@@ -198,8 +203,14 @@ void Cg_UpdateDiscord(void) {
     char joinSecret[128];
     char spectateSecret[128];
 
+    const cl_server_info_t *server = cgi.ServerInfo();
+    const int32_t party_max = server ? server->max_clients : 0;
+
     if (*cgi.state == CL_ACTIVE) {
-      if (cg_discord_state.status != DISCORD_ACTIVE) {
+
+      // the status reply that carries the party size arrives on its own schedule, and may
+      // land after we are already in game, so publish again when it does
+      if (cg_discord_state.status != DISCORD_ACTIVE || cg_discord_state.party_max != party_max) {
         needs_update = true;
       
         presence.largeImageKey = "default";
@@ -222,7 +233,8 @@ void Cg_UpdateDiscord(void) {
         }
 
         presence.partySize = cg_state.num_clients;
-        presence.partyMax = cg_state.max_clients;
+        presence.partyMax = party_max;
+        cg_discord_state.party_max = party_max;
         cg_discord_state.status = DISCORD_ACTIVE;
         presence.instance = true;
       }

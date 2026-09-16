@@ -33,6 +33,7 @@ sv_client_t *sv_client; // current client
 
 cvar_t *sv_demo_list;
 cvar_t *sv_enforce_time;
+cvar_t *sv_guid;
 cvar_t *sv_hostname;
 cvar_t *sv_map;
 cvar_t *sv_map_list;
@@ -972,6 +973,12 @@ static void Sv_InitLocal(void) {
   sv_min_clients = Cvar_Add("sv_min_clients", "0", CVAR_SERVER_INFO, "The minimum number of clients the server will allow");
   sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server");
   sv_stats_url = Cvar_Add("sv_stats_url", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST per-match stats to. Requires sv_public 1. Set to \"\" to disable.");
+  char uuid[37];
+  Com_Uuid(uuid, sizeof(uuid));
+  sv_guid = Cvar_Add("sv_guid", uuid, CVAR_SERVER_INFO | CVAR_NO_SET,
+                     "This server's identity for the lifetime of the process, so that clients "
+                     "reaching it by more than one address can tell it is one server");
+
   sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, "The client connection timeout threshold in seconds");
 
   sv_max_clients->integer = Mini(sv_max_clients->integer, MAX_CLIENTS);

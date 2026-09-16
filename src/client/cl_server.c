@@ -48,6 +48,22 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 /**
  * @brief Finds the server info entry matching the given network address.
  */
+static net_addr_t Cl_ServerNetaddr(const net_addr_t *addr) {
+
+  net_addr_t a = *addr;
+
+  // every loopback datagram is received stamped with no port, so a listen server has to be
+  // keyed that way too, or the entry that asked can never be matched to its own answer
+  if (a.type == NA_LOOP) {
+    a.port = 0;
+  }
+
+  return a;
+}
+
+/**
+ * @brief Returns the known server for the given address, or `NULL`.
+ */
 static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
 
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
@@ -73,9 +89,11 @@ void Cl_FreeServers(void) {
  * @details A server broadcasting on the LAN and also listed by the master
  * answers under two different addresses, so it shows twice. `Cl_ServerForNetaddr`
  * already merges entries that share one address; this catches what that
- * cannot - the same hostname, map and occupancy reported under two. `server`
- * itself is never dropped: it is the one that just proved it is reachable and
- * answering right now, so any duplicate loses to it rather than the reverse.
+ * cannot - one server reported under two. `server` itself is never dropped: it is
+ * the one that just proved it is reachable and answering right now, so any
+ * duplicate loses to it rather than the reverse.
+ * @remarks Matching is on the identity the server reports, not on how it looks. A server
+ * that reports none is left alone rather than guessed at.
  */
 static void Cl_MergeDuplicateServers(const cl_server_info_t *server) {
 
@@ -86,10 +104,7 @@ static void Cl_MergeDuplicateServers(const cl_server_info_t *server) {
       continue;
     }
 
-    if (!server->hostname[0] || q_strcmp(other->hostname, server->hostname) ||
-        q_strcmp(other->name, server->name) ||
-        other->max_clients != server->max_clients ||
-        other->clients != server->clients) {
+    if (!server->guid[0] || q_strcmp(other->guid, server->guid)) {
       continue;
     }
 
@@ -135,6 +150,7 @@ void Cl_ParseServerInfo(void) {
 
   q_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
   q_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
+  const char *server_guid = InfoString_Get(string, "sv_guid");
   const char *mode = InfoString_Get(string, "g_gameplay_mode");
   q_strlcpy(gameplay, *mode ? mode : InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
   const char *move = InfoString_Get(string, "g_movement_mode");
@@ -144,6 +160,7 @@ void Cl_ParseServerInfo(void) {
   if (hostname[0] && name[0]) {
     q_strlcpy(server->hostname, hostname, sizeof(server->hostname));
     q_strlcpy(server->name, name, sizeof(server->name));
+    q_strlcpy(server->guid, server_guid, sizeof(server->guid));
     q_strlcpy(server->gameplay, gameplay, sizeof(server->gameplay));
     q_strlcpy(server->movement, movement, sizeof(server->movement));
     server->max_clients = max_clients;
@@ -258,14 +275,12 @@ void Cl_Ping_f(void) {
  */
 void Cl_QueryServer(const net_addr_t *addr) {
 
-  if (addr->type == NA_LOOP) {
-    return;
-  }
+  const net_addr_t to = Cl_ServerNetaddr(addr);
 
-  cl_server_info_t *server = Cl_ServerForNetaddr(addr);
+  cl_server_info_t *server = Cl_ServerForNetaddr(&to);
 
   if (!server) {
-    server = Cl_AddServer(addr);
+    server = Cl_AddServer(&to);
     server->source = SERVER_SOURCE_USER;
   }
 
@@ -280,11 +295,13 @@ void Cl_QueryServer(const net_addr_t *addr) {
  */
 const cl_server_info_t *Cl_ServerInfo(void) {
 
-  if (cls.server.addr.port == 0) {
+  if (cls.server.address[0] == '\0') {
     return NULL;
   }
 
-  return Cl_ServerForNetaddr(&cls.server.addr);
+  const net_addr_t addr = Cl_ServerNetaddr(&cls.server.addr);
+
+  return Cl_ServerForNetaddr(&addr);
 }
 
 /**

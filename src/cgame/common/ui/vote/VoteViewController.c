@@ -120,7 +120,7 @@ static void refreshClients(VoteViewController *this) {
 
   $(this->client, removeAllOptions);
 
-  for (int32_t i = 0; i < cg_state.max_clients; i++) {
+  for (int32_t i = 0; i < MAX_CLIENTS; i++) {
     const cg_client_info_t *ci = &cg_state.clients[i];
     if (*ci->name) {
       $(this->client, addOption, ci->name, NULL);
