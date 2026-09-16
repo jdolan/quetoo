@@ -21,11 +21,10 @@
 
 #pragma once
 
-#include "g_types.h"
+#include "cg_types.h"
 
-#if defined(__G_LOCAL_H__)
-void G_misc_portal(g_entity_t *ent);
-void G_misc_teleporter(g_entity_t *ent);
-void G_misc_teleporter_dest(g_entity_t *ent);
-void G_misc_fireball(g_entity_t *ent);
+#if defined(__CG_LOCAL_H__)
+
+void Cg_AddPortals(const cl_frame_t *frame);
+
 #endif

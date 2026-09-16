@@ -61,5 +61,8 @@ void main(void) {
     color = mix(color, color * in_diffuse, in_lighting);
   }
 
-  out_color = vec4(texture_color * color * soften(), 1.0);
+  // portals do not have their own depth buffer copy, so don't soften
+  float softness = view_type == VIEW_PORTAL ? 1.0 : soften();
+
+  out_color = vec4(texture_color * color * softness, 1.0);
 }

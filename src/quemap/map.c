@@ -432,6 +432,8 @@ static void SetMaterialFlags(brush_side_t *side) {
     side->contents |= CONTENTS_MONSTER_CLIP;
   } else if (!q_strcmp(side->texture, "common/origin")) {
     side->contents |= CONTENTS_ORIGIN;
+  } else if (!q_strcmp(side->texture, "common/portal")) {
+    side->surface |= SURF_PORTAL;
   } else if (!q_strcmp(side->texture, "common/skip")) {
     side->surface |= SURF_SKIP;
   } else if (!q_strcmp(side->texture, "common/sky")) {

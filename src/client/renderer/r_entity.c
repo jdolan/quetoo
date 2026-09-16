@@ -92,6 +92,7 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
   R_SetEntityBounds(e);
 
   view->num_entities++;
+
   return e;
 }
 

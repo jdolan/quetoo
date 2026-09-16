@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 47
+#define CGAME_API_VERSION 49
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -891,16 +891,6 @@ typedef struct cg_import_s {
   void (*InitView)(r_view_t *view);
 
   /**
-   * @return True if the bounding box is culled or occluded, false otherwise.
-   */
-  bool (*CulludeBox)(const r_view_t *view, const box3_t bounds);
-
-  /**
-   * @brief True if the bounding sphere is culled or occluded, false otherwise.
-   */
-  bool (*CulludeSphere)(const r_view_t *view, const vec3_t origin, float radius);
-
-  /**
    * @brief Adds an entity to the scene for the current frame.
    * @return The added entity.
    */
@@ -925,6 +915,18 @@ typedef struct cg_import_s {
    * @brief Adds a decal to the scene.
    */
   void (*AddDecal)(r_view_t *view, const r_decal_t *decal);
+
+  /**
+   * @brief Adds a portal to the scene.
+   * @details The renderer places the portal's own camera and repeats @p view's scene into it
+   * once the scene is complete, so this may be called at any point while populating. Offer every
+   * portal of the world: a view holds far fewer than a map may contain, and keeps the nearest,
+   * evicting the farthest to make room.
+   * @param matrix The model matrix of the entity drawing the portal's face, or the identity for
+   * one on worldspawn or on anything else that does not move. A portal face's frame is baked in
+   * the space of the model that draws it, so this is what carries it into the world.
+   */
+  void (*AddPortal)(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix);
 
   /**
    * @brief Draws the player model view.

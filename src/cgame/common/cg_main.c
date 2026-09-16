@@ -486,6 +486,8 @@ static void Cg_PrepareScene(const cl_frame_t *frame) {
  */
 static void Cg_PopulateScene(const cl_frame_t *frame) {
 
+  Cg_AddPortals(frame);
+
   Cg_AddEntities(frame);
 
   Cg_AddEffects();

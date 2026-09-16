@@ -27,7 +27,7 @@
  * @brief BSP file identification.
  */
 #define BSP_IDENT             (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-#define BSP_VERSION           81
+#define BSP_VERSION           82
 
 /**
  * @brief BSP file format limits.
@@ -48,6 +48,7 @@
 #define MAX_BSP_BLOCKS        0x400
 #define MAX_BSP_MODELS        0x100
 #define MAX_BSP_LIGHTS        0x200
+#define MAX_BSP_PORTALS       0x40
 #define MAX_BSP_PATCHES       0x400
 #define MAX_BSP_VOXELS_SIZE   0x4000000
 #define MAX_BSP_LIGHT_VOXELS  0x800000
@@ -97,6 +98,7 @@ typedef enum {
   BSP_LUMP_VOXELS,
   BSP_LUMP_LIGHT_VOXELS,
   BSP_LUMP_BLOCK_VOXELS,
+  BSP_LUMP_PORTALS,
   BSP_LUMP_LAST
 } bsp_lump_id_t;
 
@@ -500,6 +502,47 @@ typedef struct {
 } bsp_draw_elements_t;
 
 /**
+ * @brief A portal: a `SURF_PORTAL` face, and the point the world is viewed from to fill it.
+ * @details The compiler resolves both frames, so the renderer carries the player's camera from
+ * the entry frame into the exit frame to place the view a portal shows. `right` is the cross
+ * product of `forward` and `up` in both frames, and is not stored, so that it can never be
+ * baked inconsistently with them.
+ */
+typedef struct {
+
+  /**
+   * @brief The index of the brush side that defined this portal.
+   */
+  int32_t brush_side;
+
+  /**
+   * @brief The index of the draw elements this portal's face was emitted to.
+   */
+  int32_t draw_elements;
+
+  /**
+   * @brief The center of the portal face.
+   */
+  vec3_t entry_origin;
+
+  /**
+   * @brief The direction of travel through the portal face, which is the reverse of its
+   * outward normal, and the face's up, from the way its texture reads.
+   */
+  vec3_t entry_forward, entry_up;
+
+  /**
+   * @brief The origin of the entity this portal views the world from.
+   */
+  vec3_t exit_origin;
+
+  /**
+   * @brief The direction that entity faces, and its up.
+   */
+  vec3_t exit_forward, exit_up;
+} bsp_portal_t;
+
+/**
  * @brief Blocks are large, uniform, axial-aligned and grid-like nodes used to aggregate
  * rendering operations.
  */
@@ -867,6 +910,13 @@ typedef struct bsp_file_s {
   /**
    * @brief Number of light sources.
    */
+  int32_t num_portals;
+
+  /**
+   * @brief The portals.
+   */
+  bsp_portal_t *portals;
+
   int32_t num_lights;
 
   /**

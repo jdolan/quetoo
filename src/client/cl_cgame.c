@@ -310,13 +310,12 @@ void Cl_InitCgame(void) {
   import.WorldModel = R_WorldModel;
 
   import.InitView = R_InitView;
-  import.CulludeBox = R_CullBox;
-  import.CulludeSphere = R_CullSphere;
   import.AddEntity = R_AddEntity;
   import.AddLight = R_AddLight;
   import.AddSprite = R_AddSprite;
   import.AddBeam = R_AddBeam;
   import.AddDecal = R_AddDecal;
+  import.AddPortal = R_AddPortal;
 
   import.DrawPlayerModelView = R_DrawPlayerModelView;
 

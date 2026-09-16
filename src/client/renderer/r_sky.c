@@ -208,9 +208,7 @@ static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view,
  */
 void R_DrawSky(const r_view_t *view, RenderPass *pass) {
 
-  if (!r_models.world) {
-    return;
-  }
+  assert(r_models.world);
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
 

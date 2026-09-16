@@ -36,6 +36,7 @@ cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_light_bounds;
 cvar_t *r_draw_material_stages;
 cvar_t *r_occlude;
+cvar_t *r_portals;
 
 cvar_t *r_ambient;
 cvar_t *r_ambient_occlusion;
@@ -130,12 +131,11 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->editor = editor->integer;
     out->developer = developer->integer;
 
-    // a view that is not the main view - the player model preview - has no
-    // relation to the world's lighting, and its lookups must all land on the
-    // one voxel of the fallback buffers: clamping to a zero-sized grid would
-    // not, since clamp() with a low bound above its high bound is undefined,
-    // and a zero-sized box would not either, since voxel_uvw divides by it
-    if (view->type != VIEW_MAIN || !r_models.world) {
+    // the player model preview must land all of its lookups on the one voxel of the fallback
+    // buffers: clamping to a zero-sized grid would not, since clamp() with a low bound above
+    // its high bound is undefined, and a zero-sized box would not either, since voxel_uvw
+    // divides by it
+    if (view->type == VIEW_PLAYER_MODEL) {
       out->voxels.mins = Vec4(0.f, 0.f, 0.f, 0.f);
       out->voxels.maxs = Vec4(1.f, 1.f, 1.f, 0.f);
       out->voxels.size = Vec4(1.f, 1.f, 1.f, 0.f);
@@ -252,6 +252,7 @@ void R_InitView(r_view_t *view) {
 
   view->ticks = (uint32_t) SDL_GetTicks();
   view->num_beams = 0;
+  view->num_portals = 0;
   view->num_entities = 0;
   view->num_lights = 0;
   view->num_sprites = 0;
@@ -416,6 +417,7 @@ static void R_InitLocal(void) {
   r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");
   r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool).");
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool).");
+  r_portals = Cvar_Add("r_portals", "1", CVAR_ARCHIVE, "Controls rendering the view through portal surfaces.");
 
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
   r_ambient_occlusion = Cvar_Add("r_ambient_occlusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");
@@ -517,7 +519,9 @@ void R_Init(void) {
   R_InitDecals();
   
   R_InitSky();
-  
+
+  R_InitPortals();
+
   R_InitPost();
 
   const SDL_Rect bounds = r_context.window_bounds;
@@ -543,6 +547,8 @@ void R_Shutdown(void) {
   R_ShutdownShadows();
 
   R_ShutdownSky();
+
+  R_ShutdownPortals();
 
   R_ShutdownSprites();
 

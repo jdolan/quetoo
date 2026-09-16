@@ -214,6 +214,13 @@ typedef struct r_stage_s {
   const cm_stage_t *cm;
 
   /**
+   * @brief The stage flags, which are the collision stage's plus what the renderer resolves.
+   * @details A stage naming the material's own diffusemap samples the portal its face shows,
+   *   rather than that texture, and so gains `STAGE_PORTAL` here.
+   */
+  int32_t flags;
+
+  /**
    * @brief Stages with a render pass will reference an image, atlas image, material, animation, etc.
    */
   r_media_t *media;
@@ -523,6 +530,11 @@ typedef struct {
    * @brief Texture coordinate origin for stage transforms (scale, stretch, rotate).
    */
   vec2_t st_origin;
+
+  /**
+   * @brief The portal these elements show, or `NULL` if they are not a portal face.
+   */
+  struct r_bsp_portal_s *portal;
 } r_bsp_draw_elements_t;
 
 /**
@@ -763,6 +775,92 @@ typedef struct r_bsp_inline_model_s {
   int32_t num_blocks;
 
 } r_bsp_inline_model_t;
+
+/**
+ * @brief A BSP portal: a `SURF_PORTAL` face, and the point the world is viewed from to fill it.
+ * @details Resolved by the compiler into `BSP_LUMP_PORTALS`; see `bsp_portal_t`.
+ */
+typedef struct r_bsp_portal_s {
+
+  /**
+   * @brief The inline model whose faces show this portal.
+   */
+  struct r_model_s *model;
+
+  /**
+   * @brief The center of the portal face, in the model's space.
+   */
+  vec3_t origin;
+
+  /**
+   * @brief The bounds of the portal face, in the model's space.
+   */
+  box3_t bounds;
+
+  /**
+   * @brief The portal face's outward normal, in the model's space.
+   * @details Every draw element of a portal is a fragment of one brush side, so they are all
+   *   coplanar and this one normal describes the whole portal. It is the negation of the baked
+   *   `entry` forward, which points the way travel through the portal runs rather than the way
+   *   the face is seen from.
+   */
+  vec3_t normal;
+
+  /**
+   * @brief The portal face's frame, in the model's space.
+   * @details The compiler offsets a brush entity's geometry by its origin brush, so a face's
+   *   frame is baked in the space of the model that draws it, not in the world. A mover carries
+   *   its portal faces with it, so the frame reaches the world only through the model matrix of
+   *   the entity drawing it that frame.
+   */
+  mat4_t entry;
+
+  /**
+   * @brief The frame of the entity this portal views the world from, in world space.
+   * @details The exit is a point entity, which the compiler resolves once and which nothing
+   *   moves, so unlike `entry` this is already where it belongs.
+   */
+  mat4_t exit;
+
+  /**
+   * @brief The center of the portal face this frame, in world space.
+   */
+  vec3_t abs_origin;
+
+  /**
+   * @brief The bounds of the portal face this frame, in world space, for culling.
+   */
+  box3_t abs_bounds;
+
+  /**
+   * @brief The portal face's plane this frame, in world space, for culling.
+   */
+  cm_bsp_plane_t abs_plane;
+
+  /**
+   * @brief Carries a point or direction from the portal face's frame into the frame of the
+   * entity it views the world from.
+   * @details Composed each frame from `entry`, `exit` and the model matrix of the entity drawing
+   *   the face, so a portal on a mover tracks it. Transforming the camera by this places the view
+   *   that the face shows, which is what gives a portal parallax rather than the flatness of a
+   *   fixed camera.
+   */
+  mat4_t matrix;
+
+  /**
+   * @brief The view of this portal's destination, from the renderer's pool, or `NULL` if this
+   * portal was not added to a view this frame.
+   */
+  struct r_view_s *view;
+
+  /**
+   * @brief The layer of the portal texture this portal was drawn into this frame, or `-1`.
+   * @details Cleared for every portal each frame, so a portal that was not added, or was added
+   *   but culled, leaves its face on its own material rather than sampling a stale layer.
+   */
+  int32_t layer;
+
+} r_bsp_portal_t;
 
 /**
  * @brief A BSP light source, including shadow, style, and entity data.
@@ -1060,6 +1158,16 @@ typedef struct {
    * @brief The lights array.
    */
   r_bsp_light_t *lights;
+
+  /**
+   * @brief The count of portals.
+   */
+  int32_t num_portals;
+
+  /**
+   * @brief The portals array.
+   */
+  r_bsp_portal_t *portals;
 
   /**
    * @brief The voxel data.
@@ -1654,6 +1762,15 @@ typedef struct {
 #define MAX_BEAMS 0x200
 
 /**
+ * @brief The maximum number of portals drawn for a single view.
+ * @details Each portal is a whole scene, rendered into its own layer of one texture, so this
+ *   bounds both the per-frame cost and the memory a map can demand. It is deliberately far
+ *   below `MAX_BSP_PORTALS`, which bounds only how many a map may contain: the client game
+ *   offers the nearest of them, and the renderer draws those it can see.
+ */
+#define MAX_PORTALS 8
+
+/**
  * @brief Vec4-aligned instance of a sprite or beam quad, as consumed by sprite_vs.
  * @remarks Sprites and beams reduce to the same quad, a center and two half
  * axes, so both are drawn from this one type. The four corners are
@@ -1953,6 +2070,7 @@ typedef enum {
   VIEW_UNKNOWN,
   VIEW_MAIN,
   VIEW_PLAYER_MODEL,
+  VIEW_PORTAL,
 } r_view_type_t;
 
 /**
@@ -2019,6 +2137,16 @@ typedef struct {
   int32_t queries_occluded;
 
   /**
+   * @brief The counts of portals the client game offered, and of those actually drawn.
+   */
+  int32_t portals_offered, portals_drawn;
+
+  /**
+   * @brief The count of triangles drawn into portal views this frame.
+   */
+  int32_t portals_triangles;
+
+  /**
    * @brief The count of rendered inline BSP models.
    */
   int32_t bsp_inline_models;
@@ -2062,7 +2190,7 @@ typedef struct {
 /**
  * @brief Each client frame populates a view, and submits it to the renderer.
  */
-typedef struct {
+typedef struct r_view_s {
 
   /**
    * @brief The view type.
@@ -2163,6 +2291,16 @@ typedef struct {
    * @brief The count of beams.
    */
   int32_t num_beams;
+
+  /**
+   * @brief The portals whose views are drawn for this view to sample.
+   */
+  r_bsp_portal_t *portals[MAX_PORTALS];
+
+  /**
+   * @brief The count of portals.
+   */
+  int32_t num_portals;
 
   /**
    * @brief The batching state for the current frame's sprite instances.

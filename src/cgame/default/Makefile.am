@@ -215,6 +215,7 @@ cgame_la_SOURCES = \
 	cg_media.c \
 	cg_module.c \
 	cg_muzzle_flash.c \
+	cg_portal.c \
 	cg_predict.c \
 	cg_score.c \
 	cg_sound.c \

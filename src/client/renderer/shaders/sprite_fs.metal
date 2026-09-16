@@ -73,7 +73,17 @@ fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _24 
     {
         color = mix(color, color * in.in_diffuse, float3(in.in_lighting));
     }
-    out.out_color = float4((texture_color * color) * soften(_24, texture_depth_attachment, texture_depth_attachmentSmplr, gl_FragCoord), 1.0);
+    float _132;
+    if (_24.view_type == 3)
+    {
+        _132 = 1.0;
+    }
+    else
+    {
+        _132 = soften(_24, texture_depth_attachment, texture_depth_attachmentSmplr, gl_FragCoord);
+    }
+    float softness = _132;
+    out.out_color = float4((texture_color * color) * softness, 1.0);
     return out;
 }
 

@@ -35,9 +35,7 @@ static void R_UpdateOcclusionBounds(void) {
   r_occlusion.num_occluded_bounds = 0;
   r_occlusion.num_visible_bounds = 0;
 
-  if (!r_models.world) {
-    return;
-  }
+  assert(r_models.world);
 
   const r_bsp_inline_model_t *in = r_models.world->bsp->inline_models;
 
@@ -64,7 +62,7 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
     return false;
   }
 
-  if (view->type == VIEW_PLAYER_MODEL) {
+  if (view->type == VIEW_PLAYER_MODEL || view->type == VIEW_PORTAL) {
     return false;
   }
 

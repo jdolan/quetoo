@@ -68,6 +68,8 @@ static const g_entity_class_t g_entity_classes[] = {
   { "info_player_team4", G_info_player_team4 },
   { "info_player_team_any", G_info_player_team_any },
 
+  { "misc_portal", G_misc_portal },
+
   { "misc_teleporter", G_misc_teleporter },
   { "misc_teleporter_dest", G_misc_teleporter_dest },
   { "misc_fireball", G_misc_fireball },

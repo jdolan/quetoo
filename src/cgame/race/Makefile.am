@@ -85,6 +85,7 @@ cgame_la_SOURCES = \
 	cg_race_hud.c \
 	cg_race_score.c \
 	cg_muzzle_flash.c \
+	cg_portal.c \
 	cg_predict.c \
 	cg_score.c \
 	cg_sound.c \

@@ -89,6 +89,9 @@
     <ClCompile Include="..\..\src\client\renderer\r_occlude.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_portal.c">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\client\renderer\r_post.c">
       <Filter>src</Filter>
     </ClCompile>
@@ -167,6 +170,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_occlude.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_portal.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\client\renderer\r_post.h">

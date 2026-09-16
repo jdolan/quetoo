@@ -102,6 +102,7 @@ static cm_dictionary_t cm_surfaceList[] = {
   { .keyword = "alpha_test", .flag = SURF_ALPHA_TEST },
   { .keyword = "phong", .flag = SURF_PHONG },
   { .keyword = "material", .flag = SURF_MATERIAL },
+  { .keyword = "portal", .flag = SURF_PORTAL },
 };
 
 /**

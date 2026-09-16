@@ -350,6 +350,63 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 }
 
 /**
+ * @brief Loads BSP portals, attaching each to the draw elements of the face that shows it.
+ * @details The compiler resolves a portal's two frames and the draw elements its face was
+ * emitted to, so all that is left here is to build the two frames, and to find the inline model
+ * the face belongs to. The transform between them is composed per frame, since the model drawing
+ * the face may be a mover.
+ */
+static void R_LoadBspPortals(r_model_t *mod) {
+
+  r_bsp_model_t *bsp = mod->bsp;
+
+  bsp->num_portals = bsp->cm->file->num_portals;
+  if (!bsp->num_portals) {
+    return;
+  }
+
+  r_bsp_portal_t *out = bsp->portals = Mem_LinkMalloc(sizeof(*out) * bsp->num_portals, bsp);
+
+  const bsp_portal_t *in = bsp->cm->file->portals;
+  for (int32_t i = 0; i < bsp->num_portals; i++, in++, out++) {
+
+    if (in->draw_elements < 0 || in->draw_elements >= bsp->num_draw_elements) {
+      Com_Warn("Portal @ %s has invalid draw elements %d\n", vtos(in->entry_origin), in->draw_elements);
+      continue;
+    }
+
+    out->origin = in->entry_origin;
+    out->bounds = bsp->draw_elements[in->draw_elements].bounds;
+    out->normal = Vec3_Negate(in->entry_forward);
+
+    out->entry = Mat4_FromVectors(in->entry_forward,
+                                  Vec3_Cross(in->entry_forward, in->entry_up),
+                                  in->entry_up,
+                                  in->entry_origin);
+
+    out->exit = Mat4_FromVectors(in->exit_forward,
+                                 Vec3_Cross(in->exit_forward, in->exit_up),
+                                 in->exit_up,
+                                 in->exit_origin);
+
+    bsp->draw_elements[in->draw_elements].portal = out;
+
+    for (int32_t j = 0; j < bsp->num_inline_models; j++) {
+
+      const r_bsp_inline_model_t *m = &bsp->inline_models[j];
+      const ptrdiff_t first = m->draw_elements - bsp->draw_elements;
+
+      if (in->draw_elements >= first && in->draw_elements < first + m->num_draw_elements) {
+        out->model = (r_model_t *) R_FindMedia(va("%s#%d", mod->media.name, j), R_MEDIA_MODEL);
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * @brief Loads BSP lights.
+ *//**
  * @brief Loads BSP lights.
  */
 static void R_LoadBspLights(r_bsp_model_t *bsp) {
@@ -675,7 +732,8 @@ static void R_LoadBspSky(r_model_t *mod) {
   (1 << BSP_LUMP_LIGHTS) | \
   (1 << BSP_LUMP_VOXELS) | \
   (1 << BSP_LUMP_LIGHT_VOXELS) | \
-  (1 << BSP_LUMP_BLOCK_VOXELS) \
+  (1 << BSP_LUMP_BLOCK_VOXELS) | \
+  (1 << BSP_LUMP_PORTALS) \
 )
 
 /**
@@ -705,6 +763,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_LoadBspVertexArray(mod);
   R_SetupBspInlineModels(mod);
   R_LoadBspLights(mod->bsp);
+  R_LoadBspPortals(mod);
   R_FreeOcclusionQueries();
   R_LoadBspOcclusionQueries(mod->bsp);
   R_LoadBspVoxels(mod);

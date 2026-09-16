@@ -21,11 +21,15 @@
 
 #pragma once
 
-#include "g_types.h"
+#include "r_types.h"
 
-#if defined(__G_LOCAL_H__)
-void G_misc_portal(g_entity_t *ent);
-void G_misc_teleporter(g_entity_t *ent);
-void G_misc_teleporter_dest(g_entity_t *ent);
-void G_misc_fireball(g_entity_t *ent);
+void R_AddPortal(r_view_t *view, r_bsp_portal_t *portal, const mat4_t matrix);
+void R_DrawPortals(const r_view_t *view);
+
+#if defined(__R_LOCAL_H__)
+
+SDL_GPUTexture *R_PortalTexture(const r_view_t *view);
+void R_InitPortals(void);
+void R_ShutdownPortals(void);
+
 #endif

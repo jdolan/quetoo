@@ -67,6 +67,7 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
   BSP_LUMP_SIZE_STRUCT(voxels, MAX_BSP_VOXELS_SIZE),
   BSP_LUMP_NUM_STRUCT(light_voxels, MAX_BSP_LIGHT_VOXELS),
   BSP_LUMP_NUM_STRUCT(block_voxels, MAX_BSP_BLOCK_VOXELS),
+  BSP_LUMP_NUM_STRUCT(portals, MAX_BSP_PORTALS),
 };
 
 /**
@@ -373,6 +374,26 @@ static void Bsp_SwapLights(void *lump, const int32_t num) {
 /**
  * @brief Swap function.
  */
+static void Bsp_SwapPortals(void *lump, const int32_t num) {
+
+  bsp_portal_t *portal = (bsp_portal_t *) lump;
+
+  for (int32_t i = 0; i < num; i++) {
+    portal->brush_side = LittleLong(portal->brush_side);
+    portal->draw_elements = LittleLong(portal->draw_elements);
+    portal->entry_origin = LittleVec3(portal->entry_origin);
+    portal->entry_forward = LittleVec3(portal->entry_forward);
+    portal->entry_up = LittleVec3(portal->entry_up);
+    portal->exit_origin = LittleVec3(portal->exit_origin);
+    portal->exit_forward = LittleVec3(portal->exit_forward);
+    portal->exit_up = LittleVec3(portal->exit_up);
+    portal++;
+  }
+}
+
+/**
+ * @brief Swap function.
+ */
 static void Bsp_SwapVoxels(void *lump, const int32_t num) {
 
   bsp_voxels_t *voxel = (bsp_voxels_t *) lump;
@@ -431,6 +452,7 @@ static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count)
     Bsp_SwapVoxels,
     Bsp_SwapLightVoxels,
     Bsp_SwapBlockVoxels,
+    Bsp_SwapPortals,
   };
 
   if (swap[lump_id]) {
