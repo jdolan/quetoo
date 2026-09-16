@@ -324,18 +324,28 @@ static void Cg_UpdateConfigString(int32_t i) {
     case CS_MAX_CLIENTS:
       cg_state.max_clients = (int32_t) strtol(s, NULL, 10);
       return;
-    case CS_NUM_CLIENTS:
-      cg_state.num_clients = (int32_t) strtol(s, NULL, 10);
-      return;
     case CS_NAV_EDIT:
       cg_state.nav_edit = (int32_t) strtol(s, NULL, 10);
       return;
+  }
+
+  if (i >= CS_CORPSES && i < CS_CORPSES + MAX_CORPSES) {
+    Cg_LoadClient(&cg_state.corpses[i - CS_CORPSES], s);
+    return;
   }
 
   if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
 
     cg_client_info_t *ci = &cg_state.clients[i - CS_CLIENTS];
     Cg_LoadClient(ci, s);
+
+    // the server does not count connected clients for us: the entries it sends are the count
+    cg_state.num_clients = 0;
+    for (int32_t j = 0; j < MAX_CLIENTS; j++) {
+      if (*cgi.ConfigString(CS_CLIENTS + j)) {
+        cg_state.num_clients++;
+      }
+    }
 
     // restart the animation of everyone wearing this client info, since the frames it was
     // resolved against may not be the frames of whatever model just replaced it. A corpse is

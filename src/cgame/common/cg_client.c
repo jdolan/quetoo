@@ -508,7 +508,7 @@ void Cg_ClientRagdoll(cl_entity_t *ent) {
       return;
   }
 
-  const cg_client_info_t *ci = &cg_state.clients[ent->current.client];
+  const cg_client_info_t *ci = Cg_ClientInfo(ent);
   if (!ci->torso) {
     return;
   }
@@ -742,6 +742,14 @@ static void Cg_RotateClientLegs(const cg_client_info_t *ci, cl_entity_t *ent, r_
  * @brief The tail of the `Cg_ClientInfo` chain: the slot the entity names.
  */
 static cg_client_info_t *Cg_ClientInfo_Common(const cl_entity_t *ent) {
+
+  // a corpse names a slot of its own, holding the client info it died wearing, so that it is
+  // not repainted by its owner changing skin and does not fall back to the default model when
+  // they disconnect and their entry is cleared. The mask is what the slot was assigned with.
+  if (ent->current.effects & EF_CORPSE) {
+    return &cg_state.corpses[ent->current.client & (MAX_CORPSES - 1)];
+  }
+
   return &cg_state.clients[ent->current.client];
 }
 
@@ -757,7 +765,8 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   cg_client_info_t *ci = Cg_ClientInfo(ent);
 
   if (!ci->head || !ci->torso || !ci->legs) {
-    if (*cgi.ConfigString(CS_CLIENTS + s->client)) {
+    const int32_t cs = (s->effects & EF_CORPSE) ? CS_CORPSES : CS_CLIENTS;
+    if (*cgi.ConfigString(cs + s->client)) {
       Cg_Warn("Invalid client info: %d\n", s->client);
     }
     return;

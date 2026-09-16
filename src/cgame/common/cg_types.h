@@ -210,6 +210,11 @@ typedef struct {
   cg_client_info_t clients[MAX_CLIENTS];
 
   /**
+   * @brief The client info each standing corpse died wearing, by CS_CORPSES slot.
+   */
+  cg_client_info_t corpses[MAX_CORPSES];
+
+  /**
    * @brief The forced skin (foreskin?) client info.
    */
   cg_client_info_t force_skin;

@@ -767,6 +767,32 @@ static uint8_t G_ClientCorpseAnimation(uint8_t animation) {
 }
 
 /**
+ * @brief Claims a slot of CS_CORPSES for @p corpse, snapshotting the client info @p cl is
+ * wearing as it dies.
+ * @details A corpse outlives its client's identity: they may change skin, or disconnect, and
+ * were they still resolved through CS_CLIENTS the bodies they left would follow them, or fall
+ * back to the default model when their entry is cleared. The snapshot is what they wore.
+ * @remarks The ring is also the corpse limit. Whoever still holds the slot we come around to is
+ * gibbed rather than quietly deleted, so a body always leaves in a way the player can read.
+ */
+static void G_ClientCorpseSlot(g_entity_t *corpse, const g_client_t *cl) {
+
+  static uint32_t index;
+
+  const uint8_t slot = index++ % MAX_CORPSES;
+
+  G_ForEachEntity(ent, {
+    if (ent != corpse && (ent->s.effects & EF_CORPSE) && ent->s.client == slot) {
+      G_ClientCorpse_Die(ent, ent, MOD_CRUSH);
+    }
+  });
+
+  corpse->s.client = slot;
+
+  gi.SetConfigString(CS_CORPSES + slot, gi.GetConfigString(CS_CLIENTS + cl->ps.client));
+}
+
+/**
  * @brief Spawns a corpse for the specified client. The corpse will eventually sink into the floor
  * and disappear if not over-killed.
  */
@@ -793,13 +819,16 @@ static void G_ClientCorpse(g_client_t *cl) {
 
   ent->bounds = cl->entity->bounds;
 
-  ent->s.client = cl->entity->s.client;
   ent->s.model1 = cl->entity->s.model1;
 
   ent->s.animation1 = G_ClientCorpseAnimation(cl->entity->s.animation1);
   ent->s.animation2 = G_ClientCorpseAnimation(cl->entity->s.animation2);
 
   ent->s.effects = EF_CLIENT | EF_CORPSE;
+
+  // claim the slot before the corpse is linked, so that its client info is known to everyone
+  // by the time it first appears in a frame
+  G_ClientCorpseSlot(ent, cl);
 
   ent->velocity = cl->entity->velocity;
 
@@ -1827,14 +1856,7 @@ bool G_ClientConnect(g_client_t *cl, char *user_info) {
 
   gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", cl->persistent.net_name);
 
-  int32_t count = 0;
-  G_ForEachClient(cl, {
-    if (cl->in_use) {
-      count++;
-    }
-  });
 
-  gi.SetConfigString(CS_NUM_CLIENTS, va("%d", count));
 
   return true;
 }
@@ -1863,16 +1885,9 @@ void G_ClientDisconnect(g_client_t *cl) {
     gi.Multicast(cl->entity->s.origin, MULTICAST_PHS);
   }
 
-  int32_t count = 0;
-  G_ForEachClient(cl, {
-    if (cl->in_use) {
-      count++;
-    }
-  });
 
   const uint8_t client = cl->ps.client;
   gi.SetConfigString(CS_CLIENTS + client, "");
-  gi.SetConfigString(CS_NUM_CLIENTS, va("%d", count));
 
   if (cl->ai) {
     G_Ai_Disconnect(cl);
