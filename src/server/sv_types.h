@@ -118,6 +118,31 @@ typedef struct {
    * @brief Open demo file for demo playback, or `NULL` during live gameplay.
    */
   file_t *demo_file;
+
+  /**
+   * @brief The fixed-size header read from `demo_file`, for demo playback.
+   */
+  demo_header_t demo_header;
+
+  /**
+   * @brief The keyframe table read from `demo_file`, for demo playback seeking.
+   */
+  demo_keyframe_t *demo_keyframes;
+
+  /**
+   * @brief The number of entries in `demo_keyframes`.
+   */
+  int32_t num_demo_keyframes;
+
+  /**
+   * @brief The frame number of the most recently read demo message, for demo playback.
+   */
+  int32_t demo_frame_num;
+
+  /**
+   * @brief True if demo playback is currently paused.
+   */
+  bool demo_paused;
 } sv_server_t;
 
 /**

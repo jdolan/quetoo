@@ -29,4 +29,5 @@ void Cl_Record_f(void);
 void Cl_Stop_f(void);
 void Cl_FastForward_f(void);
 void Cl_SlowMotion_f(void);
+void Cl_DemoPause_f(void);
 #endif

@@ -243,6 +243,86 @@ typedef struct {
 } entity_state_t;
 
 /**
+ * @brief Indexes the byte offset of one recorded frame within a demo file.
+ * @details Every recorded frame is fully self-contained (delta-encoded against the demo's
+ * baselines and a null player state, never against another recorded frame), so this index has
+ * one entry per frame and any entry is always a safe, independent seek target.
+ */
+typedef struct {
+
+  /**
+   * @brief The frame number this entry was recorded at.
+   */
+  int32_t frame_num;
+
+  /**
+   * @brief The byte offset of this frame's message within the demo file.
+   */
+  int32_t offset;
+} demo_keyframe_t;
+
+/**
+ * @brief Format identifier for demo files; rejects files that are not Quetoo demos.
+ */
+#define DEMO_MAGIC "QDEM"
+
+/**
+ * @brief Format version for demo files; rejects demos recorded by an incompatible version.
+ */
+#define DEMO_VERSION 2
+
+/**
+ * @brief The fixed-size header written at offset 0 of every recorded demo file.
+ */
+typedef struct {
+
+  /**
+   * @brief Format identifier; see `DEMO_MAGIC`.
+   */
+  char magic[4];
+
+  /**
+   * @brief Format version; see `DEMO_VERSION`.
+   */
+  int32_t version;
+
+  /**
+   * @brief The map the demo was recorded on.
+   */
+  char map[MAX_QPATH];
+
+  /**
+   * @brief True if the user has starred this demo as a favorite.
+   */
+  int32_t favorite;
+
+  /**
+   * @brief The length in bytes of the embedded JPEG thumbnail, or 0 if none.
+   */
+  int32_t thumbnail_length;
+
+  /**
+   * @brief The byte offset of the first packet data message, immediately following the thumbnail.
+   */
+  int32_t data_offset;
+
+  /**
+   * @brief The duration of the demo in milliseconds. Written when recording stops.
+   */
+  int32_t duration;
+
+  /**
+   * @brief The number of entries in the keyframe table. Written when recording stops.
+   */
+  int32_t keyframe_count;
+
+  /**
+   * @brief The byte offset of the keyframe table. Written when recording stops.
+   */
+  int32_t keyframe_table_offset;
+} demo_header_t;
+
+/**
  * @brief Some constants for the hook movement
  */
 #define PM_HOOK_MIN_DIST (32.0)
@@ -496,6 +576,7 @@ typedef enum {
   SV_CMD_PRINT, // [byte] id [string] null terminated string
   SV_CMD_RECONNECT,
   SV_CMD_SERVER_DATA, // [long] protocol ...
+  SV_CMD_DEMO_INFO, // [long] duration in ms; sent once, only when connecting to a demo relay
   SV_CMD_CGAME, // the game may extend from here
 } sv_packet_cmd_t;
 
