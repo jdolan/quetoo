@@ -25,6 +25,8 @@
 
 r_image_t *R_LoadImage(const char *name, r_image_type_t type);
 void R_Screenshot(r_view_t *view);
+void R_RequestDemoThumbnail(void);
+byte *R_PollDemoThumbnail(size_t *size);
 
 #if defined(__R_LOCAL_H__)
 void R_Screenshot_f(void);

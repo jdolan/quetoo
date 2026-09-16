@@ -67,6 +67,14 @@ bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height)
 bool Img_WriteJPG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality);
 
 /**
+* @brief Encodes pixel data to a JPEG image in memory. `pitch` is the source row stride in
+* bytes, which may exceed `width * 3` (e.g. SDL row alignment on a scaled surface); passing
+* `width * 3` for tightly-packed data is also valid. Free the returned buffer with Mem_Free.
+*/
+byte *Img_EncodeJPG(const byte *data, uint32_t width, uint32_t height, uint32_t pitch, int32_t quality,
+                     size_t *size);
+
+/**
 * @brief Write pixel data to a TGA file.
 */
 bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height);

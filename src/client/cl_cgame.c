@@ -168,6 +168,7 @@ void Cl_InitCgame(void) {
   import.client = &cl;
   import.state = &cls.state;
   import.server = &cls.server;
+  import.demo = &cls.demo;
 
   import.context = &r_context;
 
@@ -203,8 +204,10 @@ void Cl_InitCgame(void) {
   import.SeekFile = Fs_Seek;
   import.ReadFile = Fs_Read;
   import.OpenFileWrite = Fs_OpenWrite;
+  import.WriteFileAt = Fs_WriteAt;
   import.WriteFile = Fs_Write;
   import.CloseFile = Fs_Close;
+  import.DeleteFile = Fs_Delete;
   import.LoadFile = Fs_Load;
   import.FreeFile = Fs_Free;
   import.EnumerateFiles = Fs_Enumerate;

@@ -421,6 +421,7 @@ typedef struct {
    */
   bool demo_server;
 
+
   /**
    * @brief True if the client is in third-person view (disables client-side prediction).
    */
@@ -684,6 +685,78 @@ typedef struct {
    * @brief The demo file handle.
    */
   file_t *file;
+
+  /**
+   * @brief A copy of the header written to `file`, kept in memory because `file` is opened
+   * write-only: Cl_Stop_f patches this copy and rewrites it, rather than reading it back.
+   */
+  demo_header_t header;
+
+  /**
+   * @brief The frame number most recently written to `file`, or `-1`. Guards against writing a
+   * duplicate record when a received packet carried no new `SV_CMD_FRAME`.
+   */
+  int32_t last_frame_num;
+
+  /**
+   * @brief The (absolute, server-since-map-load) frame number of the first frame written this
+   * recording, or `-1` before it's known. Every frame_num persisted to the file - the per-message
+   * prefix, the synthesized SV_CMD_FRAME's own field, and the keyframe index - is written
+   * relative to this, so the file's numbering always starts at 0 regardless of when in the map's
+   * lifetime `record` was issued. Without this, duration and Sv_SeekDemo's millis-to-frame_num
+   * conversion would be measured against the wrong origin whenever recording didn't start at
+   * frame 0 (i.e. always, in practice).
+   */
+  int32_t start_frame_num;
+
+  /**
+   * @brief Raw bytes of any non-`SV_CMD_FRAME` commands (chat, centerprint, temp entities,
+   * sounds, etc.) captured verbatim by `Cl_ParseServerMessage` so they ride along with the next
+   * recorded frame, persisting across packets until a frame flushes them (see `event_size`'s
+   * comment in `Cl_ParseServerMessage`). Sized to `MAX_MSG_SIZE * 4`, matching the server's own
+   * `MAX_DATAGRAM_SIZE`: a single busy tick's queued messages can be fragmented across that many
+   * packets before any of them carries a new frame, and this must not lose data to its own
+   * capacity before Cl_WriteDemoMessage gets a chance to decide what actually fits in one chunk.
+   */
+  byte event_buffer[MAX_MSG_SIZE * 4];
+
+  /**
+   * @brief The number of valid bytes in `event_buffer`.
+   */
+  size_t event_size;
+
+  /**
+   * @brief The total duration of the demo currently being played back, in milliseconds, or `0`
+   * if not viewing a demo. Received once via `SV_CMD_DEMO_INFO` when connecting to a demo relay.
+   * Lives here (on `cls`, not `cl`) rather than alongside `cl.demo_server` because it arrives in
+   * the same packet as, and just ahead of, the relayed `SV_CMD_SERVER_DATA` that triggers
+   * Cl_ClearState's memset of `cl` - storing it there would have it wiped out immediately after
+   * being set.
+   */
+  int32_t duration;
+
+  /**
+   * @brief True if demo playback is believed to be paused, toggled locally by the `demo_pause`
+   * command (see `Cl_DemoPause_f`). The server is the actual authority on pause state, but
+   * tracking it client-side avoids a round trip just to gate the paused-playback controls UI,
+   * the mouse grab, and UI event dispatch.
+   */
+  bool paused;
+
+  /**
+   * @brief Per-frame index accumulated in memory while recording, flushed at Cl_Stop_f.
+   */
+  demo_keyframe_t *keyframes;
+
+  /**
+   * @brief The number of valid entries in `keyframes`.
+   */
+  size_t num_keyframes;
+
+  /**
+   * @brief The allocated capacity of `keyframes`.
+   */
+  size_t max_keyframes;
 } cl_demo_t;
 
 /**

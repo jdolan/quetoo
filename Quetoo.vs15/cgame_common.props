@@ -109,6 +109,12 @@
     <ClInclude Include="..\src\cgame\common\ui\editor\MaterialViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\editor\MeshViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\editor\MeshViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionItemView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\home\DemosCollectionItemView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\home\DemosCollectionView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\home\DemosViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\home\DemosViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\home\HomeViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\home\HomeViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\home\LeaderboardViewController.c" />
@@ -131,6 +137,8 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\CounterView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\CrosshairView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\CrosshairView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\hud\DemoControlsView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\hud\DemoControlsView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\DiagnosticsView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\DiagnosticsView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\HudViewController.c" />

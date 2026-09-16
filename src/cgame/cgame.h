@@ -61,6 +61,13 @@ typedef struct cg_import_s {
   const cl_server_t *server;
 
   /**
+   * @brief Demo recording and playback state, including `duration` for the demo currently being
+   * played back (0 if none). Lives on the client-static struct rather than `client`, so it
+   * survives a level load's Cl_ClearState.
+   */
+  const cl_demo_t *demo;
+
+  /**
    * @brief The renderer context.
    */
   const r_context_t *context;
@@ -229,6 +236,17 @@ typedef struct cg_import_s {
   file_t *(*OpenFileWrite)(const char *path);
 
   /**
+   * @brief Overwrites `size` bytes at `offset` within `path`, in the write directory, without
+   * truncating or otherwise disturbing the rest of the file.
+   * @param path The file path (e.g. `"demos/foo.demo"`).
+   * @param data The bytes to write.
+   * @param size The number of bytes to write.
+   * @param offset The byte offset within the file to write at.
+   * @return True on success, false on error.
+   */
+  bool (*WriteFileAt)(const char *path, const void *data, size_t size, int64_t offset);
+
+  /**
    * @brief Writes `count` objects of size `size` from `buffer` to `file`.
    * @param file The file.
    * @param buffer The buffer to write from.
@@ -244,6 +262,13 @@ typedef struct cg_import_s {
    * @return True on success, false on error.
    */
   bool (*CloseFile)(file_t *file);
+
+  /**
+   * @brief Deletes the specified file from the write directory.
+   * @param path The file path (e.g. `"demos/foo.demo"`).
+   * @return True on success, false on error.
+   */
+  bool (*DeleteFile)(const char *path);
 
   /**
    * @brief Loads the file resource at `path` into the buffer pointed to by `buffer`.

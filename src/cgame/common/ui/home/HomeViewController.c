@@ -23,6 +23,7 @@
 
 #include "HomeViewController.h"
 
+#include "DemosViewController.h"
 #include "LeaderboardViewController.h"
 #include "StatsViewController.h"
 
@@ -69,6 +70,10 @@ static void loadView(ViewController *self) {
   release(viewController);
 
   viewController = $((ViewController *) alloc(LeaderboardViewController), init);
+  $(tabViewController, addChildViewController, viewController);
+  release(viewController);
+
+  viewController = $((ViewController *) alloc(DemosViewController), init);
   $(tabViewController, addChildViewController, viewController);
   release(viewController);
 

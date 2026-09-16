@@ -67,6 +67,7 @@ bool Fs_Seek(file_t *file, int64_t offset);
 int64_t Fs_FileLength(file_t *file);
 int64_t Fs_Tell(file_t *file);
 int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count);
+bool Fs_WriteAt(const char *filename, const void *data, size_t size, int64_t offset);
 int64_t Fs_Load(const char *filename, void **buffer);
 int64_t Fs_LastModTime(const char *filename);
 void Fs_Free(void *buffer);
