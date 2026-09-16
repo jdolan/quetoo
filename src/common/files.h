@@ -24,6 +24,94 @@
 #include "shared/shared.h"
 
 /**
+ * @file
+ * @brief On-disk formats: demo recordings and MD3 models.
+ */
+
+/**
+ * @brief Indexes the byte offset of one recorded frame within a demo file.
+ * @details Every recorded frame is fully self-contained (delta-encoded against the demo's
+ * baselines and a null player state, never against another recorded frame), so this index has
+ * one entry per frame and any entry is always a safe, independent seek target.
+ */
+typedef struct {
+
+  /**
+   * @brief The frame number this entry was recorded at.
+   */
+  int32_t frame_num;
+
+  /**
+   * @brief The byte offset of this frame's message within the demo file.
+   */
+  int32_t offset;
+} demo_keyframe_t;
+
+/**
+ * @brief Format identifier for demo files; rejects files that are not Quetoo demos.
+ */
+#define DEMO_MAGIC "QDEM"
+
+/**
+ * @brief Format version for demo files; rejects demos recorded by an incompatible version.
+ */
+#define DEMO_VERSION 2
+
+/**
+ * @brief The fixed-size header written at offset 0 of every recorded demo file.
+ */
+typedef struct {
+
+  /**
+   * @brief Format identifier; see `DEMO_MAGIC`.
+   */
+  char magic[4];
+
+  /**
+   * @brief Format version; see `DEMO_VERSION`.
+   */
+  int32_t version;
+
+  /**
+   * @brief The path of the map the demo was recorded on, e.g. `maps/edge.bsp`. Kept distinct from
+   * `message` because this, not the human-readable name, is the key `Cl_Mapshots` looks up.
+   */
+  char map[MAX_QPATH];
+
+  /**
+   * @brief The human-readable name of the map, from `CS_MESSAGE` (the worldspawn `message`, or
+   * the map name where the map defines none). What the demo browser lists demos by.
+   */
+  char message[MAX_QPATH];
+
+  /**
+   * @brief A user-assigned name for this demo, or empty if never renamed. Written in place after
+   * the fact, from the demo browser, exactly as `favorite` is.
+   */
+  char title[MAX_QPATH];
+
+  /**
+   * @brief True if the user has starred this demo as a favorite.
+   */
+  int32_t favorite;
+
+  /**
+   * @brief The duration of the demo in milliseconds. Written when recording stops.
+   */
+  int32_t duration;
+
+  /**
+   * @brief The number of entries in the keyframe table. Written when recording stops.
+   */
+  int32_t num_keyframes;
+
+  /**
+   * @brief The byte offset of the keyframe table. Written when recording stops.
+   */
+  int32_t ofs_keyframes;
+} demo_header_t;
+
+/**
  * @brief MD3 file identification.
  */
 #define MD3_IDENT          (('3' << 24) + ('P' << 16) + ('D' << 8) + 'I') // "IDP3"

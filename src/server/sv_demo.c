@@ -27,7 +27,7 @@
  */
 static void Sv_LoadDemoKeyframes(void) {
 
-  sv.num_demo_keyframes = sv.demo_header.keyframe_count;
+  sv.num_demo_keyframes = sv.demo_header.num_keyframes;
 
   // a corrupt or malicious header can claim an arbitrary (including negative) keyframe_count
   // or keyframe_table_offset; bound both before trusting either for an allocation or a
@@ -36,8 +36,8 @@ static void Sv_LoadDemoKeyframes(void) {
   const int64_t file_length = Fs_FileLength(sv.demo_file);
 
   int64_t max_keyframes = 0;
-  if (sv.demo_header.keyframe_table_offset >= 0 && file_length > sv.demo_header.keyframe_table_offset) {
-    max_keyframes = (file_length - sv.demo_header.keyframe_table_offset) / (int64_t) sizeof(demo_keyframe_t);
+  if (sv.demo_header.ofs_keyframes >= 0 && file_length > sv.demo_header.ofs_keyframes) {
+    max_keyframes = (file_length - sv.demo_header.ofs_keyframes) / (int64_t) sizeof(demo_keyframe_t);
   }
 
   if (sv.num_demo_keyframes < 0 || sv.num_demo_keyframes > max_keyframes) {
@@ -50,7 +50,7 @@ static void Sv_LoadDemoKeyframes(void) {
     return;
   }
 
-  if (!Fs_Seek(sv.demo_file, sv.demo_header.keyframe_table_offset)) {
+  if (!Fs_Seek(sv.demo_file, sv.demo_header.ofs_keyframes)) {
     // couldn't seek to the keyframe table (corrupt or truncated file): leave sv.demo_keyframes
     // NULL, but sv.num_demo_keyframes must track it, or Sv_SeekDemo's `num_demo_keyframes == 0`
     // guard is bypassed and it dereferences a NULL table
@@ -73,7 +73,7 @@ static void Sv_LoadDemoKeyframes(void) {
     // itself; Sv_GetDemoMessage's own size validation would still catch the resulting garbage
     // read as a corrupt chunk, but there's no reason to accept an entry that's already nonsensical
     if (entry.offset < (int32_t) sizeof(sv.demo_header) ||
-        entry.offset >= sv.demo_header.keyframe_table_offset) {
+        entry.offset >= sv.demo_header.ofs_keyframes) {
       Com_Warn("%s: keyframe %d has out-of-range offset %d, truncating table\n",
                 sv.name, i, entry.offset);
       sv.num_demo_keyframes = i;
@@ -113,8 +113,8 @@ void Sv_LoadDemo(void) {
   }
 
   sv.demo_header.duration = LittleLong(sv.demo_header.duration);
-  sv.demo_header.keyframe_count = LittleLong(sv.demo_header.keyframe_count);
-  sv.demo_header.keyframe_table_offset = LittleLong(sv.demo_header.keyframe_table_offset);
+  sv.demo_header.num_keyframes = LittleLong(sv.demo_header.num_keyframes);
+  sv.demo_header.ofs_keyframes = LittleLong(sv.demo_header.ofs_keyframes);
 
   Sv_LoadDemoKeyframes();
 

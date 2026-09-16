@@ -78,8 +78,8 @@ static void Cl_WriteDemoHeader(void) {
   header->title[0] = '\0';
   header->favorite = 0;
   header->duration = 0;
-  header->keyframe_count = 0;
-  header->keyframe_table_offset = 0;
+  header->num_keyframes = 0;
+  header->ofs_keyframes = 0;
 
   Fs_Write(cls.demo.file, header, sizeof(*header), 1);
 
@@ -240,7 +240,7 @@ void Cl_Stop_f(void) {
 
   if (!memcmp(cls.demo.header.magic, DEMO_MAGIC, sizeof(cls.demo.header.magic))) { // a header was actually written
 
-    const int32_t keyframe_table_offset = (int32_t) Fs_Tell(cls.demo.file);
+    const int32_t ofs_keyframes = (int32_t) Fs_Tell(cls.demo.file);
 
     for (size_t i = 0; i < cls.demo.num_keyframes; i++) {
       demo_keyframe_t entry = cls.demo.keyframes[i];
@@ -258,8 +258,8 @@ void Cl_Stop_f(void) {
     // patch the in-memory copy of the header rather than reading it back: cls.demo.file is
     // opened write-only, so Fs_Read on it would silently fail and leave the header stack garbage
     cls.demo.header.duration = LittleLong((int32_t) (frames_recorded * QUETOO_TICK_MILLIS));
-    cls.demo.header.keyframe_count = LittleLong((int32_t) cls.demo.num_keyframes);
-    cls.demo.header.keyframe_table_offset = LittleLong(keyframe_table_offset);
+    cls.demo.header.num_keyframes = LittleLong((int32_t) cls.demo.num_keyframes);
+    cls.demo.header.ofs_keyframes = LittleLong(ofs_keyframes);
 
     Fs_Seek(cls.demo.file, 0);
     Fs_Write(cls.demo.file, &cls.demo.header, sizeof(cls.demo.header), 1);
