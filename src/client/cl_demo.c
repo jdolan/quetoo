@@ -326,18 +326,22 @@ void Cl_Record_f(void) {
   Com_Print("Recording to %s\n", cls.demo.filename);
 }
 
-#define DEMO_PLAYBACK_STEP 1
+#define DEMO_PLAYBACK_MIN 0.25
+#define DEMO_PLAYBACK_MAX 8.0
 
 /**
- * @brief Adjusts time scale by delta, clamping to reasonable limits.
+ * @brief Scales demo playback rate by the given factor, clamping to the same bounds the transport
+ * controls offer. Geometric rather than additive, because playback rate is perceived that way:
+ * the step from 0.25 to 0.5 is as large a change as the one from 4 to 8.
  */
-static void Cl_AdjustDemoPlayback(float delta) {
+static void Cl_AdjustDemoPlayback(float factor) {
 
   if (!cl.demo_server) {
     return;
   }
 
-  Cvar_ForceSetValue(time_scale->name, Clampf(time_scale->value + delta, DEMO_PLAYBACK_STEP, 4.0));
+  Cvar_ForceSetValue(time_scale->name,
+                     Clampf(time_scale->value * factor, DEMO_PLAYBACK_MIN, DEMO_PLAYBACK_MAX));
 
   Com_Print("Demo playback rate %d%%\n", (int32_t) (time_scale->value * 100));
 }
@@ -346,31 +350,28 @@ static void Cl_AdjustDemoPlayback(float delta) {
  * @brief Handles the `cl_fast_forward` command, increasing demo playback speed.
  */
 void Cl_FastForward_f(void) {
-  Cl_AdjustDemoPlayback(DEMO_PLAYBACK_STEP);
+  Cl_AdjustDemoPlayback(2.0);
 }
 
 /**
  * @brief Handles the `cl_slow_motion` command, decreasing demo playback speed.
  */
 void Cl_SlowMotion_f(void) {
-  Cl_AdjustDemoPlayback(-DEMO_PLAYBACK_STEP);
+  Cl_AdjustDemoPlayback(0.5);
 }
 
 /**
- * @brief Handles the `demo_pause` command: toggles local pause-tracking state, so the
- * paused-playback controls UI can gate its visibility without a round trip, and forwards the
- * command to the server, which remains the actual authority on pause state.
+ * @brief Handles the `demo_pause` command by forwarding it to the demo relay, which owns pause
+ * state and reports it back via SV_CMD_DEMO_INFO. Nothing is toggled locally: the server pauses
+ * on its own when playback reaches the last frame, and a local guess would desync from that.
+ * `cls.demo.paused` then frees the mouse and shows the cursor so the transport controls can be
+ * clicked, all without leaving KEY_GAME - KEY_UI would hide the HUD, and those controls with it.
  */
 void Cl_DemoPause_f(void) {
 
   if (!cl.demo_server) {
     return;
   }
-
-  // the mouse is freed and the cursor shown while paused, so the transport controls can be
-  // clicked, without leaving KEY_GAME: KEY_UI would hide the HUD (and with it those controls)
-  // and raise the menus. Cl_UpdateMouseState reconciles that from this flag each frame.
-  cls.demo.paused = !cls.demo.paused;
 
   Cl_ForwardCmdToServer();
 }

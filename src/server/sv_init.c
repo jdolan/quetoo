@@ -284,6 +284,11 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
     sv.demo_file = Fs_OpenRead(va("demos/%s.demo", sv.name));
     svs.spawn_count = 0;
 
+    // interactive playback opens paused on the first frame, so the transport controls are up
+    // and the viewer decides when to start; a playlist-driven demo server just plays
+    sv.demo_paused = !sv_demo_list->string[0];
+    sv.demo_step = sv.demo_paused;
+
     if (sv.demo_file) {
       if (Fs_Read(sv.demo_file, &sv.demo_header, sizeof(sv.demo_header), 1) == 1 &&
           !memcmp(sv.demo_header.magic, DEMO_MAGIC, sizeof(sv.demo_header.magic)) &&

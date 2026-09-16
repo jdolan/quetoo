@@ -252,6 +252,9 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\ChatView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\hud\DemoControlsView.h">
+      <Filter>src\common\ui\hud</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\ConsoleText.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
@@ -567,6 +570,9 @@
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\ChatView.c">
+      <Filter>src\common\ui\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\hud\DemoControlsView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\ConsoleText.c">

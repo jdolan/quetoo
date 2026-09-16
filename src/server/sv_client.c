@@ -35,13 +35,11 @@ static void Sv_New_f(void) {
     return;
   }
 
-  // demo servers will send the demo file's server info packet via the relay itself; the one
-  // thing that blob can't carry is duration, since it was written before the recording stopped
-  // and duration was known - send it separately here, once, so the playback UI can build a
-  // scrubber with a real range instead of an unbounded one
+  // demo servers send the demo file's server info packet via the relay itself; what that blob
+  // can't carry is duration (written only once the recording stopped) or pause state, so those
+  // go separately, here and on every later change
   if (svs.state == SV_ACTIVE_DEMO) {
-    Net_WriteByte(&sv_client->net_chan.message, SV_CMD_DEMO_INFO);
-    Net_WriteLong(&sv_client->net_chan.message, sv.demo_header.duration);
+    Sv_SendDemoInfo();
     return;
   }
 
@@ -277,6 +275,8 @@ static void Sv_DemoPause_f(void) {
   }
 
   sv.demo_paused = !sv.demo_paused;
+
+  Sv_SendDemoInfo();
 }
 
 typedef struct sv_user_string_cmd_s {

@@ -244,3 +244,76 @@ ScoreView.fields .field {
 ScoreView.fields > .ping {
   alignment: middle-right;
 }
+
+/* Demo playback transport controls, shown only while playback is paused. The HUD layer is
+   pointer-events: none, so these opt back in; View::hitTest descends into subviews before
+   consulting a view's own pointerEvents, so a child may override its parent */
+
+DemoControlsView {
+  alignment: bottom-center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  background-color: #0a0f12cc;
+  border-color: #9fb8c42e;
+  border-radius: 4;
+  border-width: 1;
+  padding: 8 12 8 12;
+  pointer-events: auto;
+  spacing: 12;
+}
+
+/* Button defaults to min-width 100 and Control to min-height 32, which is what makes an
+   unstyled icon button enormous; both have to be overruled for a compact transport control */
+
+DemoControlsView Button {
+  autoresizing-mask: contain;
+  background-color: #00000000;
+  bevel: none;
+  border-width: 0;
+  min-height: 0;
+  min-width: 0;
+  padding: 4 4 4 4;
+  pointer-events: auto;
+}
+
+DemoControlsView Button ImageView {
+  autoresizing-mask: none;
+  height: 24;
+  width: 24;
+}
+
+/* Only the handle accepts a drag - clicking elsewhere on the bar jogs by one step - and the
+   default is 8 wide, which is a hard target to grab on a transport bar */
+
+DemoControlsView Slider > .bar > .handle {
+  min-width: 14;
+  min-height: 20;
+}
+
+/* Slider is a container, so its size comes from sizeThatFits and only min-width can widen it */
+DemoControlsView .scrubber {
+  alignment: middle-left;
+  min-width: 480;
+  pointer-events: auto;
+}
+
+DemoControlsView .scrubber > .label {
+  visibility: hidden;
+}
+
+DemoControlsView .speed {
+  alignment: middle-left;
+  pointer-events: auto;
+}
+
+/* the speed slider's value is an index into demo_speeds, so its built-in label would read "3",
+   not "1x"; .speedLabel carries the rate instead */
+
+DemoControlsView .speed > .label {
+  visibility: hidden;
+}
+
+DemoControlsView .speedLabel {
+  alignment: middle-left;
+  min-width: 40;
+}

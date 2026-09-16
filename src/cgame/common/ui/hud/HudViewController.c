@@ -61,6 +61,7 @@ static void dealloc(Object *self) {
   release(this->navEdit);
   release(this->notify);
   release(this->chat);
+  release(this->demoControls);
   release(this->diagnostics);
   release(this->images);
 
@@ -83,6 +84,30 @@ static ViewController *init(ViewController *self) {
   }
 
   return self;
+}
+
+/**
+ * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
+ * @remarks Demo transport keys are handled here rather than through the bind table: they are
+ * meaningful only while viewing a demo, so making them rebindable would mean either overloading
+ * a movement bind or spending global keys on commands that do nothing the rest of the time.
+ * ViewController::respondToEvent recurses into child view controllers and never descends into a
+ * view hierarchy, so this is the hook - a View would only see keys as the window's key responder,
+ * and DemoControlsView is hidden during playback anyway, which is exactly when pause must work.
+ */
+static void respondToEvent(ViewController *self, const SDL_Event *event) {
+
+  HudViewController *this = (HudViewController *) self;
+
+  if (event->type == SDL_EVENT_KEY_DOWN) {
+    if (cgi.client->demo_server && cgi.GetKeyDest() == KEY_GAME) {
+      if ($(this->demoControls, respondToKey, event->key.scancode, event->key.repeat)) {
+        return;
+      }
+    }
+  }
+
+  super(ViewController, self, respondToEvent, event);
 }
 
 /**
@@ -114,6 +139,12 @@ static void loadView(ViewController *self) {
   assert(this->chat);
 
   $(view, addSubview, (View *) this->chat);
+
+  this->demoControls = $(alloc(DemoControlsView), initWithFrame, NULL);
+  assert(this->demoControls);
+
+  $(view, addSubview, (View *) this->demoControls);
+  $((View *) this->demoControls, setVisibility, ViewVisibilityHidden);
 
   this->diagnostics = (DiagnosticsView *) $((View *) alloc(DiagnosticsView), init);
   assert(this->diagnostics);
@@ -314,13 +345,14 @@ static void reload(HudViewController *self) {
     return;
   }
 
-  // beneath the notify lines, the chat, the scoreboard and the nav edit
+  // beneath the notify lines, the chat, the scoreboard, the nav edit and the demo controls
   $(self->viewController.view, addSubview, hud);
   $(self->viewController.view, bringSubviewToFront, (View *) self->notify);
   $(self->viewController.view, bringSubviewToFront, (View *) self->chat);
   $(self->viewController.view, bringSubviewToFront, (View *) self->scoreboard);
   $(self->viewController.view, bringSubviewToFront, (View *) self->intermission);
   $(self->viewController.view, bringSubviewToFront, (View *) self->navEdit);
+  $(self->viewController.view, bringSubviewToFront, (View *) self->demoControls);
   self->hud = hud;
 
   // The diagnostics join the hud's layout so that its stylesheet and inset apply to them
@@ -420,6 +452,17 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
     $((View *) self->intermission, updateBindings, (ident) frame);
   }
 
+  // demo transport controls: only while paused, never during active playback, so they never
+  // intrude on a video capture the way an always-on overlay would
+  const bool demoControls = cgi.client->demo_server && cgi.demo->paused;
+
+  $((View *) self->demoControls, setVisibility,
+    demoControls ? ViewVisibilityVisible : ViewVisibilityHidden);
+
+  if (demoControls) {
+    $(self->demoControls, update, frame->time, cgi.demo->duration);
+  }
+
   const bool hidden = !cg_draw_hud->integer || !ps->stats[STAT_TIME] || cg_state.nav_edit;
 
   if (self->hud) {
@@ -444,6 +487,7 @@ static void initialize(Class *clazz) {
 
   ((ViewControllerInterface *) clazz->interface)->init = init;
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
 
   ((HudViewControllerInterface *) clazz->interface)->image = image;
   ((HudViewControllerInterface *) clazz->interface)->reload = reload;

@@ -279,6 +279,31 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 }
 
 /**
+ * @brief Publishes demo duration and pause state to every connected client. Pause is server
+ * authoritative: the client mirrors it to gate the transport controls, the mouse grab and UI
+ * event routing, and would otherwise have no way to learn about a pause it did not ask for,
+ * such as reaching the end of the recording.
+ */
+void Sv_SendDemoInfo(void) {
+
+  if (svs.state != SV_ACTIVE_DEMO) {
+    return;
+  }
+
+  sv_client_t *cl = svs.clients;
+  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+
+    if (cl->state == SV_CLIENT_FREE) {
+      continue;
+    }
+
+    Net_WriteByte(&cl->net_chan.message, SV_CMD_DEMO_INFO);
+    Net_WriteLong(&cl->net_chan.message, sv.demo_header.duration);
+    Net_WriteByte(&cl->net_chan.message, sv.demo_paused);
+  }
+}
+
+/**
  * @brief Advances to the next demo in the playlist or restarts from the beginning.
  */
 static void Sv_DemoCompleted(void) {
@@ -319,6 +344,22 @@ static void Sv_DemoCompleted(void) {
 }
 
 /**
+ * @brief Handles reaching the end of the recording. Interactive playback holds on the last frame,
+ * paused, so the viewer can scrub back and watch it again rather than being dropped to the menus;
+ * a playlist-driven demo server still moves on to the next demo.
+ */
+static void Sv_DemoEnded(void) {
+
+  if (sv_demo_list->string[0]) {
+    Sv_DemoCompleted();
+    return;
+  }
+
+  sv.demo_paused = true;
+  Sv_SendDemoInfo();
+}
+
+/**
  * @brief Reads the next frame from the current demo file into the specified buffer,
  * returning the size of the frame in bytes. Each demo message is prefixed by its length
  * and the frame number it was recorded at; `frame_num`, if non-NULL, receives the latter.
@@ -335,16 +376,16 @@ static size_t Sv_GetDemoMessage(byte *buffer, int32_t *frame_num) {
 
   r = Fs_Read(sv.demo_file, &size, sizeof(size), 1);
 
-  if (r != 1) { // improperly terminated demo file
+  if (r != 1) { // improperly terminated demo file; treat a truncated recording as an end
     Com_Warn("Failed to read demo file\n");
-    Sv_DemoCompleted();
+    Sv_DemoEnded();
     return 0;
   }
 
   size = LittleLong(size);
 
   if (size == -1) { // properly terminated demo file
-    Sv_DemoCompleted();
+    Sv_DemoEnded();
     return 0;
   }
 
@@ -412,7 +453,10 @@ void Sv_SeekDemo(int32_t millis) {
 
   if (!Fs_Seek(sv.demo_file, sv.demo_keyframes[best].offset)) {
     Com_Warn("Failed to seek demo file\n");
+    return;
   }
+
+  sv.demo_step = true;
 }
 
 /**
@@ -441,10 +485,24 @@ void Sv_SendClientPackets(void) {
       size_t size;
 
       if (sv.demo_paused) {
-        // send nothing while paused, but still keep the netchan alive: the client applies its
-        // normal timeout check regardless of demo state, and would otherwise disconnect a
-        // spectator who paused playback for longer than cl_timeout
-        if (quetoo.ticks - cl->net_chan.last_sent > 1000) {
+
+        // a seek taken while paused still has to show where it landed, or the transport controls
+        // appear dead: scrubbing and the rewind/forward buttons would move the read position
+        // silently, and playback would later resume from somewhere the viewer never chose
+        if (sv.demo_step) {
+          sv.demo_step = false;
+
+          if ((size = Sv_GetDemoMessage(buffer, NULL))) {
+            Netchan_Transmit(&cl->net_chan, buffer, size);
+            continue;
+          }
+        }
+
+        // otherwise send no frame, but still flush pending reliable data (Sv_SendDemoInfo's
+        // pause state, which the transport controls are waiting on) and keep the netchan alive:
+        // the client applies its normal timeout check regardless of demo state, and would
+        // otherwise disconnect a spectator who paused playback for longer than cl_timeout
+        if (cl->net_chan.message.size || quetoo.ticks - cl->net_chan.last_sent > 1000) {
           Netchan_Transmit(&cl->net_chan, NULL, 0);
         }
         continue;

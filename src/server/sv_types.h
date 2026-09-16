@@ -143,6 +143,13 @@ typedef struct {
    * @brief True if demo playback is currently paused.
    */
   bool demo_paused;
+
+  /**
+   * @brief Set by `Sv_SeekDemo` to release exactly one frame even while paused. Without it a
+   * seek issued from the paused transport controls would move the file position but transmit
+   * nothing, leaving the viewer on the old frame until playback resumed somewhere unexpected.
+   */
+  bool demo_step;
 } sv_server_t;
 
 /**

@@ -256,7 +256,11 @@ int32_t Cl_ParseConfigString(void) {
  * so Cl_ClearState's memset of cl (triggered by that very next command) doesn't wipe it back out.
  */
 static void Cl_ParseDemoInfo(void) {
+
   cls.demo.duration = Net_ReadLong(&net_message);
+  cls.demo.paused = Net_ReadByte(&net_message);
+
+  Com_Debug(DEBUG_CLIENT, "Demo duration %d ms, paused %d\n", cls.demo.duration, cls.demo.paused);
 }
 
 /**
@@ -282,14 +286,10 @@ static void Cl_ParseServerData(void) {
 
   if (cl.demo_server) {
     Com_Print("Demo playback controls:\n"
-              "  Pause/resume:   %s\n"
-              "  Rewind 10s:     %s\n"
-              "  Fast-forward:   %s\n"
-              "  Follow a player: type \"chase_next\"\n"
-              "  Free-fly:        type \"spectate\"\n",
-              Cl_KeyName(Cl_KeyForBind(SDL_SCANCODE_UNKNOWN, "demo_pause")),
-              Cl_KeyName(Cl_KeyForBind(SDL_SCANCODE_UNKNOWN, "demo_seek_relative -10000")),
-              Cl_KeyName(Cl_KeyForBind(SDL_SCANCODE_UNKNOWN, "demo_seek_relative 10000")));
+              "  Pause/resume:  SPACE\n"
+              "  Seek -10s:     LEFT\n"
+              "  Seek +10s:     RIGHT\n"
+              "  Slower/faster: , / .\n");
   }
 
   // the game and client game directories, validated before being copied off:
