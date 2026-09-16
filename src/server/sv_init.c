@@ -225,6 +225,10 @@ static void Sv_ReconnectClients(void) {
     // invalidate last frame to force a baseline
     svs.clients[i].last_frame = -1;
     svs.clients[i].last_message = quetoo.ticks;
+
+    // and discard the previous map's latency samples, which this map's frames do not answer for
+    svs.clients[i].frame_latency_index = 0;
+    svs.clients[i].frame_latency_count = 0;
   }
 }
 

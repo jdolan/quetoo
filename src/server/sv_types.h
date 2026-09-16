@@ -280,8 +280,23 @@ typedef struct {
 
   /**
    * @brief Ring buffer of recent per-frame delivery timestamps for ping estimation.
+   * @remarks Written in sequence rather than indexed by frame number. Indexing by frame let a
+   * client that acknowledged on a fixed stride hold a subset of the slots indefinitely, so
+   * samples of any age were averaged in forever.
    */
   uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT];
+
+  /**
+   * @brief The next slot of `frame_latency` to write.
+   */
+  uint32_t frame_latency_index;
+
+  /**
+   * @brief How many slots of `frame_latency` have been written, saturating at the ring size.
+   * @remarks A latency of zero is a legitimate sample on a loopback or local network, so the
+   * count says which slots are populated rather than testing the samples themselves.
+   */
+  uint32_t frame_latency_count;
 
   /**
    * @brief Estimated round-trip latency in milliseconds.

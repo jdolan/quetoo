@@ -369,9 +369,23 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
         const int32_t last_frame = Net_ReadLong(&net_message);
         if (last_frame != cl->last_frame) {
           cl->last_frame = last_frame;
-          if (cl->last_frame > -1) {
-            cl->frame_latency[cl->last_frame & (SV_CLIENT_LATENCY_COUNT - 1)] =
-                quetoo.ticks - cl->frames[cl->last_frame & PACKET_MASK].sent_time;
+
+          // the frame number is the client's to choose, so believe it only if we really sent
+          // that frame and still hold it; otherwise sent_time is zero and the latency comes
+          // out as the server's entire uptime, poisoning the average it feeds
+          if (last_frame > -1 && (uint32_t) last_frame <= sv.frame_num &&
+              sv.frame_num - (uint32_t) last_frame < PACKET_BACKUP) {
+
+            const uint32_t sent_time = cl->frames[last_frame & PACKET_MASK].sent_time;
+            if (sent_time && sent_time <= quetoo.ticks) {
+
+              cl->frame_latency[cl->frame_latency_index] = quetoo.ticks - sent_time;
+              cl->frame_latency_index = (cl->frame_latency_index + 1) % SV_CLIENT_LATENCY_COUNT;
+
+              if (cl->frame_latency_count < SV_CLIENT_LATENCY_COUNT) {
+                cl->frame_latency_count++;
+              }
+            }
           }
         }
 

@@ -448,21 +448,18 @@ static void Sv_UpdatePings(void) {
       continue;
     }
 
-    int32_t total = 0, count = 0;
-    for (int32_t j = 0; j < SV_CLIENT_LATENCY_COUNT; j++) {
-      if (cl->frame_latency[j] > 0) {
-        total += cl->frame_latency[j];
-        count++;
-      }
+    uint64_t total = 0;
+    for (uint32_t j = 0; j < cl->frame_latency_count; j++) {
+      total += cl->frame_latency[j];
     }
 
-    if (!count) {
-      cl->ping = 0;
+    if (cl->frame_latency_count) {
+      cl->ping = (int32_t) roundf(total / (float) cl->frame_latency_count);
     } else {
-      cl->ping = total / (float) count;
+      cl->ping = 0;
     }
 
-    cl->gclient->ping = cl->ping;
+    cl->gclient->ping = Clampf(cl->ping, 0, 999);
   }
 }
 
