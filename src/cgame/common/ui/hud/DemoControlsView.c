@@ -57,9 +57,10 @@ static double demoSpeedIndex(double speed) {
 #pragma mark - Delegates
 
 /**
- * @brief Gives a Button from the layout its icon and its delegate. The icon cannot come from the
- * layout: JSON binds an image through Image::initWithResourceName, which knows nothing of the
- * game's asset paths or atlas, where Cg_LoadImage does.
+ * @brief Gives a Button from the layout its icon and its delegate. The icon is loaded here rather
+ * than bound from the layout because JSON resolves one through Image::initWithResource, which
+ * rasterizes an SVG at its intrinsic size; Cg_LoadImage rasterizes at the window's pixel density,
+ * which is what keeps a vector icon crisp on a HiDPI display.
  */
 static void demoButton(Button *button, const char *image, ButtonDelegate delegate) {
 
