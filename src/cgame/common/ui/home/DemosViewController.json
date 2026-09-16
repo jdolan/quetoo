@@ -1,0 +1,67 @@
+{
+  "identifier": "Demos",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "Box",
+          "label": {
+            "text": {
+              "text": "Demos"
+            }
+          },
+          "contentView": {
+            "subviews": [
+              {
+                "class": "DemosCollectionView",
+                "identifier": "demosList",
+                "selection": "single"
+              },
+              {
+                "class": "Label",
+                "identifier": "demosEmpty",
+                "classNames": [
+                  "demosEmptyState"
+                ],
+                "text": {
+                  "text": "No demos available."
+                }
+              }
+            ]
+          }
+        },
+        {
+          "class": "StackView",
+          "classNames": [
+            "accessoryView"
+          ],
+          "subviews": [
+            {
+              "class": "Input",
+              "label": {
+                "text": {
+                  "text": "Map"
+                }
+              },
+              "control": {
+                "class": "TextView",
+                "identifier": "filter"
+              }
+            },
+            {
+              "class": "Button",
+              "identifier": "play",
+              "title": {
+                "text": "Play"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

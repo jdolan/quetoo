@@ -1,0 +1,67 @@
+#Demos {
+  autoresizing-mask: contain;
+}
+
+DemosCollectionView {
+  item-size: 448 252;
+  selection: single;
+  width: 1420;
+  height: 700;
+}
+
+.demosEmptyState {
+  width: 1420;
+  min-height: 700;
+  color: #888888;
+}
+
+/* The date over the duration, pinned to the item's top left corner. A Text has no subviews for
+   padding to inset, so the corner offset comes from `left` / `top`, which requires opting out of
+   alignment: View::applyStyle warns that an alignment overrules them, and leaves frame.x / frame.y
+   alone only for alignment: none */
+
+DemosCollectionItemView > Text {
+  alignment: none;
+  left: 8;
+  top: 6;
+}
+
+/* The per-demo favorite and delete actions, pinned to the item's top right corner. Button
+   defaults to min-width 100 and Control to min-height 32; without overruling both, an icon
+   button is enormous and spills out past the item's edge */
+
+.demoItemActions {
+  alignment: top-right;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  padding: 4 4 4 4;
+  spacing: 2;
+}
+
+.demoItemActions Button {
+  autoresizing-mask: contain;
+  background-color: #00000000;
+  bevel: none;
+  border-width: 0;
+  min-height: 0;
+  min-width: 0;
+  padding: 2 2 2 2;
+}
+
+.demoItemActions Button ImageView {
+  autoresizing-mask: none;
+  height: 20;
+  width: 20;
+}
+
+/* The demo's name, editable in place. TextView defaults to a 160 min-width and an inset bevel;
+   here it spans the item and reads as a caption until it takes focus */
+
+.demoItemTitle {
+  alignment: bottom-left;
+  autoresizing-mask: width;
+  background-color: #0a0f12aa;
+  bevel: none;
+  min-width: 0;
+  padding: 4 6 4 6;
+}

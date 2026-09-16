@@ -129,6 +129,8 @@ cguihomedir = \
 	@PKGLIBDIR@/default/ui/home
 
 cguihome_DATA = \
+	$(CGUI_DIR)/home/DemosViewController.css \
+	$(CGUI_DIR)/home/DemosViewController.json \
 	$(CGUI_DIR)/home/HomeViewController.css \
 	$(CGUI_DIR)/home/HomeViewController.json \
 	$(CGUI_DIR)/home/LeaderboardViewController.css \
@@ -241,6 +243,9 @@ cgame_la_SOURCES = \
 	ui/editor/EntityViewController.c \
 	ui/editor/MaterialViewController.c \
 	ui/editor/MeshViewController.c \
+	ui/home/DemosCollectionItemView.c \
+	ui/home/DemosCollectionView.c \
+	ui/home/DemosViewController.c \
 	ui/home/HomeViewController.c \
 	ui/home/LeaderboardViewController.c \
 	ui/home/StatsViewController.c \

@@ -294,6 +294,15 @@
     <ClInclude Include="..\src\cgame\common\ui\editor\MeshViewController.h">
       <Filter>src\common\ui\editor</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\home\DemosCollectionItemView.h">
+      <Filter>src\common\ui\home</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\home\DemosCollectionView.h">
+      <Filter>src\common\ui\home</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\home\DemosViewController.h">
+      <Filter>src\common\ui\home</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\home\HomeViewController.h">
       <Filter>src\common\ui\home</Filter>
     </ClInclude>
@@ -601,6 +610,15 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\editor\MeshViewController.c">
       <Filter>src\common\ui\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionItemView.c">
+      <Filter>src\common\ui\home</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionView.c">
+      <Filter>src\common\ui\home</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\home\DemosViewController.c">
+      <Filter>src\common\ui\home</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\home\HomeViewController.c">
       <Filter>src\common\ui\home</Filter>

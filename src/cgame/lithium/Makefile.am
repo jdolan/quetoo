@@ -108,6 +108,9 @@ cgame_la_SOURCES = \
 	ui/editor/EntityViewController.c \
 	ui/editor/MaterialViewController.c \
 	ui/editor/MeshViewController.c \
+	ui/home/DemosCollectionItemView.c \
+	ui/home/DemosCollectionView.c \
+	ui/home/DemosViewController.c \
 	ui/home/HomeViewController.c \
 	ui/home/LeaderboardViewController.c \
 	ui/home/StatsViewController.c \
