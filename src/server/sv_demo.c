@@ -78,10 +78,8 @@ void Sv_LoadDemo(void) {
 
   sv.demo_file = Fs_OpenRead(va("demos/%s.demo", sv.name));
 
-  // interactive playback opens paused on the first frame, so the transport controls are up
-  // and the viewer decides when to start; a playlist-driven demo server just plays
-  sv.demo_paused = !sv_demo_list->string[0];
-  sv.demo_step = sv.demo_paused;
+  sv.demo_paused = false;
+  sv.demo_pause_pending = !sv_demo_list->string[0];
 
   if (!sv.demo_file) {
     return;
@@ -301,6 +299,11 @@ void Sv_SeekDemo(int32_t millis) {
 
 /**
  * @brief Transmits this tick's demo frame to the given client.
+ * @remarks Interactive playback pauses itself on its opening frame, so that it comes up with the
+ * transport controls showing and the viewer decides when to start. That has to happen here, on
+ * the frame itself, rather than at load: the connection handshake is relayed out of the demo
+ * file as ordinary messages, and a client pauses in `CL_LOADING` forever if the frame it needs
+ * to go active never arrives.
  * @return False once the recording is exhausted, ending the send loop for this tick.
  */
 bool Sv_SendDemoPacket(sv_client_t *cl) {
@@ -337,6 +340,13 @@ bool Sv_SendDemoPacket(sv_client_t *cl) {
   }
 
   Netchan_Transmit(&cl->net_chan, buffer, size);
+
+  if (sv.demo_pause_pending && buffer[0] == SV_CMD_FRAME) {
+    sv.demo_pause_pending = false;
+    sv.demo_paused = true;
+
+    Sv_SendDemoInfo();
+  }
 
   return true;
 }

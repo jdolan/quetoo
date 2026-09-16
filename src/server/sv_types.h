@@ -145,6 +145,13 @@ typedef struct {
   bool demo_paused;
 
   /**
+   * @brief Set while a demo waits to pause itself on its opening frame. The pause cannot simply
+   * be set at load time: the client only leaves `CL_LOADING` once it parses a valid frame, and
+   * pausing before then starves it of the very frame it is waiting for.
+   */
+  bool demo_pause_pending;
+
+  /**
    * @brief Set by `Sv_SeekDemo` to release exactly one frame even while paused. Without it a
    * seek issued from the paused transport controls would move the file position but transmit
    * nothing, leaving the viewer on the old frame until playback resumed somewhere unexpected.
