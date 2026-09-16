@@ -110,7 +110,12 @@ static void Ui_HandleViewEvent(const View *view, ViewEvent event) {
 void Ui_HandleEvent(const SDL_Event *event) {
 
   if (windowController) {
-    if (cls.key_state.dest != KEY_UI) {
+
+    // paused demo playback frees the mouse for the transport controls while staying in KEY_GAME,
+    // so pointer events have to reach the UI even though the menus aren't up
+    const bool demo_paused = cls.demo.paused;
+
+    if (cls.key_state.dest != KEY_UI && !demo_paused) {
       switch (event->type) {
         case SDL_EVENT_WINDOW_FIRST ... SDL_EVENT_WINDOW_LAST:
           break;

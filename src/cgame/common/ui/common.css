@@ -244,3 +244,52 @@ ScoreView.fields .field {
 ScoreView.fields > .ping {
   alignment: middle-right;
 }
+
+/* Demo playback transport controls, shown only while playback is paused. The HUD layer is
+   pointer-events: none, so these opt back in; View::hitTest descends into subviews before
+   consulting a view's own pointerEvents, so a child may override its parent */
+
+DemoControlsView {
+  alignment: bottom-center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  background-color: #0a0f12cc;
+  border-color: #9fb8c42e;
+  border-radius: 4;
+  border-width: 1;
+  padding: 8 12 8 12;
+  pointer-events: auto;
+  spacing: 12;
+}
+
+/* Button defaults to min-width 100 and Control to min-height 32, which is what makes an
+   unstyled icon button enormous; both have to be overruled for a compact transport control */
+
+DemoControlsView Button {
+  autoresizing-mask: contain;
+  background-color: #00000000;
+  bevel: none;
+  border-width: 0;
+  min-height: 0;
+  min-width: 0;
+  padding: 4 4 4 4;
+  pointer-events: auto;
+}
+
+DemoControlsView Button ImageView {
+  autoresizing-mask: none;
+  height: 24;
+  width: 24;
+}
+
+DemoControlsView .scrubber {
+  alignment: middle-left;
+  pointer-events: auto;
+  width: 480;
+}
+
+DemoControlsView .speed {
+  alignment: middle-left;
+  pointer-events: auto;
+  width: 120;
+}

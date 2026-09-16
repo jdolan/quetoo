@@ -61,6 +61,7 @@ static void dealloc(Object *self) {
   release(this->navEdit);
   release(this->notify);
   release(this->chat);
+  release(this->demoControls);
   release(this->diagnostics);
   release(this->images);
 
@@ -114,6 +115,12 @@ static void loadView(ViewController *self) {
   assert(this->chat);
 
   $(view, addSubview, (View *) this->chat);
+
+  this->demoControls = $(alloc(DemoControlsView), initWithFrame, NULL);
+  assert(this->demoControls);
+
+  $(view, addSubview, (View *) this->demoControls);
+  $((View *) this->demoControls, setVisibility, ViewVisibilityHidden);
 
   this->diagnostics = (DiagnosticsView *) $((View *) alloc(DiagnosticsView), init);
   assert(this->diagnostics);
@@ -418,6 +425,17 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
 
   if (intermission) {
     $((View *) self->intermission, updateBindings, (ident) frame);
+  }
+
+  // demo transport controls: only while paused, never during active playback, so they never
+  // intrude on a video capture the way an always-on overlay would
+  const bool demoControls = cgi.client->demo_server && cgi.demo->paused;
+
+  $((View *) self->demoControls, setVisibility,
+    demoControls ? ViewVisibilityVisible : ViewVisibilityHidden);
+
+  if (demoControls) {
+    $(self->demoControls, update, frame->time, cgi.demo->duration);
   }
 
   const bool hidden = !cg_draw_hud->integer || !ps->stats[STAT_TIME] || cg_state.nav_edit;
