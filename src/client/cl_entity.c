@@ -326,6 +326,14 @@ void Cl_ParseFrame(void) {
       cls.state = CL_ACTIVE;
 
       Cl_SetKeyDest(KEY_GAME);
+
+      // a demo we are hosting comes up paused on this, its opening frame, with the transport
+      // controls showing. Keyed on going active rather than on frame_num, which is 0 again after
+      // a scrub back to the start, and confined to a local demo, because pause is server state
+      // that a spectator has no business taking from everyone else on a demo server
+      if (cl.demo_server && cls.net_chan.remote_address.type == NA_LOOP) {
+        Cbuf_AddText("demo_pause\n");
+      }
     }
 
     Cl_CheckPredictionError();
