@@ -255,8 +255,12 @@ typedef struct {
  * @brief A circular buffer of recently sent `user_cmd_t` is maintained so that
  * we can always re-send the last 2 commands to counter packet loss, and so
  * that client-side prediction can verify its accuracy.
+ * @remarks The buffer must span the round trip time, since a command is read back when the
+ * server acknowledges it. Commands are sent once per rendered frame, throttled to 4ms apart,
+ * so 64 covered only 256ms at that ceiling: beyond it prediction froze and the round trip
+ * sampled a wrapped, unrelated command.
  */
-#define CMD_BACKUP 64
+#define CMD_BACKUP 256
 #define CMD_MASK (CMD_BACKUP - 1)
 
 /**
