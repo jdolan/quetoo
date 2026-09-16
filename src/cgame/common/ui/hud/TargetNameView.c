@@ -58,9 +58,12 @@ static const char *textForFrame(OverlayText *self, const cl_frame_t *frame) {
   if (tr.fraction < 1.f) {
 
     const cl_entity_t *ent = tr.ent;
-    if (ent->current.model1 == MODEL_CLIENT) {
 
-      const cg_client_info_t *client = &cg_state.clients[ent->current.client];
+    // a corpse is not someone to name: it cannot be spoken to, teamed with, or shot at to any
+    // purpose, and naming it reads as though they were still standing where they fell
+    if (ent->current.model1 == MODEL_CLIENT && !(ent->current.effects & EF_CORPSE)) {
+
+      const cg_client_info_t *client = Cg_ClientInfo(ent);
 
       q_strlcpy(name, client->name, sizeof(name));
       time = cgi.client->unclamped_time;
