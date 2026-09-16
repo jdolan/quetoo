@@ -82,7 +82,7 @@ static void refresh(DiagnosticsView *self, const cl_frame_t *frame) {
 
   addRow(self, "fps", "%d", self->fps);
   addRow(self, "pps", "%d", self->pps);
-  addRow(self, "ping", "%u ms", cl->ping);
+  addRow(self, "ping", "%d ms", frame->ps.stats[STAT_PING]);
   addRow(self, "dropped", "%u", cl->dropped);
 
   addRow(self, "queries", "%d allocated, %d visible, %d occluded",

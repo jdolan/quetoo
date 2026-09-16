@@ -159,6 +159,14 @@ typedef struct {
 #define SV_CLIENT_LATENCY_COUNT 16
 
 /**
+ * @brief How often the reported ping is recalculated, in milliseconds.
+ * @remarks This must track the scoreboard's own refresh in `G_ClientScores`, since both it and
+ * the HUD read whatever this last settled on. Recalculating every frame only flickers: the
+ * figure is a sixteen sample mean, so it is never that fresh to begin with.
+ */
+#define SV_CLIENT_PING_INTERVAL 500
+
+/**
  * @brief User movement command duration is inspected regularly to ensure that
  * they are not cheating. If their movement is too far out of sync with the
  * server's clock, we take notice and eventually kick them.
@@ -280,8 +288,23 @@ typedef struct {
 
   /**
    * @brief Ring buffer of recent per-frame delivery timestamps for ping estimation.
+   * @remarks Written in sequence rather than indexed by frame number. Indexing by frame let a
+   * client that acknowledged on a fixed stride hold a subset of the slots indefinitely, so
+   * samples of any age were averaged in forever.
    */
   uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT];
+
+  /**
+   * @brief The next slot of `frame_latency` to write.
+   */
+  uint32_t frame_latency_index;
+
+  /**
+   * @brief How many slots of `frame_latency` have been written, saturating at the ring size.
+   * @remarks A latency of zero is a legitimate sample on a loopback or local network, so the
+   * count says which slots are populated rather than testing the samples themselves.
+   */
+  uint32_t frame_latency_count;
 
   /**
    * @brief Estimated round-trip latency in milliseconds.

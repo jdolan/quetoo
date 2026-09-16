@@ -433,8 +433,19 @@ static void Sv_ConnectionlessPacket(void) {
 
 /**
  * @brief Updates the "ping" times for all spawned clients.
+ * @details @ref Sv_WaitForPackets stamps each acknowledgement at its true arrival time, so the
+ * recorded samples are accurate to the millisecond rather than quantized to the frame interval.
+ * They are still averaged: this figure reaches every client each frame as `STAT_PING`, and an
+ * unsmoothed one would both read as jitter and defeat the delta compression of the player state.
  */
 static void Sv_UpdatePings(void) {
+  static uint32_t last_update_time;
+
+  if (quetoo.ticks - last_update_time < SV_CLIENT_PING_INTERVAL) {
+    return;
+  }
+
+  last_update_time = quetoo.ticks;
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
@@ -444,21 +455,18 @@ static void Sv_UpdatePings(void) {
       continue;
     }
 
-    int32_t total = 0, count = 0;
-    for (int32_t j = 0; j < SV_CLIENT_LATENCY_COUNT; j++) {
-      if (cl->frame_latency[j] > 0) {
-        total += cl->frame_latency[j];
-        count++;
-      }
+    uint64_t total = 0;
+    for (uint32_t j = 0; j < cl->frame_latency_count; j++) {
+      total += cl->frame_latency[j];
     }
 
-    if (!count) {
-      cl->ping = 0;
+    if (cl->frame_latency_count) {
+      cl->ping = (int32_t) roundf(total / (float) cl->frame_latency_count);
     } else {
-      cl->ping = total / (float) count;
+      cl->ping = 0;
     }
 
-    cl->gclient->ping = cl->ping;
+    cl->gclient->ping = Clampf(cl->ping, 0, 999);
   }
 }
 
@@ -822,6 +830,42 @@ int32_t Sv_InstallerFrame(const installer_status_t *in) {
 }
 
 /**
+ * @brief On a dedicated server, sleeps out the remainder of the frame interval while
+ * waking on socket activity to read client packets at their true arrival time.
+ * @details The simulation only advances on @ref QUETOO_TICK_MILLIS boundaries, but
+ * the socket was historically serviced only at those same boundaries -- so a packet
+ * could sit in the kernel buffer for most of a tick before being timestamped,
+ * quantizing every ping estimate to the frame interval. Blocking on the socket
+ * instead of sleeping lets us stamp and ingest each datagram within a main-loop
+ * iteration, giving millisecond-resolution ping and answering connectionless queries
+ * (e.g. server-browser pings) without frame-boundary latency. Movement commands are
+ * command-driven and already processed on receipt, so this shifts only wall-clock
+ * timing, not the deterministic simulation result.
+ */
+static void Sv_WaitForPackets(const uint32_t msec) {
+
+  const uint32_t enter = quetoo.ticks;
+
+  // the tick counter wraps, so spend the budget by elapsed time rather than against a deadline
+  // that can land behind us
+  uint32_t elapsed = 0;
+
+  while (elapsed < msec) {
+
+    // block until a packet arrives or the budget elapses
+    Net_Sleep(msec - elapsed);
+
+    // timestamp and ingest whatever arrived at its true receive time
+    quetoo.ticks = (uint32_t) SDL_GetTicks();
+    Sv_ReadPackets();
+
+    elapsed = (uint32_t) SDL_GetTicks() - enter;
+  }
+
+  quetoo.ticks = enter;
+}
+
+/**
  * @brief Main server frame entry point; advances the simulation and services all clients.
  */
 void Sv_Frame(const uint32_t msec) {
@@ -843,7 +887,11 @@ void Sv_Frame(const uint32_t msec) {
 
     if (frame_delta < QUETOO_TICK_MILLIS) {
       if (dedicated->value) {
-        SDL_Delay(QUETOO_TICK_MILLIS - frame_delta);
+        Sv_WaitForPackets(QUETOO_TICK_MILLIS - frame_delta);
+      } else {
+        // a listen server is already called once per rendered frame, with the clock freshly
+        // read, so it has only to look at the socket rather than block on it
+        Sv_ReadPackets();
       }
 
       return;

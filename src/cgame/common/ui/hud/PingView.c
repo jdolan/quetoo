@@ -34,7 +34,7 @@
  */
 static View *init(View *self) {
 
-  return (View *) $((CounterView *) self, initWithCaption, NULL, COUNTER_VIEW_NO_STAT);
+  return (View *) $((CounterView *) self, initWithCaption, NULL, STAT_PING);
 }
 
 /**
@@ -48,6 +48,7 @@ static void updateBindings(View *self, ident data) {
 
   if (data) {
     const cl_client_t *cl = cgi.client;
+    const cl_frame_t *frame = (const cl_frame_t *) data;
     const uint32_t now = (uint32_t) SDL_GetTicks();
 
     if (cl->dropped != this->dropped) {
@@ -56,7 +57,7 @@ static void updateBindings(View *self, ident data) {
     }
 
     const bool dropping = this->dropped_time && now - this->dropped_time < PING_DROPPED_INTERVAL;
-    const bool lagging = dropping || cl->ping > (uint32_t) cg_draw_ping_warn->integer;
+    const bool lagging = dropping || frame->ps.stats[STAT_PING] > cg_draw_ping_warn->integer;
 
     View *value = (View *) this->counterView.value;
 
@@ -73,14 +74,8 @@ static void updateBindings(View *self, ident data) {
 #pragma mark - CounterView
 
 /**
- * @see CounterView::valueForFrame(CounterView *, const cl_frame_t *)
- */
-static int32_t valueForFrame(CounterView *self, const cl_frame_t *frame) {
-  return cgi.client->ping;
-}
-
-/**
  * @see CounterView::textForFrame(CounterView *, const cl_frame_t *)
+ * @remarks Unlike the base implementation, the ping is shown while spectating.
  */
 static const char *textForFrame(CounterView *self, const cl_frame_t *frame) {
 
@@ -97,7 +92,6 @@ static void initialize(Class *clazz) {
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
   ((CounterViewInterface *) clazz->interface)->textForFrame = textForFrame;
-  ((CounterViewInterface *) clazz->interface)->valueForFrame = valueForFrame;
 }
 
 /**
