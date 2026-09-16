@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <stdio.h>
+
 #include <physfs.h>
 #include <SDL3/SDL.h>
 
@@ -158,7 +160,7 @@ bool Fs_Close(file_t *file) {
  * @brief Deletes the file from the configured write directory.
  */
 bool Fs_Delete(const char *filename) {
-  return PHYSFS_delete(filename) == 0;
+  return PHYSFS_delete(filename) != 0;
 }
 
 /**
@@ -905,6 +907,28 @@ const char *Fs_RealPath(const char *path) {
   *out = '\0';
 
   return real_path;
+}
+
+/**
+ * @brief Overwrites `size` bytes at `offset` within `filename`, in the write directory, without
+ * truncating or otherwise disturbing the rest of the file.
+ * @details PhysFS has no random-access read+write open mode: `PHYSFS_openWrite` truncates the
+ * file on open, and `PHYSFS_openAppend` always writes at the current end of file regardless of
+ * any seek, so neither can patch a handful of bytes in place within an existing file. This drops
+ * to the real OS path (`Fs_RealPath`) and plain stdio for that one operation.
+ * @return True on success.
+ */
+bool Fs_WriteAt(const char *filename, const void *data, size_t size, int64_t offset) {
+
+  FILE *file = fopen(Fs_RealPath(filename), "r+b");
+  if (!file) {
+    return false;
+  }
+
+  const bool success = fseek(file, (long) offset, SEEK_SET) == 0 && fwrite(data, size, 1, file) == 1;
+
+  fclose(file);
+  return success;
 }
 
 /**
