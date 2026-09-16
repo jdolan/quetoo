@@ -876,6 +876,10 @@ void Sv_Frame(const uint32_t msec) {
     if (frame_delta < QUETOO_TICK_MILLIS) {
       if (dedicated->value) {
         Sv_WaitForPackets(QUETOO_TICK_MILLIS - frame_delta);
+      } else {
+        // a listen server is already called once per rendered frame, with the clock freshly
+        // read, so it has only to look at the socket rather than block on it
+        Sv_ReadPackets();
       }
 
       return;
