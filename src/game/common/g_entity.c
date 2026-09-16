@@ -777,7 +777,6 @@ static void G_worldspawn(g_entity_t *ent) {
   }
 
   gi.SetConfigString(CS_MESSAGE, g_level.message);
-  gi.SetConfigString(CS_MAX_CLIENTS, va("%d", sv_max_clients->integer));
 
   const cm_entity_t *gravity_map = G_MapValue("gravity");
   if (q_strcmp(g_gravity->string, g_gravity->default_string)) { // prefer an explicit g_gravity override

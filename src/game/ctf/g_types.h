@@ -87,14 +87,13 @@ typedef enum {
 #define CS_GAMEPLAY        (CS_GAME + 0)  // gameplay string
 #define CS_TEAM_INFO       (CS_GAME + 1)  // team info, separated by \ (name\color\name\color, etc)
 #define CS_TIME            (CS_GAME + 2)  // map time
-#define CS_MAX_CLIENTS     (CS_GAME + 3)  // max clients of server
-#define CS_NUM_TEAMS       (CS_GAME + 4)  // number of teams (0 - MAX_TEAMS)
-#define CS_NAV_EDIT        (CS_GAME + 5)  // nav edit mode
-#define CS_ITEM_SET        (CS_GAME + 6)  // active item set (g_items_t)
-#define CS_HOOK_PULL_SPEED (CS_GAME + 7)  // hook speed
-#define CS_VOTE            (CS_GAME + 8)  // the vote in progress (bg_vote.h)
-#define CS_NEXT_MAP        (CS_GAME + 9) // the intermission's map candidates and tally (bg_intermission.h)
-#define CS_CORPSES         (CS_GAME + 10)  // one client info snapshot per corpse, MAX_CORPSES wide
+#define CS_NUM_TEAMS       (CS_GAME + 3)  // number of teams (0 - MAX_TEAMS)
+#define CS_NAV_EDIT        (CS_GAME + 4)  // nav edit mode
+#define CS_ITEM_SET        (CS_GAME + 5)  // active item set (g_items_t)
+#define CS_HOOK_PULL_SPEED (CS_GAME + 6)  // hook speed
+#define CS_VOTE            (CS_GAME + 7)  // the vote in progress (bg_vote.h)
+#define CS_NEXT_MAP        (CS_GAME + 8) // the intermission's map candidates and tally (bg_intermission.h)
+#define CS_CORPSES         (CS_GAME + 9)  // one client info snapshot per corpse, MAX_CORPSES wide
 
 
 /**
