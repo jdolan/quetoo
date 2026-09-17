@@ -3,15 +3,14 @@
 }
 
 DemosCollectionView {
-  item-size: 448 252;
   selection: single;
-  width: 1420;
+  item-size: 340 200;
   height: 700;
+  width: 1400;
 }
 
 .demosEmptyState {
-  width: 1420;
-  min-height: 700;
+  autoresizing-mask: fill;
   color: #888888;
 }
 

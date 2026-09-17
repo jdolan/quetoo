@@ -124,11 +124,11 @@ static void didEndEditingTitle(TextView *textView) {
     Cg_Warn("Failed to update %s\n", info->filename);
   }
 
+  // deliberately not reloading the collection here: this runs from the TextView's own
+  // didEndEditing, and reloading destroys the item view and the TextView with it, leaving
+  // TextView::stateDidChange to return into freed memory. A renamed demo may therefore stay
+  // listed under a filter it no longer matches until the list is next reloaded
   $((DemosCollectionItemView *) self, setDemoListItemInfo, info);
-
-  // the filter matches on the name, which is what just changed, so a renamed demo may no longer
-  // belong in the list it is sitting in
-  $(self->collectionView, reapplyFilter);
 }
 
 /**
