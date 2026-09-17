@@ -323,7 +323,7 @@ void Cl_Record_f(void) {
   cls.demo.event_size = 0;
   memset(&cls.demo.header, 0, sizeof(cls.demo.header));
 
-  Com_Print("Recording to %s\n", cls.demo.filename);
+  Com_Print("Recording to %s. Type ^2stop^7 to stop.\n", cls.demo.filename);
 }
 
 /**

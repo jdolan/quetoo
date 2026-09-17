@@ -9,9 +9,14 @@ DemosCollectionView {
   width: 1400;
 }
 
-.demosEmptyState {
-  autoresizing-mask: fill;
+#demosEmpty {
+  min-height: 700;
+  min-width: 1400;
   color: #888888;
+}
+
+#demosEmpty > Text {
+  alignment: middle-center;
 }
 
 /* The date over the duration, pinned to the item's top left corner. A Text has no subviews for
