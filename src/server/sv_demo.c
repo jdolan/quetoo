@@ -293,7 +293,9 @@ void Sv_SeekDemo(int32_t millis) {
     return;
   }
 
-  sv.demo_step = true;
+  // only while paused: playback that is running reaches the seek destination by itself, and an
+  // unconsumed flag would release an extra frame at whatever point it is next paused
+  sv.demo_step = sv.demo_paused;
 }
 
 /**
