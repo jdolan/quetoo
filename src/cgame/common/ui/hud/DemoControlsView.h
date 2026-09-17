@@ -53,9 +53,14 @@ struct DemoControlsView {
   DemoControlsViewInterface *interface[0];
 
   /**
-   * @brief Seeks back 10 seconds.
+   * @brief Seeks back 5 seconds.
    */
   Button *rewindButton;
+
+  /**
+   * @brief Seeks back a single frame, for landing on an exact moment.
+   */
+  Button *stepBackButton;
 
   /**
    * @brief Resumes playback (sends `demo_pause`).
@@ -63,7 +68,12 @@ struct DemoControlsView {
   Button *playButton;
 
   /**
-   * @brief Seeks forward 10 seconds.
+   * @brief Seeks forward a single frame, for landing on an exact moment.
+   */
+  Button *stepForwardButton;
+
+  /**
+   * @brief Seeks forward 5 seconds.
    */
   Button *fastForwardButton;
 

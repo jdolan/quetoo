@@ -35,6 +35,20 @@ static void didClickRewind(Button *button) {
 }
 
 /**
+ * @brief ButtonDelegate for the step back button.
+ */
+static void didClickStepBack(Button *button) {
+  cgi.Cbuf(va("demo_seek_relative %d\n", -QUETOO_TICK_MILLIS));
+}
+
+/**
+ * @brief ButtonDelegate for the step forward button.
+ */
+static void didClickStepForward(Button *button) {
+  cgi.Cbuf(va("demo_seek_relative %d\n", QUETOO_TICK_MILLIS));
+}
+
+/**
  * @brief ButtonDelegate for the play (resume) button.
  */
 static void didClickPlay(Button *button) {
@@ -73,10 +87,10 @@ static void respondToEvent(View *self, const SDL_Event *event) {
   switch (event->key.scancode) {
 
     case SDL_SCANCODE_LEFT:
-      cgi.Cbuf("demo_seek_relative -25\n");
+      cgi.Cbuf(va("demo_seek_relative %d\n", -QUETOO_TICK_MILLIS));
       break;
     case SDL_SCANCODE_RIGHT:
-      cgi.Cbuf("demo_seek_relative  25\n");
+      cgi.Cbuf(va("demo_seek_relative %d\n", QUETOO_TICK_MILLIS));
       break;
 
     case SDL_SCANCODE_SPACE:
@@ -113,8 +127,10 @@ static DemoControlsView *initWithFrame(DemoControlsView *self, const SDL_Rect *f
 
     Outlet outlets[] = MakeOutlets(
       MakeOutlet("rewind", &self->rewindButton),
+      MakeOutlet("stepBack", &self->stepBackButton),
       MakeOutlet("play", &self->playButton),
       MakeOutlet("scrubber", &self->scrubber),
+      MakeOutlet("stepForward", &self->stepForwardButton),
       MakeOutlet("fastForward", &self->fastForwardButton),
       MakeOutlet("speed", &self->speedSlider)
     );
@@ -126,6 +142,12 @@ static DemoControlsView *initWithFrame(DemoControlsView *self, const SDL_Rect *f
 
     self->rewindButton->delegate.self = self;
     self->rewindButton->delegate.didClick = didClickRewind;
+
+    self->stepBackButton->delegate.self = self;
+    self->stepBackButton->delegate.didClick = didClickStepBack;
+
+    self->stepForwardButton->delegate.self = self;
+    self->stepForwardButton->delegate.didClick = didClickStepForward;
 
     self->playButton->delegate.self = self;
     self->playButton->delegate.didClick = didClickPlay;

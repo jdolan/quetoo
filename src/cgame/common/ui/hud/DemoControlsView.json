@@ -7,6 +7,11 @@
     },
     {
       "class": "Button",
+      "identifier": "stepBack",
+      "image": "pics/step_back.svg@24x24"
+    },
+    {
+      "class": "Button",
       "identifier": "play",
       "image": "pics/play.svg@24x24"
     },
@@ -14,6 +19,11 @@
       "class": "Slider",
       "identifier": "scrubber",
       "classNames": ["scrubber"]
+    },
+    {
+      "class": "Button",
+      "identifier": "stepForward",
+      "image": "pics/step_forward.svg@24x24"
     },
     {
       "class": "Button",
