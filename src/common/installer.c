@@ -247,6 +247,44 @@ static bool Installer_FetchRelease(const char *api, const char *want, installer_
 }
 
 /**
+ * @brief Returns true if `c` separates path components on this platform.
+ */
+static bool Installer_IsSeparator(char c) {
+#if defined(_WIN32)
+  return c == '/' || c == '\\';
+#else
+  return c == '/';
+#endif
+}
+
+/**
+ * @brief Returns true if `dir` is a filesystem root, which always exists and
+ * cannot be created.
+ */
+static bool Installer_IsRoot(const char *dir) {
+
+  const size_t len = q_strlen(dir);
+
+#if defined(_WIN32)
+  return len == 0 || (len == 2 && dir[1] == ':');
+#else
+  return len == 0;
+#endif
+}
+
+/**
+ * @brief Appends `name` to `dir`, which `SDL_EnumerateDirectory` guarantees
+ * already ends with a platform path separator.
+ */
+static void Installer_Join(char *out, size_t len, const char *dir, const char *name) {
+
+  const size_t dir_len = q_strlen(dir);
+  const bool separated = dir_len && Installer_IsSeparator(dir[dir_len - 1]);
+
+  q_snprintf(out, (int32_t) len, "%s%s%s", dir, separated ? "" : "/", name);
+}
+
+/**
  * @brief Recursively deletes `path`.
  * @details `SDL_RemovePath` only unlinks files and empty directories, but a
  * displaced application bundle is neither.
@@ -254,7 +292,7 @@ static bool Installer_FetchRelease(const char *api, const char *want, installer_
 static SDL_EnumerationResult Installer_RemoveEntry(void *data, const char *dir, const char *name) {
 
   char path[MAX_OS_PATH];
-  q_snprintf(path, sizeof(path), "%s/%s", dir, name);
+  Installer_Join(path, sizeof(path), dir, name);
 
   SDL_PathInfo info;
   if (SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_DIRECTORY) {
@@ -440,7 +478,7 @@ static SDL_EnumerationResult Installer_EnumeratePending(void *data, const char *
   FILE *file = data;
 
   char path[MAX_OS_PATH];
-  q_snprintf(path, sizeof(path), "%s/%s", dir, name);
+  Installer_Join(path, sizeof(path), dir, name);
 
   SDL_PathInfo info;
   if (!SDL_GetPathInfo(path, &info)) {
@@ -1170,10 +1208,17 @@ static bool Installer_Install(const char *staged, const char *target, FILE *clea
   char dir[MAX_OS_PATH];
   q_strlcpy(dir, target, sizeof(dir));
 
-  char *slash = q_strrchr(dir, '/');
+  char *slash = NULL;
+  for (char *c = dir; *c; c++) {
+    if (Installer_IsSeparator(*c)) {
+      slash = c;
+    }
+  }
+
   if (slash) {
     *slash = '\0';
-    if (!SDL_CreateDirectory(dir)) {
+
+    if (!Installer_IsRoot(dir) && !SDL_CreateDirectory(dir)) {
       Com_Warn("Failed to create %s: %s\n", dir, SDL_GetError());
       return false;
     }
@@ -1285,7 +1330,7 @@ static int32_t Installer_EachPending(FILE *file, const char *root, Installer_Pen
       return -1;
     }
 
-    if (q_strncmp(line, root, root_len) || line[root_len] != '/') {
+    if (q_strncmp(line, root, root_len) || !Installer_IsSeparator(line[root_len])) {
       continue;
     }
 
@@ -1355,7 +1400,22 @@ void Installer_ApplyPending(void) {
 
   bool success = installed >= 0;
 
+#if defined(__APPLE__)
   const bool whole = success && installed == 0;
+#else
+  const bool whole = false;
+
+  if (success && installed == 0) {
+    Com_Warn("Discarding a staged update that lists no files below %s\n", root);
+    fclose(file);
+    if (cleanup) {
+      fclose(cleanup);
+    }
+    Installer_RemoveTree(pending);
+    return;
+  }
+#endif
+
   Com_Debug(DEBUG_INSTALLER, "Installed %d file(s), whole = %d, success = %d\n",
             installed, whole, success);
 
