@@ -76,17 +76,17 @@ static View *init(View *self) {
     $(self->style, addEnumAttribute, "autoresizing-mask", ViewAutoresizingNames, ViewAutoresizingWidth);
     $(self->style, addBoolAttribute, "clips-subviews", true);
 
-    Image *conback = $$(Image, imageWithResourceName, "ui/conback.png", 1.f);
-    if (conback) {
-      this->background = $(alloc(ImageView), initWithImage, conback);
-      assert(this->background);
+    this->background = $(alloc(ImageView), initWithImage, NULL);
+    assert(this->background);
 
-      $(this->background->view.style, addEnumAttribute, "alignment", ViewAlignmentNames,
-        ViewAlignmentInternal);
+    // named, not loaded: it resolves against the window's Theme once this View is installed,
+    // so ui/conback@2x.png is picked up on a HiDPI display
+    $(this->background, setImageWithResourceName, "ui/conback.png");
 
-      $(self, addSubview, (View *) this->background);
-      release(conback);
-    }
+    $(this->background->view.style, addEnumAttribute, "alignment", ViewAlignmentNames,
+      ViewAlignmentInternal);
+
+    $(self, addSubview, (View *) this->background);
 
     this->buffer = addText(self, ViewAlignmentBottomLeft);
     this->input = addText(self, ViewAlignmentInternal);
@@ -203,7 +203,9 @@ static void update(ConsoleView *self, int32_t height) {
 
   const Uint8 alpha = (Uint8) (Clampf01(cl_draw_console_background_alpha->value) * 255);
 
-  if (self->background) {
+  // the image is named rather than loaded, so it is absent until this View is in a window, and
+  // stays absent if the asset is missing; either way the plain background colour stands in
+  if (self->background && self->background->image) {
     self->background->color.a = alpha;
 
     const SDL_Size image = $(self->background->image, size);
