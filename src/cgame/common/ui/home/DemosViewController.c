@@ -67,7 +67,7 @@ static void playDemo(const DemoListItemInfo *info) {
   char name[MAX_QPATH];
   demoCommandName(info->filename, name, sizeof(name));
 
-  cgi.Cbuf(va("demo %s\n", name));
+  cgi.Cbuf(va("demo \"%s\"\n", name));
 }
 
 /**
@@ -84,11 +84,26 @@ static void didClickPlay(Button *button) {
 }
 
 /**
+ * @brief Enables the Play button only when a demo is selected, since it has nothing to play
+ * otherwise and would appear clickable while doing nothing.
+ */
+static void updatePlay(DemosViewController *self, bool selected) {
+
+  if (selected) {
+    self->play->control.state &= ~ControlStateDisabled;
+  } else {
+    self->play->control.state |= ControlStateDisabled;
+  }
+}
+
+/**
  * @brief CollectionViewDelegate for the demos list: double-clicking a demo plays it.
  */
 static void didModifySelection(CollectionView *collectionView, const Array *selectionIndexPaths) {
 
   DemosViewController *this = collectionView->delegate.self;
+
+  updatePlay(this, selectionIndexPaths->count != 0);
 
   if (selectionIndexPaths->count == 0) {
     return;
@@ -138,6 +153,8 @@ static void loadView(ViewController *self) {
 
   this->play->delegate.self = this;
   this->play->delegate.didClick = didClickPlay;
+
+  updatePlay(this, false);
 }
 
 /**

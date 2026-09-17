@@ -387,6 +387,19 @@ static DemoListItemInfo *selectedDemo(const DemosCollectionView *self) {
 }
 
 /**
+ * @fn void DemosCollectionView::reapplyFilter(DemosCollectionView *self)
+ * @memberof DemosCollectionView
+ */
+static void reapplyFilter(DemosCollectionView *self) {
+
+  synchronized(self->lock, {
+    applyFilter(self);
+  });
+
+  $((CollectionView *) self, reloadData);
+}
+
+/**
  * @fn void DemosCollectionView::removeDemo(DemosCollectionView *self, const char *filename)
  * @memberof DemosCollectionView
  */
@@ -424,6 +437,7 @@ static void initialize(Class *clazz) {
   ((DemosCollectionViewInterface *) clazz->interface)->reloadDemos = reloadDemos;
   ((DemosCollectionViewInterface *) clazz->interface)->setFilter = setFilter;
   ((DemosCollectionViewInterface *) clazz->interface)->selectedDemo = selectedDemo;
+  ((DemosCollectionViewInterface *) clazz->interface)->reapplyFilter = reapplyFilter;
   ((DemosCollectionViewInterface *) clazz->interface)->removeDemo = removeDemo;
 }
 

@@ -124,6 +124,14 @@ struct DemosCollectionViewInterface {
   DemoListItemInfo *(*selectedDemo)(const DemosCollectionView *self);
 
   /**
+   * @fn void DemosCollectionView::reapplyFilter(DemosCollectionView *self)
+   * @brief Rebuilds the filtered list and reloads, after something changed what a demo matches.
+   * @param self The DemosCollectionView.
+   * @memberof DemosCollectionView
+   */
+  void (*reapplyFilter)(DemosCollectionView *self);
+
+  /**
    * @fn void DemosCollectionView::removeDemo(DemosCollectionView *self, const char *filename)
    * @brief Removes the demo with the given filename from the in-memory list, e.g. after deletion.
    * @param self The DemosCollectionView.

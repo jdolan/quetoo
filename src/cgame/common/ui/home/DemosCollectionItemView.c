@@ -125,6 +125,10 @@ static void didEndEditingTitle(TextView *textView) {
   }
 
   $((DemosCollectionItemView *) self, setDemoListItemInfo, info);
+
+  // the filter matches on the name, which is what just changed, so a renamed demo may no longer
+  // belong in the list it is sitting in
+  $(self->collectionView, reapplyFilter);
 }
 
 /**
