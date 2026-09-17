@@ -306,7 +306,3 @@ DemoControlsView .speed {
   pointer-events: auto;
 }
 
-DemoControlsView .speed > .label {
-  alignment: middle-left;
-  min-width: 40;
-}
