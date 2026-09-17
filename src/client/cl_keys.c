@@ -247,6 +247,15 @@ static void Cl_KeyGame(const SDL_Event *event) {
     return;
   }
 
+  // a demo steers itself: the view follows the recorded player state, so movement and attack do
+  // nothing useful, and the transport keys collide with them outright - space is bound to
+  // +move_up, left and right to +left and +right, so stepping a frame would also turn the view.
+  // The scoreboard is the one button command still worth having, the recording carrying the
+  // stats it shows
+  if (cl.demo_server && bind[0] == '+' && q_strcmp(bind, "+score")) {
+    return;
+  }
+
   cmd[0] = '\0';
 
   if (bind[0] == '+') { // button commands add key and time as a param

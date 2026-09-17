@@ -43,17 +43,15 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
  * @return True if the delta is valid and the entity should be interpolated, false
  * if the delta is invalid and the entity should be snapped to `to`.
  */
-static bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent,
+static bool Cl_ValidDeltaEntity(const cl_entity_t *ent,
                                  const entity_state_t *from, const entity_state_t *to) {
 
-  if (frame->delta_frame_num == -1) {
-    return false;
+  if (!cl.previous_frame) {
+    return false; // no continuous predecessor to interpolate from
   }
 
-  if (cl.previous_frame) {
-    if (ent->frame_num != cl.previous_frame->frame_num) {
-      return false;
-    }
+  if (ent->frame_num != cl.previous_frame->frame_num) {
+    return false;
   }
 
   if (ent->current.spawn_id != to->spawn_id) {
@@ -100,7 +98,7 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, in
   Net_ReadDeltaEntity(&net_message, from, to, number, bits);
 
   // check to see if the delta was successful and valid
-  if (!Cl_ValidDeltaEntity(frame, ent, from, to)) {
+  if (!Cl_ValidDeltaEntity(ent, from, to)) {
     ent->prev = *to; // copy the current state to the previous
     ent->animation1.time = ent->animation2.time = 0;
     ent->animation1.frame = ent->animation2.frame = -1;
@@ -280,9 +278,9 @@ void Cl_ParseFrame(void) {
     Com_Print("   frame:%i  delta:%i\n", cl.frame.frame_num, cl.frame.delta_frame_num);
   }
 
-  if (cl.frame.delta_frame_num <= 0) { // uncompressed frame
-    cl.delta_frame = cl.previous_frame = NULL;
-  } else { // delta compressed frame
+  if (cl.frame.delta_frame_num <= 0) { // uncompressed frame: entities decode from baseline
+    cl.delta_frame = NULL;
+  } else { // delta compressed frame: entities decode from cl.delta_frame
     cl.delta_frame = &cl.frames[cl.frame.delta_frame_num & PACKET_MASK];
 
     if (!cl.delta_frame->valid) {
@@ -292,16 +290,20 @@ void Cl_ParseFrame(void) {
     } else if (cl.entity_state - cl.delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP) {
       Com_Error(ERROR_DROP, "Delta entity state too old\n");
     }
+  }
 
-    cl.previous_frame = &cl.frames[(cl.frame.frame_num - 1) & PACKET_MASK];
+  // cl.previous_frame tracks simple sequential continuity for interpolation purposes, independent
+  // of whether this frame's entities were delta- or baseline-encoded: a demo's recorded frames are
+  // always baseline-encoded (see Cl_WriteDemoMessage) but are still sequential and interpolatable,
+  // so this must not be tied to cl.delta_frame the way it once was.
+  cl.previous_frame = &cl.frames[(cl.frame.frame_num - 1) & PACKET_MASK];
 
-    if (cl.previous_frame->frame_num != (cl.frame.frame_num - 1)) {
-      Com_Debug(DEBUG_CLIENT, "Previous frame too old\n");
-      cl.previous_frame = NULL;
-    } else if (!cl.previous_frame->valid) {
-      Com_Debug(DEBUG_CLIENT, "Previous frame invalid\n");
-      cl.previous_frame = NULL;
-    }
+  if (cl.previous_frame->frame_num != (cl.frame.frame_num - 1)) {
+    Com_Debug(DEBUG_CLIENT, "Previous frame too old\n");
+    cl.previous_frame = NULL;
+  } else if (!cl.previous_frame->valid) {
+    Com_Debug(DEBUG_CLIENT, "Previous frame invalid\n");
+    cl.previous_frame = NULL;
   }
 
   cl.frame.valid = true;
@@ -324,6 +326,14 @@ void Cl_ParseFrame(void) {
       cls.state = CL_ACTIVE;
 
       Cl_SetKeyDest(KEY_GAME);
+
+      // a demo we are hosting comes up paused on this, its opening frame, with the transport
+      // controls showing. Keyed on going active rather than on frame_num, which is 0 again after
+      // a scrub back to the start, and confined to a local demo, because pause is server state
+      // that a spectator has no business taking from everyone else on a demo server
+      if (cl.demo_server && cls.net_chan.remote_address.type == NA_LOOP) {
+        Cbuf_AddText("demo_pause\n");
+      }
     }
 
     Cl_CheckPredictionError();
@@ -343,7 +353,7 @@ void Cl_ParseFrame(void) {
  */
 static void Cl_UpdateLerp(void) {
 
-  bool no_lerp = cl.delta_frame == NULL || cl_no_lerp->value || time_demo->value;
+  bool no_lerp = cl.previous_frame == NULL || cl_no_lerp->value || time_demo->value;
 
   if (cl.previous_frame) {
     const float dist = Vec3_Distance(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin);

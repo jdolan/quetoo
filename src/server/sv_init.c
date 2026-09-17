@@ -145,9 +145,7 @@ static void Sv_ClearState(void) {
     return;
   }
 
-  if (sv.demo_file) {
-    Fs_Close(sv.demo_file);
-  }
+  Sv_FreeDemo();
 
   memset(&sv, 0, sizeof(sv));
   Com_QuitSubsystem(QUETOO_SERVER);
@@ -279,8 +277,9 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
   if (state == SV_ACTIVE_DEMO) { // loading a demo
     Cvar_ForceSetString(sv_map->name, "");
 
-    sv.demo_file = Fs_OpenRead(va("demos/%s.demo", sv.name));
     svs.spawn_count = 0;
+
+    Sv_LoadDemo();
 
     Com_Print("  Loaded demo %s.\n", sv.name);
   } else { // loading a map

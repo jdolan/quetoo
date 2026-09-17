@@ -77,6 +77,7 @@
 		1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		20BE76382F981DD4B7F43A11 /* default/hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E652EE2F700EFB737AEA30 /* default/hud.json */; };
 		21B7C99056194E1E9FC62EF2 /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
+		4DA60E0E0E86520782FCF112 /* DemoControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */; };
 		24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		28D9703AF85F475F866BAA51 /* DiagnosticsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */; };
 		2C3ADE327DEBD6F3955255E7 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
@@ -111,6 +112,7 @@
 		5A41D1910F5ECC29544A0261 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
 		5D26ECD45D3B9CEDA1FCE596 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		622B0D6DA98C42AA8A8D582B /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
+		4932286FA54FFE0479DD188C /* DemoControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */; };
 		65A8C761AE5D68358CDDE601 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
 		665046BB6961C443C731A077 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
 		6681071D48F7B492ADC27385 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
@@ -150,11 +152,13 @@
 		A978478284E6A536361DE6FC /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
 		AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */; };
 		AC814FDD1291470DA9883B6C /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
+		4F0FA3FF26DFBC1FF49D2A63 /* DemoControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */; };
 		AD9B2D464FD840D5A031FC6A /* PingView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5624F1C74F4646918DA71088 /* PingView.c */; };
 		AE4EA13B59877C5736940695 /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
 		AF637037D323F5359A9E5F26 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
 		AF8056E19DEC77694B63EDD7 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		B0F1E4D1823545B993F57B81 /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
+		86605B56F326AB08CF8B574D /* DemoControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */; };
 		B2B62AE1E7C09567B299F1AA /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		B3C3D379CB4955B1FED23ADB /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
 		B50A7AB9A94C86F0D55675BD /* default/hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = A980A8F791ED9C0A50C6C948 /* default/hud.json */; };
@@ -326,6 +330,9 @@
 		CE05B3F030224900C0DE0029 /* EntityView.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000072F9100000000C007 /* EntityView.c */; };
 		CE05B3F030224900C0DE002A /* EntityViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000A2F9100000000C00A /* EntityViewController.c */; };
 		CE05B3F030224900C0DE002B /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
+		8C2222B66C5893E999A00A1D /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
+		18C8FD4CB016B0E66708C5E3 /* DemosCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */; };
+		552ED498920A44B77CEAEC2E /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
 		CE05B3F030224900C0DE002C /* JoinServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870811F5CDFE0004CAAB2 /* JoinServerViewController.c */; };
 		CE05B3F030224900C0DE002D /* LeaderboardViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */; };
 		CE05B3F030224900C0DE002E /* LoadingViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */; };
@@ -588,7 +595,13 @@
 		CE6EE4121F72919800FBC830 /* cg_ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE4101F72919800FBC830 /* cg_ui.h */; };
 		CE7D2C0F202F6170004BC58E /* MainView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C0D202F6134004BC58E /* MainView.json */; };
 		CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
+		2E5D2C0CBC38FD1169C77DDB /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
+		91B39671CA4F375D3FEBBDA0 /* DemosCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */; };
+		8EF87DE8E42CB34AC627912E /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
 		CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C19202F6E80004BC58E /* HomeViewController.json */; };
+		18E237623F9098C8D027CA1A /* DemosViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = 63E6940BBAB476D15303863E /* DemosViewController.css */; };
+		E341E163CFFD547C44106673 /* DemosViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2DA349510962B7CDA15CFEC5 /* DemosViewController.json */; };
+		DA0022000000000000000001 /* DemoControlsView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = DA0022000000000000000002 /* DemoControlsView.json */; };
 		CE7D2C1C202F7116004BC58E /* CreateServerViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1B202F7101004BC58E /* CreateServerViewController.json */; };
 		CE7D2C1F202F7177004BC58E /* JoinServerViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1D202F714F004BC58E /* JoinServerViewController.json */; };
 		CE7D2C20202F7179004BC58E /* PlayerSetupViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1E202F7166004BC58E /* PlayerSetupViewController.json */; };
@@ -699,6 +712,7 @@
 		CE80FFA81C5E4A2800A21A51 /* sv_admin.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A11C5C58C300CD0B13 /* sv_admin.c */; };
 		CE80FFA91C5E4A2800A21A51 /* sv_client.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A31C5C58C300CD0B13 /* sv_client.c */; };
 		CE80FFAA1C5E4A2800A21A51 /* sv_console.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A51C5C58C300CD0B13 /* sv_console.c */; };
+		DA0011000000000000000003 /* sv_demo.c in Sources */ = {isa = PBXBuildFile; fileRef = DA0011000000000000000001 /* sv_demo.c */; };
 		CE80FFAB1C5E4A2800A21A51 /* sv_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A71C5C58C300CD0B13 /* sv_entity.c */; };
 		CE80FFAC1C5E4A2800A21A51 /* sv_game.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A91C5C58C300CD0B13 /* sv_game.c */; };
 		CE80FFAD1C5E4A2800A21A51 /* sv_init.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6AB1C5C58C300CD0B13 /* sv_init.c */; };
@@ -710,6 +724,7 @@
 		CE80FFB31C5E4A3100A21A51 /* sv_admin.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6A21C5C58C300CD0B13 /* sv_admin.h */; };
 		CE80FFB41C5E4A3100A21A51 /* sv_client.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6A41C5C58C300CD0B13 /* sv_client.h */; };
 		CE80FFB51C5E4A3100A21A51 /* sv_console.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6A61C5C58C300CD0B13 /* sv_console.h */; };
+		DA0011000000000000000004 /* sv_demo.h in Headers */ = {isa = PBXBuildFile; fileRef = DA0011000000000000000002 /* sv_demo.h */; };
 		CE80FFB61C5E4A3100A21A51 /* sv_entity.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6A81C5C58C300CD0B13 /* sv_entity.h */; };
 		CE80FFB71C5E4A3100A21A51 /* sv_game.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AA1C5C58C300CD0B13 /* sv_game.h */; };
 		CE80FFB81C5E4A3100A21A51 /* sv_init.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AC1C5C58C300CD0B13 /* sv_init.h */; };
@@ -930,6 +945,9 @@
 		CEC0FF002026010300000189 /* EntityView.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000072F9100000000C007 /* EntityView.c */; };
 		CEC0FF00202601030000018A /* EntityViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000A2F9100000000C00A /* EntityViewController.c */; };
 		CEC0FF00202601030000018B /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
+		2FAD5FD12BD7CC3AC13E4E10 /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
+		4884D62AC7509A737141A1F5 /* DemosCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */; };
+		55ECBA76D3FED12161978AAF /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
 		CEC0FF00202601030000018C /* JoinServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870811F5CDFE0004CAAB2 /* JoinServerViewController.c */; };
 		CEC0FF00202601030000018D /* LeaderboardViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */; };
 		CEC0FF00202601030000018E /* LoadingViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */; };
@@ -1260,6 +1278,9 @@
 		D2A5C100000000000000006D /* EntityView.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000072F9100000000C007 /* EntityView.c */; };
 		D2A5C100000000000000006E /* EntityViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000A2F9100000000C00A /* EntityViewController.c */; };
 		D2A5C100000000000000006F /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
+		73DBBF49A55BBA6FB35431A6 /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
+		00FE572C5C861491D333D0DC /* DemosCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */; };
+		1707413E7413614CF7F308EE /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
 		D2A5C1000000000000000070 /* JoinServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870811F5CDFE0004CAAB2 /* JoinServerViewController.c */; };
 		D2A5C1000000000000000071 /* LeaderboardViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */; };
 		D2A5C1000000000000000072 /* LoadingViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */; };
@@ -1954,6 +1975,8 @@
 			files = (
 				CEEEEEA82F9EF1FA00665A30 /* HomeViewController.css in CopyFiles */,
 				CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */,
+				18E237623F9098C8D027CA1A /* DemosViewController.css in CopyFiles */,
+				E341E163CFFD547C44106673 /* DemosViewController.json in CopyFiles */,
 				CEA9B3A56C6E4B3A9F010001 /* LeaderboardViewController.css in CopyFiles */,
 				CEA9B3A76C6E4B3A9F010001 /* LeaderboardViewController.json in CopyFiles */,
 				CEA9B3A66C6E4B3A9F010001 /* StatsViewController.css in CopyFiles */,
@@ -2085,6 +2108,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DA0022000000000000000003 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = default/ui/hud;
+			dstSubfolderSpec = 16;
+			files = (
+				DA0022000000000000000001 /* DemoControlsView.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		EE7162D3228511D41E8B4CB1 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2162,6 +2195,8 @@
 		A73DD77B1D5B8231028B01FA /* TeamBannerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamBannerView.c; sourceTree = "<group>"; };
 		A980A8F791ED9C0A50C6C948 /* default/hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/hud.json; sourceTree = "<group>"; };
 		ABD78D80980A456A917E4BEA /* ChatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatView.h; sourceTree = "<group>"; };
+		7BAA84C3F169633FB1587357 /* DemoControlsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemoControlsView.h; sourceTree = "<group>"; };
+		7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DemoControlsView.c; sourceTree = "<group>"; };
 		AC727F6BFFF40568A39B2DF0 /* ChaseView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChaseView.h; sourceTree = "<group>"; };
 		AF339E8DC908A7FE1C759AEA /* VoteView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VoteView.h; sourceTree = "<group>"; };
 		B00A6FD23FF3A3B4F77B3694 /* StatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatView.h; sourceTree = "<group>"; };
@@ -2415,6 +2450,8 @@
 		CE12D6A41C5C58C300CD0B13 /* sv_client.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_client.h; sourceTree = "<group>"; };
 		CE12D6A51C5C58C300CD0B13 /* sv_console.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_console.c; sourceTree = "<group>"; };
 		CE12D6A61C5C58C300CD0B13 /* sv_console.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_console.h; sourceTree = "<group>"; };
+		DA0011000000000000000001 /* sv_demo.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_demo.c; sourceTree = "<group>"; };
+		DA0011000000000000000002 /* sv_demo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_demo.h; sourceTree = "<group>"; };
 		CE12D6A71C5C58C300CD0B13 /* sv_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_entity.c; sourceTree = "<group>"; };
 		CE12D6A81C5C58C300CD0B13 /* sv_entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_entity.h; sourceTree = "<group>"; };
 		CE12D6A91C5C58C300CD0B13 /* sv_game.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_game.c; sourceTree = "<group>"; };
@@ -2904,6 +2941,15 @@
 		CEE7508A2D6A3253004CDBCA /* rgb9e5.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = rgb9e5.h; sourceTree = "<group>"; };
 		CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = rgb9e5.c; sourceTree = "<group>"; };
 		CEEEEEA72F9EF1BC00665A30 /* HomeViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = HomeViewController.css; sourceTree = "<group>"; };
+		F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DemosCollectionItemView.c; sourceTree = "<group>"; };
+		84C2E3EC261C07D1773254F0 /* DemosCollectionItemView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemosCollectionItemView.h; sourceTree = "<group>"; };
+		73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DemosCollectionView.c; sourceTree = "<group>"; };
+		A8EE5A964B0C7980A2D249D0 /* DemosCollectionView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemosCollectionView.h; sourceTree = "<group>"; };
+		5B494B9785D852307F27967A /* DemosViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DemosViewController.c; sourceTree = "<group>"; };
+		F9C8530409A93832A522641A /* DemosViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemosViewController.h; sourceTree = "<group>"; };
+		2DA349510962B7CDA15CFEC5 /* DemosViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DemosViewController.json; sourceTree = "<group>"; };
+		DA0022000000000000000002 /* DemoControlsView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DemoControlsView.json; sourceTree = "<group>"; };
+		63E6940BBAB476D15303863E /* DemosViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = DemosViewController.css; sourceTree = "<group>"; };
 		CEF3B5FF2F455C990024F4DF /* voxel.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = voxel.glsl; sourceTree = "<group>"; };
 		CEF3B6012F456F5A0024F4DF /* light.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = light.glsl; sourceTree = "<group>"; };
 		CEF601BA2FE60508005C680C /* Objectively.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Objectively.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3495,6 +3541,9 @@
 				1C923406FE86A096F618B0A6 /* ChaseView.c */,
 				ABD78D80980A456A917E4BEA /* ChatView.h */,
 				2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */,
+				7BAA84C3F169633FB1587357 /* DemoControlsView.h */,
+				7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */,
+				DA0022000000000000000002 /* DemoControlsView.json */,
 				CEA4C0DE2F9800000087C001 /* chrome/hud.css */,
 				CEA4C0DE2F9800000087C002 /* chrome/hud.json */,
 				D1A5B0000000000000000502 /* chrome/intermission.css */,
@@ -4108,6 +4157,8 @@
 				CE12D6A41C5C58C300CD0B13 /* sv_client.h */,
 				CE12D6A51C5C58C300CD0B13 /* sv_console.c */,
 				CE12D6A61C5C58C300CD0B13 /* sv_console.h */,
+				DA0011000000000000000001 /* sv_demo.c */,
+				DA0011000000000000000002 /* sv_demo.h */,
 				CEF75F402EB996E80026CCA4 /* sv_editor.c */,
 				CEF75F3F2EB996E80026CCA4 /* sv_editor.h */,
 				CE12D6A71C5C58C300CD0B13 /* sv_entity.c */,
@@ -4648,6 +4699,14 @@
 				CE7D2C11202F690A004BC58E /* HomeViewController.c */,
 				CEEEEEA72F9EF1BC00665A30 /* HomeViewController.css */,
 				CE7D2C19202F6E80004BC58E /* HomeViewController.json */,
+				84C2E3EC261C07D1773254F0 /* DemosCollectionItemView.h */,
+				F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */,
+				A8EE5A964B0C7980A2D249D0 /* DemosCollectionView.h */,
+				73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */,
+				F9C8530409A93832A522641A /* DemosViewController.h */,
+				5B494B9785D852307F27967A /* DemosViewController.c */,
+				2DA349510962B7CDA15CFEC5 /* DemosViewController.json */,
+				63E6940BBAB476D15303863E /* DemosViewController.css */,
 				CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */,
 				CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */,
 				CEA9B3B56C6E4B3A9F010001 /* LeaderboardViewController.css */,
@@ -5284,6 +5343,7 @@
 				CE80FFB31C5E4A3100A21A51 /* sv_admin.h in Headers */,
 				CE80FFB41C5E4A3100A21A51 /* sv_client.h in Headers */,
 				CE80FFB51C5E4A3100A21A51 /* sv_console.h in Headers */,
+				DA0011000000000000000004 /* sv_demo.h in Headers */,
 				CEF75F422EB996E80026CCA4 /* sv_editor.h in Headers */,
 				CE80FFB61C5E4A3100A21A51 /* sv_entity.h in Headers */,
 				CE80FFB71C5E4A3100A21A51 /* sv_game.h in Headers */,
@@ -5647,6 +5707,7 @@
 				CEA400102F9800000087B100 /* CopyFiles */,
 				6816070175ED2CEC62FB6E56 /* CopyFiles */,
 				EE7162D3228511D41E8B4CB1 /* CopyFiles */,
+				DA0022000000000000000003 /* CopyFiles */,
 				CEA4C0DE2F9800000087C005 /* CopyFiles */,
 				CEA400112F9800000087B100 /* CopyFiles */,
 				CEFEEE000000000000000A03 /* Install module */,
@@ -6599,6 +6660,9 @@
 				CE05B3F030224900C0DE0029 /* EntityView.c in Sources */,
 				CE05B3F030224900C0DE002A /* EntityViewController.c in Sources */,
 				CE05B3F030224900C0DE002B /* HomeViewController.c in Sources */,
+				8C2222B66C5893E999A00A1D /* DemosCollectionItemView.c in Sources */,
+				18C8FD4CB016B0E66708C5E3 /* DemosCollectionView.c in Sources */,
+				552ED498920A44B77CEAEC2E /* DemosViewController.c in Sources */,
 				01209575888A584DAE8F7D25 /* CounterView.c in Sources */,
 				54194A7922708C783B541F5B /* CrosshairView.c in Sources */,
 				24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */,
@@ -6615,6 +6679,7 @@
 				5183CDCD1E2C497586ABBEB2 /* NotifyView.c in Sources */,
 				17A283BF800A49F7BC5D4C4D /* ConsoleText.c in Sources */,
 				21B7C99056194E1E9FC62EF2 /* ChatView.c in Sources */,
+				4DA60E0E0E86520782FCF112 /* DemoControlsView.c in Sources */,
 				D584EC3FC9B74B2DB6B8FE92 /* PingView.c in Sources */,
 				814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */,
 				39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */,
@@ -6757,6 +6822,9 @@
 				CFA000192F9100000000C019 /* EntityView.c in Sources */,
 				CFA0001C2F9100000000C01C /* EntityViewController.c in Sources */,
 				CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */,
+				2E5D2C0CBC38FD1169C77DDB /* DemosCollectionItemView.c in Sources */,
+				91B39671CA4F375D3FEBBDA0 /* DemosCollectionView.c in Sources */,
+				8EF87DE8E42CB34AC627912E /* DemosViewController.c in Sources */,
 				C3241FC475F3D3E3E573AC7B /* CounterView.c in Sources */,
 				863F1E3961ED23FA4D28C1BB /* CrosshairView.c in Sources */,
 				9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */,
@@ -6773,6 +6841,7 @@
 				D9F4D7BEB0EE4A87B8529DDA /* NotifyView.c in Sources */,
 				B58055474A104E479F3F83A2 /* ConsoleText.c in Sources */,
 				622B0D6DA98C42AA8A8D582B /* ChatView.c in Sources */,
+				4932286FA54FFE0479DD188C /* DemoControlsView.c in Sources */,
 				B8A5AAD33BD44C1EA2F1800F /* PingView.c in Sources */,
 				5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */,
 				DD02E1ABB673209C4A8D0EFC /* WeaponBarView.c in Sources */,
@@ -7078,6 +7147,7 @@
 				CE80FFA81C5E4A2800A21A51 /* sv_admin.c in Sources */,
 				CE80FFA91C5E4A2800A21A51 /* sv_client.c in Sources */,
 				CE80FFAA1C5E4A2800A21A51 /* sv_console.c in Sources */,
+				DA0011000000000000000003 /* sv_demo.c in Sources */,
 				CEF75F412EB996E80026CCA4 /* sv_editor.c in Sources */,
 				CE80FFAB1C5E4A2800A21A51 /* sv_entity.c in Sources */,
 				CE80FFAC1C5E4A2800A21A51 /* sv_game.c in Sources */,
@@ -7223,6 +7293,9 @@
 				CEC0FF002026010300000189 /* EntityView.c in Sources */,
 				CEC0FF00202601030000018A /* EntityViewController.c in Sources */,
 				CEC0FF00202601030000018B /* HomeViewController.c in Sources */,
+				2FAD5FD12BD7CC3AC13E4E10 /* DemosCollectionItemView.c in Sources */,
+				4884D62AC7509A737141A1F5 /* DemosCollectionView.c in Sources */,
+				55ECBA76D3FED12161978AAF /* DemosViewController.c in Sources */,
 				EF3850D157838948B4F2B64F /* CounterView.c in Sources */,
 				13539C3CA303E97E3DFB80B5 /* CrosshairView.c in Sources */,
 				457008C2AC171BAD836BC9D8 /* HudViewController.c in Sources */,
@@ -7239,6 +7312,7 @@
 				0B59BE03B414411797329FD1 /* NotifyView.c in Sources */,
 				F0E26144AB354006B07FF3E0 /* ConsoleText.c in Sources */,
 				AC814FDD1291470DA9883B6C /* ChatView.c in Sources */,
+				4F0FA3FF26DFBC1FF49D2A63 /* DemoControlsView.c in Sources */,
 				863226968B6B482FB9B13CD1 /* PingView.c in Sources */,
 				CEE21B7B45DA97BAA8A5395F /* TimeView.c in Sources */,
 				E10D01F620BB74E4166A8E7F /* WeaponBarView.c in Sources */,
@@ -7434,6 +7508,9 @@
 				D2A5C100000000000000006D /* EntityView.c in Sources */,
 				D2A5C100000000000000006E /* EntityViewController.c in Sources */,
 				D2A5C100000000000000006F /* HomeViewController.c in Sources */,
+				73DBBF49A55BBA6FB35431A6 /* DemosCollectionItemView.c in Sources */,
+				00FE572C5C861491D333D0DC /* DemosCollectionView.c in Sources */,
+				1707413E7413614CF7F308EE /* DemosViewController.c in Sources */,
 				6C7870B960DDA48FF5959231 /* CounterView.c in Sources */,
 				2C3ADE327DEBD6F3955255E7 /* CrosshairView.c in Sources */,
 				16842F99305E37AEE91A82E4 /* HudViewController.c in Sources */,
@@ -7450,6 +7527,7 @@
 				9A8A8F490F0A41FDB55A317F /* NotifyView.c in Sources */,
 				4E265AE532584E47A2D20258 /* ConsoleText.c in Sources */,
 				B0F1E4D1823545B993F57B81 /* ChatView.c in Sources */,
+				86605B56F326AB08CF8B574D /* DemoControlsView.c in Sources */,
 				AD9B2D464FD840D5A031FC6A /* PingView.c in Sources */,
 				8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */,
 				5D26ECD45D3B9CEDA1FCE596 /* WeaponBarView.c in Sources */,

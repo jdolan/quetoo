@@ -1,0 +1,43 @@
+{
+  "subviews": [
+    {
+      "class": "Button",
+      "identifier": "rewind",
+      "image": "pics/rewind.svg@24x24"
+    },
+    {
+      "class": "Button",
+      "identifier": "stepBack",
+      "image": "pics/step_back.svg@24x24"
+    },
+    {
+      "class": "Button",
+      "identifier": "play",
+      "image": "pics/play.svg@24x24"
+    },
+    {
+      "class": "Slider",
+      "identifier": "scrubber",
+      "classNames": ["scrubber"]
+    },
+    {
+      "class": "Button",
+      "identifier": "stepForward",
+      "image": "pics/step_forward.svg@24x24"
+    },
+    {
+      "class": "Button",
+      "identifier": "fastForward",
+      "image": "pics/fast_forward.svg@24x24"
+    },
+    {
+      "class": "CvarSlider",
+      "identifier": "speed",
+      "classNames": ["speed"],
+      "var": "time_scale",
+      "values": [0.25, 0.5, 0.75, 1.0, 2.0, 3.0],
+      "value": 1.0,
+      "labelFormat": "%gx"
+    }
+  ]
+}

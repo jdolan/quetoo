@@ -103,6 +103,12 @@ cguieditor_DATA = \
 	$(CGUI_DIR)/editor/MeshViewController.json \
 	$(CGUI_DIR)/editor/editor.css
 
+cguihuddir = \
+	@PKGLIBDIR@/default/ui/hud
+
+cguihud_DATA = \
+	$(CGUI_DIR)/hud/DemoControlsView.json
+
 cguihuddefaultdir = \
 	@PKGLIBDIR@/default/ui/hud/default
 
@@ -129,6 +135,8 @@ cguihomedir = \
 	@PKGLIBDIR@/default/ui/home
 
 cguihome_DATA = \
+	$(CGUI_DIR)/home/DemosViewController.css \
+	$(CGUI_DIR)/home/DemosViewController.json \
 	$(CGUI_DIR)/home/HomeViewController.css \
 	$(CGUI_DIR)/home/HomeViewController.json \
 	$(CGUI_DIR)/home/LeaderboardViewController.css \
@@ -241,6 +249,9 @@ cgame_la_SOURCES = \
 	ui/editor/EntityViewController.c \
 	ui/editor/MaterialViewController.c \
 	ui/editor/MeshViewController.c \
+	ui/home/DemosCollectionItemView.c \
+	ui/home/DemosCollectionView.c \
+	ui/home/DemosViewController.c \
 	ui/home/HomeViewController.c \
 	ui/home/LeaderboardViewController.c \
 	ui/home/StatsViewController.c \
@@ -251,6 +262,7 @@ cgame_la_SOURCES = \
 	ui/hud/ChaseView.c \
 	ui/hud/CounterView.c \
 	ui/hud/CrosshairView.c \
+	ui/hud/DemoControlsView.c \
 	ui/hud/DiagnosticsView.c \
 	ui/hud/FpsView.c \
 	ui/hud/HudViewController.c \

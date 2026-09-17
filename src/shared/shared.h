@@ -496,6 +496,7 @@ typedef enum {
   SV_CMD_PRINT, // [byte] id [string] null terminated string
   SV_CMD_RECONNECT,
   SV_CMD_SERVER_DATA, // [long] protocol ...
+  SV_CMD_DEMO_INFO, // [long] duration in ms, [byte] paused; from a demo relay, on every change
   SV_CMD_CGAME, // the game may extend from here
 } sv_packet_cmd_t;
 

@@ -177,7 +177,7 @@ dnl ------------------------
 dnl Check for ObjectivelyMVC
 dnl ------------------------
 
-PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC >= 2.5.0])
+PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC >= 2.5.3])
 
 dnl ------------------------------------------------
 dnl Check for offline shader cross-compilation tools

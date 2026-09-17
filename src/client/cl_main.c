@@ -225,7 +225,7 @@ static void Cl_Rcon_f(void) {
  * locally by the client will be sent to the server. Some will undergo parameter
  * expansion so that players can use macros for locations, weapons, etc.
  */
-static void Cl_ForwardCmdToServer(void) {
+void Cl_ForwardCmdToServer(void) {
 
   if (cls.state <= CL_DISCONNECTED) {
     Com_Print("%s: Not connected\n", Cmd_Argv(0));
@@ -268,6 +268,11 @@ void Cl_ClearState(void) {
   S_NextTrack_f();
 
   memset(&cl, 0, sizeof(cl));
+
+  // playback always starts unpaused; leaving this set would keep routing pointer events to the
+  // UI (see Ui_HandleEvent) long after the demo is gone. Note that cls.demo.duration must *not*
+  // be cleared here: SV_CMD_DEMO_INFO arrives just ahead of the SV_CMD_SERVER_DATA that calls us
+  cls.demo.paused = false;
 
   Mem_ClearBuffer(&cls.net_chan.message);
 }
@@ -554,9 +559,11 @@ static void Cl_InitLocal(void) {
   Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);
   Cmd_Add("servers", Cl_Servers_f, CMD_CLIENT, NULL);
   Cmd_Add("record", Cl_Record_f, CMD_CLIENT, NULL);
-  Cmd_Add("fast_forward", Cl_FastForward_f, CMD_CLIENT, NULL);
   Cmd_Add("servers_list", Cl_Servers_List_f, CMD_CLIENT, NULL);
-  Cmd_Add("slow_motion", Cl_SlowMotion_f, CMD_CLIENT, NULL);
+  Cmd_Add("demo_playback_faster", Cl_DemoPlaybackFaster_f, CMD_CLIENT, NULL);
+  Cmd_Add("demo_playback_slower", Cl_DemoPlaybackSlower_f, CMD_CLIENT, NULL);
+  Cmd_Add("demo_playback_speed", Cl_SetDemoPlaybackSpeed_f, CMD_CLIENT, NULL);
+  Cmd_Add("demo_pause", Cl_DemoPause_f, CMD_CLIENT, NULL);
   Cmd_Add("stop", Cl_Stop_f, CMD_CLIENT, NULL);
   Cmd_Add("connect", Cl_Connect_f, CMD_CLIENT, NULL);
   Cmd_Add("reconnect", Cl_Reconnect_f, CMD_CLIENT, NULL);

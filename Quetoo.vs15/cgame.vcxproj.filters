@@ -246,6 +246,9 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\ChatView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\hud\DemoControlsView.h">
+      <Filter>src\common\ui\hud</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\ConsoleText.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
@@ -287,6 +290,15 @@
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\editor\MeshViewController.h">
       <Filter>src\common\ui\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\home\DemosCollectionItemView.h">
+      <Filter>src\common\ui\home</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\home\DemosCollectionView.h">
+      <Filter>src\common\ui\home</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\home\DemosViewController.h">
+      <Filter>src\common\ui\home</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\home\HomeViewController.h">
       <Filter>src\common\ui\home</Filter>
@@ -548,6 +560,9 @@
     <ClCompile Include="..\src\cgame\common\ui\hud\ChatView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\hud\DemoControlsView.c">
+      <Filter>src\common\ui\hud</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\ConsoleText.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
@@ -589,6 +604,15 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\editor\MeshViewController.c">
       <Filter>src\common\ui\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionItemView.c">
+      <Filter>src\common\ui\home</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionView.c">
+      <Filter>src\common\ui\home</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\home\DemosViewController.c">
+      <Filter>src\common\ui\home</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\home\HomeViewController.c">
       <Filter>src\common\ui\home</Filter>

@@ -35,8 +35,11 @@ static void Sv_New_f(void) {
     return;
   }
 
-  // demo servers will send the demo file's server info packet
+  // demo servers send the demo file's server info packet via the relay itself; what that blob
+  // can't carry is duration (written only once the recording stopped) or pause state, so those
+  // go separately, here and on every later change
   if (svs.state == SV_ACTIVE_DEMO) {
+    Sv_SendDemoInfo();
     return;
   }
 
@@ -237,6 +240,9 @@ static sv_user_string_cmd_t sv_user_string_cmds[] = { // mapping command names t
   { "begin", Sv_Begin_f },
   { "disconnect", Sv_Disconnect_f },
   { "info", Sv_Info_f },
+  { "demo_seek", Sv_DemoSeek_f },
+  { "demo_seek_relative", Sv_DemoSeekRelative_f },
+  { "demo_pause", Sv_DemoPause_f },
   { NULL, NULL }
 };
 

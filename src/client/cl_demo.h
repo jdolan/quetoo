@@ -27,6 +27,8 @@
 void Cl_WriteDemoMessage(void);
 void Cl_Record_f(void);
 void Cl_Stop_f(void);
-void Cl_FastForward_f(void);
-void Cl_SlowMotion_f(void);
+void Cl_SetDemoPlaybackSpeed_f(void);
+void Cl_DemoPlaybackFaster_f(void);
+void Cl_DemoPlaybackSlower_f(void);
+void Cl_DemoPause_f(void);
 #endif

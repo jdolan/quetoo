@@ -126,7 +126,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set developer 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set editor 1"
@@ -138,7 +138,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+game race"
@@ -158,7 +158,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+give all"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+give quad damage"

@@ -103,7 +103,7 @@ static void fetchHeroImages(void *data) {
       }
 
 			if (image == NULL) {
-				image = $$(Image, imageWithBytes, image_data->bytes, image_data->length);
+				image = $$(Image, imageWithBytes, image_data->bytes, image_data->length, 1.f);
 			}
 
 			if (image) {

@@ -56,10 +56,6 @@ static const char *DEFAULT_BINDS =
     "bind \"mouse wheel up\" cg_weapon_previous\n"
     "bind \"mouse wheel down\" cg_weapon_next\n"
 
-    // demo playback rate
-    "bind , slow_motion\n"
-    "bind . fast_forward\n"
-
     // score
     "bind tab +score\n"
 
