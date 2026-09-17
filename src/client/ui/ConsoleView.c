@@ -76,7 +76,7 @@ static View *init(View *self) {
     $(self->style, addEnumAttribute, "autoresizing-mask", ViewAutoresizingNames, ViewAutoresizingWidth);
     $(self->style, addBoolAttribute, "clips-subviews", true);
 
-    Image *conback = $$(Image, imageWithResourceName, "ui/conback.png");
+    Image *conback = $$(Image, imageWithResourceName, "ui/conback.png", 1.f);
     if (conback) {
       this->background = $(alloc(ImageView), initWithImage, conback);
       assert(this->background);
