@@ -326,46 +326,96 @@ void Cl_Record_f(void) {
   Com_Print("Recording to %s\n", cls.demo.filename);
 }
 
-#define DEMO_PLAYBACK_MIN 0.25
-#define DEMO_PLAYBACK_MAX 8.0
+/**
+ * @brief The demo playback rates, ascending.
+ * @remarks This table MUST be kept in step with the `values` of the speed slider in
+ * `ui/hud/DemoControlsView.json`, and MUST stay within the `time_scale` bounds enforced
+ * by `main.c`.
+ */
+static const float demo_playback_speeds[] = { 0.25f, 0.5f, 0.75f, 1.f, 2.f, 3.f };
 
 /**
- * @brief Scales demo playback rate by the given factor, clamping to the same bounds the transport
- * controls offer. Geometric rather than additive, because playback rate is perceived that way:
- * the step from 0.25 to 0.5 is as large a change as the one from 4 to 8.
+ * @brief
  */
-static void Cl_AdjustDemoPlayback(float factor) {
+static void Cl_SetDemoPlaybackSpeed(ssize_t index) {
 
   if (!cl.demo_server) {
     return;
   }
 
-  Cvar_ForceSetValue(time_scale->name,
-                     Clampf(time_scale->value * factor, DEMO_PLAYBACK_MIN, DEMO_PLAYBACK_MAX));
+  index = SDL_clamp(index, 0, (ssize_t) lengthof(demo_playback_speeds) - 1);
+
+  Cvar_ForceSetValue(time_scale->name, demo_playback_speeds[index]);
 
   Com_Print("Demo playback rate %d%%\n", (int32_t) (time_scale->value * 100));
 }
 
 /**
- * @brief Handles the `cl_fast_forward` command, increasing demo playback speed.
+ * @return The index in `demo_playback_speeds` nearest the current `time_scale`.
  */
-void Cl_FastForward_f(void) {
-  Cl_AdjustDemoPlayback(2.0);
+static size_t Cl_DemoPlaybackSpeedIndex(void) {
+
+  size_t index = 0;
+  float nearest = FLT_MAX;
+
+  for (size_t i = 0; i < lengthof(demo_playback_speeds); i++) {
+    const float delta = fabsf(demo_playback_speeds[i] - time_scale->value);
+    if (delta < nearest) {
+      nearest = delta;
+      index = i;
+    }
+  }
+
+  return index;
 }
 
 /**
- * @brief Handles the `cl_slow_motion` command, decreasing demo playback speed.
+ * @brief
  */
-void Cl_SlowMotion_f(void) {
-  Cl_AdjustDemoPlayback(0.5);
+void Cl_SetDemoPlaybackSpeed_f(void) {
+
+  const char *arg = Cmd_Argv(1);
+
+  if (Cmd_Argc() != 2 || !SDL_isdigit(*arg)) {
+    Com_Print("Usage: %s [0-%d]\n", Cmd_Argv(0), (int32_t) lengthof(demo_playback_speeds) - 1);
+    return;
+  }
+
+  Cl_SetDemoPlaybackSpeed((ssize_t) strtol(arg, NULL, 10));
+}
+
+/**
+ * @brief
+ */
+static void Cl_SetDemoPlaybackSpeedRelative(int32_t increment) {
+
+  if (!cl.demo_server) {
+    return;
+  }
+
+  Cl_SetDemoPlaybackSpeed((ssize_t) Cl_DemoPlaybackSpeedIndex() + increment);
+}
+
+/**
+ * @brief Handles the `demo_playback_faster` command, increasing demo playback speed.
+ */
+void Cl_DemoPlaybackFaster_f(void) {
+  Cl_SetDemoPlaybackSpeedRelative(+1);
+}
+
+/**
+ * @brief Handles the `demo_playback_slower` command, decreasing demo playback speed.
+ */
+void Cl_DemoPlaybackSlower_f(void) {
+  Cl_SetDemoPlaybackSpeedRelative(-1);
 }
 
 /**
  * @brief Handles the `demo_pause` command by forwarding it to the demo relay, which owns pause
- * state and reports it back via SV_CMD_DEMO_INFO. Nothing is toggled locally: the server pauses
+ * state and reports it back via @c SV_CMD_DEMO_INFO. Nothing is toggled locally: the server pauses
  * on its own when playback reaches the last frame, and a local guess would desync from that.
  * `cls.demo.paused` then frees the mouse and shows the cursor so the transport controls can be
- * clicked, all without leaving KEY_GAME - KEY_UI would hide the HUD, and those controls with it.
+ * clicked, all without leaving @c KEY_GAME - @c KEY_UI would hide the HUD, and those controls with it.
  */
 void Cl_DemoPause_f(void) {
 

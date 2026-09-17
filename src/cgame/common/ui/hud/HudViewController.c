@@ -101,9 +101,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
   if (event->type == SDL_EVENT_KEY_DOWN) {
     if (cgi.client->demo_server && cgi.GetKeyDest() == KEY_GAME) {
-      if ($(this->demoControls, respondToKey, event->key.scancode, event->key.repeat)) {
-        return;
-      }
+      $((View *) this->demoControls, respondToEvent, event);
     }
   }
 

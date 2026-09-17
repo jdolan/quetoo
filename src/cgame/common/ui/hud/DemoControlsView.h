@@ -76,11 +76,6 @@ struct DemoControlsView {
    * @brief Adjusts `time_scale`.
    */
   Slider *speedSlider;
-
-  /**
-   * @brief The playback rate `speedSlider` currently selects, e.g. `0.25x`.
-   */
-  Text *speedLabel;
 };
 
 struct DemoControlsViewInterface {
@@ -109,20 +104,6 @@ struct DemoControlsViewInterface {
    * @memberof DemoControlsView
    */
   void (*update)(DemoControlsView *self, int32_t time, int32_t duration);
-
-  /**
-   * @fn bool DemoControlsView::respondToKey(DemoControlsView *self, SDL_Scancode key, bool repeat)
-   * @brief Applies the transport key, if any, that `key` is bound to.
-   * @param key The scancode of a key that was just pressed.
-   * @param repeat True if this is an auto-repeat rather than an initial press. Seeking acts on
-   * repeats so that the key can be held; the others claim the key but ignore them.
-   * @return True if the key was a transport control and has been handled.
-   * @remarks These are fixed keys rather than rebindable binds: they exist only while viewing a
-   * demo, where none of the movement or weapon binds they would otherwise collide with mean
-   * anything. HudViewController routes key events here (see its `respondToEvent`).
-   * @memberof DemoControlsView
-   */
-  bool (*respondToKey)(DemoControlsView *self, SDL_Scancode key, bool repeat);
 };
 
 CGAME_EXPORT Class *_DemoControlsView(void);

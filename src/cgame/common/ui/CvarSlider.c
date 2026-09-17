@@ -75,11 +75,17 @@ static void updateBindings(View *self, ident data) {
  */
 static void setValue(Slider *self, double value) {
 
+  const double previous = self->value;
+
   super(Slider, self, setValue, value);
 
+  // write what the Slider actually settled on, not the requested value: it may have been
+  // clamped to min/max, or snapped to an entry of a non-linear `values` table. Writing only
+  // on a change also spares CVAR_DEVELOPER variables a rejection notice on every refresh.
+
   const CvarSlider *this = (CvarSlider *) self;
-  if (this->var) {
-    cgi.SetCvarValue(this->var->name, value);
+  if (this->var && self->value != previous) {
+    cgi.SetCvarValue(this->var->name, self->value);
   }
 }
 

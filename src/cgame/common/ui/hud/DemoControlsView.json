@@ -21,14 +21,13 @@
       "image": "pics/fast_forward.svg@24x24"
     },
     {
-      "class": "Slider",
+      "class": "CvarSlider",
       "identifier": "speed",
-      "classNames": ["speed"]
-    },
-    {
-      "class": "Text",
-      "identifier": "speedLabel",
-      "classNames": ["speedLabel"]
+      "classNames": ["speed"],
+      "var": "time_scale",
+      "values": [0.25, 0.5, 0.75, 1.0, 2.0, 3.0],
+      "value": 1.0,
+      "labelFormat": "%gx"
     }
   ]
 }

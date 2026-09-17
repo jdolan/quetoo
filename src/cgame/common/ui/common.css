@@ -306,14 +306,7 @@ DemoControlsView .speed {
   pointer-events: auto;
 }
 
-/* the speed slider's value is an index into demo_speeds, so its built-in label would read "3",
-   not "1x"; .speedLabel carries the rate instead */
-
 DemoControlsView .speed > .label {
-  visibility: hidden;
-}
-
-DemoControlsView .speedLabel {
   alignment: middle-left;
   min-width: 40;
 }

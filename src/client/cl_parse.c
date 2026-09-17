@@ -287,8 +287,8 @@ static void Cl_ParseServerData(void) {
   if (cl.demo_server) {
     Com_Print("Demo playback controls:\n"
               "  Pause/resume:  SPACE\n"
-              "  Seek -10s:     LEFT\n"
-              "  Seek +10s:     RIGHT\n"
+              "  Prev frame:    LEFT\n"
+              "  Next frame:    RIGHT\n"
               "  Slower/faster: , / .\n");
   }
 

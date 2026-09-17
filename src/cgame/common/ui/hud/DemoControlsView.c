@@ -25,42 +25,13 @@
 
 #define _Class _DemoControlsView
 
-/**
- * @brief The playback rates the speed slider offers. The slider's own value is an index into
- * this, not a rate: the rates are not evenly spaced, and a linear slider over 0.25 to 8 would
- * bury everything below 1x - slow motion - in the leftmost tenth of its travel.
- */
-static const double demo_speeds[] = { 0.25, 0.5, 0.75, 1.0, 2.0, 4.0, 8.0 };
-
-/**
- * @brief The index in `demo_speeds` of 1x, the rate a demo starts playing at.
- */
-#define DEMO_SPEED_DEFAULT 3
-
-/**
- * @brief Resolves the slider index whose rate is closest to `speed`, so the handle can be placed
- * from a time_scale set by anything else (the fast_forward / slow_motion binds, or the console).
- */
-static double demoSpeedIndex(double speed) {
-
-  size_t best = DEMO_SPEED_DEFAULT;
-  for (size_t i = 0; i < lengthof(demo_speeds); i++) {
-    if (fabs(demo_speeds[i] - speed) < fabs(demo_speeds[best] - speed)) {
-      best = i;
-    }
-  }
-
-  return (double) best;
-}
-
-
 #pragma mark - Delegates
 
 /**
  * @brief ButtonDelegate for the rewind button.
  */
 static void didClickRewind(Button *button) {
-  cgi.Cbuf("demo_seek_relative -10000\n");
+  cgi.Cbuf("demo_seek_relative -5000\n");
 }
 
 /**
@@ -74,7 +45,7 @@ static void didClickPlay(Button *button) {
  * @brief ButtonDelegate for the fast-forward button.
  */
 static void didClickFastForward(Button *button) {
-  cgi.Cbuf("demo_seek_relative 10000\n");
+  cgi.Cbuf("demo_seek_relative 5000\n");
 }
 
 /**
@@ -84,14 +55,49 @@ static void didSetScrubber(Slider *slider, double value) {
   cgi.Cbuf(va("demo_seek %d\n", (int32_t) value));
 }
 
+#pragma mark - View
+
 /**
- * @brief SliderDelegate for the speed slider: maps the slider's index to a playback rate.
+ * @see View::respondToEvent(View *, const SDL_Event *)
+ * @remarks HudViewController dispatches here directly. Views are not in the responder chain for
+ * key events, and this one is hidden during playback in any case, which is when pause has to
+ * work. Nothing is forwarded to super for the same reason: bubbling would walk a chain this View
+ * was never in, pushing an MVC_VIEW_EVENT for every ancestor on every keystroke.
  */
-static void didSetSpeed(Slider *slider, double value) {
+static void respondToEvent(View *self, const SDL_Event *event) {
 
-  const size_t index = (size_t) Clampf((float) value, 0, lengthof(demo_speeds) - 1);
+  if (event->type != SDL_EVENT_KEY_DOWN) {
+    return;
+  }
 
-  cgi.ForceSetCvarValue("time_scale", (float) demo_speeds[index]);
+  switch (event->key.scancode) {
+
+    case SDL_SCANCODE_LEFT:
+      cgi.Cbuf("demo_seek_relative -25\n");
+      break;
+    case SDL_SCANCODE_RIGHT:
+      cgi.Cbuf("demo_seek_relative  25\n");
+      break;
+
+    case SDL_SCANCODE_SPACE:
+      if (!event->key.repeat) {
+        cgi.Cbuf("demo_pause\n");
+      }
+      break;
+    case SDL_SCANCODE_COMMA:
+      if (!event->key.repeat) {
+        cgi.Cbuf("demo_playback_slower\n");
+      }
+      break;
+    case SDL_SCANCODE_PERIOD:
+      if (!event->key.repeat) {
+        cgi.Cbuf("demo_playback_faster\n");
+      }
+      break;
+
+    default:
+      break;
+  }
 }
 
 #pragma mark - DemoControlsView
@@ -110,8 +116,7 @@ static DemoControlsView *initWithFrame(DemoControlsView *self, const SDL_Rect *f
       MakeOutlet("play", &self->playButton),
       MakeOutlet("scrubber", &self->scrubber),
       MakeOutlet("fastForward", &self->fastForwardButton),
-      MakeOutlet("speed", &self->speedSlider),
-      MakeOutlet("speedLabel", &self->speedLabel)
+      MakeOutlet("speed", &self->speedSlider)
     );
 
     View *this = (View *) self;
@@ -119,73 +124,21 @@ static DemoControlsView *initWithFrame(DemoControlsView *self, const SDL_Rect *f
     $(this, awakeWithResourceName, "ui/hud/DemoControlsView.json");
     $(this, resolve, outlets);
 
-    self->rewindButton->delegate = (ButtonDelegate) {
-      .self = self,
-      .didClick = didClickRewind
-    };
+    self->rewindButton->delegate.self = self;
+    self->rewindButton->delegate.didClick = didClickRewind;
 
-    self->playButton->delegate = (ButtonDelegate) {
-      .self = self,
-      .didClick = didClickPlay
-    };
+    self->playButton->delegate.self = self;
+    self->playButton->delegate.didClick = didClickPlay;
 
-    self->fastForwardButton->delegate = (ButtonDelegate) {
-      .self = self,
-      .didClick = didClickFastForward
-    };
+    self->fastForwardButton->delegate.self = self;
+    self->fastForwardButton->delegate.didClick = didClickFastForward;
 
-    self->scrubber->min = 0.0;
     self->scrubber->delegate.self = self;
     self->scrubber->delegate.didSetValue = didSetScrubber;
 
-    self->speedSlider->min = 0.0;
-    self->speedSlider->max = lengthof(demo_speeds) - 1;
-    self->speedSlider->step = 1.0;
-    self->speedSlider->snapToStep = true;
-    self->speedSlider->value = demoSpeedIndex(cgi.GetCvarValue("time_scale"));
-    self->speedSlider->delegate.self = self;
-    self->speedSlider->delegate.didSetValue = didSetSpeed;
   }
 
   return self;
-}
-
-/**
- * @fn bool DemoControlsView::respondToKey(DemoControlsView *self, SDL_Scancode key, bool repeat)
- * @memberof DemoControlsView
- */
-static bool respondToKey(DemoControlsView *self, SDL_Scancode key, bool repeat) {
-
-  switch (key) {
-    case SDL_SCANCODE_LEFT:
-      // seeking repeats, so the key can be held to scan through a recording
-      cgi.Cbuf("demo_seek_relative -10000\n");
-      return true;
-    case SDL_SCANCODE_RIGHT:
-      cgi.Cbuf("demo_seek_relative 10000\n");
-      return true;
-
-    // pause would flicker and the speed steps would run away at the repeat rate, so these act
-    // only on the initial press, while still claiming the key
-    case SDL_SCANCODE_SPACE:
-      if (!repeat) {
-        cgi.Cbuf("demo_pause\n");
-      }
-      return true;
-    case SDL_SCANCODE_COMMA:
-      if (!repeat) {
-        cgi.Cbuf("slow_motion\n");
-      }
-      return true;
-    case SDL_SCANCODE_PERIOD:
-      if (!repeat) {
-        cgi.Cbuf("fast_forward\n");
-      }
-      return true;
-
-    default:
-      return false;
-  }
 }
 
 /**
@@ -201,13 +154,10 @@ static void update(DemoControlsView *self, int32_t time, int32_t duration) {
     $((Slider *) self->scrubber, setValue, time);
   }
 
-  const double speed = cgi.GetCvarValue("time_scale");
-
+  // the slider owns time_scale, so only pull from the cvar when the user isn't dragging
   if (!(self->speedSlider->control.state & ControlStateHighlighted)) {
-    $((Slider *) self->speedSlider, setValue, demoSpeedIndex(speed));
+    $((View *) self->speedSlider, updateBindings, NULL);
   }
-
-  $(self->speedLabel, setText, va("%gx", speed));
 }
 
 #pragma mark - Class lifecycle
@@ -217,8 +167,9 @@ static void update(DemoControlsView *self, int32_t time, int32_t duration) {
  */
 static void initialize(Class *clazz) {
 
+  ((ViewInterface *) clazz->interface)->respondToEvent = respondToEvent;
+
   ((DemoControlsViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
-  ((DemoControlsViewInterface *) clazz->interface)->respondToKey = respondToKey;
   ((DemoControlsViewInterface *) clazz->interface)->update = update;
 }
 
