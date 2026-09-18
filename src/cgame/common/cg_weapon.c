@@ -132,6 +132,10 @@ void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
     return; // spectating
   }
 
+  if (cgi.client->demo_server && cg_state.demo_camera_mode == CAMERA_SPECTATE) {
+    return; // the camera has left the recorded player behind, and their weapon with it
+  }
+
   const int16_t tag = ps->stats[STAT_WEAPON] & 0xFF;
   if (tag < WEAPON_FIRST || tag >= WEAPON_LAST) {
     return; // no weapon, e.g. level intermission

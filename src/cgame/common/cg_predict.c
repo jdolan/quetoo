@@ -188,7 +188,12 @@ void Cg_UpdateSpectate(pm_cmd_t *cmd) {
   if (!cg_state.spectate.initialized) {
     cg_state.spectate.state.type = PM_SPECTATOR;
     cg_state.spectate.state.origin = cgi.view->origin;
-    cg_state.spectate.state.view_angles = cgi.view->angles;
+
+    // take over the look angles from wherever the camera is pointing, rather than from the
+    // recorded player's aim, which is what cgi.client->angles still holds: Cg_UpdateAngles stops
+    // syncing it once this mode resolves the view, and every move from here reads it back
+    cgi.client->angles = cgi.view->angles;
+
     cg_state.spectate.initialized = true;
   }
 
