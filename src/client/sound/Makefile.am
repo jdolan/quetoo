@@ -1,4 +1,5 @@
 noinst_HEADERS = \
+	s_device.h \
 	s_local.h \
 	s_main.h \
 	s_media.h \
@@ -13,6 +14,7 @@ noinst_LTLIBRARIES = \
 	libsound.la
 
 libsound_la_SOURCES = \
+	s_device.c \
 	s_main.c \
 	s_media.c \
 	s_mix.c \

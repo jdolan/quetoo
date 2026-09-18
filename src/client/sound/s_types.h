@@ -289,11 +289,6 @@ typedef struct {
   ALCcontext *context;
 
   /**
-   * @brief The SDL playback stream that drives rendering of the loopback device.
-   */
-  SDL_AudioStream *stream;
-
-  /**
    * @brief True once SDL audio is up, whether or not OpenAL initialization went on to succeed.
    */
   bool initialized;

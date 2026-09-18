@@ -24,6 +24,7 @@
     <ClInclude Include="..\..\src\client\sound\s_main.h" />
     <ClInclude Include="..\..\src\client\sound\s_media.h" />
     <ClInclude Include="..\..\src\client\sound\s_mix.h" />
+    <ClInclude Include="..\..\src\client\sound\s_device.h" />
     <ClInclude Include="..\..\src\client\sound\s_music.h" />
     <ClInclude Include="..\..\src\client\sound\s_voice.h" />
     <ClInclude Include="..\..\src\client\sound\s_sample.h" />
@@ -33,6 +34,7 @@
     <ClCompile Include="..\..\src\client\sound\s_main.c" />
     <ClCompile Include="..\..\src\client\sound\s_media.c" />
     <ClCompile Include="..\..\src\client\sound\s_mix.c" />
+    <ClCompile Include="..\..\src\client\sound\s_device.c" />
     <ClCompile Include="..\..\src\client\sound\s_music.c" />
     <ClCompile Include="..\..\src\client\sound\s_voice.c" />
     <ClCompile Include="..\..\src\client\sound\s_sample.c" />

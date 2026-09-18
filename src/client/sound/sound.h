@@ -23,6 +23,7 @@
 
 #include "common/common.h"
 
+#include "s_device.h"
 #include "s_main.h"
 #include "s_media.h"
 #include "s_mix.h"
@@ -34,7 +35,6 @@
 extern s_context_t s_context;
 
 extern cvar_t *s_ambient_volume;
-extern cvar_t *s_buffer_frames;
 extern cvar_t *s_doppler;
 extern cvar_t *s_effects;
 extern cvar_t *s_effects_volume;

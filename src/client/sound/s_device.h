@@ -21,17 +21,20 @@
 
 #pragma once
 
-extern cvar_t *s_voice;
-extern cvar_t *s_voice_bitrate;
-extern cvar_t *s_capture_gain;
-extern cvar_t *s_voice_loopback;
-extern cvar_t *s_voice_volume;
-
-void S_StartVoice(void);
-void S_StopVoice(void);
+extern cvar_t *s_buffer_frames;
+extern cvar_t *s_capture_device;
 
 #if defined(__S_LOCAL_H__)
-void S_InitVoice(void);
-void S_ShutdownVoice(void);
+bool S_InitPlayback(void);
+void S_ShutdownPlayback(void);
+
+bool S_OpenCapture(int32_t rate);
+void S_CloseCapture(void);
+void S_ResumeCapture(void);
+void S_PauseCapture(void);
+bool S_Capturing(void);
+int32_t S_ReadCapture(void *data, int32_t len);
+
+void S_InitDevices(void);
 
 #endif

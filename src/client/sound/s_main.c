@@ -28,7 +28,6 @@ s_context_t s_context;
 cvar_t *s_get_error;
 
 cvar_t *s_ambient_volume;
-cvar_t *s_buffer_frames;
 cvar_t *s_doppler;
 cvar_t *s_effects;
 cvar_t *s_effects_volume;
@@ -268,79 +267,15 @@ static void S_Stop_f(void) {
 }
 
 /**
- * @brief The stereo frame size of the loopback device's render format.
- */
-#define S_FRAME_SIZE (sizeof(int16_t) * 2)
-
-/**
- * @brief Renders mixed audio on demand for the playback device.
- * @details The loopback device runs no thread of its own: nothing is mixed until this asks for it.
- * Letting SDL pull means SDL's device keeps the clock, and there is no feeder cadence to tune or
- * to drift.
- */
-static void S_RenderSamples(void *data, SDL_AudioStream *stream, int32_t additional, int32_t total) {
-
-  static byte buffer[16384];
-
-  while (additional >= (int32_t) S_FRAME_SIZE) {
-
-    const int32_t bytes = additional < (int32_t) sizeof(buffer) ? additional : (int32_t) sizeof(buffer);
-    const int32_t samples = bytes / S_FRAME_SIZE;
-
-    alcRenderSamplesSOFT(s_context.device, buffer, samples);
-    SDL_PutAudioStreamData(stream, buffer, samples * (int32_t) S_FRAME_SIZE);
-
-    additional -= samples * (int32_t) S_FRAME_SIZE;
-  }
-}
-
-/**
- * @brief Opens the SDL playback device that drives the loopback renderer.
- */
-static bool S_OpenPlayback(void) {
-
-  if (s_buffer_frames->integer > 0) {
-    SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, va("%d", s_buffer_frames->integer));
-  } else {
-    SDL_ResetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES);
-  }
-
-  const SDL_AudioSpec spec = {
-    .format = SDL_AUDIO_S16,
-    .channels = 2,
-    .freq = s_rate->integer,
-  };
-
-  s_context.stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, S_RenderSamples, NULL);
-
-  if (!s_context.stream) {
-    Com_Warn("Failed to open playback device: %s\n", SDL_GetError());
-    return false;
-  }
-
-  SDL_ResumeAudioStreamDevice(s_context.stream);
-
-  SDL_AudioSpec device_spec;
-  int32_t device_frames = 0;
-
-  if (SDL_GetAudioDeviceFormat(SDL_GetAudioStreamDevice(s_context.stream), &device_spec, &device_frames)) {
-    Com_Print("  Playback:   ^2%s^7\n", SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(s_context.stream)));
-    Com_Print("  Buffer:     ^2%d frames (%.1fms) @ %dhz^7\n", device_frames,
-              device_frames * 1000.f / device_spec.freq, device_spec.freq);
-  }
-
-  return true;
-}
-
-/**
  * @brief Initializes variables and commands for the sound subsystem.
  */
 static void S_InitLocal(void) {
 
   s_get_error = Cvar_Add("s_get_error", "0", CVAR_DEVELOPER, "Log OpenAL errors to the console (developer tool");
 
+  S_InitDevices();
+
   s_ambient_volume = Cvar_Add("s_ambient_volume", "1", CVAR_ARCHIVE, "Ambient sound volume.");
-  s_buffer_frames = Cvar_Add("s_buffer_frames", "0", CVAR_ARCHIVE | CVAR_S_DEVICE, "Playback buffer size in sample frames, or 0 to let SDL choose. Raise this if audio crackles.");
   s_doppler = Cvar_Add("s_doppler", "1", CVAR_ARCHIVE, "Doppler effect intensity (default 1).");
   s_effects = Cvar_Add("s_effects", "1", CVAR_ARCHIVE | CVAR_S_DEVICE, "Enables advanced sound effects.");
   s_effects_volume = Cvar_Add("s_effects_volume", "1", CVAR_ARCHIVE, "Effects sound volume.");
@@ -420,7 +355,7 @@ void S_Init(void) {
     return;
   }
 
-  if (!S_OpenPlayback()) {
+  if (!S_InitPlayback()) {
     return;
   }
 
@@ -538,10 +473,7 @@ void S_Shutdown(void) {
     return;
   }
 
-  if (s_context.stream) {
-    SDL_DestroyAudioStream(s_context.stream);
-    s_context.stream = NULL;
-  }
+  S_ShutdownPlayback();
 
   if (s_context.context) {
 

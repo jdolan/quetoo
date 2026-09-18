@@ -49,16 +49,13 @@
 #define VOICE_CAPTURE_SAMPLES (VOICE_RATE / 2)
 
 /**
- * @brief The voice thread's tick interval. Deliberately shorter than QUETOO_TICK_MILLIS, which
- * would alias badly against the 20ms frame quantum.
+ * @brief The voice thread's tick interval. Bounds how long a completed frame waits before we
+ * notice it, so shorter is better; it is a free running thread, not tied to the render loop.
  */
-#define VOICE_PUMP_MILLIS 10
+#define VOICE_PUMP_MILLIS 8
 
 static struct {
-  SDL_AudioStream *capture;
-  bool capture_failed;
   bool capture_silent;
-  bool warned_shared_device;
   int32_t silent_frames;
   bool transmitting;
 
@@ -78,9 +75,8 @@ static struct {
 } s_voice_state;
 
 cvar_t *s_voice;
-cvar_t *s_voice_device;
 cvar_t *s_voice_bitrate;
-cvar_t *s_voice_gain;
+cvar_t *s_capture_gain;
 cvar_t *s_voice_loopback;
 cvar_t *s_voice_volume;
 
@@ -89,123 +85,6 @@ cvar_t *s_voice_volume;
  */
 static float S_VoiceGain(void) {
   return Clampf01(s_volume->value) * Clampf01(s_voice_volume->value);
-}
-
-/**
- * @brief Prints the available capture devices, for use with s_voice_device.
- */
-static void S_VoiceDevices_f(void) {
-
-  int32_t count = 0;
-  SDL_AudioDeviceID *devices = SDL_GetAudioRecordingDevices(&count);
-
-  if (!devices || !count) {
-    Com_Print("No capture devices available\n");
-    SDL_free(devices);
-    return;
-  }
-
-  Com_Print("Capture devices:\n");
-
-  for (int32_t i = 0; i < count; i++) {
-    Com_Print("  ^2%s^7\n", SDL_GetAudioDeviceName(devices[i]));
-  }
-
-  SDL_free(devices);
-}
-
-/**
- * @brief Warns when the microphone and the speakers are the same device.
- * @details A Bluetooth headset cannot carry a microphone and high quality audio at once. Opening
- * its microphone moves it from A2DP to the hands free profile, and the operating system drops
- * everything the game plays to 16kHz mono for as long as the key is held. Nothing can be done
- * about that from here, but a player deserves to know why their audio changed.
- */
-static void S_CheckSharedDevice(const char *capture) {
-
-  if (!s_context.stream || s_voice_state.warned_shared_device) {
-    return;
-  }
-
-  const char *playback = SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(s_context.stream));
-
-  if (playback && capture && !q_strcmp(playback, capture)) {
-    Com_Warn("Microphone and speakers are both \"%s\".\n"
-             "If this is a Bluetooth headset, audio quality will drop while you transmit.\n"
-             "Run s_voice_devices and set s_voice_device to a separate microphone to avoid it.\n",
-             capture);
-
-    s_voice_state.warned_shared_device = true;
-  }
-}
-
-/**
- * @brief Resolves s_voice_device to a recording device, falling back to the system default.
- */
-static SDL_AudioDeviceID S_CaptureDevice(void) {
-
-  if (!s_voice_device->string[0]) {
-    return SDL_AUDIO_DEVICE_DEFAULT_RECORDING;
-  }
-
-  int32_t count = 0;
-  SDL_AudioDeviceID *devices = SDL_GetAudioRecordingDevices(&count);
-  SDL_AudioDeviceID device = SDL_AUDIO_DEVICE_DEFAULT_RECORDING;
-
-  for (int32_t i = 0; i < count; i++) {
-    const char *name = SDL_GetAudioDeviceName(devices[i]);
-    if (name && !q_strcmp(name, s_voice_device->string)) {
-      device = devices[i];
-      break;
-    }
-  }
-
-  if (device == SDL_AUDIO_DEVICE_DEFAULT_RECORDING) {
-    Com_Warn("Capture device \"%s\" not found, using the default\n", s_voice_device->string);
-  }
-
-  SDL_free(devices);
-  return device;
-}
-
-/**
- * @brief Opens and starts the capture device, warning once if it is unavailable.
- * @details Capture is opened on first transmission rather than at initialization, so that players
- * who never speak are never prompted for microphone access and never light the recording indicator.
- */
-static bool S_OpenCapture(void) {
-
-  if (s_voice_state.capture) {
-    return true;
-  }
-
-  if (s_voice_state.capture_failed) {
-    return false;
-  }
-
-  const SDL_AudioDeviceID device = S_CaptureDevice();
-
-  const SDL_AudioSpec spec = {
-    .format = SDL_AUDIO_S16,
-    .channels = 1,
-    .freq = VOICE_RATE,
-  };
-
-  s_voice_state.capture = SDL_OpenAudioDeviceStream(device, &spec, NULL, NULL);
-
-  if (!s_voice_state.capture) {
-    Com_Warn("Failed to open capture device: %s\n", SDL_GetError());
-    s_voice_state.capture_failed = true;
-    return false;
-  }
-
-  const char *name = SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(s_voice_state.capture));
-
-  Com_Print("Voice capture opened (%s)\n", name);
-
-  S_CheckSharedDevice(name);
-
-  return true;
 }
 
 /**
@@ -230,7 +109,7 @@ static void S_CheckCaptureSilence(const int16_t *samples, size_t count) {
   if (++s_voice_state.silent_frames == (1000 / VOICE_FRAME_MILLIS) * 3) {
     Com_Warn("Capture device yielded only silence for 3 seconds.\n"
              "Check that microphone access is granted, and that the device is not muted.\n"
-             "Run s_voice_devices and set s_voice_device to choose another.\n");
+             "Run s_capture_device_list and set s_capture_device to choose another.\n");
     s_voice_state.capture_silent = true;
   }
 }
@@ -240,7 +119,7 @@ static void S_CheckCaptureSilence(const int16_t *samples, size_t count) {
  */
 static void S_ApplyCaptureGain(int16_t *samples, size_t count) {
 
-  const float gain = Clampf(s_voice_gain->value, 0.f, 4.f);
+  const float gain = Clampf(s_capture_gain->value, 0.f, 4.f);
 
   if (gain == 1.f) {
     return;
@@ -328,12 +207,12 @@ static void S_QueueVoiceFrame(const int16_t *samples) {
 
 /**
  * @brief Drains the capture device into whole frames, one voice thread tick's worth.
- * @remarks Never opens the device. S_OpenCapture resolves s_voice_device, and cvar strings are
+ * @remarks Never opens the device. S_OpenCapture resolves s_capture_device, and cvar strings are
  * freed and replaced by the main thread, so it runs only from S_StartVoice.
  */
 static void S_PumpVoice(void) {
 
-  if (!s_voice_state.transmitting || !s_voice_state.capture) {
+  if (!s_voice_state.transmitting || !S_Capturing()) {
     return;
   }
 
@@ -344,12 +223,7 @@ static void S_PumpVoice(void) {
     opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_BITRATE(bitrate));
   }
 
-  while (SDL_GetAudioStreamAvailable(s_voice_state.capture) >= (int32_t) sizeof(s_voice_state.frame)) {
-
-    if (SDL_GetAudioStreamData(s_voice_state.capture, s_voice_state.frame,
-                               sizeof(s_voice_state.frame)) != (int32_t) sizeof(s_voice_state.frame)) {
-      break;
-    }
+  while (S_ReadCapture(s_voice_state.frame, sizeof(s_voice_state.frame)) == (int32_t) sizeof(s_voice_state.frame)) {
 
     S_CheckCaptureSilence(s_voice_state.frame, VOICE_FRAME_SAMPLES);
 
@@ -400,27 +274,23 @@ void S_StartVoice(void) {
     return;
   }
 
-  SDL_LockMutex(s_voice_state.mutex);
-
-  if (s_voice_device->modified) {
-    s_voice_device->modified = false;
-
-    if (s_voice_state.capture) {
-      SDL_DestroyAudioStream(s_voice_state.capture);
-      s_voice_state.capture = NULL;
-    }
-
-    s_voice_state.capture_failed = false;
-    s_voice_state.capture_silent = false;
-    s_voice_state.silent_frames = 0;
-    s_voice_state.warned_shared_device = false;
+  if (s_capture_device->modified) {
+    S_CloseCapture();
   }
 
-  if (!s_voice_state.transmitting && S_OpenCapture()) {
+  if (!S_OpenCapture(VOICE_RATE)) {
+    return;
+  }
+
+  SDL_LockMutex(s_voice_state.mutex);
+
+  if (!s_voice_state.transmitting) {
     s_voice_state.transmitting = true;
 
-    SDL_ClearAudioStream(s_voice_state.capture);
-    SDL_ResumeAudioStreamDevice(s_voice_state.capture);
+    s_voice_state.capture_silent = false;
+    s_voice_state.silent_frames = 0;
+
+    S_ResumeCapture();
 
     opus_encoder_ctl(s_voice_state.encoder, OPUS_RESET_STATE);
     opus_decoder_ctl(s_voice_state.decoder, OPUS_RESET_STATE);
@@ -444,10 +314,7 @@ void S_StopVoice(void) {
 
   s_voice_state.transmitting = false;
 
-  if (s_voice_state.capture) {
-    SDL_PauseAudioStreamDevice(s_voice_state.capture);
-    SDL_ClearAudioStream(s_voice_state.capture);
-  }
+  S_PauseCapture();
 
   SDL_UnlockMutex(s_voice_state.mutex);
 }
@@ -460,13 +327,10 @@ void S_InitVoice(void) {
   memset(&s_voice_state, 0, sizeof(s_voice_state));
 
   s_voice = Cvar_Add("s_voice", "1", CVAR_ARCHIVE, "Enables voice chat.");
-  s_voice_device = Cvar_Add("s_voice_device", "", CVAR_ARCHIVE, "The microphone to capture from, or empty for the system default.");
   s_voice_bitrate = Cvar_Add("s_voice_bitrate", "16000", CVAR_ARCHIVE, "Voice chat bitrate, in bits per second.");
-  s_voice_gain = Cvar_Add("s_voice_gain", "1", CVAR_ARCHIVE, "Microphone input gain.");
+  s_capture_gain = Cvar_Add("s_capture_gain", "1", CVAR_ARCHIVE, "Microphone input gain.");
   s_voice_loopback = Cvar_Add("s_voice_loopback", "0", CVAR_DEVELOPER, "Play your own microphone back to you (developer tool).");
   s_voice_volume = Cvar_Add("s_voice_volume", "1", CVAR_ARCHIVE, "Voice chat volume.");
-
-  Cmd_Add("s_voice_devices", S_VoiceDevices_f, CMD_SOUND, "List the available microphones.");
 
   int32_t err;
 
@@ -548,9 +412,7 @@ void S_ShutdownVoice(void) {
     SDL_WaitThread(s_voice_state.thread, NULL);
   }
 
-  if (s_voice_state.capture) {
-    SDL_DestroyAudioStream(s_voice_state.capture);
-  }
+  S_CloseCapture();
 
   if (s_voice_state.encoder) {
     opus_encoder_destroy(s_voice_state.encoder);

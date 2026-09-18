@@ -1095,6 +1095,7 @@
 		CED438E71D9D344E0052BAFA /* s_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6041C5C58C300CD0B13 /* s_media.c */; };
 		CED438E81D9D344E0052BAFA /* s_mix.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6061C5C58C300CD0B13 /* s_mix.c */; };
 		CED438E91D9D344E0052BAFA /* s_music.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6081C5C58C300CD0B13 /* s_music.c */; };
+		CEDE01CE0000000000000002 /* s_device.c in Sources */ = {isa = PBXBuildFile; fileRef = CEDE01CE0000000000000001 /* s_device.c */; };
 		CEEF01CE0000000000000002 /* s_voice.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEF01CE0000000000000001 /* s_voice.c */; };
 		CED438EA1D9D344E0052BAFA /* s_sample.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D60A1C5C58C300CD0B13 /* s_sample.c */; };
 		CED439301D9D344E0052BAFA /* s_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6011C5C58C300CD0B13 /* s_local.h */; };
@@ -1102,6 +1103,7 @@
 		CED439321D9D344E0052BAFA /* s_media.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6051C5C58C300CD0B13 /* s_media.h */; };
 		CED439331D9D344E0052BAFA /* s_mix.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6071C5C58C300CD0B13 /* s_mix.h */; };
 		CED439341D9D344E0052BAFA /* s_music.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6091C5C58C300CD0B13 /* s_music.h */; };
+		CEDE01CE0000000000000004 /* s_device.h in Headers */ = {isa = PBXBuildFile; fileRef = CEDE01CE0000000000000003 /* s_device.h */; };
 		CEEF01CE0000000000000004 /* s_voice.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEF01CE0000000000000003 /* s_voice.h */; };
 		CED439351D9D344E0052BAFA /* s_sample.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D60B1C5C58C300CD0B13 /* s_sample.h */; };
 		CED439361D9D344E0052BAFA /* s_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D60C1C5C58C300CD0B13 /* s_types.h */; };
@@ -2400,8 +2402,10 @@
 		CE12D6061C5C58C300CD0B13 /* s_mix.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = s_mix.c; sourceTree = "<group>"; };
 		CE12D6071C5C58C300CD0B13 /* s_mix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = s_mix.h; sourceTree = "<group>"; };
 		CE12D6081C5C58C300CD0B13 /* s_music.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = s_music.c; sourceTree = "<group>"; };
+		CEDE01CE0000000000000001 /* s_device.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = s_device.c; sourceTree = "<group>"; };
 		CEEF01CE0000000000000001 /* s_voice.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = s_voice.c; sourceTree = "<group>"; };
 		CE12D6091C5C58C300CD0B13 /* s_music.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = s_music.h; sourceTree = "<group>"; };
+		CEDE01CE0000000000000003 /* s_device.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = s_device.h; sourceTree = "<group>"; };
 		CEEF01CE0000000000000003 /* s_voice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = s_voice.h; sourceTree = "<group>"; };
 		CE12D60A1C5C58C300CD0B13 /* s_sample.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = s_sample.c; sourceTree = "<group>"; };
 		CE12D60B1C5C58C300CD0B13 /* s_sample.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = s_sample.h; sourceTree = "<group>"; };
@@ -4142,8 +4146,10 @@
 				CE12D6061C5C58C300CD0B13 /* s_mix.c */,
 				CE12D6071C5C58C300CD0B13 /* s_mix.h */,
 				CE12D6081C5C58C300CD0B13 /* s_music.c */,
+				CEDE01CE0000000000000001 /* s_device.c */,
 				CEEF01CE0000000000000001 /* s_voice.c */,
 				CE12D6091C5C58C300CD0B13 /* s_music.h */,
+				CEDE01CE0000000000000003 /* s_device.h */,
 				CEEF01CE0000000000000003 /* s_voice.h */,
 				CE12D60A1C5C58C300CD0B13 /* s_sample.c */,
 				CE12D60B1C5C58C300CD0B13 /* s_sample.h */,
@@ -5617,6 +5623,7 @@
 				CED439321D9D344E0052BAFA /* s_media.h in Headers */,
 				CED439331D9D344E0052BAFA /* s_mix.h in Headers */,
 				CED439341D9D344E0052BAFA /* s_music.h in Headers */,
+				CEDE01CE0000000000000004 /* s_device.h in Headers */,
 				CEEF01CE0000000000000004 /* s_voice.h in Headers */,
 				CED439351D9D344E0052BAFA /* s_sample.h in Headers */,
 				CED439361D9D344E0052BAFA /* s_types.h in Headers */,
@@ -7563,6 +7570,7 @@
 				CED438E71D9D344E0052BAFA /* s_media.c in Sources */,
 				CED438E81D9D344E0052BAFA /* s_mix.c in Sources */,
 				CED438E91D9D344E0052BAFA /* s_music.c in Sources */,
+				CEDE01CE0000000000000002 /* s_device.c in Sources */,
 				CEEF01CE0000000000000002 /* s_voice.c in Sources */,
 				CED438EA1D9D344E0052BAFA /* s_sample.c in Sources */,
 			);
