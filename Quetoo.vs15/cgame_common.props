@@ -113,6 +113,8 @@
     <ClInclude Include="..\src\cgame\common\ui\home\DemosCollectionItemView.h" />
     <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionView.c" />
     <ClInclude Include="..\src\cgame\common\ui\home\DemosCollectionView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\home\DemoList.c" />
+    <ClInclude Include="..\src\cgame\common\ui\home\DemoList.h" />
     <ClCompile Include="..\src\cgame\common\ui\home\DemosViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\home\DemosViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\home\HomeViewController.c" />
@@ -187,6 +189,8 @@
     <ClInclude Include="..\src\cgame\common\ui\play\CreateServerViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\play\JoinServerViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\play\JoinServerViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\play\MapList.c" />
+    <ClInclude Include="..\src\cgame\common\ui\play\MapList.h" />
     <ClCompile Include="..\src\cgame\common\ui\play\MapListCollectionItemView.c" />
     <ClInclude Include="..\src\cgame\common\ui\play\MapListCollectionItemView.h" />
     <ClCompile Include="..\src\cgame\common\ui\play\MapListCollectionView.c" />

@@ -110,6 +110,7 @@ cgame_la_SOURCES = \
 	ui/editor/EntityViewController.c \
 	ui/editor/MaterialViewController.c \
 	ui/editor/MeshViewController.c \
+	ui/home/DemoList.c \
 	ui/home/DemosCollectionItemView.c \
 	ui/home/DemosCollectionView.c \
 	ui/home/DemosViewController.c \
@@ -149,6 +150,7 @@ cgame_la_SOURCES = \
 	ui/main/UpdateViewController.c \
 	ui/play/CreateServerViewController.c \
 	ui/play/JoinServerViewController.c \
+	ui/play/MapList.c \
 	ui/play/MapListCollectionItemView.c \
 	ui/play/MapListCollectionView.c \
 	ui/play/PlayViewController.c \

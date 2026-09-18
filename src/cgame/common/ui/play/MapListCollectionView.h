@@ -21,10 +21,9 @@
 
 #pragma once
 
-#include <Objectively/Lock.h>
-#include <Objectively/PointerArray.h>
-
 #include <ObjectivelyMVC/CollectionView.h>
+
+#include "MapList.h"
 
 /**
  * @file
@@ -53,14 +52,9 @@ struct MapListCollectionView {
   MapListCollectionViewInterface *interface[0];
 
   /**
-   * @brief A lock used for asynchronous map loading.
+   * @brief The discovered maps, shared with any in-flight background loader.
    */
-  Lock *lock;
-
-  /**
-   * @brief Available maps.
-   */
-  PointerArray *maps;
+  MapList *maps;
 };
 
 /**

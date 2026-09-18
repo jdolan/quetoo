@@ -21,11 +21,9 @@
 
 #pragma once
 
-#include <Objectively/Lock.h>
-#include <Objectively/PointerArray.h>
-
 #include <ObjectivelyMVC/CollectionView.h>
 
+#include "DemoList.h"
 #include "DemosCollectionItemView.h"
 
 /**
@@ -55,27 +53,13 @@ struct DemosCollectionView {
   DemosCollectionViewInterface *interface[0];
 
   /**
-   * @brief A lock used for asynchronous demo loading.
+   * @brief The discovered demos, shared with any in-flight `reloadDemos` loader.
    */
-  Lock *lock;
+  DemoList *demos;
 
   /**
-   * @brief All demos discovered on disk.
-   */
-  PointerArray *demos;
-
-  /**
-   * @brief The subset of `demos` currently visible, per `filter`.
-   */
-  PointerArray *filtered;
-
-  /**
-   * @brief A case-insensitive map name substring filter, or `NULL` for none.
-   */
-  char *filter;
-
-  /**
-   * @brief A sibling View to show in place of this one when `filtered` is empty, or `NULL`.
+   * @brief A sibling View to show in place of this one when `demos` has no visible items, or
+   * `NULL`.
    */
   View *emptyStateView;
 };

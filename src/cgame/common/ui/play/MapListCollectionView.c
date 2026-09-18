@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <Objectively/PointerArray.h>
-
 #include "cg_local.h"
 
 #include "MapListCollectionView.h"
@@ -35,17 +33,6 @@
 #define MAPSHOT_WIDTH  420
 #define MAPSHOT_HEIGHT 236
 
-/**
- * @brief PointerArray destroy function for MapListItemInfo.
- */
-static void freeMapListItemInfo(void *p) {
-  MapListItemInfo *info = p;
-  if (info->mapshot) {
-    SDL_DestroySurface(info->mapshot);
-  }
-  free(info);
-}
-
 #pragma mark CollectionViewDataSource
 
 /**
@@ -55,7 +42,7 @@ static size_t numberOfItems(const CollectionView *collectionView) {
 
   const MapListCollectionView *this = (const MapListCollectionView *) collectionView;
 
-  return this->maps->count;
+  return $(this->maps, count);
 }
 
 /**
@@ -93,32 +80,11 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 #pragma mark - Asynchronous map loading
 
 /**
- * @brief Comparator for map sorting.
- */
-static Order sortMaps(const ident a, const ident b) {
-
-  const MapListItemInfo *c = a;
-  const MapListItemInfo *d = b;
-
-  const char *e = !q_strncmp(c->message, "The ", 4) ? c->message + 4 : c->message;
-  const char *f = !q_strncmp(d->message, "The ", 4) ? d->message + 4 : d->message;
-
-  return q_strcasecmp(e, f) < 0 ? OrderAscending : OrderDescending;
-}
-
-/**
  * @brief Fs_Enumerator for map discovery.
  */
 static void enumerateMaps(const char *path, void *data) {
 
-  MapListCollectionView *this = (MapListCollectionView *) data;
-
-  for (size_t i = 0; i < this->maps->count; i++) {
-    const MapListItemInfo *info = $(this->maps, get, i);
-    if (q_strcmp(info->mapname, path) == 0) {
-      return;
-    }
-  }
+  MapList *maps = data;
 
   file_t *file = cgi.OpenFile(path);
   if (file) {
@@ -207,10 +173,7 @@ static void enumerateMaps(const char *path, void *data) {
 
       release(mapshots);
 
-      synchronized(this->lock, {
-        $(this->maps, add, info);
-        $(this->maps, sort, sortMaps);
-      });
+      $(maps, add, info);
     }
 
     cgi.CloseFile(file);
@@ -222,9 +185,11 @@ static void enumerateMaps(const char *path, void *data) {
  */
 static void loadMaps(void *data) {
 
-  MapListCollectionView *this = data;
+  MapList *maps = data;
 
-  cgi.EnumerateFiles("maps/*.bsp", enumerateMaps, this);
+  cgi.EnumerateFiles("maps/*.bsp", enumerateMaps, maps);
+
+  release(maps);
 }
 
 #pragma mark - Object
@@ -236,7 +201,6 @@ static void dealloc(Object *self) {
 
   MapListCollectionView *this = (MapListCollectionView *) self;
 
-  release(this->lock);
   release(this->maps);
 
   super(Object, self, dealloc);
@@ -258,16 +222,12 @@ static void layoutIfNeeded(View *self) {
 
   MapListCollectionView *this = (MapListCollectionView *) self;
 
-  synchronized(this->lock, {
+  const Array *items = (Array *) this->collectionView.items;
+  if ($(this->maps, count) != items->count) {
+    $((CollectionView *) this, reloadData);
+  }
 
-    const Array *items = (Array *) this->collectionView.items;
-
-    if (this->maps->count != items->count) {
-      $((CollectionView *) this, reloadData);
-    }
-
-    super(View, self, layoutIfNeeded);
-  });
+  super(View, self, layoutIfNeeded);
 }
 
 #pragma mark - MapListCollectionView
@@ -280,13 +240,10 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
 
   self = (MapListCollectionView *) super(CollectionView, self, initWithFrame, frame);
   if (self) {
-    self->lock = $(alloc(Lock), init);
-    assert(self->lock);
-
-    self->maps = $(alloc(PointerArray), initWithDestroy, freeMapListItemInfo);
+    self->maps = $(alloc(MapList), init);
     assert(self->maps);
 
-    cgi.Thread(__func__, loadMaps, self, THREAD_NO_WAIT);
+    cgi.Thread(__func__, loadMaps, retain(self->maps), THREAD_NO_WAIT);
 
     self->collectionView.dataSource.numberOfItems = numberOfItems;
     self->collectionView.dataSource.objectForItemAtIndexPath = objectForItemAtIndexPath;
