@@ -52,6 +52,7 @@ typedef struct {
   SDL_AudioStream *capture;
   bool capture_failed;
   bool capture_silent;
+  bool warned_shared_device;
   int32_t silent_frames;
   bool transmitting;
 
@@ -101,6 +102,31 @@ static void S_VoiceDevices_f(void) {
   }
 
   SDL_free(devices);
+}
+
+/**
+ * @brief Warns when the microphone and the speakers are the same device.
+ * @details A Bluetooth headset cannot carry a microphone and high quality audio at once. Opening
+ * its microphone moves it from A2DP to the hands free profile, and the operating system drops
+ * everything the game plays to 16kHz mono for as long as the key is held. Nothing can be done
+ * about that from here, but a player deserves to know why their audio changed.
+ */
+static void S_CheckSharedDevice(const char *capture) {
+
+  if (!s_context.stream || s_voice_state.warned_shared_device) {
+    return;
+  }
+
+  const char *playback = SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(s_context.stream));
+
+  if (playback && capture && !q_strcmp(playback, capture)) {
+    Com_Warn("Microphone and speakers are both \"%s\".\n"
+             "If this is a Bluetooth headset, audio quality will drop while you transmit.\n"
+             "Run s_voice_devices and set s_voice_device to a separate microphone to avoid it.\n",
+             capture);
+
+    s_voice_state.warned_shared_device = true;
+  }
 }
 
 /**
@@ -163,7 +189,12 @@ static bool S_OpenCapture(void) {
     return false;
   }
 
-  Com_Print("Voice capture opened (%s)\n", SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(s_voice_state.capture)));
+  const char *name = SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(s_voice_state.capture));
+
+  Com_Print("Voice capture opened (%s)\n", name);
+
+  S_CheckSharedDevice(name);
+
   return true;
 }
 
@@ -322,6 +353,7 @@ void S_StartVoice(void) {
     s_voice_state.capture_failed = false;
     s_voice_state.capture_silent = false;
     s_voice_state.silent_frames = 0;
+    s_voice_state.warned_shared_device = false;
   }
 
   if (!s_voice_state.transmitting && S_OpenCapture()) {
