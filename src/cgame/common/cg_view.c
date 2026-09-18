@@ -107,8 +107,65 @@ static void Cg_UpdateFov(void) {
 }
 
 /**
+ * @brief Returns true if the third-person offset should be driven by the live mouse/`+forward`/
+ * `+back`-driven orbit accumulator (`cg_state.orbit`) rather than the static
+ * `cg_third_person_{x,y,z,pitch,yaw}` cvars.
+ * @details This is true for live in-game spectator chase-cam and for demo playback's orbit mode.
+ * Both are states where the viewer's mouse and movement keys are otherwise idle: a chasing
+ * spectator's own aim is never read by the game module (`G_ClientChaseThink` overwrites their
+ * view entirely), and demo playback never sends movement commands to anything. A player forcing
+ * `cg_third_person` while actively playing is deliberately excluded: their mouse and movement
+ * keys are busy playing, so that path keeps the original static-cvar behavior.
+ */
+bool Cg_OrbitEligible(const player_state_t *ps) {
+
+  if (cgi.client->demo_server) {
+    return cg_state.demo_camera_mode == CAMERA_THIRD_PERSON;
+  }
+
+  return cg_third_person_chasecam->value && ps->stats[STAT_CHASE];
+}
+
+/**
+ * @brief Console command: cycles first-person, third-person orbit, and free-flight cameras.
+ * @details During demo playback this is pure client state. Live, it drives the equivalent
+ * states through the mechanisms that already exist for them: `cg_third_person_chasecam` for
+ * the first/third-person toggle (unchanged, client-only), and the `chase_stop`/`chase_start`
+ * server commands - which expose `G_ClientChaseThink`'s existing detach/attach logic under a
+ * single control - for the third-person/free-flight transition.
+ */
+void Cg_CameraModeCycle_f(void) {
+
+  if (cgi.client->demo_server) {
+    switch (cg_state.demo_camera_mode) {
+      case CAMERA_FIRST_PERSON:
+        cg_state.demo_camera_mode = CAMERA_THIRD_PERSON;
+        break;
+      case CAMERA_THIRD_PERSON:
+        cg_state.demo_camera_mode = CAMERA_SPECTATE;
+        break;
+      case CAMERA_SPECTATE:
+        cg_state.demo_camera_mode = CAMERA_FIRST_PERSON;
+        break;
+    }
+    return;
+  }
+
+  const player_state_t *ps = &cgi.client->frame.ps;
+
+  if (!ps->stats[STAT_CHASE]) { // free-flight -> chase, first-person
+    cgi.Cbuf("chase_start\n");
+    cgi.SetCvarValue(cg_third_person_chasecam->name, 0.f);
+  } else if (!cg_third_person_chasecam->value) { // chase first-person -> chase third-person orbit
+    cgi.SetCvarValue(cg_third_person_chasecam->name, 1.f);
+  } else { // chase third-person orbit -> free-flight
+    cgi.Cbuf("chase_stop\n");
+  }
+}
+
+/**
  * @brief Update the third person offset, if any. This is used as a client-side
- * option, or as the default chase camera view.
+ * option, as the default chase camera view, and as demo playback's orbit camera.
  */
 static void Cg_UpdateThirdPerson(const player_state_t *ps) {
   vec3_t forward, right, up, origin, point;
@@ -121,26 +178,52 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
     return;
   }
 
+  const bool orbit_eligible = Cg_OrbitEligible(ps);
+
   if (cg_third_person->value && Cg_Self()->current.model1) {
     cgi.client->third_person = true;
-  } else if (cg_third_person_chasecam->value && ps->stats[STAT_CHASE]) {
+  } else if (orbit_eligible) {
     cgi.client->third_person = true;
   } else {
     cgi.client->third_person = false;
     return;
   }
 
-  const vec3_t offset = Vec3(
-    cg_third_person_x->value,
-    cg_third_person_y->value,
-    cg_third_person_z->value
-  );
+  static bool was_orbit_eligible;
 
-  const vec3_t angles = Vec3_ClampEuler(Vec3(
-    cgi.view->angles.x + cg_third_person_pitch->value,
-    cgi.view->angles.y + cg_third_person_yaw->value,
-    cgi.view->angles.z
-  ));
+  if (orbit_eligible && !was_orbit_eligible) {
+    // entering orbit mode: seed the accumulator from the static cvars, so the camera starts
+    // exactly where a non-orbit third-person view would have placed it
+    cg_state.orbit.yaw = cg_third_person_yaw->value;
+    cg_state.orbit.pitch = cg_third_person_pitch->value;
+    cg_state.orbit.distance = -cg_third_person_x->value;
+  }
+  was_orbit_eligible = orbit_eligible;
+
+  vec3_t offset;
+  vec3_t angles;
+
+  if (orbit_eligible) {
+    offset = Vec3(-cg_state.orbit.distance, cg_third_person_y->value, cg_third_person_z->value);
+
+    angles = Vec3_ClampEuler(Vec3(
+      cgi.view->angles.x + cg_state.orbit.pitch,
+      cgi.view->angles.y + cg_state.orbit.yaw,
+      cgi.view->angles.z
+    ));
+  } else {
+    offset = Vec3(
+      cg_third_person_x->value,
+      cg_third_person_y->value,
+      cg_third_person_z->value
+    );
+
+    angles = Vec3_ClampEuler(Vec3(
+      cgi.view->angles.x + cg_third_person_pitch->value,
+      cgi.view->angles.y + cg_third_person_yaw->value,
+      cgi.view->angles.z
+    ));
+  }
 
   const float yaw = angles.y;
 
@@ -260,6 +343,11 @@ static void Cg_UpdateBob(const player_state_t *ps) {
  */
 static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1) {
 
+  if (cgi.client->demo_server && cg_state.demo_camera_mode == CAMERA_SPECTATE) {
+    cgi.view->origin = cg_state.spectate.state.origin;
+    return;
+  }
+
   if (Cg_UsePrediction()) {
     cl_predicted_state_t *pr = &cgi.client->predicted_state;
     cgi.view->origin = Vec3_Add(pr->view.origin, pr->view.offset);
@@ -286,6 +374,12 @@ static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1
  */
 static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1) {
   vec3_t angles, angles0, angles1;
+
+  if (cgi.client->demo_server && cg_state.demo_camera_mode == CAMERA_SPECTATE) {
+    cgi.view->angles = cg_state.spectate.state.view_angles;
+    Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
+    return;
+  }
 
   if (cg_state.snap_angles) {
     // Server requests an immediate snap to the authoritative view angles.

@@ -174,3 +174,43 @@ void Cg_PredictMovement(const Vector *cmds) {
 
   pr->ground = pm.ground;
 }
+
+/**
+ * @brief Drives demo playback's free-flight camera directly through `Pm_Move`, independent of
+ * the recorded `player_state_t` and of the network command backlog `Cg_PredictMovement` relies
+ * on (which never resolves during demo playback: no server ever acknowledges a demo's locally
+ * numbered outgoing commands, so `Cl_PredictMovement` always exceeds `CMD_BACKUP` and never
+ * calls in). Called every movement command cycle from `Cg_Move`, the same cadence prediction
+ * would otherwise run at, using the `cmd` that cycle already built for us.
+ */
+void Cg_UpdateSpectate(pm_cmd_t *cmd) {
+
+  if (!cg_state.spectate.initialized) {
+    cg_state.spectate.state.type = PM_SPECTATOR;
+    cg_state.spectate.state.origin = cgi.view->origin;
+    cg_state.spectate.state.view_angles = cgi.view->angles;
+    cg_state.spectate.initialized = true;
+  }
+
+  pm_move_t pm = {};
+  pm.s = cg_state.spectate.state;
+
+  pm.cmd = *cmd;
+  pm.cmd.angles = cgi.client->angles;
+
+  pm.PointContents = cgi.PointContents;
+  pm.BoxContents = cgi.BoxContents;
+  pm.Trace = Cg_PredictMovement_Trace;
+
+  pm.Debug = cgi.Debug;
+  pm.DebugMask = cgi.DebugMask;
+  pm.debug_mask = DEBUG_PMOVE_CLIENT;
+
+  Pm_Move(&pm);
+
+  cg_state.spectate.state = pm.s;
+
+  // Pm_SpectatorMove never touches view_angles; cmd.angles (this cycle's live look input) is
+  // the view direction, and Cg_UpdateAngles reads it back out via cgi.client->angles
+  cg_state.spectate.state.view_angles = pm.cmd.angles;
+}

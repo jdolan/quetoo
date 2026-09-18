@@ -215,6 +215,28 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 }
 
 /**
+ * @brief Accumulates the mouse yaw/pitch delta since the last call into the orbit camera's
+ * accumulator (`cg_state.orbit`), shared by live chase-cam and demo orbit mode.
+ * @details `cgi.client->angles` is the same running look-angle state used for aiming, but it is
+ * confirmed idle whenever orbit-eligible (a chasing spectator's aim is never read by the game
+ * module; demo playback sends nothing to anything), so diffing it here repurposes otherwise
+ * dead mouse input rather than fighting for it.
+ */
+static void Cg_UpdateOrbitLook(void) {
+  static vec3_t previous_angles;
+
+  const vec3_t angles = cgi.client->angles;
+
+  if (Cg_OrbitEligible(&cgi.client->frame.ps)) {
+    const vec3_t delta = Vec3_Subtract(angles, previous_angles);
+    cg_state.orbit.yaw += delta.y;
+    cg_state.orbit.pitch += delta.x;
+  }
+
+  previous_angles = angles;
+}
+
+/**
  * @brief Augments the view offset and angles for the specified command.
  * @see Cl_Look(pm_cmd_t)
  */
@@ -223,6 +245,8 @@ void Cg_Look(pm_cmd_t *cmd) {
   Cg_ViewKick(cmd);
 
   Cg_WeaponKick(cmd);
+
+  Cg_UpdateOrbitLook();
 }
 
 /**
@@ -276,6 +300,18 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
         time = cgi.client->unclamped_time;
       }
     }
+  }
+
+  if (Cg_OrbitEligible(&cgi.client->frame.ps)) {
+    // +forward/+back are otherwise idle whenever orbit-eligible, for the same reason the mouse
+    // is: nothing downstream reads them (a chasing spectator's movement is never applied, and
+    // demo playback sends no commands at all), so they drive orbit distance instead
+    cg_state.orbit.distance = Clampf(cg_state.orbit.distance - cmd->forward * 0.5f, 50.f, 600.f);
+    cmd->forward = cmd->right = 0;
+  }
+
+  if (cgi.client->demo_server && cg_state.demo_camera_mode == CAMERA_SPECTATE) {
+    Cg_UpdateSpectate(cmd);
   }
 }
 

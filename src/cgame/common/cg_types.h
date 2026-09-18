@@ -200,6 +200,36 @@ typedef struct {
 #define WEATHER_ASH  0x4
 
 /**
+ * @brief Demo playback camera modes, cycled by `camera_mode_cycle`. Live in-game spectating
+ * moves through the equivalent states via `STAT_CHASE` and `chase_target`, not this enum, since
+ * the game module is authoritative there; this only drives standalone demo playback, which has
+ * no game module to ask.
+ */
+typedef enum {
+  CAMERA_FIRST_PERSON,
+  CAMERA_THIRD_PERSON,
+  CAMERA_SPECTATE
+} cg_camera_mode_t;
+
+/**
+ * @brief Orbit camera state: mouse-driven yaw/pitch and `+forward`/`+back`-driven distance.
+ * Shared by live chase-cam (`STAT_CHASE`) and demo orbit mode, since both drive the same
+ * `Cg_UpdateThirdPerson` offset calculation.
+ */
+typedef struct {
+  float yaw, pitch, distance;
+} cg_orbit_state_t;
+
+/**
+ * @brief Free-flight camera state for demo playback: a locally-owned `PM_SPECTATOR` movement
+ * state driven directly by `Pm_Move`, independent of the recorded `player_state_t`.
+ */
+typedef struct {
+  pm_state_t state;
+  bool initialized;
+} cg_spectate_state_t;
+
+/**
  * @brief Client game state. Most of this is parsed from ConfigStrings when they change.
  */
 typedef struct {
@@ -285,6 +315,21 @@ typedef struct {
    * @brief The intermission's map candidates, from `CS_NEXT_MAP`.
    */
   cg_next_map_state_t next_map;
+
+  /**
+   * @brief The demo playback camera mode, cycled by `camera_mode_cycle`.
+   */
+  cg_camera_mode_t demo_camera_mode;
+
+  /**
+   * @brief Orbit camera state, shared by live chase-cam and demo orbit mode.
+   */
+  cg_orbit_state_t orbit;
+
+  /**
+   * @brief Free-flight camera state, used during demo playback only.
+   */
+  cg_spectate_state_t spectate;
 } cg_state_t;
 
 extern cg_state_t cg_state;
