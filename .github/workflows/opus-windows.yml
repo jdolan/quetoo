@@ -31,29 +31,34 @@ jobs:
         tar -xzf "opus-$v.tar.gz"
         Get-FileHash "opus-$v.tar.gz" -Algorithm SHA256
 
-    - name: Configure
+    - name: Build
       shell: pwsh
       run: |
-        cmake -S "opus-${{ inputs.version }}" -B build -A x64 `
-          -DBUILD_SHARED_LIBS=ON `
-          -DOPUS_BUILD_PROGRAMS=OFF `
-          -DOPUS_BUILD_TESTING=OFF
-
-    - name: Build
-      run: cmake --build build --config Release
+        foreach ($arch in @("x64", "Win32")) {
+          cmake -S "opus-${{ inputs.version }}" -B "build-$arch" -A $arch `
+            -DBUILD_SHARED_LIBS=ON `
+            -DOPUS_BUILD_PROGRAMS=OFF `
+            -DOPUS_BUILD_TESTING=OFF
+          cmake --build "build-$arch" --config Release
+        }
 
     - name: Stage
       shell: pwsh
       run: |
         $stage = "opus"
-        New-Item -ItemType Directory -Force -Path "$stage\include", "$stage\libs\x64", "$stage\bin\x64"
+        New-Item -ItemType Directory -Force -Path "$stage\include" | Out-Null
         Copy-Item "opus-${{ inputs.version }}\include\*.h" "$stage\include\"
-        Copy-Item "build\Release\opus.lib" "$stage\libs\x64\"
-        Copy-Item "build\Release\opus.dll" "$stage\bin\x64\"
+
+        foreach ($arch in @("x64", "Win32")) {
+          New-Item -ItemType Directory -Force -Path "$stage\libs\$arch", "$stage\bin\$arch" | Out-Null
+          Copy-Item "build-$arch\Release\opus.lib" "$stage\libs\$arch\"
+          Copy-Item "build-$arch\Release\opus.dll" "$stage\bin\$arch\"
+        }
+
         Get-ChildItem -Recurse $stage | Select-Object FullName, Length
 
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: opus-windows-x64
+        name: opus-windows
         path: opus/
