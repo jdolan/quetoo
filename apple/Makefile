@@ -17,6 +17,7 @@ BINDIR    = $(INSTALL)/Contents/MacOS
 LIBDIR    = $(BINDIR)/lib
 MODULEDIR = $(LIBDIR)/quetoo
 DATADIR   = $(INSTALL)/Contents/Resources
+RPATH     = @executable_path/lib/
 
 SNAPSHOT        = $(TARGET)/Quetoo-$(BUILD).dmg
 VOLUME_NAME     = "Quetoo"
@@ -42,6 +43,10 @@ install:
 	make -C .. DESTDIR=$(realpath $(INSTALL)) install
 	rm -f $(INSTALL)/bin $(INSTALL)/lib $(INSTALL)/share
 
+# Bundle the dependencies, then collapse the LC_RPATH entries to a single
+# $(RPATH). configure embeds an rpath for each Homebrew prefix, and
+# dylibbundler rewrites every rpath it finds to the bundle's lib path, so the
+# result is a duplicate that dyld refuses to load since macOS 15. See #1065.
 install-lib:
 	dylibbundler -b \
 		-x $(BINDIR)/quemap \
@@ -49,7 +54,16 @@ install-lib:
 		-x $(BINDIR)/quetoo-dedicated \
 		-x $(BINDIR)/quetoo-master \
 		$$(find $(MODULEDIR) -name '*.so' | sed 's/^/-x /') \
-		-d $(LIBDIR) -of -p @executable_path/lib
+		-d $(LIBDIR) -of -p $(RPATH)
+	@find $(BINDIR) -type f | while IFS= read -r f; do \
+		n=`otool -l "$$f" 2>/dev/null | \
+			awk '$$1 == "path" && $$2 == "$(RPATH)" { c++ } END { print c + 0 }'`; \
+		while test $$n -gt 1; do \
+			echo "Removing duplicate $(RPATH) from $$f"; \
+			install_name_tool -delete_rpath $(RPATH) "$$f" || exit 1; \
+			n=$$((n - 1)); \
+		done; \
+	done
 
 # Move non-Mach-O engine assets (UI layouts, shaders, images) out of
 # lib/quetoo/ and into Contents/Resources/, preserving the relative path, so
