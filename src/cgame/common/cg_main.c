@@ -67,6 +67,7 @@ cvar_t *cg_predict;
 cvar_t *cg_quick_join_max_ping;
 cvar_t *cg_quick_join_min_clients;
 cvar_t *cg_sprite_physics;
+cvar_t *cg_camera_mode;
 cvar_t *cg_third_person;
 cvar_t *cg_third_person_x;
 cvar_t *cg_third_person_y;
@@ -149,6 +150,12 @@ static void Cg_Init(void) {
   cg_quick_join_max_ping = cgi.AddCvar("cg_quick_join_max_ping", "200", CVAR_ARCHIVE, "Maximum ping allowed for quick join");
   cg_quick_join_min_clients = cgi.AddCvar("cg_quick_join_min_clients", "1", CVAR_ARCHIVE, "Minimum clients allowed for quick join");
   cg_sprite_physics = cgi.AddCvar("cg_sprite_physics", "1", CVAR_ARCHIVE, "Whether to enable sprite physics or not.");
+  // deliberately not archived: the server overrules this whenever it decides what, if anything,
+  // is being watched, so a persisted value would be one the player never chose
+  cg_camera_mode = cgi.AddCvar("cg_camera_mode", "0", 0,
+                               "The spectator and demo playback camera: "
+                               "0 first person, 1 third person, 2 follow, 3 free flight.");
+
   cg_third_person = cgi.AddCvar("cg_third_person", "0", CVAR_ARCHIVE | CVAR_DEVELOPER, "Activate third person perspective.");
   cg_third_person_x = cgi.AddCvar("cg_third_person_x", "-200", CVAR_ARCHIVE, "The x offset for third person perspective.");
   cg_third_person_y = cgi.AddCvar("cg_third_person_y", "0", CVAR_ARCHIVE, "The y offset for third person perspective.");

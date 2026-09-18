@@ -224,7 +224,9 @@ typedef enum {
   /**
    * @brief Detached from the subject entirely, flying freely.
    */
-  CAMERA_SPECTATE
+  CAMERA_SPECTATE,
+
+  CAMERA_MODE_TOTAL
 } cg_camera_mode_t;
 
 /**

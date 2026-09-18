@@ -134,20 +134,70 @@ bool Cg_FollowEligible(const player_state_t *ps) {
 }
 
 /**
- * @brief Reconciles the camera mode with the server's notion of what we are watching, which
- * changes without us asking: joining the spectators attaches a target, and a target that stops
- * being meat is dropped. The mode says how to frame a subject, the server says whether there is
- * one, so a disagreement resolves in the server's favour.
+ * @brief Publishes the mode to `cg_camera_mode` so the console reflects what the camera is
+ * actually doing. This is a statement, not a request: it clears `modified` so that what is
+ * written here does not come back as one.
+ */
+static void Cg_PublishCameraMode(void) {
+
+  if (cg_camera_mode->integer != (int32_t) cg_state.camera_mode) {
+    cgi.SetCvarValue(cg_camera_mode->name, cg_state.camera_mode);
+  }
+
+  cg_camera_mode->modified = false;
+}
+
+/**
+ * @brief Adopts the requested camera mode, asking the server to attach or detach when the
+ * request crosses into or out of `CAMERA_SPECTATE`. Only the server can grant that during a
+ * live game, so this asks and `Cg_UpdateCameraMode` settles the answer.
+ */
+static void Cg_SetCameraMode(cg_camera_mode_t mode) {
+
+  const bool was_detached = cg_state.camera_mode == CAMERA_SPECTATE;
+  const bool detached = mode == CAMERA_SPECTATE;
+
+  cg_state.camera_mode = mode;
+
+  if (detached != was_detached) {
+
+    // a flight starts from wherever the view is when it begins, rather than resuming from
+    // wherever the last one left off
+    cg_state.spectate.initialized = false;
+
+    if (!cgi.client->demo_server) {
+      cgi.Cbuf(detached ? "chase_stop\n" : "chase_next\n");
+      cg_state.chase_request_time = cgi.client->unclamped_time;
+    }
+  }
+
+  Cg_PublishCameraMode();
+}
+
+/**
+ * @brief Takes any mode the player has set on `cg_camera_mode`, then reconciles the result with
+ * the server's notion of what we are watching, which changes without us asking: joining the
+ * spectators attaches a target, and a target that stops being meat is dropped. The mode says how
+ * to frame a subject, the server says whether there is one, so a disagreement resolves in the
+ * server's favour.
  */
 static void Cg_UpdateCameraMode(const player_state_t *ps) {
 
+  if (cg_camera_mode->modified) {
+    if (cgi.client->demo_server || ps->stats[STAT_SPECTATOR]) {
+      Cg_SetCameraMode(Mini(Maxi(cg_camera_mode->integer, 0), CAMERA_MODE_TOTAL - 1));
+    }
+  }
+
   if (cgi.client->demo_server) {
+    Cg_PublishCameraMode();
     return; // nothing else owns the camera during playback
   }
 
   if (!ps->stats[STAT_SPECTATOR]) {
     cg_state.camera_mode = CAMERA_FIRST_PERSON;
     cg_state.chase_request_time = 0;
+    Cg_PublishCameraMode();
     return;
   }
 
@@ -156,6 +206,7 @@ static void Cg_UpdateCameraMode(const player_state_t *ps) {
 
   if (chasing == !detached) {
     cg_state.chase_request_time = 0;
+    Cg_PublishCameraMode();
     return; // the server frames it the way we do
   }
 
@@ -170,14 +221,14 @@ static void Cg_UpdateCameraMode(const player_state_t *ps) {
 
   cg_state.camera_mode = chasing ? CAMERA_FIRST_PERSON : CAMERA_SPECTATE;
   cg_state.chase_request_time = 0;
+
+  Cg_PublishCameraMode();
 }
 
 /**
- * @brief Console command: cycles first-person, third-person, follow and free-flight cameras.
- * @details The mode is client state in both contexts, but only demo playback owns whether the
- * camera is attached to anything. Live, that is the server's, so entering and leaving
- * `CAMERA_SPECTATE` asks for it with `chase_stop` / `chase_next` and lets `Cg_UpdateCameraMode`
- * settle the answer - including refusing it, when there is nobody left to chase.
+ * @brief Console command: advances to the next camera mode, wrapping around.
+ * @details Cycling is a command rather than a `toggle` of `cg_camera_mode` because `toggle`
+ * here is strictly boolean; setting the cvar outright still works, and lands in the same place.
  */
 void Cg_CameraModeCycle_f(void) {
 
@@ -187,37 +238,7 @@ void Cg_CameraModeCycle_f(void) {
     return; // an active player has no camera to cycle
   }
 
-  switch (cg_state.camera_mode) {
-    case CAMERA_FIRST_PERSON:
-      cg_state.camera_mode = CAMERA_THIRD_PERSON;
-      break;
-
-    case CAMERA_THIRD_PERSON:
-      cg_state.camera_mode = CAMERA_FOLLOW;
-      break;
-
-    case CAMERA_FOLLOW:
-      cg_state.camera_mode = CAMERA_SPECTATE;
-
-      if (!cgi.client->demo_server) {
-        cgi.Cbuf("chase_stop\n");
-        cg_state.chase_request_time = cgi.client->unclamped_time;
-      }
-      break;
-
-    case CAMERA_SPECTATE:
-      cg_state.camera_mode = CAMERA_FIRST_PERSON;
-
-      // entering spectate again should start from wherever the view is then, not resume from
-      // where this flight left off
-      cg_state.spectate.initialized = false;
-
-      if (!cgi.client->demo_server) {
-        cgi.Cbuf("chase_next\n");
-        cg_state.chase_request_time = cgi.client->unclamped_time;
-      }
-      break;
-  }
+  Cg_SetCameraMode((cg_state.camera_mode + 1) % CAMERA_MODE_TOTAL);
 }
 
 /**

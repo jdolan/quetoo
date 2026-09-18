@@ -72,6 +72,7 @@ extern cvar_t *cg_predict;
 extern cvar_t *cg_quick_join_max_ping;
 extern cvar_t *cg_quick_join_min_clients;
 extern cvar_t *cg_sprite_physics;
+extern cvar_t *cg_camera_mode;
 extern cvar_t *cg_third_person;
 extern cvar_t *cg_third_person_x;
 extern cvar_t *cg_third_person_y;
