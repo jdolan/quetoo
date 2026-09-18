@@ -290,6 +290,11 @@ typedef struct {
   uint32_t voice_time;
 
   /**
+   * @brief Mask of clients this one has muted; their voice is never relayed here.
+   */
+  uint64_t voice_mutes;
+
+  /**
    * @brief Connection state of this client slot.
    */
   sv_client_state_t state;

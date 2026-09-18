@@ -53,6 +53,8 @@ cvar_t *sv_timeout;
  */
 void Sv_DropClient(sv_client_t *client) {
 
+  Sv_ClearVoiceMutes(client);
+
   if (client->state > SV_CLIENT_FREE) { // send the disconnect
 
     g_client_t *cl = client->gclient;

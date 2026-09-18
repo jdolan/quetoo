@@ -25,6 +25,45 @@ cvar_t *sv_voice;
 cvar_t *sv_voice_rate;
 
 /**
+ * @brief Mutes or unmutes a speaker for one listener.
+ * @details Filtering at the source means a muted player's audio is never relayed, so muting saves
+ * the listener the bandwidth rather than merely the annoyance.
+ */
+void Sv_MuteVoice(const g_client_t *listener, const g_client_t *speaker, bool mute) {
+
+  if (!listener || !speaker) {
+    return;
+  }
+
+  sv_client_t *cl = svs.clients + listener->ps.client;
+  const uint64_t bit = (uint64_t) 1 << speaker->ps.client;
+
+  if (mute) {
+    cl->voice_mutes |= bit;
+  } else {
+    cl->voice_mutes &= ~bit;
+  }
+}
+
+/**
+ * @brief Forgets every mute involving the given client.
+ * @details Client numbers are reused, so a mute left behind would silence whoever takes the slot
+ * next, and would follow the muted player back in when they reconnect.
+ */
+void Sv_ClearVoiceMutes(const sv_client_t *client) {
+
+  const int32_t num = (int32_t) (client - svs.clients);
+  const uint64_t bit = (uint64_t) 1 << num;
+
+  sv_client_t *cl = svs.clients;
+  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+    cl->voice_mutes &= ~bit;
+  }
+
+  svs.clients[num].voice_mutes = 0;
+}
+
+/**
  * @brief Charges a client's voice budget, returning false once it is spent.
  * @details A client on a poor connection bursting is not an attacker, so an exhausted budget
  * discards the frame rather than dropping the client. The bucket refills at sv_voice_rate and is
@@ -99,6 +138,10 @@ static void Sv_RelayVoice(const sv_client_t *from, uint64_t recipients, uint8_t 
     }
 
     if (!(recipients & ((uint64_t) 1 << i))) {
+      continue;
+    }
+
+    if (cl->voice_mutes & ((uint64_t) 1 << speaker)) {
       continue;
     }
 

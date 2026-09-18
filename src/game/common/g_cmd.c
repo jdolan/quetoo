@@ -350,6 +350,8 @@ static void G_Kill_f(g_client_t *cl) {
 
 /**
  * @brief Server console command for muting players by name (toggles)
+ * @details Silences the player in voice as well as in chat, for everyone. Muting somebody should
+ * take one command, not one per medium, or the operator ends up chasing the same griefer twice.
  */
 void G_Mute_f(void) {
   if (gi.Argc() < 2) {
@@ -362,13 +364,13 @@ void G_Mute_f(void) {
     return;
   }
 
-  if (cl->persistent.muted) {
-    cl->persistent.muted = false;
-    gi.Print(" %s is now unmuted\n", cl->persistent.net_name);
-  } else {
-    cl->persistent.muted = true;
-    gi.Print(" %s is now muted\n", cl->persistent.net_name);
-  }
+  cl->persistent.muted = !cl->persistent.muted;
+
+  G_ForEachClient(other, {
+    gi.MuteVoice(other, cl, cl->persistent.muted);
+  });
+
+  gi.Print(" %s is now %smuted\n", cl->persistent.net_name, cl->persistent.muted ? "" : "un");
 }
 
 /**
@@ -496,6 +498,9 @@ static void G_Say_f(g_client_t *cl) {
   q_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->persistent.net_name, color, message);
 
   G_ForEachClient(other, {
+    if (other->persistent.muted_clients & ((uint64_t) 1 << cl->ps.client)) {
+      continue;
+    }
     if (team) {
       if (!G_OnSameTeam(cl, other)) {
         continue;
@@ -745,11 +750,58 @@ ClientDidChat G_ClientDidChat = G_ClientDidChat_Common;
 /**
  * @brief Dispatches an incoming client command string to the appropriate handler.
  */
+/**
+ * @brief Mutes or unmutes another player for the issuing client.
+ * @details The server filters at the source, so a muted player's voice is never relayed here at
+ * all. The mute lasts as long as the connection: client numbers are reused, so carrying it further
+ * would mean silencing whoever inherits the slot.
+ */
+static void G_MutePlayer_f(g_client_t *cl, bool mute) {
+
+  if (gi.Argc() < 2) {
+    gi.ClientPrint(cl, PRINT_HIGH, "Usage: %s <player>\n", gi.Argv(0));
+    return;
+  }
+
+  g_client_t *other = G_ClientByName(gi.Argv(1));
+
+  if (!other) {
+    gi.ClientPrint(cl, PRINT_HIGH, "Player \"%s\" not found\n", gi.Argv(1));
+    return;
+  }
+
+  if (other == cl) {
+    gi.ClientPrint(cl, PRINT_HIGH, "You can not mute yourself\n");
+    return;
+  }
+
+  const uint64_t bit = (uint64_t) 1 << other->ps.client;
+
+  if (mute) {
+    cl->persistent.muted_clients |= bit;
+  } else {
+    cl->persistent.muted_clients &= ~bit;
+  }
+
+  gi.MuteVoice(cl, other, mute);
+
+  gi.ClientPrint(cl, PRINT_HIGH, "%s %s\n", other->persistent.net_name, mute ? "muted" : "unmuted");
+}
+
 void G_ClientCommand(g_client_t *cl) {
 
   const char *cmd = gi.Argv(0);
 
   if (G_HandleClientCommand(cl, cmd)) {
+    return;
+  }
+
+  if (q_strcmp(cmd, "mute") == 0) {
+    G_MutePlayer_f(cl, true);
+    return;
+  }
+  if (q_strcmp(cmd, "unmute") == 0) {
+    G_MutePlayer_f(cl, false);
     return;
   }
 

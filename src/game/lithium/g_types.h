@@ -1259,6 +1259,11 @@ typedef struct {
   bool muted;
 
   /**
+   * @brief Mask of clients this one has muted, in both chat and voice.
+   */
+  uint64_t muted_clients;
+
+  /**
    * @brief Per-install GUID sent via userinfo, used for stats reporting.
    */
   char guid[MAX_QPATH];

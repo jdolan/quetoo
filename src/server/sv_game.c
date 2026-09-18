@@ -397,6 +397,7 @@ void Sv_InitGame(void) {
   import.WriteAngle = Sv_WriteAngle;
   import.WriteAngles = Sv_WriteAngles;
 
+  import.MuteVoice = Sv_MuteVoice;
   import.BroadcastPrint = Sv_BroadcastPrint;
   import.ClientPrint = Sv_ClientPrint;
 

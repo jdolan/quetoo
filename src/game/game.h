@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 40
+#define GAME_API_VERSION 41
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -705,6 +705,13 @@ typedef struct g_import_s {
   /**
    * @brief Network console IO.
    */
+  /**
+   * @brief Mutes or unmutes `speaker` for `listener`, so that voice is filtered at the source.
+   * @remarks Only the game knows player names, so it owns the policy; the server owns only the
+   * mask it consults before relaying. Mutes are cleared when either client disconnects.
+   */
+  void (*MuteVoice)(const g_client_t *listener, const g_client_t *speaker, bool mute);
+
   void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
   void (*ClientPrint)(const g_client_t *cl, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
