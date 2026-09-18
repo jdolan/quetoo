@@ -2,6 +2,7 @@
 # http://git-scm.com
 *~
 *.dll
+!Quetoo.vs15/libs/*/bin/**/*.dll
 *.exe
 *.la
 *.lo

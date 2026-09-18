@@ -6,6 +6,7 @@
 *.vspx
 .vs
 bin
+!libs/*/bin/
 ipch
 tmp
 libs/xml
