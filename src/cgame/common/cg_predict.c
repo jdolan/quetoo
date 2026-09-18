@@ -195,6 +195,10 @@ void Cg_UpdateSpectate(pm_cmd_t *cmd) {
   pm_move_t pm = {};
   pm.s = cg_state.spectate.state;
 
+  // Pm_SpectatorMove reads speed_spectator, accel_spectator and friction_spectator from the
+  // movement parameters, which the recording carries; without them the camera holds still
+  pm.s.params = cgi.client->frame.ps.pm_state.params;
+
   pm.cmd = *cmd;
   pm.cmd.angles = cgi.client->angles;
 
@@ -209,8 +213,4 @@ void Cg_UpdateSpectate(pm_cmd_t *cmd) {
   Pm_Move(&pm);
 
   cg_state.spectate.state = pm.s;
-
-  // Pm_SpectatorMove never touches view_angles; cmd.angles (this cycle's live look input) is
-  // the view direction, and Cg_UpdateAngles reads it back out via cgi.client->angles
-  cg_state.spectate.state.view_angles = pm.cmd.angles;
 }

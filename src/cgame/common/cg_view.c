@@ -146,6 +146,10 @@ void Cg_CameraModeCycle_f(void) {
         break;
       case CAMERA_SPECTATE:
         cg_state.demo_camera_mode = CAMERA_FIRST_PERSON;
+
+        // re-entering spectate should start from wherever the view is then, not resume from
+        // where this flight left off
+        cg_state.spectate.initialized = false;
         break;
     }
     return;
