@@ -23,6 +23,7 @@
 
 #include <ObjectivelyMVC/CollectionView.h>
 
+#include "DemoList.h"
 #include "DemosCollectionItemView.h"
 
 /**
@@ -32,11 +33,6 @@
 
 typedef struct DemosCollectionView DemosCollectionView;
 typedef struct DemosCollectionViewInterface DemosCollectionViewInterface;
-
-/**
- * @brief The DemosCollectionView's thread-safe state, opaque outside DemosCollectionView.c.
- */
-typedef struct DemosState DemosState;
 
 /**
  * @brief The DemosCollectionView type.
@@ -57,12 +53,13 @@ struct DemosCollectionView {
   DemosCollectionViewInterface *interface[0];
 
   /**
-   * @brief The demo list's thread-safe state, shared with any in-flight `reloadDemos` loader.
+   * @brief The discovered demos, shared with any in-flight `reloadDemos` loader.
    */
-  DemosState *state;
+  DemoList *demos;
 
   /**
-   * @brief A sibling View to show in place of this one when `filtered` is empty, or `NULL`.
+   * @brief A sibling View to show in place of this one when `demos` has no visible items, or
+   * `NULL`.
    */
   View *emptyStateView;
 };

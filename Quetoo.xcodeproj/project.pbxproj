@@ -332,6 +332,7 @@
 		CE05B3F030224900C0DE002B /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
 		8C2222B66C5893E999A00A1D /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
 		18C8FD4CB016B0E66708C5E3 /* DemosCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */; };
+		4E59F0F29F01B776A97F96B1 /* DemoList.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F2DF6B726C775FE05708017 /* DemoList.c */; };
 		552ED498920A44B77CEAEC2E /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
 		CE05B3F030224900C0DE002C /* JoinServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870811F5CDFE0004CAAB2 /* JoinServerViewController.c */; };
 		CE05B3F030224900C0DE002D /* LeaderboardViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */; };
@@ -340,6 +341,7 @@
 		CE05B3F030224900C0DE0030 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870981F5CE7D2004CAAB2 /* MainViewController.c */; };
 		CE05B3F030224900C0DE0031 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
 		CE05B3F030224900C0DE0032 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
+		DC271D20167E1DB4265DBB4B /* MapList.c in Sources */ = {isa = PBXBuildFile; fileRef = 90D8067392DE8E9D0A68FFBF /* MapList.c */; };
 		CE05B3F030224900C0DE0033 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
 		CE05B3F030224900C0DE0034 /* MeshViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* MeshViewController.c */; };
 		CE05B3F030224900C0DE0035 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
@@ -589,6 +591,7 @@
 		CE6EE3E21F720D9A00FBC830 /* JoinServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870811F5CDFE0004CAAB2 /* JoinServerViewController.c */; };
 		CE6EE3E31F720D9A00FBC830 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
 		CE6EE3E41F720D9A00FBC830 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
+		ECD977BEDE394CD17019BC2C /* MapList.c in Sources */ = {isa = PBXBuildFile; fileRef = 90D8067392DE8E9D0A68FFBF /* MapList.c */; };
 		CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
 		CE6EE3ED1F720D9A00FBC830 /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */; };
 		CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
@@ -597,6 +600,7 @@
 		CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
 		2E5D2C0CBC38FD1169C77DDB /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
 		91B39671CA4F375D3FEBBDA0 /* DemosCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */; };
+		2F1258894A585916F6D8F513 /* DemoList.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F2DF6B726C775FE05708017 /* DemoList.c */; };
 		8EF87DE8E42CB34AC627912E /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
 		CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C19202F6E80004BC58E /* HomeViewController.json */; };
 		18E237623F9098C8D027CA1A /* DemosViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = 63E6940BBAB476D15303863E /* DemosViewController.css */; };
@@ -947,6 +951,7 @@
 		CEC0FF00202601030000018B /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
 		2FAD5FD12BD7CC3AC13E4E10 /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
 		4884D62AC7509A737141A1F5 /* DemosCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */; };
+		2BCE540B4A7DD1811680C1DF /* DemoList.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F2DF6B726C775FE05708017 /* DemoList.c */; };
 		55ECBA76D3FED12161978AAF /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
 		CEC0FF00202601030000018C /* JoinServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870811F5CDFE0004CAAB2 /* JoinServerViewController.c */; };
 		CEC0FF00202601030000018D /* LeaderboardViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */; };
@@ -955,6 +960,7 @@
 		CEC0FF002026010300000190 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870981F5CE7D2004CAAB2 /* MainViewController.c */; };
 		CEC0FF002026010300000191 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
 		CEC0FF002026010300000192 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
+		E8E576F4F02CD6018C8D7B7C /* MapList.c in Sources */ = {isa = PBXBuildFile; fileRef = 90D8067392DE8E9D0A68FFBF /* MapList.c */; };
 		CEC0FF002026010300000193 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
 		CEC0FF002026010300000194 /* MeshViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* MeshViewController.c */; };
 		CEC0FF002026010300000195 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
@@ -1280,6 +1286,7 @@
 		D2A5C100000000000000006F /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
 		73DBBF49A55BBA6FB35431A6 /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
 		00FE572C5C861491D333D0DC /* DemosCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */; };
+		C3E41F914FCEA12782E83182 /* DemoList.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F2DF6B726C775FE05708017 /* DemoList.c */; };
 		1707413E7413614CF7F308EE /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
 		D2A5C1000000000000000070 /* JoinServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870811F5CDFE0004CAAB2 /* JoinServerViewController.c */; };
 		D2A5C1000000000000000071 /* LeaderboardViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */; };
@@ -1288,6 +1295,7 @@
 		D2A5C1000000000000000074 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870981F5CE7D2004CAAB2 /* MainViewController.c */; };
 		D2A5C1000000000000000075 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
 		D2A5C1000000000000000076 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
+		C8FD8F82018E30E0052179E2 /* MapList.c in Sources */ = {isa = PBXBuildFile; fileRef = 90D8067392DE8E9D0A68FFBF /* MapList.c */; };
 		D2A5C1000000000000000077 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
 		D2A5C1000000000000000078 /* MeshViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* MeshViewController.c */; };
 		D2A5C1000000000000000079 /* MovementCombatViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A284C1F7602F2005F62A9 /* MovementCombatViewController.c */; };
@@ -2729,6 +2737,8 @@
 		CE5870AD1F5CE98D004CAAB2 /* MainView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainView.h; sourceTree = "<group>"; };
 		CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MapListCollectionItemView.c; sourceTree = "<group>"; };
 		CE5870AF1F5CE99C004CAAB2 /* MapListCollectionItemView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapListCollectionItemView.h; sourceTree = "<group>"; };
+		90D8067392DE8E9D0A68FFBF /* MapList.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MapList.c; sourceTree = "<group>"; };
+		B76C2B2AE24E2511ACC08DEF /* MapList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapList.h; sourceTree = "<group>"; };
 		CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MapListCollectionView.c; sourceTree = "<group>"; };
 		CE5870B11F5CE99C004CAAB2 /* MapListCollectionView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapListCollectionView.h; sourceTree = "<group>"; };
 		CE5ABAD42F32D84000D05D09 /* decal_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = decal_fs.glsl; sourceTree = "<group>"; };
@@ -2945,6 +2955,8 @@
 		84C2E3EC261C07D1773254F0 /* DemosCollectionItemView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemosCollectionItemView.h; sourceTree = "<group>"; };
 		73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DemosCollectionView.c; sourceTree = "<group>"; };
 		A8EE5A964B0C7980A2D249D0 /* DemosCollectionView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemosCollectionView.h; sourceTree = "<group>"; };
+		3F2DF6B726C775FE05708017 /* DemoList.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DemoList.c; sourceTree = "<group>"; };
+		0713BF4BF04837B81E77D924 /* DemoList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemoList.h; sourceTree = "<group>"; };
 		5B494B9785D852307F27967A /* DemosViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DemosViewController.c; sourceTree = "<group>"; };
 		F9C8530409A93832A522641A /* DemosViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemosViewController.h; sourceTree = "<group>"; };
 		2DA349510962B7CDA15CFEC5 /* DemosViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DemosViewController.json; sourceTree = "<group>"; };
@@ -4616,6 +4628,8 @@
 				CE4E07B6202676E7000B276C /* JoinServerViewController.css */,
 				CE5870821F5CDFE0004CAAB2 /* JoinServerViewController.h */,
 				CE7D2C1D202F714F004BC58E /* JoinServerViewController.json */,
+				90D8067392DE8E9D0A68FFBF /* MapList.c */,
+				B76C2B2AE24E2511ACC08DEF /* MapList.h */,
 				CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */,
 				CE5870AF1F5CE99C004CAAB2 /* MapListCollectionItemView.h */,
 				CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */,
@@ -4703,6 +4717,8 @@
 				F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */,
 				A8EE5A964B0C7980A2D249D0 /* DemosCollectionView.h */,
 				73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */,
+				0713BF4BF04837B81E77D924 /* DemoList.h */,
+				3F2DF6B726C775FE05708017 /* DemoList.c */,
 				F9C8530409A93832A522641A /* DemosViewController.h */,
 				5B494B9785D852307F27967A /* DemosViewController.c */,
 				2DA349510962B7CDA15CFEC5 /* DemosViewController.json */,
@@ -6662,6 +6678,7 @@
 				CE05B3F030224900C0DE002B /* HomeViewController.c in Sources */,
 				8C2222B66C5893E999A00A1D /* DemosCollectionItemView.c in Sources */,
 				18C8FD4CB016B0E66708C5E3 /* DemosCollectionView.c in Sources */,
+				4E59F0F29F01B776A97F96B1 /* DemoList.c in Sources */,
 				552ED498920A44B77CEAEC2E /* DemosViewController.c in Sources */,
 				01209575888A584DAE8F7D25 /* CounterView.c in Sources */,
 				54194A7922708C783B541F5B /* CrosshairView.c in Sources */,
@@ -6697,6 +6714,7 @@
 				CE05B3F030224900C0DE0030 /* MainViewController.c in Sources */,
 				CE05B3F030224900C0DE0031 /* MapListCollectionItemView.c in Sources */,
 				CE05B3F030224900C0DE0032 /* MapListCollectionView.c in Sources */,
+				DC271D20167E1DB4265DBB4B /* MapList.c in Sources */,
 				CE05B3F030224900C0DE0033 /* MaterialViewController.c in Sources */,
 				CE05B3F030224900C0DE0034 /* MeshViewController.c in Sources */,
 				CE05B3F030224900C0DE0035 /* MovementCombatViewController.c in Sources */,
@@ -6824,6 +6842,7 @@
 				CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */,
 				2E5D2C0CBC38FD1169C77DDB /* DemosCollectionItemView.c in Sources */,
 				91B39671CA4F375D3FEBBDA0 /* DemosCollectionView.c in Sources */,
+				2F1258894A585916F6D8F513 /* DemoList.c in Sources */,
 				8EF87DE8E42CB34AC627912E /* DemosViewController.c in Sources */,
 				C3241FC475F3D3E3E573AC7B /* CounterView.c in Sources */,
 				863F1E3961ED23FA4D28C1BB /* CrosshairView.c in Sources */,
@@ -6859,6 +6878,7 @@
 				CE6EE3DE1F720D8700FBC830 /* MainViewController.c in Sources */,
 				CE6EE3E31F720D9A00FBC830 /* MapListCollectionItemView.c in Sources */,
 				CE6EE3E41F720D9A00FBC830 /* MapListCollectionView.c in Sources */,
+				ECD977BEDE394CD17019BC2C /* MapList.c in Sources */,
 				CFA000202F9100000000C020 /* MaterialViewController.c in Sources */,
 				CFA000252F9100000000C025 /* MeshViewController.c in Sources */,
 				CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */,
@@ -7295,6 +7315,7 @@
 				CEC0FF00202601030000018B /* HomeViewController.c in Sources */,
 				2FAD5FD12BD7CC3AC13E4E10 /* DemosCollectionItemView.c in Sources */,
 				4884D62AC7509A737141A1F5 /* DemosCollectionView.c in Sources */,
+				2BCE540B4A7DD1811680C1DF /* DemoList.c in Sources */,
 				55ECBA76D3FED12161978AAF /* DemosViewController.c in Sources */,
 				EF3850D157838948B4F2B64F /* CounterView.c in Sources */,
 				13539C3CA303E97E3DFB80B5 /* CrosshairView.c in Sources */,
@@ -7330,6 +7351,7 @@
 				CEC0FF002026010300000190 /* MainViewController.c in Sources */,
 				CEC0FF002026010300000191 /* MapListCollectionItemView.c in Sources */,
 				CEC0FF002026010300000192 /* MapListCollectionView.c in Sources */,
+				E8E576F4F02CD6018C8D7B7C /* MapList.c in Sources */,
 				CEC0FF002026010300000193 /* MaterialViewController.c in Sources */,
 				CEC0FF002026010300000194 /* MeshViewController.c in Sources */,
 				CEC0FF002026010300000195 /* MovementCombatViewController.c in Sources */,
@@ -7510,6 +7532,7 @@
 				D2A5C100000000000000006F /* HomeViewController.c in Sources */,
 				73DBBF49A55BBA6FB35431A6 /* DemosCollectionItemView.c in Sources */,
 				00FE572C5C861491D333D0DC /* DemosCollectionView.c in Sources */,
+				C3E41F914FCEA12782E83182 /* DemoList.c in Sources */,
 				1707413E7413614CF7F308EE /* DemosViewController.c in Sources */,
 				6C7870B960DDA48FF5959231 /* CounterView.c in Sources */,
 				2C3ADE327DEBD6F3955255E7 /* CrosshairView.c in Sources */,
@@ -7545,6 +7568,7 @@
 				D2A5C1000000000000000074 /* MainViewController.c in Sources */,
 				D2A5C1000000000000000075 /* MapListCollectionItemView.c in Sources */,
 				D2A5C1000000000000000076 /* MapListCollectionView.c in Sources */,
+				C8FD8F82018E30E0052179E2 /* MapList.c in Sources */,
 				D2A5C1000000000000000077 /* MaterialViewController.c in Sources */,
 				D2A5C1000000000000000078 /* MeshViewController.c in Sources */,
 				D2A5C1000000000000000079 /* MovementCombatViewController.c in Sources */,

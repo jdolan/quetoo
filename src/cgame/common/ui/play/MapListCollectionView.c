@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <Objectively/PointerArray.h>
-
 #include "cg_local.h"
 
 #include "MapListCollectionView.h"
@@ -35,17 +33,6 @@
 #define MAPSHOT_WIDTH  420
 #define MAPSHOT_HEIGHT 236
 
-/**
- * @brief PointerArray destroy function for MapListItemInfo.
- */
-static void freeMapListItemInfo(void *p) {
-  MapListItemInfo *info = p;
-  if (info->mapshot) {
-    SDL_DestroySurface(info->mapshot);
-  }
-  free(info);
-}
-
 #pragma mark CollectionViewDataSource
 
 /**
@@ -55,14 +42,7 @@ static size_t numberOfItems(const CollectionView *collectionView) {
 
   const MapListCollectionView *this = (const MapListCollectionView *) collectionView;
 
-  // maps is rebuilt (added to, then sorted) under lock by the background loader; reading its
-  // count without the same lock could observe it mid-sort
-  size_t count;
-  synchronized(this->lock, {
-    count = this->maps->count;
-  });
-
-  return count;
+  return $(this->maps, count);
 }
 
 /**
@@ -74,12 +54,7 @@ static ident objectForItemAtIndexPath(const CollectionView *collectionView, cons
 
   const size_t index = $(indexPath, indexAtPosition, 0);
 
-  ident object = NULL;
-  synchronized(this->lock, {
-    object = $(this->maps, get, index);
-  });
-
-  return object;
+  return $(this->maps, get, index);
 }
 
 #pragma mark - CollectionViewDelegate
@@ -92,10 +67,7 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
   const MapListCollectionView *this = (const MapListCollectionView *) collectionView;
   const size_t index = $(indexPath, indexAtPosition, 0);
 
-  const MapListItemInfo *info;
-  synchronized(this->lock, {
-    info = $(this->maps, get, index);
-  });
+  const MapListItemInfo *info = $(this->maps, get, index);
 
   MapListCollectionItemView *item = $(alloc(MapListCollectionItemView), initWithFrame, NULL);
   assert(item);
@@ -108,41 +80,11 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 #pragma mark - Asynchronous map loading
 
 /**
- * @brief Hand-off to the worker thread: only the thread-safe state it needs, retained
- * independently of the View, so the View's own teardown never has to wait on or race the worker.
- */
-typedef struct {
-  Lock *lock;
-  PointerArray *maps;
-} MapListLoader;
-
-/**
- * @brief Comparator for map sorting.
- */
-static Order sortMaps(const ident a, const ident b) {
-
-  const MapListItemInfo *c = a;
-  const MapListItemInfo *d = b;
-
-  const char *e = !q_strncmp(c->message, "The ", 4) ? c->message + 4 : c->message;
-  const char *f = !q_strncmp(d->message, "The ", 4) ? d->message + 4 : d->message;
-
-  return q_strcasecmp(e, f) < 0 ? OrderAscending : OrderDescending;
-}
-
-/**
  * @brief Fs_Enumerator for map discovery.
  */
 static void enumerateMaps(const char *path, void *data) {
 
-  const MapListLoader *loader = data;
-
-  for (size_t i = 0; i < loader->maps->count; i++) {
-    const MapListItemInfo *info = $(loader->maps, get, i);
-    if (q_strcmp(info->mapname, path) == 0) {
-      return;
-    }
-  }
+  MapList *maps = data;
 
   file_t *file = cgi.OpenFile(path);
   if (file) {
@@ -231,10 +173,7 @@ static void enumerateMaps(const char *path, void *data) {
 
       release(mapshots);
 
-      synchronized(loader->lock, {
-        $(loader->maps, add, info);
-        $(loader->maps, sort, sortMaps);
-      });
+      $(maps, add, info);
     }
 
     cgi.CloseFile(file);
@@ -246,14 +185,11 @@ static void enumerateMaps(const char *path, void *data) {
  */
 static void loadMaps(void *data) {
 
-  MapListLoader *loader = data;
+  MapList *maps = data;
 
-  cgi.EnumerateFiles("maps/*.bsp", enumerateMaps, loader);
+  cgi.EnumerateFiles("maps/*.bsp", enumerateMaps, maps);
 
-  release(loader->lock);
-  release(loader->maps);
-
-  free(loader);
+  release(maps);
 }
 
 #pragma mark - Object
@@ -265,7 +201,6 @@ static void dealloc(Object *self) {
 
   MapListCollectionView *this = (MapListCollectionView *) self;
 
-  release(this->lock);
   release(this->maps);
 
   super(Object, self, dealloc);
@@ -287,16 +222,8 @@ static void layoutIfNeeded(View *self) {
 
   MapListCollectionView *this = (MapListCollectionView *) self;
 
-  // reloadData must happen outside the lock: it synchronously calls back into numberOfItems/
-  // objectForItemAtIndexPath, which themselves acquire this same (non-recursive) lock - holding
-  // it across that call self-deadlocks the calling thread.
-  bool needs_reload;
-  synchronized(this->lock, {
-    const Array *items = (Array *) this->collectionView.items;
-    needs_reload = this->maps->count != items->count;
-  });
-
-  if (needs_reload) {
+  const Array *items = (Array *) this->collectionView.items;
+  if ($(this->maps, count) != items->count) {
     $((CollectionView *) this, reloadData);
   }
 
@@ -313,19 +240,10 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
 
   self = (MapListCollectionView *) super(CollectionView, self, initWithFrame, frame);
   if (self) {
-    self->lock = $(alloc(Lock), init);
-    assert(self->lock);
-
-    self->maps = $(alloc(PointerArray), initWithDestroy, freeMapListItemInfo);
+    self->maps = $(alloc(MapList), init);
     assert(self->maps);
 
-    MapListLoader *loader = malloc(sizeof(*loader));
-    assert(loader);
-
-    loader->lock = retain(self->lock);
-    loader->maps = retain(self->maps);
-
-    cgi.Thread(__func__, loadMaps, loader, THREAD_NO_WAIT);
+    cgi.Thread(__func__, loadMaps, retain(self->maps), THREAD_NO_WAIT);
 
     self->collectionView.dataSource.numberOfItems = numberOfItems;
     self->collectionView.dataSource.objectForItemAtIndexPath = objectForItemAtIndexPath;

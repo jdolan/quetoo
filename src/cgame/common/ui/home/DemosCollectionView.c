@@ -19,9 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <Objectively/Lock.h>
-#include <Objectively/PointerArray.h>
-
 #include "cg_local.h"
 
 #include "DemosCollectionView.h"
@@ -35,93 +32,6 @@
 #define DEMO_MAPSHOT_WIDTH  448
 #define DEMO_MAPSHOT_HEIGHT 252
 
-/**
- * @brief PointerArray destroy function for DemoListItemInfo.
- */
-static void freeDemoListItemInfo(void *p) {
-  DemoListItemInfo *info = p;
-  if (info->mapshot) {
-    SDL_DestroySurface(info->mapshot);
-  }
-  free(info);
-}
-
-/**
- * @brief Case-insensitive substring test.
- */
-static bool containsCaseInsensitive(const char *haystack, const char *needle) {
-
-  const size_t needle_len = strlen(needle);
-  if (!needle_len) {
-    return true;
-  }
-
-  for (const char *h = haystack; *h; h++) {
-    if (!q_strncasecmp(h, needle, needle_len)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * @brief The demo list's thread-safe state: `lock`, `demos`, `filtered` and `filter` together,
- * shared by the View and however many `reloadDemos` loaders are in flight, so it can outlive any
- * one of them. Manually reference counted, the same way Objectively's own Class.c does it,
- * because `filter` is a plain string rather than a reference-counted Object, and because more
- * than one loader can be alive at a time.
- */
-struct DemosState {
-  unsigned int referenceCount;
-  Lock *lock;
-  PointerArray *demos;
-  PointerArray *filtered;
-  char *filter;
-};
-
-/**
- * @brief Retains `state` for a new owner.
- */
-static DemosState *retainState(DemosState *state) {
-  __atomic_fetch_add(&state->referenceCount, 1, __ATOMIC_RELAXED);
-  return state;
-}
-
-/**
- * @brief Releases `state`, freeing it once its last owner has done so.
- */
-static void releaseState(DemosState *state) {
-  if (__atomic_fetch_sub(&state->referenceCount, 1, __ATOMIC_RELEASE) == 1) {
-    __atomic_thread_fence(__ATOMIC_ACQUIRE);
-
-    release(state->lock);
-    release(state->demos);
-    release(state->filtered);
-    free(state->filter);
-    free(state);
-  }
-}
-
-/**
- * @brief Rebuilds `filtered` from `demos`, per `filter`. Caller holds `lock`.
- */
-static void applyFilter(DemosState *state) {
-
-  $(state->filtered, removeAll);
-
-  for (size_t i = 0; i < state->demos->count; i++) {
-    DemoListItemInfo *info = $(state->demos, get, i);
-
-    if (state->filter && *state->filter &&
-        !containsCaseInsensitive(DemoListItemName(info), state->filter)) {
-      continue;
-    }
-
-    $(state->filtered, add, info);
-  }
-}
-
 #pragma mark CollectionViewDataSource
 
 /**
@@ -131,14 +41,7 @@ static size_t numberOfItems(const CollectionView *collectionView) {
 
   const DemosCollectionView *this = (const DemosCollectionView *) collectionView;
 
-  // filtered is rebuilt (cleared, then repopulated) under lock by the background loader; reading
-  // its count without the same lock could observe it mid-rebuild
-  size_t count;
-  synchronized(this->state->lock, {
-    count = this->state->filtered->count;
-  });
-
-  return count;
+  return $(this->demos, count);
 }
 
 /**
@@ -150,12 +53,7 @@ static ident objectForItemAtIndexPath(const CollectionView *collectionView, cons
 
   const size_t index = $(indexPath, indexAtPosition, 0);
 
-  ident object = NULL;
-  synchronized(this->state->lock, {
-    object = $(this->state->filtered, get, index);
-  });
-
-  return object;
+  return $(this->demos, get, index);
 }
 
 #pragma mark - CollectionViewDelegate
@@ -168,10 +66,7 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
   DemosCollectionView *this = (DemosCollectionView *) collectionView;
   const size_t index = $(indexPath, indexAtPosition, 0);
 
-  DemoListItemInfo *info;
-  synchronized(this->state->lock, {
-    info = $(this->state->filtered, get, index);
-  });
+  DemoListItemInfo *info = $(this->demos, get, index);
 
   DemosCollectionItemView *item = $(alloc(DemosCollectionItemView), initWithFrame, NULL);
   assert(item);
@@ -185,22 +80,11 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 #pragma mark - Asynchronous demo loading
 
 /**
- * @brief Comparator for demo sorting: most recently recorded first.
- */
-static Order sortDemos(const ident a, const ident b) {
-
-  const DemoListItemInfo *c = a;
-  const DemoListItemInfo *d = b;
-
-  return c->modified > d->modified ? OrderAscending : OrderDescending;
-}
-
-/**
  * @brief Fs_Enumerator for demo discovery.
  */
 static void enumerateDemos(const char *path, void *data) {
 
-  DemosState *state = data;
+  DemoList *demos = data;
 
   file_t *file = cgi.OpenFile(path);
   if (!file) {
@@ -260,29 +144,7 @@ static void enumerateDemos(const char *path, void *data) {
 
   release(mapshots);
 
-  synchronized(state->lock, {
-
-    // the duplicate check must happen under the same lock as the add: reloadDemos can be
-    // triggered concurrently (initWithFrame and viewWillAppear both call it), and two racing
-    // enumerations could otherwise both observe the path as absent before either adds it
-    bool duplicate = false;
-    for (size_t i = 0; i < state->demos->count; i++) {
-      const DemoListItemInfo *existing = $(state->demos, get, i);
-      if (q_strcmp(existing->filename, path) == 0) {
-        duplicate = true;
-        break;
-      }
-    }
-
-    if (duplicate) {
-      freeDemoListItemInfo(info);
-    } else {
-      $(state->demos, add, info);
-      $(state->demos, sort, sortDemos);
-    }
-
-    applyFilter(state);
-  });
+  $(demos, add, info);
 }
 
 /**
@@ -290,11 +152,11 @@ static void enumerateDemos(const char *path, void *data) {
  */
 static void loadDemos(void *data) {
 
-  DemosState *state = data;
+  DemoList *demos = data;
 
-  cgi.EnumerateFiles("demos/*.demo", enumerateDemos, state);
+  cgi.EnumerateFiles("demos/*.demo", enumerateDemos, demos);
 
-  releaseState(state);
+  release(demos);
 }
 
 #pragma mark - Object
@@ -306,7 +168,7 @@ static void dealloc(Object *self) {
 
   DemosCollectionView *this = (DemosCollectionView *) self;
 
-  releaseState(this->state);
+  release(this->demos);
 
   super(Object, self, dealloc);
 }
@@ -327,21 +189,14 @@ static void layoutIfNeeded(View *self) {
 
   DemosCollectionView *this = (DemosCollectionView *) self;
 
-  // reloadData and the visibility calls below must happen outside the lock: reloadData
-  // synchronously calls back into numberOfItems/objectForItemAtIndexPath, which themselves
-  // acquire this same (non-recursive) lock - holding it across that call self-deadlocks the
-  // calling thread.
-  bool needs_reload, empty;
-  synchronized(this->state->lock, {
-    const Array *items = (Array *) this->collectionView.items;
-    needs_reload = this->state->filtered->count != items->count;
-    empty = this->state->filtered->count == 0;
-  });
+  const Array *items = (Array *) this->collectionView.items;
+  const size_t count = $(this->demos, count);
 
-  if (needs_reload) {
+  if (count != items->count) {
     $((CollectionView *) this, reloadData);
   }
 
+  const bool empty = count == 0;
   $(self, setVisibility, empty ? ViewVisibilityHidden : ViewVisibilityVisible);
   if (this->emptyStateView) {
     $(this->emptyStateView, setVisibility, empty ? ViewVisibilityVisible : ViewVisibilityHidden);
@@ -360,19 +215,8 @@ static DemosCollectionView *initWithFrame(DemosCollectionView *self, const SDL_R
 
   self = (DemosCollectionView *) super(CollectionView, self, initWithFrame, frame);
   if (self) {
-    self->state = calloc(1, sizeof(*self->state));
-    assert(self->state);
-
-    self->state->referenceCount = 1;
-
-    self->state->lock = $(alloc(Lock), init);
-    assert(self->state->lock);
-
-    self->state->demos = $(alloc(PointerArray), initWithDestroy, freeDemoListItemInfo);
-    assert(self->state->demos);
-
-    self->state->filtered = $(alloc(PointerArray), init);
-    assert(self->state->filtered);
+    self->demos = $(alloc(DemoList), init);
+    assert(self->demos);
 
     self->collectionView.dataSource.numberOfItems = numberOfItems;
     self->collectionView.dataSource.objectForItemAtIndexPath = objectForItemAtIndexPath;
@@ -389,7 +233,7 @@ static DemosCollectionView *initWithFrame(DemosCollectionView *self, const SDL_R
  * @memberof DemosCollectionView
  */
 static void reloadDemos(DemosCollectionView *self) {
-  cgi.Thread(__func__, loadDemos, retainState(self->state), THREAD_NO_WAIT);
+  cgi.Thread(__func__, loadDemos, retain(self->demos), THREAD_NO_WAIT);
 }
 
 /**
@@ -398,12 +242,7 @@ static void reloadDemos(DemosCollectionView *self) {
  */
 static void setFilter(DemosCollectionView *self, const char *filter) {
 
-  synchronized(self->state->lock, {
-    free(self->state->filter);
-    self->state->filter = filter && *filter ? q_strdup(filter) : NULL;
-
-    applyFilter(self->state);
-  });
+  $(self->demos, setFilter, filter);
 
   $((CollectionView *) self, reloadData);
 }
@@ -435,18 +274,7 @@ static DemoListItemInfo *selectedDemo(const DemosCollectionView *self) {
  */
 static void removeDemo(DemosCollectionView *self, const char *filename) {
 
-  synchronized(self->state->lock, {
-
-    for (size_t i = 0; i < self->state->demos->count; i++) {
-      const DemoListItemInfo *info = $(self->state->demos, get, i);
-      if (q_strcmp(info->filename, filename) == 0) {
-        $(self->state->demos, removeAt, i);
-        break;
-      }
-    }
-
-    applyFilter(self->state);
-  });
+  $(self->demos, remove, filename);
 
   $((CollectionView *) self, reloadData);
 }
