@@ -153,8 +153,8 @@ static void Cg_Init(void) {
   // deliberately not archived: the server overrules this whenever it decides what, if anything,
   // is being watched, so a persisted value would be one the player never chose
   cg_camera_mode = cgi.AddCvar("cg_camera_mode", "0", 0,
-                               "The spectator and demo playback camera: "
-                               "0 first person, 1 third person, 2 follow, 3 free flight.");
+                               "How the spectator and demo playback camera frames its subject: "
+                               "0 first person, 1 third person, 2 follow.");
 
   cg_third_person = cgi.AddCvar("cg_third_person", "0", CVAR_ARCHIVE | CVAR_DEVELOPER, "Activate third person perspective.");
   cg_third_person_x = cgi.AddCvar("cg_third_person_x", "-200", CVAR_ARCHIVE, "The x offset for third person perspective.");
@@ -201,7 +201,7 @@ static void Cg_Init(void) {
   cgi.AddCmd("chase_stop", NULL, CMD_CGAME, "Stop chasing and return to free spectator flight.");
 
   cgi.AddCmd("camera", Cg_CameraModeCycle_f, CMD_CGAME,
-             "Cycle first-person, third-person, follow, and free-flight cameras "
+             "Cycle the first-person, third-person and follow cameras "
              "(demo playback and spectating).");
 
   Cg_InitUi();

@@ -258,6 +258,10 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
  */
 void Cg_Look(pm_cmd_t *cmd) {
 
+  if (cgi.client->demo_server && cg_state.spectate.detached) {
+    return; // a camera that has left the recorded player behind does not take their recoil
+  }
+
   Cg_ViewKick(cmd);
 
   Cg_WeaponKick(cmd);
