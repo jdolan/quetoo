@@ -319,24 +319,6 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
     }
   }
 
-  // Jump cycles how the subject is framed, as it has always roughly done. This stays gated on
-  // having a subject: with none, jump is how the free camera climbs, and pressing it should not
-  // quietly change a camera the viewer cannot see the effect of
-  if (Cg_CameraSubject(&cgi.client->frame.ps)) {
-    if (cmd->up) {
-      static uint32_t time;
-
-      if (time > cgi.client->unclamped_time) {
-        time = 0;
-      }
-
-      if (cgi.client->unclamped_time - time > 200) {
-        cgi.Cbuf("camera\n");
-        time = cgi.client->unclamped_time;
-      }
-    }
-  }
-
   if (Cg_FollowEligible(&cgi.client->frame.ps)) {
     // +forward/+back are otherwise idle whenever the follow camera is active - a chasing
     // spectator's movement
