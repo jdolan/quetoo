@@ -26,7 +26,7 @@
 
 /**
  * @file
- * @brief A single control that cycles first-person, third-person orbit, and free-flight
+ * @brief A single control that cycles first-person, third-person, follow and free-flight
  * cameras, shown during demo playback and during live in-game spectating (chasing or free
  * spectator flight) - never while actively playing.
  */
@@ -52,7 +52,7 @@ struct CameraControlsView {
   CameraControlsViewInterface *interface[0];
 
   /**
-   * @brief Cycles `camera_mode_cycle`, labeled with the current mode.
+   * @brief Cycles `camera`, labeled with the current mode.
    */
   Button *cameraModeButton;
 };

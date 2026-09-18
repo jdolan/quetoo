@@ -123,14 +123,14 @@ static bool Cg_CameraSubject(const player_state_t *ps) {
 
 /**
  * @brief Returns true if the third-person offset should be driven by the viewer's mouse and
- * `+forward`/`+back` (`cg_state.orbit`) rather than the static `cg_third_person_*` cvars.
+ * `+forward`/`+back` (`cg_state.follow`) rather than the static `cg_third_person_*` cvars.
  * @details That input is free to take in exactly these states: a chasing spectator's aim is
  * never read by the game module (`G_ClientChaseThink` overwrites their view entirely), and demo
  * playback sends no commands to anything. A player forcing `cg_third_person` while actually
  * playing is excluded, since their mouse and movement keys are busy.
  */
-bool Cg_OrbitEligible(const player_state_t *ps) {
-  return cg_state.camera_mode == CAMERA_ORBIT && Cg_CameraSubject(ps);
+bool Cg_FollowEligible(const player_state_t *ps) {
+  return cg_state.camera_mode == CAMERA_FOLLOW && Cg_CameraSubject(ps);
 }
 
 /**
@@ -173,7 +173,7 @@ static void Cg_UpdateCameraMode(const player_state_t *ps) {
 }
 
 /**
- * @brief Console command: cycles first-person, third-person, orbit and free-flight cameras.
+ * @brief Console command: cycles first-person, third-person, follow and free-flight cameras.
  * @details The mode is client state in both contexts, but only demo playback owns whether the
  * camera is attached to anything. Live, that is the server's, so entering and leaving
  * `CAMERA_SPECTATE` asks for it with `chase_stop` / `chase_start` and lets `Cg_UpdateCameraMode`
@@ -193,10 +193,10 @@ void Cg_CameraModeCycle_f(void) {
       break;
 
     case CAMERA_THIRD_PERSON:
-      cg_state.camera_mode = CAMERA_ORBIT;
+      cg_state.camera_mode = CAMERA_FOLLOW;
       break;
 
-    case CAMERA_ORBIT:
+    case CAMERA_FOLLOW:
       cg_state.camera_mode = CAMERA_SPECTATE;
 
       if (!cgi.client->demo_server) {
@@ -222,7 +222,7 @@ void Cg_CameraModeCycle_f(void) {
 
 /**
  * @brief Update the third person offset, if any. This is used as a client-side
- * option, as the default chase camera view, and as demo playback's orbit camera.
+ * option, as the default chase camera view, and as the follow camera.
  */
 static void Cg_UpdateThirdPerson(const player_state_t *ps) {
   vec3_t forward, right, up, origin, point;
@@ -235,22 +235,22 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
     return;
   }
 
-  const bool orbit = Cg_OrbitEligible(ps);
+  const bool follow = Cg_FollowEligible(ps);
 
-  if (orbit && !cg_state.orbit.orbiting) {
-    // entering orbit: seed from where the view already is, so the camera takes over from the
+  if (follow && !cg_state.follow.following) {
+    // entering follow: seed from where the view already is, so the camera takes over from the
     // subject's own orientation without a jump
-    cg_state.orbit.yaw = cgi.view->angles.y + cg_third_person_yaw->value;
-    cg_state.orbit.pitch = cgi.view->angles.x + cg_third_person_pitch->value;
-    cg_state.orbit.distance = -cg_third_person_x->value;
+    cg_state.follow.yaw = cgi.view->angles.y + cg_third_person_yaw->value;
+    cg_state.follow.pitch = cgi.view->angles.x + cg_third_person_pitch->value;
+    cg_state.follow.distance = -cg_third_person_x->value;
   }
-  cg_state.orbit.orbiting = orbit;
+  cg_state.follow.following = follow;
 
   const bool third_person = cg_state.camera_mode == CAMERA_THIRD_PERSON && Cg_CameraSubject(ps);
 
   if (cg_third_person->value && Cg_Self()->current.model1) {
     cgi.client->third_person = true;
-  } else if (orbit || third_person) {
+  } else if (follow || third_person) {
     cgi.client->third_person = true;
   } else {
     cgi.client->third_person = false;
@@ -260,12 +260,12 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
   vec3_t offset;
   vec3_t angles;
 
-  if (orbit) {
-    offset = Vec3(-cg_state.orbit.distance, cg_third_person_y->value, cg_third_person_z->value);
+  if (follow) {
+    offset = Vec3(-cg_state.follow.distance, cg_third_person_y->value, cg_third_person_z->value);
 
     // absolute, not relative to the subject: the camera holds its place in the world while the
     // player being watched turns, which is what makes it usable for reviewing a fight
-    angles = Vec3_ClampEuler(Vec3(cg_state.orbit.pitch, cg_state.orbit.yaw, 0.f));
+    angles = Vec3_ClampEuler(Vec3(cg_state.follow.pitch, cg_state.follow.yaw, 0.f));
   } else {
     offset = Vec3(
       cg_third_person_x->value,

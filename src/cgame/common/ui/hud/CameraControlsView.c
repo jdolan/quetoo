@@ -28,10 +28,10 @@
 #pragma mark - Delegates
 
 /**
- * @brief ButtonDelegate: cycles first-person, third-person orbit, and free-flight cameras.
+ * @brief ButtonDelegate: cycles first-person, third-person, follow and free-flight cameras.
  */
 static void didClickCameraMode(Button *button) {
-  cgi.Cbuf("camera_mode_cycle\n");
+  cgi.Cbuf("camera\n");
 }
 
 #pragma mark - CameraControlsView
@@ -76,8 +76,8 @@ static void update(CameraControlsView *self) {
     case CAMERA_THIRD_PERSON:
       label = "3rd Person";
       break;
-    case CAMERA_ORBIT:
-      label = "Orbit";
+    case CAMERA_FOLLOW:
+      label = "Follow";
       break;
     default:
       label = "Free Flight";

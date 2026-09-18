@@ -200,7 +200,7 @@ typedef struct {
 #define WEATHER_ASH  0x4
 
 /**
- * @brief Camera modes, cycled by `camera_mode_cycle`, for demo playback and for spectating a
+ * @brief Camera modes, cycled by `camera`, for demo playback and for spectating a
  * live game alike. This says how to frame the subject; whether there is one to frame is the
  * server's to answer while spectating, so `Cg_UpdateCameraMode` reconciles the two.
  */
@@ -219,7 +219,7 @@ typedef enum {
    * @brief Anchored on the subject, but aimed by the viewer: the mouse swings the camera around
    * them and `+forward`/`+back` changes its distance.
    */
-  CAMERA_ORBIT,
+  CAMERA_FOLLOW,
 
   /**
    * @brief Detached from the subject entirely, flying freely.
@@ -228,19 +228,19 @@ typedef enum {
 } cg_camera_mode_t;
 
 /**
- * @brief Orbit camera state: mouse-driven yaw/pitch and `+forward`/`+back`-driven distance,
+ * @brief Follow camera state: mouse-driven yaw/pitch and `+forward`/`+back`-driven distance,
  * held in world space so the camera keeps its place while the subject turns.
  */
 typedef struct {
   float yaw, pitch, distance;
 
   /**
-   * @brief Whether the camera was orbiting last frame, so that entering orbit seeds the
+   * @brief Whether the camera was following last frame, so that entering the mode seeds the
    * accumulator. This lives here rather than in a static so that it is cleared with the rest of
-   * the orbit state, which a reconnect would otherwise leave disagreeing.
+   * the follow state, which a reconnect would otherwise leave disagreeing.
    */
-  bool orbiting;
-} cg_orbit_state_t;
+  bool following;
+} cg_follow_state_t;
 
 /**
  * @brief Free-flight camera state for demo playback: a locally-owned `PM_SPECTATOR` movement
@@ -339,7 +339,7 @@ typedef struct {
   cg_next_map_state_t next_map;
 
   /**
-   * @brief The camera mode, cycled by `camera_mode_cycle`.
+   * @brief The camera mode, cycled by `camera`.
    */
   cg_camera_mode_t camera_mode;
 
@@ -351,9 +351,9 @@ typedef struct {
   uint32_t chase_request_time;
 
   /**
-   * @brief Orbit camera state, shared by live chase-cam and demo orbit mode.
+   * @brief Follow camera state, shared by live spectating and demo playback.
    */
-  cg_orbit_state_t orbit;
+  cg_follow_state_t follow;
 
   /**
    * @brief Free-flight camera state, used during demo playback only.
