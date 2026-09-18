@@ -19,26 +19,27 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#if !defined(__SOUND_H__)
+#include <opus.h>
 
-#include "common/common.h"
+#include "s_local.h"
 
-#include "s_main.h"
-#include "s_media.h"
-#include "s_mix.h"
-#include "s_music.h"
-#include "s_sample.h"
-#include "s_voice.h"
-#include "s_types.h"
+cvar_t *s_voice;
+cvar_t *s_voice_volume;
 
-extern s_context_t s_context;
+/**
+ * @brief Initializes the voice chat subsystem.
+ */
+void S_InitVoice(void) {
 
-extern cvar_t *s_ambient_volume;
-extern cvar_t *s_doppler;
-extern cvar_t *s_effects;
-extern cvar_t *s_effects_volume;
-extern cvar_t *s_hrtf;
-extern cvar_t *s_rate;
-extern cvar_t *s_volume;
+  s_voice = Cvar_Add("s_voice", "1", CVAR_ARCHIVE, "Enables voice chat.");
+  s_voice_volume = Cvar_Add("s_voice_volume", "1", CVAR_ARCHIVE, "Voice chat volume.");
 
-#endif
+  Com_Print("Voice initialized (%s)\n", opus_get_version_string());
+}
+
+/**
+ * @brief Shuts down the voice chat subsystem, releasing all of its resources.
+ */
+void S_ShutdownVoice(void) {
+
+}

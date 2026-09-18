@@ -990,6 +990,8 @@ static void Sv_InitLocal(void) {
 
   // set this so clients and server browsers can see it
   Cvar_Add("sv_protocol", va("%i", PROTOCOL_MAJOR), CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+
+  Sv_InitVoice();
 }
 
 /**

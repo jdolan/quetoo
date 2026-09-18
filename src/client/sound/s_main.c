@@ -424,6 +424,8 @@ void S_Init(void) {
 
   S_InitMusic();
 
+  S_InitVoice();
+
   s_context.resample_buffer = Mem_TagMalloc(sizeof(int16_t) * 2048, MEM_TAG_SOUND);
 }
 
@@ -452,6 +454,8 @@ void S_Shutdown(void) {
   }
 
   S_GetError(NULL);
+
+  S_ShutdownVoice();
 
   S_ShutdownMusic();
 

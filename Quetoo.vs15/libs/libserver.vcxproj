@@ -34,6 +34,7 @@
     <ClInclude Include="..\..\src\server\sv_master.h" />
     <ClInclude Include="..\..\src\server\sv_demo.h" />
     <ClInclude Include="..\..\src\server\sv_send.h" />
+    <ClInclude Include="..\..\src\server\sv_voice.h" />
     <ClInclude Include="..\..\src\server\sv_types.h" />
     <ClInclude Include="..\..\src\server\sv_world.h" />
   </ItemGroup>
@@ -51,6 +52,7 @@
     <ClCompile Include="..\..\src\server\sv_master.c" />
     <ClCompile Include="..\..\src\server\sv_demo.c" />
     <ClCompile Include="..\..\src\server\sv_send.c" />
+    <ClCompile Include="..\..\src\server\sv_voice.c" />
     <ClCompile Include="..\..\src\server\sv_world.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

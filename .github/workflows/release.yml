@@ -42,7 +42,7 @@ jobs:
           autoconf automake libtool pkg-config \
           ncurses check \
           sdl3 sdl3_image sdl3_ttf \
-          openal-soft libsndfile physfs \
+          openal-soft libsndfile physfs opus \
           curl dylibbundler
 
     # 3.4.14 regressed SDL_gpu on macOS and the fix is not due until 3.4.18,
@@ -224,7 +224,7 @@ jobs:
           build-essential autoconf automake libtool pkg-config \
           g++-12 \
           libncurses-dev \
-          libsndfile1-dev libphysfs-dev zlib1g-dev \
+          libsndfile1-dev libphysfs-dev zlib1g-dev libopus-dev \
           libcurl4-openssl-dev \
           libgl-dev \
           libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \

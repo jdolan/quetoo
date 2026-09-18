@@ -35,7 +35,7 @@ jobs:
           build-essential autoconf automake libtool pkg-config \
           g++-12 \
           libncurses-dev \
-          libsndfile1-dev libphysfs-dev zlib1g-dev \
+          libsndfile1-dev libphysfs-dev zlib1g-dev libopus-dev \
           libcurl4-openssl-dev \
           libgl-dev \
           libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \

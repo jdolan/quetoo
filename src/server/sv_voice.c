@@ -19,26 +19,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#if !defined(__SOUND_H__)
+#include "sv_local.h"
 
-#include "common/common.h"
+cvar_t *sv_voice;
+cvar_t *sv_voice_rate;
 
-#include "s_main.h"
-#include "s_media.h"
-#include "s_mix.h"
-#include "s_music.h"
-#include "s_sample.h"
-#include "s_voice.h"
-#include "s_types.h"
+/**
+ * @brief Initializes the server side of voice chat.
+ */
+void Sv_InitVoice(void) {
 
-extern s_context_t s_context;
-
-extern cvar_t *s_ambient_volume;
-extern cvar_t *s_doppler;
-extern cvar_t *s_effects;
-extern cvar_t *s_effects_volume;
-extern cvar_t *s_hrtf;
-extern cvar_t *s_rate;
-extern cvar_t *s_volume;
-
-#endif
+  sv_voice = Cvar_Add("sv_voice", "1", CVAR_SERVER_INFO, "Enables voice chat relaying on this server");
+  sv_voice_rate = Cvar_Add("sv_voice_rate", "4000", 0, "The per-client voice chat budget, in bytes per second");
+}

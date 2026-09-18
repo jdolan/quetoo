@@ -19,26 +19,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#if !defined(__SOUND_H__)
+#pragma once
 
-#include "common/common.h"
+#include "sv_types.h"
 
-#include "s_main.h"
-#include "s_media.h"
-#include "s_mix.h"
-#include "s_music.h"
-#include "s_sample.h"
-#include "s_voice.h"
-#include "s_types.h"
+#if defined(__SV_LOCAL_H__)
+extern cvar_t *sv_voice;
+extern cvar_t *sv_voice_rate;
 
-extern s_context_t s_context;
-
-extern cvar_t *s_ambient_volume;
-extern cvar_t *s_doppler;
-extern cvar_t *s_effects;
-extern cvar_t *s_effects_volume;
-extern cvar_t *s_hrtf;
-extern cvar_t *s_rate;
-extern cvar_t *s_volume;
-
+void Sv_InitVoice(void);
 #endif
