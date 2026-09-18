@@ -535,11 +535,29 @@ void Cl_Move(pm_cmd_t *cmd) {
 }
 
 /**
+ * @brief Begins a push to talk voice transmission.
+ */
+static void Cl_Voice_down_f(void) {
+  S_StartVoice();
+}
+
+/**
+ * @brief Ends a push to talk voice transmission.
+ */
+static void Cl_Voice_up_f(void) {
+  S_StopVoice();
+}
+
+/**
  * @brief Resets all button states, clearing any held inputs.
+ * @remarks Voice is released here too, so that losing focus or dropping a key up event cannot
+ * leave the microphone transmitting.
  */
 void Cl_ClearInput(void) {
 
   memset(cl_buttons, 0, sizeof(cl_buttons));
+
+  S_StopVoice();
 }
 
 /**
@@ -548,6 +566,8 @@ void Cl_ClearInput(void) {
 void Cl_InitInput(void) {
 
   Cmd_Add("center_view", Cl_CenterView_f, CMD_CLIENT, NULL);
+  Cmd_Add("+voice", Cl_Voice_down_f, CMD_CLIENT, "Transmit voice chat while held.");
+  Cmd_Add("-voice", Cl_Voice_up_f, CMD_CLIENT, NULL);
   Cmd_Add("+move_up", Cl_Up_down_f, CMD_CLIENT, NULL);
   Cmd_Add("-move_up", Cl_Up_up_f, CMD_CLIENT, NULL);
   Cmd_Add("+move_down", Cl_Down_down_f, CMD_CLIENT, NULL);

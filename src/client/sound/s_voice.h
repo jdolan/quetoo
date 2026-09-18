@@ -22,7 +22,13 @@
 #pragma once
 
 extern cvar_t *s_voice;
+extern cvar_t *s_voice_device;
+extern cvar_t *s_voice_gain;
+extern cvar_t *s_voice_loopback;
 extern cvar_t *s_voice_volume;
+
+void S_StartVoice(void);
+void S_StopVoice(void);
 
 #if defined(__S_LOCAL_H__)
 void S_InitVoice(void);
