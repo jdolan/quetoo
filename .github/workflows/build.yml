@@ -290,6 +290,7 @@ jobs:
         # Dependency DLLs
         Copy-Item "..\Objectively\Objectively.vs15\libs\dlfcn\x64\dlfcn.dll" "$staging\bin\"
         Copy-Item "Quetoo.vs15\libs\openal\bin\x64\OpenAL32.dll" "$staging\bin\"
+        Copy-Item "Quetoo.vs15\libs\opus\bin\x64\opus.dll" "$staging\bin\"
 
         # SDL3 DLLs: core from ObjectivelyGPU, image/ttf from ObjectivelyMVC,
         # fetched on demand into their libs/ during the build.
