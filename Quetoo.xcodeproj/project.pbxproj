@@ -82,6 +82,7 @@
 		1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		20BE76382F981DD4B7F43A11 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E652EE2F700EFB737AEA30 /* hud.json */; };
 		21B7C99056194E1E9FC62EF2 /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
+		CEAF01CE0000000000000002 /* VoiceView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAF01CE0000000000000001 /* VoiceView.c */; };
 		24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		25BC89DD24A937543466EBF8 /* StatView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 023302D99271CCB07B215C6D /* StatView.json */; };
 		28D9703AF85F475F866BAA51 /* DiagnosticsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */; };
@@ -133,6 +134,7 @@
 		5D26ECD45D3B9CEDA1FCE596 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		5F30C8395773D766335F5B9D /* ScoreView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = F2440E567EED9135ED4DDDC8 /* ScoreView.json */; };
 		622B0D6DA98C42AA8A8D582B /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
+		CEAF01CE0000000000000003 /* VoiceView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAF01CE0000000000000001 /* VoiceView.c */; };
 		65A8C761AE5D68358CDDE601 /* NavEditView.c in Sources */ = {isa = PBXBuildFile; fileRef = 491F54CD554D0F550B000B4E /* NavEditView.c */; };
 		665046BB6961C443C731A077 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
 		6681071D48F7B492ADC27385 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
@@ -182,11 +184,13 @@
 		A978478284E6A536361DE6FC /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
 		AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */; };
 		AC814FDD1291470DA9883B6C /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
+		CEAF01CE0000000000000004 /* VoiceView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAF01CE0000000000000001 /* VoiceView.c */; };
 		AD9B2D464FD840D5A031FC6A /* PingView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5624F1C74F4646918DA71088 /* PingView.c */; };
 		AE4EA13B59877C5736940695 /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
 		AF637037D323F5359A9E5F26 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
 		AF8056E19DEC77694B63EDD7 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		B0F1E4D1823545B993F57B81 /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
+		CEAF01CE0000000000000005 /* VoiceView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAF01CE0000000000000001 /* VoiceView.c */; };
 		B221DFE8D70C9012A418D37B /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
 		B2B62AE1E7C09567B299F1AA /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		B3C3D379CB4955B1FED23ADB /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
@@ -2191,6 +2195,7 @@
 		2DA349510962B7CDA15CFEC5 /* DemosViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DemosViewController.json; sourceTree = "<group>"; };
 		2E9A665C836946BF25073235 /* PickupView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PickupView.json; sourceTree = "<group>"; };
 		2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ChatView.c; sourceTree = "<group>"; };
+		CEAF01CE0000000000000001 /* VoiceView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = VoiceView.c; sourceTree = "<group>"; };
 		303177B0E2D33EB62F047DDC /* PowerupView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PowerupView.json; sourceTree = "<group>"; };
 		30FC7C9F9B24C6966D749398 /* NavEditView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NavEditView.h; sourceTree = "<group>"; };
 		3487B5AD7D47E8DFBDDAE5C4 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = hud.json; sourceTree = "<group>"; };
@@ -2248,6 +2253,7 @@
 		A8EE5A964B0C7980A2D249D0 /* DemosCollectionView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemosCollectionView.h; sourceTree = "<group>"; };
 		A980A8F791ED9C0A50C6C948 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = hud.json; sourceTree = "<group>"; };
 		ABD78D80980A456A917E4BEA /* ChatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatView.h; sourceTree = "<group>"; };
+		CEAF01CE0000000000000006 /* VoiceView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VoiceView.h; sourceTree = "<group>"; };
 		AC727F6BFFF40568A39B2DF0 /* ChaseView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChaseView.h; sourceTree = "<group>"; };
 		AF339E8DC908A7FE1C759AEA /* VoteView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VoteView.h; sourceTree = "<group>"; };
 		B00A6FD23FF3A3B4F77B3694 /* StatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatView.h; sourceTree = "<group>"; };
@@ -3593,7 +3599,9 @@
 				AC727F6BFFF40568A39B2DF0 /* ChaseView.h */,
 				1C923406FE86A096F618B0A6 /* ChaseView.c */,
 				ABD78D80980A456A917E4BEA /* ChatView.h */,
+				CEAF01CE0000000000000006 /* VoiceView.h */,
 				2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */,
+				CEAF01CE0000000000000001 /* VoiceView.c */,
 				7BAA84C3F169633FB1587357 /* DemoControlsView.h */,
 				7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */,
 				DA0022000000000000000002 /* DemoControlsView.json */,
@@ -6815,6 +6823,7 @@
 				5183CDCD1E2C497586ABBEB2 /* NotifyView.c in Sources */,
 				17A283BF800A49F7BC5D4C4D /* ConsoleText.c in Sources */,
 				21B7C99056194E1E9FC62EF2 /* ChatView.c in Sources */,
+				CEAF01CE0000000000000002 /* VoiceView.c in Sources */,
 				4DA60E0E0E86520782FCF112 /* DemoControlsView.c in Sources */,
 				D584EC3FC9B74B2DB6B8FE92 /* PingView.c in Sources */,
 				814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */,
@@ -6979,6 +6988,7 @@
 				D9F4D7BEB0EE4A87B8529DDA /* NotifyView.c in Sources */,
 				B58055474A104E479F3F83A2 /* ConsoleText.c in Sources */,
 				622B0D6DA98C42AA8A8D582B /* ChatView.c in Sources */,
+				CEAF01CE0000000000000003 /* VoiceView.c in Sources */,
 				4932286FA54FFE0479DD188C /* DemoControlsView.c in Sources */,
 				B8A5AAD33BD44C1EA2F1800F /* PingView.c in Sources */,
 				5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */,
@@ -7453,6 +7463,7 @@
 				0B59BE03B414411797329FD1 /* NotifyView.c in Sources */,
 				F0E26144AB354006B07FF3E0 /* ConsoleText.c in Sources */,
 				AC814FDD1291470DA9883B6C /* ChatView.c in Sources */,
+				CEAF01CE0000000000000004 /* VoiceView.c in Sources */,
 				4F0FA3FF26DFBC1FF49D2A63 /* DemoControlsView.c in Sources */,
 				863226968B6B482FB9B13CD1 /* PingView.c in Sources */,
 				CEE21B7B45DA97BAA8A5395F /* TimeView.c in Sources */,
@@ -7672,6 +7683,7 @@
 				9A8A8F490F0A41FDB55A317F /* NotifyView.c in Sources */,
 				4E265AE532584E47A2D20258 /* ConsoleText.c in Sources */,
 				B0F1E4D1823545B993F57B81 /* ChatView.c in Sources */,
+				CEAF01CE0000000000000005 /* VoiceView.c in Sources */,
 				86605B56F326AB08CF8B574D /* DemoControlsView.c in Sources */,
 				AD9B2D464FD840D5A031FC6A /* PingView.c in Sources */,
 				8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */,

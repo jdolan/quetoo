@@ -25,6 +25,7 @@
 #include <ObjectivelyMVC/ViewController.h>
 
 #include "ChatView.h"
+#include "VoiceView.h"
 #include "DemoControlsView.h"
 #include "DiagnosticsView.h"
 #include "IntermissionView.h"
@@ -72,6 +73,11 @@ struct HudViewController {
    * @brief The chat tail View.
    */
   ChatView *chat;
+
+  /**
+   * @brief Shows who is currently speaking.
+   */
+  VoiceView *voice;
 
   /**
    * @brief Demo playback transport controls, shown only while playback is paused.

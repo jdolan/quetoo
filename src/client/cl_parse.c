@@ -312,6 +312,8 @@ static void Cl_ParseVoice(void) {
     return;
   }
 
+  cl.voice_time[client] = cl.unclamped_time;
+
   S_AddVoice(client, seq, flags, origin, data, len);
 }
 

@@ -409,18 +409,6 @@ static void S_ExpireSpeakers(void) {
 }
 
 /**
- * @brief Returns true if the given client is currently being heard.
- */
-bool S_IsSpeaking(int32_t client) {
-
-  if (client < 0 || client >= MAX_CLIENTS) {
-    return false;
-  }
-
-  return s_voice_state.speakers[client].source != 0;
-}
-
-/**
  * @brief Enqueues one encoded frame for transmission, dropping the oldest if the client is not
  * sending fast enough to keep up.
  */

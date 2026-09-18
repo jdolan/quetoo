@@ -140,6 +140,7 @@ cgame_la_SOURCES = \
 	ui/hud/TargetNameView.c \
 	ui/hud/TeamBannerView.c \
 	ui/hud/TimeView.c \
+	ui/hud/VoiceView.c \
 	ui/hud/VoteView.c \
 	ui/hud/WeaponBarView.c \
 	ui/main/LoadingViewController.c \

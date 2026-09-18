@@ -61,6 +61,7 @@ static void dealloc(Object *self) {
   release(this->navEdit);
   release(this->notify);
   release(this->chat);
+  release(this->voice);
   release(this->demoControls);
   release(this->diagnostics);
   release(this->images);
@@ -137,6 +138,11 @@ static void loadView(ViewController *self) {
   assert(this->chat);
 
   $(view, addSubview, (View *) this->chat);
+
+  this->voice = (VoiceView *) $((View *) alloc(VoiceView), init);
+  assert(this->voice);
+
+  $(view, addSubview, (View *) this->voice);
 
   this->demoControls = $(alloc(DemoControlsView), initWithFrame, NULL);
   assert(this->demoControls);
@@ -347,6 +353,7 @@ static void reload(HudViewController *self) {
   $(self->viewController.view, addSubview, hud);
   $(self->viewController.view, bringSubviewToFront, (View *) self->notify);
   $(self->viewController.view, bringSubviewToFront, (View *) self->chat);
+  $(self->viewController.view, bringSubviewToFront, (View *) self->voice);
   $(self->viewController.view, bringSubviewToFront, (View *) self->scoreboard);
   $(self->viewController.view, bringSubviewToFront, (View *) self->intermission);
   $(self->viewController.view, bringSubviewToFront, (View *) self->navEdit);
