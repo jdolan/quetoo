@@ -28,4 +28,5 @@ extern cvar_t *sv_voice;
 extern cvar_t *sv_voice_rate;
 
 void Sv_InitVoice(void);
+void Sv_ParseVoice(sv_client_t *cl);
 #endif

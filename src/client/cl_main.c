@@ -261,6 +261,8 @@ void Cl_ClearState(void) {
 
   Cl_ClearInput();
 
+  S_StopVoices();
+
   S_Stop();
 
   S_ClearPlaylist();

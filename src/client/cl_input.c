@@ -535,10 +535,35 @@ void Cl_Move(pm_cmd_t *cmd) {
 }
 
 /**
+ * @brief Returns the voice channel named by a +voice bind, defaulting to everyone.
+ * @remarks Button commands are passed the scancode and time as arguments, so a bare +voice bind
+ * presents a number where a channel name would be.
+ */
+static const char *Cl_VoiceChannel(void) {
+
+  const char *channel = Cmd_Argv(1);
+
+  if (!channel[0] || isdigit(channel[0])) {
+    return "all";
+  }
+
+  return channel;
+}
+
+/**
  * @brief Begins a push to talk voice transmission.
+ * @details The client game resolves the channel to its audience, so the engine never learns what a
+ * team is, and a module may define channels of its own.
  */
 static void Cl_Voice_down_f(void) {
-  S_StartVoice();
+
+  uint64_t recipients = 0;
+
+  if (cls.state == CL_ACTIVE && cls.cgame) {
+    recipients = cls.cgame->VoiceRecipients(Cl_VoiceChannel());
+  }
+
+  S_StartVoice(recipients);
 }
 
 /**

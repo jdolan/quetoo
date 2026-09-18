@@ -37,16 +37,37 @@
 #define VOICE_FRAME_SAMPLES ((VOICE_RATE * VOICE_FRAME_MILLIS) / 1000)
 
 /**
- * @brief The largest Opus payload accepted for one frame. Generous for 20ms of speech at any
- * sane bitrate, and small enough that a malformed length is rejected before the decoder sees it.
+ * @brief Encoded frames held for transmission. The client sends at its frame rate, which may be
+ * slower than the 50 frames per second the encoder produces, so a little slack is needed.
  */
-#define VOICE_MAX_PAYLOAD 128
+#define VOICE_OUT_FRAMES 8
 
 /**
- * @brief Buffers queued on a voice source, and the capture device's ring size.
+ * @brief Buffers queued on a speaker's source, and how many are banked before playback starts.
+ * The queue is the jitter buffer; the pre-roll is what absorbs an irregular packet arrival.
  */
 #define VOICE_BUFFERS 8
-#define VOICE_CAPTURE_SAMPLES (VOICE_RATE / 2)
+#define VOICE_PREROLL 2
+
+/**
+ * @brief Concurrent speakers rendered. Beyond this the least recently heard is displaced.
+ */
+#define VOICE_SOURCES 8
+
+/**
+ * @brief A speaker falls silent this long after their last frame, whether or not VOICE_END arrived.
+ */
+#define VOICE_TIMEOUT 400
+
+/**
+ * @brief The most consecutive lost frames concealed before a gap is simply accepted.
+ */
+#define VOICE_MAX_CONCEAL 4
+
+/**
+ * @brief The slot used to monitor your own microphone, above the real client slots.
+ */
+#define VOICE_SELF MAX_CLIENTS
 
 /**
  * @brief The voice thread's tick interval. Bounds how long a completed frame waits before we
@@ -54,24 +75,50 @@
  */
 #define VOICE_PUMP_MILLIS 8
 
-static struct {
-  bool capture_silent;
-  int32_t silent_frames;
-  bool transmitting;
-
+/**
+ * @brief One speaker being rendered.
+ */
+typedef struct {
+  OpusDecoder *decoder;
   ALuint source;
   ALuint buffers[VOICE_BUFFERS];
+  uint32_t time;
+  uint8_t seq;
+  bool started;
+  bool playing;
+} s_voice_speaker_t;
+
+static struct {
+  bool transmitting;
+  bool enabled;
+
+  bool capture_silent;
+  int32_t silent_frames;
 
   OpusEncoder *encoder;
-  OpusDecoder *decoder;
 
   int16_t frame[VOICE_FRAME_SAMPLES];
   byte payload[VOICE_MAX_PAYLOAD];
 
+  struct {
+    byte data[VOICE_MAX_PAYLOAD];
+    uint8_t len;
+    uint8_t seq;
+    uint8_t flags;
+  } out[VOICE_OUT_FRAMES];
+
+  int32_t out_head;
+  int32_t out_tail;
+  uint8_t out_seq;
+  bool ending;
+
+  uint64_t recipients;
+
+  s_voice_speaker_t speakers[MAX_CLIENTS + 1];
+
   SDL_Thread *thread;
   SDL_Mutex *mutex;
   bool shutdown;
-  bool enabled;
 } s_voice_state;
 
 cvar_t *s_voice;
@@ -89,9 +136,9 @@ static float S_VoiceGain(void) {
 
 /**
  * @brief Warns once if the capture device only ever yields silence.
- * @details macOS denies microphone access by zero filling rather than by failing, so a build the
- * system has not granted access to captures perfectly and records nothing. Without this the only
- * symptom is that nobody can hear you.
+ * @details macOS denies microphone access by zero filling rather than by failing, and a docked
+ * laptop offers a microphone that is simply dead. Both capture perfectly and record nothing, so
+ * without this the only symptom is that nobody can hear you.
  */
 static void S_CheckCaptureSilence(const int16_t *samples, size_t count) {
 
@@ -110,6 +157,7 @@ static void S_CheckCaptureSilence(const int16_t *samples, size_t count) {
     Com_Warn("Capture device yielded only silence for 3 seconds.\n"
              "Check that microphone access is granted, and that the device is not muted.\n"
              "Run s_capture_device_list and set s_capture_device to choose another.\n");
+
     s_voice_state.capture_silent = true;
   }
 }
@@ -131,6 +179,298 @@ static void S_ApplyCaptureGain(int16_t *samples, size_t count) {
 }
 
 /**
+ * @brief Releases a speaker's source back to the pool, stopping and unqueueing it.
+ */
+static void S_ReleaseSpeaker(s_voice_speaker_t *speaker) {
+
+  if (speaker->source) {
+    alSourceStop(speaker->source);
+    alSourcei(speaker->source, AL_BUFFER, 0);
+    alDeleteSources(1, &speaker->source);
+    alDeleteBuffers(VOICE_BUFFERS, speaker->buffers);
+
+    speaker->source = 0;
+  }
+
+  if (speaker->decoder) {
+    opus_decoder_destroy(speaker->decoder);
+    speaker->decoder = NULL;
+  }
+
+  speaker->started = speaker->playing = false;
+}
+
+/**
+ * @brief Prepares a speaker to be heard, displacing the least recently heard if the pool is full.
+ */
+static bool S_AcquireSpeaker(s_voice_speaker_t *speaker, uint8_t flags) {
+
+  if (speaker->source) {
+    return true;
+  }
+
+  int32_t sources = 0;
+  s_voice_speaker_t *oldest = NULL;
+
+  for (size_t i = 0; i < lengthof(s_voice_state.speakers); i++) {
+    s_voice_speaker_t *s = s_voice_state.speakers + i;
+
+    if (s->source) {
+      sources++;
+
+      if (!oldest || s->time < oldest->time) {
+        oldest = s;
+      }
+    }
+  }
+
+  if (sources >= VOICE_SOURCES && oldest) {
+    S_ReleaseSpeaker(oldest);
+  }
+
+  alGenSources(1, &speaker->source);
+
+  if (!speaker->source) {
+    return false;
+  }
+
+  alGenBuffers(VOICE_BUFFERS, speaker->buffers);
+
+  alSourcef(speaker->source, AL_GAIN, S_VoiceGain());
+  alSourcef(speaker->source, AL_PITCH, 1.f);
+  alSourcef(speaker->source, AL_DOPPLER_FACTOR, 0.f);
+  alSource3i(speaker->source, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
+
+  // Panned toward the speaker for awareness, but never attenuated: a teammate across the map is
+  // exactly when a callout matters most. Under AL_LINEAR_DISTANCE_CLAMPED a zero rolloff is unity
+  // gain at any distance, while the direction survives.
+  alSourcef(speaker->source, AL_ROLLOFF_FACTOR, 0.f);
+  alSourcef(speaker->source, AL_REFERENCE_DISTANCE, 256.f);
+  alSourcef(speaker->source, AL_MAX_DISTANCE, 2048.f);
+
+  alSourcei(speaker->source, AL_SOURCE_RELATIVE, (flags & VOICE_NO_POS) ? AL_TRUE : AL_FALSE);
+
+  int32_t err;
+  speaker->decoder = opus_decoder_create(VOICE_RATE, 1, &err);
+
+  if (err != OPUS_OK) {
+    Com_Warn("Couldn't create decoder: %s\n", opus_strerror(err));
+    S_ReleaseSpeaker(speaker);
+    return false;
+  }
+
+  speaker->started = false;
+  speaker->playing = false;
+
+  return true;
+}
+
+/**
+ * @brief Queues one decoded frame on a speaker's source.
+ * @details The buffer queue is the jitter buffer. Playback is withheld until VOICE_PREROLL frames
+ * are banked, so an irregular arrival does not start and immediately starve, and alSourcePlay is
+ * re-issued whenever the source has fallen out of AL_PLAYING, which speech does routinely.
+ */
+static void S_QueueSpeakerFrame(s_voice_speaker_t *speaker, const int16_t *samples) {
+
+  ALint processed = 0, queued = 0;
+  alGetSourcei(speaker->source, AL_BUFFERS_PROCESSED, &processed);
+  alGetSourcei(speaker->source, AL_BUFFERS_QUEUED, &queued);
+
+  ALuint buffer;
+
+  if (processed > 0) {
+    alSourceUnqueueBuffers(speaker->source, 1, &buffer);
+  } else if (queued < VOICE_BUFFERS) {
+    buffer = speaker->buffers[queued];
+  } else {
+    return;
+  }
+
+  alBufferData(buffer, AL_FORMAT_MONO16, samples, VOICE_FRAME_SAMPLES * sizeof(int16_t), VOICE_RATE);
+  alSourceQueueBuffers(speaker->source, 1, &buffer);
+
+  alSourcef(speaker->source, AL_GAIN, S_VoiceGain());
+
+  alGetSourcei(speaker->source, AL_BUFFERS_QUEUED, &queued);
+
+  if (!speaker->playing && queued < VOICE_PREROLL) {
+    return;
+  }
+
+  ALint state;
+  alGetSourcei(speaker->source, AL_SOURCE_STATE, &state);
+
+  if (state != AL_PLAYING) {
+    alSourcePlay(speaker->source);
+  }
+
+  speaker->playing = true;
+}
+
+/**
+ * @brief Decodes one payload for a speaker and queues it, concealing any frames lost before it.
+ */
+static void S_DecodeSpeakerFrame(s_voice_speaker_t *speaker, const byte *data, int32_t len) {
+
+  int32_t decoded = opus_decode(speaker->decoder, data, len, s_voice_state.frame,
+                                VOICE_FRAME_SAMPLES, 0);
+
+  if (decoded != VOICE_FRAME_SAMPLES) {
+    Com_Debug(DEBUG_SOUND, "Failed to decode voice: %s\n",
+              decoded < 0 ? opus_strerror(decoded) : "short frame");
+    return;
+  }
+
+  S_QueueSpeakerFrame(speaker, s_voice_state.frame);
+}
+
+/**
+ * @brief Accepts one voice frame from the network, or from the local monitor.
+ * @details Decoding happens here, on the caller's thread, rather than being handed to the voice
+ * thread: an Opus frame decodes in tens of microseconds, so even a full server talking at once
+ * costs a fraction of a tick, and a second ring would add its own latency for nothing.
+ */
+void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const vec3_t origin,
+                const byte *data, int32_t len) {
+
+  if (!s_voice_state.enabled || !s_voice->integer) {
+    return;
+  }
+
+  if (client < 0 || client > VOICE_SELF) {
+    Com_Debug(DEBUG_SOUND, "Rejecting voice from client %d\n", client);
+    return;
+  }
+
+  if (len <= 0 || len > VOICE_MAX_PAYLOAD) {
+    Com_Debug(DEBUG_SOUND, "Rejecting voice payload of %d bytes\n", len);
+    return;
+  }
+
+  SDL_LockMutex(s_voice_state.mutex);
+
+  s_voice_speaker_t *speaker = s_voice_state.speakers + client;
+
+  if (S_AcquireSpeaker(speaker, flags)) {
+
+    if (!(flags & VOICE_NO_POS)) {
+      alSourcefv(speaker->source, AL_POSITION, origin.xyz);
+    }
+
+    if (speaker->started) {
+      const uint8_t lost = (uint8_t) (seq - speaker->seq);
+
+      for (uint8_t i = 0; i < lost && i < VOICE_MAX_CONCEAL; i++) {
+        if (opus_decode(speaker->decoder, NULL, 0, s_voice_state.frame, VOICE_FRAME_SAMPLES, 0) ==
+            VOICE_FRAME_SAMPLES) {
+          S_QueueSpeakerFrame(speaker, s_voice_state.frame);
+        }
+      }
+    }
+
+    S_DecodeSpeakerFrame(speaker, data, len);
+
+    speaker->started = true;
+    speaker->seq = seq + 1;
+    speaker->time = quetoo.ticks;
+
+    if (flags & VOICE_END) {
+      speaker->started = false;
+    }
+  }
+
+  SDL_UnlockMutex(s_voice_state.mutex);
+}
+
+/**
+ * @brief Releases speakers that have stopped talking and finished playing.
+ */
+static void S_ExpireSpeakers(void) {
+
+  for (size_t i = 0; i < lengthof(s_voice_state.speakers); i++) {
+    s_voice_speaker_t *speaker = s_voice_state.speakers + i;
+
+    if (!speaker->source) {
+      continue;
+    }
+
+    if (quetoo.ticks - speaker->time < VOICE_TIMEOUT) {
+      continue;
+    }
+
+    ALint state;
+    alGetSourcei(speaker->source, AL_SOURCE_STATE, &state);
+
+    if (state != AL_PLAYING) {
+      S_ReleaseSpeaker(speaker);
+    }
+  }
+}
+
+/**
+ * @brief Returns true if the given client is currently being heard.
+ */
+bool S_IsSpeaking(int32_t client) {
+
+  if (client < 0 || client >= MAX_CLIENTS) {
+    return false;
+  }
+
+  return s_voice_state.speakers[client].source != 0;
+}
+
+/**
+ * @brief Enqueues one encoded frame for transmission, dropping the oldest if the client is not
+ * sending fast enough to keep up.
+ */
+static void S_EnqueueVoiceFrame(const byte *data, int32_t len, uint8_t flags) {
+
+  if (s_voice_state.out_head - s_voice_state.out_tail == VOICE_OUT_FRAMES) {
+    s_voice_state.out_tail++;
+  }
+
+  const int32_t i = s_voice_state.out_head++ % VOICE_OUT_FRAMES;
+
+  memcpy(s_voice_state.out[i].data, data, len);
+  s_voice_state.out[i].len = (uint8_t) len;
+  s_voice_state.out[i].seq = s_voice_state.out_seq++;
+  s_voice_state.out[i].flags = flags;
+}
+
+/**
+ * @brief Hands the next pending voice frame to the caller, returning its length, or 0 if none.
+ * @details Called from the client's send path, on the main thread. The packet is written by the
+ * caller rather than here, so that the sound library keeps no dependency on the network layer.
+ */
+int32_t S_ReadVoice(byte *data, uint8_t *seq, uint8_t *flags, uint64_t *recipients) {
+
+  if (!s_voice_state.enabled) {
+    return 0;
+  }
+
+  int32_t len = 0;
+
+  SDL_LockMutex(s_voice_state.mutex);
+
+  if (s_voice_state.out_head != s_voice_state.out_tail) {
+
+    const int32_t i = s_voice_state.out_tail++ % VOICE_OUT_FRAMES;
+
+    len = s_voice_state.out[i].len;
+
+    memcpy(data, s_voice_state.out[i].data, len);
+    *seq = s_voice_state.out[i].seq;
+    *flags = s_voice_state.out[i].flags;
+    *recipients = s_voice_state.recipients;
+  }
+
+  SDL_UnlockMutex(s_voice_state.mutex);
+
+  return len;
+}
+
+/**
  * @brief Encodes one captured frame, returning the payload length, or 0 if it could not be encoded.
  */
 static int32_t S_EncodeVoiceFrame(const int16_t *samples, byte *payload) {
@@ -144,65 +484,6 @@ static int32_t S_EncodeVoiceFrame(const int16_t *samples, byte *payload) {
   }
 
   return len;
-}
-
-/**
- * @brief Decodes one voice payload into a frame of mono PCM.
- * @details The length is validated before the decoder sees it, and the output buffer is fixed at
- * one frame. These bytes will arrive from the network, so the decoder is never handed a length it
- * did not ask for, nor asked to write more than a frame: a packet encoding more than 20ms fails
- * here rather than overrunning.
- */
-static bool S_DecodeVoiceFrame(const byte *payload, int32_t len, int16_t *samples) {
-
-  if (len <= 0 || len > VOICE_MAX_PAYLOAD) {
-    Com_Debug(DEBUG_SOUND, "Rejecting voice payload of %d bytes\n", len);
-    return false;
-  }
-
-  const int32_t decoded = opus_decode(s_voice_state.decoder, payload, len, samples, VOICE_FRAME_SAMPLES, 0);
-
-  if (decoded != VOICE_FRAME_SAMPLES) {
-    Com_Debug(DEBUG_SOUND, "Failed to decode voice: %s\n",
-              decoded < 0 ? opus_strerror(decoded) : "short frame");
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * @brief Queues one frame of mono PCM on the voice source, recycling processed buffers.
- * @details Unlike S_BufferMusic, this re-issues alSourcePlay whenever the source has fallen out of
- * AL_PLAYING. A streaming source that starves stays stopped otherwise, and speech starves routinely.
- */
-static void S_QueueVoiceFrame(const int16_t *samples) {
-
-  ALint processed = 0, queued = 0;
-  alGetSourcei(s_voice_state.source, AL_BUFFERS_PROCESSED, &processed);
-  alGetSourcei(s_voice_state.source, AL_BUFFERS_QUEUED, &queued);
-
-  ALuint buffer;
-
-  if (processed > 0) {
-    alSourceUnqueueBuffers(s_voice_state.source, 1, &buffer);
-  } else if (queued < VOICE_BUFFERS) {
-    buffer = s_voice_state.buffers[queued];
-  } else {
-    return;
-  }
-
-  alBufferData(buffer, AL_FORMAT_MONO16, samples, VOICE_FRAME_SAMPLES * sizeof(int16_t), VOICE_RATE);
-  alSourceQueueBuffers(s_voice_state.source, 1, &buffer);
-
-  alSourcef(s_voice_state.source, AL_GAIN, S_VoiceGain());
-
-  ALint state;
-  alGetSourcei(s_voice_state.source, AL_SOURCE_STATE, &state);
-
-  if (state != AL_PLAYING) {
-    alSourcePlay(s_voice_state.source);
-  }
 }
 
 /**
@@ -223,7 +504,8 @@ static void S_PumpVoice(void) {
     opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_BITRATE(bitrate));
   }
 
-  while (S_ReadCapture(s_voice_state.frame, sizeof(s_voice_state.frame)) == (int32_t) sizeof(s_voice_state.frame)) {
+  while (S_ReadCapture(s_voice_state.frame, sizeof(s_voice_state.frame)) ==
+         (int32_t) sizeof(s_voice_state.frame)) {
 
     S_CheckCaptureSilence(s_voice_state.frame, VOICE_FRAME_SAMPLES);
 
@@ -231,9 +513,12 @@ static void S_PumpVoice(void) {
 
     const int32_t len = S_EncodeVoiceFrame(s_voice_state.frame, s_voice_state.payload);
 
-    if (s_voice_loopback->integer && len) {
-      if (S_DecodeVoiceFrame(s_voice_state.payload, len, s_voice_state.frame)) {
-        S_QueueVoiceFrame(s_voice_state.frame);
+    if (len) {
+      S_EnqueueVoiceFrame(s_voice_state.payload, len, 0);
+
+      if (s_voice_loopback->integer) {
+        S_AddVoice(VOICE_SELF, s_voice_state.out_seq - 1, VOICE_NO_POS, Vec3_Zero(),
+                   s_voice_state.payload, len);
       }
     }
   }
@@ -241,7 +526,7 @@ static void S_PumpVoice(void) {
 
 /**
  * @brief Voice thread loop.
- * @details Capture and playback run on their own clock rather than the render loop's, which varies
+ * @details Capture and encoding run on their own clock rather than the render loop's, which varies
  * with framerate and would jitter the 20ms frame cadence.
  */
 static int32_t S_VoiceThread(void *data) {
@@ -257,6 +542,8 @@ static int32_t S_VoiceThread(void *data) {
 
     S_PumpVoice();
 
+    S_ExpireSpeakers();
+
     SDL_UnlockMutex(s_voice_state.mutex);
 
     SDL_Delay(VOICE_PUMP_MILLIS);
@@ -264,11 +551,11 @@ static int32_t S_VoiceThread(void *data) {
 }
 
 /**
- * @brief Begins a voice transmission, opening the capture device if this is the first one.
+ * @brief Begins a voice transmission to the given recipients.
  * @details A device change reopens capture, which also clears a previous failure: latching that
  * permanently would leave a player who picked the wrong microphone with no way back.
  */
-void S_StartVoice(void) {
+void S_StartVoice(uint64_t recipients) {
 
   if (!s_voice_state.enabled || !s_voice->integer) {
     return;
@@ -286,6 +573,8 @@ void S_StartVoice(void) {
 
   if (!s_voice_state.transmitting) {
     s_voice_state.transmitting = true;
+    s_voice_state.recipients = recipients;
+    s_voice_state.ending = false;
 
     s_voice_state.capture_silent = false;
     s_voice_state.silent_frames = 0;
@@ -293,7 +582,6 @@ void S_StartVoice(void) {
     S_ResumeCapture();
 
     opus_encoder_ctl(s_voice_state.encoder, OPUS_RESET_STATE);
-    opus_decoder_ctl(s_voice_state.decoder, OPUS_RESET_STATE);
   }
 
   SDL_UnlockMutex(s_voice_state.mutex);
@@ -303,6 +591,8 @@ void S_StartVoice(void) {
  * @brief Ends a voice transmission.
  * @details Pauses the capture device rather than merely ignoring it, so that push to talk does not
  * leave the microphone live, and the operating system's recording indicator goes out with the key.
+ * A final empty frame carries VOICE_END, so listeners release the speaker at once rather than
+ * waiting out the timeout.
  */
 void S_StopVoice(void) {
 
@@ -312,7 +602,15 @@ void S_StopVoice(void) {
 
   SDL_LockMutex(s_voice_state.mutex);
 
-  s_voice_state.transmitting = false;
+  if (s_voice_state.transmitting) {
+    s_voice_state.transmitting = false;
+
+    const int32_t len = S_EncodeVoiceFrame(s_voice_state.frame, s_voice_state.payload);
+
+    if (len) {
+      S_EnqueueVoiceFrame(s_voice_state.payload, len, VOICE_END);
+    }
+  }
 
   S_PauseCapture();
 
@@ -332,6 +630,13 @@ void S_InitVoice(void) {
   s_voice_loopback = Cvar_Add("s_voice_loopback", "0", CVAR_DEVELOPER, "Play your own microphone back to you (developer tool).");
   s_voice_volume = Cvar_Add("s_voice_volume", "1", CVAR_ARCHIVE, "Voice chat volume.");
 
+  s_voice_state.mutex = SDL_CreateMutex();
+
+  if (!s_voice_state.mutex) {
+    Com_Warn("Couldn't create mutex: %s\n", SDL_GetError());
+    return;
+  }
+
   int32_t err;
 
   s_voice_state.encoder = opus_encoder_create(VOICE_RATE, 1, OPUS_APPLICATION_VOIP, &err);
@@ -348,44 +653,6 @@ void S_InitVoice(void) {
   opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_PACKET_LOSS_PERC(10));
   opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_DTX(0));
 
-  s_voice_state.decoder = opus_decoder_create(VOICE_RATE, 1, &err);
-
-  if (err != OPUS_OK) {
-    Com_Warn("Couldn't create decoder: %s\n", opus_strerror(err));
-    S_ShutdownVoice();
-    return;
-  }
-
-  s_voice_state.mutex = SDL_CreateMutex();
-
-  if (!s_voice_state.mutex) {
-    Com_Warn("Couldn't create mutex: %s\n", SDL_GetError());
-    return;
-  }
-
-  alGenSources(1, &s_voice_state.source);
-
-  if (!s_voice_state.source) {
-    Com_Warn("Couldn't allocate source: %s\n", alGetString(alGetError()));
-    return;
-  }
-
-  alGenBuffers(VOICE_BUFFERS, s_voice_state.buffers);
-
-  if (!*s_voice_state.buffers) {
-    Com_Warn("Couldn't allocate buffers: %s\n", alGetString(alGetError()));
-    return;
-  }
-
-  alSourcef(s_voice_state.source, AL_GAIN, S_VoiceGain());
-  alSourcei(s_voice_state.source, AL_SOURCE_RELATIVE, AL_TRUE);
-  alSourcef(s_voice_state.source, AL_ROLLOFF_FACTOR, 0.f);
-  alSourcef(s_voice_state.source, AL_DOPPLER_FACTOR, 0.f);
-  alSourcef(s_voice_state.source, AL_PITCH, 1.f);
-  alSource3i(s_voice_state.source, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
-
-  S_GetError(NULL);
-
   s_voice_state.thread = SDL_CreateThread(S_VoiceThread, __func__, NULL);
 
   if (!s_voice_state.thread) {
@@ -400,9 +667,31 @@ void S_InitVoice(void) {
 }
 
 /**
+ * @brief Releases every speaker, so that a level change does not leave the dead talking.
+ */
+void S_StopVoices(void) {
+
+  if (!s_voice_state.enabled) {
+    return;
+  }
+
+  SDL_LockMutex(s_voice_state.mutex);
+
+  for (size_t i = 0; i < lengthof(s_voice_state.speakers); i++) {
+    S_ReleaseSpeaker(s_voice_state.speakers + i);
+  }
+
+  s_voice_state.out_head = s_voice_state.out_tail = 0;
+
+  SDL_UnlockMutex(s_voice_state.mutex);
+}
+
+/**
  * @brief Shuts down the voice chat subsystem, releasing all of its resources.
  */
 void S_ShutdownVoice(void) {
+
+  s_voice_state.enabled = false;
 
   if (s_voice_state.thread) {
     SDL_LockMutex(s_voice_state.mutex);
@@ -414,19 +703,12 @@ void S_ShutdownVoice(void) {
 
   S_CloseCapture();
 
+  for (size_t i = 0; i < lengthof(s_voice_state.speakers); i++) {
+    S_ReleaseSpeaker(s_voice_state.speakers + i);
+  }
+
   if (s_voice_state.encoder) {
     opus_encoder_destroy(s_voice_state.encoder);
-  }
-
-  if (s_voice_state.decoder) {
-    opus_decoder_destroy(s_voice_state.decoder);
-  }
-
-  if (s_voice_state.source) {
-    alDeleteSources(1, &s_voice_state.source);
-    alDeleteBuffers(VOICE_BUFFERS, s_voice_state.buffers);
-
-    S_GetError(NULL);
   }
 
   if (s_voice_state.mutex) {

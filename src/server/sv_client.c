@@ -290,6 +290,7 @@ static void Sv_ClientThink(sv_client_t *cl, pm_cmd_t *cmd) {
 
 #define CMD_MAX_MOVES 1
 #define CMD_MAX_STRINGS 8
+#define CMD_MAX_VOICE 8
 
 /**
  * @brief The current `net_message` is parsed for the given client.
@@ -297,11 +298,12 @@ static void Sv_ClientThink(sv_client_t *cl, pm_cmd_t *cmd) {
 void Sv_ParseClientMessage(sv_client_t *cl) {
   int32_t strings_issued;
   int32_t moves_issued;
+  int32_t voice_issued;
 
   sv_client = cl;
 
   // allow a finite number of moves and strings
-  moves_issued = strings_issued = 0;
+  moves_issued = strings_issued = voice_issued = 0;
 
   while (true) {
 
@@ -422,6 +424,17 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
         Sv_ClientThink(cl, &cmd[2]);
         break;
       }
+
+      case CL_CMD_VOICE:
+
+        if (++voice_issued == CMD_MAX_VOICE) {
+          Com_Warn("CMD_MAX_VOICE exceeded for %s\n", Sv_NetaddrToString(cl));
+          Sv_KickClient(cl, "Too many voice frames.");
+          return;
+        }
+
+        Sv_ParseVoice(cl);
+        break;
 
       case CL_CMD_STRING:
 

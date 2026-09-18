@@ -128,7 +128,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
  * truncated. Mem_WriteBuffer raises ERROR_FATAL on overflow, so an unchecked write here would take
  * the entire server down rather than sacrifice one client's frame.
  */
-static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
+void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 
   // Ensure the datagram buffer is initialized
   if (!cl->datagram.buffer.data) {

@@ -284,6 +284,12 @@ typedef struct {
   g_client_t *gclient;
 
   /**
+   * @brief Voice chat budget, in bytes, refilled over time and spent on transmission.
+   */
+  int32_t voice_bytes;
+  uint32_t voice_time;
+
+  /**
    * @brief Connection state of this client slot.
    */
   sv_client_state_t state;

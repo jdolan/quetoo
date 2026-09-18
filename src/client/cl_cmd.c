@@ -119,6 +119,33 @@ void Cl_WriteEntityInfoCommand(int16_t number, const cm_entity_t *entity) {
 }
 
 /**
+ * @brief Writes one pending voice frame, if any, to the outgoing packet.
+ * @details The recipients are chosen by the sender's client game, not by the server: a client can
+ * only widen its own audience, never eavesdrop on someone else's, so no server side notion of
+ * teams is needed to keep a private channel private.
+ */
+static void Cl_WriteVoiceCommand(mem_buf_t *buf) {
+
+  byte voice[VOICE_MAX_PAYLOAD];
+  uint8_t seq, flags;
+  uint64_t recipients;
+
+  const int32_t len = S_ReadVoice(voice, &seq, &flags, &recipients);
+
+  if (len <= 0) {
+    return;
+  }
+
+  Net_WriteByte(buf, CL_CMD_VOICE);
+  Net_WriteLong(buf, (int32_t) (recipients & 0xffffffff));
+  Net_WriteLong(buf, (int32_t) (recipients >> 32));
+  Net_WriteByte(buf, seq);
+  Net_WriteByte(buf, flags);
+  Net_WriteByte(buf, len);
+  Net_WriteData(buf, voice, len);
+}
+
+/**
  * @brief Pumps the command cycle, sending the most recently gathered movement to the server.
  * @details Commands must meet a certain duration, in milliseconds, in order to be sent. This
  * prevents saturating the network channel with very small movement commands, which are also
@@ -150,11 +177,13 @@ void Cl_SendCommands(void) {
       Cl_FinalizeMovementCommand();
 
       mem_buf_t buf;
-      byte data[sizeof(cl_cmd_t) * 3];
+      byte data[sizeof(cl_cmd_t) * 3 + VOICE_MAX_PAYLOAD + 16];
 
       Mem_InitBuffer(&buf, data, sizeof(data));
 
       Cl_WriteMovementCommand(&buf);
+
+      Cl_WriteVoiceCommand(&buf);
 
       Netchan_Transmit(&cls.net_chan, buf.data, buf.size);
       cl.packets++;
