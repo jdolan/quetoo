@@ -26,6 +26,7 @@
 #if defined(__SV_LOCAL_H__)
 void Sv_LoadDemo(void);
 void Sv_FreeDemo(void);
+void Sv_SendDemoSetup(sv_client_t *cl);
 size_t Sv_GetDemoFrame(byte *buffer);
 bool Sv_SendDemoPacket(sv_client_t *cl, byte *buffer, size_t size);
 void Sv_SeekDemo(int32_t millis);

@@ -71,8 +71,11 @@ static void Sv_LoadDemoKeyframes(void) {
 
 /**
  * @brief Opens the demo named by `sv.name` for playback, reading its header and keyframe index
- * and leaving the file positioned at the first recorded message. A demo that fails to open or
- * validate leaves `sv.demo_file` NULL, which `Sv_SendDemoPacket` treats as an immediate end.
+ * and leaving the file positioned at the first recorded frame - not the setup chunks (server
+ * data, config strings, baselines) ahead of it, which `Sv_SendDemoSetup` sends to each
+ * connecting client individually rather than through the shared playback cursor. A demo that
+ * fails to open or validate leaves `sv.demo_file` NULL, which `Sv_SendDemoPacket` treats as an
+ * immediate end.
  */
 void Sv_LoadDemo(void) {
 
@@ -100,7 +103,73 @@ void Sv_LoadDemo(void) {
 
   Sv_LoadDemoKeyframes();
 
-  Fs_Seek(sv.demo_file, sizeof(sv.demo_header));
+  // a demo recorded with no frames at all has no keyframe to skip to; playback of it is moot
+  // either way, since the very next read hits the terminator right behind the setup chunks
+  if (sv.num_demo_keyframes > 0) {
+    Fs_Seek(sv.demo_file, sv.demo_keyframes[0].offset);
+  } else {
+    Fs_Seek(sv.demo_file, sizeof(sv.demo_header));
+  }
+}
+
+/**
+ * @brief Transmits the demo's setup chunks - server data, config strings, and baselines - to a
+ * single connecting client, independent of the shared playback cursor `Sv_GetDemoFrame`
+ * advances for everyone. Every recorded frame deltas against these same baselines, never
+ * against another frame (see `Cl_WriteDemoMessage`), so this one-time catch-up is all a client
+ * needs before it can start receiving whatever frame is currently being broadcast to everyone
+ * else, no matter how far into the recording that already is.
+ */
+void Sv_SendDemoSetup(sv_client_t *cl) {
+
+  if (!sv.demo_file || sv.num_demo_keyframes == 0) {
+    return;
+  }
+
+  const int64_t pos = Fs_Tell(sv.demo_file);
+  const int64_t end = sv.demo_keyframes[0].offset;
+
+  if (!Fs_Seek(sv.demo_file, sizeof(sv.demo_header))) {
+    Com_Warn("Failed to seek demo file\n");
+    Fs_Seek(sv.demo_file, pos);
+    return;
+  }
+
+  byte buffer[MAX_MSG_SIZE];
+
+  while (Fs_Tell(sv.demo_file) < end) {
+
+    int32_t size;
+    if (Fs_Read(sv.demo_file, &size, sizeof(size), 1) != 1) {
+      Com_Warn("Failed to read demo file\n");
+      break;
+    }
+
+    size = LittleLong(size);
+    if (size <= 0 || size > MAX_MSG_SIZE) {
+      Com_Warn("Corrupt demo file: invalid chunk size %d\n", size);
+      break;
+    }
+
+    int32_t frame_num;
+    if (Fs_Read(sv.demo_file, &frame_num, sizeof(frame_num), 1) != 1) {
+      Com_Warn("Incomplete or corrupt demo file\n");
+      break;
+    }
+
+    if (Fs_Read(sv.demo_file, buffer, size, 1) != 1) {
+      Com_Warn("Incomplete or corrupt demo file\n");
+      break;
+    }
+
+    Netchan_Transmit(&cl->net_chan, buffer, size);
+  }
+
+  // restore the shared playback cursor regardless of how the loop above ended, so a setup-read
+  // failure can never leave every other client's ongoing broadcast reading from the wrong offset
+  if (!Fs_Seek(sv.demo_file, pos)) {
+    Com_Warn("Failed to restore demo file position\n");
+  }
 }
 
 /**

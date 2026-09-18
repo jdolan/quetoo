@@ -293,12 +293,26 @@ void Sv_SendClientPackets(void) {
   size_t demo_size = 0;
 
   if (svs.state == SV_ACTIVE_DEMO) {
-    demo_size = Sv_GetDemoFrame(demo_buffer);
 
-    // reaching EOF with no next demo, or an invalid one, shuts the server down and frees
-    // svs.clients from underneath us
-    if (svs.state == SV_UNINITIALIZED) {
-      return;
+    // an unwatched demo server shouldn't burn through its recording, or advance a playlist,
+    // with nobody connected to see it
+    bool demo_watched = false;
+    const sv_client_t *c = svs.clients;
+    for (int32_t i = 0; i < sv_max_clients->integer; i++, c++) {
+      if (c->state != SV_CLIENT_FREE && !svs.clients[i].gclient->ai) {
+        demo_watched = true;
+        break;
+      }
+    }
+
+    if (demo_watched) {
+      demo_size = Sv_GetDemoFrame(demo_buffer);
+
+      // reaching EOF with no next demo, or an invalid one, shuts the server down and frees
+      // svs.clients from underneath us
+      if (svs.state == SV_UNINITIALIZED) {
+        return;
+      }
     }
   }
 
