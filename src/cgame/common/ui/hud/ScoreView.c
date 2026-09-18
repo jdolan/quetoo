@@ -49,22 +49,6 @@ static void dealloc(Object *self) {
 #pragma mark - ScoreView
 
 /**
- * @brief Adds a Text child at the given frame, with the given class name.
- */
-static Text *addText(ScoreView *self, const SDL_Rect *frame, const char *className) {
-
-  Text *text = $(alloc(Text), initWithText, NULL, NULL);
-  assert(text);
-
-  text->view.frame = *frame;
-
-  $((View *) text, addClassName, className);
-  $((View *) self, addSubview, (View *) text);
-
-  return text;
-}
-
-/**
  * @fn ScoreView *ScoreView::initWithScore(ScoreView *self, const g_score_t *score, int32_t width)
  * @memberof ScoreView
  */
@@ -73,6 +57,21 @@ static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t
   self = (ScoreView *) super(View, self, initWithFrame, &MakeRect(0, 0, width, SCORES_ROW_HEIGHT));
   if (self) {
 
+    Outlet outlets[] = MakeOutlets(
+      MakeOutlet("icon", &self->icon),
+      MakeOutlet("badge", &self->badge),
+      MakeOutlet("fill", &self->fill),
+      MakeOutlet("name", &self->name),
+      MakeOutlet("ping", &self->ping),
+      MakeOutlet("detail", &self->detail),
+      MakeOutlet("aside", &self->aside)
+    );
+
+    View *this = (View *) self;
+
+    $(this, awakeWithResourceName, "ui/hud/ScoreView.json");
+    $(this, resolve, outlets);
+
     // a row is its width, whatever its children reach: the ping is aligned rather than
     // placed, so a size derived from the children alone falls short of the columns
     $(self->view.style, addIntegerAttribute, "min-width", width);
@@ -80,29 +79,19 @@ static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t
     const cg_client_info_t *info = &cg_state.clients[score->client];
 
     if (score->client == cgi.client->frame.ps.client) {
-      $((View *) self, addClassName, "self");
+      $(this, addClassName, "self");
     }
 
-    self->icon = $(alloc(ImageView), initWithFrame, &MakeRect(1, 1, SCORES_ICON_WIDTH - 2, SCORES_ICON_WIDTH - 2));
-    assert(self->icon);
-
+    self->icon->view.frame = MakeRect(1, 1, SCORES_ICON_WIDTH - 2, SCORES_ICON_WIDTH - 2);
     $(self->icon, setImage, (Image *) Cg_HudImage(va("players/%s/%s_i", info->model, info->skin)));
-    $((View *) self, addSubview, (View *) self->icon);
 
-    self->badge = $(alloc(ImageView), initWithFrame, &MakeRect(1, 1, SCORES_ICON_WIDTH * 0.3f, SCORES_ICON_WIDTH * 0.3f));
-    assert(self->badge);
-
+    self->badge->view.frame = MakeRect(1, 1, SCORES_ICON_WIDTH * 0.3f, SCORES_ICON_WIDTH * 0.3f);
     $((View *) self->badge, setVisibility, ViewVisibilityHidden);
-    $((View *) self, addSubview, (View *) self->badge);
 
     const int32_t x = SCORES_ICON_WIDTH;
     const int32_t fw = width - SCORES_ICON_WIDTH - 1;
 
-    self->fill = $(alloc(View), initWithFrame, &MakeRect(x, 0, fw, SCORES_ROW_HEIGHT - 1));
-    assert(self->fill);
-
-    $((View *) self->fill, addClassName, "fill");
-    $((View *) self, addSubview, self->fill);
+    self->fill->frame = MakeRect(x, 0, fw, SCORES_ROW_HEIGHT - 1);
 
     if (score->color >= 0) {
       color_t c = ColorHSV(score->color, 1.f, 1.f);
@@ -114,15 +103,15 @@ static ScoreView *initWithScore(ScoreView *self, const g_score_t *score, int32_t
       $(self->fill->style, addColorAttribute, "background-color", &fill);
     }
 
-    self->name = addText(self, &MakeRect(x, 0, fw, 0), "name");
+    self->name->view.frame = MakeRect(x, 0, fw, 0);
     $(self->name, setText, info->name);
 
-    self->ping = addText(self, &MakeRect(x, 0, fw, 0), "ping");
+    self->ping->view.frame = MakeRect(x, 0, fw, 0);
     $(self->ping, setTextWithFormat, "%dms", score->ping);
 
-    self->detail = addText(self, &MakeRect(x, 16, fw, 0), "detail");
+    self->detail->view.frame = MakeRect(x, 16, fw, 0);
 
-    self->aside = addText(self, &MakeRect(x, 16, fw, 0), "aside");
+    self->aside->view.frame = MakeRect(x, 16, fw, 0);
   }
 
   return self;

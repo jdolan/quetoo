@@ -1,0 +1,37 @@
+{
+  "subviews": [
+    {
+      "class": "ImageView",
+      "identifier": "icon"
+    },
+    {
+      "class": "ImageView",
+      "identifier": "badge"
+    },
+    {
+      "class": "View",
+      "identifier": "fill",
+      "classNames": ["fill"]
+    },
+    {
+      "class": "Text",
+      "identifier": "name",
+      "classNames": ["name"]
+    },
+    {
+      "class": "Text",
+      "identifier": "ping",
+      "classNames": ["ping"]
+    },
+    {
+      "class": "Text",
+      "identifier": "detail",
+      "classNames": ["detail"]
+    },
+    {
+      "class": "Text",
+      "identifier": "aside",
+      "classNames": ["aside"]
+    }
+  ]
+}

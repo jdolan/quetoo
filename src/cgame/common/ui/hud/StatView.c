@@ -101,13 +101,17 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 
   $(self, bind, inlets, dictionary);
 
-  if (caption) {
-    $(this->caption, setText, caption);
-    free(caption);
-  }
+  // this runs once for the layout's own dictionary, before outlets resolve, and again for
+  // the dictionary that configures this instance; this->caption is only set for the latter
+  if (this->caption) {
+    if (caption) {
+      $(this->caption, setText, caption);
+      free(caption);
+    }
 
-  $((View *) this->caption, setVisibility,
-    this->caption->text == NULL ? ViewVisibilityHidden : ViewVisibilityVisible);
+    $((View *) this->caption, setVisibility,
+      this->caption->text == NULL ? ViewVisibilityHidden : ViewVisibilityVisible);
+  }
 }
 
 /**
@@ -208,31 +212,21 @@ static StatView *initWithStat(StatView *self, StatViewStat stat) {
   if (self) {
     self->stat = stat;
 
-    self->labels = $(alloc(StackView), initWithFrame, NULL);
-    assert(self->labels);
+    Outlet outlets[] = MakeOutlets(
+      MakeOutlet("labels", &self->labels),
+      MakeOutlet("caption", &self->caption),
+      MakeOutlet("value", &self->value),
+      MakeOutlet("icon", &self->icon)
+    );
 
-    $((View *) self->labels, addClassName, "labels");
-    $((View *) self, addSubview, (View *) self->labels);
+    View *this = (View *) self;
 
-    self->caption = $(alloc(Text), initWithText, NULL, NULL);
-    assert(self->caption);
+    $(this, awakeWithResourceName, "ui/hud/StatView.json");
+    $(this, resolve, outlets);
 
-    $((View *) self->caption, addClassName, "caption");
+    self->icon->view.frame = MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT);
+
     $((View *) self->caption, setVisibility, ViewVisibilityHidden);
-    $((View *) self->labels, addSubview, (View *) self->caption);
-
-    self->value = $(alloc(Text), initWithText, NULL, NULL);
-    assert(self->value);
-
-    $((View *) self->value, addClassName, "value");
-    $((View *) self->value, addClassName, "number");
-
-    $((View *) self->labels, addSubview, (View *) self->value);
-
-    self->icon = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));
-    assert(self->icon);
-
-    $((View *) self, addSubview, (View *) self->icon);
   }
 
   return self;

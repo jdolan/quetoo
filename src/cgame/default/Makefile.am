@@ -107,7 +107,13 @@ cguihuddir = \
 	@PKGLIBDIR@/default/ui/hud
 
 cguihud_DATA = \
-	$(CGUI_DIR)/hud/DemoControlsView.json
+	$(CGUI_DIR)/hud/ChatView.json \
+	$(CGUI_DIR)/hud/CounterView.json \
+	$(CGUI_DIR)/hud/DemoControlsView.json \
+	$(CGUI_DIR)/hud/PickupView.json \
+	$(CGUI_DIR)/hud/PowerupView.json \
+	$(CGUI_DIR)/hud/ScoreView.json \
+	$(CGUI_DIR)/hud/StatView.json
 
 cguihuddefaultdir = \
 	@PKGLIBDIR@/default/ui/hud/default

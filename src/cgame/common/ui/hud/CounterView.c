@@ -110,18 +110,18 @@ static CounterView *initWithCaption(CounterView *self, const char *caption, int3
   if (self) {
     self->stat = stat;
 
-    self->caption = $(alloc(Text), initWithText, caption, NULL);
-    assert(self->caption);
+    Outlet outlets[] = MakeOutlets(
+      MakeOutlet("caption", &self->caption),
+      MakeOutlet("value", &self->value)
+    );
 
-    $((View *) self->caption, addClassName, "caption");
-    $((View *) self, addSubview, (View *) self->caption);
+    View *this = (View *) self;
 
-    self->value = $(alloc(Text), initWithText, " ", NULL);
-    assert(self->value);
+    $(this, awakeWithResourceName, "ui/hud/CounterView.json");
+    $(this, resolve, outlets);
 
-    $((View *) self->value, addClassName, "value");
-    $((View *) self->value, addClassName, "number");
-    $((View *) self, addSubview, (View *) self->value);
+    $(self->caption, setText, caption);
+    $(self->value, setText, " ");
   }
 
   return self;

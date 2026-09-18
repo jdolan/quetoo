@@ -79,22 +79,20 @@ static View *init(View *self) {
   if (self) {
     ChatView *this = (ChatView *) self;
 
-    this->history = (ConsoleText *) $((View *) alloc(ConsoleText), init);
-    assert(this->history);
+    Outlet outlets[] = MakeOutlets(
+      MakeOutlet("history", &this->history),
+      MakeOutlet("input", &this->input)
+    );
+
+    $(self, awakeWithResourceName, "ui/hud/ChatView.json");
+    $(self, resolve, outlets);
 
     this->history->console.level = PRINT_CHAT | PRINT_TEAM_CHAT;
-
-    $(self, addSubview, (View *) this->history);
-
-    this->input = $(alloc(TextView), initWithFrame, NULL);
-    assert(this->input);
 
     this->input->delegate.self = this;
     this->input->delegate.didEndEditing = didEndEditing;
 
     $((View *) this->input, setVisibility, ViewVisibilityHidden);
-
-    $(self, addSubview, (View *) this->input);
   }
 
   return self;
