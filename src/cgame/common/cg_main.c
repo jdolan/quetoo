@@ -408,12 +408,6 @@ static uint64_t Cg_VoiceRecipients(const char *channel) {
  */
 static void Cg_Chat(int32_t client, uint8_t flags, const char *message) {
 
-  const int32_t level = (flags & CHAT_TEAM) ? PRINT_TEAM_CHAT : PRINT_CHAT;
-
-  if (level < cgi.GetCvarInteger("message_level")) {
-    return;
-  }
-
   const int32_t color = (flags & CHAT_TEAM) ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
 
   cgi.Print("%s^%d: %s\n", cg_state.clients[client].name, color, message);

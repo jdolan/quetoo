@@ -51,6 +51,12 @@
  * @brief Game-specific server protocol commands. These are parsed directly by
  * the client game module.
  */
+/**
+ * @brief Chat flags, carried opaquely by SV_CMD_CHAT. The engine does not interpret these; teams
+ * are a game concern, as CS_TEAM_INFO is, so a module defines whatever channels it supports.
+ */
+#define CHAT_TEAM 0x01 // addressed to a team rather than to everyone
+
 typedef enum {
   SV_CMD_SOUND = SV_CMD_CGAME,
   SV_CMD_MUZZLE_FLASH,

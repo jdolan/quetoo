@@ -497,7 +497,7 @@ typedef enum {
   SV_CMD_RECONNECT,
   SV_CMD_SERVER_DATA, // [long] protocol ...
   SV_CMD_DEMO_INFO, // [long] duration in ms, [byte] paused; from a demo relay, on every change
-  SV_CMD_CHAT, // [byte] speaker [byte] flags [string] message
+  SV_CMD_CHAT, // [byte] speaker [byte] flags [string] message; flags are the game's
   SV_CMD_VOICE, // [byte] speaker [byte] seq [byte] flags [pos] origin [byte] len [data]
   SV_CMD_CGAME, // the game may extend from here
 } sv_packet_cmd_t;
@@ -507,13 +507,6 @@ typedef enum {
  * sane bitrate, and small enough that a malformed length is refused before a decoder sees it.
  */
 #define VOICE_MAX_PAYLOAD 128
-
-/**
- * @brief Chat flags. The low bits are reserved for the engine; a game module is free to define
- * its own above CHAT_GAME, for squads, radio channels or whatever else it invents.
- */
-#define CHAT_TEAM 0x01 // addressed to a team rather than to everyone
-#define CHAT_GAME 0x02 // the game may extend from here
 
 /**
  * @brief Voice transmission flags.
