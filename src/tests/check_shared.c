@@ -24,12 +24,27 @@
 
 #include "shared/shared.h"
 
+START_TEST(check_q_str_has_token) {
+  ck_assert(q_str_has_token("dm ctf race", "dm"));
+  ck_assert(q_str_has_token("dm ctf race", "ctf"));
+  ck_assert(q_str_has_token("dm ctf race", "race"));
+  ck_assert(q_str_has_token("  dm\tctf\n", "ctf"));
+  ck_assert(!q_str_has_token("tdm", "dm"));
+  ck_assert(!q_str_has_token("dm", "tdm"));
+  ck_assert(!q_str_has_token("dm ctf", "dm ctf"));
+  ck_assert(!q_str_has_token("dm ", ""));
+  ck_assert(!q_str_has_token("", "dm"));
+  ck_assert(!q_str_has_token(NULL, "dm"));
+  ck_assert(!q_str_has_token("dm", NULL));
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
 int32_t main(int32_t argc, char **argv) {
 
   TCase *tcase = tcase_create("check_shared");
+  tcase_add_test(tcase, check_q_str_has_token);
 
   Suite *suite = suite_create("check_shared");
   suite_add_tcase(suite, tcase);

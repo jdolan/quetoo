@@ -31,7 +31,7 @@
  * @brief The MapListCollectionItemView type.
  */
 
-typedef struct {
+typedef struct MapListItemInfo {
   char mapname[MAX_QPATH];
   char message[MAX_TOKEN_CHARS];
   char games[MAX_TOKEN_CHARS];

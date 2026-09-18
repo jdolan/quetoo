@@ -22,8 +22,10 @@
 
 #include "cg_local.h"
 
+#include "MapListCollectionItemView.h"
+
 static struct {
-  FilterMap FilterMap;
+  FilterCreateServerMapList FilterCreateServerMapList;
 } previous;
 
 /**
@@ -35,15 +37,15 @@ static const char *cg_default_games[] = { "dm", "tdm", "duel", "instagib" };
 /**
  * @brief Lists a map made for any of the deathmatch variants.
  */
-static bool Cg_FilterMap_Default(const char *mapname, const char *games) {
+static bool Cg_FilterCreateServerMapList_Default(const MapListItemInfo *info) {
 
   for (size_t i = 0; i < lengthof(cg_default_games); i++) {
-    if (Cg_HasGame(games, cg_default_games[i])) {
+    if (q_str_has_token(info->games, cg_default_games[i])) {
       return true;
     }
   }
 
-  return previous.FilterMap(mapname, games);
+  return previous.FilterCreateServerMapList(info);
 }
 
 /**
@@ -58,8 +60,8 @@ void Cg_Module_Init(void) {
     return;
   }
 
-  previous.FilterMap = Cg_FilterMap;
-  Cg_FilterMap = Cg_FilterMap_Default;
+  previous.FilterCreateServerMapList = Cg_FilterCreateServerMapList;
+  Cg_FilterCreateServerMapList = Cg_FilterCreateServerMapList_Default;
 
   installed = true;
 }
