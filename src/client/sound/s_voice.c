@@ -37,6 +37,12 @@
 #define VOICE_FRAME_SAMPLES ((VOICE_RATE * VOICE_FRAME_MILLIS) / 1000)
 
 /**
+ * @brief The largest Opus payload accepted for one frame. Generous for 20ms of speech at any
+ * sane bitrate, and small enough that a malformed length is rejected before the decoder sees it.
+ */
+#define VOICE_MAX_PAYLOAD 128
+
+/**
  * @brief Buffers queued on a voice source, and the capture device's ring size.
  */
 #define VOICE_BUFFERS 8
@@ -59,7 +65,11 @@ typedef struct {
   ALuint source;
   ALuint buffers[VOICE_BUFFERS];
 
+  OpusEncoder *encoder;
+  OpusDecoder *decoder;
+
   int16_t frame[VOICE_FRAME_SAMPLES];
+  byte payload[VOICE_MAX_PAYLOAD];
 
   SDL_Thread *thread;
   SDL_Mutex *mutex;
@@ -70,6 +80,7 @@ static s_voice_state_t s_voice_state;
 
 cvar_t *s_voice;
 cvar_t *s_voice_device;
+cvar_t *s_voice_bitrate;
 cvar_t *s_voice_gain;
 cvar_t *s_voice_loopback;
 cvar_t *s_voice_volume;
@@ -242,6 +253,47 @@ static void S_ApplyCaptureGain(int16_t *samples, size_t count) {
 }
 
 /**
+ * @brief Encodes one captured frame, returning the payload length, or 0 if it could not be encoded.
+ */
+static int32_t S_EncodeVoiceFrame(const int16_t *samples, byte *payload) {
+
+  const int32_t len = opus_encode(s_voice_state.encoder, samples, VOICE_FRAME_SAMPLES,
+                                  payload, VOICE_MAX_PAYLOAD);
+
+  if (len < 0) {
+    Com_Warn("Failed to encode voice: %s\n", opus_strerror(len));
+    return 0;
+  }
+
+  return len;
+}
+
+/**
+ * @brief Decodes one voice payload into a frame of mono PCM.
+ * @details The length is validated before the decoder sees it, and the output buffer is fixed at
+ * one frame. These bytes will arrive from the network, so the decoder is never handed a length it
+ * did not ask for, nor asked to write more than a frame: a packet encoding more than 20ms fails
+ * here rather than overrunning.
+ */
+static bool S_DecodeVoiceFrame(const byte *payload, int32_t len, int16_t *samples) {
+
+  if (len <= 0 || len > VOICE_MAX_PAYLOAD) {
+    Com_Debug(DEBUG_SOUND, "Rejecting voice payload of %d bytes\n", len);
+    return false;
+  }
+
+  const int32_t decoded = opus_decode(s_voice_state.decoder, payload, len, samples, VOICE_FRAME_SAMPLES, 0);
+
+  if (decoded != VOICE_FRAME_SAMPLES) {
+    Com_Debug(DEBUG_SOUND, "Failed to decode voice: %s\n",
+              decoded < 0 ? opus_strerror(decoded) : "short frame");
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * @brief Queues one frame of mono PCM on the voice source, recycling processed buffers.
  * @details Unlike S_BufferMusic, this re-issues alSourcePlay whenever the source has fallen out of
  * AL_PLAYING. A streaming source that starves stays stopped otherwise, and speech starves routinely.
@@ -288,6 +340,13 @@ static void S_PumpVoice(void) {
     return;
   }
 
+  if (s_voice_bitrate->modified) {
+    s_voice_bitrate->modified = false;
+
+    const int32_t bitrate = Clampf(s_voice_bitrate->integer, 6000, 64000);
+    opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_BITRATE(bitrate));
+  }
+
   while (SDL_GetAudioStreamAvailable(s_voice_state.capture) >= (int32_t) sizeof(s_voice_state.frame)) {
 
     if (SDL_GetAudioStreamData(s_voice_state.capture, s_voice_state.frame,
@@ -299,8 +358,12 @@ static void S_PumpVoice(void) {
 
     S_ApplyCaptureGain(s_voice_state.frame, VOICE_FRAME_SAMPLES);
 
-    if (s_voice_loopback->integer) {
-      S_QueueVoiceFrame(s_voice_state.frame);
+    const int32_t len = S_EncodeVoiceFrame(s_voice_state.frame, s_voice_state.payload);
+
+    if (s_voice_loopback->integer && len) {
+      if (S_DecodeVoiceFrame(s_voice_state.payload, len, s_voice_state.frame)) {
+        S_QueueVoiceFrame(s_voice_state.frame);
+      }
     }
   }
 }
@@ -361,6 +424,9 @@ void S_StartVoice(void) {
 
     SDL_ClearAudioStream(s_voice_state.capture);
     SDL_ResumeAudioStreamDevice(s_voice_state.capture);
+
+    opus_encoder_ctl(s_voice_state.encoder, OPUS_RESET_STATE);
+    opus_decoder_ctl(s_voice_state.decoder, OPUS_RESET_STATE);
   }
 
   SDL_UnlockMutex(s_voice_state.mutex);
@@ -398,11 +464,36 @@ void S_InitVoice(void) {
 
   s_voice = Cvar_Add("s_voice", "1", CVAR_ARCHIVE, "Enables voice chat.");
   s_voice_device = Cvar_Add("s_voice_device", "", CVAR_ARCHIVE, "The microphone to capture from, or empty for the system default.");
+  s_voice_bitrate = Cvar_Add("s_voice_bitrate", "16000", CVAR_ARCHIVE, "Voice chat bitrate, in bits per second.");
   s_voice_gain = Cvar_Add("s_voice_gain", "1", CVAR_ARCHIVE, "Microphone input gain.");
   s_voice_loopback = Cvar_Add("s_voice_loopback", "0", CVAR_DEVELOPER, "Play your own microphone back to you (developer tool).");
   s_voice_volume = Cvar_Add("s_voice_volume", "1", CVAR_ARCHIVE, "Voice chat volume.");
 
   Cmd_Add("s_voice_devices", S_VoiceDevices_f, CMD_SOUND, "List the available microphones.");
+
+  int32_t err;
+
+  s_voice_state.encoder = opus_encoder_create(VOICE_RATE, 1, OPUS_APPLICATION_VOIP, &err);
+
+  if (err != OPUS_OK) {
+    Com_Warn("Couldn't create encoder: %s\n", opus_strerror(err));
+    S_ShutdownVoice();
+    return;
+  }
+
+  opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_BITRATE(Clampf(s_voice_bitrate->integer, 6000, 64000)));
+  opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_COMPLEXITY(5));
+  opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_INBAND_FEC(1));
+  opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_PACKET_LOSS_PERC(10));
+  opus_encoder_ctl(s_voice_state.encoder, OPUS_SET_DTX(0));
+
+  s_voice_state.decoder = opus_decoder_create(VOICE_RATE, 1, &err);
+
+  if (err != OPUS_OK) {
+    Com_Warn("Couldn't create decoder: %s\n", opus_strerror(err));
+    S_ShutdownVoice();
+    return;
+  }
 
   alGenSources(1, &s_voice_state.source);
 
@@ -461,6 +552,14 @@ void S_ShutdownVoice(void) {
 
   if (s_voice_state.capture) {
     SDL_DestroyAudioStream(s_voice_state.capture);
+  }
+
+  if (s_voice_state.encoder) {
+    opus_encoder_destroy(s_voice_state.encoder);
+  }
+
+  if (s_voice_state.decoder) {
+    opus_decoder_destroy(s_voice_state.decoder);
   }
 
   if (s_voice_state.source) {
