@@ -300,6 +300,9 @@
     <ClInclude Include="..\src\cgame\common\ui\home\DemosCollectionView.h">
       <Filter>src\common\ui\home</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\home\DemoList.h">
+      <Filter>src\common\ui\home</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\home\DemosViewController.h">
       <Filter>src\common\ui\home</Filter>
     </ClInclude>
@@ -328,6 +331,9 @@
       <Filter>src\common\ui\play</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\play\JoinServerViewController.h">
+      <Filter>src\common\ui\play</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\play\MapList.h">
       <Filter>src\common\ui\play</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\play\MapListCollectionItemView.h">
@@ -617,6 +623,9 @@
     <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionView.c">
       <Filter>src\common\ui\home</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\home\DemoList.c">
+      <Filter>src\common\ui\home</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\home\DemosViewController.c">
       <Filter>src\common\ui\home</Filter>
     </ClCompile>
@@ -645,6 +654,9 @@
       <Filter>src\common\ui\play</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\play\JoinServerViewController.c">
+      <Filter>src\common\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\play\MapList.c">
       <Filter>src\common\ui\play</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\play\MapListCollectionItemView.c">

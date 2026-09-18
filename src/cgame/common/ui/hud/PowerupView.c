@@ -32,21 +32,6 @@ static const EnumName PowerupViewPowerupNames[] = MakeEnumNames(
   MakeEnumAlias(PowerupViewInvisibility, invisibility)
 );
 
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-  PowerupView *this = (PowerupView *) self;
-
-  release(this->icon);
-  release(this->value);
-
-  super(Object, self, dealloc);
-}
-
 #pragma mark - View
 
 /**
@@ -178,8 +163,6 @@ static PowerupView *initWithPowerup(PowerupView *self, PowerupViewPowerup poweru
 #pragma mark - Class lifecycle
 
 static void initialize(Class *clazz) {
-
-  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
   ((ViewInterface *) clazz->interface)->init = init;

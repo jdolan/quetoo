@@ -35,11 +35,13 @@ static void Sv_New_f(void) {
     return;
   }
 
-  // demo servers send the demo file's server info packet via the relay itself; what that blob
-  // can't carry is duration (written only once the recording stopped) or pause state, so those
-  // go separately, here and on every later change
+  // demo servers have no per-map baselines to send: Sv_SendDemoSetup replays the demo's own
+  // recorded server data, config strings and baselines instead, whatever point the shared
+  // playback cursor has already reached. Duration and pause state aren't part of that recording,
+  // so Sv_SendDemoInfo covers those separately, here and on every later change
   if (svs.state == SV_ACTIVE_DEMO) {
     Sv_SendDemoInfo();
+    Sv_SendDemoSetup(sv_client);
     return;
   }
 
