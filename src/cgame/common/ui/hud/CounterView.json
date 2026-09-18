@@ -1,0 +1,14 @@
+{
+  "subviews": [
+    {
+      "class": "Text",
+      "identifier": "caption",
+      "classNames": ["caption"]
+    },
+    {
+      "class": "Text",
+      "identifier": "value",
+      "classNames": ["value", "number"]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "subviews": [
+    {
+      "class": "ConsoleText",
+      "identifier": "history"
+    },
+    {
+      "class": "TextView",
+      "identifier": "input"
+    }
+  ]
+}

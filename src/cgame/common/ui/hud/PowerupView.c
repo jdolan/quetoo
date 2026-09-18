@@ -159,17 +159,17 @@ static PowerupView *initWithPowerup(PowerupView *self, PowerupViewPowerup poweru
     self->powerup = powerup;
     self->item = ITEM_NONE;
 
-    self->icon = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));
-    assert(self->icon);
+    Outlet outlets[] = MakeOutlets(
+      MakeOutlet("icon", &self->icon),
+      MakeOutlet("value", &self->value)
+    );
 
-    $((View *) self, addSubview, (View *) self->icon);
+    View *this = (View *) self;
 
-    self->value = $(alloc(Text), initWithText, NULL, NULL);
-    assert(self->value);
+    $(this, awakeWithResourceName, "ui/hud/PowerupView.json");
+    $(this, resolve, outlets);
 
-    $((View *) self->value, addClassName, "number");
-
-    $((View *) self, addSubview, (View *) self->value);
+    self->icon->view.frame = MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT);
   }
 
   return self;

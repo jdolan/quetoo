@@ -1,0 +1,25 @@
+{
+  "subviews": [
+    {
+      "class": "StackView",
+      "identifier": "labels",
+      "classNames": ["labels"],
+      "subviews": [
+        {
+          "class": "Text",
+          "identifier": "caption",
+          "classNames": ["caption"]
+        },
+        {
+          "class": "Text",
+          "identifier": "value",
+          "classNames": ["value", "number"]
+        }
+      ]
+    },
+    {
+      "class": "ImageView",
+      "identifier": "icon"
+    }
+  ]
+}
