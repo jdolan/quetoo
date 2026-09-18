@@ -268,7 +268,17 @@ void Cg_Look(pm_cmd_t *cmd) {
  */
 static void Cg_Move_Common(pm_cmd_t *cmd) {
 
-  if (in_attack.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
+  if (cgi.client->demo_server) {
+
+    // attack leaves the recorded player behind, and picks them back up. Live, the game module
+    // already does exactly this with the attack button, so only playback needs it here
+    if (in_attack.state & BUTTON_STATE_DOWN) {
+      cg_state.spectate.detached = !cg_state.spectate.detached;
+      cg_state.spectate.initialized = false;
+    }
+
+    in_attack.state &= ~BUTTON_STATE_DOWN;
+  } else if (in_attack.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
     if (!((in_attack.state & BUTTON_STATE_DOWN) && Cg_AttemptSelectWeapon(&cgi.client->frame.ps))) {
       cmd->buttons |= BUTTON_ATTACK;
 
@@ -301,10 +311,10 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
     }
   }
 
-  // Tapping jump while chasing cycles the camera, as it always has. This stays gated on chasing:
-  // once detached, jump is how the free camera climbs, and tapping it should not yank the viewer
-  // back onto a player
-  if (cgi.client->frame.ps.stats[STAT_CHASE]) {
+  // Jump cycles how the subject is framed, as it has always roughly done. This stays gated on
+  // having a subject: with none, jump is how the free camera climbs, and pressing it should not
+  // quietly change a camera the viewer cannot see the effect of
+  if (Cg_CameraSubject(&cgi.client->frame.ps)) {
     if (cmd->up) {
       static uint32_t time;
 
@@ -337,7 +347,7 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
     }
   }
 
-  if (cgi.client->demo_server && cg_state.camera_mode == CAMERA_SPECTATE) {
+  if (cgi.client->demo_server && cg_state.spectate.detached) {
     Cg_UpdateSpectate(cmd);
   }
 }

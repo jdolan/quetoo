@@ -27,12 +27,6 @@ cg_view_t cg_view;
 #define CG_FOV_REFERENCE_ASPECT (16.f / 9.f)
 
 /**
- * @brief How long to wait for the server to answer a chase request before letting its view of
- * things win.
- */
-#define CG_CHASE_REQUEST_TIMEOUT 1000
-
-/**
  * @brief Computes the half-angle horizontal and vertical FOV, in degrees, for the
  * given reference FOV (horizontal, at @c CG_FOV_REFERENCE_ASPECT) and viewport size.
  */
@@ -114,11 +108,16 @@ static void Cg_UpdateFov(void) {
 
 /**
  * @brief Returns true if the camera has a subject to frame: the recorded player during demo
- * playback, or a chase target while spectating a live game. Without one, only `CAMERA_SPECTATE`
- * has anything to show.
+ * playback, or a chase target while spectating a live game. Without one there is nothing to
+ * frame, and the camera is flying free.
  */
-static bool Cg_CameraSubject(const player_state_t *ps) {
-  return cgi.client->demo_server || ps->stats[STAT_CHASE];
+bool Cg_CameraSubject(const player_state_t *ps) {
+
+  if (cgi.client->demo_server) {
+    return !cg_state.spectate.detached;
+  }
+
+  return ps->stats[STAT_CHASE];
 }
 
 /**
@@ -135,8 +134,8 @@ bool Cg_FollowEligible(const player_state_t *ps) {
 
 /**
  * @brief Publishes the mode to `cg_camera_mode` so the console reflects what the camera is
- * actually doing. This is a statement, not a request: it clears `modified` so that what is
- * written here does not come back as one.
+ * doing. This is a statement, not a request: it clears `modified` so that what is written here
+ * does not come back as one.
  */
 static void Cg_PublishCameraMode(void) {
 
@@ -148,79 +147,16 @@ static void Cg_PublishCameraMode(void) {
 }
 
 /**
- * @brief Adopts the requested camera mode, asking the server to attach or detach when the
- * request crosses into or out of `CAMERA_SPECTATE`. Only the server can grant that during a
- * live game, so this asks and `Cg_UpdateCameraMode` settles the answer.
+ * @brief Takes any mode the player has set on `cg_camera_mode`.
+ * @details Nothing has to be reconciled with the server here: the mode says only how a subject
+ * is framed, and whether there is a subject at all is asked separately, so changing the camera
+ * can never cost a chase target.
  */
-static void Cg_SetCameraMode(cg_camera_mode_t mode) {
-
-  const bool was_detached = cg_state.camera_mode == CAMERA_SPECTATE;
-  const bool detached = mode == CAMERA_SPECTATE;
-
-  cg_state.camera_mode = mode;
-
-  if (detached != was_detached) {
-
-    // a flight starts from wherever the view is when it begins, rather than resuming from
-    // wherever the last one left off
-    cg_state.spectate.initialized = false;
-
-    if (!cgi.client->demo_server) {
-      cgi.Cbuf(detached ? "chase_stop\n" : "chase_next\n");
-      cg_state.chase_request_time = cgi.client->unclamped_time;
-    }
-  }
-
-  Cg_PublishCameraMode();
-}
-
-/**
- * @brief Takes any mode the player has set on `cg_camera_mode`, then reconciles the result with
- * the server's notion of what we are watching, which changes without us asking: joining the
- * spectators attaches a target, and a target that stops being meat is dropped. The mode says how
- * to frame a subject, the server says whether there is one, so a disagreement resolves in the
- * server's favour.
- */
-static void Cg_UpdateCameraMode(const player_state_t *ps) {
+static void Cg_UpdateCameraMode(void) {
 
   if (cg_camera_mode->modified) {
-    if (cgi.client->demo_server || ps->stats[STAT_SPECTATOR]) {
-      Cg_SetCameraMode(Mini(Maxi(cg_camera_mode->integer, 0), CAMERA_MODE_TOTAL - 1));
-    }
+    cg_state.camera_mode = Mini(Maxi(cg_camera_mode->integer, 0), CAMERA_MODE_TOTAL - 1);
   }
-
-  if (cgi.client->demo_server) {
-    Cg_PublishCameraMode();
-    return; // nothing else owns the camera during playback
-  }
-
-  if (!ps->stats[STAT_SPECTATOR]) {
-    cg_state.camera_mode = CAMERA_FIRST_PERSON;
-    cg_state.chase_request_time = 0;
-    Cg_PublishCameraMode();
-    return;
-  }
-
-  const bool chasing = ps->stats[STAT_CHASE];
-  const bool detached = cg_state.camera_mode == CAMERA_SPECTATE;
-
-  if (chasing == !detached) {
-    cg_state.chase_request_time = 0;
-    Cg_PublishCameraMode();
-    return; // the server frames it the way we do
-  }
-
-  // a chase_next or chase_stop is in flight, and the answer takes a round trip to arrive. Wait
-  // for it rather than overruling the mode in the meantime, which would undo the request a frame
-  // after it was made - but only for so long, since the server is free to refuse outright when
-  // there is nobody left to chase
-  if (cg_state.chase_request_time &&
-      cgi.client->unclamped_time - cg_state.chase_request_time < CG_CHASE_REQUEST_TIMEOUT) {
-    return;
-  }
-
-  cg_state.camera_mode = chasing ? CAMERA_FIRST_PERSON : CAMERA_SPECTATE;
-  cg_state.chase_request_time = 0;
 
   Cg_PublishCameraMode();
 }
@@ -232,13 +168,9 @@ static void Cg_UpdateCameraMode(const player_state_t *ps) {
  */
 void Cg_CameraModeCycle_f(void) {
 
-  const player_state_t *ps = &cgi.client->frame.ps;
+  cg_state.camera_mode = (cg_state.camera_mode + 1) % CAMERA_MODE_TOTAL;
 
-  if (!cgi.client->demo_server && !ps->stats[STAT_SPECTATOR]) {
-    return; // an active player has no camera to cycle
-  }
-
-  Cg_SetCameraMode((cg_state.camera_mode + 1) % CAMERA_MODE_TOTAL);
+  Cg_PublishCameraMode();
 }
 
 /**
@@ -419,7 +351,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
  */
 static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1) {
 
-  if (cgi.client->demo_server && cg_state.camera_mode == CAMERA_SPECTATE) {
+  if (cgi.client->demo_server && cg_state.spectate.detached) {
     cgi.view->origin = cg_state.spectate.state.origin;
     return;
   }
@@ -451,7 +383,7 @@ static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1
 static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1) {
   vec3_t angles, angles0, angles1;
 
-  if (cgi.client->demo_server && cg_state.camera_mode == CAMERA_SPECTATE) {
+  if (cgi.client->demo_server && cg_state.spectate.detached) {
     cgi.view->angles = cg_state.spectate.state.view_angles;
     Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
     return;
@@ -552,7 +484,7 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 
   const player_state_t *ps1 = &frame->ps;
 
-  Cg_UpdateCameraMode(ps1);
+  Cg_UpdateCameraMode();
 
   Cg_UpdateOrigin(ps0, ps1);
 

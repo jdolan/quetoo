@@ -200,9 +200,10 @@ typedef struct {
 #define WEATHER_ASH  0x4
 
 /**
- * @brief Camera modes, cycled by `camera`, for demo playback and for spectating a
- * live game alike. This says how to frame the subject; whether there is one to frame is the
- * server's to answer while spectating, so `Cg_UpdateCameraMode` reconciles the two.
+ * @brief How the camera frames whatever it is watching, in demo playback and while spectating a
+ * live game alike. Whether it is watching anything at all is a separate question - free flight
+ * is the absence of a subject, not a way of framing one - which the server answers live, and
+ * `cg_spectate_state_t::detached` answers during playback.
  */
 typedef enum {
   /**
@@ -220,11 +221,6 @@ typedef enum {
    * them and `+forward`/`+back` changes its distance.
    */
   CAMERA_FOLLOW,
-
-  /**
-   * @brief Detached from the subject entirely, flying freely.
-   */
-  CAMERA_SPECTATE,
 
   CAMERA_MODE_TOTAL
 } cg_camera_mode_t;
@@ -251,6 +247,12 @@ typedef struct {
 typedef struct {
   pm_state_t state;
   bool initialized;
+
+  /**
+   * @brief Whether the demo camera has left the recorded player behind. Live, the equivalent
+   * question is whether the server has given us a chase target, which `STAT_CHASE` answers.
+   */
+  bool detached;
 } cg_spectate_state_t;
 
 /**
@@ -344,13 +346,6 @@ typedef struct {
    * @brief The camera mode, cycled by `camera`.
    */
   cg_camera_mode_t camera_mode;
-
-  /**
-   * @brief When a `chase_start` or `chase_stop` was last asked of the server, so that
-   * `Cg_UpdateCameraMode` waits for the answer instead of overruling the mode during the round
-   * trip. Zero when nothing is outstanding.
-   */
-  uint32_t chase_request_time;
 
   /**
    * @brief Follow camera state, shared by live spectating and demo playback.
