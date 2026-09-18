@@ -33,6 +33,47 @@
 #define MAPSHOT_WIDTH  420
 #define MAPSHOT_HEIGHT 236
 
+#define DEFAULT_GAMES "dm"
+
+#pragma mark - Cg_FilterMap
+
+bool Cg_HasGame(const char *games, const char *game) {
+
+  const size_t len = strlen(game);
+  if (len == 0) {
+    return false;
+  }
+
+  const char *c = games;
+  while (*c) {
+    while (*c && *c <= ' ') {
+      c++;
+    }
+
+    const char *end = c;
+    while (*end > ' ') {
+      end++;
+    }
+
+    if ((size_t) (end - c) == len && !q_strncmp(c, game, len)) {
+      return true;
+    }
+
+    c = end;
+  }
+
+  return false;
+}
+
+/**
+ * @brief The tail of the `Cg_FilterMap` hook, listing a map made for this game.
+ */
+static bool Cg_FilterMap_Common(const char *mapname, const char *games) {
+  return Cg_HasGame(games, GAME_NAME);
+}
+
+FilterMap Cg_FilterMap = Cg_FilterMap_Common;
+
 #pragma mark CollectionViewDataSource
 
 /**
@@ -106,27 +147,37 @@ static void enumerateMaps(const char *path, void *data) {
 
       q_strlcpy(info->mapname, path, sizeof(info->mapname));
       q_strlcpy(info->message, path, sizeof(info->message));
+      q_strlcpy(info->games, DEFAULT_GAMES, sizeof(info->games));
 
       char *entities = malloc(header.lumps[BSP_LUMP_ENTITIES].file_len);
 
       cgi.SeekFile(file, header.lumps[BSP_LUMP_ENTITIES].file_ofs);
       cgi.ReadFile(file, entities, 1, header.lumps[BSP_LUMP_ENTITIES].file_len);
 
-      parser_t parser = Parse_Init(entities, PARSER_NO_COMMENTS);;
-      char token[MAX_BSP_ENTITY_VALUE];
+      parser_t parser = Parse_Init(entities, PARSER_NO_COMMENTS);
+      char key[MAX_BSP_ENTITY_KEY], token[MAX_BSP_ENTITY_VALUE];
 
       while (true) {
-        
-        if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+
+        if (!Parse_Token(&parser, PARSE_DEFAULT, key, sizeof(key))) {
           break;
         }
 
-        if (q_strcmp(token, "message") == 0) {
-          
-          if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
-            break;
-          }
+        if (q_strcmp(key, "}") == 0) {
+          break;
+        }
 
+        if (q_strcmp(key, "{") == 0) {
+          continue;
+        }
+
+        if (!Parse_Token(&parser, PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
+          break;
+        }
+
+        if (q_strcmp(key, "games") == 0) {
+          q_strlcpy(info->games, token, sizeof(info->games));
+        } else if (q_strcmp(key, "message") == 0) {
           q_strcolorstrip(token, info->message);
 
           char *c = q_strstr(info->message, "\\n");
@@ -143,12 +194,16 @@ static void enumerateMaps(const char *path, void *data) {
           if (c) {
             *c = '\0';
           }
-
-          break;
         }
       }
 
       free(entities);
+
+      if (!Cg_FilterMap(info->mapname, info->games)) {
+        free(info);
+        cgi.CloseFile(file);
+        return;
+      }
 
       List *mapshots = cgi.Mapshots(path);
 

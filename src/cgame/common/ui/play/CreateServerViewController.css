@@ -9,3 +9,25 @@ MapListCollectionView {
   width: 900;
   height: 620;
 }
+
+/* The game badges, pinned to the map item's top right corner. Only attached to an item that has
+   at least one badge, so the backdrop never paints empty */
+
+.mapItemGames {
+  alignment: top-right;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  background-color: #0a0f12aa;
+  padding: 4 4 4 4;
+  spacing: 4;
+}
+
+/* A stack only places a child on its cross axis when the child is aligned; without this the
+   badge keeps whatever y the first, unstyled layout gave it */
+
+.mapItemGames ImageView {
+  alignment: top-left;
+  autoresizing-mask: none;
+  height: 24;
+  width: 24;
+}

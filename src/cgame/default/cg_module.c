@@ -22,12 +22,46 @@
 
 #include "cg_local.h"
 
+static struct {
+  FilterMap FilterMap;
+} previous;
+
+/**
+ * @brief The games this module plays as variants of deathmatch, which the maps name
+ * rather than `default`.
+ */
+static const char *cg_default_games[] = { "dm", "tdm", "duel", "instagib" };
+
+/**
+ * @brief Lists a map made for any of the deathmatch variants.
+ */
+static bool Cg_FilterMap_Default(const char *mapname, const char *games) {
+
+  for (size_t i = 0; i < lengthof(cg_default_games); i++) {
+    if (Cg_HasGame(games, cg_default_games[i])) {
+      return true;
+    }
+  }
+
+  return previous.FilterMap(mapname, games);
+}
+
 /**
  * @brief Plain deathmatch draws no element and adds no effect of its own, and
- * switches on none of the optional features, so every hook runs its `_Common`
- * tail.
+ * switches on none of the optional features. Its one hook names the deathmatch
+ * variants in the create-server map browser, since no map is made for `default`.
  */
 void Cg_Module_Init(void) {
+  static bool installed;
+
+  if (installed) {
+    return;
+  }
+
+  previous.FilterMap = Cg_FilterMap;
+  Cg_FilterMap = Cg_FilterMap_Default;
+
+  installed = true;
 }
 
 /**
