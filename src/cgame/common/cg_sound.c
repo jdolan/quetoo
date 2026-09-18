@@ -37,6 +37,10 @@ void Cg_PrepareStage(const cl_frame_t *frame) {
 
 /**
  * @brief Parses a positioned sound message from the server and plays it.
+ * @remarks Every field the flags promise is read before the sample is judged. Giving up early
+ * leaves the rest of the message to be read as the next command, so a sound this client does not
+ * have would not merely go unheard: it would desync the stream and drop the connection with an
+ * illegible server message.
  */
 void Cg_ParseSound(void) {
 
@@ -49,7 +53,6 @@ void Cg_ParseSound(void) {
 
   if (!play.sample) {
     Cg_Warn("NULL sample for sound index %u\n", sample_index);
-    return;
   }
 
   if (flags & SOUND_ENTITY) {
@@ -61,13 +64,14 @@ void Cg_ParseSound(void) {
       play.origin = Box3_Center(ent->abs_bounds);
     } else {
       play.origin = ent->current.origin;
-      if (play.sample->media.name[0] == '*') {
+      if (play.sample && play.sample->media.name[0] == '*') {
         if (ent->current.client >= MAX_CLIENTS) {
           Cg_Warn("Bad client %u for entity %d\n", ent->current.client, number);
-          return;
+          play.sample = NULL;
+        } else {
+          const cg_client_info_t *info = Cg_ClientInfo(ent);
+          play.sample = cgi.LoadClientModelSample(info->model, info->torso->mesh->sounds, play.sample->media.name);
         }
-        const cg_client_info_t *info = Cg_ClientInfo(ent);
-        play.sample = cgi.LoadClientModelSample(info->model, info->torso->mesh->sounds, play.sample->media.name);
       }
     }
   } else {
@@ -90,7 +94,9 @@ void Cg_ParseSound(void) {
     play.flags |= S_PLAY_RELATIVE;
   }
 
-  Cg_AddSample(cgi.stage, &play);
+  if (play.sample) {
+    Cg_AddSample(cgi.stage, &play);
+  }
 }
 
 
