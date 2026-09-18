@@ -67,20 +67,6 @@ static View *init(View *self) {
 }
 
 /**
- * @brief The colored key name bound to the given command, or red `UNBOUND`.
- */
-static const char *keyBind(const char *bind) {
-
-  const SDL_Scancode code = cgi.KeyForBind(SDL_SCANCODE_UNKNOWN, bind);
-
-  if (code == SDL_SCANCODE_UNKNOWN) {
-    return "^1UNBOUND^7";
-  }
-
-  return va("^2%s^7", cgi.KeyName(code));
-}
-
-/**
  * @see View::updateBindings(View *, ident)
  */
 static void updateBindings(View *self, ident data) {
@@ -113,7 +99,7 @@ static void updateBindings(View *self, ident data) {
     "* To adjust the link state between two nodes, select\n"
     "  the nodes by touching them so they turn yellow & purple respectively\n"
     "  then tap %s to cycle between connection types.",
-    keyBind("+attack"), keyBind("+attack"), keyBind("use"), keyBind("+hook"), keyBind("+score"));
+    Cg_KeyBind("+attack"), Cg_KeyBind("+attack"), Cg_KeyBind("use"), Cg_KeyBind("+hook"), Cg_KeyBind("+score"));
 
   $(this->text, setText, text);
 }

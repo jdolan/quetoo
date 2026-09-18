@@ -39,6 +39,22 @@ typedef struct {
 static cg_kick_t cg_kick;
 
 /**
+ * @brief The coloured name of the key bound to the given command, or red `UNBOUND`.
+ * @remarks Asking rather than naming the shipped default, which a player may well have moved -
+ * on macOS a right click arrives as mouse 3, so `+hook` does not sit where the defaults put it.
+ */
+const char *Cg_KeyBind(const char *bind) {
+
+  const SDL_Scancode key = cgi.KeyForBind(SDL_SCANCODE_UNKNOWN, bind);
+
+  if (key == SDL_SCANCODE_UNKNOWN) {
+    return "^1UNBOUND^7";
+  }
+
+  return va("^2%s^7", cgi.KeyName(key));
+}
+
+/**
  * @brief Accumulates raw mouse motion into the follow camera's yaw and pitch.
  * @remarks The client applies mouse motion to `cgi.client->angles`, but `Cg_UpdateAngles`
  * overwrites that with the view angles whenever `pm_state.type` is `PM_FREEZE` - which is
