@@ -163,20 +163,8 @@ static bool S_OpenCapture(void) {
     return false;
   }
 
-  SDL_ResumeAudioStreamDevice(s_voice_state.capture);
-
   Com_Print("Voice capture opened (%s)\n", SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(s_voice_state.capture)));
   return true;
-}
-
-/**
- * @brief Discards any samples the capture device has buffered.
- */
-static void S_DrainCapture(void) {
-
-  if (s_voice_state.capture) {
-    SDL_ClearAudioStream(s_voice_state.capture);
-  }
 }
 
 /**
@@ -246,6 +234,8 @@ static void S_QueueVoiceFrame(const int16_t *samples) {
   alBufferData(buffer, AL_FORMAT_MONO16, samples, VOICE_FRAME_SAMPLES * sizeof(int16_t), VOICE_RATE);
   alSourceQueueBuffers(s_voice_state.source, 1, &buffer);
 
+  alSourcef(s_voice_state.source, AL_GAIN, S_VoiceGain());
+
   ALint state;
   alGetSourcei(s_voice_state.source, AL_SOURCE_STATE, &state);
 
@@ -310,6 +300,8 @@ static int32_t S_VoiceThread(void *data) {
 
 /**
  * @brief Begins a voice transmission, opening the capture device if this is the first one.
+ * @details A device change reopens capture, which also clears a previous failure: latching that
+ * permanently would leave a player who picked the wrong microphone with no way back.
  */
 void S_StartVoice(void) {
 
@@ -319,9 +311,24 @@ void S_StartVoice(void) {
 
   SDL_LockMutex(s_voice_state.mutex);
 
-  if (!s_voice_state.transmitting) {
+  if (s_voice_device->modified) {
+    s_voice_device->modified = false;
+
+    if (s_voice_state.capture) {
+      SDL_DestroyAudioStream(s_voice_state.capture);
+      s_voice_state.capture = NULL;
+    }
+
+    s_voice_state.capture_failed = false;
+    s_voice_state.capture_silent = false;
+    s_voice_state.silent_frames = 0;
+  }
+
+  if (!s_voice_state.transmitting && S_OpenCapture()) {
     s_voice_state.transmitting = true;
-    S_DrainCapture();
+
+    SDL_ClearAudioStream(s_voice_state.capture);
+    SDL_ResumeAudioStreamDevice(s_voice_state.capture);
   }
 
   SDL_UnlockMutex(s_voice_state.mutex);
@@ -329,6 +336,8 @@ void S_StartVoice(void) {
 
 /**
  * @brief Ends a voice transmission.
+ * @details Pauses the capture device rather than merely ignoring it, so that push to talk does not
+ * leave the microphone live, and the operating system's recording indicator goes out with the key.
  */
 void S_StopVoice(void) {
 
@@ -339,6 +348,11 @@ void S_StopVoice(void) {
   SDL_LockMutex(s_voice_state.mutex);
 
   s_voice_state.transmitting = false;
+
+  if (s_voice_state.capture) {
+    SDL_PauseAudioStreamDevice(s_voice_state.capture);
+    SDL_ClearAudioStream(s_voice_state.capture);
+  }
 
   SDL_UnlockMutex(s_voice_state.mutex);
 }
@@ -382,7 +396,20 @@ void S_InitVoice(void) {
   S_GetError(NULL);
 
   s_voice_state.mutex = SDL_CreateMutex();
+
+  if (!s_voice_state.mutex) {
+    Com_Warn("Couldn't create mutex: %s\n", SDL_GetError());
+    S_ShutdownVoice();
+    return;
+  }
+
   s_voice_state.thread = SDL_CreateThread(S_VoiceThread, __func__, NULL);
+
+  if (!s_voice_state.thread) {
+    Com_Warn("Couldn't create thread: %s\n", SDL_GetError());
+    S_ShutdownVoice();
+    return;
+  }
 
   Com_Print("Voice initialized (%s)\n", opus_get_version_string());
 }

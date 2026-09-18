@@ -374,6 +374,8 @@ void S_Init(void) {
     return;
   }
 
+  s_context.initialized = true;
+
   if (!alcIsExtensionPresent(NULL, "ALC_SOFT_loopback")) {
     Com_Warn("OpenAL driver does not support ALC_SOFT_loopback\n");
     return;
@@ -526,44 +528,53 @@ void S_Init(void) {
 
 /**
  * @brief Shuts down the sound subsystem, releasing all OpenAL resources and the context.
+ * @details Tears down in the reverse order of initialization, and tolerates initialization having
+ * failed part way: the playback stream goes first so that no in-flight SDL callback can render
+ * through a context that is being destroyed, and each stage is skipped if it never came up.
  */
 void S_Shutdown(void) {
 
-  if (!s_context.context) {
+  if (!s_context.initialized) {
     return;
   }
-
-  S_Stop();
-
-  alDeleteSources(MAX_CHANNELS, s_context.sources);
-
-  if (s_context.effects.loaded) {
-    ALuint filters[MAX_CHANNELS];
-    for (int32_t i = 0; i < MAX_CHANNELS; i++) {
-      filters[i] = s_context.channels[i].filter;
-    }
-    alDeleteFilters(MAX_CHANNELS, filters);
-    alDeleteAuxiliaryEffectSlots(1, &s_context.effects.reverb_slot);
-    alDeleteEffects(1, &s_context.effects.reverb);
-    s_context.effects.loaded = false;
-  }
-
-  S_GetError(NULL);
-
-  S_ShutdownVoice();
-
-  S_ShutdownMusic();
-
-  S_ShutdownMedia();
 
   if (s_context.stream) {
     SDL_DestroyAudioStream(s_context.stream);
     s_context.stream = NULL;
   }
 
-  alcMakeContextCurrent(NULL);
-  alcDestroyContext(s_context.context);
-  alcCloseDevice(s_context.device);
+  if (s_context.context) {
+
+    S_Stop();
+
+    alDeleteSources(MAX_CHANNELS, s_context.sources);
+
+    if (s_context.effects.loaded) {
+      ALuint filters[MAX_CHANNELS];
+      for (int32_t i = 0; i < MAX_CHANNELS; i++) {
+        filters[i] = s_context.channels[i].filter;
+      }
+      alDeleteFilters(MAX_CHANNELS, filters);
+      alDeleteAuxiliaryEffectSlots(1, &s_context.effects.reverb_slot);
+      alDeleteEffects(1, &s_context.effects.reverb);
+      s_context.effects.loaded = false;
+    }
+
+    S_GetError(NULL);
+
+    S_ShutdownVoice();
+
+    S_ShutdownMusic();
+
+    S_ShutdownMedia();
+
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(s_context.context);
+  }
+
+  if (s_context.device) {
+    alcCloseDevice(s_context.device);
+  }
 
   SDL_QuitSubSystem(SDL_INIT_AUDIO);
 

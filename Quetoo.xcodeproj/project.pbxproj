@@ -738,7 +738,7 @@
 		CE80FFAE1C5E4A2800A21A51 /* sv_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6AE1C5C58C300CD0B13 /* sv_main.c */; };
 		CE80FFAF1C5E4A2800A21A51 /* sv_master.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B01C5C58C300CD0B13 /* sv_master.c */; };
 		CE80FFB01C5E4A2800A21A51 /* sv_send.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B21C5C58C300CD0B13 /* sv_send.c */; };
-		CEV01CE00000000000000006 /* sv_voice.c in Sources */ = {isa = PBXBuildFile; fileRef = CEV01CE00000000000000005 /* sv_voice.c */; };
+		CEEF01CE0000000000000006 /* sv_voice.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEF01CE0000000000000005 /* sv_voice.c */; };
 		CE80FFB11C5E4A2800A21A51 /* sv_world.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B51C5C58C300CD0B13 /* sv_world.c */; };
 		CE80FFB21C5E4A3100A21A51 /* server.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6A01C5C58C300CD0B13 /* server.h */; };
 		CE80FFB31C5E4A3100A21A51 /* sv_admin.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6A21C5C58C300CD0B13 /* sv_admin.h */; };
@@ -751,7 +751,7 @@
 		CE80FFBA1C5E4A3100A21A51 /* sv_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AF1C5C58C300CD0B13 /* sv_main.h */; };
 		CE80FFBB1C5E4A3200A21A51 /* sv_master.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B11C5C58C300CD0B13 /* sv_master.h */; };
 		CE80FFBC1C5E4A3200A21A51 /* sv_send.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B31C5C58C300CD0B13 /* sv_send.h */; };
-		CEV01CE00000000000000008 /* sv_voice.h in Headers */ = {isa = PBXBuildFile; fileRef = CEV01CE00000000000000007 /* sv_voice.h */; };
+		CEEF01CE0000000000000008 /* sv_voice.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEF01CE0000000000000007 /* sv_voice.h */; };
 		CE80FFBD1C5E4A3200A21A51 /* sv_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B41C5C58C300CD0B13 /* sv_types.h */; };
 		CE80FFBE1C5E4A3200A21A51 /* sv_world.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B61C5C58C300CD0B13 /* sv_world.h */; };
 		CE80FFC71C5E4AD800A21A51 /* libclient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FEE41C5E45EC00A21A51 /* libclient.a */; };
@@ -1095,14 +1095,14 @@
 		CED438E71D9D344E0052BAFA /* s_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6041C5C58C300CD0B13 /* s_media.c */; };
 		CED438E81D9D344E0052BAFA /* s_mix.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6061C5C58C300CD0B13 /* s_mix.c */; };
 		CED438E91D9D344E0052BAFA /* s_music.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6081C5C58C300CD0B13 /* s_music.c */; };
-		CEV01CE00000000000000002 /* s_voice.c in Sources */ = {isa = PBXBuildFile; fileRef = CEV01CE00000000000000001 /* s_voice.c */; };
+		CEEF01CE0000000000000002 /* s_voice.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEF01CE0000000000000001 /* s_voice.c */; };
 		CED438EA1D9D344E0052BAFA /* s_sample.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D60A1C5C58C300CD0B13 /* s_sample.c */; };
 		CED439301D9D344E0052BAFA /* s_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6011C5C58C300CD0B13 /* s_local.h */; };
 		CED439311D9D344E0052BAFA /* s_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6031C5C58C300CD0B13 /* s_main.h */; };
 		CED439321D9D344E0052BAFA /* s_media.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6051C5C58C300CD0B13 /* s_media.h */; };
 		CED439331D9D344E0052BAFA /* s_mix.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6071C5C58C300CD0B13 /* s_mix.h */; };
 		CED439341D9D344E0052BAFA /* s_music.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6091C5C58C300CD0B13 /* s_music.h */; };
-		CEV01CE00000000000000004 /* s_voice.h in Headers */ = {isa = PBXBuildFile; fileRef = CEV01CE00000000000000003 /* s_voice.h */; };
+		CEEF01CE0000000000000004 /* s_voice.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEF01CE0000000000000003 /* s_voice.h */; };
 		CED439351D9D344E0052BAFA /* s_sample.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D60B1C5C58C300CD0B13 /* s_sample.h */; };
 		CED439361D9D344E0052BAFA /* s_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D60C1C5C58C300CD0B13 /* s_types.h */; };
 		CED439371D9D344E0052BAFA /* sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D60D1C5C58C300CD0B13 /* sound.h */; };
@@ -2400,9 +2400,9 @@
 		CE12D6061C5C58C300CD0B13 /* s_mix.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = s_mix.c; sourceTree = "<group>"; };
 		CE12D6071C5C58C300CD0B13 /* s_mix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = s_mix.h; sourceTree = "<group>"; };
 		CE12D6081C5C58C300CD0B13 /* s_music.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = s_music.c; sourceTree = "<group>"; };
-		CEV01CE00000000000000001 /* s_voice.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = s_voice.c; sourceTree = "<group>"; };
+		CEEF01CE0000000000000001 /* s_voice.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = s_voice.c; sourceTree = "<group>"; };
 		CE12D6091C5C58C300CD0B13 /* s_music.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = s_music.h; sourceTree = "<group>"; };
-		CEV01CE00000000000000003 /* s_voice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = s_voice.h; sourceTree = "<group>"; };
+		CEEF01CE0000000000000003 /* s_voice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = s_voice.h; sourceTree = "<group>"; };
 		CE12D60A1C5C58C300CD0B13 /* s_sample.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = s_sample.c; sourceTree = "<group>"; };
 		CE12D60B1C5C58C300CD0B13 /* s_sample.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = s_sample.h; sourceTree = "<group>"; };
 		CE12D60C1C5C58C300CD0B13 /* s_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = s_types.h; sourceTree = "<group>"; };
@@ -2514,9 +2514,9 @@
 		CE12D6B01C5C58C300CD0B13 /* sv_master.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_master.c; sourceTree = "<group>"; };
 		CE12D6B11C5C58C300CD0B13 /* sv_master.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_master.h; sourceTree = "<group>"; };
 		CE12D6B21C5C58C300CD0B13 /* sv_send.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_send.c; sourceTree = "<group>"; };
-		CEV01CE00000000000000005 /* sv_voice.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_voice.c; sourceTree = "<group>"; };
+		CEEF01CE0000000000000005 /* sv_voice.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_voice.c; sourceTree = "<group>"; };
 		CE12D6B31C5C58C300CD0B13 /* sv_send.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_send.h; sourceTree = "<group>"; };
-		CEV01CE00000000000000007 /* sv_voice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_voice.h; sourceTree = "<group>"; };
+		CEEF01CE0000000000000007 /* sv_voice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_voice.h; sourceTree = "<group>"; };
 		CE12D6B41C5C58C300CD0B13 /* sv_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_types.h; sourceTree = "<group>"; };
 		CE12D6B51C5C58C300CD0B13 /* sv_world.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_world.c; sourceTree = "<group>"; };
 		CE12D6B61C5C58C300CD0B13 /* sv_world.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_world.h; sourceTree = "<group>"; };
@@ -4142,9 +4142,9 @@
 				CE12D6061C5C58C300CD0B13 /* s_mix.c */,
 				CE12D6071C5C58C300CD0B13 /* s_mix.h */,
 				CE12D6081C5C58C300CD0B13 /* s_music.c */,
-				CEV01CE00000000000000001 /* s_voice.c */,
+				CEEF01CE0000000000000001 /* s_voice.c */,
 				CE12D6091C5C58C300CD0B13 /* s_music.h */,
-				CEV01CE00000000000000003 /* s_voice.h */,
+				CEEF01CE0000000000000003 /* s_voice.h */,
 				CE12D60A1C5C58C300CD0B13 /* s_sample.c */,
 				CE12D60B1C5C58C300CD0B13 /* s_sample.h */,
 				CE12D60C1C5C58C300CD0B13 /* s_types.h */,
@@ -4271,9 +4271,9 @@
 				CE12D6B01C5C58C300CD0B13 /* sv_master.c */,
 				CE12D6B11C5C58C300CD0B13 /* sv_master.h */,
 				CE12D6B21C5C58C300CD0B13 /* sv_send.c */,
-				CEV01CE00000000000000005 /* sv_voice.c */,
+				CEEF01CE0000000000000005 /* sv_voice.c */,
 				CE12D6B31C5C58C300CD0B13 /* sv_send.h */,
-				CEV01CE00000000000000007 /* sv_voice.h */,
+				CEEF01CE0000000000000007 /* sv_voice.h */,
 				CE12D6B41C5C58C300CD0B13 /* sv_types.h */,
 				CE12D6B51C5C58C300CD0B13 /* sv_world.c */,
 				CE12D6B61C5C58C300CD0B13 /* sv_world.h */,
@@ -5479,7 +5479,7 @@
 				CEAB00062EC1A00000000006 /* sv_map_list.h in Headers */,
 				CE80FFBB1C5E4A3200A21A51 /* sv_master.h in Headers */,
 				CE80FFBC1C5E4A3200A21A51 /* sv_send.h in Headers */,
-				CEV01CE00000000000000008 /* sv_voice.h in Headers */,
+				CEEF01CE0000000000000008 /* sv_voice.h in Headers */,
 				CE80FFBD1C5E4A3200A21A51 /* sv_types.h in Headers */,
 				CE80FFBE1C5E4A3200A21A51 /* sv_world.h in Headers */,
 			);
@@ -5617,7 +5617,7 @@
 				CED439321D9D344E0052BAFA /* s_media.h in Headers */,
 				CED439331D9D344E0052BAFA /* s_mix.h in Headers */,
 				CED439341D9D344E0052BAFA /* s_music.h in Headers */,
-				CEV01CE00000000000000004 /* s_voice.h in Headers */,
+				CEEF01CE0000000000000004 /* s_voice.h in Headers */,
 				CED439351D9D344E0052BAFA /* s_sample.h in Headers */,
 				CED439361D9D344E0052BAFA /* s_types.h in Headers */,
 				CED439371D9D344E0052BAFA /* sound.h in Headers */,
@@ -7289,7 +7289,7 @@
 				CEAB00052EC1A00000000005 /* sv_map_list.c in Sources */,
 				CE80FFAF1C5E4A2800A21A51 /* sv_master.c in Sources */,
 				CE80FFB01C5E4A2800A21A51 /* sv_send.c in Sources */,
-				CEV01CE00000000000000006 /* sv_voice.c in Sources */,
+				CEEF01CE0000000000000006 /* sv_voice.c in Sources */,
 				CE80FFB11C5E4A2800A21A51 /* sv_world.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -7563,7 +7563,7 @@
 				CED438E71D9D344E0052BAFA /* s_media.c in Sources */,
 				CED438E81D9D344E0052BAFA /* s_mix.c in Sources */,
 				CED438E91D9D344E0052BAFA /* s_music.c in Sources */,
-				CEV01CE00000000000000002 /* s_voice.c in Sources */,
+				CEEF01CE0000000000000002 /* s_voice.c in Sources */,
 				CED438EA1D9D344E0052BAFA /* s_sample.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
