@@ -54,7 +54,7 @@
  */
 #define VOICE_PUMP_MILLIS 10
 
-typedef struct {
+static struct {
   SDL_AudioStream *capture;
   bool capture_failed;
   bool capture_silent;
@@ -74,9 +74,8 @@ typedef struct {
   SDL_Thread *thread;
   SDL_Mutex *mutex;
   bool shutdown;
-} s_voice_state_t;
-
-static s_voice_state_t s_voice_state;
+  bool enabled;
+} s_voice_state;
 
 cvar_t *s_voice;
 cvar_t *s_voice_device;
@@ -329,14 +328,12 @@ static void S_QueueVoiceFrame(const int16_t *samples) {
 
 /**
  * @brief Drains the capture device into whole frames, one voice thread tick's worth.
+ * @remarks Never opens the device. S_OpenCapture resolves s_voice_device, and cvar strings are
+ * freed and replaced by the main thread, so it runs only from S_StartVoice.
  */
 static void S_PumpVoice(void) {
 
-  if (!s_voice_state.transmitting) {
-    return;
-  }
-
-  if (!S_OpenCapture()) {
+  if (!s_voice_state.transmitting || !s_voice_state.capture) {
     return;
   }
 
@@ -399,7 +396,7 @@ static int32_t S_VoiceThread(void *data) {
  */
 void S_StartVoice(void) {
 
-  if (!s_voice || !s_voice->integer) {
+  if (!s_voice_state.enabled || !s_voice->integer) {
     return;
   }
 
@@ -439,7 +436,7 @@ void S_StartVoice(void) {
  */
 void S_StopVoice(void) {
 
-  if (!s_voice) {
+  if (!s_voice_state.enabled) {
     return;
   }
 
@@ -495,6 +492,13 @@ void S_InitVoice(void) {
     return;
   }
 
+  s_voice_state.mutex = SDL_CreateMutex();
+
+  if (!s_voice_state.mutex) {
+    Com_Warn("Couldn't create mutex: %s\n", SDL_GetError());
+    return;
+  }
+
   alGenSources(1, &s_voice_state.source);
 
   if (!s_voice_state.source) {
@@ -518,14 +522,6 @@ void S_InitVoice(void) {
 
   S_GetError(NULL);
 
-  s_voice_state.mutex = SDL_CreateMutex();
-
-  if (!s_voice_state.mutex) {
-    Com_Warn("Couldn't create mutex: %s\n", SDL_GetError());
-    S_ShutdownVoice();
-    return;
-  }
-
   s_voice_state.thread = SDL_CreateThread(S_VoiceThread, __func__, NULL);
 
   if (!s_voice_state.thread) {
@@ -533,6 +529,8 @@ void S_InitVoice(void) {
     S_ShutdownVoice();
     return;
   }
+
+  s_voice_state.enabled = true;
 
   Com_Print("Voice initialized (%s)\n", opus_get_version_string());
 }
