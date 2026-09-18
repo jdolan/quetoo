@@ -411,9 +411,8 @@ static void Cg_Chat(int32_t client, uint8_t flags, const char *message) {
   const bool team = flags & CHAT_TEAM;
 
   const int32_t color = team ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
-  const int32_t level = team ? PRINT_TEAM_CHAT : PRINT_CHAT;
 
-  cgi.PrintLevel(level, "%s^%d: %s\n", cg_state.clients[client].name, color, message);
+  cgi.PrintLevel(PRINT_CHAT, "%s^%d: %s\n", cg_state.clients[client].name, color, message);
 
   // the sound is the module's to choose, because only it knows which kind of message this is
   const char *sample = cgi.GetCvarString(team ? "cl_team_chat_sound" : "cl_chat_sound");

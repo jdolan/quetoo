@@ -94,8 +94,8 @@ typedef struct cg_import_s {
 
   /**
    * @brief Prints a formatted message to the consoles at the given level.
-   * @remarks The level is what console views filter on, so chat must arrive as PRINT_CHAT or
-   * PRINT_TEAM_CHAT to reach the chat view rather than the notification lines.
+   * @remarks The level is what console views filter on, so chat must arrive as PRINT_CHAT to reach
+   * the chat view rather than the notification lines.
    */
   void (*PrintLevel)(int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 

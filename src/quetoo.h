@@ -96,7 +96,6 @@
 #define PRINT_MEDIUM    0x2
 #define PRINT_HIGH      0x4
 #define PRINT_CHAT      0x8
-#define PRINT_TEAM_CHAT 0x10
 #define PRINT_ECHO      0x20
 
 /**

@@ -1,0 +1,12 @@
+{
+  "subviews": [
+    {
+      "class": "ImageView",
+      "identifier": "icon"
+    },
+    {
+      "class": "Text",
+      "identifier": "names"
+    }
+  ]
+}

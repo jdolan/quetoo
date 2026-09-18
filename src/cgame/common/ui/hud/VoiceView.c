@@ -45,20 +45,15 @@ static View *init(View *self) {
 
     VoiceView *this = (VoiceView *) self;
 
-    this->icon = $(alloc(ImageView), initWithFrame, NULL);
-    assert(this->icon);
+    Outlet outlets[] = MakeOutlets(
+      MakeOutlet("icon", &this->icon),
+      MakeOutlet("names", &this->names)
+    );
+
+    $(self, awakeWithResourceName, "ui/hud/VoiceView.json");
+    $(self, resolve, outlets);
 
     $(this->icon, setImage, (Image *) Cg_HudImage("pics/voice"));
-    $((View *) this->icon, addClassName, "icon");
-
-    $(self, addSubview, (View *) this->icon);
-
-    this->names = $(alloc(Text), initWithText, "", NULL);
-    assert(this->names);
-
-    $((View *) this->names, addClassName, "names");
-
-    $(self, addSubview, (View *) this->names);
 
     $(self, setVisibility, ViewVisibilityHidden);
   }

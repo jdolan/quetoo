@@ -108,6 +108,7 @@ cguihuddir = \
 
 cguihud_DATA = \
 	$(CGUI_DIR)/hud/ChatView.json \
+	$(CGUI_DIR)/hud/VoiceView.json \
 	$(CGUI_DIR)/hud/CounterView.json \
 	$(CGUI_DIR)/hud/DemoControlsView.json \
 	$(CGUI_DIR)/hud/PickupView.json \

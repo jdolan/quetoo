@@ -345,12 +345,12 @@ VoiceView {
   spacing: 6;
 }
 
-VoiceView .icon {
+VoiceView ImageView {
   width: 20;
   height: 20;
 }
 
-VoiceView .names {
+VoiceView Text {
   font-family: Share Tech Mono;
   font-style: regular;
   font-size: 16;

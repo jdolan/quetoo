@@ -409,18 +409,11 @@ static void Cl_ParsePrint(void) {
   // the server shouldn't have sent us anything below our level anyway
   if (level >= message_level->integer) {
 
+    // chat from a player arrives as SV_CMD_CHAT and is sounded by the client game, which is the
+    // only side that knows what kind of message it is; this remains for console originated chat
     char *sample = NULL;
-    switch (level) {
-      case PRINT_CHAT:
-      case PRINT_TEAM_CHAT:
-        if (level == PRINT_CHAT && *cl_chat_sound->string) {
-          sample = cl_chat_sound->string;
-        } else if (level == PRINT_TEAM_CHAT && *cl_team_chat_sound->string) {
-          sample = cl_team_chat_sound->string;
-        }
-        break;
-      default:
-        break;
+    if (level == PRINT_CHAT && *cl_chat_sound->string) {
+      sample = cl_chat_sound->string;
     }
 
     if (sample) {
