@@ -49,7 +49,7 @@
 #define VOICE_PUMP_MILLIS 10
 
 typedef struct {
-  ALCdevice *capture;
+  SDL_AudioStream *capture;
   bool capture_failed;
   bool capture_silent;
   int32_t silent_frames;
@@ -85,20 +85,56 @@ static float S_VoiceGain(void) {
  */
 static void S_VoiceDevices_f(void) {
 
-  const char *def = alcGetString(NULL, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER);
-  const char *devices = alcGetString(NULL, ALC_CAPTURE_DEVICE_SPECIFIER);
+  if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
+    Com_Warn("Failed to initialize audio: %s\n", SDL_GetError());
+    return;
+  }
 
-  if (!devices || !*devices) {
+  int32_t count = 0;
+  SDL_AudioDeviceID *devices = SDL_GetAudioRecordingDevices(&count);
+
+  if (!devices || !count) {
     Com_Print("No capture devices available\n");
+    SDL_free(devices);
     return;
   }
 
   Com_Print("Capture devices:\n");
 
-  for (const char *d = devices; *d; d += strlen(d) + 1) {
-    const bool is_default = def && !q_strcmp(d, def);
-    Com_Print("  ^2%s^7%s\n", d, is_default ? " (default)" : "");
+  for (int32_t i = 0; i < count; i++) {
+    Com_Print("  ^2%s^7\n", SDL_GetAudioDeviceName(devices[i]));
   }
+
+  SDL_free(devices);
+}
+
+/**
+ * @brief Resolves s_voice_device to a recording device, falling back to the system default.
+ */
+static SDL_AudioDeviceID S_CaptureDevice(void) {
+
+  if (!s_voice_device->string[0]) {
+    return SDL_AUDIO_DEVICE_DEFAULT_RECORDING;
+  }
+
+  int32_t count = 0;
+  SDL_AudioDeviceID *devices = SDL_GetAudioRecordingDevices(&count);
+  SDL_AudioDeviceID device = SDL_AUDIO_DEVICE_DEFAULT_RECORDING;
+
+  for (int32_t i = 0; i < count; i++) {
+    const char *name = SDL_GetAudioDeviceName(devices[i]);
+    if (name && !q_strcmp(name, s_voice_device->string)) {
+      device = devices[i];
+      break;
+    }
+  }
+
+  if (device == SDL_AUDIO_DEVICE_DEFAULT_RECORDING) {
+    Com_Warn("Capture device \"%s\" not found, using the default\n", s_voice_device->string);
+  }
+
+  SDL_free(devices);
+  return device;
 }
 
 /**
@@ -116,19 +152,31 @@ static bool S_OpenCapture(void) {
     return false;
   }
 
-  const char *device = s_voice_device->string[0] ? s_voice_device->string : NULL;
-
-  s_voice_state.capture = alcCaptureOpenDevice(device, VOICE_RATE, AL_FORMAT_MONO16, VOICE_CAPTURE_SAMPLES);
-
-  if (!s_voice_state.capture) {
-    Com_Warn("Failed to open capture device %s\n", device ? device : "(default)");
+  if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
+    Com_Warn("Failed to initialize audio: %s\n", SDL_GetError());
     s_voice_state.capture_failed = true;
     return false;
   }
 
-  alcCaptureStart(s_voice_state.capture);
+  const SDL_AudioDeviceID device = S_CaptureDevice();
 
-  Com_Print("Voice capture opened (%s)\n", alcGetString(s_voice_state.capture, ALC_CAPTURE_DEVICE_SPECIFIER));
+  const SDL_AudioSpec spec = {
+    .format = SDL_AUDIO_S16,
+    .channels = 1,
+    .freq = VOICE_RATE,
+  };
+
+  s_voice_state.capture = SDL_OpenAudioDeviceStream(device, &spec, NULL, NULL);
+
+  if (!s_voice_state.capture) {
+    Com_Warn("Failed to open capture device: %s\n", SDL_GetError());
+    s_voice_state.capture_failed = true;
+    return false;
+  }
+
+  SDL_ResumeAudioStreamDevice(s_voice_state.capture);
+
+  Com_Print("Voice capture opened (%s)\n", SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(s_voice_state.capture)));
   return true;
 }
 
@@ -137,19 +185,8 @@ static bool S_OpenCapture(void) {
  */
 static void S_DrainCapture(void) {
 
-  if (!s_voice_state.capture) {
-    return;
-  }
-
-  while (true) {
-    ALCint available = 0;
-    alcGetIntegerv(s_voice_state.capture, ALC_CAPTURE_SAMPLES, 1, &available);
-
-    if (available < VOICE_FRAME_SAMPLES) {
-      break;
-    }
-
-    alcCaptureSamples(s_voice_state.capture, s_voice_state.frame, VOICE_FRAME_SAMPLES);
+  if (s_voice_state.capture) {
+    SDL_ClearAudioStream(s_voice_state.capture);
   }
 }
 
@@ -241,15 +278,12 @@ static void S_PumpVoice(void) {
     return;
   }
 
-  while (true) {
-    ALCint available = 0;
-    alcGetIntegerv(s_voice_state.capture, ALC_CAPTURE_SAMPLES, 1, &available);
+  while (SDL_GetAudioStreamAvailable(s_voice_state.capture) >= (int32_t) sizeof(s_voice_state.frame)) {
 
-    if (available < VOICE_FRAME_SAMPLES) {
+    if (SDL_GetAudioStreamData(s_voice_state.capture, s_voice_state.frame,
+                               sizeof(s_voice_state.frame)) != (int32_t) sizeof(s_voice_state.frame)) {
       break;
     }
-
-    alcCaptureSamples(s_voice_state.capture, s_voice_state.frame, VOICE_FRAME_SAMPLES);
 
     S_CheckCaptureSilence(s_voice_state.frame, VOICE_FRAME_SAMPLES);
 
@@ -378,8 +412,8 @@ void S_ShutdownVoice(void) {
   }
 
   if (s_voice_state.capture) {
-    alcCaptureStop(s_voice_state.capture);
-    alcCaptureCloseDevice(s_voice_state.capture);
+    SDL_DestroyAudioStream(s_voice_state.capture);
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
   }
 
   if (s_voice_state.source) {

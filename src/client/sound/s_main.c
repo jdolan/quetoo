@@ -465,8 +465,6 @@ void S_Shutdown(void) {
   alcDestroyContext(s_context.context);
   alcCloseDevice(s_context.device);
 
-  SDL_QuitSubSystem(SDL_INIT_AUDIO);
-
   Cmd_RemoveAll(CMD_SOUND);
 
   Mem_Free(s_context.raw_sample_buffer);
