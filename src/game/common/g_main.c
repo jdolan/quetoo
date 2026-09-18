@@ -441,6 +441,18 @@ static void G_RestartGame(bool teamz) {
 }
 
 /**
+ * @brief Sets or clears the muted flag on a client, in chat and in voice.
+ */
+void G_SetClientMuted(g_client_t *cl, bool mute) {
+
+  cl->persistent.muted = mute;
+
+  G_ForEachClient(other, {
+    gi.MuteVoice(other, cl, mute);
+  });
+}
+
+/**
  * @brief Sets or clears the muted flag on the named client.
  */
 void G_MuteClient(char *name, bool mute) {
@@ -450,11 +462,7 @@ void G_MuteClient(char *name, bool mute) {
     return;
   }
 
-  cl->persistent.muted = mute;
-
-  G_ForEachClient(other, {
-    gi.MuteVoice(other, cl, mute);
-  });
+  G_SetClientMuted(cl, mute);
 }
 
 /**

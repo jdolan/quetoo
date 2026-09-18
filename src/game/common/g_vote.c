@@ -198,6 +198,18 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
     return true;
   }
 
+  if (!q_strcmp(type, "mute")) {
+    g_client_t *target = G_Vote_ClientByName(arg);
+    if (target) {
+      // mute the client the vote resolved, not one G_ClientByName might match a second time
+      G_SetClientMuted(target, !target->persistent.muted);
+
+      gi.BroadcastPrint(PRINT_HIGH, "%s is now %smuted\n", target->persistent.net_name,
+                        target->persistent.muted ? "" : "un");
+    }
+    return true;
+  }
+
   if (!q_strcmp(type, "frag_limit") || !q_strcmp(type, "time_limit")) {
     gi.SetCvarInteger(va("g_%s", type), (int32_t) strtol(arg, NULL, 10));
     return true;

@@ -364,11 +364,7 @@ void G_Mute_f(void) {
     return;
   }
 
-  cl->persistent.muted = !cl->persistent.muted;
-
-  G_ForEachClient(other, {
-    gi.MuteVoice(other, cl, cl->persistent.muted);
-  });
+  G_SetClientMuted(cl, !cl->persistent.muted);
 
   gi.Print(" %s is now %smuted\n", cl->persistent.net_name, cl->persistent.muted ? "" : "un");
 }
