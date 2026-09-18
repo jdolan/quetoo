@@ -32,9 +32,14 @@
 static Dictionary *badges;
 
 /**
- * @brief Returns the badge for the specified game, or `NULL` if no `pics/game_<game>` exists.
+ * @brief Returns the badge for the specified game, or `NULL` if no `pics/game_<game>` exists or
+ * the token could not name one.
  */
 static Image *badgeForGame(const char *game) {
+
+  if (strpbrk(game, "/\\.")) {
+    return NULL;
+  }
 
   Image *badge = $(badges, objectForKeyPath, game);
   if (badge == NULL) {

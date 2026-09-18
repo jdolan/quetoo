@@ -149,10 +149,13 @@ static void enumerateMaps(const char *path, void *data) {
       q_strlcpy(info->message, path, sizeof(info->message));
       q_strlcpy(info->games, DEFAULT_GAMES, sizeof(info->games));
 
-      char *entities = malloc(header.lumps[BSP_LUMP_ENTITIES].file_len);
+      const int32_t size = header.lumps[BSP_LUMP_ENTITIES].file_len;
+
+      char *entities = malloc(size + 1);
+      entities[size] = '\0';
 
       cgi.SeekFile(file, header.lumps[BSP_LUMP_ENTITIES].file_ofs);
-      cgi.ReadFile(file, entities, 1, header.lumps[BSP_LUMP_ENTITIES].file_len);
+      cgi.ReadFile(file, entities, 1, size);
 
       parser_t parser = Parse_Init(entities, PARSER_NO_COMMENTS);
       char key[MAX_BSP_ENTITY_KEY], token[MAX_BSP_ENTITY_VALUE];
@@ -171,7 +174,7 @@ static void enumerateMaps(const char *path, void *data) {
           continue;
         }
 
-        if (!Parse_Token(&parser, PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
+        if (!Parse_Token(&parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
           break;
         }
 
