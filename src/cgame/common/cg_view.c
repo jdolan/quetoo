@@ -27,6 +27,12 @@ cg_view_t cg_view;
 #define CG_FOV_REFERENCE_ASPECT (16.f / 9.f)
 
 /**
+ * @brief How long to wait for the server to answer a chase request before letting its view of
+ * things win.
+ */
+#define CG_CHASE_REQUEST_TIMEOUT 1000
+
+/**
  * @brief Computes the half-angle horizontal and vertical FOV, in degrees, for the
  * given reference FOV (horizontal, at @c CG_FOV_REFERENCE_ASPECT) and viewport size.
  */
@@ -107,67 +113,110 @@ static void Cg_UpdateFov(void) {
 }
 
 /**
- * @brief Returns true if the third-person offset should be driven by the live mouse/`+forward`/
- * `+back`-driven orbit accumulator (`cg_state.orbit`) rather than the static
- * `cg_third_person_{x,y,z,pitch,yaw}` cvars.
- * @details This is true for live in-game spectator chase-cam and for demo playback's orbit mode.
- * Both are states where the viewer's mouse and movement keys are otherwise idle: a chasing
- * spectator's own aim is never read by the game module (`G_ClientChaseThink` overwrites their
- * view entirely), and demo playback never sends movement commands to anything. A player forcing
- * `cg_third_person` while actively playing is deliberately excluded: their mouse and movement
- * keys are busy playing, so that path keeps the original static-cvar behavior.
+ * @brief Returns true if the camera has a subject to frame: the recorded player during demo
+ * playback, or a chase target while spectating a live game. Without one, only `CAMERA_SPECTATE`
+ * has anything to show.
  */
-bool Cg_OrbitEligible(const player_state_t *ps) {
-
-  if (cgi.client->demo_server) {
-    return cg_state.demo_camera_mode == CAMERA_THIRD_PERSON;
-  }
-
-  return cg_third_person_chasecam->value && ps->stats[STAT_CHASE];
+static bool Cg_CameraSubject(const player_state_t *ps) {
+  return cgi.client->demo_server || ps->stats[STAT_CHASE];
 }
 
 /**
- * @brief Console command: cycles first-person, third-person orbit, and free-flight cameras.
- * @details During demo playback this is pure client state. Live, it drives the equivalent
- * states through the mechanisms that already exist for them: `cg_third_person_chasecam` for
- * the first/third-person toggle (unchanged, client-only), and the `chase_stop`/`chase_start`
- * server commands - which expose `G_ClientChaseThink`'s existing detach/attach logic under a
- * single control - for the third-person/free-flight transition.
+ * @brief Returns true if the third-person offset should be driven by the viewer's mouse and
+ * `+forward`/`+back` (`cg_state.orbit`) rather than the static `cg_third_person_*` cvars.
+ * @details That input is free to take in exactly these states: a chasing spectator's aim is
+ * never read by the game module (`G_ClientChaseThink` overwrites their view entirely), and demo
+ * playback sends no commands to anything. A player forcing `cg_third_person` while actually
+ * playing is excluded, since their mouse and movement keys are busy.
  */
-void Cg_CameraModeCycle_f(void) {
+bool Cg_OrbitEligible(const player_state_t *ps) {
+  return cg_state.camera_mode == CAMERA_ORBIT && Cg_CameraSubject(ps);
+}
+
+/**
+ * @brief Reconciles the camera mode with the server's notion of what we are watching, which
+ * changes without us asking: joining the spectators attaches a target, and a target that stops
+ * being meat is dropped. The mode says how to frame a subject, the server says whether there is
+ * one, so a disagreement resolves in the server's favour.
+ */
+static void Cg_UpdateCameraMode(const player_state_t *ps) {
 
   if (cgi.client->demo_server) {
-    switch (cg_state.demo_camera_mode) {
-      case CAMERA_FIRST_PERSON:
-        cg_state.demo_camera_mode = CAMERA_THIRD_PERSON;
-        break;
-      case CAMERA_THIRD_PERSON:
-        cg_state.demo_camera_mode = CAMERA_SPECTATE;
-        break;
-      case CAMERA_SPECTATE:
-        cg_state.demo_camera_mode = CAMERA_FIRST_PERSON;
+    return; // nothing else owns the camera during playback
+  }
 
-        // re-entering spectate should start from wherever the view is then, not resume from
-        // where this flight left off
-        cg_state.spectate.initialized = false;
-        break;
-    }
+  if (!ps->stats[STAT_SPECTATOR]) {
+    cg_state.camera_mode = CAMERA_FIRST_PERSON;
+    cg_state.chase_request_time = 0;
     return;
   }
 
-  const player_state_t *ps = &cgi.client->frame.ps;
+  const bool chasing = ps->stats[STAT_CHASE];
+  const bool detached = cg_state.camera_mode == CAMERA_SPECTATE;
 
-  if (!ps->stats[STAT_SPECTATOR]) {
-    return; // an active player has no camera to cycle, and their chasecam cvar is not ours to set
+  if (chasing == !detached) {
+    cg_state.chase_request_time = 0;
+    return; // the server frames it the way we do
   }
 
-  if (!ps->stats[STAT_CHASE]) { // free-flight -> chase, first-person
-    cgi.Cbuf("chase_start\n");
-    cgi.SetCvarValue(cg_third_person_chasecam->name, 0.f);
-  } else if (!cg_third_person_chasecam->value) { // chase first-person -> chase third-person orbit
-    cgi.SetCvarValue(cg_third_person_chasecam->name, 1.f);
-  } else { // chase third-person orbit -> free-flight
-    cgi.Cbuf("chase_stop\n");
+  // a chase_start or chase_stop is in flight, and the answer takes a round trip to arrive. Wait
+  // for it rather than overruling the mode in the meantime, which would undo the request a frame
+  // after it was made - but only for so long, since the server is free to refuse outright when
+  // there is nobody left to chase
+  if (cg_state.chase_request_time &&
+      cgi.client->unclamped_time - cg_state.chase_request_time < CG_CHASE_REQUEST_TIMEOUT) {
+    return;
+  }
+
+  cg_state.camera_mode = chasing ? CAMERA_FIRST_PERSON : CAMERA_SPECTATE;
+  cg_state.chase_request_time = 0;
+}
+
+/**
+ * @brief Console command: cycles first-person, third-person, orbit and free-flight cameras.
+ * @details The mode is client state in both contexts, but only demo playback owns whether the
+ * camera is attached to anything. Live, that is the server's, so entering and leaving
+ * `CAMERA_SPECTATE` asks for it with `chase_stop` / `chase_start` and lets `Cg_UpdateCameraMode`
+ * settle the answer - including refusing it, when there is nobody left to chase.
+ */
+void Cg_CameraModeCycle_f(void) {
+
+  const player_state_t *ps = &cgi.client->frame.ps;
+
+  if (!cgi.client->demo_server && !ps->stats[STAT_SPECTATOR]) {
+    return; // an active player has no camera to cycle
+  }
+
+  switch (cg_state.camera_mode) {
+    case CAMERA_FIRST_PERSON:
+      cg_state.camera_mode = CAMERA_THIRD_PERSON;
+      break;
+
+    case CAMERA_THIRD_PERSON:
+      cg_state.camera_mode = CAMERA_ORBIT;
+      break;
+
+    case CAMERA_ORBIT:
+      cg_state.camera_mode = CAMERA_SPECTATE;
+
+      if (!cgi.client->demo_server) {
+        cgi.Cbuf("chase_stop\n");
+        cg_state.chase_request_time = cgi.client->unclamped_time;
+      }
+      break;
+
+    case CAMERA_SPECTATE:
+      cg_state.camera_mode = CAMERA_FIRST_PERSON;
+
+      // entering spectate again should start from wherever the view is then, not resume from
+      // where this flight left off
+      cg_state.spectate.initialized = false;
+
+      if (!cgi.client->demo_server) {
+        cgi.Cbuf("chase_start\n");
+        cg_state.chase_request_time = cgi.client->unclamped_time;
+      }
+      break;
   }
 }
 
@@ -186,20 +235,22 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
     return;
   }
 
-  const bool orbit_eligible = Cg_OrbitEligible(ps);
+  const bool orbit = Cg_OrbitEligible(ps);
 
-  if (orbit_eligible && !cg_state.orbit.eligible) {
+  if (orbit && !cg_state.orbit.orbiting) {
     // entering orbit: seed from where the view already is, so the camera takes over from the
     // subject's own orientation without a jump
     cg_state.orbit.yaw = cgi.view->angles.y + cg_third_person_yaw->value;
     cg_state.orbit.pitch = cgi.view->angles.x + cg_third_person_pitch->value;
     cg_state.orbit.distance = -cg_third_person_x->value;
   }
-  cg_state.orbit.eligible = orbit_eligible;
+  cg_state.orbit.orbiting = orbit;
+
+  const bool third_person = cg_state.camera_mode == CAMERA_THIRD_PERSON && Cg_CameraSubject(ps);
 
   if (cg_third_person->value && Cg_Self()->current.model1) {
     cgi.client->third_person = true;
-  } else if (orbit_eligible) {
+  } else if (orbit || third_person) {
     cgi.client->third_person = true;
   } else {
     cgi.client->third_person = false;
@@ -209,7 +260,7 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
   vec3_t offset;
   vec3_t angles;
 
-  if (orbit_eligible) {
+  if (orbit) {
     offset = Vec3(-cg_state.orbit.distance, cg_third_person_y->value, cg_third_person_z->value);
 
     // absolute, not relative to the subject: the camera holds its place in the world while the
@@ -347,7 +398,7 @@ static void Cg_UpdateBob(const player_state_t *ps) {
  */
 static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1) {
 
-  if (cgi.client->demo_server && cg_state.demo_camera_mode == CAMERA_SPECTATE) {
+  if (cgi.client->demo_server && cg_state.camera_mode == CAMERA_SPECTATE) {
     cgi.view->origin = cg_state.spectate.state.origin;
     return;
   }
@@ -379,7 +430,7 @@ static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1
 static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1) {
   vec3_t angles, angles0, angles1;
 
-  if (cgi.client->demo_server && cg_state.demo_camera_mode == CAMERA_SPECTATE) {
+  if (cgi.client->demo_server && cg_state.camera_mode == CAMERA_SPECTATE) {
     cgi.view->angles = cg_state.spectate.state.view_angles;
     Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
     return;
@@ -479,6 +530,8 @@ void Cg_PrepareView(const cl_frame_t *frame) {
   }
 
   const player_state_t *ps1 = &frame->ps;
+
+  Cg_UpdateCameraMode(ps1);
 
   Cg_UpdateOrigin(ps0, ps1);
 

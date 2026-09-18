@@ -68,7 +68,6 @@ cvar_t *cg_quick_join_max_ping;
 cvar_t *cg_quick_join_min_clients;
 cvar_t *cg_sprite_physics;
 cvar_t *cg_third_person;
-cvar_t *cg_third_person_chasecam;
 cvar_t *cg_third_person_x;
 cvar_t *cg_third_person_y;
 cvar_t *cg_third_person_z;
@@ -151,7 +150,6 @@ static void Cg_Init(void) {
   cg_quick_join_min_clients = cgi.AddCvar("cg_quick_join_min_clients", "1", CVAR_ARCHIVE, "Minimum clients allowed for quick join");
   cg_sprite_physics = cgi.AddCvar("cg_sprite_physics", "1", CVAR_ARCHIVE, "Whether to enable sprite physics or not.");
   cg_third_person = cgi.AddCvar("cg_third_person", "0", CVAR_ARCHIVE | CVAR_DEVELOPER, "Activate third person perspective.");
-  cg_third_person_chasecam = cgi.AddCvar("cg_third_person_chasecam", "0", CVAR_ARCHIVE, "Activate third person chase camera perspective.");
   cg_third_person_x = cgi.AddCvar("cg_third_person_x", "-200", CVAR_ARCHIVE, "The x offset for third person perspective.");
   cg_third_person_y = cgi.AddCvar("cg_third_person_y", "0", CVAR_ARCHIVE, "The y offset for third person perspective.");
   cg_third_person_z = cgi.AddCvar("cg_third_person_z", "40", CVAR_ARCHIVE, "The z offset for third person perspective.");

@@ -69,28 +69,19 @@ static void update(CameraControlsView *self) {
 
   const char *label;
 
-  if (cgi.client->demo_server) {
-    switch (cg_state.demo_camera_mode) {
-      case CAMERA_FIRST_PERSON:
-        label = "1st Person";
-        break;
-      case CAMERA_THIRD_PERSON:
-        label = "3rd Person";
-        break;
-      default:
-        label = "Free Flight";
-        break;
-    }
-  } else {
-    const player_state_t *ps = &cgi.client->frame.ps;
-
-    if (!ps->stats[STAT_CHASE]) {
-      label = "Free Flight";
-    } else if (cg_third_person_chasecam->value) {
-      label = "3rd Person";
-    } else {
+  switch (cg_state.camera_mode) {
+    case CAMERA_FIRST_PERSON:
       label = "1st Person";
-    }
+      break;
+    case CAMERA_THIRD_PERSON:
+      label = "3rd Person";
+      break;
+    case CAMERA_ORBIT:
+      label = "Orbit";
+      break;
+    default:
+      label = "Free Flight";
+      break;
   }
 
   $(self->cameraModeButton->title, setText, label);

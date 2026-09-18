@@ -301,6 +301,9 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
     }
   }
 
+  // Tapping jump while chasing cycles the camera, as it always has. This stays gated on chasing:
+  // once detached, jump is how the free camera climbs, and tapping it should not yank the viewer
+  // back onto a player
   if (cgi.client->frame.ps.stats[STAT_CHASE]) {
     if (cmd->up) {
       static uint32_t time;
@@ -310,7 +313,7 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
       }
 
       if (cgi.client->unclamped_time - time > 200) {
-        cgi.ToggleCvar(cg_third_person_chasecam->name);
+        cgi.Cbuf("camera_mode_cycle\n");
         time = cgi.client->unclamped_time;
       }
     }
@@ -333,7 +336,7 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
     }
   }
 
-  if (cgi.client->demo_server && cg_state.demo_camera_mode == CAMERA_SPECTATE) {
+  if (cgi.client->demo_server && cg_state.camera_mode == CAMERA_SPECTATE) {
     Cg_UpdateSpectate(cmd);
   }
 }

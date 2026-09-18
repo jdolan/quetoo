@@ -132,7 +132,7 @@ void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
     return; // spectating
   }
 
-  if (cgi.client->demo_server && cg_state.demo_camera_mode == CAMERA_SPECTATE) {
+  if (cgi.client->demo_server && cg_state.camera_mode == CAMERA_SPECTATE) {
     return; // the camera has left the recorded player behind, and their weapon with it
   }
 

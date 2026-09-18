@@ -200,31 +200,46 @@ typedef struct {
 #define WEATHER_ASH  0x4
 
 /**
- * @brief Demo playback camera modes, cycled by `camera_mode_cycle`. Live in-game spectating
- * moves through the equivalent states via `STAT_CHASE` and `chase_target`, not this enum, since
- * the game module is authoritative there; this only drives standalone demo playback, which has
- * no game module to ask.
+ * @brief Camera modes, cycled by `camera_mode_cycle`, for demo playback and for spectating a
+ * live game alike. This says how to frame the subject; whether there is one to frame is the
+ * server's to answer while spectating, so `Cg_UpdateCameraMode` reconciles the two.
  */
 typedef enum {
+  /**
+   * @brief Through the subject's own eyes.
+   */
   CAMERA_FIRST_PERSON,
+
+  /**
+   * @brief Behind the subject, at the `cg_third_person_*` offset, riding their facing.
+   */
   CAMERA_THIRD_PERSON,
+
+  /**
+   * @brief Anchored on the subject, but aimed by the viewer: the mouse swings the camera around
+   * them and `+forward`/`+back` changes its distance.
+   */
+  CAMERA_ORBIT,
+
+  /**
+   * @brief Detached from the subject entirely, flying freely.
+   */
   CAMERA_SPECTATE
 } cg_camera_mode_t;
 
 /**
- * @brief Orbit camera state: mouse-driven yaw/pitch and `+forward`/`+back`-driven distance.
- * Shared by live chase-cam (`STAT_CHASE`) and demo orbit mode, since both drive the same
- * `Cg_UpdateThirdPerson` offset calculation.
+ * @brief Orbit camera state: mouse-driven yaw/pitch and `+forward`/`+back`-driven distance,
+ * held in world space so the camera keeps its place while the subject turns.
  */
 typedef struct {
   float yaw, pitch, distance;
 
   /**
-   * @brief Whether the camera was orbit eligible last frame, so that entering orbit seeds the
+   * @brief Whether the camera was orbiting last frame, so that entering orbit seeds the
    * accumulator. This lives here rather than in a static so that it is cleared with the rest of
    * the orbit state, which a reconnect would otherwise leave disagreeing.
    */
-  bool eligible;
+  bool orbiting;
 } cg_orbit_state_t;
 
 /**
@@ -324,9 +339,16 @@ typedef struct {
   cg_next_map_state_t next_map;
 
   /**
-   * @brief The demo playback camera mode, cycled by `camera_mode_cycle`.
+   * @brief The camera mode, cycled by `camera_mode_cycle`.
    */
-  cg_camera_mode_t demo_camera_mode;
+  cg_camera_mode_t camera_mode;
+
+  /**
+   * @brief When a `chase_start` or `chase_stop` was last asked of the server, so that
+   * `Cg_UpdateCameraMode` waits for the answer instead of overruling the mode during the round
+   * trip. Zero when nothing is outstanding.
+   */
+  uint32_t chase_request_time;
 
   /**
    * @brief Orbit camera state, shared by live chase-cam and demo orbit mode.
