@@ -1,0 +1,59 @@
+name: Build Opus for Windows
+
+# Builds libopus from the official Xiph source with MSVC and uploads the headers, import library
+# and DLL as an artifact, for committing under Quetoo.vs15/libs/opus/.
+#
+# Xiph publishes no prebuilt Windows libraries, and the third party builds that circulate have no
+# provenance worth trusting in a shipped game. Building from the source release ourselves keeps the
+# binaries we commit reproducible.
+#
+# Manual trigger only. To upgrade Opus, re-run this with the new version and commit the artifact
+# over Quetoo.vs15/libs/opus/.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Opus version to build
+        required: true
+        default: "1.6.1"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Fetch Opus source
+      shell: pwsh
+      run: |
+        $v = "${{ inputs.version }}"
+        curl.exe -fsSLO "https://downloads.xiph.org/releases/opus/opus-$v.tar.gz"
+        tar -xzf "opus-$v.tar.gz"
+        Get-FileHash "opus-$v.tar.gz" -Algorithm SHA256
+
+    - name: Configure
+      shell: pwsh
+      run: |
+        cmake -S "opus-${{ inputs.version }}" -B build -A x64 `
+          -DBUILD_SHARED_LIBS=ON `
+          -DOPUS_BUILD_PROGRAMS=OFF `
+          -DOPUS_BUILD_TESTING=OFF
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Stage
+      shell: pwsh
+      run: |
+        $stage = "opus"
+        New-Item -ItemType Directory -Force -Path "$stage\include", "$stage\libs\x64", "$stage\bin\x64"
+        Copy-Item "opus-${{ inputs.version }}\include\*.h" "$stage\include\"
+        Copy-Item "build\Release\opus.lib" "$stage\libs\x64\"
+        Copy-Item "build\Release\opus.dll" "$stage\bin\x64\"
+        Get-ChildItem -Recurse $stage | Select-Object FullName, Length
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: opus-windows-x64
+        path: opus/
