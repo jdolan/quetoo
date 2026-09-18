@@ -312,6 +312,16 @@ static bool S_OpenPlayback(void) {
   }
 
   SDL_ResumeAudioStreamDevice(s_context.stream);
+
+  SDL_AudioSpec device_spec;
+  int32_t device_frames = 0;
+
+  if (SDL_GetAudioDeviceFormat(SDL_GetAudioStreamDevice(s_context.stream), &device_spec, &device_frames)) {
+    Com_Print("  Playback:   ^2%s^7\n", SDL_GetAudioDeviceName(SDL_GetAudioStreamDevice(s_context.stream)));
+    Com_Print("  Buffer:     ^2%d frames (%.1fms) @ %dhz^7\n", device_frames,
+              device_frames * 1000.f / device_spec.freq, device_spec.freq);
+  }
+
   return true;
 }
 
