@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 56
+#define CGAME_API_VERSION 57
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -1132,14 +1132,6 @@ typedef struct cg_export_s {
   /**
    * @brief Called each frame to draw any non-view visual elements, such as the HUD.
    */
-  /**
-   * @brief Returns the mask of clients who should hear a voice transmission on `channel`.
-   * @param channel The channel named by the +voice bind, such as "all" or "team".
-   * @remarks The sender chooses its own audience, so the engine needs no notion of teams and a
-   * module is free to define channels of its own. Returning 0 transmits to nobody.
-   */
-  uint64_t (*VoiceRecipients)(const char *channel);
-
   /**
    * @brief Interprets an incoming chat message, which the module renders itself.
    * @param client The sender's client number.

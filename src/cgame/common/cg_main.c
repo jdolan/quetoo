@@ -369,39 +369,6 @@ static void Cg_UpdateConfigString(int32_t i) {
  * @brief React to a parsed server command.
  */
 /**
- * @brief Resolves a voice channel to the clients who should hear it.
- * @details The sender picks its own audience, so a module may define whatever channels it likes
- * without the engine learning what a team is. "team" falls back to nobody rather than to everyone,
- * because silently widening a private channel is the one failure worth avoiding here.
- */
-static uint64_t Cg_VoiceRecipients(const char *channel) {
-
-  const int32_t self = cgi.client->frame.ps.client;
-
-  if (!q_strcmp(channel, "team")) {
-
-    const cg_team_info_t *team = cg_state.clients[self].team;
-
-    if (!team) {
-      cgi.Print("You are not on a team\n");
-      return 0;
-    }
-
-    uint64_t recipients = 0;
-
-    for (int32_t i = 0; i < MAX_CLIENTS; i++) {
-      if (cg_state.clients[i].team == team) {
-        recipients |= (uint64_t) 1 << i;
-      }
-    }
-
-    return recipients;
-  }
-
-  return UINT64_MAX;
-}
-
-/**
  * @brief Renders an incoming chat message.
  * @details The sender arrives as a client number rather than as text, so the message can be
  * attributed, coloured and filtered by who said it instead of by what it happens to say.
@@ -636,7 +603,6 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
   cge.LoadMedia = Cg_LoadMedia;
   cge.FreeMedia = Cg_FreeMedia;
   cge.ParsedMessage = Cg_ParsedMessage;
-  cge.VoiceRecipients = Cg_VoiceRecipients;
   cge.Chat = Cg_Chat;
   cge.Voice = Cg_Voice;
   cge.ParseMessage = Cg_ParseMessage;

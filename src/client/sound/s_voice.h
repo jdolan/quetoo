@@ -28,10 +28,10 @@ extern cvar_t *s_capture_normalize;
 extern cvar_t *s_voice_loopback;
 extern cvar_t *s_voice_volume;
 
-void S_StartVoice(uint64_t recipients);
+void S_StartVoice(uint8_t channel);
 void S_StopVoice(void);
 void S_StopVoices(void);
-int32_t S_ReadVoice(byte *data, uint8_t *seq, uint8_t *flags, uint64_t *recipients);
+int32_t S_ReadVoice(byte *data, uint8_t *seq, uint8_t *flags, uint8_t *channel);
 void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const vec3_t origin, const byte *data, int32_t len);
 
 #if defined(__S_LOCAL_H__)

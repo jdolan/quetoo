@@ -1320,6 +1320,7 @@ g_export_t *G_LoadGame(g_import_t *import) {
   ge.ClientUserInfoChanged = G_ClientUserInfoChanged;
   ge.ClientDisconnect = G_ClientDisconnect;
   ge.ClientBegin = G_ClientBegin;
+  ge.ClientCanHearVoice = G_ClientCanHearVoice;
   ge.ClientCommand = G_ClientCommand;
 
   ge.Frame = G_Frame;

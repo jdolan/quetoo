@@ -2413,3 +2413,30 @@ void G_ClientBeginFrame(g_client_t *cl) {
 
   cl->latched_buttons = 0;
 }
+
+/**
+ * @brief Returns true if `listener` may hear `speaker` on `channel`.
+ * @details Voice is governed by the same rules as chat: an administratively muted player is not
+ * heard, the team channel reaches only teammates, and a spectator is held to other spectators
+ * wherever g_spectator_chat says chat would be.
+ */
+bool G_ClientCanHearVoice(const g_client_t *speaker, const g_client_t *listener, uint8_t channel) {
+
+  if (!speaker || !listener) {
+    return false;
+  }
+
+  if (speaker->persistent.muted) {
+    return false;
+  }
+
+  if (channel == VOICE_CHANNEL_TEAM) {
+    return G_OnSameTeam(speaker, listener);
+  }
+
+  if (speaker->persistent.spectator && !g_spectator_chat->integer) {
+    return listener->persistent.spectator;
+  }
+
+  return true;
+}

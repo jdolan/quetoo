@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 41
+#define GAME_API_VERSION 42
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -798,6 +798,14 @@ typedef struct g_export_s {
   /**
    * @brief Called when a client connects with valid user info; return false to reject.
    */
+  /**
+   * @brief Returns true if `listener` may hear `speaker` transmitting on `channel`.
+   * @param channel The voice channel, defined by the game exactly as chat commands are.
+   * @remarks The server asks rather than being told, so that who may be addressed is enforced
+   * here, beside the same rules that govern chat, rather than proposed by a client.
+   */
+  bool (*ClientCanHearVoice)(const g_client_t *speaker, const g_client_t *listener, uint8_t channel);
+
   bool (*ClientConnect)(g_client_t *cl, char *user_info);
 
   /**

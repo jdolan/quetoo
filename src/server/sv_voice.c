@@ -95,12 +95,12 @@ static bool Sv_ChargeVoice(sv_client_t *cl, int32_t bytes) {
 }
 
 /**
- * @brief Relays one voice frame to the recipients its sender chose.
+ * @brief Relays one voice frame to whoever the game says may hear it.
  * @details The payload is never decoded here: the server has no use for the audio, and leaving Opus
- * out of the dedicated server keeps it dependency-light. The sender's mask is intersected with
- * reality, and the sender is never echoed back to itself.
+ * out of the dedicated server keeps it dependency-light. Who may hear a channel is the game's to
+ * say, beside the rules that already govern chat, rather than a client's to propose.
  */
-static void Sv_RelayVoice(const sv_client_t *from, uint64_t recipients, uint8_t seq, uint8_t flags,
+static void Sv_RelayVoice(const sv_client_t *from, uint8_t channel, uint8_t seq, uint8_t flags,
                           const byte *data, int32_t len) {
 
   const int32_t speaker = (int32_t) (from - svs.clients);
@@ -133,15 +133,15 @@ static void Sv_RelayVoice(const sv_client_t *from, uint64_t recipients, uint8_t 
       continue;
     }
 
-    if (cl->gclient && cl->gclient->ai) {
-      continue;
-    }
-
-    if (!(recipients & ((uint64_t) 1 << i))) {
+    if (!cl->gclient || cl->gclient->ai) {
       continue;
     }
 
     if (cl->voice_mutes & ((uint64_t) 1 << speaker)) {
+      continue;
+    }
+
+    if (!svs.game->ClientCanHearVoice(from->gclient, cl->gclient, channel)) {
       continue;
     }
 
@@ -154,8 +154,7 @@ static void Sv_RelayVoice(const sv_client_t *from, uint64_t recipients, uint8_t 
  */
 void Sv_ParseVoice(sv_client_t *cl) {
 
-  const uint32_t low = (uint32_t) Net_ReadLong(&net_message);
-  const uint32_t high = (uint32_t) Net_ReadLong(&net_message);
+  const uint8_t channel = Net_ReadByte(&net_message);
   const uint8_t seq = Net_ReadByte(&net_message);
   const uint8_t flags = Net_ReadByte(&net_message);
   const int32_t len = Net_ReadByte(&net_message);
@@ -178,9 +177,7 @@ void Sv_ParseVoice(sv_client_t *cl) {
     return;
   }
 
-  const uint64_t recipients = ((uint64_t) high << 32) | low;
-
-  Sv_RelayVoice(cl, recipients, seq, flags, data, len);
+  Sv_RelayVoice(cl, channel, seq, flags, data, len);
 }
 
 /**

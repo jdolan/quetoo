@@ -120,25 +120,22 @@ void Cl_WriteEntityInfoCommand(int16_t number, const cm_entity_t *entity) {
 
 /**
  * @brief Writes one pending voice frame, if any, to the outgoing packet.
- * @details The recipients are chosen by the sender's client game, not by the server: a client can
- * only widen its own audience, never eavesdrop on someone else's, so no server side notion of
- * teams is needed to keep a private channel private.
+ * @details The channel is carried opaquely: the server asks the game who may hear it, exactly as
+ * the game decides who receives a say or a say_team.
  */
 static void Cl_WriteVoiceCommand(mem_buf_t *buf) {
 
   byte voice[VOICE_MAX_PAYLOAD];
-  uint8_t seq, flags;
-  uint64_t recipients;
+  uint8_t seq, flags, channel;
 
-  const int32_t len = S_ReadVoice(voice, &seq, &flags, &recipients);
+  const int32_t len = S_ReadVoice(voice, &seq, &flags, &channel);
 
   if (len <= 0) {
     return;
   }
 
   Net_WriteByte(buf, CL_CMD_VOICE);
-  Net_WriteLong(buf, (int32_t) (recipients & 0xffffffff));
-  Net_WriteLong(buf, (int32_t) (recipients >> 32));
+  Net_WriteByte(buf, channel);
   Net_WriteByte(buf, seq);
   Net_WriteByte(buf, flags);
   Net_WriteByte(buf, len);

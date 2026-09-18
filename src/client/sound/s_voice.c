@@ -113,7 +113,7 @@ static struct {
   uint8_t out_seq;
   bool ending;
 
-  uint64_t recipients;
+  uint8_t channel;
 
   s_voice_speaker_t speakers[MAX_CLIENTS + 1];
 
@@ -468,9 +468,10 @@ static void S_EnqueueVoiceFrame(const byte *data, int32_t len, uint8_t flags) {
 /**
  * @brief Hands the next pending voice frame to the caller, returning its length, or 0 if none.
  * @details Called from the client's send path, on the main thread. The packet is written by the
- * caller rather than here, so that the sound library keeps no dependency on the network layer.
+ * caller rather than here, so that the sound library keeps no dependency on the network layer. The
+ * channel is carried through opaquely; only the game knows what it means.
  */
-int32_t S_ReadVoice(byte *data, uint8_t *seq, uint8_t *flags, uint64_t *recipients) {
+int32_t S_ReadVoice(byte *data, uint8_t *seq, uint8_t *flags, uint8_t *channel) {
 
   if (!s_voice_state.enabled) {
     return 0;
@@ -489,7 +490,7 @@ int32_t S_ReadVoice(byte *data, uint8_t *seq, uint8_t *flags, uint64_t *recipien
     memcpy(data, s_voice_state.out[i].data, len);
     *seq = s_voice_state.out[i].seq;
     *flags = s_voice_state.out[i].flags;
-    *recipients = s_voice_state.recipients;
+    *channel = s_voice_state.channel;
   }
 
   SDL_UnlockMutex(s_voice_state.mutex);
@@ -578,11 +579,11 @@ static int32_t S_VoiceThread(void *data) {
 }
 
 /**
- * @brief Begins a voice transmission to the given recipients.
+ * @brief Begins a voice transmission on the given channel.
  * @details A device change reopens capture, which also clears a previous failure: latching that
  * permanently would leave a player who picked the wrong microphone with no way back.
  */
-void S_StartVoice(uint64_t recipients) {
+void S_StartVoice(uint8_t channel) {
 
   if (!s_voice_state.enabled || !s_voice->integer) {
     return;
@@ -600,7 +601,7 @@ void S_StartVoice(uint64_t recipients) {
 
   if (!s_voice_state.transmitting) {
     s_voice_state.transmitting = true;
-    s_voice_state.recipients = recipients;
+    s_voice_state.channel = channel;
     s_voice_state.ending = false;
 
     s_voice_state.capture_silent = false;

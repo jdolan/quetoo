@@ -535,35 +535,22 @@ void Cl_Move(pm_cmd_t *cmd) {
 }
 
 /**
- * @brief Returns the voice channel named by a +voice bind, defaulting to everyone.
- * @remarks Button commands are passed the scancode and time as arguments, so a bare +voice bind
- * presents a number where a channel name would be.
- */
-static const char *Cl_VoiceChannel(void) {
-
-  const char *channel = Cmd_Argv(1);
-
-  if (!channel[0] || isdigit(channel[0])) {
-    return "all";
-  }
-
-  return channel;
-}
-
-/**
  * @brief Begins a push to talk voice transmission.
- * @details The client game resolves the channel to its audience, so the engine never learns what a
- * team is, and a module may define channels of its own.
+ * @details Holding shift promotes it to the team channel, the way shift sends a chat line as
+ * say_team: key binds carry no modifier of their own, so one bind has to serve both.
  */
 static void Cl_Voice_down_f(void) {
 
-  uint64_t recipients = 0;
+  const bool team = SDL_GetModState() & SDL_KMOD_SHIFT;
 
-  if (cls.state == CL_ACTIVE && cls.cgame) {
-    recipients = cls.cgame->VoiceRecipients(Cl_VoiceChannel());
-  }
+  S_StartVoice(team ? VOICE_CHANNEL_TEAM : VOICE_CHANNEL_ALL);
+}
 
-  S_StartVoice(recipients);
+/**
+ * @brief Begins a push to talk transmission to the team channel.
+ */
+static void Cl_VoiceTeam_down_f(void) {
+  S_StartVoice(VOICE_CHANNEL_TEAM);
 }
 
 /**
@@ -591,8 +578,10 @@ void Cl_ClearInput(void) {
 void Cl_InitInput(void) {
 
   Cmd_Add("center_view", Cl_CenterView_f, CMD_CLIENT, NULL);
-  Cmd_Add("+voice", Cl_Voice_down_f, CMD_CLIENT, "Transmit voice chat while held.");
+  Cmd_Add("+voice", Cl_Voice_down_f, CMD_CLIENT, "Transmit voice chat while held; hold shift for your team.");
   Cmd_Add("-voice", Cl_Voice_up_f, CMD_CLIENT, NULL);
+  Cmd_Add("+voice_team", Cl_VoiceTeam_down_f, CMD_CLIENT, "Transmit voice chat to your team while held.");
+  Cmd_Add("-voice_team", Cl_Voice_up_f, CMD_CLIENT, NULL);
   Cmd_Add("+move_up", Cl_Up_down_f, CMD_CLIENT, NULL);
   Cmd_Add("-move_up", Cl_Up_up_f, CMD_CLIENT, NULL);
   Cmd_Add("+move_down", Cl_Down_down_f, CMD_CLIENT, NULL);
