@@ -851,6 +851,14 @@ void G_ClientCommand(g_client_t *cl) {
     G_ClientChasePrevious(cl);
   } else if (q_strcmp(cmd, "chase_next") == 0) {
     G_ClientChaseNext(cl);
+  } else if (q_strcmp(cmd, "chase_stop") == 0) {
+    if (cl->persistent.spectator) {
+      G_ClientChaseStop(cl);
+    }
+  } else if (q_strcmp(cmd, "chase_start") == 0) {
+    if (cl->persistent.spectator) {
+      G_ClientChaseStart(cl);
+    }
   } else if (q_strcmp(cmd, "editor_use") == 0) {
     G_EditorUse_f(cl);
   }

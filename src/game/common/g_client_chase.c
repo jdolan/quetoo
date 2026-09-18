@@ -147,3 +147,30 @@ void G_ClientChaseTarget(g_client_t *cl) {
   });
 }
 
+/**
+ * @brief Detaches a chasing spectator, returning them to free `PM_SPECTATOR` flight.
+ * @details Exposes the same detach logic `BUTTON_ATTACK` already performs
+ * (`G_ClientThink`), as a standalone command, so a unified camera-mode cycle control can
+ * drive it without stealing the attack button.
+ */
+void G_ClientChaseStop(g_client_t *cl) {
+
+  if (cl->chase_target) {
+    cl->chase_target = cl->old_chase_target = NULL;
+    G_ClientChaseThink(cl);
+  }
+}
+
+/**
+ * @brief Attaches a free-flying spectator to the first available chase target.
+ * @details The attach counterpart to `G_ClientChaseStop`, exposing `G_ClientChaseTarget` as a
+ * standalone command for the same reason.
+ */
+void G_ClientChaseStart(g_client_t *cl) {
+
+  if (!cl->chase_target) {
+    G_ClientChaseTarget(cl);
+    G_ClientChaseThink(cl);
+  }
+}
+
