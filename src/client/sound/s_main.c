@@ -28,6 +28,7 @@ s_context_t s_context;
 cvar_t *s_get_error;
 
 cvar_t *s_ambient_volume;
+cvar_t *s_buffer_frames;
 cvar_t *s_doppler;
 cvar_t *s_effects;
 cvar_t *s_effects_volume;
@@ -298,6 +299,12 @@ static void S_RenderSamples(void *data, SDL_AudioStream *stream, int32_t additio
  */
 static bool S_OpenPlayback(void) {
 
+  if (s_buffer_frames->integer > 0) {
+    SDL_SetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES, va("%d", s_buffer_frames->integer));
+  } else {
+    SDL_ResetHint(SDL_HINT_AUDIO_DEVICE_SAMPLE_FRAMES);
+  }
+
   const SDL_AudioSpec spec = {
     .format = SDL_AUDIO_S16,
     .channels = 2,
@@ -333,6 +340,7 @@ static void S_InitLocal(void) {
   s_get_error = Cvar_Add("s_get_error", "0", CVAR_DEVELOPER, "Log OpenAL errors to the console (developer tool");
 
   s_ambient_volume = Cvar_Add("s_ambient_volume", "1", CVAR_ARCHIVE, "Ambient sound volume.");
+  s_buffer_frames = Cvar_Add("s_buffer_frames", "0", CVAR_ARCHIVE | CVAR_S_DEVICE, "Playback buffer size in sample frames, or 0 to let SDL choose. Raise this if audio crackles.");
   s_doppler = Cvar_Add("s_doppler", "1", CVAR_ARCHIVE, "Doppler effect intensity (default 1).");
   s_effects = Cvar_Add("s_effects", "1", CVAR_ARCHIVE | CVAR_S_DEVICE, "Enables advanced sound effects.");
   s_effects_volume = Cvar_Add("s_effects_volume", "1", CVAR_ARCHIVE, "Effects sound volume.");
