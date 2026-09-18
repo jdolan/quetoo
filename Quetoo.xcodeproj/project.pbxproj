@@ -75,7 +75,7 @@
 		17A283BF800A49F7BC5D4C4D /* ConsoleText.c in Sources */ = {isa = PBXBuildFile; fileRef = 09A28D5220214F20A1942F76 /* ConsoleText.c */; };
 		18831DC74740CDF73E54CF63 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
-		20BE76382F981DD4B7F43A11 /* default/hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E652EE2F700EFB737AEA30 /* default/hud.json */; };
+		20BE76382F981DD4B7F43A11 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 64E652EE2F700EFB737AEA30 /* hud.json */; };
 		21B7C99056194E1E9FC62EF2 /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
 		4DA60E0E0E86520782FCF112 /* DemoControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */; };
 		24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
@@ -83,9 +83,9 @@
 		2C3ADE327DEBD6F3955255E7 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
 		2D0110BBB9C57DC4DAA49389 /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
 		2F75825314B0423B86868ACC /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
-		322BAB812EFDDA99BA25575E /* default/scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 848E81C81F875F4403EAE1EE /* default/scoreboard.json */; };
+		322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 848E81C81F875F4403EAE1EE /* scoreboard.json */; };
 		332CAA47FF0E8521C12DF852 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		368D384E998F7590EBCEB7EE /* default/hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3487B5AD7D47E8DFBDDAE5C4 /* default/hud.json */; };
+		368D384E998F7590EBCEB7EE /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3487B5AD7D47E8DFBDDAE5C4 /* hud.json */; };
 		39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		3B497D93EA892C673165469D /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		3C4FCD00A4AE0B8971D17E7D /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
@@ -104,7 +104,7 @@
 		5353FBA06CC14AA034C4C9CD /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
 		537E3B2A605E2005BA5F4928 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
 		54194A7922708C783B541F5B /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
-		544522FFCEEDAAC1EBEB6750 /* default/scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92AA3129971ABAAB21EE5BAD /* default/scoreboard.json */; };
+		544522FFCEEDAAC1EBEB6750 /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92AA3129971ABAAB21EE5BAD /* scoreboard.json */; };
 		547AC46C9A45CC44AB005215 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
 		549E7CC4A7BA476A2463B7CC /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
@@ -144,7 +144,7 @@
 		9B67395438D49AA25C710A4A /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
 		9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		9C43D41506579A6ED4EE80F5 /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
-		9E1C83CE11AE376D9174B271 /* default/hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 027C4ADD65DCCCEBCEB3D462 /* default/hud.json */; };
+		9E1C83CE11AE376D9174B271 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 027C4ADD65DCCCEBCEB3D462 /* hud.json */; };
 		9EBBE79D07E30BB784FC188F /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
 		9F948D38BAB2AE44F4A87F61 /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
 		A2E677309CBD4262ADCE7EA5 /* ConsoleViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 9352803A21064843A7D64A86 /* ConsoleViewController.c */; };
@@ -161,7 +161,7 @@
 		86605B56F326AB08CF8B574D /* DemoControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */; };
 		B2B62AE1E7C09567B299F1AA /* SDL3.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.xcframework */; };
 		B3C3D379CB4955B1FED23ADB /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
-		B50A7AB9A94C86F0D55675BD /* default/hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = A980A8F791ED9C0A50C6C948 /* default/hud.json */; };
+		B50A7AB9A94C86F0D55675BD /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = A980A8F791ED9C0A50C6C948 /* hud.json */; };
 		B58055474A104E479F3F83A2 /* ConsoleText.c in Sources */ = {isa = PBXBuildFile; fileRef = 09A28D5220214F20A1942F76 /* ConsoleText.c */; };
 		B777A7BCE46440D86F0248FA /* BarlowCondensed-OFL.txt in CopyFiles */ = {isa = PBXBuildFile; fileRef = B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */; };
 		B8A5AAD33BD44C1EA2F1800F /* PingView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5624F1C74F4646918DA71088 /* PingView.c */; };
@@ -801,14 +801,14 @@
 		CEA4000C2F9800000087B100 /* 3.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400052F9800000087B100 /* 3.png */; };
 		CEA4000D2F9800000087B100 /* 4.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400062F9800000087B100 /* 4.png */; };
 		CEA4000E2F9800000087B100 /* 5.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400072F9800000087B100 /* 5.png */; };
-		CEA4C0DE2F9800000087C003 /* chrome/hud.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C001 /* chrome/hud.css */; };
-		CEA4C0DE2F9800000087C004 /* chrome/hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C002 /* chrome/hud.json */; };
-		CEA4C0DE2F9800000087C008 /* chrome/scoreboard.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C006 /* chrome/scoreboard.css */; };
-		CEA4C0DE2F9800000087C009 /* chrome/scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C007 /* chrome/scoreboard.json */; };
-		CEA4C0DE2F9800000087C00B /* chrome/scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C00A /* chrome/scoreboard.json */; };
-		CEA4C0DE2F9800000087C011 /* chrome/hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C010 /* chrome/hud.json */; };
-		CEA4C0DE2F9800000087C014 /* chrome/hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C013 /* chrome/hud.json */; };
-		CEA4C0DE2F9800000087C017 /* chrome/hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C016 /* chrome/hud.json */; };
+		CEA4C0DE2F9800000087C003 /* hud.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C001 /* hud.css */; };
+		CEA4C0DE2F9800000087C004 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C002 /* hud.json */; };
+		CEA4C0DE2F9800000087C008 /* scoreboard.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C006 /* scoreboard.css */; };
+		CEA4C0DE2F9800000087C009 /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C007 /* scoreboard.json */; };
+		CEA4C0DE2F9800000087C00B /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C00A /* scoreboard.json */; };
+		CEA4C0DE2F9800000087C011 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C010 /* hud.json */; };
+		CEA4C0DE2F9800000087C014 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C013 /* hud.json */; };
+		CEA4C0DE2F9800000087C017 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA4C0DE2F9800000087C016 /* hud.json */; };
 		CEA508F92EA5D20A00F27205 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CEA508FA2EA5D20A00F27205 /* check_cm_polylib.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */; };
 		CEA508FC2EA5D20A00F27205 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
@@ -1196,10 +1196,10 @@
 		D1A5B0000000000000000408 /* cg_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000405 /* cg_intermission.c */; };
 		D1A5B000000000000000040A /* cg_intermission.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000405 /* cg_intermission.c */; };
 		D1A5B000000000000000040B /* IntermissionView.c in Sources */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000401 /* IntermissionView.c */; };
-		D1A5B0000000000000000504 /* default/intermission.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000500 /* default/intermission.css */; };
-		D1A5B0000000000000000505 /* default/intermission.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000501 /* default/intermission.json */; };
-		D1A5B0000000000000000506 /* chrome/intermission.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000502 /* chrome/intermission.css */; };
-		D1A5B0000000000000000507 /* chrome/intermission.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000503 /* chrome/intermission.json */; };
+		D1A5B0000000000000000504 /* intermission.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000500 /* intermission.css */; };
+		D1A5B0000000000000000505 /* intermission.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000501 /* intermission.json */; };
+		D1A5B0000000000000000506 /* intermission.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000502 /* intermission.css */; };
+		D1A5B0000000000000000507 /* intermission.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000503 /* intermission.json */; };
 		D2A5C1000000000000000010 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000002 /* bg_item.c */; };
 		D2A5C1000000000000000011 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		D2A5C1000000000000000012 /* g_ai_goal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */; };
@@ -1461,9 +1461,9 @@
 		D9A5C2010000000000000010 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		D9A5C2010000000000000011 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		D9F4D7BEB0EE4A87B8529DDA /* NotifyView.c in Sources */ = {isa = PBXBuildFile; fileRef = EB4A4D641AA8495FB08D9F0E /* NotifyView.c */; };
-		DD006E4E558F9346D79447E5 /* default/scoreboard.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = E0F247635165E5338AAD8494 /* default/scoreboard.css */; };
+		DD006E4E558F9346D79447E5 /* scoreboard.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = E0F247635165E5338AAD8494 /* scoreboard.css */; };
 		DD02E1ABB673209C4A8D0EFC /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
-		DD69DC98B2588BCF788647E3 /* default/hud.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2D140F08524DA0679A7DB117 /* default/hud.css */; };
+		DD69DC98B2588BCF788647E3 /* hud.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2D140F08524DA0679A7DB117 /* hud.css */; };
 		E10D01F620BB74E4166A8E7F /* WeaponBarView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7773870519E25AD88B29F618 /* WeaponBarView.c */; };
 		E140557ED1DC8869F66A94BD /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
 		E16A533FF7C34A2BA65E1BFF /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
@@ -1846,8 +1846,8 @@
 			dstPath = race/ui/hud/default;
 			dstSubfolderSpec = 16;
 			files = (
-				9E1C83CE11AE376D9174B271 /* default/hud.json in CopyFiles */,
-				544522FFCEEDAAC1EBEB6750 /* default/scoreboard.json in CopyFiles */,
+				9E1C83CE11AE376D9174B271 /* hud.json in CopyFiles */,
+				544522FFCEEDAAC1EBEB6750 /* scoreboard.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1857,7 +1857,7 @@
 			dstPath = ctf/ui/hud/default;
 			dstSubfolderSpec = 16;
 			files = (
-				368D384E998F7590EBCEB7EE /* default/hud.json in CopyFiles */,
+				368D384E998F7590EBCEB7EE /* hud.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1867,12 +1867,12 @@
 			dstPath = default/ui/fonts;
 			dstSubfolderSpec = 16;
 			files = (
-				0054FB2183D14FB441556F05 /* Rajdhani-OFL.txt in CopyFiles */,
-				F2790FC8B72E7B3C54A53EED /* Rajdhani-Bold.ttf in CopyFiles */,
 				B777A7BCE46440D86F0248FA /* BarlowCondensed-OFL.txt in CopyFiles */,
 				A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */,
-				89AC37486C4E50D551009CFE /* MPlusU-OFL.txt in CopyFiles */,
 				AB5844CCEFD30974680FBF24 /* MPlusU-Bold.ttf in CopyFiles */,
+				89AC37486C4E50D551009CFE /* MPlusU-OFL.txt in CopyFiles */,
+				F2790FC8B72E7B3C54A53EED /* Rajdhani-Bold.ttf in CopyFiles */,
+				0054FB2183D14FB441556F05 /* Rajdhani-OFL.txt in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1882,7 +1882,7 @@
 			dstPath = lithium/ui/hud/default;
 			dstSubfolderSpec = 16;
 			files = (
-				B50A7AB9A94C86F0D55675BD /* default/hud.json in CopyFiles */,
+				B50A7AB9A94C86F0D55675BD /* hud.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1941,10 +1941,10 @@
 			dstSubfolderSpec = 16;
 			files = (
 				CE7D2C242030A133004BC58E /* ControlsViewController.json in CopyFiles */,
-				CE4E07CC20268832000B276C /* ResponseServiceViewController.css in CopyFiles */,
-				CE7D2C282030B0F8004BC58E /* ResponseServiceViewController.json in CopyFiles */,
 				CE4E07CF2026883C000B276C /* MovementCombatViewController.css in CopyFiles */,
 				CE7D2C262030A3A3004BC58E /* MovementCombatViewController.json in CopyFiles */,
+				CE4E07CC20268832000B276C /* ResponseServiceViewController.css in CopyFiles */,
+				CE7D2C282030B0F8004BC58E /* ResponseServiceViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1979,10 +1979,10 @@
 			dstPath = default/ui/home;
 			dstSubfolderSpec = 16;
 			files = (
-				CEEEEEA82F9EF1FA00665A30 /* HomeViewController.css in CopyFiles */,
-				CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */,
 				18E237623F9098C8D027CA1A /* DemosViewController.css in CopyFiles */,
 				E341E163CFFD547C44106673 /* DemosViewController.json in CopyFiles */,
+				CEEEEEA82F9EF1FA00665A30 /* HomeViewController.css in CopyFiles */,
+				CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */,
 				CEA9B3A56C6E4B3A9F010001 /* LeaderboardViewController.css in CopyFiles */,
 				CEA9B3A76C6E4B3A9F010001 /* LeaderboardViewController.json in CopyFiles */,
 				CEA9B3A66C6E4B3A9F010001 /* StatsViewController.css in CopyFiles */,
@@ -2007,15 +2007,15 @@
 			dstPath = default/ui;
 			dstSubfolderSpec = 16;
 			files = (
-				CEA400082F9800000087B100 /* logo.png in CopyFiles */,
-				CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */,
-				CEADCE4A25DB415E006E34A6 /* DialogViewController.json in CopyFiles */,
-				CE4E07B52026524A000B276C /* common.css in CopyFiles */,
 				CEAD8FC82F9650560087A850 /* change.wav in CopyFiles */,
 				CEAD8FC92F9650560087A850 /* clack.wav in CopyFiles */,
 				CEAD8FCA2F9650560087A850 /* click.wav in CopyFiles */,
+				CE4E07B52026524A000B276C /* common.css in CopyFiles */,
 				CEAD8FD12F96509A0087A850 /* conback.png in CopyFiles */,
+				CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */,
+				CEADCE4A25DB415E006E34A6 /* DialogViewController.json in CopyFiles */,
 				CEAD8FD32F9650A90087A850 /* loading.png in CopyFiles */,
+				CEA400082F9800000087B100 /* logo.png in CopyFiles */,
 				CEAD8FD52F9650AD0087A850 /* progress_bar.png in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2041,12 +2041,12 @@
 			dstPath = default/ui/hud/chrome;
 			dstSubfolderSpec = 16;
 			files = (
-				CEA4C0DE2F9800000087C003 /* chrome/hud.css in CopyFiles */,
-				CEA4C0DE2F9800000087C004 /* chrome/hud.json in CopyFiles */,
-				CEA4C0DE2F9800000087C008 /* chrome/scoreboard.css in CopyFiles */,
-				D1A5B0000000000000000506 /* chrome/intermission.css in CopyFiles */,
-				CEA4C0DE2F9800000087C009 /* chrome/scoreboard.json in CopyFiles */,
-				D1A5B0000000000000000507 /* chrome/intermission.json in CopyFiles */,
+				CEA4C0DE2F9800000087C003 /* hud.css in CopyFiles */,
+				CEA4C0DE2F9800000087C004 /* hud.json in CopyFiles */,
+				D1A5B0000000000000000506 /* intermission.css in CopyFiles */,
+				D1A5B0000000000000000507 /* intermission.json in CopyFiles */,
+				CEA4C0DE2F9800000087C008 /* scoreboard.css in CopyFiles */,
+				CEA4C0DE2F9800000087C009 /* scoreboard.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2056,8 +2056,8 @@
 			dstPath = race/ui/hud/chrome;
 			dstSubfolderSpec = 16;
 			files = (
-				CEA4C0DE2F9800000087C017 /* chrome/hud.json in CopyFiles */,
-				CEA4C0DE2F9800000087C00B /* chrome/scoreboard.json in CopyFiles */,
+				CEA4C0DE2F9800000087C017 /* hud.json in CopyFiles */,
+				CEA4C0DE2F9800000087C00B /* scoreboard.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2067,7 +2067,7 @@
 			dstPath = ctf/ui/hud/chrome;
 			dstSubfolderSpec = 16;
 			files = (
-				CEA4C0DE2F9800000087C011 /* chrome/hud.json in CopyFiles */,
+				CEA4C0DE2F9800000087C011 /* hud.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2077,7 +2077,7 @@
 			dstPath = lithium/ui/hud/chrome;
 			dstSubfolderSpec = 16;
 			files = (
-				CEA4C0DE2F9800000087C014 /* chrome/hud.json in CopyFiles */,
+				CEA4C0DE2F9800000087C014 /* hud.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2089,10 +2089,19 @@
 			files = (
 				CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */,
 				CEAA7A0C27753C7300EAC853 /* TeamsViewController.css in CopyFiles */,
-				D1A5B0000000000000000212 /* VoteViewController.css in CopyFiles */,
 				CEAA7A2F27753C7500EAC853 /* TeamsViewController.json in CopyFiles */,
-				D1A5B0000000000000000210 /* VoteViewController.json in CopyFiles */,
 				CEAA797827753A5500EAC853 /* TeamView.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2BA723A91752D9A64A1AEEB6 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = default/ui/vote;
+			dstSubfolderSpec = 16;
+			files = (
+				D1A5B0000000000000000212 /* VoteViewController.css in CopyFiles */,
+				D1A5B0000000000000000210 /* VoteViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2102,13 +2111,13 @@
 			dstPath = default/ui/editor;
 			dstSubfolderSpec = 16;
 			files = (
+				CFA000242F9100000000C024 /* editor.css in CopyFiles */,
 				CFA000182F9100000000C018 /* EditorViewController.json in CopyFiles */,
 				CFA0001B2F9100000000C01B /* EntityView.json in CopyFiles */,
 				CFA0001E2F9100000000C01E /* EntityViewController.css in CopyFiles */,
 				CFA0001F2F9100000000C01F /* EntityViewController.json in CopyFiles */,
 				CFA000222F9100000000C022 /* MaterialViewController.css in CopyFiles */,
 				CFA000232F9100000000C023 /* MaterialViewController.json in CopyFiles */,
-				CFA000242F9100000000C024 /* editor.css in CopyFiles */,
 				CFA000272F9100000000C027 /* MeshViewController.css in CopyFiles */,
 				CFA000282F9100000000C028 /* MeshViewController.json in CopyFiles */,
 			);
@@ -2120,9 +2129,9 @@
 			dstPath = default/ui/hud;
 			dstSubfolderSpec = 16;
 			files = (
-				DA0022000000000000000001 /* DemoControlsView.json in CopyFiles */,
 				8B1140063C9B27E1D3035623 /* ChatView.json in CopyFiles */,
 				5810CED851DC85CBFF9ED038 /* CounterView.json in CopyFiles */,
+				DA0022000000000000000001 /* DemoControlsView.json in CopyFiles */,
 				A1F809FD3D4907D862309E48 /* PickupView.json in CopyFiles */,
 				F53A30D93664CE4B8E4B92F8 /* PowerupView.json in CopyFiles */,
 				5F30C8395773D766335F5B9D /* ScoreView.json in CopyFiles */,
@@ -2136,19 +2145,19 @@
 			dstPath = default/ui/hud/default;
 			dstSubfolderSpec = 16;
 			files = (
-				DD69DC98B2588BCF788647E3 /* default/hud.css in CopyFiles */,
-				DD006E4E558F9346D79447E5 /* default/scoreboard.css in CopyFiles */,
-				D1A5B0000000000000000504 /* default/intermission.css in CopyFiles */,
-				322BAB812EFDDA99BA25575E /* default/scoreboard.json in CopyFiles */,
-				D1A5B0000000000000000505 /* default/intermission.json in CopyFiles */,
-				20BE76382F981DD4B7F43A11 /* default/hud.json in CopyFiles */,
+				DD69DC98B2588BCF788647E3 /* hud.css in CopyFiles */,
+				20BE76382F981DD4B7F43A11 /* hud.json in CopyFiles */,
+				D1A5B0000000000000000504 /* intermission.css in CopyFiles */,
+				D1A5B0000000000000000505 /* intermission.json in CopyFiles */,
+				DD006E4E558F9346D79447E5 /* scoreboard.css in CopyFiles */,
+				322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		027C4ADD65DCCCEBCEB3D462 /* default/hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/hud.json; sourceTree = "<group>"; };
+		027C4ADD65DCCCEBCEB3D462 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = hud.json; sourceTree = "<group>"; };
 		02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BarlowCondensed-SemiBold.ttf"; sourceTree = "<group>"; };
 		066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_inventory.h; sourceTree = "<group>"; };
 		07C9A88ED1D718092FD62601 /* CenterPrintView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CenterPrintView.c; sourceTree = "<group>"; };
@@ -2161,10 +2170,10 @@
 		20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DiagnosticsView.c; sourceTree = "<group>"; };
 		26FE8732000C404A8AFA1688 /* r_post.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_post.c; sourceTree = "<group>"; };
 		2BA45B8C062C78CEE97C2D2B /* WeaponBarView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WeaponBarView.h; sourceTree = "<group>"; };
-		2D140F08524DA0679A7DB117 /* default/hud.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = default/hud.css; sourceTree = "<group>"; };
+		2D140F08524DA0679A7DB117 /* hud.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = hud.css; sourceTree = "<group>"; };
 		2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ChatView.c; sourceTree = "<group>"; };
 		30FC7C9F9B24C6966D749398 /* NavEditView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NavEditView.h; sourceTree = "<group>"; };
-		3487B5AD7D47E8DFBDDAE5C4 /* default/hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/hud.json; sourceTree = "<group>"; };
+		3487B5AD7D47E8DFBDDAE5C4 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = hud.json; sourceTree = "<group>"; };
 		40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreboardView.h; sourceTree = "<group>"; };
 		45969B731C08AA84C8D318F6 /* ScoreboardView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ScoreboardView.c; sourceTree = "<group>"; };
 		491F54CD554D0F550B000B4E /* NavEditView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = NavEditView.c; sourceTree = "<group>"; };
@@ -2180,7 +2189,7 @@
 		5BBBA6607E11C1453041B2A3 /* asset.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = asset.h; sourceTree = "<group>"; };
 		5EFB54CE18B969B212A318C9 /* MPlusU-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "MPlusU-OFL.txt"; sourceTree = "<group>"; };
 		63EC6B30290B4C7899E5F6AC /* DiagnosticsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticsView.h; sourceTree = "<group>"; };
-		64E652EE2F700EFB737AEA30 /* default/hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/hud.json; sourceTree = "<group>"; };
+		64E652EE2F700EFB737AEA30 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = hud.json; sourceTree = "<group>"; };
 		671265A640259697D1AA363E /* ScoreView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreView.h; sourceTree = "<group>"; };
 		6F9DDB2DBBC915AE10C66CB1 /* BlendView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlendView.h; sourceTree = "<group>"; };
 		6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_fs.glsl; sourceTree = "<group>"; };
@@ -2192,9 +2201,9 @@
 		7F6A5E1D6B8246A7B4EAD906 /* ConsoleView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ConsoleView.c; sourceTree = "<group>"; };
 		8238DE2CC5A406DE6DF84E71 /* OverlayText.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = OverlayText.c; sourceTree = "<group>"; };
 		8369FC8AFCB94FBBAEA86FB4 /* ConsoleText.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConsoleText.h; sourceTree = "<group>"; };
-		848E81C81F875F4403EAE1EE /* default/scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/scoreboard.json; sourceTree = "<group>"; };
+		848E81C81F875F4403EAE1EE /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = scoreboard.json; sourceTree = "<group>"; };
 		8542813678DB3B7BECEEF939 /* box.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = box.c; sourceTree = "<group>"; };
-		92AA3129971ABAAB21EE5BAD /* default/scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/scoreboard.json; sourceTree = "<group>"; };
+		92AA3129971ABAAB21EE5BAD /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = scoreboard.json; sourceTree = "<group>"; };
 		9330AABBEB8C4107BA2E49D2 /* ConsoleViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConsoleViewController.h; sourceTree = "<group>"; };
 		9352803A21064843A7D64A86 /* ConsoleViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ConsoleViewController.c; sourceTree = "<group>"; };
 		94D1F06AFA9AE2182216CC46 /* SpectatorView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SpectatorView.c; sourceTree = "<group>"; };
@@ -2205,7 +2214,7 @@
 		9EB3BF772B595B2E11DA92E7 /* TimeView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TimeView.h; sourceTree = "<group>"; };
 		A59EB892C12DF10ACA8253DD /* CounterView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CounterView.c; sourceTree = "<group>"; };
 		A73DD77B1D5B8231028B01FA /* TeamBannerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamBannerView.c; sourceTree = "<group>"; };
-		A980A8F791ED9C0A50C6C948 /* default/hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/hud.json; sourceTree = "<group>"; };
+		A980A8F791ED9C0A50C6C948 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = hud.json; sourceTree = "<group>"; };
 		ABD78D80980A456A917E4BEA /* ChatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChatView.h; sourceTree = "<group>"; };
 		7BAA84C3F169633FB1587357 /* DemoControlsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemoControlsView.h; sourceTree = "<group>"; };
 		7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DemoControlsView.c; sourceTree = "<group>"; };
@@ -2850,14 +2859,14 @@
 		CEA400592F9900010087B100 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		CEA4005A2F9900010087B100 /* pyproject.toml */ = {isa = PBXFileReference; lastKnownFileType = text; path = pyproject.toml; sourceTree = "<group>"; };
 		CEA4005B2F9900010087B100 /* __init__.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = __init__.py; sourceTree = "<group>"; };
-		CEA4C0DE2F9800000087C001 /* chrome/hud.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = chrome/hud.css; sourceTree = "<group>"; };
-		CEA4C0DE2F9800000087C002 /* chrome/hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/hud.json; sourceTree = "<group>"; };
-		CEA4C0DE2F9800000087C006 /* chrome/scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = chrome/scoreboard.css; sourceTree = "<group>"; };
-		CEA4C0DE2F9800000087C007 /* chrome/scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/scoreboard.json; sourceTree = "<group>"; };
-		CEA4C0DE2F9800000087C00A /* chrome/scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/scoreboard.json; sourceTree = "<group>"; };
-		CEA4C0DE2F9800000087C010 /* chrome/hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/hud.json; sourceTree = "<group>"; };
-		CEA4C0DE2F9800000087C013 /* chrome/hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/hud.json; sourceTree = "<group>"; };
-		CEA4C0DE2F9800000087C016 /* chrome/hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/hud.json; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C001 /* hud.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = hud.css; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C002 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = hud.json; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C006 /* scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = scoreboard.css; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C007 /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = scoreboard.json; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C00A /* scoreboard.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = scoreboard.json; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C010 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = hud.json; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C013 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = hud.json; sourceTree = "<group>"; };
+		CEA4C0DE2F9800000087C016 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = hud.json; sourceTree = "<group>"; };
 		CEA509052EA5D20A00F27205 /* check_cm_polylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_polylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEA509062EA5D21F00F27205 /* check_cm_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_cm_entity.c; sourceTree = "<group>"; };
 		CEA716EC2FA796690099B469 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -3045,10 +3054,10 @@
 		D1A5B0000000000000000401 /* IntermissionView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = IntermissionView.c; sourceTree = "<group>"; };
 		D1A5B0000000000000000405 /* cg_intermission.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_intermission.c; sourceTree = "<group>"; };
 		D1A5B0000000000000000409 /* cg_intermission.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_intermission.h; sourceTree = "<group>"; };
-		D1A5B0000000000000000500 /* default/intermission.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = default/intermission.css; sourceTree = "<group>"; };
-		D1A5B0000000000000000501 /* default/intermission.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = default/intermission.json; sourceTree = "<group>"; };
-		D1A5B0000000000000000502 /* chrome/intermission.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = chrome/intermission.css; sourceTree = "<group>"; };
-		D1A5B0000000000000000503 /* chrome/intermission.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = chrome/intermission.json; sourceTree = "<group>"; };
+		D1A5B0000000000000000500 /* intermission.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = intermission.css; sourceTree = "<group>"; };
+		D1A5B0000000000000000501 /* intermission.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intermission.json; sourceTree = "<group>"; };
+		D1A5B0000000000000000502 /* intermission.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = intermission.css; sourceTree = "<group>"; };
+		D1A5B0000000000000000503 /* intermission.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = intermission.json; sourceTree = "<group>"; };
 		D2A5C1000000000000000001 /* bg_item.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_item.h; sourceTree = "<group>"; };
 		D2A5C1000000000000000002 /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
 		D2A5C1000000000000000003 /* g_module.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_module.c; sourceTree = "<group>"; };
@@ -3077,7 +3086,7 @@
 		D9A5C10000000000000000B1 /* check_race */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_race; sourceTree = BUILT_PRODUCTS_DIR; };
 		DADE6340BDB64D222B75CD99 /* Rajdhani-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Rajdhani-OFL.txt"; sourceTree = "<group>"; };
 		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
-		E0F247635165E5338AAD8494 /* default/scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = default/scoreboard.css; sourceTree = "<group>"; };
+		E0F247635165E5338AAD8494 /* scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = scoreboard.css; sourceTree = "<group>"; };
 		E106ACFB28FF47443FB3C9FE /* PickupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PickupView.c; sourceTree = "<group>"; };
 		E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TargetNameView.c; sourceTree = "<group>"; };
 		EA8FE4E62B47061B1ADBD908 /* FpsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = FpsView.c; sourceTree = "<group>"; };
@@ -3568,24 +3577,14 @@
 				303177B0E2D33EB62F047DDC /* PowerupView.json */,
 				F2440E567EED9135ED4DDDC8 /* ScoreView.json */,
 				023302D99271CCB07B215C6D /* StatView.json */,
-				CEA4C0DE2F9800000087C001 /* chrome/hud.css */,
-				CEA4C0DE2F9800000087C002 /* chrome/hud.json */,
-				D1A5B0000000000000000502 /* chrome/intermission.css */,
-				D1A5B0000000000000000503 /* chrome/intermission.json */,
-				CEA4C0DE2F9800000087C006 /* chrome/scoreboard.css */,
-				CEA4C0DE2F9800000087C007 /* chrome/scoreboard.json */,
+				7EDCCE64CE2D15C581B48B96 /* chrome */,
 				8369FC8AFCB94FBBAEA86FB4 /* ConsoleText.h */,
 				09A28D5220214F20A1942F76 /* ConsoleText.c */,
 				FC6374C1D47393EA62C8EC20 /* CounterView.h */,
 				A59EB892C12DF10ACA8253DD /* CounterView.c */,
 				C8249BF99F0E4A2D77D37865 /* CrosshairView.h */,
 				1A75866341F13821D2FC91FA /* CrosshairView.c */,
-				2D140F08524DA0679A7DB117 /* default/hud.css */,
-				64E652EE2F700EFB737AEA30 /* default/hud.json */,
-				D1A5B0000000000000000500 /* default/intermission.css */,
-				D1A5B0000000000000000501 /* default/intermission.json */,
-				E0F247635165E5338AAD8494 /* default/scoreboard.css */,
-				848E81C81F875F4403EAE1EE /* default/scoreboard.json */,
+				C068303DE6CF78237E477D86 /* default */,
 				63EC6B30290B4C7899E5F6AC /* DiagnosticsView.h */,
 				20A922B6551C4CA8A3DCF8D8 /* DiagnosticsView.c */,
 				F62845AB16EAC431505215D1 /* FpsView.h */,
@@ -3628,6 +3627,32 @@
 			path = hud;
 			sourceTree = "<group>";
 		};
+		7EDCCE64CE2D15C581B48B96 /* chrome */ = {
+			isa = PBXGroup;
+			children = (
+				CEA4C0DE2F9800000087C001 /* hud.css */,
+				CEA4C0DE2F9800000087C002 /* hud.json */,
+				D1A5B0000000000000000502 /* intermission.css */,
+				D1A5B0000000000000000503 /* intermission.json */,
+				CEA4C0DE2F9800000087C006 /* scoreboard.css */,
+				CEA4C0DE2F9800000087C007 /* scoreboard.json */,
+			);
+			path = chrome;
+			sourceTree = "<group>";
+		};
+		C068303DE6CF78237E477D86 /* default */ = {
+			isa = PBXGroup;
+			children = (
+				2D140F08524DA0679A7DB117 /* hud.css */,
+				64E652EE2F700EFB737AEA30 /* hud.json */,
+				D1A5B0000000000000000500 /* intermission.css */,
+				D1A5B0000000000000000501 /* intermission.json */,
+				E0F247635165E5338AAD8494 /* scoreboard.css */,
+				848E81C81F875F4403EAE1EE /* scoreboard.json */,
+			);
+			path = default;
+			sourceTree = "<group>";
+		};
 		12863640A79CD0EE88ACBA3F /* ui */ = {
 			isa = PBXGroup;
 			children = (
@@ -3660,21 +3685,53 @@
 		44C65CA8992081850A0BD1FD /* hud */ = {
 			isa = PBXGroup;
 			children = (
-				A980A8F791ED9C0A50C6C948 /* default/hud.json */,
-				CEA4C0DE2F9800000087C013 /* chrome/hud.json */,
+				296C53316D49A65A18ACCD78 /* chrome */,
+				F2A12C11AD3863D02728B36A /* default */,
 			);
 			path = hud;
+			sourceTree = "<group>";
+		};
+		296C53316D49A65A18ACCD78 /* chrome */ = {
+			isa = PBXGroup;
+			children = (
+				CEA4C0DE2F9800000087C013 /* hud.json */,
+			);
+			path = chrome;
+			sourceTree = "<group>";
+		};
+		F2A12C11AD3863D02728B36A /* default */ = {
+			isa = PBXGroup;
+			children = (
+				A980A8F791ED9C0A50C6C948 /* hud.json */,
+			);
+			path = default;
 			sourceTree = "<group>";
 		};
 		A1CD3C66668D0BA51E31ECEC /* hud */ = {
 			isa = PBXGroup;
 			children = (
-				027C4ADD65DCCCEBCEB3D462 /* default/hud.json */,
-				CEA4C0DE2F9800000087C016 /* chrome/hud.json */,
-				92AA3129971ABAAB21EE5BAD /* default/scoreboard.json */,
-				CEA4C0DE2F9800000087C00A /* chrome/scoreboard.json */,
+				DDB5F77589C2D9CE66A5AFBF /* chrome */,
+				5C488D0D9F9DF00914EEBC55 /* default */,
 			);
 			path = hud;
+			sourceTree = "<group>";
+		};
+		DDB5F77589C2D9CE66A5AFBF /* chrome */ = {
+			isa = PBXGroup;
+			children = (
+				CEA4C0DE2F9800000087C016 /* hud.json */,
+				CEA4C0DE2F9800000087C00A /* scoreboard.json */,
+			);
+			path = chrome;
+			sourceTree = "<group>";
+		};
+		5C488D0D9F9DF00914EEBC55 /* default */ = {
+			isa = PBXGroup;
+			children = (
+				027C4ADD65DCCCEBCEB3D462 /* hud.json */,
+				92AA3129971ABAAB21EE5BAD /* scoreboard.json */,
+			);
+			path = default;
 			sourceTree = "<group>";
 		};
 		C023233C4867F860B4702F9D /* ui */ = {
@@ -5023,10 +5080,26 @@
 		D21789E6990AEF2265381BDE /* hud */ = {
 			isa = PBXGroup;
 			children = (
-				3487B5AD7D47E8DFBDDAE5C4 /* default/hud.json */,
-				CEA4C0DE2F9800000087C010 /* chrome/hud.json */,
+				18A5878BFA6C47A39B90C566 /* chrome */,
+				F40BC1EBF60CB5D37340E6CC /* default */,
 			);
 			path = hud;
+			sourceTree = "<group>";
+		};
+		18A5878BFA6C47A39B90C566 /* chrome */ = {
+			isa = PBXGroup;
+			children = (
+				CEA4C0DE2F9800000087C010 /* hud.json */,
+			);
+			path = chrome;
+			sourceTree = "<group>";
+		};
+		F40BC1EBF60CB5D37340E6CC /* default */ = {
+			isa = PBXGroup;
+			children = (
+				3487B5AD7D47E8DFBDDAE5C4 /* hud.json */,
+			);
+			path = default;
 			sourceTree = "<group>";
 		};
 		D2A5C100000000000000000E /* race */ = {
@@ -5661,8 +5734,8 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE05B3F030224900C0DE0920 /* Build configuration list for PBXNativeTarget "cgame-lithium" */;
 			buildPhases = (
-				C9077C04022B772095186ABC /* CopyFiles */,
 				CEA4C0DE2F9800000087C015 /* CopyFiles */,
+				C9077C04022B772095186ABC /* CopyFiles */,
 				CE05B3F030224900C0DE0900 /* Sources */,
 				CE05B3F030224900C0DE0902 /* Frameworks */,
 				CE05B3F030224900C0DE0901 /* Headers */,
@@ -5720,20 +5793,21 @@
 				CE12D7E71C5C5DF900CD0B13 /* Sources */,
 				CE12D7E81C5C5DF900CD0B13 /* Frameworks */,
 				CE12D7E91C5C5DF900CD0B13 /* Headers */,
+				CEA400102F9800000087B100 /* CopyFiles */,
+				CEA400112F9800000087B100 /* CopyFiles */,
 				CE4E07CA2026881F000B276C /* CopyFiles */,
-				CFA000132F9100000000C013 /* CopyFiles */,
 				CEA1A0052F9F00000087B100 /* CopyFiles */,
+				CFA000132F9100000000C013 /* CopyFiles */,
+				6816070175ED2CEC62FB6E56 /* CopyFiles */,
 				CE7D2C15202F6911004BC58E /* CopyFiles */,
+				DA0022000000000000000003 /* CopyFiles */,
+				CEA4C0DE2F9800000087C005 /* CopyFiles */,
+				EE7162D3228511D41E8B4CB1 /* CopyFiles */,
 				CE4E07D32026888A000B276C /* CopyFiles */,
 				CE4E07B720267815000B276C /* CopyFiles */,
 				CE4E07D9202688C5000B276C /* CopyFiles */,
 				CEAA78A5277535F100EAC853 /* CopyFiles */,
-				CEA400102F9800000087B100 /* CopyFiles */,
-				6816070175ED2CEC62FB6E56 /* CopyFiles */,
-				EE7162D3228511D41E8B4CB1 /* CopyFiles */,
-				DA0022000000000000000003 /* CopyFiles */,
-				CEA4C0DE2F9800000087C005 /* CopyFiles */,
-				CEA400112F9800000087B100 /* CopyFiles */,
+				2BA723A91752D9A64A1AEEB6 /* CopyFiles */,
 				CEFEEE000000000000000A03 /* Install module */,
 			);
 			buildRules = (
@@ -6224,8 +6298,8 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CEC0FF0020260103000001D1 /* Build configuration list for PBXNativeTarget "cgame-ctf" */;
 			buildPhases = (
-				5738F8605E036174DA11C58E /* CopyFiles */,
 				CEA4C0DE2F9800000087C012 /* CopyFiles */,
+				5738F8605E036174DA11C58E /* CopyFiles */,
 				CEC0FF0020260103000001CE /* Sources */,
 				CEC0FF0020260103000001D0 /* Frameworks */,
 				CEC0FF0020260103000001CF /* Headers */,
@@ -6315,8 +6389,8 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D2A5C1000000000000000059 /* Build configuration list for PBXNativeTarget "cgame-race" */;
 			buildPhases = (
-				0FB222CA4FDE0CA9865D5486 /* CopyFiles */,
 				CEA4C0DE2F9800000087C00C /* CopyFiles */,
+				0FB222CA4FDE0CA9865D5486 /* CopyFiles */,
 				D2A5C100000000000000005C /* Sources */,
 				D2A5C100000000000000005D /* Frameworks */,
 				D2A5C100000000000000005E /* Headers */,
