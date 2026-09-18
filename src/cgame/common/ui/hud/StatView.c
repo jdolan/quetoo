@@ -101,13 +101,17 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 
   $(self, bind, inlets, dictionary);
 
-  if (caption) {
-    $(this->caption, setText, caption);
-    free(caption);
-  }
+  // this runs once for the layout's own dictionary, before outlets resolve, and again for
+  // the dictionary that configures this instance; this->caption is only set for the latter
+  if (this->caption) {
+    if (caption) {
+      $(this->caption, setText, caption);
+      free(caption);
+    }
 
-  $((View *) this->caption, setVisibility,
-    this->caption->text == NULL ? ViewVisibilityHidden : ViewVisibilityVisible);
+    $((View *) this->caption, setVisibility,
+      this->caption->text == NULL ? ViewVisibilityHidden : ViewVisibilityVisible);
+  }
 }
 
 /**
