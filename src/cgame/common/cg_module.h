@@ -119,6 +119,30 @@ typedef const g_gameplay_t *(*ListGameplayModes)(size_t *count);
 extern ListGameplayModes Cg_ListGameplayModes;
 
 /**
+ * @brief Decides whether the create-server map browser lists a map.
+ * @param mapname The map path, e.g. `maps/edge.bsp`.
+ * @param games The map's worldspawn `games` value: the space-delimited games it is
+ * made for, already defaulted to `dm` when the map sets none.
+ * @return True to list the map.
+ * @details Chainable. The tail lists a map whose `games` names `GAME_NAME` as a
+ * whole token, which is all a mod that is its own game needs. A module whose
+ * players pick a variant instead, as `default` does with `dm tdm duel instagib`,
+ * installs a link accepting its variants before deferring. A link MAY ignore
+ * `games` entirely and decide by path, prefix or anything else it can read.
+ */
+typedef bool (*FilterMap)(const char *mapname, const char *games);
+
+extern FilterMap Cg_FilterMap;
+
+/**
+ * @brief Whole-token lookup in a `games` value, so that `dm` never matches `tdm`.
+ * @param games A space-delimited list of games.
+ * @param game The game to look for.
+ * @return True if `games` names `game`.
+ */
+bool Cg_HasGame(const char *games, const char *game);
+
+/**
  * @}
  * @defgroup cg-hooks-movement Movement
  * @brief How the client predicts movement. Tails in cg_predict.c.

@@ -22,6 +22,7 @@
 #pragma once
 
 #include <ObjectivelyMVC/CollectionItemView.h>
+#include <ObjectivelyMVC/StackView.h>
 
 #include "cg_types.h"
 
@@ -33,6 +34,7 @@
 typedef struct {
   char mapname[MAX_QPATH];
   char message[MAX_TOKEN_CHARS];
+  char games[MAX_TOKEN_CHARS];
   SDL_Surface *mapshot;
 } MapListItemInfo;
 
@@ -56,6 +58,12 @@ struct MapListCollectionItemView {
    * @private
    */
   MapListCollectionItemViewInterface *interface[0];
+
+  /**
+   * @brief One badge per game the map is made for, other than `dm`, pinned to the top right
+   * corner by CSS. Only attached to this item while it holds at least one badge.
+   */
+  StackView *games;
 };
 
 /**
