@@ -24,6 +24,7 @@
 #include <ObjectivelyMVC/AtlasImage.h>
 #include <ObjectivelyMVC/ViewController.h>
 
+#include "CameraControlsView.h"
 #include "ChatView.h"
 #include "VoiceView.h"
 #include "DemoControlsView.h"
@@ -68,6 +69,11 @@ struct HudViewController {
    * which happens only when a hud asks for one HudViewController::warm did not.
    */
   bool atlasDirty;
+
+  /**
+   * @brief The camera mode control, shown while spectating (live or demo).
+   */
+  CameraControlsView *cameraControls;
 
   /**
    * @brief The chat tail View.

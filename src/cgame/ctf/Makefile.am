@@ -117,6 +117,7 @@ cgame_la_SOURCES = \
 	ui/home/HomeViewController.c \
 	ui/home/LeaderboardViewController.c \
 	ui/home/StatsViewController.c \
+	ui/hud/CameraControlsView.c \
 	ui/hud/BlendView.c \
 	ui/hud/CenterPrintView.c \
 	ui/hud/ChatView.c \

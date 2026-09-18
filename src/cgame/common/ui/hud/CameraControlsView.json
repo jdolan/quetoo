@@ -1,0 +1,11 @@
+{
+  "subviews": [
+    {
+      "class": "Button",
+      "identifier": "cameraMode",
+      "title": {
+        "text": "1st Person"
+      }
+    }
+  ]
+}

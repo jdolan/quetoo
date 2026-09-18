@@ -306,3 +306,25 @@ DemoControlsView .speed {
   pointer-events: auto;
 }
 
+/* Camera mode control, shown while spectating (live or demo) */
+
+CameraControlsView {
+  alignment: top-center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  background-color: #0a0f12cc;
+  border-color: #9fb8c42e;
+  border-radius: 4;
+  border-width: 1;
+  padding: 6 12 6 12;
+  pointer-events: auto;
+}
+
+CameraControlsView Button {
+  autoresizing-mask: contain;
+  min-height: 0;
+  min-width: 0;
+  padding: 4 10 4 10;
+  pointer-events: auto;
+}
+

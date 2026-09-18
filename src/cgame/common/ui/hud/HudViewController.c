@@ -63,6 +63,7 @@ static void dealloc(Object *self) {
   release(this->chat);
   release(this->voice);
   release(this->demoControls);
+  release(this->cameraControls);
   release(this->diagnostics);
   release(this->images);
 
@@ -149,6 +150,12 @@ static void loadView(ViewController *self) {
 
   $(view, addSubview, (View *) this->demoControls);
   $((View *) this->demoControls, setVisibility, ViewVisibilityHidden);
+
+  this->cameraControls = $(alloc(CameraControlsView), initWithFrame, NULL);
+  assert(this->cameraControls);
+
+  $(view, addSubview, (View *) this->cameraControls);
+  $((View *) this->cameraControls, setVisibility, ViewVisibilityHidden);
 
   this->diagnostics = (DiagnosticsView *) $((View *) alloc(DiagnosticsView), init);
   assert(this->diagnostics);
@@ -467,6 +474,18 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
 
   if (demoControls) {
     $(self->demoControls, update, frame->time, cgi.demo->duration);
+  }
+
+  // camera mode controls: demo playback (any time, not just paused), live chase-cam, or a live
+  // spectator who is free-flying (not chasing anyone) - never while actively playing
+  const bool cameraControls = cgi.client->demo_server || ps->stats[STAT_CHASE] ||
+    ps->pm_state.type == PM_SPECTATOR;
+
+  $((View *) self->cameraControls, setVisibility,
+    cameraControls ? ViewVisibilityVisible : ViewVisibilityHidden);
+
+  if (cameraControls) {
+    $(self->cameraControls, update);
   }
 
   const bool hidden = !cg_draw_hud->integer || !ps->stats[STAT_TIME] || cg_state.nav_edit;
