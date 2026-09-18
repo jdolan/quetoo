@@ -267,6 +267,55 @@ static void S_Stop_f(void) {
 }
 
 /**
+ * @brief The stereo frame size of the loopback device's render format.
+ */
+#define S_FRAME_SIZE (sizeof(int16_t) * 2)
+
+/**
+ * @brief Renders mixed audio on demand for the playback device.
+ * @details The loopback device runs no thread of its own: nothing is mixed until this asks for it.
+ * Letting SDL pull means SDL's device keeps the clock, and there is no feeder cadence to tune or
+ * to drift.
+ */
+static void S_RenderSamples(void *data, SDL_AudioStream *stream, int32_t additional, int32_t total) {
+
+  static byte buffer[16384];
+
+  while (additional >= (int32_t) S_FRAME_SIZE) {
+
+    const int32_t bytes = additional < (int32_t) sizeof(buffer) ? additional : (int32_t) sizeof(buffer);
+    const int32_t samples = bytes / S_FRAME_SIZE;
+
+    alcRenderSamplesSOFT(s_context.device, buffer, samples);
+    SDL_PutAudioStreamData(stream, buffer, samples * (int32_t) S_FRAME_SIZE);
+
+    additional -= samples * (int32_t) S_FRAME_SIZE;
+  }
+}
+
+/**
+ * @brief Opens the SDL playback device that drives the loopback renderer.
+ */
+static bool S_OpenPlayback(void) {
+
+  const SDL_AudioSpec spec = {
+    .format = SDL_AUDIO_S16,
+    .channels = 2,
+    .freq = s_rate->integer,
+  };
+
+  s_context.stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, S_RenderSamples, NULL);
+
+  if (!s_context.stream) {
+    Com_Warn("Failed to open playback device: %s\n", SDL_GetError());
+    return false;
+  }
+
+  SDL_ResumeAudioStreamDevice(s_context.stream);
+  return true;
+}
+
+/**
  * @brief Initializes variables and commands for the sound subsystem.
  */
 static void S_InitLocal(void) {
@@ -302,28 +351,56 @@ void S_Init(void) {
 
   S_InitLocal();
 
-  s_context.device = alcOpenDevice(NULL);
+  if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
+    Com_Warn("Failed to initialize audio: %s\n", SDL_GetError());
+    return;
+  }
+
+  if (!alcIsExtensionPresent(NULL, "ALC_SOFT_loopback")) {
+    Com_Warn("OpenAL driver does not support ALC_SOFT_loopback\n");
+    return;
+  }
+
+  s_context.device = alcLoopbackOpenDeviceSOFT(NULL);
 
   if (!s_context.device) {
     Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
     return;
   }
 
-  if (s_hrtf->integer && alcIsExtensionPresent(s_context.device, "ALC_SOFT_HRTF")) {
-    ALCint attrs[7] = { ALC_HRTF_SOFT, ALC_TRUE };
-    int n = 2;
-    if (alcIsExtensionPresent(s_context.device, "ALC_SOFT_output_mode")) {
-      attrs[n++] = ALC_OUTPUT_MODE_SOFT;
-      attrs[n++] = ALC_STEREO_HRTF_SOFT;
+  if (!alcIsRenderFormatSupportedSOFT(s_context.device, s_rate->integer, ALC_STEREO_SOFT, ALC_SHORT_SOFT)) {
+    Com_Warn("Unsupported render format: %dhz stereo 16 bit\n", s_rate->integer);
+    return;
+  }
+
+  {
+    ALCint attrs[11] = {
+      ALC_FREQUENCY, s_rate->integer,
+      ALC_FORMAT_CHANNELS_SOFT, ALC_STEREO_SOFT,
+      ALC_FORMAT_TYPE_SOFT, ALC_SHORT_SOFT,
+    };
+    int n = 6;
+
+    if (s_hrtf->integer && alcIsExtensionPresent(s_context.device, "ALC_SOFT_HRTF")) {
+      attrs[n++] = ALC_HRTF_SOFT;
+      attrs[n++] = ALC_TRUE;
+
+      if (alcIsExtensionPresent(s_context.device, "ALC_SOFT_output_mode")) {
+        attrs[n++] = ALC_OUTPUT_MODE_SOFT;
+        attrs[n++] = ALC_STEREO_HRTF_SOFT;
+      }
     }
+
     attrs[n] = 0;
     s_context.context = alcCreateContext(s_context.device, attrs);
-  } else {
-    s_context.context = alcCreateContext(s_context.device, NULL);
   }
 
   if (!s_context.context || !alcMakeContextCurrent(s_context.context)) {
     Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
+    return;
+  }
+
+  if (!S_OpenPlayback()) {
     return;
   }
 
@@ -418,7 +495,7 @@ void S_Init(void) {
 
   S_GetError(NULL);
 
-  Com_Print("Sound initialized (OpenAL, resample @ %dhz)\n", s_rate->integer);
+  Com_Print("Sound initialized (OpenAL loopback via SDL, %dhz)\n", s_rate->integer);
 
   S_InitMedia();
 
@@ -461,9 +538,16 @@ void S_Shutdown(void) {
 
   S_ShutdownMedia();
 
+  if (s_context.stream) {
+    SDL_DestroyAudioStream(s_context.stream);
+    s_context.stream = NULL;
+  }
+
   alcMakeContextCurrent(NULL);
   alcDestroyContext(s_context.context);
   alcCloseDevice(s_context.device);
+
+  SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
   Cmd_RemoveAll(CMD_SOUND);
 

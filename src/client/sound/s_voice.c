@@ -85,11 +85,6 @@ static float S_VoiceGain(void) {
  */
 static void S_VoiceDevices_f(void) {
 
-  if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
-    Com_Warn("Failed to initialize audio: %s\n", SDL_GetError());
-    return;
-  }
-
   int32_t count = 0;
   SDL_AudioDeviceID *devices = SDL_GetAudioRecordingDevices(&count);
 
@@ -149,12 +144,6 @@ static bool S_OpenCapture(void) {
   }
 
   if (s_voice_state.capture_failed) {
-    return false;
-  }
-
-  if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
-    Com_Warn("Failed to initialize audio: %s\n", SDL_GetError());
-    s_voice_state.capture_failed = true;
     return false;
   }
 
@@ -413,7 +402,6 @@ void S_ShutdownVoice(void) {
 
   if (s_voice_state.capture) {
     SDL_DestroyAudioStream(s_voice_state.capture);
-    SDL_QuitSubSystem(SDL_INIT_AUDIO);
   }
 
   if (s_voice_state.source) {

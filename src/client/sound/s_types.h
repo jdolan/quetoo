@@ -289,6 +289,11 @@ typedef struct {
   ALCcontext *context;
 
   /**
+   * @brief The SDL playback stream that drives rendering of the loopback device.
+   */
+  SDL_AudioStream *stream;
+
+  /**
    * @brief The renderer string reported by the AL driver.
    */
   const char *renderer;
