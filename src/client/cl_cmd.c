@@ -143,6 +143,9 @@ static void Cl_WriteVoiceCommand(mem_buf_t *buf) {
   Net_WriteByte(buf, flags);
   Net_WriteByte(buf, len);
   Net_WriteData(buf, voice, len);
+
+  // light our own indicator, so holding the key is visible without anyone to hear it
+  cl.voice_time[cl.frame.ps.client] = cl.unclamped_time;
 }
 
 /**

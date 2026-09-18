@@ -408,9 +408,22 @@ static uint64_t Cg_VoiceRecipients(const char *channel) {
  */
 static void Cg_Chat(int32_t client, uint8_t flags, const char *message) {
 
-  const int32_t color = (flags & CHAT_TEAM) ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
+  const bool team = flags & CHAT_TEAM;
 
-  cgi.Print("%s^%d: %s\n", cg_state.clients[client].name, color, message);
+  const int32_t color = team ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
+  const int32_t level = team ? PRINT_TEAM_CHAT : PRINT_CHAT;
+
+  cgi.PrintLevel(level, "%s^%d: %s\n", cg_state.clients[client].name, color, message);
+
+  // the sound is the module's to choose, because only it knows which kind of message this is
+  const char *sample = cgi.GetCvarString(team ? "cl_team_chat_sound" : "cl_chat_sound");
+
+  if (sample && *sample) {
+    Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+      .sample = cgi.LoadSample(sample, ASSET_CONTEXT_SOUNDS),
+      .flags = S_PLAY_UI
+    });
+  }
 }
 
 /**

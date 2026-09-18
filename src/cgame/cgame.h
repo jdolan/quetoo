@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 55
+#define CGAME_API_VERSION 56
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -91,6 +91,13 @@ typedef struct cg_import_s {
    * @brief Prints a formatted message to the configured consoles.
    */
   void (*Print)(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+  /**
+   * @brief Prints a formatted message to the consoles at the given level.
+   * @remarks The level is what console views filter on, so chat must arrive as PRINT_CHAT or
+   * PRINT_TEAM_CHAT to reach the chat view rather than the notification lines.
+   */
+  void (*PrintLevel)(int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
   /**
    * @return The active debug mask.
