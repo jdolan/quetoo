@@ -25,34 +25,6 @@
 
 #define _Class _MapListCollectionItemView
 
-/**
- * @brief Badge images by game, shared by every item for the life of the process: the browser
- * reloads all of its items each time the loader discovers another map.
- */
-static Dictionary *badges;
-
-/**
- * @brief Returns the badge for the specified game, or `NULL` if no `pics/game_<game>` exists or
- * the token could not name one.
- */
-static Image *badgeForGame(const char *game) {
-
-  if (strpbrk(game, "/\\.")) {
-    return NULL;
-  }
-
-  Image *badge = $(badges, objectForKeyPath, game);
-  if (badge == NULL) {
-    badge = Cg_LoadImage(va("pics/game_%s", game));
-    if (badge) {
-      $(badges, setObjectForKeyPath, badge, game);
-      release(badge);
-    }
-  }
-
-  return badge;
-}
-
 #pragma mark - Object
 
 /**
@@ -115,7 +87,7 @@ static void setMapListItemInfo(MapListCollectionItemView *self, const MapListIte
         continue;
       }
 
-      Image *badge = badgeForGame(game);
+      Image *badge = (Image *) $(cgi.Theme(), icon, va("pics/game_%s", game));
       if (badge) {
         ImageView *imageView = $(alloc(ImageView), initWithImage, badge);
         assert(imageView);
@@ -153,9 +125,6 @@ Class *_MapListCollectionItemView(void) {
   static Once once;
 
   do_once(&once, {
-    badges = $(alloc(Dictionary), init);
-    assert(badges);
-
     clazz = _initialize(&(const ClassDef) {
       .name = "MapListCollectionItemView",
       .superclass = _CollectionItemView(),

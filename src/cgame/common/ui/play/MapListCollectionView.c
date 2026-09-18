@@ -35,44 +35,16 @@
 
 #define DEFAULT_GAMES "dm"
 
-#pragma mark - Cg_FilterMap
-
-bool Cg_HasGame(const char *games, const char *game) {
-
-  const size_t len = strlen(game);
-  if (len == 0) {
-    return false;
-  }
-
-  const char *c = games;
-  while (*c) {
-    while (*c && *c <= ' ') {
-      c++;
-    }
-
-    const char *end = c;
-    while (*end > ' ') {
-      end++;
-    }
-
-    if ((size_t) (end - c) == len && !q_strncmp(c, game, len)) {
-      return true;
-    }
-
-    c = end;
-  }
-
-  return false;
-}
+#pragma mark - Cg_FilterCreateServerMapList
 
 /**
- * @brief The tail of the `Cg_FilterMap` hook, listing a map made for this game.
+ * @brief The tail of the `Cg_FilterCreateServerMapList` hook, listing a map made for this game.
  */
-static bool Cg_FilterMap_Common(const char *mapname, const char *games) {
-  return Cg_HasGame(games, GAME_NAME);
+static bool Cg_FilterCreateServerMapList_Common(const MapListItemInfo *info) {
+  return q_str_has_token(info->games, GAME_NAME);
 }
 
-FilterMap Cg_FilterMap = Cg_FilterMap_Common;
+FilterCreateServerMapList Cg_FilterCreateServerMapList = Cg_FilterCreateServerMapList_Common;
 
 #pragma mark CollectionViewDataSource
 
@@ -202,7 +174,7 @@ static void enumerateMaps(const char *path, void *data) {
 
       free(entities);
 
-      if (!Cg_FilterMap(info->mapname, info->games)) {
+      if (!Cg_FilterCreateServerMapList(info)) {
         free(info);
         cgi.CloseFile(file);
         return;

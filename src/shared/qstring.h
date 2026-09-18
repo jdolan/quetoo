@@ -127,6 +127,31 @@ static inline bool __attribute__ ((warn_unused_result)) q_str_has_suffix(const c
 }
 
 /**
+ * @return True if `s`, read as whitespace-delimited tokens, contains `token` as a whole
+ * token: `dm` is found in `dm ctf` but not in `tdm`. NULL-safe; an empty `token` is never found.
+ */
+static inline bool __attribute__ ((warn_unused_result)) q_str_has_token(const char *s, const char *token) {
+	if (!s || !token || !*token) {
+		return false;
+	}
+	const size_t len = strlen(token);
+	while (*s) {
+		while (*s && *s <= ' ') {
+			s++;
+		}
+		const char *end = s;
+		while (*end > ' ') {
+			end++;
+		}
+		if ((size_t) (end - s) == len && strncmp(s, token, len) == 0) {
+			return true;
+		}
+		s = end;
+	}
+	return false;
+}
+
+/**
  * @brief Copies up to `size - 1` characters from `src` to `dst`, always
  * NUL-terminating. If `src` is NULL, `dst` is set to "".
  * @return The length of `src` (not the number of bytes written).

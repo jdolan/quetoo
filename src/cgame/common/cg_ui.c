@@ -85,6 +85,24 @@ static void Cg_AddEmoji(const char *path, void *data) {
 }
 
 /**
+ * @brief `Fs_Enumerator` registering one image with the Theme's icon atlas under its resource
+ * name, e.g. `pics/game_ctf`, for Views that fetch app art by `Theme::icon`.
+ */
+static void Cg_AddIcon(const char *path, void *data) {
+
+  char resource[MAX_OS_PATH];
+  StripExtension(path, resource);
+
+  Image *image = Cg_LoadImage(resource);
+  if (image) {
+    $((ImageAtlas *) data, addImageWithName, resource, image);
+    release(image);
+  } else {
+    Cg_Warn("Failed to load %s\n", path);
+  }
+}
+
+/**
  * @brief Registers a TTF from the game filesystem with MVC under the given family, so that
  * stylesheets can name it.
  */
@@ -125,6 +143,7 @@ void Cg_InitUi(void) {
   // once per emoji; one compile covers them all
   ImageAtlas *icons = $(theme, icons);
   cgi.EnumerateFiles("pics/emoji/*", Cg_AddEmoji, icons);
+  cgi.EnumerateFiles("pics/game_*", Cg_AddIcon, icons);
 
   if (!$(icons, compile)) {
     Cg_Warn("Failed to compile the icon atlas\n");
