@@ -291,6 +291,14 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
     }
   }
 
+  // The hook is dead weight while watching someone else - there is no body to swing on - so it
+  // cycles how they are framed instead. Attack keeps doing what it always has, leaving a player
+  // behind and picking one back up, which is the press you least want happening by reflex
+  if ((in_hook.state & BUTTON_STATE_DOWN) && Cg_CameraSubject(&cgi.client->frame.ps)) {
+    cgi.Cbuf("camera\n");
+    in_hook.state &= ~BUTTON_STATE_DOWN;
+  }
+
   if (in_hook.state & (BUTTON_STATE_HELD | BUTTON_STATE_DOWN)) {
     cmd->buttons |= BUTTON_HOOK;
   }
