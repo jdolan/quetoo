@@ -26,21 +26,6 @@
 
 #define _Class _PickupView
 
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-  PickupView *this = (PickupView *) self;
-
-  release(this->icon);
-  release(this->name);
-
-  super(Object, self, dealloc);
-}
-
 #pragma mark - View
 
 /**
@@ -100,8 +85,6 @@ static void updateBindings(View *self, ident data) {
 #pragma mark - Class lifecycle
 
 static void initialize(Class *clazz) {
-
-  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewInterface *) clazz->interface)->init = init;
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;

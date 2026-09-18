@@ -32,23 +32,6 @@ static const EnumName StatViewStatNames[] = MakeEnumNames(
   MakeEnumAlias(StatViewAmmo, ammo)
 );
 
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-  StatView *this = (StatView *) self;
-
-  release(this->caption);
-  release(this->icon);
-  release(this->labels);
-  release(this->value);
-
-  super(Object, self, dealloc);
-}
-
 #pragma mark - Icons
 
 /**
@@ -235,8 +218,6 @@ static StatView *initWithStat(StatView *self, StatViewStat stat) {
 #pragma mark - Class lifecycle
 
 static void initialize(Class *clazz) {
-
-  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
   ((ViewInterface *) clazz->interface)->init = init;
