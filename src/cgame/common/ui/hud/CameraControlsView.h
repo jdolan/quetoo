@@ -21,21 +21,24 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/Button.h>
+#include <ObjectivelyMVC/ImageView.h>
 #include <ObjectivelyMVC/StackView.h>
+#include <ObjectivelyMVC/Text.h>
+
+#include "cg_types.h"
 
 /**
  * @file
- * @brief A single control that cycles first-person, third-person, follow and free-flight
- * cameras, shown during demo playback and during live in-game spectating (chasing or free
- * spectator flight) - never while actively playing.
+ * @brief Announces the camera the viewer is watching through, while spectating a live game or
+ * playing a demo back. It shows itself when the camera changes and hides again shortly after,
+ * the way the weapon bar does, so that it says what happened without sitting on the screen.
  */
 
 typedef struct CameraControlsView CameraControlsView;
 typedef struct CameraControlsViewInterface CameraControlsViewInterface;
 
 /**
- * @brief The camera mode control, shown while spectating (live or demo).
+ * @brief The camera announcement, shown briefly whenever the camera changes.
  * @extends StackView
  */
 struct CameraControlsView {
@@ -52,9 +55,25 @@ struct CameraControlsView {
   CameraControlsViewInterface *interface[0];
 
   /**
-   * @brief Cycles `camera`, labeled with the current mode.
+   * @brief The camera icon.
    */
-  Button *cameraModeButton;
+  ImageView *icon;
+
+  /**
+   * @brief The camera name.
+   */
+  Text *name;
+
+  /**
+   * @brief What was last announced, so that the view shows itself only when this changes.
+   */
+  cg_camera_mode_t mode;
+  bool detached;
+
+  /**
+   * @brief When to hide again, in unclamped client time.
+   */
+  uint32_t time;
 };
 
 struct CameraControlsViewInterface {
@@ -63,24 +82,6 @@ struct CameraControlsViewInterface {
    * @brief The superclass interface.
    */
   StackViewInterface stackViewInterface;
-
-  /**
-   * @fn CameraControlsView *CameraControlsView::initWithFrame(CameraControlsView *self, const SDL_Rect *frame)
-   * @brief Initializes this CameraControlsView.
-   * @param self The CameraControlsView.
-   * @param frame The frame.
-   * @return The initialized CameraControlsView, or `NULL` on error.
-   * @memberof CameraControlsView
-   */
-  CameraControlsView *(*initWithFrame)(CameraControlsView *self, const SDL_Rect *frame);
-
-  /**
-   * @fn void CameraControlsView::update(CameraControlsView *self)
-   * @brief Refreshes the button's label to reflect the current camera mode.
-   * @param self The CameraControlsView.
-   * @memberof CameraControlsView
-   */
-  void (*update)(CameraControlsView *self);
 };
 
 CGAME_EXPORT Class *_CameraControlsView(void);

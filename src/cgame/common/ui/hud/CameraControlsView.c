@@ -22,69 +22,83 @@
 #include "cg_local.h"
 
 #include "CameraControlsView.h"
+#include "HudViewController.h"
 
 #define _Class _CameraControlsView
 
-#pragma mark - Delegates
+/**
+ * @brief The icon and name for each camera, indexed by `cg_camera_mode_t`, with the detached
+ * camera last: it is the absence of a subject rather than a way of framing one.
+ */
+static const struct {
+  const char *icon;
+  const char *name;
+} cg_cameras[CAMERA_MODE_TOTAL + 1] = {
+  { "pics/camera-first_person", "1st Person" },
+  { "pics/camera-third_person", "3rd Person" },
+  { "pics/camera-follow", "Follow" },
+  { "pics/camera-spectate", "Free Flight" }
+};
+
+#pragma mark - View
 
 /**
- * @brief ButtonDelegate: cycles first-person, third-person, follow and free-flight cameras.
+ * @see View::init(View *)
  */
-static void didClickCameraMode(Button *button) {
-  cgi.Cbuf("camera\n");
-}
+static View *init(View *self) {
 
-#pragma mark - CameraControlsView
-
-/**
- * @fn CameraControlsView *CameraControlsView::initWithFrame(CameraControlsView *self, const SDL_Rect *frame)
- * @memberof CameraControlsView
- */
-static CameraControlsView *initWithFrame(CameraControlsView *self, const SDL_Rect *frame) {
-
-  self = (CameraControlsView *) super(StackView, self, initWithFrame, frame);
+  self = (View *) super(StackView, self, initWithFrame, NULL);
   if (self) {
 
+    CameraControlsView *this = (CameraControlsView *) self;
+
     Outlet outlets[] = MakeOutlets(
-      MakeOutlet("cameraMode", &self->cameraModeButton)
+      MakeOutlet("icon", &this->icon),
+      MakeOutlet("name", &this->name)
     );
 
-    View *this = (View *) self;
-
-    $(this, awakeWithResourceName, "ui/hud/CameraControlsView.json");
-    $(this, resolve, outlets);
-
-    self->cameraModeButton->delegate.self = self;
-    self->cameraModeButton->delegate.didClick = didClickCameraMode;
+    $(self, awakeWithResourceName, "ui/hud/CameraControlsView.json");
+    $(self, resolve, outlets);
   }
 
   return self;
 }
 
 /**
- * @fn void CameraControlsView::update(CameraControlsView *self)
- * @memberof CameraControlsView
+ * @see View::updateBindings(View *, ident)
+ * @remarks The camera is announced rather than displayed: it appears when it changes and hides
+ * itself again after `cg_select_weapon_interval`, which is what the weapon bar lingers for.
  */
-static void update(CameraControlsView *self) {
+static void updateBindings(View *self, ident data) {
 
-  const char *label;
+  super(View, self, updateBindings, data);
 
-  switch (cg_state.camera_mode) {
-    case CAMERA_FIRST_PERSON:
-      label = "1st Person";
-      break;
-    case CAMERA_THIRD_PERSON:
-      label = "3rd Person";
-      break;
-    case CAMERA_FOLLOW:
-      label = "Follow";
-      break;
-    default:
-      label = "Free Flight";
-      break;
+  CameraControlsView *this = (CameraControlsView *) self;
+
+  if (data == NULL) {
+    return;
   }
 
-  $(self->cameraModeButton->title, setText, label);
+  const player_state_t *ps = &((const cl_frame_t *) data)->ps;
+
+  const bool detached = !Cg_CameraSubject(ps);
+
+  if (detached != this->detached || cg_state.camera_mode != this->mode) {
+
+    this->detached = detached;
+    this->mode = cg_state.camera_mode;
+
+    const size_t camera = detached ? CAMERA_MODE_TOTAL : this->mode;
+
+    $(this->icon, setImage, (Image *) Cg_HudImage(cg_cameras[camera].icon));
+    $(this->name, setText, cg_cameras[camera].name);
+
+    this->time = cgi.client->unclamped_time + cg_select_weapon_interval->integer;
+  }
+
+  const bool visible = cgi.client->unclamped_time < this->time;
+
+  $(self, setVisibility, visible ? ViewVisibilityVisible : ViewVisibilityHidden);
 }
 
 #pragma mark - Class lifecycle
@@ -94,8 +108,8 @@ static void update(CameraControlsView *self) {
  */
 static void initialize(Class *clazz) {
 
-  ((CameraControlsViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
-  ((CameraControlsViewInterface *) clazz->interface)->update = update;
+  ((ViewInterface *) clazz->interface)->init = init;
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 }
 
 /**

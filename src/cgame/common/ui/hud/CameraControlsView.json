@@ -1,11 +1,12 @@
 {
   "subviews": [
     {
-      "class": "Button",
-      "identifier": "cameraMode",
-      "title": {
-        "text": "1st Person"
-      }
+      "class": "ImageView",
+      "identifier": "icon"
+    },
+    {
+      "class": "Text",
+      "identifier": "name"
     }
   ]
 }

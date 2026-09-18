@@ -151,7 +151,7 @@ static void loadView(ViewController *self) {
   $(view, addSubview, (View *) this->demoControls);
   $((View *) this->demoControls, setVisibility, ViewVisibilityHidden);
 
-  this->cameraControls = $(alloc(CameraControlsView), initWithFrame, NULL);
+  this->cameraControls = (CameraControlsView *) $((View *) alloc(CameraControlsView), init);
   assert(this->cameraControls);
 
   $(view, addSubview, (View *) this->cameraControls);
@@ -476,16 +476,12 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
     $(self->demoControls, update, frame->time, cgi.demo->duration);
   }
 
-  // camera mode controls: demo playback (any time, not just paused), live chase-cam, or a live
-  // spectator who is free-flying (not chasing anyone) - never while actively playing
-  const bool cameraControls = cgi.client->demo_server || ps->stats[STAT_CHASE] ||
-    ps->pm_state.type == PM_SPECTATOR;
-
-  $((View *) self->cameraControls, setVisibility,
-    cameraControls ? ViewVisibilityVisible : ViewVisibilityHidden);
-
-  if (cameraControls) {
-    $(self->cameraControls, update);
+  // the camera announcement shows itself only while spectating or watching a demo, and only
+  // just after the camera changes, which it decides for itself in updateBindings
+  if (cgi.client->demo_server || ps->stats[STAT_SPECTATOR]) {
+    $((View *) self->cameraControls, updateBindings, (ident) frame);
+  } else {
+    $((View *) self->cameraControls, setVisibility, ViewVisibilityHidden);
   }
 
   const bool hidden = !cg_draw_hud->integer || !ps->stats[STAT_TIME] || cg_state.nav_edit;
