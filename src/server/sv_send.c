@@ -294,6 +294,12 @@ void Sv_SendClientPackets(void) {
 
   if (svs.state == SV_ACTIVE_DEMO) {
     demo_size = Sv_GetDemoFrame(demo_buffer);
+
+    // reaching EOF with no next demo, or an invalid one, shuts the server down and frees
+    // svs.clients from underneath us
+    if (svs.state == SV_UNINITIALIZED) {
+      return;
+    }
   }
 
   // send a message to each connected client
