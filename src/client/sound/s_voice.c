@@ -51,6 +51,8 @@
 typedef struct {
   ALCdevice *capture;
   bool capture_failed;
+  bool capture_silent;
+  int32_t silent_frames;
   bool transmitting;
 
   ALuint source;
@@ -76,6 +78,27 @@ cvar_t *s_voice_volume;
  */
 static float S_VoiceGain(void) {
   return Clampf01(s_volume->value) * Clampf01(s_voice_volume->value);
+}
+
+/**
+ * @brief Prints the available capture devices, for use with s_voice_device.
+ */
+static void S_VoiceDevices_f(void) {
+
+  const char *def = alcGetString(NULL, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER);
+  const char *devices = alcGetString(NULL, ALC_CAPTURE_DEVICE_SPECIFIER);
+
+  if (!devices || !*devices) {
+    Com_Print("No capture devices available\n");
+    return;
+  }
+
+  Com_Print("Capture devices:\n");
+
+  for (const char *d = devices; *d; d += strlen(d) + 1) {
+    const bool is_default = def && !q_strcmp(d, def);
+    Com_Print("  ^2%s^7%s\n", d, is_default ? " (default)" : "");
+  }
 }
 
 /**
@@ -127,6 +150,33 @@ static void S_DrainCapture(void) {
     }
 
     alcCaptureSamples(s_voice_state.capture, s_voice_state.frame, VOICE_FRAME_SAMPLES);
+  }
+}
+
+/**
+ * @brief Warns once if the capture device only ever yields silence.
+ * @details macOS denies microphone access by zero filling rather than by failing, so a build the
+ * system has not granted access to captures perfectly and records nothing. Without this the only
+ * symptom is that nobody can hear you.
+ */
+static void S_CheckCaptureSilence(const int16_t *samples, size_t count) {
+
+  if (s_voice_state.capture_silent) {
+    return;
+  }
+
+  for (size_t i = 0; i < count; i++) {
+    if (samples[i]) {
+      s_voice_state.silent_frames = 0;
+      return;
+    }
+  }
+
+  if (++s_voice_state.silent_frames == (1000 / VOICE_FRAME_MILLIS) * 3) {
+    Com_Warn("Capture device yielded only silence for 3 seconds.\n"
+             "Check that microphone access is granted, and that the device is not muted.\n"
+             "Run s_voice_devices and set s_voice_device to choose another.\n");
+    s_voice_state.capture_silent = true;
   }
 }
 
@@ -200,6 +250,8 @@ static void S_PumpVoice(void) {
     }
 
     alcCaptureSamples(s_voice_state.capture, s_voice_state.frame, VOICE_FRAME_SAMPLES);
+
+    S_CheckCaptureSilence(s_voice_state.frame, VOICE_FRAME_SAMPLES);
 
     S_ApplyCaptureGain(s_voice_state.frame, VOICE_FRAME_SAMPLES);
 
@@ -280,6 +332,8 @@ void S_InitVoice(void) {
   s_voice_gain = Cvar_Add("s_voice_gain", "1", CVAR_ARCHIVE, "Microphone input gain.");
   s_voice_loopback = Cvar_Add("s_voice_loopback", "0", CVAR_DEVELOPER, "Play your own microphone back to you (developer tool).");
   s_voice_volume = Cvar_Add("s_voice_volume", "1", CVAR_ARCHIVE, "Voice chat volume.");
+
+  Cmd_Add("s_voice_devices", S_VoiceDevices_f, CMD_SOUND, "List the available microphones.");
 
   alGenSources(1, &s_voice_state.source);
 
