@@ -76,8 +76,14 @@
           ]
         },
         {
-          "class": "ChaseView",
-          "identifier": "chase"
+          "class": "View",
+          "identifier": "chaseAnchor",
+          "subviews": [
+            {
+              "class": "ChaseView",
+              "identifier": "chase"
+            }
+          ]
         },
         {
           "class": "StackView",
