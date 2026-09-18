@@ -110,6 +110,9 @@ static struct {
 
   int32_t out_head;
   int32_t out_tail;
+  // deliberately never reset: a listener measures the gap between sequence numbers to conceal
+  // losses, and restarting at zero would read as a jump backwards whenever the final frame of the
+  // previous transmission went missing, concealing frames that were never sent
   uint8_t out_seq;
   bool ending;
 
@@ -365,29 +368,15 @@ static void S_DecodeSpeakerFrame(s_voice_speaker_t *speaker, const byte *data, i
 }
 
 /**
- * @brief Accepts one voice frame from the network, or from the local monitor.
- * @details Decoding happens here, on the caller's thread, rather than being handed to the voice
- * thread: an Opus frame decodes in tens of microseconds, so even a full server talking at once
- * costs a fraction of a tick, and a second ring would add its own latency for nothing.
+ * @brief Accepts one voice frame, with s_voice_state.mutex already held.
+ * @details Decoding happens on the caller's thread rather than being handed to the voice thread:
+ * an Opus frame decodes in tens of microseconds, so even a full server talking at once costs a
+ * fraction of a tick, and a second ring would add its own latency for nothing.
+ * @remarks The voice thread pumps capture with the lock held, so the local monitor reaches this
+ * directly; SDL mutexes are not recursive and the public entry point would deadlock it.
  */
-void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const vec3_t origin,
-                const byte *data, int32_t len) {
-
-  if (!s_voice_state.enabled || !s_voice->integer) {
-    return;
-  }
-
-  if (client < 0 || client > VOICE_SELF) {
-    Com_Debug(DEBUG_SOUND, "Rejecting voice from client %d\n", client);
-    return;
-  }
-
-  if (len <= 0 || len > VOICE_MAX_PAYLOAD) {
-    Com_Debug(DEBUG_SOUND, "Rejecting voice payload of %d bytes\n", len);
-    return;
-  }
-
-  SDL_LockMutex(s_voice_state.mutex);
+static void S_AddVoice_(int32_t client, uint8_t seq, uint8_t flags, const vec3_t origin,
+                        const byte *data, int32_t len) {
 
   s_voice_speaker_t *speaker = s_voice_state.speakers + client;
 
@@ -418,6 +407,31 @@ void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const vec3_t origin,
       speaker->started = false;
     }
   }
+}
+
+/**
+ * @brief Accepts one voice frame from the network.
+ */
+void S_AddVoice(int32_t client, uint8_t seq, uint8_t flags, const vec3_t origin,
+                const byte *data, int32_t len) {
+
+  if (!s_voice_state.enabled || !s_voice->integer) {
+    return;
+  }
+
+  if (client < 0 || client > VOICE_SELF) {
+    Com_Debug(DEBUG_SOUND, "Rejecting voice from client %d\n", client);
+    return;
+  }
+
+  if (len <= 0 || len > VOICE_MAX_PAYLOAD) {
+    Com_Debug(DEBUG_SOUND, "Rejecting voice payload of %d bytes\n", len);
+    return;
+  }
+
+  SDL_LockMutex(s_voice_state.mutex);
+
+  S_AddVoice_(client, seq, flags, origin, data, len);
 
   SDL_UnlockMutex(s_voice_state.mutex);
 }
@@ -545,8 +559,8 @@ static void S_PumpVoice(void) {
       S_EnqueueVoiceFrame(s_voice_state.payload, len, 0);
 
       if (s_voice_loopback->integer) {
-        S_AddVoice(VOICE_SELF, s_voice_state.out_seq - 1, VOICE_NO_POS, Vec3_Zero(),
-                   s_voice_state.payload, len);
+        S_AddVoice_(VOICE_SELF, s_voice_state.out_seq - 1, VOICE_NO_POS, Vec3_Zero(),
+                    s_voice_state.payload, len);
       }
     }
   }

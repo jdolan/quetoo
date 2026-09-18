@@ -356,6 +356,15 @@ void S_Init(void) {
   }
 
   if (!S_InitPlayback()) {
+
+    // leave nothing half built: S_Shutdown keys media and music off the context, and neither
+    // has been initialized yet
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(s_context.context);
+    s_context.context = NULL;
+
+    alcCloseDevice(s_context.device);
+    s_context.device = NULL;
     return;
   }
 

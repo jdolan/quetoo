@@ -1868,6 +1868,15 @@ void G_ClientDisconnect(g_client_t *cl) {
 
   G_ClientWillDisconnect(cl);
 
+  // client numbers are reused, so a mute left behind would silence whoever inherits the slot
+  const uint64_t bit = (uint64_t) 1 << cl->ps.client;
+
+  G_ForEachClient(other, {
+    other->persistent.muted_clients &= ~bit;
+  });
+
+  cl->persistent.muted_clients = 0;
+
   if (cl->entity) {
     G_TossInventory(cl);
     G_TossInvisibility(cl);

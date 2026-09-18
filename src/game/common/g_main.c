@@ -451,6 +451,10 @@ void G_MuteClient(char *name, bool mute) {
   }
 
   cl->persistent.muted = mute;
+
+  G_ForEachClient(other, {
+    gi.MuteVoice(other, cl, mute);
+  });
 }
 
 /**

@@ -305,6 +305,10 @@ static void Cl_ParseVoice(void) {
     Com_Error(ERROR_DROP, "Illegible voice frame of %d bytes\n", len);
   }
 
+  if (client < 0 || client >= MAX_CLIENTS) {
+    Com_Error(ERROR_DROP, "Illegible voice frame from client %d\n", client);
+  }
+
   byte data[VOICE_MAX_PAYLOAD];
   Net_ReadData(&net_message, data, len);
 

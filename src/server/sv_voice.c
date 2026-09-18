@@ -106,7 +106,7 @@ static void Sv_RelayVoice(const sv_client_t *from, uint8_t channel, uint8_t seq,
   const int32_t speaker = (int32_t) (from - svs.clients);
 
   mem_buf_t buf;
-  byte bytes[VOICE_MAX_PAYLOAD + 16];
+  byte bytes[VOICE_MAX_PAYLOAD + 32]; // command, speaker, seq, flags, origin, length
 
   Mem_InitBuffer(&buf, bytes, sizeof(bytes));
 
@@ -161,6 +161,12 @@ void Sv_ParseVoice(sv_client_t *cl) {
 
   if (len <= 0 || len > VOICE_MAX_PAYLOAD) {
     Com_Warn("Bad voice frame of %d bytes from %s\n", len, Sv_NetaddrToString(cl));
+    Sv_DropClient(cl);
+    return;
+  }
+
+  if (net_message.read + (size_t) len > net_message.size) {
+    Com_Warn("Truncated voice frame from %s\n", Sv_NetaddrToString(cl));
     Sv_DropClient(cl);
     return;
   }

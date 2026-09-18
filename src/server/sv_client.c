@@ -434,6 +434,11 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
         }
 
         Sv_ParseVoice(cl);
+
+        if (cl->state == SV_CLIENT_FREE) {
+          return; // the frame was malformed, and the client is gone
+        }
+
         break;
 
       case CL_CMD_STRING:
