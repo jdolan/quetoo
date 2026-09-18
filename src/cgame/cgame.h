@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 54
+#define CGAME_API_VERSION 55
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -1132,6 +1132,23 @@ typedef struct cg_export_s {
    * module is free to define channels of its own. Returning 0 transmits to nobody.
    */
   uint64_t (*VoiceRecipients)(const char *channel);
+
+  /**
+   * @brief Interprets an incoming chat message, which the module renders itself.
+   * @param client The sender's client number.
+   * @param flags CHAT_TEAM, plus whatever the game defines above CHAT_GAME.
+   * @remarks The message arrives unformatted, with its sender intact, so a module decides how it
+   * reads and who it is shown to. Nothing is printed unless the module prints it.
+   */
+  void (*Chat)(int32_t client, uint8_t flags, const char *message);
+
+  /**
+   * @brief Interprets an incoming voice frame, returning false to discard it.
+   * @remarks This is presentation, not policy. The frame has already been sent, so declining it
+   * saves nothing and conceals nothing from a client that declines to decline. Anything that must
+   * actually be enforced, muting above all, belongs on the server where the relay can refuse it.
+   */
+  bool (*Voice)(int32_t client, uint8_t flags);
 
   void (*UpdateScreen)(const cl_frame_t *frame);
 

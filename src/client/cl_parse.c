@@ -264,6 +264,27 @@ static void Cl_ParseDemoInfo(void) {
 }
 
 /**
+ * @brief Parses a chat message and hands it to the client game to render.
+ * @details Chat carries its sender rather than arriving pre-formatted, so the module decides how it
+ * reads and whether it is shown at all. The engine prints nothing here.
+ */
+static void Cl_ParseChat(void) {
+
+  const int32_t client = Net_ReadByte(&net_message);
+  const uint8_t flags = Net_ReadByte(&net_message);
+  const char *message = Net_ReadString(&net_message);
+
+  if (client < 0 || client >= MAX_CLIENTS) {
+    Com_Debug(DEBUG_CLIENT, "Rejecting chat from client %d\n", client);
+    return;
+  }
+
+  if (cls.cgame) {
+    cls.cgame->Chat(client, flags, message);
+  }
+}
+
+/**
  * @brief Parses a relayed voice frame and hands it to the sound subsystem.
  */
 static void Cl_ParseVoice(void) {
@@ -286,6 +307,10 @@ static void Cl_ParseVoice(void) {
 
   byte data[VOICE_MAX_PAYLOAD];
   Net_ReadData(&net_message, data, len);
+
+  if (cls.cgame && !cls.cgame->Voice(client, flags)) {
+    return;
+  }
 
   S_AddVoice(client, seq, flags, origin, data, len);
 }
@@ -381,23 +406,6 @@ static void Cl_ParsePrint(void) {
 
   // the server shouldn't have sent us anything below our level anyway
   if (level >= message_level->integer) {
-
-    // check to see if we should ignore the message
-    if (*cl_ignore->string) {
-      parser_t parser = Parse_Init(cl_ignore->string, PARSER_DEFAULT);
-      char pattern[MAX_STRING_CHARS];
-
-      while (true) {
-
-        if (!Parse_Token(&parser, PARSE_DEFAULT, pattern, sizeof(pattern))) {
-          break;
-        }
-
-        if (GlobMatch(pattern, string, GLOB_FLAGS_NONE)) {
-          return;
-        }
-      }
-    }
 
     char *sample = NULL;
     switch (level) {
@@ -531,6 +539,10 @@ void Cl_ParseServerMessage(void) {
 
       case SV_CMD_DEMO_INFO:
         Cl_ParseDemoInfo();
+        break;
+
+      case SV_CMD_CHAT:
+        Cl_ParseChat();
         break;
 
       case SV_CMD_VOICE:

@@ -32,7 +32,6 @@
 #define QUETOO_GUID_URL "https://giblets.quetoo.org/api/guid"
 
 cvar_t *cl_chat_sound;
-cvar_t *cl_ignore;
 cvar_t *cl_max_fps;
 cvar_t *cl_no_lerp;
 cvar_t *cl_team_chat_sound;
@@ -538,7 +537,6 @@ static void Cl_InitLocal(void) {
 
   // register our variables
   cl_chat_sound = Cvar_Add("cl_chat_sound", "misc/chat", CVAR_ARCHIVE, "Path to the sound that is made when a chat message is received");
-  cl_ignore = Cvar_Add("cl_ignore", "", 0, "A list of patterns that will be matched against incoming messages and ignored by your client");
   cl_max_fps = Cvar_Add("cl_max_fps", "-1", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
   cl_no_lerp = Cvar_Add("cl_no_lerp", "0", CVAR_DEVELOPER, "Disable frame interpolation");
   cl_team_chat_sound = Cvar_Add("cl_team_chat_sound", "misc/teamchat", CVAR_ARCHIVE, "Path to the sound that is made when a team chat message is received");

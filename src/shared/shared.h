@@ -497,7 +497,10 @@ typedef enum {
   SV_CMD_RECONNECT,
   SV_CMD_SERVER_DATA, // [long] protocol ...
   SV_CMD_DEMO_INFO, // [long] duration in ms, [byte] paused; from a demo relay, on every change
+  SV_CMD_CHAT, // [byte] speaker [byte] flags [string] message
   SV_CMD_VOICE, // [byte] speaker [byte] seq [byte] flags [pos] origin [byte] len [data]
+  SV_CMD_RESERVED_1, // claim these before extending the game's range, and the next engine
+  SV_CMD_RESERVED_2, // command costs no protocol break
   SV_CMD_CGAME, // the game may extend from here
 } sv_packet_cmd_t;
 
@@ -506,6 +509,13 @@ typedef enum {
  * sane bitrate, and small enough that a malformed length is refused before a decoder sees it.
  */
 #define VOICE_MAX_PAYLOAD 128
+
+/**
+ * @brief Chat flags. The low bits are reserved for the engine; a game module is free to define
+ * its own above CHAT_GAME, for squads, radio channels or whatever else it invents.
+ */
+#define CHAT_TEAM 0x01 // addressed to a team rather than to everyone
+#define CHAT_GAME 0x02 // the game may extend from here
 
 /**
  * @brief Voice transmission flags.
@@ -524,6 +534,8 @@ typedef enum {
   CL_CMD_USER_INFO, // [user_info_string]
   CL_CMD_ENTITY_INFO, // [short] number [entity_info_string]
   CL_CMD_VOICE, // [long] recipients low [long] recipients high [byte] seq [byte] flags [byte] len [data]
+  CL_CMD_RESERVED_1, // claim these before extending the game's range, and the next engine
+  CL_CMD_RESERVED_2, // command costs no protocol break
   CL_CMD_CGAME, // the game may extend from here
 } cl_packet_cmd_t;
 

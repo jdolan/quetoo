@@ -497,18 +497,21 @@ static void G_Say_f(g_client_t *cl) {
   const int32_t color = team ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
   q_snprintf(text, sizeof(text), "%s^%d: %s\n", cl->persistent.net_name, color, message);
 
+  // chat carries its sender rather than arriving pre-formatted, so the client game decides how it
+  // reads, and can attribute it to a player rather than matching text against a pattern
   G_ForEachClient(other, {
     if (other->persistent.muted_clients & ((uint64_t) 1 << cl->ps.client)) {
       continue;
     }
-    if (team) {
-      if (!G_OnSameTeam(cl, other)) {
-        continue;
-      }
-      gi.ClientPrint(other, PRINT_TEAM_CHAT, "%s", text);
-    } else {
-      gi.ClientPrint(other, PRINT_CHAT, "%s", text);
+    if (team && !G_OnSameTeam(cl, other)) {
+      continue;
     }
+
+    gi.WriteByte(SV_CMD_CHAT);
+    gi.WriteByte(cl->ps.client);
+    gi.WriteByte(team ? CHAT_TEAM : 0);
+    gi.WriteString(message);
+    gi.Unicast(other, true);
   });
 
   if (dedicated->value) { // print to the console
@@ -763,7 +766,7 @@ static void G_MutePlayer_f(g_client_t *cl, bool mute) {
     return;
   }
 
-  g_client_t *other = G_ClientByName(gi.Argv(1));
+  g_client_t *other = G_ClientByName(va("%s", gi.Argv(1)));
 
   if (!other) {
     gi.ClientPrint(cl, PRINT_HIGH, "Player \"%s\" not found\n", gi.Argv(1));

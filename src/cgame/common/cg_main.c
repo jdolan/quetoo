@@ -401,6 +401,33 @@ static uint64_t Cg_VoiceRecipients(const char *channel) {
   return UINT64_MAX;
 }
 
+/**
+ * @brief Renders an incoming chat message.
+ * @details The sender arrives as a client number rather than as text, so the message can be
+ * attributed, coloured and filtered by who said it instead of by what it happens to say.
+ */
+static void Cg_Chat(int32_t client, uint8_t flags, const char *message) {
+
+  const int32_t level = (flags & CHAT_TEAM) ? PRINT_TEAM_CHAT : PRINT_CHAT;
+
+  if (level < cgi.GetCvarInteger("message_level")) {
+    return;
+  }
+
+  const int32_t color = (flags & CHAT_TEAM) ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
+
+  cgi.Print("%s^%d: %s\n", cg_state.clients[client].name, color, message);
+}
+
+/**
+ * @brief Accepts an incoming voice frame.
+ * @details Presentation only: the frame has already crossed the network, so declining it here
+ * saves nothing. Muting is enforced by the server, which refuses to relay in the first place.
+ */
+static bool Cg_Voice(int32_t client, uint8_t flags) {
+  return true;
+}
+
 static void Cg_ParsedMessage(int32_t cmd, void *data) {
 
   switch (cmd) {
@@ -604,6 +631,8 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
   cge.FreeMedia = Cg_FreeMedia;
   cge.ParsedMessage = Cg_ParsedMessage;
   cge.VoiceRecipients = Cg_VoiceRecipients;
+  cge.Chat = Cg_Chat;
+  cge.Voice = Cg_Voice;
   cge.ParseMessage = Cg_ParseMessage;
   cge.Interpolate = Cg_Interpolate;
   cge.UsePrediction = Cg_ExportUsePrediction;
