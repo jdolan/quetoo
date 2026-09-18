@@ -434,6 +434,7 @@ static void updateWithFrame(HudViewController *self, const cl_frame_t *frame) {
   $((View *) self->navEdit, updateBindings, (ident) frame);
   $((View *) self->notify, updateBindings, (ident) frame);
   $((View *) self->chat, updateBindings, (ident) frame);
+  $((View *) self->voice, updateBindings, (ident) frame);
 
   // The scoreboard outlives the HUD: it shows through the intermission, and with the HUD off.
   // Only what shows takes the frame, since some elements trace the world to fill themselves in.

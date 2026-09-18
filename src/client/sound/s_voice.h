@@ -24,6 +24,7 @@
 extern cvar_t *s_voice;
 extern cvar_t *s_voice_bitrate;
 extern cvar_t *s_capture_gain;
+extern cvar_t *s_capture_normalize;
 extern cvar_t *s_voice_loopback;
 extern cvar_t *s_voice_volume;
 

@@ -94,6 +94,7 @@ static struct {
 
   bool capture_silent;
   int32_t silent_frames;
+  float capture_peak;
 
   OpusEncoder *encoder;
 
@@ -124,6 +125,7 @@ static struct {
 cvar_t *s_voice;
 cvar_t *s_voice_bitrate;
 cvar_t *s_capture_gain;
+cvar_t *s_capture_normalize;
 cvar_t *s_voice_loopback;
 cvar_t *s_voice_volume;
 
@@ -163,11 +165,48 @@ static void S_CheckCaptureSilence(const int16_t *samples, size_t count) {
 }
 
 /**
- * @brief Applies the configured microphone gain, clipping rather than wrapping.
+ * @brief Returns the automatic makeup gain for the current speech level.
+ * @details A headset at a sensible operating system input level still peaks far below what the
+ * game itself plays, so voice at unity disappears under a rocket. The envelope follows peaks
+ * immediately and falls away slowly, which tracks how loudly someone is speaking without pumping
+ * between syllables, and the gain only ever boosts: a speaker who is already loud is left alone.
+ * @remarks Push to talk bounds the damage this can do. An open microphone would have the envelope
+ * fall during a silence and amplify the room; a key that has to be held does not.
+ */
+static float S_CaptureNormalize(const int16_t *samples, size_t count) {
+
+  if (!s_capture_normalize->integer) {
+    return 1.f;
+  }
+
+  int32_t peak = 0;
+
+  for (size_t i = 0; i < count; i++) {
+    const int32_t a = abs(samples[i]);
+    if (a > peak) {
+      peak = a;
+    }
+  }
+
+  if (peak > s_voice_state.capture_peak) {
+    s_voice_state.capture_peak = peak;
+  } else {
+    s_voice_state.capture_peak += (peak - s_voice_state.capture_peak) * 0.05f;
+  }
+
+  if (s_voice_state.capture_peak < 64.f) {
+    return 1.f;
+  }
+
+  return Clampf((INT16_MAX * 0.6f) / s_voice_state.capture_peak, 1.f, 16.f);
+}
+
+/**
+ * @brief Applies automatic and configured microphone gain, clipping rather than wrapping.
  */
 static void S_ApplyCaptureGain(int16_t *samples, size_t count) {
 
-  const float gain = Clampf(s_capture_gain->value, 0.f, 4.f);
+  const float gain = S_CaptureNormalize(samples, count) * Clampf(s_capture_gain->value, 0.f, 32.f);
 
   if (gain == 1.f) {
     return;
@@ -566,6 +605,7 @@ void S_StartVoice(uint64_t recipients) {
 
     s_voice_state.capture_silent = false;
     s_voice_state.silent_frames = 0;
+    s_voice_state.capture_peak = 0.f;
 
     S_ResumeCapture();
 
@@ -615,6 +655,7 @@ void S_InitVoice(void) {
   s_voice = Cvar_Add("s_voice", "1", CVAR_ARCHIVE, "Enables voice chat.");
   s_voice_bitrate = Cvar_Add("s_voice_bitrate", "16000", CVAR_ARCHIVE, "Voice chat bitrate, in bits per second.");
   s_capture_gain = Cvar_Add("s_capture_gain", "1", CVAR_ARCHIVE, "Microphone input gain.");
+  s_capture_normalize = Cvar_Add("s_capture_normalize", "1", CVAR_ARCHIVE, "Automatically raise a quiet microphone to a usable level.");
   s_voice_loopback = Cvar_Add("s_voice_loopback", "0", CVAR_DEVELOPER, "Play your own microphone back to you (developer tool).");
   s_voice_volume = Cvar_Add("s_voice_volume", "1", CVAR_ARCHIVE, "Voice chat volume.");
 
