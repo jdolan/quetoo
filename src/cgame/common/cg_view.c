@@ -157,6 +157,10 @@ void Cg_CameraModeCycle_f(void) {
 
   const player_state_t *ps = &cgi.client->frame.ps;
 
+  if (!ps->stats[STAT_SPECTATOR]) {
+    return; // an active player has no camera to cycle, and their chasecam cvar is not ours to set
+  }
+
   if (!ps->stats[STAT_CHASE]) { // free-flight -> chase, first-person
     cgi.Cbuf("chase_start\n");
     cgi.SetCvarValue(cg_third_person_chasecam->name, 0.f);
@@ -182,18 +186,16 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
     return;
   }
 
-  static bool was_orbit_eligible;
-
   const bool orbit_eligible = Cg_OrbitEligible(ps);
 
-  if (orbit_eligible && !was_orbit_eligible) {
+  if (orbit_eligible && !cg_state.orbit.eligible) {
     // entering orbit: seed from where the view already is, so the camera takes over from the
     // subject's own orientation without a jump
     cg_state.orbit.yaw = cgi.view->angles.y + cg_third_person_yaw->value;
     cg_state.orbit.pitch = cgi.view->angles.x + cg_third_person_pitch->value;
     cg_state.orbit.distance = -cg_third_person_x->value;
   }
-  was_orbit_eligible = orbit_eligible;
+  cg_state.orbit.eligible = orbit_eligible;
 
   if (cg_third_person->value && Cg_Self()->current.model1) {
     cgi.client->third_person = true;

@@ -218,6 +218,13 @@ typedef enum {
  */
 typedef struct {
   float yaw, pitch, distance;
+
+  /**
+   * @brief Whether the camera was orbit eligible last frame, so that entering orbit seeds the
+   * accumulator. This lives here rather than in a static so that it is cleared with the rest of
+   * the orbit state, which a reconnect would otherwise leave disagreeing.
+   */
+  bool eligible;
 } cg_orbit_state_t;
 
 /**
