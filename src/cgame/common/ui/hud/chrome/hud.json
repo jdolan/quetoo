@@ -30,10 +30,6 @@
           "identifier": "spectator"
         },
         {
-          "class": "ChaseView",
-          "identifier": "chase"
-        },
-        {
           "class": "TeamBannerView",
           "identifier": "teamBanner"
         },
@@ -116,6 +112,10 @@
               "stat": "armor"
             }
           ]
+        },
+        {
+          "class": "ChaseView",
+          "identifier": "chase"
         },
         {
           "class": "StackView",

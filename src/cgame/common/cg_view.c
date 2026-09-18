@@ -307,6 +307,10 @@ static void Cg_UpdateBob(const player_state_t *ps) {
     return;
   }
 
+  if (cgi.client->demo_server && cg_state.spectate.detached) {
+    return; // a free camera does not walk, least of all to the gait of the player it left
+  }
+
   if (ps->pm_state.type >= PM_SPECTATOR) {
 
     // if we're frozen and not chasing, don't bob

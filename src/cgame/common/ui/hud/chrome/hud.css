@@ -423,7 +423,7 @@ ChatView TextView > Text {
 #hud #chase {
   alignment: bottom-center;
   color: #00ff00;
-  padding-bottom: 48;
+  padding-bottom: 152;
 }
 
 #hud .heldFlag {
