@@ -287,6 +287,15 @@ void Sv_SendClientPackets(void) {
     return;
   }
 
+  // for demo playback, this tick's frame is read once and shared by every client, rather than
+  // each client consuming its own chunk from the demo file
+  byte demo_buffer[MAX_MSG_SIZE];
+  size_t demo_size = 0;
+
+  if (svs.state == SV_ACTIVE_DEMO) {
+    demo_size = Sv_GetDemoFrame(demo_buffer);
+  }
+
   // send a message to each connected client
   sv_client_t *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
@@ -300,7 +309,7 @@ void Sv_SendClientPackets(void) {
     }
 
     if (svs.state == SV_ACTIVE_DEMO) { // send the demo packet
-      if (!Sv_SendDemoPacket(cl)) {
+      if (!Sv_SendDemoPacket(cl, demo_buffer, demo_size)) {
         break; // recording is done, so we're done
       }
     } else if (cl->state == SV_CLIENT_ACTIVE) { // send the game packet

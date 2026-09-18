@@ -299,25 +299,40 @@ void Sv_SeekDemo(int32_t millis) {
 }
 
 /**
- * @brief Transmits this tick's demo frame to the given client.
- * @return False once the recording is exhausted, ending the send loop for this tick.
+ * @brief Reads this tick's demo frame once, so every connected client can be transmitted the
+ * same bytes, rather than each client consuming its own chunk from the shared demo file.
+ * @return The size of the frame in `buffer`, or 0 if none is due this tick: playback is paused
+ * with no pending seek, or the recording just ended.
  */
-bool Sv_SendDemoPacket(sv_client_t *cl) {
-  byte buffer[MAX_MSG_SIZE];
-  size_t size;
+size_t Sv_GetDemoFrame(byte *buffer) {
 
   if (sv.demo_paused) {
 
     // a seek taken while paused still has to show where it landed, or the transport controls
     // appear dead: scrubbing and the rewind/forward buttons would move the read position
     // silently, and playback would later resume from somewhere the viewer never chose
-    if (sv.demo_step) {
-      sv.demo_step = false;
+    if (!sv.demo_step) {
+      return 0;
+    }
 
-      if ((size = Sv_GetDemoMessage(buffer, NULL))) {
-        Netchan_Transmit(&cl->net_chan, buffer, size);
-        return true;
-      }
+    sv.demo_step = false;
+  }
+
+  return Sv_GetDemoMessage(buffer, NULL);
+}
+
+/**
+ * @brief Transmits this tick's demo frame, read once by `Sv_GetDemoFrame` and shared by every
+ * client, to the given client.
+ * @return False once the recording is exhausted, ending the send loop for this tick.
+ */
+bool Sv_SendDemoPacket(sv_client_t *cl, byte *buffer, size_t size) {
+
+  if (sv.demo_paused) {
+
+    if (size) {
+      Netchan_Transmit(&cl->net_chan, buffer, size);
+      return true;
     }
 
     // otherwise send no frame, but still flush pending reliable data (Sv_SendDemoInfo's pause
@@ -331,7 +346,7 @@ bool Sv_SendDemoPacket(sv_client_t *cl) {
     return true;
   }
 
-  if (!(size = Sv_GetDemoMessage(buffer, NULL))) {
+  if (!size) {
     return false;
   }
 
