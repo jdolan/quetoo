@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 57
+#define CGAME_API_VERSION 58
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -789,6 +789,16 @@ typedef struct cg_import_s {
    * @param context The asset context, e.g. `ASSET_CONTEXT_SOUNDS`, `ASSET_CONTEXT_PLAYERS`.
    * @return The loaded sample.
    */
+  /**
+   * @brief Begins a voice transmission on `channel`, which the game defines.
+   */
+  void (*StartVoice)(uint8_t channel);
+
+  /**
+   * @brief Ends a voice transmission.
+   */
+  void (*StopVoice)(void);
+
   s_sample_t *(*LoadSample)(const char *name, asset_context_t context);
 
   /**

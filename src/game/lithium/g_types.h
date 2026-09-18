@@ -57,6 +57,13 @@
  */
 #define CHAT_TEAM 0x01 // addressed to a team rather than to everyone
 
+/**
+ * @brief Voice channels, carried opaquely by CL_CMD_VOICE. The client game names them when it
+ * transmits and the game answers for them when the server asks who may hear.
+ */
+#define VOICE_CHANNEL_ALL 0
+#define VOICE_CHANNEL_TEAM 1
+
 typedef enum {
   SV_CMD_SOUND = SV_CMD_CGAME,
   SV_CMD_MUZZLE_FLASH,

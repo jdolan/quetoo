@@ -307,6 +307,8 @@ void Cl_InitCgame(void) {
 
   import.LoadingProgress = Cl_LoadingProgress;
   
+  import.StartVoice = S_StartVoice;
+  import.StopVoice = S_StopVoice;
   import.LoadSample = S_LoadSample;
   import.LoadClientModelSample = S_LoadClientModelSample;
   import.LoadClientModelSamples = S_LoadClientModelSamples;

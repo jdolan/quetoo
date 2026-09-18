@@ -509,14 +509,6 @@ typedef enum {
 #define VOICE_MAX_PAYLOAD 128
 
 /**
- * @brief Conventional voice channels, as say and say_team are conventional chat commands. The
- * engine carries the channel without interpreting it, and asks the game who may hear a
- * transmission; a module is free to define channels of its own above these.
- */
-#define VOICE_CHANNEL_ALL 0
-#define VOICE_CHANNEL_TEAM 1
-
-/**
  * @brief Voice transmission flags.
  */
 #define VOICE_END 0x01 // the last frame of a transmission, sent when the key is released

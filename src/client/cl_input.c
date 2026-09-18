@@ -535,32 +535,6 @@ void Cl_Move(pm_cmd_t *cmd) {
 }
 
 /**
- * @brief Begins a push to talk voice transmission.
- * @details Holding shift promotes it to the team channel, the way shift sends a chat line as
- * say_team: key binds carry no modifier of their own, so one bind has to serve both.
- */
-static void Cl_Voice_down_f(void) {
-
-  const bool team = SDL_GetModState() & SDL_KMOD_SHIFT;
-
-  S_StartVoice(team ? VOICE_CHANNEL_TEAM : VOICE_CHANNEL_ALL);
-}
-
-/**
- * @brief Begins a push to talk transmission to the team channel.
- */
-static void Cl_VoiceTeam_down_f(void) {
-  S_StartVoice(VOICE_CHANNEL_TEAM);
-}
-
-/**
- * @brief Ends a push to talk voice transmission.
- */
-static void Cl_Voice_up_f(void) {
-  S_StopVoice();
-}
-
-/**
  * @brief Resets all button states, clearing any held inputs.
  * @remarks Voice is released here too, so that losing focus or dropping a key up event cannot
  * leave the microphone transmitting.
@@ -578,10 +552,6 @@ void Cl_ClearInput(void) {
 void Cl_InitInput(void) {
 
   Cmd_Add("center_view", Cl_CenterView_f, CMD_CLIENT, NULL);
-  Cmd_Add("+voice", Cl_Voice_down_f, CMD_CLIENT, "Transmit voice chat while held; hold shift for your team.");
-  Cmd_Add("-voice", Cl_Voice_up_f, CMD_CLIENT, NULL);
-  Cmd_Add("+voice_team", Cl_VoiceTeam_down_f, CMD_CLIENT, "Transmit voice chat to your team while held.");
-  Cmd_Add("-voice_team", Cl_Voice_up_f, CMD_CLIENT, NULL);
   Cmd_Add("+move_up", Cl_Up_down_f, CMD_CLIENT, NULL);
   Cmd_Add("-move_up", Cl_Up_up_f, CMD_CLIENT, NULL);
   Cmd_Add("+move_down", Cl_Down_down_f, CMD_CLIENT, NULL);
