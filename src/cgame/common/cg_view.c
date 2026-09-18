@@ -159,7 +159,7 @@ static void Cg_UpdateCameraMode(const player_state_t *ps) {
     return; // the server frames it the way we do
   }
 
-  // a chase_start or chase_stop is in flight, and the answer takes a round trip to arrive. Wait
+  // a chase_next or chase_stop is in flight, and the answer takes a round trip to arrive. Wait
   // for it rather than overruling the mode in the meantime, which would undo the request a frame
   // after it was made - but only for so long, since the server is free to refuse outright when
   // there is nobody left to chase
@@ -176,7 +176,7 @@ static void Cg_UpdateCameraMode(const player_state_t *ps) {
  * @brief Console command: cycles first-person, third-person, follow and free-flight cameras.
  * @details The mode is client state in both contexts, but only demo playback owns whether the
  * camera is attached to anything. Live, that is the server's, so entering and leaving
- * `CAMERA_SPECTATE` asks for it with `chase_stop` / `chase_start` and lets `Cg_UpdateCameraMode`
+ * `CAMERA_SPECTATE` asks for it with `chase_stop` / `chase_next` and lets `Cg_UpdateCameraMode`
  * settle the answer - including refusing it, when there is nobody left to chase.
  */
 void Cg_CameraModeCycle_f(void) {
@@ -213,7 +213,7 @@ void Cg_CameraModeCycle_f(void) {
       cg_state.spectate.initialized = false;
 
       if (!cgi.client->demo_server) {
-        cgi.Cbuf("chase_start\n");
+        cgi.Cbuf("chase_next\n");
         cg_state.chase_request_time = cgi.client->unclamped_time;
       }
       break;

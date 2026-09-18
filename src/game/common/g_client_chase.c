@@ -80,6 +80,7 @@ void G_ClientChaseThink(g_client_t *cl) {
 void G_ClientChaseNext(g_client_t *cl) {
 
   if (!cl->chase_target) {
+    G_ClientChaseStart(cl); // nobody to advance from, so acquire one
     return;
   }
 
@@ -110,6 +111,7 @@ void G_ClientChaseNext(g_client_t *cl) {
 void G_ClientChasePrevious(g_client_t *cl) {
 
   if (!cl->chase_target) {
+    G_ClientChaseStart(cl); // nobody to step back from, so acquire one
     return;
   }
 
@@ -163,12 +165,13 @@ void G_ClientChaseStop(g_client_t *cl) {
 
 /**
  * @brief Attaches a free-flying spectator to the first available chase target.
- * @details The attach counterpart to `G_ClientChaseStop`, exposing `G_ClientChaseTarget` as a
- * standalone command for the same reason.
+ * @details The attach counterpart to `G_ClientChaseStop`. Reached by asking to step to another
+ * target while detached, so the spectator check lives here rather than in the command dispatch:
+ * a dead player cycling weapons must not be put on someone else's back.
  */
 void G_ClientChaseStart(g_client_t *cl) {
 
-  if (!cl->chase_target) {
+  if (!cl->chase_target && cl->persistent.spectator) {
     G_ClientChaseTarget(cl);
     G_ClientChaseThink(cl);
   }

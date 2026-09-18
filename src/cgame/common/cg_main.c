@@ -192,7 +192,6 @@ static void Cg_Init(void) {
   cgi.AddCmd("unready", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("player_list", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("chase_stop", NULL, CMD_CGAME, "Stop chasing and return to free spectator flight.");
-  cgi.AddCmd("chase_start", NULL, CMD_CGAME, "Chase the first available player.");
 
   cgi.AddCmd("camera", Cg_CameraModeCycle_f, CMD_CGAME,
              "Cycle first-person, third-person, follow, and free-flight cameras "
