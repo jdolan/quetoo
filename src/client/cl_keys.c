@@ -247,13 +247,21 @@ static void Cl_KeyGame(const SDL_Event *event) {
     return;
   }
 
-  // a demo steers itself: the view follows the recorded player state, so movement and attack do
-  // nothing useful, and the transport keys collide with them outright - space is bound to
-  // +move_up, left and right to +left and +right, so stepping a frame would also turn the view.
-  // The scoreboard is the one button command still worth having, the recording carrying the
-  // stats it shows
-  if (cl.demo_server && bind[0] == '+' && q_strcmp(bind, "+score")) {
-    return;
+  // A demo no longer merely steers itself: the camera modes drive themselves from movement
+  // input, so button commands are let through. The transport keys are the exception, because
+  // they collide with movement binds outright - space is bound to +move_up, left and right to
+  // +left and +right, so stepping a frame would also turn the view
+  if (cl.demo_server && bind[0] == '+') {
+    switch (key) {
+      case SDL_SCANCODE_LEFT:
+      case SDL_SCANCODE_RIGHT:
+      case SDL_SCANCODE_SPACE:
+      case SDL_SCANCODE_COMMA:
+      case SDL_SCANCODE_PERIOD:
+        return;
+      default:
+        break;
+    }
   }
 
   cmd[0] = '\0';
