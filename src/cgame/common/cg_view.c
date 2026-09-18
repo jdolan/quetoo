@@ -162,6 +162,22 @@ static void Cg_UpdateCameraMode(void) {
 }
 
 /**
+ * @brief The coloured name of the key bound to the given command, or red `UNBOUND`.
+ * @remarks Asking rather than naming the shipped default, which a player may well have moved -
+ * on macOS a right click arrives as mouse 3, so `+hook` does not sit where the defaults put it.
+ */
+static const char *Cg_KeyBind(const char *bind) {
+
+  const SDL_Scancode key = cgi.KeyForBind(SDL_SCANCODE_UNKNOWN, bind);
+
+  if (key == SDL_SCANCODE_UNKNOWN) {
+    return "^1UNBOUND^7";
+  }
+
+  return va("^2%s^7", cgi.KeyName(key));
+}
+
+/**
  * @brief Prints the camera controls once per connection, the first time the viewer has a camera
  * of their own to steer - spectating a live game, or playing a demo back. The transport controls
  * a demo also gets are printed by `Cl_ParseServerData`, which knows a demo is starting.
@@ -183,15 +199,16 @@ static void Cg_PrintControls(const player_state_t *ps) {
   cg_state.printed_controls = true;
 
   cgi.Print("^3Camera controls:^7\n");
-  cgi.Print("  Cycle camera:  ^2MOUSE2^7\n");
-  cgi.Print("  Watch/free:    ^2MOUSE1^7\n");
+  cgi.Print("  Cycle camera:  %s\n", Cg_KeyBind("+hook"));
+  cgi.Print("  Watch/free:    %s\n", Cg_KeyBind("+attack"));
 
   if (!demo) {
-    cgi.Print("  Change target: ^2WHEEL^7\n");
+    cgi.Print("  Change target: %s / %s\n",
+              Cg_KeyBind("cg_weapon_previous"), Cg_KeyBind("cg_weapon_next"));
   }
 
   cgi.Print("  Aim camera:    ^2MOUSE^7\n");
-  cgi.Print("  Camera dist:   ^2W / S^7\n");
+  cgi.Print("  Camera dist:   %s / %s\n", Cg_KeyBind("+forward"), Cg_KeyBind("+back"));
 }
 
 /**
