@@ -33,21 +33,6 @@ static const EnumName CounterViewStatNames[] = MakeEnumNames(
 #endif
 );
 
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-  CounterView *this = (CounterView *) self;
-
-  release(this->caption);
-  release(this->value);
-
-  super(Object, self, dealloc);
-}
-
 #pragma mark - View
 
 /**
@@ -160,8 +145,6 @@ static const char *textForFrame(CounterView *self, const cl_frame_t *frame) {
 #pragma mark - Class lifecycle
 
 static void initialize(Class *clazz) {
-
-  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
   ((ViewInterface *) clazz->interface)->init = init;

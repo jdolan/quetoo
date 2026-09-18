@@ -26,26 +26,6 @@
 
 #define _Class _ScoreView
 
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-  ScoreView *this = (ScoreView *) self;
-
-  release(this->aside);
-  release(this->badge);
-  release(this->detail);
-  release(this->fill);
-  release(this->icon);
-  release(this->name);
-  release(this->ping);
-
-  super(Object, self, dealloc);
-}
-
 #pragma mark - ScoreView
 
 /**
@@ -183,8 +163,6 @@ static void setDetails(ScoreView *self, const char *detail, const char *aside) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-
-  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ScoreViewInterface *) clazz->interface)->initWithScore = initWithScore;
   ((ScoreViewInterface *) clazz->interface)->setDetails = setDetails;

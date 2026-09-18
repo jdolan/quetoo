@@ -27,21 +27,6 @@
 
 #define CHAT_MAX_LINES 16
 
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-  ChatView *this = (ChatView *) self;
-
-  release(this->history);
-  release(this->input);
-
-  super(Object, self, dealloc);
-}
-
 #pragma mark - TextViewDelegate
 
 /**
@@ -163,8 +148,6 @@ static void updateBindings(View *self, ident data) {
 #pragma mark - Class lifecycle
 
 static void initialize(Class *clazz) {
-
-  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewInterface *) clazz->interface)->init = init;
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
