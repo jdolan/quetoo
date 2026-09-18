@@ -343,11 +343,11 @@ static void Cl_ParseServerData(void) {
   cl.demo_server = Net_ReadByte(&net_message);
 
   if (cl.demo_server) {
-    Com_Print("Demo playback controls:\n"
-              "  Pause/resume:  SPACE\n"
-              "  Prev frame:    LEFT\n"
-              "  Next frame:    RIGHT\n"
-              "  Slower/faster: , / .\n");
+    Com_Print("^3Demo playback controls:^7\n"
+              "  Pause/resume:  ^2SPACE^7\n"
+              "  Prev frame:    ^2LEFT^7\n"
+              "  Next frame:    ^2RIGHT^7\n"
+              "  Slower/faster: ^2, / .^7\n");
   }
 
   // the game and client game directories, validated before being copied off:

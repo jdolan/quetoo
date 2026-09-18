@@ -162,8 +162,9 @@ static void Cg_UpdateCameraMode(void) {
 }
 
 /**
- * @brief Prints the transport and camera controls once per connection, the first time the viewer
- * has a camera of their own to steer - spectating a live game, or playing a demo back.
+ * @brief Prints the camera controls once per connection, the first time the viewer has a camera
+ * of their own to steer - spectating a live game, or playing a demo back. The transport controls
+ * a demo also gets are printed by `Cl_ParseServerData`, which knows a demo is starting.
  * @remarks The keys named are the shipped defaults, which is all this can honestly claim: they
  * are bindings, and a player may have moved them.
  */
@@ -181,23 +182,16 @@ static void Cg_PrintControls(const player_state_t *ps) {
 
   cg_state.printed_controls = true;
 
-  if (demo) {
-    cgi.Print("^3Demo controls^7\n");
-    cgi.Print("  ^2space^7          pause and resume\n");
-    cgi.Print("  ^2left^7 / ^2right^7   step a single frame, while paused\n");
-    cgi.Print("  ^2,^7 / ^2.^7           play slower / faster\n");
-  }
-
-  cgi.Print("^3Camera controls^7\n");
-  cgi.Print("  ^2mouse 2^7        first person, third person, follow\n");
-  cgi.Print("  ^2mouse 1^7        leave the player you are watching, or rejoin them\n");
+  cgi.Print("^3Camera controls:^7\n");
+  cgi.Print("  Cycle camera:  ^2MOUSE2^7\n");
+  cgi.Print("  Watch/free:    ^2MOUSE1^7\n");
 
   if (!demo) {
-    cgi.Print("  ^2wheel^7          watch somebody else\n");
+    cgi.Print("  Change target: ^2WHEEL^7\n");
   }
 
-  cgi.Print("  ^2mouse^7          aim the follow camera\n");
-  cgi.Print("  ^2w^7 / ^2s^7           pull the follow camera in / push it out\n");
+  cgi.Print("  Aim camera:    ^2MOUSE^7\n");
+  cgi.Print("  Camera dist:   ^2W / S^7\n");
 }
 
 /**
