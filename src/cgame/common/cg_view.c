@@ -178,7 +178,18 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
     return;
   }
 
+  static bool was_orbit_eligible;
+
   const bool orbit_eligible = Cg_OrbitEligible(ps);
+
+  if (orbit_eligible && !was_orbit_eligible) {
+    // entering orbit: seed from where the view already is, so the camera takes over from the
+    // subject's own orientation without a jump
+    cg_state.orbit.yaw = cgi.view->angles.y + cg_third_person_yaw->value;
+    cg_state.orbit.pitch = cgi.view->angles.x + cg_third_person_pitch->value;
+    cg_state.orbit.distance = -cg_third_person_x->value;
+  }
+  was_orbit_eligible = orbit_eligible;
 
   if (cg_third_person->value && Cg_Self()->current.model1) {
     cgi.client->third_person = true;
@@ -189,28 +200,15 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
     return;
   }
 
-  static bool was_orbit_eligible;
-
-  if (orbit_eligible && !was_orbit_eligible) {
-    // entering orbit mode: seed the accumulator from the static cvars, so the camera starts
-    // exactly where a non-orbit third-person view would have placed it
-    cg_state.orbit.yaw = cg_third_person_yaw->value;
-    cg_state.orbit.pitch = cg_third_person_pitch->value;
-    cg_state.orbit.distance = -cg_third_person_x->value;
-  }
-  was_orbit_eligible = orbit_eligible;
-
   vec3_t offset;
   vec3_t angles;
 
   if (orbit_eligible) {
     offset = Vec3(-cg_state.orbit.distance, cg_third_person_y->value, cg_third_person_z->value);
 
-    angles = Vec3_ClampEuler(Vec3(
-      cgi.view->angles.x + cg_state.orbit.pitch,
-      cgi.view->angles.y + cg_state.orbit.yaw,
-      cgi.view->angles.z
-    ));
+    // absolute, not relative to the subject: the camera holds its place in the world while the
+    // player being watched turns, which is what makes it usable for reviewing a fight
+    angles = Vec3_ClampEuler(Vec3(cg_state.orbit.pitch, cg_state.orbit.yaw, 0.f));
   } else {
     offset = Vec3(
       cg_third_person_x->value,

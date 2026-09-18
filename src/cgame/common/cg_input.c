@@ -24,6 +24,10 @@
 
 button_t cg_buttons[4];
 
+#define CG_ORBIT_ZOOM_SPEED 400.f
+#define CG_ORBIT_DISTANCE_MIN 40.f
+#define CG_ORBIT_DISTANCE_MAX 800.f
+
 static cvar_t *cg_run;
 
 typedef struct {
@@ -35,8 +39,38 @@ typedef struct {
 static cg_kick_t cg_kick;
 
 /**
- * @brief Handles SDL events, recreating the framebuffer on window resize or expose, and
- *   forwarding the mouse wheel to the editor's entity selection.
+ * @brief Accumulates raw mouse motion into the orbit camera's yaw and pitch.
+ * @remarks The client applies mouse motion to `cgi.client->angles`, but `Cg_UpdateAngles`
+ * overwrites that with the view angles whenever `pm_state.type` is `PM_FREEZE` - which is
+ * exactly the state the game module puts a chasing spectator in. The raw event is therefore
+ * the only place the viewer's own mouse input survives, so orbit reads it here rather than
+ * diffing angles that are reset out from under it every frame.
+ */
+static void Cg_UpdateOrbitLook(const SDL_Event *event) {
+
+  if (cgi.GetKeyDest() != KEY_GAME) {
+    return;
+  }
+
+  if (!Cg_OrbitEligible(&cgi.client->frame.ps)) {
+    return;
+  }
+
+  const float sensitivity = cgi.GetCvarValue("m_sensitivity");
+  const float invert = cgi.GetCvarValue("m_invert") ? -1.f : 1.f;
+
+  cg_state.orbit.yaw -= cgi.GetCvarValue("m_yaw") * event->motion.xrel * sensitivity;
+
+  cg_state.orbit.pitch = Clampf(
+    cg_state.orbit.pitch + invert * cgi.GetCvarValue("m_pitch") * event->motion.yrel * sensitivity,
+    -89.f, 89.f
+  );
+}
+
+/**
+ * @brief Handles SDL events, recreating the framebuffer on window resize or expose, driving the
+ *   orbit camera from mouse motion, and forwarding the mouse wheel to the editor's entity
+ *   selection.
  */
 void Cg_HandleEvent(const SDL_Event *event) {
 
@@ -49,6 +83,10 @@ void Cg_HandleEvent(const SDL_Event *event) {
     case SDL_EVENT_WINDOW_RESIZED:
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
       Cg_CreateFramebuffer();
+      break;
+
+    case SDL_EVENT_MOUSE_MOTION:
+      Cg_UpdateOrbitLook(event);
       break;
 
     case SDL_EVENT_MOUSE_WHEEL:
@@ -215,28 +253,6 @@ static void Cg_WeaponKick(const pm_cmd_t *cmd) {
 }
 
 /**
- * @brief Accumulates the mouse yaw/pitch delta since the last call into the orbit camera's
- * accumulator (`cg_state.orbit`), shared by live chase-cam and demo orbit mode.
- * @details `cgi.client->angles` is the same running look-angle state used for aiming, but it is
- * confirmed idle whenever orbit-eligible (a chasing spectator's aim is never read by the game
- * module; demo playback sends nothing to anything), so diffing it here repurposes otherwise
- * dead mouse input rather than fighting for it.
- */
-static void Cg_UpdateOrbitLook(void) {
-  static vec3_t previous_angles;
-
-  const vec3_t angles = cgi.client->angles;
-
-  if (Cg_OrbitEligible(&cgi.client->frame.ps)) {
-    const vec3_t delta = Vec3_Subtract(angles, previous_angles);
-    cg_state.orbit.yaw += delta.y;
-    cg_state.orbit.pitch += delta.x;
-  }
-
-  previous_angles = angles;
-}
-
-/**
  * @brief Augments the view offset and angles for the specified command.
  * @see Cl_Look(pm_cmd_t)
  */
@@ -245,8 +261,6 @@ void Cg_Look(pm_cmd_t *cmd) {
   Cg_ViewKick(cmd);
 
   Cg_WeaponKick(cmd);
-
-  Cg_UpdateOrbitLook();
 }
 
 /**
@@ -303,11 +317,20 @@ static void Cg_Move_Common(pm_cmd_t *cmd) {
   }
 
   if (Cg_OrbitEligible(&cgi.client->frame.ps)) {
-    // +forward/+back are otherwise idle whenever orbit-eligible, for the same reason the mouse
-    // is: nothing downstream reads them (a chasing spectator's movement is never applied, and
-    // demo playback sends no commands at all), so they drive orbit distance instead
-    cg_state.orbit.distance = Clampf(cg_state.orbit.distance - cmd->forward * 0.5f, 50.f, 600.f);
-    cmd->forward = cmd->right = 0;
+    // +forward/+back are otherwise idle whenever orbit-eligible - a chasing spectator's movement
+    // is never applied, and demo playback sends no commands at all - so they pan the camera in
+    // and out instead. cmd->forward arrives as cl_forward_speed * msec * key fraction, so it is
+    // divided back down to the milliseconds held before being scaled to a per-second rate
+    const float forward_speed = cgi.GetCvarValue("cl_forward_speed");
+
+    if (forward_speed > 0.f) {
+      const float millis = cmd->forward / forward_speed;
+
+      cg_state.orbit.distance = Clampf(
+        cg_state.orbit.distance - millis * (CG_ORBIT_ZOOM_SPEED / 1000.f),
+        CG_ORBIT_DISTANCE_MIN, CG_ORBIT_DISTANCE_MAX
+      );
+    }
   }
 
   if (cgi.client->demo_server && cg_state.demo_camera_mode == CAMERA_SPECTATE) {
