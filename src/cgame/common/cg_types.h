@@ -348,6 +348,11 @@ typedef struct {
   cg_camera_mode_t camera_mode;
 
   /**
+   * @brief Whether the transport and camera controls have been printed for this connection.
+   */
+  bool printed_controls;
+
+  /**
    * @brief Follow camera state, shared by live spectating and demo playback.
    */
   cg_follow_state_t follow;

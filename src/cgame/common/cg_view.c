@@ -162,6 +162,45 @@ static void Cg_UpdateCameraMode(void) {
 }
 
 /**
+ * @brief Prints the transport and camera controls once per connection, the first time the viewer
+ * has a camera of their own to steer - spectating a live game, or playing a demo back.
+ * @remarks The keys named are the shipped defaults, which is all this can honestly claim: they
+ * are bindings, and a player may have moved them.
+ */
+static void Cg_PrintControls(const player_state_t *ps) {
+
+  if (cg_state.printed_controls) {
+    return;
+  }
+
+  const bool demo = cgi.client->demo_server;
+
+  if (!demo && !ps->stats[STAT_SPECTATOR]) {
+    return;
+  }
+
+  cg_state.printed_controls = true;
+
+  if (demo) {
+    cgi.Print("^3Demo controls^7\n");
+    cgi.Print("  ^2space^7          pause and resume\n");
+    cgi.Print("  ^2left^7 / ^2right^7   step a single frame, while paused\n");
+    cgi.Print("  ^2,^7 / ^2.^7           play slower / faster\n");
+  }
+
+  cgi.Print("^3Camera controls^7\n");
+  cgi.Print("  ^2mouse 2^7        first person, third person, follow\n");
+  cgi.Print("  ^2mouse 1^7        leave the player you are watching, or rejoin them\n");
+
+  if (!demo) {
+    cgi.Print("  ^2wheel^7          watch somebody else\n");
+  }
+
+  cgi.Print("  ^2mouse^7          aim the follow camera\n");
+  cgi.Print("  ^2w^7 / ^2s^7           pull the follow camera in / push it out\n");
+}
+
+/**
  * @brief Console command: advances to the next camera mode, wrapping around.
  * @details Cycling is a command rather than a `toggle` of `cg_camera_mode` because `toggle`
  * here is strictly boolean; setting the cvar outright still works, and lands in the same place.
@@ -487,6 +526,8 @@ void Cg_PrepareView(const cl_frame_t *frame) {
   }
 
   const player_state_t *ps1 = &frame->ps;
+
+  Cg_PrintControls(ps1);
 
   Cg_UpdateCameraMode();
 
