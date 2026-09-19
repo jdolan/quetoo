@@ -44,47 +44,47 @@ struct spvUnsafeArray
     }
 };
 
-struct voxels_t
+struct Voxels
 {
     float4 mins;
     float4 maxs;
-    float4 view_coordinate;
+    float4 viewCoordinate;
     float4 size;
 };
 
-struct uniforms_block
+struct uniformsBlock
 {
     int4 viewport;
     float4x4 projection3D;
     float4x4 view;
-    float4x4 sky_projection;
-    float4x4 light_projection;
-    voxels_t voxels;
-    float2 depth_range;
-    int view_type;
+    float4x4 skyProjection;
+    float4x4 lightProjection;
+    Voxels voxels;
+    float2 depthRange;
+    int viewType;
     int ticks;
     packed_float3 ambient;
     float modulate;
     float saturation;
     float caustics;
-    float ambient_occlusion;
-    float lighting_distance;
+    float ambientOcclusion;
+    float lightingDistance;
     int editor;
     int developer;
     float2 padding;
 };
 
-struct material_block
+struct materialBlock
 {
     float4 color;
-    float2 st_origin;
+    float2 stOrigin;
     float2 stretch;
     float2 scroll;
     float2 scale;
     float2 terrain;
     float2 warp;
     int surface;
-    float alpha_test;
+    float alphaTest;
     float roughness;
     float hardness;
     float specularity;
@@ -105,29 +105,29 @@ constant spvUnsafeArray<float, 8> _118 = spvUnsafeArray<float, 8>({ 0.125, 0.25,
 
 struct main0_out
 {
-    float3 cubemap_coord [[user(locn0)]];
-    float4 stage_color [[user(locn1)]];
+    float3 cubemapCoord [[user(locn0)]];
+    float4 stageColor [[user(locn1)]];
     float4 gl_Position [[position, invariant]];
 };
 
 struct main0_in
 {
-    float3 in_position [[attribute(0)]];
+    float3 inPosition [[attribute(0)]];
 };
 
-vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _28 [[buffer(0)]], constant material_block& material [[buffer(1)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _28 [[buffer(0)]], constant materialBlock& material [[buffer(1)]])
 {
     main0_out out = {};
-    float4 position = float4(in.in_position, 1.0);
-    out.cubemap_coord = float3((_28.sky_projection * position).xyz);
-    out.stage_color = float4(1.0);
+    float4 position = float4(in.inPosition, 1.0);
+    out.cubemapCoord = float3((_28.skyProjection * position).xyz);
+    out.stageColor = float4(1.0);
     if ((material.flags & 4) == 4)
     {
-        out.stage_color = material.color;
+        out.stageColor = material.color;
     }
     if ((material.flags & 512) == 512)
     {
-        out.stage_color.w *= ((sin((((float(_28.ticks) * 0.001000000047497451305389404296875) + material.drift) * material.pulse) * 3.1415927410125732421875) + 1.0) * 0.5);
+        out.stageColor.w *= ((sin((((float(_28.ticks) * 0.001000000047497451305389404296875) + material.drift) * material.pulse) * 3.1415927410125732421875) + 1.0) * 0.5);
     }
     float4x4 _105 = _28.projection3D * _28.view;
     float4 _107 = _105 * position;

@@ -44,17 +44,17 @@ struct spvUnsafeArray
     }
 };
 
-struct material_block
+struct materialBlock
 {
     float4 color;
-    float2 st_origin;
+    float2 stOrigin;
     float2 stretch;
     float2 scroll;
     float2 scale;
     float2 terrain;
     float2 warp;
     int surface;
-    float alpha_test;
+    float alphaTest;
     float roughness;
     float hardness;
     float specularity;
@@ -71,31 +71,31 @@ struct material_block
     float shell;
 };
 
-struct voxels_t
+struct Voxels
 {
     float4 mins;
     float4 maxs;
-    float4 view_coordinate;
+    float4 viewCoordinate;
     float4 size;
 };
 
-struct uniforms_block
+struct uniformsBlock
 {
     int4 viewport;
     float4x4 projection3D;
     float4x4 view;
-    float4x4 sky_projection;
-    float4x4 light_projection;
-    voxels_t voxels;
-    float2 depth_range;
-    int view_type;
+    float4x4 skyProjection;
+    float4x4 lightProjection;
+    Voxels voxels;
+    float2 depthRange;
+    int viewType;
     int ticks;
     packed_float3 ambient;
     float modulate;
     float saturation;
     float caustics;
-    float ambient_occlusion;
-    float lighting_distance;
+    float ambientOcclusion;
+    float lightingDistance;
     int editor;
     int developer;
     float2 padding;
@@ -105,17 +105,17 @@ constant spvUnsafeArray<float, 8> _268 = spvUnsafeArray<float, 8>({ 0.125, 0.25,
 
 struct main0_out
 {
-    float4 out_color [[color(0)]];
+    float4 outColor [[color(0)]];
 };
 
 struct main0_in
 {
-    float3 cubemap_coord [[user(locn0)]];
-    float4 stage_color [[user(locn1)]];
+    float3 cubemapCoord [[user(locn0)]];
+    float4 stageColor [[user(locn1)]];
 };
 
 static inline __attribute__((always_inline))
-float2 direction_to_azimuthal_equidistant(thread const float3& direction)
+float2 directionToAzimuthalEquidistant(thread const float3& direction)
 {
     float theta = acos(fast::clamp(direction.z, -1.0, 1.0));
     float phi = precise::atan2(direction.y, direction.x);
@@ -124,7 +124,7 @@ float2 direction_to_azimuthal_equidistant(thread const float3& direction)
 }
 
 static inline __attribute__((always_inline))
-float2 transform_stage_uv(thread float2& uv, constant material_block& material, constant uniforms_block& _113)
+float2 transformStageUv(thread float2& uv, constant materialBlock& material, constant uniformsBlock& _113)
 {
     if ((material.flags & 128) == 128)
     {
@@ -169,31 +169,31 @@ float2 transform_stage_uv(thread float2& uv, constant material_block& material, 
 }
 
 static inline __attribute__((always_inline))
-float4 sample_material_stage(thread const float2& texcoord, constant material_block& material, texture2d<float> texture_stage, sampler texture_stageSmplr, texture2d<float> texture_stage_next, sampler texture_stage_nextSmplr)
+float4 sampleMaterialStage(thread const float2& texcoord, constant materialBlock& material, texture2d<float> textureStage, sampler textureStageSmplr, texture2d<float> textureStageNext, sampler textureStageNextSmplr)
 {
     if ((material.flags & 2048) == 2048)
     {
-        return mix(texture_stage.sample(texture_stageSmplr, texcoord), texture_stage_next.sample(texture_stage_nextSmplr, texcoord), float4(material.lerp));
+        return mix(textureStage.sample(textureStageSmplr, texcoord), textureStageNext.sample(textureStageNextSmplr, texcoord), float4(material.lerp));
     }
-    return texture_stage.sample(texture_stageSmplr, texcoord);
+    return textureStage.sample(textureStageSmplr, texcoord);
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _113 [[buffer(0)]], constant material_block& material [[buffer(1)]], texturecube<float> texture_sky [[texture(9)]], texture2d<float> texture_stage [[texture(10)]], texture2d<float> texture_stage_next [[texture(11)]], sampler texture_skySmplr [[sampler(9)]], sampler texture_stageSmplr [[sampler(10)]], sampler texture_stage_nextSmplr [[sampler(11)]])
+fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _113 [[buffer(0)]], constant materialBlock& material [[buffer(1)]], texturecube<float> textureSky [[texture(9)]], texture2d<float> textureStage [[texture(10)]], texture2d<float> textureStageNext [[texture(11)]], sampler textureSkySmplr [[sampler(9)]], sampler textureStageSmplr [[sampler(10)]], sampler textureStageNextSmplr [[sampler(11)]])
 {
     main0_out out = {};
     if (material.flags == 0)
     {
-        out.out_color = texture_sky.sample(texture_skySmplr, fast::normalize(in.cubemap_coord));
+        out.outColor = textureSky.sample(textureSkySmplr, fast::normalize(in.cubemapCoord));
     }
     else
     {
-        float3 param = fast::normalize(in.cubemap_coord);
-        float2 st = direction_to_azimuthal_equidistant(param);
+        float3 param = fast::normalize(in.cubemapCoord);
+        float2 st = directionToAzimuthalEquidistant(param);
         float2 param_1 = st;
-        float2 _252 = transform_stage_uv(param_1, material, _113);
+        float2 _252 = transformStageUv(param_1, material, _113);
         st = _252;
         float2 param_2 = st;
-        out.out_color = sample_material_stage(param_2, material, texture_stage, texture_stageSmplr, texture_stage_next, texture_stage_nextSmplr) * in.stage_color;
+        out.outColor = sampleMaterialStage(param_2, material, textureStage, textureStageSmplr, textureStageNext, textureStageNextSmplr) * in.stageColor;
     }
     return out;
 }

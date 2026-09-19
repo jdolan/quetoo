@@ -52,10 +52,10 @@ inline Tx spvSMod(Tx x, Ty y)
     return select(Tx(remainder + y), remainder, remainder == 0 || (x >= 0) == (y >= 0));
 }
 
-struct common_vertex_t
+struct CommonVertex
 {
-    float3 model_position;
-    float3 model_normal;
+    float3 modelPosition;
+    float3 modelNormal;
     float3 position;
     float3 normal;
     float3 tangent;
@@ -68,24 +68,24 @@ struct common_vertex_t
     float caustics;
 };
 
-struct light_t
+struct Light
 {
     float4 origin;
     float4 color;
     float2 tile;
 };
 
-struct material_block
+struct materialBlock
 {
     float4 color;
-    float2 st_origin;
+    float2 stOrigin;
     float2 stretch;
     float2 scroll;
     float2 scale;
     float2 terrain;
     float2 warp;
     int surface;
-    float alpha_test;
+    float alphaTest;
     float roughness;
     float hardness;
     float specularity;
@@ -102,66 +102,66 @@ struct material_block
     float shell;
 };
 
-struct voxels_t
+struct Voxels
 {
     float4 mins;
     float4 maxs;
-    float4 view_coordinate;
+    float4 viewCoordinate;
     float4 size;
 };
 
-struct uniforms_block
+struct uniformsBlock
 {
     int4 viewport;
     float4x4 projection3D;
     float4x4 view;
-    float4x4 sky_projection;
-    float4x4 light_projection;
-    voxels_t voxels;
-    float2 depth_range;
-    int view_type;
+    float4x4 skyProjection;
+    float4x4 lightProjection;
+    Voxels voxels;
+    float2 depthRange;
+    int viewType;
     int ticks;
     packed_float3 ambient;
     float modulate;
     float saturation;
     float caustics;
-    float ambient_occlusion;
-    float lighting_distance;
+    float ambientOcclusion;
+    float lightingDistance;
     int editor;
     int developer;
     float2 padding;
 };
 
-struct voxel_light_data_block
+struct voxelLightDataBlock
 {
-    int voxel_light_data_elements[1];
+    int voxelLightDataElements[1];
 };
 
-struct voxel_light_indices_block
+struct voxelLightIndicesBlock
 {
-    int voxel_light_indices[1];
+    int voxelLightIndices[1];
 };
 
-struct light_t_1
+struct Light_1
 {
     float4 origin;
     float4 color;
     float2 tile;
 };
 
-struct bsp_lights_block
+struct bspLightsBlock
 {
-    int num_bsp_lights;
-    light_t_1 bsp_lights[1];
+    int numBspLights;
+    Light_1 bspLights[1];
 };
 
-struct dynamic_lights_block
+struct dynamicLightsBlock
 {
-    int num_dynamic_lights;
-    light_t_1 dynamic_lights[1];
+    int numDynamicLights;
+    Light_1 dynamicLights[1];
 };
 
-struct locals_block
+struct localsBlock
 {
     float4x4 model;
     float lerp;
@@ -169,15 +169,15 @@ struct locals_block
     float padding1;
     float padding2;
     float4 color;
-    uint4 active_dynamic_lights[4];
+    uint4 activeDynamicLights[4];
 };
 
 constant spvUnsafeArray<float, 8> _532 = spvUnsafeArray<float, 8>({ 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 });
 
 struct main0_out
 {
-    float3 vertex0_model_position [[user(locn0)]];
-    float3 vertex0_model_normal [[user(locn1)]];
+    float3 vertex0_modelPosition [[user(locn0)]];
+    float3 vertex0_modelNormal [[user(locn1)]];
     float3 vertex0_position [[user(locn2)]];
     float3 vertex0_normal [[user(locn3)]];
     float3 vertex0_tangent [[user(locn4)]];
@@ -193,19 +193,19 @@ struct main0_out
 
 struct main0_in
 {
-    float3 in_position [[attribute(0)]];
-    float3 in_normal [[attribute(1)]];
-    float3 in_tangent [[attribute(2)]];
-    float3 in_bitangent [[attribute(3)]];
-    float2 in_diffusemap [[attribute(4)]];
-    float3 in_next_position [[attribute(5)]];
-    float3 in_next_normal [[attribute(6)]];
-    float3 in_next_tangent [[attribute(7)]];
-    float3 in_next_bitangent [[attribute(8)]];
+    float3 inPosition [[attribute(0)]];
+    float3 inNormal [[attribute(1)]];
+    float3 inTangent [[attribute(2)]];
+    float3 inBitangent [[attribute(3)]];
+    float2 inDiffusemap [[attribute(4)]];
+    float3 inNextPosition [[attribute(5)]];
+    float3 inNextNormal [[attribute(6)]];
+    float3 inNextTangent [[attribute(7)]];
+    float3 inNextBitangent [[attribute(8)]];
 };
 
 static inline __attribute__((always_inline))
-void stage_transform(thread float3& position, thread const float3& normal, thread const float3& tangent, thread const float3& bitangent, constant material_block& material)
+void stageTransform(thread float3& position, thread const float3& normal, thread const float3& tangent, thread const float3& bitangent, constant materialBlock& material)
 {
     if ((material.flags & 1048576) == 1048576)
     {
@@ -214,20 +214,20 @@ void stage_transform(thread float3& position, thread const float3& normal, threa
 }
 
 static inline __attribute__((always_inline))
-float3 voxel_uvw(thread const float3& position, constant uniforms_block& _161)
+float3 voxelUvw(thread const float3& position, constant uniformsBlock& _161)
 {
     return (position - _161.voxels.mins.xyz) / (_161.voxels.maxs.xyz - _161.voxels.mins.xyz);
 }
 
 static inline __attribute__((always_inline))
-void stage_vertex(thread const float3& in_position, thread common_vertex_t& vertex0, constant material_block& material, constant uniforms_block& _161)
+void stageVertex(thread const float3& inPosition, thread CommonVertex& vertex0, constant materialBlock& material, constant uniformsBlock& _161)
 {
     int envmap = material.flags & 16384;
     if (envmap != 0)
     {
-        float3 view_dir = fast::normalize(vertex0.position);
-        float3 reflect_dir = reflect(view_dir, fast::normalize(vertex0.normal));
-        vertex0.diffusemap = float2(0.5 + (reflect_dir.y * 0.5), 0.5 - (reflect_dir.z * 0.5));
+        float3 viewDir = fast::normalize(vertex0.position);
+        float3 reflectDir = reflect(viewDir, fast::normalize(vertex0.normal));
+        vertex0.diffusemap = float2(0.5 + (reflectDir.y * 0.5), 0.5 - (reflectDir.z * 0.5));
     }
     if ((material.flags & 256) == 256)
     {
@@ -236,24 +236,24 @@ void stage_vertex(thread const float3& in_position, thread common_vertex_t& vert
         matrix[0].x = p;
         matrix[1].x = 0.0;
         float2 translate;
-        translate.x = material.st_origin.x - (material.st_origin.x * p);
+        translate.x = material.stOrigin.x - (material.stOrigin.x * p);
         matrix[0].y = 0.0;
         matrix[1].y = p;
-        translate.y = material.st_origin.y - (material.st_origin.y * p);
+        translate.y = material.stOrigin.y - (material.stOrigin.y * p);
         vertex0.diffusemap.x = ((vertex0.diffusemap.x * matrix[0].x) + (vertex0.diffusemap.y * matrix[1].x)) + translate.x;
         vertex0.diffusemap.y = ((vertex0.diffusemap.x * matrix[0].y) + (vertex0.diffusemap.y * matrix[1].y)) + translate.y;
     }
     if ((material.flags & 128) == 128)
     {
         float theta = ((float(_161.ticks) * 0.001000000047497451305389404296875) * material.rotate) * 6.283185482025146484375;
-        float2 st_origin = material.st_origin;
+        float2 stOrigin = material.stOrigin;
         if (envmap != 0)
         {
-            st_origin = float2(0.5);
+            stOrigin = float2(0.5);
         }
-        vertex0.diffusemap -= st_origin;
+        vertex0.diffusemap -= stOrigin;
         vertex0.diffusemap = float2x2(float2(cos(theta), -sin(theta)), float2(sin(theta), cos(theta))) * vertex0.diffusemap;
-        vertex0.diffusemap += st_origin;
+        vertex0.diffusemap += stOrigin;
     }
     if (envmap != 0)
     {
@@ -320,41 +320,41 @@ void stage_vertex(thread const float3& in_position, thread common_vertex_t& vert
     }
     if ((material.flags & 4096) == 4096)
     {
-        float z = fast::clamp(in_position.z, material.terrain.x, material.terrain.y);
+        float z = fast::clamp(inPosition.z, material.terrain.x, material.terrain.y);
         vertex0.color.w *= ((z - material.terrain.x) / (material.terrain.y - material.terrain.x));
     }
     if ((material.flags & 8192) == 8192)
     {
-        int index = (int(in_position.x) + int(in_position.y)) + int(in_position.z);
+        int index = (int(inPosition.x) + int(inPosition.y)) + int(inPosition.z);
         vertex0.color.w *= (_532[spvSMod(index, 8)] * material.dirtmap);
     }
 }
 
 static inline __attribute__((always_inline))
-float voxel_occlusion(thread const float3& texcoord, texture3d<float> texture_voxel_occlusion, sampler texture_voxel_occlusionSmplr)
+float voxelOcclusion(thread const float3& texcoord, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr)
 {
-    return texture_voxel_occlusion.sample(texture_voxel_occlusionSmplr, texcoord, level(0.0)).x;
+    return textureVoxelOcclusion.sample(textureVoxelOcclusionSmplr, texcoord, level(0.0)).x;
 }
 
 static inline __attribute__((always_inline))
-float voxel_exposure(thread const float3& texcoord, texture3d<float> texture_voxel_occlusion, sampler texture_voxel_occlusionSmplr)
+float voxelExposure(thread const float3& texcoord, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr)
 {
-    return fast::max(0.25, texture_voxel_occlusion.sample(texture_voxel_occlusionSmplr, texcoord, level(0.0)).y);
+    return fast::max(0.25, textureVoxelOcclusion.sample(textureVoxelOcclusionSmplr, texcoord, level(0.0)).y);
 }
 
 static inline __attribute__((always_inline))
-float3 ambient_light(thread const common_vertex_t& v, constant uniforms_block& _161, texture3d<float> texture_voxel_occlusion, sampler texture_voxel_occlusionSmplr, texturecube<float> texture_sky, sampler texture_skySmplr)
+float3 ambientLight(thread const CommonVertex& v, constant uniformsBlock& _161, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr, texturecube<float> textureSky, sampler textureSkySmplr)
 {
     float3 param = v.voxel;
-    float occlusion = voxel_occlusion(param, texture_voxel_occlusion, texture_voxel_occlusionSmplr);
+    float occlusion = voxelOcclusion(param, textureVoxelOcclusion, textureVoxelOcclusionSmplr);
     float3 param_1 = v.voxel;
-    float exposure = voxel_exposure(param_1, texture_voxel_occlusion, texture_voxel_occlusionSmplr);
-    float3 sky = texture_sky.sample(texture_skySmplr, fast::normalize(v.model_normal), level(6.0)).xyz;
-    return ((powr(float3(2.0) + sky, float3(2.0)) * exposure) * (1.0 - (occlusion * _161.ambient_occlusion))) * float3(_161.ambient);
+    float exposure = voxelExposure(param_1, textureVoxelOcclusion, textureVoxelOcclusionSmplr);
+    float3 sky = textureSky.sample(textureSkySmplr, fast::normalize(v.modelNormal), level(6.0)).xyz;
+    return ((powr(float3(2.0) + sky, float3(2.0)) * exposure) * (1.0 - (occlusion * _161.ambientOcclusion))) * float3(_161.ambient);
 }
 
 static inline __attribute__((always_inline))
-int3 voxel_xyz(thread const float3& position, constant uniforms_block& _161)
+int3 voxelXyz(thread const float3& position, constant uniformsBlock& _161)
 {
     float3 pos = position - _161.voxels.mins.xyz;
     int3 voxel = int3(floor((pos / float3(32.0)) + float3(0.001000000047497451305389404296875)));
@@ -362,20 +362,20 @@ int3 voxel_xyz(thread const float3& position, constant uniforms_block& _161)
 }
 
 static inline __attribute__((always_inline))
-int2 voxel_light_data(thread const int3& voxel, constant uniforms_block& _161, const device voxel_light_data_block& _608)
+int2 voxelLightData(thread const int3& voxel, constant uniformsBlock& _161, const device voxelLightDataBlock& _608)
 {
     int index = (((voxel.z * int(_161.voxels.size.y)) + voxel.y) * int(_161.voxels.size.x)) + voxel.x;
-    return int2(_608.voxel_light_data_elements[(index * 2) + 0], _608.voxel_light_data_elements[(index * 2) + 1]);
+    return int2(_608.voxelLightDataElements[(index * 2) + 0], _608.voxelLightDataElements[(index * 2) + 1]);
 }
 
 static inline __attribute__((always_inline))
-int voxel_light_index(thread const int& index, const device voxel_light_indices_block& _625)
+int voxelLightIndex(thread const int& index, const device voxelLightIndicesBlock& _625)
 {
-    return _625.voxel_light_indices[index];
+    return _625.voxelLightIndices[index];
 }
 
 static inline __attribute__((always_inline))
-float3 light_color(thread const light_t& l, constant uniforms_block& _161)
+float3 lightColor(thread const Light& l, constant uniformsBlock& _161)
 {
     float3 color = (l.color.xyz * l.color.w) * _161.modulate;
     float luma = dot(color, float3(0.2125999927520751953125, 0.715200006961822509765625, 0.072200000286102294921875));
@@ -383,18 +383,18 @@ float3 light_color(thread const light_t& l, constant uniforms_block& _161)
 }
 
 static inline __attribute__((always_inline))
-float3 vertex_light(thread const common_vertex_t& v, thread const light_t& light, constant material_block& material, constant uniforms_block& _161)
+float3 vertexLight(thread const CommonVertex& v, thread const Light& light, constant materialBlock& material, constant uniformsBlock& _161)
 {
-    float3 light_dir = light.origin.xyz - v.model_position;
-    float dist = length(light_dir);
+    float3 lightDir = light.origin.xyz - v.modelPosition;
+    float dist = length(lightDir);
     float radius = light.origin.w;
     float atten = fast::clamp(1.0 - (dist / radius), 0.0, 1.0);
     if (atten <= 0.0)
     {
         return float3(0.0);
     }
-    light_dir = fast::normalize(light_dir);
-    float lambert = dot(v.model_normal, light_dir);
+    lightDir = fast::normalize(lightDir);
+    float lambert = dot(v.modelNormal, lightDir);
     float _789;
     if ((material.surface & 120) != int(0u))
     {
@@ -405,91 +405,91 @@ float3 vertex_light(thread const common_vertex_t& v, thread const light_t& light
         _789 = fast::max(0.0, lambert);
     }
     lambert = _789;
-    light_t param = light;
-    return (light_color(param, _161) * atten) * lambert;
+    Light param = light;
+    return (lightColor(param, _161) * atten) * lambert;
 }
 
 static inline __attribute__((always_inline))
-bool dynamic_light_active(thread const spvUnsafeArray<uint4, 4>& mask, thread const int& j)
+bool dynamicLightActive(thread const spvUnsafeArray<uint4, 4>& mask, thread const int& j)
 {
     return (mask[j >> 7][(j >> 5) & 3] & (1u << uint(j & 31))) != 0u;
 }
 
 static inline __attribute__((always_inline))
-float3 voxel_caustics(thread const float3& texcoord, constant uniforms_block& _161, texture3d<float> texture_voxel_caustics, sampler texture_voxel_causticsSmplr)
+float3 voxelCaustics(thread const float3& texcoord, constant uniformsBlock& _161, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr)
 {
-    float3 encoded = texture_voxel_caustics.sample(texture_voxel_causticsSmplr, texcoord, level(0.0)).xyz;
+    float3 encoded = textureVoxelCaustics.sample(textureVoxelCausticsSmplr, texcoord, level(0.0)).xyz;
     return ((encoded * 2.0) - float3(1.0)) * _161.caustics;
 }
 
 static inline __attribute__((always_inline))
-void vertex_caustics(thread common_vertex_t& v, constant uniforms_block& _161, texture3d<float> texture_voxel_caustics, sampler texture_voxel_causticsSmplr)
+void vertexCaustics(thread CommonVertex& v, constant uniformsBlock& _161, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr)
 {
     float3 param = v.voxel;
-    v.caustics = length(voxel_caustics(param, _161, texture_voxel_caustics, texture_voxel_causticsSmplr));
+    v.caustics = length(voxelCaustics(param, _161, textureVoxelCaustics, textureVoxelCausticsSmplr));
 }
 
 static inline __attribute__((always_inline))
-void vertex_lighting(thread common_vertex_t& v, constant material_block& material, constant uniforms_block& _161, const device voxel_light_data_block& _608, const device voxel_light_indices_block& _625, texture3d<float> texture_voxel_caustics, sampler texture_voxel_causticsSmplr, texture3d<float> texture_voxel_occlusion, sampler texture_voxel_occlusionSmplr, texturecube<float> texture_sky, sampler texture_skySmplr, const device bsp_lights_block& _854, const device dynamic_lights_block& _885, constant locals_block& _892)
+void vertexLighting(thread CommonVertex& v, constant materialBlock& material, constant uniformsBlock& _161, const device voxelLightDataBlock& _608, const device voxelLightIndicesBlock& _625, texture3d<float> textureVoxelCaustics, sampler textureVoxelCausticsSmplr, texture3d<float> textureVoxelOcclusion, sampler textureVoxelOcclusionSmplr, texturecube<float> textureSky, sampler textureSkySmplr, const device bspLightsBlock& _854, const device dynamicLightsBlock& _885, constant localsBlock& _892)
 {
-    common_vertex_t param = v;
-    v.ambient = ambient_light(param, _161, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_sky, texture_skySmplr);
+    CommonVertex param = v;
+    v.ambient = ambientLight(param, _161, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureSky, textureSkySmplr);
     v.diffuse = float3(0.0);
     if (_161.editor == 0)
     {
-        float3 param_1 = v.model_position;
-        int3 voxel_coord = voxel_xyz(param_1, _161);
-        int3 param_2 = voxel_coord;
-        int2 data = voxel_light_data(param_2, _161, _608);
-        light_t param_5;
+        float3 param_1 = v.modelPosition;
+        int3 voxelCoord = voxelXyz(param_1, _161);
+        int3 param_2 = voxelCoord;
+        int2 data = voxelLightData(param_2, _161, _608);
+        Light param_5;
         for (int i = 0; i < data.y; i++)
         {
             int param_3 = data.x + i;
-            int index = voxel_light_index(param_3, _625);
-            common_vertex_t param_4 = v;
-            param_5.origin = _854.bsp_lights[index].origin;
-            param_5.color = _854.bsp_lights[index].color;
-            param_5.tile = _854.bsp_lights[index].tile;
-            v.diffuse += vertex_light(param_4, param_5, material, _161);
+            int index = voxelLightIndex(param_3, _625);
+            CommonVertex param_4 = v;
+            param_5.origin = _854.bspLights[index].origin;
+            param_5.color = _854.bspLights[index].color;
+            param_5.tile = _854.bspLights[index].tile;
+            v.diffuse += vertexLight(param_4, param_5, material, _161);
         }
     }
     spvUnsafeArray<uint4, 4> param_6;
-    light_t param_9;
-    for (int j = 0; j < _885.num_dynamic_lights; j++)
+    Light param_9;
+    for (int j = 0; j < _885.numDynamicLights; j++)
     {
-        param_6[0] = _892.active_dynamic_lights[0];
-        param_6[1] = _892.active_dynamic_lights[1];
-        param_6[2] = _892.active_dynamic_lights[2];
-        param_6[3] = _892.active_dynamic_lights[3];
+        param_6[0] = _892.activeDynamicLights[0];
+        param_6[1] = _892.activeDynamicLights[1];
+        param_6[2] = _892.activeDynamicLights[2];
+        param_6[3] = _892.activeDynamicLights[3];
         int param_7 = j;
-        if (dynamic_light_active(param_6, param_7))
+        if (dynamicLightActive(param_6, param_7))
         {
-            common_vertex_t param_8 = v;
-            param_9.origin = _885.dynamic_lights[j].origin;
-            param_9.color = _885.dynamic_lights[j].color;
-            param_9.tile = _885.dynamic_lights[j].tile;
-            v.diffuse += vertex_light(param_8, param_9, material, _161);
+            CommonVertex param_8 = v;
+            param_9.origin = _885.dynamicLights[j].origin;
+            param_9.color = _885.dynamicLights[j].color;
+            param_9.tile = _885.dynamicLights[j].tile;
+            v.diffuse += vertexLight(param_8, param_9, material, _161);
         }
     }
-    common_vertex_t param_10 = v;
-    vertex_caustics(param_10, _161, texture_voxel_caustics, texture_voxel_causticsSmplr);
+    CommonVertex param_10 = v;
+    vertexCaustics(param_10, _161, textureVoxelCaustics, textureVoxelCausticsSmplr);
     v = param_10;
 }
 
-vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _161 [[buffer(0)]], constant locals_block& _892 [[buffer(1)]], constant material_block& material [[buffer(2)]], const device bsp_lights_block& _854 [[buffer(3)]], const device dynamic_lights_block& _885 [[buffer(4)]], const device voxel_light_data_block& _608 [[buffer(5)]], const device voxel_light_indices_block& _625 [[buffer(6)]], texture3d<float> texture_voxel_caustics [[texture(0)]], texture3d<float> texture_voxel_occlusion [[texture(1)]], texturecube<float> texture_sky [[texture(2)]], sampler texture_voxel_causticsSmplr [[sampler(0)]], sampler texture_voxel_occlusionSmplr [[sampler(1)]], sampler texture_skySmplr [[sampler(2)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _161 [[buffer(0)]], constant localsBlock& _892 [[buffer(1)]], constant materialBlock& material [[buffer(2)]], const device bspLightsBlock& _854 [[buffer(3)]], const device dynamicLightsBlock& _885 [[buffer(4)]], const device voxelLightDataBlock& _608 [[buffer(5)]], const device voxelLightIndicesBlock& _625 [[buffer(6)]], texture3d<float> textureVoxelCaustics [[texture(0)]], texture3d<float> textureVoxelOcclusion [[texture(1)]], texturecube<float> textureSky [[texture(2)]], sampler textureVoxelCausticsSmplr [[sampler(0)]], sampler textureVoxelOcclusionSmplr [[sampler(1)]], sampler textureSkySmplr [[sampler(2)]])
 {
     main0_out out = {};
-    common_vertex_t vertex0 = {};
-    float4x4 view_model = _161.view * _892.model;
-    float4 position = float4(mix(in.in_position, in.in_next_position, float3(_892.lerp)), 1.0);
-    float4 normal = float4(mix(in.in_normal, in.in_next_normal, float3(_892.lerp)), 0.0);
-    float4 tangent = float4(mix(in.in_tangent, in.in_next_tangent, float3(_892.lerp)), 0.0);
-    float4 bitangent = float4(mix(in.in_bitangent, in.in_next_bitangent, float3(_892.lerp)), 0.0);
+    CommonVertex vertex0 = {};
+    float4x4 viewModel = _161.view * _892.model;
+    float4 position = float4(mix(in.inPosition, in.inNextPosition, float3(_892.lerp)), 1.0);
+    float4 normal = float4(mix(in.inNormal, in.inNextNormal, float3(_892.lerp)), 0.0);
+    float4 tangent = float4(mix(in.inTangent, in.inNextTangent, float3(_892.lerp)), 0.0);
+    float4 bitangent = float4(mix(in.inBitangent, in.inNextBitangent, float3(_892.lerp)), 0.0);
     float3 param = position.xyz;
     float3 param_1 = normal.xyz;
     float3 param_2 = tangent.xyz;
     float3 param_3 = bitangent.xyz;
-    stage_transform(param, param_1, param_2, param_3, material);
+    stageTransform(param, param_1, param_2, param_3, material);
     position.x = param.x;
     position.y = param.y;
     position.z = param.z;
@@ -502,28 +502,28 @@ vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _161 [
     bitangent.x = param_3.x;
     bitangent.y = param_3.y;
     bitangent.z = param_3.z;
-    vertex0.model_position = float3((_892.model * position).xyz);
-    vertex0.model_normal = fast::normalize(float3((_892.model * normal).xyz));
-    vertex0.position = float3((view_model * position).xyz);
-    vertex0.normal = fast::normalize(float3((view_model * normal).xyz));
-    vertex0.tangent = fast::normalize(float3((view_model * tangent).xyz));
-    vertex0.bitangent = fast::normalize(float3((view_model * bitangent).xyz));
-    vertex0.diffusemap = in.in_diffusemap;
+    vertex0.modelPosition = float3((_892.model * position).xyz);
+    vertex0.modelNormal = fast::normalize(float3((_892.model * normal).xyz));
+    vertex0.position = float3((viewModel * position).xyz);
+    vertex0.normal = fast::normalize(float3((viewModel * normal).xyz));
+    vertex0.tangent = fast::normalize(float3((viewModel * tangent).xyz));
+    vertex0.bitangent = fast::normalize(float3((viewModel * bitangent).xyz));
+    vertex0.diffusemap = in.inDiffusemap;
     float3 param_4 = float3((_892.model * position).xyz);
-    vertex0.voxel = voxel_uvw(param_4, _161);
+    vertex0.voxel = voxelUvw(param_4, _161);
     vertex0.color = _892.color;
-    float3 param_5 = in.in_position;
-    common_vertex_t param_6 = vertex0;
-    stage_vertex(param_5, param_6, material, _161);
+    float3 param_5 = in.inPosition;
+    CommonVertex param_6 = vertex0;
+    stageVertex(param_5, param_6, material, _161);
     vertex0 = param_6;
-    common_vertex_t param_7 = vertex0;
-    vertex_lighting(param_7, material, _161, _608, _625, texture_voxel_caustics, texture_voxel_causticsSmplr, texture_voxel_occlusion, texture_voxel_occlusionSmplr, texture_sky, texture_skySmplr, _854, _885, _892);
+    CommonVertex param_7 = vertex0;
+    vertexLighting(param_7, material, _161, _608, _625, textureVoxelCaustics, textureVoxelCausticsSmplr, textureVoxelOcclusion, textureVoxelOcclusionSmplr, textureSky, textureSkySmplr, _854, _885, _892);
     vertex0 = param_7;
-    float4x4 _1130 = _161.projection3D * view_model;
+    float4x4 _1130 = _161.projection3D * viewModel;
     float4 _1132 = _1130 * position;
     out.gl_Position = _1132;
-    out.vertex0_model_position = vertex0.model_position;
-    out.vertex0_model_normal = vertex0.model_normal;
+    out.vertex0_modelPosition = vertex0.modelPosition;
+    out.vertex0_modelNormal = vertex0.modelNormal;
     out.vertex0_position = vertex0.position;
     out.vertex0_normal = vertex0.normal;
     out.vertex0_tangent = vertex0.tangent;

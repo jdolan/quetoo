@@ -1775,7 +1775,7 @@ typedef struct {
  * @remarks Sprites and beams reduce to the same quad, a center and two half
  * axes, so both are drawn from this one type. The four corners are
  * `center + (±a) + (±b)`, which sprite_vs derives from `gl_VertexIndex`. Must
- * match `sprite_instance_t` in sprite_vs.glsl.
+ * match `SpriteInstance` in sprite_vs.glsl.
  */
 typedef struct {
 
@@ -1810,7 +1810,7 @@ typedef struct {
   Vec4 color;
 } RenderSpriteInstance;
 
-static_assert(sizeof(RenderSpriteInstance) == 96, "RenderSpriteInstance must match sprite_instance_t in sprite_vs.glsl");
+static_assert(sizeof(RenderSpriteInstance) == 96, "RenderSpriteInstance must match SpriteInstance in sprite_vs.glsl");
 
 /**
  * @brief The batching state for a sprite instance, parallel to it by index.

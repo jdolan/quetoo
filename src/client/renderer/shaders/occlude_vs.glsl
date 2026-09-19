@@ -23,10 +23,10 @@
 
 #include "uniforms.glsl"
 
-layout (location = 0) in vec3 in_corner;
+layout (location = 0) in vec3 inCorner;
 
-layout (location = 1) in vec3 in_mins;
-layout (location = 2) in vec3 in_maxs;
+layout (location = 1) in vec3 inMins;
+layout (location = 2) in vec3 inMaxs;
 
 invariant gl_Position;
 
@@ -35,7 +35,7 @@ invariant gl_Position;
  */
 void main(void) {
 
-  const vec3 position = mix(in_mins, in_maxs, in_corner);
+  const vec3 position = mix(inMins, inMaxs, inCorner);
 
   gl_Position = projection3D * view * vec4(position, 1.0);
 }

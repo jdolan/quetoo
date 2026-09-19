@@ -23,10 +23,10 @@
 
 #include "uniforms.glsl"
 
-layout (location = 0) in vec3 in_position;
-layout (location = 1) in vec4 in_color;
+layout (location = 0) in vec3 inPosition;
+layout (location = 1) in vec4 inColor;
 
-layout (location = 0) out vertex_data {
+layout (location = 0) out vertexData {
   vec4 color;
 } vertex;
 
@@ -35,7 +35,7 @@ layout (location = 0) out vertex_data {
  */
 void main(void) {
 
-  gl_Position = projection3D * view * vec4(in_position, 1.0);
+  gl_Position = projection3D * view * vec4(inPosition, 1.0);
 
-  vertex.color = in_color;
+  vertex.color = inColor;
 }

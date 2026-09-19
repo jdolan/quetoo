@@ -23,12 +23,12 @@
 
 #include "uniforms.glsl"
 
-layout (location = 0) in vec3 in_position;
+layout (location = 0) in vec3 inPosition;
 
 /**
  * @brief Per-draw model transform.
  */
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform localsBlock {
   mat4 model;
 };
 
@@ -39,7 +39,7 @@ invariant gl_Position;
  */
 void main(void) {
 
-  mat4 view_model = view * model;
+  mat4 viewModel = view * model;
 
-  gl_Position = projection3D * view_model * vec4(in_position, 1.0);
+  gl_Position = projection3D * viewModel * vec4(inPosition, 1.0);
 }

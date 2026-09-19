@@ -33,15 +33,15 @@
 #include "common.glsl"
 #include "material.glsl"
 
-layout (location = 0) in vec3 cubemap_coord;
-layout (location = 1) in vec4 stage_color;
+layout (location = 0) in vec3 cubemapCoord;
+layout (location = 1) in vec4 stageColor;
 
-layout (location = 0) out vec4 out_color;
+layout (location = 0) out vec4 outColor;
 
 /**
  * @brief Projects a direction into azimuthal equidistant UV space.
  */
-vec2 direction_to_azimuthal_equidistant(in vec3 direction) {
+vec2 directionToAzimuthalEquidistant(in vec3 direction) {
 
   float theta = acos(clamp(direction.z, -1.0, 1.0));
   float phi = atan(direction.y, direction.x);
@@ -54,7 +54,7 @@ vec2 direction_to_azimuthal_equidistant(in vec3 direction) {
 /**
  * @brief Applies the material stage transform to sky UVs.
  */
-vec2 transform_stage_uv(in vec2 uv) {
+vec2 transformStageUv(in vec2 uv) {
 
   if ((material.flags & STAGE_ROTATE) == STAGE_ROTATE) {
     vec2 center = uv - 0.5;
@@ -90,13 +90,13 @@ void main(void) {
 
   if (material.flags == STAGE_NONE) {
 
-    out_color = texture(texture_sky, normalize(cubemap_coord));
+    outColor = texture(textureSky, normalize(cubemapCoord));
 
   } else {
 
-    vec2 st = direction_to_azimuthal_equidistant(normalize(cubemap_coord));
-    st = transform_stage_uv(st);
+    vec2 st = directionToAzimuthalEquidistant(normalize(cubemapCoord));
+    st = transformStageUv(st);
 
-    out_color = sample_material_stage(st) * stage_color;
+    outColor = sampleMaterialStage(st) * stageColor;
   }
 }

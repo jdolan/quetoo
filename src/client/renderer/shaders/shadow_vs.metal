@@ -3,39 +3,39 @@
 
 using namespace metal;
 
-struct locals_block
+struct localsBlock
 {
     float4x4 model;
-    float4x4 light_view;
-    float4 light_origin;
+    float4x4 lightView;
+    float4 lightOrigin;
     float lerp;
 };
 
-struct voxels_t
+struct Voxels
 {
     float4 mins;
     float4 maxs;
-    float4 view_coordinate;
+    float4 viewCoordinate;
     float4 size;
 };
 
-struct uniforms_block
+struct uniformsBlock
 {
     int4 viewport;
     float4x4 projection3D;
     float4x4 view;
-    float4x4 sky_projection;
-    float4x4 light_projection;
-    voxels_t voxels;
-    float2 depth_range;
-    int view_type;
+    float4x4 skyProjection;
+    float4x4 lightProjection;
+    Voxels voxels;
+    float2 depthRange;
+    int viewType;
     int ticks;
     packed_float3 ambient;
     float modulate;
     float saturation;
     float caustics;
-    float ambient_occlusion;
-    float lighting_distance;
+    float ambientOcclusion;
+    float lightingDistance;
     int editor;
     int developer;
     float2 padding;
@@ -43,24 +43,24 @@ struct uniforms_block
 
 struct main0_out
 {
-    float3 out_position [[user(locn0)]];
-    float out_light_radius [[user(locn1)]];
+    float3 outPosition [[user(locn0)]];
+    float outLightRadius [[user(locn1)]];
     float4 gl_Position [[position, invariant]];
 };
 
 struct main0_in
 {
-    float3 in_position [[attribute(0)]];
-    float3 in_next_position [[attribute(1)]];
+    float3 inPosition [[attribute(0)]];
+    float3 inNextPosition [[attribute(1)]];
 };
 
-vertex main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _66 [[buffer(0)]], constant locals_block& _14 [[buffer(1)]])
+vertex main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _66 [[buffer(0)]], constant localsBlock& _14 [[buffer(1)]])
 {
     main0_out out = {};
-    float3 position = float3((_14.model * float4(mix(in.in_position, in.in_next_position, float3(_14.lerp)), 1.0)).xyz) - _14.light_origin.xyz;
-    out.out_position = position;
-    out.out_light_radius = _14.light_origin.w;
-    float4x4 _73 = _66.light_projection * _14.light_view;
+    float3 position = float3((_14.model * float4(mix(in.inPosition, in.inNextPosition, float3(_14.lerp)), 1.0)).xyz) - _14.lightOrigin.xyz;
+    out.outPosition = position;
+    out.outLightRadius = _14.lightOrigin.w;
+    float4x4 _73 = _66.lightProjection * _14.lightView;
     float4 _78 = float4(position, 1.0);
     float4 _79 = _73 * _78;
     out.gl_Position = _79;

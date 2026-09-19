@@ -3,7 +3,7 @@
 
 using namespace metal;
 
-struct vertex_data
+struct vertexData
 {
     float2 texcoord;
 };
@@ -16,16 +16,16 @@ struct main0_out
 
 struct main0_in
 {
-    float2 in_position [[attribute(0)]];
-    float2 in_texcoord [[attribute(1)]];
+    float2 inPosition [[attribute(0)]];
+    float2 inTexcoord [[attribute(1)]];
 };
 
 vertex main0_out main0(main0_in in [[stage_in]])
 {
     main0_out out = {};
-    vertex_data vertex0 = {};
-    out.gl_Position = float4(in.in_position, 0.0, 1.0);
-    vertex0.texcoord = in.in_texcoord;
+    vertexData vertex0 = {};
+    out.gl_Position = float4(in.inPosition, 0.0, 1.0);
+    vertex0.texcoord = in.inTexcoord;
     out.vertex0_texcoord = vertex0.texcoord;
     return out;
 }

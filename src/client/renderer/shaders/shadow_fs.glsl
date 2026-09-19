@@ -28,8 +28,8 @@
 
 #include "uniforms.glsl"
 
-layout (location = 0) in vec3 in_position;
-layout (location = 1) flat in float in_light_radius;
+layout (location = 0) in vec3 inPosition;
+layout (location = 1) flat in float inLightRadius;
 
 /**
  * @brief The alpha-test variant samples the base diffuse layer to discard
@@ -39,25 +39,25 @@ layout (location = 1) flat in float in_light_radius;
  * here, not just an early-Z optimization like in bsp_fs/mesh_fs.
  */
 #ifdef ALPHA_TEST
-layout (location = 2) in vec2 in_diffusemap;
+layout (location = 2) in vec2 inDiffusemap;
 
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform shadow_material_block {
-  float alpha_test;
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform shadowMaterialBlock {
+  float alphaTest;
 };
 
-layout (set = SAMPLER_SET, binding = 0) uniform sampler2DArray texture_material;
+layout (set = SAMPLER_SET, binding = 0) uniform sampler2DArray textureMaterial;
 #endif
 
 void main(void) {
 
 #ifdef ALPHA_TEST
-  if (texture(texture_material, vec3(in_diffusemap, 0)).a < alpha_test) {
+  if (texture(textureMaterial, vec3(inDiffusemap, 0)).a < alphaTest) {
     discard;
   }
 #endif
 
-  const float dist = length(in_position) / in_light_radius;
-  const float bias = clamp(dist * .08, 1.0 / in_light_radius, 8.0 / in_light_radius);
+  const float dist = length(inPosition) / inLightRadius;
+  const float bias = clamp(dist * .08, 1.0 / inLightRadius, 8.0 / inLightRadius);
 
   gl_FragDepth = min(dist + bias, 1.0);
 }

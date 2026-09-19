@@ -34,27 +34,27 @@
 #include "material.glsl"
 #include "voxel.glsl"
 
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bsp_locals_block {
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform bspLocalsBlock {
   mat4 model;
-  uvec4 active_dynamic_lights[MAX_DYNAMIC_LIGHTS / 128];
+  uvec4 activeDynamicLights[MAX_DYNAMIC_LIGHTS / 128];
 
   /**
-   * @brief The layer of texture_portal this draw's faces sample, or -1 for none. Unused here,
+   * @brief The layer of texturePortal this draw's faces sample, or -1 for none. Unused here,
    * but both stages take the same block at the same slot.
    */
-  int portal_layer;
+  int portalLayer;
 };
 
 #include "light.glsl"
 
-layout (location = 0) in vec3 in_position;
-layout (location = 1) in vec3 in_normal;
-layout (location = 2) in vec3 in_tangent;
-layout (location = 3) in vec3 in_bitangent;
-layout (location = 4) in vec2 in_diffusemap;
-layout (location = 5) in vec4 in_color;
+layout (location = 0) in vec3 inPosition;
+layout (location = 1) in vec3 inNormal;
+layout (location = 2) in vec3 inTangent;
+layout (location = 3) in vec3 inBitangent;
+layout (location = 4) in vec2 inDiffusemap;
+layout (location = 5) in vec4 inColor;
 
-layout (location = 0) out common_vertex_t vertex;
+layout (location = 0) out CommonVertex vertex;
 
 invariant gl_Position;
 
@@ -63,28 +63,28 @@ invariant gl_Position;
  */
 void main(void) {
 
-  mat4 view_model = view * model;
+  mat4 viewModel = view * model;
 
-  vec4 position = vec4(in_position, 1.0);
-  vec4 normal = vec4(in_normal, 0.0);
-  vec4 tangent = vec4(in_tangent, 0.0);
-  vec4 bitangent = vec4(in_bitangent, 0.0);
+  vec4 position = vec4(inPosition, 1.0);
+  vec4 normal = vec4(inNormal, 0.0);
+  vec4 tangent = vec4(inTangent, 0.0);
+  vec4 bitangent = vec4(inBitangent, 0.0);
 
-  stage_transform(position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
+  stageTransform(position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-  vertex.model_position = vec3(model * position);
-  vertex.model_normal = normalize(vec3(model * normal));
-  vertex.position = vec3(view_model * position);
-  vertex.normal = normalize(vec3(view_model * normal));
-  vertex.tangent = normalize(vec3(view_model * tangent));
-  vertex.bitangent = normalize(vec3(view_model * bitangent));
-  vertex.diffusemap = in_diffusemap;
-  vertex.voxel = voxel_uvw(vec3(model * position));
-  vertex.color = in_color;
+  vertex.modelPosition = vec3(model * position);
+  vertex.modelNormal = normalize(vec3(model * normal));
+  vertex.position = vec3(viewModel * position);
+  vertex.normal = normalize(vec3(viewModel * normal));
+  vertex.tangent = normalize(vec3(viewModel * tangent));
+  vertex.bitangent = normalize(vec3(viewModel * bitangent));
+  vertex.diffusemap = inDiffusemap;
+  vertex.voxel = voxelUvw(vec3(model * position));
+  vertex.color = inColor;
 
-  stage_vertex(in_position, vertex);
+  stageVertex(inPosition, vertex);
 
-  vertex_lighting(vertex);
+  vertexLighting(vertex);
 
-  gl_Position = projection3D * view_model * position;
+  gl_Position = projection3D * viewModel * position;
 }

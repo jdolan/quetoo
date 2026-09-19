@@ -44,7 +44,7 @@ void R_AddDecal(RenderView *view, const RenderDecal *decal);
  * face, holding everything it contributes to that face's triangles which does
  * not vary per vertex.
  * @remarks Written once when the decal is clipped and never modified. Must
- * match `decal_instance_t` in decal_vs.glsl.
+ * match `DecalInstance` in decal_vs.glsl.
  */
 typedef struct {
 
@@ -96,7 +96,7 @@ typedef struct {
   uint32_t generation;
 } RenderDecalInstance;
 
-static_assert(sizeof(RenderDecalInstance) == 112, "RenderDecalInstance must match decal_instance_t in decal_vs.glsl");
+static_assert(sizeof(RenderDecalInstance) == 112, "RenderDecalInstance must match DecalInstance in decal_vs.glsl");
 static_assert(MAX_DECAL_INSTANCES <= 0x1000000, "MAX_DECAL_INSTANCES exceeds the 24 bit instance index");
 
 /**

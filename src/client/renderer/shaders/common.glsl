@@ -81,9 +81,9 @@ float saturate(float x) {
 /**
  * @brief Shared vertex shader data.
  */
-struct common_vertex_t {
-  vec3 model_position;
-  vec3 model_normal;
+struct CommonVertex {
+  vec3 modelPosition;
+  vec3 modelNormal;
   vec3 position;
   vec3 normal;
   vec3 tangent;
@@ -99,23 +99,23 @@ struct common_vertex_t {
 /**
  * @brief Shared fragment shader data.
  */
-struct common_fragment_t {
-  vec3 view_dir;
-  float view_dist;
-  float texture_lod;
+struct CommonFragment {
+  vec3 viewDir;
+  float viewDist;
+  float texLod;
   vec3 normal;
   vec3 tangent;
   vec3 bitangent;
   mat3 tbn;
   vec2 parallax;
-  vec4 diffuse_sample;
-  vec3 normal_sample;
-  vec4 specular_sample;
+  vec4 diffuseSample;
+  vec3 normalSample;
+  vec4 specularSample;
   vec3 ambient;
   vec3 diffuse;
   vec3 specular;
   float caustics;
-  vec2 shadow_sin_cos;
+  vec2 shadowSinCos;
 };
 
 /**
@@ -183,9 +183,9 @@ mat4 lookAt(vec3 eye, vec3 pos, vec3 up) {
 /**
  * @brief Returns a Toksvig-adjusted gloss factor.
  */
-float toksvig_gloss(in vec3 normal, in float power) {
-  float len_rcp = 1.0 / saturate(length(normal));
-  return 1.0 / (1.0 + power * (len_rcp - 1.0));
+float toksvigGloss(in vec3 normal, in float power) {
+  float lenRcp = 1.0 / saturate(length(normal));
+  return 1.0 / (1.0 + power * (lenRcp - 1.0));
 }
 
 #endif // _COMMON_GLSL_

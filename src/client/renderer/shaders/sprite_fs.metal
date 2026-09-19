@@ -5,31 +5,31 @@
 
 using namespace metal;
 
-struct voxels_t
+struct Voxels
 {
     float4 mins;
     float4 maxs;
-    float4 view_coordinate;
+    float4 viewCoordinate;
     float4 size;
 };
 
-struct uniforms_block
+struct uniformsBlock
 {
     int4 viewport;
     float4x4 projection3D;
     float4x4 view;
-    float4x4 sky_projection;
-    float4x4 light_projection;
-    voxels_t voxels;
-    float2 depth_range;
-    int view_type;
+    float4x4 skyProjection;
+    float4x4 lightProjection;
+    Voxels voxels;
+    float2 depthRange;
+    int viewType;
     int ticks;
     packed_float3 ambient;
     float modulate;
     float saturation;
     float caustics;
-    float ambient_occlusion;
-    float lighting_distance;
+    float ambientOcclusion;
+    float lightingDistance;
     int editor;
     int developer;
     float2 padding;
@@ -37,54 +37,54 @@ struct uniforms_block
 
 struct main0_out
 {
-    float4 out_color [[color(0)]];
+    float4 outColor [[color(0)]];
 };
 
 struct main0_in
 {
-    float2 in_diffusemap [[user(locn0)]];
-    float2 in_next_diffusemap [[user(locn1)]];
-    float3 in_color [[user(locn2)]];
-    float in_lerp [[user(locn3)]];
-    float in_lighting [[user(locn4)]];
-    float3 in_diffuse [[user(locn5)]];
+    float2 inDiffusemap [[user(locn0)]];
+    float2 inNextDiffusemap [[user(locn1)]];
+    float3 inColor [[user(locn2)]];
+    float inLerp [[user(locn3)]];
+    float inLighting [[user(locn4)]];
+    float3 inDiffuse [[user(locn5)]];
 };
 
 static inline __attribute__((always_inline))
-float calc_depth(thread const float& z, constant uniforms_block& _25)
+float calcDepth(thread const float& z, constant uniformsBlock& _25)
 {
-    return (2.0 * _25.depth_range.x) / ((_25.depth_range.y + _25.depth_range.x) - (z * (_25.depth_range.y - _25.depth_range.x)));
+    return (2.0 * _25.depthRange.x) / ((_25.depthRange.y + _25.depthRange.x) - (z * (_25.depthRange.y - _25.depthRange.x)));
 }
 
 static inline __attribute__((always_inline))
-float soften(constant uniforms_block& _25, texture2d<float> texture_depth_attachment, sampler texture_depth_attachmentSmplr, thread float4& gl_FragCoord)
+float soften(constant uniformsBlock& _25, texture2d<float> textureDepthAttachment, sampler textureDepthAttachmentSmplr, thread float4& gl_FragCoord)
 {
-    float4 depth_sample = texture_depth_attachment.sample(texture_depth_attachmentSmplr, (gl_FragCoord.xy / float2(_25.viewport.zw)));
-    float param = depth_sample.x;
+    float4 depthSample = textureDepthAttachment.sample(textureDepthAttachmentSmplr, (gl_FragCoord.xy / float2(_25.viewport.zw)));
+    float param = depthSample.x;
     float param_1 = gl_FragCoord.z;
-    return smoothstep(0.0, 0.001599999959580600261688232421875, fast::clamp(calc_depth(param, _25) - calc_depth(param_1, _25), 0.0, 1.0));
+    return smoothstep(0.0, 0.001599999959580600261688232421875, fast::clamp(calcDepth(param, _25) - calcDepth(param_1, _25), 0.0, 1.0));
 }
 
-fragment main0_out main0(main0_in in [[stage_in]], constant uniforms_block& _25 [[buffer(0)]], texture2d<float> texture_diffusemap [[texture(0)]], texture2d<float> texture_next_diffusemap [[texture(1)]], texture2d<float> texture_depth_attachment [[texture(2)]], sampler texture_diffusemapSmplr [[sampler(0)]], sampler texture_next_diffusemapSmplr [[sampler(1)]], sampler texture_depth_attachmentSmplr [[sampler(2)]], float4 gl_FragCoord [[position]])
+fragment main0_out main0(main0_in in [[stage_in]], constant uniformsBlock& _25 [[buffer(0)]], texture2d<float> textureDiffusemap [[texture(0)]], texture2d<float> textureNextDiffusemap [[texture(1)]], texture2d<float> textureDepthAttachment [[texture(2)]], sampler textureDiffusemapSmplr [[sampler(0)]], sampler textureNextDiffusemapSmplr [[sampler(1)]], sampler textureDepthAttachmentSmplr [[sampler(2)]], float4 gl_FragCoord [[position]])
 {
     main0_out out = {};
-    float3 texture_color = mix(texture_diffusemap.sample(texture_diffusemapSmplr, in.in_diffusemap).xyz, texture_next_diffusemap.sample(texture_next_diffusemapSmplr, in.in_next_diffusemap).xyz, float3(in.in_lerp));
-    float3 color = in.in_color;
-    if (in.in_lighting > 0.0)
+    float3 textureColor = mix(textureDiffusemap.sample(textureDiffusemapSmplr, in.inDiffusemap).xyz, textureNextDiffusemap.sample(textureNextDiffusemapSmplr, in.inNextDiffusemap).xyz, float3(in.inLerp));
+    float3 color = in.inColor;
+    if (in.inLighting > 0.0)
     {
-        color = mix(color, color * in.in_diffuse, float3(in.in_lighting));
+        color = mix(color, color * in.inDiffuse, float3(in.inLighting));
     }
     float _132;
-    if (_25.view_type == 3)
+    if (_25.viewType == 3)
     {
         _132 = 1.0;
     }
     else
     {
-        _132 = soften(_25, texture_depth_attachment, texture_depth_attachmentSmplr, gl_FragCoord);
+        _132 = soften(_25, textureDepthAttachment, textureDepthAttachmentSmplr, gl_FragCoord);
     }
     float softness = _132;
-    out.out_color = float4((texture_color * color) * softness, 1.0);
+    out.outColor = float4((textureColor * color) * softness, 1.0);
     return out;
 }
 

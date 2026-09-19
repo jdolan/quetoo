@@ -28,26 +28,26 @@
 
 #include "uniforms.glsl"
 
-layout (location = 0) in vec3 in_position;
-layout (location = 1) in vec3 in_next_position;
+layout (location = 0) in vec3 inPosition;
+layout (location = 1) in vec3 inNextPosition;
 #ifdef ALPHA_TEST
-layout (location = 2) in vec2 in_diffusemap;
+layout (location = 2) in vec2 inDiffusemap;
 #endif
 
 /**
  * @brief Per-draw shadow transform and light origin.
  */
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform localsBlock {
   mat4 model;
-  mat4 light_view;
-  vec4 light_origin;
+  mat4 lightView;
+  vec4 lightOrigin;
   float lerp;
 };
 
-layout (location = 0) out vec3 out_position;
-layout (location = 1) flat out float out_light_radius;
+layout (location = 0) out vec3 outPosition;
+layout (location = 1) flat out float outLightRadius;
 #ifdef ALPHA_TEST
-layout (location = 2) out vec2 out_diffusemap;
+layout (location = 2) out vec2 outDiffusemap;
 #endif
 
 invariant gl_Position;
@@ -57,13 +57,13 @@ invariant gl_Position;
  */
 void main(void) {
 
-  const vec3 position = vec3(model * vec4(mix(in_position, in_next_position, lerp), 1.0)) - light_origin.xyz;
+  const vec3 position = vec3(model * vec4(mix(inPosition, inNextPosition, lerp), 1.0)) - lightOrigin.xyz;
 
-  out_position = position;
-  out_light_radius = light_origin.w;
+  outPosition = position;
+  outLightRadius = lightOrigin.w;
 #ifdef ALPHA_TEST
-  out_diffusemap = in_diffusemap;
+  outDiffusemap = inDiffusemap;
 #endif
 
-  gl_Position = light_projection * light_view * vec4(position, 1.0);
+  gl_Position = lightProjection * lightView * vec4(position, 1.0);
 }

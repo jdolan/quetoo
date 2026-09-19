@@ -35,7 +35,7 @@
 /**
  * @brief One decal clipped to one face. Must match `RenderDecalInstance`.
  */
-struct decal_instance_t {
+struct DecalInstance {
   vec4 origin;
   vec4 normal;
   vec4 tangent;
@@ -49,24 +49,24 @@ struct decal_instance_t {
 #define DECAL_LIFETIME   1
 #define DECAL_GENERATION 2
 
-layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_DECAL_INSTANCES) readonly buffer decal_instances_block {
-  decal_instance_t decal_instances[];
+layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_DECAL_INSTANCES) readonly buffer decalInstancesBlock {
+  DecalInstance decalInstances[];
 };
 
-layout (location = 0) in vec3 in_position;
-layout (location = 1) in uint in_instance;
+layout (location = 0) in vec3 inPosition;
+layout (location = 1) in uint inInstance;
 
 /**
  * @brief Per-draw model transform.
  */
-layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform locals_block {
+layout (std140, set = UNIFORM_SET, binding = BINDING_LOCALS) uniform localsBlock {
   mat4 model;
 };
 
-layout (location = 0) out vec3 out_model_position;
-layout (location = 1) out vec3 out_model_normal;
-layout (location = 2) out vec2 out_texcoord;
-layout (location = 3) out vec4 out_color;
+layout (location = 0) out vec3 outModelPosition;
+layout (location = 1) out vec3 outModelNormal;
+layout (location = 2) out vec2 outTexcoord;
+layout (location = 3) out vec4 outColor;
 
 invariant gl_Position;
 
@@ -75,24 +75,24 @@ invariant gl_Position;
  */
 void main(void) {
 
-  const decal_instance_t instance = decal_instances[in_instance & 0xffffffu];
+  const DecalInstance instance = decalInstances[inInstance & 0xffffffu];
 
   const uint age = uint(ticks) - instance.params[DECAL_TIME];
   const uint lifetime = instance.params[DECAL_LIFETIME];
 
-  const vec4 position = vec4(in_position, 1.0);
+  const vec4 position = vec4(inPosition, 1.0);
 
-  out_model_position = vec3(model * position);
-  out_model_normal = normalize(vec3(model * vec4(instance.normal.xyz, 0.0)));
+  outModelPosition = vec3(model * position);
+  outModelNormal = normalize(vec3(model * vec4(instance.normal.xyz, 0.0)));
 
-  const vec3 delta = in_position - instance.origin.xyz;
+  const vec3 delta = inPosition - instance.origin.xyz;
   const vec2 st = vec2(dot(delta, instance.tangent.xyz),
                        dot(delta, instance.bitangent.xyz)) / instance.origin.w * 0.5 + 0.5;
 
-  out_texcoord = mix(instance.texcoords.xy, instance.texcoords.zw, st);
+  outTexcoord = mix(instance.texcoords.xy, instance.texcoords.zw, st);
 
-  out_color = instance.color;
-  out_color.a *= 1.0 - clamp(float(age) / float(lifetime), 0.0, 1.0);
+  outColor = instance.color;
+  outColor.a *= 1.0 - clamp(float(age) / float(lifetime), 0.0, 1.0);
 
   gl_Position = projection3D * view * model * position;
 
@@ -101,7 +101,7 @@ void main(void) {
    * outlive the decal it describes. Collapse the triangle rather than draw it
    * with whatever decal holds the slot now.
    */
-  if ((in_instance >> 24) != instance.params[DECAL_GENERATION]) {
+  if ((inInstance >> 24) != instance.params[DECAL_GENERATION]) {
     gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
   }
 }

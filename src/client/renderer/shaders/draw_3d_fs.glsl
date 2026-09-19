@@ -21,15 +21,15 @@
 
 #version 450
 
-layout (location = 0) in vertex_data {
+layout (location = 0) in vertexData {
   vec4 color;
 } vertex;
 
-layout (location = 0) out vec4 out_color;
+layout (location = 0) out vec4 outColor;
 
 /**
  * @brief Outputs the interpolated vertex color.
  */
 void main(void) {
-  out_color = vertex.color;
+  outColor = vertex.color;
 }
