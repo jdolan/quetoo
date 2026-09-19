@@ -2607,8 +2607,6 @@
 		CE1643C32FF75DDB00863996 /* r_context.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_context.c; sourceTree = "<group>"; };
 		CE1643C62FF7EE8B00863996 /* decal_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = decal_fs.metal; sourceTree = "<group>"; };
 		CE1643C82FF7EE8B00863996 /* decal_vs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = decal_vs.metal; sourceTree = "<group>"; };
-		CE1643E22FFB373000863996 /* post_vs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = post_vs.dxil; sourceTree = "<group>"; };
-		CE1643E32FFB373000863996 /* shadow_clear_fs.dxil */ = {isa = PBXFileReference; lastKnownFileType = file; path = shadow_clear_fs.dxil; sourceTree = "<group>"; };
 		CE1643EB2FFB3A0300863996 /* shadow_clear_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_clear_fs.glsl; sourceTree = "<group>"; };
 		CE1643EC2FFB3A0300863996 /* shadow_clear_fs.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = shadow_clear_fs.metal; sourceTree = "<group>"; };
 		CE1643EE2FFB3A0300863996 /* shadow_clear_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_clear_vs.glsl; sourceTree = "<group>"; };
@@ -4130,11 +4128,9 @@
 				6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */,
 				CE16435F2FF5A1E400863996 /* post_fs.metal */,
 				CE1643602FF5A1E400863996 /* post_fs.spv */,
-				CE1643E22FFB373000863996 /* post_vs.dxil */,
 				59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */,
 				CE1643612FF5A1E400863996 /* post_vs.metal */,
 				CE1643622FF5A1E400863996 /* post_vs.spv */,
-				CE1643E32FFB373000863996 /* shadow_clear_fs.dxil */,
 				CE1643EB2FFB3A0300863996 /* shadow_clear_fs.glsl */,
 				CE1643EC2FFB3A0300863996 /* shadow_clear_fs.metal */,
 				CE1643EE2FFB3A0300863996 /* shadow_clear_vs.glsl */,

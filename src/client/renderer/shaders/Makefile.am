@@ -35,9 +35,8 @@ shaders_DATA = \
 # about these. But for users who modify the .glsl sources, run
 # `make -C src/client/renderer/shaders shaders` to transpile.
 #
-# DXIL is not generated: D3D12 is unusable pending an SDL_gpu fix, so only
-# Vulkan and Metal are exercised. The committed .dxil blobs are retained
-# because ObjectivelyGPU resolves that extension for a D3D12 device.
+# DXIL is neither generated nor shipped: D3D12 is unusable pending an SDL_gpu
+# fix, so only Vulkan and Metal are supported.
 
 VERTEX_SHADERS = depth_pass_vs draw_3d_vs post_vs bsp_vs mesh_vs shadow_vs shadow_clear_vs sky_vs sprite_vs decal_vs occlude_vs
 FRAGMENT_SHADERS = depth_pass_fs draw_3d_fs post_fs bsp_fs mesh_fs shadow_fs shadow_clear_fs sky_fs sprite_fs decal_fs
@@ -52,16 +51,12 @@ ALPHA_TEST_VERTEX_SHADERS = shadow_vs
 shaders_DATA += \
 	$(VERTEX_SHADERS:=.spv) \
 	$(VERTEX_SHADERS:=.metal) \
-	$(VERTEX_SHADERS:=.dxil) \
 	$(FRAGMENT_SHADERS:=.spv) \
 	$(FRAGMENT_SHADERS:=.metal) \
-	$(FRAGMENT_SHADERS:=.dxil) \
 	$(ALPHA_TEST_FRAGMENT_SHADERS:=_alpha_test.spv) \
 	$(ALPHA_TEST_FRAGMENT_SHADERS:=_alpha_test.metal) \
-	$(ALPHA_TEST_FRAGMENT_SHADERS:=_alpha_test.dxil) \
 	$(ALPHA_TEST_VERTEX_SHADERS:=_alpha_test.spv) \
-	$(ALPHA_TEST_VERTEX_SHADERS:=_alpha_test.metal) \
-	$(ALPHA_TEST_VERTEX_SHADERS:=_alpha_test.dxil)
+	$(ALPHA_TEST_VERTEX_SHADERS:=_alpha_test.metal)
 
 EXTRA_DIST = $(shaders_DATA)
 
