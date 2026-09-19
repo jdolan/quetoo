@@ -106,6 +106,7 @@ static struct {
     uint8_t len;
     uint8_t seq;
     uint8_t flags;
+    uint8_t channel;
   } out[VOICE_OUT_FRAMES];
 
   int32_t out_head;
@@ -464,6 +465,9 @@ static void S_ExpireSpeakers(void) {
 /**
  * @brief Enqueues one encoded frame for transmission, dropping the oldest if the client is not
  * sending fast enough to keep up.
+ * @remarks The frame remembers its own channel. A transmission's last frames, its VOICE_END above
+ * all, can still be queued when the next key down picks a different channel, and they belong to the
+ * transmission that produced them.
  */
 static void S_EnqueueVoiceFrame(const byte *data, int32_t len, uint8_t flags) {
 
@@ -477,6 +481,7 @@ static void S_EnqueueVoiceFrame(const byte *data, int32_t len, uint8_t flags) {
   s_voice_state.out[i].len = (uint8_t) len;
   s_voice_state.out[i].seq = s_voice_state.out_seq++;
   s_voice_state.out[i].flags = flags;
+  s_voice_state.out[i].channel = s_voice_state.channel;
 }
 
 /**
@@ -504,7 +509,7 @@ int32_t S_ReadVoice(byte *data, uint8_t *seq, uint8_t *flags, uint8_t *channel) 
     memcpy(data, s_voice_state.out[i].data, len);
     *seq = s_voice_state.out[i].seq;
     *flags = s_voice_state.out[i].flags;
-    *channel = s_voice_state.channel;
+    *channel = s_voice_state.out[i].channel;
   }
 
   SDL_UnlockMutex(s_voice_state.mutex);

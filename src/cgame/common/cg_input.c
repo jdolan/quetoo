@@ -332,10 +332,27 @@ static void Cg_Score_up_f(void) {
 
 /**
  * @brief Begins a push to talk voice transmission.
- * @details Holding shift promotes it to the team channel, the way shift sends a chat line as
- * say_team: key binds carry no modifier of their own, so one bind has to serve both.
+ * @details Takes an optional channel name, so that a module's own channels can be bound. Without
+ * one, holding shift promotes it to the team channel, the way shift sends a chat line as say_team:
+ * key binds carry no modifier of their own, so one bind has to serve both.
  */
 static void Cg_Voice_down_f(void) {
+
+  const char *name = cgi.Argv(1);
+
+  // button commands are passed the scancode and time, so a bare bind presents a number here
+  if (name[0] && !isdigit(name[0])) {
+
+    if (!q_strcmp(name, "team")) {
+      cgi.StartVoice(VOICE_CHANNEL_TEAM);
+    } else if (!q_strcmp(name, "all")) {
+      cgi.StartVoice(VOICE_CHANNEL_ALL);
+    } else {
+      cgi.Print("Unknown voice channel \"%s\"\n", name);
+    }
+
+    return;
+  }
 
   const bool team = SDL_GetModState() & SDL_KMOD_SHIFT;
 

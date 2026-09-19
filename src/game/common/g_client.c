@@ -2439,13 +2439,20 @@ bool G_ClientCanHearVoice(const g_client_t *speaker, const g_client_t *listener,
     return false;
   }
 
-  if (channel == VOICE_CHANNEL_TEAM) {
-    return G_OnSameTeam(speaker, listener);
-  }
+  switch (channel) {
 
-  if (speaker->persistent.spectator && !g_spectator_chat->integer) {
-    return listener->persistent.spectator;
-  }
+    case VOICE_CHANNEL_TEAM:
+      return G_OnSameTeam(speaker, listener);
 
-  return true;
+    case VOICE_CHANNEL_ALL:
+      if (speaker->persistent.spectator && !g_spectator_chat->integer) {
+        return listener->persistent.spectator;
+      }
+      return true;
+
+    default:
+      // a channel this game does not define is refused, rather than widened to everyone: the byte
+      // arrives from a client and nothing stops it being arbitrary
+      return false;
+  }
 }
