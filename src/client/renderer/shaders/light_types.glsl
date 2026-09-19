@@ -21,7 +21,7 @@
 
 /**
  * @file light_types.glsl
- * @brief Declares Light, shared light helpers, and the BSP and dynamic light storage buffers.
+ * @brief Declares light_t, shared light helpers, and the BSP and dynamic light storage buffers.
  * @remarks Define BINDING_STORAGE_BSP_LIGHTS and BINDING_STORAGE_DYNAMIC_LIGHTS before including this file.
  */
 
@@ -30,7 +30,7 @@
 /**
  * @brief Mirrors the C RenderLightUniform light record.
  */
-struct Light {
+struct light_t {
   /**
    * @brief The light origin in model space (xyz) and radius (w).
    */
@@ -50,7 +50,7 @@ struct Light {
 /**
  * @brief Returns a light color scaled by intensity, modulate, and saturation.
  */
-vec3 light_color(in Light l) {
+vec3 light_color(in light_t l) {
   vec3 color = l.color.rgb * l.color.a * modulate;
   float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
   return mix(vec3(luma), color, saturation);
@@ -70,7 +70,7 @@ bool dynamic_light_active(in uvec4 mask[MAX_DYNAMIC_LIGHTS / 128], in int j) {
  */
 layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_BSP_LIGHTS) readonly buffer bsp_lights_block {
   int num_bsp_lights;
-  Light bsp_lights[];
+  light_t bsp_lights[];
 };
 
 /**
@@ -80,5 +80,5 @@ layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_BSP_LIGHTS) readonl
  */
 layout (std430, set = SAMPLER_SET, binding = BINDING_STORAGE_DYNAMIC_LIGHTS) readonly buffer dynamic_lights_block {
   int num_dynamic_lights;
-  Light dynamic_lights[];
+  light_t dynamic_lights[];
 };

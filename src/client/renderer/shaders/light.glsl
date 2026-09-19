@@ -119,7 +119,7 @@ float sample_shadow_face(in int face, in vec3 uvw) {
 /**
  * @brief Samples the shadow atlas for a light with PCF filtering.
  */
-float sample_shadow_atlas(in Light light, in common_vertex_t v, in common_fragment_t f, in float atten) {
+float sample_shadow_atlas(in light_t light, in common_vertex_t v, in common_fragment_t f, in float atten) {
 
   if (light.tile.x < 0.0) {
     return 1.0;
@@ -217,7 +217,7 @@ vec3 ambient_light(in common_vertex_t v) {
 /**
  * @brief Computes unshadowed diffuse vertex lighting from one light.
  */
-vec3 vertex_light(in common_vertex_t v, in Light light) {
+vec3 vertex_light(in common_vertex_t v, in light_t light) {
 
   vec3 light_dir = light.origin.xyz - v.model_position;
   float dist = length(light_dir);
@@ -330,7 +330,7 @@ float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fr
 /**
  * @brief Accumulates diffuse, specular, and shadowing from one light.
  */
-void fragment_light(in common_vertex_t v, inout common_fragment_t f, in Light light) {
+void fragment_light(in common_vertex_t v, inout common_fragment_t f, in light_t light) {
 
   vec3 dir = light.origin.xyz - v.model_position;
   float dist = length(dir);

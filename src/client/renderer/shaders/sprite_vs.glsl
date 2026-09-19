@@ -101,7 +101,7 @@ ivec3 sprite_voxel_xyz(in vec3 position) {
 /**
  * @brief Computes distance-attenuated sprite lighting from one light.
  */
-vec3 sprite_light(in Light light, in vec3 position) {
+vec3 sprite_light(in light_t light, in vec3 position) {
   const float dist = distance(light.origin.xyz, position);
   const float atten = clamp(1.0 - dist / light.origin.w, 0.0, 1.0);
   return light_color(light) * atten;

@@ -66,7 +66,7 @@
 /**
  * @brief Voxel grid bounds and dimensions.
  */
-struct Voxels {
+struct voxels_t {
   /**
    * @brief World-space voxel minimums.
    */
@@ -113,14 +113,14 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniforms_
   mat4 sky_projection;
 
   /**
-   * @brief Light projection matrix.
+   * @brief light_t projection matrix.
    */
   mat4 light_projection;
 
   /**
    * @brief Voxel grid parameters.
    */
-  Voxels voxels;
+  voxels_t voxels;
 
   /**
    * @brief View depth range in world units.
