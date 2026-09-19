@@ -31,15 +31,15 @@ typedef struct {
 sizeof(*((T *) 0)->F)
 #endif
 
-#define BSP_LUMP_NUM_STRUCT(n, m) { \
-.count_ofs = offsetof(BspFile, num_ ## n), \
+#define BSP_LUMP_NUM_STRUCT(c, n, m) { \
+.count_ofs = offsetof(BspFile, c), \
 .data_ofs = offsetof(BspFile, n), \
 .type_size = BSP_SIZEOF(BspFile, n), \
 .max_count = m \
 }
 
-#define BSP_LUMP_SIZE_STRUCT(n, m) { \
-.count_ofs = offsetof(BspFile, n ## _size), \
+#define BSP_LUMP_SIZE_STRUCT(c, n, m) { \
+.count_ofs = offsetof(BspFile, c), \
 .data_ofs = offsetof(BspFile, n),\
 .type_size = sizeof(byte), \
 .max_count = m \
@@ -48,26 +48,26 @@ sizeof(*((T *) 0)->F)
 #define BSP_LUMP_SKIP { 0, 0, 0, 0 }
 
 static BspLumpMeta bsp_lump_meta[BSP_LUMP_LAST] = {
-  BSP_LUMP_SIZE_STRUCT(entity_string, MAX_BSP_ENTITIES_SIZE),
-  BSP_LUMP_NUM_STRUCT(materials, MAX_BSP_MATERIALS),
-  BSP_LUMP_NUM_STRUCT(planes, MAX_BSP_PLANES),
-  BSP_LUMP_NUM_STRUCT(brush_sides, MAX_BSP_BRUSH_SIDES),
-  BSP_LUMP_NUM_STRUCT(brushes, MAX_BSP_BRUSHES),
-  BSP_LUMP_NUM_STRUCT(patches, MAX_BSP_PATCHES),
-  BSP_LUMP_NUM_STRUCT(vertexes, MAX_BSP_VERTEXES),
-  BSP_LUMP_NUM_STRUCT(elements, MAX_BSP_ELEMENTS),
-  BSP_LUMP_NUM_STRUCT(faces, MAX_BSP_FACES),
-  BSP_LUMP_NUM_STRUCT(nodes, MAX_BSP_NODES),
-  BSP_LUMP_NUM_STRUCT(leaf_brushes, MAX_BSP_LEAF_BRUSHES),
-  BSP_LUMP_NUM_STRUCT(leafs, MAX_BSP_LEAFS),
-  BSP_LUMP_NUM_STRUCT(draw_elements, MAX_BSP_DRAW_ELEMENTS),
-  BSP_LUMP_NUM_STRUCT(blocks, MAX_BSP_BLOCKS),
-  BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
-  BSP_LUMP_NUM_STRUCT(lights, MAX_BSP_LIGHTS),
-  BSP_LUMP_SIZE_STRUCT(voxels, MAX_BSP_VOXELS_SIZE),
-  BSP_LUMP_NUM_STRUCT(light_voxels, MAX_BSP_LIGHT_VOXELS),
-  BSP_LUMP_NUM_STRUCT(block_voxels, MAX_BSP_BLOCK_VOXELS),
-  BSP_LUMP_NUM_STRUCT(portals, MAX_BSP_PORTALS),
+  BSP_LUMP_SIZE_STRUCT(entity_string_size, entity_string, MAX_BSP_ENTITIES_SIZE),
+  BSP_LUMP_NUM_STRUCT(num_materials, materials, MAX_BSP_MATERIALS),
+  BSP_LUMP_NUM_STRUCT(num_planes, planes, MAX_BSP_PLANES),
+  BSP_LUMP_NUM_STRUCT(num_brush_sides, brush_sides, MAX_BSP_BRUSH_SIDES),
+  BSP_LUMP_NUM_STRUCT(num_brushes, brushes, MAX_BSP_BRUSHES),
+  BSP_LUMP_NUM_STRUCT(num_patches, patches, MAX_BSP_PATCHES),
+  BSP_LUMP_NUM_STRUCT(num_vertexes, vertexes, MAX_BSP_VERTEXES),
+  BSP_LUMP_NUM_STRUCT(num_elements, elements, MAX_BSP_ELEMENTS),
+  BSP_LUMP_NUM_STRUCT(num_faces, faces, MAX_BSP_FACES),
+  BSP_LUMP_NUM_STRUCT(num_nodes, nodes, MAX_BSP_NODES),
+  BSP_LUMP_NUM_STRUCT(num_leaf_brushes, leaf_brushes, MAX_BSP_LEAF_BRUSHES),
+  BSP_LUMP_NUM_STRUCT(num_leafs, leafs, MAX_BSP_LEAFS),
+  BSP_LUMP_NUM_STRUCT(num_draw_elements, draw_elements, MAX_BSP_DRAW_ELEMENTS),
+  BSP_LUMP_NUM_STRUCT(num_blocks, blocks, MAX_BSP_BLOCKS),
+  BSP_LUMP_NUM_STRUCT(num_models, models, MAX_BSP_MODELS),
+  BSP_LUMP_NUM_STRUCT(num_lights, lights, MAX_BSP_LIGHTS),
+  BSP_LUMP_SIZE_STRUCT(voxels_size, voxels, MAX_BSP_VOXELS_SIZE),
+  BSP_LUMP_NUM_STRUCT(num_light_voxels, light_voxels, MAX_BSP_LIGHT_VOXELS),
+  BSP_LUMP_NUM_STRUCT(num_block_voxels, block_voxels, MAX_BSP_BLOCK_VOXELS),
+  BSP_LUMP_NUM_STRUCT(num_portals, portals, MAX_BSP_PORTALS),
 };
 
 /**
